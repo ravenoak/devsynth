@@ -1,0 +1,146 @@
+site_name: DevSynth
+repo_url: https://github.com/ravenoak/devsynth
+repo_name: ravenoak/devsynth
+edit_uri: edit/main/docs/
+
+theme:
+  name: "material"
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes # To make sections clickable
+    - navigation.top
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: getting_started/quick_start_guide.md
+    - Installation: getting_started/installation.md
+    - Basic Usage: getting_started/basic_usage.md
+  - User Guides:
+    - Overview: user_guides/index.md # Assuming an index for this section
+    - User Guide: user_guides/user_guide.md
+    - CLI Reference: user_guides/cli_reference.md
+    - Configuration: user_guides/configuration.md
+  - Developer Guides:
+    - Overview: developer_guides/index.md # Assuming an index for this section
+    - Contributing: developer_guides/contributing.md
+    - Development Setup: developer_guides/development_setup.md
+    - Testing Guide: developer_guides/testing.md
+    - Code Style: developer_guides/code_style.md
+    - Repository Structure: RepoStructure.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Hexagonal Architecture: architecture/hexagonal_architecture.md
+    - Agent System: architecture/agent_system.md
+    - Memory System: architecture/memory_system.md
+    - Provider System: architecture/provider_system.md
+    - Dialectical Reasoning: architecture/dialectical_reasoning.md
+  - Technical Reference:
+    - Overview: technical_reference/index.md # Assuming an index
+    - API Reference: technical_reference/api_reference/index.md # Or api_reference/
+    - Error Handling: technical_reference/error_handling.md
+    - Performance: technical_reference/performance.md
+  - Specifications:
+    - Overview: specifications/index.md # Assuming an index
+    - Current Specification: specifications/current/devsynth_specification.md
+    - Archived Specifications: specifications/archived/ # This will list files if an index.md is not present
+  - Policies:
+    - Overview: policies/index.md
+    - Requirements Policy: policies/requirements.md
+    - Design Policy: policies/design.md
+    - Development Policy: policies/development.md
+    - Testing Policy: policies/testing.md
+    - Deployment Policy: policies/deployment.md
+    - Maintenance Policy: policies/maintenance.md
+    - Cross-Cutting Concerns: policies/cross_cutting.md
+  - Roadmap:
+    - Overview: roadmap/index.md # Assuming an index
+    - Post-MVP Roadmap: roadmap/post_mvp_roadmap.md
+    - Documentation Plan: roadmap/documentation_plan.md
+    - Testing Infrastructure: roadmap/testing_infrastructure.md
+  - Changelog: CHANGELOG.md # Assuming CHANGELOG.md is at the root, relative to docs/
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      slugify: !!python/name:pymdownx.slugs.uslugify
+  - meta
+  # Python specific for mkdocstrings
+  - tables
+  - fenced_code
+  - pymdownx.escapeall:
+      hardbreak: true
+      nbsp: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_root_heading: true
+            show_source: true
+  - literate-nav:
+      nav_file: SUMMARY.md # If you use literate-nav
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py # If you use this for API docs
+  - include-markdown # If you use this plugin
+
+extra_css:
+  - stylesheets/extra.css # For any custom styling
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ravenoak
+  version:
+    provider: mike # If using mkdocs-mike for versioning
+    default_version: latest
+
+# Copyright
+copyright: Copyright &copy; 2024-2025 Raven Oak

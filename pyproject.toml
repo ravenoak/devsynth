@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "devsynth"
+version = "0.1.0"
+description = "DevSynth project"
+authors = ["DevSynth Team"]
+readme = "README.md"
+packages = [{include = "devsynth", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "<3.13,>=3.11"
+typer = "^0.15.4"
+rich = "^13.6.0"
+pydantic = "^2.5.0"
+langgraph = "^0.4.5"
+langchain = "^0.3.25"
+chromadb = "^1.0.9"
+tiktoken = "^0.9.0"
+networkx = "^3.4.2"
+dspy = "^2.6.23"
+langchain-openai = "^0.3.17"
+langchain-community = "^0.3.24"
+toml = "^0.10.2"
+requests = "^2.32.3"
+mcp = {extras = ["cli"], version = "^1.9.0"}
+responses = "^0.25.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-bdd = "^8.1.0"
+pytest-cov = "^6.1.1"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
+mkdocs-material = "*"
+mkdocstrings-python = "*"
+mkdocs-gen-files = "*"
+mkdocs-include-markdown-plugin = "*"
+mkdocs-typer2 = "*"
+mkdocs-literate-nav = "*"
+mkdocs-section-index = "*"
+
+[tool.poetry.scripts]
+devsynth = "devsynth.adapters.cli:run_cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

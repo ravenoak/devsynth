@@ -1,0 +1,83 @@
+
+from typing import Any, Dict, List, Optional
+from ...domain.interfaces.memory import MemoryStore, ContextManager
+from ...domain.models.memory import MemoryItem, MemoryType
+import uuid
+from datetime import datetime
+
+# Create a logger for this module
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
+from devsynth.exceptions import DevSynthError
+
+class InMemoryStore(MemoryStore):
+    """In-memory implementation of MemoryStore."""
+    
+    def __init__(self):
+        self.items = {}
+    
+    def store(self, item: MemoryItem) -> str:
+        """Store an item in memory and return its ID."""
+        if not item.id:
+            item.id = str(uuid.uuid4())
+        self.items[item.id] = item
+        return item.id
+    
+    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+        """Retrieve an item from memory by ID."""
+        return self.items.get(item_id)
+    
+    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+        """Search for items in memory matching the query."""
+        result = []
+        for item in self.items.values():
+            match = True
+            for key, value in query.items():
+                if key == "memory_type" and isinstance(value, str):
+                    if item.memory_type.value != value:
+                        match = False
+                        break
+                elif key == "content" and isinstance(value, str):
+                    if value.lower() not in str(item.content).lower():
+                        match = False
+                        break
+                elif key in item.metadata:
+                    if item.metadata[key] != value:
+                        match = False
+                        break
+                else:
+                    match = False
+                    break
+            if match:
+                result.append(item)
+        return result
+    
+    def delete(self, item_id: str) -> bool:
+        """Delete an item from memory."""
+        if item_id in self.items:
+            del self.items[item_id]
+            return True
+        return False
+
+class SimpleContextManager(ContextManager):
+    """Simple implementation of ContextManager."""
+    
+    def __init__(self):
+        self.context = {}
+    
+    def add_to_context(self, key: str, value: Any) -> None:
+        """Add a value to the current context."""
+        self.context[key] = value
+    
+    def get_from_context(self, key: str) -> Optional[Any]:
+        """Get a value from the current context."""
+        return self.context.get(key)
+    
+    def get_full_context(self) -> Dict[str, Any]:
+        """Get the full current context."""
+        return self.context.copy()
+    
+    def clear_context(self) -> None:
+        """Clear the current context."""
+        self.context.clear()

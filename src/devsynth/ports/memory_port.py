@@ -1,0 +1,43 @@
+from typing import Any, Dict, List, Optional
+from ..domain.interfaces.memory import MemoryStore, ContextManager
+from ..domain.models.memory import MemoryItem, MemoryType
+
+# Create a logger for this module
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
+from devsynth.exceptions import DevSynthError
+from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+
+class MemoryPort:
+    """Port for the memory and context system, using ChromaDB as the default backend."""
+
+    def __init__(self, context_manager: ContextManager, memory_store: Optional[MemoryStore] = None):
+        # Use ChromaDBMemoryStore by default, but allow override for testing/extensibility
+        self.memory_store = memory_store or ChromaDBMemoryStore()
+        self.context_manager = context_manager
+    
+    def store_memory(self, content: Any, memory_type: MemoryType, metadata: Dict[str, Any] = None) -> str:
+        """Store an item in memory and return its ID."""
+        item = MemoryItem(id="", content=content, memory_type=memory_type, metadata=metadata)
+        return self.memory_store.store(item)
+    
+    def retrieve_memory(self, item_id: str) -> Optional[MemoryItem]:
+        """Retrieve an item from memory by ID."""
+        return self.memory_store.retrieve(item_id)
+    
+    def search_memory(self, query: Dict[str, Any]) -> List[MemoryItem]:
+        """Search for items in memory matching the query."""
+        return self.memory_store.search(query)
+    
+    def add_to_context(self, key: str, value: Any) -> None:
+        """Add a value to the current context."""
+        self.context_manager.add_to_context(key, value)
+    
+    def get_from_context(self, key: str) -> Optional[Any]:
+        """Get a value from the current context."""
+        return self.context_manager.get_from_context(key)
+    
+    def get_full_context(self) -> Dict[str, Any]:
+        """Get the full current context."""
+        return self.context_manager.get_full_context()

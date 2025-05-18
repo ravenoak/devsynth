@@ -1,0 +1,47 @@
+
+from dataclasses import dataclass
+from typing import Dict, List, Any, Optional
+from enum import Enum
+from datetime import datetime
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.exceptions import DevSynthError
+
+# Create a logger for this module
+logger = DevSynthLogger(__name__)
+
+class MemoryType(Enum):
+    """Types of memory in the DevSynth system."""
+    SHORT_TERM = "short_term"
+    LONG_TERM = "long_term"
+    WORKING = "working"
+    EPISODIC = "episodic"
+
+@dataclass
+class MemoryItem:
+    """A single item stored in memory."""
+    id: str
+    content: Any
+    memory_type: MemoryType
+    metadata: Dict[str, Any] = None
+    created_at: datetime = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+        if self.created_at is None:
+            self.created_at = datetime.now()
+
+@dataclass
+class MemoryVector:
+    """A vector representation of a memory item."""
+    id: str
+    content: Any
+    embedding: List[float]
+    metadata: Dict[str, Any] = None
+    created_at: datetime = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+        if self.created_at is None:
+            self.created_at = datetime.now()

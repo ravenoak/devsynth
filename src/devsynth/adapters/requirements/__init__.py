@@ -1,0 +1,4 @@
+
+"""
+Adapters for requirements management.
+"""
