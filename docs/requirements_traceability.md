@@ -1,3 +1,17 @@
+---
+title: "Requirements Traceability Matrix (RTM)"
+date: "2025-05-19"
+version: "1.0.0"
+tags:
+  - "requirements"
+  - "traceability"
+  - "documentation"
+  - "testing"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-05-19"
+---
+
 # Requirements Traceability Matrix (RTM)
 
 This matrix links requirements to design, code modules, and tests, ensuring bidirectional traceability and coverage. Update this file as requirements, code, and tests evolve.
@@ -21,5 +35,9 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | REQ-015 | Fallback mechanism between providers | [Provider System Architecture](architecture/provider_system.md) | src/devsynth/adapters/provider_system.py | tests/integration/test_provider_system.py | Implemented |
 | REQ-016 | Testing standards and isolation | [Testing Guide](developer_guides/testing.md), [Testing Policy](policies/testing.md) | tests/behavior/conftest.py, tests/integration/test_provider_system.py | all tests | Implemented |
 | REQ-017 | Provider-agnostic testing | [Testing Guide](developer_guides/testing.md), [Testing Policy](policies/testing.md) | tests/behavior/conftest.py | tests/behavior/test_chromadb_integration.py, tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
+| FR-10a | System reads and interprets `manifest.yaml` for project structure | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#4.7), [Manifest Schema](../../docs/manifest_schema.json) | `manifest.yaml`, `scripts/validate_manifest.py` | `tests/unit/test_manifest_validation.py` (planned) | In Progress |
+| FR-10b | System adapts to project changes via "Expand, Differentiate, Refine" using manifest | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#4.7), [Development Plan](../../DEVELOPMENT_PLAN.md#4.5) | `src/devsynth/application/ingestion.py` (planned) | `tests/integration/test_ingestion_pipeline.py` (planned) | Planned |
+| FR-34a | System builds and maintains a model of project structure from manifest | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#3.2.6) | `src/devsynth/application/ingestion.py` (planned), `src/devsynth/domain/project_model.py` (planned) | `tests/unit/test_project_model.py` (planned) | Planned |
+| IR-07a | System parses and interprets `manifest.yaml` | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#6.2) | `scripts/validate_manifest.py`, `src/devsynth/application/ingestion.py` (planned) | `tests/unit/test_manifest_validation.py` (planned) | In Progress |
 
-_Last updated: May 17, 2025_
+_Last updated: May 19, 2025_

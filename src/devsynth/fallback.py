@@ -1,4 +1,3 @@
-
 """
 Fallback mechanisms for graceful degradation in the DevSynth system.
 
@@ -11,9 +10,6 @@ import time
 import random
 import functools
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
-
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.exceptions import DevSynthError
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
@@ -38,16 +34,26 @@ def retry_with_exponential_backoff(
     """
     Decorator for retrying a function with exponential backoff.
     
-    Args:
-        max_retries: Maximum number of retry attempts (default: 3)
-        initial_delay: Initial delay between retries in seconds (default: 1.0)
-        exponential_base: Base for the exponential backoff (default: 2.0)
-        jitter: Whether to add random jitter to the delay (default: True)
-        max_delay: Maximum delay between retries in seconds (default: 60.0)
-        retryable_exceptions: Tuple of exceptions that should trigger a retry (default: (Exception,))
-        on_retry: Optional callback function to call on each retry attempt
+    Parameters
+    ----------
+    max_retries : int
+        Maximum number of retry attempts (default: 3)
+    initial_delay : float
+        Initial delay between retries in seconds (default: 1.0)
+    exponential_base : float
+        Base for the exponential backoff (default: 2.0)
+    jitter : bool
+        Whether to add random jitter to the delay (default: True)
+    max_delay : float
+        Maximum delay between retries in seconds (default: 60.0)
+    retryable_exceptions : Tuple[Exception, ...]
+        Tuple of exceptions that should trigger a retry (default: (Exception,))
+    on_retry : Optional[Callable[[Exception, int, float], None]]
+        Optional callback function to call on each retry attempt
         
-    Returns:
+    Returns
+    -------
+    Callable
         A decorator function
     """
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
@@ -115,13 +121,20 @@ def with_fallback(
     """
     Decorator for providing a fallback function when the primary function fails.
     
-    Args:
-        fallback_function: The fallback function to call when the primary function fails
-        exceptions_to_catch: Tuple of exceptions that should trigger the fallback (default: (Exception,))
-        should_fallback: Optional function to determine if fallback should be used for a given exception
-        log_original_error: Whether to log the original error (default: True)
+    Parameters
+    ----------
+    fallback_function : Callable
+        The fallback function to call when the primary function fails
+    exceptions_to_catch : Tuple[Exception, ...]
+        Tuple of exceptions that should trigger the fallback (default: (Exception,))
+    should_fallback : Optional[Callable[[Exception], bool]]
+        Optional function to determine if fallback should be used for a given exception
+    log_original_error : bool
+        Whether to log the original error (default: True)
         
-    Returns:
+    Returns
+    -------
+    Callable
         A decorator function
     """
     def decorator(func: Callable[..., R]) -> Callable[..., R]:
@@ -176,11 +189,16 @@ class CircuitBreaker:
         """
         Initialize a circuit breaker.
         
-        Args:
-            failure_threshold: Number of failures before opening the circuit (default: 5)
-            recovery_timeout: Time in seconds before attempting recovery (default: 60.0)
-            test_calls: Number of test calls allowed in HALF_OPEN state (default: 1)
-            exception_types: Types of exceptions that count as failures (default: (Exception,))
+        Parameters
+        ----------
+        failure_threshold : int
+            Number of failures before opening the circuit (default: 5)
+        recovery_timeout : float
+            Time in seconds before attempting recovery (default: 60.0)
+        test_calls : int
+            Number of test calls allowed in HALF_OPEN state (default: 1)
+        exception_types : Tuple[Exception, ...]
+            Types of exceptions that count as failures (default: (Exception,))
         """
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -200,10 +218,14 @@ class CircuitBreaker:
         """
         Decorator for applying the circuit breaker pattern to a function.
         
-        Args:
-            func: The function to protect with the circuit breaker
+        Parameters
+        ----------
+        func : Callable
+            The function to protect with the circuit breaker
             
-        Returns:
+        Returns
+        -------
+        Callable
             A wrapped function with circuit breaker protection
         """
         @functools.wraps(func)
@@ -216,16 +238,24 @@ class CircuitBreaker:
         """
         Call a function with circuit breaker protection.
         
-        Args:
-            func: The function to call
-            *args: Positional arguments for the function
-            **kwargs: Keyword arguments for the function
+        Parameters
+        ----------
+        func : Callable
+            The function to call
+        *args: Any
+            Positional arguments for the function
+        **kwargs: Any
+            Keyword arguments for the function
             
-        Returns:
+        Returns
+        -------
+        Any
             The result of the function call
             
-        Raises:
-            DevSynthError: If the circuit is open
+        Raises
+        ------
+        DevSynthError
+            If the circuit is open
         """
         # Check if the circuit is open
         if self.state == self.OPEN:
@@ -316,9 +346,12 @@ class Bulkhead:
         """
         Initialize a bulkhead.
         
-        Args:
-            max_concurrent_calls: Maximum number of concurrent calls allowed (default: 10)
-            max_queue_size: Maximum size of the waiting queue (default: 5)
+        Parameters
+        ----------
+        max_concurrent_calls : int
+            Maximum number of concurrent calls allowed (default: 10)
+        max_queue_size : int
+            Maximum size of the waiting queue (default: 5)
         """
         self.max_concurrent_calls = max_concurrent_calls
         self.max_queue_size = max_queue_size
@@ -334,10 +367,14 @@ class Bulkhead:
         """
         Decorator for applying the bulkhead pattern to a function.
         
-        Args:
-            func: The function to protect with the bulkhead
+        Parameters
+        ----------
+        func : Callable
+            The function to protect with the bulkhead
             
-        Returns:
+        Returns
+        -------
+        Callable
             A wrapped function with bulkhead protection
         """
         @functools.wraps(func)
@@ -350,16 +387,24 @@ class Bulkhead:
         """
         Call a function with bulkhead protection.
         
-        Args:
-            func: The function to call
-            *args: Positional arguments for the function
-            **kwargs: Keyword arguments for the function
+        Parameters
+        ----------
+        func : Callable
+            The function to call
+        *args: Any
+            Positional arguments for the function
+        **kwargs: Any
+            Keyword arguments for the function
             
-        Returns:
+        Returns
+        -------
+        Any
             The result of the function call
             
-        Raises:
-            DevSynthError: If the bulkhead is full
+        Raises
+        ------
+        DevSynthError
+            If the bulkhead is full
         """
         # Check if we can execute the call
         if self.current_calls >= self.max_concurrent_calls:
@@ -412,9 +457,3 @@ class Bulkhead:
         finally:
             # Release the slot
             self.current_calls -= 1
-            self.logger.debug(
-                f"Completed call to {func.__name__}",
-                function=func.__name__,
-                current_calls=self.current_calls,
-                queue_size=self.queue_size
-            )

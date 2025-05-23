@@ -93,6 +93,8 @@ Primary users are individual software developers who:
 - [FR-08] The system shall support multiple projects with separate contexts
 - [FR-09] The system shall track project status and progress
 - [FR-10] The system shall persist project information between sessions
+- [FR-10a] The system shall read and interpret a `manifest.yaml` file to understand project structure, components, and custom layouts (e.g., monorepo, multi-language) as defined by the user.
+- [FR-10b] The system shall adapt its understanding of the project based on changes to `manifest.yaml` and the file system, following an "Expand, Differentiate, Refine" process.
 
 ### 3.2 Requirement Analysis and Specification
 
@@ -131,11 +133,13 @@ Primary users are individual software developers who:
 
 ### 3.6 Memory and Context System
 
-- [FR-34] The system shall maintain context information for projects, requirements, tests, and code
+- [FR-34] The system shall maintain context information for projects, requirements, tests, and code.
+- [FR-34a] The system shall build and maintain a model of the project's structure based on `manifest.yaml` and file system analysis, supporting diverse layouts (monorepos, sub-projects, etc.).
 - [FR-35] The system shall provide context management functions (add, update, retrieve, delete)
 - [FR-36] The system shall implement context pruning strategies for token optimization
 - [FR-37] The system shall persist context information between sessions
 - [FR-38] The system shall track token count for context information
+- [FR-38a] The system's Memory and Context System shall support the "Expand, Differentiate, Refine" ingestion and adaptation process by storing and relating discovered artifacts and their states.
 
 ### 3.7 Token Management
 
@@ -203,6 +207,8 @@ Primary users are individual software developers who:
   - Creation and update timestamps
   - Status
   - Token usage metrics
+  - Path to `manifest.yaml`
+  - Key structural metadata derived from the manifest (e.g., project type, primary language)
 
 #### 5.1.2 Requirement
 
@@ -234,7 +240,7 @@ Primary users are individual software developers who:
 - [DR-04] The system shall store context information including:
   - Unique identifier
   - Project association
-  - Type (task, memory, runtime, social)
+  - Type (task, memory, runtime, social, project_structural)
   - Data payload
   - Creation and update timestamps
   - Token count
@@ -269,6 +275,7 @@ Primary users are individual software developers who:
 - [IR-05] The system shall integrate with version control systems (e.g., Git)
 - [IR-06] The system shall interface with testing frameworks (e.g., pytest)
 - [IR-07] The system shall access the local file system for project files
+- [IR-07a] The system shall parse and interpret `manifest.yaml` for project structure and artifact definitions.
 
 ### 6.3 Communication Interfaces
 

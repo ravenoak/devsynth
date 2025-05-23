@@ -1,4 +1,3 @@
-
 """
 Configuration settings for the DevSynth system.
 """
@@ -6,8 +5,9 @@ Configuration settings for the DevSynth system.
 import os
 import re
 from typing import Dict, Any, Optional
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+from pydantic import Field, validator
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -59,92 +59,167 @@ class Settings(BaseSettings):
     # Memory system settings
     memory_store_type: str = Field(default="memory", env="DEVSYNTH_MEMORY_STORE")
     memory_file_path: str = Field(
-        default=os.path.join(os.getcwd(), ".devsynth", "memory"), 
+        default=None,
         env="DEVSYNTH_MEMORY_PATH"
     )
     max_context_size: int = Field(default=1000, env="DEVSYNTH_MAX_CONTEXT_SIZE")
     context_expiration_days: int = Field(default=7, env="DEVSYNTH_CONTEXT_EXPIRATION_DAYS")
-    
+
     # Vector store settings
     vector_store_enabled: bool = Field(default=True, env="DEVSYNTH_VECTOR_STORE_ENABLED")
     chromadb_collection_name: str = Field(default="devsynth_vectors", env="DEVSYNTH_CHROMADB_COLLECTION")
     chromadb_distance_func: str = Field(default="cosine", env="DEVSYNTH_CHROMADB_DISTANCE_FUNC")
 
-    # LLM settings
-    llm_provider: str = Field(default="lmstudio", env="DEVSYNTH_LLM_PROVIDER")
-    llm_api_base: str = Field(default="http://localhost:1234/v1", env="DEVSYNTH_LLM_API_BASE")
-    llm_model: str = Field(default="", env="DEVSYNTH_LLM_MODEL")
-    llm_max_tokens: int = Field(default=1024, env="DEVSYNTH_LLM_MAX_TOKENS")
-    llm_temperature: float = Field(default=0.7, env="DEVSYNTH_LLM_TEMPERATURE")
-    llm_auto_select_model: bool = Field(default=True, env="DEVSYNTH_LLM_AUTO_SELECT_MODEL")
+    # Path settings
+    log_dir: str = Field(default=None, env="DEVSYNTH_LOG_DIR")
+    project_dir: str = Field(default=None, env="DEVSYNTH_PROJECT_DIR")
 
-    # OpenAI specific settings
+    # LLM provider settings
+    provider_type: str = Field(default="openai", env="DEVSYNTH_PROVIDER_TYPE")
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    openai_model: str = Field(default="gpt-3.5-turbo", env="DEVSYNTH_OPENAI_MODEL")
-    openai_embedding_model: str = Field(default="text-embedding-ada-002", env="DEVSYNTH_OPENAI_EMBEDDING_MODEL")
-    
-    # Other API keys
-    serper_api_key: Optional[str] = Field(default=None, env="SERPER_API_KEY")
+    lm_studio_endpoint: Optional[str] = Field(default=None, env="LM_STUDIO_ENDPOINT")
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
+    @validator('memory_file_path', pre=True)
+    def set_default_memory_path(cls, v, values):
+        """
+        Set default memory path if not specified.
+        First check for project-level config, then fall back to global config.
+        Defer path creation to maintain testability.
+        """
+        if v is not None:
+            return v
 
+        # Check for project-level config
+        project_config_path = os.path.join(os.getcwd(), "manifest.yaml")
+        if os.path.exists(project_config_path):
+            try:
+                import yaml
+                with open(project_config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                    if config and 'resources' in config and 'project' in config['resources'] and 'memoryDir' in config['resources']['project']:
+                        return os.path.join(os.getcwd(), config['resources']['project']['memoryDir'])
+            except Exception as e:
+                # Log error but continue with default path
+                logger.error(f"Error reading manifest.yaml: {e}")
+                pass
 
-# Load environment variables from .env file at module import time
-load_dotenv()
+        # Check for global config
+        global_config_dir = os.path.expanduser("~/.devsynth/config")
+        global_config_path = os.path.join(global_config_dir, "global_config.yaml")
+        if os.path.exists(global_config_path):
+            try:
+                import yaml
+                with open(global_config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                    if config and 'resources' in config and 'global' in config['resources'] and 'memoryDir' in config['resources']['global']:
+                        return os.path.expanduser(config['resources']['global']['memoryDir'])
+            except Exception as e:
+                # Log error but continue with default path
+                pass
 
-# Create a function to get a fresh settings instance
-def _get_settings_instance() -> Settings:
-    """Get a fresh settings instance that reflects the current environment variables."""
-    return Settings()
+        # Fall back to default path
+        return os.path.join(os.getcwd(), ".devsynth", "memory")
 
-# Initialize settings
-_settings = _get_settings_instance()
+    @validator('log_dir', pre=True)
+    def set_default_log_dir(cls, v, values):
+        """
+        Set default log directory if not specified.
+        First check for project-level config, then fall back to global config.
+        Defer directory creation to maintain testability.
+        """
+        if v is not None:
+            return v
 
-def get_settings() -> Dict[str, Any]:
-    """Get all settings as a dictionary."""
-    return {
-        # Memory settings
-        "memory_store_type": _settings.memory_store_type,
-        "memory_file_path": _settings.memory_file_path,
-        "max_context_size": _settings.max_context_size,
-        "context_expiration_days": _settings.context_expiration_days,
-        
-        # Vector store settings
-        "vector_store_enabled": _settings.vector_store_enabled,
-        "chromadb_collection_name": _settings.chromadb_collection_name,
-        "chromadb_distance_func": _settings.chromadb_distance_func,
+        # Check for project-level config
+        project_config_path = os.path.join(os.getcwd(), "manifest.yaml")
+        if os.path.exists(project_config_path):
+            try:
+                import yaml
+                with open(project_config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                    if config and 'resources' in config and 'project' in config['resources'] and 'logsDir' in config['resources']['project']:
+                        return os.path.join(os.getcwd(), config['resources']['project']['logsDir'])
+            except Exception as e:
+                # Log error but continue with default path
+                logger.error(f"Error reading manifest.yaml: {e}")
+                pass
 
-        # LLM settings
-        "llm_provider": _settings.llm_provider,
-        "llm_api_base": _settings.llm_api_base,
-        "llm_model": _settings.llm_model,
-        "llm_max_tokens": _settings.llm_max_tokens,
-        "llm_temperature": _settings.llm_temperature,
-        "llm_auto_select_model": _settings.llm_auto_select_model,
+        # Check for global config
+        global_config_dir = os.path.expanduser("~/.devsynth/config")
+        global_config_path = os.path.join(global_config_dir, "global_config.yaml")
+        if os.path.exists(global_config_path):
+            try:
+                import yaml
+                with open(global_config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                    if config and 'resources' in config and 'global' in config['resources'] and 'logsDir' in config['resources']['global']:
+                        return os.path.expanduser(config['resources']['global']['logsDir'])
+            except Exception as e:
+                # Log error but continue with default path
+                pass
 
-        # OpenAI specific settings
-        "openai_api_key": _settings.openai_api_key,
-        "openai_model": _settings.openai_model,
-        "openai_embedding_model": _settings.openai_embedding_model,
+        # Fall back to default path
+        return "logs"
 
-        # API keys
-        "serper_api_key": _settings.serper_api_key,
-    }
+    @validator('project_dir', pre=True)
+    def set_default_project_dir(cls, v, values):
+        """
+        Set default project directory if not specified.
+        First check for project-level config, then fall back to global config.
+        """
+        if v is not None:
+            return v
 
-def get_llm_settings() -> Dict[str, Any]:
-    """Get LLM-specific settings as a dictionary."""
-    return {
-        "provider": _settings.llm_provider,
-        "api_base": _settings.llm_api_base,
-        "model": _settings.llm_model,
-        "max_tokens": _settings.llm_max_tokens,
-        "temperature": _settings.llm_temperature,
-        "auto_select_model": _settings.llm_auto_select_model,
-        "openai_api_key": _settings.openai_api_key,
-        "openai_model": _settings.openai_model,
-        "openai_embedding_model": _settings.openai_embedding_model,
-    }
+        # Default to current working directory
+        return os.getcwd()
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+        extra = "ignore"
+
+# Global settings instance for singleton pattern
+_settings_instance = None
+
+def get_settings(reload: bool = False, **kwargs) -> Settings:
+    """
+    Get settings instance with lazy initialization.
+
+    This function implements a singleton pattern for settings, allowing for
+    overrides via keyword arguments for testing purposes.
+
+    Args:
+        reload: If True, force reload settings even if already initialized
+        **kwargs: Optional overrides for specific settings
+
+    Returns:
+        Settings: The settings instance
+    """
+    global _settings_instance
+
+    if _settings_instance is None or reload:
+        # Load settings from environment or .env
+        _settings_instance = Settings(**kwargs)
+
+    elif kwargs:
+        # If we have kwargs but don't want to reload entirely,
+        # update the existing instance with the provided values
+        for key, value in kwargs.items():
+            setattr(_settings_instance, key, value)
+
+    return _settings_instance
+
+def ensure_path_exists(path: str, create: bool = True) -> str:
+    """
+    Ensure the specified path exists.
+
+    Args:
+        path: The path to check/create
+        create: If True, create the directory if it doesn't exist
+
+    Returns:
+        str: The verified path
+    """
+    if create:
+        os.makedirs(path, exist_ok=True)
+    return path

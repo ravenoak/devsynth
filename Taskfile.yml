@@ -1,0 +1,149 @@
+version: '3'
+
+vars:
+  PYTHON: python
+  PYTEST_ARGS: -v
+  PYTEST_COV_ARGS: --cov=src/devsynth --cov-report=term --cov-report=xml:coverage.xml
+  MKDOCS_PORT: 8000
+  MKDOCS_ADDR: 127.0.0.1
+
+tasks:
+  # Environment setup tasks
+  setup:
+    desc: Install all dependencies
+    cmds:
+      - poetry install --with dev,docs
+
+  setup:dev:
+    desc: Install development dependencies only
+    cmds:
+      - poetry install --with dev
+
+  setup:docs:
+    desc: Install documentation dependencies only
+    cmds:
+      - poetry install --with docs
+
+  # Testing tasks
+  test:
+    desc: Run all tests
+    cmds:
+      - poetry run pytest {{.PYTEST_ARGS}}
+
+  test:unit:
+    desc: Run unit tests only
+    cmds:
+      - poetry run pytest {{.PYTEST_ARGS}} tests/unit
+
+  test:integration:
+    desc: Run integration tests
+    cmds:
+      - poetry run pytest {{.PYTEST_ARGS}} tests/integration
+
+  test:bdd:
+    desc: Run BDD tests
+    cmds:
+      - poetry run pytest {{.PYTEST_ARGS}} tests/bdd
+
+  test:coverage:
+    desc: Run tests with coverage
+    cmds:
+      - poetry run pytest {{.PYTEST_COV_ARGS}} {{.PYTEST_ARGS}}
+
+  # Documentation tasks
+  docs:serve:
+    desc: Serve documentation locally
+    cmds:
+      - poetry run mkdocs serve -a {{.MKDOCS_ADDR}}:{{.MKDOCS_PORT}}
+
+  docs:build:
+    desc: Build documentation
+    cmds:
+      - poetry run mkdocs build
+
+  # Manifest validation and API doc generation
+  manifest:validate:
+    desc: Validate the manifest.yaml against schema
+    cmds:
+      - poetry run python scripts/validate_manifest.py manifest.yaml docs/manifest_schema.json
+
+  docs:gen-api:
+    desc: Generate API reference documentation
+    cmds:
+      - poetry run python scripts/gen_ref_pages.py
+
+  # Linting and code quality tasks
+  lint:
+    desc: Run all linters
+    cmds:
+      - task: lint:format
+      - task: lint:style
+      - task: lint:types
+
+  lint:format:
+    desc: Check code formatting with black
+    cmds:
+      - poetry run black --check src tests
+
+  lint:style:
+    desc: Check code style with flake8
+    cmds:
+      - poetry run flake8 src tests
+
+  lint:types:
+    desc: Check type annotations with mypy
+    cmds:
+      - poetry run mypy --config-file pyproject.toml src
+
+  format:
+    desc: Format code with black
+    cmds:
+      - poetry run black src tests
+
+  # Build and distribution tasks
+  build:
+    desc: Build package
+    cmds:
+      - poetry build
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf dist
+      - rm -rf .pytest_cache
+      - rm -rf .coverage
+      - rm -rf coverage.xml
+      - rm -rf site
+      - find . -type d -name __pycache__ -exec rm -rf {} +
+
+  # Development workflow tasks
+  dev:
+    desc: Run common development tasks (format, lint, test)
+    cmds:
+      - task: format
+      - task: lint
+      - task: test
+
+  ci:
+    desc: Run CI pipeline locally
+    cmds:
+      - task: manifest:validate
+      - task: lint
+      - task: test:coverage
+      - task: docs:build
+
+  # Python-specific tasks
+  py:shell:
+    desc: Start Python REPL with project in path
+    cmds:
+      - poetry run python
+
+  py:run:
+    desc: Run a Python script with project environment
+    cmds:
+      - poetry run python {{.CLI_ARGS}}
+
+  cli:
+    desc: Run the CLI application
+    cmds:
+      - poetry run devsynth {{.CLI_ARGS}}

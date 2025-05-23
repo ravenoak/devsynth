@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DevSynth Configuration Schema",
+  "description": "Defines the configuration structure for DevSynth projects.",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "The unique name of the project."
+    },
+    "version": {
+      "type": "string",
+      "description": "The version of the configuration file itself."
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the last update to the configuration."
+    },
+    "structure": {
+      "type": "object",
+      "description": "Defines the essential project structure",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["single_package", "monorepo", "multi_project_submodules", "custom"],
+          "description": "The overall type of the project structure."
+        },
+        "primaryLanguage": {
+          "type": "string",
+          "description": "Primary programming language used in the project."
+        },
+        "directories": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Paths to source code directories, relative to project root."
+            },
+            "tests": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Paths to test directories, relative to project root."
+            },
+            "docs": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Paths to documentation directories, relative to project root."
+            }
+          },
+          "required": ["source"]
+        },
+        "customLayouts": {
+          "type": "object",
+          "description": "Configuration for non-standard project layouts",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["monorepo", "multi_project"],
+              "description": "The type of custom layout."
+            },
+            "packagesRoot": {
+              "type": "string",
+              "description": "Root directory for packages in a monorepo."
+            },
+            "packages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the package."
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Path to the package directory."
+                  },
+                  "source": {
+                    "type": "string",
+                    "description": "Source directory within the package."
+                  },
+                  "tests": {
+                    "type": "string",
+                    "description": "Tests directory within the package."
+                  }
+                },
+                "required": ["name", "path"]
+              }
+            }
+          }
+        },
+        "entryPoints": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Main entry points for the application."
+        },
+        "ignore": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Glob patterns for files to ignore."
+        },
+        "include": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Glob patterns for files to explicitly include."
+        }
+      },
+      "required": ["type", "directories"]
+    },
+    "keyArtifacts": {
+      "type": "object",
+      "description": "Optional list of important artifacts to highlight",
+      "properties": {
+        "docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the document from the project root."
+              },
+              "purpose": {
+                "type": "string",
+                "description": "Brief description of the document's purpose."
+              }
+            },
+            "required": ["path"]
+          }
+        }
+      }
+    },
+    "methodology": {
+      "type": "object",
+      "description": "Configuration for the development methodology",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["sprint", "ad-hoc", "kanban", "custom"],
+          "description": "The type of development methodology."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Settings specific to the methodology",
+          "properties": {
+            "sprintDuration": {
+              "type": "integer",
+              "description": "Duration of sprints in days (for sprint methodology)."
+            },
+            "reviewFrequency": {
+              "type": "integer",
+              "description": "Frequency of reviews in days."
+            }
+          }
+        }
+      },
+      "required": ["type"]
+    },
+    "resources": {
+      "type": "object",
+      "description": "Configuration for DevSynth resources",
+      "properties": {
+        "global": {
+          "type": "object",
+          "description": "Global resources shared across all projects",
+          "properties": {
+            "configDir": {
+              "type": "string",
+              "description": "Path to the global configuration directory."
+            },
+            "cacheDir": {
+              "type": "string",
+              "description": "Path to the global cache directory."
+            },
+            "logsDir": {
+              "type": "string",
+              "description": "Path to the global logs directory."
+            }
+          }
+        },
+        "project": {
+          "type": "object",
+          "description": "Project-specific resources",
+          "properties": {
+            "configDir": {
+              "type": "string",
+              "description": "Path to the project configuration directory."
+            },
+            "cacheDir": {
+              "type": "string",
+              "description": "Path to the project cache directory."
+            },
+            "logsDir": {
+              "type": "string",
+              "description": "Path to the project logs directory."
+            },
+            "memoryDir": {
+              "type": "string",
+              "description": "Path to the project memory directory."
+            }
+          }
+        }
+      },
+      "required": ["global", "project"]
+    }
+  },
+  "required": [
+    "projectName",
+    "version",
+    "structure",
+    "resources"
+  ]
+}

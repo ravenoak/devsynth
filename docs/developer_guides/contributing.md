@@ -70,6 +70,14 @@ We are committed to providing a friendly, safe, and welcoming environment for al
    pre-commit install
    ```
 
+   The pre-commit hooks will run automatically when you commit changes. They include:
+   - Code formatting (Black, isort)
+   - Linting (flake8)
+   - Type checking (mypy)
+   - Test-first development check (ensures tests exist before implementing functionality)
+
+   The test-first check enforces the TDD/BDD approach by verifying that new or modified Python files have corresponding test files. This ensures that you write tests before implementing functionality.
+
 ## Coding Standards
 
 DevSynth follows these coding standards:
@@ -126,7 +134,13 @@ DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
 
 ### Writing Tests
 
+- **Follow the test-first development approach (TDD/BDD)**:
+  - Write tests before implementing functionality
+  - Run tests to verify they fail (Red)
+  - Implement the minimum code to make tests pass (Green)
+  - Refactor the code while keeping tests passing (Refactor)
 - Write unit tests for all new functionality
+- Write behavior tests (BDD) for user-facing features
 - Aim for at least 80% code coverage
 - Follow the arrange-act-assert pattern
 - Use descriptive test names that explain what is being tested
@@ -151,9 +165,11 @@ poetry run pytest --cov=src --cov-report=term-missing
 ### Test Requirements
 
 - All tests must pass before submitting a pull request
-- New features must include appropriate tests
+- **Tests must be written before implementing functionality (TDD/BDD approach)**
+- New features must include appropriate tests (unit tests and BDD tests for user-facing features)
 - Bug fixes should include tests that reproduce the bug
 - No significant decrease in code coverage
+- Pre-commit hooks will enforce the test-first approach by checking for test files
 
 ## Documentation
 
@@ -256,4 +272,3 @@ By contributing to DevSynth, you agree that your contributions will be licensed 
 If you have any questions about contributing, please open an issue or reach out to the maintainers.
 
 Thank you for contributing to DevSynth!
-
