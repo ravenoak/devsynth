@@ -170,7 +170,8 @@ class AstVisitor(ast.NodeVisitor):
             return f"{self._get_name(node.value)}.{node.attr}"
         elif isinstance(node, ast.Constant):
             return str(node.value)
-        elif isinstance(node, ast.Str):  # For backward compatibility
+        # Handle ast.Str for Python < 3.14 compatibility
+        elif hasattr(ast, 'Str') and isinstance(node, getattr(ast, 'Str')):
             return node.s
         elif isinstance(node, ast.Subscript):
             return f"{self._get_name(node.value)}[{self._get_name(node.slice)}]"
@@ -203,9 +204,11 @@ class AstVisitor(ast.NodeVisitor):
                 return "float"
             else:
                 return type(node.value).__name__
-        elif isinstance(node, ast.Str):  # For backward compatibility
+        # Handle ast.Str for Python < 3.14 compatibility
+        elif hasattr(ast, 'Str') and isinstance(node, getattr(ast, 'Str')):
             return "str"
-        elif isinstance(node, ast.Num):  # For backward compatibility
+        # Handle ast.Num for Python < 3.14 compatibility
+        elif hasattr(ast, 'Num') and isinstance(node, getattr(ast, 'Num')):
             if isinstance(node.n, int):
                 return "int"
             elif isinstance(node.n, float):
@@ -220,7 +223,8 @@ class AstVisitor(ast.NodeVisitor):
             return "tuple"
         elif isinstance(node, ast.Set):
             return "set"
-        elif isinstance(node, ast.NameConstant):  # For backward compatibility
+        # Handle ast.NameConstant for Python < 3.14 compatibility
+        elif hasattr(ast, 'NameConstant') and isinstance(node, getattr(ast, 'NameConstant')):
             if node.value is None:
                 return "None"
             elif isinstance(node.value, bool):

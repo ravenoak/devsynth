@@ -29,10 +29,10 @@ def ingest_cmd(
 ) -> None:
     """
     Ingest a project into DevSynth.
-    
+
     This command triggers the full ingestion and adaptation pipeline (Expand, Differentiate, Refine, Retrospect),
     driven by manifest.yaml and its project structure definitions.
-    
+
     Args:
         manifest_path: Path to the manifest.yaml file. If None, uses the default path.
         dry_run: If True, performs a dry run without making any changes.
@@ -42,50 +42,57 @@ def ingest_cmd(
     try:
         # Determine the manifest path
         if manifest_path is None:
-            manifest_path = os.path.join(os.getcwd(), "manifest.yaml")
-        
-        manifest_path = Path(manifest_path)
-        
+            # Check for the new location first (.devsynth/project.yaml)
+            new_path = Path(os.path.join(os.getcwd(), ".devsynth", "project.yaml"))
+            legacy_path = Path(os.path.join(os.getcwd(), "manifest.yaml"))
+
+            if os.path.exists(new_path):
+                manifest_path = new_path
+            else:
+                manifest_path = legacy_path
+        else:
+            manifest_path = Path(manifest_path)
+
         if verbose:
             console.print(f"[bold]DevSynth Ingestion[/bold]")
             console.print(f"Manifest path: {manifest_path}")
             console.print(f"Dry run: {dry_run}")
             console.print(f"Validate only: {validate_only}")
-        
+
         # Validate the manifest
         validate_manifest(manifest_path, verbose)
-        
+
         if validate_only:
             console.print("[green]Manifest validation successful.[/green]")
             return
-        
+
         # Load the manifest
         manifest = load_manifest(manifest_path)
-        
+
         # Perform the ingestion
         if not dry_run:
             console.print("[bold]Starting ingestion process...[/bold]")
-            
+
             # Expand phase
             console.print("[bold]Expand phase:[/bold] Analyzing project from the ground up")
             expand_results = expand_phase(manifest, verbose)
-            
+
             # Differentiate phase
             console.print("[bold]Differentiate phase:[/bold] Validating against higher-level definitions")
             differentiate_results = differentiate_phase(manifest, expand_results, verbose)
-            
+
             # Refine phase
             console.print("[bold]Refine phase:[/bold] Hygiene, resilience, and integration")
             refine_results = refine_phase(manifest, differentiate_results, verbose)
-            
+
             # Retrospect phase
             console.print("[bold]Retrospect phase:[/bold] Evaluating outcomes and planning next steps")
             retrospect_phase(manifest, refine_results, verbose)
-            
+
             console.print("[green]Ingestion completed successfully.[/green]")
         else:
             console.print("[yellow]Dry run completed. No changes were made.[/yellow]")
-    
+
     except ManifestError as e:
         console.print(f"[red]Manifest Error:[/red] {str(e)}")
         sys.exit(1)
@@ -102,64 +109,85 @@ def ingest_cmd(
 def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
     """
     Validate the manifest file.
-    
+
     Args:
         manifest_path: Path to the manifest.yaml file.
         verbose: If True, provides verbose output.
-    
+
     Raises:
         ManifestError: If the manifest is invalid.
     """
     if not manifest_path.exists():
         raise ManifestError(f"Manifest file not found at {manifest_path}")
-    
+
     try:
         # Import the validate_manifest function from the script
         sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent / "scripts"))
         from validate_manifest import validate_manifest as validate_manifest_script
-        
+
         # Get the project root directory
         project_root = manifest_path.parent
-        
+
         # Get the schema path
         schema_path = project_root / "docs" / "manifest_schema.json"
-        
+
         if not schema_path.exists():
             raise ManifestError(f"Manifest schema file not found at {schema_path}")
-        
+
         # Validate the manifest
         success = validate_manifest_script(manifest_path, schema_path, project_root)
-        
+
         if not success:
             raise ManifestError("Manifest validation failed")
-        
+
         if verbose:
             console.print("[green]Manifest validation successful.[/green]")
-    
+
     except ImportError:
         raise ManifestError("Failed to import validate_manifest script")
     except Exception as e:
         raise ManifestError(f"Failed to validate manifest: {str(e)}")
 
-def load_manifest(manifest_path: Path) -> Dict[str, Any]:
+def load_manifest(manifest_path: Optional[Path] = None) -> Dict[str, Any]:
     """
     Load the manifest file.
-    
+
     Args:
-        manifest_path: Path to the manifest.yaml file.
-    
+        manifest_path: Path to the manifest.yaml file. If None, checks for .devsynth/project.yaml
+                      first, then falls back to manifest.yaml.
+
     Returns:
         The loaded manifest as a dictionary.
-    
+
     Raises:
         ManifestError: If the manifest cannot be loaded.
     """
     try:
-        with open(manifest_path, "r") as f:
-            manifest = yaml.safe_load(f)
-        
-        return manifest
-    
+        # If no path is provided, check for the new location first, then fall back to legacy
+        if manifest_path is None:
+            new_path = Path(".devsynth/project.yaml")
+            legacy_path = Path("manifest.yaml")
+
+            if os.path.exists(new_path):
+                manifest_path = new_path
+            else:
+                manifest_path = legacy_path
+
+        # Try to open and load the manifest
+        try:
+            with open(manifest_path, "r") as f:
+                manifest = yaml.safe_load(f)
+            return manifest
+        except FileNotFoundError:
+            # If the file doesn't exist and we're using the new path, try the legacy path
+            if manifest_path == Path(".devsynth/project.yaml"):
+                with open(Path("manifest.yaml"), "r") as f:
+                    manifest = yaml.safe_load(f)
+                return manifest
+            else:
+                # If we're already using the legacy path or a custom path, re-raise the error
+                raise
+
     except yaml.YAMLError as e:
         raise ManifestError(f"Failed to parse manifest YAML: {str(e)}")
     except Exception as e:
@@ -168,27 +196,27 @@ def load_manifest(manifest_path: Path) -> Dict[str, Any]:
 def expand_phase(manifest: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
     """
     Perform the Expand phase of the ingestion process.
-    
+
     This phase analyzes the project from the ground up, building a comprehensive
     understanding of the current state.
-    
+
     Args:
         manifest: The loaded manifest.
         verbose: If True, provides verbose output.
-    
+
     Returns:
         The results of the Expand phase.
     """
     # This is a placeholder implementation
     # In a real implementation, this would analyze the project structure,
     # code, tests, and other artifacts to build a comprehensive understanding
-    
+
     if verbose:
         console.print("  Analyzing project structure...")
         console.print("  Scanning source code...")
         console.print("  Examining tests...")
         console.print("  Reviewing documentation...")
-    
+
     # Return placeholder results
     return {
         "artifacts_discovered": 150,
@@ -199,28 +227,28 @@ def expand_phase(manifest: Dict[str, Any], verbose: bool = False) -> Dict[str, A
 def differentiate_phase(manifest: Dict[str, Any], expand_results: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
     """
     Perform the Differentiate phase of the ingestion process.
-    
+
     This phase validates the understanding from the Expand phase against higher-level
     definitions, identifying consistencies, discrepancies, new elements, and outdated components.
-    
+
     Args:
         manifest: The loaded manifest.
         expand_results: The results of the Expand phase.
         verbose: If True, provides verbose output.
-    
+
     Returns:
         The results of the Differentiate phase.
     """
     # This is a placeholder implementation
     # In a real implementation, this would validate the understanding from the Expand phase
     # against higher-level definitions
-    
+
     if verbose:
         console.print("  Validating against requirements...")
         console.print("  Checking for inconsistencies...")
         console.print("  Identifying gaps...")
         console.print("  Detecting outdated components...")
-    
+
     # Return placeholder results
     return {
         "inconsistencies_found": 10,
@@ -231,15 +259,15 @@ def differentiate_phase(manifest: Dict[str, Any], expand_results: Dict[str, Any]
 def refine_phase(manifest: Dict[str, Any], differentiate_results: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
     """
     Perform the Refine phase of the ingestion process.
-    
+
     This phase facilitates the removal or archiving of old, unneeded, or deprecated parts,
     verifies that all critical tests pass, and ensures overall project hygiene.
-    
+
     Args:
         manifest: The loaded manifest.
         differentiate_results: The results of the Differentiate phase.
         verbose: If True, provides verbose output.
-    
+
     Returns:
         The results of the Refine phase.
     """
@@ -247,13 +275,13 @@ def refine_phase(manifest: Dict[str, Any], differentiate_results: Dict[str, Any]
     # In a real implementation, this would facilitate the removal or archiving of old,
     # unneeded, or deprecated parts, verify that all critical tests pass, and ensure
     # overall project hygiene
-    
+
     if verbose:
         console.print("  Creating relationships between artifacts...")
         console.print("  Archiving outdated items...")
         console.print("  Verifying test coverage...")
         console.print("  Ensuring project hygiene...")
-    
+
     # Return placeholder results
     return {
         "relationships_created": 75,
@@ -264,27 +292,27 @@ def refine_phase(manifest: Dict[str, Any], differentiate_results: Dict[str, Any]
 def retrospect_phase(manifest: Dict[str, Any], refine_results: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
     """
     Perform the Retrospect phase of the ingestion process.
-    
+
     This phase evaluates the outcomes of the ingestion process and plans for the next iteration.
-    
+
     Args:
         manifest: The loaded manifest.
         refine_results: The results of the Refine phase.
         verbose: If True, provides verbose output.
-    
+
     Returns:
         The results of the Retrospect phase.
     """
     # This is a placeholder implementation
     # In a real implementation, this would evaluate the outcomes of the ingestion process
     # and plan for the next iteration
-    
+
     if verbose:
         console.print("  Evaluating ingestion outcomes...")
         console.print("  Capturing insights...")
         console.print("  Identifying improvement opportunities...")
         console.print("  Planning next steps...")
-    
+
     # Return placeholder results
     return {
         "insights_captured": 8,

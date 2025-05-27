@@ -410,3 +410,26 @@ class PromiseBroker:
             cap for cap in self._capabilities.values()
             if cap.authorize(requester_id)
         ]
+
+    def register_capability_with_type(self, agent_id: str, promise_type, constraints: Dict[str, Any]) -> str:
+        """
+        Register a capability for an agent with the given promise type and constraints.
+
+        This is a convenience method that wraps the standard register_capability method
+        with a simplified interface for use in tests and other contexts.
+
+        Args:
+            agent_id: The ID of the agent providing this capability
+            promise_type: The type of capability being registered
+            constraints: Constraints on the capability parameters
+
+        Returns:
+            The ID of the registered capability
+        """
+        return self.register_capability(
+            name=promise_type.name,
+            description=f"Capability for {promise_type.name}",
+            provider_id=agent_id,
+            parameters=constraints,
+            tags=[promise_type.name]
+        )

@@ -143,10 +143,20 @@ class ChromaDBStore(MemoryStore):
         # Convert created_at string to datetime
         created_at = datetime.fromisoformat(data["created_at"]) if data["created_at"] else None
 
+        # Check if content is a string that looks like JSON and deserialize it
+        content = data["content"]
+        if isinstance(content, str):
+            try:
+                if content.startswith('{') and content.endswith('}'):
+                    content = json.loads(content)
+            except json.JSONDecodeError:
+                # If it's not valid JSON, keep it as a string
+                pass
+
         # Create a MemoryItem
         item = MemoryItem(
             id=data["id"],
-            content=data["content"],
+            content=content,
             memory_type=memory_type,
             metadata=data["metadata"],
             created_at=created_at
@@ -204,9 +214,12 @@ class ChromaDBStore(MemoryStore):
 
             # Store in ChromaDB
             # The content is used for embeddings, metadata contains the full serialized item
+            # Convert content to string if it's not already a string
+            document_content = json.dumps(item.content) if not isinstance(item.content, str) else item.content
+
             self.collection.upsert(
                 ids=[item.id],
-                documents=[item.content],
+                documents=[document_content],
                 metadatas=[{"item_data": metadata_json}]
             )
 
@@ -243,9 +256,12 @@ class ChromaDBStore(MemoryStore):
             version_id = f"{item.id}_v{version}"
 
             # Store in the versions collection
+            # Convert content to string if it's not already a string
+            document_content = json.dumps(item.content) if not isinstance(item.content, str) else item.content
+
             self.versions_collection.upsert(
                 ids=[version_id],
-                documents=[item.content],
+                documents=[document_content],
                 metadatas=[{
                     "item_data": metadata_json,
                     "original_id": item.id,
@@ -465,7 +481,12 @@ class ChromaDBStore(MemoryStore):
             # Check each query criterion
             for key, value in query.items():
                 if key == "memory_type":
-                    if item.memory_type != value:
+                    # Handle comparison between enum and string
+                    if isinstance(value, str) and item.memory_type:
+                        if item.memory_type.value != value:
+                            match = False
+                            break
+                    elif item.memory_type != value:
                         match = False
                         break
                 elif key.startswith("metadata."):

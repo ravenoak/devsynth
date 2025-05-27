@@ -23,7 +23,7 @@ def context():
             self.capabilities = {}
             self.promises = {}
             self.last_error = None
-    
+
     return Context()
 
 # Background steps
@@ -44,7 +44,7 @@ def agent_registers_capability(context, agent_id, capability, table):
     """Register a capability for an agent with constraints."""
     agent = context.agents[agent_id]
     constraints = {row['constraint']: row['value'] for row in table}
-    
+
     # Convert string values to appropriate types
     if 'max_file_size' in constraints:
         constraints['max_file_size'] = int(constraints['max_file_size'])
@@ -52,9 +52,9 @@ def agent_registers_capability(context, agent_id, capability, table):
         constraints['allowed_languages'] = constraints['allowed_languages'].split(',')
     if 'forbidden_paths' in constraints:
         constraints['forbidden_paths'] = constraints['forbidden_paths'].split(',')
-    
+
     promise_type = getattr(PromiseType, capability)
-    context.promise_broker.register_capability(agent_id, promise_type, constraints)
+    context.promise_broker.register_capability_with_type(agent_id, promise_type, constraints)
     context.capabilities[f"{agent_id}:{capability}"] = constraints
 
 @then(parsers.parse('agent "{agent_id}" should have capability "{capability}"'))
@@ -77,7 +77,7 @@ def agent_has_capability_given(context, agent_id, capability):
     """Given that an agent has a capability."""
     promise_type = getattr(PromiseType, capability)
     constraints = {"max_file_size": 1000000, "allowed_languages": ["python", "javascript", "typescript"]}
-    context.promise_broker.register_capability(agent_id, promise_type, constraints)
+    context.promise_broker.register_capability_with_type(agent_id, promise_type, constraints)
     context.capabilities[f"{agent_id}:{capability}"] = constraints
 
 @when(parsers.parse('agent "{agent_id}" creates a promise of type "{capability}" with parameters:'))
@@ -86,13 +86,13 @@ def agent_creates_promise(context, agent_id, capability, table):
     agent = context.agents[agent_id]
     parameters = {row['parameter']: row['value'] for row in table}
     promise_type = getattr(PromiseType, capability)
-    
+
     promise = agent.create_promise(
         type=promise_type,
         parameters=parameters,
         context_id="test_context"
     )
-    
+
     context.promises[f"{agent_id}:{capability}"] = promise
 
 @then("a new promise should be created")
@@ -121,20 +121,20 @@ def agent_has_created_promise(context, agent_id, capability):
     """Given that an agent has created a promise of a specific type."""
     agent = context.agents[agent_id]
     promise_type = getattr(PromiseType, capability)
-    
+
     # First ensure the agent has the capability
     if f"{agent_id}:{capability}" not in context.capabilities:
         constraints = {"max_file_size": 1000000, "allowed_languages": ["python", "javascript", "typescript"]}
-        context.promise_broker.register_capability(agent_id, promise_type, constraints)
+        context.promise_broker.register_capability_with_type(agent_id, promise_type, constraints)
         context.capabilities[f"{agent_id}:{capability}"] = constraints
-    
+
     # Then create the promise
     promise = agent.create_promise(
         type=promise_type,
         parameters={"file_path": "/project/src/module.py", "language": "python"},
         context_id="test_context"
     )
-    
+
     context.promises[f"{agent_id}:{capability}"] = promise
 
 @when(parsers.parse('agent "{agent_id}" fulfills the promise with result:'))
@@ -142,11 +142,11 @@ def agent_fulfills_promise(context, agent_id, table):
     """Fulfill a promise with a result."""
     agent = context.agents[agent_id]
     result = {row['key']: row['value'] for row in table}
-    
+
     # Convert string values to appropriate types
     if 'success' in result:
         result['success'] = result['success'].lower() == 'true'
-    
+
     promise = list(context.promises.values())[-1]  # Get the last created promise
     agent.fulfill_promise(promise.id, result)
 
@@ -186,7 +186,7 @@ def agent_attempts_to_create_promise(context, agent_id, capability):
     """Attempt to create a promise of a specific type."""
     agent = context.agents[agent_id]
     promise_type = getattr(PromiseType, capability)
-    
+
     try:
         promise = agent.create_promise(
             type=promise_type,
@@ -214,13 +214,13 @@ def agent_creates_parent_promise(context, agent_id, capability):
     """Create a parent promise of a specific type."""
     agent = context.agents[agent_id]
     promise_type = getattr(PromiseType, capability)
-    
+
     promise = agent.create_promise(
         type=promise_type,
         parameters={"project_dir": "/project/src"},
         context_id="test_context"
     )
-    
+
     context.promises["parent"] = promise
 
 @when(parsers.parse('agent "{agent_id}" creates child promises for each file to analyze'))
@@ -228,10 +228,10 @@ def agent_creates_child_promises(context, agent_id):
     """Create child promises for each file to analyze."""
     agent = context.agents[agent_id]
     parent_promise = context.promises["parent"]
-    
+
     files_to_analyze = ["/project/src/file1.py", "/project/src/file2.py", "/project/src/file3.py"]
     context.promises["children"] = []
-    
+
     for file_path in files_to_analyze:
         child_promise = agent.create_child_promise(
             parent_id=parent_promise.id,
@@ -253,11 +253,11 @@ def promises_linked_correctly(context):
     """Verify that all promises in the chain are linked correctly."""
     parent_promise = context.promises["parent"]
     child_promises = context.promises["children"]
-    
+
     # Check that each child has the parent ID
     for child in child_promises:
         assert child.parent_id == parent_promise.id, "Child promise should have the parent ID"
-    
+
     # Check that the parent has all the children IDs
     parent_children_ids = parent_promise.children_ids
     for child in child_promises:

@@ -1,0 +1,288 @@
+"""
+Prompt Manager module.
+
+This module defines the PromptManager class for managing prompt templates,
+providing a centralized system for all agents to access and use templates.
+"""
+
+from typing import Dict, List, Optional, Any
+import os
+import json
+from pathlib import Path
+
+from devsynth.application.prompts.prompt_template import PromptTemplate, PromptTemplateVersion
+from devsynth.application.prompts.prompt_efficacy import PromptEfficacyTracker
+from devsynth.application.prompts.prompt_reflection import PromptReflection
+from devsynth.logging_setup import DevSynthLogger
+
+# Create a logger for this module
+logger = DevSynthLogger(__name__)
+
+
+class PromptManager:
+    """
+    Manages prompt templates for all agents in the system.
+    
+    This class provides methods for registering, retrieving, and rendering
+    prompt templates, as well as tracking their usage and efficacy.
+    """
+    
+    def __init__(self, storage_path: Optional[str] = None, 
+                 efficacy_tracker: Optional[PromptEfficacyTracker] = None,
+                 reflection_system: Optional[PromptReflection] = None):
+        """
+        Initialize the prompt manager.
+        
+        Args:
+            storage_path: Path to store prompt templates (defaults to .devsynth/prompts)
+            efficacy_tracker: Optional efficacy tracker to use
+            reflection_system: Optional reflection system to use
+        """
+        self.templates: Dict[str, PromptTemplate] = {}
+        self.storage_path = storage_path or os.path.join(os.getcwd(), ".devsynth", "prompts")
+        self.efficacy_tracker = efficacy_tracker
+        self.reflection_system = reflection_system
+        
+        # Create the storage directory if it doesn't exist
+        os.makedirs(self.storage_path, exist_ok=True)
+        
+        # Load any existing templates
+        self._load_templates()
+        
+        logger.info(f"Prompt manager initialized with storage path: {self.storage_path}")
+    
+    def register_template(self, name: str, description: str, template_text: str, 
+                         metadata: Optional[Dict[str, Any]] = None,
+                         edrr_phase: Optional[str] = None) -> PromptTemplate:
+        """
+        Register a new prompt template.
+        
+        Args:
+            name: Unique name for the template
+            description: Description of the template's purpose
+            template_text: The template text with placeholders
+            metadata: Optional metadata for the template
+            edrr_phase: Optional EDRR phase this template is associated with
+            
+        Returns:
+            The newly created template
+            
+        Raises:
+            ValueError: If a template with the given name already exists
+        """
+        if name in self.templates:
+            raise ValueError(f"Template with name '{name}' already exists")
+        
+        template = PromptTemplate(
+            name=name,
+            description=description,
+            metadata=metadata or {},
+            edrr_phase=edrr_phase
+        )
+        
+        # Add the initial version
+        template.add_version(template_text, metadata)
+        
+        # Store the template
+        self.templates[name] = template
+        self._save_template(template)
+        
+        logger.info(f"Registered new prompt template: {name}")
+        return template
+    
+    def get_template(self, name: str) -> Optional[PromptTemplate]:
+        """
+        Get a prompt template by name.
+        
+        Args:
+            name: The name of the template to retrieve
+            
+        Returns:
+            The template, or None if not found
+        """
+        return self.templates.get(name)
+    
+    def update_template(self, name: str, template_text: str, 
+                       metadata: Optional[Dict[str, Any]] = None) -> Optional[PromptTemplateVersion]:
+        """
+        Update a prompt template by adding a new version.
+        
+        Args:
+            name: The name of the template to update
+            template_text: The new template text
+            metadata: Optional metadata for the new version
+            
+        Returns:
+            The newly created version, or None if the template doesn't exist
+        """
+        template = self.get_template(name)
+        if not template:
+            logger.warning(f"Cannot update non-existent template: {name}")
+            return None
+        
+        version = template.add_version(template_text, metadata)
+        self._save_template(template)
+        
+        logger.info(f"Updated template '{name}' with new version {version.version_id}")
+        return version
+    
+    def render_prompt(self, name: str, variables: Dict[str, str], 
+                     version_id: Optional[str] = None) -> Optional[str]:
+        """
+        Render a prompt template with the provided variables.
+        
+        Args:
+            name: The name of the template to render
+            variables: Dictionary of variable names and their values
+            version_id: Optional ID of the version to use (uses latest if not specified)
+            
+        Returns:
+            The rendered prompt, or None if the template doesn't exist
+        """
+        template = self.get_template(name)
+        if not template:
+            logger.warning(f"Cannot render non-existent template: {name}")
+            return None
+        
+        try:
+            rendered = template.render(variables, version_id)
+            
+            # Track usage if efficacy tracker is available
+            if self.efficacy_tracker:
+                self.efficacy_tracker.track_usage(name, version_id or template.get_latest_version().version_id)
+            
+            return rendered
+        except ValueError as e:
+            logger.error(f"Error rendering template '{name}': {str(e)}")
+            return None
+    
+    def render_and_reflect(self, name: str, variables: Dict[str, str], 
+                          version_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Render a prompt template and set up reflection for the response.
+        
+        Args:
+            name: The name of the template to render
+            variables: Dictionary of variable names and their values
+            version_id: Optional ID of the version to use
+            
+        Returns:
+            A dictionary containing the rendered prompt and a reflection ID
+        """
+        rendered = self.render_prompt(name, variables, version_id)
+        if not rendered or not self.reflection_system:
+            return {"prompt": rendered, "reflection_id": None}
+        
+        reflection_id = self.reflection_system.prepare_reflection(name, variables, rendered)
+        return {"prompt": rendered, "reflection_id": reflection_id}
+    
+    def process_response(self, reflection_id: str, response: str) -> Dict[str, Any]:
+        """
+        Process a response to a prompt, triggering reflection if available.
+        
+        Args:
+            reflection_id: The ID of the reflection to use
+            response: The response to process
+            
+        Returns:
+            A dictionary containing the reflection results
+        """
+        if not self.reflection_system or not reflection_id:
+            return {"reflection": None}
+        
+        reflection = self.reflection_system.reflect(reflection_id, response)
+        return {"reflection": reflection}
+    
+    def list_templates(self, edrr_phase: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        List all available templates, optionally filtered by EDRR phase.
+        
+        Args:
+            edrr_phase: Optional EDRR phase to filter by
+            
+        Returns:
+            A list of template metadata dictionaries
+        """
+        result = []
+        for name, template in self.templates.items():
+            if edrr_phase and template.edrr_phase != edrr_phase:
+                continue
+            
+            latest = template.get_latest_version()
+            result.append({
+                "name": name,
+                "description": template.description,
+                "edrr_phase": template.edrr_phase,
+                "versions": len(template.versions),
+                "latest_version_id": latest.version_id if latest else None,
+                "created_at": latest.created_at.isoformat() if latest else None
+            })
+        
+        return result
+    
+    def _load_templates(self) -> None:
+        """Load templates from the storage path."""
+        template_files = Path(self.storage_path).glob("*.json")
+        for file_path in template_files:
+            try:
+                with open(file_path, "r") as f:
+                    data = json.load(f)
+                
+                template = self._deserialize_template(data)
+                if template:
+                    self.templates[template.name] = template
+                    logger.debug(f"Loaded template: {template.name}")
+            except Exception as e:
+                logger.error(f"Error loading template from {file_path}: {str(e)}")
+    
+    def _save_template(self, template: PromptTemplate) -> None:
+        """Save a template to the storage path."""
+        file_path = os.path.join(self.storage_path, f"{template.name}.json")
+        try:
+            with open(file_path, "w") as f:
+                json.dump(self._serialize_template(template), f, indent=2)
+            logger.debug(f"Saved template: {template.name}")
+        except Exception as e:
+            logger.error(f"Error saving template {template.name}: {str(e)}")
+    
+    def _serialize_template(self, template: PromptTemplate) -> Dict[str, Any]:
+        """Serialize a template to a dictionary."""
+        return {
+            "name": template.name,
+            "description": template.description,
+            "metadata": template.metadata,
+            "edrr_phase": template.edrr_phase,
+            "versions": [
+                {
+                    "version_id": v.version_id,
+                    "template_text": v.template_text,
+                    "created_at": v.created_at.isoformat(),
+                    "metadata": v.metadata
+                }
+                for v in template.versions
+            ]
+        }
+    
+    def _deserialize_template(self, data: Dict[str, Any]) -> Optional[PromptTemplate]:
+        """Deserialize a template from a dictionary."""
+        try:
+            template = PromptTemplate(
+                name=data["name"],
+                description=data["description"],
+                metadata=data.get("metadata", {}),
+                edrr_phase=data.get("edrr_phase")
+            )
+            
+            for v_data in data.get("versions", []):
+                version = PromptTemplateVersion(
+                    version_id=v_data["version_id"],
+                    template_text=v_data["template_text"],
+                    created_at=datetime.fromisoformat(v_data["created_at"]),
+                    metadata=v_data.get("metadata", {})
+                )
+                template.versions.append(version)
+            
+            return template
+        except Exception as e:
+            logger.error(f"Error deserializing template: {str(e)}")
+            return None

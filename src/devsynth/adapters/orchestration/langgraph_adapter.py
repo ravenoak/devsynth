@@ -44,12 +44,14 @@ class NeedsHumanInterventionError(BaseNeedsHumanInterventionError):
     """Raised when a workflow step requires human intervention."""
 
     def __init__(self, message: str, workflow_id: str, step_id: str, reason: Optional[str] = None, error_code: Optional[str] = None):
+        # Convert reason to options list if provided
+        options = [reason] if reason else None
+
         super().__init__(
             message, 
             workflow_id=workflow_id, 
             step=step_id, 
-            reason=reason or "Human intervention required", 
-            error_code=error_code or "NEEDS_HUMAN_INTERVENTION"
+            options=options
         )
         # Keep these for backward compatibility
         self.workflow_id = workflow_id

@@ -15,6 +15,15 @@ class MemoryType(Enum):
     LONG_TERM = "long_term"
     WORKING = "working"
     EPISODIC = "episodic"
+    SOLUTION = "solution"
+    DIALECTICAL_REASONING = "dialectical_reasoning"
+    TEAM_STATE = "team_state"
+    KNOWLEDGE_GRAPH = "knowledge_graph"
+    RELATIONSHIP = "relationship"
+    CODE_ANALYSIS = "code_analysis"
+
+# Alias for backward compatibility and for use in tests
+MemoryItemType = MemoryType
 
 @dataclass
 class MemoryItem:
@@ -24,7 +33,7 @@ class MemoryItem:
     memory_type: MemoryType
     metadata: Dict[str, Any] = None
     created_at: datetime = None
-    
+
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
@@ -39,7 +48,7 @@ class MemoryVector:
     embedding: List[float]
     metadata: Dict[str, Any] = None
     created_at: datetime = None
-    
+
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}

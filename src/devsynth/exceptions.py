@@ -13,13 +13,13 @@ from typing import Optional, Dict, Any, List
 
 class DevSynthError(Exception):
     """Base exception class for all DevSynth errors."""
-    
+
     def __init__(self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None):
         self.message = message
         self.error_code = error_code
         self.details = details or {}
         super().__init__(message)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the exception to a dictionary for structured logging."""
         return {
@@ -39,7 +39,7 @@ class UserInputError(DevSynthError):
 
 class ValidationError(UserInputError):
     """Exception raised when input validation fails."""
-    
+
     def __init__(self, message: str, field: Optional[str] = None, value: Any = None, 
                  constraints: Optional[Dict[str, Any]] = None, error_code: Optional[str] = None):
         details = {
@@ -113,6 +113,23 @@ class AdapterError(DevSynthError):
     pass
 
 
+class MemoryError(DevSynthError):
+    """Base exception for memory system errors."""
+    pass
+
+
+class MemoryCorruptionError(MemoryError):
+    """Exception raised when memory data is corrupted."""
+
+    def __init__(self, message: str, store_type: Optional[str] = None,
+                 item_id: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "store_type": store_type,
+            "item_id": item_id
+        }
+        super().__init__(message, error_code=error_code or "MEMORY_CORRUPTION", details=details)
+
+
 class ProviderError(AdapterError):
     """Exception raised for errors related to external providers."""
 
@@ -127,17 +144,40 @@ class ProviderError(AdapterError):
         super().__init__(message, error_code=error_code or "PROVIDER_ERROR", details=details)
 
 
+class LLMError(ProviderError):
+    """Exception raised for errors related to LLM operations."""
+
+    def __init__(self, message: str, provider: Optional[str] = None,
+                 operation: Optional[str] = None, error_code: Optional[str] = None,
+                 provider_error: Optional[Dict[str, Any]] = None):
+        super().__init__(message, provider=provider, operation=operation,
+                         error_code=error_code or "LLM_ERROR", provider_error=provider_error)
+
+
+class TokenLimitExceededError(LLMError):
+    """Exception raised when a text exceeds the token limit."""
+
+    def __init__(self, message: str, current_tokens: int, max_tokens: int,
+                 provider: Optional[str] = None, operation: Optional[str] = None):
+        details = {
+            "current_tokens": current_tokens,
+            "max_tokens": max_tokens,
+            "excess": current_tokens - max_tokens
+        }
+        super().__init__(message, provider=provider, operation=operation,
+                         error_code="TOKEN_LIMIT_EXCEEDED", provider_error=details)
+
+
 class ProviderTimeoutError(ProviderError):
     """Exception raised when a provider operation times out."""
 
     def __init__(self, message: str, provider: Optional[str] = None,
                  operation: Optional[str] = None, timeout_seconds: Optional[float] = None):
-        details = {
-            "provider": provider,
-            "operation": operation,
-            "timeout_seconds": timeout_seconds
-        }
-        super().__init__(message, error_code="PROVIDER_TIMEOUT", details=details)
+        # Call parent constructor
+        super().__init__(message, provider=provider, operation=operation, error_code="PROVIDER_TIMEOUT")
+
+        # Add timeout_seconds directly to the details dictionary
+        self.details["timeout_seconds"] = timeout_seconds
 
 
 class ProviderAuthenticationError(ProviderError):
@@ -171,17 +211,31 @@ class MemoryNotFoundError(MemoryAdapterError):
         super().__init__(message, error_code="MEMORY_NOT_FOUND", details=details)
 
 
+class MemoryItemNotFoundError(MemoryAdapterError):
+    """Exception raised when a specific memory item is not found."""
+
+    def __init__(self, message: str, item_id: Optional[str] = None,
+                 store_type: Optional[str] = None):
+        details = {
+            "item_id": item_id,
+            "store_type": store_type
+        }
+        super().__init__(message, error_code="MEMORY_ITEM_NOT_FOUND", details=details)
+
+
 class MemoryStoreError(MemoryAdapterError):
     """Exception raised when there's an error with a memory store operation."""
 
     def __init__(self, message: str, store_type: Optional[str] = None,
                  operation: Optional[str] = None, original_error: Optional[Exception] = None):
-        details = {
-            "store_type": store_type,
-            "operation": operation,
-            "original_error": str(original_error) if original_error else None
-        }
-        super().__init__(message, error_code="MEMORY_STORE_ERROR", details=details)
+        # Call parent constructor with the appropriate parameters
+        super().__init__(message, store_type=store_type, operation=operation, error_code="MEMORY_STORE_ERROR")
+
+        # Add original_error to details dictionary
+        if original_error:
+            self.details["original_error"] = str(original_error)
+
+        # Set the cause for proper exception chaining
         self.__cause__ = original_error
 
 
@@ -216,6 +270,19 @@ class WorkflowError(DomainError):
         super().__init__(message, error_code=error_code or "WORKFLOW_ERROR", details=details)
 
 
+class NeedsHumanInterventionError(WorkflowError):
+    """Exception raised when a workflow needs human intervention."""
+
+    def __init__(self, message: str, workflow_id: Optional[str] = None,
+                 step: Optional[str] = None, options: Optional[List[str]] = None):
+        # Create details dictionary for this class
+        self.options = options or []
+
+        # Call parent constructor without passing details
+        super().__init__(message, workflow_id=workflow_id, step=step, 
+                         error_code="NEEDS_HUMAN_INTERVENTION")
+
+
 class ContextError(DomainError):
     """Exception raised for errors related to context management."""
 
@@ -238,6 +305,18 @@ class DialecticalReasoningError(DomainError):
             "arguments": arguments
         }
         super().__init__(message, error_code=error_code or "REASONING_ERROR", details=details)
+
+
+class ProjectModelError(DomainError):
+    """Exception raised for errors related to the project model."""
+
+    def __init__(self, message: str, model_id: Optional[str] = None,
+                 operation: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "model_id": model_id,
+            "operation": operation
+        }
+        super().__init__(message, error_code=error_code or "PROJECT_MODEL_ERROR", details=details)
 
 
 # Application Errors
@@ -264,12 +343,13 @@ class PromiseStateError(PromiseError):
 
     def __init__(self, message: str, promise_id: Optional[str] = None,
                  from_state: Optional[str] = None, to_state: Optional[str] = None):
-        details = {
-            "promise_id": promise_id,
-            "from_state": from_state,
-            "to_state": to_state
-        }
-        super().__init__(message, error_code="PROMISE_STATE_ERROR", details=details)
+        # Call parent constructor with state_transition as the operation
+        super().__init__(message, promise_id=promise_id, operation="state_transition", 
+                         error_code="PROMISE_STATE_ERROR")
+
+        # Add from_state and to_state directly to the details dictionary
+        self.details["from_state"] = from_state
+        self.details["to_state"] = to_state
 
 
 class IngestionError(ApplicationError):
@@ -320,6 +400,67 @@ class TestGenerationError(ApplicationError):
         super().__init__(message, error_code=error_code or "TEST_GENERATION_ERROR", details=details)
 
 
+# Collaboration Errors
+
+class CollaborationError(DomainError):
+    """Base exception for collaboration errors."""
+
+    def __init__(self, message: str, agent_id: Optional[str] = None, role: Optional[str] = None,
+                 task: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "agent_id": agent_id,
+            "role": role,
+            "task": task
+        }
+        super().__init__(message, error_code=error_code or "COLLABORATION_ERROR", details=details)
+
+
+class AgentExecutionError(CollaborationError):
+    """Exception raised when an agent fails to execute a task."""
+
+    def __init__(self, message: str, agent_id: Optional[str] = None, task: Optional[str] = None,
+                 error_code: Optional[str] = None):
+        details = {
+            "agent_id": agent_id,
+            "task": task
+        }
+        super().__init__(message, agent_id=agent_id, task=task, error_code=error_code or "AGENT_EXECUTION_ERROR")
+
+
+class ConsensusError(CollaborationError):
+    """Exception raised when agents cannot reach consensus."""
+
+    def __init__(self, message: str, agent_ids: Optional[List[str]] = None, topic: Optional[str] = None,
+                 error_code: Optional[str] = None):
+        details = {
+            "agent_ids": agent_ids,
+            "topic": topic
+        }
+        super().__init__(message, error_code=error_code or "CONSENSUS_ERROR", details=details)
+
+
+class RoleAssignmentError(CollaborationError):
+    """Exception raised when there's an issue with role assignment."""
+
+    def __init__(self, message: str, agent_id: Optional[str] = None, role: Optional[str] = None,
+                 error_code: Optional[str] = None):
+        details = {
+            "agent_id": agent_id,
+            "role": role
+        }
+        super().__init__(message, agent_id=agent_id, role=role, error_code=error_code or "ROLE_ASSIGNMENT_ERROR")
+
+
+class TeamConfigurationError(CollaborationError):
+    """Exception raised when there's an issue with team configuration."""
+
+    def __init__(self, message: str, team_id: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "team_id": team_id
+        }
+        super().__init__(message, error_code=error_code or "TEAM_CONFIGURATION_ERROR", details=details)
+
+
 # Ports Errors
 
 class PortError(DevSynthError):
@@ -358,6 +499,51 @@ class AgentPortError(PortError):
             "operation": operation
         }
         super().__init__(message, error_code=error_code or "AGENT_PORT_ERROR", details=details)
+
+
+# File System Errors
+
+class FileSystemError(DevSynthError):
+    """Base exception for file system errors."""
+    pass
+
+
+class FileNotFoundError(FileSystemError):
+    """Exception raised when a file is not found."""
+
+    def __init__(self, message: str, file_path: Optional[str] = None,
+                 error_code: Optional[str] = None):
+        details = {
+            "file_path": file_path
+        }
+        super().__init__(message, error_code=error_code or "FILE_NOT_FOUND", details=details)
+
+
+class FilePermissionError(FileSystemError):
+    """Exception raised when there's a permission error with a file."""
+
+    def __init__(self, message: str, file_path: Optional[str] = None,
+                 operation: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "file_path": file_path,
+            "operation": operation
+        }
+        super().__init__(message, error_code=error_code or "FILE_PERMISSION_ERROR", details=details)
+
+
+class FileOperationError(FileSystemError):
+    """Exception raised when a file operation fails."""
+
+    def __init__(self, message: str, file_path: Optional[str] = None,
+                 operation: Optional[str] = None, original_error: Optional[Exception] = None,
+                 error_code: Optional[str] = None):
+        details = {
+            "file_path": file_path,
+            "operation": operation,
+            "original_error": str(original_error) if original_error else None
+        }
+        super().__init__(message, error_code=error_code or "FILE_OPERATION_ERROR", details=details)
+        self.__cause__ = original_error
 
 
 # Initialize logger at the end to avoid circular imports

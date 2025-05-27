@@ -9,8 +9,8 @@ def validate_manifest(manifest_path: Path, schema_path: Path, project_root_dir: 
     """Validates the manifest file against the JSON schema and performs additional checks.
 
     Args:
-        manifest_path: Path to the manifest.yaml file
-        schema_path: Path to the manifest_schema.json file
+        manifest_path: Path to the manifest.yaml file or .devsynth/project.yaml file
+        schema_path: Path to the project_schema.json file
         project_root_dir: Root directory of the project
 
     Returns:
@@ -300,14 +300,19 @@ if __name__ == "__main__":
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
 
-    manifest_path = project_root / "manifest.yaml"
-    schema_path = project_root / "docs" / "manifest_schema.json"
+    # Check for both legacy and new manifest locations
+    legacy_manifest_path = project_root / "manifest.yaml"
+    new_manifest_path = project_root / ".devsynth" / "project.yaml"
+    manifest_path = new_manifest_path if new_manifest_path.exists() else legacy_manifest_path
+
+    # Use the new schema location
+    schema_path = project_root / "src" / "devsynth" / "schemas" / "project_schema.json"
 
     # Parse command line arguments
     import argparse
-    parser = argparse.ArgumentParser(description="Validate DevSynth manifest.yaml against schema and project structure")
-    parser.add_argument("--manifest", help="Path to manifest.yaml file", default=manifest_path)
-    parser.add_argument("--schema", help="Path to manifest_schema.json file", default=schema_path)
+    parser = argparse.ArgumentParser(description="Validate DevSynth project configuration against schema and project structure")
+    parser.add_argument("--manifest", help="Path to manifest.yaml or .devsynth/project.yaml file", default=manifest_path)
+    parser.add_argument("--schema", help="Path to project_schema.json file", default=schema_path)
     parser.add_argument("--project-root", help="Project root directory", default=project_root)
     parser.add_argument("--verbose", "-v", action="store_true", help="Show verbose output")
     args = parser.parse_args()

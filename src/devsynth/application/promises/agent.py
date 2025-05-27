@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Set, Type, Union, Callable
 import logging
 import uuid
 import time
-from datetime import datetime
+from datetime import datetime, UTC
 
 from devsynth.exceptions import DevSynthError
 from devsynth.application.promises import (
@@ -101,14 +101,14 @@ class CapabilityHandler:
         self._active_promises[promise_id] = promise
 
         # Set metadata for execution tracking
-        promise.set_metadata("execution_started_at", datetime.utcnow().isoformat())
+        promise.set_metadata("execution_started_at", datetime.now(UTC).isoformat())
 
         try:
             # Execute the handler function
             result = self.handler_func(*args, **kwargs)
 
             # Set execution completed metadata
-            promise.set_metadata("execution_completed_at", datetime.utcnow().isoformat())
+            promise.set_metadata("execution_completed_at", datetime.now(UTC).isoformat())
 
             # Resolve the promise with the result
             promise.resolve(result)
@@ -117,7 +117,7 @@ class CapabilityHandler:
             )
         except Exception as e:
             # Set execution failed metadata
-            promise.set_metadata("execution_failed_at", datetime.utcnow().isoformat())
+            promise.set_metadata("execution_failed_at", datetime.now(UTC).isoformat())
             promise.set_metadata("error_message", str(e))
 
             # Reject the promise with the exception
@@ -304,14 +304,14 @@ class PromiseAgentMixin:
     def wait_for_capability(
         self,
         promise: Promise,
-        timeout: Optional[float] = None
+        wait_timeout: Optional[float] = None
     ) -> Any:
         """
         Wait for a capability request to be fulfilled.
 
         Args:
             promise: The promise returned from request_capability
-            timeout: Maximum time (in seconds) to wait, or None to use the promise's timeout
+            wait_timeout: Maximum time (in seconds) to wait, or None to use the promise's timeout
 
         Returns:
             The result of the capability execution
@@ -320,14 +320,16 @@ class PromiseAgentMixin:
             TimeoutError: If the timeout is reached before the promise is fulfilled
             Exception: If the promise is rejected with an exception
         """
-        if timeout is None:
-            timeout = promise.get_metadata("timeout")
+        # Use the provided wait_timeout, or fall back to the promise's metadata timeout
+        effective_timeout = wait_timeout
+        if effective_timeout is None:
+            effective_timeout = promise.get_metadata("timeout")
 
         start_time = time.time()
         while promise.is_pending:
             # Check for timeout
-            if timeout is not None and time.time() - start_time > timeout:
-                error_msg = f"Capability request timed out after {timeout} seconds"
+            if effective_timeout is not None and time.time() - start_time > effective_timeout:
+                error_msg = f"Capability request timed out after {effective_timeout} seconds"
                 promise.reject(TimeoutError(error_msg))
                 raise TimeoutError(error_msg)
 
@@ -456,9 +458,9 @@ class PromiseAgent:
         """Delegate to mixin's request_capability."""
         return self.mixin.request_capability(*args, **kwargs)
 
-    def wait_for_capability(self, promise: Promise, timeout: Optional[float] = None) -> Any:
+    def wait_for_capability(self, promise: Promise, wait_timeout: Optional[float] = None) -> Any:
         """Delegate to mixin's wait_for_capability."""
-        return self.mixin.wait_for_capability(promise, timeout)
+        return self.mixin.wait_for_capability(promise, wait_timeout)
 
     def handle_pending_capabilities(self) -> int:
         """Delegate to mixin's handle_pending_capabilities."""
@@ -471,6 +473,114 @@ class PromiseAgent:
     def get_own_capabilities(self) -> List[Dict[str, Any]]:
         """Delegate to mixin's get_own_capabilities."""
         return self.mixin.get_own_capabilities()
+
+    def create_promise(
+        self,
+        type: 'PromiseType',
+        parameters: Dict[str, Any],
+        context_id: str,
+        tags: Optional[List[str]] = None,
+        parent_id: Optional[str] = None,
+        priority: int = 1
+    ) -> Promise:
+        """
+        Create a new promise with the given parameters.
+
+        Args:
+            type: The type of capability being promised
+            parameters: Specific parameters for this promise
+            context_id: Context or task ID
+            tags: Optional tags for filtering
+            parent_id: Optional parent promise ID
+            priority: Importance level (default 1)
+
+        Returns:
+            A newly created Promise in PENDING state
+        """
+        # Create a new Promise
+        promise = Promise()
+
+        # Set metadata
+        promise.set_metadata("type", type)
+        promise.set_metadata("parameters", parameters)
+        promise.set_metadata("owner_id", self.agent_id)
+        promise.set_metadata("context_id", context_id)
+        if tags:
+            promise.set_metadata("tags", tags)
+        if parent_id:
+            promise.set_metadata("parent_id", parent_id)
+        promise.set_metadata("priority", priority)
+
+        return promise
+
+    def fulfill_promise(self, promise_id: str, result: Any) -> None:
+        """
+        Fulfill a promise with the given result.
+
+        Args:
+            promise_id: ID of the promise to fulfill
+            result: The result of the fulfilled promise
+        """
+        # Find the promise in the context
+        for promise in self.mixin._pending_requests.values():
+            if promise.id == promise_id:
+                promise.resolve(result)
+                return
+
+        # If we get here, the promise wasn't found
+        raise ValueError(f"Promise with ID {promise_id} not found")
+
+    def reject_promise(self, promise_id: str, reason: str) -> None:
+        """
+        Reject a promise with the given reason.
+
+        Args:
+            promise_id: ID of the promise to reject
+            reason: The reason why the promise was rejected
+        """
+        # Find the promise in the context
+        for promise in self.mixin._pending_requests.values():
+            if promise.id == promise_id:
+                promise.reject(Exception(reason))
+                return
+
+        # If we get here, the promise wasn't found
+        raise ValueError(f"Promise with ID {promise_id} not found")
+
+    def create_child_promise(
+        self,
+        parent_id: str,
+        type: 'PromiseType',
+        parameters: Dict[str, Any],
+        context_id: str,
+        tags: Optional[List[str]] = None,
+        priority: int = 1
+    ) -> Promise:
+        """
+        Create a child promise linked to a parent promise.
+
+        Args:
+            parent_id: ID of the parent promise
+            type: Type of capability
+            parameters: Parameters for this promise
+            context_id: Context or task ID
+            tags: Optional tags
+            priority: Importance level
+
+        Returns:
+            A newly created Promise linked to its parent
+        """
+        # Create a new Promise
+        promise = self.create_promise(
+            type=type,
+            parameters=parameters,
+            context_id=context_id,
+            tags=tags,
+            parent_id=parent_id,
+            priority=priority
+        )
+
+        return promise
 
     def run(self) -> None:
         """

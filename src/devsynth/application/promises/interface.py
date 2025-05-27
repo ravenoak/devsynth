@@ -5,10 +5,159 @@ This module defines the core interface for the Promise System, which provides
 a capability declaration, verification, and authorization framework for agents.
 """
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Set, Any, Union
+from typing import Dict, List, Optional, Set, Any, Union, Generic, TypeVar, Callable
 from enum import Enum
 from dataclasses import dataclass
 import uuid
+
+T = TypeVar('T')
+S = TypeVar('S')
+
+class PromiseInterface(Generic[T], ABC):
+    """
+    Interface for Promise objects in the system.
+    Defines the contract that all Promise implementations must follow.
+    """
+
+    @property
+    @abstractmethod
+    def id(self) -> str:
+        """Get the unique identifier of this promise."""
+        pass
+
+    @property
+    @abstractmethod
+    def state(self) -> 'PromiseState':
+        """Get the current state of this promise."""
+        pass
+
+    @property
+    @abstractmethod
+    def is_pending(self) -> bool:
+        """Check if the promise is in the pending state."""
+        pass
+
+    @property
+    @abstractmethod
+    def is_fulfilled(self) -> bool:
+        """Check if the promise is in the fulfilled state."""
+        pass
+
+    @property
+    @abstractmethod
+    def is_rejected(self) -> bool:
+        """Check if the promise is in the rejected state."""
+        pass
+
+    @property
+    @abstractmethod
+    def value(self) -> T:
+        """
+        Get the fulfillment value of this promise.
+
+        Returns:
+            The value with which the promise was fulfilled.
+
+        Raises:
+            PromiseStateError: If the promise is not in the fulfilled state.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def reason(self) -> Exception:
+        """
+        Get the rejection reason of this promise.
+
+        Returns:
+            The reason why the promise was rejected.
+
+        Raises:
+            PromiseStateError: If the promise is not in the rejected state.
+        """
+        pass
+
+    @abstractmethod
+    def set_metadata(self, key: str, value: Any) -> 'PromiseInterface[T]':
+        """
+        Set a metadata value for DevSynth analysis.
+
+        Args:
+            key: The metadata key to set
+            value: The value to associate with the key
+
+        Returns:
+            Self, for chaining
+        """
+        pass
+
+    @abstractmethod
+    def get_metadata(self, key: str) -> Any:
+        """
+        Get a metadata value.
+
+        Args:
+            key: The metadata key to retrieve
+
+        Returns:
+            The associated value, or None if the key does not exist
+        """
+        pass
+
+    @abstractmethod
+    def then(self, on_fulfilled: Callable[[T], S], on_rejected: Optional[Callable[[Exception], S]] = None) -> 'PromiseInterface[S]':
+        """
+        Attaches callbacks for the resolution and/or rejection of the Promise.
+
+        Args:
+            on_fulfilled: Function to be called when the Promise is fulfilled.
+            on_rejected: Optional function to be called when the Promise is rejected.
+
+        Returns:
+            A new Promise resolving with the return value of the called callback.
+        """
+        pass
+
+    @abstractmethod
+    def catch(self, on_rejected: Callable[[Exception], S]) -> 'PromiseInterface[S]':
+        """
+        Attaches a callback for only the rejection of the Promise.
+
+        Args:
+            on_rejected: Function to be called when the Promise is rejected.
+
+        Returns:
+            A new Promise resolving with the return value of the on_rejected callback.
+        """
+        pass
+
+    @abstractmethod
+    def resolve(self, value: T) -> None:
+        """
+        Resolves the promise with a given value.
+        To be used by the promise's creator.
+
+        Args:
+            value: The value with which to resolve the promise
+
+        Raises:
+            PromiseStateError: If the promise is already fulfilled or rejected
+        """
+        pass
+
+    @abstractmethod
+    def reject(self, reason: Exception) -> None:
+        """
+        Rejects the promise with a given reason (error).
+        To be used by the promise's creator.
+
+        Args:
+            reason: The reason why the promise was rejected
+
+        Raises:
+            PromiseStateError: If the promise is already fulfilled or rejected
+        """
+        pass
 
 
 class PromiseState(Enum):

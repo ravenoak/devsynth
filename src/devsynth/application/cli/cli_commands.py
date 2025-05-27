@@ -92,12 +92,16 @@ def init_cmd(path: str = ".") -> None:
             }
         }
 
-        # Create the devsynth.yaml file
-        config_path = os.path.join(path, "devsynth.yaml")
+        # Create the project-level config directory if it doesn't exist
+        project_config_dir = os.path.join(path, ".devsynth")
+        os.makedirs(project_config_dir, exist_ok=True)
+
+        # Create the project.yaml file in the .devsynth directory
+        config_path = os.path.join(project_config_dir, "project.yaml")
         with open(config_path, "w") as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
-        # For backward compatibility, create a symlink from manifest.yaml to devsynth.yaml
+        # For backward compatibility, create a symlink from manifest.yaml to .devsynth/project.yaml
         # This will be removed in a future version
         manifest_path = os.path.join(path, "manifest.yaml")
         try:
@@ -106,22 +110,18 @@ def init_cmd(path: str = ".") -> None:
                 subprocess.run(['mklink', manifest_path, config_path], shell=True, check=False)
             else:  # Unix-like
                 os.symlink(config_path, manifest_path)
-            console.print("[yellow]For backward compatibility, created a symlink from manifest.yaml to devsynth.yaml.[/yellow]")
+            console.print("[yellow]For backward compatibility, created a symlink from manifest.yaml to .devsynth/project.yaml.[/yellow]")
             console.print("[yellow]This will be removed in a future version.[/yellow]")
         except Exception as e:
             # If symlink creation fails, just log a warning
-            logger.warning(f"Failed to create symlink from manifest.yaml to devsynth.yaml: {e}")
+            logger.warning(f"Failed to create symlink from manifest.yaml to .devsynth/project.yaml: {e}")
 
         # Create the global config directory if it doesn't exist
         global_config_dir = os.path.expanduser("~/.devsynth/config")
         os.makedirs(global_config_dir, exist_ok=True)
 
-        # Create the project-level config directory if it doesn't exist
-        project_config_dir = os.path.join(path, ".devsynth")
-        os.makedirs(project_config_dir, exist_ok=True)
-
         console.print(f"[green]Initialized DevSynth project in {path}[/green]")
-        console.print(f"[green]Created devsynth.yaml file in {path}[/green]")
+        console.print(f"[green]Created project configuration file at {config_path}[/green]")
         console.print(f"[green]Created global config directory at {global_config_dir}[/green]")
         console.print(f"[green]Created project config directory at {project_config_dir}[/green]")
     except Exception as err:

@@ -9,4 +9,4 @@ from steps.requirement_analysis_steps import *
 from steps.cli_commands_steps import *
 
 # Define the scenarios to test
-scenarios('requirement_analysis.feature')
+scenarios('features/requirement_analysis.feature')

@@ -252,15 +252,15 @@ class TestPromiseAgent:
         provider = PromiseAgent(agent_id="provider_agent", broker=broker)
 
         # Define a capability function
-        def greet(name: str) -> str:
-            return f"Hello, {name}!"
+        def greet(person_name: str) -> str:
+            return f"Hello, {person_name}!"
 
         # Register the capability
         provider.register_capability(
             name="greet",
             handler_func=greet,
             description="Greet a person",
-            parameters={"name": "str"}
+            parameters={"person_name": "str"}
         )
 
         # Create a requester agent
@@ -268,7 +268,8 @@ class TestPromiseAgent:
 
         # Request the capability
         promise = requester.request_capability(
-            name="greet"
+            name="greet",
+            person_name="World"
         )
 
         # Process pending capability requests in a separate thread to simulate asynchronous handling

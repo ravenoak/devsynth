@@ -11,5 +11,4 @@ from steps.cli_commands_steps import *
 from steps.project_init_steps import *
 
 # Define the feature file to test
-scenarios('project_initialization.feature')
-
+scenarios('features/project_initialization.feature')

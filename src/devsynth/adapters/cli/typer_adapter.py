@@ -34,7 +34,7 @@ def show_help():
     console.print(f"  analyze-code Analyze a codebase to understand its architecture and quality")
     console.print(f"  analyze-config Analyze and manage the project configuration file (devsynth.yaml)")
     console.print(f"  analyze-manifest Analyze and manage the project configuration file (alias for analyze-config)")
-    console.print(f"  validate-manifest Validate the manifest.yaml file against its schema and project structure")
+    console.print(f"  validate-manifest Validate the project configuration file against its schema and project structure")
     console.print(f"  validate-metadata Validate metadata in Markdown files")
     console.print(f"  test-metrics Analyze test-first development metrics")
     console.print(f"  spec         Generate specifications from requirements")
@@ -42,7 +42,7 @@ def show_help():
     console.print(f"  code         Generate code from tests")
     console.print(f"  run          Execute the generated code")
     console.print(f"  config       Configure DevSynth settings")
-    console.print(f"  ingest       Ingest a project into DevSynth using manifest.yaml")
+    console.print(f"  ingest       Ingest a project into DevSynth using project configuration")
     console.print(f"  webapp       Generate a web application")
     console.print(f"  dbschema     Generate a database schema")
     console.print(f"  apispec      Generate an API specification")
@@ -82,9 +82,9 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     analyze_manifest_parser.add_argument("--prune", action="store_true", help="Remove entries from the configuration file that no longer exist in the project")
 
     # validate-manifest command
-    validate_manifest_parser = subparsers.add_parser("validate-manifest", help="Validate the manifest.yaml file against its schema and project structure")
-    validate_manifest_parser.add_argument("--config", help="Path to the manifest.yaml file (default: manifest.yaml in current directory)")
-    validate_manifest_parser.add_argument("--schema", help="Path to the manifest schema JSON file (default: docs/manifest_schema.json)")
+    validate_manifest_parser = subparsers.add_parser("validate-manifest", help="Validate the project configuration file against its schema and project structure")
+    validate_manifest_parser.add_argument("--config", help="Path to the project configuration file (default: .devsynth/project.yaml or manifest.yaml)")
+    validate_manifest_parser.add_argument("--schema", help="Path to the project schema JSON file (default: src/devsynth/schemas/project_schema.json)")
 
     # validate-metadata command
     validate_metadata_parser = subparsers.add_parser("validate-metadata", help="Validate metadata in Markdown files")
@@ -143,11 +143,11 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     generate_docs_parser.add_argument("--output-dir", help="Directory where the documentation should be generated (default: docs/api_reference)")
 
     # ingest command
-    ingest_parser = subparsers.add_parser("ingest", help="Ingest a project into DevSynth using manifest.yaml")
-    ingest_parser.add_argument("--manifest", help="Path to the manifest.yaml file (default: manifest.yaml in current directory)")
+    ingest_parser = subparsers.add_parser("ingest", help="Ingest a project into DevSynth using project configuration")
+    ingest_parser.add_argument("--manifest", help="Path to the project configuration file (default: .devsynth/project.yaml or manifest.yaml)")
     ingest_parser.add_argument("--dry-run", action="store_true", help="Perform a dry run without making any changes")
     ingest_parser.add_argument("--verbose", action="store_true", help="Provide verbose output")
-    ingest_parser.add_argument("--validate-only", action="store_true", help="Only validate the manifest without performing ingestion")
+    ingest_parser.add_argument("--validate-only", action="store_true", help="Only validate the project configuration without performing ingestion")
 
     # requirements command
     requirements_parser = subparsers.add_parser("requirements", help="Manage requirements with dialectical reasoning")

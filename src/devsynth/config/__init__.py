@@ -2,6 +2,8 @@
 Configuration module for DevSynth.
 """
 
+import os
+
 from .settings import (
     get_settings, get_llm_settings, load_dotenv, _settings
 )
@@ -18,12 +20,12 @@ CHROMADB_COLLECTION_NAME = _settings.chromadb_collection_name
 CHROMADB_DISTANCE_FUNC = _settings.chromadb_distance_func
 
 # LLM settings
-LLM_PROVIDER = _settings.llm_provider
-LLM_API_BASE = _settings.llm_api_base
-LLM_MODEL = _settings.llm_model
-LLM_MAX_TOKENS = _settings.llm_max_tokens
-LLM_TEMPERATURE = _settings.llm_temperature
-LLM_AUTO_SELECT_MODEL = _settings.llm_auto_select_model
+LLM_PROVIDER = _settings.provider_type
+LLM_API_BASE = _settings.lm_studio_endpoint
+LLM_MODEL = os.environ.get("DEVSYNTH_LLM_MODEL", "gpt-3.5-turbo")
+LLM_MAX_TOKENS = int(os.environ.get("DEVSYNTH_LLM_MAX_TOKENS", "2000"))
+LLM_TEMPERATURE = float(os.environ.get("DEVSYNTH_LLM_TEMPERATURE", "0.7"))
+LLM_AUTO_SELECT_MODEL = os.environ.get("DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true").lower() in ["true", "1", "yes"]
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -42,7 +44,7 @@ __all__ = [
     "MEMORY_FILE_PATH",
     "MAX_CONTEXT_SIZE",
     "CONTEXT_EXPIRATION_DAYS",
-    
+
     # Vector store settings
     "VECTOR_STORE_ENABLED",
     "CHROMADB_COLLECTION_NAME",

@@ -48,4 +48,27 @@ class RoleAssignmentError(BaseRoleAssignmentError):
 class TeamConfigurationError(BaseTeamConfigurationError):
     """Exception raised when there's an issue with team configuration."""
     def __init__(self, message, agent_id=None, role=None, task=None, team_id=None, error_code=None):
-        super().__init__(message, team_id=team_id, error_code=error_code)
+        # BaseTeamConfigurationError expects message, team_id, and error_code
+        # but it's trying to pass details to CollaborationError which doesn't accept it
+        # We need to modify how we call the parent class
+
+        # First, create a new instance of CollaborationError with the correct parameters
+        collaboration_error = CollaborationError(
+            message=message,
+            agent_id=agent_id,
+            role=role,
+            task=task,
+            error_code=error_code or "TEAM_CONFIGURATION_ERROR"
+        )
+
+        # Then copy its attributes to this instance
+        self.message = collaboration_error.message
+        self.error_code = collaboration_error.error_code
+        self.details = collaboration_error.details.copy()
+
+        # Add team_id to details if provided
+        if team_id is not None:
+            self.details["team_id"] = team_id
+
+        # Initialize the Exception base class
+        Exception.__init__(self, message)

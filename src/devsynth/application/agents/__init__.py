@@ -13,6 +13,8 @@ from .refactor import RefactorAgent
 from .documentation import DocumentationAgent
 from .diagram import DiagramAgent
 from .critic import CriticAgent
+from .agent_memory_integration import AgentMemoryIntegration
+from .wsde_memory_integration import WSDEMemoryIntegration
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -30,5 +32,7 @@ __all__ = [
     'RefactorAgent',
     'DocumentationAgent',
     'DiagramAgent',
-    'CriticAgent'
+    'CriticAgent',
+    'AgentMemoryIntegration',
+    'WSDEMemoryIntegration'
 ]

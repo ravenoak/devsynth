@@ -49,6 +49,9 @@ def test_environment(tmp_path, monkeypatch):
     old_env = dict(os.environ)
     old_cwd = os.getcwd()
 
+    # Store the original working directory in the environment
+    os.environ["ORIGINAL_CWD"] = old_cwd
+
     # Create common directories in the temporary path
     project_dir = tmp_path / "project"
     logs_dir = tmp_path / "logs"
@@ -296,11 +299,11 @@ def pytest_collection_modifyitems(config, items):
         # Skip LM Studio tests
         if "lm_studio" in item.nodeid:
             item.add_marker(skip_lm)
-        
+
         # Mark ChromaDB delete test as expected failure
         if "test_chromadb_store.py::TestChromaDBStore::test_delete" in item.nodeid:
             item.add_marker(xfail_chromadb)
-        
+
         # Mark config settings tests as expected failures
         if "test_config_settings.py::TestConfigSettings::" in item.nodeid:
             if any(test_name in item.nodeid for test_name in [

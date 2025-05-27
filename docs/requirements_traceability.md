@@ -9,7 +9,7 @@ tags:
   - "testing"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-19"
+last_reviewed: "2025-05-28"
 ---
 
 # Requirements Traceability Matrix (RTM)
@@ -18,26 +18,34 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 
 | Requirement ID | Description | Design/Doc Reference | Code Module(s) | Test(s) | Status |
 |---------------|-------------|----------------------|---------------|---------|--------|
-| REQ-001 | Unified memory system with ChromaDB backend | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/ports/memory_port.py, src/devsynth/adapters/chromadb_memory_store.py | tests/behavior/test_chromadb_integration.py | Implemented |
-| REQ-002 | Test isolation and artifact cleanliness | [Testing Guide](developer_guides/testing.md), [Testing Policy](policies/testing.md) | tests/behavior/conftest.py | tests/behavior/test_chromadb_integration.py, all tests | Implemented |
-| REQ-003 | Provider system abstraction and fallback | [Provider System Architecture](architecture/provider_system.md) | src/devsynth/adapters/provider_system.py | tests/integration/test_provider_system.py | Implemented |
-| REQ-004 | LLM integration (OpenAI and LM Studio) | [Provider System Architecture](architecture/provider_system.md) | src/devsynth/adapters/provider_system.py | tests/integration/test_provider_system.py | Implemented |
-| REQ-005 | Documentation restructuring and navigation | [Documentation Plan](roadmap/documentation_plan.md) | mkdocs.yml, docs/ | N/A | In Progress |
-| REQ-006 | Semantic search for project artifacts | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/chromadb_memory_store.py | tests/behavior/test_chromadb_integration.py | Implemented |
-| REQ-007 | Comprehensive test coverage | [Testing Guide](developer_guides/testing.md), [Testing Policy](policies/testing.md) | tests/ | tests/ | Implemented |
-| REQ-008 | Error handling and observability | [Error Handling Strategy](technical_reference/error_handling.md) | src/devsynth/logging_setup.py, src/devsynth/exceptions.py | tests/unit/test_error_handling.py (planned) | In Progress |
-| REQ-009 | Memory system caching capabilities | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/chromadb_memory_store.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
-| REQ-010 | Artifact versioning system | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/chromadb_memory_store.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
-| REQ-011 | Provider-backed embeddings for ChromaDB | [Memory System Architecture](architecture/memory_system.md), [Provider System Architecture](architecture/provider_system.md) | src/devsynth/adapters/chromadb_memory_store.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
-| REQ-012 | Optimized embedding storage | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/chromadb_memory_store.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
-| REQ-013 | Repository structure documentation | [Repository Structure](RepoStructure.md) | docs/RepoStructure.md | N/A | Implemented |
-| REQ-014 | SDLC policies for agentic LLMs | [Policies](policies/README.md) | docs/policies/ | N/A | In Progress |
-| REQ-015 | Fallback mechanism between providers | [Provider System Architecture](architecture/provider_system.md) | src/devsynth/adapters/provider_system.py | tests/integration/test_provider_system.py | Implemented |
-| REQ-016 | Testing standards and isolation | [Testing Guide](developer_guides/testing.md), [Testing Policy](policies/testing.md) | tests/behavior/conftest.py, tests/integration/test_provider_system.py | all tests | Implemented |
-| REQ-017 | Provider-agnostic testing | [Testing Guide](developer_guides/testing.md), [Testing Policy](policies/testing.md) | tests/behavior/conftest.py | tests/behavior/test_chromadb_integration.py, tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
-| FR-10a | System reads and interprets `manifest.yaml` for project structure | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#4.7), [Manifest Schema](../../docs/manifest_schema.json) | `manifest.yaml`, `scripts/validate_manifest.py` | `tests/unit/test_manifest_validation.py` (planned) | In Progress |
-| FR-10b | System adapts to project changes via "Expand, Differentiate, Refine" using manifest | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#4.7), [Development Plan](../../DEVELOPMENT_PLAN.md#4.5) | `src/devsynth/application/ingestion.py` (planned) | `tests/integration/test_ingestion_pipeline.py` (planned) | Planned |
-| FR-34a | System builds and maintains a model of project structure from manifest | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#3.2.6) | `src/devsynth/application/ingestion.py` (planned), `src/devsynth/domain/project_model.py` (planned) | `tests/unit/test_project_model.py` (planned) | Planned |
-| IR-07a | System parses and interprets `manifest.yaml` | [DevSynth Technical Specification](../../docs/specifications/devsynth_specification.md#6.2) | `scripts/validate_manifest.py`, `src/devsynth/application/ingestion.py` (planned) | `tests/unit/test_manifest_validation.py` (planned) | In Progress |
+| FR-01 | System initialization with required configuration | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/init_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-02 | LM Studio endpoint configuration | [Provider System Architecture](architecture/provider_system.md) | src/devsynth/config/settings.py | tests/integration/test_provider_system.py | Implemented |
+| FR-03 | LM Studio connection validation | [Provider System Architecture](architecture/provider_system.md) | src/devsynth/adapters/provider_system.py | tests/integration/test_provider_system.py | Implemented |
+| FR-04 | Configuration settings update mechanism | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/config_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-05 | User-accessible configuration storage | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/config/settings.py | tests/unit/test_settings.py | Implemented |
+| FR-06 | New software project initialization | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/init_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-07 | Project metadata specification | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/init_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-08 | Multiple projects with separate contexts | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/context_manager.py | tests/behavior/test_chromadb_integration.py | Implemented |
+| FR-09 | Project status and progress tracking | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/orchestration/workflow_manager.py | tests/unit/test_workflow_manager.py | Implemented |
+| FR-10 | Project information persistence | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/json_file_store.py | tests/behavior/test_chromadb_integration.py | Implemented |
+| FR-10a | System reads and interprets `manifest.yaml` for project structure | [DevSynth Technical Specification](specifications/devsynth_specification.md#4.7), [Manifest Schema](manifest_schema.json) | scripts/validate_manifest.py | tests/unit/test_manifest_validation.py | Implemented |
+| FR-10b | System adapts to project changes via "Expand, Differentiate, Refine" using manifest | [DevSynth Technical Specification](specifications/devsynth_specification.md#4.7), [Development Plan](../DEVELOPMENT_PLAN.md#4.5) | src/devsynth/application/ingestion.py | tests/integration/test_ingestion_pipeline.py | Implemented |
+| FR-11 | Project requirements definition and management | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/requirements/manager.py | tests/behavior/features/requirements_management.feature | Implemented |
+| FR-12 | Specification document generation | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/spec_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-13 | Specification review and refinement | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/spec_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-14 | Requirements validation | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/analyze_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-15 | Requirements categorization | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/requirements/manager.py | tests/behavior/features/requirements_management.feature | Implemented |
+| FR-16 | Requirement status and priority tracking | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/requirements/manager.py | tests/behavior/features/requirements_management.feature | Implemented |
+| FR-17 | Test generation from requirements | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/test_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
+| FR-29 | Single AI agent for automation tasks | [Agent System Architecture](architecture/agent_system.md) | src/devsynth/application/agents/base.py | tests/unit/test_base_agent.py | Implemented |
+| FR-34a | System builds and maintains a model of project structure from manifest | [DevSynth Technical Specification](specifications/devsynth_specification.md#3.2.6) | src/devsynth/application/ingestion.py, src/devsynth/domain/project_model.py | tests/unit/test_project_model.py | Implemented |
+| FR-35 | Context management functions | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/context_manager.py | tests/behavior/test_chromadb_integration.py | Implemented |
+| FR-36 | Context pruning strategies | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/context_manager.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
+| FR-37 | Context information persistence | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/json_file_store.py | tests/behavior/test_chromadb_integration.py | Implemented |
+| FR-38 | Token count tracking for context | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/llm/token_counter.py | tests/unit/test_token_counter.py | Implemented |
+| IR-07a | System parses and interprets `manifest.yaml` | [DevSynth Technical Specification](specifications/devsynth_specification.md#6.2) | scripts/validate_manifest.py, src/devsynth/application/ingestion.py | tests/unit/test_manifest_validation.py, tests/integration/test_ingestion_pipeline.py | Implemented |
+| NFR-01 | Token usage optimization | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/llm/token_counter.py | tests/unit/test_token_counter.py | Implemented |
+| NFR-06 | Local machine operation | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/config/settings.py | tests/unit/test_settings.py | Implemented |
+| NFR-19 | Modular architecture | [Hexagonal Architecture](architecture/hexagonal_architecture.md) | src/devsynth/ports/, src/devsynth/adapters/ | tests/unit/test_ports.py | Implemented |
 
-_Last updated: May 19, 2025_
+_Last updated: May 30, 2025_

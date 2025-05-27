@@ -5,6 +5,11 @@ from ...domain.interfaces.memory import MemoryStore, ContextManager, VectorStore
 from ...application.memory.context_manager import InMemoryStore, SimpleContextManager
 from ...application.memory.json_file_store import JSONFileStore
 from ...application.memory.chromadb_store import ChromaDBStore
+from ...application.memory.tinydb_store import TinyDBStore
+from ...application.memory.duckdb_store import DuckDBStore
+from ...application.memory.lmdb_store import LMDBStore
+from ...application.memory.faiss_store import FAISSStore
+from ...application.memory.rdflib_store import RDFLibStore
 from ...application.memory.persistent_context_manager import PersistentContextManager
 from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
 from ...config.settings import get_settings, ensure_path_exists
@@ -105,6 +110,63 @@ class MemorySystemAdapter:
                 )
             else:
                 self.vector_store = None
+        elif self.storage_type == "tinydb":
+            self.memory_store = TinyDBStore(self.memory_path)
+            self.context_manager = PersistentContextManager(
+                self.memory_path,
+                max_context_size=self.max_context_size,
+                expiration_days=self.context_expiration_days
+            )
+            # No vector store for TinyDB-based storage by default
+            self.vector_store = None
+        elif self.storage_type == "duckdb":
+            self.memory_store = DuckDBStore(self.memory_path)
+            self.context_manager = PersistentContextManager(
+                self.memory_path,
+                max_context_size=self.max_context_size,
+                expiration_days=self.context_expiration_days
+            )
+            # DuckDBStore implements both MemoryStore and VectorStore interfaces
+            if self.vector_store_enabled:
+                self.vector_store = self.memory_store
+            else:
+                self.vector_store = None
+        elif self.storage_type == "lmdb":
+            self.memory_store = LMDBStore(self.memory_path)
+            self.context_manager = PersistentContextManager(
+                self.memory_path,
+                max_context_size=self.max_context_size,
+                expiration_days=self.context_expiration_days
+            )
+            # No vector store for LMDB-based storage by default
+            self.vector_store = None
+        elif self.storage_type == "faiss":
+            # FAISS is primarily a vector store, so we'll use it for vector storage
+            # and use a different store for general memory items
+            self.memory_store = JSONFileStore(self.memory_path)
+            self.context_manager = PersistentContextManager(
+                self.memory_path,
+                max_context_size=self.max_context_size,
+                expiration_days=self.context_expiration_days
+            )
+            # Initialize FAISS vector store if enabled
+            if self.vector_store_enabled:
+                self.vector_store = FAISSStore(self.memory_path)
+            else:
+                self.vector_store = None
+        elif self.storage_type == "rdflib":
+            # RDFLib can serve as both a memory store and a vector store
+            self.memory_store = RDFLibStore(self.memory_path)
+            self.context_manager = PersistentContextManager(
+                self.memory_path,
+                max_context_size=self.max_context_size,
+                expiration_days=self.context_expiration_days
+            )
+            # RDFLibStore implements both MemoryStore and VectorStore interfaces
+            if self.vector_store_enabled:
+                self.vector_store = self.memory_store
+            else:
+                self.vector_store = None
         else:
             # Default to in-memory storage
             self.memory_store = InMemoryStore()
@@ -122,11 +184,11 @@ class MemorySystemAdapter:
     def get_context_manager(self) -> ContextManager:
         """Get the context manager."""
         return self.context_manager
-    
+
     def get_vector_store(self) -> Optional[VectorStore]:
         """Get the vector store if available."""
         return self.vector_store
-    
+
     def has_vector_store(self) -> bool:
         """Check if a vector store is available."""
         return self.vector_store is not None
@@ -142,6 +204,131 @@ class MemorySystemAdapter:
             "context_tokens": context_tokens,
             "total_tokens": store_tokens + context_tokens
         }
+
+    def store(self, memory_item: Any) -> str:
+        """
+        Store a memory item in the memory store.
+
+        This method delegates to the underlying memory store.
+
+        Args:
+            memory_item: The memory item to store
+
+        Returns:
+            The ID of the stored memory item
+        """
+        if self.memory_store is None:
+            raise ValueError("Memory store is not initialized")
+        return self.memory_store.store(memory_item)
+
+    def query_by_type(self, memory_type: Any) -> List[Any]:
+        """
+        Query memory items by type.
+
+        This method delegates to the underlying memory store.
+        If the memory store doesn't have a query_by_type method,
+        it falls back to using the search method.
+
+        Args:
+            memory_type: The memory type to query for
+
+        Returns:
+            A list of memory items with the specified type
+        """
+        if self.memory_store is None:
+            raise ValueError("Memory store is not initialized")
+
+        # Check if the memory store has a query_by_type method
+        if hasattr(self.memory_store, 'query_by_type'):
+            return self.memory_store.query_by_type(memory_type)
+
+        # Fall back to using the search method
+        if hasattr(self.memory_store, 'search'):
+            # Convert MemoryType enum to string if needed
+            if hasattr(memory_type, 'value'):
+                memory_type_value = memory_type.value
+            else:
+                memory_type_value = memory_type
+
+            return self.memory_store.search({"memory_type": memory_type_value})
+
+        # If neither method is available, return an empty list
+        logger.warning(f"Memory store does not support query_by_type or search")
+        return []
+
+    def query_by_metadata(self, metadata: Dict[str, Any]) -> List[Any]:
+        """
+        Query memory items by metadata.
+
+        This method delegates to the underlying memory store.
+        If the memory store doesn't have a query_by_metadata method,
+        it falls back to using the search method.
+
+        Args:
+            metadata: The metadata to query for
+
+        Returns:
+            A list of memory items with the specified metadata
+        """
+        if self.memory_store is None:
+            raise ValueError("Memory store is not initialized")
+
+        # Check if the memory store has a query_by_metadata method
+        if hasattr(self.memory_store, 'query_by_metadata'):
+            return self.memory_store.query_by_metadata(metadata)
+
+        # Fall back to using the search method
+        if hasattr(self.memory_store, 'search'):
+            return self.memory_store.search(metadata)
+
+        # If neither method is available, return an empty list
+        logger.warning(f"Memory store does not support query_by_metadata or search")
+        return []
+
+    def search(self, query: Dict[str, Any]) -> List[Any]:
+        """
+        Search for memory items matching the query.
+
+        This method delegates to the underlying memory store.
+
+        Args:
+            query: The query to search for
+
+        Returns:
+            A list of memory items matching the query
+        """
+        if self.memory_store is None:
+            raise ValueError("Memory store is not initialized")
+        return self.memory_store.search(query)
+
+    def retrieve(self, item_id: str) -> Any:
+        """
+        Retrieve a memory item by ID.
+
+        This method delegates to the underlying memory store.
+
+        Args:
+            item_id: The ID of the memory item to retrieve
+
+        Returns:
+            The retrieved memory item, or None if not found
+        """
+        if self.memory_store is None:
+            raise ValueError("Memory store is not initialized")
+        return self.memory_store.retrieve(item_id)
+
+    def get_all(self) -> List[Any]:
+        """
+        Get all memory items.
+
+        This method delegates to the underlying memory store.
+
+        Returns:
+            A list of all memory items
+        """
+        if self.memory_store is None:
+            raise ValueError("Memory store is not initialized")
+        return self.memory_store.get_all()
 
     @classmethod
     def create_for_testing(cls, storage_type: str = "memory", memory_path: Optional[Union[str, Path]] = None) -> "MemorySystemAdapter":

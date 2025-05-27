@@ -1,0 +1,360 @@
+"""
+Unit tests for the project_model module.
+
+This module tests the functionality of the project_model module, which defines
+the domain model for representing a project's structure based on the manifest.yaml
+file and file system analysis.
+"""
+
+import pytest
+from pathlib import Path
+from unittest.mock import patch
+
+from devsynth.domain.models.project import (
+    ProjectModel, Artifact, ArtifactType, ProjectStructureType
+)
+from devsynth.exceptions import ProjectModelError
+
+
+class TestArtifact:
+    """Tests for the Artifact class."""
+
+    def test_artifact_initialization(self):
+        """Test basic initialization of an Artifact."""
+        # Create an artifact
+        path = "/test/path/file.py"
+        artifact_type = ArtifactType.CODE
+        metadata = {"key": "value"}
+
+        artifact = Artifact(path, artifact_type, metadata)
+
+        # Verify properties
+        assert str(artifact.path) == path
+        assert artifact.artifact_type == artifact_type
+        assert artifact.metadata == metadata
+        assert artifact.name == "file.py"
+
+    def test_artifact_str_representation(self):
+        """Test the string representation of an Artifact."""
+        artifact = Artifact("/test/path/file.py", ArtifactType.CODE)
+        assert str(artifact) == "file.py (CODE)"
+
+    def test_artifact_repr_representation(self):
+        """Test the repr representation of an Artifact."""
+        artifact = Artifact("/test/path/file.py", ArtifactType.CODE, {"key": "value"})
+        assert repr(artifact) == "Artifact(path='/test/path/file.py', type=CODE, metadata={'key': 'value'})"
+
+
+class TestProjectModel:
+    """Tests for the ProjectModel class."""
+
+    @pytest.fixture
+    def mock_project_root(self):
+        """Create a mock project root path."""
+        return Path("/test/project")
+
+    @pytest.fixture
+    def basic_manifest_data(self):
+        """Create basic manifest data for testing."""
+        return {
+            "projectName": "TestProject",
+            "version": "0.1.0",
+            "structure": {
+                "type": "single_package",
+                "directories": {
+                    "source": ["src"],
+                    "tests": ["tests"],
+                    "docs": ["docs"]
+                }
+            }
+        }
+
+    @pytest.fixture
+    def monorepo_manifest_data(self):
+        """Create monorepo manifest data for testing."""
+        return {
+            "projectName": "TestMonorepo",
+            "version": "0.1.0",
+            "structure": {
+                "type": "monorepo",
+                "directories": {
+                    "source": ["packages"],
+                    "docs": ["docs"]
+                },
+                "customLayouts": {
+                    "type": "monorepo",
+                    "packagesRoot": "packages",
+                    "packages": [
+                        {
+                            "name": "package1",
+                            "path": "package1",
+                            "source": "src",
+                            "tests": "tests"
+                        },
+                        {
+                            "name": "package2",
+                            "path": "package2",
+                            "source": "src",
+                            "tests": "tests"
+                        }
+                    ]
+                }
+            }
+        }
+
+    def test_project_model_initialization(self, mock_project_root, basic_manifest_data):
+        """Test basic initialization of a ProjectModel."""
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+
+        assert model.project_root == mock_project_root
+        assert model.manifest_data == basic_manifest_data
+        assert model.structure_type == ProjectStructureType.STANDARD
+        assert isinstance(model.graph, object)  # Just check it's an object
+        assert isinstance(model.artifacts, dict)
+        assert len(model.artifacts) == 0  # Should be empty before build_model is called
+
+    def test_determine_structure_type(self, mock_project_root):
+        """Test determination of project structure type from manifest data."""
+        # Test standard type
+        model = ProjectModel(mock_project_root, {"structure": {"type": "single_package"}})
+        assert model.structure_type == ProjectStructureType.STANDARD
+
+        # Test monorepo type
+        model = ProjectModel(mock_project_root, {"structure": {"type": "monorepo"}})
+        assert model.structure_type == ProjectStructureType.MONOREPO
+
+        # Test federated type
+        model = ProjectModel(mock_project_root, {"structure": {"type": "multi_project_submodules"}})
+        assert model.structure_type == ProjectStructureType.FEDERATED
+
+        # Test custom type
+        model = ProjectModel(mock_project_root, {"structure": {"type": "custom"}})
+        assert model.structure_type == ProjectStructureType.CUSTOM
+
+        # Test default when type is not specified
+        model = ProjectModel(mock_project_root, {})
+        assert model.structure_type == ProjectStructureType.STANDARD
+
+    @patch('pathlib.Path.exists')
+    @patch('pathlib.Path.is_dir')
+    @patch('pathlib.Path.glob')
+    def test_build_standard_model(self, mock_glob, mock_is_dir, mock_exists, mock_project_root, basic_manifest_data):
+        """Test building a model for a standard project structure."""
+        # Setup mocks
+        mock_exists.return_value = True
+        mock_is_dir.return_value = True
+        mock_glob.return_value = []  # No files for simplicity
+
+        # Create model and build it
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+        model.build_model()
+
+        # Verify the model
+        assert str(mock_project_root) in model.artifacts
+        assert len(model.graph.nodes) >= 1  # At least the root node
+
+        # Check that source, tests, and docs directories were processed
+        src_path = mock_project_root / "src"
+        tests_path = mock_project_root / "tests"
+        docs_path = mock_project_root / "docs"
+
+        assert str(src_path) in model.artifacts
+        assert str(tests_path) in model.artifacts
+        assert str(docs_path) in model.artifacts
+
+        # Verify artifact types
+        assert model.artifacts[str(src_path)].artifact_type == ArtifactType.CODE
+        assert model.artifacts[str(tests_path)].artifact_type == ArtifactType.TEST
+        assert model.artifacts[str(docs_path)].artifact_type == ArtifactType.DOCUMENTATION
+
+    @patch('pathlib.Path.exists')
+    @patch('pathlib.Path.is_dir')
+    @patch('pathlib.Path.glob')
+    def test_build_monorepo_model(self, mock_glob, mock_is_dir, mock_exists, mock_project_root, monorepo_manifest_data):
+        """Test building a model for a monorepo project structure."""
+        # Setup mocks
+        mock_exists.return_value = True
+        mock_is_dir.return_value = True
+        mock_glob.return_value = []  # No files for simplicity
+
+        # Create model and build it
+        model = ProjectModel(mock_project_root, monorepo_manifest_data)
+        model.build_model()
+
+        # Verify the model
+        assert str(mock_project_root) in model.artifacts
+
+        # Check that packages root and package directories were processed
+        packages_root = mock_project_root / "packages"
+        package1_path = packages_root / "package1"
+        package2_path = packages_root / "package2"
+
+        assert str(packages_root) in model.artifacts
+        assert str(package1_path) in model.artifacts
+        assert str(package2_path) in model.artifacts
+
+        # Verify package source and tests directories
+        package1_src = package1_path / "src"
+        package1_tests = package1_path / "tests"
+        package2_src = package2_path / "src"
+        package2_tests = package2_path / "tests"
+
+        assert str(package1_src) in model.artifacts
+        assert str(package1_tests) in model.artifacts
+        assert str(package2_src) in model.artifacts
+        assert str(package2_tests) in model.artifacts
+
+        # Verify artifact types
+        assert model.artifacts[str(package1_src)].artifact_type == ArtifactType.CODE
+        assert model.artifacts[str(package1_tests)].artifact_type == ArtifactType.TEST
+        assert model.artifacts[str(package2_src)].artifact_type == ArtifactType.CODE
+        assert model.artifacts[str(package2_tests)].artifact_type == ArtifactType.TEST
+
+    def test_get_artifact(self, mock_project_root, basic_manifest_data):
+        """Test getting an artifact by path."""
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+
+        # Add an artifact manually
+        test_path = str(mock_project_root / "test_file.py")
+        test_artifact = Artifact(test_path, ArtifactType.CODE)
+        model.artifacts[test_path] = test_artifact
+
+        # Get the artifact
+        retrieved_artifact = model.get_artifact(test_path)
+
+        # Verify it's the same artifact
+        assert retrieved_artifact is test_artifact
+
+        # Test getting a non-existent artifact
+        non_existent = model.get_artifact("/non/existent/path")
+        assert non_existent is None
+
+    def test_get_artifacts_by_type(self, mock_project_root, basic_manifest_data):
+        """Test getting artifacts by type."""
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+
+        # Add artifacts of different types
+        code_path1 = str(mock_project_root / "code1.py")
+        code_path2 = str(mock_project_root / "code2.py")
+        test_path = str(mock_project_root / "test.py")
+
+        model.artifacts[code_path1] = Artifact(code_path1, ArtifactType.CODE)
+        model.artifacts[code_path2] = Artifact(code_path2, ArtifactType.CODE)
+        model.artifacts[test_path] = Artifact(test_path, ArtifactType.TEST)
+
+        # Get artifacts by type
+        code_artifacts = model.get_artifacts_by_type(ArtifactType.CODE)
+        test_artifacts = model.get_artifacts_by_type(ArtifactType.TEST)
+        doc_artifacts = model.get_artifacts_by_type(ArtifactType.DOCUMENTATION)
+
+        # Verify results
+        assert len(code_artifacts) == 2
+        assert len(test_artifacts) == 1
+        assert len(doc_artifacts) == 0
+
+        assert model.artifacts[code_path1] in code_artifacts
+        assert model.artifacts[code_path2] in code_artifacts
+        assert model.artifacts[test_path] in test_artifacts
+
+    def test_get_related_artifacts(self, mock_project_root, basic_manifest_data):
+        """Test getting related artifacts."""
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+
+        # Add artifacts and relationships
+        parent_path = str(mock_project_root / "parent")
+        child1_path = str(mock_project_root / "parent" / "child1")
+        child2_path = str(mock_project_root / "parent" / "child2")
+
+        model.artifacts[parent_path] = Artifact(parent_path, ArtifactType.CODE)
+        model.artifacts[child1_path] = Artifact(child1_path, ArtifactType.CODE)
+        model.artifacts[child2_path] = Artifact(child2_path, ArtifactType.CODE)
+
+        # Add edges to the graph
+        model.graph.add_node(parent_path)
+        model.graph.add_node(child1_path)
+        model.graph.add_node(child2_path)
+        model.graph.add_edge(parent_path, child1_path, relationship="contains")
+        model.graph.add_edge(parent_path, child2_path, relationship="contains")
+
+        # Get related artifacts
+        related_to_parent = model.get_related_artifacts(parent_path)
+
+        # Verify results
+        assert len(related_to_parent) == 2
+        assert model.artifacts[child1_path] in related_to_parent
+        assert model.artifacts[child2_path] in related_to_parent
+
+        # Test getting related artifacts for a non-existent path
+        with pytest.raises(ProjectModelError):
+            model.get_related_artifacts("/non/existent/path")
+
+    def test_determine_artifact_type(self, mock_project_root, basic_manifest_data):
+        """Test determining artifact type based on file extension and path."""
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+
+        # Test code files
+        assert model._determine_artifact_type(Path("file.py"), ArtifactType.UNKNOWN) == ArtifactType.CODE
+        assert model._determine_artifact_type(Path("file.js"), ArtifactType.UNKNOWN) == ArtifactType.CODE
+        assert model._determine_artifact_type(Path("file.java"), ArtifactType.UNKNOWN) == ArtifactType.CODE
+
+        # Test documentation files
+        assert model._determine_artifact_type(Path("file.md"), ArtifactType.UNKNOWN) == ArtifactType.DOCUMENTATION
+        assert model._determine_artifact_type(Path("file.rst"), ArtifactType.UNKNOWN) == ArtifactType.DOCUMENTATION
+        assert model._determine_artifact_type(Path("file.txt"), ArtifactType.UNKNOWN) == ArtifactType.DOCUMENTATION
+
+        # Test configuration files
+        assert model._determine_artifact_type(Path("file.json"), ArtifactType.UNKNOWN) == ArtifactType.CONFIGURATION
+        assert model._determine_artifact_type(Path("file.yaml"), ArtifactType.UNKNOWN) == ArtifactType.CONFIGURATION
+        assert model._determine_artifact_type(Path("file.toml"), ArtifactType.UNKNOWN) == ArtifactType.CONFIGURATION
+
+        # Test build files
+        assert model._determine_artifact_type(Path("file.sh"), ArtifactType.UNKNOWN) == ArtifactType.BUILD
+        assert model._determine_artifact_type(Path("file.bat"), ArtifactType.UNKNOWN) == ArtifactType.BUILD
+
+        # Test test files by name
+        assert model._determine_artifact_type(Path("test_file.py"), ArtifactType.UNKNOWN) == ArtifactType.TEST
+        assert model._determine_artifact_type(Path("file_test.py"), ArtifactType.UNKNOWN) == ArtifactType.TEST
+        assert model._determine_artifact_type(Path("file_spec.js"), ArtifactType.UNKNOWN) == ArtifactType.TEST
+
+        # Test default type
+        assert model._determine_artifact_type(Path("unknown.xyz"), ArtifactType.CODE) == ArtifactType.CODE
+
+    def test_to_dict(self, mock_project_root, basic_manifest_data):
+        """Test converting the project model to a dictionary representation."""
+        model = ProjectModel(mock_project_root, basic_manifest_data)
+
+        # Add some artifacts and relationships
+        root_path = str(mock_project_root)
+        src_path = str(mock_project_root / "src")
+        file_path = str(mock_project_root / "src" / "file.py")
+
+        model.artifacts[root_path] = Artifact(root_path, ArtifactType.UNKNOWN, {"is_root": True})
+        model.artifacts[src_path] = Artifact(src_path, ArtifactType.CODE, {"role": "source"})
+        model.artifacts[file_path] = Artifact(file_path, ArtifactType.CODE, {"extension": ".py"})
+
+        model.graph.add_node(root_path)
+        model.graph.add_node(src_path)
+        model.graph.add_node(file_path)
+        model.graph.add_edge(root_path, src_path, relationship="contains")
+        model.graph.add_edge(src_path, file_path, relationship="contains")
+
+        # Convert to dictionary
+        result = model.to_dict()
+
+        # Verify the result
+        assert result["project_root"] == str(mock_project_root)
+        assert result["structure_type"] == "STANDARD"
+        assert len(result["artifacts"]) == 3
+        assert len(result["relationships"]) == 2
+
+        # Check artifact data
+        assert result["artifacts"][root_path]["type"] == "UNKNOWN"
+        assert result["artifacts"][src_path]["type"] == "CODE"
+        assert result["artifacts"][file_path]["type"] == "CODE"
+
+        # Check relationship data
+        relationships = {(r["source"], r["target"]): r["metadata"] for r in result["relationships"]}
+        assert (root_path, src_path) in relationships
+        assert (src_path, file_path) in relationships
+        assert relationships[(root_path, src_path)]["relationship"] == "contains"
+        assert relationships[(src_path, file_path)]["relationship"] == "contains"

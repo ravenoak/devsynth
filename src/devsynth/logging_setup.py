@@ -200,27 +200,39 @@ class DevSynthLogger:
 
     def debug(self, msg: str, **kwargs) -> None:
         """Log a debug message."""
-        self.logger.debug(msg, **kwargs)
+        self.logger.debug(msg, extra=kwargs if kwargs else None)
 
     def info(self, msg: str, **kwargs) -> None:
         """Log an info message."""
-        self.logger.info(msg, **kwargs)
+        self.logger.info(msg, extra=kwargs if kwargs else None)
 
     def warning(self, msg: str, **kwargs) -> None:
         """Log a warning message."""
-        self.logger.warning(msg, **kwargs)
+        self.logger.warning(msg, extra=kwargs if kwargs else None)
 
     def error(self, msg: str, **kwargs) -> None:
         """Log an error message."""
-        self.logger.error(msg, **kwargs)
+        self.logger.error(msg, extra=kwargs if kwargs else None)
 
     def critical(self, msg: str, **kwargs) -> None:
         """Log a critical message."""
-        self.logger.critical(msg, **kwargs)
+        self.logger.critical(msg, extra=kwargs if kwargs else None)
 
     def exception(self, msg: str, **kwargs) -> None:
         """Log an exception message with traceback."""
-        self.logger.exception(msg, **kwargs)
+        self.logger.exception(msg, extra=kwargs if kwargs else None)
 
 # Don't configure logging on import - this is now explicit
 # Instead, code must call configure_logging() when needed
+
+def get_logger(name: str) -> DevSynthLogger:
+    """
+    Get a DevSynthLogger instance for the specified component.
+
+    Args:
+        name: The name of the component (typically __name__)
+
+    Returns:
+        DevSynthLogger: A logger instance for the component
+    """
+    return DevSynthLogger(name)

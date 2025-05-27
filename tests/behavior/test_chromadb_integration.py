@@ -10,4 +10,6 @@ from steps.cli_commands_steps import *
 from steps.chromadb_steps import *
 
 # Define the feature file to test
-scenarios('chromadb_integration.feature')
+# Use a function to delay the scenarios loading until test execution
+def test_chromadb_scenarios():
+    scenarios('features/chromadb_integration.feature')
