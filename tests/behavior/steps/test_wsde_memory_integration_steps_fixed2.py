@@ -254,6 +254,30 @@ def verify_solution_edrr_phase(context):
 
 # Scenario: Store and retrieve dialectical reasoning results
 
+@given("a team with multiple agents")
+def team_with_multiple_agents(context):
+    """Create a team with multiple agents."""
+    # Create multiple agents with different roles
+    agent_types = [
+        AgentType.PLANNER.value,
+        AgentType.SPECIFICATION.value,
+        AgentType.CODE.value,
+        AgentType.VALIDATION.value
+    ]
+
+    for agent_type in agent_types:
+        agent = UnifiedAgent()
+        agent_config = AgentConfig(
+            name=f"{agent_type}_agent",
+            agent_type=AgentType(agent_type),
+            description=f"Agent for {agent_type} tasks",
+            capabilities=[],
+            parameters={}
+        )
+        agent.initialize(agent_config)
+        context.agents[agent_type] = agent
+        context.team_coordinator.add_agent(agent)
+
 @given("a team with a Critic agent")
 def team_with_critic_agent(context):
     """Create a team with a Critic agent."""

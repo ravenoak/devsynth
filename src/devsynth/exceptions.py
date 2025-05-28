@@ -364,6 +364,18 @@ class IngestionError(ApplicationError):
         super().__init__(message, error_code=error_code or "INGESTION_ERROR", details=details)
 
 
+class DocumentationError(ApplicationError):
+    """Exception raised for errors related to documentation processing."""
+
+    def __init__(self, message: str, doc_type: Optional[str] = None,
+                 doc_path: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "doc_type": doc_type,
+            "doc_path": doc_path
+        }
+        super().__init__(message, error_code=error_code or "DOCUMENTATION_ERROR", details=details)
+
+
 class ManifestError(ApplicationError):
     """Exception raised for errors related to the project manifest."""
 
@@ -398,6 +410,18 @@ class TestGenerationError(ApplicationError):
             "target": target
         }
         super().__init__(message, error_code=error_code or "TEST_GENERATION_ERROR", details=details)
+
+
+class EDRRCoordinatorError(ApplicationError):
+    """Exception raised for errors in the EDRR coordinator."""
+
+    def __init__(self, message: str, phase: Optional[str] = None,
+                 component: Optional[str] = None, error_code: Optional[str] = None):
+        details = {
+            "phase": phase,
+            "component": component
+        }
+        super().__init__(message, error_code=error_code or "EDRR_COORDINATOR_ERROR", details=details)
 
 
 # Collaboration Errors

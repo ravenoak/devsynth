@@ -6,7 +6,7 @@ import pytest
 from pytest_bdd import scenario, given, when, then, parsers
 
 # Import the step definitions
-from steps.cli_commands_steps import *
+from .steps.cli_commands_steps import *
 
 # Mark scenarios that require specific resources
 cli_available = pytest.mark.requires_resource("cli")

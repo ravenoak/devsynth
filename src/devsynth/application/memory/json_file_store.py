@@ -47,8 +47,19 @@ class JSONFileStore(MemoryStore):
         self.token_count = 0
 
     def _ensure_directory_exists(self) -> None:
-        """Ensure the directory for storing files exists."""
-        os.makedirs(self.base_path, exist_ok=True)
+        """
+        Ensure the directory for storing files exists.
+
+        This method respects test isolation by checking for the DEVSYNTH_NO_FILE_LOGGING
+        environment variable. In test environments with file operations disabled,
+        it will avoid creating directories.
+        """
+        # Check if we're in a test environment with file operations disabled
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+
+        # Only create directories if not in a test environment with file operations disabled
+        if not no_file_logging:
+            os.makedirs(self.base_path, exist_ok=True)
 
     @contextmanager
     def _safe_open_file(self, path: str, mode: str = "r", encoding: str = "utf-8") -> Any:
@@ -124,12 +135,24 @@ class JSONFileStore(MemoryStore):
         """
         Load items from the JSON file.
 
+        This method respects test isolation by checking for the DEVSYNTH_NO_FILE_LOGGING
+        environment variable. In test environments with file operations disabled,
+        it will avoid accessing the file system.
+
         Returns:
             Dictionary of memory items
 
         Raises:
             MemoryCorruptionError: If the memory data is corrupted
         """
+        # Check if we're in a test environment with file operations disabled
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+
+        # In test environments with file operations disabled, return an empty dictionary
+        if no_file_logging:
+            logger.info(f"In test environment, using in-memory store", file_path=self.items_file)
+            return {}
+
         if not os.path.exists(self.items_file):
             logger.info(f"Memory store file not found, creating new store", file_path=self.items_file)
             return {}
@@ -200,11 +223,23 @@ class JSONFileStore(MemoryStore):
         """
         Save items to the JSON file.
 
+        This method respects test isolation by checking for the DEVSYNTH_NO_FILE_LOGGING
+        environment variable. In test environments with file operations disabled,
+        it will avoid accessing the file system.
+
         Raises:
             FilePermissionError: If permission is denied
             FileOperationError: For other file operation errors
             MemoryStoreError: For other memory store errors
         """
+        # Check if we're in a test environment with file operations disabled
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+
+        # In test environments with file operations disabled, do nothing
+        if no_file_logging:
+            logger.info(f"In test environment, skipping file save operation", file_path=self.items_file)
+            return
+
         try:
             self._ensure_directory_exists()
 

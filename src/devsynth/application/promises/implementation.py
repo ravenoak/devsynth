@@ -62,6 +62,8 @@ class Promise(PromiseInterface[T], Generic[T]):
         self._on_fulfilled: List[Callable] = []
         self._on_rejected: List[Callable] = []
         self._id: str = str(uuid.uuid4())
+        self._parent_id: Optional[str] = None
+        self._children_ids: List[str] = []
         self._metadata: Dict[str, Any] = {
             "created_at": None,  # Will be set by calling code
             "resolved_at": None,
@@ -127,6 +129,47 @@ class Promise(PromiseInterface[T], Generic[T]):
         if self._state != PromiseState.REJECTED:
             raise PromiseStateError(f"Cannot get reason of promise in state {self._state}")
         return self._reason
+
+    @property
+    def parent_id(self) -> Optional[str]:
+        """
+        Get the ID of the parent promise, if any.
+
+        Returns:
+            The ID of the parent promise, or None if this promise has no parent.
+        """
+        return self._parent_id
+
+    @parent_id.setter
+    def parent_id(self, value: Optional[str]) -> None:
+        """
+        Set the ID of the parent promise.
+
+        Args:
+            value: The ID of the parent promise, or None to remove the parent.
+        """
+        self._parent_id = value
+
+    @property
+    def children_ids(self) -> List[str]:
+        """
+        Get the IDs of the child promises, if any.
+
+        Returns:
+            A list of IDs of child promises.
+        """
+        return self._children_ids
+
+    def add_child_id(self, child_id: str) -> None:
+        """
+        Add a child promise ID to this promise.
+
+        Args:
+            child_id: The ID of the child promise to add.
+        """
+        if child_id not in self._children_ids:
+            self._children_ids.append(child_id)
+            logger.debug(f"Added child promise {child_id} to parent {self._id}")
 
     def set_metadata(self, key: str, value: Any) -> 'Promise[T]':
         """

@@ -2,7 +2,7 @@
 DevSynth Ingestion Module.
 
 This module implements the "Expand, Differentiate, Refine, Retrospect" methodology for project ingestion,
-enabling DevSynth to understand and adapt to project structures as defined in manifest.yaml.
+enabling DevSynth to understand and adapt to project structures as defined in .devsynth/project.yaml.
 """
 import os
 import json
@@ -122,10 +122,10 @@ class Ingestion:
     Implements the EDRR methodology for project ingestion and adaptation.
 
     This class manages the process of understanding and adapting to project
-    structures as defined in manifest.yaml, using a four-phase approach:
+    structures as defined in .devsynth/project.yaml, using a four-phase approach:
 
     1. Expand: Bottom-up discovery of all artifacts
-    2. Differentiate: Validation against manifest and expected structures
+    2. Differentiate: Validation against project configuration and expected structures
     3. Refine: Integration of findings into the project model
     4. Retrospect: Evaluation and planning for next iteration
     """
@@ -136,21 +136,15 @@ class Ingestion:
 
         Args:
             project_root: Root directory of the project
-            manifest_path: Path to project configuration file (defaults to .devsynth/project.yaml or manifest.yaml)
+            manifest_path: Path to project configuration file (defaults to .devsynth/project.yaml)
         """
         self.project_root = Path(project_root).resolve()
 
         if manifest_path:
             self.manifest_path = Path(manifest_path)
         else:
-            # Check for the new location first, then fall back to legacy location
-            new_path = self.project_root / ".devsynth" / "project.yaml"
-            legacy_path = self.project_root / "manifest.yaml"
-
-            if new_path.exists():
-                self.manifest_path = new_path
-            else:
-                self.manifest_path = legacy_path
+            # Use .devsynth/project.yaml as the default path
+            self.manifest_path = self.project_root / ".devsynth" / "project.yaml"
         self.metrics = IngestionMetrics()
         self.project_graph = nx.DiGraph()  # Knowledge graph for project structure and relationships
         self.manifest_data: Optional[Dict[str, Any]] = None
@@ -282,7 +276,7 @@ class Ingestion:
 
         try:
             # 1. Build the project model from the manifest
-            from devsynth.domain.models.project_model import ProjectModel
+            from devsynth.domain.models.project import ProjectModel
             if self.manifest_data is None:
                 # For testing purposes, initialize with an empty dict if not loaded
                 self.manifest_data = {}
@@ -866,16 +860,16 @@ class Ingestion:
         # Check for missing manifest fields
         if not self.manifest_data.get("projectName"):
             improvements.append({
-                "area": "Manifest",
+                "area": "Project Configuration",
                 "issue": "Missing project name",
-                "recommendation": "Add 'projectName' field to manifest.yaml"
+                "recommendation": "Add 'projectName' field to .devsynth/project.yaml"
             })
 
         if not self.manifest_data.get("version"):
             improvements.append({
-                "area": "Manifest",
+                "area": "Project Configuration",
                 "issue": "Missing version",
-                "recommendation": "Add 'version' field to manifest.yaml"
+                "recommendation": "Add 'version' field to .devsynth/project.yaml"
             })
 
         # Check for project structure issues
@@ -884,7 +878,7 @@ class Ingestion:
             improvements.append({
                 "area": "Project Structure",
                 "issue": "No source directories specified",
-                "recommendation": "Add source directories to manifest.yaml"
+                "recommendation": "Add source directories to .devsynth/project.yaml"
             })
 
         # Check for test coverage
@@ -970,10 +964,10 @@ class Ingestion:
                 "priority": "High"
             })
 
-        # Always recommend updating the manifest
+        # Always recommend updating the project configuration
         recommendations.append({
-            "category": "Manifest",
-            "recommendation": "Keep manifest.yaml updated as the project evolves",
+            "category": "Project Configuration",
+            "recommendation": "Keep .devsynth/project.yaml updated as the project evolves",
             "priority": "High"
         })
 

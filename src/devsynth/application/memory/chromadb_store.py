@@ -58,11 +58,19 @@ class ChromaDBStore(MemoryStore):
         self._cache = {}  # Simple in-memory cache
         self._embedding_optimization_enabled = True
 
-        # Ensure the directory exists
-        os.makedirs(file_path, exist_ok=True)
+        # Check if we're in a test environment with file operations disabled
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
 
-        # Initialize ChromaDB client
-        self.client = chromadb.PersistentClient(path=file_path)
+        # Only create directories if not in a test environment with file operations disabled
+        if not no_file_logging:
+            # Ensure the directory exists
+            os.makedirs(file_path, exist_ok=True)
+            # Initialize real ChromaDB client
+            self.client = chromadb.PersistentClient(path=file_path)
+        else:
+            # In test environments, use an in-memory client to avoid file system operations
+            logger.info("Using in-memory ChromaDB client for test environment")
+            self.client = chromadb.EphemeralClient()
 
         # Get or create the main collection
         try:
@@ -354,6 +362,11 @@ class ChromaDBStore(MemoryStore):
             The retrieved MemoryItem, or None if not found
         """
         try:
+            # First check if this is the current version in the main collection
+            current_item = self.retrieve(item_id)
+            if current_item and current_item.metadata.get("version") == version:
+                return current_item
+
             # Create the version ID
             version_id = f"{item_id}_v{version}"
 
@@ -527,6 +540,10 @@ class ChromaDBStore(MemoryStore):
             # Delete the item from ChromaDB
             self.collection.delete(ids=[item_id])
 
+            # Remove the item from the cache if it exists
+            if item_id in self._cache:
+                del self._cache[item_id]
+
             logger.info(f"Deleted item with ID {item_id} from ChromaDB")
             return True
 
@@ -578,7 +595,7 @@ class ChromaDBStore(MemoryStore):
 
             # Add the current version from the main collection
             current_item = self.retrieve(item_id)
-            if current_item:
+            if current_item and current_item.metadata.get("version") not in [v.metadata.get("version") for v in versions]:
                 versions.append(current_item)
 
             return versions
@@ -609,7 +626,7 @@ class ChromaDBStore(MemoryStore):
 
                 # Create a summary of the content
                 content_summary = version.content
-                if len(content_summary) > 100:
+                if isinstance(content_summary, str) and len(content_summary) > 100:
                     content_summary = content_summary[:97] + "..."
 
                 # Create a history entry
@@ -624,7 +641,15 @@ class ChromaDBStore(MemoryStore):
             # Sort history by version number
             history.sort(key=lambda x: x["version"])
 
-            return history
+            # Remove duplicates based on version number
+            unique_history = []
+            seen_versions = set()
+            for entry in history:
+                if entry["version"] not in seen_versions:
+                    seen_versions.add(entry["version"])
+                    unique_history.append(entry)
+
+            return unique_history
 
         except Exception as e:
             logger.error(f"Error retrieving history from ChromaDB: {e}")

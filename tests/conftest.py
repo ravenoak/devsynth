@@ -14,10 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Skip LM Studio tests
-skip_lm = pytest.mark.skip(reason="LM Studio not available")
-xfail_chromadb = pytest.mark.xfail(reason="ChromaDB cache issues need to be fixed")
-xfail_config = pytest.mark.xfail(reason="Config settings tests need to be updated")
+from devsynth.config.settings import ensure_path_exists
+
 
 # Add a marker for tests requiring external resources
 requires_resource = pytest.mark.requires_resource
@@ -28,30 +26,21 @@ def pytest_configure(config):
         "markers", "requires_resource(name): mark test as requiring an external resource"
     )
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def test_environment(tmp_path, monkeypatch):
     """
     Create a completely isolated test environment with temporary directories and patched environment variables.
-    This fixture runs automatically for all tests to ensure hermetic testing and prevent side effects.
+    This fixture is NOT automatically used for all tests - use global_test_isolation instead.
 
-    This global fixture ensures:
-    1. Environment variables are saved and restored
-    2. Working directory is changed to a temporary location and restored
-    3. Log directory is redirected to a temporary path
-    4. Common test paths are precreated in the temporary directory
-    5. Any created artifacts are cleaned up after the test
+    This fixture provides:
+    1. A temporary project directory with a basic .devsynth structure
+    2. Temporary directories for logs and memory
+    3. Environment variables pointing to these temporary directories
 
     Args:
         tmp_path (Path): Pytest-provided temporary directory
         monkeypatch: Pytest monkeypatch fixture
     """
-    # Save original environment and working directory
-    old_env = dict(os.environ)
-    old_cwd = os.getcwd()
-
-    # Store the original working directory in the environment
-    os.environ["ORIGINAL_CWD"] = old_cwd
-
     # Create common directories in the temporary path
     project_dir = tmp_path / "project"
     logs_dir = tmp_path / "logs"
@@ -60,7 +49,14 @@ def test_environment(tmp_path, monkeypatch):
 
     # Create directories
     project_dir.mkdir(exist_ok=True)
-    logs_dir.mkdir(exist_ok=True)
+
+    # Only create log directories if file logging is not disabled
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+
+    if not no_file_logging:
+        logs_dir.mkdir(exist_ok=True)
+
+    # Always create the basic .devsynth structure for tests that expect it
     devsynth_dir.mkdir(exist_ok=True)
     memory_dir.mkdir(exist_ok=True)
 
@@ -68,34 +64,13 @@ def test_environment(tmp_path, monkeypatch):
     with open(devsynth_dir / "config.json", "w") as f:
         f.write('{"model": "test-model", "project_name": "test-project"}')
 
-    # Patch environment variables
-    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(project_dir))
-    monkeypatch.setenv("DEVSYNTH_LOG_DIR", str(logs_dir))
-    monkeypatch.setenv("DEVSYNTH_MEMORY_PATH", str(memory_dir))
-    monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")  # Mock API key
-    monkeypatch.setenv("LM_STUDIO_ENDPOINT", "http://localhost:1234")  # Mock endpoint
-
-    # Change to the project directory
-    os.chdir(project_dir)
-
-    # Run the test
-    yield {
+    # Return the environment information
+    return {
         "project_dir": project_dir,
         "logs_dir": logs_dir,
         "memory_dir": memory_dir,
         "devsynth_dir": devsynth_dir
     }
-
-    # Restore environment and working directory
-    os.chdir(old_cwd)
-    os.environ.clear()
-    os.environ.update(old_env)
-
-    # Clean up any potential stray artifacts in the original working directory
-    for artifact in [".devsynth", "logs"]:
-        path = Path(old_cwd) / artifact
-        if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
 
 @pytest.fixture
 def tmp_project_dir():
@@ -111,18 +86,49 @@ def tmp_project_dir():
     # Create a temporary directory
     temp_dir = Path(tempfile.mkdtemp())
 
+    # Record the start time to identify files created during the test
+    start_time = datetime.now()
+
     # Create basic project structure
-    os.makedirs(temp_dir / '.devsynth', exist_ok=True)
+    ensure_path_exists(str(temp_dir / '.devsynth'))
 
     # Create a mock config file
     with open(temp_dir / '.devsynth' / 'config.json', 'w') as f:
         f.write('{"model": "gpt-4", "project_name": "test-project"}')
 
+    # Set environment variable to disable file logging
+    old_env_value = os.environ.get("DEVSYNTH_NO_FILE_LOGGING")
+    os.environ["DEVSYNTH_NO_FILE_LOGGING"] = "1"
+
     # Return the path to the temporary directory
     yield temp_dir
 
+    # Restore original environment variable value
+    if old_env_value is not None:
+        os.environ["DEVSYNTH_NO_FILE_LOGGING"] = old_env_value
+    else:
+        os.environ.pop("DEVSYNTH_NO_FILE_LOGGING", None)
+
     # Clean up the temporary directory after the test
-    shutil.rmtree(temp_dir)
+    try:
+        shutil.rmtree(temp_dir)
+    except (PermissionError, OSError) as e:
+        print(f"Warning: Failed to clean up temporary directory {temp_dir}: {str(e)}")
+
+    # Clean up any stray artifacts in the current working directory
+    for artifact in [".devsynth", "logs"]:
+        path = Path(os.getcwd()) / artifact
+        if path.exists():
+            try:
+                # Check if directory was created or modified during the test
+                dir_stat = path.stat()
+                dir_mtime = datetime.fromtimestamp(dir_stat.st_mtime)
+
+                if dir_mtime >= start_time:
+                    print(f"Cleaning up test artifact: {path}")
+                    shutil.rmtree(path)
+            except (PermissionError, OSError) as e:
+                print(f"Warning: Failed to clean up {path}: {str(e)}")
 
 @pytest.fixture
 def mock_datetime():
@@ -153,7 +159,7 @@ def temp_memory_path(tmp_path):
         Path: Path to a temporary directory for memory storage
     """
     memory_path = tmp_path / ".devsynth" / "memory"
-    memory_path.parent.mkdir(exist_ok=True)
+    ensure_path_exists(str(memory_path.parent))
     return memory_path
 
 @pytest.fixture
@@ -165,77 +171,130 @@ def temp_log_dir(tmp_path):
         Path: Path to a temporary directory for logs
     """
     log_path = tmp_path / "logs"
-    log_path.mkdir(exist_ok=True)
+    ensure_path_exists(str(log_path))
     return log_path
 
 @pytest.fixture
 def patch_settings_paths(monkeypatch, temp_memory_path, temp_log_dir):
     """
-    Patch configuration paths to use temporary directories.
+    DEPRECATED: This fixture is no longer needed as its functionality has been incorporated into global_test_isolation.
 
-    This ensures any file operations use isolated temporary paths.
+    This fixture is kept for backward compatibility with existing tests that might depend on it.
+    New tests should rely on the global_test_isolation fixture instead.
     """
-    # Patch memory path
-    monkeypatch.setenv("DEVSYNTH_MEMORY_PATH", str(temp_memory_path))
-
-    # Patch log directory
-    monkeypatch.setenv("DEVSYNTH_LOG_DIR", str(temp_log_dir))
-
-    # Patch current working directory (for relative paths)
-    current_cwd = os.getcwd()
-    os.chdir(temp_memory_path.parent.parent)  # Set cwd to tmp_path
-
+    # This fixture doesn't do anything anymore as its functionality
+    # has been incorporated into global_test_isolation
     yield
 
-    # Restore original cwd
-    os.chdir(current_cwd)
-
 @pytest.fixture(autouse=True)
-def global_test_isolation(monkeypatch, tmp_path, patch_settings_paths):
+def global_test_isolation(monkeypatch, tmp_path):
     """
     Global fixture to ensure all tests are properly isolated.
 
     This autoused fixture:
     1. Saves and restores all environment variables
-    2. Patches paths to use temporary directories
-    3. Isolates logging configuration
-    4. Cleans up any artifacts after tests
+    2. Saves and restores the working directory
+    3. Creates a temporary test environment
+    4. Patches paths to use temporary directories
+    5. Disables file logging for tests
+    6. Patches logging configuration
+    7. Cleans up any artifacts after tests
 
     By using autouse=True, this fixture applies to ALL tests.
     """
     # Save original environment
     original_env = dict(os.environ)
 
+    # Save original working directory
+    original_cwd = os.getcwd()
+
+    # Store the original working directory in the environment
+    os.environ["ORIGINAL_CWD"] = original_cwd
+
+    # Create test environment directories
+    test_env = {}
+    project_dir = tmp_path / "project"
+    logs_dir = tmp_path / "logs"
+    devsynth_dir = project_dir / ".devsynth"
+    memory_dir = devsynth_dir / "memory"
+    config_dir = devsynth_dir / "config"
+    checkpoints_dir = devsynth_dir / "checkpoints"
+    workflows_dir = devsynth_dir / "workflows"
+
+    # Create directories
+    project_dir.mkdir(exist_ok=True)
+    devsynth_dir.mkdir(exist_ok=True)
+    memory_dir.mkdir(exist_ok=True)
+    config_dir.mkdir(exist_ok=True)
+    checkpoints_dir.mkdir(exist_ok=True)
+    workflows_dir.mkdir(exist_ok=True)
+
+    # Set up a basic project structure
+    with open(devsynth_dir / "config.json", "w") as f:
+        f.write('{"model": "test-model", "project_name": "test-project"}')
+
+    # Set environment variables to use temporary directories
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(project_dir))
+    monkeypatch.setenv("DEVSYNTH_LOG_DIR", str(logs_dir))
+    monkeypatch.setenv("DEVSYNTH_MEMORY_PATH", str(memory_dir))
+    monkeypatch.setenv("DEVSYNTH_CHECKPOINTS_PATH", str(checkpoints_dir))
+    monkeypatch.setenv("DEVSYNTH_WORKFLOWS_PATH", str(workflows_dir))
+
     # Set standard test credentials
     monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
     monkeypatch.setenv("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
-    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+
+    # Explicitly disable file logging for tests
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+
+    # Change to the project directory
+    os.chdir(project_dir)
 
     # Patch logging to use in-memory handlers or temp paths
     with patch("devsynth.logging_setup.configure_logging") as mock_configure_logging:
-        # Tests should explicitly call configure_logging if needed
-        yield
+        # Also patch ensure_path_exists to prevent directory creation
+        with patch("devsynth.config.settings.ensure_path_exists") as mock_ensure_path:
+            # Make ensure_path_exists return the path without creating it
+            mock_ensure_path.side_effect = lambda path, create=True: path
+
+            # Store test environment for tests that need it
+            test_env = {
+                "project_dir": project_dir,
+                "logs_dir": logs_dir,
+                "memory_dir": memory_dir,
+                "devsynth_dir": devsynth_dir,
+                "config_dir": config_dir,
+                "checkpoints_dir": checkpoints_dir,
+                "workflows_dir": workflows_dir
+            }
+
+            # Run the test
+            yield test_env
+
+    # Restore original working directory
+    os.chdir(original_cwd)
 
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
 
     # Clean up any stray files in real directories
+    # Instead of relying on file modification times, we'll use a more reliable approach
+    # by checking for specific directories that should never be created during tests
     real_paths_to_check = [
-        Path(os.getcwd()) / "logs",
-        Path(os.getcwd()) / ".devsynth",
+        Path(original_cwd) / "logs",
+        Path(original_cwd) / ".devsynth",
         Path.home() / ".devsynth"
     ]
 
     for path in real_paths_to_check:
-        if path.exists() and (tmp_path not in path.parents) and path.is_dir():
-            # Only remove if it was created during the test (check modification time)
-            # This is a safety check to avoid deleting user directories
+        if path.exists() and path.is_dir() and tmp_path not in path.parents:
             try:
+                print(f"Cleaning up test artifact: {path}")
                 shutil.rmtree(path)
-            except (PermissionError, OSError):
-                # Don't fail tests if cleanup fails
-                pass
+            except (PermissionError, OSError) as e:
+                # Log the error but don't fail the test
+                print(f"Warning: Failed to clean up {path}: {str(e)}")
 
 @pytest.fixture
 def mock_openai_provider():
@@ -289,39 +348,86 @@ def reset_global_state():
     # Reset any other global state across modules
     # Example: devsynth.some_module.global_variable = original_value
 
+def is_lmstudio_available() -> bool:
+    """Check if LM Studio is available at http://localhost:1234."""
+    # Check environment variable override
+    if os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "true").lower() == "false":
+        return False
+
+    # Actual availability check
+    try:
+        import requests
+        response = requests.get("http://localhost:1234/v1/models", timeout=2)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+def is_codebase_available() -> bool:
+    """Check if the DevSynth codebase is available for analysis."""
+    # Check environment variable override
+    if os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true").lower() == "false":
+        return False
+
+    # Actual availability check
+    try:
+        # Check if the src directory exists
+        return Path("src/devsynth").exists()
+    except Exception:
+        return False
+
+def is_cli_available() -> bool:
+    """Check if the DevSynth CLI is available for testing."""
+    # Check environment variable override
+    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "true").lower() == "false":
+        return False
+
+    # Actual availability check
+    try:
+        import subprocess
+        result = subprocess.run(["devsynth", "--help"], capture_output=True, text=True)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+def is_resource_available(resource: str) -> bool:
+    """
+    Check if a resource is available.
+
+    Parameters
+    ----------
+    resource : str
+        The name of the resource to check
+
+    Returns
+    -------
+    bool
+        True if the resource is available, False otherwise
+    """
+    # Map resource names to checker functions
+    checker_map = {
+        "lmstudio": is_lmstudio_available,
+        "codebase": is_codebase_available,
+        "cli": is_cli_available,
+    }
+
+    # Get the checker function for the resource
+    checker = checker_map.get(resource)
+    if checker is None:
+        # If no checker is defined, assume the resource is available
+        return True
+
+    # Call the checker function
+    return checker()
+
 def pytest_collection_modifyitems(config, items):
     """
     Skip tests that depend on external resources unless explicitly marked.
     Mark expected failures based on known issues.
     """
-    # Original skips and xfails
     for item in items:
-        # Skip LM Studio tests
-        if "lm_studio" in item.nodeid:
-            item.add_marker(skip_lm)
-
-        # Mark ChromaDB delete test as expected failure
-        if "test_chromadb_store.py::TestChromaDBStore::test_delete" in item.nodeid:
-            item.add_marker(xfail_chromadb)
-
-        # Mark config settings tests as expected failures
-        if "test_config_settings.py::TestConfigSettings::" in item.nodeid:
-            if any(test_name in item.nodeid for test_name in [
-                "test_get_settings_from_environment_variables",
-                "test_get_llm_settings",
-                "test_boolean_environment_variables",
-                "test_get_settings_with_dotenv"
-            ]):
-                item.add_marker(xfail_config)
-
-    # Skip resource-dependent tests unless explicitly enabled
-    for item in items:
-        resource_marks = [mark for mark in item.iter_markers(name="requires_resource")]
-        if resource_marks:
-            # Check if the resource is available (user could set environment variables to enable)
-            for mark in resource_marks:
-                resource_name = mark.args[0] if mark.args else mark.kwargs.get("name")
-                env_var = f"DEVSYNTH_TEST_{resource_name.upper()}_ENABLED"
-                if not os.environ.get(env_var, "").lower() in ("true", "1", "yes"):
-                    item.add_marker(pytest.mark.skip(reason=f"Requires {resource_name} (set {env_var}=true to enable)"))
-                    break
+        # Check for resource markers
+        for marker in item.iter_markers(name="requires_resource"):
+            resource = marker.args[0]
+            if not is_resource_available(resource):
+                # Skip the test if the resource is not available
+                item.add_marker(pytest.mark.skip(reason=f"Resource '{resource}' not available"))

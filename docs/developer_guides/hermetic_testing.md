@@ -192,6 +192,36 @@ def test_with_mocked_llm(mock_openai_provider):
 5. **Save and restore global state** using fixtures
 6. **Verify test cleanup** by running tests repeatedly and checking for artifacts
 7. **Use `capsys` or `caplog`** to capture and verify output rather than checking real log files
+8. **Use `ensure_path_exists` from settings.py** for directory creation to respect test isolation
+
+### Directory Creation and .devsynth/ Isolation
+
+When implementing components that need to create directories (especially `.devsynth/` directories):
+
+```python
+# GOOD: Using ensure_path_exists which respects test isolation
+from devsynth.config.settings import ensure_path_exists
+
+def initialize_component(directory_path=None):
+    if directory_path is None:
+        # Use DEVSYNTH_PROJECT_DIR if set (for test isolation)
+        project_dir = os.environ.get('DEVSYNTH_PROJECT_DIR')
+        if project_dir:
+            directory_path = os.path.join(project_dir, ".devsynth", "component_data")
+        else:
+            directory_path = os.path.join(os.getcwd(), ".devsynth", "component_data")
+
+    # This respects test isolation by checking DEVSYNTH_NO_FILE_LOGGING
+    ensure_path_exists(directory_path)
+    return directory_path
+
+# BAD: Directly creating directories without respecting test isolation
+def initialize_component_bad(directory_path=".devsynth/component_data"):
+    os.makedirs(directory_path, exist_ok=True)  # DON'T DO THIS
+    return directory_path
+```
+
+The `ensure_path_exists` function checks for the `DEVSYNTH_NO_FILE_LOGGING` environment variable, which is set to "1" in test environments to prevent directory creation. It also respects the `DEVSYNTH_PROJECT_DIR` environment variable, which points to a temporary directory in test environments.
 
 ## Common Pitfalls
 

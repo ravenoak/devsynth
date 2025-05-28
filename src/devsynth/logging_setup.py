@@ -100,14 +100,57 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
     This function is now separated from configuration to allow deferring directory creation
     until explicitly needed, which helps with test isolation.
 
+    This function respects test isolation by checking for the DEVSYNTH_NO_FILE_LOGGING
+    and DEVSYNTH_PROJECT_DIR environment variables. In test environments, it will
+    avoid creating directories in the real filesystem.
+
     Args:
         log_dir: Optional log directory path, defaults to the configured or environment-specified path
 
     Returns:
         str: The path to the log directory
     """
+    # Check if file logging is disabled via environment variable
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    if no_file_logging:
+        # Return the path without creating the directory
+        return log_dir if log_dir is not None else get_log_dir()
+
+    # Check if we're in a test environment
+    in_test_env = os.environ.get("DEVSYNTH_PROJECT_DIR") is not None
+
     dir_path = log_dir if log_dir is not None else get_log_dir()
-    os.makedirs(dir_path, exist_ok=True)
+
+    # If we're in a test environment with DEVSYNTH_PROJECT_DIR set, ensure paths are within the test directory
+    if in_test_env:
+        test_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
+        path_obj = Path(dir_path)
+
+        # If the path is absolute and not within the test project directory,
+        # redirect it to be within the test project directory
+        if path_obj.is_absolute() and not str(path_obj).startswith(test_project_dir):
+            # For paths starting with home directory
+            if str(path_obj).startswith(str(Path.home())):
+                relative_path = str(path_obj).replace(str(Path.home()), "")
+                new_path = os.path.join(test_project_dir, relative_path.lstrip("/\\"))
+                print(f"Redirecting log path {dir_path} to test path {new_path}")
+                dir_path = new_path
+            # For other absolute paths
+            else:
+                # Extract the path components after the root
+                relative_path = str(path_obj.relative_to(path_obj.anchor))
+                new_path = os.path.join(test_project_dir, relative_path)
+                print(f"Redirecting absolute log path {dir_path} to test path {new_path}")
+                dir_path = new_path
+
+    # Only create directories if not in a test environment with file operations disabled
+    if not no_file_logging:
+        try:
+            os.makedirs(dir_path, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            # Log the error but don't fail
+            print(f"Warning: Failed to create log directory {dir_path}: {e}")
+
     return dir_path
 
 def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = None,
@@ -126,6 +169,11 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
     """
     global _configured_log_dir, _configured_log_file, _logging_configured
 
+    # Check if file logging is disabled via environment variable
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    if no_file_logging:
+        create_dir = False
+
     # Set configured paths
     if log_dir is not None:
         _configured_log_dir = log_dir
@@ -135,8 +183,8 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
     else:
         _configured_log_file = get_log_file()
 
-    # Create directory if requested
-    if create_dir:
+    # Create directory if requested and file logging is not disabled
+    if create_dir and not no_file_logging:
         ensure_log_dir_exists(_configured_log_dir)
 
     # Set up root logger
@@ -156,8 +204,8 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
     console_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
     root_logger.addHandler(console_handler)
 
-    # Add file handler if create_dir is True
-    if create_dir:
+    # Add file handler if create_dir is True and file logging is not disabled
+    if create_dir and not no_file_logging:
         try:
             file_handler = logging.FileHandler(_configured_log_file)
             file_handler.setFormatter(JSONFormatter())
@@ -173,7 +221,7 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
     _logging_configured = True
 
     # Log configuration info
-    if create_dir:
+    if create_dir and not no_file_logging:
         root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
     else:
         root_logger.info("Logging configured for console output only (no file logging).")

@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.config.settings import ensure_path_exists
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError, NeedsHumanInterventionError as BaseNeedsHumanInterventionError
@@ -85,9 +86,18 @@ class WorkflowState:
 class FileSystemCheckpointSaver:
     """File system-based checkpoint saver for LangGraph."""
 
-    def __init__(self, directory_path: str = ".devsynth/checkpoints"):
+    def __init__(self, directory_path: str = None):
+        """
+        Initialize the checkpoint saver with a directory path.
+
+        Args:
+            directory_path: Path to store checkpoints. If None, uses DEVSYNTH_CHECKPOINTS_PATH
+                           environment variable or defaults to ".devsynth/checkpoints"
+        """
+        if directory_path is None:
+            directory_path = os.environ.get("DEVSYNTH_CHECKPOINTS_PATH", ".devsynth/checkpoints")
         self._directory_path = directory_path
-        os.makedirs(directory_path, exist_ok=True)
+        ensure_path_exists(directory_path)
 
     def get_checkpoint_path(self, thread_id: str) -> str:
         """Get the path for a checkpoint file."""
@@ -364,9 +374,18 @@ class LangGraphWorkflowEngine(WorkflowEngine):
 class FileSystemWorkflowRepository(WorkflowRepository):
     """File system implementation of the WorkflowRepository interface."""
 
-    def __init__(self, directory_path: str = ".devsynth/workflows"):
+    def __init__(self, directory_path: str = None):
+        """
+        Initialize the workflow repository with a directory path.
+
+        Args:
+            directory_path: Path to store workflows. If None, uses DEVSYNTH_WORKFLOWS_PATH
+                           environment variable or defaults to ".devsynth/workflows"
+        """
+        if directory_path is None:
+            directory_path = os.environ.get("DEVSYNTH_WORKFLOWS_PATH", ".devsynth/workflows")
         self.directory_path = directory_path
-        os.makedirs(self.directory_path, exist_ok=True)
+        ensure_path_exists(self.directory_path)
 
     def _get_workflow_path(self, workflow_id: str) -> str:
         """Get the path for a workflow file."""

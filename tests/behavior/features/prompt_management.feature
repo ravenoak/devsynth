@@ -41,3 +41,51 @@ Feature: Prompt Management with DPSy-AI
     When an agent uses the template and receives a response
     Then a reflection step should be triggered
     And the reflection results should be stored for future optimization
+
+  Scenario: Dynamic prompt adjustment based on feedback
+    Given a prompt template named "code_review" exists
+    And the prompt auto-tuner is enabled
+    When the template is used multiple times with varying feedback scores
+    Then the system should automatically adjust the prompt template
+    And the adjusted template should incorporate successful patterns
+    And the adjusted template should avoid unsuccessful patterns
+
+  Scenario: Track prompt variant performance
+    Given multiple variants of a prompt template exist:
+      | variant_name | description                   |
+      | variant_1    | Original version              |
+      | variant_2    | More detailed instructions    |
+      | variant_3    | Simplified instructions       |
+    When each variant is used in similar contexts
+    Then the system should track performance metrics for each variant
+    And the system should identify the best-performing variant
+    And the best-performing variant should be recommended for future use
+
+  Scenario: Generate new prompt variants through mutation
+    Given a prompt template named "code_review" exists with performance data
+    When I request the auto-tuner to generate new variants
+    Then the system should create mutated versions of the template
+    And each mutation should modify different aspects of the prompt
+    And the mutations should be based on historical performance data
+
+  Scenario: Generate new prompt variants through recombination
+    Given multiple prompt templates exist with performance data
+    When I request the auto-tuner to generate recombined variants
+    Then the system should create new templates by combining successful elements
+    And the recombined templates should preserve the core functionality
+    And the recombined templates should be added to the available templates
+
+  Scenario: Automatic A/B testing of prompt variants
+    Given multiple variants of a prompt template exist
+    When I enable A/B testing for the template
+    Then the system should automatically distribute usage across variants
+    And the system should collect performance metrics for each variant
+    And after sufficient data is collected, the system should select the best variant
+    And the best variant should become the new default
+
+  Scenario: Continuous prompt optimization cycle
+    Given the prompt auto-tuner is enabled for a template
+    When the template is used in production for a period of time
+    Then the system should continuously generate and test new variants
+    And the system should progressively improve template performance
+    And the system should maintain a history of all optimization steps

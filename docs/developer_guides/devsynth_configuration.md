@@ -7,25 +7,29 @@ This document provides a comprehensive overview of the DevSynth configuration an
 DevSynth uses a hierarchical configuration system with both global and project-level settings:
 
 1. **Global Configuration**: Stored in `~/.devsynth/config/global_config.yaml`
-2. **Project Configuration**: Stored in `manifest.yaml` at the project root
+2. **Project Configuration**: Stored in `.devsynth/project.yaml` for projects managed by DevSynth
 
 The configuration system follows a precedence order:
 1. Environment variables (highest precedence)
-2. Project-level configuration in `manifest.yaml`
+2. Project-level configuration in `.devsynth/project.yaml` (for projects managed by DevSynth)
 3. Global configuration in `~/.devsynth/config/global_config.yaml`
 4. Default values (lowest precedence)
 
-### Manifest File
+Note: The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. If a project is not managed by DevSynth, it will not have a `.devsynth/` directory or a project configuration file.
 
-The `manifest.yaml` file is the primary configuration file for a DevSynth project. It defines the project structure, key artifacts, and resource locations. This file is created automatically when you run `devsynth init` in a directory.
+### Project Configuration File
 
-The manifest file follows a schema defined in `docs/manifest_schema.json` and can be validated using the `devsynth validate-manifest` command.
+The `.devsynth/project.yaml` file is the configuration file for projects managed by DevSynth. It describes the shape and attributes of the project in a minimal but functional, featureful, and human-friendly way. This file is created automatically when you run `devsynth init` in a directory, which also creates the `.devsynth/` directory.
 
-Example manifest.yaml:
+The project configuration file follows a schema defined in `docs/manifest_schema.json` and can be validated using the `devsynth validate-manifest` command.
+
+Example project.yaml:
 ```yaml
-projectName: my-project
-version: 0.1.0
-lastUpdated: 2025-05-25T12:00:00
+metadata:
+  name: my-project
+  version: 0.1.0
+  description: A sample project managed by DevSynth
+  lastUpdated: 2025-05-25T12:00:00
 structure:
   type: single_package
   primaryLanguage: python
@@ -39,21 +43,6 @@ structure:
     - "**/.git/**"
     - "**/venv/**"
     - "**/.env"
-keyArtifacts:
-  docs:
-    - path: README.md
-      purpose: Project overview and getting started guide
-resources:
-  global:
-    configDir: ~/.devsynth/config
-    cacheDir: ~/.devsynth/cache
-    logsDir: ~/.devsynth/logs
-    memoryDir: ~/.devsynth/memory
-  project:
-    configDir: .devsynth
-    cacheDir: .devsynth/cache
-    logsDir: .devsynth/logs
-    memoryDir: .devsynth/memory
 ```
 
 ## Storage System
@@ -104,13 +93,14 @@ Project-level resources are specific to each DevSynth project:
 
 DevSynth provides several commands for managing configuration:
 
-- `devsynth init`: Creates a new project with a default `manifest.yaml` file
-- `devsynth analyze-manifest`: Analyzes and updates the `manifest.yaml` file based on the actual project structure
-- `devsynth validate-manifest`: Validates the `manifest.yaml` file against its schema
+- `devsynth init`: Creates a new project with a default `.devsynth/project.yaml` file and establishes the project as managed by DevSynth
+- `devsynth analyze-manifest`: Analyzes and updates the `.devsynth/project.yaml` file based on the actual project structure
+- `devsynth validate-manifest`: Validates the `.devsynth/project.yaml` file against its schema
 
 ## Best Practices
 
-1. **Version Control**: Include the `manifest.yaml` file in version control to ensure consistent configuration across all developers.
-2. **Gitignore**: Add `.devsynth/` to your `.gitignore` file to exclude project-level resources from version control.
+1. **Version Control**: Include the `.devsynth/project.yaml` file in version control to ensure consistent configuration across all developers.
+2. **Gitignore**: Add `.devsynth/cache/`, `.devsynth/logs/`, and `.devsynth/memory/` to your `.gitignore` file to exclude volatile project-level resources from version control, but keep `.devsynth/project.yaml`.
 3. **Environment Variables**: Use environment variables for sensitive information like API keys instead of storing them in configuration files.
-4. **Regular Updates**: Periodically run `devsynth analyze-manifest` to keep your manifest file in sync with the actual project structure.
+4. **Regular Updates**: Periodically run `devsynth analyze-manifest` to keep your project configuration file in sync with the actual project structure.
+5. **Project Marker**: Remember that the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. Do not create this directory manually; use `devsynth init` to establish a project as managed by DevSynth.

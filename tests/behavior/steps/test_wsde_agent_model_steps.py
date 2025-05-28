@@ -175,7 +175,7 @@ def collaborate_without_rigid_role_sequences(context):
 
     # Verify that the method is consensus-based
     assert "method" in result
-    assert result["method"] == "consensus"
+    assert result["method"] == "consensus_synthesis"
 
 
 # Scenario: Context-driven leadership

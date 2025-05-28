@@ -42,6 +42,53 @@ Feature: AST-Based Code Analysis and Transformation
     And it should rename all occurrences while preserving scope rules
     And the resulting code should be valid Python with the updated identifier
 
+  Scenario: Remove unused imports
+    Given I have Python code with unused imports
+    When I request to remove unused imports using AST transformation
+    Then the system should identify all unused imports
+    And it should remove all unused imports from the code
+    And the resulting code should be valid Python without the unused imports
+
+  Scenario: Remove redundant assignments
+    Given I have Python code with redundant assignments
+    When I request to remove redundant assignments using AST transformation
+    Then the system should identify all redundant assignments
+    And it should remove all redundant assignments from the code
+    And the resulting code should be valid Python with the same functionality
+
+  Scenario: Remove unused variables
+    Given I have Python code with unused variables
+    When I request to remove unused variables using AST transformation
+    Then the system should identify all unused variables
+    And it should remove all unused variables from the code
+    And the resulting code should be valid Python without the unused variables
+
+  Scenario: Optimize string literals
+    Given I have Python code with string literals that can be optimized
+    When I request to optimize string literals using AST transformation
+    Then the system should identify string literals that can be optimized
+    And it should optimize the string literals in the code
+    And the resulting code should be valid Python with optimized string literals
+
+  Scenario: Improve code style
+    Given I have Python code with style issues
+    When I request to improve code style using AST transformation
+    Then the system should identify style issues in the code
+    And it should apply style improvements to the code
+    And the resulting code should follow Python style guidelines
+
+  Scenario: Apply multiple transformations
+    Given I have Python code that needs multiple transformations
+    When I request to apply multiple AST transformations:
+      | transformation_type     |
+      | remove_unused_imports   |
+      | remove_unused_variables |
+      | optimize_string_literals|
+      | improve_code_style      |
+    Then the system should apply all transformations in the correct order
+    And the resulting code should be valid Python with all transformations applied
+    And the transformed code should maintain the original functionality
+
   Scenario: Integrate with EDRR workflow
     Given the EDRR workflow is configured
     When I initiate a coding task

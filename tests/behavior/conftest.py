@@ -8,6 +8,8 @@ import tempfile
 import shutil
 from unittest.mock import MagicMock, patch
 
+from devsynth.config.settings import ensure_path_exists
+
 # Add the src directory to the Python path if needed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
@@ -21,17 +23,19 @@ def tmp_project_dir():
     """
     # Create a temporary directory
     temp_dir = tempfile.mkdtemp()
-    
+
     # Create basic project structure
-    os.makedirs(os.path.join(temp_dir, '.devsynth'), exist_ok=True)
-    
+    devsynth_dir = os.path.join(temp_dir, '.devsynth')
+    os.makedirs(devsynth_dir, exist_ok=True)  # Explicitly create the directory
+
     # Create a mock config file
-    with open(os.path.join(temp_dir, '.devsynth', 'config.json'), 'w') as f:
+    config_path = os.path.join(devsynth_dir, 'config.json')
+    with open(config_path, 'w') as f:
         f.write('{"model": "gpt-4", "project_name": "test-project"}')
-    
+
     # Return the path to the temporary directory
     yield temp_dir
-    
+
     # Clean up the temporary directory after the test
     shutil.rmtree(temp_dir)
 
@@ -40,6 +44,7 @@ def tmp_project_dir():
 def patch_env_and_cleanup(tmp_project_dir):
     """
     Patch environment variables for LLM providers and ensure all logs/artifacts are isolated and cleaned up.
+    Also mock LLM provider functions to prevent real API calls.
     """
     # Patch environment variables for OpenAI and LM Studio
     old_env = dict(os.environ)
@@ -48,10 +53,34 @@ def patch_env_and_cleanup(tmp_project_dir):
     os.environ["DEVSYNTH_PROJECT_DIR"] = tmp_project_dir
     # Redirect logs to temp dir
     logs_dir = os.path.join(tmp_project_dir, "logs")
-    os.makedirs(logs_dir, exist_ok=True)
+    ensure_path_exists(logs_dir)
     old_cwd = os.getcwd()
     os.chdir(tmp_project_dir)
-    yield
+
+    # Mock the provider system functions to prevent real API calls
+    mock_provider = MagicMock()
+    mock_provider.complete.return_value = "This is a mock completion response for testing purposes."
+    mock_provider.embed.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]  # Mock embedding vector
+    mock_provider.provider_type = ProviderType.OPENAI
+
+    # Define mock functions
+    def mock_complete(prompt, system_prompt=None, temperature=0.7, max_tokens=2000, fallback=False):
+        if "error" in str(prompt).lower():
+            return "Error scenario response"
+        elif "empty" in str(prompt).lower():
+            return ""
+        else:
+            return f"Mock response for: {str(prompt)[:30]}..."
+
+    def mock_embed(text, fallback=False):
+        return [0.1, 0.2, 0.3, 0.4, 0.5]  # Mock embedding vector
+
+    # Apply patches
+    with patch('devsynth.adapters.provider_system.get_provider', return_value=mock_provider):
+        with patch('devsynth.adapters.provider_system.complete', side_effect=mock_complete):
+            with patch('devsynth.adapters.provider_system.embed', side_effect=mock_embed):
+                yield
+
     # Cleanup: restore env and cwd, remove logs if present
     os.environ.clear()
     os.environ.update(old_env)
@@ -68,34 +97,41 @@ def patch_env_and_cleanup(tmp_project_dir):
 @pytest.fixture
 def llm_provider():
     """
-    Get a provider for LLM completion that works with either OpenAI or LM Studio.
+    Mock provider for LLM completion that works with either OpenAI or LM Studio.
 
     This provides a unified interface for tests to use LLMs, automatically
     selecting the best available provider and handling fallback if needed.
     """
-    # Get a provider with fallback enabled (will try OpenAI then LM Studio)
-    provider = get_provider(fallback=True)
-    return provider
+    # Create a mock provider
+    mock_provider = MagicMock()
+    mock_provider.complete.return_value = "This is a mock completion response for testing purposes."
+    mock_provider.embed.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]  # Mock embedding vector
+    mock_provider.provider_type = ProviderType.OPENAI
+
+    # Patch the get_provider function to return our mock
+    with patch('devsynth.adapters.provider_system.get_provider', return_value=mock_provider):
+        yield mock_provider
 
 
 @pytest.fixture
 def llm_complete():
     """
-    Fixture providing a function to get completions from the LLM.
+    Fixture providing a mocked function to get completions from the LLM.
 
-    This is a convenience wrapper around the provider system's complete function.
-    Tests can use this to generate text without worrying about provider details.
+    This is a convenience wrapper that returns predefined responses for testing.
     """
     def _complete(prompt, system_prompt=None, temperature=0.7, max_tokens=2000):
-        return complete(
-            prompt=prompt,
-            system_prompt=system_prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            fallback=True  # Enable fallback to try all available providers
-        )
+        # Return a predictable response based on the prompt for testing
+        if "error" in prompt.lower():
+            return "Error scenario response"
+        elif "empty" in prompt.lower():
+            return ""
+        else:
+            return f"Mock response for: {prompt[:30]}..."
 
-    return _complete
+    # Patch the complete function
+    with patch('devsynth.adapters.provider_system.complete', side_effect=_complete):
+        yield _complete
 
 
 @pytest.fixture
@@ -105,7 +141,7 @@ def mock_workflow_manager():
     """
     # Create a mock for the workflow manager
     mock_manager = MagicMock()
-    
+
     # Configure the mock to return success for execute_command
     mock_manager.execute_command.return_value = {
         "success": True,
@@ -117,7 +153,7 @@ def mock_workflow_manager():
             "template": "default"
         }
     }
-    
+
     # Patch the workflow_manager in the commands module
     with patch('devsynth.application.orchestration.workflow.workflow_manager', mock_manager):
         with patch('devsynth.application.cli.cli_commands.workflow_manager', mock_manager):
@@ -131,26 +167,26 @@ def project_template_dir():
     """
     # Create a temporary directory
     temp_dir = tempfile.mkdtemp()
-    
+
     # Create default template structure
     default_template_dir = os.path.join(temp_dir, 'default')
-    os.makedirs(default_template_dir, exist_ok=True)
-    
+    ensure_path_exists(default_template_dir)
+
     # Create a default template config file
     with open(os.path.join(default_template_dir, 'config.json'), 'w') as f:
         f.write('{"model": "gpt-4", "template": "default"}')
-    
+
     # Create web-app template structure
     webapp_template_dir = os.path.join(temp_dir, 'web-app')
-    os.makedirs(webapp_template_dir, exist_ok=True)
-    
+    ensure_path_exists(webapp_template_dir)
+
     # Create a web-app template config file
     with open(os.path.join(webapp_template_dir, 'config.json'), 'w') as f:
         f.write('{"model": "gpt-4", "template": "web-app", "framework": "flask"}')
-    
+
     # Return the path to the temporary directory
     yield temp_dir
-    
+
     # Clean up the temporary directory after the test
     shutil.rmtree(temp_dir)
 

@@ -37,7 +37,7 @@ def context():
                 "episodic": [],
                 "semantic": []
             }
-    
+
     return Context()
 
 
@@ -67,13 +67,13 @@ def store_information_in_memory_system(context, content, memory_type):
     memory_item = MemoryItem(
         id="",
         content=content,
-        memory_type=MemoryType(memory_type),
+        memory_type=getattr(MemoryType, memory_type),
         metadata={}
     )
-    
+
     # Store the memory item
     item_id = context.memory_system.store(memory_item)
-    
+
     # Save the item ID for later retrieval
     context.stored_items[content] = item_id
 
@@ -89,22 +89,22 @@ def check_memory_layer_categorization(context, layer):
         content = "Previous task execution"
     elif layer == "semantic":
         content = "Python language reference"
-    
+
     assert content is not None, f"Unknown layer: {layer}"
-    
+
     # Get the item ID
     item_id = context.stored_items[content]
-    
+
     # Check that the item is in the specified layer
     items_in_layer = context.memory_system.get_items_by_layer(layer)
-    
+
     # Find the item in the layer
     found = False
     for item in items_in_layer:
         if item.id == item_id:
             found = True
             break
-    
+
     assert found, f"Item with content '{content}' not found in {layer} memory layer"
 
 
@@ -115,7 +115,7 @@ def check_short_term_memory_contents(context):
     """Check that the short-term memory layer contains the expected items."""
     # Get the items from the short-term memory layer
     items = context.memory_system.get_items_by_layer("short-term")
-    
+
     # Check that the items are in the layer
     for content in ["Current user request", "Current conversation state"]:
         item_id = context.stored_items[content]
@@ -133,10 +133,10 @@ def retrieve_items_from_short_term_memory(context):
     """Retrieve all items from the short-term memory layer."""
     # Get the items from the short-term memory layer
     items = context.memory_system.get_items_by_layer("short-term")
-    
+
     # Check that all expected items are retrieved
     assert len(items) == len(context.layer_contents["short-term"])
-    
+
     # Check that the retrieved items match the expected items
     for expected_item in context.layer_contents["short-term"]:
         found = False
@@ -154,7 +154,7 @@ def check_episodic_memory_contents(context):
     """Check that the episodic memory layer contains the expected items."""
     # Get the items from the episodic memory layer
     items = context.memory_system.get_items_by_layer("episodic")
-    
+
     # Check that the items are in the layer
     for content in ["Task execution at 2023-06-01", "Error encountered at 2023-06-02"]:
         item_id = context.stored_items[content]
@@ -172,10 +172,10 @@ def retrieve_items_from_episodic_memory(context):
     """Retrieve all items from the episodic memory layer."""
     # Get the items from the episodic memory layer
     items = context.memory_system.get_items_by_layer("episodic")
-    
+
     # Check that all expected items are retrieved
     assert len(items) == len(context.layer_contents["episodic"])
-    
+
     # Check that the retrieved items match the expected items
     for expected_item in context.layer_contents["episodic"]:
         found = False
@@ -193,7 +193,7 @@ def check_semantic_memory_contents(context):
     """Check that the semantic memory layer contains the expected items."""
     # Get the items from the semantic memory layer
     items = context.memory_system.get_items_by_layer("semantic")
-    
+
     # Check that the items are in the layer
     for content in ["Python dictionary usage", "Git workflow best practices"]:
         item_id = context.stored_items[content]
@@ -211,10 +211,10 @@ def retrieve_items_from_semantic_memory(context):
     """Retrieve all items from the semantic memory layer."""
     # Get the items from the semantic memory layer
     items = context.memory_system.get_items_by_layer("semantic")
-    
+
     # Check that all expected items are retrieved
     assert len(items) == len(context.layer_contents["semantic"])
-    
+
     # Check that the retrieved items match the expected items
     for expected_item in context.layer_contents["semantic"]:
         found = False
@@ -240,7 +240,7 @@ def store_items_in_all_memory_layers(context):
         )
         item_id = context.memory_system.store(memory_item)
         context.stored_items[content] = item_id
-    
+
     # Store items in the episodic memory layer
     for content in ["Episodic item 1", "Episodic item 2"]:
         memory_item = MemoryItem(
@@ -251,7 +251,7 @@ def store_items_in_all_memory_layers(context):
         )
         item_id = context.memory_system.store(memory_item)
         context.stored_items[content] = item_id
-    
+
     # Store items in the semantic memory layer
     for content in ["Semantic item 1", "Semantic item 2"]:
         memory_item = MemoryItem(
@@ -278,7 +278,7 @@ def check_results_from_all_layers(context):
     short_term_found = False
     episodic_found = False
     semantic_found = False
-    
+
     for item in context.query_results:
         if item.memory_type == MemoryType.CONTEXT:
             short_term_found = True
@@ -286,7 +286,7 @@ def check_results_from_all_layers(context):
             episodic_found = True
         elif item.memory_type == MemoryType.KNOWLEDGE:
             semantic_found = True
-    
+
     assert short_term_found, "No items from short-term memory layer found in query results"
     assert episodic_found, "No items from episodic memory layer found in query results"
     assert semantic_found, "No items from semantic memory layer found in query results"
@@ -334,25 +334,25 @@ def access_item_first_time(context):
     )
     item_id = context.memory_system.store(memory_item)
     context.stored_items["Cached item"] = item_id
-    
+
     # Record the start time
     start_time = time.time()
-    
+
     # Access the item
     retrieved_item = context.memory_system.retrieve(item_id)
-    
+
     # Record the end time
     end_time = time.time()
-    
+
     # Calculate the access time
     access_time = end_time - start_time
-    
+
     # Save the access time
     context.access_times["first_access"] = access_time
-    
+
     # Save the retrieved item
     context.retrieved_items["Cached item"] = retrieved_item
-    
+
     # Check that the item was retrieved from the underlying storage
     assert context.memory_system.get_cache_stats()["misses"] > 0
 
@@ -369,25 +369,25 @@ def access_item_again(context):
     """Access the same item again."""
     # Get the item ID
     item_id = context.stored_items["Cached item"]
-    
+
     # Record the start time
     start_time = time.time()
-    
+
     # Access the item
     retrieved_item = context.memory_system.retrieve(item_id)
-    
+
     # Record the end time
     end_time = time.time()
-    
+
     # Calculate the access time
     access_time = end_time - start_time
-    
+
     # Save the access time
     context.access_times["second_access"] = access_time
-    
+
     # Save the retrieved item
     context.retrieved_items["Cached item again"] = retrieved_item
-    
+
     # Check that the item was retrieved from the cache
     assert context.memory_system.get_cache_stats()["hits"] > 0
 
@@ -431,7 +431,7 @@ def access_multiple_items(context):
         )
         item_id = context.memory_system.store(memory_item)
         context.stored_items[content] = item_id
-        
+
         # Access the item to put it in the cache
         retrieved_item = context.memory_system.retrieve(item_id)
         context.retrieved_items[content] = retrieved_item
@@ -457,7 +457,7 @@ def access_new_item(context):
     )
     item_id = context.memory_system.store(memory_item)
     context.stored_items[content] = item_id
-    
+
     # Access the item to put it in the cache
     retrieved_item = context.memory_system.retrieve(item_id)
     context.retrieved_items[content] = retrieved_item
@@ -468,17 +468,19 @@ def check_lru_item_removed(context):
     """Check that the least recently used item has been removed from the cache."""
     # Check that the cache size is still at its maximum
     assert context.memory_system.get_cache_size() == 2
-    
+
     # Check that the first item is no longer in the cache
     item_id = context.stored_items["Limited cache item 1"]
-    
-    # Access the item and check if it's a cache miss
-    cache_stats_before = context.memory_system.get_cache_stats()
+
+    # Directly check if the item is in the cache using the cache's contains method
+    assert not context.memory_system.cache.contains(item_id), "The least recently used item is still in the cache"
+
+    # Access the item to verify it can still be retrieved from the memory layer
     retrieved_item = context.memory_system.retrieve(item_id)
-    cache_stats_after = context.memory_system.get_cache_stats()
-    
-    # Check that there was a cache miss
-    assert cache_stats_after["misses"] > cache_stats_before["misses"]
+    assert retrieved_item is not None, "The item should still be retrievable from the memory layer"
+
+    # After retrieval, the item should now be in the cache again
+    assert context.memory_system.cache.contains(item_id), "The item should be in the cache after retrieval"
 
 
 @then('the new item should be added to the cache')
@@ -486,11 +488,13 @@ def check_new_item_added_to_cache(context):
     """Check that the new item has been added to the cache."""
     # Check that the new item is in the cache
     item_id = context.stored_items["New limited cache item"]
-    
-    # Access the item and check if it's a cache hit
-    cache_stats_before = context.memory_system.get_cache_stats()
+
+    # Directly check if the item is in the cache using the cache's contains method
+    assert context.memory_system.cache.contains(item_id), "The new item is not in the cache"
+
+    # Access the item to verify it can be retrieved from the cache
     retrieved_item = context.memory_system.retrieve(item_id)
-    cache_stats_after = context.memory_system.get_cache_stats()
-    
-    # Check that there was a cache hit
-    assert cache_stats_after["hits"] > cache_stats_before["hits"]
+    assert retrieved_item is not None, "The item should be retrievable from the cache"
+
+    # The item should still be in the cache after retrieval
+    assert context.memory_system.cache.contains(item_id), "The item should still be in the cache after retrieval"

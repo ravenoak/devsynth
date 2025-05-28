@@ -14,13 +14,10 @@ from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore, _cleanu
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.adapters.provider_system import ProviderError
 
-# Skip all tests if ChromaDB is not available
-try:
-    import chromadb
-    from chromadb.api import ClientAPI
-    from chromadb.api.models.Collection import Collection
-except ImportError:
-    pytestmark = pytest.mark.skip(reason="ChromaDB not installed")
+# Import ChromaDB dependencies
+import chromadb
+from chromadb.api import ClientAPI
+from chromadb.api.models.Collection import Collection
 
 # Create a mock ChromaDB client and collection for testing
 @pytest.fixture

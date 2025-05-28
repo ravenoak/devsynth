@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenario
 
-from tests.behavior.steps.test_retry_steps import *  # noqa
+from .steps.test_retry_steps import *  # noqa
 
 
 @scenario('features/retry_mechanism.feature', 'Successful retry after transient errors')

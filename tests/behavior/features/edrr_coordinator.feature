@@ -51,3 +51,23 @@ Feature: EDRR Coordinator
     And the documentation manager should retrieve evaluation criteria
     And the results should be stored in memory with EDRR phase "Retrospect"
     And a final report should be generated summarizing the entire EDRR cycle
+
+  Scenario: Start EDRR cycle from a manifest file
+    Given a valid EDRR manifest file exists
+    When I start the EDRR cycle from the manifest file
+    Then the coordinator should parse the manifest successfully
+    And the coordinator should enter the "Expand" phase
+    And the coordinator should use the phase instructions from the manifest
+    And the coordinator should use the phase templates from the manifest
+    And the coordinator should track phase dependencies
+    And the coordinator should monitor execution progress
+
+  Scenario: Track comprehensive logging and traceability
+    Given the EDRR coordinator is initialized with enhanced logging
+    When I complete a full EDRR cycle with a task to "implement a feature"
+    Then the coordinator should generate detailed execution traces
+    And the execution traces should include phase-specific metrics
+    And the execution traces should include status tracking for each phase
+    And the execution traces should include comprehensive metadata
+    And I should be able to retrieve the full execution history
+    And I should be able to analyze performance metrics for each phase

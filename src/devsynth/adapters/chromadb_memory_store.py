@@ -13,6 +13,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from datetime import datetime
 from devsynth.adapters.provider_system import get_provider, embed, ProviderError
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.config.settings import ensure_path_exists
 
 # Global registry to track ChromaDB clients and ensure proper cleanup
 _chromadb_clients = {}
@@ -51,7 +52,8 @@ def chromadb_client_context(persist_directory: str, instance_id: str = None) -> 
     if 'pytest' in sys.modules:
         # In test environments, create a unique subdirectory
         actual_persist_dir = os.path.join(persist_directory, unique_id)
-        os.makedirs(actual_persist_dir, exist_ok=True)
+        # Use ensure_path_exists to respect test isolation
+        ensure_path_exists(actual_persist_dir)
 
     client = None
 
@@ -86,7 +88,7 @@ class ChromaDBMemoryStore(MemoryStore):
     for embeddings, with automatic fallback if a provider fails.
     """
     def __init__(self,
-                persist_directory: str = ".devsynth/chromadb_store",
+                persist_directory: str = None,
                 use_provider_system: bool = True,
                 provider_type: Optional[str] = None,
                 collection_name: str = "devsynth_artifacts",
@@ -97,7 +99,7 @@ class ChromaDBMemoryStore(MemoryStore):
         Initialize the ChromaDB memory store.
 
         Args:
-            persist_directory: Directory to persist ChromaDB data
+            persist_directory: Directory to persist ChromaDB data. If None, uses DEVSYNTH_PROJECT_DIR or current directory.
             use_provider_system: Whether to use the provider system for embeddings
             provider_type: Optional specific provider to use (if use_provider_system is True)
             collection_name: Name of the ChromaDB collection to use
@@ -108,6 +110,18 @@ class ChromaDBMemoryStore(MemoryStore):
         # Setup logging
         self.logger = DevSynthLogger(__name__)
 
+        # Determine the persist directory based on environment variables
+        if persist_directory is None:
+            # Use DEVSYNTH_PROJECT_DIR if set (for test isolation)
+            project_dir = os.environ.get('DEVSYNTH_PROJECT_DIR')
+            if project_dir:
+                persist_directory = os.path.join(project_dir, ".devsynth", "chromadb_store")
+                self.logger.debug(f"Using test environment for ChromaDB store: {persist_directory}")
+            else:
+                # Default to current working directory
+                persist_directory = os.path.join(os.getcwd(), ".devsynth", "chromadb_store")
+                self.logger.debug(f"Using current directory for ChromaDB store: {persist_directory}")
+
         # Store configuration
         self.persist_directory = persist_directory
         self.collection_name = collection_name
@@ -115,9 +129,10 @@ class ChromaDBMemoryStore(MemoryStore):
         self.retry_delay = retry_delay
         self.instance_id = instance_id or f"instance_{time.time()}"  # Generate a unique ID if none provided
 
-        # Ensure the persist directory exists
+        # Ensure the persist directory exists using the settings utility function
+        # This respects test isolation by checking DEVSYNTH_NO_FILE_LOGGING
         try:
-            os.makedirs(persist_directory, exist_ok=True)
+            ensure_path_exists(persist_directory)
             self.logger.info(f"ChromaDB persist directory ensured: {persist_directory}")
         except Exception as e:
             self.logger.error(f"Failed to create ChromaDB persist directory: {e}")

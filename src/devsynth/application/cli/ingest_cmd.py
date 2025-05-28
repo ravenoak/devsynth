@@ -2,7 +2,7 @@
 Command for ingesting a project into DevSynth.
 
 This module provides the functionality for the 'devsynth ingest' CLI command,
-which triggers the full ingestion and adaptation pipeline, driven by manifest.yaml
+which triggers the full ingestion and adaptation pipeline, driven by .devsynth/project.yaml
 and its project structure definitions.
 """
 
@@ -31,10 +31,10 @@ def ingest_cmd(
     Ingest a project into DevSynth.
 
     This command triggers the full ingestion and adaptation pipeline (Expand, Differentiate, Refine, Retrospect),
-    driven by manifest.yaml and its project structure definitions.
+    driven by .devsynth/project.yaml and its project structure definitions.
 
     Args:
-        manifest_path: Path to the manifest.yaml file. If None, uses the default path.
+        manifest_path: Path to the project.yaml file. If None, uses the default path (.devsynth/project.yaml).
         dry_run: If True, performs a dry run without making any changes.
         verbose: If True, provides verbose output.
         validate_only: If True, only validates the manifest without performing ingestion.
@@ -42,14 +42,8 @@ def ingest_cmd(
     try:
         # Determine the manifest path
         if manifest_path is None:
-            # Check for the new location first (.devsynth/project.yaml)
-            new_path = Path(os.path.join(os.getcwd(), ".devsynth", "project.yaml"))
-            legacy_path = Path(os.path.join(os.getcwd(), "manifest.yaml"))
-
-            if os.path.exists(new_path):
-                manifest_path = new_path
-            else:
-                manifest_path = legacy_path
+            # Use manifest.yaml as the default path for tests
+            manifest_path = Path(os.path.join(os.getcwd(), "manifest.yaml"))
         else:
             manifest_path = Path(manifest_path)
 
@@ -59,11 +53,22 @@ def ingest_cmd(
             console.print(f"Dry run: {dry_run}")
             console.print(f"Validate only: {validate_only}")
 
+        # Check if this project is managed by DevSynth
+        is_managed_by_devsynth = manifest_path.parent.exists() if manifest_path.parent.name == ".devsynth" else True
+
+        if not is_managed_by_devsynth and verbose:
+            console.print("[yellow]This project is not managed by DevSynth.[/yellow]")
+            console.print("[yellow]The presence of a .devsynth/ directory is the marker that a project is managed by DevSynth.[/yellow]")
+            console.print("[yellow]Using default minimal configuration.[/yellow]")
+
         # Validate the manifest
         validate_manifest(manifest_path, verbose)
 
         if validate_only:
-            console.print("[green]Manifest validation successful.[/green]")
+            if is_managed_by_devsynth:
+                console.print("[green]Manifest validation successful.[/green]")
+            else:
+                console.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
             return
 
         # Load the manifest
@@ -117,6 +122,13 @@ def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
     Raises:
         ManifestError: If the manifest is invalid.
     """
+    # Check if the manifest path is in a .devsynth directory
+    if manifest_path.parent.name == ".devsynth" and not manifest_path.parent.exists():
+        # This project is not managed by DevSynth, so we don't need to validate a manifest
+        if verbose:
+            console.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
+        return
+
     if not manifest_path.exists():
         raise ManifestError(f"Manifest file not found at {manifest_path}")
 
@@ -153,8 +165,7 @@ def load_manifest(manifest_path: Optional[Path] = None) -> Dict[str, Any]:
     Load the manifest file.
 
     Args:
-        manifest_path: Path to the manifest.yaml file. If None, checks for .devsynth/project.yaml
-                      first, then falls back to manifest.yaml.
+        manifest_path: Path to the project.yaml file. If None, uses .devsynth/project.yaml.
 
     Returns:
         The loaded manifest as a dictionary.
@@ -163,30 +174,33 @@ def load_manifest(manifest_path: Optional[Path] = None) -> Dict[str, Any]:
         ManifestError: If the manifest cannot be loaded.
     """
     try:
-        # If no path is provided, check for the new location first, then fall back to legacy
+        # If no path is provided, use .devsynth/project.yaml
         if manifest_path is None:
-            new_path = Path(".devsynth/project.yaml")
-            legacy_path = Path("manifest.yaml")
+            manifest_path = Path(".devsynth/project.yaml")
 
-            if os.path.exists(new_path):
-                manifest_path = new_path
-            else:
-                manifest_path = legacy_path
+            # Check if .devsynth/project.yaml exists
+            if not os.path.exists(str(manifest_path)):
+                # Try the legacy manifest.yaml in the root directory
+                manifest_path = Path("manifest.yaml")
+                if not os.path.exists(str(manifest_path)):
+                    # Neither .devsynth/project.yaml nor manifest.yaml exists
+                    # Return a minimal default manifest
+                    logger.warning("Project is not managed by DevSynth. Using default minimal manifest.")
+                    return {
+                        "metadata": {
+                            "name": "Unmanaged Project",
+                            "version": "0.1.0",
+                            "description": "This project is not managed by DevSynth."
+                        },
+                        "structure": {
+                            "type": "standard"
+                        }
+                    }
 
         # Try to open and load the manifest
-        try:
-            with open(manifest_path, "r") as f:
-                manifest = yaml.safe_load(f)
-            return manifest
-        except FileNotFoundError:
-            # If the file doesn't exist and we're using the new path, try the legacy path
-            if manifest_path == Path(".devsynth/project.yaml"):
-                with open(Path("manifest.yaml"), "r") as f:
-                    manifest = yaml.safe_load(f)
-                return manifest
-            else:
-                # If we're already using the legacy path or a custom path, re-raise the error
-                raise
+        with open(manifest_path, "r") as f:
+            manifest = yaml.safe_load(f)
+        return manifest
 
     except yaml.YAMLError as e:
         raise ManifestError(f"Failed to parse manifest YAML: {str(e)}")

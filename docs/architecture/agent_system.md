@@ -112,13 +112,13 @@ base_agent_graph = workflow.compile()
 
 ## WSDE Model Implementation
 
-The WSDE (Worker Self-Directed Enterprise) model is implemented in `domain/models/wsde.py` and provides a framework for agent collaboration with rotating leadership. This model is inspired by non-hierarchical, democratic workplace structures and ensures that agents work together as peers with complementary capabilities.
+The WSDE (Worker Self-Directed Enterprise) model is implemented in `domain/models/wsde.py` and provides a sophisticated framework for agent collaboration with rotating leadership, dialectical reasoning, consensus building, and knowledge integration. This model is inspired by non-hierarchical, democratic workplace structures and ensures that agents work together as peers with complementary capabilities.
 
 ### WSDE Model Diagram
 
 ```mermaid
 graph TD
-    A[WSDATeam] -->|manages| B[Primus]
+    A[WSDETeam] -->|manages| B[Primus]
     A -->|contains| C[Worker]
     A -->|contains| D[Supervisor]
     A -->|contains| E[Designer]
@@ -132,6 +132,24 @@ graph TD
     D -->|reviews| G
     E -->|plans| G
     F -->|evaluates| G
+
+    A -->|provides| H[Role Management]
+    A -->|enables| I[Dialectical Reasoning]
+    A -->|facilitates| J[Consensus Building]
+    A -->|supports| K[Knowledge Integration]
+
+    H -->|includes| H1[Role Assignment]
+    H -->|includes| H2[Expertise-based Primus Selection]
+
+    I -->|includes| I1[Basic Dialectical Reasoning]
+    I -->|includes| I2[Enhanced Dialectical Reasoning]
+    I -->|includes| I3[Multi-disciplinary Dialectical Reasoning]
+
+    J -->|includes| J1[Consensus Building]
+    J -->|includes| J2[Voting Mechanisms]
+
+    K -->|includes| K1[Knowledge Graph Integration]
+    K -->|includes| K2[External Knowledge Integration]
 ```
 
 ### WSDE Roles
@@ -144,30 +162,123 @@ The WSDE organization model consists of the following roles:
 - **Evaluator**: Evaluates the output and provides quality assessment
 - **Primus**: The lead role that rotates among agents based on task expertise
 
-### WSDATeam Class
+### WSDETeam Class
 
-The `WSDATeam` class manages a team of agents organized according to the WSDE model:
+The `WSDETeam` class manages a team of agents organized according to the WSDE model with extensive functionality:
 
 ```python
 @dataclass
-class WSDATeam:
+class WSDETeam:
     agents: List[Any] = None  # List of Agent objects
     primus_index: int = 0  # Index of the current Primus agent
+    solutions: List[Dict[str, Any]] = None  # Solutions proposed by agents
+    critiques: List[Dict[str, Any]] = None  # Critiques of solutions
+    voting_history: List[Dict[str, Any]] = None  # History of voting decisions
 
-    # Methods for managing agents and roles
+    # Role Management Methods
     def add_agent(self, agent: Any) -> None: ...
     def rotate_primus(self) -> None: ...
+    def select_primus_by_expertise(self, task: Dict[str, Any]) -> None: ...
     def get_primus(self) -> Optional[Any]: ...
     def get_worker(self) -> Optional[Any]: ...
     def get_supervisor(self) -> Optional[Any]: ...
     def get_designer(self) -> Optional[Any]: ...
     def get_evaluator(self) -> Optional[Any]: ...
     def assign_roles(self) -> None: ...
+
+    # Team Collaboration Methods
+    def can_propose_solution(self, agent: Any, task: Dict[str, Any]) -> bool: ...
+    def can_provide_critique(self, agent: Any, solution: Dict[str, Any]) -> bool: ...
+    def add_solution(self, task: Dict[str, Any], solution: Dict[str, Any]) -> None: ...
+
+    # Consensus and Voting Methods
+    def vote_on_critical_decision(self, task: Dict[str, Any]) -> Dict[str, Any]: ...
+    def _apply_majority_voting(self, task: Dict[str, Any], voting_result: Dict[str, Any]) -> Dict[str, Any]: ...
+    def _handle_tied_vote(self, task: Dict[str, Any], voting_result: Dict[str, Any], vote_counts: Dict[str, int], tied_options: List[str]) -> Dict[str, Any]: ...
+    def _apply_weighted_voting(self, task: Dict[str, Any], voting_result: Dict[str, Any], domain: str) -> Dict[str, Any]: ...
+    def build_consensus(self, task: Dict[str, Any]) -> List[Dict[str, Any]]: ...
+
+    # Dialectical Reasoning Methods
+    def apply_dialectical_reasoning(self, task: Dict[str, Any], critic_agent: Any = None) -> Dict[str, Any]: ...
+    def apply_enhanced_dialectical_reasoning(self, task: Dict[str, Any], critic_agent: Any = None) -> Dict[str, Any]: ...
+    def apply_enhanced_dialectical_reasoning_multi(self, task: Dict[str, Any], critic_agent: Any = None) -> Dict[str, Any]: ...
+    def apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, Any], critic_agent: Any, wsde_memory_integration: Any) -> Dict[str, Any]: ...
+    def apply_enhanced_dialectical_reasoning_with_knowledge(self, task: Dict[str, Any], critic_agent: Any, external_knowledge: Dict[str, Any]) -> Dict[str, Any]: ...
+    def apply_multi_disciplinary_dialectical_reasoning(self, task: Dict[str, Any], critic_agent: Any, disciplinary_knowledge: Dict[str, Any], disciplinary_agents: List[Any]) -> Dict[str, Any]: ...
 ```
+
+### Role Management and Team Collaboration
+
+The WSDE model provides sophisticated role management capabilities:
+
+- **Dynamic Role Assignment**: Roles are assigned based on agent capabilities and expertise
+- **Expertise-based Primus Selection**: The Primus (lead) role can be assigned to the agent with the most relevant expertise for a specific task
+- **Solution Proposal Control**: The system controls which agents can propose solutions based on their roles and expertise
+- **Critique Management**: The system manages which agents can provide critiques of solutions
+
+### Dialectical Reasoning
+
+The WSDE model implements multiple levels of dialectical reasoning:
+
+1. **Basic Dialectical Reasoning**: A thesis-antithesis-synthesis approach where:
+   - A thesis (initial solution) is proposed
+   - An antithesis (critique) is generated
+   - A synthesis (improved solution) is created by reconciling the thesis and antithesis
+
+2. **Enhanced Dialectical Reasoning**: Extends basic dialectical reasoning with:
+   - More sophisticated analysis of the thesis
+   - Structured critique generation
+   - Comprehensive synthesis that addresses all critique points
+   - Formal evaluation of the synthesis
+
+3. **Multi-solution Dialectical Reasoning**: Applies dialectical reasoning across multiple proposed solutions:
+   - Analyzes each solution individually
+   - Generates a comparative analysis
+   - Creates a synthesis that incorporates the best aspects of all solutions
+   - Produces a comprehensive evaluation
+
+4. **Knowledge-enhanced Dialectical Reasoning**: Integrates external knowledge sources:
+   - Knowledge graph integration for context-aware reasoning
+   - External knowledge integration for standards compliance
+   - Multi-disciplinary perspectives for comprehensive analysis
+
+### Consensus Building and Voting
+
+The WSDE model implements sophisticated consensus building and voting mechanisms:
+
+1. **Consensus Building**: A structured approach to reaching agreement:
+   - Each agent contributes ideas based on their expertise
+   - Ideas are consolidated and refined
+   - The team works together to create a unified approach
+
+2. **Voting Mechanisms**: Multiple voting approaches for critical decisions:
+   - **Majority Voting**: Simple majority rule
+   - **Weighted Voting**: Votes weighted by agent expertise in the relevant domain
+   - **Tie-breaking**: Sophisticated mechanisms for resolving tied votes
+   - **Voting History**: Tracking of voting decisions for accountability
+
+### Knowledge Integration
+
+The WSDE model supports integration with various knowledge sources:
+
+1. **Knowledge Graph Integration**: Leverages semantic knowledge graphs for:
+   - Retrieving relevant context for decisions
+   - Identifying relationships between concepts
+   - Enhancing reasoning with structured knowledge
+
+2. **External Knowledge Integration**: Incorporates domain-specific knowledge:
+   - Best practices and standards
+   - Compliance requirements
+   - Historical precedents
+
+3. **Multi-disciplinary Integration**: Combines perspectives from different disciplines:
+   - Identifies conflicts between disciplinary perspectives
+   - Resolves conflicts through structured reasoning
+   - Creates syntheses that address all disciplinary concerns
 
 ### Collaborative Workflow
 
-The WSDE model enables a collaborative workflow where:
+The WSDE model enables a sophisticated collaborative workflow where:
 
 1. The **Designer** creates plans and specifications
 2. The **Worker** implements the plans
@@ -175,16 +286,11 @@ The WSDE model enables a collaborative workflow where:
 4. The **Evaluator** assesses the quality and alignment with requirements
 5. The **Primus** coordinates the process and makes final decisions
 
-This workflow is not strictly sequential; agents can propose solutions or critiques at any stage, fostering autonomous collaboration and leveraging the strengths of each agent.
-
-### Future Enhancements
-
-As outlined in the Development Plan, the WSDE model implementation will be refined to:
-
-- Make leadership context-driven rather than rotation-based
-- Enable more autonomous collaboration
-- Implement consensus or voting mechanisms for critical decisions
-- Create a more flexible peer-based structure
+This workflow is enhanced by:
+- Dialectical reasoning for continuous improvement
+- Consensus building for team alignment
+- Voting mechanisms for critical decisions
+- Knowledge integration for informed decision-making
 
 ## Integration with Provider System
 

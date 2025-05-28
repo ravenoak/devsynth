@@ -47,5 +47,17 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | NFR-01 | Token usage optimization | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/llm/token_counter.py | tests/unit/test_token_counter.py | Implemented |
 | NFR-06 | Local machine operation | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/config/settings.py | tests/unit/test_settings.py | Implemented |
 | NFR-19 | Modular architecture | [Hexagonal Architecture](architecture/hexagonal_architecture.md) | src/devsynth/ports/, src/devsynth/adapters/ | tests/unit/test_ports.py | Implemented |
+| FR-40 | EDRR (Expand, Differentiate, Refine, Retrospect) framework | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/edrr/coordinator.py | tests/behavior/features/edrr_process.feature | Implemented |
+| FR-41 | WSDE (Worker Self-Directed Enterprise) model | [Agent System Architecture](architecture/agent_system.md) | src/devsynth/application/collaboration/wsde.py | tests/behavior/features/wsde_agent_model.feature | Implemented |
+| FR-42 | Role management in multi-agent collaboration | [Agent System Architecture](architecture/agent_system.md) | src/devsynth/application/collaboration/wsde.py | tests/behavior/features/wsde_agent_model.feature | Implemented |
+| FR-43 | Dialectical reasoning in agent collaboration | [Agent System Architecture](architecture/agent_system.md) | src/devsynth/application/collaboration/wsde.py | tests/behavior/features/wsde_agent_model.feature | Implemented |
+| FR-44 | TinyDB memory adapter | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/adapters/tinydb_adapter.py | tests/unit/adapters/memory/test_tinydb_adapter.py | Implemented |
+| FR-45 | RDFLib knowledge graph store | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/adapters/rdflib_store.py | tests/unit/adapters/memory/test_rdflib_store.py | Implemented |
+| FR-46 | Graph memory adapter | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/adapters/graph_adapter.py | tests/unit/adapters/memory/test_graph_adapter.py | Implemented |
+| FR-47 | Vector memory adapter | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/adapters/vector_adapter.py | tests/unit/adapters/memory/test_vector_adapter.py | Implemented |
+| FR-48 | Alternative vector stores (DuckDB, FAISS, LMDB) | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/adapters/vector_stores/ | tests/unit/adapters/memory/test_vector_stores.py | Partially Implemented |
+| FR-49 | Offline documentation ingestion | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/documentation/ingestion.py | tests/behavior/features/version_aware_documentation.feature | Implemented |
+| FR-50 | AST-based code transformations | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/code_analysis/ast_transformer.py | tests/behavior/features/ast_code_analysis.feature | Implemented |
+| FR-51 | Prompt auto-tuning mechanisms | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/prompts/prompt_manager.py | tests/behavior/features/prompt_management.feature | Implemented |
 
 _Last updated: May 30, 2025_

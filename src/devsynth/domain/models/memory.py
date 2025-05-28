@@ -21,6 +21,14 @@ class MemoryType(Enum):
     KNOWLEDGE_GRAPH = "knowledge_graph"
     RELATIONSHIP = "relationship"
     CODE_ANALYSIS = "code_analysis"
+    CODE = "code"
+    CODE_TRANSFORMATION = "code_transformation"
+    DOCUMENTATION = "documentation"
+    CONTEXT = "context"
+    CONVERSATION = "conversation"
+    TASK_HISTORY = "task_history"
+    KNOWLEDGE = "knowledge"
+    ERROR_LOG = "error_log"
 
 # Alias for backward compatibility and for use in tests
 MemoryItemType = MemoryType

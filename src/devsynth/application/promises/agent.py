@@ -507,9 +507,18 @@ class PromiseAgent:
         promise.set_metadata("context_id", context_id)
         if tags:
             promise.set_metadata("tags", tags)
-        if parent_id:
-            promise.set_metadata("parent_id", parent_id)
         promise.set_metadata("priority", priority)
+
+        # Set parent-child relationship if parent_id is provided
+        if parent_id:
+            promise.parent_id = parent_id
+            promise.set_metadata("parent_id", parent_id)
+
+            # Find the parent promise and add this promise as a child
+            for p in self.mixin._pending_requests.values():
+                if p.id == parent_id:
+                    p.add_child_id(promise.id)
+                    break
 
         return promise
 
@@ -520,12 +529,22 @@ class PromiseAgent:
         Args:
             promise_id: ID of the promise to fulfill
             result: The result of the fulfilled promise
+
+        Raises:
+            ValueError: If the promise with the given ID is not found
         """
-        # Find the promise in the context
+        # Find the promise in the pending requests
         for promise in self.mixin._pending_requests.values():
             if promise.id == promise_id:
                 promise.resolve(result)
                 return
+
+        # Check if the promise is in the broker's capabilities
+        for capability in self.broker.get_capabilities_provided_by(self.agent_id):
+            for pid, promise in capability.promises.items():
+                if promise.id == promise_id:
+                    promise.resolve(result)
+                    return
 
         # If we get here, the promise wasn't found
         raise ValueError(f"Promise with ID {promise_id} not found")
@@ -537,12 +556,22 @@ class PromiseAgent:
         Args:
             promise_id: ID of the promise to reject
             reason: The reason why the promise was rejected
+
+        Raises:
+            ValueError: If the promise with the given ID is not found
         """
-        # Find the promise in the context
+        # Find the promise in the pending requests
         for promise in self.mixin._pending_requests.values():
             if promise.id == promise_id:
                 promise.reject(Exception(reason))
                 return
+
+        # Check if the promise is in the broker's capabilities
+        for capability in self.broker.get_capabilities_provided_by(self.agent_id):
+            for pid, promise in capability.promises.items():
+                if promise.id == promise_id:
+                    promise.reject(Exception(reason))
+                    return
 
         # If we get here, the promise wasn't found
         raise ValueError(f"Promise with ID {promise_id} not found")
@@ -570,8 +599,18 @@ class PromiseAgent:
         Returns:
             A newly created Promise linked to its parent
         """
+        # Find the parent promise first to verify it exists
+        parent_promise = None
+        for promise in self.mixin._pending_requests.values():
+            if promise.id == parent_id:
+                parent_promise = promise
+                break
+
+        if parent_promise is None:
+            raise ValueError(f"Parent promise with ID {parent_id} not found")
+
         # Create a new Promise
-        promise = self.create_promise(
+        child_promise = self.create_promise(
             type=type,
             parameters=parameters,
             context_id=context_id,
@@ -580,7 +619,10 @@ class PromiseAgent:
             priority=priority
         )
 
-        return promise
+        # Ensure the parent-child relationship is established
+        parent_promise.add_child_id(child_promise.id)
+
+        return child_promise
 
     def run(self) -> None:
         """

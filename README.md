@@ -9,8 +9,10 @@ tags:
   - "readme"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-20"
+last_reviewed: "2025-05-30"
 ---
+
+> Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
 
 # DevSynth
 
@@ -18,25 +20,26 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
-- Unified memory system with ChromaDB, SQLite, and JSON backends
+- Unified memory system with ChromaDB, TinyDB, RDFLib, and JSON backends
 - Agent system powered by LangGraph for orchestrated workflows
 - Advanced code analysis using NetworkX
 - Provider abstraction for OpenAI, LM Studio, and more
 - Comprehensive SDLC policy corpus for agentic and human contributors
 - Automated documentation, testing, and CI/CD pipelines
-- **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `manifest.yaml` file and an "Expand, Differentiate, Refine, Retrospect" process to keep its knowledge current.
+- **Worker Self-Directed Enterprise (WSDE) Model**: Sophisticated multi-agent collaboration framework with role management, dialectical reasoning, consensus building, and knowledge integration capabilities
+- **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and an "Expand, Differentiate, Refine, Retrospect" (EDRR) framework to keep its knowledge current. The EDRR framework is implemented through the EDRRCoordinator but is not yet fully integrated with all system components. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
 
 ## SDLC Policies and Documentation Framework
 
 DevSynth is governed by a comprehensive set of SDLC policies and documentation artifacts designed for both human and agentic contributors. These policies ensure structure, boundaries, and direction across all SDLC phases, supporting multi-agent collaboration, compliance, safety, and productivity. Key elements include:
 
-- **Project Manifest (`manifest.yaml`)**: A user-configurable file at the project root, defined by `docs/manifest_schema.json`, detailing the project's specific structure (e.g., monorepo, submodules, custom paths), components, and primary language. This is the cornerstone of DevSynth's "Expand, Differentiate, Refine, Retrospect" ingestion and adaptation mechanism.
+- **Project Configuration (`.devsynth/project.yaml`)**: A user-configurable file in the `.devsynth` directory, defined by `docs/manifest_schema.json`, detailing the project's shape and attributes (e.g., structure type, components, primary language). This configuration file is minimal but functional, featureful, and human-friendly. It is only present in projects that are managed by DevSynth, as the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. This is the cornerstone of DevSynth's "Expand, Differentiate, Refine, Retrospect" ingestion and adaptation mechanism.
 - **Requirements Documentation**: Product Requirements Document (PRD), domain glossary, and requirements traceability matrix ([docs/requirements_traceability.md](docs/requirements_traceability.md))
 - **Design Documentation**: Architecture specs, design principles, API/data schemas, and security design ([docs/architecture/overview.md](docs/architecture/overview.md))
 - **Development Protocols**: Contribution guide, code style, module ownership, secure coding, and peer review ([docs/developer_guides/contributing.md](docs/developer_guides/contributing.md), [docs/developer_guides/code_style.md](docs/developer_guides/code_style.md))
 - **Testing Strategy**: Test plan, unit/integration/property-based/regression tests, CI coverage, and testing documentation ([docs/developer_guides/testing.md](docs/developer_guides/testing.md))
 - **Deployment & Maintenance**: Infrastructure-as-code, deployment workflow, access control, observability, rollback, and maintenance plan ([docs/policies/deployment.md](docs/policies/deployment.md), [docs/policies/maintenance.md](docs/policies/maintenance.md))
-- **Repository Structure & Metadata**: Predictable directory layout, file/symbol annotations, metadata tags, a `manifest.yaml` for project structure definition, and an automated knowledge base for agentic retrieval ([docs/roadmap/documentation_plan.md](docs/roadmap/documentation_plan.md), `manifest.yaml`, `docs/manifest_schema.json`)
+- **Repository Structure & Metadata**: Predictable directory layout, file/symbol annotations, metadata tags, a `.devsynth/project.yaml` for project configuration (in projects managed by DevSynth), and an automated knowledge base for agentic retrieval ([docs/roadmap/documentation_plan.md](docs/roadmap/documentation_plan.md), `.devsynth/project.yaml`, `docs/manifest_schema.json`)
 
 ## Documentation
 
@@ -64,8 +67,8 @@ The documentation corpus is organized for clarity and agentic navigation, follow
 The [mkdocs.yml](mkdocs.yml) file provides a navigable structure for all documentation.
 
 ## Repository Structure
-- `manifest.yaml` – Defines project structure and artifacts for DevSynth ingestion.
-- `docs/manifest_schema.json` – The JSON schema for `manifest.yaml`.
+- `.devsynth/project.yaml` – Configuration file describing the shape and attributes of projects managed by DevSynth. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
+- `docs/manifest_schema.json` – The JSON schema for `.devsynth/project.yaml`.
 - `src/` – Source code (modular, hexagonal architecture)
 - `tests/` – Unit, integration, and behavior-driven tests
 - `docs/` – User, developer, architecture, and policy documentation
@@ -88,4 +91,4 @@ DevSynth is released under the MIT License. See [LICENSE.md](LICENSE.md) for det
 
 ---
 
-_Last updated: May 2025_
+_Last updated: May 30, 2025_

@@ -6,8 +6,8 @@ import pytest
 from pytest_bdd import scenarios
 
 # Import step definitions
-from steps.cli_commands_steps import *
-from steps.chromadb_steps import *
+from .steps.cli_commands_steps import *
+from .steps.chromadb_steps import *
 
 # Define the feature file to test
 # Use a function to delay the scenarios loading until test execution

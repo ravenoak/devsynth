@@ -19,8 +19,8 @@ console = Console()
 def init_cmd(path: str = ".") -> None:
     """Initialize a new project at PATH (default: current directory).
 
-    This command creates the initial project structure and a devsynth.yaml file
-    (formerly manifest.yaml) that describes the project structure for DevSynth to understand.
+    This command creates the initial project structure and a project.yaml file
+    in the .devsynth directory that describes the shape and attributes of the project.
     """
     try:
         # First, execute the workflow command to set up the project structure
@@ -30,7 +30,7 @@ def init_cmd(path: str = ".") -> None:
             console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
             return
 
-        # Create devsynth.yaml file
+        # Create project.yaml file
         import yaml
         import datetime
         import os
@@ -40,7 +40,7 @@ def init_cmd(path: str = ".") -> None:
         project_path = Path(path).resolve()
         project_name = project_path.name
 
-        # Create a comprehensive config structure
+        # Create a minimal but functional and human-friendly config structure
         config = {
             "projectName": project_name,
             "version": "0.1.0",
@@ -53,7 +53,6 @@ def init_cmd(path: str = ".") -> None:
                     "tests": ["tests"],
                     "docs": ["docs"]
                 },
-                "entryPoints": ["src/main.py"],
                 "ignore": [
                     "**/__pycache__/**",
                     "**/.git/**",
@@ -61,31 +60,14 @@ def init_cmd(path: str = ".") -> None:
                     "**/.env"
                 ]
             },
-            "keyArtifacts": {
-                "docs": [
-                    {
-                        "path": "README.md",
-                        "purpose": "Project overview and getting started guide"
-                    }
-                ]
-            },
-            "methodology": {
-                "type": "sprint",
-                "settings": {
-                    "sprintDuration": 14,
-                    "reviewFrequency": 7
-                }
-            },
             "resources": {
                 "global": {
                     "configDir": "~/.devsynth/config",
-                    "cacheDir": "~/.devsynth/cache",
                     "logsDir": "~/.devsynth/logs",
                     "memoryDir": "~/.devsynth/memory"
                 },
                 "project": {
                     "configDir": ".devsynth",
-                    "cacheDir": ".devsynth/cache",
                     "logsDir": ".devsynth/logs",
                     "memoryDir": ".devsynth/memory"
                 }
@@ -101,20 +83,8 @@ def init_cmd(path: str = ".") -> None:
         with open(config_path, "w") as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
-        # For backward compatibility, create a symlink from manifest.yaml to .devsynth/project.yaml
-        # This will be removed in a future version
-        manifest_path = os.path.join(path, "manifest.yaml")
-        try:
-            if os.name == 'nt':  # Windows
-                import subprocess
-                subprocess.run(['mklink', manifest_path, config_path], shell=True, check=False)
-            else:  # Unix-like
-                os.symlink(config_path, manifest_path)
-            console.print("[yellow]For backward compatibility, created a symlink from manifest.yaml to .devsynth/project.yaml.[/yellow]")
-            console.print("[yellow]This will be removed in a future version.[/yellow]")
-        except Exception as e:
-            # If symlink creation fails, just log a warning
-            logger.warning(f"Failed to create symlink from manifest.yaml to .devsynth/project.yaml: {e}")
+        # No longer creating a symlink from manifest.yaml to .devsynth/project.yaml
+        # as we've moved to using .devsynth/project.yaml exclusively
 
         # Create the global config directory if it doesn't exist
         global_config_dir = os.path.expanduser("~/.devsynth/config")
@@ -124,6 +94,7 @@ def init_cmd(path: str = ".") -> None:
         console.print(f"[green]Created project configuration file at {config_path}[/green]")
         console.print(f"[green]Created global config directory at {global_config_dir}[/green]")
         console.print(f"[green]Created project config directory at {project_config_dir}[/green]")
+        console.print(f"[green]DevSynth is now managing this project.[/green]")
     except Exception as err:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 

@@ -1,3 +1,17 @@
+---
+title: "Dialectical Reasoning System for Requirements Management"
+date: "2025-05-30"
+version: "1.0.0"
+tags:
+  - "architecture"
+  - "dialectical-reasoning"
+  - "requirements"
+  - "reasoning"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-05-30"
+---
+
 # Dialectical Reasoning System for Requirements Management
 
 ## Overview
@@ -160,4 +174,3 @@ Potential future enhancements to the Dialectical Reasoning System include:
 ## Related Documentation
 
 See also: [Architecture Overview](overview.md), [Agent System](agent_system.md), [Memory System](memory_system.md)
-
