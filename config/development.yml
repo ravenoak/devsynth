@@ -1,0 +1,46 @@
+# DevSynth Development Configuration
+# Overrides for development environment
+
+# Logging configuration
+logging:
+  level: DEBUG
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
+
+# Memory system configuration
+memory:
+  stores:
+    chromadb:
+      host: localhost
+      port: 8001  # Mapped port in docker-compose
+      persist_directory: ./.devsynth/dev/chromadb
+
+# LLM provider configuration
+llm:
+  providers:
+    openai:
+      temperature: 0.8  # More creative in development
+      max_tokens: 2048  # Smaller context to save tokens during development
+
+# Security settings
+security:
+  rate_limiting:
+    enabled: false  # Disable rate limiting in development
+  encryption:
+    at_rest: false
+    in_transit: false  # No TLS in development
+
+# Performance settings
+performance:
+  cache:
+    ttl: 300  # Shorter cache TTL for development
+  concurrency:
+    max_workers: 2  # Fewer workers in development
+
+# Feature flags - enable all in development
+features:
+  wsde_collaboration: true
+  dialectical_reasoning: true
+  code_generation: true
+  test_generation: true
+  documentation_generation: true
+  experimental_features: true  # Only in development

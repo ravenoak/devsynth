@@ -1,0 +1,95 @@
+# DevSynth Production Configuration
+# Overrides for production environment - SECURITY HARDENED
+
+# Logging configuration
+logging:
+  level: WARNING  # Only log warnings and errors in production
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: /var/log/devsynth/app.log  # Log to file in production
+
+# Memory system configuration
+memory:
+  stores:
+    chromadb:
+      host: ${DEVSYNTH_CHROMADB_HOST}  # Use environment variable
+      port: ${DEVSYNTH_CHROMADB_PORT}
+      persist_directory: /data/devsynth/chromadb  # Persistent storage
+      collection_name: devsynth-prod
+      distance_function: cosine
+    faiss:
+      enabled: true  # Enable FAISS in production for performance
+      index_file: /data/devsynth/faiss/index.bin
+
+# LLM provider configuration
+llm:
+  default_provider: ${DEVSYNTH_LLM_PROVIDER}  # From environment variable
+  providers:
+    openai:
+      enabled: true
+      model: ${DEVSYNTH_OPENAI_MODEL}
+      api_key: ${DEVSYNTH_OPENAI_API_KEY}  # From environment variable
+      temperature: 0.5  # More conservative in production
+      max_tokens: 4096
+      timeout: 120  # Longer timeout for production
+    anthropic:
+      enabled: ${DEVSYNTH_ENABLE_ANTHROPIC:-false}
+      model: ${DEVSYNTH_ANTHROPIC_MODEL:-claude-2}
+      api_key: ${DEVSYNTH_ANTHROPIC_API_KEY}
+      temperature: 0.5
+      max_tokens: 4096
+      timeout: 120
+
+# Agent configuration
+agents:
+  max_agents: 10  # More agents in production
+  default_timeout: 600  # Longer timeouts for production
+  memory_context_size: 20  # Larger context in production
+
+# EDRR framework configuration
+edrr:
+  phase_transition:
+    auto: true
+    timeout: 1200  # Longer timeout for production
+
+# Security settings - HARDENED FOR PRODUCTION
+security:
+  input_validation: true
+  rate_limiting:
+    enabled: true
+    max_requests: 50  # More conservative rate limiting
+    period: 60
+  encryption:
+    at_rest: true  # Enable encryption at rest
+    in_transit: true  # Require TLS
+  api_keys:
+    required: true
+    rotation_days: 90
+  audit_logging:
+    enabled: true
+    retention_days: 90
+  ip_allowlist:
+    enabled: ${DEVSYNTH_ENABLE_IP_ALLOWLIST:-false}
+    allowed_ips: ${DEVSYNTH_ALLOWED_IPS:-[]}
+
+# Performance settings - OPTIMIZED FOR PRODUCTION
+performance:
+  cache:
+    enabled: true
+    ttl: 7200  # Longer cache TTL for production
+    distributed: true  # Use distributed cache in production
+  concurrency:
+    max_workers: ${DEVSYNTH_MAX_WORKERS:-8}  # More workers in production
+    timeout: 600
+  optimization:
+    memory_efficient: true
+    preload_models: true
+    batch_processing: true
+
+# Feature flags - CONSERVATIVE FOR PRODUCTION
+features:
+  wsde_collaboration: true
+  dialectical_reasoning: true
+  code_generation: true
+  test_generation: true
+  documentation_generation: true
+  experimental_features: false  # Disable experimental features in production

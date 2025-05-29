@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Main DevSynth application
+  devsynth:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/opt/pysetup
+      - ~/.devsynth:/home/devsynth/.devsynth
+    ports:
+      - "8000:8000"
+    environment:
+      - DEVSYNTH_ENV=development
+      - DEVSYNTH_LOG_LEVEL=DEBUG
+      - DEVSYNTH_MEMORY_STORE=chromadb
+      - DEVSYNTH_LLM_PROVIDER=openai
+      - DEVSYNTH_CHROMADB_HOST=chromadb
+      - DEVSYNTH_CHROMADB_PORT=8000
+    depends_on:
+      - chromadb
+    networks:
+      - devsynth-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # ChromaDB vector database for memory storage
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - chromadb-data:/chroma/chroma
+    ports:
+      - "8001:8000"
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
+    networks:
+      - devsynth-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Development tools
+  dev-tools:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/opt/pysetup
+    command: /bin/bash -c "tail -f /dev/null"
+    networks:
+      - devsynth-network
+    profiles:
+      - tools
+
+  # Test runner
+  test-runner:
+    build:
+      context: .
+      target: testing
+    volumes:
+      - .:/opt/pysetup
+    environment:
+      - DEVSYNTH_ENV=testing
+      - DEVSYNTH_MEMORY_STORE=chromadb
+      - DEVSYNTH_CHROMADB_HOST=chromadb-test
+      - DEVSYNTH_CHROMADB_PORT=8000
+    depends_on:
+      - chromadb-test
+    networks:
+      - devsynth-network
+    profiles:
+      - test
+
+  # Separate ChromaDB instance for testing
+  chromadb-test:
+    image: ghcr.io/chroma-core/chroma:latest
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
+    networks:
+      - devsynth-network
+    profiles:
+      - test
+
+volumes:
+  chromadb-data:
+    name: devsynth-chromadb-data
+
+networks:
+  devsynth-network:
+    name: devsynth-network

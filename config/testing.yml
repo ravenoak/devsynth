@@ -1,0 +1,63 @@
+# DevSynth Testing Configuration
+# Overrides for testing environment
+
+# Logging configuration
+logging:
+  level: DEBUG
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
+
+# Memory system configuration
+memory:
+  stores:
+    chromadb:
+      host: chromadb-test  # Use the test-specific ChromaDB instance
+      port: 8000
+      persist_directory: /tmp/devsynth-test/chromadb  # Ephemeral storage for tests
+      collection_name: devsynth-test
+
+# LLM provider configuration
+llm:
+  default_provider: mock  # Use mock provider for tests
+  providers:
+    openai:
+      enabled: false  # Disable real API calls in tests
+    mock:
+      enabled: true
+      response_file: tests/fixtures/mock_responses.json
+      deterministic: true  # Ensure consistent responses for tests
+
+# Agent configuration
+agents:
+  max_agents: 3  # Limit agents in tests
+  default_timeout: 10  # Short timeouts for faster tests
+
+# EDRR framework configuration
+edrr:
+  phase_transition:
+    auto: false  # Manual transitions in tests
+    timeout: 30  # Short timeouts for faster tests
+
+# Security settings
+security:
+  rate_limiting:
+    enabled: false  # Disable rate limiting in tests
+  encryption:
+    at_rest: false
+    in_transit: false
+
+# Performance settings
+performance:
+  cache:
+    enabled: true
+    ttl: 60  # Short cache TTL for tests
+  concurrency:
+    max_workers: 1  # Single worker for deterministic tests
+
+# Feature flags - selectively enable for tests
+features:
+  wsde_collaboration: true
+  dialectical_reasoning: true
+  code_generation: true
+  test_generation: true
+  documentation_generation: true
+  experimental_features: false
