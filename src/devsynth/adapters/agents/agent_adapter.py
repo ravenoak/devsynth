@@ -9,7 +9,7 @@ preserving extension points for future multi-agent capabilities.
 from typing import Any, Dict, List, Optional, Type
 from ...domain.interfaces.agent import Agent, AgentFactory, AgentCoordinator
 from ...domain.models.agent import AgentConfig, AgentType
-from ...domain.models.wsde import WSDATeam
+from ...domain.models.wsde import WSDETeam
 from ...application.agents.unified_agent import UnifiedAgent
 from ...ports.llm_port import LLMPort
 
@@ -17,7 +17,7 @@ from ...ports.llm_port import LLMPort
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
+from devsynth.exceptions import DevSynthError, ValidationError
 
 # Import legacy agent classes (commented out for MVP but retained for future reference)
 # from ...application.agents.base import BaseAgent
@@ -103,9 +103,9 @@ class SimplifiedAgentFactory(AgentFactory):
         # In future versions, this will register new agent types
         pass
 
-class WSDATeamCoordinator(AgentCoordinator):
+class WSDETeamCoordinator(AgentCoordinator):
     """
-    Coordinator for WSDA teams.
+    Coordinator for WSDE teams.
 
     This class is retained for future multi-agent capabilities but is simplified
     for MVP to work with a single agent.
@@ -115,9 +115,9 @@ class WSDATeamCoordinator(AgentCoordinator):
         self.teams = {}  # Dictionary of teams by team_id
         self.current_team_id = None
 
-    def create_team(self, team_id: str) -> WSDATeam:
-        """Create a new WSDA team."""
-        team = WSDATeam()
+    def create_team(self, team_id: str) -> WSDETeam:
+        """Create a new WSDE team."""
+        team = WSDETeam()
         self.teams[team_id] = team
         self.current_team_id = team_id
         return team
@@ -139,24 +139,71 @@ class WSDATeamCoordinator(AgentCoordinator):
         """
         Delegate a task to the appropriate agent(s) in the current team.
 
-        For MVP, this simply passes the task to the single agent.
+        In the refined WSDE model, this uses:
+        1. Voting mechanisms for critical decisions
+        2. Consensus-based approach for regular tasks where:
+           a. The agent with the most relevant expertise becomes the temporary Primus
+           b. All agents can propose solutions and provide critiques
+           c. The final solution is built through consensus
+
+        For MVP with a single agent, this simply passes the task to that agent.
         """
         if self.current_team_id is None:
             raise ValidationError(f"No active team. Create a team first.")
 
         team = self.teams[self.current_team_id]
 
-        # For MVP, we only have one agent
+        # For MVP with a single agent
         if len(team.agents) == 0:
             raise ValidationError(f"No agents in the team.")
+        elif len(team.agents) == 1:
+            # Just use the single agent
+            agent = team.agents[0]
+            return agent.process(task)
 
-        # For MVP, just use the first agent
-        agent = team.agents[0]
+        # For multi-agent teams, use the refined WSDE model
 
-        # Process the task
-        return agent.process(task)
+        # Check if this is a critical decision task
+        if task.get("type") == "critical_decision" and task.get("is_critical", False):
+            # Use voting mechanisms for critical decisions
+            return team.vote_on_critical_decision(task)
 
-    def get_team(self, team_id: str) -> Optional[WSDATeam]:
+        # For regular tasks, use consensus-based approach
+
+        # 1. Select the agent with the most relevant expertise as Primus
+        team.select_primus_by_expertise(task)
+        primus = team.get_primus()
+
+        # 2. Have all agents process the task and propose solutions
+        for agent in team.agents:
+            # Process the task with this agent
+            agent_solution = agent.process(task)
+
+            # Add the agent's solution
+            solution = {
+                "agent": agent.config.name if hasattr(agent, "config") and hasattr(agent.config, "name") else agent.name if hasattr(agent, "name") else "Agent",
+                "content": agent_solution.get("result", ""),
+                "confidence": agent_solution.get("confidence", 1.0),
+                "reasoning": agent_solution.get("reasoning", "")
+            }
+            team.add_solution(task, solution)
+
+        # 3. Have agents critique each other's solutions
+        # This is handled implicitly by the build_consensus method,
+        # which analyzes and compares all solutions
+
+        # 4. Build consensus through deliberation
+        consensus = team.build_consensus(task)
+
+        # 5. Format the result to match the expected output
+        return {
+            "result": consensus.get("consensus", ""),
+            "contributors": consensus.get("contributors", []),
+            "method": consensus.get("method", "consensus"),
+            "reasoning": consensus.get("reasoning", "")
+        }
+
+    def get_team(self, team_id: str) -> Optional[WSDETeam]:
         """Get a team by ID."""
         return self.teams.get(team_id)
 
@@ -177,15 +224,15 @@ class AgentAdapter:
 
     def __init__(self, llm_port: Optional[LLMPort] = None):
         self.agent_factory = SimplifiedAgentFactory(llm_port)
-        self.agent_coordinator = WSDATeamCoordinator()
+        self.agent_coordinator = WSDETeamCoordinator()
         self.llm_port = llm_port
 
     def create_agent(self, agent_type: str, config: Dict[str, Any] = None) -> Agent:
         """Create an agent of the specified type."""
         return self.agent_factory.create_agent(agent_type, config)
 
-    def create_team(self, team_id: str) -> WSDATeam:
-        """Create a new WSDA team."""
+    def create_team(self, team_id: str) -> WSDETeam:
+        """Create a new WSDE team."""
         return self.agent_coordinator.create_team(team_id)
 
     def add_agent_to_team(self, agent: Agent) -> None:
@@ -200,7 +247,7 @@ class AgentAdapter:
         """Register a new agent type."""
         self.agent_factory.register_agent_type(agent_type, agent_class)
 
-    def get_team(self, team_id: str) -> Optional[WSDATeam]:
+    def get_team(self, team_id: str) -> Optional[WSDETeam]:
         """Get a team by ID."""
         return self.agent_coordinator.get_team(team_id)
 

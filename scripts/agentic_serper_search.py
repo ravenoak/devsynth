@@ -120,6 +120,9 @@ Begin your analysis now, using the WebSearch tool to gather information.
 
     # Initialize the LLM and agent
     #llm = ChatOpenAI(temperature=0, api_key=None, model="qwen3-30b-a3b", base_url="http://localhost:1234/v1")
+
+    # gpt-4.1-2025-04-14
+    # gpt-4o-mini-2024-07-18
     llm = ChatOpenAI(temperature=0, api_key=openai_api_key, model="gpt-4o-mini-2024-07-18")
 
     # Create the prompt template

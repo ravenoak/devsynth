@@ -45,7 +45,7 @@ Documents that ensure traceability between requirements, implementation, and tes
 | Document | Description | Related Policies |
 |----------|-------------|------------------|
 | [Requirements Traceability Matrix](../requirements_traceability.md) | Links requirements to design, code, and tests | Requirements, Testing |
-| [Repository Structure](../RepoStructure.md) | Map of the repository structure | Development, Cross-Cutting |
+| [Repository Structure](../repo_structure.md) | Map of the repository structure | Development, Cross-Cutting |
 
 ## Standards Implementation
 

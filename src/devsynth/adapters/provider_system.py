@@ -196,7 +196,7 @@ class OpenAIProvider(BaseProvider):
             "Authorization": f"Bearer {api_key}"
         }
 
-    @retry_with_exponential_backoff(max_retries=3, base_delay=1, max_delay=10)
+    @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
     def complete(self,
                 prompt: str,
                 system_prompt: Optional[str] = None,
@@ -245,7 +245,7 @@ class OpenAIProvider(BaseProvider):
             logger.error(f"OpenAI API error: {e}")
             raise ProviderError(f"OpenAI API error: {e}")
 
-    @retry_with_exponential_backoff(max_retries=3, base_delay=1, max_delay=10)
+    @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
         Generate embeddings using OpenAI API.
@@ -300,7 +300,7 @@ class LMStudioProvider(BaseProvider):
         self.model = model
         self.headers = {"Content-Type": "application/json"}
 
-    @retry_with_exponential_backoff(max_retries=3, base_delay=1, max_delay=10)
+    @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
     def complete(self,
                 prompt: str,
                 system_prompt: Optional[str] = None,

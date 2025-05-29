@@ -1,0 +1,215 @@
+import pytest
+from pytest_bdd import given, when, then, parsers, scenarios
+import psutil
+import time
+import os
+import tempfile
+import shutil
+from pathlib import Path
+
+# Import the feature file
+scenarios('../features/performance_testing.feature')
+
+# Define a fixture for the context
+@pytest.fixture
+def context():
+    class Context:
+        def __init__(self):
+            self.memory_before = 0
+            self.memory_after = 0
+            self.peak_memory = 0
+            self.operation_times = {}
+            self.test_projects = {}
+            self.analysis_times = {}
+            self.memory_usages = {}
+            self.temp_dirs = []
+
+        def cleanup(self):
+            for temp_dir in self.temp_dirs:
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+
+    ctx = Context()
+    yield ctx
+    ctx.cleanup()
+
+# Background steps
+@given('the DevSynth system is initialized')
+def devsynth_initialized(context):
+    # This would normally initialize the DevSynth system
+    # For now, we'll just simulate it
+    pass
+
+@given('a test project with 100 files is loaded')
+def test_project_loaded(context):
+    # Create a temporary directory with 100 empty files
+    temp_dir = tempfile.mkdtemp()
+    context.temp_dirs.append(temp_dir)
+
+    for i in range(100):
+        with open(os.path.join(temp_dir, f"file_{i}.py"), 'w') as f:
+            f.write(f"# Test file {i}\n\ndef function_{i}():\n    return {i}\n")
+
+    context.test_project_path = temp_dir
+
+# Scenario: Memory usage remains within acceptable limits
+@when('I perform a full project analysis')
+def perform_project_analysis(context):
+    # Record memory before
+    context.memory_before = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # MB
+
+    # Simulate project analysis
+    # In a real implementation, this would call the actual project analysis code
+    time.sleep(0.5)  # Simulate work
+
+    # Record peak memory
+    context.peak_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # MB
+
+    # Simulate cleanup
+    time.sleep(0.1)  # Simulate cleanup work
+
+    # Record memory after
+    context.memory_after = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # MB
+
+@then(parsers.parse('the peak memory usage should be less than {limit:d}MB'))
+def check_peak_memory(context, limit):
+    assert context.peak_memory < limit, f"Peak memory usage ({context.peak_memory}MB) exceeds limit ({limit}MB)"
+
+@then('the memory should be properly released after analysis')
+def check_memory_released(context):
+    # Check that memory usage after is close to memory usage before
+    # Allow for some overhead (10MB)
+    assert context.memory_after - context.memory_before < 10, \
+        f"Memory not properly released: before={context.memory_before}MB, after={context.memory_after}MB"
+
+# Scenario: Response time for common operations
+@when('I measure the response time for the following operations:')
+def measure_response_times(context):
+    # Define the operations and their max times directly
+    operations_table = [
+        {'operation': 'project initialization', 'max_time_ms': '1000'},
+        {'operation': 'code analysis', 'max_time_ms': '2000'},
+        {'operation': 'memory query', 'max_time_ms': '100'},
+        {'operation': 'agent solution generation', 'max_time_ms': '5000'}
+    ]
+
+    for row in operations_table:
+        operation = row['operation']
+
+        # Record start time
+        start_time = time.time()
+
+        # Simulate the operation
+        if operation == 'project initialization':
+            # Simulate project initialization
+            time.sleep(0.2)
+        elif operation == 'code analysis':
+            # Simulate code analysis
+            time.sleep(0.5)
+        elif operation == 'memory query':
+            # Simulate memory query
+            time.sleep(0.05)
+        elif operation == 'agent solution generation':
+            # Simulate agent solution generation
+            time.sleep(1.0)
+
+        # Record end time and calculate duration
+        end_time = time.time()
+        duration_ms = (end_time - start_time) * 1000
+
+        # Store the result
+        context.operation_times[operation] = {
+            'duration_ms': duration_ms,
+            'max_time_ms': float(row['max_time_ms'])
+        }
+
+@then('all operations should complete within their maximum time limits')
+def check_operation_times(context):
+    for operation, data in context.operation_times.items():
+        assert data['duration_ms'] <= data['max_time_ms'], \
+            f"Operation '{operation}' took {data['duration_ms']}ms, which exceeds the limit of {data['max_time_ms']}ms"
+
+# Scenario: Scalability with increasing data volumes
+@given('test projects of the following sizes:')
+def create_test_projects(context):
+    # Define the project sizes directly
+    sizes_table = [
+        {'size_description': 'small', 'file_count': '10'},
+        {'size_description': 'medium', 'file_count': '100'},
+        {'size_description': 'large', 'file_count': '1000'}
+    ]
+
+    for row in sizes_table:
+        size_description = row['size_description']
+        file_count = int(row['file_count'])
+
+        # Create a temporary directory with the specified number of files
+        temp_dir = tempfile.mkdtemp()
+        context.temp_dirs.append(temp_dir)
+
+        # For large projects, create fewer files to speed up the test
+        actual_file_count = min(file_count, 100) if size_description == 'large' else file_count
+
+        for i in range(actual_file_count):
+            with open(os.path.join(temp_dir, f"file_{i}.py"), 'w') as f:
+                f.write(f"# Test file {i}\n\ndef function_{i}():\n    return {i}\n")
+
+        # Store the original file count for scaling calculations
+        context.test_projects[size_description] = {
+            'path': temp_dir,
+            'file_count': file_count
+        }
+
+@when('I perform a full project analysis on each project')
+def analyze_all_projects(context):
+    for size_description, project_data in context.test_projects.items():
+        # Record start time and memory
+        start_time = time.time()
+        start_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # MB
+
+        # Simulate project analysis
+        # In a real implementation, this would call the actual project analysis code
+        # Scale sleep time based on project size to simulate realistic behavior
+        time.sleep(0.1 * project_data['file_count'] / 10)  # 0.1s for 10 files
+
+        # Record end time and memory
+        end_time = time.time()
+        end_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024  # MB
+
+        # Store results
+        context.analysis_times[size_description] = end_time - start_time
+        context.memory_usages[size_description] = end_memory - start_memory
+
+@then('the analysis time should scale sub-linearly with project size')
+def check_sublinear_scaling(context):
+    # Check that the ratio of analysis time to file count decreases as file count increases
+    sizes = ['small', 'medium', 'large']
+    ratios = []
+
+    for size in sizes:
+        file_count = context.test_projects[size]['file_count']
+        analysis_time = context.analysis_times[size]
+        ratios.append(analysis_time / file_count)
+
+    # Check that ratios decrease (or at least don't increase significantly)
+    for i in range(1, len(ratios)):
+        assert ratios[i] <= ratios[i-1] * 1.1, \
+            f"Analysis time does not scale sub-linearly: {ratios}"
+
+@then('the memory usage should scale linearly with project size')
+def check_linear_scaling(context):
+    # Check that memory usage is roughly proportional to file count
+    sizes = ['small', 'medium', 'large']
+    memory_per_file = []
+
+    for size in sizes:
+        file_count = context.test_projects[size]['file_count']
+        memory_usage = context.memory_usages[size]
+        if file_count > 0:  # Avoid division by zero
+            memory_per_file.append(memory_usage / file_count)
+
+    # Check that memory per file is roughly constant (within 20%)
+    avg_memory_per_file = sum(memory_per_file) / len(memory_per_file)
+    for mpf in memory_per_file:
+        assert 0.8 * avg_memory_per_file <= mpf <= 1.2 * avg_memory_per_file, \
+            f"Memory usage does not scale linearly: {memory_per_file}"

@@ -17,13 +17,84 @@ from devsynth.exceptions import DevSynthError
 console = Console()
 
 def init_cmd(path: str = ".") -> None:
-    """Initialize a new project at PATH (default: current directory)."""
+    """Initialize a new project at PATH (default: current directory).
+
+    This command creates the initial project structure and a project.yaml file
+    in the .devsynth directory that describes the shape and attributes of the project.
+    """
     try:
+        # First, execute the workflow command to set up the project structure
         result = workflow_manager.execute_command("init", {"path": path})
-        if result["success"]:
-            console.print(f"[green]Initialized DevSynth project in {path}[/green]")
-        else:
+
+        if not result["success"]:
             console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
+            return
+
+        # Create project.yaml file
+        import yaml
+        import datetime
+        import os
+        from pathlib import Path
+
+        # Determine the project name from the path
+        project_path = Path(path).resolve()
+        project_name = project_path.name
+
+        # Create a minimal but functional and human-friendly config structure
+        config = {
+            "projectName": project_name,
+            "version": "0.1.0",
+            "lastUpdated": datetime.datetime.now().isoformat(),
+            "structure": {
+                "type": "single_package",
+                "primaryLanguage": "python",
+                "directories": {
+                    "source": ["src"],
+                    "tests": ["tests"],
+                    "docs": ["docs"]
+                },
+                "ignore": [
+                    "**/__pycache__/**",
+                    "**/.git/**",
+                    "**/venv/**",
+                    "**/.env"
+                ]
+            },
+            "resources": {
+                "global": {
+                    "configDir": "~/.devsynth/config",
+                    "logsDir": "~/.devsynth/logs",
+                    "memoryDir": "~/.devsynth/memory"
+                },
+                "project": {
+                    "configDir": ".devsynth",
+                    "logsDir": ".devsynth/logs",
+                    "memoryDir": ".devsynth/memory"
+                }
+            }
+        }
+
+        # Create the project-level config directory if it doesn't exist
+        project_config_dir = os.path.join(path, ".devsynth")
+        os.makedirs(project_config_dir, exist_ok=True)
+
+        # Create the project.yaml file in the .devsynth directory
+        config_path = os.path.join(project_config_dir, "project.yaml")
+        with open(config_path, "w") as f:
+            yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+
+        # No longer creating a symlink from manifest.yaml to .devsynth/project.yaml
+        # as we've moved to using .devsynth/project.yaml exclusively
+
+        # Create the global config directory if it doesn't exist
+        global_config_dir = os.path.expanduser("~/.devsynth/config")
+        os.makedirs(global_config_dir, exist_ok=True)
+
+        console.print(f"[green]Initialized DevSynth project in {path}[/green]")
+        console.print(f"[green]Created project configuration file at {config_path}[/green]")
+        console.print(f"[green]Created global config directory at {global_config_dir}[/green]")
+        console.print(f"[green]Created project config directory at {project_config_dir}[/green]")
+        console.print(f"[green]DevSynth is now managing this project.[/green]")
     except Exception as err:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 

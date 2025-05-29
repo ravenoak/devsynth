@@ -93,6 +93,8 @@ Primary users are individual software developers who:
 - [FR-08] The system shall support multiple projects with separate contexts
 - [FR-09] The system shall track project status and progress
 - [FR-10] The system shall persist project information between sessions
+- [FR-10a] The system shall read and interpret a `manifest.yaml` file to understand project structure, components, and custom layouts (e.g., monorepo, multi-language) as defined by the user.
+- [FR-10b] The system shall adapt its understanding of the project based on changes to `manifest.yaml` and the file system, following an "Expand, Differentiate, Refine" process.
 
 ### 3.2 Requirement Analysis and Specification
 
@@ -128,22 +130,39 @@ Primary users are individual software developers who:
 - [FR-31] The system shall track agent status (idle, working, waiting, error)
 - [FR-32] The system shall support agent capabilities for different development tasks
 - [FR-33] The system shall provide error handling and recovery for agent tasks
+- [FR-40] The system shall implement the EDRR (Expand, Differentiate, Refine, Retrospect) framework for iterative development
+- [FR-41] The system shall implement the WSDE (Worker Self-Directed Enterprise) model for agent organization
+- [FR-42] The system shall support role management in multi-agent collaboration
+- [FR-43] The system shall implement dialectical reasoning in agent collaboration
 
 ### 3.6 Memory and Context System
 
-- [FR-34] The system shall maintain context information for projects, requirements, tests, and code
+- [FR-34] The system shall maintain context information for projects, requirements, tests, and code.
+- [FR-34a] The system shall build and maintain a model of the project's structure based on `manifest.yaml` and file system analysis, supporting diverse layouts (monorepos, sub-projects, etc.).
 - [FR-35] The system shall provide context management functions (add, update, retrieve, delete)
 - [FR-36] The system shall implement context pruning strategies for token optimization
 - [FR-37] The system shall persist context information between sessions
 - [FR-38] The system shall track token count for context information
+- [FR-38a] The system's Memory and Context System shall support the "Expand, Differentiate, Refine" ingestion and adaptation process by storing and relating discovered artifacts and their states.
+- [FR-44] The system shall implement a TinyDB memory adapter for structured data storage
+- [FR-45] The system shall implement an RDFLib knowledge graph store for semantic data
+- [FR-46] The system shall implement a graph memory adapter for relationship modeling
+- [FR-47] The system shall implement a vector memory adapter for semantic search
+- [FR-48] The system shall support alternative vector stores (DuckDB, FAISS, LMDB)
 
 ### 3.7 Token Management
 
-- [FR-39] The system shall track token usage for all LLM operations
-- [FR-40] The system shall provide token usage reports and statistics
-- [FR-41] The system shall implement token optimization strategies
-- [FR-42] The system shall support token budget constraints for operations
-- [FR-43] The system shall estimate costs based on token usage
+- [FR-49] The system shall track token usage for all LLM operations
+- [FR-50] The system shall provide token usage reports and statistics
+- [FR-51] The system shall implement token optimization strategies
+- [FR-52] The system shall support token budget constraints for operations
+- [FR-53] The system shall estimate costs based on token usage
+
+### 3.8 Documentation and Code Analysis
+
+- [FR-54] The system shall support offline documentation ingestion
+- [FR-55] The system shall implement AST-based code transformations
+- [FR-56] The system shall provide prompt auto-tuning mechanisms
 
 ## 4. Non-Functional Requirements
 
@@ -203,6 +222,8 @@ Primary users are individual software developers who:
   - Creation and update timestamps
   - Status
   - Token usage metrics
+  - Path to `manifest.yaml`
+  - Key structural metadata derived from the manifest (e.g., project type, primary language)
 
 #### 5.1.2 Requirement
 
@@ -234,7 +255,7 @@ Primary users are individual software developers who:
 - [DR-04] The system shall store context information including:
   - Unique identifier
   - Project association
-  - Type (task, memory, runtime, social)
+  - Type (task, memory, runtime, social, project_structural)
   - Data payload
   - Creation and update timestamps
   - Token count
@@ -269,6 +290,7 @@ Primary users are individual software developers who:
 - [IR-05] The system shall integrate with version control systems (e.g., Git)
 - [IR-06] The system shall interface with testing frameworks (e.g., pytest)
 - [IR-07] The system shall access the local file system for project files
+- [IR-07a] The system shall parse and interpret `manifest.yaml` for project structure and artifact definitions.
 
 ### 6.3 Communication Interfaces
 

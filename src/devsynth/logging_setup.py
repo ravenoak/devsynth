@@ -1,4 +1,3 @@
-
 """
 Structured logging setup for the DevSynth system.
 
@@ -12,6 +11,7 @@ import json
 import logging
 import traceback
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Any, Optional, Union, List
 
 # We'll import DevSynthError later to avoid circular imports
@@ -20,12 +20,14 @@ from typing import Dict, Any, Optional, Union, List
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 DEFAULT_LOG_LEVEL = logging.INFO
 
-# Configure log directory
-LOG_DIR = os.environ.get("DEVSYNTH_LOG_DIR", "logs")
-os.makedirs(LOG_DIR, exist_ok=True)
+# Default log directory - but don't create it yet
+DEFAULT_LOG_DIR = "logs"
+DEFAULT_LOG_FILENAME = "devsynth.log"
 
-# Configure log file
-LOG_FILE = os.path.join(LOG_DIR, "devsynth.log")
+# Configured log path - will be set by configure_logging
+_configured_log_dir = None
+_configured_log_file = None
+_logging_configured = False
 
 # Configure JSON formatter
 class JSONFormatter(logging.Formatter):
@@ -54,195 +56,231 @@ class JSONFormatter(logging.Formatter):
                 "traceback": traceback.format_exception(*record.exc_info)
             }
 
-        # Add extra fields from record
-        if hasattr(record, "error_code"):
-            log_data["error_code"] = record.error_code
-
-        if hasattr(record, "error_details"):
-            log_data["error_details"] = record.error_details
-
-        # Add any other custom attributes
+        # Add custom attributes
         for key, value in record.__dict__.items():
-            if key not in ["args", "asctime", "created", "exc_info", "exc_text", 
-                          "filename", "funcName", "id", "levelname", "levelno", 
-                          "lineno", "module", "msecs", "message", "msg", "name", 
-                          "pathname", "process", "processName", "relativeCreated", 
-                          "stack_info", "thread", "threadName"]:
-                try:
-                    # Try to serialize the value to JSON
-                    json.dumps({key: value})
-                    log_data[key] = value
-                except (TypeError, OverflowError):
-                    # If the value can't be serialized, convert it to a string
-                    log_data[key] = str(value)
+            if key.startswith("_") or key in log_data:
+                continue
+            if key not in [
+                "args", "asctime", "created", "exc_info", "exc_text", "filename",
+                "funcName", "id", "levelname", "levelno", "lineno", "module",
+                "msecs", "message", "msg", "name", "pathname", "process",
+                "processName", "relativeCreated", "stack_info", "thread", "threadName"
+            ]:
+                log_data[key] = value
 
         return json.dumps(log_data)
 
-
-# Configure root logger
-def configure_logging(log_level: int = DEFAULT_LOG_LEVEL, 
-                     log_to_console: bool = True,
-                     log_to_file: bool = True,
-                     log_file: str = LOG_FILE,
-                     json_format: bool = True) -> None:
+def get_log_dir() -> str:
     """
-    Configure the logging system.
+    Get the configured log directory or the default.
+
+    Returns:
+        str: The path to the log directory
+    """
+    if _configured_log_dir is not None:
+        return _configured_log_dir
+    return os.environ.get("DEVSYNTH_LOG_DIR", DEFAULT_LOG_DIR)
+
+def get_log_file() -> str:
+    """
+    Get the configured log file path or construct the default.
+
+    Returns:
+        str: The path to the log file
+    """
+    if _configured_log_file is not None:
+        return _configured_log_file
+    log_dir = get_log_dir()
+    return os.path.join(log_dir, os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME))
+
+def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
+    """
+    Ensure the log directory exists, creating it if necessary.
+
+    This function is now separated from configuration to allow deferring directory creation
+    until explicitly needed, which helps with test isolation.
+
+    This function respects test isolation by checking for the DEVSYNTH_NO_FILE_LOGGING
+    and DEVSYNTH_PROJECT_DIR environment variables. In test environments, it will
+    avoid creating directories in the real filesystem.
 
     Args:
-        log_level: The logging level (default: INFO)
-        log_to_console: Whether to log to the console (default: True)
-        log_to_file: Whether to log to a file (default: True)
-        log_file: The log file path (default: logs/devsynth.log)
-        json_format: Whether to use JSON formatting (default: True)
-    """
-    # Get the root logger
-    root_logger = logging.getLogger()
-    root_logger.setLevel(log_level)
+        log_dir: Optional log directory path, defaults to the configured or environment-specified path
 
-    # Remove existing handlers
-    for handler in root_logger.handlers[:]:
+    Returns:
+        str: The path to the log directory
+    """
+    # Check if file logging is disabled via environment variable
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    if no_file_logging:
+        # Return the path without creating the directory
+        return log_dir if log_dir is not None else get_log_dir()
+
+    # Check if we're in a test environment
+    in_test_env = os.environ.get("DEVSYNTH_PROJECT_DIR") is not None
+
+    dir_path = log_dir if log_dir is not None else get_log_dir()
+
+    # If we're in a test environment with DEVSYNTH_PROJECT_DIR set, ensure paths are within the test directory
+    if in_test_env:
+        test_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
+        path_obj = Path(dir_path)
+
+        # If the path is absolute and not within the test project directory,
+        # redirect it to be within the test project directory
+        if path_obj.is_absolute() and not str(path_obj).startswith(test_project_dir):
+            # For paths starting with home directory
+            if str(path_obj).startswith(str(Path.home())):
+                relative_path = str(path_obj).replace(str(Path.home()), "")
+                new_path = os.path.join(test_project_dir, relative_path.lstrip("/\\"))
+                print(f"Redirecting log path {dir_path} to test path {new_path}")
+                dir_path = new_path
+            # For other absolute paths
+            else:
+                # Extract the path components after the root
+                relative_path = str(path_obj.relative_to(path_obj.anchor))
+                new_path = os.path.join(test_project_dir, relative_path)
+                print(f"Redirecting absolute log path {dir_path} to test path {new_path}")
+                dir_path = new_path
+
+    # Only create directories if not in a test environment with file operations disabled
+    if not no_file_logging:
+        try:
+            os.makedirs(dir_path, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            # Log the error but don't fail
+            print(f"Warning: Failed to create log directory {dir_path}: {e}")
+
+    return dir_path
+
+def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = None,
+                     log_level: int = None, create_dir: bool = True) -> None:
+    """
+    Configure the logging system with the specified parameters.
+
+    This function must be called explicitly to set up logging. Directory creation
+    is now optional and controlled by the create_dir parameter.
+
+    Args:
+        log_dir: Directory where log files will be stored
+        log_file: Name of the log file
+        log_level: Logging level (e.g., logging.INFO)
+        create_dir: Whether to create the log directory (default True)
+    """
+    global _configured_log_dir, _configured_log_file, _logging_configured
+
+    # Check if file logging is disabled via environment variable
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    if no_file_logging:
+        create_dir = False
+
+    # Set configured paths
+    if log_dir is not None:
+        _configured_log_dir = log_dir
+
+    if log_file is not None:
+        _configured_log_file = log_file
+    else:
+        _configured_log_file = get_log_file()
+
+    # Create directory if requested and file logging is not disabled
+    if create_dir and not no_file_logging:
+        ensure_log_dir_exists(_configured_log_dir)
+
+    # Set up root logger
+    root_logger = logging.getLogger()
+
+    # Clear existing handlers
+    for handler in list(root_logger.handlers):
         root_logger.removeHandler(handler)
 
-    # Create formatters
-    if json_format:
-        formatter = JSONFormatter()
+    # Set log level
+    if log_level is None:
+        log_level = int(os.environ.get("DEVSYNTH_LOG_LEVEL", DEFAULT_LOG_LEVEL))
+    root_logger.setLevel(log_level)
+
+    # Add console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
+    root_logger.addHandler(console_handler)
+
+    # Add file handler if create_dir is True and file logging is not disabled
+    if create_dir and not no_file_logging:
+        try:
+            file_handler = logging.FileHandler(_configured_log_file)
+            file_handler.setFormatter(JSONFormatter())
+            root_logger.addHandler(file_handler)
+        except (PermissionError, FileNotFoundError) as e:
+            # Log to console only if file logging fails
+            console_handler.setFormatter(logging.Formatter(
+                "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            ))
+            root_logger.warning(f"Failed to set up file logging: {str(e)}")
+
+    # Mark as configured
+    _logging_configured = True
+
+    # Log configuration info
+    if create_dir and not no_file_logging:
+        root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
     else:
-        formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
+        root_logger.info("Logging configured for console output only (no file logging).")
 
-    # Add console handler if requested
-    if log_to_console:
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(formatter)
-        root_logger.addHandler(console_handler)
-
-    # Add file handler if requested
-    if log_to_file:
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(formatter)
-        root_logger.addHandler(file_handler)
-
-
-# Create a logger class for DevSynth components
 class DevSynthLogger:
-    """Logger for DevSynth components with structured logging capabilities."""
+    """
+    Logger wrapper that provides standardized logging for DevSynth components.
 
-    def __init__(self, component: str):
+    This class no longer creates directories on instantiation, supporting better test isolation.
+    Directory creation is now deferred to explicit configure_logging() calls.
+    """
+
+    def __init__(self, name: str):
         """
-        Initialize a logger for a DevSynth component.
+        Initialize a logger for the specified component.
 
         Args:
-            component: The name of the component
+            name: The name of the component (typically __name__)
         """
-        self.logger = logging.getLogger(component)
+        self.logger = logging.getLogger(name)
 
-    def debug(self, message: str, **kwargs) -> None:
-        """
-        Log a debug message.
+        # Don't create log directory here - defer until explicitly configured
+        # This is important for test isolation
 
-        Args:
-            message: The message to log
-            **kwargs: Additional fields to include in the log entry
-        """
-        self._log(logging.DEBUG, message, **kwargs)
+    def debug(self, msg: str, **kwargs) -> None:
+        """Log a debug message."""
+        self.logger.debug(msg, extra=kwargs if kwargs else None)
 
-    def info(self, message: str, **kwargs) -> None:
-        """
-        Log an info message.
+    def info(self, msg: str, **kwargs) -> None:
+        """Log an info message."""
+        self.logger.info(msg, extra=kwargs if kwargs else None)
 
-        Args:
-            message: The message to log
-            **kwargs: Additional fields to include in the log entry
-        """
-        self._log(logging.INFO, message, **kwargs)
+    def warning(self, msg: str, **kwargs) -> None:
+        """Log a warning message."""
+        self.logger.warning(msg, extra=kwargs if kwargs else None)
 
-    def warning(self, message: str, **kwargs) -> None:
-        """
-        Log a warning message.
+    def error(self, msg: str, **kwargs) -> None:
+        """Log an error message."""
+        self.logger.error(msg, extra=kwargs if kwargs else None)
 
-        Args:
-            message: The message to log
-            **kwargs: Additional fields to include in the log entry
-        """
-        self._log(logging.WARNING, message, **kwargs)
+    def critical(self, msg: str, **kwargs) -> None:
+        """Log a critical message."""
+        self.logger.critical(msg, extra=kwargs if kwargs else None)
 
-    def error(self, message: str, exc_info: bool = False, **kwargs) -> None:
-        """
-        Log an error message.
+    def exception(self, msg: str, **kwargs) -> None:
+        """Log an exception message with traceback."""
+        self.logger.exception(msg, extra=kwargs if kwargs else None)
 
-        Args:
-            message: The message to log
-            exc_info: Whether to include exception info (default: False)
-            **kwargs: Additional fields to include in the log entry
-        """
-        self._log(logging.ERROR, message, exc_info=exc_info, **kwargs)
+# Don't configure logging on import - this is now explicit
+# Instead, code must call configure_logging() when needed
 
-    def critical(self, message: str, exc_info: bool = True, **kwargs) -> None:
-        """
-        Log a critical message.
+def get_logger(name: str) -> DevSynthLogger:
+    """
+    Get a DevSynthLogger instance for the specified component.
 
-        Args:
-            message: The message to log
-            exc_info: Whether to include exception info (default: True)
-            **kwargs: Additional fields to include in the log entry
-        """
-        self._log(logging.CRITICAL, message, exc_info=exc_info, **kwargs)
+    Args:
+        name: The name of the component (typically __name__)
 
-    def exception(self, message: str, exc_info: bool = True, **kwargs) -> None:
-        """
-        Log an exception message.
-
-        Args:
-            message: The message to log
-            exc_info: Whether to include exception info (default: True)
-            **kwargs: Additional fields to include in the log entry
-        """
-        self._log(logging.ERROR, message, exc_info=exc_info, **kwargs)
-
-    def _log(self, level: int, message: str, exc_info: bool = False, **kwargs) -> None:
-        """
-        Log a message with the given level.
-
-        Args:
-            level: The logging level
-            message: The message to log
-            exc_info: Whether to include exception info
-            **kwargs: Additional fields to include in the log entry
-        """
-        # Capture caller information
-        frame = sys._getframe(2)  # Go back 2 frames to get the caller
-        caller_module = frame.f_globals.get('__name__', '')
-        caller_function = frame.f_code.co_name
-        caller_line = frame.f_lineno
-
-        # Create a LogRecord with extra fields
-        extra = {
-            'caller_module': caller_module,
-            'caller_function': caller_function,
-            'caller_line': caller_line
-        }
-
-        # Handle error details
-        if "error" in kwargs:
-            error = kwargs.pop("error")
-            if hasattr(error, "to_dict"):
-                error_dict = error.to_dict()
-                extra["error_code"] = error_dict.get("error_code")
-                extra["error_details"] = error_dict.get("details")
-                extra["error_type"] = error_dict.get("error_type")
-            elif isinstance(error, Exception):
-                extra["error_type"] = error.__class__.__name__
-                extra["error_message"] = str(error)
-
-        # Add remaining kwargs as extra fields
-        for key, value in kwargs.items():
-            extra[key] = value
-
-        # Log the message with extra fields
-        self.logger.log(level, message, exc_info=exc_info, extra=extra)
-
-
-# Create a default logger instance
-logger = DevSynthLogger("devsynth")
-
-# Configure logging on module import
-configure_logging()
+    Returns:
+        DevSynthLogger: A logger instance for the component
+    """
+    return DevSynthLogger(name)

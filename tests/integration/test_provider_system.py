@@ -23,11 +23,7 @@ from devsynth.adapters.provider_system import (
     ProviderError
 )
 
-# Skip these tests if no API keys are available
-pytestmark = pytest.mark.skipif(
-    os.environ.get("OPENAI_API_KEY") is None and os.environ.get("LM_STUDIO_ENDPOINT") is None,
-    reason="No provider API keys or endpoints available"
-)
+# These tests will use mocks instead of requiring actual API keys
 
 
 class TestProviderConfig:
@@ -57,20 +53,33 @@ class TestProviderFactory:
 
     def test_create_openai_provider(self):
         """Test OpenAI provider creation."""
-        # Skip if no OpenAI API key
-        if not os.environ.get("OPENAI_API_KEY"):
-            pytest.skip("OpenAI API key not available")
+        # Mock the environment and config
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-api-key"}):
+            with patch("devsynth.adapters.provider_system.get_provider_config") as mock_config:
+                mock_config.return_value = {
+                    "default_provider": "openai",
+                    "openai": {"api_key": "test-api-key", "model": "gpt-4", "base_url": "https://api.openai.com/v1"},
+                    "lm_studio": {"endpoint": "http://127.0.0.1:1234", "model": "default"}
+                }
 
-        provider = ProviderFactory.create_provider(ProviderType.OPENAI.value)
-        assert isinstance(provider, OpenAIProvider)
-        assert provider.api_key == os.environ.get("OPENAI_API_KEY")
+                provider = ProviderFactory.create_provider(ProviderType.OPENAI.value)
+                assert isinstance(provider, OpenAIProvider)
+                assert provider.api_key == "test-api-key"
 
     def test_create_lm_studio_provider(self):
         """Test LM Studio provider creation."""
-        provider = ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
-        assert isinstance(provider, LMStudioProvider)
-        assert provider.endpoint == os.environ.get(
-            "LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
+        # Mock the environment and config
+        with patch("devsynth.adapters.provider_system.get_provider_config") as mock_config:
+            mock_config.return_value = {
+                "default_provider": "lm_studio",
+                "openai": {"api_key": None, "model": "gpt-4", "base_url": "https://api.openai.com/v1"},
+                "lm_studio": {"endpoint": "http://test-endpoint:1234", "model": "test-model"}
+            }
+
+            provider = ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+            assert isinstance(provider, LMStudioProvider)
+            assert provider.endpoint == "http://test-endpoint:1234"
+            assert provider.model == "test-model"
 
     def test_fallback_to_lm_studio(self):
         """Test fallback to LM Studio if OpenAI API key is missing."""
@@ -78,8 +87,8 @@ class TestProviderFactory:
             with patch("devsynth.adapters.provider_system.get_provider_config") as mock_config:
                 mock_config.return_value = {
                     "default_provider": "openai",
-                    "openai": {"api_key": None},
-                    "lm_studio": {"endpoint": "http://127.0.0.1:1234"}
+                    "openai": {"api_key": None, "model": "gpt-4", "base_url": "https://api.openai.com/v1"},
+                    "lm_studio": {"endpoint": "http://127.0.0.1:1234", "model": "default"}
                 }
                 provider = ProviderFactory.create_provider(ProviderType.OPENAI.value)
                 assert isinstance(provider, LMStudioProvider)
@@ -95,10 +104,6 @@ class TestProviderIntegration:
     @responses.activate
     def test_openai_complete(self):
         """Test OpenAI completion with mocked response."""
-        # Skip if no OpenAI API key
-        if not os.environ.get("OPENAI_API_KEY"):
-            pytest.skip("OpenAI API key not available")
-
         # Mock response
         responses.add(
             responses.POST,
@@ -111,8 +116,9 @@ class TestProviderIntegration:
             status=200
         )
 
+        # Use a test API key
         provider = OpenAIProvider(
-            api_key=os.environ.get("OPENAI_API_KEY"),
+            api_key="test-api-key",
             model="gpt-4"
         )
         response = provider.complete(

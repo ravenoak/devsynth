@@ -1,3 +1,18 @@
+---
+title: "Provider System Architecture"
+date: "2025-05-30"
+version: "1.0.0"
+tags:
+  - "architecture"
+  - "provider-system"
+  - "llm"
+  - "openai"
+  - "lm-studio"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-05-30"
+---
+
 # Provider System Architecture
 
 ## Overview
@@ -89,5 +104,3 @@ The provider system includes comprehensive tests:
 - Add token counting and budget management
 
 ---
-
-_Last updated: May 2025_

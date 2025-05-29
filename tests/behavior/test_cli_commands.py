@@ -6,13 +6,13 @@ import pytest
 from pytest_bdd import scenario, given, when, then, parsers
 
 # Import the step definitions
-from steps.cli_commands_steps import *
+from .steps.cli_commands_steps import *
 
 # Mark scenarios that require specific resources
 cli_available = pytest.mark.requires_resource("cli")
 
 # Define the feature file path
-FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'cli_commands.feature')
+FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'features', 'cli_commands.feature')
 
 # Create a scenario for each scenario in the feature file
 @cli_available

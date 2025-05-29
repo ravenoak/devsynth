@@ -415,11 +415,11 @@ The system shall allow users to reset their password via email within 5 minutes 
 
 ### Custom Templates
 
-DevSynth supports custom templates for specifications, tests, and code. You can create templates in the `.devsynth/templates` directory:
+DevSynth supports custom templates for specifications, tests, and code. You can create templates in the `tests/templates` directory:
 
-- `.devsynth/templates/spec_template.md`: Template for specifications
-- `.devsynth/templates/test_template.py`: Template for test files
-- `.devsynth/templates/code_template.py`: Template for code files
+- `tests/templates/spec_template.md`: Template for specifications
+- `tests/templates/unit_test_template.py`: Template for test files
+- `tests/templates/code_template.py`: Template for code files
 
 ### Integration with Version Control
 

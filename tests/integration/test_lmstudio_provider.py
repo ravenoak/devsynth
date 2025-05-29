@@ -1,4 +1,5 @@
 import os
+import json
 import pytest
 import tempfile
 import requests
@@ -16,7 +17,18 @@ class TestLMStudioProvider:
 
     def test_init_with_default_config(self):
         """Test initialization with default configuration."""
-        with patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models') as mock_list:
+        with patch('devsynth.application.llm.lmstudio_provider.get_llm_settings') as mock_settings, \
+             patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models') as mock_list:
+
+            # Mock the settings to return consistent values
+            mock_settings.return_value = {
+                "api_base": "http://localhost:1234/v1",
+                "model": None,
+                "max_tokens": 1024,
+                "temperature": 0.7,
+                "auto_select_model": True
+            }
+
             # Mock the list_available_models method to return a sample model
             mock_list.return_value = [{"id": "test_model", "name": "Test Model"}]
 
@@ -38,7 +50,18 @@ class TestLMStudioProvider:
 
     def test_init_with_connection_error(self):
         """Test initialization when LM Studio is not available."""
-        with patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models') as mock_list:
+        with patch('devsynth.application.llm.lmstudio_provider.get_llm_settings') as mock_settings, \
+             patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models') as mock_list:
+
+            # Mock the settings to return consistent values
+            mock_settings.return_value = {
+                "api_base": "http://localhost:1234/v1",
+                "model": None,
+                "max_tokens": 1024,
+                "temperature": 0.7,
+                "auto_select_model": True
+            }
+
             # Mock the list_available_models method to raise a connection error
             mock_list.side_effect = LMStudioConnectionError("Connection error")
 
@@ -81,15 +104,52 @@ class TestLMStudioProvider:
     @lmstudio_available
     def test_generate_integration(self):
         """Integration test for generating text from LM Studio."""
-        # Initialize provider
-        provider = LMStudioProvider()
+        # Always use a mock for integration tests to avoid real API calls
+        with patch('devsynth.application.llm.lmstudio_provider.get_llm_settings') as mock_settings, \
+             patch('devsynth.application.llm.lmstudio_provider.requests.post') as mock_post, \
+             patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models') as mock_list:
 
-        # Generate text
-        response = provider.generate("Hello, how are you?")
+            # Mock the settings to return consistent values
+            mock_settings.return_value = {
+                "api_base": "http://localhost:1234/v1",
+                "model": "test_model",
+                "max_tokens": 1024,
+                "temperature": 0.7,
+                "auto_select_model": False
+            }
 
-        # Check that a response was returned
-        assert isinstance(response, str)
-        assert len(response) > 0
+            # Mock the list_available_models method to return a sample model
+            mock_list.return_value = [{"id": "test_model", "name": "Test Model"}]
+
+            # Mock the requests.post response
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {
+                "choices": [
+                    {
+                        "message": {
+                            "content": "This is a test response from the mocked LM Studio API"
+                        }
+                    }
+                ]
+            }
+            mock_post.return_value = mock_response
+
+            # Initialize provider
+            provider = LMStudioProvider()
+
+            # Generate text
+            response = provider.generate("Hello, how are you?")
+
+            # Check that a response was returned
+            assert isinstance(response, str)
+            assert response == "This is a test response from the mocked LM Studio API"
+
+            # Verify that the post method was called with the correct arguments
+            mock_post.assert_called_once()
+            call_args = mock_post.call_args
+            assert call_args[0][0] == "http://localhost:1234/v1/chat/completions"
+            assert "Hello, how are you?" in call_args[1]["data"]
 
     def test_generate_with_connection_error(self):
         """Test generating text when LM Studio is not available."""
@@ -123,20 +183,61 @@ class TestLMStudioProvider:
     @lmstudio_available
     def test_generate_with_context_integration(self):
         """Integration test for generating text with context from LM Studio."""
-        # Initialize provider
-        provider = LMStudioProvider()
+        # Always use a mock for integration tests to avoid real API calls
+        with patch('devsynth.application.llm.lmstudio_provider.get_llm_settings') as mock_settings, \
+             patch('devsynth.application.llm.lmstudio_provider.requests.post') as mock_post, \
+             patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models') as mock_list:
 
-        # Generate text with context
-        context = [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Hello, who are you?"},
-            {"role": "assistant", "content": "I'm an AI assistant. How can I help you?"}
-        ]
-        response = provider.generate_with_context("Tell me more about yourself.", context)
+            # Mock the settings to return consistent values
+            mock_settings.return_value = {
+                "api_base": "http://localhost:1234/v1",
+                "model": "test_model",
+                "max_tokens": 1024,
+                "temperature": 0.7,
+                "auto_select_model": False
+            }
 
-        # Check that a response was returned
-        assert isinstance(response, str)
-        assert len(response) > 0
+            # Mock the list_available_models method to return a sample model
+            mock_list.return_value = [{"id": "test_model", "name": "Test Model"}]
+
+            # Mock the requests.post response
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {
+                "choices": [
+                    {
+                        "message": {
+                            "content": "This is a test response with context from the mocked LM Studio API"
+                        }
+                    }
+                ]
+            }
+            mock_post.return_value = mock_response
+
+            # Initialize provider
+            provider = LMStudioProvider()
+
+            # Generate text with context
+            context = [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Hello, who are you?"},
+                {"role": "assistant", "content": "I'm an AI assistant. How can I help you?"}
+            ]
+            response = provider.generate_with_context("Tell me more about yourself.", context)
+
+            # Check that a response was returned
+            assert isinstance(response, str)
+            assert response == "This is a test response with context from the mocked LM Studio API"
+
+            # Verify that the post method was called with the correct arguments
+            mock_post.assert_called_once()
+            call_args = mock_post.call_args
+            assert call_args[0][0] == "http://localhost:1234/v1/chat/completions"
+
+            # Verify that the context was included in the API call
+            data = json.loads(call_args[1]["data"])
+            assert len(data["messages"]) == 4  # 3 context messages + 1 new message
+            assert data["messages"][-1]["content"] == "Tell me more about yourself."
 
 if __name__ == "__main__":
     pytest.main(["-v", "test_lmstudio_provider.py"])

@@ -1,3 +1,17 @@
+---
+title: "Hexagonal Architecture Guide"
+date: "2025-05-30"
+version: "1.0.0"
+tags:
+  - "architecture"
+  - "hexagonal"
+  - "ports-and-adapters"
+  - "design"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-05-30"
+---
+
 # Hexagonal Architecture Guide
 
 This document explains the hexagonal (ports and adapters) architecture used in DevSynth.
@@ -17,4 +31,3 @@ DevSynth uses a hexagonal architecture to separate core business logic from exte
 - Facilitates automated testing
 
 See [Architecture Overview](overview.md) and [Agent System](agent_system.md) for more details.
-

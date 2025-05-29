@@ -58,11 +58,19 @@ class ChromaDBStore(MemoryStore):
         self._cache = {}  # Simple in-memory cache
         self._embedding_optimization_enabled = True
 
-        # Ensure the directory exists
-        os.makedirs(file_path, exist_ok=True)
+        # Check if we're in a test environment with file operations disabled
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
 
-        # Initialize ChromaDB client
-        self.client = chromadb.PersistentClient(path=file_path)
+        # Only create directories if not in a test environment with file operations disabled
+        if not no_file_logging:
+            # Ensure the directory exists
+            os.makedirs(file_path, exist_ok=True)
+            # Initialize real ChromaDB client
+            self.client = chromadb.PersistentClient(path=file_path)
+        else:
+            # In test environments, use an in-memory client to avoid file system operations
+            logger.info("Using in-memory ChromaDB client for test environment")
+            self.client = chromadb.EphemeralClient()
 
         # Get or create the main collection
         try:
@@ -143,10 +151,20 @@ class ChromaDBStore(MemoryStore):
         # Convert created_at string to datetime
         created_at = datetime.fromisoformat(data["created_at"]) if data["created_at"] else None
 
+        # Check if content is a string that looks like JSON and deserialize it
+        content = data["content"]
+        if isinstance(content, str):
+            try:
+                if content.startswith('{') and content.endswith('}'):
+                    content = json.loads(content)
+            except json.JSONDecodeError:
+                # If it's not valid JSON, keep it as a string
+                pass
+
         # Create a MemoryItem
         item = MemoryItem(
             id=data["id"],
-            content=data["content"],
+            content=content,
             memory_type=memory_type,
             metadata=data["metadata"],
             created_at=created_at
@@ -204,9 +222,12 @@ class ChromaDBStore(MemoryStore):
 
             # Store in ChromaDB
             # The content is used for embeddings, metadata contains the full serialized item
+            # Convert content to string if it's not already a string
+            document_content = json.dumps(item.content) if not isinstance(item.content, str) else item.content
+
             self.collection.upsert(
                 ids=[item.id],
-                documents=[item.content],
+                documents=[document_content],
                 metadatas=[{"item_data": metadata_json}]
             )
 
@@ -243,9 +264,12 @@ class ChromaDBStore(MemoryStore):
             version_id = f"{item.id}_v{version}"
 
             # Store in the versions collection
+            # Convert content to string if it's not already a string
+            document_content = json.dumps(item.content) if not isinstance(item.content, str) else item.content
+
             self.versions_collection.upsert(
                 ids=[version_id],
-                documents=[item.content],
+                documents=[document_content],
                 metadatas=[{
                     "item_data": metadata_json,
                     "original_id": item.id,
@@ -338,6 +362,11 @@ class ChromaDBStore(MemoryStore):
             The retrieved MemoryItem, or None if not found
         """
         try:
+            # First check if this is the current version in the main collection
+            current_item = self.retrieve(item_id)
+            if current_item and current_item.metadata.get("version") == version:
+                return current_item
+
             # Create the version ID
             version_id = f"{item_id}_v{version}"
 
@@ -465,7 +494,12 @@ class ChromaDBStore(MemoryStore):
             # Check each query criterion
             for key, value in query.items():
                 if key == "memory_type":
-                    if item.memory_type != value:
+                    # Handle comparison between enum and string
+                    if isinstance(value, str) and item.memory_type:
+                        if item.memory_type.value != value:
+                            match = False
+                            break
+                    elif item.memory_type != value:
                         match = False
                         break
                 elif key.startswith("metadata."):
@@ -505,6 +539,10 @@ class ChromaDBStore(MemoryStore):
 
             # Delete the item from ChromaDB
             self.collection.delete(ids=[item_id])
+
+            # Remove the item from the cache if it exists
+            if item_id in self._cache:
+                del self._cache[item_id]
 
             logger.info(f"Deleted item with ID {item_id} from ChromaDB")
             return True
@@ -557,7 +595,7 @@ class ChromaDBStore(MemoryStore):
 
             # Add the current version from the main collection
             current_item = self.retrieve(item_id)
-            if current_item:
+            if current_item and current_item.metadata.get("version") not in [v.metadata.get("version") for v in versions]:
                 versions.append(current_item)
 
             return versions
@@ -588,7 +626,7 @@ class ChromaDBStore(MemoryStore):
 
                 # Create a summary of the content
                 content_summary = version.content
-                if len(content_summary) > 100:
+                if isinstance(content_summary, str) and len(content_summary) > 100:
                     content_summary = content_summary[:97] + "..."
 
                 # Create a history entry
@@ -603,7 +641,15 @@ class ChromaDBStore(MemoryStore):
             # Sort history by version number
             history.sort(key=lambda x: x["version"])
 
-            return history
+            # Remove duplicates based on version number
+            unique_history = []
+            seen_versions = set()
+            for entry in history:
+                if entry["version"] not in seen_versions:
+                    seen_versions.add(entry["version"])
+                    unique_history.append(entry)
+
+            return unique_history
 
         except Exception as e:
             logger.error(f"Error retrieving history from ChromaDB: {e}")

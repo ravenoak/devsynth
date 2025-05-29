@@ -16,18 +16,31 @@ langchain = "^0.3.25"
 chromadb = "^1.0.9"
 tiktoken = "^0.9.0"
 networkx = "^3.4.2"
-dspy = "^2.6.23"
 langchain-openai = "^0.3.17"
 langchain-community = "^0.3.24"
 toml = "^0.10.2"
 requests = "^2.32.3"
 mcp = {extras = ["cli"], version = "^1.9.0"}
-responses = "^0.25.7"
+dspy-ai = "^2.6.24"
+structlog = "^25.3.0"
+mypy = "^1.15.0"
+tinydb = "^4.8.0"
+duckdb = "^1.3.0"
+lmdb = "^1.4.1"
+faiss-cpu = "^1.11.0"
+rdflib = "^7.1.4"
+astor = "^0.8.1"
 
 [tool.poetry.group.dev.dependencies]
+responses = "^0.25.7"
 pytest = "^8.3.5"
 pytest-bdd = "^8.1.0"
 pytest-cov = "^6.1.1"
+pytest-mock = "^3.14.0"
+pytest-xdist = "^3.6.1"
+black = "^25.1.0"
+pre-commit = "^3.6.2"
+psutil = "^5.9.8"
 
 [tool.poetry.group.docs]
 optional = true
@@ -44,6 +57,27 @@ mkdocs-section-index = "*"
 
 [tool.poetry.scripts]
 devsynth = "devsynth.adapters.cli:run_cli"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [build-system]
 requires = ["poetry-core"]

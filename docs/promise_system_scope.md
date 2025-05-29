@@ -1,186 +1,277 @@
-# Promise System Scope Analysis
+---
+title: "Promise System: Capability Declaration, Authorization, and Management"
+date: "2025-05-20"
+version: "1.0.0"
+tags:
+  - "promise"
+  - "capability"
+  - "authorization"
+  - "architecture"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-05-20"
+---
 
-## Executive Summary
+# Promise System: Capability Declaration, Authorization, and Management
 
-This document analyzes the scope of the Promise System within the DevSynth project and provides a recommendation on whether it should be included in the Minimum Viable Product (MVP). After reviewing the existing documentation, code, and specifications, I recommend **deferring the Promise System to a future version** beyond the MVP. This recommendation is based on the explicit deferral in the MVP specification, the lack of current implementation, and the need to focus on core functionality for the initial release.
+## 1. Overview
 
-## 1. Introduction
+The Promise System is a core architectural component of DevSynth that provides a formalized capability declaration, verification, and authorization framework. It enables agents to declare their capabilities, request capabilities from other agents, and track the fulfillment of promised actions. This system is foundational to DevSynth's agent collaboration model, ensuring accountability, transparency, and proper authorization.
 
-The Promise System is a component of the DevSynth architecture designed to define and enforce capabilities and constraints for agents. It serves as a capability model and authorization system that ensures agents operate within their defined boundaries. This analysis examines the current state of the Promise System in the codebase, its intended functionality, and its importance for the MVP.
+## 2. Key Concepts
 
-## 2. Current State Analysis
+### 2.1 Promises
 
-### 2.1 Documentation Review
+A Promise is a formal declaration of intent to perform a specific capability with particular parameters and constraints. Promises have clearly defined states (pending, fulfilled, rejected, cancelled) and can be organized hierarchically through parent-child relationships. Promises serve as both contracts between system components and as a mechanism for tracking the progress and outcomes of operations.
 
-The Promise System is mentioned in several key documents:
+### 2.2 Promise States
 
-1. **DevSynth Pseudocode (Section 5.5)**: Provides a detailed conceptual implementation of the Promise System, including:
-   - Promise Registry for cataloging available capabilities
-   - Promise Broker for matching capability requests with providers
-   - Authorization System for enforcing access control
-   - Audit System for recording capability usage
+- **Pending**: Promise has been created but not yet fulfilled
+- **Fulfilled**: Promise has been successfully completed with a valid result
+- **Rejected**: Promise has failed to be fulfilled (with error information)
+- **Cancelled**: Promise has been terminated before completion (with reason)
 
-2. **Comprehensive Specification (Section 3.2.5)**: Describes the Promise System as a core component with the following purpose:
-   > "Define and enforce capabilities and constraints for agents."
+### 2.3 Promise Types
 
-3. **MVP Specification (Section 3.2.5)**: Explicitly defers the Promise System:
-   > "The Promise System will be deferred to a future version. For the MVP, basic validation of outputs against requirements will be handled directly in the agent system."
+The system defines a taxonomy of capability types that can be promised, including:
+- File operations (read, write)
+- Code analysis and generation
+- Test execution
+- LLM querying
+- Memory access
+- Agent communication
+- Orchestration control
 
-4. **System Diagrams**: Include the Promise System in architecture diagrams, showing its relationship to other components.
+### 2.4 Authorization Model
 
-5. **Evaluation Report**: Identifies an inconsistency regarding the Promise System:
-   > "Promise System: Fully specified as a core component | Explicitly deferred from MVP | Included in architecture diagrams | Fully implemented in pseudocode | Clarify if Promise System is part of MVP or future enhancement"
+The Promise System implements a strict authorization model where:
+- Agents must be authorized to create promises of specific types
+- Authorization may be limited by parameters (e.g., file paths, memory scopes)
+- Self-authorization is prevented through a third-party authority
+- Fulfillment and rejection may require different authorization than creation
 
-6. **Python SDLC CLI Research**: Describes a theoretical implementation of the Promise System based on Promise Theory, where agents declare explicit promises about their behavior, capabilities, and constraints.
+## 3. Core Components
 
-### 2.2 Code Implementation
+### 3.1 Promise Manager
 
-A search of the codebase reveals no current implementation of the Promise System. There are no files or classes specifically dedicated to the Promise System functionality.
+The Promise Manager handles the lifecycle of promises:
+- Creation of new promises
+- Tracking promise state transitions
+- Maintaining parent-child relationships
+- Providing query capabilities for promise retrieval
+- Recording fulfillment results or rejection reasons
 
-### 2.3 Dependencies and Relationships
+### 3.2 Promise Authority
 
-The Promise System would interact with:
-- Agent System: Agents would declare and adhere to promises
-- Orchestration Layer: Would use promises for task assignment
-- Core Values Subsystem: Would work alongside promises to enforce ethical guidelines
+The Promise Authority enforces access control:
+- Verifies agent authorization for capabilities
+- Manages capability registrations
+- Prevents circumvention of security boundaries
+- Mediates capability delegation between agents
+- Logs authorization decisions for auditing
 
-## 3. Functional Analysis
+### 3.3 Promise Registry
 
-### 3.1 Intended Functionality
+The Promise Registry catalogs available capabilities:
+- Maintains a database of registered capabilities
+- Tracks which agents can provide which capabilities
+- Stores constraints and requirements for capabilities
+- Facilitates capability discovery and matching
 
-Based on the documentation, the Promise System is intended to:
+## 4. Integration with EDRR Methodology
 
-1. **Define Capabilities**: Allow agents to declare what they can do
-2. **Enforce Constraints**: Prevent agents from performing unauthorized actions
-3. **Manage Authorization**: Control access to system capabilities
-4. **Audit Usage**: Track capability usage for transparency
-5. **Prevent Self-Authorization**: Ensure agents cannot unilaterally expand their capabilities
+The Promise System integrates directly with DevSynth's "Expand, Differentiate, Refine, Retrospect" methodology:
 
-### 3.2 Importance for MVP
+### 4.1 Expand Phase Integration
 
-While the Promise System provides valuable security and capability management features, it is not critical for the core functionality of the MVP, which focuses on:
-- Project initialization
-- Requirement analysis
-- Test generation
-- Code generation
-- Basic context management
+During the Expand phase, the Promise System:
+- Discovers available capabilities from system components
+- Registers these capabilities in the Promise Registry
+- Builds a capability graph showing relationships and dependencies
 
-The MVP specification explicitly states that "basic validation of outputs against requirements will be handled directly in the agent system," providing an alternative approach for the initial release.
+### 4.2 Differentiate Phase Integration
 
-### 3.3 Implementation Complexity
+During the Differentiate phase, the Promise System:
+- Validates capability declarations against actual implementations
+- Identifies capability gaps or conflicts
+- Verifies authorization rules for consistency
 
-Implementing the Promise System would require:
-- Creating a Promise Registry
-- Developing a Promise Broker
-- Implementing authorization mechanisms
-- Building an audit system
-- Integrating with the Agent System
+### 4.3 Refine Phase Integration
 
-This represents significant development effort that could divert resources from core MVP functionality.
+During the Refine phase, the Promise System:
+- Optimizes capability registrations for performance
+- Prunes obsolete capabilities
+- Strengthens capability relationships
+- Updates authorization rules based on system changes
 
-## 4. Risk Analysis
+### 4.4 Retrospect Phase Integration
 
-### 4.1 Risks of Including in MVP
+During the Retrospect phase, the Promise System:
+- Analyzes promise fulfillment patterns and failures
+- Identifies opportunities for capability consolidation or expansion
+- Plans capability improvements for the next iteration
+- Refines authorization policies based on observed patterns
 
-1. **Scope Creep**: Adding the Promise System could expand the MVP scope beyond what's necessary for initial value delivery.
-2. **Development Delay**: The additional complexity could delay the MVP release.
-3. **Integration Challenges**: Without a mature Agent System, integrating the Promise System could be premature.
-4. **Testing Overhead**: Additional functionality requires additional testing.
+## 5. Implementation Details
 
-### 4.2 Risks of Deferring
+### 5.1 Core Interfaces
 
-1. **Security Concerns**: Without formal capability constraints, agents might attempt unauthorized actions.
-2. **Technical Debt**: Future integration might require refactoring if not planned properly.
-3. **Feature Gap**: Some advanced agent capabilities might be limited without a formal promise system.
+The Promise System is defined by two primary interfaces:
 
-### 4.3 Mitigation Strategies
+#### 5.1.1 IPromiseManager Interface
 
-If deferred (recommended):
-1. Design the Agent System with Promise System integration in mind
-2. Implement basic validation in the Agent System as specified in the MVP document
-3. Document clear extension points for future Promise System integration
-4. Create a roadmap for post-MVP implementation
+Provides methods for promise lifecycle management:
+- `create_promise`: Create a new promise
+- `fulfill_promise`: Mark a promise as fulfilled with a result
+- `reject_promise`: Mark a promise as rejected with an error
+- `cancel_promise`: Cancel a pending promise
+- `get_promise`: Retrieve a specific promise
+- `list_promises`: Query promises matching criteria
+- `create_child_promise`: Create a sub-promise linked to a parent
+- `validate_promise_chain`: Check integrity of promise relationships
+- `get_promise_chain`: Retrieve all promises in a hierarchical chain
 
-## 5. Recommendation
+#### 5.1.2 IPromiseAuthority Interface
 
-Based on the analysis, I recommend **deferring the Promise System to a future version** beyond the MVP for the following reasons:
+Provides methods for authorization management:
+- `can_create`: Check if an agent can create a specific promise type
+- `can_fulfill`: Check if an agent can fulfill a specific promise
+- `can_reject`: Check if an agent can reject a specific promise
+- `can_cancel`: Check if an agent can cancel a specific promise
+- `can_delegate`: Check if an agent can delegate a promise
+- `register_capability`: Register a new capability for an agent
+- `list_agent_capabilities`: List all capabilities of an agent
 
-1. **Explicit Deferral**: The MVP specification explicitly defers this component.
-2. **Alternative Approach**: Basic validation within the Agent System can fulfill immediate needs.
-3. **Focus on Core Value**: The MVP should prioritize delivering core functionality.
-4. **Resource Optimization**: Development resources should focus on essential components first.
-5. **Reduced Complexity**: The MVP will be simpler and easier to test without this additional component.
+### 5.2 Data Model
 
-## 6. Implementation Plan for Future Versions
+#### 5.2.1 Promise
 
-### 6.1 Minimum Viable Implementation (Post-MVP)
+- `id`: Unique identifier
+- `type`: Type of capability
+- `parameters`: Specific parameters for this promise
+- `state`: Current state (pending, fulfilled, rejected, cancelled)
+- `metadata`: Associated metadata (creation time, owner, etc.)
+- `result`: Result when fulfilled
+- `error`: Error message if rejected
+- `parent_id`: Parent promise if this is a sub-promise
+- `children_ids`: Child promises if this has sub-promises
 
-For the first implementation after the MVP, I recommend:
+#### 5.2.2 PromiseMetadata
 
-1. **Promise Registry**: Implement a simple registry of agent capabilities
-   ```python
-   class PromiseRegistry:
-       def __init__(self):
-           self.promises = {}  # Dictionary of promises by ID
-           
-       def register_promise(self, promise):
-           """Register a promise in the registry."""
-           self.promises[promise.id] = promise
-           
-       def get_promise(self, promise_id):
-           """Get a promise by ID."""
-           return self.promises.get(promise_id)
-           
-       def find_promises_by_capability(self, capability):
-           """Find promises that offer a specific capability."""
-           return [p for p in self.promises.values() if capability in p.capabilities]
-   ```
+- `created_at`: Creation timestamp
+- `owner_id`: ID of the agent that created the promise
+- `context_id`: Context or task ID
+- `tags`: User-defined tags
+- `trace_id`: For distributed tracing
+- `priority`: Importance level
 
-2. **Basic Promise Model**: Create a simple Promise class
-   ```python
-   class Promise:
-       def __init__(self, id, name, description):
-           self.id = id
-           self.name = name
-           self.description = description
-           self.capabilities = []
-           self.constraints = []
-           
-       def add_capability(self, capability):
-           """Add a capability to the promise."""
-           if capability not in self.capabilities:
-               self.capabilities.append(capability)
-               
-       def add_constraint(self, constraint):
-           """Add a constraint to the promise."""
-           if constraint not in self.constraints:
-               self.constraints.append(constraint)
-   ```
+### 5.3 Storage and Persistence
 
-3. **Simple Authorization**: Implement basic capability checking
-   ```python
-   def authorize_capability(agent_id, capability):
-       """Check if an agent is authorized to use a capability."""
-       agent = get_agent(agent_id)
-       for promise_id in agent.promises:
-           promise = promise_registry.get_promise(promise_id)
-           if promise and capability in promise.capabilities:
-               return True, f"Agent authorized to use capability: {capability}"
-       return False, f"Agent not authorized to use capability: {capability}"
-   ```
+The Promise System uses a layered storage approach:
+1. In-memory cache for active promises
+2. SQLite database for persistence across sessions
+3. JSON serialization for export/import capabilities
 
-### 6.2 Future Enhancements
+This allows for efficient runtime operations while maintaining a historical record of promise activities.
 
-In subsequent versions, the Promise System could be enhanced with:
+## 6. Using the Promise System
 
-1. **Dynamic Promise Updates**: Allow promises to be updated based on agent performance
-2. **Hierarchical Capabilities**: Implement capability inheritance and delegation
-3. **Formal Verification**: Add mechanisms to verify agent behavior against promises
-4. **Advanced Auditing**: Implement comprehensive logging and analysis of capability usage
-5. **Promise Negotiation**: Enable agents to negotiate capabilities with each other
+### 6.1 Agent Registration
 
-## 7. Conclusion
+Agents register their capabilities on initialization:
 
-The Promise System is a valuable component of the DevSynth architecture that will enhance security, capability management, and agent coordination. However, it is not critical for the MVP and has been explicitly deferred in the MVP specification. By focusing on core functionality first and implementing the Promise System in a future version, the DevSynth team can deliver value more quickly while laying the groundwork for more advanced features in the future.
+```python
+# Agent registration example
+promise_authority.register_capability(
+    agent_id="code_agent_001",
+    promise_type=PromiseType.CODE_GENERATION,
+    constraints={
+        "max_file_size": 1_000_000,
+        "allowed_languages": ["python", "javascript", "typescript"],
+        "forbidden_paths": ["/etc", "/usr"]
+    }
+)
+```
 
-This approach aligns with the iterative development philosophy and ensures that the MVP remains focused on delivering essential functionality while maintaining a clear path for future enhancements.
+### 6.2 Creating and Fulfilling Promises
+
+Agents create promises for their intended actions:
+
+```python
+# Creating a promise
+promise = promise_manager.create_promise(
+    type=PromiseType.CODE_GENERATION,
+    parameters={
+        "file_path": "/project/src/module.py",
+        "language": "python",
+        "description": "Implement data processing function"
+    },
+    owner_id="code_agent_001",
+    context_id="task_123",
+    tags=["code", "generation", "data-processing"]
+)
+
+# ... perform the promised action ...
+
+# Fulfilling the promise
+fulfilled_promise = promise_manager.fulfill_promise(
+    promise_id=promise.id,
+    result={
+        "file_path": "/project/src/module.py",
+        "code": "def process_data(input_data):\n    ...",
+        "success": True
+    }
+)
+```
+
+### 6.3 Promise Chains for Complex Operations
+
+Complex operations can be modeled as promise chains:
+
+```python
+# Creating a parent promise
+parent_promise = promise_manager.create_promise(
+    type=PromiseType.CODE_ANALYSIS,
+    parameters={"project_dir": "/project/src"},
+    owner_id="analysis_agent_001",
+    context_id="task_456"
+)
+
+# Creating child promises for subtasks
+for file in files_to_analyze:
+    child_promise = promise_manager.create_child_promise(
+        parent_id=parent_promise.id,
+        type=PromiseType.FILE_READ,
+        parameters={"file_path": file},
+        owner_id="analysis_agent_001"
+    )
+```
+
+## 7. Roadmap and Future Enhancements
+
+### 7.1 Short-term Goals
+
+- Complete the core interfaces (`IPromiseManager` and `IPromiseAuthority`)
+- Implement basic storage and persistence mechanisms
+- Integrate with existing Agent System
+- Provide basic authorization rules
+
+### 7.2 Medium-term Goals
+
+- Enhance promise chain visualization for debugging
+- Implement capability discovery and matching system
+- Add support for promise delegation and transfer
+- Integrate with logging and telemetry systems
+
+### 7.3 Long-term Vision
+
+- Implement a capability marketplace for dynamic agent collaboration
+- Add learning-based authorization that adapts to usage patterns
+- Support distributed promises across multiple DevSynth instances
+- Develop a Promise Query Language (PQL) for complex querying
+
+## 8. Conclusion
+
+The Promise System provides DevSynth with a robust framework for capability declaration, authorization, and fulfillment tracking. By formalizing the ways in which agents declare their intentions and capabilities, the system enhances transparency, security, and accountability. The integration with DevSynth's EDRR methodology ensures that the Promise System evolves alongside the project it's analyzing, adapting to changing structures and requirements.
+
+As DevSynth continues to mature, the Promise System will become increasingly central to its operation, enabling sophisticated multi-agent collaborations while maintaining clear boundaries and authorization controls.

@@ -167,10 +167,7 @@ class TokenTracker:
         token_count = self.count_tokens(text)
         if token_count > max_tokens:
             logger.warning(
-                f"Text exceeds token limit",
-                current_tokens=token_count,
-                max_tokens=max_tokens,
-                excess=token_count - max_tokens
+                f"Text exceeds token limit: {token_count} tokens (max: {max_tokens}, excess: {token_count - max_tokens})"
             )
             raise TokenLimitExceededError(
                 f"Text exceeds token limit: {token_count} tokens (max: {max_tokens})",
