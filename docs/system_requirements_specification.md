@@ -130,6 +130,10 @@ Primary users are individual software developers who:
 - [FR-31] The system shall track agent status (idle, working, waiting, error)
 - [FR-32] The system shall support agent capabilities for different development tasks
 - [FR-33] The system shall provide error handling and recovery for agent tasks
+- [FR-40] The system shall implement the EDRR (Expand, Differentiate, Refine, Retrospect) framework for iterative development
+- [FR-41] The system shall implement the WSDE (Worker Self-Directed Enterprise) model for agent organization
+- [FR-42] The system shall support role management in multi-agent collaboration
+- [FR-43] The system shall implement dialectical reasoning in agent collaboration
 
 ### 3.6 Memory and Context System
 
@@ -140,14 +144,25 @@ Primary users are individual software developers who:
 - [FR-37] The system shall persist context information between sessions
 - [FR-38] The system shall track token count for context information
 - [FR-38a] The system's Memory and Context System shall support the "Expand, Differentiate, Refine" ingestion and adaptation process by storing and relating discovered artifacts and their states.
+- [FR-44] The system shall implement a TinyDB memory adapter for structured data storage
+- [FR-45] The system shall implement an RDFLib knowledge graph store for semantic data
+- [FR-46] The system shall implement a graph memory adapter for relationship modeling
+- [FR-47] The system shall implement a vector memory adapter for semantic search
+- [FR-48] The system shall support alternative vector stores (DuckDB, FAISS, LMDB)
 
 ### 3.7 Token Management
 
-- [FR-39] The system shall track token usage for all LLM operations
-- [FR-40] The system shall provide token usage reports and statistics
-- [FR-41] The system shall implement token optimization strategies
-- [FR-42] The system shall support token budget constraints for operations
-- [FR-43] The system shall estimate costs based on token usage
+- [FR-49] The system shall track token usage for all LLM operations
+- [FR-50] The system shall provide token usage reports and statistics
+- [FR-51] The system shall implement token optimization strategies
+- [FR-52] The system shall support token budget constraints for operations
+- [FR-53] The system shall estimate costs based on token usage
+
+### 3.8 Documentation and Code Analysis
+
+- [FR-54] The system shall support offline documentation ingestion
+- [FR-55] The system shall implement AST-based code transformations
+- [FR-56] The system shall provide prompt auto-tuning mechanisms
 
 ## 4. Non-Functional Requirements
 

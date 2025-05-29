@@ -9,11 +9,16 @@ from devsynth.exceptions import DevSynthError
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
+# Note: This file was originally named typer_adapter.py but uses argparse instead of Typer.
+# It has been kept for backward compatibility but should be refactored in the future.
+
 from devsynth.application.cli import (
     init_cmd, spec_cmd, test_cmd, code_cmd,
     run_cmd, config_cmd, analyze_cmd, webapp_cmd,
     dbschema_cmd, adaptive_cmd, analyze_code_cmd
 )
+from devsynth.application.cli.commands.align_cmd import align_cmd
+from devsynth.application.cli.commands.alignment_metrics_cmd import alignment_metrics_cmd
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
 from devsynth.application.cli.commands.validate_manifest_cmd import validate_manifest_cmd
 from devsynth.application.cli.commands.validate_metadata_cmd import validate_metadata_cmd
@@ -37,6 +42,8 @@ def show_help():
     console.print(f"  validate-manifest Validate the project configuration file against its schema and project structure")
     console.print(f"  validate-metadata Validate metadata in Markdown files")
     console.print(f"  test-metrics Analyze test-first development metrics")
+    console.print(f"  align        Check alignment between SDLC artifacts")
+    console.print(f"  alignment-metrics Collect and report on alignment metrics")
     console.print(f"  spec         Generate specifications from requirements")
     console.print(f"  test         Generate tests from specifications")
     console.print(f"  code         Generate code from tests")
@@ -96,6 +103,18 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     test_metrics_parser = subparsers.add_parser("test-metrics", help="Analyze test-first development metrics")
     test_metrics_parser.add_argument("--days", type=int, default=30, help="Number of days of commit history to analyze (default: 30)")
     test_metrics_parser.add_argument("--output", help="Path to output file for metrics report (default: None, prints to console)")
+
+    # align command
+    align_parser = subparsers.add_parser("align", help="Check alignment between SDLC artifacts")
+    align_parser.add_argument("--path", default=".", help="Path to the project directory")
+    align_parser.add_argument("--verbose", action="store_true", help="Show verbose output")
+    align_parser.add_argument("--output", help="Path to output file for alignment report")
+
+    # alignment-metrics command
+    alignment_metrics_parser = subparsers.add_parser("alignment-metrics", help="Collect and report on alignment metrics")
+    alignment_metrics_parser.add_argument("--path", default=".", help="Path to the project directory")
+    alignment_metrics_parser.add_argument("--metrics-file", default=".devsynth/alignment_metrics.json", help="Path to the metrics file")
+    alignment_metrics_parser.add_argument("--output", help="Path to output file for metrics report")
 
     # spec command
     spec_parser = subparsers.add_parser("spec", help="Generate specifications from requirements")
@@ -192,6 +211,10 @@ def run_cli():
             validate_metadata_cmd(args.directory, args.file, args.verbose)
         elif args.command == "test-metrics":
             test_metrics_cmd(args.days, args.output)
+        elif args.command == "align":
+            align_cmd(args.path, args.verbose, args.output)
+        elif args.command == "alignment-metrics":
+            alignment_metrics_cmd(args.path, args.metrics_file, args.output)
         elif args.command == "spec":
             spec_cmd(args.requirements_file)
         elif args.command == "test":
