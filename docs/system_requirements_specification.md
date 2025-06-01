@@ -130,10 +130,16 @@ Primary users are individual software developers who:
 - [FR-31] The system shall track agent status (idle, working, waiting, error)
 - [FR-32] The system shall support agent capabilities for different development tasks
 - [FR-33] The system shall provide error handling and recovery for agent tasks
-- [FR-40] The system shall implement the EDRR (Expand, Differentiate, Refine, Retrospect) framework for iterative development
+- [FR-40] The system shall implement the EDRR (Expand, Differentiate, Refine, Retrospect) framework for iterative development as a recursive, fractal structure where each macro phase contains its own nested micro-EDRR cycles
 - [FR-41] The system shall implement the WSDE (Worker Self-Directed Enterprise) model for agent organization
 - [FR-42] The system shall support role management in multi-agent collaboration
 - [FR-43] The system shall implement dialectical reasoning in agent collaboration
+- [FR-44a] The system shall implement micro-EDRR cycles within the Expand macro phase
+- [FR-44b] The system shall implement micro-EDRR cycles within the Differentiate macro phase
+- [FR-44c] The system shall implement micro-EDRR cycles within the Refine macro phase
+- [FR-44d] The system shall implement micro-EDRR cycles within the Retrospect macro phase
+- [FR-44e] The system shall provide mechanisms to define and enforce delimiting principles for determining recursion depth
+- [FR-44f] The system shall support configurable human oversight points within recursive EDRR cycles
 
 ### 3.6 Memory and Context System
 
@@ -144,6 +150,8 @@ Primary users are individual software developers who:
 - [FR-37] The system shall persist context information between sessions
 - [FR-38] The system shall track token count for context information
 - [FR-38a] The system's Memory and Context System shall support the "Expand, Differentiate, Refine" ingestion and adaptation process by storing and relating discovered artifacts and their states.
+- [FR-38b] The system shall implement hierarchical context management to support nested EDRR cycles with appropriate scoping and inheritance.
+- [FR-38c] The system shall provide mechanisms for efficient state passing between recursive EDRR cycles.
 - [FR-44] The system shall implement a TinyDB memory adapter for structured data storage
 - [FR-45] The system shall implement an RDFLib knowledge graph store for semantic data
 - [FR-46] The system shall implement a graph memory adapter for relationship modeling
