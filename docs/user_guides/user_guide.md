@@ -1,8 +1,24 @@
+---
+title: "DevSynth User Guide"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "user guide"
+  - "documentation"
+  - "commands"
+  - "configuration"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # DevSynth User Guide
 
-This comprehensive guide provides detailed information about using DevSynth, including all available commands, configuration options, and best practices.
+## Executive Summary
 
-See also: [Quick Start Guide](../getting_started/quick_start_guide.md), [CLI Reference](cli_reference.md), [Configuration](configuration.md)
+This comprehensive guide provides detailed information about using DevSynth, including all available commands, configuration options, and best practices. It serves as the primary reference for users working with the DevSynth platform.
+
+See also: [Quick Start Guide](../getting_started/quick_start_guide.md), [Command Reference](#command-reference), [Configuration Options](#configuration-options)
 
 ## Table of Contents
 

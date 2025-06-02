@@ -1,3 +1,17 @@
+---
+title: "DevSynth SDLC Policies and Standards Index"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "policies"
+  - "standards"
+  - "sdlc"
+  - "governance"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # DevSynth SDLC Policies and Standards Index
 
 This document serves as the central index and navigation point for all Software Development Life Cycle (SDLC) policies, standards, and governance documents in the DevSynth project. It provides a comprehensive overview of all policies and references that guide development, testing, deployment, and maintenance activities for both human contributors and agentic LLMs.
@@ -13,6 +27,7 @@ This document serves as the central index and navigation point for all Software 
 | **Deployment** | [Deployment Policy](deployment.md) | Deployment workflow, environment management, and release process | Implemented |
 | **Maintenance** | [Maintenance Policy](maintenance.md) | Bug fixing, enhancement process, and version management | Implemented |
 | **Cross-Cutting** | [Cross-Cutting Concerns](cross_cutting.md) | Security, performance, accessibility, and other cross-cutting concerns | Implemented |
+| **Alignment** | [Continuous Alignment Process](continuous_alignment_process.md) | Processes, checks, and metrics for maintaining alignment between SDLC artifacts | Implemented |
 
 ## Implementation Guides
 
@@ -59,7 +74,7 @@ Key implementation artifacts that embody the standards:
 
 ## Documentation Structure
 
-The overall documentation structure follows the patterns defined in the [Documentation Restructuring Plan](../roadmap/documentation_plan.md):
+The overall documentation structure follows the patterns defined in the [Documentation Policies](documentation_policies.md):
 
 - `policies/` - SDLC policies and standards
 - `architecture/` - System architecture and design
@@ -103,4 +118,4 @@ LLM agents and AI systems contributing to DevSynth should:
 
 ---
 
-_Last updated: May 17, 2025_
+_Last updated: June 1, 2025_

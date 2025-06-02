@@ -1,8 +1,22 @@
+---
+title: "Contributing Guide"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "contributing"
+  - "development"
+  - "guidelines"
+  - "process"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # Contributing Guide
 
 Thank you for your interest in contributing to DevSynth! This document provides guidelines and instructions for contributing to the project.
 
-See also: [Development Setup](development_setup.md), [Code Style](code_style.md), [Testing](testing.md), [Documentation Policies](../roadmap/documentation_plan.md)
+See also: [Development Setup](development_setup.md), [Code Style](code_style.md), [Testing](testing.md), [Documentation Policies](../policies/documentation_policies.md)
 
 ## Table of Contents
 

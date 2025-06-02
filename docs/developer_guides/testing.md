@@ -1,6 +1,22 @@
+---
+title: "DevSynth Testing Guide"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "testing"
+  - "development"
+  - "best practices"
+  - "quality assurance"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # DevSynth Testing Guide
 
-This guide documents the testing standards, practices, and infrastructure for the DevSynth project. It serves as the definitive reference for both human contributors and agentic LLMs working on the project's test suite.
+## Executive Summary
+
+This guide documents the testing standards, practices, and infrastructure for the DevSynth project. It covers the project's testing philosophy, directory structure, test types (BDD, unit, integration), test isolation practices, and guidelines for writing and running tests. It serves as the definitive reference for both human contributors and agentic LLMs working on the project's test suite.
 
 ## Table of Contents
 
@@ -106,23 +122,23 @@ def patch_env_and_cleanup(tmp_project_dir):
     os.environ["OPENAI_API_KEY"] = "test-openai-key"
     os.environ["LM_STUDIO_ENDPOINT"] = "http://127.0.0.1:1234"
     os.environ["DEVSYNTH_PROJECT_DIR"] = tmp_project_dir
-    
+
     # Redirect logs to temp dir
     logs_dir = os.path.join(tmp_project_dir, "logs")
     os.makedirs(logs_dir, exist_ok=True)
     old_cwd = os.getcwd()
     os.chdir(tmp_project_dir)
-    
+
     yield
-    
+
     # Cleanup: restore env and cwd, remove logs
     os.environ.clear()
     os.environ.update(old_env)
     os.chdir(old_cwd)
-    
+
     if os.path.exists(logs_dir):
         shutil.rmtree(logs_dir)
-    
+
     # Remove any stray .devsynth or logs in cwd
     for artifact in [".devsynth", "logs"]:
         path = os.path.join(old_cwd, artifact)
@@ -173,7 +189,7 @@ def llm_complete():
             max_tokens=max_tokens,
             fallback=True  # Enable fallback to try all available providers
         )
-    
+
     return _complete
 ```
 

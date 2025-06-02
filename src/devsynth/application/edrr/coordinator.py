@@ -2,12 +2,17 @@
 
 This module defines the EDRRCoordinator class that orchestrates the flow between
 components according to the EDRR (Expand, Differentiate, Refine, Retrospect) pattern.
+
+The coordinator supports recursive EDRR cycles, where each macro phase can contain
+its own nested micro-EDRR cycles, creating a fractal structure that enables
+self-optimization at multiple levels of granularity.
 """
 
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Set
 from datetime import datetime
 import uuid
 from pathlib import Path
+import copy
 
 from devsynth.methodology.base import Phase
 from devsynth.application.memory.memory_manager import MemoryManager
@@ -38,12 +43,26 @@ class EDRRCoordinator:
 
     It can be driven by an EDRR manifest, which provides instructions, templates,
     and resources for each phase of the EDRR process.
+
+    The coordinator supports recursive EDRR cycles, where each macro phase can contain
+    its own nested micro-EDRR cycles, creating a fractal structure that enables
+    self-optimization at multiple levels of granularity.
     """
+
+    # Default maximum recursion depth to prevent infinite recursion
+    DEFAULT_MAX_RECURSION_DEPTH = 3
+
+    # Default thresholds for delimiting principles
+    DEFAULT_GRANULARITY_THRESHOLD = 0.2
+    DEFAULT_COST_BENEFIT_RATIO = 0.5
+    DEFAULT_QUALITY_THRESHOLD = 0.9
+    DEFAULT_RESOURCE_LIMIT = 0.8
 
     def __init__(self, memory_manager: MemoryManager, wsde_team: WSDETeam,
                  code_analyzer: CodeAnalyzer, ast_transformer: AstTransformer,
                  prompt_manager: PromptManager, documentation_manager: DocumentationManager,
-                 enable_enhanced_logging: bool = False):
+                 enable_enhanced_logging: bool = False, parent_cycle_id: str = None,
+                 recursion_depth: int = 0, parent_phase: Phase = None):
         """
         Initialize the EDRR coordinator.
 
@@ -55,6 +74,9 @@ class EDRRCoordinator:
             prompt_manager: The prompt manager to use
             documentation_manager: The documentation manager to use
             enable_enhanced_logging: Whether to enable enhanced logging
+            parent_cycle_id: The ID of the parent cycle (for micro cycles)
+            recursion_depth: The recursion depth of this cycle (0 for macro cycles)
+            parent_phase: The phase of the parent cycle that created this micro cycle
         """
         self.memory_manager = memory_manager
         self.wsde_team = wsde_team
@@ -65,6 +87,13 @@ class EDRRCoordinator:
         self._enable_enhanced_logging = enable_enhanced_logging
         self._execution_traces = {} if enable_enhanced_logging else None
 
+        # Recursive EDRR attributes
+        self.parent_cycle_id = parent_cycle_id
+        self.recursion_depth = recursion_depth
+        self.parent_phase = parent_phase
+        self.child_cycles = []
+        self.max_recursion_depth = self.DEFAULT_MAX_RECURSION_DEPTH
+
         self.manifest_parser = ManifestParser()
         self._manifest_parser = None
         self.current_phase = None
@@ -73,7 +102,7 @@ class EDRRCoordinator:
         self.cycle_id = None
         self.manifest = None
 
-        logger.info("EDRR coordinator initialized")
+        logger.info(f"EDRR coordinator initialized (recursion depth: {recursion_depth})")
 
     def start_cycle(self, task: Dict[str, Any]) -> None:
         """
@@ -208,7 +237,128 @@ class EDRRCoordinator:
             logger.error(f"Failed to progress to phase {phase.value}: {e}")
             raise EDRRCoordinatorError(f"Failed to progress to phase {phase.value}: {e}")
 
-    def _execute_expand_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def create_micro_cycle(self, task: Dict[str, Any], parent_phase: Phase) -> 'EDRRCoordinator':
+        """
+        Create a micro-EDRR cycle within the current phase.
+
+        This method creates a new EDRRCoordinator instance that represents a micro-EDRR cycle
+        within the current phase. The micro cycle inherits the dependencies from the parent
+        cycle but has its own task, cycle ID, and results.
+
+        Args:
+            task: The task for the micro cycle
+            parent_phase: The phase of the parent cycle that created this micro cycle
+
+        Returns:
+            A new EDRRCoordinator instance representing the micro cycle
+
+        Raises:
+            EDRRCoordinatorError: If recursion depth limit is exceeded or delimiting principles
+                                 prevent the creation of the micro cycle
+        """
+        # Check recursion depth limit
+        if self.recursion_depth >= self.max_recursion_depth:
+            error_msg = f"Maximum recursion depth ({self.max_recursion_depth}) exceeded"
+            logger.error(error_msg)
+            raise EDRRCoordinatorError(error_msg)
+
+        # Check delimiting principles
+        if self.should_terminate_recursion(task):
+            error_msg = "Recursion terminated based on delimiting principles"
+            logger.error(error_msg)
+            raise EDRRCoordinatorError(error_msg)
+
+        # Create a new EDRRCoordinator instance for the micro cycle
+        micro_cycle = EDRRCoordinator(
+            memory_manager=self.memory_manager,
+            wsde_team=self.wsde_team,
+            code_analyzer=self.code_analyzer,
+            ast_transformer=self.ast_transformer,
+            prompt_manager=self.prompt_manager,
+            documentation_manager=self.documentation_manager,
+            enable_enhanced_logging=self._enable_enhanced_logging,
+            parent_cycle_id=self.cycle_id,
+            recursion_depth=self.recursion_depth + 1,
+            parent_phase=parent_phase
+        )
+
+        # Start the micro cycle with the given task
+        micro_cycle.start_cycle(task)
+
+        # Add the micro cycle to the list of child cycles
+        self.child_cycles.append(micro_cycle)
+
+        # Store the micro cycle in memory
+        self.memory_manager.store_with_edrr_phase(
+            {"micro_cycle_id": micro_cycle.cycle_id, "task": task},
+            "MICRO_CYCLE",
+            parent_phase.value,
+            {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth + 1}
+        )
+
+        # Initialize micro_cycle_results in the parent phase results if it doesn't exist
+        if parent_phase not in self.results:
+            self.results[parent_phase] = {}
+        if "micro_cycle_results" not in self.results[parent_phase]:
+            self.results[parent_phase]["micro_cycle_results"] = {}
+
+        # Add a placeholder for the micro cycle results
+        self.results[parent_phase]["micro_cycle_results"][micro_cycle.cycle_id] = {
+            "task": task,
+            "status": "created"
+        }
+
+        logger.info(f"Created micro-EDRR cycle with ID {micro_cycle.cycle_id} at recursion depth {micro_cycle.recursion_depth}")
+        return micro_cycle
+
+    def should_terminate_recursion(self, task: Dict[str, Any]) -> bool:
+        """
+        Determine whether recursion should be terminated based on delimiting principles.
+
+        Args:
+            task: The task for the potential micro cycle
+
+        Returns:
+            True if recursion should be terminated, False otherwise
+        """
+        # Check for human override
+        if "human_override" in task:
+            if task["human_override"] == "terminate":
+                logger.info("Recursion terminated due to human override")
+                return True
+            elif task["human_override"] == "continue":
+                logger.info("Recursion continued due to human override")
+                return False
+
+        # Check granularity threshold
+        if "granularity_score" in task:
+            if task["granularity_score"] < self.DEFAULT_GRANULARITY_THRESHOLD:
+                logger.info(f"Recursion terminated due to granularity threshold: {task['granularity_score']} < {self.DEFAULT_GRANULARITY_THRESHOLD}")
+                return True
+
+        # Check cost-benefit analysis
+        if "cost_score" in task and "benefit_score" in task:
+            cost_benefit_ratio = task["cost_score"] / task["benefit_score"] if task["benefit_score"] > 0 else float('inf')
+            if cost_benefit_ratio > self.DEFAULT_COST_BENEFIT_RATIO:
+                logger.info(f"Recursion terminated due to cost-benefit analysis: {cost_benefit_ratio} > {self.DEFAULT_COST_BENEFIT_RATIO}")
+                return True
+
+        # Check quality threshold
+        if "quality_score" in task:
+            if task["quality_score"] > self.DEFAULT_QUALITY_THRESHOLD:
+                logger.info(f"Recursion terminated due to quality threshold: {task['quality_score']} > {self.DEFAULT_QUALITY_THRESHOLD}")
+                return True
+
+        # Check resource limits
+        if "resource_usage" in task:
+            if task["resource_usage"] > self.DEFAULT_RESOURCE_LIMIT:
+                logger.info(f"Recursion terminated due to resource limit: {task['resource_usage']} > {self.DEFAULT_RESOURCE_LIMIT}")
+                return True
+
+        # Default to allowing recursion
+        return False
+
+    def _execute_expand_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute the Expand phase of the EDRR cycle.
 
@@ -221,7 +371,10 @@ class EDRRCoordinator:
         Returns:
             The results of the Expand phase
         """
-        logger.info("Executing Expand phase")
+        if context is None:
+            context = {}
+
+        logger.info(f"Executing Expand phase (recursion depth: {self.recursion_depth})")
         results = {}
 
         # Implement divergent thinking patterns
@@ -249,16 +402,20 @@ class EDRRCoordinator:
         )
         results['code_elements'] = code_elements
 
+        # Initialize micro_cycle_results if it doesn't exist
+        if "micro_cycle_results" not in results:
+            results["micro_cycle_results"] = {}
+
         # Store results in memory with phase tag
         self.memory_manager.store_with_edrr_phase(
             results,
             "EXPAND_RESULTS",
             "EXPAND",
-            {"cycle_id": self.cycle_id}
+            {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth}
         )
 
         if self._enable_enhanced_logging:
-            self._execution_traces[f"EXPAND_{self.cycle_id}"] = {
+            trace_data = {
                 "timestamp": datetime.now().isoformat(),
                 "inputs": context,
                 "outputs": results,
@@ -269,10 +426,18 @@ class EDRRCoordinator:
                 }
             }
 
-        logger.info(f"Expand phase completed with {len(broad_ideas)} ideas generated")
+            # Add recursive information if this is a micro cycle
+            if self.recursion_depth > 0:
+                trace_data["parent_cycle_id"] = self.parent_cycle_id
+                trace_data["recursion_depth"] = self.recursion_depth
+                trace_data["parent_phase"] = self.parent_phase.value if self.parent_phase else None
+
+            self._execution_traces[f"EXPAND_{self.cycle_id}"] = trace_data
+
+        logger.info(f"Expand phase completed with {len(broad_ideas)} ideas generated (recursion depth: {self.recursion_depth})")
         return results
 
-    def _execute_differentiate_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_differentiate_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute the Differentiate phase of the EDRR cycle.
 
@@ -285,7 +450,10 @@ class EDRRCoordinator:
         Returns:
             The results of the Differentiate phase
         """
-        logger.info("Executing Differentiate phase")
+        if context is None:
+            context = {}
+
+        logger.info(f"Executing Differentiate phase (recursion depth: {self.recursion_depth})")
         results = {}
 
         # Get ideas from the Expand phase
@@ -341,16 +509,20 @@ class EDRRCoordinator:
         )
         results['decision_criteria'] = decision_criteria
 
+        # Initialize micro_cycle_results if it doesn't exist
+        if "micro_cycle_results" not in results:
+            results["micro_cycle_results"] = {}
+
         # Store results in memory with phase tag
         self.memory_manager.store_with_edrr_phase(
             results,
             "DIFFERENTIATE_RESULTS",
             "DIFFERENTIATE",
-            {"cycle_id": self.cycle_id}
+            {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth}
         )
 
         if self._enable_enhanced_logging:
-            self._execution_traces[f"DIFFERENTIATE_{self.cycle_id}"] = {
+            trace_data = {
                 "timestamp": datetime.now().isoformat(),
                 "inputs": context,
                 "outputs": results,
@@ -361,10 +533,18 @@ class EDRRCoordinator:
                 }
             }
 
-        logger.info(f"Differentiate phase completed with {len(evaluated_options)} options evaluated")
+            # Add recursive information if this is a micro cycle
+            if self.recursion_depth > 0:
+                trace_data["parent_cycle_id"] = self.parent_cycle_id
+                trace_data["recursion_depth"] = self.recursion_depth
+                trace_data["parent_phase"] = self.parent_phase.value if self.parent_phase else None
+
+            self._execution_traces[f"DIFFERENTIATE_{self.cycle_id}"] = trace_data
+
+        logger.info(f"Differentiate phase completed with {len(evaluated_options)} options evaluated (recursion depth: {self.recursion_depth})")
         return results
 
-    def _execute_refine_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_refine_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute the Refine phase of the EDRR cycle.
 
@@ -377,7 +557,10 @@ class EDRRCoordinator:
         Returns:
             The results of the Refine phase
         """
-        logger.info("Executing Refine phase")
+        if context is None:
+            context = {}
+
+        logger.info(f"Executing Refine phase (recursion depth: {self.recursion_depth})")
         results = {}
 
         # Get evaluated options from the Differentiate phase
@@ -430,16 +613,20 @@ class EDRRCoordinator:
         )
         results['quality_checks'] = quality_checks
 
+        # Initialize micro_cycle_results if it doesn't exist
+        if "micro_cycle_results" not in results:
+            results["micro_cycle_results"] = {}
+
         # Store results in memory with phase tag
         self.memory_manager.store_with_edrr_phase(
             results,
             "REFINE_RESULTS",
             "REFINE",
-            {"cycle_id": self.cycle_id}
+            {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth}
         )
 
         if self._enable_enhanced_logging:
-            self._execution_traces[f"REFINE_{self.cycle_id}"] = {
+            trace_data = {
                 "timestamp": datetime.now().isoformat(),
                 "inputs": context,
                 "outputs": results,
@@ -450,10 +637,18 @@ class EDRRCoordinator:
                 }
             }
 
-        logger.info("Refine phase completed with implementation plan created")
+            # Add recursive information if this is a micro cycle
+            if self.recursion_depth > 0:
+                trace_data["parent_cycle_id"] = self.parent_cycle_id
+                trace_data["recursion_depth"] = self.recursion_depth
+                trace_data["parent_phase"] = self.parent_phase.value if self.parent_phase else None
+
+            self._execution_traces[f"REFINE_{self.cycle_id}"] = trace_data
+
+        logger.info(f"Refine phase completed with implementation plan created (recursion depth: {self.recursion_depth})")
         return results
 
-    def _execute_retrospect_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_retrospect_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute the Retrospect phase of the EDRR cycle.
 
@@ -466,7 +661,10 @@ class EDRRCoordinator:
         Returns:
             The results of the Retrospect phase
         """
-        logger.info("Executing Retrospect phase")
+        if context is None:
+            context = {}
+
+        logger.info(f"Executing Retrospect phase (recursion depth: {self.recursion_depth})")
         results = {}
 
         # Collect results from all previous phases
@@ -523,6 +721,29 @@ class EDRRCoordinator:
         )
         results['improvement_suggestions'] = improvement_suggestions
 
+        # Initialize micro_cycle_results if it doesn't exist
+        if "micro_cycle_results" not in results:
+            results["micro_cycle_results"] = {}
+
+        # If this is a micro cycle, integrate results with parent cycle
+        if self.recursion_depth > 0 and self.parent_cycle_id and self.parent_phase:
+            # Prepare the micro cycle results for integration
+            micro_cycle_results = {
+                "task": self.task,
+                "learnings": learnings,
+                "patterns": patterns,
+                "improvement_suggestions": improvement_suggestions,
+                "status": "completed"
+            }
+
+            # Store the micro cycle results for potential retrieval by the parent cycle
+            self.memory_manager.store_with_edrr_phase(
+                micro_cycle_results,
+                "MICRO_CYCLE_RESULTS",
+                self.parent_phase.value,
+                {"parent_cycle_id": self.parent_cycle_id, "micro_cycle_id": self.cycle_id}
+            )
+
         # Final report generation
         final_report = self.generate_final_report({
             "task": self.task,
@@ -538,7 +759,7 @@ class EDRRCoordinator:
             results,
             "RETROSPECT_RESULTS",
             "RETROSPECT",
-            {"cycle_id": self.cycle_id}
+            {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth}
         )
 
         # Store the final report
@@ -546,11 +767,11 @@ class EDRRCoordinator:
             final_report,
             "FINAL_REPORT",
             "RETROSPECT",
-            {"cycle_id": self.cycle_id}
+            {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth}
         )
 
         if self._enable_enhanced_logging:
-            self._execution_traces[f"RETROSPECT_{self.cycle_id}"] = {
+            trace_data = {
                 "timestamp": datetime.now().isoformat(),
                 "inputs": context,
                 "outputs": results,
@@ -561,7 +782,15 @@ class EDRRCoordinator:
                 }
             }
 
-        logger.info("Retrospect phase completed with learnings extracted and final report generated")
+            # Add recursive information if this is a micro cycle
+            if self.recursion_depth > 0:
+                trace_data["parent_cycle_id"] = self.parent_cycle_id
+                trace_data["recursion_depth"] = self.recursion_depth
+                trace_data["parent_phase"] = self.parent_phase.value if self.parent_phase else None
+
+            self._execution_traces[f"RETROSPECT_{self.cycle_id}"] = trace_data
+
+        logger.info(f"Retrospect phase completed with learnings extracted and final report generated (recursion depth: {self.recursion_depth})")
         return results
 
     def generate_final_report(self, cycle_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -574,7 +803,7 @@ class EDRRCoordinator:
         Returns:
             The final report
         """
-        logger.info("Generating final report for EDRR cycle")
+        logger.info(f"Generating final report for EDRR cycle (recursion depth: {self.recursion_depth})")
 
         task = cycle_data.get("task", {})
         expand_results = cycle_data.get("expand", {})
@@ -617,7 +846,35 @@ class EDRRCoordinator:
             }
         }
 
-        logger.info(f"Final report generated for cycle {self.cycle_id}")
+        # Add recursive information if this is a micro cycle
+        if self.recursion_depth > 0:
+            report["recursion_info"] = {
+                "recursion_depth": self.recursion_depth,
+                "parent_cycle_id": self.parent_cycle_id,
+                "parent_phase": self.parent_phase.value if self.parent_phase else None
+            }
+
+            # Add information about child cycles if any
+            if self.child_cycles:
+                report["child_cycles"] = [
+                    {
+                        "cycle_id": child.cycle_id,
+                        "task": child.task,
+                        "recursion_depth": child.recursion_depth
+                    }
+                    for child in self.child_cycles
+                ]
+
+        # Add information about micro cycle results if any
+        micro_cycle_results = {}
+        for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+            if phase in self.results and "micro_cycle_results" in self.results[phase]:
+                micro_cycle_results[phase.value] = self.results[phase]["micro_cycle_results"]
+
+        if micro_cycle_results:
+            report["micro_cycle_results"] = micro_cycle_results
+
+        logger.info(f"Final report generated for cycle {self.cycle_id} (recursion depth: {self.recursion_depth})")
         return report
 
     def _extract_key_insights(self, expand_results: Dict[str, Any]) -> List[str]:

@@ -59,8 +59,8 @@ A component that implements the MemoryStore interface to provide specific storag
 ### Memory System
 The subsystem responsible for storing, retrieving, and managing information in DevSynth. It supports multiple backends and provides a unified interface for semantic search and structured data storage.
 
-### Manifest
-A YAML file (`manifest.yaml`) that defines a project's structure, components, and configuration. It's used by DevSynth to understand and adapt to diverse project structures.
+### Project Configuration
+A YAML file (`.devsynth/project.yaml`) that defines a project's structure, components, and configuration. It's used by DevSynth to understand and adapt to diverse project structures. Previously known as `manifest.yaml` and sometimes referred to as `devsynth.yaml` in older documentation.
 
 ## P
 

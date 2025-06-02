@@ -107,8 +107,8 @@ Each major component of the integration will employ dialectical reasoning:
 - Update timeline and resource allocation for the enhanced implementation
 
 **Files to Update:**
-- `/DEVELOPMENT_PLAN.md`
-- `/DEVELOPMENT_STATUS.md`
+- `/docs/roadmap/development_plan.md`
+- `/docs/roadmap/development_status.md`
 
 ### 5. Create Architectural Diagrams
 

@@ -70,7 +70,7 @@ tests/
 
 ## Documentation Structure (`docs/`)
 
-Following the [Documentation Restructuring Plan](roadmap/documentation_plan.md), the documentation is organized as:
+Following the [Documentation Policies](policies/documentation_policies.md), the documentation is organized as:
 
 ```
 docs/
@@ -147,4 +147,4 @@ New contributors should:
 
 ---
 
-_Last updated: May 2025_
+_Last updated: June 2025_
