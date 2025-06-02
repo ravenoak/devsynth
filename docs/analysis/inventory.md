@@ -138,8 +138,8 @@ The project provides comprehensive templates for:
 ## SDLC Artifacts Inventory
 
 ### Requirements & Planning
-- **Development Plan** (DEVELOPMENT_PLAN.md)
-- **Development Status** (DEVELOPMENT_STATUS.md)
+- **Development Plan** (docs/roadmap/development_plan.md)
+- **Development Status** (docs/roadmap/development_status.md)
 - **Requirements Traceability Matrix** (docs/requirements_traceability.md)
 - **System Requirements Specification** (docs/system_requirements_specification.md)
 - **Executive Summary** (docs/specifications/executive_summary.md)
@@ -154,7 +154,7 @@ The project provides comprehensive templates for:
 
 ### Development & Contribution
 - **Contributing Guide** (CONTRIBUTING.md)
-- **Developer Onboarding** (DEVONBOARDING.md)
+- **Developer Onboarding** (docs/developer_guides/onboarding.md)
 - **Code Style Guide** (docs/developer_guides/code_style.md)
 - **Development Setup** (docs/developer_guides/development_setup.md)
 - **Secure Coding** (docs/developer_guides/secure_coding.md)
@@ -173,7 +173,7 @@ The project provides comprehensive templates for:
 - **Pre-commit Hooks** (.pre-commit-config.yaml)
 
 ### Documentation & Knowledge Management
-- **Documentation Plan** (docs/roadmap/documentation_plan.md)
+- **Documentation Policies** (docs/policies/documentation_policies.md)
 - **Glossary** (docs/glossary.md)
 - **Metadata Templates** (docs/metadata_template.md)
 - **Repository Structure** (docs/repo_structure.md)

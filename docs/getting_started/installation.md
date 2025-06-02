@@ -1,6 +1,22 @@
+---
+title: "DevSynth Installation Guide"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "installation"
+  - "getting started"
+  - "setup"
+  - "configuration"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # Installation Guide
 
-This guide provides step-by-step instructions for installing DevSynth in various environments.
+## Executive Summary
+
+This guide provides step-by-step instructions for installing DevSynth in various environments. It covers installation via PyPI and from source, along with prerequisites for both methods.
 
 ## Prerequisites
 - Python 3.11 or higher
@@ -20,4 +36,3 @@ poetry shell
 ```
 
 For more details, see the [Quick Start Guide](../getting_started/quick_start_guide.md).
-

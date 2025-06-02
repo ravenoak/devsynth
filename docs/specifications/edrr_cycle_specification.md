@@ -1,4 +1,39 @@
+---
+title: "EDRR Cycle Specification"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "edrr"
+  - "specification"
+  - "methodology"
+  - "workflow"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # EDRR Cycle Specification
+
+## Executive Summary
+
+The EDRR (Expand, Differentiate, Refine, Retrospect) cycle is a structured workflow methodology implemented in DevSynth to guide the iterative development process. This specification defines the components, interactions, and implementation details of the EDRR cycle, including its recursive architecture, integration with other system components, and implementation guidelines. The EDRR framework enables self-optimization at multiple levels of granularity, creating a more adaptive and intelligent development process.
+
+## Table of Contents
+
+- [1. Overview](#1-overview)
+- [2. Purpose and Goals](#2-purpose-and-goals)
+- [3. EDRR Cycle Stages](#3-edrr-cycle-stages)
+  - [3.1 Expand](#31-expand)
+  - [3.2 Differentiate](#32-differentiate)
+  - [3.3 Refine](#33-refine)
+  - [3.4 Retrospect](#34-retrospect)
+- [4. Integration with Other Components](#4-integration-with-other-components)
+- [5. Implementation Guidelines](#5-implementation-guidelines)
+- [6. Recursive EDRR Architecture](#6-recursive-edrr-architecture)
+- [7. EDRR Coordinator](#7-edrr-coordinator)
+- [8. EDRR Manifest](#8-edrr-manifest)
+- [9. Testing and Validation](#9-testing-and-validation)
+- [10. References](#10-references)
 
 ## 1. Overview
 

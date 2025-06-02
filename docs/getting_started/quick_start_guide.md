@@ -1,3 +1,16 @@
+---
+title: "DevSynth Quick Start Guide"
+date: "2025-06-01"
+version: "1.0.0"
+tags:
+  - "getting-started"
+  - "quick-start"
+  - "tutorial"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
+
 # DevSynth Quick Start Guide
 
 This guide provides a step-by-step tutorial to help you get started with DevSynth quickly.
@@ -117,8 +130,8 @@ Now that you've created your first DevSynth project, you can:
 
 - Explore more complex requirements
 - Customize the development process using configuration options
-- Learn about advanced features in the [User Guide](user_guide.md)
-- Understand the architecture in the [Architecture Documentation](architecture_documentation.md)
+- Learn about advanced features in the [User Guide](../user_guides/user_guide.md)
+- Understand the architecture in the [Architecture Overview](../architecture/overview.md)
 
 ## Troubleshooting
 
@@ -129,4 +142,11 @@ If you encounter any issues:
 3. Check that all dependencies are installed
 4. Review the error messages for specific issues
 
-For more detailed information, refer to the [User Guide](user_guide.md) or open an issue on the [GitHub repository](https://github.com/ravenoak/devsynth/issues).
+For more detailed information, refer to the [User Guide](../user_guides/user_guide.md) or open an issue on the [GitHub repository](https://github.com/ravenoak/devsynth/issues).
+
+## Related Documents
+
+- [Installation Guide](installation.md) - Detailed installation instructions
+- [Basic Usage Guide](basic_usage.md) - Introduction to basic DevSynth usage
+- [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
+- [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture

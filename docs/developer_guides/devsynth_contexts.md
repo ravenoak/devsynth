@@ -131,8 +131,8 @@ This context refers to the advanced scenario where a functional version of DevSy
 
 ### For DevSynth Usage
 
-- Start with `devsynth init` to create the manifest.yaml file
-- Use `devsynth analyze-manifest` to keep the configuration up to date
+- Start with `devsynth init` to create the `.devsynth/project.yaml` file
+- Use `devsynth analyze-config` (formerly `analyze-manifest`) to keep the configuration up to date
 - Use `devsynth validate-manifest` to validate the configuration against its schema
 - Follow the recommended workflow: analyze → spec → test → code
 - Provide detailed requirements for better results

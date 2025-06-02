@@ -1,0 +1,73 @@
+name: Validate Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - '**.md'
+      - '.github/workflows/validate_documentation.yml'
+      - 'scripts/validate_metadata.py'
+      - 'scripts/verify_code_examples.py'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - '**.md'
+      - '.github/workflows/validate_documentation.yml'
+      - 'scripts/validate_metadata.py'
+      - 'scripts/verify_code_examples.py'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml markdown-link-check
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install TypeScript
+        run: npm install -g typescript
+      
+      - name: Install markdown-link-check
+        run: npm install -g markdown-link-check
+          
+      - name: Validate Markdown metadata
+        run: |
+          python scripts/validate_metadata.py docs README.md DEVELOPMENT_PLAN.md DEVONBOARDING.md --verbose
+          
+      - name: Verify code examples in documentation
+        run: |
+          python scripts/verify_code_examples.py docs README.md DEVELOPMENT_PLAN.md DEVONBOARDING.md --verbose
+          
+      - name: Check for broken links
+        run: |
+          echo "Checking for broken links in documentation..."
+          find docs -name "*.md" -type f -exec markdown-link-check {} \;
+          markdown-link-check README.md
+          
+      - name: Validate MkDocs configuration
+        run: |
+          pip install mkdocs mkdocs-material
+          mkdocs build --strict
+          
+      - name: Summary
+        run: |
+          echo "Documentation validation completed successfully!"
+          echo "✅ Metadata validation passed"
+          echo "✅ Code example verification passed"
+          echo "✅ Link checking passed"
+          echo "✅ MkDocs build passed"

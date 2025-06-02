@@ -18,6 +18,41 @@ last_reviewed: "2025-06-01"
 
 The EDRR (Expand, Differentiate, Refine, Retrospect) framework is a core methodology used in DevSynth for structured problem-solving and implementation. This dialectical approach ensures comprehensive exploration of solutions, critical evaluation of alternatives, focused implementation, and reflective learning.
 
+## Recursive EDRR Architecture
+
+The EDRR framework is implemented as a recursive, fractal structure where each macro-level phase (Expand, Differentiate, Refine, Retrospect) can contain its own nested micro-EDRR cycles. This recursive approach enables self-optimization at multiple levels of granularity, creating a more adaptive and intelligent development process.
+
+### Key Features of Recursive EDRR
+
+- **Micro-Cycles**: Each phase can spawn micro-EDRR cycles for complex sub-tasks
+- **Recursion Depth Control**: Limits prevent excessive nesting of cycles
+- **Granularity Thresholds**: Prevents recursion for overly simple tasks
+- **Cost-Benefit Analysis**: Ensures recursion provides value relative to effort
+- **Quality Monitoring**: Tracks quality metrics to determine when recursion is beneficial
+- **Resource Management**: Prevents excessive resource consumption
+- **Human Oversight**: Allows human judgment to override automatic recursion decisions
+
+### Example of Recursive EDRR
+
+When implementing a complex feature, the main EDRR cycle might handle the overall process, while micro-cycles address specific challenges:
+
+1. **Main Cycle - Expand Phase**: Exploring approaches for implementing the feature
+   - **Micro-Cycle**: Conducting detailed research on a specific technology
+     - Has its own Expand, Differentiate, Refine, and Retrospect phases
+     - Results feed back into the parent Expand phase
+
+2. **Main Cycle - Differentiate Phase**: Evaluating approaches
+   - **Micro-Cycle**: Performing detailed performance testing of alternatives
+     - Results feed back into the parent Differentiate phase
+
+3. **Main Cycle - Refine Phase**: Implementing the selected approach
+   - **Micro-Cycle**: Developing a complex component of the implementation
+     - Results feed back into the parent Refine phase
+
+4. **Main Cycle - Retrospect Phase**: Evaluating the implementation
+   - **Micro-Cycle**: Analyzing specific aspects of the implementation
+     - Results feed back into the parent Retrospect phase
+
 ## Framework Phases
 
 ### 1. Expand Phase
@@ -187,6 +222,21 @@ The EDRR Coordinator orchestrates the flow between components according to the E
 - Managing phase transitions
 - Storing and retrieving phase-specific data
 - Generating comprehensive reports
+- Creating and managing recursive micro-cycles
+- Tracking parent-child relationships between cycles
+- Enforcing recursion depth limits and quality thresholds
+
+### Recursive Coordination
+The coordinator supports recursive EDRR cycles by:
+- Creating child coordinators for micro-cycles
+- Maintaining parent-child relationships between cycles
+- Tracking recursion depth to prevent excessive nesting
+- Applying granularity thresholds to determine when recursion is appropriate
+- Performing cost-benefit analysis for potential micro-cycles
+- Monitoring quality metrics to guide recursion decisions
+- Managing resource allocation across nested cycles
+- Supporting human judgment overrides for recursion decisions
+- Integrating results from micro-cycles back into parent cycles
 
 ### Integration with Other Components
 - **Memory System**: Stores and retrieves phase-specific data
@@ -247,6 +297,8 @@ phases:
 
 ## Best Practices for Using EDRR
 
+### General Best Practices
+
 1. **Complete Each Phase**: Don't skip phases, as each contributes to the quality of the final solution.
 2. **Document Decisions**: Record the rationale for decisions, especially in the Differentiate phase.
 3. **Embrace Dialectical Thinking**: Consider opposing viewpoints and synthesize them into a coherent solution.
@@ -255,8 +307,19 @@ phases:
 6. **Customize for Task Complexity**: Adjust the depth of each phase based on task complexity.
 7. **Leverage Component Integration**: Make full use of the integration between EDRR and other components.
 
+### Recursive EDRR Best Practices
+
+1. **Apply Recursion Strategically**: Use micro-cycles for complex subtasks that benefit from the full EDRR approach.
+2. **Maintain Appropriate Granularity**: Don't create micro-cycles for simple tasks that don't warrant the overhead.
+3. **Monitor Recursion Depth**: Keep recursion to a reasonable depth (typically 2-3 levels) to avoid complexity explosion.
+4. **Balance Cost and Benefit**: Ensure the value gained from recursion justifies the additional time and resources.
+5. **Integrate Results Effectively**: Ensure insights and artifacts from micro-cycles are properly integrated into parent cycles.
+6. **Use Human Judgment**: Override automatic recursion decisions when human expertise suggests a different approach.
+7. **Document Recursive Structure**: Maintain clear documentation of the recursive structure for better understanding and maintenance.
+
 ## Related Documents
 
+- [EDRR Cycle Specification](../specifications/edrr_cycle_specification.md)
 - [Dialectical Reasoning](dialectical_reasoning.md)
 - [WSDE Agent Model](wsde_agent_model.md)
 - [Memory System Architecture](memory_system.md)

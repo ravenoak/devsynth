@@ -98,7 +98,11 @@ The provider system includes comprehensive tests:
 
 ## Future Enhancements
 
-- Add more provider implementations (Claude, Gemini, etc.)
+- Add more provider implementations:
+  - **Anthropic Claude**: Support for Claude's advanced capabilities including text generation, code writing, data analysis, image analysis, and real-time web search
+  - **Abacus.ai**: Integration with Abacus.ai's multi-modal LLM capabilities, custom AI workflows, and advanced models
+  - **Gemini**: Support for Google's Gemini models
+  - **Other Providers**: Additional providers based on community needs and market developments
 - Add streaming support for real-time responses
 - Implement provider caching for repeated requests
 - Add token counting and budget management

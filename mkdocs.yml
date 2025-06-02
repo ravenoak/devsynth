@@ -43,17 +43,17 @@ nav:
     - Installation: getting_started/installation.md
     - Basic Usage: getting_started/basic_usage.md
   - User Guides:
-    - Overview: user_guides/index.md # Assuming an index for this section
+    - Overview: user_guides/index.md
     - User Guide: user_guides/user_guide.md
-    - CLI Reference: user_guides/cli_reference.md
-    - Configuration: user_guides/configuration.md
   - Developer Guides:
-    - Overview: developer_guides/index.md # Assuming an index for this section
+    - Overview: developer_guides/index.md
+    - Onboarding Guide: developer_guides/onboarding.md
     - Contributing: developer_guides/contributing.md
     - Development Setup: developer_guides/development_setup.md
     - Testing Guide: developer_guides/testing.md
     - Code Style: developer_guides/code_style.md
-    - Repository Structure: RepoStructure.md
+    - Documentation Style Guide: policies/documentation_style_guide.md
+    - Repository Structure: repo_structure.md
   - Architecture:
     - Overview: architecture/overview.md
     - Hexagonal Architecture: architecture/hexagonal_architecture.md
@@ -61,15 +61,33 @@ nav:
     - Memory System: architecture/memory_system.md
     - Provider System: architecture/provider_system.md
     - Dialectical Reasoning: architecture/dialectical_reasoning.md
+    - EDRR Framework: architecture/edrr_framework.md
+    - WSDE Agent Model: architecture/wsde_agent_model.md
   - Technical Reference:
-    - Overview: technical_reference/index.md # Assuming an index
-    - API Reference: technical_reference/api_reference/index.md # Or api_reference/
+    - Overview: technical_reference/index.md
+    - API Reference: technical_reference/api_reference/index.md
     - Error Handling: technical_reference/error_handling.md
     - Performance: technical_reference/performance.md
+    - EDRR Methodology: technical_reference/expand_differentiate_refine_retrospect.md
+  - Project Analysis:
+    - Overview: analysis/index.md
+    - Executive Summary: analysis/executive_summary.md
+    - Critical Recommendations: analysis/critical_recommendations.md
+    - Technical Deep Dive: analysis/technical_deep_dive.md
+    - Dialectical Evaluation: analysis/dialectical_evaluation.md
+    - Project Inventory: analysis/inventory.md
+  - Implementation Status:
+    - Overview: implementation/index.md
+    - Feature Status Matrix: implementation/feature_status_matrix.md
+    - EDRR Assessment: implementation/edrr_assessment.md
+    - Phase 1 Summary: implementation/phase1_month1_summary.md
+    - WSDE Validation: implementation/wsde_validation.md
   - Specifications:
-    - Overview: specifications/index.md # Assuming an index
-    - Current Specification: specifications/current/devsynth_specification.md
-    - Archived Specifications: specifications/archived/ # This will list files if an index.md is not present
+    - Overview: specifications/index.md
+    - DevSynth MVP Specification: specifications/devsynth_specification_mvp_updated.md
+    - EDRR Cycle Specification: specifications/edrr_cycle_specification.md
+    - WSDE Interaction Specification: specifications/wsde_interaction_specification.md
+    - Hybrid Memory Architecture: specifications/hybrid_memory_architecture.md
   - Policies:
     - Overview: policies/index.md
     - Requirements Policy: policies/requirements.md
@@ -79,12 +97,14 @@ nav:
     - Deployment Policy: policies/deployment.md
     - Maintenance Policy: policies/maintenance.md
     - Cross-Cutting Concerns: policies/cross_cutting.md
+    - SDLC Policies for Agentic LLM Projects: policies/sdlc_policies_for_agentic_llm_projects.md
   - Roadmap:
-    - Overview: roadmap/index.md # Assuming an index
-    - Post-MVP Roadmap: roadmap/post_mvp_roadmap.md
-    - Documentation Plan: roadmap/documentation_plan.md
+    - Overview: roadmap/index.md
+    - Development Plan: roadmap/development_plan.md
+    - Development Status: roadmap/development_status.md
+    - Documentation Policies: roadmap/documentation_policies.md
     - Testing Infrastructure: roadmap/testing_infrastructure.md
-  - Changelog: CHANGELOG.md # Assuming CHANGELOG.md is at the root, relative to docs/
+  - Changelog: CHANGELOG.md
 
 markdown_extensions:
   - attr_list
