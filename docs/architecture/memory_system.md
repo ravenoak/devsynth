@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Memory System Architecture"
-date: "2025-05-28"
-version: "1.1.0"
+date: "2025-06-01"
+version: "1.2.0"
 tags:
   - "architecture"
   - "memory"
@@ -10,7 +10,7 @@ tags:
   - "knowledge-graph"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-28"
+last_reviewed: "2025-06-01"
 ---
 
 # DevSynth Memory System Architecture
@@ -49,150 +49,338 @@ graph TD
     B -->|uses| G[GraphMemoryAdapter]
     B -->|uses| H[RDFLibStore]
     B -->|uses| I[VectorMemoryAdapter]
-    C -->|stores vectors| J[ChromaDB Vector DB]
-    C -->|embeds text| K[Provider System]
-    C2 -->|stores vectors| J
-    C2 -->|embeds text| K
-    K -->|tries| L[OpenAI API]
-    K -->|tries| M[LM Studio API] 
-    K -->|fallback| N[Default Embedder]
-    E --> O[Filesystem]
-    F --> P[TinyDB]
-    F2 --> P
-    G --> Q[In-Memory Graph]
-    H --> R[RDF Graph]
-    I --> S[In-Memory Vector Store]
+    
+    C -->|depends on| J[ChromaDB]
+    H -->|depends on| K[RDFLib]
+    F -->|depends on| L[TinyDB]
+    
+    C & C2 & I -->|uses| M[EmbeddingProvider]
+    M -->|uses| N[OpenAIProvider]
+    M -->|uses| O[LMStudioProvider]
+    M -->|uses| P[LocalEmbeddingProvider]
 ```
 
-### Planned Enhanced Architecture
+## Implementation Details
 
-```mermaid
-graph TD
-    A[Application Layer] -->|query/store| B[Memory Manager]
-    B -->|vector queries| C[VectorMemoryAdapter]
-    B -->|graph queries| D[GraphMemoryAdapter]
-    B -->|structured queries| E[TinyDBMemoryAdapter]
-    C -->|uses| F[ChromaDBStore]
-    C -->|uses| G[DuckDBStore]
-    C -->|uses| H[FAISSStore]
-    C -->|uses| I[LMDBStore]
-    D -->|uses| J[RDFLib Knowledge Graph]
-    E -->|uses| K[TinyDB]
-    F -->|embeds text| L[Provider System]
-    G -->|embeds text| L
-    H -->|embeds text| L
-    I -->|embeds text| L
-    L -->|tries| M[OpenAI API]
-    L -->|tries| N[LM Studio API]
-    L -->|fallback| O[Default Embedder]
+### Memory Interface
+
+The unified `MemoryPort` interface defines the core operations across all memory implementations:
+
+```python
+class MemoryPort(ABC):
+    """Abstract base class for memory storage operations."""
+    
+    @abstractmethod
+    async def store(self, key: str, content: Any, metadata: Dict[str, Any] = None) -> str:
+        """Store content with optional metadata, return unique ID."""
+        pass
+        
+    @abstractmethod
+    async def retrieve(self, key: str) -> Optional[Any]:
+        """Retrieve content by key."""
+        pass
+        
+    @abstractmethod
+    async def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Search for content relevant to query."""
+        pass
+        
+    @abstractmethod
+    async def delete(self, key: str) -> bool:
+        """Delete content by key."""
+        pass
+        
+    @abstractmethod
+    async def update(self, key: str, content: Any, metadata: Dict[str, Any] = None) -> bool:
+        """Update existing content."""
+        pass
+        
+    @abstractmethod
+    async def list_keys(self) -> List[str]:
+        """List all stored keys."""
+        pass
 ```
 
-## MemoryPort (Hexagonal Adapter)
-- Exposes `store_memory`, `retrieve_memory`, `search_memory` methods
-- Can be configured to use any of the available memory store implementations
-- Ensures all artifacts are stored with metadata, type, and version
+### ChromaDB Implementation
 
-## Memory Store Implementations
+The `ChromaDBStore` implementation provides comprehensive vector storage with advanced features:
 
-### ChromaDBStore
-- Implements the `MemoryStore` protocol
-- Stores artifacts as vectors for semantic search
-- Advanced features include caching, versioning, and optimized embedding storage
-- Supports token counting and tracking
-- Provides both semantic search and exact match search capabilities
+```python
+class ChromaDBStore(MemoryPort):
+    """ChromaDB implementation of the memory port."""
+    
+    def __init__(self, 
+                 collection_name: str = "devsynth_memory",
+                 embedding_provider: EmbeddingProvider = None,
+                 persistence_directory: str = "./chroma_db",
+                 cache_ttl: int = 3600,
+                 retry_attempts: int = 3):
+        """Initialize ChromaDB store with configuration."""
+        self.client = chromadb.PersistentClient(path=persistence_directory)
+        self.collection = self.client.get_or_create_collection(name=collection_name)
+        self.embedding_provider = embedding_provider or OpenAIProvider()
+        self.cache = LRUCache(maxsize=100, ttl=cache_ttl)
+        self.retry_attempts = retry_attempts
+        
+    async def store(self, key: str, content: Any, metadata: Dict[str, Any] = None) -> str:
+        """Store content and metadata with embeddings."""
+        try:
+            text_content = self._normalize_content(content)
+            embedding = await self._get_embedding_with_retry(text_content)
+            
+            # Generate a unique ID if key is not provided
+            doc_id = key or str(uuid.uuid4())
+            
+            # Store document with embedding
+            self.collection.add(
+                ids=[doc_id],
+                embeddings=[embedding],
+                documents=[text_content],
+                metadatas=[metadata or {}]
+            )
+            
+            # Update cache
+            self.cache[doc_id] = (text_content, metadata)
+            
+            return doc_id
+        except Exception as e:
+            logger.error(f"Failed to store content: {str(e)}")
+            raise MemoryStorageError(f"Failed to store content: {str(e)}")
+            
+    # Additional method implementations...
+```
 
-### ChromaDBMemoryStore
-- Implements the `MemoryStore` protocol
-- Stores artifacts as vectors for semantic search
-- Leverages provider system for embeddings with automatic fallback mechanisms
-- Configurable to use specific providers (OpenAI, LM Studio) or default embedder
-- Implements retry mechanisms with exponential backoff
-- All test artifacts are isolated and cleaned up via test fixtures
+### Knowledge Graph Implementation
 
-### JSONFileStore
-- Implements the `MemoryStore` protocol
-- Stores artifacts as JSON files on the filesystem
-- Simple and reliable persistent storage
+The `RDFLibStore` provides graph-based memory with semantic reasoning capabilities:
 
-### TinyDBStore
-- Implements the `MemoryStore` protocol
-- Uses TinyDB for lightweight, document-oriented storage
-- Features include token counting and caching middleware
+```python
+class RDFLibStore(MemoryPort):
+    """RDFLib implementation for knowledge graph storage."""
+    
+    def __init__(self, store_path: str = "memory.ttl"):
+        """Initialize RDF graph store."""
+        self.store_path = store_path
+        self.graph = Graph()
+        
+        # Load existing graph if available
+        if os.path.exists(store_path):
+            self.graph.parse(store_path, format="turtle")
+            
+    async def store(self, key: str, content: Any, metadata: Dict[str, Any] = None) -> str:
+        """Store content as RDF triples."""
+        subject = URIRef(f"http://devsynth.ai/memory/{key}")
+        
+        # Add content triple
+        self.graph.add((subject, RDFS.label, Literal(str(content))))
+        
+        # Add metadata triples
+        if metadata:
+            for meta_key, meta_value in metadata.items():
+                predicate = URIRef(f"http://devsynth.ai/ontology/{meta_key}")
+                self.graph.add((subject, predicate, Literal(str(meta_value))))
+                
+        # Persist changes to file
+        self.graph.serialize(destination=self.store_path, format="turtle")
+        
+        return key
+        
+    async def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Search using SPARQL queries."""
+        sparql_query = f"""
+            SELECT ?subject ?content ?key ?value
+            WHERE {{
+                ?subject rdfs:label ?content .
+                OPTIONAL {{ ?subject ?key ?value }}
+                FILTER(CONTAINS(LCASE(STR(?content)), LCASE("{query}")))
+            }}
+            LIMIT {limit}
+        """
+        
+        results = []
+        for row in self.graph.query(sparql_query):
+            subject_id = str(row.subject).split('/')[-1]
+            results.append({
+                "id": subject_id,
+                "content": str(row.content),
+                "metadata": {str(row.key).split('/')[-1]: str(row.value)} if row.key else {}
+            })
+            
+        return results
+```
 
-### TinyDBMemoryAdapter
-- Implements the `MemoryStore` protocol
-- Provides structured data queries using TinyDB
-- Supports both file-based and in-memory storage
+## Configuration Examples
 
-### RDFLibStore
-- Implements both the `MemoryStore` and `VectorStore` protocols
-- Uses RDFLib to store and retrieve memory items and vectors as RDF triples
-- Supports SPARQL queries for advanced search capabilities
-- Provides semantic knowledge graph capabilities
+### Setting Up ChromaDB Memory Store
 
-### GraphMemoryAdapter
-- Implements the `MemoryStore` protocol
-- Simple in-memory graph implementation
-- Handles relationships between memory items
+```python
+from devsynth.adapters.memory.chromadb_store import ChromaDBStore
+from devsynth.adapters.providers.openai_provider import OpenAIProvider
 
-### VectorMemoryAdapter
-- Implements the `MemoryStore` protocol
-- Basic in-memory vector store implementation
+# Configure with OpenAI embeddings
+memory = ChromaDBStore(
+    collection_name="project_memory",
+    embedding_provider=OpenAIProvider(model="text-embedding-3-small"),
+    persistence_directory="./data/memory",
+    cache_ttl=7200,  # 2 hours
+    retry_attempts=3
+)
 
-## Provider System Integration
-- Uses unified provider abstraction for generating embeddings
-- Provides automatic fallback between providers if one is unavailable
-- Graceful degradation to default embedder if all providers fail
-- Configurable via environment variables and initialization parameters
+# Store code snippet with metadata
+await memory.store(
+    key="authentication_module",
+    content="def authenticate(username, password):\n    # Implementation\n    return token",
+    metadata={
+        "language": "python",
+        "component": "auth",
+        "author": "dev_team",
+        "created_at": "2025-06-01"
+    }
+)
 
-## Extensibility
-- New backends can be added by implementing the `MemoryStore` protocol
-- New embedding providers can be added through the provider system
-- Migration utilities are planned for seamless data transfer between stores
+# Search for authentication-related content
+results = await memory.search("authentication implementation", limit=3)
+```
 
-## Testing & Cleanliness
-- All tests use temporary directories and patch environment variables for isolation
-- CI checks ensure no workspace pollution
-- Test fixtures provide access to LLM providers and embedding capabilities
+### Setting Up RDFLib Knowledge Graph Store
 
-## Traceability
-- Requirements, code, and tests are linked via IDs and doc references
-- See `docs/specifications/current/devsynth_specification.md` and `tests/behavior/test_chromadb_integration.py`
+```python
+from devsynth.adapters.memory.rdflib_store import RDFLibStore
 
-## Current Status and Future Enhancements
+# Initialize the knowledge graph
+kg_memory = RDFLibStore(store_path="./data/knowledge_graph.ttl")
 
-### Implemented Features
-- **Multiple Memory Store Implementations**: ChromaDBStore, ChromaDBMemoryStore, JSONFileStore, TinyDBStore, TinyDBMemoryAdapter, RDFLibStore, GraphMemoryAdapter, VectorMemoryAdapter
-- **Versioning and Caching**: ChromaDBStore implements versioning and caching layers
-- **Provider System Integration**: Automatic fallback between providers and graceful degradation
-- **Multi-Layered Memory Approach**: 
-  - **Short-term (working) memory**: Implemented via in-memory adapters
-  - **Episodic memory**: Implemented via TinyDB adapters
-  - **Semantic memory**: Implemented via ChromaDB and RDFLib adapters
+# Store relationship between components
+await kg_memory.store(
+    key="relationship_auth_db",
+    content="Authentication module depends on Database module",
+    metadata={
+        "relationship_type": "depends_on",
+        "source": "authentication_module",
+        "target": "database_module",
+        "strength": "high"
+    }
+)
 
-### Planned Enhancements
-- **Integration Improvements**: Better integration with self-analysis and dialectic reasoning modules
-- **Expanded Semantic Search**: Apply to all project artifacts
-- **Advanced Embedding Models**: Introduce more sophisticated embedding models and techniques
-- **Enhanced Knowledge Graph**: Improve the RDFLib implementation with more advanced ontology modeling and reasoning capabilities
-- **Performance Optimization**: Optimize vector stores for large-scale embeddings
+# Query relationships with SPARQL
+results = await kg_memory.search_with_sparql("""
+    SELECT ?subject ?target ?type
+    WHERE {
+        ?subject <http://devsynth.ai/ontology/relationship_type> ?type .
+        ?subject <http://devsynth.ai/ontology/target> ?target .
+    }
+""")
+```
 
-### Alternative Vector Stores (Partially Implemented)
-The memory system includes basic implementations of alternative vector stores:
+## Performance Considerations
 
-- **DuckDB Store**: Basic implementation with vector extension support
-- **FAISS Store**: Basic implementation for high-performance nearest-neighbor search
-- **LMDB Store**: Basic implementation for fast, memory-mapped key-value storage
+### Memory Usage Patterns
 
-### Unified Query Interface (Partially Implemented)
-The memory system includes basic implementations of specialized adapters:
+Different memory implementations have varying performance characteristics:
 
-- **GraphMemoryAdapter**: Basic implementation for graph-based queries
-- **VectorMemoryAdapter**: Basic implementation for embedding similarity queries
-- **TinyDBMemoryAdapter**: Implementation for structured queries
+| Implementation     | Read Performance | Write Performance | Query Performance | Memory Usage | Persistence | Best Use Case                     |
+|-------------------|-----------------|-------------------|------------------|--------------|------------|----------------------------------|
+| ChromaDBStore     | Medium          | Medium            | High             | High         | Yes        | Semantic search, RAG              |
+| TinyDBStore       | High            | High              | Low              | Low          | Yes        | Simple key-value storage          |
+| RDFLibStore       | Medium          | Low               | High             | Medium       | Yes        | Knowledge graphs, reasoning       |
+| JSONFileStore     | High            | Medium            | Low              | Low          | Yes        | Configuration, simple data        |
+| VectorMemoryAdapter| High           | High              | Medium           | Medium       | No         | Testing, temporary storage        |
 
-Further enhancements are planned to improve the integration and capabilities of these adapters.
+### Scaling Strategies
 
----
+- **Sharding**: For large collections, implement sharding based on content categories
+- **Caching**: Implement multi-level caching for frequently accessed items
+- **Indexing**: Use specialized indices for different query patterns
+- **Batching**: Process large operations in batches to avoid memory spikes
 
-_Last updated: May 28, 2025_
+## Best Practices
+
+1. **Choose the Right Implementation**: Select the memory implementation based on your specific use case requirements
+2. **Configure Embedding Models**: Use appropriate embedding models for your domain-specific content
+3. **Implement Error Handling**: Add robust retry and fallback mechanisms for resilience
+4. **Monitor Memory Usage**: Track memory consumption and query performance
+5. **Regular Maintenance**: Implement scheduled maintenance for index optimization and cleanup
+6. **Backup Strategy**: Create regular backups of persistent stores
+7. **Security Considerations**: Secure sensitive information using encryption at rest and in transit
+
+## Integration with Other Systems
+
+The memory system integrates with other DevSynth components:
+
+- **Agent System**: Provides context and history for agent operations
+- **Dialectical Reasoning System**: Stores reasoning chains and outcomes
+- **Provider System**: Utilizes embedding providers for vector representations
+- **EDRR Framework**: Supports the Evaluate-Design-Reason-Refine cycle
+
+## Common Usage Patterns
+
+### RAG Pattern (Retrieval Augmented Generation)
+
+```python
+# 1. Store context documents
+for document in project_documents:
+    await memory.store(
+        key=document.id,
+        content=document.text,
+        metadata=document.metadata
+    )
+
+# 2. Retrieve relevant context for a query
+query = "How does the authentication system handle OAuth?"
+context_results = await memory.search(query, limit=3)
+
+# 3. Extract relevant context
+relevant_context = "\n".join([result["content"] for result in context_results])
+
+# 4. Augment LLM prompt with context
+augmented_prompt = f"""
+Based on the following context:
+{relevant_context}
+
+Answer the question: {query}
+"""
+
+# 5. Generate response with LLM using augmented prompt
+response = await llm_provider.generate(augmented_prompt)
+```
+
+### Knowledge Graph Navigation
+
+```python
+# 1. Define relationships between components
+components = ["auth", "db", "api", "ui"]
+for i, comp1 in enumerate(components):
+    for comp2 in components[i+1:]:
+        if relationship_exists(comp1, comp2):
+            relation = determine_relationship(comp1, comp2)
+            await kg_memory.store(
+                key=f"rel_{comp1}_{comp2}",
+                content=f"{comp1} {relation.name} {comp2}",
+                metadata={
+                    "type": "relationship",
+                    "source": comp1,
+                    "target": comp2,
+                    "relation": relation.name,
+                    "properties": relation.properties
+                }
+            )
+
+# 2. Find all dependencies for a component
+component = "auth"
+dependencies = await kg_memory.search_with_sparql(f"""
+    SELECT ?target ?relation
+    WHERE {{
+        ?subject <http://devsynth.ai/ontology/source> "{component}" .
+        ?subject <http://devsynth.ai/ontology/target> ?target .
+        ?subject <http://devsynth.ai/ontology/relation> ?relation .
+    }}
+""")
+```
+
+## Future Enhancements
+
+- **Hybrid Search**: Combining vector and keyword search for improved precision
+- **Distributed Storage**: Supporting distributed memory implementations
+- **Streaming Updates**: Real-time updates for collaborative environments
+- **Incremental Embeddings**: Optimizing embedding generation for large documents
+- **Multi-modal Storage**: Supporting storage and retrieval of various data types (text, code, images)
