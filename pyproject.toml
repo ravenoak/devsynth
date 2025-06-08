@@ -56,6 +56,29 @@ mkdocs-typer2 = "*"
 mkdocs-literate-nav = "*"
 mkdocs-section-index = "*"
 
+[tool.poetry.extras]
+dev = [
+    "responses",
+    "pytest",
+    "pytest-bdd",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-xdist",
+    "black",
+    "pre-commit",
+    "psutil",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings-python",
+    "mkdocs-gen-files",
+    "mkdocs-include-markdown-plugin",
+    "mkdocs-typer2",
+    "mkdocs-literate-nav",
+    "mkdocs-section-index",
+]
+
 [tool.poetry.scripts]
 devsynth = "devsynth.adapters.cli:run_cli"
 
