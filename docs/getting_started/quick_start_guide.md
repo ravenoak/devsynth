@@ -29,6 +29,12 @@ Before you begin, ensure you have the following installed:
 ```bash
 pip install devsynth
 ```
+### Install with pipx
+
+```bash
+pipx install devsynth
+```
+
 
 ### Install from Source
 
@@ -37,7 +43,10 @@ pip install devsynth
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
-# Install using Poetry
+# Install in an isolated environment
+pipx install --editable .
+
+# Or use Poetry
 poetry install
 
 # Activate the virtual environment
