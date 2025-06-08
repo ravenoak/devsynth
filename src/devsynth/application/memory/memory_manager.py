@@ -5,12 +5,14 @@ This module provides a unified interface to different memory adapters,
 allowing for efficient querying of different types of memory and tagging
 items with EDRR phases.
 """
+
 from typing import Dict, List, Any, Optional, Union
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryItemType, MemoryVector
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
 
 class MemoryManager:
     """
@@ -34,12 +36,43 @@ class MemoryManager:
             self.adapters = adapters
         else:
             # If a single adapter is provided, use it as the default adapter
-            self.adapters = {'default': adapters}
+            self.adapters = {"default": adapters}
 
-        logger.info(f"Memory Manager initialized with adapters: {', '.join(self.adapters.keys())}")
+        logger.info(
+            f"Memory Manager initialized with adapters: {', '.join(self.adapters.keys())}"
+        )
 
-    def store_with_edrr_phase(self, content: Any, memory_type: MemoryType, edrr_phase: str, 
-                             metadata: Dict[str, Any] = None) -> str:
+    def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
+        """Create a very simple embedding from text for similarity search.
+
+        This helper generates a deterministic numeric vector based on the
+        characters in ``text``.  It is intentionally lightweight so unit tests
+        can run without requiring an external embedding provider.
+
+        Args:
+            text: The text to embed.
+            dimension: Length of the embedding vector.
+
+        Returns:
+            A list of floats representing the embedding.
+        """
+        if not text:
+            return [0.0] * dimension
+
+        vector = [0.0] * dimension
+        for idx, char in enumerate(text):
+            vector[idx % dimension] += float(ord(char))
+
+        length = float(len(text))
+        return [v / length for v in vector]
+
+    def store_with_edrr_phase(
+        self,
+        content: Any,
+        memory_type: MemoryType,
+        edrr_phase: str,
+        metadata: Dict[str, Any] = None,
+    ) -> str:
         """
         Store a memory item with an EDRR phase.
 
@@ -59,18 +92,15 @@ class MemoryManager:
 
         # Create the memory item
         memory_item = MemoryItem(
-            id="",
-            content=content,
-            memory_type=memory_type,
-            metadata=metadata
+            id="", content=content, memory_type=memory_type, metadata=metadata
         )
 
         # Store in the appropriate adapter
         # Prefer TinyDB for structured data, then Graph for relationships, then default to first available
-        if 'tinydb' in self.adapters:
-            return self.adapters['tinydb'].store(memory_item)
-        elif 'graph' in self.adapters:
-            return self.adapters['graph'].store(memory_item)
+        if "tinydb" in self.adapters:
+            return self.adapters["tinydb"].store(memory_item)
+        elif "graph" in self.adapters:
+            return self.adapters["graph"].store(memory_item)
         elif self.adapters:
             # Use the first available adapter
             adapter_name = next(iter(self.adapters))
@@ -90,7 +120,7 @@ class MemoryManager:
         """
         # Try to retrieve from each adapter
         for adapter_name, adapter in self.adapters.items():
-            if hasattr(adapter, 'retrieve'):
+            if hasattr(adapter, "retrieve"):
                 item = adapter.retrieve(item_id)
                 if item is not None:
                     return item
@@ -107,15 +137,17 @@ class MemoryManager:
         Returns:
             A list of related memory items
         """
-        if 'graph' in self.adapters:
+        if "graph" in self.adapters:
             # Use the graph adapter for relationship queries
-            graph_adapter = self.adapters['graph']
+            graph_adapter = self.adapters["graph"]
             return graph_adapter.query_related_items(item_id)
         else:
             logger.warning("Graph adapter not available for querying related items")
             return []
 
-    def similarity_search(self, query_embedding: List[float], top_k: int = 5) -> List[Union[MemoryItem, MemoryVector]]:
+    def similarity_search(
+        self, query_embedding: List[float], top_k: int = 5
+    ) -> List[Union[MemoryItem, MemoryVector]]:
         """
         Perform a similarity search with a query embedding.
 
@@ -126,9 +158,9 @@ class MemoryManager:
         Returns:
             A list of similar memory items or vectors
         """
-        if 'vector' in self.adapters:
+        if "vector" in self.adapters:
             # Use the vector adapter for similarity search
-            vector_adapter = self.adapters['vector']
+            vector_adapter = self.adapters["vector"]
             return vector_adapter.similarity_search(query_embedding, top_k)
         else:
             logger.warning("Vector adapter not available for similarity search")
@@ -144,9 +176,9 @@ class MemoryManager:
         Returns:
             A list of matching memory items
         """
-        if 'tinydb' in self.adapters:
+        if "tinydb" in self.adapters:
             # Use the TinyDB adapter for structured data queries
-            tinydb_adapter = self.adapters['tinydb']
+            tinydb_adapter = self.adapters["tinydb"]
             return tinydb_adapter.query_structured_data(query)
         else:
             logger.warning("TinyDB adapter not available for querying structured data")
@@ -166,7 +198,7 @@ class MemoryManager:
 
         # Query each adapter for items with the specified EDRR phase
         for adapter_name, adapter in self.adapters.items():
-            if hasattr(adapter, 'search'):
+            if hasattr(adapter, "search"):
                 # Use the search method if available
                 items = adapter.search({"edrr_phase": edrr_phase})
                 results.extend(items)
@@ -183,12 +215,14 @@ class MemoryManager:
         Returns:
             A list of related memory items in EDRR phase order
         """
-        if 'graph' not in self.adapters:
-            logger.warning("Graph adapter not available for querying evolution across EDRR phases")
+        if "graph" not in self.adapters:
+            logger.warning(
+                "Graph adapter not available for querying evolution across EDRR phases"
+            )
             return []
 
         # Get the item and its related items
-        graph_adapter = self.adapters['graph']
+        graph_adapter = self.adapters["graph"]
         item = graph_adapter.retrieve(item_id)
         if item is None:
             return []
@@ -203,12 +237,14 @@ class MemoryManager:
         edrr_order = {"EXPAND": 0, "DIFFERENTIATE": 1, "REFINE": 2, "RETROSPECT": 3}
         sorted_items = sorted(
             all_items,
-            key=lambda x: edrr_order.get(x.metadata.get("edrr_phase", ""), 999)
+            key=lambda x: edrr_order.get(x.metadata.get("edrr_phase", ""), 999),
         )
 
         return sorted_items
 
-    def _get_all_related_items(self, item_id: str, graph_adapter: Any) -> List[MemoryItem]:
+    def _get_all_related_items(
+        self, item_id: str, graph_adapter: Any
+    ) -> List[MemoryItem]:
         """
         Get all items related to the given item ID recursively.
 
@@ -242,10 +278,10 @@ class MemoryManager:
         """
         # Store in the appropriate adapter
         # Prefer TinyDB for structured data, then Graph for relationships, then default to first available
-        if 'tinydb' in self.adapters:
-            return self.adapters['tinydb'].store(memory_item)
-        elif 'graph' in self.adapters:
-            return self.adapters['graph'].store(memory_item)
+        if "tinydb" in self.adapters:
+            return self.adapters["tinydb"].store(memory_item)
+        elif "graph" in self.adapters:
+            return self.adapters["graph"].store(memory_item)
         elif self.adapters:
             # Use the first available adapter
             adapter_name = next(iter(self.adapters))
@@ -267,19 +303,25 @@ class MemoryManager:
 
         # Query each adapter for items with the specified type
         for adapter_name, adapter in self.adapters.items():
-            if hasattr(adapter, 'query_by_type'):
+            if hasattr(adapter, "query_by_type"):
                 # Use the query_by_type method if available
                 items = adapter.query_by_type(memory_type)
                 results.extend(items)
-            elif hasattr(adapter, 'search'):
+            elif hasattr(adapter, "search"):
                 # Use the search method if available
                 # Convert memory_type to string value if it's an enum
-                memory_type_value = memory_type.value if hasattr(memory_type, 'value') else memory_type
+                memory_type_value = (
+                    memory_type.value if hasattr(memory_type, "value") else memory_type
+                )
                 items = adapter.search({"memory_type": memory_type_value})
                 results.extend(items)
-            elif hasattr(adapter, 'get_all'):
+            elif hasattr(adapter, "get_all"):
                 # Use the get_all method if available and filter by type
-                items = [item for item in adapter.get_all() if item.memory_type == memory_type]
+                items = [
+                    item
+                    for item in adapter.get_all()
+                    if item.memory_type == memory_type
+                ]
                 results.extend(items)
 
         return results
@@ -298,52 +340,99 @@ class MemoryManager:
 
         # Query each adapter for items with the specified metadata
         for adapter_name, adapter in self.adapters.items():
-            if hasattr(adapter, 'query_by_metadata'):
+            if hasattr(adapter, "query_by_metadata"):
                 # Use the query_by_metadata method if available
                 items = adapter.query_by_metadata(metadata)
                 results.extend(items)
-            elif hasattr(adapter, 'search'):
+            elif hasattr(adapter, "search"):
                 # Use the search method if available
                 items = adapter.search(metadata)
                 results.extend(items)
-            elif hasattr(adapter, 'get_all'):
+            elif hasattr(adapter, "get_all"):
                 # Use the get_all method if available and filter by metadata
                 items = []
                 for item in adapter.get_all():
-                    if all(item.metadata.get(key) == value for key, value in metadata.items()):
+                    if all(
+                        item.metadata.get(key) == value
+                        for key, value in metadata.items()
+                    ):
                         items.append(item)
                 results.extend(items)
 
         return results
 
-    def search_memory(self, query: str, memory_type: Any = None, metadata_filter: Dict[str, Any] = None, 
-                     limit: int = 10) -> List[Dict[str, Any]]:
+    def search_memory(
+        self,
+        query: str,
+        memory_type: Any = None,
+        metadata_filter: Dict[str, Any] = None,
+        limit: int = 10,
+    ) -> List[MemoryVector]:
         """
-        Search memory items using semantic search.
+        Search memory items using the configured vector store.
 
-        This is a simplified implementation for testing purposes.
+        This implementation performs a lightweight semantic search by creating a
+        simple embedding for ``query`` and delegating the search to the
+        configured :class:`VectorStore`.  Results can optionally be filtered by
+        ``memory_type`` and additional metadata.
 
         Args:
             query: The query string
-            memory_type: The type of memory to search (can be a MemoryType enum or a string)
-            metadata_filter: Optional metadata filter
+            memory_type: The type of memory to filter by (``MemoryType`` or str)
+            metadata_filter: Optional metadata key/value pairs to match
             limit: Maximum number of results to return
 
         Returns:
-            A list of memory items matching the query
+            A list of matching memory vectors ordered by similarity
         """
-        # Log the search parameters
         memory_type_str = memory_type
-        if hasattr(memory_type, 'value'):
+        if hasattr(memory_type, "value"):
             memory_type_str = memory_type.value
-        elif hasattr(memory_type, 'name'):
+        elif hasattr(memory_type, "name"):
             memory_type_str = memory_type.name
 
-        logger.info(f"Searching memory with query: {query}, type: {memory_type_str}, filter: {metadata_filter}, limit: {limit}")
+        logger.info(
+            f"Searching memory with query: {query}, type: {memory_type_str}, filter: {metadata_filter}, limit: {limit}"
+        )
 
-        # For testing purposes, return an empty list
-        # In a real implementation, this would perform semantic search
-        return []
+        if "vector" not in self.adapters:
+            logger.warning("Vector adapter not available for semantic search")
+            return []
+
+        vector_adapter: VectorStore = self.adapters["vector"]
+
+        query_embedding = self._embed_text(query)
+
+        results = vector_adapter.similarity_search(query_embedding, top_k=limit)
+
+        filtered: List[MemoryVector] = []
+        for vector in results:
+            if memory_type is not None:
+                expected = (
+                    memory_type.value
+                    if hasattr(memory_type, "value")
+                    else str(memory_type)
+                )
+                actual = vector.metadata.get("memory_type")
+                if hasattr(actual, "value"):
+                    actual = actual.value
+                if actual != expected:
+                    continue
+
+            if metadata_filter:
+                match = True
+                for key, value in metadata_filter.items():
+                    if vector.metadata.get(key) != value:
+                        match = False
+                        break
+                if not match:
+                    continue
+
+            filtered.append(vector)
+            if len(filtered) >= limit:
+                break
+
+        return filtered
 
     def store(self, memory_item: MemoryItem, **kwargs) -> str:
         """
