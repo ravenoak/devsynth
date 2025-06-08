@@ -20,7 +20,7 @@ langchain-openai = "^0.3.17"
 langchain-community = "^0.3.24"
 toml = "^0.10.2"
 requests = "^2.32.3"
-mcp = {extras = ["cli"], version = "^1.9.0"}
+mcp = {extras = ["cli"], version = "^1.9.2"}
 dspy-ai = "^2.6.24"
 structlog = "^25.3.0"
 mypy = "^1.15.0"
@@ -30,6 +30,7 @@ lmdb = "^1.4.1"
 faiss-cpu = "^1.11.0"
 rdflib = "^7.1.4"
 astor = "^0.8.1"
+diskcache = "^5.6.3"
 
 [tool.poetry.group.dev.dependencies]
 responses = "^0.25.7"
