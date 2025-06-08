@@ -247,6 +247,14 @@ class WSDETeam:
         assigned_roles = [agent.current_role for agent in self.agents]
         logger.info(f"Assigned roles: {assigned_roles}")
 
+    def get_role_map(self) -> Dict[str, str]:
+        """Return a mapping of agent names to their current roles."""
+        role_map = {}
+        for i, agent in enumerate(self.agents):
+            name = getattr(agent, "name", f"agent_{i}")
+            role_map[name] = getattr(agent, "current_role", None)
+        return role_map
+
     def can_propose_solution(self, agent: Any, task: Dict[str, Any]) -> bool:
         """
         Check if an agent can propose a solution for a task.

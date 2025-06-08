@@ -122,6 +122,15 @@ class EDRRCoordinator:
             {"cycle_id": self.cycle_id}
         )
 
+        # Initial role assignment before the first phase
+        self.wsde_team.assign_roles()
+        self.memory_manager.store_with_edrr_phase(
+            self.wsde_team.get_role_map(),
+            "ROLE_ASSIGNMENT",
+            Phase.EXPAND.value,
+            {"cycle_id": self.cycle_id}
+        )
+
         # Enter the Expand phase
         self.progress_to_phase(Phase.EXPAND)
 
@@ -177,6 +186,15 @@ class EDRRCoordinator:
                 }
             )
 
+            # Initial role assignment before the first phase
+            self.wsde_team.assign_roles()
+            self.memory_manager.store_with_edrr_phase(
+                self.wsde_team.get_role_map(),
+                "ROLE_ASSIGNMENT",
+                Phase.EXPAND.value,
+                {"cycle_id": self.cycle_id}
+            )
+
             # Enter the Expand phase
             self.progress_to_phase(Phase.EXPAND)
 
@@ -207,11 +225,25 @@ class EDRRCoordinator:
                 # Start tracking the phase
                 self.manifest_parser.start_phase(phase)
 
+            # Rotate Primus after the first phase
+            previous_phase = self.current_phase
+            if previous_phase is not None:
+                self.wsde_team.rotate_primus()
+
+            # Assign roles for the new phase
+            self.wsde_team.assign_roles()
+            self.memory_manager.store_with_edrr_phase(
+                self.wsde_team.get_role_map(),
+                "ROLE_ASSIGNMENT",
+                phase.value,
+                {"cycle_id": self.cycle_id}
+            )
+
             # Store the phase transition in memory
             self.memory_manager.store_with_edrr_phase(
-                {"from": "EXPAND", "to": "DIFFERENTIATE"},
-                "PHASE_TRANSITION", 
-                "DIFFERENTIATE",
+                {"from": previous_phase.value if previous_phase else None, "to": phase.value},
+                "PHASE_TRANSITION",
+                phase.value,
                 {"cycle_id": self.cycle_id}
             )
 
@@ -220,13 +252,16 @@ class EDRRCoordinator:
 
             # Execute the phase
             if phase == Phase.EXPAND:
-                self._execute_expand_phase({})
+                results = self._execute_expand_phase({})
             elif phase == Phase.DIFFERENTIATE:
-                self._execute_differentiate_phase({})
+                results = self._execute_differentiate_phase({})
             elif phase == Phase.REFINE:
-                self._execute_refine_phase({})
+                results = self._execute_refine_phase({})
             elif phase == Phase.RETROSPECT:
-                self._execute_retrospect_phase({})
+                results = self._execute_retrospect_phase({})
+
+            # Save results
+            self.results[phase.value] = results
 
             # Complete tracking the phase if using a manifest
             if self.manifest and self.manifest_parser:
