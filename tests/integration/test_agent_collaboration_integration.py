@@ -11,7 +11,11 @@ from unittest.mock import MagicMock
 from typing import Dict, Any
 
 from devsynth.application.collaboration.agent_collaboration import (
-    AgentCollaborationSystem, CollaborationTask, AgentMessage, MessageType, TaskStatus
+    AgentCollaborationSystem,
+    CollaborationTask,
+    AgentMessage,
+    MessageType,
+    TaskStatus,
 )
 from devsynth.domain.interfaces.agent import Agent
 
@@ -23,7 +27,9 @@ class MockAgent(Agent):
         self.id = agent_id
         self.capabilities = capabilities or []
         self.current_role = None
-        self._process_mock = MagicMock(return_value={"status": "success", "message": f"Processed by {agent_id}"})
+        self._process_mock = MagicMock(
+            return_value={"status": "success", "message": f"Processed by {agent_id}"}
+        )
 
     def get_capabilities(self) -> list:
         """Get the agent's capabilities."""
@@ -60,7 +66,10 @@ class TestAgentCollaborationSystem:
         assert agent_id == "agent1"
         assert agent_id in collaboration_system.agents
         assert collaboration_system.agents[agent_id] == agent
-        assert collaboration_system.agent_capabilities[agent_id] == {"planning", "coding"}
+        assert collaboration_system.agent_capabilities[agent_id] == {
+            "planning",
+            "coding",
+        }
 
     def test_create_team(self):
         """Test creating a team of agents."""
@@ -91,9 +100,15 @@ class TestAgentCollaborationSystem:
         # Count the number of agents with each role
         role_counts = {
             "Worker": sum(1 for agent in team.agents if agent.current_role == "Worker"),
-            "Supervisor": sum(1 for agent in team.agents if agent.current_role == "Supervisor"),
-            "Designer": sum(1 for agent in team.agents if agent.current_role == "Designer"),
-            "Evaluator": sum(1 for agent in team.agents if agent.current_role == "Evaluator")
+            "Supervisor": sum(
+                1 for agent in team.agents if agent.current_role == "Supervisor"
+            ),
+            "Designer": sum(
+                1 for agent in team.agents if agent.current_role == "Designer"
+            ),
+            "Evaluator": sum(
+                1 for agent in team.agents if agent.current_role == "Evaluator"
+            ),
         }
 
         # Verify that at least 2 of the other roles are assigned
@@ -116,7 +131,7 @@ class TestAgentCollaborationSystem:
             task_type="coding",
             description="Implement a feature",
             inputs={"feature": "login"},
-            required_capabilities=["coding"]
+            required_capabilities=["coding"],
         )
 
         # Verify that the task was created
@@ -133,7 +148,9 @@ class TestAgentCollaborationSystem:
         # Verify that the task was assigned
         assert result is True
         assert task.status == TaskStatus.ASSIGNED
-        assert task.assigned_agent_id == "agent2"  # Should be assigned to agent2 because it has the "coding" capability
+        assert (
+            task.assigned_agent_id == "agent2"
+        )  # Should be assigned to agent2 because it has the "coding" capability
 
     def test_execute_task(self):
         """Test executing a task."""
@@ -149,7 +166,7 @@ class TestAgentCollaborationSystem:
             task_type="coding",
             description="Implement a feature",
             inputs={"feature": "login"},
-            required_capabilities=["coding"]
+            required_capabilities=["coding"],
         )
 
         # Assign the task
@@ -183,7 +200,7 @@ class TestAgentCollaborationSystem:
             sender_id="agent1",
             recipient_id="agent2",
             message_type=MessageType.QUESTION,
-            content={"question": "How do I implement this feature?"}
+            content={"question": "How do I implement this feature?"},
         )
 
         # Verify that the message was sent
@@ -212,21 +229,21 @@ class TestAgentCollaborationSystem:
             task_type="planning",
             description="Plan the feature",
             inputs={"feature": "login"},
-            required_capabilities=["planning"]
+            required_capabilities=["planning"],
         )
 
         task2 = collaboration_system.create_task(
             task_type="coding",
             description="Implement the feature",
             inputs={"feature": "login"},
-            required_capabilities=["coding"]
+            required_capabilities=["coding"],
         )
 
         task3 = collaboration_system.create_task(
             task_type="testing",
             description="Test the feature",
             inputs={"feature": "login"},
-            required_capabilities=["testing"]
+            required_capabilities=["testing"],
         )
 
         # Add dependencies
