@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Union
 
 class Phase(Enum):
     """Enumeration of EDRR phases."""
+
     EXPAND = "expand"
     DIFFERENTIATE = "differentiate"
     REFINE = "refine"
@@ -43,12 +44,14 @@ class BaseMethodologyAdapter(ABC):
         Returns:
             True if a new cycle should begin, False otherwise.
         """
-        pass
+        raise NotImplementedError(
+            "should_start_cycle must be implemented by subclasses"
+        )
 
     @abstractmethod
-    def should_progress_to_next_phase(self, current_phase: Phase,
-                                       context: Dict[str, Any],
-                                       results: Dict[str, Any]) -> bool:
+    def should_progress_to_next_phase(
+        self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> bool:
         """Determine if the process should progress to the next phase.
 
         Args:
@@ -59,7 +62,9 @@ class BaseMethodologyAdapter(ABC):
         Returns:
             True if the process should progress to the next phase, False otherwise.
         """
-        pass
+        raise NotImplementedError(
+            "should_progress_to_next_phase must be implemented by subclasses"
+        )
 
     def before_cycle(self) -> Dict[str, Any]:
         """Perform actions before starting a new EDRR cycle.
@@ -75,7 +80,7 @@ class BaseMethodologyAdapter(ABC):
         Args:
             results: Aggregated results from all phases.
         """
-        pass
+        raise NotImplementedError("after_cycle must be implemented by subclasses")
 
     def before_phase(self, phase: Phase, context: Dict[str, Any]) -> Dict[str, Any]:
         """Perform actions before entering a phase.
@@ -92,8 +97,9 @@ class BaseMethodologyAdapter(ABC):
             return phase_method(context)
         return context
 
-    def after_phase(self, phase: Phase, context: Dict[str, Any],
-                    results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_phase(
+        self, phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Perform actions after completing a phase.
 
         Args:
@@ -137,7 +143,7 @@ class BaseMethodologyAdapter(ABC):
         return {
             "name": self.__class__.__name__,
             "description": self.__doc__,
-            "config_schema": self.get_config_schema()
+            "config_schema": self.get_config_schema(),
         }
 
     def get_config_schema(self) -> Dict[str, Any]:
@@ -158,13 +164,14 @@ class BaseMethodologyAdapter(ABC):
                                 "skipable": {"type": "boolean"},
                                 "customHooks": {
                                     "type": "array",
-                                    "items": {"type": "string"}
-                                }
-                            }
-                        } for phase in Phase
-                    }
+                                    "items": {"type": "string"},
+                                },
+                            },
+                        }
+                        for phase in Phase
+                    },
                 }
-            }
+            },
         }
 
     # These methods can be overridden by subclasses for phase-specific behavior
@@ -172,7 +179,9 @@ class BaseMethodologyAdapter(ABC):
         """Actions before the Expand phase."""
         return context
 
-    def after_expand(self, context: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_expand(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Actions after the Expand phase."""
         return results
 
@@ -180,7 +189,9 @@ class BaseMethodologyAdapter(ABC):
         """Actions before the Differentiate phase."""
         return context
 
-    def after_differentiate(self, context: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_differentiate(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Actions after the Differentiate phase."""
         return results
 
@@ -188,7 +199,9 @@ class BaseMethodologyAdapter(ABC):
         """Actions before the Refine phase."""
         return context
 
-    def after_refine(self, context: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_refine(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Actions after the Refine phase."""
         return results
 
@@ -196,6 +209,8 @@ class BaseMethodologyAdapter(ABC):
         """Actions before the Retrospect phase."""
         return context
 
-    def after_retrospect(self, context: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_retrospect(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Actions after the Retrospect phase."""
         return results

@@ -9,23 +9,28 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
-# Create a logger for this module
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.config.settings import ensure_path_exists
 
-logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError, NeedsHumanInterventionError as BaseNeedsHumanInterventionError
+# Create a logger for this module
+from devsynth.logging_setup import DevSynthLogger
 
+logger = DevSynthLogger(__name__)
 # Import BaseCheckpointSaver from the correct location
 from langgraph.checkpoint.base import BaseCheckpointSaver, empty_checkpoint
+
 # Updated imports for LangGraph 0.4.3
 from langgraph.graph import END, StateGraph
 
+from devsynth.exceptions import DevSynthError
+from devsynth.exceptions import (
+    NeedsHumanInterventionError as BaseNeedsHumanInterventionError,
+)
+
 from ...adapters.agents.agent_adapter import AgentAdapter
+from ...application.llm.providers import LMStudioProvider, SimpleLLMProviderFactory
 from ...domain.interfaces.orchestration import WorkflowEngine, WorkflowRepository
 from ...domain.models.workflow import Workflow, WorkflowStatus, WorkflowStep
 from ...ports.llm_port import LLMPort
-from ...application.llm.providers import SimpleLLMProviderFactory, LMStudioProvider
 
 
 # Add Pregel class for testing compatibility
@@ -33,7 +38,9 @@ class Pregel:
     """Compatibility class for testing."""
 
     def __init__(self, *args, **kwargs):
-        pass
+        """Store args for compatibility with LangGraph."""
+        self.args = args
+        self.kwargs = kwargs
 
     def invoke(self, state_dict, *args, **kwargs):
         """Return the input state dictionary for compatibility."""
@@ -44,15 +51,19 @@ class Pregel:
 class NeedsHumanInterventionError(BaseNeedsHumanInterventionError):
     """Raised when a workflow step requires human intervention."""
 
-    def __init__(self, message: str, workflow_id: str, step_id: str, reason: Optional[str] = None, error_code: Optional[str] = None):
+    def __init__(
+        self,
+        message: str,
+        workflow_id: str,
+        step_id: str,
+        reason: Optional[str] = None,
+        error_code: Optional[str] = None,
+    ):
         # Convert reason to options list if provided
         options = [reason] if reason else None
 
         super().__init__(
-            message, 
-            workflow_id=workflow_id, 
-            step=step_id, 
-            options=options
+            message, workflow_id=workflow_id, step=step_id, options=options
         )
         # Keep these for backward compatibility
         self.workflow_id = workflow_id
@@ -62,6 +73,7 @@ class NeedsHumanInterventionError(BaseNeedsHumanInterventionError):
 @dataclass
 class WorkflowState:
     """State representation for LangGraph workflows."""
+
     workflow_id: str
     command: str
     project_root: str
@@ -78,7 +90,7 @@ class WorkflowState:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'WorkflowState':
+    def from_dict(cls, data: Dict[str, Any]) -> "WorkflowState":
         """Create state from dictionary."""
         return cls(**data)
 
@@ -95,7 +107,9 @@ class FileSystemCheckpointSaver:
                            environment variable or defaults to ".devsynth/checkpoints"
         """
         if directory_path is None:
-            directory_path = os.environ.get("DEVSYNTH_CHECKPOINTS_PATH", ".devsynth/checkpoints")
+            directory_path = os.environ.get(
+                "DEVSYNTH_CHECKPOINTS_PATH", ".devsynth/checkpoints"
+            )
         self._directory_path = directory_path
         ensure_path_exists(directory_path)
 
@@ -115,7 +129,9 @@ class FileSystemCheckpointSaver:
                 return pickle.load(f)
         return None
 
-    def put(self, config: Dict[str, Any], checkpoint: Dict[str, Any], *args, **kwargs) -> None:
+    def put(
+        self, config: Dict[str, Any], checkpoint: Dict[str, Any], *args, **kwargs
+    ) -> None:
         """Save a checkpoint for a thread."""
         thread_id = config.get("configurable", {}).get("thread_id")
         if not thread_id:
@@ -140,7 +156,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
             name=name,
             description=description,
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         return workflow
 
@@ -161,10 +177,12 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                 if state.needs_human:
                     # This would normally pause for human input
                     # For now, we'll just add a message
-                    state.messages.append({
-                        "role": "system",
-                        "content": f"Waiting for human input: {state.human_message}"
-                    })
+                    state.messages.append(
+                        {
+                            "role": "system",
+                            "content": f"Waiting for human input: {state.human_message}",
+                        }
+                    )
 
                     # In a real implementation, we would wait for human input
                     # For now, we'll just reset the flag
@@ -202,17 +220,23 @@ class LangGraphWorkflowEngine(WorkflowEngine):
             try:
                 # Create an LLM port with LM Studio provider
                 llm_factory = SimpleLLMProviderFactory()
-                llm_provider = llm_factory.create_provider("lmstudio", {
-                    "api_base": "http://localhost:1234/v1",
-                    "model": "local_model",
-                    "max_tokens": 2048
-                })
+                llm_provider = llm_factory.create_provider(
+                    "lmstudio",
+                    {
+                        "api_base": "http://localhost:1234/v1",
+                        "model": "local_model",
+                        "max_tokens": 2048,
+                    },
+                )
                 llm_port = LLMPort(llm_factory)
-                llm_port.set_default_provider("lmstudio", {
-                    "api_base": "http://localhost:1234/v1",
-                    "model": "local_model",
-                    "max_tokens": 2048
-                })
+                llm_port.set_default_provider(
+                    "lmstudio",
+                    {
+                        "api_base": "http://localhost:1234/v1",
+                        "model": "local_model",
+                        "max_tokens": 2048,
+                    },
+                )
 
                 # Create an agent adapter with the LLM port
                 agent_adapter = AgentAdapter(llm_port)
@@ -224,24 +248,35 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                 # Create and add agents to the team based on the step's agent_type
                 # For now, we'll add all agent types to demonstrate the WSDE organization model
                 agent_types = [
-                    "planner", "specification", "test", "code",
-                    "validation", "refactor", "documentation",
-                    "diagram", "critic"
+                    "planner",
+                    "specification",
+                    "test",
+                    "code",
+                    "validation",
+                    "refactor",
+                    "documentation",
+                    "diagram",
+                    "critic",
                 ]
 
                 for agent_type in agent_types:
-                    agent = agent_adapter.create_agent(agent_type, {
-                        "name": f"{agent_type}_agent",
-                        "description": f"Agent for {agent_type} tasks",
-                        "capabilities": []
-                    })
+                    agent = agent_adapter.create_agent(
+                        agent_type,
+                        {
+                            "name": f"{agent_type}_agent",
+                            "description": f"Agent for {agent_type} tasks",
+                            "capabilities": [],
+                        },
+                    )
                     agent_adapter.add_agent_to_team(agent)
 
                 # Log the step execution
-                state.messages.append({
-                    "role": "system",
-                    "content": f"Executing step: {step.name} - {step.description} with agent type: {step.agent_type}"
-                })
+                state.messages.append(
+                    {
+                        "role": "system",
+                        "content": f"Executing step: {step.name} - {step.description} with agent type: {step.agent_type}",
+                    }
+                )
 
                 # Process the task using the agent team
                 task = {
@@ -251,29 +286,32 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                     "context": state.context,
                     "messages": state.messages,
                     "project_root": state.project_root,
-                    "task_type": step.agent_type
+                    "task_type": step.agent_type,
                 }
 
                 result = agent_adapter.process_task(task)
 
                 # Update the state with the result
-                state.messages.append({
-                    "role": "agent",
-                    "content": f"Agent result: {result}"
-                })
+                state.messages.append(
+                    {"role": "agent", "content": f"Agent result: {result}"}
+                )
 
                 # Check if human intervention is needed
                 if result.get("needs_human", False):
                     state.needs_human = True
-                    state.human_message = result.get("human_message", f"Human input needed for step {step.name}")
+                    state.human_message = result.get(
+                        "human_message", f"Human input needed for step {step.name}"
+                    )
 
                 return state
             except Exception as e:
                 # Log the error
-                state.messages.append({
-                    "role": "system",
-                    "content": f"Error in step {step.name}: {str(e)}"
-                })
+                state.messages.append(
+                    {
+                        "role": "system",
+                        "content": f"Error in step {step.name}: {str(e)}",
+                    }
+                )
                 state.status = WorkflowStatus.FAILED.value
                 return state
 
@@ -290,16 +328,11 @@ class LangGraphWorkflowEngine(WorkflowEngine):
         if self.human_intervention_callback:
             # Call the human intervention callback with the current state
             response = self.human_intervention_callback(
-                state.workflow_id,
-                state.current_step,
-                state.human_message
+                state.workflow_id, state.current_step, state.human_message
             )
 
             # Add the human response to messages
-            state.messages.append({
-                "role": "human",
-                "content": response
-            })
+            state.messages.append({"role": "human", "content": response})
 
         # Reset the needs_human flag
         state.needs_human = False
@@ -307,7 +340,9 @@ class LangGraphWorkflowEngine(WorkflowEngine):
 
         return state
 
-    def execute_workflow(self, workflow: Workflow, context: Dict[str, Any] = None) -> Workflow:
+    def execute_workflow(
+        self, workflow: Workflow, context: Dict[str, Any] = None
+    ) -> Workflow:
         """Execute a workflow with the given context."""
         # Update workflow status
         workflow.status = WorkflowStatus.RUNNING
@@ -321,7 +356,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                 workflow_id=workflow.id,
                 command=context.get("command", ""),
                 project_root=context.get("project_root", ""),
-                context=context
+                context=context,
             )
 
             # Build the graph for this workflow using the workflow steps
@@ -367,7 +402,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
             "current_step": None,
             "needs_human": False,
             "human_message": "",
-            "result": {}
+            "result": {},
         }
 
 
@@ -383,7 +418,9 @@ class FileSystemWorkflowRepository(WorkflowRepository):
                            environment variable or defaults to ".devsynth/workflows"
         """
         if directory_path is None:
-            directory_path = os.environ.get("DEVSYNTH_WORKFLOWS_PATH", ".devsynth/workflows")
+            directory_path = os.environ.get(
+                "DEVSYNTH_WORKFLOWS_PATH", ".devsynth/workflows"
+            )
         self.directory_path = directory_path
         ensure_path_exists(self.directory_path)
 
@@ -406,10 +443,10 @@ class FileSystemWorkflowRepository(WorkflowRepository):
                     name="Test Workflow",
                     description="A test workflow",
                     status=WorkflowStatus.PENDING,
-                    steps=[]
+                    steps=[],
                 )
             # Convert string to bytes if needed (for tests)
-            data = data.encode('utf-8')
+            data = data.encode("utf-8")
         return pickle.loads(data)
 
     def save(self, workflow: Workflow) -> None:
@@ -431,33 +468,44 @@ class FileSystemWorkflowRepository(WorkflowRepository):
         """List workflows matching the filters."""
         # Special handling for test environment
         import sys
-        if 'pytest' in sys.modules:
+
+        if "pytest" in sys.modules:
             import pickle
 
             # Check if pickle.load has been mocked
-            if hasattr(pickle, 'load') and hasattr(pickle.load, '__self__'):
+            if hasattr(pickle, "load") and hasattr(pickle.load, "__self__"):
                 mock_load = pickle.load.__self__
 
                 # Check if side_effect is set (used in the test)
-                if hasattr(mock_load, 'side_effect'):
+                if hasattr(mock_load, "side_effect"):
                     side_effect = mock_load.side_effect
 
                     # If side_effect is a list of workflows, use it directly
-                    if isinstance(side_effect, list) and all(isinstance(w, Workflow) for w in side_effect):
+                    if isinstance(side_effect, list) and all(
+                        isinstance(w, Workflow) for w in side_effect
+                    ):
                         workflows = side_effect
 
                         # Apply filters if provided
                         if filters:
-                            return [w for w in workflows if self._matches_filters(w, filters)]
+                            return [
+                                w
+                                for w in workflows
+                                if self._matches_filters(w, filters)
+                            ]
                         return workflows
 
         # Normal implementation for non-test environments
         workflows = []
         if os.path.exists(self.directory_path):
             for filename in os.listdir(self.directory_path):
-                if filename.endswith(".pkl") and os.path.isfile(os.path.join(self.directory_path, filename)):
+                if filename.endswith(".pkl") and os.path.isfile(
+                    os.path.join(self.directory_path, filename)
+                ):
                     try:
-                        with open(os.path.join(self.directory_path, filename), "rb") as f:
+                        with open(
+                            os.path.join(self.directory_path, filename), "rb"
+                        ) as f:
                             workflow = self._deserialize_workflow(f.read())
 
                             # Apply filters if provided
@@ -466,7 +514,9 @@ class FileSystemWorkflowRepository(WorkflowRepository):
 
                             workflows.append(workflow)
                     except Exception as e:
-                        logger.info(f"Error deserializing workflow {filename}: {str(e)}")
+                        logger.info(
+                            f"Error deserializing workflow {filename}: {str(e)}"
+                        )
 
         return workflows
 
