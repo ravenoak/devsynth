@@ -45,12 +45,15 @@ DevSynth is governed by a comprehensive set of SDLC policies and documentation a
 
 Full documentation is available in the [docs/](docs/index.md) directory and online at [DevSynth Docs](docs/index.md). Key sections:
 - [Quick Start Guide](docs/getting_started/quick_start_guide.md)
+- [Installation Guide](docs/getting_started/installation.md) *(includes pipx instructions)*
 - [User Guide](docs/user_guides/user_guide.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Project Analysis](docs/analysis/executive_summary.md)
 - [Implementation Status](docs/implementation/feature_status_matrix.md)
 - [Requirements Traceability Matrix](docs/requirements_traceability.md)
 - [SDLC Policies](docs/policies/index.md)
+
+Installation instructions, including how to use **pipx**, are provided in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
 
 ## Documentation Structure
 

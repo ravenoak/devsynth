@@ -27,10 +27,21 @@ This guide provides step-by-step instructions for installing DevSynth in various
 pip install devsynth
 ```
 
+### Install with pipx
+
+```bash
+pipx install devsynth
+```
+
 ## Install from Source
 ```bash
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
+
+# Install in an isolated environment
+pipx install --editable .
+
+# Or use Poetry
 poetry install
 poetry shell
 ```
