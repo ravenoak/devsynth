@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Set, Type, Union, Callable
 import logging
 import uuid
 import time
+import threading
 from datetime import datetime, UTC
 
 from devsynth.exceptions import DevSynthError
@@ -290,8 +291,27 @@ class PromiseAgentMixin:
         if timeout is not None:
             promise.set_metadata("timeout", timeout)
             promise.set_metadata("requested_at", time.time())
+            # Start a timer to automatically reject the promise when the timeout expires
+            def _timeout_reject() -> None:
+                if promise.is_pending:
+                    error_msg = (
+                        f"Capability request timed out after {timeout} seconds"
+                    )
+                    promise.reject(TimeoutError(error_msg))
 
-        # TODO: Implement a timer-based timeout mechanism to reject promises after their timeout
+            timer = threading.Timer(timeout, _timeout_reject)
+            timer.daemon = True
+            timer.start()
+            promise.set_metadata("_timeout_timer", timer)
+
+            # Cancel the timer when the promise is settled
+            def _cancel_timer(_: Any = None) -> None:
+                if timer.is_alive():
+                    timer.cancel()
+
+            promise.then(lambda _: _cancel_timer(), lambda _: _cancel_timer())
+
+        # Otherwise no timeout timer is needed
 
         logger.debug(
             f"Agent {self.agent_id} requested capability '{name}'"
