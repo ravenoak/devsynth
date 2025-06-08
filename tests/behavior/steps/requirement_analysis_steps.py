@@ -8,7 +8,7 @@ from pytest_bdd import given, when, then, parsers
 from unittest.mock import patch, MagicMock
 
 # Import the CLI modules
-from devsynth.adapters.cli.typer_adapter import run_cli
+from devsynth.adapters.cli.argparse_adapter import run_cli
 from devsynth.application.cli.cli_commands import init_cmd
 
 

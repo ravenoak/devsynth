@@ -2,7 +2,7 @@
 """
 DevSynth CLI entry point.
 """
-from devsynth.adapters.cli import run_cli
+from devsynth.adapters.cli.argparse_adapter import run_cli
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
