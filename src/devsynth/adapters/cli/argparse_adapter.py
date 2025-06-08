@@ -18,10 +18,16 @@ from devsynth.application.cli import (
 from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.cli.apispec import apispec_cmd
 from devsynth.application.cli.commands.align_cmd import align_cmd
-from devsynth.application.cli.commands.alignment_metrics_cmd import alignment_metrics_cmd
+from devsynth.application.cli.commands.alignment_metrics_cmd import (
+    alignment_metrics_cmd,
+)
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
-from devsynth.application.cli.commands.validate_manifest_cmd import validate_manifest_cmd
-from devsynth.application.cli.commands.validate_metadata_cmd import validate_metadata_cmd
+from devsynth.application.cli.commands.validate_manifest_cmd import (
+    validate_manifest_cmd,
+)
+from devsynth.application.cli.commands.validate_metadata_cmd import (
+    validate_metadata_cmd,
+)
 from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
 from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
 from devsynth.application.cli.requirements_commands import requirements_app
@@ -73,6 +79,16 @@ def build_app() -> typer.Typer:
 
 # Provide a default app instance for convenience
 app = build_app()
+
+
+def show_help() -> None:
+    """Display the CLI help message."""
+    build_app()(["--help"])
+
+
+def parse_args(args: list[str]) -> None:
+    """Parse command line arguments and execute the CLI."""
+    build_app()(args)
 
 
 def run_cli() -> None:
