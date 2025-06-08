@@ -51,6 +51,7 @@ def show_help():
     console.print(f"  run          Execute the generated code")
     console.print(f"  config       Configure DevSynth settings")
     console.print(f"  ingest       Ingest a project into DevSynth using project configuration")
+    console.print(f"  edrr-cycle   Run an EDRR cycle from a manifest file")
     console.print(f"  webapp       Generate a web application")
     console.print(f"  dbschema     Generate a database schema")
     console.print(f"  apispec      Generate an API specification")
@@ -169,6 +170,10 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     ingest_parser.add_argument("--verbose", action="store_true", help="Provide verbose output")
     ingest_parser.add_argument("--validate-only", action="store_true", help="Only validate the project configuration without performing ingestion")
 
+    # edrr-cycle command
+    edrr_cycle_parser = subparsers.add_parser("edrr-cycle", help="Run an EDRR cycle from a manifest")
+    edrr_cycle_parser.add_argument("--manifest", default="manifest.yaml", help="Path to the manifest file")
+
     # requirements command
     requirements_parser = subparsers.add_parser("requirements", help="Manage requirements with dialectical reasoning")
     requirements_parser.add_argument("--action", help="Action to perform (list, show, create, update, delete, changes, approve-change, reject-change, chat, sessions, continue-chat, evaluate-change, assess-impact)")
@@ -236,6 +241,9 @@ def run_cli():
             generate_docs_cmd(args.path, args.output_dir)
         elif args.command == "ingest":
             ingest_cmd(args.manifest, args.dry_run, args.verbose, args.validate_only)
+        elif args.command == "edrr-cycle":
+            from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
+            edrr_cycle_cmd(args.manifest)
         elif args.command == "requirements":
             # Import the LLM service for the dialectical reasoner
             from devsynth.adapters.llm.lmstudio_provider import LMStudioProvider

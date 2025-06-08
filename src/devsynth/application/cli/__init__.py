@@ -16,8 +16,9 @@ from .cli_commands import (
 
 # Import commands from the commands directory
 from .commands.analyze_code_cmd import analyze_code_cmd
+from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 
 __all__ = [
     "init_cmd", "spec_cmd", "test_cmd", "code_cmd", "run_cmd", "config_cmd",
-    "analyze_cmd", "webapp_cmd", "dbschema_cmd", "adaptive_cmd", "analyze_code_cmd"
+    "analyze_cmd", "webapp_cmd", "dbschema_cmd", "adaptive_cmd", "analyze_code_cmd", "edrr_cycle_cmd"
 ]
