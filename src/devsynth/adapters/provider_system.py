@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import requests
+import httpx
 import time
 from typing import Dict, Any, List, Optional, Union, Callable
 from enum import Enum
@@ -174,6 +175,20 @@ class BaseProvider:
         """
         raise NotImplementedError("Subclasses must implement embed()")
 
+    async def acomplete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
+        """Asynchronous version of :meth:`complete`."""
+        raise NotImplementedError("Subclasses must implement acomplete()")
+
+    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+        """Asynchronous version of :meth:`embed`."""
+        raise NotImplementedError("Subclasses must implement aembed()")
+
 
 class OpenAIProvider(BaseProvider):
     """OpenAI API provider implementation."""
@@ -245,6 +260,41 @@ class OpenAIProvider(BaseProvider):
             logger.error(f"OpenAI API error: {e}")
             raise ProviderError(f"OpenAI API error: {e}")
 
+    async def acomplete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
+        """Asynchronously generate a completion using the OpenAI API."""
+        url = f"{self.base_url}/chat/completions"
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=self.headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            if "choices" in data and len(data["choices"]) > 0:
+                return data["choices"][0]["message"]["content"]
+            raise ProviderError(f"Invalid response format: {data}")
+        except httpx.HTTPError as e:
+            logger.error(f"OpenAI API error: {e}")
+            raise ProviderError(f"OpenAI API error: {e}")
+
     @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
@@ -280,6 +330,31 @@ class OpenAIProvider(BaseProvider):
                 raise ProviderError(f"Invalid embedding response format: {response_data}")
 
         except requests.exceptions.RequestException as e:
+            logger.error(f"OpenAI embedding API error: {e}")
+            raise ProviderError(f"OpenAI embedding API error: {e}")
+
+    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+        """Asynchronously generate embeddings using the OpenAI API."""
+        url = f"{self.base_url}/embeddings"
+
+        if isinstance(text, str):
+            text = [text]
+
+        payload = {
+            "model": "text-embedding-3-small",
+            "input": text,
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=self.headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            if "data" in data and len(data["data"]) > 0:
+                return [item["embedding"] for item in data["data"]]
+            raise ProviderError(f"Invalid embedding response format: {data}")
+        except httpx.HTTPError as e:
             logger.error(f"OpenAI embedding API error: {e}")
             raise ProviderError(f"OpenAI embedding API error: {e}")
 
@@ -348,6 +423,40 @@ class LMStudioProvider(BaseProvider):
             logger.error(f"LM Studio API error: {e}")
             raise ProviderError(f"LM Studio API error: {e}")
 
+    async def acomplete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
+        """Asynchronously generate a completion using LM Studio."""
+        url = f"{self.endpoint}/v1/chat/completions"
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=self.headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            if "choices" in data and len(data["choices"]) > 0:
+                return data["choices"][0]["message"]["content"]
+            raise ProviderError(f"Invalid LM Studio response format: {data}")
+        except httpx.HTTPError as e:
+            logger.error(f"LM Studio API error: {e}")
+            raise ProviderError(f"LM Studio API error: {e}")
+
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
         Generate embeddings using LM Studio API.
@@ -365,6 +474,10 @@ class LMStudioProvider(BaseProvider):
         """
         # If LM Studio supports embeddings, implement here
         # For now, raise an error
+        raise ProviderError("Embeddings not supported by LM Studio provider")
+
+    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+        """Asynchronous embeddings placeholder for LM Studio."""
         raise ProviderError("Embeddings not supported by LM Studio provider")
 
 
@@ -440,6 +553,37 @@ class FallbackProvider(BaseProvider):
 
         raise ProviderError(f"All providers failed for completion. Last error: {last_error}")
 
+    async def acomplete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
+        """Asynchronously try each provider until one succeeds."""
+        last_error = None
+
+        for provider in self.providers:
+            try:
+                logger.info(
+                    f"Trying completion with provider: {provider.__class__.__name__}"
+                )
+                return await provider.acomplete(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Provider {provider.__class__.__name__} failed: {e}"
+                )
+                last_error = e
+
+        raise ProviderError(
+            f"All providers failed for completion. Last error: {last_error}"
+        )
+
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
         Try to generate embeddings with each provider until one succeeds.
@@ -464,6 +608,26 @@ class FallbackProvider(BaseProvider):
                 last_error = e
 
         raise ProviderError(f"All providers failed for embeddings. Last error: {last_error}")
+
+    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+        """Asynchronously try to generate embeddings with providers."""
+        last_error = None
+
+        for provider in self.providers:
+            try:
+                logger.info(
+                    f"Trying embeddings with provider: {provider.__class__.__name__}"
+                )
+                return await provider.aembed(text=text)
+            except Exception as e:
+                logger.warning(
+                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
+                )
+                last_error = e
+
+        raise ProviderError(
+            f"All providers failed for embeddings. Last error: {last_error}"
+        )
 
 
 # Simplified API for common usage
@@ -529,3 +693,31 @@ def embed(text: Union[str, List[str]],
     """
     provider = get_provider(provider_type=provider_type, fallback=fallback)
     return provider.embed(text=text)
+
+
+async def acomplete(
+    prompt: str,
+    system_prompt: Optional[str] = None,
+    temperature: float = 0.7,
+    max_tokens: int = 2000,
+    provider_type: Optional[str] = None,
+    fallback: bool = True,
+) -> str:
+    """Asynchronously generate a completion using the configured provider."""
+    provider = get_provider(provider_type=provider_type, fallback=fallback)
+    return await provider.acomplete(
+        prompt=prompt,
+        system_prompt=system_prompt,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
+
+async def aembed(
+    text: Union[str, List[str]],
+    provider_type: Optional[str] = None,
+    fallback: bool = True,
+) -> List[List[float]]:
+    """Asynchronously generate embeddings using the configured provider."""
+    provider = get_provider(provider_type=provider_type, fallback=fallback)
+    return await provider.aembed(text=text)
