@@ -53,7 +53,32 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Requirements Traceability Matrix](docs/requirements_traceability.md)
 - [SDLC Policies](docs/policies/index.md)
 
-Installation instructions, including how to use **pipx**, are provided in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
+Installation instructions are covered in detail in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
+
+## Installation
+
+You can install DevSynth in a few different ways:
+
+1. **pip** – install from PyPI
+
+   ```bash
+   pip install devsynth
+   ```
+
+2. **pipx** – keep DevSynth isolated from system Python
+
+   ```bash
+   pipx install devsynth
+   ```
+
+3. **Docker** – build and run using the provided Dockerfile
+
+   ```bash
+   docker build -t devsynth .
+   docker run --rm -p 8000:8000 devsynth
+   ```
+
+For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
 ## Documentation Structure
 
