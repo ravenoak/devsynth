@@ -32,7 +32,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyyaml markdown-link-check
+          pip install .[docs] pyyaml markdown-link-check
           
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -61,7 +61,6 @@ jobs:
           
       - name: Validate MkDocs configuration
         run: |
-          pip install mkdocs mkdocs-material
           mkdocs build --strict
           
       - name: Summary

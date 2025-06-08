@@ -42,6 +42,11 @@ cd devsynth
 # Install dependencies
 poetry install
 
+# Alternatively, install with pip or pipx using extras
+pip install .[dev]
+# or
+pipx install --editable .[dev]
+
 # Activate virtual environment
 poetry shell
 
