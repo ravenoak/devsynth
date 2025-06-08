@@ -7,14 +7,15 @@ preserving extension points for future multi-agent capabilities.
 """
 
 from typing import Any, Dict, List, Optional, Type
-from ...domain.interfaces.agent import Agent, AgentFactory, AgentCoordinator
-from ...domain.models.agent import AgentConfig, AgentType
-from ...domain.models.wsde import WSDETeam
-from ...application.agents.unified_agent import UnifiedAgent
-from ...ports.llm_port import LLMPort
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
+from ...application.agents.unified_agent import UnifiedAgent
+from ...domain.interfaces.agent import Agent, AgentCoordinator, AgentFactory
+from ...domain.models.agent import AgentConfig, AgentType
+from ...domain.models.wsde import WSDETeam
+from ...ports.llm_port import LLMPort
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError, ValidationError
@@ -30,6 +31,7 @@ from devsynth.exceptions import DevSynthError, ValidationError
 # from ...application.agents.documentation import DocumentationAgent
 # from ...application.agents.diagram import DiagramAgent
 # from ...application.agents.critic import CriticAgent
+
 
 class SimplifiedAgentFactory(AgentFactory):
     """
@@ -79,10 +81,12 @@ class SimplifiedAgentFactory(AgentFactory):
             # Use the requested agent_type for backward compatibility
             agent_config = AgentConfig(
                 name=config.get("name", f"{agent_type}_agent"),
-                agent_type=AgentType(agent_type) if agent_type in [e.value for e in AgentType] else AgentType.ORCHESTRATOR,
+                agent_type=AgentType(agent_type)
+                if agent_type in [e.value for e in AgentType]
+                else AgentType.ORCHESTRATOR,
                 description=config.get("description", f"Agent for {agent_type} tasks"),
                 capabilities=config.get("capabilities", []),
-                parameters=config.get("parameters", {})
+                parameters=config.get("parameters", {}),
             )
             agent.initialize(agent_config)
 
@@ -99,9 +103,10 @@ class SimplifiedAgentFactory(AgentFactory):
         This is an extension point for future versions. In MVP, this method
         is a no-op since we only use the UnifiedAgent.
         """
-        # For MVP, this is a no-op
-        # In future versions, this will register new agent types
-        pass
+        # For MVP we still allow registration so tests can extend the factory
+        logger.debug("Registering agent type %s", agent_type)
+        self.agent_types[agent_type] = agent_class
+
 
 class WSDETeamCoordinator(AgentCoordinator):
     """
@@ -181,10 +186,14 @@ class WSDETeamCoordinator(AgentCoordinator):
 
             # Add the agent's solution
             solution = {
-                "agent": agent.config.name if hasattr(agent, "config") and hasattr(agent.config, "name") else agent.name if hasattr(agent, "name") else "Agent",
+                "agent": agent.config.name
+                if hasattr(agent, "config") and hasattr(agent.config, "name")
+                else agent.name
+                if hasattr(agent, "name")
+                else "Agent",
                 "content": agent_solution.get("result", ""),
                 "confidence": agent_solution.get("confidence", 1.0),
-                "reasoning": agent_solution.get("reasoning", "")
+                "reasoning": agent_solution.get("reasoning", ""),
             }
             team.add_solution(task, solution)
 
@@ -200,7 +209,7 @@ class WSDETeamCoordinator(AgentCoordinator):
             "result": consensus.get("consensus", ""),
             "contributors": consensus.get("contributors", []),
             "method": consensus.get("method", "consensus"),
-            "reasoning": consensus.get("reasoning", "")
+            "reasoning": consensus.get("reasoning", ""),
         }
 
     def get_team(self, team_id: str) -> Optional[WSDETeam]:
@@ -212,6 +221,7 @@ class WSDETeamCoordinator(AgentCoordinator):
         if team_id not in self.teams:
             raise ValidationError(f"Team {team_id} does not exist.")
         self.current_team_id = team_id
+
 
 class AgentAdapter:
     """

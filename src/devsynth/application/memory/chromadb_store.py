@@ -6,30 +6,33 @@ This implementation includes enhanced features:
 - Version tracking for stored artifacts
 - Optimized embedding storage for similar content
 """
-import os
 import json
+import os
 import uuid
+from contextlib import contextmanager
+from datetime import datetime
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import chromadb
 import tiktoken
-from typing import Dict, List, Any, Optional, Union, Tuple
-from datetime import datetime
-from contextlib import contextmanager
-from functools import lru_cache
+
+from devsynth.exceptions import (
+    DevSynthError,
+    MemoryCorruptionError,
+    MemoryError,
+    MemoryItemNotFoundError,
+    MemoryStoreError,
+)
+from devsynth.fallback import retry_with_exponential_backoff, with_fallback
+from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryType
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.exceptions import (
-    DevSynthError, 
-    MemoryError, 
-    MemoryStoreError, 
-    MemoryItemNotFoundError, 
-    MemoryCorruptionError
-)
-from devsynth.fallback import retry_with_exponential_backoff, with_fallback
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
 
 class ChromaDBStore(MemoryStore):
     """
@@ -59,7 +62,11 @@ class ChromaDBStore(MemoryStore):
         self._embedding_optimization_enabled = True
 
         # Check if we're in a test environment with file operations disabled
-        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
         # Only create directories if not in a test environment with file operations disabled
         if not no_file_logging:
@@ -84,13 +91,21 @@ class ChromaDBStore(MemoryStore):
 
         # Get or create the versions collection
         try:
-            self.versions_collection = self.client.get_collection(name=self.versions_collection_name)
-            logger.info(f"Using existing ChromaDB versions collection: {self.versions_collection_name}")
+            self.versions_collection = self.client.get_collection(
+                name=self.versions_collection_name
+            )
+            logger.info(
+                f"Using existing ChromaDB versions collection: {self.versions_collection_name}"
+            )
         except Exception as e:
             # Collection doesn't exist, create it
             logger.info(f"Versions collection not found: {e}")
-            self.versions_collection = self.client.create_collection(name=self.versions_collection_name)
-            logger.info(f"Created new ChromaDB versions collection: {self.versions_collection_name}")
+            self.versions_collection = self.client.create_collection(
+                name=self.versions_collection_name
+            )
+            logger.info(
+                f"Created new ChromaDB versions collection: {self.versions_collection_name}"
+            )
 
         # Initialize the tokenizer for token counting
         self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
@@ -130,7 +145,7 @@ class ChromaDBStore(MemoryStore):
             "content": item.content,
             "memory_type": memory_type_str,
             "metadata": item.metadata,
-            "created_at": created_at_str
+            "created_at": created_at_str,
         }
 
         return serialized
@@ -149,17 +164,19 @@ class ChromaDBStore(MemoryStore):
         memory_type = MemoryType(data["memory_type"]) if data["memory_type"] else None
 
         # Convert created_at string to datetime
-        created_at = datetime.fromisoformat(data["created_at"]) if data["created_at"] else None
+        created_at = (
+            datetime.fromisoformat(data["created_at"]) if data["created_at"] else None
+        )
 
         # Check if content is a string that looks like JSON and deserialize it
         content = data["content"]
         if isinstance(content, str):
             try:
-                if content.startswith('{') and content.endswith('}'):
+                if content.startswith("{") and content.endswith("}"):
                     content = json.loads(content)
             except json.JSONDecodeError:
-                # If it's not valid JSON, keep it as a string
-                pass
+                # If it's not valid JSON, keep it as a string but log for debugging
+                logger.debug("Content for item %s is not valid JSON", data["id"])
 
         # Create a MemoryItem
         item = MemoryItem(
@@ -167,7 +184,7 @@ class ChromaDBStore(MemoryStore):
             content=content,
             memory_type=memory_type,
             metadata=data["metadata"],
-            created_at=created_at
+            created_at=created_at,
         )
 
         return item
@@ -223,12 +240,16 @@ class ChromaDBStore(MemoryStore):
             # Store in ChromaDB
             # The content is used for embeddings, metadata contains the full serialized item
             # Convert content to string if it's not already a string
-            document_content = json.dumps(item.content) if not isinstance(item.content, str) else item.content
+            document_content = (
+                json.dumps(item.content)
+                if not isinstance(item.content, str)
+                else item.content
+            )
 
             self.collection.upsert(
                 ids=[item.id],
                 documents=[document_content],
-                metadatas=[{"item_data": metadata_json}]
+                metadatas=[{"item_data": metadata_json}],
             )
 
             # Invalidate cache for this item
@@ -265,20 +286,28 @@ class ChromaDBStore(MemoryStore):
 
             # Store in the versions collection
             # Convert content to string if it's not already a string
-            document_content = json.dumps(item.content) if not isinstance(item.content, str) else item.content
+            document_content = (
+                json.dumps(item.content)
+                if not isinstance(item.content, str)
+                else item.content
+            )
 
             self.versions_collection.upsert(
                 ids=[version_id],
                 documents=[document_content],
-                metadatas=[{
-                    "item_data": metadata_json,
-                    "original_id": item.id,
-                    "version": version,
-                    "timestamp": datetime.now().isoformat()
-                }]
+                metadatas=[
+                    {
+                        "item_data": metadata_json,
+                        "original_id": item.id,
+                        "version": version,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                ],
             )
 
-            logger.info(f"Stored version {version} of item with ID {item.id} in ChromaDB")
+            logger.info(
+                f"Stored version {version} of item with ID {item.id} in ChromaDB"
+            )
 
         except Exception as e:
             logger.error(f"Error storing version in ChromaDB: {e}")
@@ -375,7 +404,9 @@ class ChromaDBStore(MemoryStore):
 
             # Check if the version was found
             if not result["ids"] or not result["metadatas"]:
-                logger.warning(f"Version {version} of item with ID {item_id} not found in ChromaDB")
+                logger.warning(
+                    f"Version {version} of item with ID {item_id} not found in ChromaDB"
+                )
                 return None
 
             # Extract the serialized item from metadata
@@ -389,7 +420,9 @@ class ChromaDBStore(MemoryStore):
             token_count = self._count_tokens(str(serialized))
             self._token_usage += token_count
 
-            logger.info(f"Retrieved version {version} of item with ID {item_id} from ChromaDB")
+            logger.info(
+                f"Retrieved version {version} of item with ID {item_id} from ChromaDB"
+            )
             return item
 
         except Exception as e:
@@ -440,8 +473,7 @@ class ChromaDBStore(MemoryStore):
 
         # Perform the search
         results = self.collection.query(
-            query_texts=[semantic_query],
-            n_results=10  # Return top 10 results
+            query_texts=[semantic_query], n_results=10  # Return top 10 results
         )
 
         # Process results
@@ -455,7 +487,9 @@ class ChromaDBStore(MemoryStore):
                 item = self._deserialize_memory_item(serialized)
                 items.append(item)
 
-        logger.info(f"Semantic search for '{semantic_query}' returned {len(items)} results")
+        logger.info(
+            f"Semantic search for '{semantic_query}' returned {len(items)} results"
+        )
         return items
 
     def _exact_match_search(self, query: Dict[str, Any]) -> List[MemoryItem]:
@@ -572,9 +606,7 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             # Query the versions collection for all versions of this item
-            result = self.versions_collection.get(
-                where={"original_id": item_id}
-            )
+            result = self.versions_collection.get(where={"original_id": item_id})
 
             # Check if any versions were found
             if not result["ids"] or not result["metadatas"]:
@@ -595,7 +627,9 @@ class ChromaDBStore(MemoryStore):
 
             # Add the current version from the main collection
             current_item = self.retrieve(item_id)
-            if current_item and current_item.metadata.get("version") not in [v.metadata.get("version") for v in versions]:
+            if current_item and current_item.metadata.get("version") not in [
+                v.metadata.get("version") for v in versions
+            ]:
                 versions.append(current_item)
 
             return versions
@@ -632,9 +666,11 @@ class ChromaDBStore(MemoryStore):
                 # Create a history entry
                 entry = {
                     "version": version_num,
-                    "timestamp": version.created_at.isoformat() if version.created_at else datetime.now().isoformat(),
+                    "timestamp": version.created_at.isoformat()
+                    if version.created_at
+                    else datetime.now().isoformat(),
                     "content_summary": content_summary,
-                    "metadata": version.metadata
+                    "metadata": version.metadata,
                 }
                 history.append(entry)
 
