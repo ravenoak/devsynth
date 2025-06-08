@@ -220,14 +220,88 @@ def test_input_validation_fuzz(input_value):
         validate_username(input_value)
 ```
 
-## TODO
+## Detailed Examples for DevSynth Components
 
-This document is a placeholder and needs to be expanded with:
-- More detailed examples for each component
-- Security considerations for specific DevSynth features
-- Secure deployment guidelines
-- Incident response procedures
-- Regular security training requirements
+Below are secure coding examples for several DevSynth modules.
+
+### Configuration Storage
+
+Ensure configuration files are read from trusted locations and that
+values are validated:
+
+```python
+from pathlib import Path
+
+def load_project_config(base_dir: Path) -> dict:
+    config_path = base_dir / ".devsynth" / "project.yaml"
+    if not config_path.is_file():
+        raise FileNotFoundError("project.yaml missing")
+    with config_path.open("r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    # Validate required fields before use
+    validate_project_schema(data)
+    return data
+```
+
+### Template Rendering
+
+Use the Jinja2 sandboxed environment to render templates safely and
+avoid executing arbitrary code from user input.
+
+```python
+from jinja2.sandbox import SandboxedEnvironment
+
+env = SandboxedEnvironment(autoescape=True)
+template = env.from_string(user_template)
+result = template.render(context)
+```
+
+### Security Considerations for Specific DevSynth Features
+
+- **Promise System**: Verify every promise with an explicit authority
+  check and audit chains for privilege escalation.
+- **Agent Execution**: Run agents with the least privileges necessary
+  and log their actions for future review.
+- **Configuration Storage**: Encrypt sensitive values (such as API
+  tokens) at rest and restrict file permissions to the owner.
+
+## Secure Deployment Guidelines
+
+Follow these practices when deploying DevSynth:
+
+- Store secrets in a dedicated secret manager and never commit them to
+  source control.
+- Enable TLS for all network communication, including internal APIs.
+- Use container images with minimal packages and apply security updates
+  regularly.
+- Configure infrastructure-as-code with immutable builds to prevent
+  drift and unauthorized changes.
+- Run automated vulnerability scanning and linting in the CI pipeline.
+
+## Incident Response Procedures
+
+In the event of a suspected security incident:
+
+1. **Identify and Contain**: Isolate affected systems to prevent further
+   damage while gathering preliminary evidence.
+2. **Notify the Team**: Inform project maintainers and, when
+   appropriate, stakeholders or users.
+3. **Analyze**: Review logs, recent commits, and configuration changes
+   to determine the root cause.
+4. **Remediate**: Apply patches or configuration changes and redeploy.
+5. **Document and Review**: Record the timeline of events and lessons
+   learned to improve future response.
+
+## Security Training Requirements
+
+DevSynth contributors should maintain a strong security mindset:
+
+- Complete a security onboarding session before committing code.
+- Participate in annual refresher training covering common
+  vulnerabilities and new DevSynth features.
+- Review the secure coding guidelines regularly and reference the
+  OWASP Top Ten in code reviews.
+- Document completion of training in the project records.
 
 ## References
 
