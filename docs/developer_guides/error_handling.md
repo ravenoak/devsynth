@@ -113,21 +113,21 @@ Example:
 ```python
 def process_config(config_data):
     errors = []
-    
+
     if "api_key" not in config_data:
         errors.append("API key is required")
-    
+
     if "max_retries" in config_data and not isinstance(config_data["max_retries"], int):
         errors.append("max_retries must be an integer")
-    
+
     if errors:
         raise ValidationError(
             message="Invalid configuration",
             details={"errors": errors},
-            resolution=["Check the documentation for required fields", 
+            resolution=["Check the documentation for required fields",
                        "Ensure all fields have the correct data type"]
         )
-    
+
     # Process valid config...
 ```
 
@@ -152,14 +152,62 @@ Guidelines for error reporting and telemetry:
 - Respect user privacy (anonymize data, get consent)
 - Use error patterns to improve the product
 
-## TODO
+## Practical Examples and Standards
 
-This document is a placeholder and needs to be expanded with:
-- Specific examples for each component (CLI, API, etc.)
-- Error message standards for different user personas
-- Visual design guidelines for error presentation
-- Testing strategies for error scenarios
-- More detailed implementation patterns
+### CLI Example
+
+Handling a missing configuration file:
+
+```bash
+$ devsynth start --config nonexistent.yml
+ERROR: Configuration file not found
+
+To resolve this issue:
+- Check that the path is correct
+- Create the configuration file using `devsynth init`
+
+For more information, see: https://docs.devsynth.com/errors/config-not-found
+```
+
+### API Example
+
+Structured JSON error response:
+
+```json
+{
+  "error": {
+    "code": "CONFIG_NOT_FOUND",
+    "message": "Configuration file not found",
+    "details": "The provided path /tmp/nonexistent.yml does not exist",
+    "resolution": ["Verify the path", "Create the file with the correct settings"],
+    "docs_url": "https://docs.devsynth.com/errors/config-not-found"
+  }
+}
+```
+
+### User-Facing Error Message Standards
+
+- Use plain language and avoid blaming the user.
+- Provide clear steps to resolve the problem.
+- Include a documentation link when possible.
+- Indicate severity with consistent terminology: **Error**, **Warning**, **Info**.
+- Present additional technical details only when requested.
+
+### Visual Design Guidelines
+
+- Display errors with high-contrast colors and icons that match the design system.
+- In the CLI, use ANSI colors (`red` for errors, `yellow` for warnings).
+- Web or GUI components should present errors in accessible alert boxes.
+- Ensure all messages work with screen readers.
+- Group related errors to reduce visual clutter.
+
+### Testing Strategies for Error Scenarios
+
+- **Unit Tests**: Validate error classes and message templates.
+- **CLI Tests**: Verify exit codes and printed output for common failures.
+- **API Tests**: Check JSON error structures and HTTP status codes.
+- **Integration Tests**: Simulate failures from external services.
+- **Visual Tests**: Capture screenshots to ensure consistent presentation.
 
 ## References
 
