@@ -9,8 +9,9 @@ from devsynth.exceptions import DevSynthError
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
-# Note: This file was originally named typer_adapter.py but uses argparse instead of Typer.
-# It has been kept for backward compatibility but should be refactored in the future.
+# This CLI adapter uses ``argparse`` for command parsing.  It previously lived in
+# ``typer_adapter.py`` even though it did not use Typer.  The file has been
+# renamed to make its purpose clear.
 
 from devsynth.application.cli import (
     init_cmd, spec_cmd, test_cmd, code_cmd,
