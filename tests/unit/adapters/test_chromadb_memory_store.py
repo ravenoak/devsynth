@@ -87,8 +87,15 @@ class TestChromaDBMemoryStore:
         # Create a unique instance ID for this test
         instance_id = f"test_{request.node.name}_{uuid.uuid4().hex}"
 
-        # Patch the chromadb_client_context to return our mock client
-        with patch('devsynth.adapters.chromadb_memory_store.chromadb_client_context') as mock_context:
+        # Patch the chromadb client context and the default embedding function to avoid network calls
+        class DummyEmbedder:
+            def __call__(self, text):
+                if isinstance(text, str):
+                    return [0.1, 0.2, 0.3, 0.4, 0.5]
+                return [[0.1, 0.2, 0.3, 0.4, 0.5] for _ in text]
+
+        with patch('devsynth.adapters.chromadb_memory_store.chromadb_client_context') as mock_context, \
+             patch('devsynth.adapters.chromadb_memory_store.embedding_functions.DefaultEmbeddingFunction', DummyEmbedder):
             # Configure the mock context manager to yield our mock client
             mock_context.return_value.__enter__.return_value = mock_client
 
@@ -161,8 +168,15 @@ class TestChromaDBMemoryStore:
         # Create a unique instance ID for this test
         instance_id = f"test_fallback_{request.node.name}_{uuid.uuid4().hex}"
 
-        # Patch the chromadb_client_context to return our mock client
-        with patch('devsynth.adapters.chromadb_memory_store.chromadb_client_context') as mock_context:
+        class DummyEmbedder:
+            def __call__(self, text):
+                if isinstance(text, str):
+                    return [0.1, 0.2, 0.3, 0.4, 0.5]
+                return [[0.1, 0.2, 0.3, 0.4, 0.5] for _ in text]
+
+        # Patch the chromadb_client_context to return our mock client and the default embedder
+        with patch('devsynth.adapters.chromadb_memory_store.chromadb_client_context') as mock_context, \
+             patch('devsynth.adapters.chromadb_memory_store.embedding_functions.DefaultEmbeddingFunction', DummyEmbedder):
             # Configure the mock context manager to yield our mock client
             mock_context.return_value.__enter__.return_value = mock_client
 
