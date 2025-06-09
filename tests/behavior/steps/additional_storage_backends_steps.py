@@ -85,9 +85,12 @@ def memory_port(memory_store):
 
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
-    """Verify that the DevSynth CLI is installed."""
-    # This is a placeholder step - in a real test, we might check for the CLI's presence
-    pass
+    """Verify that the DevSynth CLI can be imported."""
+    try:
+        __import__("devsynth")
+    except Exception as exc:
+        pytest.fail(f"DevSynth CLI not available: {exc}")
+    return True
 
 
 @when(parsers.parse('I configure the memory store type as "{store_type}"'))
@@ -272,9 +275,9 @@ def check_item_persistence(request, memory_port):
 
 @given('vector store is enabled')
 def vector_store_enabled(request):
-    """Ensure that vector store is enabled for the current store."""
-    # This is a placeholder step - in a real test, we might configure the vector store
-    pass
+    """Ensure that vector store is enabled for DuckDB or FAISS stores."""
+    store_type = request.node.get_closest_marker("store_type").args[0]
+    assert store_type in ["duckdb", "faiss"], f"Vector store not supported for {store_type}"
 
 
 @when('I store a vector in the vector store')

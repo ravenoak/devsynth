@@ -191,9 +191,8 @@ def promise_has_rejection_reason(context):
 # Scenario: Unauthorized agent cannot create a promise
 @given(parsers.parse('agent "{agent_id}" does not have capability "{capability}"'))
 def agent_does_not_have_capability(context, agent_id, capability):
-    """Given that an agent does not have a capability."""
-    # We don't need to do anything here, as the agent doesn't have the capability by default
-    pass
+    """Ensure the agent does not have the specified capability."""
+    assert f"{agent_id}:{capability}" not in context.capabilities
 
 @when(parsers.parse('agent "{agent_id}" attempts to create a promise of type "{capability}"'))
 def agent_attempts_to_create_promise(context, agent_id, capability):

@@ -45,9 +45,8 @@ def devsynth_initialized(context):
 
 @given("the methodology configuration is loaded from manifest.yaml")
 def methodology_config_loaded(context):
-    # In a real implementation, this would load the configuration from manifest.yaml
-    # For testing purposes, we'll use the configuration set up in the previous step
-    pass
+    """Ensure that the methodology configuration is available."""
+    assert "methodologyConfiguration" in context.config
 
 # Sprint Adapter Configuration steps
 @when(parsers.parse('I set the methodology type to "{methodology_type}" in the configuration'))

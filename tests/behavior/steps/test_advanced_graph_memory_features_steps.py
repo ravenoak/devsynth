@@ -41,8 +41,7 @@ def context():
 @given("the DevSynth system is initialized")
 def devsynth_initialized(context):
     """Initialize the DevSynth system."""
-    # This is a placeholder step that doesn't need to do anything specific
-    pass
+    assert context is not None
 
 @given("the GraphMemoryAdapter is configured with RDFLibStore integration")
 def graph_adapter_with_rdflib(context):
@@ -511,15 +510,11 @@ def check_items_in_both_adapters(context):
 @then("memory items with vectors should be properly synchronized between stores")
 def check_vector_synchronization(context):
     """Check that memory items with vectors are properly synchronized between stores."""
-    # This is a simplified check since the actual implementation would depend on the specific
-    # integration between GraphMemoryAdapter and ChromaDBVectorAdapter
-    # In a real test, we would need to check that vectors are properly synchronized
-    pass
+    # Ensure vectors exist in the ChromaDB adapter
+    assert len(context.chromadb_adapter.vectors) > 0, "No vectors stored in ChromaDB adapter"
 
 @then("I should be able to perform vector similarity searches on both stores")
 def check_vector_similarity_search(context):
-    """Check that vector similarity searches can be performed on both stores."""
-    # This is a simplified check since the actual implementation would depend on the specific
-    # integration between GraphMemoryAdapter and ChromaDBVectorAdapter
-    # In a real test, we would need to perform similarity searches on both stores
-    pass
+    """Check that vector similarity searches can be performed on the vector store."""
+    results = context.chromadb_adapter.similarity_search([0.1, 0.2, 0.3, 0.4, 0.5])
+    assert len(results) > 0, "No similarity search results returned"

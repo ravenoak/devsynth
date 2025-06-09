@@ -33,6 +33,8 @@ def check_config_value(value, key, mock_workflow_manager):
     # Verify that the execute_command method was called with the correct arguments
     mock_workflow_manager.execute_command.assert_any_call("config", {"key": key, "value": None})
     
-    # In a real implementation, we would check the actual output
-    # For now, we'll just assume the test passes if the execute_command method was called correctly
-    pass
+    # Verify that the created .env file contains the expected value
+    env_file = Path(os.getcwd()) / '.env'
+    if env_file.exists():
+        content = env_file.read_text()
+        assert f"{key.upper()}={value}" in content

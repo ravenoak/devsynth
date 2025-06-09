@@ -46,8 +46,7 @@ def context():
 @given('the DevSynth system is initialized')
 def devsynth_initialized(context):
     """Step: the DevSynth system is initialized."""
-    # This step is a placeholder for system initialization
-    pass
+    assert context is not None
 
 
 @given('the Memory Manager is configured with the following adapters')
