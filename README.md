@@ -80,6 +80,29 @@ You can install DevSynth in a few different ways:
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
+## Running Tests
+
+Before running the test suite, install DevSynth with its development dependencies.
+You can use `pip` in editable mode:
+
+```bash
+pip install -e .[dev]
+```
+
+Or install using Poetry, which also sets up the dev extras:
+
+```bash
+poetry install
+```
+
+Once installed, execute the tests with:
+
+```bash
+pytest
+```
+
+See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
+
 ## Documentation Structure
 
 The documentation is organized for clarity and ease of navigation, following a comprehensive structure. Key directories:

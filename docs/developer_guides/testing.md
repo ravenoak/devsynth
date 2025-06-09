@@ -248,6 +248,19 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 
 ## Running Tests
 
+Before executing tests, install DevSynth with its development extras so that all
+test dependencies are available. Use either:
+
+```bash
+pip install -e .[dev]
+```
+
+or
+
+```bash
+poetry install
+```
+
 ### Running All Tests
 
 ```bash
