@@ -30,6 +30,10 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [config](#config)
   - [memory](#memory)
   - [agent](#agent)
+  - [adaptive](#adaptive)
+  - [analyze](#analyze)
+  - [webapp](#webapp)
+  - [dbschema](#dbschema)
 - [Environment Variables](#environment-variables)
 - [Configuration File](#configuration-file)
 - [Examples](#examples)
@@ -264,6 +268,77 @@ devsynth agent --list
 
 # Run a specific agent with input and output files
 devsynth agent --run documentation --input requirements.md --output docs.md
+```
+
+### adaptive
+
+Analyze the project and suggest an appropriate workflow.
+
+```bash
+devsynth adaptive [--path PATH]
+```
+
+**Options:**
+- `--path`, `-p`: Path to the project root (default: current directory)
+
+**Examples:**
+```bash
+devsynth adaptive
+devsynth adaptive --path ./my-project
+```
+
+### analyze
+
+Analyze requirements from a file or interactively.
+
+```bash
+devsynth analyze [--input FILE] [--interactive]
+```
+
+**Options:**
+- `--input`, `-i`: Input file containing requirements
+- `--interactive`: Start an interactive session
+
+**Examples:**
+```bash
+devsynth analyze --input requirements.md
+devsynth analyze --interactive
+```
+
+### webapp
+
+Generate a simple web application project.
+
+```bash
+devsynth webapp [--framework FRAMEWORK] [--name NAME] [--path PATH]
+```
+
+**Options:**
+- `--framework`, `-f`: Web framework to use (flask, fastapi, django, express)
+- `--name`, `-n`: Name of the project (default: webapp)
+- `--path`, `-p`: Directory to create the project (default: .)
+
+**Examples:**
+```bash
+devsynth webapp --framework flask --name demo --path ./apps
+```
+
+### dbschema
+
+Generate a database schema for a given database type.
+
+```bash
+devsynth dbschema [--db-type TYPE] [--name NAME] [--path PATH]
+```
+
+**Options:**
+- `--db-type`, `-d`: Database type (sqlite, mysql, postgresql, mongodb)
+- `--name`, `-n`: Schema name (default: database)
+- `--path`, `-p`: Output directory (default: .)
+
+**Examples:**
+```bash
+devsynth dbschema --db-type sqlite --name blog --path ./schema
 ```
 
 ## Environment Variables
