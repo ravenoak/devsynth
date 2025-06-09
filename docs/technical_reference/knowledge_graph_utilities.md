@@ -199,6 +199,42 @@ security_concepts = wsde_memory.query_by_concept_type("security_concept")
 task_relevant_knowledge = wsde_memory.query_knowledge_for_task(task)
 ```
 
+## Additional WSDETeam Methods
+
+Recent updates introduced more ways to integrate external knowledge when using
+`WSDETeam` for dialectical reasoning.
+
+### `apply_enhanced_dialectical_reasoning_with_knowledge`
+
+```python
+def apply_enhanced_dialectical_reasoning_with_knowledge(
+    self,
+    task: Dict[str, Any],
+    critic_agent: Any,
+    external_knowledge: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Apply enhanced dialectical reasoning using external knowledge."""
+```
+
+This method aligns critiques and improvements with industry standards or other
+reference materials supplied via `external_knowledge`.
+
+### `apply_multi_disciplinary_dialectical_reasoning`
+
+```python
+def apply_multi_disciplinary_dialectical_reasoning(
+    self,
+    task: Dict[str, Any],
+    critic_agent: Any,
+    disciplinary_knowledge: Dict[str, Any],
+    disciplinary_agents: List[Any],
+) -> Dict[str, Any]:
+    """Apply dialectical reasoning with perspectives from multiple disciplines."""
+```
+
+Each disciplinary agent provides a perspective on the thesis. The results are
+combined to produce a synthesis that balances the concerns of different fields.
+
 ## Benefits of Using Knowledge Graph Utilities
 
 Using knowledge graph utilities with the WSDE model for dialectical reasoning provides several benefits:
