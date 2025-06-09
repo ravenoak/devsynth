@@ -513,6 +513,8 @@ After completing Phase 1: Foundation Stabilization, the project will move to sub
    - Expanded LLM capabilities
    - Property-based tests with Hypothesis (see docs/specifications/testing_infrastructure.md lines 448-456)
    - Optional SMT-based verification using Z3 or PySMT
+   - Configuration flags `formalVerification.propertyTesting` and
+     `formalVerification.smtChecks` become fully supported
    - Integration of verification results with dialectical review cycles
 
 2. **Phase 3: Enhanced Agent Collaboration**

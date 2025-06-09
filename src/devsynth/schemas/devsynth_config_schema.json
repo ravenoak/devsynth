@@ -204,6 +204,14 @@
         }
       },
       "required": ["global", "project"]
+    },
+    "formalVerification": {
+      "type": "object",
+      "description": "Controls optional formal verification steps",
+      "properties": {
+        "propertyTesting": {"type": "boolean", "description": "Enable property-based testing"},
+        "smtChecks": {"type": "boolean", "description": "Run SMT-based verification checks"}
+      }
     }
   },
   "required": [

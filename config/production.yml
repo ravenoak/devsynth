@@ -85,6 +85,10 @@ performance:
     preload_models: true
     batch_processing: true
 
+# Formal verification settings
+formalVerification:
+  propertyTesting: false
+  smtChecks: false
 # Feature flags - CONSERVATIVE FOR PRODUCTION
 features:
   wsde_collaboration: false
