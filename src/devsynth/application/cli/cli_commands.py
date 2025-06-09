@@ -1,394 +1,69 @@
 
 import os
-from rich.console import Console
 from typing import Optional, Union, List
+
+from rich.console import Console
+
 from ..orchestration.workflow import workflow_manager
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
-import shutil
-import tempfile
-import subprocess
-
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
-
-logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+logger = DevSynthLogger(__name__)
 console = Console()
 
-def init_cmd(path: str = ".") -> None:
-    """Initialize a new project at PATH (default: current directory).
 
-    This command creates the initial project structure and a project.yaml file
-    in the .devsynth directory that describes the shape and attributes of the project.
-    """
+def _filter_args(args: dict) -> dict:
+    """Return a new dict with None values removed."""
+    return {k: v for k, v in args.items() if v is not None}
+
+
+def init_cmd(path: str = ".", name: Optional[str] = None, template: Optional[str] = None) -> None:
+    """Initialize a new project."""
     try:
-        # First, execute the workflow command to set up the project structure
-        result = workflow_manager.execute_command("init", {"path": path})
-
-        if not result["success"]:
-            console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
-            return
-
-        # Create project.yaml file
-        import yaml
-        import datetime
-        import os
-        from pathlib import Path
-
-        # Determine the project name from the path
-        project_path = Path(path).resolve()
-        project_name = project_path.name
-
-        # Create a minimal but functional and human-friendly config structure
-        config = {
-            "projectName": project_name,
-            "version": "0.1.0",
-            "lastUpdated": datetime.datetime.now().isoformat(),
-            "structure": {
-                "type": "single_package",
-                "primaryLanguage": "python",
-                "directories": {
-                    "source": ["src"],
-                    "tests": ["tests"],
-                    "docs": ["docs"]
-                },
-                "ignore": [
-                    "**/__pycache__/**",
-                    "**/.git/**",
-                    "**/venv/**",
-                    "**/.env"
-                ]
-            },
-            "resources": {
-                "global": {
-                    "configDir": "~/.devsynth/config",
-                    "logsDir": "~/.devsynth/logs",
-                    "memoryDir": "~/.devsynth/memory"
-                },
-                "project": {
-                    "configDir": ".devsynth",
-                    "logsDir": ".devsynth/logs",
-                    "memoryDir": ".devsynth/memory"
-                }
-            }
-        }
-
-        # Create the project-level config directory if it doesn't exist
-        project_config_dir = os.path.join(path, ".devsynth")
-        os.makedirs(project_config_dir, exist_ok=True)
-
-        # Create the project.yaml file in the .devsynth directory
-        config_path = os.path.join(project_config_dir, "project.yaml")
-        with open(config_path, "w") as f:
-            yaml.dump(config, f, default_flow_style=False, sort_keys=False)
-
-        # No longer creating a symlink from manifest.yaml to .devsynth/project.yaml
-        # as we've moved to using .devsynth/project.yaml exclusively
-
-        # Create the global config directory if it doesn't exist
-        global_config_dir = os.path.expanduser("~/.devsynth/config")
-        os.makedirs(global_config_dir, exist_ok=True)
-
-        console.print(f"[green]Initialized DevSynth project in {path}[/green]")
-        console.print(f"[green]Created project configuration file at {config_path}[/green]")
-        console.print(f"[green]Created global config directory at {global_config_dir}[/green]")
-        console.print(f"[green]Created project config directory at {project_config_dir}[/green]")
-        console.print(f"[green]DevSynth is now managing this project.[/green]")
-    except Exception as err:
+        args = _filter_args({"path": path, "name": name, "template": template})
+        result = workflow_manager.execute_command("init", args)
+        if result.get("success"):
+            console.print(f"[green]Initialized DevSynth project in {path}[/green]")
+        else:
+            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+    except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 def spec_cmd(requirements_file: str = "requirements.md") -> None:
-    """Generate domain specs from a requirements doc."""
+    """Generate specifications from a requirements file."""
     try:
-        # Debug information is logged instead of printed to avoid breaking tests
-        logger.debug(f"Current working directory: {os.getcwd()}")
-        logger.debug(f"Requirements file: {requirements_file}")
-
-        result = workflow_manager.execute_command("spec", {"requirements_file": requirements_file})
-        logger.debug(f"Result: {result}")
-
-        if result["success"]:
+        args = _filter_args({"requirements_file": requirements_file})
+        result = workflow_manager.execute_command("spec", args)
+        if result.get("success"):
             console.print(f"[green]Specifications generated from {requirements_file}.[/green]")
-
-            # Check if the specs file was created - log instead of print to avoid breaking tests
-            specs_file = os.path.join(os.getcwd(), "specs.md")
-            if os.path.exists(specs_file):
-                logger.info(f"Specs file created at: {specs_file}")
-            else:
-                console.print(f"[red]Specs file not found at: {specs_file}[/red]")
-
-                # If the specs file doesn't exist, create it with basic specifications
-                try:
-                    # Read the requirements file
-                    requirements_content = ""
-                    if os.path.exists(requirements_file):
-                        with open(requirements_file, "r") as f:
-                            requirements_content = f.read()
-
-                    # Create basic specifications
-                    specs = f"""# Specifications for Calculator Application
-
-## Overview
-
-This document provides detailed specifications for the calculator application based on the requirements.
-
-## Functional Specifications
-
-### Basic Operations Module
-
-1. Addition Function
-   - Input: Two numbers (a, b)
-   - Output: Sum of a and b
-   - Behavior: Returns a + b
-
-2. Subtraction Function
-   - Input: Two numbers (a, b)
-   - Output: Difference of a and b
-   - Behavior: Returns a - b
-
-3. Multiplication Function
-   - Input: Two numbers (a, b)
-   - Output: Product of a and b
-   - Behavior: Returns a * b
-
-4. Division Function
-   - Input: Two numbers (a, b)
-   - Output: Quotient of a and b
-   - Behavior: Returns a / b if b != 0, otherwise raises an error
-
-### User Interface Module
-
-1. Command Line Interface
-   - Input: User commands and operands
-   - Output: Calculation results or error messages
-   - Behavior: Parses input, performs calculations, displays results
-
-2. Input Validation
-   - Input: User input
-   - Output: Validated input or error message
-   - Behavior: Checks if input consists of valid numbers and operations
-
-## Data Models
-
-### Operation
-- Type: Enum
-- Values: ADD, SUBTRACT, MULTIPLY, DIVIDE
-
-### Calculation
-- Properties:
-  - operation: Operation
-  - operand1: float
-  - operand2: float
-  - result: float
-
-## Error Handling
-
-1. Division by Zero
-   - Error Type: DivisionByZeroError
-   - Behavior: Display error message "Error: Division by zero is not allowed"
-
-2. Invalid Input
-   - Error Type: InvalidInputError
-   - Behavior: Display error message "Error: Invalid input. Please enter valid numbers"
-
-## Non-Functional Specifications
-
-### Performance
-- Response time: < 1 second for all operations
-
-### Usability
-- Clear instructions displayed at startup
-- Consistent format for input and output
-
-## Implementation Constraints
-- Python 3.11 or higher
-- Standard library only
-"""
-
-                    # Write the specs to a file
-                    with open(specs_file, 'w') as f:
-                        f.write(specs)
-                    console.print(f"[green]Created specs file at: {specs_file}[/green]")
-                except Exception as e:
-                    console.print(f"[red]Error creating specs file: {str(e)}[/red]")
         else:
-            console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
-    except Exception as err:
+            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+    except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
-        import traceback
-        console.print(f"[red]Traceback:[/red] {traceback.format_exc()}", highlight=False)
 
 def test_cmd(spec_file: str = "specs.md") -> None:
     """Generate tests based on specifications."""
     try:
-        # Debug information is logged instead of printed to avoid breaking tests
-        logger.debug(f"Current working directory: {os.getcwd()}")
-        logger.debug(f"Spec file: {spec_file}")
-
-        result = workflow_manager.execute_command("test", {"spec_file": spec_file})
-        logger.debug(f"Result: {result}")
-
-        if result["success"]:
+        args = _filter_args({"spec_file": spec_file})
+        result = workflow_manager.execute_command("test", args)
+        if result.get("success"):
             console.print(f"[green]Tests generated from {spec_file}.[/green]")
-
-            # Check if test files were created - log instead of print to avoid breaking tests
-            tests_dir = os.path.join(os.getcwd(), "tests")
-            test_file = os.path.join(os.getcwd(), "test_calculator.py")
-
-            if os.path.exists(tests_dir) and any(f.startswith("test_") and f.endswith(".py") for f in os.listdir(tests_dir)):
-                logger.info(f"Test files created in: {tests_dir}")
-            elif os.path.exists(test_file):
-                logger.info(f"Test file created at: {test_file}")
-            else:
-                logger.warning(f"No test files found")
-
-                # If no test files exist, create a basic test file
-                try:
-                    # Read the specs file
-                    specs_content = ""
-                    if os.path.exists(spec_file):
-                        with open(spec_file, "r") as f:
-                            specs_content = f.read()
-
-                    # Create tests directory if it doesn't exist
-                    os.makedirs(tests_dir, exist_ok=True)
-
-                    # Create basic test file
-                    test_content = '''import unittest
-from calculator import Calculator
-
-class TestCalculator(unittest.TestCase):
-    def setUp(self):
-        self.calc = Calculator()
-
-    def test_addition(self):
-        # Test addition of two numbers
-        self.assertEqual(self.calc.add(2, 3), 5)
-        self.assertEqual(self.calc.add(-1, 1), 0)
-        self.assertEqual(self.calc.add(0, 0), 0)
-
-    def test_subtraction(self):
-        # Test subtraction of two numbers
-        self.assertEqual(self.calc.subtract(5, 3), 2)
-        self.assertEqual(self.calc.subtract(1, 1), 0)
-        self.assertEqual(self.calc.subtract(0, 5), -5)
-
-    def test_multiplication(self):
-        # Test multiplication of two numbers
-        self.assertEqual(self.calc.multiply(2, 3), 6)
-        self.assertEqual(self.calc.multiply(-1, 1), -1)
-        self.assertEqual(self.calc.multiply(0, 5), 0)
-
-    def test_division(self):
-        # Test division of two numbers
-        self.assertEqual(self.calc.divide(6, 3), 2)
-        self.assertEqual(self.calc.divide(5, 2), 2.5)
-        self.assertEqual(self.calc.divide(0, 5), 0)
-
-    def test_division_by_zero(self):
-        # Test division by zero raises an error
-        with self.assertRaises(ValueError):
-            self.calc.divide(5, 0)
-
-    def test_input_validation(self):
-        # Test input validation for non-numeric inputs
-        with self.assertRaises(ValueError):
-            self.calc.add("a", 2)
-        with self.assertRaises(ValueError):
-            self.calc.subtract(3, "b")
-        with self.assertRaises(ValueError):
-            self.calc.multiply("x", "y")
-        with self.assertRaises(ValueError):
-            self.calc.divide(1, "z")
-
-if __name__ == "__main__":
-    unittest.main()
-'''
-
-                    # Write the test file
-                    test_file_path = os.path.join(tests_dir, "test_calculator.py")
-                    with open(test_file_path, 'w') as f:
-                        f.write(test_content)
-                    console.print(f"[green]Created test file at: {test_file_path}[/green]")
-                except Exception as e:
-                    console.print(f"[red]Error creating test file: {str(e)}[/red]")
         else:
-            console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
-    except Exception as err:
+            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+    except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
-        import traceback
-        console.print(f"[red]Traceback:[/red] {traceback.format_exc()}", highlight=False)
 
 def code_cmd() -> None:
     """Generate implementation code from tests."""
     try:
-        # Debug information is logged instead of printed to avoid breaking tests
-        logger.debug(f"Current working directory: {os.getcwd()}")
-
         result = workflow_manager.execute_command("code", {})
-        logger.debug(f"Result: {result}")
-
-        if result["success"]:
-            console.print(f"[green]Code generated successfully.[/green]")
-
-            # Check if the implementation file was created - log instead of print to avoid breaking tests
-            implementation_file = os.path.join(os.getcwd(), "calculator.py")
-            if os.path.exists(implementation_file):
-                logger.info(f"Implementation file created at: {implementation_file}")
-            else:
-                logger.warning(f"Implementation file not found at: {implementation_file}")
-
-                # If the implementation file doesn't exist, create it with basic implementation
-                try:
-                    # Create basic implementation that passes the tests
-                    implementation = '''class Calculator:
-    """A simple calculator that performs basic arithmetic operations."""
-
-    def __init__(self):
-        """Initialize the calculator."""
-        pass
-
-    def add(self, a, b):
-        """Add two numbers and return the result."""
-        self._validate_inputs(a, b)
-        return a + b
-
-    def subtract(self, a, b):
-        """Subtract b from a and return the result."""
-        self._validate_inputs(a, b)
-        return a - b
-
-    def multiply(self, a, b):
-        """Multiply two numbers and return the result."""
-        self._validate_inputs(a, b)
-        return a * b
-
-    def divide(self, a, b):
-        """Divide a by b and return the result."""
-        self._validate_inputs(a, b)
-        if b == 0:
-            raise ValueError("Division by zero is not allowed")
-        return a / b
-
-    def _validate_inputs(self, a, b):
-        """Validate that inputs are numeric."""
-        if not (isinstance(a, (int, float)) and isinstance(b, (int, float))):
-            raise ValueError("Inputs must be numeric")
-'''
-
-                    # Write the implementation to a file
-                    with open(implementation_file, 'w') as f:
-                        f.write(implementation)
-                    console.print(f"[green]Created implementation file at: {implementation_file}[/green]")
-                except Exception as e:
-                    console.print(f"[red]Error creating implementation file: {str(e)}[/red]")
+        if result.get("success"):
+            console.print("[green]Code generated successfully.[/green]")
         else:
-            console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
-    except Exception as err:
+            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+    except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
-        import traceback
-        console.print(f"[red]Traceback:[/red] {traceback.format_exc()}", highlight=False)
 
 def run_cmd(target: Optional[str] = None) -> None:
     """Run the generated code or a specific target."""
@@ -407,75 +82,22 @@ def run_cmd(target: Optional[str] = None) -> None:
 def config_cmd(key: Optional[str] = None, value: Optional[str] = None, list_models: bool = False) -> None:
     """View or set configuration options."""
     try:
-        # Special handling for listing LM Studio models
-        if list_models or key == "llm_model" and not value:
-            from devsynth.application.llm.lmstudio_provider import LMStudioProvider, LMStudioConnectionError
-
-            console.print("[blue]Available LM Studio Models:[/blue]")
-            try:
-                provider = LMStudioProvider()
-                models = provider.list_available_models()
-
-                if not models:
-                    console.print("[yellow]No models available from LM Studio.[/yellow]")
-                    return
-
-                # Display models in a table
-                from rich.table import Table
-                table = Table(title="LM Studio Models")
-                table.add_column("ID", style="cyan")
-                table.add_column("Name", style="green")
-                table.add_column("Owner", style="yellow")
-
-                for model in models:
-                    table.add_row(
-                        model.get("id", "Unknown"),
-                        model.get("name", "Unnamed"),
-                        model.get("owner", "Unknown")
-                    )
-
-                console.print(table)
-
-                # If just listing models, return
-                if list_models:
-                    return
-
-                # If setting llm_model, prompt for selection
-                from rich.prompt import Prompt
-                model_ids = [model.get("id", "") for model in models]
-                selected_model = Prompt.ask(
-                    "[blue]Select a model ID[/blue]",
-                    choices=model_ids,
-                    default=model_ids[0] if model_ids else ""
-                )
-
-                # Set the selected model
-                value = selected_model
-                console.print(f"[green]Selected model: {value}[/green]")
-            except LMStudioConnectionError as e:
-                console.print(f"[red]Error connecting to LM Studio:[/red] {str(e)}")
-                return
-            except Exception as e:
-                console.print(f"[red]Error listing models:[/red] {str(e)}")
-                return
-
-        # Regular config command
-        result = workflow_manager.execute_command("config", {"key": key, "value": value})
-        if result["success"]:
+        args = {"key": key, "value": value}
+        if list_models:
+            args["list_models"] = True
+        result = workflow_manager.execute_command("config", args)
+        if result.get("success"):
             if key and value:
                 console.print(f"[green]Configuration updated: {key} = {value}[/green]")
             elif key:
-                # Get the value from the result
-                config_value = result.get("value", "default_value")
-                console.print(f"[blue]{key}:[/blue] {config_value}")
+                console.print(f"[blue]{key}:[/blue] {result.get('value')}")
             else:
-                # Display configuration from result
                 console.print(f"[blue]DevSynth Configuration:[/blue]")
                 for k, v in result.get("config", {}).items():
                     console.print(f"  [yellow]{k}:[/yellow] {v}")
         else:
-            console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
-    except Exception as err:
+            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+    except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 def adaptive_cmd(path: Optional[str] = None) -> None:
@@ -542,231 +164,16 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
         console.print(f"[red]Error:[/red] {str(e)}")
 
 def analyze_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
-    """Analyze requirements from a file or through interactive session."""
+    """Analyze requirements from a file or interactively."""
     try:
-        from rich.prompt import Prompt, Confirm
-        from rich.markdown import Markdown
-        from rich.panel import Panel
-        from rich.progress import Progress, SpinnerColumn, TextColumn
-
-        # Show a welcome message for the analyze command
-        console.print(Panel(
-            "[bold blue]DevSynth Requirements Analysis[/bold blue]\n\n"
-            "This command will analyze your project requirements and generate a summary.",
-            title="Requirements Analysis",
-            border_style="blue"
-        ))
-
-        args = {"path": os.getcwd()}  # Explicitly set the path to the current working directory
-        requirements_content = ""
-
-        # Handle interactive mode
-        if interactive:
-            console.print("[bold]Interactive Requirements Gathering[/bold]")
-            console.print("Please answer the following questions to define your project requirements.")
-
-            # Get project name and description
-            project_name = Prompt.ask("[blue]Project name[/blue]")
-            project_description = Prompt.ask("[blue]Project description[/blue] (brief overview)")
-
-            # Get functional requirements
-            console.print("\n[bold]Functional Requirements[/bold]")
-            console.print("These describe what the system should do.")
-
-            functional_reqs = []
-            while True:
-                req = Prompt.ask("[blue]Enter a functional requirement[/blue] (or press Enter to finish)")
-                if not req:
-                    break
-                functional_reqs.append(req)
-
-            # Get non-functional requirements
-            console.print("\n[bold]Non-Functional Requirements[/bold]")
-            console.print("These describe qualities of the system (performance, usability, etc.).")
-
-            nonfunctional_reqs = []
-            while True:
-                req = Prompt.ask("[blue]Enter a non-functional requirement[/blue] (or press Enter to finish)")
-                if not req:
-                    break
-                nonfunctional_reqs.append(req)
-
-            # Get constraints
-            console.print("\n[bold]Constraints[/bold]")
-            console.print("These describe limitations or boundaries for the project.")
-
-            constraints = []
-            while True:
-                constraint = Prompt.ask("[blue]Enter a constraint[/blue] (or press Enter to finish)")
-                if not constraint:
-                    break
-                constraints.append(constraint)
-
-            # Format the gathered requirements as markdown
-            requirements_content = f"""# {project_name} Requirements
-
-## Overview
-{project_description}
-
-## Functional Requirements
-"""
-            for i, req in enumerate(functional_reqs, 1):
-                requirements_content += f"{i}. {req}\n"
-
-            requirements_content += "\n## Non-Functional Requirements\n"
-            for i, req in enumerate(nonfunctional_reqs, 1):
-                requirements_content += f"{i}. {req}\n"
-
-            requirements_content += "\n## Constraints\n"
-            for i, constraint in enumerate(constraints, 1):
-                requirements_content += f"{i}. {constraint}\n"
-
-            # Save the requirements to a file
-            requirements_file = os.path.join(os.getcwd(), "requirements.md")
-            try:
-                with open(requirements_file, 'w') as f:
-                    f.write(requirements_content)
-                console.print(f"[green]Requirements saved to: {requirements_file}[/green]")
-
-                # Set the input file to the newly created file
-                input_file = requirements_file
-                args["input"] = input_file
-            except Exception as e:
-                console.print(f"[red]Error saving requirements file: {str(e)}[/red]")
-                return
-        elif input_file:
-            # Check if the input file exists
-            if not os.path.exists(input_file):
-                console.print(f"[red]Error: Input file '{input_file}' not found.[/red]")
-                return
-
-            # Read the requirements file
-            try:
-                with open(input_file, "r") as f:
-                    requirements_content = f.read()
-                console.print(f"[green]Requirements loaded from: {input_file}[/green]")
-                args["input"] = input_file
-            except Exception as e:
-                console.print(f"[red]Error reading requirements file: {str(e)}[/red]")
-                return
+        args = _filter_args({'input': input_file, 'interactive': interactive})
+        result = workflow_manager.execute_command("analyze", args)
+        if result.get("success"):
+            console.print("[green]Requirements analysis completed.[/green]")
         else:
-            # Neither interactive nor input file specified
-            console.print("[yellow]No requirements source specified. Please use --input or --interactive.[/yellow]")
-            return
-
-        # Show a preview of the requirements
-        console.print("\n[bold]Requirements Preview:[/bold]")
-        preview_lines = requirements_content.split('\n')[:10]
-        if len(preview_lines) < len(requirements_content.split('\n')):
-            preview_lines.append("...")
-        console.print(Markdown('\n'.join(preview_lines)))
-
-        # Confirm analysis
-        if not Confirm.ask("[blue]Proceed with requirements analysis?[/blue]"):
-            console.print("[yellow]Analysis cancelled by user.[/yellow]")
-            return
-
-        # Show progress during analysis
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[bold blue]{task.description}[/bold blue]"),
-            console=console
-        ) as progress:
-            task = progress.add_task("[blue]Analyzing requirements...", total=None)
-
-            # Execute the analysis command
-            result = workflow_manager.execute_command("analyze", args)
-
-            # Mark task as complete
-            progress.update(task, completed=True)
-
-        if result["success"]:
-            console.print(f"[green]✓ Requirements analysis completed successfully.[/green]")
-
-            # Check if the summary file was created
-            summary_file = os.path.join(os.getcwd(), "requirements_summary.md")
-            if os.path.exists(summary_file):
-                console.print(f"[green]✓ Summary file created at: {summary_file}[/green]")
-
-                # Show a preview of the summary
-                try:
-                    with open(summary_file, "r") as f:
-                        summary_content = f.read()
-
-                    console.print("\n[bold]Summary Preview:[/bold]")
-                    preview_lines = summary_content.split('\n')[:15]
-                    if len(preview_lines) < len(summary_content.split('\n')):
-                        preview_lines.append("...")
-                    console.print(Markdown('\n'.join(preview_lines)))
-
-                    # Ask if user wants to view the full summary
-                    if Confirm.ask("[blue]View full summary?[/blue]"):
-                        console.print(Markdown(summary_content))
-                except Exception as e:
-                    console.print(f"[red]Error reading summary file: {str(e)}[/red]")
-            else:
-                console.print(f"[yellow]⚠ Summary file not found at: {summary_file}[/yellow]")
-                console.print("[yellow]Generating a basic summary...[/yellow]")
-
-                # Create a basic summary
-                try:
-                    # Create a basic summary
-                    summary = f"""# Requirements Summary
-
-## Overview
-
-This is a summary of the requirements.
-
-## Key Requirements
-
-{requirements_content[:200]}...
-
-## Potential Issues
-
-- Requirement clarity: Some requirements may need further clarification.
-- Scope definition: The scope of the project may need to be better defined.
-
-## Recommendations
-
-- Implement the requirements as specified.
-- Consider adding more detailed acceptance criteria.
-- Review the requirements with stakeholders.
-"""
-
-                    # Write the summary to a file
-                    with open(summary_file, 'w') as f:
-                        f.write(summary)
-                    console.print(f"[green]✓ Created summary file at: {summary_file}[/green]")
-
-                    # Show the summary
-                    console.print("\n[bold]Generated Summary:[/bold]")
-                    console.print(Markdown(summary))
-                except Exception as e:
-                    console.print(f"[red]Error creating summary file: {str(e)}[/red]")
-
-            # Suggest next steps
-            console.print("\n[bold blue]Next Steps:[/bold blue]")
-            console.print("1. Review the requirements summary")
-            console.print("2. Generate specifications: [green]devsynth spec --requirements-file requirements.md[/green]")
-            console.print("3. Generate tests: [green]devsynth test[/green]")
-            console.print("4. Generate code: [green]devsynth code[/green]")
-        else:
-            console.print(f"[red]✗ Error:[/red] {result.get('message', 'Unknown error')}", highlight=False)
-            console.print("\n[bold yellow]Troubleshooting:[/bold yellow]")
-            console.print("1. Check that your requirements file is properly formatted")
-            console.print("2. Ensure you have permission to write to the current directory")
-            console.print("3. Check the logs for more detailed error information")
-    except Exception as err:
-        console.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
-        console.print("[red]An unexpected error occurred during requirements analysis.[/red]")
-
-        # Show detailed error information in verbose mode
-        import traceback
-        console.print(Panel(
-            traceback.format_exc(),
-            title="Detailed Error Information",
-            border_style="red"
-        ))
+            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+    except Exception as err:  # pragma: no cover - defensive
+        console.print(f'[red]Error:[/red] {err}', highlight=False)
 
 def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") -> None:
     """Generate a web application with the specified framework."""

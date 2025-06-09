@@ -2,7 +2,15 @@ from unittest.mock import patch
 
 import pytest
 
-from devsynth.application.cli.cli_commands import (code_cmd, config_cmd, init_cmd, run_cmd, spec_cmd, test_cmd)
+from devsynth.application.cli.cli_commands import (
+    code_cmd,
+    config_cmd,
+    init_cmd,
+    run_cmd,
+    spec_cmd,
+    test_cmd,
+    analyze_cmd,
+)
 
 
 class TestCLICommands:
@@ -227,3 +235,27 @@ class TestCLICommands:
             "config", {"key": None, "value": None}
         )
         assert mock_console.print.call_count == 4  # Header + 3 config items
+
+    def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_console):
+        """Init command with additional parameters."""
+        mock_workflow_manager.execute_command.return_value = {"success": True}
+        init_cmd(path=".", name="proj", template="web-app")
+        mock_workflow_manager.execute_command.assert_called_once_with(
+            "init", {"path": ".", "name": "proj", "template": "web-app"}
+        )
+
+    def test_analyze_cmd_file(self, mock_workflow_manager, mock_console):
+        """Analyze command with input file."""
+        mock_workflow_manager.execute_command.return_value = {"success": True}
+        analyze_cmd("requirements.md")
+        mock_workflow_manager.execute_command.assert_called_once_with(
+            "analyze", {"input": "requirements.md"}
+        )
+
+    def test_analyze_cmd_interactive(self, mock_workflow_manager, mock_console):
+        """Analyze command in interactive mode."""
+        mock_workflow_manager.execute_command.return_value = {"success": True}
+        analyze_cmd(interactive=True)
+        mock_workflow_manager.execute_command.assert_called_once_with(
+            "analyze", {"interactive": True}
+        )
