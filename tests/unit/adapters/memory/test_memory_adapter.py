@@ -12,6 +12,8 @@ from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.faiss_store import FAISSStore
+from devsynth.application.memory.rdflib_store import RDFLibStore
+from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
 from devsynth.application.memory.persistent_context_manager import PersistentContextManager
 from devsynth.exceptions import MemoryStoreError
 
@@ -213,3 +215,33 @@ class TestMemorySystemAdapter:
         assert retrieved_item.id == item_id
         assert retrieved_vector.id == vector_id
         assert retrieved_vector.metadata.get("memory_item_id") == item_id
+
+    def test_init_with_rdflib_storage(self, temp_dir):
+        """Test initialization with RDFLib storage."""
+        config = {
+            "memory_store_type": "rdflib",
+            "memory_file_path": temp_dir,
+            "max_context_size": 1000,
+            "context_expiration_days": 1,
+            "vector_store_enabled": True,
+        }
+        adapter = MemorySystemAdapter(config=config)
+
+        assert adapter.storage_type == "rdflib"
+        assert adapter.memory_path == temp_dir
+        assert isinstance(adapter.memory_store, RDFLibStore)
+        assert isinstance(adapter.context_manager, PersistentContextManager)
+        assert adapter.vector_store is adapter.memory_store
+
+    def test_init_with_in_memory_storage(self):
+        """Test initialization with in-memory storage."""
+        config = {
+            "memory_store_type": "memory",
+            "vector_store_enabled": False,
+        }
+        adapter = MemorySystemAdapter(config=config)
+
+        assert adapter.storage_type == "memory"
+        assert isinstance(adapter.memory_store, InMemoryStore)
+        assert isinstance(adapter.context_manager, SimpleContextManager)
+        assert adapter.vector_store is None
