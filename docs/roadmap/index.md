@@ -50,3 +50,4 @@ If you're interested in DevSynth's future direction, we recommend starting with 
 - [Specifications](../specifications/index.md) - Detailed specifications for DevSynth components
 - [Architecture](../architecture/index.md) - Overview of DevSynth's architecture
 - [Project Analysis](../analysis/index.md) - Analysis of the DevSynth project
+- [Progressive Feature Setup](../user_guides/progressive_setup.md) - Step-by-step enablement guide

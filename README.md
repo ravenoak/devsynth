@@ -47,6 +47,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Quick Start Guide](docs/getting_started/quick_start_guide.md)
 - [Installation Guide](docs/getting_started/installation.md) *(includes pipx instructions)*
 - [User Guide](docs/user_guides/user_guide.md)
+- [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Project Analysis](docs/analysis/executive_summary.md)
 - [Implementation Status](docs/implementation/feature_status_matrix.md)
