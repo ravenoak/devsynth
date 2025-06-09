@@ -478,6 +478,7 @@ This roadmap transforms the comprehensive analysis findings into a practical, ph
 - [ ] **Property-based Verification**
   - Implement property-based tests with Hypothesis using the property-based test hooks (see docs/specifications/testing_infrastructure.md lines 448-456).
   - Add optional SMT-based verification with Z3 or PySMT.
+  - Once complete, the `formalVerification` configuration options will be fully supported.
   - Integrate verification results with dialectical review cycles.
 
 **Deliverables:**

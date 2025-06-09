@@ -218,6 +218,15 @@ def test_code_analyzer_with_random_files(file_contents):
         shutil.rmtree(temp_dir)
 ```
 
+The configuration file now includes a `formalVerification` section with two
+flags:
+
+- `propertyTesting` &ndash; enables these Hypothesis-based checks when set to
+  `true`.
+- `smtChecks` &ndash; runs optional SMT solver verification passes when `true`.
+
+Both flags default to `false` in the example configurations.
+
 ### 3.5 Self-Testing Framework
 
 The self-testing framework will leverage DevSynth's own capabilities to test itself:

@@ -101,6 +101,11 @@ performance:
     max_workers: 4
     timeout: 300  # seconds
 
+# Formal verification settings
+formalVerification:
+  propertyTesting: false
+  smtChecks: false
+
 # Feature flags
 features:
   wsde_collaboration: false
