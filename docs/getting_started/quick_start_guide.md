@@ -65,6 +65,10 @@ cd my-first-project
 
 This command creates a new project directory with the necessary structure for DevSynth to work with.
 
+DevSynth generates a `.devsynth/project.yaml` file during initialization. You
+can use the [templates/project.yaml](../../templates/project.yaml) file as a
+minimal example configuration.
+
 ### Step 2: Define Your Requirements
 
 Create a file named `requirements.md` in your project directory with your project requirements:

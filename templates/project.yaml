@@ -1,0 +1,32 @@
+projectName: example-project
+version: 0.1.0
+lastUpdated: 2025-05-25T12:00:00
+structure:
+  type: single_package
+  primaryLanguage: python
+  directories:
+    source: ["src"]
+    tests: ["tests"]
+    docs: ["docs"]
+  entryPoints: ["src/main.py"]
+  ignore: ["**/__pycache__/**", "**/.git/**", "**/venv/**", "**/.env"]
+keyArtifacts:
+  docs:
+    - path: README.md
+      purpose: Project overview and getting started guide
+methodology:
+  type: sprint
+  settings:
+    sprintDuration: 14
+    reviewFrequency: 7
+resources:
+  global:
+    configDir: ~/.devsynth/config
+    cacheDir: ~/.devsynth/cache
+    logsDir: ~/.devsynth/logs
+    memoryDir: ~/.devsynth/memory
+  project:
+    configDir: .devsynth
+    cacheDir: .devsynth/cache
+    logsDir: .devsynth/logs
+    memoryDir: .devsynth/memory
