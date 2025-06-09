@@ -55,9 +55,9 @@ performance:
 
 # Feature flags - selectively enable for tests
 features:
-  wsde_collaboration: true
-  dialectical_reasoning: true
-  code_generation: true
-  test_generation: true
-  documentation_generation: true
+  wsde_collaboration: false
+  dialectical_reasoning: false
+  code_generation: false
+  test_generation: false
+  documentation_generation: false
   experimental_features: false
