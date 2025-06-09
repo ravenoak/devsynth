@@ -435,6 +435,31 @@ response = await chat_service.send_message(
 )
 ```
 
+## Dialectical Reasoning Flag
+
+The behavior of agents is controlled by the `features.dialectical_reasoning` flag
+in `.devsynth/project.yaml`. When this flag is set to `true`, agents automatically
+perform thesis/antithesis/synthesis cycles during tasks such as requirement
+analysis or design discussions. Disabling the flag reverts agents to simpler
+critique without the full dialectical loop.
+
+### Customizing Depth and Cycle Frequency
+
+You can adjust how many reasoning cycles run and how deep each cycle recurses by
+adding optional settings under `dialectical_reasoning`:
+
+```yaml
+features:
+  dialectical_reasoning: true
+dialectical_reasoning:
+  cycles: 1  # number of reasoning passes
+  depth: 2   # recursion depth for nested reasoning
+```
+
+Keep these values low at first to minimize resource usage. The [Progressive
+Feature Setup guide](../user_guides/progressive_setup.md#enabling-dialectical-reasoning)
+explains how to gradually increase reasoning depth as your project grows.
+
 ## Performance and Scalability Considerations
 
 - **Caching**: Cache reasoning results for similar requirements and changes

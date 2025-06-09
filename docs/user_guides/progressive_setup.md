@@ -45,6 +45,8 @@ This guide describes how to install DevSynth with minimal features and progressi
 
    This sets `features.dialectical_reasoning: true` in the configuration file. See [docs/configuration.md](../configuration.md) for a full description of feature flags.
 
+   For details on how this flag changes agent behavior and how to tune reasoning depth, see [Dialectical Reasoning Flag](../architecture/dialectical_reasoning.md#dialectical-reasoning-flag).
+
 2. Run your workflows as usual. When dialectical reasoning is enabled, agents will perform critique and synthesis steps automatically.
 
 ## Enabling Property-Based Tests
