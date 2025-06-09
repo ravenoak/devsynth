@@ -36,9 +36,8 @@ def context():
 # Background steps
 @given('the DevSynth system is initialized')
 def devsynth_initialized(context):
-    # This would normally initialize the DevSynth system
-    # For now, we'll just simulate it
-    pass
+    """Ensure the test context exists for performance tests."""
+    assert context is not None
 
 @given('a test project with 100 files is loaded')
 def test_project_loaded(context):

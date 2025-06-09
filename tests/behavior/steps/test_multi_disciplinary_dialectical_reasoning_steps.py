@@ -33,8 +33,8 @@ def create_mock_agent(name, expertise):
 # Background steps
 @given("the DevSynth system is initialized")
 def devsynth_initialized(context):
-    # Mock initialization
-    pass
+    """Ensure the context object for WSDE reasoning exists."""
+    assert context is not None
 
 @given("a WSDE team is created with multiple disciplinary agents")
 def wsde_team_created(context):

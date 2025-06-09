@@ -103,8 +103,8 @@ def context():
 @given('the DevSynth system is initialized')
 def devsynth_initialized(context):
     """Step: the DevSynth system is initialized."""
-    # The context fixture already initializes the system
-    pass
+    assert context.memory_store is not None
+    assert context.context_manager is not None
 
 
 @given('a memory store is configured')
