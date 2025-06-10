@@ -468,6 +468,15 @@ explains how to gradually increase reasoning depth as your project grows.
 - **Resource Management**: Monitor and limit concurrent reasoning processes
 - **Persistence Strategy**: Store reasoning artifacts efficiently based on access patterns
 
+## Current Limitations
+
+Dialectical reasoning support is only partially implemented. Argument weighting,
+multi-agent interaction, and transparency tooling are still incomplete. The
+feature is disabled by default via the `features.dialectical_reasoning` flag in
+`config/default.yml`. See the
+[Feature Status Matrix](../implementation/feature_status_matrix.md) for up-to-date
+implementation progress.
+
 ## Future Enhancements
 
 - **Collaborative Reasoning**: Support multiple participants in the dialectical process

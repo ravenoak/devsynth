@@ -95,6 +95,15 @@ The Worker Self-Directed Enterprise model is a collaborative agent system with p
 
 **Overall Integration Completeness**: 50%
 
+## Current Limitations
+
+The WSDE model is only partially realized. Dynamic leadership, consensus
+building, and collaborative memory are still incomplete. By default the
+`features.wsde_collaboration` and `features.dialectical_reasoning` flags in
+`config/default.yml` are disabled, so these capabilities must be manually
+enabled. The
+[Feature Status Matrix](feature_status_matrix.md) tracks ongoing progress.
+
 ## Critical Gaps and Priorities
 
 ### High Priority Components (Essential)
