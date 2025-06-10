@@ -68,5 +68,8 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-58 | Peer review mechanism for agent outputs | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/peer_review.py | tests/behavior/features/wsde_message_passing_peer_review.feature | Implemented |
 | FR-59 | Advanced query patterns across memory stores | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/query_router.py | tests/behavior/features/hybrid_memory_query_patterns.feature | Planned |
 | FR-60 | Synchronization between memory stores | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/sync_manager.py | tests/behavior/features/hybrid_memory_query_patterns.feature | Planned |
+| FR-61 | Authentication utilities with Argon2 hashing | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/authentication.py | tests/unit/security/test_authentication.py | Implemented |
+| FR-62 | Role-based authorization checks | [Security and Privacy Framework](analysis/critical_recommendations.md#5-security-and-privacy-framework-high) | src/devsynth/security/authorization.py | tests/unit/security/test_authorization.py | Implemented |
+| FR-63 | Input sanitization utilities | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/sanitization.py | tests/unit/security/test_sanitization.py | Implemented |
 
 _Last updated: May 31, 2025_

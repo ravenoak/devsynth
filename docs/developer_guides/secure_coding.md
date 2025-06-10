@@ -172,6 +172,16 @@ For all API endpoints:
 - Implement rate limiting to prevent abuse
 - Set appropriate security headers
 
+### Security Utilities
+
+DevSynth includes helper modules for common security tasks:
+
+- `security.authentication` provides Argon2-based password hashing and simple authentication helpers.
+- `security.authorization` offers role-based access control checks.
+- `security.sanitization` contains input sanitization utilities.
+
+Use these modules when implementing features that require authentication, authorization, or input validation.
+
 ### Dependency Management
 
 For managing dependencies:
