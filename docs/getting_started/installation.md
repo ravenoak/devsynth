@@ -38,8 +38,8 @@ pipx install devsynth
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
-# Install in an isolated environment
-pipx install --editable .
+# Install with development dependencies
+pip install -e .[dev]
 
 # Or use Poetry
 poetry install
