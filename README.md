@@ -150,7 +150,7 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/developer_guides/contributing.md](docs/developer_guides/contributing.md) for guidelines, code style, and development setup.
 
 ## License
-DevSynth is released under the MIT License. See [LICENSE.md](LICENSE.md) for details.
+DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
