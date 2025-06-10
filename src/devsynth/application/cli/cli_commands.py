@@ -1,8 +1,10 @@
-
 import os
 from typing import Optional, Union, List
 
 from rich.console import Console
+from rich.prompt import Confirm
+from pathlib import Path
+import yaml
 
 from ..orchestration.workflow import workflow_manager
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
@@ -18,17 +20,60 @@ def _filter_args(args: dict) -> dict:
     return {k: v for k, v in args.items() if v is not None}
 
 
-def init_cmd(path: str = ".", name: Optional[str] = None, template: Optional[str] = None) -> None:
+def init_cmd(
+    path: str = ".", name: Optional[str] = None, template: Optional[str] = None
+) -> None:
     """Initialize a new project."""
     try:
         args = _filter_args({"path": path, "name": name, "template": template})
         result = workflow_manager.execute_command("init", args)
         if result.get("success"):
             console.print(f"[green]Initialized DevSynth project in {path}[/green]")
+
+            # Prompt for optional feature flags
+            feature_flags = {
+                "code_generation": False,
+                "test_generation": False,
+                "documentation_generation": False,
+                "wsde_collaboration": False,
+                "dialectical_reasoning": False,
+                "experimental_features": False,
+            }
+
+            console.print("\n[bold]Select optional features to enable:[/bold]")
+            for flag in feature_flags:
+                feature_flags[flag] = Confirm.ask(
+                    f"Enable {flag.replace('_', ' ')}?", default=False
+                )
+
+            # Create configuration file under .devsynth/project.yaml
+            project_root = Path(path)
+            devsynth_dir = project_root / ".devsynth"
+            devsynth_dir.mkdir(parents=True, exist_ok=True)
+            config_path = devsynth_dir / "project.yaml"
+
+            if config_path.exists():
+                with open(config_path, "r") as f:
+                    config = yaml.safe_load(f) or {}
+            else:
+                template_path = (
+                    Path(__file__).resolve().parents[4] / "templates" / "project.yaml"
+                )
+                with open(template_path, "r") as f:
+                    config = yaml.safe_load(f) or {}
+
+            if name:
+                config["projectName"] = name
+
+            config.setdefault("features", {}).update(feature_flags)
+
+            with open(config_path, "w") as f:
+                yaml.safe_dump(config, f)
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
+
 
 def spec_cmd(requirements_file: str = "requirements.md") -> None:
     """Generate specifications from a requirements file."""
@@ -36,11 +81,14 @@ def spec_cmd(requirements_file: str = "requirements.md") -> None:
         args = _filter_args({"requirements_file": requirements_file})
         result = workflow_manager.execute_command("spec", args)
         if result.get("success"):
-            console.print(f"[green]Specifications generated from {requirements_file}.[/green]")
+            console.print(
+                f"[green]Specifications generated from {requirements_file}.[/green]"
+            )
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
+
 
 def test_cmd(spec_file: str = "specs.md") -> None:
     """Generate tests based on specifications."""
@@ -54,6 +102,7 @@ def test_cmd(spec_file: str = "specs.md") -> None:
     except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
+
 def code_cmd() -> None:
     """Generate implementation code from tests."""
     try:
@@ -64,6 +113,7 @@ def code_cmd() -> None:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
+
 
 def run_cmd(target: Optional[str] = None) -> None:
     """Run the generated code or a specific target."""
@@ -79,7 +129,10 @@ def run_cmd(target: Optional[str] = None) -> None:
     except Exception as err:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
-def config_cmd(key: Optional[str] = None, value: Optional[str] = None, list_models: bool = False) -> None:
+
+def config_cmd(
+    key: Optional[str] = None, value: Optional[str] = None, list_models: bool = False
+) -> None:
     """View or set configuration options."""
     try:
         args = {"key": key, "value": value}
@@ -100,6 +153,7 @@ def config_cmd(key: Optional[str] = None, value: Optional[str] = None, list_mode
     except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
+
 def adaptive_cmd(path: Optional[str] = None) -> None:
     """
     Execute an adaptive workflow based on the current project state.
@@ -119,13 +173,15 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
         console = Console()
 
         # Show a welcome message for the adaptive command
-        console.print(Panel(
-            "[bold blue]DevSynth Adaptive Workflow[/bold blue]\n\n"
-            "This command will analyze your project state, determine the optimal workflow, "
-            "and suggest appropriate next steps.",
-            title="Adaptive Workflow",
-            border_style="blue"
-        ))
+        console.print(
+            Panel(
+                "[bold blue]DevSynth Adaptive Workflow[/bold blue]\n\n"
+                "This command will analyze your project state, determine the optimal workflow, "
+                "and suggest appropriate next steps.",
+                title="Adaptive Workflow",
+                border_style="blue",
+            )
+        )
 
         # Set the project path
         project_path = path or os.getcwd()
@@ -133,7 +189,7 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
         # Execute the adaptive workflow
         result = adaptive_workflow_manager.execute_adaptive_workflow(project_path)
 
-        if result.get('success', False):
+        if result.get("success", False):
             # Display the workflow information
             console.print(f"[green]Workflow:[/green] {result['workflow']}")
             console.print(f"[green]Entry Point:[/green] {result['entry_point']}")
@@ -147,11 +203,11 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
             table.add_column("Command", style="green")
             table.add_column("Description")
 
-            for suggestion in result['suggestions']:
+            for suggestion in result["suggestions"]:
                 table.add_row(
-                    suggestion['priority'].upper(),
-                    suggestion['command'],
-                    suggestion['description']
+                    suggestion["priority"].upper(),
+                    suggestion["command"],
+                    suggestion["description"],
                 )
 
             console.print(table)
@@ -163,17 +219,19 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
     except Exception as e:
         console.print(f"[red]Error:[/red] {str(e)}")
 
+
 def analyze_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
     """Analyze requirements from a file or interactively."""
     try:
-        args = _filter_args({'input': input_file, 'interactive': interactive})
+        args = _filter_args({"input": input_file, "interactive": interactive})
         result = workflow_manager.execute_command("analyze", args)
         if result.get("success"):
             console.print("[green]Requirements analysis completed.[/green]")
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f'[red]Error:[/red] {err}', highlight=False)
+        console.print(f"[red]Error:[/red] {err}", highlight=False)
+
 
 def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") -> None:
     """Generate a web application with the specified framework."""
@@ -185,20 +243,26 @@ def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") 
         from rich.table import Table
 
         # Show a welcome message for the webapp command
-        console.print(Panel(
-            f"[bold blue]DevSynth Web Application Generator[/bold blue]\n\n"
-            f"This command will generate a basic web application using the {framework} framework.",
-            title="Web Application Generator",
-            border_style="blue"
-        ))
+        console.print(
+            Panel(
+                f"[bold blue]DevSynth Web Application Generator[/bold blue]\n\n"
+                f"This command will generate a basic web application using the {framework} framework.",
+                title="Web Application Generator",
+                border_style="blue",
+            )
+        )
 
         # Validate and normalize the framework name
         framework = framework.lower()
         supported_frameworks = ["flask", "fastapi", "django", "express"]
 
         if framework not in supported_frameworks:
-            console.print(f"[yellow]Warning: '{framework}' is not a recognized framework.[/yellow]")
-            console.print(f"[yellow]Supported frameworks: {', '.join(supported_frameworks)}[/yellow]")
+            console.print(
+                f"[yellow]Warning: '{framework}' is not a recognized framework.[/yellow]"
+            )
+            console.print(
+                f"[yellow]Supported frameworks: {', '.join(supported_frameworks)}[/yellow]"
+            )
 
             # Ask user to select a framework
             framework_table = Table(title="Supported Frameworks")
@@ -206,17 +270,25 @@ def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") 
             framework_table.add_column("Description")
             framework_table.add_column("Language", style="green")
 
-            framework_table.add_row("flask", "Lightweight WSGI web application framework", "Python")
-            framework_table.add_row("fastapi", "Modern, fast web framework for building APIs", "Python")
-            framework_table.add_row("django", "High-level web framework with batteries included", "Python")
-            framework_table.add_row("express", "Fast, unopinionated, minimalist web framework", "JavaScript")
+            framework_table.add_row(
+                "flask", "Lightweight WSGI web application framework", "Python"
+            )
+            framework_table.add_row(
+                "fastapi", "Modern, fast web framework for building APIs", "Python"
+            )
+            framework_table.add_row(
+                "django", "High-level web framework with batteries included", "Python"
+            )
+            framework_table.add_row(
+                "express", "Fast, unopinionated, minimalist web framework", "JavaScript"
+            )
 
             console.print(framework_table)
 
             framework = Prompt.ask(
                 "[blue]Select a framework[/blue]",
                 choices=supported_frameworks,
-                default="flask"
+                default="flask",
             )
 
         # Get project name if not provided
@@ -235,7 +307,9 @@ def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") 
 
         # Check if directory already exists
         if os.path.exists(project_path):
-            if not Confirm.ask(f"[yellow]Directory {project_path} already exists. Overwrite?[/yellow]"):
+            if not Confirm.ask(
+                f"[yellow]Directory {project_path} already exists. Overwrite?[/yellow]"
+            ):
                 console.print("[yellow]Operation cancelled.[/yellow]")
                 return
 
@@ -249,10 +323,12 @@ def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") 
         with Progress(
             SpinnerColumn(),
             TextColumn("[bold blue]{task.description}[/bold blue]"),
-            console=console
+            console=console,
         ) as progress:
             # Create task for project generation
-            task = progress.add_task(f"[blue]Generating {framework} project...", total=100)
+            task = progress.add_task(
+                f"[blue]Generating {framework} project...", total=100
+            )
 
             # Generate Flask project (for now, we'll only implement Flask)
             if framework == "flask":
@@ -260,11 +336,14 @@ def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") 
                 app_dir = os.path.join(project_path, name)
                 os.makedirs(app_dir, exist_ok=True)
 
-                progress.update(task, advance=20, description="Creating Flask application...")
+                progress.update(
+                    task, advance=20, description="Creating Flask application..."
+                )
 
                 # Create __init__.py
                 with open(os.path.join(app_dir, "__init__.py"), "w") as f:
-                    f.write("""from flask import Flask
+                    f.write(
+                        """from flask import Flask
 
 def create_app():
     app = Flask(__name__)
@@ -274,18 +353,21 @@ def create_app():
     app.register_blueprint(main_bp)
 
     return app
-""")
+"""
+                    )
 
                 # Create routes.py
                 with open(os.path.join(app_dir, "routes.py"), "w") as f:
-                    f.write("""from flask import Blueprint, render_template
+                    f.write(
+                        """from flask import Blueprint, render_template
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
     return render_template('index.html', title='Home')
-""")
+"""
+                    )
 
                 # Create templates directory
                 templates_dir = os.path.join(app_dir, "templates")
@@ -293,7 +375,8 @@ def index():
 
                 # Create index.html
                 with open(os.path.join(templates_dir, "index.html"), "w") as f:
-                    f.write("""<!DOCTYPE html>
+                    f.write(
+                        """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -313,14 +396,16 @@ def index():
     </footer>
 </body>
 </html>
-""")
+"""
+                    )
 
                 # Create static directory and CSS file
                 static_dir = os.path.join(app_dir, "static", "css")
                 os.makedirs(static_dir, exist_ok=True)
 
                 with open(os.path.join(static_dir, "style.css"), "w") as f:
-                    f.write("""body {
+                    f.write(
+                        """body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
@@ -340,29 +425,37 @@ main {
     margin: 2rem auto;
     padding: 0 1rem;
 }
-""")
+"""
+                    )
 
-                progress.update(task, advance=40, description="Creating application files...")
+                progress.update(
+                    task, advance=40, description="Creating application files..."
+                )
 
                 # Create app.py
                 with open(os.path.join(project_path, "app.py"), "w") as f:
-                    f.write(f"""from {name} import create_app
+                    f.write(
+                        f"""from {name} import create_app
 
 app = create_app()
 
 if __name__ == '__main__':
     app.run(debug=True)
-""")
+"""
+                    )
 
                 # Create requirements.txt
                 with open(os.path.join(project_path, "requirements.txt"), "w") as f:
-                    f.write("""flask==2.3.3
+                    f.write(
+                        """flask==2.3.3
 python-dotenv==1.0.0
-""")
+"""
+                    )
 
                 # Create README.md
                 with open(os.path.join(project_path, "README.md"), "w") as f:
-                    f.write(f"""# {name.capitalize()} Flask Application
+                    f.write(
+                        f"""# {name.capitalize()} Flask Application
 
 A Flask web application generated by DevSynth.
 
@@ -392,24 +485,31 @@ A Flask web application generated by DevSynth.
    ```
    http://localhost:5000
    ```
-""")
+"""
+                    )
 
-                progress.update(task, advance=40, description="Creating configuration files...")
+                progress.update(
+                    task, advance=40, description="Creating configuration files..."
+                )
             else:
                 # For other frameworks, just create a placeholder README
                 with open(os.path.join(project_path, "README.md"), "w") as f:
-                    f.write(f"""# {name.capitalize()} {framework.capitalize()} Application
+                    f.write(
+                        f"""# {name.capitalize()} {framework.capitalize()} Application
 
 A {framework.capitalize()} web application generated by DevSynth.
 
 Note: Full support for {framework} will be implemented in a future version.
-""")
+"""
+                    )
                 progress.update(task, advance=100)
 
             # Mark task as complete
             progress.update(task, completed=True)
 
-        console.print(f"[green]✓ Web application generated successfully at: {project_path}[/green]")
+        console.print(
+            f"[green]✓ Web application generated successfully at: {project_path}[/green]"
+        )
 
         # Show next steps based on the framework
         console.print("\n[bold blue]Next Steps:[/bold blue]")
@@ -418,30 +518,44 @@ Note: Full support for {framework} will be implemented in a future version.
             console.print("1. Create a virtual environment:")
             console.print(f"   [green]cd {project_path} && python -m venv venv[/green]")
             console.print("2. Activate the virtual environment:")
-            console.print(f"   [green]source venv/bin/activate  # On Windows: venv\\Scripts\\activate[/green]")
+            console.print(
+                f"   [green]source venv/bin/activate  # On Windows: venv\\Scripts\\activate[/green]"
+            )
             console.print("3. Install dependencies:")
             console.print(f"   [green]pip install -r requirements.txt[/green]")
             console.print("4. Run the application:")
             console.print(f"   [green]flask run[/green]")
         else:
-            console.print(f"Support for {framework} will be implemented in a future version.")
+            console.print(
+                f"Support for {framework} will be implemented in a future version."
+            )
 
         console.print("\n[bold blue]Access your application:[/bold blue]")
-        console.print("Open your browser and navigate to: [green]http://localhost:5000[/green]")
+        console.print(
+            "Open your browser and navigate to: [green]http://localhost:5000[/green]"
+        )
 
     except Exception as err:
         console.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
-        console.print("[red]An unexpected error occurred during web application generation.[/red]")
+        console.print(
+            "[red]An unexpected error occurred during web application generation.[/red]"
+        )
 
         # Show detailed error information
         import traceback
-        console.print(Panel(
-            traceback.format_exc(),
-            title="Detailed Error Information",
-            border_style="red"
-        ))
 
-def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".") -> None:
+        console.print(
+            Panel(
+                traceback.format_exc(),
+                title="Detailed Error Information",
+                border_style="red",
+            )
+        )
+
+
+def dbschema_cmd(
+    db_type: str = "sqlite", name: str = "database", path: str = "."
+) -> None:
     """Generate a database schema for the specified database type."""
     try:
         from rich.prompt import Prompt, Confirm
@@ -451,20 +565,26 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
         from rich.table import Table
 
         # Show a welcome message for the dbschema command
-        console.print(Panel(
-            f"[bold blue]DevSynth Database Schema Generator[/bold blue]\n\n"
-            f"This command will generate a database schema for {db_type}.",
-            title="Database Schema Generator",
-            border_style="blue"
-        ))
+        console.print(
+            Panel(
+                f"[bold blue]DevSynth Database Schema Generator[/bold blue]\n\n"
+                f"This command will generate a database schema for {db_type}.",
+                title="Database Schema Generator",
+                border_style="blue",
+            )
+        )
 
         # Validate and normalize the database type
         db_type = db_type.lower()
         supported_db_types = ["sqlite", "mysql", "postgresql", "mongodb"]
 
         if db_type not in supported_db_types:
-            console.print(f"[yellow]Warning: '{db_type}' is not a recognized database type.[/yellow]")
-            console.print(f"[yellow]Supported database types: {', '.join(supported_db_types)}[/yellow]")
+            console.print(
+                f"[yellow]Warning: '{db_type}' is not a recognized database type.[/yellow]"
+            )
+            console.print(
+                f"[yellow]Supported database types: {', '.join(supported_db_types)}[/yellow]"
+            )
 
             # Ask user to select a database type
             db_table = Table(title="Supported Database Types")
@@ -474,7 +594,9 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
 
             db_table.add_row("sqlite", "Lightweight disk-based database", "SQL")
             db_table.add_row("mysql", "Popular open-source relational database", "SQL")
-            db_table.add_row("postgresql", "Advanced open-source relational database", "SQL")
+            db_table.add_row(
+                "postgresql", "Advanced open-source relational database", "SQL"
+            )
             db_table.add_row("mongodb", "NoSQL document database", "NoSQL")
 
             console.print(db_table)
@@ -482,7 +604,7 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
             db_type = Prompt.ask(
                 "[blue]Select a database type[/blue]",
                 choices=supported_db_types,
-                default="sqlite"
+                default="sqlite",
             )
 
         # Get schema name if not provided
@@ -501,7 +623,9 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
 
         # Check if directory already exists
         if os.path.exists(schema_path):
-            if not Confirm.ask(f"[yellow]Directory {schema_path} already exists. Overwrite?[/yellow]"):
+            if not Confirm.ask(
+                f"[yellow]Directory {schema_path} already exists. Overwrite?[/yellow]"
+            ):
                 console.print("[yellow]Operation cancelled.[/yellow]")
                 return
 
@@ -513,11 +637,15 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
 
         # Get entity information
         console.print("\n[bold]Entity Information[/bold]")
-        console.print("Let's define the entities (tables/collections) for your database schema.")
+        console.print(
+            "Let's define the entities (tables/collections) for your database schema."
+        )
 
         entities = []
         while True:
-            entity_name = Prompt.ask("[blue]Entity name[/blue] (or press Enter to finish)")
+            entity_name = Prompt.ask(
+                "[blue]Entity name[/blue] (or press Enter to finish)"
+            )
             if not entity_name:
                 break
 
@@ -528,7 +656,9 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
             console.print(f"\n[bold]Fields for {entity_name}[/bold]")
             fields = []
             while True:
-                field_name = Prompt.ask("[blue]Field name[/blue] (or press Enter to finish)")
+                field_name = Prompt.ask(
+                    "[blue]Field name[/blue] (or press Enter to finish)"
+                )
                 if not field_name:
                     break
 
@@ -537,47 +667,72 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
 
                 # Get field type
                 if db_type in ["sqlite", "mysql", "postgresql"]:
-                    field_type_choices = ["integer", "text", "boolean", "float", "date", "datetime", "blob"]
+                    field_type_choices = [
+                        "integer",
+                        "text",
+                        "boolean",
+                        "float",
+                        "date",
+                        "datetime",
+                        "blob",
+                    ]
                 else:  # MongoDB
-                    field_type_choices = ["string", "number", "boolean", "date", "objectId", "array", "object"]
+                    field_type_choices = [
+                        "string",
+                        "number",
+                        "boolean",
+                        "date",
+                        "objectId",
+                        "array",
+                        "object",
+                    ]
 
                 field_type = Prompt.ask(
                     "[blue]Field type[/blue]",
                     choices=field_type_choices,
-                    default=field_type_choices[0]
+                    default=field_type_choices[0],
                 )
 
                 # Get field constraints
                 constraints = []
                 if db_type in ["sqlite", "mysql", "postgresql"]:
-                    if Confirm.ask("[blue]Is this field a primary key?[/blue]", default=False):
+                    if Confirm.ask(
+                        "[blue]Is this field a primary key?[/blue]", default=False
+                    ):
                         constraints.append("PRIMARY KEY")
-                    if Confirm.ask("[blue]Is this field required (NOT NULL)?[/blue]", default=False):
+                    if Confirm.ask(
+                        "[blue]Is this field required (NOT NULL)?[/blue]", default=False
+                    ):
                         constraints.append("NOT NULL")
-                    if Confirm.ask("[blue]Should this field be unique?[/blue]", default=False):
+                    if Confirm.ask(
+                        "[blue]Should this field be unique?[/blue]", default=False
+                    ):
                         constraints.append("UNIQUE")
                 else:  # MongoDB
-                    if Confirm.ask("[blue]Is this field required?[/blue]", default=False):
+                    if Confirm.ask(
+                        "[blue]Is this field required?[/blue]", default=False
+                    ):
                         constraints.append("required: true")
-                    if Confirm.ask("[blue]Should this field be unique?[/blue]", default=False):
+                    if Confirm.ask(
+                        "[blue]Should this field be unique?[/blue]", default=False
+                    ):
                         constraints.append("unique: true")
 
-                fields.append({
-                    "name": field_name,
-                    "type": field_type,
-                    "constraints": constraints
-                })
+                fields.append(
+                    {"name": field_name, "type": field_type, "constraints": constraints}
+                )
 
             if fields:
-                entities.append({
-                    "name": entity_name,
-                    "fields": fields
-                })
+                entities.append({"name": entity_name, "fields": fields})
             else:
-                console.print("[yellow]Warning: Entity has no fields and will be skipped.[/yellow]")
+                console.print(
+                    "[yellow]Warning: Entity has no fields and will be skipped.[/yellow]"
+                )
 
         if not entities:
-            console.print("[yellow]Warning: No entities defined. Creating a sample schema instead.[/yellow]")
+            console.print(
+                "[yellow]Warning: No entities defined. Creating a sample schema instead.[/yellow]"
+            )
 
             # Create sample entities
             if db_type in ["sqlite", "mysql", "postgresql"]:
@@ -585,23 +740,63 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
                     {
                         "name": "users",
                         "fields": [
-                            {"name": "id", "type": "integer", "constraints": ["PRIMARY KEY"]},
-                            {"name": "username", "type": "text", "constraints": ["NOT NULL", "UNIQUE"]},
-                            {"name": "email", "type": "text", "constraints": ["NOT NULL", "UNIQUE"]},
-                            {"name": "password", "type": "text", "constraints": ["NOT NULL"]},
-                            {"name": "created_at", "type": "datetime", "constraints": ["NOT NULL"]}
-                        ]
+                            {
+                                "name": "id",
+                                "type": "integer",
+                                "constraints": ["PRIMARY KEY"],
+                            },
+                            {
+                                "name": "username",
+                                "type": "text",
+                                "constraints": ["NOT NULL", "UNIQUE"],
+                            },
+                            {
+                                "name": "email",
+                                "type": "text",
+                                "constraints": ["NOT NULL", "UNIQUE"],
+                            },
+                            {
+                                "name": "password",
+                                "type": "text",
+                                "constraints": ["NOT NULL"],
+                            },
+                            {
+                                "name": "created_at",
+                                "type": "datetime",
+                                "constraints": ["NOT NULL"],
+                            },
+                        ],
                     },
                     {
                         "name": "posts",
                         "fields": [
-                            {"name": "id", "type": "integer", "constraints": ["PRIMARY KEY"]},
-                            {"name": "user_id", "type": "integer", "constraints": ["NOT NULL"]},
-                            {"name": "title", "type": "text", "constraints": ["NOT NULL"]},
-                            {"name": "content", "type": "text", "constraints": ["NOT NULL"]},
-                            {"name": "created_at", "type": "datetime", "constraints": ["NOT NULL"]}
-                        ]
-                    }
+                            {
+                                "name": "id",
+                                "type": "integer",
+                                "constraints": ["PRIMARY KEY"],
+                            },
+                            {
+                                "name": "user_id",
+                                "type": "integer",
+                                "constraints": ["NOT NULL"],
+                            },
+                            {
+                                "name": "title",
+                                "type": "text",
+                                "constraints": ["NOT NULL"],
+                            },
+                            {
+                                "name": "content",
+                                "type": "text",
+                                "constraints": ["NOT NULL"],
+                            },
+                            {
+                                "name": "created_at",
+                                "type": "datetime",
+                                "constraints": ["NOT NULL"],
+                            },
+                        ],
+                    },
                 ]
             else:  # MongoDB
                 entities = [
@@ -609,29 +804,61 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
                         "name": "users",
                         "fields": [
                             {"name": "_id", "type": "objectId", "constraints": []},
-                            {"name": "username", "type": "string", "constraints": ["required: true", "unique: true"]},
-                            {"name": "email", "type": "string", "constraints": ["required: true", "unique: true"]},
-                            {"name": "password", "type": "string", "constraints": ["required: true"]},
-                            {"name": "created_at", "type": "date", "constraints": ["required: true"]}
-                        ]
+                            {
+                                "name": "username",
+                                "type": "string",
+                                "constraints": ["required: true", "unique: true"],
+                            },
+                            {
+                                "name": "email",
+                                "type": "string",
+                                "constraints": ["required: true", "unique: true"],
+                            },
+                            {
+                                "name": "password",
+                                "type": "string",
+                                "constraints": ["required: true"],
+                            },
+                            {
+                                "name": "created_at",
+                                "type": "date",
+                                "constraints": ["required: true"],
+                            },
+                        ],
                     },
                     {
                         "name": "posts",
                         "fields": [
                             {"name": "_id", "type": "objectId", "constraints": []},
-                            {"name": "user_id", "type": "objectId", "constraints": ["required: true"]},
-                            {"name": "title", "type": "string", "constraints": ["required: true"]},
-                            {"name": "content", "type": "string", "constraints": ["required: true"]},
-                            {"name": "created_at", "type": "date", "constraints": ["required: true"]}
-                        ]
-                    }
+                            {
+                                "name": "user_id",
+                                "type": "objectId",
+                                "constraints": ["required: true"],
+                            },
+                            {
+                                "name": "title",
+                                "type": "string",
+                                "constraints": ["required: true"],
+                            },
+                            {
+                                "name": "content",
+                                "type": "string",
+                                "constraints": ["required: true"],
+                            },
+                            {
+                                "name": "created_at",
+                                "type": "date",
+                                "constraints": ["required: true"],
+                            },
+                        ],
+                    },
                 ]
 
         # Show progress during generation
         with Progress(
             SpinnerColumn(),
             TextColumn("[bold blue]{task.description}[/bold blue]"),
-            console=console
+            console=console,
         ) as progress:
             # Create task for schema generation
             task = progress.add_task(f"[blue]Generating {db_type} schema...", total=100)
@@ -698,7 +925,11 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
                             # Map types to PostgreSQL types
                             pg_type = field["type"].upper()
                             if pg_type == "INTEGER":
-                                pg_type = "SERIAL" if "PRIMARY KEY" in field["constraints"] else "INTEGER"
+                                pg_type = (
+                                    "SERIAL"
+                                    if "PRIMARY KEY" in field["constraints"]
+                                    else "INTEGER"
+                                )
                             elif pg_type == "TEXT":
                                 pg_type = "VARCHAR(255)"
 
@@ -762,10 +993,14 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
                         f.write(",\n".join(field_definitions))
                         f.write("\n}, { timestamps: true });\n\n")
 
-                        f.write(f"const {entity['name'].capitalize()} = mongoose.model('{entity['name'].capitalize()}', {entity['name']}Schema);\n\n")
+                        f.write(
+                            f"const {entity['name'].capitalize()} = mongoose.model('{entity['name'].capitalize()}', {entity['name']}Schema);\n\n"
+                        )
 
                     f.write("module.exports = {\n")
-                    exports = [f"    {entity['name'].capitalize()}" for entity in entities]
+                    exports = [
+                        f"    {entity['name'].capitalize()}" for entity in entities
+                    ]
                     f.write(",\n".join(exports))
                     f.write("\n};\n")
 
@@ -774,7 +1009,9 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
             # Mark task as complete
             progress.update(task, completed=True)
 
-        console.print(f"[green]✓ Database schema generated successfully at: {schema_path}[/green]")
+        console.print(
+            f"[green]✓ Database schema generated successfully at: {schema_path}[/green]"
+        )
 
         # Show next steps based on the database type
         console.print("\n[bold blue]Next Steps:[/bold blue]")
@@ -787,21 +1024,30 @@ def dbschema_cmd(db_type: str = "sqlite", name: str = "database", path: str = ".
             console.print(f"   [green]mysql -u username -p < {schema_file}[/green]")
         elif db_type == "postgresql":
             console.print("1. Use the schema to create your PostgreSQL database:")
-            console.print(f"   [green]psql -U username -d {name} -f {schema_file}[/green]")
+            console.print(
+                f"   [green]psql -U username -d {name} -f {schema_file}[/green]"
+            )
         elif db_type == "mongodb":
             console.print("1. Install Mongoose in your Node.js project:")
             console.print(f"   [green]npm install mongoose[/green]")
             console.print("2. Import the schema in your application:")
-            console.print(f"   [green]const {{ {', '.join([entity['name'].capitalize() for entity in entities])} }} = require('./path/to/{name}_schema.js');[/green]")
+            console.print(
+                f"   [green]const {{ {', '.join([entity['name'].capitalize() for entity in entities])} }} = require('./path/to/{name}_schema.js');[/green]"
+            )
 
     except Exception as err:
         console.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
-        console.print("[red]An unexpected error occurred during database schema generation.[/red]")
+        console.print(
+            "[red]An unexpected error occurred during database schema generation.[/red]"
+        )
 
         # Show detailed error information
         import traceback
-        console.print(Panel(
-            traceback.format_exc(),
-            title="Detailed Error Information",
-            border_style="red"
-        ))
+
+        console.print(
+            Panel(
+                traceback.format_exc(),
+                title="Detailed Error Information",
+                border_style="red",
+            )
+        )

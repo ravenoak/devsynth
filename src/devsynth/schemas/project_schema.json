@@ -184,6 +184,18 @@
         }
       },
       "required": ["global", "project"]
+    },
+    "features": {
+      "type": "object",
+      "description": "Optional feature flags controlling advanced capabilities",
+      "properties": {
+        "wsde_collaboration": {"type": "boolean"},
+        "dialectical_reasoning": {"type": "boolean"},
+        "code_generation": {"type": "boolean"},
+        "test_generation": {"type": "boolean"},
+        "documentation_generation": {"type": "boolean"},
+        "experimental_features": {"type": "boolean"}
+      }
     }
   },
   "required": [
