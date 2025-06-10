@@ -7,9 +7,16 @@ items with EDRR phases.
 """
 
 from typing import Dict, List, Any, Optional, Union
-from ...domain.models.memory import MemoryItem, MemoryType, MemoryItemType, MemoryVector
+from ...domain.models.memory import (
+    MemoryItem,
+    MemoryType,
+    MemoryItemType,
+    MemoryVector,
+)
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...logging_setup import DevSynthLogger
+from .query_router import QueryRouter
+from .sync_manager import SyncManager
 
 logger = DevSynthLogger(__name__)
 
@@ -22,7 +29,12 @@ class MemoryManager:
     items with EDRR phases.
     """
 
-    def __init__(self, adapters: Union[Dict[str, Any], Any] = None):
+    def __init__(
+        self,
+        adapters: Union[Dict[str, Any], Any] = None,
+        query_router: QueryRouter | None = None,
+        sync_manager: SyncManager | None = None,
+    ):
         """
         Initialize the Memory Manager with the specified adapters.
 
@@ -41,6 +53,10 @@ class MemoryManager:
         logger.info(
             f"Memory Manager initialized with adapters: {', '.join(self.adapters.keys())}"
         )
+
+        # Initialize helpers
+        self.query_router = query_router or QueryRouter(self)
+        self.sync_manager = sync_manager or SyncManager(self)
 
     def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
         """Create a very simple embedding from text for similarity search.
@@ -501,6 +517,27 @@ class MemoryManager:
         """
         logger.info(f"Querying memory with: {query_string}")
         return self.search_memory(query_string, **kwargs)
+
+    def route_query(
+        self,
+        query: str,
+        *,
+        store: str | None = None,
+        strategy: str = "direct",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Route a query through the :class:`QueryRouter`."""
+
+        return self.query_router.route(
+            query, store=store, strategy=strategy, context=context
+        )
+
+    def synchronize(
+        self, source_store: str, target_store: str, bidirectional: bool = False
+    ) -> Dict[str, int]:
+        """Synchronize two stores using the :class:`SyncManager`."""
+
+        return self.sync_manager.synchronize(source_store, target_store, bidirectional)
 
     def retrieve_relevant_knowledge(
         self,

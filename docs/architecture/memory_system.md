@@ -312,6 +312,28 @@ The memory system integrates with other DevSynth components:
 - **Provider System**: Utilizes embedding providers for vector representations
 - **EDRR Framework**: Supports the Evaluate-Design-Reason-Refine cycle
 
+## Query Routing and Synchronization
+
+Two helper components extend the memory manager:
+
+- **QueryRouter**: Routes queries to the appropriate store and supports
+  direct, cross-store, cascading, federated and context-aware strategies.
+- **SyncManager**: Propagates changes between stores and handles basic
+  synchronization tasks.
+
+```python
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.memory.query_router import QueryRouter
+
+manager = MemoryManager({"vector": vector_store, "graph": graph_store})
+
+# Cross-store query
+results = manager.route_query("authentication implementation", strategy="cross")
+
+# Synchronize two stores
+manager.synchronize("vector", "graph")
+```
+
 ## Common Usage Patterns
 
 ### RAG Pattern (Retrieval Augmented Generation)
