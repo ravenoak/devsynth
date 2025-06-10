@@ -89,6 +89,30 @@ You can install DevSynth in a few different ways:
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
+## Minimal Project Example
+
+Follow these steps to try DevSynth on a small project:
+
+```bash
+# Create a new project
+devsynth init demo_project
+cd demo_project
+
+# Add a few requirements (edit requirements.md)
+
+# Generate specs, tests, and code
+devsynth spec
+devsynth test
+devsynth code
+
+# Run the tests or execute the app
+pytest
+# or
+devsynth run
+```
+
+Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `.devsynth/project.yaml`. If you run into issues, see [docs/getting_started/troubleshooting.md](docs/getting_started/troubleshooting.md).
+
 ## Running Tests
 
 Before running the test suite, install DevSynth with its development dependencies.
