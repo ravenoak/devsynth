@@ -57,6 +57,8 @@ class WSDETeam:
     primus_index: int = 0  # Index of the current Primus agent
     solutions: Dict[str, List[Dict[str, Any]]] = None  # Solutions by task ID
     external_knowledge: Dict[str, Any] = None  # External knowledge sources
+    message_protocol: Any = None  # MessageProtocol instance
+    peer_reviews: List[Any] = None
 
     def __post_init__(self):
         if self.agents is None:
@@ -65,6 +67,17 @@ class WSDETeam:
             self.solutions = {}
         if self.external_knowledge is None:
             self.external_knowledge = {}
+        if self.message_protocol is None:
+            try:
+                from devsynth.application.collaboration.message_protocol import (
+                    MessageProtocol,
+                )
+
+                self.message_protocol = MessageProtocol()
+            except Exception:
+                self.message_protocol = None
+        if self.peer_reviews is None:
+            self.peer_reviews = []
 
     def add_agent(self, agent: Any) -> None:
         """Add an agent to the team."""
@@ -72,6 +85,82 @@ class WSDETeam:
         if not hasattr(agent, "has_been_primus"):
             agent.has_been_primus = False
         self.agents.append(agent)
+
+    # ------------------------------------------------------------------
+    # Communication utilities
+    # ------------------------------------------------------------------
+    def send_message(
+        self,
+        sender: str,
+        recipients: List[str],
+        message_type: str,
+        subject: str = "",
+        content: Any = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Send a message using the message protocol."""
+
+        if not self.message_protocol:
+            return None
+        return self.message_protocol.send_message(
+            sender=sender,
+            recipients=recipients,
+            message_type=message_type,
+            subject=subject,
+            content=content,
+            metadata=metadata,
+        )
+
+    def broadcast_message(
+        self,
+        sender: str,
+        message_type: str,
+        subject: str = "",
+        content: Any = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Broadcast a message to all agents."""
+
+        recipients = [
+            getattr(a, "name", f"agent_{i}")
+            for i, a in enumerate(self.agents)
+            if getattr(a, "name", f"agent_{i}") != sender
+        ]
+        return self.send_message(
+            sender, recipients, message_type, subject, content, metadata
+        )
+
+    def get_messages(
+        self, agent: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
+    ) -> List[Any]:
+        """Retrieve messages from the protocol."""
+
+        if not self.message_protocol:
+            return []
+        return self.message_protocol.get_messages(agent, filters)
+
+    # ------------------------------------------------------------------
+    # Peer review utilities
+    # ------------------------------------------------------------------
+    def request_peer_review(
+        self, work_product: Any, author: Any, reviewer_agents: List[Any]
+    ) -> Any:
+        """Create and track a peer review cycle."""
+
+        try:
+            from devsynth.application.collaboration.peer_review import PeerReview
+        except Exception:
+            return None
+
+        review = PeerReview(
+            work_product=work_product,
+            author=author,
+            reviewers=reviewer_agents,
+            send_message=self.send_message,
+        )
+        review.assign_reviews()
+        self.peer_reviews.append(review)
+        return review
 
     def rotate_primus(self) -> None:
         """
