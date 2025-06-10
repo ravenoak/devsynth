@@ -312,7 +312,12 @@ This base agent architecture is designed for extensibility:
 
 ## Error Handling
 
+
 The `AgentState` includes an `error` field. Nodes in the graph can populate this field if an issue occurs. Subsequent nodes can check this field to decide whether to proceed, attempt recovery, or terminate the workflow gracefully.
+
+## Current Limitations
+
+WSDE collaboration and dialectical reasoning are only partially implemented. These capabilities are disabled by default via the `features.wsde_collaboration` and `features.dialectical_reasoning` flags in `config/default.yml`. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for progress tracking.
 
 ## Future Enhancements (as per Comprehensive Plan)
 

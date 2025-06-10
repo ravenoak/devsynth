@@ -455,6 +455,10 @@ The WSDE multi-agent interaction system can be customized through configuration:
 - **Review Policies**: Requirements for peer review processes
 - **Communication Patterns**: Allowed message types and frequencies
 
+## Current Limitations
+
+Full WSDE collaboration is still under development. Dynamic role assignment and advanced consensus mechanisms remain incomplete. Collaboration features are disabled by default via the `features.wsde_collaboration` flag in `config/default.yml`. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for progress tracking.
+
 ## 9. Future Enhancements
 
 Planned improvements to the WSDE multi-agent interaction system:
