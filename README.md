@@ -79,6 +79,14 @@ You can install DevSynth in a few different ways:
    docker run --rm -p 8000:8000 devsynth
    ```
 
+4. **From Source for Development** – install with development dependencies
+
+   ```bash
+   pip install -e .[dev]
+   # or
+   poetry install
+   ```
+
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
 ## Running Tests
