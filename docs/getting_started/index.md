@@ -15,6 +15,7 @@ last_reviewed: "2024-06-01"
 
 This section provides essential information for getting started with DevSynth, including installation instructions and basic usage guides.
 
+- **[Concise Walkthrough](concise_walkthrough.md)**: A short summary of the basic workflow.
 - **[Quick Start Guide](quick_start_guide.md)**: A step-by-step tutorial to help you get started with DevSynth quickly.
 - **[Installation](installation.md)**: Detailed instructions for installing DevSynth and its dependencies.
 - **[Basic Usage](basic_usage.md)**: An introduction to the basic usage of DevSynth.
