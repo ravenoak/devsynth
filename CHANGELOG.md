@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recursive EDRR framework implementation
 - Documentation cleansing and organization
 - Behavior-driven tests for the EDRR coordinator
+- Basic security utilities for authentication, authorization, and input sanitization
 
 ### Changed
 - Moved development documents to appropriate locations in the docs/ directory

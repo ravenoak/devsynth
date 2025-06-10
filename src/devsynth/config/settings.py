@@ -30,7 +30,7 @@ def is_devsynth_managed_project(project_dir: str = None) -> bool:
         bool: True if the project is managed by DevSynth, False otherwise.
     """
     if project_dir is None:
-        project_dir = os.environ.get('DEVSYNTH_PROJECT_DIR') or os.getcwd()
+        project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR") or os.getcwd()
 
     # Check for .devsynth/project.yaml
     project_config_path = os.path.join(project_dir, ".devsynth", "project.yaml")
@@ -94,14 +94,27 @@ class Settings(BaseSettings):
         """
         # Map test-expected keys to actual attribute names
         key_mapping = {
-            'llm_provider': lambda s: os.environ.get("DEVSYNTH_LLM_PROVIDER", "lmstudio"),
-            'llm_api_base': lambda s: os.environ.get("DEVSYNTH_LLM_API_BASE", "http://localhost:1234/v1"),
-            'llm_model': lambda s: os.environ.get("DEVSYNTH_LLM_MODEL", "gpt-3.5-turbo"),
-            'llm_temperature': lambda s: float(os.environ.get("DEVSYNTH_LLM_TEMPERATURE", "0.7")),
-            'llm_auto_select_model': lambda s: os.environ.get("DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true").lower() in ["true", "1", "yes"],
-            'serper_api_key': lambda s: os.environ.get("SERPER_API_KEY", None),
-            'memory_store_type': lambda s: os.environ.get("DEVSYNTH_MEMORY_STORE", "memory"),
-            'openai_api_key': lambda s: os.environ.get("OPENAI_API_KEY", None),
+            "llm_provider": lambda s: os.environ.get(
+                "DEVSYNTH_LLM_PROVIDER", "lmstudio"
+            ),
+            "llm_api_base": lambda s: os.environ.get(
+                "DEVSYNTH_LLM_API_BASE", "http://localhost:1234/v1"
+            ),
+            "llm_model": lambda s: os.environ.get(
+                "DEVSYNTH_LLM_MODEL", "gpt-3.5-turbo"
+            ),
+            "llm_temperature": lambda s: float(
+                os.environ.get("DEVSYNTH_LLM_TEMPERATURE", "0.7")
+            ),
+            "llm_auto_select_model": lambda s: os.environ.get(
+                "DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true"
+            ).lower()
+            in ["true", "1", "yes"],
+            "serper_api_key": lambda s: os.environ.get("SERPER_API_KEY", None),
+            "memory_store_type": lambda s: os.environ.get(
+                "DEVSYNTH_MEMORY_STORE", "memory"
+            ),
+            "openai_api_key": lambda s: os.environ.get("OPENAI_API_KEY", None),
         }
 
         # Check if we have a mapping for this key
@@ -122,30 +135,62 @@ class Settings(BaseSettings):
             return getattr(self, key)
         except AttributeError:
             raise KeyError(f"Setting '{key}' not found")
+
     # Memory system settings
-    memory_store_type: str = Field(default="memory", json_schema_extra={"env": "DEVSYNTH_MEMORY_STORE"})
-    memory_file_path: str = Field(
-        default=None,
-        json_schema_extra={"env": "DEVSYNTH_MEMORY_PATH"}
+    memory_store_type: str = Field(
+        default="memory", json_schema_extra={"env": "DEVSYNTH_MEMORY_STORE"}
     )
-    max_context_size: int = Field(default=1000, json_schema_extra={"env": "DEVSYNTH_MAX_CONTEXT_SIZE"})
-    context_expiration_days: int = Field(default=7, json_schema_extra={"env": "DEVSYNTH_CONTEXT_EXPIRATION_DAYS"})
+    memory_file_path: str = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_MEMORY_PATH"}
+    )
+    max_context_size: int = Field(
+        default=1000, json_schema_extra={"env": "DEVSYNTH_MAX_CONTEXT_SIZE"}
+    )
+    context_expiration_days: int = Field(
+        default=7, json_schema_extra={"env": "DEVSYNTH_CONTEXT_EXPIRATION_DAYS"}
+    )
 
     # Vector store settings
-    vector_store_enabled: bool = Field(default=True, json_schema_extra={"env": "DEVSYNTH_VECTOR_STORE_ENABLED"})
-    chromadb_collection_name: str = Field(default="devsynth_vectors", json_schema_extra={"env": "DEVSYNTH_CHROMADB_COLLECTION"})
-    chromadb_distance_func: str = Field(default="cosine", json_schema_extra={"env": "DEVSYNTH_CHROMADB_DISTANCE_FUNC"})
+    vector_store_enabled: bool = Field(
+        default=True, json_schema_extra={"env": "DEVSYNTH_VECTOR_STORE_ENABLED"}
+    )
+    chromadb_collection_name: str = Field(
+        default="devsynth_vectors",
+        json_schema_extra={"env": "DEVSYNTH_CHROMADB_COLLECTION"},
+    )
+    chromadb_distance_func: str = Field(
+        default="cosine", json_schema_extra={"env": "DEVSYNTH_CHROMADB_DISTANCE_FUNC"}
+    )
 
     # Path settings
     log_dir: str = Field(default=None, json_schema_extra={"env": "DEVSYNTH_LOG_DIR"})
-    project_dir: str = Field(default=None, json_schema_extra={"env": "DEVSYNTH_PROJECT_DIR"})
+    project_dir: str = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_PROJECT_DIR"}
+    )
 
     # LLM provider settings
-    provider_type: str = Field(default="openai", json_schema_extra={"env": "DEVSYNTH_PROVIDER_TYPE"})
-    openai_api_key: Optional[str] = Field(default=None, json_schema_extra={"env": "OPENAI_API_KEY"})
-    lm_studio_endpoint: Optional[str] = Field(default=None, json_schema_extra={"env": "LM_STUDIO_ENDPOINT"})
+    provider_type: str = Field(
+        default="openai", json_schema_extra={"env": "DEVSYNTH_PROVIDER_TYPE"}
+    )
+    openai_api_key: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "OPENAI_API_KEY"}
+    )
+    lm_studio_endpoint: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "LM_STUDIO_ENDPOINT"}
+    )
 
-    @field_validator('memory_file_path', mode='before')
+    # Security feature toggles
+    authentication_enabled: bool = Field(
+        default=True, json_schema_extra={"env": "DEVSYNTH_AUTHENTICATION_ENABLED"}
+    )
+    authorization_enabled: bool = Field(
+        default=True, json_schema_extra={"env": "DEVSYNTH_AUTHORIZATION_ENABLED"}
+    )
+    sanitization_enabled: bool = Field(
+        default=True, json_schema_extra={"env": "DEVSYNTH_SANITIZATION_ENABLED"}
+    )
+
+    @field_validator("memory_file_path", mode="before")
     def set_default_memory_path(cls, v, info):
         """
         Set default memory path if not specified.
@@ -157,24 +202,42 @@ class Settings(BaseSettings):
             return v
 
         # Check if we're in a test environment with file operations disabled
-        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
         # Get project directory from values or environment
-        project_dir = values.get('project_dir') or os.environ.get('DEVSYNTH_PROJECT_DIR') or os.getcwd()
+        project_dir = (
+            values.get("project_dir")
+            or os.environ.get("DEVSYNTH_PROJECT_DIR")
+            or os.getcwd()
+        )
 
         # Check if this is a DevSynth-managed project
         if is_devsynth_managed_project(project_dir):
             # Check for project-level config
             project_config_path = os.path.join(project_dir, ".devsynth", "project.yaml")
-            config_path = project_config_path if os.path.exists(project_config_path) else None
+            config_path = (
+                project_config_path if os.path.exists(project_config_path) else None
+            )
 
             if config_path:
                 try:
                     import yaml
-                    with open(config_path, 'r') as f:
+
+                    with open(config_path, "r") as f:
                         config = yaml.safe_load(f)
-                        if config and 'resources' in config and 'project' in config['resources'] and 'memoryDir' in config['resources']['project']:
-                            return os.path.join(project_dir, config['resources']['project']['memoryDir'])
+                        if (
+                            config
+                            and "resources" in config
+                            and "project" in config["resources"]
+                            and "memoryDir" in config["resources"]["project"]
+                        ):
+                            return os.path.join(
+                                project_dir, config["resources"]["project"]["memoryDir"]
+                            )
                 except Exception as e:
                     # Log error but continue with default path
                     logger.error(f"Error reading project config: {e}")
@@ -185,9 +248,13 @@ class Settings(BaseSettings):
 
         # For non-DevSynth-managed projects, use global config
         # Use project_dir for global config if DEVSYNTH_PROJECT_DIR is set (for test isolation)
-        if os.environ.get('DEVSYNTH_PROJECT_DIR'):
-            global_config_dir = os.path.join(os.environ.get('DEVSYNTH_PROJECT_DIR'), ".devsynth", "config")
-            logger.debug(f"Using test environment global config dir: {global_config_dir}")
+        if os.environ.get("DEVSYNTH_PROJECT_DIR"):
+            global_config_dir = os.path.join(
+                os.environ.get("DEVSYNTH_PROJECT_DIR"), ".devsynth", "config"
+            )
+            logger.debug(
+                f"Using test environment global config dir: {global_config_dir}"
+            )
         else:
             # In test environments with file operations disabled, avoid using home directory
             if no_file_logging:
@@ -201,11 +268,21 @@ class Settings(BaseSettings):
         if os.path.exists(global_config_path):
             try:
                 import yaml
-                with open(global_config_path, 'r') as f:
+
+                with open(global_config_path, "r") as f:
                     config = yaml.safe_load(f)
-                    if config and 'resources' in config and 'global' in config['resources'] and 'memoryDir' in config['resources']['global']:
-                        memory_path = os.path.expanduser(config['resources']['global']['memoryDir'])
-                        logger.debug(f"Using memory path from global config: {memory_path}")
+                    if (
+                        config
+                        and "resources" in config
+                        and "global" in config["resources"]
+                        and "memoryDir" in config["resources"]["global"]
+                    ):
+                        memory_path = os.path.expanduser(
+                            config["resources"]["global"]["memoryDir"]
+                        )
+                        logger.debug(
+                            f"Using memory path from global config: {memory_path}"
+                        )
                         return memory_path
             except Exception as e:
                 # Log error but continue with default path
@@ -219,7 +296,7 @@ class Settings(BaseSettings):
 
         return os.path.expanduser("~/.devsynth/memory")
 
-    @field_validator('log_dir', mode='before')
+    @field_validator("log_dir", mode="before")
     def set_default_log_dir(cls, v, info):
         """
         Set default log directory if not specified.
@@ -231,24 +308,42 @@ class Settings(BaseSettings):
             return v
 
         # Check if we're in a test environment with file operations disabled
-        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
         # Get project directory from values or environment
-        project_dir = values.get('project_dir') or os.environ.get('DEVSYNTH_PROJECT_DIR') or os.getcwd()
+        project_dir = (
+            values.get("project_dir")
+            or os.environ.get("DEVSYNTH_PROJECT_DIR")
+            or os.getcwd()
+        )
 
         # Check if this is a DevSynth-managed project
         if is_devsynth_managed_project(project_dir):
             # Check for project-level config
             project_config_path = os.path.join(project_dir, ".devsynth", "project.yaml")
-            config_path = project_config_path if os.path.exists(project_config_path) else None
+            config_path = (
+                project_config_path if os.path.exists(project_config_path) else None
+            )
 
             if config_path:
                 try:
                     import yaml
-                    with open(config_path, 'r') as f:
+
+                    with open(config_path, "r") as f:
                         config = yaml.safe_load(f)
-                        if config and 'resources' in config and 'project' in config['resources'] and 'logsDir' in config['resources']['project']:
-                            return os.path.join(project_dir, config['resources']['project']['logsDir'])
+                        if (
+                            config
+                            and "resources" in config
+                            and "project" in config["resources"]
+                            and "logsDir" in config["resources"]["project"]
+                        ):
+                            return os.path.join(
+                                project_dir, config["resources"]["project"]["logsDir"]
+                            )
                 except Exception as e:
                     # Log error but continue with default path
                     logger.error(f"Error reading project config: {e}")
@@ -259,9 +354,13 @@ class Settings(BaseSettings):
 
         # For non-DevSynth-managed projects, use global config
         # Use project_dir for global config if DEVSYNTH_PROJECT_DIR is set (for test isolation)
-        if os.environ.get('DEVSYNTH_PROJECT_DIR'):
-            global_config_dir = os.path.join(os.environ.get('DEVSYNTH_PROJECT_DIR'), ".devsynth", "config")
-            logger.debug(f"Using test environment global config dir for logs: {global_config_dir}")
+        if os.environ.get("DEVSYNTH_PROJECT_DIR"):
+            global_config_dir = os.path.join(
+                os.environ.get("DEVSYNTH_PROJECT_DIR"), ".devsynth", "config"
+            )
+            logger.debug(
+                f"Using test environment global config dir for logs: {global_config_dir}"
+            )
         else:
             # In test environments with file operations disabled, avoid using home directory
             if no_file_logging:
@@ -269,16 +368,26 @@ class Settings(BaseSettings):
                 return os.path.join(project_dir, ".devsynth", "logs")
 
             global_config_dir = os.path.expanduser("~/.devsynth/config")
-            logger.debug(f"Using user home global config dir for logs: {global_config_dir}")
+            logger.debug(
+                f"Using user home global config dir for logs: {global_config_dir}"
+            )
 
         global_config_path = os.path.join(global_config_dir, "global_config.yaml")
         if os.path.exists(global_config_path):
             try:
                 import yaml
-                with open(global_config_path, 'r') as f:
+
+                with open(global_config_path, "r") as f:
                     config = yaml.safe_load(f)
-                    if config and 'resources' in config and 'global' in config['resources'] and 'logsDir' in config['resources']['global']:
-                        logs_path = os.path.expanduser(config['resources']['global']['logsDir'])
+                    if (
+                        config
+                        and "resources" in config
+                        and "global" in config["resources"]
+                        and "logsDir" in config["resources"]["global"]
+                    ):
+                        logs_path = os.path.expanduser(
+                            config["resources"]["global"]["logsDir"]
+                        )
                         logger.debug(f"Using logs path from global config: {logs_path}")
                         return logs_path
             except Exception as e:
@@ -293,7 +402,7 @@ class Settings(BaseSettings):
 
         return os.path.expanduser("~/.devsynth/logs")
 
-    @field_validator('project_dir', mode='before')
+    @field_validator("project_dir", mode="before")
     def set_default_project_dir(cls, v, info):
         """
         Set default project directory if not specified.
@@ -304,7 +413,7 @@ class Settings(BaseSettings):
             return v
 
         # Check environment variable first
-        env_project_dir = os.environ.get('DEVSYNTH_PROJECT_DIR')
+        env_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
         if env_project_dir:
             return env_project_dir
 
@@ -312,16 +421,16 @@ class Settings(BaseSettings):
         return os.getcwd()
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=False,
-        extra="ignore"
+        env_file=".env", case_sensitive=False, extra="ignore"
     )
+
 
 # Global settings instance for singleton pattern
 _settings_instance = None
 
 # Initialize settings for module-level access
 _settings = Settings()
+
 
 def get_settings(reload: bool = False, **kwargs) -> Settings:
     """
@@ -354,6 +463,7 @@ def get_settings(reload: bool = False, **kwargs) -> Settings:
 
     return _settings_instance
 
+
 def ensure_path_exists(path: str, create: bool = True) -> str:
     """
     Ensure the specified path exists.
@@ -371,11 +481,17 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
     """
     # Check if we're in a test environment
     in_test_env = os.environ.get("DEVSYNTH_PROJECT_DIR") is not None
-    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
     # Debug logging
     print(f"ensure_path_exists called with path={path}, create={create}")
-    print(f"in_test_env={in_test_env}, DEVSYNTH_PROJECT_DIR={os.environ.get('DEVSYNTH_PROJECT_DIR')}")
+    print(
+        f"in_test_env={in_test_env}, DEVSYNTH_PROJECT_DIR={os.environ.get('DEVSYNTH_PROJECT_DIR')}"
+    )
 
     # If we're in a test environment with DEVSYNTH_PROJECT_DIR set, ensure paths are within the test directory
     if in_test_env:
@@ -384,7 +500,9 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
 
         print(f"test_project_dir={test_project_dir}, path_obj={path_obj}")
         print(f"path_obj.is_absolute()={path_obj.is_absolute()}")
-        print(f"str(path_obj).startswith(test_project_dir)={str(path_obj).startswith(test_project_dir)}")
+        print(
+            f"str(path_obj).startswith(test_project_dir)={str(path_obj).startswith(test_project_dir)}"
+        )
 
         # If the path is absolute and not within the test project directory,
         # redirect it to be within the test project directory
@@ -402,7 +520,9 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
                 relative_path = str(path_obj.relative_to(path_obj.anchor))
                 new_path = os.path.join(test_project_dir, relative_path)
                 print(f"Redirecting absolute path {path} to test path {new_path}")
-                logger.debug(f"Redirecting absolute path {path} to test path {new_path}")
+                logger.debug(
+                    f"Redirecting absolute path {path} to test path {new_path}"
+                )
                 path = new_path
 
     # Only create directories if explicitly requested and not in a test environment with file operations disabled
@@ -438,7 +558,7 @@ def get_llm_settings(reload: bool = False, **kwargs) -> Dict[str, Any]:
         "model": settings["llm_model"],
         "max_tokens": int(os.environ.get("DEVSYNTH_LLM_MAX_TOKENS", "2000")),
         "temperature": settings["llm_temperature"],
-        "auto_select_model": settings["llm_auto_select_model"]
+        "auto_select_model": settings["llm_auto_select_model"],
     }
 
     # Add API key if available
