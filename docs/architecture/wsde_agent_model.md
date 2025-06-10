@@ -251,6 +251,15 @@ COLLABORATIVE CODE REVIEW PROCESS:
 7. **Respect Expertise**: Value each agent's domain expertise
 8. **Collective Ownership**: Foster a sense of collective ownership of outcomes
 
+## Current Limitations
+
+Full WSDE collaboration is still under development. Dynamic role assignment and
+advanced consensus mechanisms remain incomplete. Collaboration is disabled by
+default via the `features.wsde_collaboration` flag in `config/default.yml`.
+Refer to the
+[Feature Status Matrix](../implementation/feature_status_matrix.md) for the
+latest progress details.
+
 ## Related Documents
 
 - [EDRR Framework](edrr_framework.md)

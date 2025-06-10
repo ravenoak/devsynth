@@ -83,6 +83,15 @@ The EDRR framework is a structured approach to problem-solving that guides the D
 
 **Overall Integration Completeness**: 55%
 
+## Current Limitations
+
+The EDRR framework remains partially implemented. Phase transition logic and
+context persistence are still maturing. Advanced collaboration features are
+disabled by default through the `features.wsde_collaboration` and
+`features.dialectical_reasoning` flags in `config/default.yml`. Progress is
+tracked in the
+[Feature Status Matrix](feature_status_matrix.md).
+
 ## Critical Gaps and Priorities
 
 ### High Priority Components (Essential)
