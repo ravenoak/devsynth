@@ -4,12 +4,14 @@ Configuration for pytest with comprehensive test isolation.
 This module provides fixtures for ensuring all tests are hermetic (isolated from side effects)
 and don't pollute the developer's environment, file system, or depend on external services.
 """
+
 import os
 import sys
 import pytest
 import tempfile
 import shutil
 import uuid
+import socket
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -20,11 +22,14 @@ from devsynth.config.settings import ensure_path_exists
 # Add a marker for tests requiring external resources
 requires_resource = pytest.mark.requires_resource
 
+
 def pytest_configure(config):
     """Configure pytest with custom markers."""
     config.addinivalue_line(
-        "markers", "requires_resource(name): mark test as requiring an external resource"
+        "markers",
+        "requires_resource(name): mark test as requiring an external resource",
     )
+
 
 @pytest.fixture
 def test_environment(tmp_path, monkeypatch):
@@ -51,7 +56,11 @@ def test_environment(tmp_path, monkeypatch):
     project_dir.mkdir(exist_ok=True)
 
     # Only create log directories if file logging is not disabled
-    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
     if not no_file_logging:
         logs_dir.mkdir(exist_ok=True)
@@ -69,8 +78,9 @@ def test_environment(tmp_path, monkeypatch):
         "project_dir": project_dir,
         "logs_dir": logs_dir,
         "memory_dir": memory_dir,
-        "devsynth_dir": devsynth_dir
+        "devsynth_dir": devsynth_dir,
     }
+
 
 @pytest.fixture
 def tmp_project_dir():
@@ -90,10 +100,10 @@ def tmp_project_dir():
     start_time = datetime.now()
 
     # Create basic project structure
-    ensure_path_exists(str(temp_dir / '.devsynth'))
+    ensure_path_exists(str(temp_dir / ".devsynth"))
 
     # Create a mock config file
-    with open(temp_dir / '.devsynth' / 'config.json', 'w') as f:
+    with open(temp_dir / ".devsynth" / "config.json", "w") as f:
         f.write('{"model": "gpt-4", "project_name": "test-project"}')
 
     # Set environment variable to disable file logging
@@ -130,25 +140,28 @@ def tmp_project_dir():
             except (PermissionError, OSError) as e:
                 print(f"Warning: Failed to clean up {path}: {str(e)}")
 
+
 @pytest.fixture
 def mock_datetime():
     """
     Patch datetime.now() to return a fixed value for reproducible tests.
     """
     fixed_dt = datetime(2025, 1, 1, 12, 0, 0)
-    with patch('datetime.datetime') as mock_dt:
+    with patch("datetime.datetime") as mock_dt:
         mock_dt.now.return_value = fixed_dt
         mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
         yield mock_dt
+
 
 @pytest.fixture
 def mock_uuid():
     """
     Patch uuid.uuid4() to return predictable values for reproducible tests.
     """
-    fixed_id = uuid.UUID('12345678-1234-5678-1234-567812345678')
-    with patch('uuid.uuid4', return_value=fixed_id) as mock_id:
+    fixed_id = uuid.UUID("12345678-1234-5678-1234-567812345678")
+    with patch("uuid.uuid4", return_value=fixed_id) as mock_id:
         yield mock_id
+
 
 @pytest.fixture
 def temp_memory_path(tmp_path):
@@ -162,6 +175,7 @@ def temp_memory_path(tmp_path):
     ensure_path_exists(str(memory_path.parent))
     return memory_path
 
+
 @pytest.fixture
 def temp_log_dir(tmp_path):
     """
@@ -174,6 +188,7 @@ def temp_log_dir(tmp_path):
     ensure_path_exists(str(log_path))
     return log_path
 
+
 @pytest.fixture
 def patch_settings_paths(monkeypatch, temp_memory_path, temp_log_dir):
     """
@@ -185,6 +200,7 @@ def patch_settings_paths(monkeypatch, temp_memory_path, temp_log_dir):
     # This fixture doesn't do anything anymore as its functionality
     # has been incorporated into global_test_isolation
     yield
+
 
 @pytest.fixture(autouse=True)
 def global_test_isolation(monkeypatch, tmp_path):
@@ -243,6 +259,8 @@ def global_test_isolation(monkeypatch, tmp_path):
     # Set standard test credentials
     monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
     monkeypatch.setenv("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
+    if "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" not in os.environ:
+        monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
 
     # Explicitly disable file logging for tests
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
@@ -265,7 +283,7 @@ def global_test_isolation(monkeypatch, tmp_path):
                 "devsynth_dir": devsynth_dir,
                 "config_dir": config_dir,
                 "checkpoints_dir": checkpoints_dir,
-                "workflows_dir": workflows_dir
+                "workflows_dir": workflows_dir,
             }
 
             # Run the test
@@ -284,7 +302,7 @@ def global_test_isolation(monkeypatch, tmp_path):
     real_paths_to_check = [
         Path(original_cwd) / "logs",
         Path(original_cwd) / ".devsynth",
-        Path.home() / ".devsynth"
+        Path.home() / ".devsynth",
     ]
 
     for path in real_paths_to_check:
@@ -295,6 +313,17 @@ def global_test_isolation(monkeypatch, tmp_path):
             except (PermissionError, OSError) as e:
                 # Log the error but don't fail the test
                 print(f"Warning: Failed to clean up {path}: {str(e)}")
+
+
+@pytest.fixture(autouse=True)
+def disable_network(monkeypatch):
+    """Disable network access during tests."""
+
+    def guard_connect(*args, **kwargs):
+        raise RuntimeError("Network access disabled during tests")
+
+    monkeypatch.setattr(socket.socket, "connect", guard_connect)
+
 
 @pytest.fixture
 def mock_openai_provider():
@@ -309,6 +338,7 @@ def mock_openai_provider():
         mock_provider.return_value = mock_instance
         yield mock_provider
 
+
 @pytest.fixture
 def mock_lm_studio_provider():
     """
@@ -322,6 +352,7 @@ def mock_lm_studio_provider():
         mock_provider.return_value = mock_instance
         yield mock_provider
 
+
 @pytest.fixture
 def reset_global_state():
     """
@@ -332,7 +363,12 @@ def reset_global_state():
     """
     # Implementation will reset specific global variables in the codebase
     # Store original state
-    from devsynth.logging_setup import _logging_configured, _configured_log_dir, _configured_log_file
+    from devsynth.logging_setup import (
+        _logging_configured,
+        _configured_log_dir,
+        _configured_log_file,
+    )
+
     orig_logging_configured = _logging_configured
     orig_log_dir = _configured_log_dir
     orig_log_file = _configured_log_file
@@ -341,6 +377,7 @@ def reset_global_state():
 
     # Reset to original state
     import devsynth.logging_setup
+
     devsynth.logging_setup._logging_configured = orig_logging_configured
     devsynth.logging_setup._configured_log_dir = orig_log_dir
     devsynth.logging_setup._configured_log_file = orig_log_file
@@ -348,24 +385,35 @@ def reset_global_state():
     # Reset any other global state across modules
     # Example: devsynth.some_module.global_variable = original_value
 
+
 def is_lmstudio_available() -> bool:
-    """Check if LM Studio is available at http://localhost:1234."""
-    # Check environment variable override
-    if os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "true").lower() == "false":
+    """Check if LM Studio is available."""
+    # By default assume LM Studio is unavailable to avoid network calls
+    if os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower() not in (
+        "1",
+        "true",
+        "yes",
+    ):
         return False
 
-    # Actual availability check
+    endpoint = os.environ.get("LM_STUDIO_ENDPOINT", "http://localhost:1234")
+
     try:
         import requests
-        response = requests.get("http://localhost:1234/v1/models", timeout=2)
+
+        response = requests.get(f"{endpoint.rstrip('/')}/v1/models", timeout=2)
         return response.status_code == 200
     except Exception:
         return False
 
+
 def is_codebase_available() -> bool:
     """Check if the DevSynth codebase is available for analysis."""
     # Check environment variable override
-    if os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true").lower() == "false":
+    if (
+        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true").lower()
+        == "false"
+    ):
         return False
 
     # Actual availability check
@@ -374,6 +422,7 @@ def is_codebase_available() -> bool:
         return Path("src/devsynth").exists()
     except Exception:
         return False
+
 
 def is_cli_available() -> bool:
     """Check if the DevSynth CLI is available for testing."""
@@ -384,10 +433,12 @@ def is_cli_available() -> bool:
     # Actual availability check
     try:
         import subprocess
+
         result = subprocess.run(["devsynth", "--help"], capture_output=True, text=True)
         return result.returncode == 0
     except Exception:
         return False
+
 
 def is_resource_available(resource: str) -> bool:
     """
@@ -419,6 +470,7 @@ def is_resource_available(resource: str) -> bool:
     # Call the checker function
     return checker()
 
+
 def pytest_collection_modifyitems(config, items):
     """
     Skip tests that depend on external resources unless explicitly marked.
@@ -430,4 +482,6 @@ def pytest_collection_modifyitems(config, items):
             resource = marker.args[0]
             if not is_resource_available(resource):
                 # Skip the test if the resource is not available
-                item.add_marker(pytest.mark.skip(reason=f"Resource '{resource}' not available"))
+                item.add_marker(
+                    pytest.mark.skip(reason=f"Resource '{resource}' not available")
+                )

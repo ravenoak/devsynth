@@ -67,6 +67,20 @@ export DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=false
 export DEVSYNTH_RESOURCE_CLI_AVAILABLE=false
 ```
 
+If you want to run tests that depend on these resources, set the corresponding variable to `true` and ensure the service is running.
+
+### Environment Variables for Tests
+
+Most tests run with mocked providers and do not require any external services. The `global_test_isolation` fixture automatically sets `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false` so LM Studio dependent tests are skipped. To enable them, provide the endpoint and set the variable to `true`:
+
+```bash
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+export LM_STUDIO_ENDPOINT=http://localhost:1234
+```
+
+Other environment variables such as `DEVSYNTH_PROJECT_DIR` and
+`DEVSYNTH_NO_FILE_LOGGING` are automatically configured during the tests.
+
 ### Adding New Resources
 
 To add a new resource:
@@ -113,6 +127,15 @@ To run all tests:
 
 ```bash
 python -m pytest
+```
+
+### Environment Setup
+
+Ensure dependencies are installed and the `devsynth` package is available in your environment before running tests:
+
+```bash
+poetry install
+pip install -e .  # optional but recommended for editable installs
 ```
 
 To run tests for a specific type:
