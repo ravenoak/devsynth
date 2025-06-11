@@ -100,6 +100,14 @@ Follow these guidelines for error logging:
 - Don't log sensitive information (passwords, tokens, personal data)
 - Use structured logging for machine-readable logs
 
+#### Logging Configuration
+
+DevSynth uses a centralized logging setup defined in `devsynth.logging_setup`.
+Call `configure_logging()` at startup to initialize handlers. During runtime you
+can set a request identifier and the current EDRR phase with `set_request_context(request_id, phase)`.
+These values are automatically attached to all log records, enabling correlation
+across components.
+
 ## Error Handling Patterns
 
 ### Validation Errors
