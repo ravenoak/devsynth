@@ -19,6 +19,7 @@ This section provides essential information for getting started with DevSynth, i
 - **[Quick Start Guide](quick_start_guide.md)**: A step-by-step tutorial to help you get started with DevSynth quickly.
 - **[Installation](installation.md)**: Detailed instructions for installing DevSynth and its dependencies.
 - **[Basic Usage](basic_usage.md)**: An introduction to the basic usage of DevSynth.
+- **[Example Project](example_project.md)**: A complete walk-through using the calculator example.
 
 ## Overview
 
