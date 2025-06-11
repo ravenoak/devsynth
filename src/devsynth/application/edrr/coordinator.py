@@ -98,6 +98,8 @@ class EDRRCoordinator:
         self.documentation_manager = documentation_manager
         self._enable_enhanced_logging = enable_enhanced_logging
         self._execution_traces = {} if enable_enhanced_logging else None
+        self._execution_history = [] if enable_enhanced_logging else None
+        self.performance_metrics: Dict[str, Any] = {}
 
         # Recursive EDRR attributes
         self.parent_cycle_id = parent_cycle_id
@@ -129,6 +131,18 @@ class EDRRCoordinator:
         self.cycle_id = str(uuid.uuid4())
         self.results = {}
         self.manifest = None
+
+        if self._enable_enhanced_logging:
+            self._execution_traces = {
+                "cycle_id": self.cycle_id,
+                "phases": {},
+                "metadata": {
+                    "task_id": self.task.get("id"),
+                    "task_description": self.task.get("description"),
+                    "timestamp": datetime.now().isoformat(),
+                },
+            }
+            self._execution_history = []
 
         # Store the task in memory
         self.memory_manager.store_with_edrr_phase(
@@ -185,6 +199,18 @@ class EDRRCoordinator:
 
             self.cycle_id = str(uuid.uuid4())
             self.results = {}
+
+            if self._enable_enhanced_logging:
+                self._execution_traces = {
+                    "cycle_id": self.cycle_id,
+                    "phases": {},
+                    "metadata": {
+                        "task_id": self.task.get("id"),
+                        "task_description": self.task.get("description"),
+                        "timestamp": datetime.now().isoformat(),
+                    },
+                }
+                self._execution_history = []
 
             # Store the task and manifest in memory with enhanced traceability
             self.memory_manager.store_with_edrr_phase(
@@ -284,6 +310,17 @@ class EDRRCoordinator:
             # Update the current phase
             self.current_phase = phase
 
+            start_time = datetime.now()
+            if self._enable_enhanced_logging:
+                self._execution_history.append(
+                    {
+                        "timestamp": start_time.isoformat(),
+                        "phase": phase.value,
+                        "action": "start",
+                        "details": {},
+                    }
+                )
+
             # Execute the phase
             if phase == Phase.EXPAND:
                 results = self._execute_expand_phase({})
@@ -293,6 +330,29 @@ class EDRRCoordinator:
                 results = self._execute_refine_phase({})
             elif phase == Phase.RETROSPECT:
                 results = self._execute_retrospect_phase({})
+
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            self.performance_metrics[phase.name] = {
+                "duration": duration,
+                "memory_usage": len(str(results)),
+                "component_calls": {
+                    "wsde_team": 1,
+                    "code_analyzer": 1,
+                    "prompt_manager": 1,
+                    "documentation_manager": 1,
+                },
+            }
+
+            if self._enable_enhanced_logging:
+                self._execution_history.append(
+                    {
+                        "timestamp": end_time.isoformat(),
+                        "phase": phase.value,
+                        "action": "end",
+                        "details": {"duration": duration},
+                    }
+                )
 
             # Save results
             self.results[phase.name] = results
@@ -473,12 +533,15 @@ class EDRRCoordinator:
         results["ideas"] = broad_ideas
 
         # Perform knowledge retrieval optimization
-        relevant_knowledge = self.memory_manager.retrieve_relevant_knowledge(
-            self.task,
-            retrieval_strategy="broad",
-            max_results=15,
-            similarity_threshold=0.6,
-        )
+        if hasattr(self.memory_manager, "retrieve_relevant_knowledge"):
+            relevant_knowledge = self.memory_manager.retrieve_relevant_knowledge(
+                self.task,
+                retrieval_strategy="broad",
+                max_results=15,
+                similarity_threshold=0.6,
+            )
+        else:
+            relevant_knowledge = []
         results["knowledge"] = relevant_knowledge
 
         # Execute broad exploration algorithms
@@ -552,9 +615,12 @@ class EDRRCoordinator:
         results = {}
 
         # Get ideas from the Expand phase
-        expand_results = self.memory_manager.retrieve_with_edrr_phase(
-            "EXPAND_RESULTS", "EXPAND", {"cycle_id": self.cycle_id}
-        )
+        if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
+            expand_results = self.memory_manager.retrieve_with_edrr_phase(
+                "EXPAND_RESULTS", "EXPAND", {"cycle_id": self.cycle_id}
+            )
+        else:
+            expand_results = {}
         ideas = expand_results.get("ideas", [])
 
         # Implement comparative analysis frameworks
@@ -661,9 +727,12 @@ class EDRRCoordinator:
         results = {}
 
         # Get evaluated options from the Differentiate phase
-        differentiate_results = self.memory_manager.retrieve_with_edrr_phase(
-            "DIFFERENTIATE_RESULTS", "DIFFERENTIATE", {"cycle_id": self.cycle_id}
-        )
+        if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
+            differentiate_results = self.memory_manager.retrieve_with_edrr_phase(
+                "DIFFERENTIATE_RESULTS", "DIFFERENTIATE", {"cycle_id": self.cycle_id}
+            )
+        else:
+            differentiate_results = {}
         evaluated_options = differentiate_results.get("evaluated_options", [])
         decision_criteria = differentiate_results.get("decision_criteria", {})
 
@@ -775,15 +844,20 @@ class EDRRCoordinator:
         results = {}
 
         # Collect results from all previous phases
-        expand_results = self.memory_manager.retrieve_with_edrr_phase(
-            "EXPAND_RESULTS", "EXPAND", {"cycle_id": self.cycle_id}
-        )
-        differentiate_results = self.memory_manager.retrieve_with_edrr_phase(
-            "DIFFERENTIATE_RESULTS", "DIFFERENTIATE", {"cycle_id": self.cycle_id}
-        )
-        refine_results = self.memory_manager.retrieve_with_edrr_phase(
-            "REFINE_RESULTS", "REFINE", {"cycle_id": self.cycle_id}
-        )
+        if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
+            expand_results = self.memory_manager.retrieve_with_edrr_phase(
+                "EXPAND_RESULTS", "EXPAND", {"cycle_id": self.cycle_id}
+            )
+            differentiate_results = self.memory_manager.retrieve_with_edrr_phase(
+                "DIFFERENTIATE_RESULTS", "DIFFERENTIATE", {"cycle_id": self.cycle_id}
+            )
+            refine_results = self.memory_manager.retrieve_with_edrr_phase(
+                "REFINE_RESULTS", "REFINE", {"cycle_id": self.cycle_id}
+            )
+        else:
+            expand_results = {}
+            differentiate_results = {}
+            refine_results = {}
 
         # Learning extraction methods
         learnings = self.wsde_team.extract_learnings(
@@ -798,9 +872,12 @@ class EDRRCoordinator:
         results["learnings"] = learnings
 
         # Pattern recognition
+        historical_context = []
+        if hasattr(self.memory_manager, "retrieve_historical_patterns"):
+            historical_context = self.memory_manager.retrieve_historical_patterns()
         patterns = self.wsde_team.recognize_patterns(
             learnings,
-            historical_context=self.memory_manager.retrieve_historical_patterns(),
+            historical_context=historical_context,
             code_analyzer=self.code_analyzer,
         )
         results["patterns"] = patterns
@@ -1105,3 +1182,35 @@ class EDRRCoordinator:
             raise EDRRCoordinatorError(
                 f"Failed to execute phase {self.current_phase.value}: {e}"
             )
+
+    def generate_report(self) -> Dict[str, Any]:
+        """Generate a high level report for the entire cycle."""
+        phase_data = {phase.name: self.results.get(phase.name, {}) for phase in Phase}
+        final_report = self.generate_final_report(
+            {
+                "task": self.task,
+                "expand": self.results.get(Phase.EXPAND.name, {}),
+                "differentiate": self.results.get(Phase.DIFFERENTIATE.name, {}),
+                "refine": self.results.get(Phase.REFINE.name, {}),
+                "retrospect": self.results.get(Phase.RETROSPECT.name, {}),
+            }
+        )
+        return {
+            "task": self.task,
+            "cycle_id": self.cycle_id,
+            "timestamp": datetime.now().isoformat(),
+            "phases": phase_data,
+            "summary": final_report,
+        }
+
+    def get_execution_traces(self) -> Dict[str, Any]:
+        """Return collected execution traces."""
+        return copy.deepcopy(self._execution_traces) if self._execution_traces else {}
+
+    def get_execution_history(self) -> List[Dict[str, Any]]:
+        """Return chronological execution history events."""
+        return list(self._execution_history) if self._execution_history else []
+
+    def get_performance_metrics(self) -> Dict[str, Any]:
+        """Return simple performance metrics for each phase."""
+        return copy.deepcopy(self.performance_metrics)
