@@ -15,7 +15,7 @@ from devsynth.exceptions import (
     MemoryAdapterError, MemoryNotFoundError, MemoryStoreError,
     DomainError, AgentError, WorkflowError, ContextError, DialecticalReasoningError,
     ApplicationError, PromiseError, PromiseStateError, IngestionError, ManifestError,
-    CodeGenerationError, TestGenerationError,
+    CodeGenerationError, TestGenerationException,
     PortError, MemoryPortError, ProviderPortError, AgentPortError
 )
 

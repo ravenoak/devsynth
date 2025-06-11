@@ -557,8 +557,10 @@ class CodeGenerationError(ApplicationError):
         )
 
 
-class TestGenerationError(ApplicationError):
+class TestGenerationException(ApplicationError):
     """Exception raised for errors during test generation."""
+
+    __test__ = False
 
     def __init__(
         self,
