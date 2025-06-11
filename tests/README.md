@@ -45,8 +45,18 @@ The following resources are currently supported. Set the corresponding
 environment variable to `true` to enable tests that depend on the resource:
 
 - **lmstudio** – `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`
+- **openai** – no environment variable (tests run by default)
 - **codebase** – `DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE`
 - **cli** – `DEVSYNTH_RESOURCE_CLI_AVAILABLE`
+
+### Tests Using Resource Markers
+
+The following tests rely on each resource marker:
+
+- `lmstudio`: `tests/integration/test_lmstudio_provider.py`
+- `openai`: `tests/integration/test_openai_provider.py`
+- `codebase`: `tests/integration/test_self_analyzer.py`
+- `cli`: `tests/behavior/test_cli_commands.py`
 
 ### Controlling Resource Availability
 
@@ -74,12 +84,17 @@ If you want to run tests that depend on these resources, set the corresponding v
 # Enable LM Studio tests
 export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
 export LM_STUDIO_ENDPOINT=http://localhost:1234
+# Start LM Studio in API mode (example)
+# lmstudio --api --port 1234
 
 # Enable codebase analysis tests
 export DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true
 
 # Enable CLI tests
 export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
+
+# Enable OpenAI integration
+export OPENAI_API_KEY=sk-your-key
 
 python -m pytest
 ```
@@ -93,8 +108,16 @@ export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
 export LM_STUDIO_ENDPOINT=http://localhost:1234
 ```
 
-Other environment variables such as `DEVSYNTH_PROJECT_DIR` and
-`DEVSYNTH_NO_FILE_LOGGING` are automatically configured during the tests.
+`tests/conftest.py` sets helpful defaults so tests run in isolation:
+
+- `OPENAI_API_KEY` is set to `test-openai-key`.
+- `LM_STUDIO_ENDPOINT` defaults to `http://127.0.0.1:1234`.
+- `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE` defaults to `false`.
+- `DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE` and `DEVSYNTH_RESOURCE_CLI_AVAILABLE`
+  default to `true`.
+
+Other variables such as `DEVSYNTH_PROJECT_DIR` and `DEVSYNTH_NO_FILE_LOGGING`
+are automatically configured during the tests.
 
 ### Adding New Resources
 
