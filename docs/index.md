@@ -13,6 +13,8 @@ last_reviewed: "2025-06-01"
 
 # DevSynth Documentation
 
+![Test Coverage](coverage.svg)
+
 Welcome to the DevSynth documentation! This site provides comprehensive guides, references, and policies for users and contributors. Use the navigation to explore getting started guides, user and developer documentation, architecture, technical references, specifications, and the project roadmap.
 
 ## Quick Links

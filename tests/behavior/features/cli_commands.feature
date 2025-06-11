@@ -67,3 +67,8 @@ Feature: CLI Command Execution
     When I run the command "devsynth invalid-command"
     Then the system should display the help information
     And indicate that the command is not recognized
+
+  Scenario: Run an EDRR cycle from a manifest
+    When I run the command "devsynth edrr-cycle sample_manifest.yaml"
+    Then the workflow should execute successfully
+    And the system should display a success message
