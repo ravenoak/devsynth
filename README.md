@@ -115,20 +115,15 @@ Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `
 
 ## Running Tests
 
-Before running the test suite, install DevSynth with its development dependencies.
-You can use `pip` in editable mode:
+Before running the test suite, **install DevSynth with its development extras**. Use either of the following commands:
 
 ```bash
 pip install -e .[dev]
-```
-
-Or install using Poetry, which also sets up the dev extras:
-
-```bash
+# or
 poetry install
 ```
 
-Once installed, execute the tests with:
+After installation, execute the tests with:
 
 ```bash
 pytest
