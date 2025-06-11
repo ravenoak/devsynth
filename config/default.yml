@@ -120,3 +120,5 @@ features:
   code_generation: false
   test_generation: false
   documentation_generation: false
+  automatic_phase_transitions: true
+  collaboration_notifications: false

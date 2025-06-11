@@ -92,3 +92,5 @@ features:
   test_generation: false
   documentation_generation: false
   experimental_features: ${DEVSYNTH_ENABLE_EXPERIMENTAL:-false}  # Configurable in staging
+  automatic_phase_transitions: true
+  collaboration_notifications: false
