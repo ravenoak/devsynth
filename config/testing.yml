@@ -65,3 +65,5 @@ features:
   test_generation: false
   documentation_generation: false
   experimental_features: false
+  automatic_phase_transitions: false
+  collaboration_notifications: false

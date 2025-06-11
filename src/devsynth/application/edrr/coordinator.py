@@ -8,27 +8,37 @@ its own nested micro-EDRR cycles, creating a fractal structure that enables
 self-optimization at multiple levels of granularity.
 """
 
-from typing import Dict, Any, List, Optional, Union, Set
-from datetime import datetime
-import uuid
-from pathlib import Path
 import copy
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Union
 
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
+import yaml
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.application.edrr.manifest_parser import ManifestParser, ManifestParseError
-from devsynth.logging_setup import DevSynthLogger
+from devsynth.application.edrr.manifest_parser import ManifestParseError, ManifestParser
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.domain.models.wsde import WSDETeam
 from devsynth.exceptions import DevSynthError
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
+# Load default configuration for feature flags
+_DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
+try:
+    with open(_DEFAULT_CONFIG_PATH, "r") as f:
+        _DEFAULT_CONFIG = yaml.safe_load(f) or {}
+except Exception:
+    _DEFAULT_CONFIG = {}
 
 
 class EDRRCoordinatorError(DevSynthError):
@@ -74,6 +84,7 @@ class EDRRCoordinator:
         parent_cycle_id: str = None,
         recursion_depth: int = 0,
         parent_phase: Phase = None,
+        config: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize the EDRR coordinator.
@@ -96,10 +107,21 @@ class EDRRCoordinator:
         self.ast_transformer = ast_transformer
         self.prompt_manager = prompt_manager
         self.documentation_manager = documentation_manager
+        self.config = config or _DEFAULT_CONFIG
+        edrr_cfg = self.config.get("edrr", {})
+        pt_cfg = edrr_cfg.get("phase_transition", {})
+        feature_cfg = self.config.get("features", {})
+
+        self.auto_phase_transitions = feature_cfg.get(
+            "automatic_phase_transitions", pt_cfg.get("auto", True)
+        )
+        self.phase_transition_timeout = pt_cfg.get("timeout", 600)
         self._enable_enhanced_logging = enable_enhanced_logging
         self._execution_traces = {} if enable_enhanced_logging else None
         self._execution_history = [] if enable_enhanced_logging else None
         self.performance_metrics: Dict[str, Any] = {}
+
+        self._phase_start_times: Dict[Phase, datetime] = {}
 
         # Recursive EDRR attributes
         self.parent_cycle_id = parent_cycle_id
@@ -311,6 +333,7 @@ class EDRRCoordinator:
             self.current_phase = phase
 
             start_time = datetime.now()
+            self._phase_start_times[phase] = start_time
             if self._enable_enhanced_logging:
                 self._execution_history.append(
                     {
@@ -364,6 +387,9 @@ class EDRRCoordinator:
             logger.info(
                 f"Progressed to and completed {phase.value} phase for task: {self.task.get('description', 'Unknown')}"
             )
+
+            # Automatically transition to next phase if enabled
+            self._maybe_auto_progress()
         except ManifestParseError as e:
             logger.error(f"Failed to progress to phase {phase.value}: {e}")
             raise EDRRCoordinatorError(
@@ -391,6 +417,43 @@ class EDRRCoordinator:
 
         next_phase = phase_order[idx + 1]
         self.progress_to_phase(next_phase)
+
+    def _decide_next_phase(self) -> Optional[Phase]:
+        """Determine if the coordinator should automatically move to the next phase."""
+        if not self.auto_phase_transitions:
+            return None
+
+        if self.current_phase == Phase.RETROSPECT:
+            return None
+
+        phase_order = [
+            Phase.EXPAND,
+            Phase.DIFFERENTIATE,
+            Phase.REFINE,
+            Phase.RETROSPECT,
+        ]
+        idx = phase_order.index(self.current_phase)
+        next_phase = phase_order[idx + 1]
+
+        phase_results = self.results.get(self.current_phase.name, {})
+        if phase_results.get("phase_complete", True):
+            return next_phase
+
+        start_time = self._phase_start_times.get(self.current_phase)
+        if (
+            start_time
+            and (datetime.now() - start_time).total_seconds()
+            >= self.phase_transition_timeout
+        ):
+            return next_phase
+
+        return None
+
+    def _maybe_auto_progress(self) -> None:
+        """Trigger automatic phase transition when conditions are met."""
+        next_phase = self._decide_next_phase()
+        if next_phase:
+            self.progress_to_phase(next_phase)
 
     def create_micro_cycle(
         self, task: Dict[str, Any], parent_phase: Phase
@@ -611,6 +674,7 @@ class EDRRCoordinator:
         logger.info(
             f"Expand phase completed with {len(broad_ideas)} ideas generated (recursion depth: {self.recursion_depth})"
         )
+        results["phase_complete"] = True
         return results
 
     def _execute_differentiate_phase(
@@ -727,6 +791,7 @@ class EDRRCoordinator:
         logger.info(
             f"Differentiate phase completed with {len(evaluated_options)} options evaluated (recursion depth: {self.recursion_depth})"
         )
+        results["phase_complete"] = True
         return results
 
     def _execute_refine_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -840,6 +905,7 @@ class EDRRCoordinator:
         logger.info(
             f"Refine phase completed with implementation plan created (recursion depth: {self.recursion_depth})"
         )
+        results["phase_complete"] = True
         return results
 
     def _execute_retrospect_phase(
@@ -998,6 +1064,7 @@ class EDRRCoordinator:
         logger.info(
             f"Retrospect phase completed with learnings extracted and final report generated (recursion depth: {self.recursion_depth})"
         )
+        results["phase_complete"] = True
         return results
 
     def generate_final_report(self, cycle_data: Dict[str, Any]) -> Dict[str, Any]:
