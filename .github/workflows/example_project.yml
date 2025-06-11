@@ -1,0 +1,36 @@
+name: Run Example Project
+
+on:
+  push:
+    paths:
+      - 'examples/**'
+      - '.github/workflows/example_project.yml'
+  pull_request:
+    paths:
+      - 'examples/**'
+      - '.github/workflows/example_project.yml'
+
+jobs:
+  run-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install DevSynth
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Execute DevSynth workflow
+        run: |
+          cd examples/calculator
+          devsynth init --path .
+          devsynth spec --requirements-file requirements.md
+          devsynth test
+          devsynth code
+          devsynth run
