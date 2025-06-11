@@ -3,6 +3,7 @@ from typing import Optional, Union, List
 
 from rich.console import Console
 from rich.prompt import Confirm
+import typer
 from pathlib import Path
 import importlib.util
 import yaml
@@ -15,6 +16,7 @@ from devsynth.config import get_settings
 
 logger = DevSynthLogger(__name__)
 console = Console()
+config_app = typer.Typer(help="Manage configuration settings")
 
 
 def _check_services() -> bool:
@@ -170,10 +172,16 @@ def run_cmd(target: Optional[str] = None) -> None:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
+@config_app.callback(invoke_without_command=True)
 def config_cmd(
-    key: Optional[str] = None, value: Optional[str] = None, list_models: bool = False
+    ctx: typer.Context,
+    key: Optional[str] = None,
+    value: Optional[str] = None,
+    list_models: bool = False,
 ) -> None:
     """View or set configuration options."""
+    if ctx.invoked_subcommand is not None:
+        return
     try:
         args = {"key": key, "value": value}
         if list_models:
@@ -191,6 +199,25 @@ def config_cmd(
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
+        console.print(f"[red]Error:[/red] {err}", highlight=False)
+
+
+@config_app.command("enable-feature")
+def enable_feature_cmd(name: str) -> None:
+    """Enable a feature flag in .devsynth/project.yaml."""
+    try:
+        project_file = Path(".devsynth") / "project.yaml"
+        if not project_file.exists():
+            console.print("[red]Error:[/red] Project configuration not found", highlight=False)
+            return
+        with open(project_file, "r") as f:
+            data = yaml.safe_load(f) or {}
+        features = data.setdefault("features", {})
+        features[name] = True
+        with open(project_file, "w") as f:
+            yaml.safe_dump(data, f)
+        console.print(f"[green]Feature '{name}' enabled.[/green]")
+    except Exception as err:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 

@@ -63,3 +63,10 @@ class TestTyperCLI:
         result = self.runner.invoke(app, ["config", "--key", "model", "--value", "gpt-4"])
         assert result.exit_code == 0
         mock_config_cmd.assert_called_once_with("model", "gpt-4", False)
+
+    @patch("devsynth.adapters.cli.argparse_adapter.enable_feature_cmd", autospec=True)
+    def test_cli_enable_feature(self, mock_enable_cmd):
+        app = build_app()
+        result = self.runner.invoke(app, ["config", "enable-feature", "code_generation"])
+        assert result.exit_code == 0
+        mock_enable_cmd.assert_called_once_with("code_generation")

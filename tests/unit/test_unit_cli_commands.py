@@ -1,4 +1,6 @@
 from unittest.mock import patch, mock_open
+import os
+import yaml
 
 import pytest
 
@@ -251,6 +253,27 @@ class TestCLICommands:
             "config", {"key": None, "value": None}
         )
         assert mock_console.print.call_count == 4  # Header + 3 config items
+
+    def test_enable_feature_cmd(self, tmp_path, mock_console):
+        """enable_feature_cmd should toggle a flag in project.yaml."""
+        dev_dir = tmp_path / ".devsynth"
+        dev_dir.mkdir()
+        config_file = dev_dir / "project.yaml"
+        config_file.write_text("features:\n  code_generation: false\n")
+
+        cwd = os.getcwd()
+        os.chdir(tmp_path)
+        try:
+            cli_commands.enable_feature_cmd("code_generation")
+        finally:
+            os.chdir(cwd)
+
+        data = yaml.safe_load(config_file.read_text())
+        assert data["features"]["code_generation"] is True
+        assert any(
+            "Feature 'code_generation' enabled." == call.args[0]
+            for call in mock_console.print.call_args_list
+        )
 
     def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_console):
         """Init command with additional parameters."""

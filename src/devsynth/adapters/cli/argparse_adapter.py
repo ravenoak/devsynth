@@ -1,5 +1,7 @@
 import typer
 from devsynth.logging_setup import DevSynthLogger
+from pathlib import Path
+import yaml
 
 from devsynth.application.cli import (
     init_cmd,
@@ -8,6 +10,8 @@ from devsynth.application.cli import (
     code_cmd,
     run_cmd,
     config_cmd,
+    enable_feature_cmd,
+    config_app,
     analyze_cmd,
     webapp_cmd,
     dbschema_cmd,
@@ -50,7 +54,7 @@ def build_app() -> typer.Typer:
     app.command(name="test")(test_cmd)
     app.command(name="code")(code_cmd)
     app.command(name="run")(run_cmd)
-    app.command(name="config")(config_cmd)
+    app.add_typer(config_app, name="config")
     app.command(name="analyze")(analyze_cmd)
     app.command(name="webapp")(webapp_cmd)
     app.command(name="dbschema")(dbschema_cmd)
@@ -81,6 +85,28 @@ def build_app() -> typer.Typer:
 app = build_app()
 
 
+def _warn_if_features_disabled() -> None:
+    """Emit a notice when all feature flags are disabled."""
+    try:
+        project_config = Path(".devsynth") / "project.yaml"
+        if project_config.exists():
+            with open(project_config, "r") as f:
+                config = yaml.safe_load(f) or {}
+            features = config.get("features", {})
+        else:
+            default_config = Path(__file__).resolve().parents[3] / "config" / "default.yml"
+            with open(default_config, "r") as f:
+                config = yaml.safe_load(f) or {}
+            features = config.get("features", {})
+        if features and not any(features.values()):
+            typer.echo(
+                "All optional features are disabled. Enable with 'devsynth config enable-feature <name>'."
+            )
+    except Exception:
+        # Don't fail the CLI if the config can't be read
+        logger.debug("Failed to read feature flags for warning message")
+
+
 def show_help() -> None:
     """Display the CLI help message."""
     try:
@@ -94,11 +120,13 @@ def show_help() -> None:
 
 def parse_args(args: list[str]) -> None:
     """Parse command line arguments and execute the CLI."""
+    _warn_if_features_disabled()
     build_app()(args)
 
 
 def run_cli() -> None:
     """Entry point for the Typer application."""
+    _warn_if_features_disabled()
     build_app()()
 
 
