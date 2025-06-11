@@ -59,6 +59,7 @@ class WSDETeam:
     external_knowledge: Dict[str, Any] = None  # External knowledge sources
     message_protocol: Any = None  # MessageProtocol instance
     peer_reviews: List[Any] = None
+    role_assignments: Dict[str, Any] = None  # Mapping of roles to assigned agents
 
     def __post_init__(self):
         if self.agents is None:
@@ -78,6 +79,14 @@ class WSDETeam:
                 self.message_protocol = None
         if self.peer_reviews is None:
             self.peer_reviews = []
+        if self.role_assignments is None:
+            self.role_assignments = {
+                "primus": None,
+                "worker": [],
+                "supervisor": None,
+                "designer": None,
+                "evaluator": None,
+            }
 
     def add_agent(self, agent: Any) -> None:
         """Add an agent to the team."""
@@ -85,6 +94,11 @@ class WSDETeam:
         if not hasattr(agent, "has_been_primus"):
             agent.has_been_primus = False
         self.agents.append(agent)
+
+    def add_agents(self, agents: List[Any]) -> None:
+        """Add multiple agents to the team."""
+        for agent in agents:
+            self.add_agent(agent)
 
     # ------------------------------------------------------------------
     # Communication utilities
@@ -291,67 +305,105 @@ class WSDETeam:
                 return agent
         return None
 
-    def assign_roles(self) -> None:
-        """
-        Assign WSDE roles to agents based on the current Primus.
+    def assign_roles(self, role_mapping: Optional[Dict[str, Any]] = None) -> None:
+        """Assign WSDE roles to agents.
 
-        In the refined WSDE model, roles are more flexible and context-driven.
-        All agents are treated as peers with equal status.
-        The Primus role is temporary and based on task expertise, not a permanent hierarchical position.
+        If ``role_mapping`` is provided it will be used after validation.
+        Otherwise roles are assigned automatically based on agent expertise.
         """
+
         if not self.agents:
             return
 
-        # Reset all roles
         for agent in self.agents:
-            # Store the previous role if not already stored
             if not hasattr(agent, "previous_role") or agent.previous_role is None:
                 agent.previous_role = getattr(agent, "current_role", None)
             agent.current_role = None
 
-        # Roles to assign
-        roles = ["Worker", "Supervisor", "Designer", "Evaluator"]
+        if role_mapping:
+            self._validate_role_mapping(role_mapping)
+            self.role_assignments = role_mapping
+            if role_mapping.get("primus"):
+                role_mapping["primus"].current_role = "Primus"
+            for role in ["worker", "supervisor", "designer", "evaluator"]:
+                value = role_mapping.get(role)
+                if not value:
+                    continue
+                if role == "worker":
+                    for worker in value:
+                        worker.current_role = "Worker"
+                else:
+                    value.current_role = role.capitalize()
+            return
 
-        # Shuffle the roles to prevent any implicit hierarchy
-        import random
+        self._auto_assign_roles()
 
-        random.shuffle(roles)
+        assigned_roles = [agent.current_role for agent in self.agents]
+        logger.info(f"Assigned roles: {assigned_roles}")
 
-        # Assign Primus role to the current Primus agent
+    def _validate_role_mapping(self, mapping: Dict[str, Any]) -> None:
+        """Validate that a role mapping only contains agents from this team."""
+        valid_agents = set(self.agents)
+        for role, agent in mapping.items():
+            if role == "worker":
+                for a in agent:
+                    if a not in valid_agents:
+                        raise DevSynthError("Invalid agent in role mapping")
+            elif agent is not None and agent not in valid_agents:
+                raise DevSynthError("Invalid agent in role mapping")
+
+    def _auto_assign_roles(self) -> None:
+        """Automatically assign roles based on simple expertise heuristics."""
         primus_agent = self.agents[self.primus_index]
         primus_agent.current_role = "Primus"
 
-        # Get non-Primus agents
-        non_primus_agents = [
-            agent for i, agent in enumerate(self.agents) if i != self.primus_index
-        ]
+        keywords = {
+            "Supervisor": ["supervise", "review", "management"],
+            "Designer": ["design", "architecture", "plan"],
+            "Evaluator": ["test", "qa", "evaluate"],
+        }
 
-        # Special case for tests: If we have exactly 3 non-Primus agents, ensure all roles are assigned
-        if len(non_primus_agents) == 3:
-            # Ensure "Worker" and "Supervisor" roles are always assigned
-            required_roles = ["Worker", "Supervisor"]
-            for i, required_role in enumerate(required_roles):
-                if required_role not in roles[:3]:
-                    # Find the index of the required role in the roles list
-                    role_index = roles.index(required_role)
-                    # Swap it with one of the first three roles that isn't already a required role
-                    for j in range(3):
-                        if roles[j] not in required_roles[:i]:
-                            roles[j], roles[role_index] = roles[role_index], roles[j]
-                            break
+        remaining = [a for i, a in enumerate(self.agents) if i != self.primus_index]
+        assignments: Dict[str, Any] = {
+            "primus": primus_agent,
+            "worker": [],
+            "supervisor": None,
+            "designer": None,
+            "evaluator": None,
+        }
 
-            non_primus_agents[0].current_role = roles[0]
-            non_primus_agents[1].current_role = roles[1]
-            non_primus_agents[2].current_role = roles[2]
-        else:
-            # Assign roles normally
-            for i, agent in enumerate(non_primus_agents):
-                role_index = i % len(roles)
-                agent.current_role = roles[role_index]
+        def get_expertise(agent: Any) -> List[str]:
+            if hasattr(agent, "expertise") and agent.expertise:
+                return [e.lower() for e in agent.expertise]
+            if (
+                hasattr(agent, "config")
+                and hasattr(agent.config, "parameters")
+                and "expertise" in agent.config.parameters
+            ):
+                return [e.lower() for e in agent.config.parameters["expertise"]]
+            return []
 
-        # Log assigned roles
-        assigned_roles = [agent.current_role for agent in self.agents]
-        logger.info(f"Assigned roles: {assigned_roles}")
+        for role, kw in keywords.items():
+            if not remaining:
+                break
+            best_agent = None
+            best_score = -1
+            for agent in remaining:
+                expertise = get_expertise(agent)
+                score = sum(1 for word in kw if word in expertise)
+                if score > best_score:
+                    best_score = score
+                    best_agent = agent
+            if best_agent is not None and best_score > 0:
+                best_agent.current_role = role
+                assignments[role.lower()] = best_agent
+                remaining.remove(best_agent)
+
+        for agent in remaining:
+            agent.current_role = "Worker"
+            assignments["worker"].append(agent)
+
+        self.role_assignments = assignments
 
     def get_role_map(self) -> Dict[str, str]:
         """Return a mapping of agent names to their current roles."""
