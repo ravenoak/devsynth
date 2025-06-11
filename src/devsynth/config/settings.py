@@ -13,7 +13,23 @@ from pydantic import Field, field_validator
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
+from devsynth.exceptions import DevSynthError, ConfigurationError
+
+
+def _parse_bool_env(value: Any, field: str) -> bool:
+    """Parse a boolean environment variable securely."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    str_val = str(value).strip().lower()
+    if str_val in {"1", "true", "yes"}:
+        return True
+    if str_val in {"0", "false", "no"}:
+        return False
+    raise ConfigurationError(
+        f"Invalid boolean value for {field}", config_key=field, config_value=value
+    )
 
 
 def is_devsynth_managed_project(project_dir: str = None) -> bool:
@@ -59,19 +75,18 @@ def load_dotenv(dotenv_path: Optional[str] = None) -> None:
     # Read the .env file
     with open(dotenv_path, "r") as f:
         for line in f:
-            # Skip empty lines and comments
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
 
-            # Parse the line (key=value)
             match = re.match(r"^([A-Za-z0-9_]+)=(.*)$", line)
             if match:
                 key, value = match.groups()
-                # Set the environment variable if it's not already set
                 if key not in os.environ:
                     os.environ[key] = value
                     logger.debug(f"Set environment variable: {key}")
+            else:
+                logger.warning(f"Ignoring invalid line in .env: {line}")
 
 
 class Settings(BaseSettings):
@@ -173,22 +188,49 @@ class Settings(BaseSettings):
         default="openai", json_schema_extra={"env": "DEVSYNTH_PROVIDER_TYPE"}
     )
     openai_api_key: Optional[str] = Field(
-        default=None, json_schema_extra={"env": "OPENAI_API_KEY"}
+        default=None,
+        validation_alias="OPENAI_API_KEY",
+        json_schema_extra={"env": "OPENAI_API_KEY"},
     )
     lm_studio_endpoint: Optional[str] = Field(
         default=None, json_schema_extra={"env": "LM_STUDIO_ENDPOINT"}
     )
 
+    @field_validator("openai_api_key", mode="before")
+    def validate_api_key(cls, v):
+        if v is not None and not v.strip():
+            raise ConfigurationError(
+                "OPENAI_API_KEY cannot be empty",
+                config_key="OPENAI_API_KEY",
+                config_value=v,
+            )
+        return v
+
     # Security feature toggles
     authentication_enabled: bool = Field(
-        default=True, json_schema_extra={"env": "DEVSYNTH_AUTHENTICATION_ENABLED"}
+        default=True,
+        validation_alias="DEVSYNTH_AUTHENTICATION_ENABLED",
+        json_schema_extra={"env": "DEVSYNTH_AUTHENTICATION_ENABLED"},
     )
     authorization_enabled: bool = Field(
-        default=True, json_schema_extra={"env": "DEVSYNTH_AUTHORIZATION_ENABLED"}
+        default=True,
+        validation_alias="DEVSYNTH_AUTHORIZATION_ENABLED",
+        json_schema_extra={"env": "DEVSYNTH_AUTHORIZATION_ENABLED"},
     )
     sanitization_enabled: bool = Field(
-        default=True, json_schema_extra={"env": "DEVSYNTH_SANITIZATION_ENABLED"}
+        default=True,
+        validation_alias="DEVSYNTH_SANITIZATION_ENABLED",
+        json_schema_extra={"env": "DEVSYNTH_SANITIZATION_ENABLED"},
     )
+
+    @field_validator(
+        "authentication_enabled",
+        "authorization_enabled",
+        "sanitization_enabled",
+        mode="before",
+    )
+    def validate_security_bool(cls, v, info):
+        return _parse_bool_env(v, info.field_name)
 
     @field_validator("memory_file_path", mode="before")
     def set_default_memory_path(cls, v, info):

@@ -3,7 +3,7 @@
 This policy defines best practices for security, ethics, access control, and repository structure in DevSynth.
 
 ## Key Practices
-- Maintain a security policy (`docs/policies/security.md`) and ethical guidelines for AI/LLM use.
+- Maintain a security policy (`docs/policies/security.md`) and ethical guidelines for AI/LLM use. The security policy details design and operational guidance for authentication, authorization and sanitization settings.
 - Document and enforce access control for sensitive operations (deployment, secrets, production data).
 - Use a standard directory layout (`src/`, `tests/`, `docs/`, `deployment/`, etc.) and maintain a repository index (`docs/RepoStructure.md`).
 - Annotate code and documentation with requirement IDs, module ownership, and metadata for traceability.
