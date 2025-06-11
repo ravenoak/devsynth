@@ -1,3 +1,5 @@
+"""Utility module for tracking runtime metrics."""
+
 from collections import Counter
 from typing import Dict
 
