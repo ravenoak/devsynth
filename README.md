@@ -164,6 +164,14 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 - `docs/specifications/` – Current and archived specifications
 - `deployment/` – Deployment scripts and configuration
 
+## Current Limitations
+
+DevSynth is under active development. Collaborative WSDE features, dialectical reasoning,
+and automated EDRR cycle orchestration are only partially implemented. These capabilities
+are disabled by default via flags in `config/default.yml`. Code, test, and documentation
+generation work but often require manual review. See the
+[Implementation Status](docs/implementation/feature_status_matrix.md) for detailed progress.
+
 ## Traceability & Continuous Improvement
 
 - All requirements, code, and tests are linked via the [Requirements Traceability Matrix](docs/requirements_traceability.md)
