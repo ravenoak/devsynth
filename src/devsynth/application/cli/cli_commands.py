@@ -13,6 +13,7 @@ from ..orchestration.adaptive_workflow import adaptive_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 from devsynth.config import get_settings
+from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 
 logger = DevSynthLogger(__name__)
 console = Console()
