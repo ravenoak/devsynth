@@ -41,11 +41,12 @@ def test_scenario():
 
 ### Available Resources
 
-The following resources are currently supported:
+The following resources are currently supported. Set the corresponding
+environment variable to `true` to enable tests that depend on the resource:
 
-- **lmstudio**: Checks if LM Studio is available at http://localhost:1234
-- **codebase**: Checks if the DevSynth codebase is available for analysis
-- **cli**: Checks if the DevSynth CLI is available for testing
+- **lmstudio** – `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`
+- **codebase** – `DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE`
+- **cli** – `DEVSYNTH_RESOURCE_CLI_AVAILABLE`
 
 ### Controlling Resource Availability
 
@@ -67,7 +68,21 @@ export DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=false
 export DEVSYNTH_RESOURCE_CLI_AVAILABLE=false
 ```
 
-If you want to run tests that depend on these resources, set the corresponding variable to `true` and ensure the service is running.
+If you want to run tests that depend on these resources, set the corresponding variable to `true` and ensure the service is running. For example:
+
+```bash
+# Enable LM Studio tests
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+export LM_STUDIO_ENDPOINT=http://localhost:1234
+
+# Enable codebase analysis tests
+export DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true
+
+# Enable CLI tests
+export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
+
+python -m pytest
+```
 
 ### Environment Variables for Tests
 
