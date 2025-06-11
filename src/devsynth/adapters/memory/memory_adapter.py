@@ -72,6 +72,12 @@ class MemorySystemAdapter:
         self.chromadb_collection_name = self.config.get(
             "chromadb_collection_name", settings.chromadb_collection_name
         )
+        self.encryption_at_rest = self.config.get(
+            "encryption_at_rest", getattr(settings, "encryption_at_rest", False)
+        )
+        self.encryption_key = self.config.get(
+            "encryption_key", getattr(settings, "encryption_key", None)
+        )
 
         # Support for direct dependency injection
         self.memory_store = memory_store
@@ -111,7 +117,11 @@ class MemorySystemAdapter:
 
         # Initialize the appropriate store and context manager
         if self.storage_type == "file":
-            self.memory_store = JSONFileStore(self.memory_path)
+            self.memory_store = JSONFileStore(
+                self.memory_path,
+                encryption_enabled=self.encryption_at_rest,
+                encryption_key=self.encryption_key,
+            )
             self.context_manager = PersistentContextManager(
                 self.memory_path,
                 max_context_size=self.max_context_size,
@@ -167,7 +177,11 @@ class MemorySystemAdapter:
         elif self.storage_type == "faiss":
             # FAISS is primarily a vector store, so we'll use it for vector storage
             # and use a different store for general memory items
-            self.memory_store = JSONFileStore(self.memory_path)
+            self.memory_store = JSONFileStore(
+                self.memory_path,
+                encryption_enabled=self.encryption_at_rest,
+                encryption_key=self.encryption_key,
+            )
             self.context_manager = PersistentContextManager(
                 self.memory_path,
                 max_context_size=self.max_context_size,
