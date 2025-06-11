@@ -48,8 +48,9 @@ def edrr_cycle_cmd(manifest: str) -> None:
         for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
             coordinator.progress_to_phase(phase)
 
+        final_report = coordinator.generate_report()
         result_id = memory_manager.store_with_edrr_phase(
-            coordinator.results,
+            final_report,
             "EDRR_CYCLE_RESULTS",
             Phase.RETROSPECT.value,
             {"cycle_id": coordinator.cycle_id},
