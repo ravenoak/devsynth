@@ -4,15 +4,49 @@ from typing import Optional, Union, List
 from rich.console import Console
 from rich.prompt import Confirm
 from pathlib import Path
+import importlib.util
 import yaml
 
 from ..orchestration.workflow import workflow_manager
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
+from devsynth.config import get_settings
 
 logger = DevSynthLogger(__name__)
 console = Console()
+
+
+def _check_services() -> bool:
+    """Verify required services are available."""
+    settings = get_settings()
+    messages: List[str] = []
+
+    # Check ChromaDB availability when vector store is enabled
+    if settings.vector_store_enabled and settings.memory_store_type == "chromadb":
+        if importlib.util.find_spec("chromadb") is None:
+            messages.append(
+                "ChromaDB support is enabled but the 'chromadb' package is missing."
+            )
+
+    # Check LLM provider configuration
+    provider = settings.provider_type
+    if provider == "openai" and not settings.openai_api_key:
+        messages.append("OPENAI_API_KEY is not set for the OpenAI provider.")
+    if provider == "lmstudio" and not settings.lm_studio_endpoint:
+        messages.append(
+            "LM_STUDIO_ENDPOINT is not configured for the LM Studio provider."
+        )
+
+    if messages:
+        for msg in messages:
+            console.print(f"[red]{msg}[/red]", highlight=False)
+        console.print(
+            "[yellow]Use 'devsynth config' or edit your project.yaml to update settings.[/yellow]"
+        )
+        return False
+
+    return True
 
 
 def _filter_args(args: dict) -> dict:
@@ -78,6 +112,8 @@ def init_cmd(
 def spec_cmd(requirements_file: str = "requirements.md") -> None:
     """Generate specifications from a requirements file."""
     try:
+        if not _check_services():
+            return
         args = _filter_args({"requirements_file": requirements_file})
         result = workflow_manager.execute_command("spec", args)
         if result.get("success"):
@@ -93,6 +129,8 @@ def spec_cmd(requirements_file: str = "requirements.md") -> None:
 def test_cmd(spec_file: str = "specs.md") -> None:
     """Generate tests based on specifications."""
     try:
+        if not _check_services():
+            return
         args = _filter_args({"spec_file": spec_file})
         result = workflow_manager.execute_command("test", args)
         if result.get("success"):
@@ -106,6 +144,8 @@ def test_cmd(spec_file: str = "specs.md") -> None:
 def code_cmd() -> None:
     """Generate implementation code from tests."""
     try:
+        if not _check_services():
+            return
         result = workflow_manager.execute_command("code", {})
         if result.get("success"):
             console.print("[green]Code generated successfully.[/green]")
@@ -223,6 +263,8 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
 def analyze_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
     """Analyze requirements from a file or interactively."""
     try:
+        if not _check_services():
+            return
         args = _filter_args({"input": input_file, "interactive": interactive})
         result = workflow_manager.execute_command("analyze", args)
         if result.get("success"):

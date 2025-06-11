@@ -2,6 +2,7 @@ from unittest.mock import patch, mock_open
 
 import pytest
 
+from devsynth.application.cli import cli_commands
 from devsynth.application.cli.cli_commands import (
     code_cmd,
     config_cmd,
@@ -12,9 +13,18 @@ from devsynth.application.cli.cli_commands import (
     analyze_cmd,
 )
 
+ORIG_CHECK_SERVICES = cli_commands._check_services
+
 
 class TestCLICommands:
     """Tests for the CLI command functions."""
+
+    @pytest.fixture(autouse=True)
+    def service_check(self):
+        with patch(
+            "devsynth.application.cli.cli_commands._check_services", return_value=True
+        ):
+            yield
 
     @pytest.fixture
     def mock_workflow_manager(self):
@@ -281,7 +291,8 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.return_value = {"success": True}
         analyze_cmd("requirements.md")
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "analyze", {"input": "requirements.md"}
+            "analyze",
+            {"input": "requirements.md", "interactive": False},
         )
 
     def test_analyze_cmd_interactive(self, mock_workflow_manager, mock_console):
@@ -291,3 +302,56 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.assert_called_once_with(
             "analyze", {"interactive": True}
         )
+
+    def test_spec_cmd_missing_openai_key(self, mock_workflow_manager, mock_console):
+        """spec_cmd should warn when OpenAI API key is missing."""
+
+        class DummySettings:
+            vector_store_enabled = False
+            memory_store_type = "chromadb"
+            provider_type = "openai"
+            openai_api_key = None
+            lm_studio_endpoint = None
+
+        with patch(
+            "devsynth.application.cli.cli_commands.get_settings",
+            return_value=DummySettings,
+        ), patch(
+            "devsynth.application.cli.cli_commands._check_services",
+            new=ORIG_CHECK_SERVICES,
+        ):
+            spec_cmd("req.md")
+            mock_workflow_manager.execute_command.assert_not_called()
+            assert any(
+                "OPENAI_API_KEY" in call.args[0]
+                for call in mock_console.print.call_args_list
+            )
+
+    def test_spec_cmd_missing_chromadb_package(
+        self, mock_workflow_manager, mock_console
+    ):
+        """spec_cmd should warn when ChromaDB package is unavailable."""
+
+        class DummySettings:
+            vector_store_enabled = True
+            memory_store_type = "chromadb"
+            provider_type = "openai"
+            openai_api_key = "key"
+            lm_studio_endpoint = None
+
+        with patch(
+            "devsynth.application.cli.cli_commands.get_settings",
+            return_value=DummySettings,
+        ), patch(
+            "devsynth.application.cli.cli_commands.importlib.util.find_spec",
+            return_value=None,
+        ), patch(
+            "devsynth.application.cli.cli_commands._check_services",
+            new=ORIG_CHECK_SERVICES,
+        ):
+            spec_cmd("req.md")
+            mock_workflow_manager.execute_command.assert_not_called()
+            assert any(
+                "chromadb" in call.args[0].lower()
+                for call in mock_console.print.call_args_list
+            )
