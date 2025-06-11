@@ -496,6 +496,14 @@ For more information on extending DevSynth, refer to the [Architecture Documenta
    - Adjust temperature settings
    - Review and refine generated artifacts
 
+## Current Limitations
+
+Collaborative WSDE workflows, dialectical reasoning, and full EDRR automation are
+still experimental. These features are off by default in `config/default.yml` and
+may produce incomplete results. Automated code, test, and documentation generation
+often requires manual review. See the
+[Feature Status Matrix](../implementation/feature_status_matrix.md) for specifics.
+
 ### Getting Help
 
 If you encounter issues not covered in this guide:

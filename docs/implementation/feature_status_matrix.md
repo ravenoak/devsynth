@@ -44,11 +44,11 @@ Each feature is scored on two dimensions:
 | Feature | Status | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|-------------------|--------------------------------|--------------|-------|-------|
 | **Core Framework** |
-| EDRR Framework | Partially Implemented (60%) | 5 | 4 | Agent Orchestration | | Core phase transitions implemented, advanced features pending |
-| WSDE Agent Collaboration | Partially Implemented (40%) | 4 | 5 | Memory System | | Basic collaboration working, advanced features pending |
-| Dialectical Reasoning | Partially Implemented (50%) | 4 | 3 | WSDE Model | | Framework defined, implementation in progress |
+| EDRR Framework | Partially Implemented (70%) | 5 | 4 | Agent Orchestration | | Core phase transitions implemented, advanced features pending |
+| WSDE Agent Collaboration | Partially Implemented (50%) | 4 | 5 | Memory System | | Basic collaboration working, advanced features pending |
+| Dialectical Reasoning | Partially Implemented (40%) | 4 | 3 | WSDE Model | | Framework defined, implementation in progress |
 | Message Passing Protocol | Fully Implemented (100%) | 4 | 2 | WSDE Model | | Enables structured agent communication |
-| Peer Review Mechanism | Fully Implemented (100%) | 4 | 3 | WSDE Model | | Systematic review of agent outputs |
+| Peer Review Mechanism | Partially Implemented (80%) | 4 | 3 | WSDE Model | | Basic review cycle implemented, advanced workflows pending |
 | Memory System | Fully Implemented (100%) | 5 | 4 | None | | Complete with ChromaDB integration |
 | LLM Provider System | Fully Implemented (100%) | 5 | 3 | None | | Multiple backend support implemented |
 | **User-Facing Features** |
@@ -56,13 +56,13 @@ Each feature is scored on two dimensions:
 | Project Initialization | Fully Implemented (100%) | 5 | 2 | None | | Complete with configuration options |
 | Code Generation | Partially Implemented (70%) | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
 | Test Generation | Partially Implemented (60%) | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
-| Documentation Generation | Partially Implemented (40%) | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
+| Documentation Generation | Partially Implemented (50%) | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
 | **Infrastructure Components** |
 | Docker Containerization | Fully Implemented (100%) | 4 | 3 | None | | Dockerfile and Compose provided |
-| Configuration Management | Partially Implemented (70%) | 4 | 3 | None | | Environment-specific templates available |
-| Deployment Automation | Partially Implemented (50%) | 3 | 3 | Docker | | Basic Docker Compose workflows |
-| Security Framework | Partially Implemented (20%) | 4 | 4 | None | | Basic authentication, authorization, and sanitization utilities added |
-| Dependency Management | Partially Implemented (30%) | 3 | 2 | None | | Basic management implemented, optimization pending |
+| Configuration Management | Partially Implemented (75%) | 4 | 3 | None | | Environment-specific templates available |
+| Deployment Automation | Partially Implemented (60%) | 3 | 3 | Docker | | Basic Docker Compose workflows |
+| Security Framework | Partially Implemented (30%) | 4 | 4 | None | | Basic authentication, authorization, and sanitization utilities added |
+| Dependency Management | Partially Implemented (40%) | 3 | 2 | None | | Basic management implemented, optimization pending |
 
 ## Current Limitations and Workarounds
 

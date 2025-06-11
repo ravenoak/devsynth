@@ -67,6 +67,14 @@ The [mkdocs.yml](../mkdocs.yml) file provides a navigable structure for all docu
 - Changelog and semantic versioning ensure all changes are tracked ([../CHANGELOG.md](../CHANGELOG.md))
 - Documentation review, testing, and style policies are enforced ([roadmap/documentation_policies.md](roadmap/documentation_policies.md))
 
+## Current Limitations
+
+Several capabilities remain experimental. WSDE collaboration, dialectical reasoning,
+and automated EDRR cycle management are only partially implemented and disabled by
+default in `config/default.yml`. Generation features often need manual oversight.
+See the [Implementation Status](implementation/feature_status_matrix.md) for the
+latest progress.
+
 ---
 
 For more information, visit the [DevSynth GitHub repository](https://github.com/ravenoak/devsynth).
