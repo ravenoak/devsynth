@@ -140,6 +140,11 @@ class WSDETeamCoordinator(AgentCoordinator):
         if len(team.agents) > 1:
             team.assign_roles()
 
+    def add_agents(self, agents: List[Agent]) -> None:
+        """Add multiple agents to the current team."""
+        for agent in agents:
+            self.add_agent(agent)
+
     def delegate_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
         Delegate a task to the appropriate agent(s) in the current team.
@@ -248,6 +253,10 @@ class AgentAdapter:
     def add_agent_to_team(self, agent: Agent) -> None:
         """Add an agent to the current team."""
         self.agent_coordinator.add_agent(agent)
+
+    def add_agents_to_team(self, agents: List[Agent]) -> None:
+        """Add multiple agents to the current team."""
+        self.agent_coordinator.add_agents(agents)
 
     def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process a task using the current team."""
