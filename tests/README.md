@@ -131,11 +131,12 @@ python -m pytest
 
 ### Environment Setup
 
-Ensure dependencies are installed and the `devsynth` package is available in your environment before running tests:
+Before running tests, **install DevSynth with its development dependencies**:
 
 ```bash
+pip install -e .[dev]
+# or
 poetry install
-pip install -e .  # optional but recommended for editable installs
 ```
 
 To run tests for a specific type:
