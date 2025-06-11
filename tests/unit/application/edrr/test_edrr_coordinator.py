@@ -11,7 +11,9 @@ from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.prompts.prompt_manager import PromptManager
-from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
 
 
 @pytest.fixture
@@ -20,9 +22,17 @@ def memory_manager():
     mock = MagicMock(spec=MemoryManager)
     # Set up store_with_edrr_phase to store items in a dict
     mock.stored_items = {}
-    mock.store_with_edrr_phase.side_effect = lambda item, item_type, phase, metadata: mock.stored_items.update({item_type: {"item": item, "phase": phase, "metadata": metadata}})
+    mock.store_with_edrr_phase.side_effect = (
+        lambda item, item_type, phase, metadata: mock.stored_items.update(
+            {item_type: {"item": item, "phase": phase, "metadata": metadata}}
+        )
+    )
     # Set up retrieve_with_edrr_phase to return items from the dict
-    mock.retrieve_with_edrr_phase.side_effect = lambda item_type, phase, metadata: mock.stored_items.get(item_type, {}).get("item", {})
+    mock.retrieve_with_edrr_phase.side_effect = (
+        lambda item_type, phase, metadata: mock.stored_items.get(item_type, {}).get(
+            "item", {}
+        )
+    )
     mock.retrieve_historical_patterns.return_value = []
     mock.retrieve_relevant_knowledge.return_value = []
     return mock
@@ -32,20 +42,50 @@ def memory_manager():
 def wsde_team():
     """Create a mock WSDE team."""
     mock = MagicMock(spec=WSDETeam)
-    mock.generate_diverse_ideas.return_value = [{"id": 1, "idea": "Test Idea 1"}, {"id": 2, "idea": "Test Idea 2"}]
-    mock.create_comparison_matrix.return_value = {"idea_1": {"feasibility": 0.8}, "idea_2": {"feasibility": 0.6}}
-    mock.evaluate_options.return_value = [{"id": 1, "score": 0.8}, {"id": 2, "score": 0.6}]
-    mock.analyze_trade_offs.return_value = [{"id": 1, "trade_offs": ["Trade-off 1", "Trade-off 2"]}]
-    mock.formulate_decision_criteria.return_value = {"criteria_1": 0.5, "criteria_2": 0.5}
+    mock.generate_diverse_ideas.return_value = [
+        {"id": 1, "idea": "Test Idea 1"},
+        {"id": 2, "idea": "Test Idea 2"},
+    ]
+    mock.create_comparison_matrix.return_value = {
+        "idea_1": {"feasibility": 0.8},
+        "idea_2": {"feasibility": 0.6},
+    }
+    mock.evaluate_options.return_value = [
+        {"id": 1, "score": 0.8},
+        {"id": 2, "score": 0.6},
+    ]
+    mock.analyze_trade_offs.return_value = [
+        {"id": 1, "trade_offs": ["Trade-off 1", "Trade-off 2"]}
+    ]
+    mock.formulate_decision_criteria.return_value = {
+        "criteria_1": 0.5,
+        "criteria_2": 0.5,
+    }
     mock.select_best_option.return_value = {"id": 1, "idea": "Test Idea 1"}
-    mock.elaborate_details.return_value = [{"step": 1, "description": "Step 1"}, {"step": 2, "description": "Step 2"}]
-    mock.create_implementation_plan.return_value = [{"task": 1, "description": "Task 1"}, {"task": 2, "description": "Task 2"}]
-    mock.optimize_implementation.return_value = {"optimized": True, "plan": [{"task": 1}, {"task": 2}]}
-    mock.perform_quality_assurance.return_value = {"issues": [], "recommendations": ["Recommendation 1"]}
-    mock.extract_learnings.return_value = [{"category": "Process", "learning": "Learning 1"}]
+    mock.elaborate_details.return_value = [
+        {"step": 1, "description": "Step 1"},
+        {"step": 2, "description": "Step 2"},
+    ]
+    mock.create_implementation_plan.return_value = [
+        {"task": 1, "description": "Task 1"},
+        {"task": 2, "description": "Task 2"},
+    ]
+    mock.optimize_implementation.return_value = {
+        "optimized": True,
+        "plan": [{"task": 1}, {"task": 2}],
+    }
+    mock.perform_quality_assurance.return_value = {
+        "issues": [],
+        "recommendations": ["Recommendation 1"],
+    }
+    mock.extract_learnings.return_value = [
+        {"category": "Process", "learning": "Learning 1"}
+    ]
     mock.recognize_patterns.return_value = [{"pattern": "Pattern 1", "frequency": 0.8}]
     mock.integrate_knowledge.return_value = {"integrated": True, "knowledge_items": 2}
-    mock.generate_improvement_suggestions.return_value = [{"phase": "EXPAND", "suggestion": "Suggestion 1"}]
+    mock.generate_improvement_suggestions.return_value = [
+        {"phase": "EXPAND", "suggestion": "Suggestion 1"}
+    ]
     return mock
 
 
@@ -53,7 +93,11 @@ def wsde_team():
 def code_analyzer():
     """Create a mock code analyzer."""
     mock = MagicMock(spec=CodeAnalyzer)
-    mock.analyze_project_structure.return_value = {"files": 10, "classes": 5, "functions": 20}
+    mock.analyze_project_structure.return_value = {
+        "files": 10,
+        "classes": 5,
+        "functions": 20,
+    }
     return mock
 
 
@@ -76,7 +120,14 @@ def documentation_manager():
 
 
 @pytest.fixture
-def coordinator(memory_manager, wsde_team, code_analyzer, ast_transformer, prompt_manager, documentation_manager):
+def coordinator(
+    memory_manager,
+    wsde_team,
+    code_analyzer,
+    ast_transformer,
+    prompt_manager,
+    documentation_manager,
+):
     """Create an EDRRCoordinator instance."""
     return EDRRCoordinator(
         memory_manager=memory_manager,
@@ -85,7 +136,7 @@ def coordinator(memory_manager, wsde_team, code_analyzer, ast_transformer, promp
         ast_transformer=ast_transformer,
         prompt_manager=prompt_manager,
         documentation_manager=documentation_manager,
-        enable_enhanced_logging=True
+        enable_enhanced_logging=True,
     )
 
 
@@ -113,7 +164,9 @@ class TestEDRRCoordinator:
         assert coordinator.current_phase == Phase.EXPAND
         assert memory_manager.store_with_edrr_phase.call_count >= 1
 
-    def test_expand_phase_execution(self, coordinator, memory_manager, wsde_team, code_analyzer):
+    def test_expand_phase_execution(
+        self, coordinator, memory_manager, wsde_team, code_analyzer
+    ):
         """Test executing the Expand phase."""
         coordinator.task = {"description": "Test Task"}
         coordinator.cycle_id = "test-cycle-id"
@@ -130,7 +183,9 @@ class TestEDRRCoordinator:
         assert memory_manager.store_with_edrr_phase.call_count >= 1
         assert f"EXPAND_{coordinator.cycle_id}" in coordinator._execution_traces
 
-    def test_differentiate_phase_execution(self, coordinator, memory_manager, wsde_team):
+    def test_differentiate_phase_execution(
+        self, coordinator, memory_manager, wsde_team
+    ):
         """Test executing the Differentiate phase."""
         coordinator.task = {"description": "Test Task"}
         coordinator.cycle_id = "test-cycle-id"
@@ -141,7 +196,7 @@ class TestEDRRCoordinator:
             "EXPAND_RESULTS": {
                 "item": {"ideas": [{"id": 1}, {"id": 2}]},
                 "phase": "EXPAND",
-                "metadata": {"cycle_id": "test-cycle-id"}
+                "metadata": {"cycle_id": "test-cycle-id"},
             }
         }
 
@@ -169,10 +224,10 @@ class TestEDRRCoordinator:
             "DIFFERENTIATE_RESULTS": {
                 "item": {
                     "evaluated_options": [{"id": 1}, {"id": 2}],
-                    "decision_criteria": {"criteria_1": 0.5, "criteria_2": 0.5}
+                    "decision_criteria": {"criteria_1": 0.5, "criteria_2": 0.5},
                 },
                 "phase": "DIFFERENTIATE",
-                "metadata": {"cycle_id": "test-cycle-id"}
+                "metadata": {"cycle_id": "test-cycle-id"},
             }
         }
 
@@ -202,24 +257,24 @@ class TestEDRRCoordinator:
             "EXPAND_RESULTS": {
                 "item": {"ideas": [{"id": 1}, {"id": 2}]},
                 "phase": "EXPAND",
-                "metadata": {"cycle_id": "test-cycle-id"}
+                "metadata": {"cycle_id": "test-cycle-id"},
             },
             "DIFFERENTIATE_RESULTS": {
                 "item": {
                     "evaluated_options": [{"id": 1}, {"id": 2}],
-                    "decision_criteria": {"criteria_1": 0.5, "criteria_2": 0.5}
+                    "decision_criteria": {"criteria_1": 0.5, "criteria_2": 0.5},
                 },
                 "phase": "DIFFERENTIATE",
-                "metadata": {"cycle_id": "test-cycle-id"}
+                "metadata": {"cycle_id": "test-cycle-id"},
             },
             "REFINE_RESULTS": {
                 "item": {
                     "implementation_plan": [{"task": 1}, {"task": 2}],
-                    "quality_checks": {"issues": [], "recommendations": []}
+                    "quality_checks": {"issues": [], "recommendations": []},
                 },
                 "phase": "REFINE",
-                "metadata": {"cycle_id": "test-cycle-id"}
-            }
+                "metadata": {"cycle_id": "test-cycle-id"},
+            },
         }
 
         results = coordinator._execute_retrospect_phase({})
@@ -233,7 +288,9 @@ class TestEDRRCoordinator:
         assert wsde_team.recognize_patterns.call_count == 1
         assert wsde_team.integrate_knowledge.call_count == 1
         assert wsde_team.generate_improvement_suggestions.call_count == 1
-        assert memory_manager.store_with_edrr_phase.call_count >= 2  # Store retrospect results and final report
+        assert (
+            memory_manager.store_with_edrr_phase.call_count >= 2
+        )  # Store retrospect results and final report
         assert f"RETROSPECT_{coordinator.cycle_id}" in coordinator._execution_traces
 
     def test_generate_final_report(self, coordinator):
@@ -244,9 +301,20 @@ class TestEDRRCoordinator:
         cycle_data = {
             "task": {"description": "Test Task"},
             "expand": {"ideas": [{"id": 1}, {"id": 2}], "knowledge": []},
-            "differentiate": {"evaluated_options": [{"id": 1}, {"id": 2}], "trade_offs": [], "decision_criteria": {}},
-            "refine": {"implementation_plan": [{"task": 1}, {"task": 2}], "quality_checks": {}},
-            "retrospect": {"learnings": [], "patterns": [], "improvement_suggestions": []}
+            "differentiate": {
+                "evaluated_options": [{"id": 1}, {"id": 2}],
+                "trade_offs": [],
+                "decision_criteria": {},
+            },
+            "refine": {
+                "implementation_plan": [{"task": 1}, {"task": 2}],
+                "quality_checks": {},
+            },
+            "retrospect": {
+                "learnings": [],
+                "patterns": [],
+                "improvement_suggestions": [],
+            },
         }
 
         report = coordinator.generate_final_report(cycle_data)
@@ -275,13 +343,17 @@ class TestEDRRCoordinator:
 
         # Test with Expand phase
         coordinator.current_phase = Phase.EXPAND
-        with patch.object(coordinator, '_execute_expand_phase', return_value={"ideas": []}):
+        with patch.object(
+            coordinator, "_execute_expand_phase", return_value={"ideas": []}
+        ):
             results = coordinator.execute_current_phase()
             assert "ideas" in results
             assert "EXPAND" in coordinator.results
 
         # Test with exception in phase execution
-        with patch.object(coordinator, '_execute_expand_phase', side_effect=Exception("Test error")):
+        with patch.object(
+            coordinator, "_execute_expand_phase", side_effect=Exception("Test error")
+        ):
             with pytest.raises(EDRRCoordinatorError):
                 coordinator.execute_current_phase()
 
@@ -291,7 +363,7 @@ class TestEDRRCoordinator:
         coordinator.cycle_id = "test-cycle-id"
 
         # Mock the phase execution methods
-        with patch.object(coordinator, '_execute_expand_phase'):
+        with patch.object(coordinator, "_execute_expand_phase"):
             coordinator.progress_to_phase(Phase.EXPAND)
             assert coordinator.current_phase == Phase.EXPAND
             assert memory_manager.store_with_edrr_phase.call_count >= 1
@@ -301,7 +373,7 @@ class TestEDRRCoordinator:
         coordinator.manifest_parser = MagicMock()
         coordinator.manifest_parser.check_phase_dependencies.return_value = True
 
-        with patch.object(coordinator, '_execute_differentiate_phase'):
+        with patch.object(coordinator, "_execute_differentiate_phase"):
             coordinator.progress_to_phase(Phase.DIFFERENTIATE)
             assert coordinator.current_phase == Phase.DIFFERENTIATE
             assert coordinator.manifest_parser.start_phase.call_count == 1
@@ -312,10 +384,19 @@ class TestEDRRCoordinator:
         task = {"description": "Test Task", "requirements": ["Req 1", "Req 2"]}
 
         # Mock the phase execution methods
-        with patch.object(coordinator, '_execute_expand_phase', return_value={"ideas": []}), \
-             patch.object(coordinator, '_execute_differentiate_phase', return_value={"evaluated_options": []}), \
-             patch.object(coordinator, '_execute_refine_phase', return_value={"implementation_plan": []}), \
-             patch.object(coordinator, '_execute_retrospect_phase', return_value={"learnings": []}):
+        with patch.object(
+            coordinator, "_execute_expand_phase", return_value={"ideas": []}
+        ), patch.object(
+            coordinator,
+            "_execute_differentiate_phase",
+            return_value={"evaluated_options": []},
+        ), patch.object(
+            coordinator,
+            "_execute_refine_phase",
+            return_value={"implementation_plan": []},
+        ), patch.object(
+            coordinator, "_execute_retrospect_phase", return_value={"learnings": []}
+        ):
 
             # Start the cycle
             coordinator.start_cycle(task)
@@ -336,3 +417,25 @@ class TestEDRRCoordinator:
             assert "DIFFERENTIATE" in coordinator.results
             assert "REFINE" in coordinator.results
             assert "RETROSPECT" in coordinator.results
+
+    def test_progress_to_next_phase(self, coordinator):
+        task = {"description": "Test"}
+        with patch.object(
+            coordinator, "_execute_expand_phase", return_value={}
+        ), patch.object(
+            coordinator, "_execute_differentiate_phase", return_value={}
+        ), patch.object(
+            coordinator, "_execute_refine_phase", return_value={}
+        ), patch.object(
+            coordinator, "_execute_retrospect_phase", return_value={}
+        ):
+            coordinator.start_cycle(task)
+            assert coordinator.current_phase == Phase.EXPAND
+            coordinator.progress_to_next_phase()
+            assert coordinator.current_phase == Phase.DIFFERENTIATE
+            coordinator.progress_to_next_phase()
+            assert coordinator.current_phase == Phase.REFINE
+            coordinator.progress_to_next_phase()
+            assert coordinator.current_phase == Phase.RETROSPECT
+            with pytest.raises(EDRRCoordinatorError):
+                coordinator.progress_to_next_phase()
