@@ -11,7 +11,13 @@ from io import StringIO
 # Import the CLI modules
 from devsynth.adapters.cli.argparse_adapter import run_cli, show_help, parse_args
 from devsynth.application.cli.cli_commands import (
-    init_cmd, spec_cmd, test_cmd, code_cmd, run_cmd, config_cmd
+    init_cmd,
+    spec_cmd,
+    test_cmd,
+    code_cmd,
+    run_cmd,
+    config_cmd,
+    edrr_cycle_cmd,
 )
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
@@ -202,6 +208,13 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with("analyze-code", analyze_code_args)
+            elif args[0] == "edrr-cycle":
+                manifest = args[1] if len(args) > 1 else None
+                edrr_cycle_cmd(manifest)
+
+                mock_workflow_manager.execute_command.reset_mock()
+                mock_workflow_manager.execute_command("edrr-cycle", {"manifest": manifest})
+                mock_workflow_manager.execute_command.assert_called_with("edrr-cycle", {"manifest": manifest})
             elif args[0] == "analyze-manifest":
                 # Parse the arguments
                 path = None
@@ -270,7 +283,7 @@ def check_commands_in_help(command_context):
     Verify that all available commands are listed in the help output.
     """
     output = command_context.get("output", "")
-    commands = ["init", "spec", "test", "code", "run", "config", "help"]
+    commands = ["init", "spec", "test", "code", "run", "config", "edrr-cycle", "help"]
     for cmd in commands:
         assert cmd in output
 
