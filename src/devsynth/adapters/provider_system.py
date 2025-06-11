@@ -19,6 +19,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
 from devsynth.exceptions import DevSynthError
 from devsynth.fallback import retry_with_exponential_backoff
+from devsynth.security.tls import TLSConfig
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -55,10 +56,14 @@ def get_provider_config() -> Dict[str, Any]:
         "openai": {
             "api_key": get_env_or_default("OPENAI_API_KEY"),
             "model": get_env_or_default("OPENAI_MODEL", "gpt-4"),
-            "base_url": get_env_or_default("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            "base_url": get_env_or_default(
+                "OPENAI_BASE_URL", "https://api.openai.com/v1"
+            ),
         },
         "lm_studio": {
-            "endpoint": get_env_or_default("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"),
+            "endpoint": get_env_or_default(
+                "LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"
+            ),
             "model": get_env_or_default("LM_STUDIO_MODEL", "default"),
         },
     }
@@ -109,6 +114,13 @@ class ProviderFactory:
             ProviderError: If provider creation fails
         """
         config = get_provider_config()
+        tls_settings = get_settings()
+        tls_conf = TLSConfig(
+            verify=getattr(tls_settings, "tls_verify", True),
+            cert_file=getattr(tls_settings, "tls_cert_file", None),
+            key_file=getattr(tls_settings, "tls_key_file", None),
+            ca_file=getattr(tls_settings, "tls_ca_file", None),
+        )
 
         if provider_type is None:
             provider_type = config["default_provider"]
@@ -125,15 +137,19 @@ class ProviderFactory:
                     api_key=config["openai"]["api_key"],
                     model=config["openai"]["model"],
                     base_url=config["openai"]["base_url"],
+                    tls_config=tls_conf,
                 )
             elif provider_type.lower() == ProviderType.LM_STUDIO.value:
                 logger.info("Using LM Studio provider")
                 return LMStudioProvider(
                     endpoint=config["lm_studio"]["endpoint"],
                     model=config["lm_studio"]["model"],
+                    tls_config=tls_conf,
                 )
             else:
-                logger.warning(f"Unknown provider type '{provider_type}', falling back to OpenAI")
+                logger.warning(
+                    f"Unknown provider type '{provider_type}', falling back to OpenAI"
+                )
                 return ProviderFactory.create_provider(ProviderType.OPENAI.value)
         except Exception as e:
             logger.error(f"Failed to create provider {provider_type}: {e}")
@@ -143,9 +159,10 @@ class ProviderFactory:
 class BaseProvider:
     """Base class for all LLM providers."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, tls_config: TLSConfig | None = None, **kwargs):
         """Initialize the provider with implementation-specific kwargs."""
         self.kwargs = kwargs
+        self.tls_config = tls_config or TLSConfig()
 
     def complete(
         self,
@@ -209,6 +226,7 @@ class OpenAIProvider(BaseProvider):
         api_key: str,
         model: str = "gpt-4",
         base_url: str = "https://api.openai.com/v1",
+        tls_config: TLSConfig | None = None,
     ):
         """
         Initialize OpenAI provider.
@@ -218,7 +236,9 @@ class OpenAIProvider(BaseProvider):
             model: Model name (default: gpt-4)
             base_url: Base URL for API (default: OpenAI's API)
         """
-        super().__init__(api_key=api_key, model=model, base_url=base_url)
+        super().__init__(
+            tls_config=tls_config, api_key=api_key, model=model, base_url=base_url
+        )
         self.api_key = api_key
         self.model = model
         self.base_url = base_url
@@ -265,7 +285,12 @@ class OpenAIProvider(BaseProvider):
         }
 
         try:
-            response = requests.post(url, headers=self.headers, json=payload)
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                **self.tls_config.as_requests_kwargs(),
+            )
             response.raise_for_status()
             response_data = response.json()
 
@@ -301,7 +326,9 @@ class OpenAIProvider(BaseProvider):
         }
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(
+                **self.tls_config.as_requests_kwargs()
+            ) as client:
                 response = await client.post(url, headers=self.headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
@@ -338,14 +365,21 @@ class OpenAIProvider(BaseProvider):
         }
 
         try:
-            response = requests.post(url, headers=self.headers, json=payload)
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                **self.tls_config.as_requests_kwargs(),
+            )
             response.raise_for_status()
             response_data = response.json()
 
             if "data" in response_data and len(response_data["data"]) > 0:
                 return [item["embedding"] for item in response_data["data"]]
             else:
-                raise ProviderError(f"Invalid embedding response format: {response_data}")
+                raise ProviderError(
+                    f"Invalid embedding response format: {response_data}"
+                )
 
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI embedding API error: {e}")
@@ -364,7 +398,9 @@ class OpenAIProvider(BaseProvider):
         }
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(
+                **self.tls_config.as_requests_kwargs()
+            ) as client:
                 response = await client.post(url, headers=self.headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
@@ -380,7 +416,12 @@ class OpenAIProvider(BaseProvider):
 class LMStudioProvider(BaseProvider):
     """LM Studio local provider implementation."""
 
-    def __init__(self, endpoint: str = "http://127.0.0.1:1234", model: str = "default"):
+    def __init__(
+        self,
+        endpoint: str = "http://127.0.0.1:1234",
+        model: str = "default",
+        tls_config: TLSConfig | None = None,
+    ):
         """
         Initialize LM Studio provider.
 
@@ -388,7 +429,7 @@ class LMStudioProvider(BaseProvider):
             endpoint: LM Studio API endpoint
             model: Model name (ignored in LM Studio, uses loaded model)
         """
-        super().__init__(endpoint=endpoint, model=model)
+        super().__init__(tls_config=tls_config, endpoint=endpoint, model=model)
         self.endpoint = endpoint.rstrip("/")
         self.model = model
         self.headers = {"Content-Type": "application/json"}
@@ -430,14 +471,21 @@ class LMStudioProvider(BaseProvider):
         }
 
         try:
-            response = requests.post(url, headers=self.headers, json=payload)
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                **self.tls_config.as_requests_kwargs(),
+            )
             response.raise_for_status()
             response_data = response.json()
 
             if "choices" in response_data and len(response_data["choices"]) > 0:
                 return response_data["choices"][0]["message"]["content"]
             else:
-                raise ProviderError(f"Invalid LM Studio response format: {response_data}")
+                raise ProviderError(
+                    f"Invalid LM Studio response format: {response_data}"
+                )
 
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio API error: {e}")
@@ -465,7 +513,9 @@ class LMStudioProvider(BaseProvider):
         }
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(
+                **self.tls_config.as_requests_kwargs()
+            ) as client:
                 response = await client.post(url, headers=self.headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
@@ -521,15 +571,21 @@ class FallbackProvider(BaseProvider):
             # Try OpenAI
             if config["openai"]["api_key"]:
                 try:
-                    providers.append(ProviderFactory.create_provider(ProviderType.OPENAI.value))
+                    providers.append(
+                        ProviderFactory.create_provider(ProviderType.OPENAI.value)
+                    )
                 except Exception as e:
-                    logger.warning(f"Failed to create OpenAI provider: {e}; attempting LM Studio")
+                    logger.warning(
+                        f"Failed to create OpenAI provider: {e}; attempting LM Studio"
+                    )
             else:
                 logger.info("OpenAI API key missing; skipping OpenAI provider")
 
             # Try LM Studio
             try:
-                providers.append(ProviderFactory.create_provider(ProviderType.LM_STUDIO.value))
+                providers.append(
+                    ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+                )
             except Exception as e:
                 logger.warning(f"Failed to create LM Studio provider: {e}")
 
@@ -568,7 +624,9 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(f"Trying completion with provider: {provider.__class__.__name__}")
+                logger.info(
+                    f"Trying completion with provider: {provider.__class__.__name__}"
+                )
                 return provider.complete(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -579,7 +637,9 @@ class FallbackProvider(BaseProvider):
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
-        raise ProviderError(f"All providers failed for completion. Last error: {last_error}")
+        raise ProviderError(
+            f"All providers failed for completion. Last error: {last_error}"
+        )
 
     async def acomplete(
         self,
@@ -593,7 +653,9 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(f"Trying completion with provider: {provider.__class__.__name__}")
+                logger.info(
+                    f"Trying completion with provider: {provider.__class__.__name__}"
+                )
                 return await provider.acomplete(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -604,7 +666,9 @@ class FallbackProvider(BaseProvider):
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
-        raise ProviderError(f"All providers failed for completion. Last error: {last_error}")
+        raise ProviderError(
+            f"All providers failed for completion. Last error: {last_error}"
+        )
 
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
@@ -623,13 +687,19 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(f"Trying embeddings with provider: {provider.__class__.__name__}")
+                logger.info(
+                    f"Trying embeddings with provider: {provider.__class__.__name__}"
+                )
                 return provider.embed(text=text)
             except Exception as e:
-                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
+                logger.warning(
+                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
+                )
                 last_error = e
 
-        raise ProviderError(f"All providers failed for embeddings. Last error: {last_error}")
+        raise ProviderError(
+            f"All providers failed for embeddings. Last error: {last_error}"
+        )
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously try to generate embeddings with providers."""
@@ -637,17 +707,25 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(f"Trying embeddings with provider: {provider.__class__.__name__}")
+                logger.info(
+                    f"Trying embeddings with provider: {provider.__class__.__name__}"
+                )
                 return await provider.aembed(text=text)
             except Exception as e:
-                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
+                logger.warning(
+                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
+                )
                 last_error = e
 
-        raise ProviderError(f"All providers failed for embeddings. Last error: {last_error}")
+        raise ProviderError(
+            f"All providers failed for embeddings. Last error: {last_error}"
+        )
 
 
 # Simplified API for common usage
-def get_provider(provider_type: Optional[str] = None, fallback: bool = True) -> BaseProvider:
+def get_provider(
+    provider_type: Optional[str] = None, fallback: bool = True
+) -> BaseProvider:
     """
     Get a provider instance, optionally with fallback capability.
 

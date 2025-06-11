@@ -222,11 +222,49 @@ class Settings(BaseSettings):
         validation_alias="DEVSYNTH_SANITIZATION_ENABLED",
         json_schema_extra={"env": "DEVSYNTH_SANITIZATION_ENABLED"},
     )
+    input_validation_enabled: bool = Field(
+        default=True,
+        validation_alias="DEVSYNTH_INPUT_VALIDATION_ENABLED",
+        json_schema_extra={"env": "DEVSYNTH_INPUT_VALIDATION_ENABLED"},
+    )
+    encryption_at_rest: bool = Field(
+        default=False,
+        validation_alias="DEVSYNTH_ENCRYPTION_AT_REST",
+        json_schema_extra={"env": "DEVSYNTH_ENCRYPTION_AT_REST"},
+    )
+    encryption_key: Optional[str] = Field(
+        default=None,
+        validation_alias="DEVSYNTH_ENCRYPTION_KEY",
+        json_schema_extra={"env": "DEVSYNTH_ENCRYPTION_KEY"},
+    )
+    tls_verify: bool = Field(
+        default=True,
+        validation_alias="DEVSYNTH_TLS_VERIFY",
+        json_schema_extra={"env": "DEVSYNTH_TLS_VERIFY"},
+    )
+    tls_cert_file: Optional[str] = Field(
+        default=None,
+        validation_alias="DEVSYNTH_TLS_CERT_FILE",
+        json_schema_extra={"env": "DEVSYNTH_TLS_CERT_FILE"},
+    )
+    tls_key_file: Optional[str] = Field(
+        default=None,
+        validation_alias="DEVSYNTH_TLS_KEY_FILE",
+        json_schema_extra={"env": "DEVSYNTH_TLS_KEY_FILE"},
+    )
+    tls_ca_file: Optional[str] = Field(
+        default=None,
+        validation_alias="DEVSYNTH_TLS_CA_FILE",
+        json_schema_extra={"env": "DEVSYNTH_TLS_CA_FILE"},
+    )
 
     @field_validator(
         "authentication_enabled",
         "authorization_enabled",
         "sanitization_enabled",
+        "input_validation_enabled",
+        "encryption_at_rest",
+        "tls_verify",
         mode="before",
     )
     def validate_security_bool(cls, v, info):

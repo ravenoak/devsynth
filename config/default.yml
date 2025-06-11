@@ -84,13 +84,20 @@ edrr:
 # Security settings
 security:
   input_validation: true
+  sanitization: true
   rate_limiting:
     enabled: true
     max_requests: 100
     period: 60  # seconds
   encryption:
     at_rest: false
+    key: null
     in_transit: true
+  tls:
+    verify: true
+    cert_file: null
+    key_file: null
+    ca_file: null
 
 # Performance settings
 performance:
