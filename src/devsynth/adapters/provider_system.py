@@ -16,6 +16,7 @@ from enum import Enum
 from functools import lru_cache, wraps
 
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.metrics import inc_provider
 from devsynth.exceptions import DevSynthError
 from devsynth.fallback import retry_with_exponential_backoff
 
@@ -54,14 +55,10 @@ def get_provider_config() -> Dict[str, Any]:
         "openai": {
             "api_key": get_env_or_default("OPENAI_API_KEY"),
             "model": get_env_or_default("OPENAI_MODEL", "gpt-4"),
-            "base_url": get_env_or_default(
-                "OPENAI_BASE_URL", "https://api.openai.com/v1"
-            ),
+            "base_url": get_env_or_default("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         },
         "lm_studio": {
-            "endpoint": get_env_or_default(
-                "LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"
-            ),
+            "endpoint": get_env_or_default("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"),
             "model": get_env_or_default("LM_STUDIO_MODEL", "default"),
         },
     }
@@ -136,9 +133,7 @@ class ProviderFactory:
                     model=config["lm_studio"]["model"],
                 )
             else:
-                logger.warning(
-                    f"Unknown provider type '{provider_type}', falling back to OpenAI"
-                )
+                logger.warning(f"Unknown provider type '{provider_type}', falling back to OpenAI")
                 return ProviderFactory.create_provider(ProviderType.OPENAI.value)
         except Exception as e:
             logger.error(f"Failed to create provider {provider_type}: {e}")
@@ -350,9 +345,7 @@ class OpenAIProvider(BaseProvider):
             if "data" in response_data and len(response_data["data"]) > 0:
                 return [item["embedding"] for item in response_data["data"]]
             else:
-                raise ProviderError(
-                    f"Invalid embedding response format: {response_data}"
-                )
+                raise ProviderError(f"Invalid embedding response format: {response_data}")
 
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI embedding API error: {e}")
@@ -444,9 +437,7 @@ class LMStudioProvider(BaseProvider):
             if "choices" in response_data and len(response_data["choices"]) > 0:
                 return response_data["choices"][0]["message"]["content"]
             else:
-                raise ProviderError(
-                    f"Invalid LM Studio response format: {response_data}"
-                )
+                raise ProviderError(f"Invalid LM Studio response format: {response_data}")
 
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio API error: {e}")
@@ -530,21 +521,15 @@ class FallbackProvider(BaseProvider):
             # Try OpenAI
             if config["openai"]["api_key"]:
                 try:
-                    providers.append(
-                        ProviderFactory.create_provider(ProviderType.OPENAI.value)
-                    )
+                    providers.append(ProviderFactory.create_provider(ProviderType.OPENAI.value))
                 except Exception as e:
-                    logger.warning(
-                        f"Failed to create OpenAI provider: {e}; attempting LM Studio"
-                    )
+                    logger.warning(f"Failed to create OpenAI provider: {e}; attempting LM Studio")
             else:
                 logger.info("OpenAI API key missing; skipping OpenAI provider")
 
             # Try LM Studio
             try:
-                providers.append(
-                    ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
-                )
+                providers.append(ProviderFactory.create_provider(ProviderType.LM_STUDIO.value))
             except Exception as e:
                 logger.warning(f"Failed to create LM Studio provider: {e}")
 
@@ -583,9 +568,7 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(
-                    f"Trying completion with provider: {provider.__class__.__name__}"
-                )
+                logger.info(f"Trying completion with provider: {provider.__class__.__name__}")
                 return provider.complete(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -596,9 +579,7 @@ class FallbackProvider(BaseProvider):
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
-        raise ProviderError(
-            f"All providers failed for completion. Last error: {last_error}"
-        )
+        raise ProviderError(f"All providers failed for completion. Last error: {last_error}")
 
     async def acomplete(
         self,
@@ -612,9 +593,7 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(
-                    f"Trying completion with provider: {provider.__class__.__name__}"
-                )
+                logger.info(f"Trying completion with provider: {provider.__class__.__name__}")
                 return await provider.acomplete(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -625,9 +604,7 @@ class FallbackProvider(BaseProvider):
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
-        raise ProviderError(
-            f"All providers failed for completion. Last error: {last_error}"
-        )
+        raise ProviderError(f"All providers failed for completion. Last error: {last_error}")
 
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
@@ -646,19 +623,13 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(
-                    f"Trying embeddings with provider: {provider.__class__.__name__}"
-                )
+                logger.info(f"Trying embeddings with provider: {provider.__class__.__name__}")
                 return provider.embed(text=text)
             except Exception as e:
-                logger.warning(
-                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
-                )
+                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
                 last_error = e
 
-        raise ProviderError(
-            f"All providers failed for embeddings. Last error: {last_error}"
-        )
+        raise ProviderError(f"All providers failed for embeddings. Last error: {last_error}")
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously try to generate embeddings with providers."""
@@ -666,25 +637,17 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(
-                    f"Trying embeddings with provider: {provider.__class__.__name__}"
-                )
+                logger.info(f"Trying embeddings with provider: {provider.__class__.__name__}")
                 return await provider.aembed(text=text)
             except Exception as e:
-                logger.warning(
-                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
-                )
+                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
                 last_error = e
 
-        raise ProviderError(
-            f"All providers failed for embeddings. Last error: {last_error}"
-        )
+        raise ProviderError(f"All providers failed for embeddings. Last error: {last_error}")
 
 
 # Simplified API for common usage
-def get_provider(
-    provider_type: Optional[str] = None, fallback: bool = True
-) -> BaseProvider:
+def get_provider(provider_type: Optional[str] = None, fallback: bool = True) -> BaseProvider:
     """
     Get a provider instance, optionally with fallback capability.
 
@@ -724,6 +687,7 @@ def complete(
         str: Generated completion
     """
     provider = get_provider(provider_type=provider_type, fallback=fallback)
+    inc_provider("complete")
     return provider.complete(
         prompt=prompt,
         system_prompt=system_prompt,
@@ -749,6 +713,7 @@ def embed(
         List[List[float]]: Embeddings
     """
     provider = get_provider(provider_type=provider_type, fallback=fallback)
+    inc_provider("embed")
     return provider.embed(text=text)
 
 
@@ -762,6 +727,7 @@ async def acomplete(
 ) -> str:
     """Asynchronously generate a completion using the configured provider."""
     provider = get_provider(provider_type=provider_type, fallback=fallback)
+    inc_provider("acomplete")
     return await provider.acomplete(
         prompt=prompt,
         system_prompt=system_prompt,
@@ -777,4 +743,5 @@ async def aembed(
 ) -> List[List[float]]:
     """Asynchronously generate embeddings using the configured provider."""
     provider = get_provider(provider_type=provider_type, fallback=fallback)
+    inc_provider("aembed")
     return await provider.aembed(text=text)

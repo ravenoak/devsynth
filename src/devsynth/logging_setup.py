@@ -13,6 +13,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, Union, List
+from contextvars import ContextVar
 
 # We'll import DevSynthError later to avoid circular imports
 
@@ -29,6 +30,11 @@ _configured_log_dir = None
 _configured_log_file = None
 _logging_configured = False
 
+# Context variables for request context
+request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
+phase_var: ContextVar[Optional[str]] = ContextVar("phase", default=None)
+
+
 # Configure JSON formatter
 class JSONFormatter(logging.Formatter):
     """JSON formatter for structured logging."""
@@ -40,12 +46,12 @@ class JSONFormatter(logging.Formatter):
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
-            "module": getattr(record, 'caller_module', record.module),
-            "function": getattr(record, 'caller_function', record.funcName),
-            "line": getattr(record, 'caller_line', record.lineno),
+            "module": getattr(record, "caller_module", record.module),
+            "function": getattr(record, "caller_function", record.funcName),
+            "line": getattr(record, "caller_line", record.lineno),
             "actual_module": record.module,
             "actual_function": record.funcName,
-            "actual_line": record.lineno
+            "actual_line": record.lineno,
         }
 
         # Add exception info if available
@@ -53,7 +59,7 @@ class JSONFormatter(logging.Formatter):
             log_data["exception"] = {
                 "type": record.exc_info[0].__name__,
                 "message": str(record.exc_info[1]),
-                "traceback": traceback.format_exception(*record.exc_info)
+                "traceback": traceback.format_exception(*record.exc_info),
             }
 
         # Add custom attributes
@@ -61,14 +67,64 @@ class JSONFormatter(logging.Formatter):
             if key.startswith("_") or key in log_data:
                 continue
             if key not in [
-                "args", "asctime", "created", "exc_info", "exc_text", "filename",
-                "funcName", "id", "levelname", "levelno", "lineno", "module",
-                "msecs", "message", "msg", "name", "pathname", "process",
-                "processName", "relativeCreated", "stack_info", "thread", "threadName"
+                "args",
+                "asctime",
+                "created",
+                "exc_info",
+                "exc_text",
+                "filename",
+                "funcName",
+                "id",
+                "levelname",
+                "levelno",
+                "lineno",
+                "module",
+                "msecs",
+                "message",
+                "msg",
+                "name",
+                "pathname",
+                "process",
+                "processName",
+                "relativeCreated",
+                "stack_info",
+                "thread",
+                "threadName",
             ]:
                 log_data[key] = value
 
+        if getattr(record, "request_id", None):
+            log_data["request_id"] = record.request_id
+        if getattr(record, "phase", None):
+            log_data["phase"] = record.phase
+
         return json.dumps(log_data)
+
+
+class RequestContextFilter(logging.Filter):
+    """Attach request context variables to log records."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "request_id"):
+            record.request_id = request_id_var.get()
+        if not hasattr(record, "phase"):
+            record.phase = phase_var.get()
+        return True
+
+
+def set_request_context(request_id: Optional[str] = None, phase: Optional[str] = None) -> None:
+    """Set request context variables for logging."""
+    if request_id is not None:
+        request_id_var.set(request_id)
+    if phase is not None:
+        phase_var.set(phase)
+
+
+def clear_request_context() -> None:
+    """Clear request context variables."""
+    request_id_var.set(None)
+    phase_var.set(None)
+
 
 def get_log_dir() -> str:
     """
@@ -81,6 +137,7 @@ def get_log_dir() -> str:
         return _configured_log_dir
     return os.environ.get("DEVSYNTH_LOG_DIR", DEFAULT_LOG_DIR)
 
+
 def get_log_file() -> str:
     """
     Get the configured log file path or construct the default.
@@ -92,6 +149,7 @@ def get_log_file() -> str:
         return _configured_log_file
     log_dir = get_log_dir()
     return os.path.join(log_dir, os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME))
+
 
 def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
     """
@@ -111,7 +169,11 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
         str: The path to the log directory
     """
     # Check if file logging is disabled via environment variable
-    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
     if no_file_logging:
         # Return the path without creating the directory
         return log_dir if log_dir is not None else get_log_dir()
@@ -153,8 +215,13 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
 
     return dir_path
 
-def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = None,
-                     log_level: int = None, create_dir: bool = True) -> None:
+
+def configure_logging(
+    log_dir: Optional[str] = None,
+    log_file: Optional[str] = None,
+    log_level: int = None,
+    create_dir: bool = True,
+) -> None:
     """
     Configure the logging system with the specified parameters.
 
@@ -170,7 +237,11 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
     global _configured_log_dir, _configured_log_file, _logging_configured
 
     # Check if file logging is disabled via environment variable
-    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in ("1", "true", "yes")
+    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
     if no_file_logging:
         create_dir = False
 
@@ -212,9 +283,11 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
             root_logger.addHandler(file_handler)
         except (PermissionError, FileNotFoundError) as e:
             # Log to console only if file logging fails
-            console_handler.setFormatter(logging.Formatter(
-                "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            ))
+            console_handler.setFormatter(
+                logging.Formatter(
+                    "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+            )
             root_logger.warning(f"Failed to set up file logging: {str(e)}")
 
     # Mark as configured
@@ -225,6 +298,7 @@ def configure_logging(log_dir: Optional[str] = None, log_file: Optional[str] = N
         root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
     else:
         root_logger.info("Logging configured for console output only (no file logging).")
+
 
 class DevSynthLogger:
     """
@@ -242,6 +316,7 @@ class DevSynthLogger:
             name: The name of the component (typically __name__)
         """
         self.logger = logging.getLogger(name)
+        self.logger.addFilter(RequestContextFilter())
 
         # Don't create log directory here - defer until explicitly configured
         # This is important for test isolation
@@ -270,8 +345,10 @@ class DevSynthLogger:
         """Log an exception message with traceback."""
         self.logger.exception(msg, extra=kwargs if kwargs else None)
 
+
 # Don't configure logging on import - this is now explicit
 # Instead, code must call configure_logging() when needed
+
 
 def get_logger(name: str) -> DevSynthLogger:
     """
