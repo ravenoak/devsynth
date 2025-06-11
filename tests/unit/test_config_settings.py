@@ -9,6 +9,7 @@ import pytest
 from unittest.mock import patch, mock_open
 
 from devsynth.config.settings import get_settings, get_llm_settings, load_dotenv
+from devsynth.exceptions import ConfigurationError
 
 
 class TestConfigSettings:
@@ -34,7 +35,7 @@ class TestConfigSettings:
             "DEVSYNTH_LLM_PROVIDER": "openai",
             "DEVSYNTH_LLM_API_BASE": "https://api.openai.com/v1",
             "DEVSYNTH_LLM_MODEL": "gpt-4",
-            "DEVSYNTH_LLM_TEMPERATURE": "0.5"
+            "DEVSYNTH_LLM_TEMPERATURE": "0.5",
         }
 
         with patch.dict(os.environ, env_vars):
@@ -56,7 +57,7 @@ class TestConfigSettings:
             "DEVSYNTH_LLM_MODEL": "gpt-4",
             "DEVSYNTH_LLM_MAX_TOKENS": "2000",
             "DEVSYNTH_LLM_TEMPERATURE": "0.5",
-            "DEVSYNTH_LLM_AUTO_SELECT_MODEL": "false"
+            "DEVSYNTH_LLM_AUTO_SELECT_MODEL": "false",
         }
 
         with patch.dict(os.environ, env_vars):
@@ -70,14 +71,17 @@ class TestConfigSettings:
             assert llm_settings["temperature"] == 0.5
             assert llm_settings["auto_select_model"] is False
 
-    @pytest.mark.parametrize("env_var,expected", [
-        ("true", True),
-        ("True", True),
-        ("TRUE", True),
-        ("false", False),
-        ("False", False),
-        ("FALSE", False),
-    ])
+    @pytest.mark.parametrize(
+        "env_var,expected",
+        [
+            ("true", True),
+            ("True", True),
+            ("TRUE", True),
+            ("false", False),
+            ("False", False),
+            ("FALSE", False),
+        ],
+    )
     def test_boolean_environment_variables(self, env_var, expected):
         """Test that boolean environment variables are parsed correctly."""
         with patch.dict(os.environ, {"DEVSYNTH_LLM_AUTO_SELECT_MODEL": env_var}):
@@ -146,3 +150,15 @@ class TestConfigSettings:
                     assert settings["serper_api_key"] == "serper-test-key-67890"
                     assert settings["llm_model"] == "gpt-3.5-turbo"
                     assert settings["llm_temperature"] == 0.8
+
+    def test_invalid_security_boolean_raises(self):
+        """Invalid boolean values for security settings should raise errors."""
+        with patch.dict(os.environ, {"DEVSYNTH_AUTHENTICATION_ENABLED": "maybe"}):
+            with pytest.raises(ConfigurationError):
+                get_settings(reload=True)
+
+    def test_empty_openai_api_key_raises(self):
+        """Empty API keys should be rejected."""
+        with patch.dict(os.environ, {"OPENAI_API_KEY": " "}):
+            with pytest.raises(ConfigurationError):
+                get_settings(reload=True)
