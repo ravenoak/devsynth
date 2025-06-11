@@ -172,6 +172,9 @@ are disabled by default via flags in `config/default.yml`. Code, test, and docum
 generation work but often require manual review. See the
 [Implementation Status](docs/implementation/feature_status_matrix.md) for detailed progress.
 
+Use `devsynth config enable-feature <name>` to toggle optional capabilities in your
+project configuration.
+
 ## Traceability & Continuous Improvement
 
 - All requirements, code, and tests are linked via the [Requirements Traceability Matrix](docs/requirements_traceability.md)

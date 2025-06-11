@@ -217,6 +217,14 @@ devsynth config --key model
 devsynth config --reset
 ```
 
+#### enable-feature
+
+Toggle a feature flag in your project configuration.
+
+```bash
+devsynth config enable-feature <name>
+```
+
 ### memory
 
 Manage the DevSynth memory system.
