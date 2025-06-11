@@ -44,8 +44,8 @@ Each feature is scored on two dimensions:
 | Feature | Status | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|-------------------|--------------------------------|--------------|-------|-------|
 | **Core Framework** |
-| EDRR Framework | Partially Implemented (70%) | 5 | 4 | Agent Orchestration | | Core phase transitions implemented, advanced features pending |
-| WSDE Agent Collaboration | Partially Implemented (50%) | 4 | 5 | Memory System | | Basic collaboration working, advanced features pending |
+| EDRR Framework | Partially Implemented (90%) | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
+| WSDE Agent Collaboration | Partially Implemented (75%) | 4 | 5 | Memory System | | Dynamic leadership and consensus mechanisms implemented |
 | Dialectical Reasoning | Partially Implemented (40%) | 4 | 3 | WSDE Model | | Framework defined, implementation in progress |
 | Message Passing Protocol | Fully Implemented (100%) | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Partially Implemented (80%) | 4 | 3 | WSDE Model | | Basic review cycle implemented, advanced workflows pending |
@@ -61,18 +61,18 @@ Each feature is scored on two dimensions:
 | Docker Containerization | Fully Implemented (100%) | 4 | 3 | None | | Dockerfile and Compose provided |
 | Configuration Management | Partially Implemented (75%) | 4 | 3 | None | | Environment-specific templates available |
 | Deployment Automation | Partially Implemented (60%) | 3 | 3 | Docker | | Basic Docker Compose workflows |
-| Security Framework | Partially Implemented (30%) | 4 | 4 | None | | Basic authentication, authorization, and sanitization utilities added |
+| Security Framework | Partially Implemented (50%) | 4 | 4 | None | | Environment validation and security policies added; encryption pending |
 | Dependency Management | Partially Implemented (40%) | 3 | 2 | None | | Basic management implemented, optimization pending |
 
 ## Current Limitations and Workarounds
 
 ### EDRR Framework Limitations
-- **Limitation**: Advanced phase transitions not fully implemented
-- **Workaround**: Manually guide the system through phases using explicit commands
+- **Limitation**: Monitoring and debugging tools are still basic
+- **Workaround**: Enable enhanced logging for detailed tracing
 
 ### WSDE Agent Collaboration Limitations
-- **Limitation**: Dynamic role assignment not fully implemented
-- **Workaround**: Assign roles explicitly in configuration
+- **Limitation**: Consensus algorithms require additional validation
+- **Workaround**: Review major decisions manually until stable
 
 ### Code Generation Limitations
 - **Limitation**: Complex code structures may not generate correctly
