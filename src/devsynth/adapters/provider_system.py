@@ -4,6 +4,7 @@ Provider System for abstracting LLM providers (OpenAI, LM Studio).
 This module implements a unified interface for different LLM providers with
 automatic fallback and selection based on configuration.
 """
+
 import os
 import json
 import logging
@@ -21,14 +22,17 @@ from devsynth.fallback import retry_with_exponential_backoff
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
+
 class ProviderType(Enum):
     """Enum for supported LLM providers."""
+
     OPENAI = "openai"
     LM_STUDIO = "lm_studio"
 
 
 class ProviderError(DevSynthError):
     """Exception raised for provider-related errors."""
+
     pass
 
 
@@ -50,23 +54,27 @@ def get_provider_config() -> Dict[str, Any]:
         "openai": {
             "api_key": get_env_or_default("OPENAI_API_KEY"),
             "model": get_env_or_default("OPENAI_MODEL", "gpt-4"),
-            "base_url": get_env_or_default("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            "base_url": get_env_or_default(
+                "OPENAI_BASE_URL", "https://api.openai.com/v1"
+            ),
         },
         "lm_studio": {
-            "endpoint": get_env_or_default("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"),
+            "endpoint": get_env_or_default(
+                "LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"
+            ),
             "model": get_env_or_default("LM_STUDIO_MODEL", "default"),
-        }
+        },
     }
 
     # Check for .env file and load if exists
-    env_path = os.path.join(os.getcwd(), '.env')
+    env_path = os.path.join(os.getcwd(), ".env")
     if os.path.exists(env_path):
         try:
-            with open(env_path, 'r') as f:
+            with open(env_path, "r") as f:
                 for line in f:
                     line = line.strip()
-                    if line and not line.startswith('#'):
-                        key, value = line.split('=', 1)
+                    if line and not line.startswith("#"):
+                        key, value = line.split("=", 1)
                         os.environ[key] = value
 
                         # Update config based on loaded .env values
@@ -90,7 +98,7 @@ class ProviderFactory:
     """Factory class for creating provider instances."""
 
     @staticmethod
-    def create_provider(provider_type: Optional[str] = None) -> 'BaseProvider':
+    def create_provider(provider_type: Optional[str] = None) -> "BaseProvider":
         """
         Create a provider instance based on the specified type or config.
 
@@ -111,20 +119,26 @@ class ProviderFactory:
         try:
             if provider_type.lower() == ProviderType.OPENAI.value:
                 if not config["openai"]["api_key"]:
-                    logger.warning("OpenAI API key not found, falling back to LM Studio if available")
+                    logger.warning(
+                        "OpenAI API key not found; falling back to LM Studio if available"
+                    )
                     return ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+                logger.info("Using OpenAI provider")
                 return OpenAIProvider(
                     api_key=config["openai"]["api_key"],
                     model=config["openai"]["model"],
-                    base_url=config["openai"]["base_url"]
+                    base_url=config["openai"]["base_url"],
                 )
             elif provider_type.lower() == ProviderType.LM_STUDIO.value:
+                logger.info("Using LM Studio provider")
                 return LMStudioProvider(
                     endpoint=config["lm_studio"]["endpoint"],
-                    model=config["lm_studio"]["model"]
+                    model=config["lm_studio"]["model"],
                 )
             else:
-                logger.warning(f"Unknown provider type: {provider_type}, falling back to OpenAI")
+                logger.warning(
+                    f"Unknown provider type '{provider_type}', falling back to OpenAI"
+                )
                 return ProviderFactory.create_provider(ProviderType.OPENAI.value)
         except Exception as e:
             logger.error(f"Failed to create provider {provider_type}: {e}")
@@ -138,11 +152,13 @@ class BaseProvider:
         """Initialize the provider with implementation-specific kwargs."""
         self.kwargs = kwargs
 
-    def complete(self,
-                prompt: str,
-                system_prompt: Optional[str] = None,
-                temperature: float = 0.7,
-                max_tokens: int = 2000) -> str:
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
         """
         Generate a completion from the LLM.
 
@@ -193,7 +209,12 @@ class BaseProvider:
 class OpenAIProvider(BaseProvider):
     """OpenAI API provider implementation."""
 
-    def __init__(self, api_key: str, model: str = "gpt-4", base_url: str = "https://api.openai.com/v1"):
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-4",
+        base_url: str = "https://api.openai.com/v1",
+    ):
         """
         Initialize OpenAI provider.
 
@@ -208,15 +229,17 @@ class OpenAIProvider(BaseProvider):
         self.base_url = base_url
         self.headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
         }
 
     @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
-    def complete(self,
-                prompt: str,
-                system_prompt: Optional[str] = None,
-                temperature: float = 0.7,
-                max_tokens: int = 2000) -> str:
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
         """
         Generate a completion using OpenAI API.
 
@@ -243,7 +266,7 @@ class OpenAIProvider(BaseProvider):
             "model": self.model,
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": max_tokens
+            "max_tokens": max_tokens,
         }
 
         try:
@@ -316,7 +339,7 @@ class OpenAIProvider(BaseProvider):
 
         payload = {
             "model": "text-embedding-3-small",  # Use appropriate embedding model
-            "input": text
+            "input": text,
         }
 
         try:
@@ -327,7 +350,9 @@ class OpenAIProvider(BaseProvider):
             if "data" in response_data and len(response_data["data"]) > 0:
                 return [item["embedding"] for item in response_data["data"]]
             else:
-                raise ProviderError(f"Invalid embedding response format: {response_data}")
+                raise ProviderError(
+                    f"Invalid embedding response format: {response_data}"
+                )
 
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI embedding API error: {e}")
@@ -371,16 +396,18 @@ class LMStudioProvider(BaseProvider):
             model: Model name (ignored in LM Studio, uses loaded model)
         """
         super().__init__(endpoint=endpoint, model=model)
-        self.endpoint = endpoint.rstrip('/')
+        self.endpoint = endpoint.rstrip("/")
         self.model = model
         self.headers = {"Content-Type": "application/json"}
 
     @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
-    def complete(self,
-                prompt: str,
-                system_prompt: Optional[str] = None,
-                temperature: float = 0.7,
-                max_tokens: int = 2000) -> str:
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
         """
         Generate a completion using LM Studio API.
 
@@ -406,7 +433,7 @@ class LMStudioProvider(BaseProvider):
         payload = {
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": max_tokens
+            "max_tokens": max_tokens,
         }
 
         try:
@@ -417,7 +444,9 @@ class LMStudioProvider(BaseProvider):
             if "choices" in response_data and len(response_data["choices"]) > 0:
                 return response_data["choices"][0]["message"]["content"]
             else:
-                raise ProviderError(f"Invalid LM Studio response format: {response_data}")
+                raise ProviderError(
+                    f"Invalid LM Studio response format: {response_data}"
+                )
 
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio API error: {e}")
@@ -501,13 +530,21 @@ class FallbackProvider(BaseProvider):
             # Try OpenAI
             if config["openai"]["api_key"]:
                 try:
-                    providers.append(ProviderFactory.create_provider(ProviderType.OPENAI.value))
+                    providers.append(
+                        ProviderFactory.create_provider(ProviderType.OPENAI.value)
+                    )
                 except Exception as e:
-                    logger.warning(f"Failed to create OpenAI provider: {e}")
+                    logger.warning(
+                        f"Failed to create OpenAI provider: {e}; attempting LM Studio"
+                    )
+            else:
+                logger.info("OpenAI API key missing; skipping OpenAI provider")
 
             # Try LM Studio
             try:
-                providers.append(ProviderFactory.create_provider(ProviderType.LM_STUDIO.value))
+                providers.append(
+                    ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+                )
             except Exception as e:
                 logger.warning(f"Failed to create LM Studio provider: {e}")
 
@@ -515,12 +552,18 @@ class FallbackProvider(BaseProvider):
             raise ProviderError("No valid providers available for fallback")
 
         self.providers = providers
+        logger.info(
+            "Initialized fallback provider order: %s",
+            ", ".join(p.__class__.__name__ for p in self.providers),
+        )
 
-    def complete(self,
-                prompt: str,
-                system_prompt: Optional[str] = None,
-                temperature: float = 0.7,
-                max_tokens: int = 2000) -> str:
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
         """
         Try to complete with each provider until one succeeds.
 
@@ -540,18 +583,22 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(f"Trying completion with provider: {provider.__class__.__name__}")
+                logger.info(
+                    f"Trying completion with provider: {provider.__class__.__name__}"
+                )
                 return provider.complete(
                     prompt=prompt,
                     system_prompt=system_prompt,
                     temperature=temperature,
-                    max_tokens=max_tokens
+                    max_tokens=max_tokens,
                 )
             except Exception as e:
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
-        raise ProviderError(f"All providers failed for completion. Last error: {last_error}")
+        raise ProviderError(
+            f"All providers failed for completion. Last error: {last_error}"
+        )
 
     async def acomplete(
         self,
@@ -575,9 +622,7 @@ class FallbackProvider(BaseProvider):
                     max_tokens=max_tokens,
                 )
             except Exception as e:
-                logger.warning(
-                    f"Provider {provider.__class__.__name__} failed: {e}"
-                )
+                logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
         raise ProviderError(
@@ -601,13 +646,19 @@ class FallbackProvider(BaseProvider):
 
         for provider in self.providers:
             try:
-                logger.info(f"Trying embeddings with provider: {provider.__class__.__name__}")
+                logger.info(
+                    f"Trying embeddings with provider: {provider.__class__.__name__}"
+                )
                 return provider.embed(text=text)
             except Exception as e:
-                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
+                logger.warning(
+                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
+                )
                 last_error = e
 
-        raise ProviderError(f"All providers failed for embeddings. Last error: {last_error}")
+        raise ProviderError(
+            f"All providers failed for embeddings. Last error: {last_error}"
+        )
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously try to generate embeddings with providers."""
@@ -631,7 +682,9 @@ class FallbackProvider(BaseProvider):
 
 
 # Simplified API for common usage
-def get_provider(provider_type: Optional[str] = None, fallback: bool = True) -> BaseProvider:
+def get_provider(
+    provider_type: Optional[str] = None, fallback: bool = True
+) -> BaseProvider:
     """
     Get a provider instance, optionally with fallback capability.
 
@@ -648,12 +701,14 @@ def get_provider(provider_type: Optional[str] = None, fallback: bool = True) -> 
         return ProviderFactory.create_provider(provider_type)
 
 
-def complete(prompt: str,
-            system_prompt: Optional[str] = None,
-            temperature: float = 0.7,
-            max_tokens: int = 2000,
-            provider_type: Optional[str] = None,
-            fallback: bool = True) -> str:
+def complete(
+    prompt: str,
+    system_prompt: Optional[str] = None,
+    temperature: float = 0.7,
+    max_tokens: int = 2000,
+    provider_type: Optional[str] = None,
+    fallback: bool = True,
+) -> str:
     """
     Generate a completion using the configured provider.
 
@@ -673,13 +728,15 @@ def complete(prompt: str,
         prompt=prompt,
         system_prompt=system_prompt,
         temperature=temperature,
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
     )
 
 
-def embed(text: Union[str, List[str]],
-         provider_type: Optional[str] = None,
-         fallback: bool = True) -> List[List[float]]:
+def embed(
+    text: Union[str, List[str]],
+    provider_type: Optional[str] = None,
+    fallback: bool = True,
+) -> List[List[float]]:
     """
     Generate embeddings using the configured provider.
 

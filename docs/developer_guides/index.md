@@ -21,6 +21,7 @@ This section is for developers contributing to the DevSynth project or those loo
 - **[Contributing Guide](contributing.md)**: Guidelines for contributing to the DevSynth project, including code style, commit conventions, and the pull request process.
 - **[Development Setup](development_setup.md)**: Instructions on how to set up a local development environment for DevSynth.
 - **[Code Style](code_style.md)**: Specific code style guidelines and conventions followed in the DevSynth project.
+- **[Dependency Management](dependency_management.md)**: How to update and check project dependencies.
 - **[Repository Structure](../repo_structure.md)**: An overview of how the DevSynth repository is organized.
 
 ## Testing Guides
