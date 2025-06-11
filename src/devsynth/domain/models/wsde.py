@@ -4,6 +4,8 @@ from datetime import datetime
 from uuid import uuid4
 import re
 
+from devsynth.methodology.base import Phase
+
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
@@ -340,6 +342,11 @@ class WSDETeam:
 
         assigned_roles = [agent.current_role for agent in self.agents]
         logger.info(f"Assigned roles: {assigned_roles}")
+
+    def assign_roles_for_phase(self, phase: Phase, task: Dict[str, Any]) -> None:
+        """Select Primus based on context and assign roles for a phase."""
+        self.select_primus_by_expertise({**task, "phase": phase.value})
+        self.assign_roles()
 
     def _validate_role_mapping(self, mapping: Dict[str, Any]) -> None:
         """Validate that a role mapping only contains agents from this team."""

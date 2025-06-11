@@ -149,8 +149,8 @@ class EDRRCoordinator:
             self.task, "TASK", "EXPAND", {"cycle_id": self.cycle_id}
         )
 
-        # Initial role assignment before the first phase
-        self.wsde_team.assign_roles()
+        # Initial role assignment before the first phase using dynamic roles
+        self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
         self.memory_manager.store_with_edrr_phase(
             self.wsde_team.get_role_map(),
             "ROLE_ASSIGNMENT",
@@ -239,8 +239,8 @@ class EDRRCoordinator:
                 },
             )
 
-            # Initial role assignment before the first phase
-            self.wsde_team.assign_roles()
+            # Initial role assignment before the first phase using dynamic roles
+            self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
             self.memory_manager.store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
                 "ROLE_ASSIGNMENT",
@@ -287,8 +287,8 @@ class EDRRCoordinator:
             if previous_phase is not None:
                 self.wsde_team.rotate_primus()
 
-            # Assign roles for the new phase
-            self.wsde_team.assign_roles()
+            # Dynamic role assignment for the new phase
+            self.wsde_team.assign_roles_for_phase(phase, self.task)
             self.memory_manager.store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
                 "ROLE_ASSIGNMENT",
@@ -369,6 +369,28 @@ class EDRRCoordinator:
             raise EDRRCoordinatorError(
                 f"Failed to progress to phase {phase.value}: {e}"
             )
+
+    def progress_to_next_phase(self) -> None:
+        """Progress to the next phase in the standard EDRR sequence."""
+        if self.current_phase is None:
+            raise EDRRCoordinatorError("No current phase set")
+
+        phase_order = [
+            Phase.EXPAND,
+            Phase.DIFFERENTIATE,
+            Phase.REFINE,
+            Phase.RETROSPECT,
+        ]
+        try:
+            idx = phase_order.index(self.current_phase)
+        except ValueError as exc:
+            raise EDRRCoordinatorError("Unknown current phase") from exc
+
+        if idx >= len(phase_order) - 1:
+            raise EDRRCoordinatorError("Already at final phase")
+
+        next_phase = phase_order[idx + 1]
+        self.progress_to_phase(next_phase)
 
     def create_micro_cycle(
         self, task: Dict[str, Any], parent_phase: Phase
