@@ -22,6 +22,7 @@ from .cli_commands import (
     webapp_cmd,
     dbschema_cmd,
     adaptive_cmd,
+    serve_cmd,
 )
 
 # Import commands from the commands directory
@@ -41,6 +42,7 @@ __all__ = [
     "webapp_cmd",
     "dbschema_cmd",
     "adaptive_cmd",
+    "serve_cmd",
     "analyze_code_cmd",
     "edrr_cycle_cmd",
 ]

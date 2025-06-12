@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  devsynth-api:
+    build:
+      context: .
+      target: production
+    command: uvicorn devsynth.api:app --host 0.0.0.0 --port 8000
+    environment:
+      - DEVSYNTH_ENV=production
+      - DEVSYNTH_LOG_LEVEL=INFO
+      - DEVSYNTH_MEMORY_STORE=chromadb
+      - DEVSYNTH_CHROMADB_HOST=chromadb
+      - DEVSYNTH_CHROMADB_PORT=8000
+    volumes:
+      - devsynth-data:/data/devsynth
+    depends_on:
+      - chromadb
+    ports:
+      - "8000:8000"
+    networks:
+      - devsynth-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  devsynth-cli:
+    build:
+      context: .
+      target: production
+    command: devsynth
+    environment:
+      - DEVSYNTH_ENV=production
+    volumes:
+      - devsynth-data:/data/devsynth
+    networks:
+      - devsynth-network
+    profiles:
+      - cli
+
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - chromadb-data:/chroma/chroma
+    ports:
+      - "8001:8000"
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
+    networks:
+      - devsynth-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - devsynth-network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - devsynth-network
+
+volumes:
+  chromadb-data:
+    name: devsynth-chromadb-data
+  grafana-data:
+    name: devsynth-grafana-data
+  devsynth-data:
+    name: devsynth-app-data
+
+networks:
+  devsynth-network:
+    name: devsynth-network
