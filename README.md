@@ -83,6 +83,8 @@ You can install DevSynth in a few different ways:
 
    ```bash
    pip install -e '.[dev]'
+   # or for a smaller core install
+   pip install -e '.[minimal,dev]'
    # or
    poetry install
    ```
@@ -115,9 +117,12 @@ Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `
 
 ## Running Tests
 
-Before running the test suite, **install DevSynth with its development extras**. Use either of the following commands:
+Before running the test suite, **install DevSynth with its development extras** or with the minimal extras for faster setup. Use one of the following commands:
 
 ```bash
+# minimal core plus dev dependencies
+pip install -e '.[minimal,dev]'
+# or just development extras
 pip install -e '.[dev]'
 # or
 poetry install
