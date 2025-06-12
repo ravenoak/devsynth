@@ -8,6 +8,7 @@ This section contains various analysis documents related to the DevSynth project
 - **[Inventory](inventory.md)**: An inventory of DevSynth components and features.
 - **[Technical Deep Dive](technical_deep_dive.md)**: A detailed technical analysis of DevSynth.
 - **[Wide Sweep Analysis](wide_sweep_analysis.md)**: A broad analysis of the DevSynth project.
+- **[CLI and UI Improvement Plan](cli_ui_improvement_plan.md)**: Outline of upcoming usability enhancements.
 
 ## Related Documentation
 
