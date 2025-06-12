@@ -221,6 +221,7 @@ rdflib = "^7.1.4"
 # LLM Integration
 langchain-openai = "^0.3.17"
 dspy-ai = "^2.6.24"
+openai = "1.86.0"
 
 # Utilities
 networkx = "^3.4.2"
