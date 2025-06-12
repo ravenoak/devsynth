@@ -64,6 +64,53 @@ class TestAgentCollaboration:
         agent = factory.create_agent(AgentType.CODE.value)
         assert isinstance(agent, UnifiedAgent)
 
+    def test_delegate_task_multi_agent_consensus(self):
+        coordinator = WSDETeamCoordinator()
+        coordinator.create_team("team")
+
+        a1 = MagicMock(spec=UnifiedAgent)
+        a1.name = "a1"
+        a1.config = AgentConfig(name="a1", agent_type=AgentType.ORCHESTRATOR, description="", capabilities=[], parameters={"expertise": ["code"]})
+        a1.process.return_value = {"result": "sol1"}
+
+        a2 = MagicMock(spec=UnifiedAgent)
+        a2.name = "a2"
+        a2.config = AgentConfig(name="a2", agent_type=AgentType.ORCHESTRATOR, description="", capabilities=[], parameters={"expertise": ["test"]})
+        a2.process.return_value = {"result": "sol2"}
+
+        coordinator.add_agents([a1, a2])
+        team = coordinator.get_team("team")
+        team.select_primus_by_expertise = MagicMock()
+        team.get_primus = MagicMock(return_value=a1)
+        team.add_solution = MagicMock()
+        team.build_consensus = MagicMock(return_value={"consensus": "final", "contributors": ["a1", "a2"], "method": "consensus", "reasoning": ""})
+        team.apply_enhanced_dialectical_reasoning_multi = MagicMock(return_value={"evaluation": "ok"})
+
+        result = coordinator.delegate_task({"description": "demo"})
+
+        team.build_consensus.assert_called_once()
+        team.apply_enhanced_dialectical_reasoning_multi.assert_called_once_with({"description": "demo"}, a1)
+        assert result["result"] == "final"
+        assert "dialectical_analysis" in result
+
+    def test_delegate_task_voting(self):
+        coordinator = WSDETeamCoordinator()
+        coordinator.create_team("team")
+
+        agent = MagicMock(spec=UnifiedAgent)
+        agent.name = "a"
+        agent.config = AgentConfig(name="a", agent_type=AgentType.ORCHESTRATOR, description="", capabilities=[], parameters={})
+        coordinator.add_agent(agent)
+        coordinator.add_agent(agent)
+
+        team = coordinator.get_team("team")
+        team.vote_on_critical_decision = MagicMock(return_value={"voting_initiated": True})
+
+        task = {"type": "critical_decision", "is_critical": True}
+        result = coordinator.delegate_task(task)
+        team.vote_on_critical_decision.assert_called_once_with(task)
+        assert result["voting_initiated"]
+
     def test_agent_adapter(self, mock_agent):
         """Test the agent adapter."""
         adapter = AgentAdapter()
@@ -100,3 +147,4 @@ class TestAgentCollaboration:
 
         agent = factory.create_agent(AgentType.CODE.value)
         assert isinstance(agent, UnifiedAgent)
+

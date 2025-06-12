@@ -329,3 +329,16 @@ class TestRecursiveEDRRCoordinator:
         assert f"EXPAND_{micro_cycle.cycle_id}" in micro_cycle._execution_traces
         assert micro_cycle._execution_traces[f"EXPAND_{micro_cycle.cycle_id}"]["parent_cycle_id"] == macro_cycle_id
         assert micro_cycle._execution_traces[f"EXPAND_{micro_cycle.cycle_id}"]["recursion_depth"] == 1
+
+    def test_auto_micro_cycle_creation(self, coordinator):
+        coordinator.start_cycle({"description": "Macro"})
+        context = {
+            "micro_tasks": [
+                {"description": "Sub1", "granularity_score": 0.8},
+                {"description": "Sub2", "granularity_score": 0.8},
+            ]
+        }
+        results = coordinator._execute_expand_phase(context)
+        assert len(coordinator.child_cycles) == 2
+        assert len(results["micro_cycle_results"]) == 2
+
