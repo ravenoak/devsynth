@@ -18,6 +18,8 @@ This guide walks through a small calculator example included in the `examples/` 
 
 The example lives in [`examples/calculator`](../../examples/calculator). Each file shows what you would have after running DevSynth commands.
 
+For a complete demonstration of the adaptive workflow, see the full workflow example in [`examples/full_workflow`](../../examples/full_workflow).
+
 ## Workflow Overview
 
 1. **Initialize** the project
