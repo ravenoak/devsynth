@@ -128,6 +128,7 @@ langgraph = "^0.4.5"          # Rapidly evolving
 langchain = "^0.3.25"         # Frequent breaking changes
 chromadb = "^1.0.9"           # Database compatibility issues
 dspy-ai = "^2.6.24"           # Experimental framework
+openai = "1.86.0"           # Official OpenAI client
 faiss-cpu = "^1.11.0"         # Platform-specific builds
 ```
 

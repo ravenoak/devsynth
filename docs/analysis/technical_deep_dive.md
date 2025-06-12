@@ -301,6 +301,7 @@ typer = "^0.15.4"           # CLI framework
 pydantic = "^2.5.0"         # Data validation
 langgraph = "^0.4.5"        # Agent orchestration
 langchain = "^0.3.25"       # LLM framework
+openai = "1.86.0"       # OpenAI API
 chromadb = "^1.0.9"         # Vector database
 structlog = "^25.3.0"       # Structured logging
 ```
