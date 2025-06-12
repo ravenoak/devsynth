@@ -18,6 +18,7 @@ from devsynth.application.cli import (
     adaptive_cmd,
     analyze_code_cmd,
     edrr_cycle_cmd,
+    serve_cmd,
 )
 from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.cli.apispec import apispec_cmd
@@ -71,6 +72,7 @@ def build_app() -> typer.Typer:
     app.command(name="generate-docs")(generate_docs_cmd)
     app.command(name="ingest")(ingest_cmd)
     app.command(name="apispec")(apispec_cmd)
+    app.command(name="serve")(serve_cmd)
 
     @app.callback(invoke_without_command=True)
     def main(ctx: typer.Context):

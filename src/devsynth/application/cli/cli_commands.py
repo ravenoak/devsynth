@@ -9,6 +9,8 @@ import importlib.util
 import yaml
 
 from ..orchestration.workflow import workflow_manager
+import uvicorn
+from devsynth.logging_setup import configure_logging
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
@@ -621,6 +623,15 @@ Note: Full support for {framework} will be implemented in a future version.
                 border_style="red",
             )
         )
+
+
+def serve_cmd(host: str = "0.0.0.0", port: int = 8000) -> None:
+    """Run the DevSynth API server."""
+    try:
+        configure_logging()
+        uvicorn.run("devsynth.api:app", host=host, port=port, log_level="info")
+    except Exception as err:  # pragma: no cover - defensive
+        console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def dbschema_cmd(

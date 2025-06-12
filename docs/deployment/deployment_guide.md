@@ -94,6 +94,8 @@ docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
 
 ### Production Environment
 
+Use the production compose file which includes Prometheus and Grafana for monitoring.
+
 ```bash
 # Set required environment variables
 export DEVSYNTH_ENV=production
@@ -155,6 +157,9 @@ Monitor container health with:
 docker compose ps
 docker compose top
 ```
+
+Prometheus scrapes metrics from `http://localhost:8000/metrics` and Grafana is
+available at `http://localhost:3000` (default credentials admin/admin).
 
 ## Troubleshooting
 
