@@ -592,6 +592,26 @@ class EDRRCoordinator:
         # Default to allowing recursion
         return False
 
+    def _maybe_create_micro_cycles(
+        self, context: Dict[str, Any], parent_phase: Phase, results: Dict[str, Any]
+    ) -> None:
+        """Create micro cycles for tasks provided in the context."""
+        micro_tasks = context.get("micro_tasks", []) if context else []
+        if not micro_tasks:
+            return
+
+        if "micro_cycle_results" not in results:
+            results["micro_cycle_results"] = {}
+
+        for task in micro_tasks:
+            try:
+                micro_cycle = self.create_micro_cycle(task, parent_phase)
+                results["micro_cycle_results"][micro_cycle.cycle_id] = micro_cycle.results
+            except EDRRCoordinatorError as exc:
+                results["micro_cycle_results"][task.get("description", "task")] = {
+                    "error": str(exc)
+                }
+
     def _execute_expand_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute the Expand phase of the EDRR cycle.
@@ -648,6 +668,9 @@ class EDRRCoordinator:
             "EXPAND",
             {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
         )
+
+        # Create micro cycles for any provided sub tasks
+        self._maybe_create_micro_cycles(context, Phase.EXPAND, results)
 
         if self._enable_enhanced_logging:
             trace_data = {
@@ -766,6 +789,9 @@ class EDRRCoordinator:
             {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
         )
 
+        # Create micro cycles for any provided sub tasks
+        self._maybe_create_micro_cycles(context, Phase.DIFFERENTIATE, results)
+
         if self._enable_enhanced_logging:
             trace_data = {
                 "timestamp": datetime.now().isoformat(),
@@ -879,6 +905,9 @@ class EDRRCoordinator:
             "REFINE",
             {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
         )
+
+        # Create micro cycles for any provided sub tasks
+        self._maybe_create_micro_cycles(context, Phase.REFINE, results)
 
         if self._enable_enhanced_logging:
             trace_data = {
@@ -1030,6 +1059,9 @@ class EDRRCoordinator:
             "RETROSPECT",
             {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
         )
+
+        # Create micro cycles for any provided sub tasks
+        self._maybe_create_micro_cycles(context, Phase.RETROSPECT, results)
 
         # Store the final report
         self.memory_manager.store_with_edrr_phase(

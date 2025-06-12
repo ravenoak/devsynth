@@ -209,12 +209,19 @@ class WSDETeamCoordinator(AgentCoordinator):
         # 4. Build consensus through deliberation
         consensus = team.build_consensus(task)
 
-        # 5. Format the result to match the expected output
+        # 5. Apply dialectical reasoning on the combined solutions
+        critic_agent = primus if primus else team.agents[0]
+        dialectical = team.apply_enhanced_dialectical_reasoning_multi(
+            task, critic_agent
+        )
+
+        # 6. Format the result to match the expected output
         return {
             "result": consensus.get("consensus", ""),
             "contributors": consensus.get("contributors", []),
             "method": consensus.get("method", "consensus"),
             "reasoning": consensus.get("reasoning", ""),
+            "dialectical_analysis": dialectical,
         }
 
     def get_team(self, team_id: str) -> Optional[WSDETeam]:
