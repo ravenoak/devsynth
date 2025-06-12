@@ -296,6 +296,34 @@ DEVSYNTH_PROVIDER=openai pytest
 DEVSYNTH_PROVIDER=lm_studio pytest
 ```
 
+### Enabling Resource-Dependent Tests
+
+Some tests require external services such as LM Studio or the DevSynth CLI. By
+default `tests/conftest.py` disables these tests by setting environment
+variables like `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE` and
+`DEVSYNTH_RESOURCE_CLI_AVAILABLE` to `false`. To run the full suite with all
+resources enabled:
+
+```bash
+# Provide an OpenAI API key
+export OPENAI_API_KEY=sk-your-key
+
+# Enable LM Studio tests and specify the endpoint
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+export LM_STUDIO_ENDPOINT=http://localhost:1234
+
+# Ensure CLI commands are available
+export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
+
+# Run the entire test suite
+pytest
+```
+
+Make sure LM Studio is running in API mode on the endpoint above and the
+`devsynth` CLI is installed in your path. When these variables are set, pytest
+will execute all tests, including those normally skipped when resources are
+unavailable.
+
 ## Continuous Integration
 
 DevSynth uses GitHub Actions for continuous integration testing. The CI pipeline:
