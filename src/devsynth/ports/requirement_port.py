@@ -29,7 +29,7 @@ class RequirementRepositoryPort(ABC):
         Returns:
             The requirement if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def get_all_requirements(self) -> List[Requirement]:
@@ -39,7 +39,7 @@ class RequirementRepositoryPort(ABC):
         Returns:
             A list of all requirements.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
     @abstractmethod
     def save_requirement(self, requirement: Requirement) -> Requirement:
@@ -52,7 +52,7 @@ class RequirementRepositoryPort(ABC):
         Returns:
             The saved requirement.
         """
-        raise NotImplementedError("Method not implemented")
+        return requirement
 
     @abstractmethod
     def delete_requirement(self, requirement_id: UUID) -> bool:
@@ -65,7 +65,7 @@ class RequirementRepositoryPort(ABC):
         Returns:
             True if the requirement was deleted, False otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return False
 
     @abstractmethod
     def get_requirements_by_status(self, status: str) -> List[Requirement]:
@@ -78,7 +78,7 @@ class RequirementRepositoryPort(ABC):
         Returns:
             A list of requirements with the specified status.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
     @abstractmethod
     def get_requirements_by_type(self, type_: str) -> List[Requirement]:
@@ -91,7 +91,7 @@ class RequirementRepositoryPort(ABC):
         Returns:
             A list of requirements with the specified type.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
 
 class ChangeRepositoryPort(ABC):
@@ -108,7 +108,7 @@ class ChangeRepositoryPort(ABC):
         Returns:
             The change if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def get_changes_for_requirement(
@@ -123,7 +123,7 @@ class ChangeRepositoryPort(ABC):
         Returns:
             A list of changes for the requirement.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
     @abstractmethod
     def save_change(self, change: RequirementChange) -> RequirementChange:
@@ -136,7 +136,7 @@ class ChangeRepositoryPort(ABC):
         Returns:
             The saved change.
         """
-        raise NotImplementedError("Method not implemented")
+        return change
 
     @abstractmethod
     def delete_change(self, change_id: UUID) -> bool:
@@ -149,7 +149,7 @@ class ChangeRepositoryPort(ABC):
         Returns:
             True if the change was deleted, False otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return False
 
 
 class ImpactAssessmentRepositoryPort(ABC):
@@ -166,7 +166,7 @@ class ImpactAssessmentRepositoryPort(ABC):
         Returns:
             The impact assessment if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def get_impact_assessment_for_change(
@@ -181,7 +181,7 @@ class ImpactAssessmentRepositoryPort(ABC):
         Returns:
             The impact assessment if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def save_impact_assessment(self, assessment: ImpactAssessment) -> ImpactAssessment:
@@ -194,7 +194,7 @@ class ImpactAssessmentRepositoryPort(ABC):
         Returns:
             The saved impact assessment.
         """
-        raise NotImplementedError("Method not implemented")
+        return assessment
 
 
 class DialecticalReasoningRepositoryPort(ABC):
@@ -211,7 +211,7 @@ class DialecticalReasoningRepositoryPort(ABC):
         Returns:
             The dialectical reasoning if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def get_reasoning_for_change(
@@ -226,7 +226,7 @@ class DialecticalReasoningRepositoryPort(ABC):
         Returns:
             The dialectical reasoning if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def save_reasoning(self, reasoning: DialecticalReasoning) -> DialecticalReasoning:
@@ -239,7 +239,7 @@ class DialecticalReasoningRepositoryPort(ABC):
         Returns:
             The saved dialectical reasoning.
         """
-        raise NotImplementedError("Method not implemented")
+        return reasoning
 
 
 class ChatRepositoryPort(ABC):
@@ -256,7 +256,7 @@ class ChatRepositoryPort(ABC):
         Returns:
             The chat session if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
@@ -269,7 +269,7 @@ class ChatRepositoryPort(ABC):
         Returns:
             A list of chat sessions for the user.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
     @abstractmethod
     def save_session(self, session: ChatSession) -> ChatSession:
@@ -282,7 +282,7 @@ class ChatRepositoryPort(ABC):
         Returns:
             The saved chat session.
         """
-        raise NotImplementedError("Method not implemented")
+        return session
 
     @abstractmethod
     def save_message(self, message: ChatMessage) -> ChatMessage:
@@ -295,7 +295,7 @@ class ChatRepositoryPort(ABC):
         Returns:
             The saved chat message.
         """
-        raise NotImplementedError("Method not implemented")
+        return message
 
     @abstractmethod
     def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
@@ -308,7 +308,7 @@ class ChatRepositoryPort(ABC):
         Returns:
             A list of messages for the chat session.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
 
 class DialecticalReasonerPort(ABC):
@@ -325,7 +325,7 @@ class DialecticalReasonerPort(ABC):
         Returns:
             The dialectical reasoning result.
         """
-        raise NotImplementedError("Method not implemented")
+        return DialecticalReasoning(change_id=change.id)
 
     @abstractmethod
     def process_message(
@@ -342,7 +342,7 @@ class DialecticalReasonerPort(ABC):
         Returns:
             The response message.
         """
-        raise NotImplementedError("Method not implemented")
+        return ChatMessage(session_id=session_id, sender="system", content="")
 
     @abstractmethod
     def create_session(
@@ -358,7 +358,7 @@ class DialecticalReasonerPort(ABC):
         Returns:
             The created chat session.
         """
-        raise NotImplementedError("Method not implemented")
+        return ChatSession(user_id=user_id, change_id=change_id)
 
     @abstractmethod
     def assess_impact(self, change: RequirementChange) -> ImpactAssessment:
@@ -371,7 +371,7 @@ class DialecticalReasonerPort(ABC):
         Returns:
             The impact assessment.
         """
-        raise NotImplementedError("Method not implemented")
+        return ImpactAssessment(change_id=change.id)
 
 
 class NotificationPort(ABC):
@@ -385,7 +385,7 @@ class NotificationPort(ABC):
         Args:
             change: The proposed change.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def notify_change_approved(self, change: RequirementChange) -> None:
@@ -395,7 +395,7 @@ class NotificationPort(ABC):
         Args:
             change: The approved change.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def notify_change_rejected(self, change: RequirementChange) -> None:
@@ -405,7 +405,7 @@ class NotificationPort(ABC):
         Args:
             change: The rejected change.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def notify_impact_assessment_completed(self, assessment: ImpactAssessment) -> None:
@@ -415,7 +415,7 @@ class NotificationPort(ABC):
         Args:
             assessment: The completed impact assessment.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
 
 class ChatPort(ABC):
@@ -434,7 +434,7 @@ class ChatPort(ABC):
         Returns:
             The response message.
         """
-        raise NotImplementedError("Method not implemented")
+        return ChatMessage(session_id=session_id, sender="system", content="")
 
     @abstractmethod
     def create_session(
@@ -450,7 +450,7 @@ class ChatPort(ABC):
         Returns:
             The created chat session.
         """
-        raise NotImplementedError("Method not implemented")
+        return ChatSession(user_id=user_id, change_id=change_id)
 
     @abstractmethod
     def get_session(self, session_id: UUID) -> Optional[ChatSession]:
@@ -463,7 +463,7 @@ class ChatPort(ABC):
         Returns:
             The chat session if found, None otherwise.
         """
-        raise NotImplementedError("Method not implemented")
+        return None
 
     @abstractmethod
     def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
@@ -476,7 +476,7 @@ class ChatPort(ABC):
         Returns:
             A list of chat sessions for the user.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
 
     @abstractmethod
     def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
@@ -489,4 +489,4 @@ class ChatPort(ABC):
         Returns:
             A list of messages for the chat session.
         """
-        raise NotImplementedError("Method not implemented")
+        return []
