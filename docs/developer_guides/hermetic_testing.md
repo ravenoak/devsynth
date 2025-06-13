@@ -119,6 +119,12 @@ def test_external_service_bad():
     # Test logic...
 ```
 
+Isolating tests from external services prevents network flakiness and unwanted
+side effects. Always patch network clients and service adapters with mocks or
+stub implementations. When your tests rely on LLM calls or memory store
+operations, use the dedicated fixtures described below to avoid hitting real
+APIs or persistent storage.
+
 ### Working Directory Isolation
 
 Always change the working directory in a controlled way:
@@ -183,7 +189,11 @@ def test_with_mocked_llm(mock_openai_provider):
     assert "Test completion response" in result
 ```
 
-### Mocked Ports
+Tests should never perform live LLM queries. The `mock_openai_provider` fixture
+returns deterministic completions and keeps all network traffic inside the test
+environment.
+
+### Mocked Ports and Memory Stores
 
 Use the lightweight port fixtures from `tests/fixtures/ports.py` to avoid real
 service calls:
@@ -198,6 +208,10 @@ def test_with_mocked_ports(llm_port, memory_port, onnx_port):
     onnx_port.load_model("model.onnx")
     assert list(onnx_port.run({"x": [1]}))
 ```
+
+These fixtures fully emulate the behaviors of the real services. The
+`memory_port` fixture provides an in-memory store so tests never interact with
+persistent databases or stateful backends.
 
 ## Best Practices
 
