@@ -183,6 +183,22 @@ def test_with_mocked_llm(mock_openai_provider):
     assert "Test completion response" in result
 ```
 
+### Mocked Ports
+
+Use the lightweight port fixtures from `tests/fixtures/ports.py` to avoid real
+service calls:
+
+```python
+from devsynth.domain.models.memory import MemoryType
+
+def test_with_mocked_ports(llm_port, memory_port, onnx_port):
+    assert "mock" in llm_port.generate("hi").lower()
+    item_id = memory_port.store_memory("data", MemoryType.WORKING)
+    assert memory_port.retrieve_memory(item_id)
+    onnx_port.load_model("model.onnx")
+    assert list(onnx_port.run({"x": [1]}))
+```
+
 ## Best Practices
 
 1. **Use `tmp_path` or `tempfile.TemporaryDirectory`** for all file operations

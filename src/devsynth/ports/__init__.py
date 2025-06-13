@@ -11,6 +11,7 @@ from .llm_port import LLMPort
 from .memory_port import MemoryPort
 from .orchestration_port import OrchestrationPort
 from .vector_store_port import VectorStorePort
+from .onnx_port import OnnxPort
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -25,4 +26,5 @@ __all__ = [
     "MemoryPort",
     "OrchestrationPort",
     "VectorStorePort",
+    "OnnxPort",
 ]
