@@ -568,9 +568,11 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
     )
 
     # Debug logging
-    print(f"ensure_path_exists called with path={path}, create={create}")
-    print(
-        f"in_test_env={in_test_env}, DEVSYNTH_PROJECT_DIR={os.environ.get('DEVSYNTH_PROJECT_DIR')}"
+    logger.debug("ensure_path_exists called with path=%s, create=%s", path, create)
+    logger.debug(
+        "in_test_env=%s, DEVSYNTH_PROJECT_DIR=%s",
+        in_test_env,
+        os.environ.get("DEVSYNTH_PROJECT_DIR"),
     )
 
     # If we're in a test environment with DEVSYNTH_PROJECT_DIR set, ensure paths are within the test directory
@@ -578,12 +580,16 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
         test_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
         path_obj = Path(path)
 
-        print(f"test_project_dir={test_project_dir}, path_obj={path_obj}")
-        print(f"path_obj.is_absolute()={path_obj.is_absolute()}")
-        print(
-            f"str(path_obj).startswith(test_project_dir)={str(path_obj).startswith(test_project_dir)}"
+        logger.debug("test_project_dir=%s, path_obj=%s", test_project_dir, path_obj)
+        logger.debug("path_obj.is_absolute()=%s", path_obj.is_absolute())
+        logger.debug(
+            "str(path_obj).startswith(test_project_dir)=%s",
+            str(path_obj).startswith(test_project_dir),
         )
 
+        if not path_obj.is_absolute():
+            path = os.path.join(test_project_dir, str(path_obj))
+            path_obj = Path(path)
         # If the path is absolute and not within the test project directory,
         # redirect it to be within the test project directory
         if path_obj.is_absolute() and not str(path_obj).startswith(test_project_dir):
@@ -591,17 +597,15 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
             if str(path_obj).startswith(str(Path.home())):
                 relative_path = str(path_obj).replace(str(Path.home()), "")
                 new_path = os.path.join(test_project_dir, relative_path.lstrip("/\\"))
-                print(f"Redirecting home path {path} to test path {new_path}")
-                logger.debug(f"Redirecting home path {path} to test path {new_path}")
+                logger.debug("Redirecting home path %s to test path %s", path, new_path)
                 path = new_path
             # For other absolute paths
             else:
                 # Extract the path components after the root
                 relative_path = str(path_obj.relative_to(path_obj.anchor))
                 new_path = os.path.join(test_project_dir, relative_path)
-                print(f"Redirecting absolute path {path} to test path {new_path}")
                 logger.debug(
-                    f"Redirecting absolute path {path} to test path {new_path}"
+                    "Redirecting absolute path %s to test path %s", path, new_path
                 )
                 path = new_path
 

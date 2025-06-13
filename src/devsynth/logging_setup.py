@@ -30,6 +30,9 @@ _configured_log_dir = None
 _configured_log_file = None
 _logging_configured = False
 
+# Module-level logger for internal debug messages
+logger = logging.getLogger(__name__)
+
 # Context variables for request context
 request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
 phase_var: ContextVar[Optional[str]] = ContextVar("phase", default=None)
@@ -192,22 +195,25 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
         test_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
         path_obj = Path(dir_path)
 
-        # If the path is absolute and not within the test project directory,
-        # redirect it to be within the test project directory
-        if path_obj.is_absolute() and not str(path_obj).startswith(test_project_dir):
+        if not path_obj.is_absolute():
+            dir_path = os.path.join(test_project_dir, str(path_obj))
+        elif not str(path_obj).startswith(test_project_dir):
             # For paths starting with home directory
             if str(path_obj).startswith(str(Path.home())):
                 relative_path = str(path_obj).replace(str(Path.home()), "")
                 new_path = os.path.join(test_project_dir, relative_path.lstrip("/\\"))
-                print(f"Redirecting log path {dir_path} to test path {new_path}")
+                logger.debug(
+                    "Redirecting log path %s to test path %s", dir_path, new_path
+                )
                 dir_path = new_path
             # For other absolute paths
             else:
-                # Extract the path components after the root
                 relative_path = str(path_obj.relative_to(path_obj.anchor))
                 new_path = os.path.join(test_project_dir, relative_path)
-                print(
-                    f"Redirecting absolute log path {dir_path} to test path {new_path}"
+                logger.debug(
+                    "Redirecting absolute log path %s to test path %s",
+                    dir_path,
+                    new_path,
                 )
                 dir_path = new_path
 
@@ -217,7 +223,7 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
             os.makedirs(dir_path, exist_ok=True)
         except (PermissionError, OSError) as e:
             # Log the error but don't fail
-            print(f"Warning: Failed to create log directory {dir_path}: {e}")
+            logger.warning("Failed to create log directory %s: %s", dir_path, e)
 
     return dir_path
 
@@ -251,14 +257,44 @@ def configure_logging(
     if no_file_logging:
         create_dir = False
 
-    # Set configured paths
-    if log_dir is not None:
-        _configured_log_dir = log_dir
+    project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
 
-    if log_file is not None:
-        _configured_log_file = log_file
-    else:
-        _configured_log_file = get_log_file()
+    # Set configured log directory
+    _configured_log_dir = log_dir if log_dir is not None else get_log_dir()
+
+    if project_dir:
+        dir_obj = Path(_configured_log_dir)
+        if not dir_obj.is_absolute() or not str(dir_obj).startswith(project_dir):
+            if dir_obj.is_absolute() and not str(dir_obj).startswith(project_dir):
+                if str(dir_obj).startswith(str(Path.home())):
+                    relative = str(dir_obj).replace(str(Path.home()), "").lstrip("/\\")
+                else:
+                    relative = str(dir_obj.relative_to(dir_obj.anchor))
+            else:
+                relative = str(dir_obj)
+            _configured_log_dir = os.path.join(project_dir, relative)
+
+    # Configure log file path
+    _configured_log_file = (
+        log_file
+        if log_file is not None
+        else os.path.join(
+            _configured_log_dir,
+            os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME),
+        )
+    )
+
+    if project_dir:
+        file_obj = Path(_configured_log_file)
+        if not file_obj.is_absolute() or not str(file_obj).startswith(project_dir):
+            if file_obj.is_absolute() and not str(file_obj).startswith(project_dir):
+                if str(file_obj).startswith(str(Path.home())):
+                    relative = str(file_obj).replace(str(Path.home()), "").lstrip("/\\")
+                else:
+                    relative = str(file_obj.relative_to(file_obj.anchor))
+            else:
+                relative = str(file_obj)
+            _configured_log_file = os.path.join(project_dir, relative)
 
     # Create directory if requested and file logging is not disabled
     if create_dir and not no_file_logging:
