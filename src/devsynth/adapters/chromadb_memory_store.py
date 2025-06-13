@@ -1,6 +1,11 @@
-import chromadb
-from chromadb.config import Settings
-from chromadb.utils import embedding_functions
+try:
+    import chromadb
+    from chromadb.config import Settings
+    from chromadb.utils import embedding_functions
+except ImportError as e:  # pragma: no cover - optional dependency
+    raise ImportError(
+        "ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
+    ) from e
 from typing import Any, Dict, List, Optional, Union, ContextManager
 import os
 import logging

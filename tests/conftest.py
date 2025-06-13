@@ -430,6 +430,39 @@ def is_cli_available() -> bool:
     if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "true").lower() == "false":
         return False
 
+
+def is_chromadb_available() -> bool:
+    """Check if the chromadb package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import chromadb  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
+def is_faiss_available() -> bool:
+    """Check if the faiss package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_FAISS_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import faiss  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
+def is_lmdb_available() -> bool:
+    """Check if the lmdb package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import lmdb  # noqa: F401
+        return True
+    except Exception:
+        return False
+
     # Actual availability check
     try:
         import subprocess
@@ -459,6 +492,9 @@ def is_resource_available(resource: str) -> bool:
         "lmstudio": is_lmstudio_available,
         "codebase": is_codebase_available,
         "cli": is_cli_available,
+        "chromadb": is_chromadb_available,
+        "faiss": is_faiss_available,
+        "lmdb": is_lmdb_available,
     }
 
     # Get the checker function for the resource

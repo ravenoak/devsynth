@@ -1,6 +1,7 @@
 """
 Unit tests for the ChromaDBStore class.
 """
+import pytest
 import os
 import json
 import shutil
@@ -12,6 +13,8 @@ from unittest.mock import patch, MagicMock
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.application.memory.chromadb_store import ChromaDBStore
+
+pytestmark = pytest.mark.requires_resource("chromadb")
 
 
 class TestChromaDBStore(unittest.TestCase):

@@ -15,9 +15,15 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.adapters.provider_system import ProviderError
 
 # Import ChromaDB dependencies
-import chromadb
-from chromadb.api import ClientAPI
-from chromadb.api.models.Collection import Collection
+try:
+    import chromadb
+    from chromadb.api import ClientAPI
+    from chromadb.api.models.Collection import Collection
+except ImportError:  # pragma: no cover - optional dependency
+    chromadb = None
+    ClientAPI = Collection = object
+
+pytestmark = pytest.mark.requires_resource("chromadb")
 
 # Create a mock ChromaDB client and collection for testing
 @pytest.fixture

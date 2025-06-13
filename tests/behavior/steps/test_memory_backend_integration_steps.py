@@ -18,6 +18,12 @@ from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+
+pytestmark = [
+    pytest.mark.requires_resource("chromadb"),
+    pytest.mark.requires_resource("lmdb"),
+    pytest.mark.requires_resource("faiss"),
+]
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 

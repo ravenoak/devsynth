@@ -5,6 +5,8 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
+pytestmark = pytest.mark.requires_resource("chromadb")
+
 # Import step definitions
 from .steps.cli_commands_steps import *
 from .steps.chromadb_steps import *

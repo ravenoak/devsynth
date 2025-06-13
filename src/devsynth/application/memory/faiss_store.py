@@ -9,7 +9,12 @@ import json
 import uuid
 import tiktoken
 import numpy as np
-import faiss
+try:
+    import faiss
+except ImportError as e:  # pragma: no cover - optional dependency
+    raise ImportError(
+        "FAISSStore requires the 'faiss' package. Install it with 'pip install faiss-cpu' or use the dev extras."
+    ) from e
 from typing import Dict, List, Any, Optional, Union, Tuple
 from datetime import datetime
 from pathlib import Path

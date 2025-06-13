@@ -10,8 +10,14 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.memory.json_file_store import JSONFileStore
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.application.memory.duckdb_store import DuckDBStore
-from devsynth.application.memory.lmdb_store import LMDBStore
-from devsynth.application.memory.faiss_store import FAISSStore
+try:
+    from devsynth.application.memory.lmdb_store import LMDBStore
+except ImportError:  # pragma: no cover - optional dependency
+    LMDBStore = None
+try:
+    from devsynth.application.memory.faiss_store import FAISSStore
+except ImportError:  # pragma: no cover - optional dependency
+    FAISSStore = None
 from devsynth.application.memory.rdflib_store import RDFLibStore
 from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
 from devsynth.application.memory.persistent_context_manager import PersistentContextManager
@@ -95,6 +101,7 @@ class TestMemorySystemAdapter:
             assert adapter.vector_store is not None
             assert adapter.vector_store is adapter.memory_store  # DuckDB implements both interfaces
 
+    @pytest.mark.requires_resource("lmdb")
     def test_init_with_lmdb_storage(self, temp_dir):
         """Test initialization with LMDB storage."""
         config = {
@@ -112,6 +119,7 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is None
 
+    @pytest.mark.requires_resource("faiss")
     def test_init_with_faiss_storage(self, temp_dir):
         """Test initialization with FAISS storage."""
         config = {
@@ -130,6 +138,7 @@ class TestMemorySystemAdapter:
         assert adapter.vector_store is not None
         assert isinstance(adapter.vector_store, FAISSStore)
 
+    @pytest.mark.requires_resource("faiss")
     def test_faiss_vector_store_operations(self, temp_dir):
         """Test vector store operations with FAISS."""
         config = {
@@ -170,6 +179,7 @@ class TestMemorySystemAdapter:
         assert vector_store.delete_vector(vector_id) is True
         assert vector_store.retrieve_vector(vector_id) is None
 
+    @pytest.mark.requires_resource("faiss")
     def test_memory_and_vector_store_integration(self, temp_dir):
         """Test integration between memory store and vector store."""
         config = {

@@ -1,15 +1,20 @@
 import os
 import json
 import uuid
-import pytest
 import numpy as np
-import faiss
+try:
+    import faiss
+except ImportError:  # pragma: no cover - optional dependency
+    faiss = None
+import pytest
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.application.memory.faiss_store import FAISSStore
 from devsynth.exceptions import MemoryStoreError
+
+pytestmark = pytest.mark.requires_resource("faiss")
 
 class TestFAISSStore:
     """Tests for the FAISSStore class."""
