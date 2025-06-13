@@ -24,7 +24,14 @@ class TestAgentCoordinatorImpl:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.coordinator = AgentCoordinatorImpl()
+        self.coordinator = AgentCoordinatorImpl(
+            {
+                "features": {
+                    "wsde_collaboration": True,
+                    "collaboration_notifications": True,
+                }
+            }
+        )
 
         # Create mock agents
         self.agent1 = MagicMock(spec=Agent)

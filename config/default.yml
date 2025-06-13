@@ -115,10 +115,10 @@ formalVerification:
 
 # Feature flags
 features:
-  wsde_collaboration: false
+  wsde_collaboration: true
   dialectical_reasoning: false
   code_generation: false
   test_generation: false
   documentation_generation: false
   automatic_phase_transitions: true
-  collaboration_notifications: false
+  collaboration_notifications: true
