@@ -2,6 +2,7 @@ import os
 import json
 import tempfile
 from devsynth.application.memory.json_file_store import JSONFileStore
+from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.security.encryption import generate_key
 
@@ -16,5 +17,20 @@ def test_json_file_store_encryption(tmp_path):
     with open(file_path, "rb") as f:
         raw = f.read()
     assert b"secret" not in raw
+    retrieved = store.retrieve(item_id)
+    assert retrieved.content == "secret"
+
+
+def test_lmdb_store_encryption(tmp_path):
+    key = generate_key()
+    store = LMDBStore(str(tmp_path), encryption_enabled=True, encryption_key=key)
+    item = MemoryItem(id="", content="secret", memory_type=MemoryType.SHORT_TERM)
+    item_id = store.store(item)
+    store.close()
+    data_file = os.path.join(str(tmp_path), "memory.lmdb", "data.mdb")
+    with open(data_file, "rb") as f:
+        raw = f.read()
+    assert b"secret" not in raw
+    store = LMDBStore(str(tmp_path), encryption_enabled=True, encryption_key=key)
     retrieved = store.retrieve(item_id)
     assert retrieved.content == "secret"
