@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
 from datetime import datetime
 from uuid import uuid4
 import re
@@ -62,6 +62,7 @@ class WSDETeam:
     message_protocol: Any = None  # MessageProtocol instance
     peer_reviews: List[Any] = None
     role_assignments: Dict[str, Any] = None  # Mapping of roles to assigned agents
+    dialectical_hooks: List[Callable[[Dict[str, Any], List[Dict[str, Any]]], None]] = None
 
     def __post_init__(self):
         if self.agents is None:
@@ -89,6 +90,8 @@ class WSDETeam:
                 "designer": None,
                 "evaluator": None,
             }
+        if self.dialectical_hooks is None:
+            self.dialectical_hooks = []
 
     def add_agent(self, agent: Any) -> None:
         """Add an agent to the team."""
@@ -101,6 +104,13 @@ class WSDETeam:
         """Add multiple agents to the team."""
         for agent in agents:
             self.add_agent(agent)
+
+    def register_dialectical_hook(
+        self, hook: Callable[[Dict[str, Any], List[Dict[str, Any]]], None]
+    ) -> None:
+        """Register a callback to run when a new solution is added."""
+
+        self.dialectical_hooks.append(hook)
 
     # ------------------------------------------------------------------
     # Communication utilities
@@ -471,6 +481,13 @@ class WSDETeam:
 
         # Add the solution
         self.solutions[task_id].append(solution)
+
+        # Trigger dialectical reasoning hooks if any are registered
+        for hook in self.dialectical_hooks:
+            try:
+                hook(task, self.solutions[task_id])
+            except Exception as e:
+                logger.warning(f"Dialectical hook failed: {e}")
 
     def generate_diverse_ideas(
         self,

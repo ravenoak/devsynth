@@ -46,9 +46,9 @@ Each feature is scored on two dimensions:
 | **Core Framework** |
 | EDRR Framework | Partially Implemented (90%) | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
 | WSDE Agent Collaboration | Partially Implemented (90%) | 4 | 5 | Memory System | | Multi-agent voting, consensus, and recursive micro-cycles integrated |
-| Dialectical Reasoning | Partially Implemented (40%) | 4 | 3 | WSDE Model | | Framework defined, implementation in progress |
+| Dialectical Reasoning | Partially Implemented (70%) | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Fully Implemented (100%) | 4 | 2 | WSDE Model | | Enables structured agent communication |
-| Peer Review Mechanism | Partially Implemented (80%) | 4 | 3 | WSDE Model | | Basic review cycle implemented, advanced workflows pending |
+| Peer Review Mechanism | Partially Implemented (50%) | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
 | Memory System | Fully Implemented (100%) | 5 | 4 | None | | Complete with ChromaDB integration |
 | LLM Provider System | Fully Implemented (100%) | 5 | 3 | None | | Multiple backend support implemented |
 | **User-Facing Features** |
