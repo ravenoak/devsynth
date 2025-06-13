@@ -399,6 +399,13 @@ dependencies = await kg_memory.search_with_sparql(f"""
 """)
 ```
 
+## Current Limitations
+
+The memory system works with ChromaDB, TinyDB, and JSON backends, but advanced
+capabilities like distributed storage and streaming updates remain under
+development. RDFLib support lacks query optimization and integration with
+production-grade databases.
+
 ## Future Enhancements
 
 - **Hybrid Search**: Combining vector and keyword search for improved precision

@@ -128,3 +128,10 @@ The context pruning strategy keeps the system message (if present) and removes o
 ### Error Handling
 
 The LM Studio provider includes error handling for API calls, with clear error messages when the API returns an error. The token tracker also includes error handling for token limit enforcement.
+
+## Current Limitations
+
+Only the LM Studio provider is production ready. The OpenAI and Anthropic
+providers are stubs and may not support all features. Integration with other
+providers and streaming responses remains experimental. Token counting may miss
+edge cases with uncommon tokenizers.
