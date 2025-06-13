@@ -11,12 +11,24 @@ This policy defines best practices for deployment, CI/CD, and operational safety
 - Require post-deployment verification (smoke tests, monitoring checks).
 - Limit production deployment permissions to authorized roles/agents.
 - Maintain observability: log standards, monitoring, and alerting must be documented and followed.
+- Provide Docker Compose files for local and production deployments in the
+  `deployment/` directory. The monitoring compose file enables Prometheus metrics
+  scraping and Grafana dashboards.
 
 ## Artifacts
 - Deployment Scripts: `deployment/`
 - Deployment Docs: `deployment/README.md`
 - CI/CD Config: `.github/workflows/` or `ci/`
 - Monitoring/Logging: `deployment/monitoring.md` (if present)
+
+## Compose Usage
+
+Example command to start the core services with monitoring:
+
+```bash
+docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.monitoring.yml up -d
+```
+
 
 ## References
 - See [Testing Policy](testing.md) for release testing.
