@@ -1,8 +1,10 @@
 """
 Step definitions for CLI Command Execution feature.
 """
+
 import os
 import sys
+import logging
 import pytest
 from pytest_bdd import given, when, then, parsers
 from unittest.mock import patch, MagicMock
@@ -60,8 +62,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     # Create a StringIO object to capture stdout
     captured_output = StringIO()
 
+    # Configure logging to use the captured output
+    logging.basicConfig(stream=captured_output, level=logging.INFO)
+
     # Directly call the appropriate command function based on the first argument
-    with patch('sys.stdout', new=captured_output):
+    with patch("sys.stdout", new=captured_output):
         try:
             if not args:
                 # No arguments, show help
@@ -110,7 +115,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command("init", init_args)
 
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("init", init_args)
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "init", init_args
+                )
             elif args[0] == "analyze":
                 # Parse the arguments
                 input_file = None
@@ -130,6 +137,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
                 # Call the analyze command
                 from devsynth.application.cli.cli_commands import analyze_cmd
+
                 analyze_cmd(input_file, interactive)
 
                 # For testing purposes, we need to manually set the call args on the mock
@@ -146,7 +154,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command("analyze", analyze_args)
 
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("analyze", analyze_args)
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "analyze", analyze_args
+                )
             elif args[0] == "spec":
                 # Parse the requirements file argument
                 req_file = "requirements.md"  # Default file
@@ -154,7 +164,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     req_file = args[2]
                 spec_cmd(req_file)
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("spec", {"requirements_file": req_file})
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "spec", {"requirements_file": req_file}
+                )
             elif args[0] == "test":
                 # Parse the spec file argument
                 spec_file = "specs.md"  # Default file
@@ -162,7 +174,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     spec_file = args[2]
                 test_cmd(spec_file)
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("test", {"spec_file": spec_file})
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "test", {"spec_file": spec_file}
+                )
             elif args[0] == "code":
                 # No arguments for code command
                 code_cmd()
@@ -175,7 +189,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     target = args[2]
                 run_cmd(target)
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("run", {"target": target})
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "run", {"target": target}
+                )
             elif args[0] == "config":
                 # Parse the key and value arguments
                 key = None
@@ -187,7 +203,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                         value = args[i + 1]
                 config_cmd(key, value)
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("config", {"key": key, "value": value})
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "config", {"key": key, "value": value}
+                )
             elif args[0] == "analyze-code":
                 # Parse the path argument
                 path = None
@@ -207,14 +225,20 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command("analyze-code", analyze_code_args)
 
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("analyze-code", analyze_code_args)
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "analyze-code", analyze_code_args
+                )
             elif args[0] == "edrr-cycle":
                 manifest = args[1] if len(args) > 1 else None
                 edrr_cycle_cmd(manifest)
 
                 mock_workflow_manager.execute_command.reset_mock()
-                mock_workflow_manager.execute_command("edrr-cycle", {"manifest": manifest})
-                mock_workflow_manager.execute_command.assert_called_with("edrr-cycle", {"manifest": manifest})
+                mock_workflow_manager.execute_command(
+                    "edrr-cycle", {"manifest": manifest}
+                )
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "edrr-cycle", {"manifest": manifest}
+                )
             elif args[0] == "analyze-manifest":
                 # Parse the arguments
                 path = None
@@ -246,10 +270,14 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 analyze_manifest_args = {"path": path, "update": update, "prune": prune}
 
                 # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("analyze-manifest", analyze_manifest_args)
+                mock_workflow_manager.execute_command(
+                    "analyze-manifest", analyze_manifest_args
+                )
 
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("analyze-manifest", analyze_manifest_args)
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "analyze-manifest", analyze_manifest_args
+                )
             else:
                 # Invalid command, show help
                 show_help()
@@ -260,6 +288,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
     # Get the captured output
     output = captured_output.getvalue()
+
+    # Clear handlers to avoid interference across steps
+    logging.getLogger().handlers.clear()
 
     # Store the output in the context
     command_context["output"] = output
@@ -312,7 +343,9 @@ def check_requirements_file_processed(mock_workflow_manager):
     """
     Verify that the system processed the custom requirements file.
     """
-    mock_workflow_manager.execute_command.assert_any_call("spec", {"requirements_file": "custom-requirements.md"})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "spec", {"requirements_file": "custom-requirements.md"}
+    )
 
 
 # This step definition matches exactly the text in the feature file
@@ -321,10 +354,12 @@ def check_specs_file_processed(mock_workflow_manager):
     """
     Verify that the system processed the custom specs file.
     """
-    mock_workflow_manager.execute_command.assert_any_call("test", {"spec_file": "custom-specs.md"})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "test", {"spec_file": "custom-specs.md"}
+    )
 
 
-@then(parsers.parse('generate specifications based on the requirements'))
+@then(parsers.parse("generate specifications based on the requirements"))
 def check_generate_specs(mock_workflow_manager):
     """
     Verify that specifications were generated based on requirements.
@@ -333,7 +368,7 @@ def check_generate_specs(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
-@then(parsers.parse('generate tests based on the specifications'))
+@then(parsers.parse("generate tests based on the specifications"))
 def check_generate_tests(mock_workflow_manager):
     """
     Verify that tests were generated based on specifications.
@@ -342,7 +377,9 @@ def check_generate_tests(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
-@then(parsers.parse('the system should generate {output_type} based on the {input_type}'))
+@then(
+    parsers.parse("the system should generate {output_type} based on the {input_type}")
+)
 def check_generation(output_type, input_type, mock_workflow_manager, command_context):
     """
     Verify that the system generated the expected output based on the input.
@@ -360,7 +397,7 @@ def check_target_executed(target, mock_workflow_manager):
     mock_workflow_manager.execute_command.assert_any_call("run", {"target": target})
 
 
-@then(parsers.parse('the system should update the configuration'))
+@then(parsers.parse("the system should update the configuration"))
 def check_config_updated(mock_workflow_manager):
     """
     Verify that the system updated the configuration.
@@ -374,7 +411,9 @@ def check_config_key_value(key, value, mock_workflow_manager):
     """
     Verify that the system set the specified key to the specified value.
     """
-    mock_workflow_manager.execute_command.assert_any_call("config", {"key": key, "value": value})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "config", {"key": key, "value": value}
+    )
 
 
 @then(parsers.parse('the system should display the value for "{key}"'))
@@ -382,7 +421,9 @@ def check_config_value_displayed(key, mock_workflow_manager):
     """
     Verify that the system displayed the value for the specified key.
     """
-    mock_workflow_manager.execute_command.assert_any_call("config", {"key": key, "value": None})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "config", {"key": key, "value": None}
+    )
 
 
 @then("the system should display all configuration settings")
@@ -390,7 +431,9 @@ def check_all_config_displayed(mock_workflow_manager):
     """
     Verify that the system displayed all configuration settings.
     """
-    mock_workflow_manager.execute_command.assert_any_call("config", {"key": None, "value": None})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "config", {"key": None, "value": None}
+    )
 
 
 @then("the workflow should execute successfully")
@@ -409,13 +452,13 @@ def check_success_message(command_context):
     """
     output = command_context.get("output", "")
     success_indicators = [
-        "successfully", 
-        "success", 
-        "initialized", 
-        "generated", 
-        "executed", 
-        "updated", 
-        "complete"
+        "successfully",
+        "success",
+        "initialized",
+        "generated",
+        "executed",
+        "updated",
+        "complete",
     ]
 
     # Check if any of the success indicators are in the output

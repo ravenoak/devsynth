@@ -8,7 +8,10 @@ import datetime
 import time
 from typing import Any, Dict, List, Optional
 
+from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
+
+logger = DevSynthLogger(__name__)
 
 
 class SprintAdapter(BaseMethodologyAdapter):
@@ -37,10 +40,18 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         # Phase time allocations (percentage of sprint)
         self.phase_allocations = {
-            Phase.EXPAND: self.sprint_settings.get("phaseAllocations", {}).get("expand", 30),
-            Phase.DIFFERENTIATE: self.sprint_settings.get("phaseAllocations", {}).get("differentiate", 30),
-            Phase.REFINE: self.sprint_settings.get("phaseAllocations", {}).get("refine", 25),
-            Phase.RETROSPECT: self.sprint_settings.get("phaseAllocations", {}).get("retrospect", 15)
+            Phase.EXPAND: self.sprint_settings.get("phaseAllocations", {}).get(
+                "expand", 30
+            ),
+            Phase.DIFFERENTIATE: self.sprint_settings.get("phaseAllocations", {}).get(
+                "differentiate", 30
+            ),
+            Phase.REFINE: self.sprint_settings.get("phaseAllocations", {}).get(
+                "refine", 25
+            ),
+            Phase.RETROSPECT: self.sprint_settings.get("phaseAllocations", {}).get(
+                "retrospect", 15
+            ),
         }
 
         # Initialize metrics
@@ -48,7 +59,7 @@ class SprintAdapter(BaseMethodologyAdapter):
             "planned_scope": [],
             "actual_scope": [],
             "quality_metrics": {},
-            "velocity": []
+            "velocity": [],
         }
 
     def should_start_cycle(self) -> bool:
@@ -69,9 +80,9 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return False
 
-    def should_progress_to_next_phase(self, current_phase: Phase,
-                                      context: Dict[str, Any],
-                                      results: Dict[str, Any]) -> bool:
+    def should_progress_to_next_phase(
+        self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> bool:
         """Determine if the process should progress to the next phase.
 
         In sprint methodology, phases progress based on time allocation and completion
@@ -90,14 +101,18 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         # Calculate the allocated end time for this phase
         phase_allocation_pct = self.phase_allocations[current_phase] / 100
-        sprint_duration_seconds = self.sprint_duration * 7 * 24 * 60 * 60  # Convert weeks to seconds
+        sprint_duration_seconds = (
+            self.sprint_duration * 7 * 24 * 60 * 60
+        )  # Convert weeks to seconds
         phase_duration_seconds = sprint_duration_seconds * phase_allocation_pct
 
         phase_start_time = context.get("phase_start_time")
         if not phase_start_time:
             return False
 
-        expected_phase_end_time = phase_start_time + datetime.timedelta(seconds=phase_duration_seconds)
+        expected_phase_end_time = phase_start_time + datetime.timedelta(
+            seconds=phase_duration_seconds
+        )
 
         # Check if we've exceeded the time allocation
         now = datetime.datetime.now()
@@ -106,13 +121,17 @@ class SprintAdapter(BaseMethodologyAdapter):
             required_activities = self._get_required_activities(current_phase)
             completed_activities = results.get("completed_activities", [])
 
-            missing_activities = [a for a in required_activities if a not in completed_activities]
+            missing_activities = [
+                a for a in required_activities if a not in completed_activities
+            ]
 
             # If we're past the time but haven't completed required activities,
             # check if we're significantly over time
             if missing_activities:
                 time_overrun = now - expected_phase_end_time
-                max_overrun = datetime.timedelta(hours=24)  # Allow up to 24 hours overrun
+                max_overrun = datetime.timedelta(
+                    hours=24
+                )  # Allow up to 24 hours overrun
 
                 # If we're significantly over time, force progression
                 if time_overrun > max_overrun:
@@ -140,7 +159,9 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         # Set sprint timeframe
         self.sprint_start_time = datetime.datetime.now()
-        self.sprint_end_time = self.sprint_start_time + datetime.timedelta(weeks=self.sprint_duration)
+        self.sprint_end_time = self.sprint_start_time + datetime.timedelta(
+            weeks=self.sprint_duration
+        )
 
         # Prepare sprint context
         sprint_context = {
@@ -148,7 +169,9 @@ class SprintAdapter(BaseMethodologyAdapter):
             "sprint_start_time": self.sprint_start_time,
             "sprint_end_time": self.sprint_end_time,
             "sprint_duration_weeks": self.sprint_duration,
-            "phase_allocations": {phase.value: alloc for phase, alloc in self.phase_allocations.items()}
+            "phase_allocations": {
+                phase.value: alloc for phase, alloc in self.phase_allocations.items()
+            },
         }
 
         # Add sprint planning details if available
@@ -165,11 +188,13 @@ class SprintAdapter(BaseMethodologyAdapter):
         """
         # Capture velocity metrics
         completed_items = len(results.get("expand", {}).get("processed_artifacts", []))
-        self.metrics["velocity"].append({
-            "sprint": self.current_sprint_number,
-            "completed_items": completed_items,
-            "duration_days": self.sprint_duration * 7
-        })
+        self.metrics["velocity"].append(
+            {
+                "sprint": self.current_sprint_number,
+                "completed_items": completed_items,
+                "duration_days": self.sprint_duration * 7,
+            }
+        )
 
         # Generate retrospective report
         self._generate_retrospective_report(results)
@@ -196,7 +221,9 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return context
 
-    def after_retrospect(self, context: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_retrospect(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Sprint-specific activities after the Retrospect phase, including sprint planning.
 
         Args:
@@ -208,9 +235,15 @@ class SprintAdapter(BaseMethodologyAdapter):
         """
         # Capture sprint planning for the next sprint
         self.sprint_plan = {
-            "planned_scope": results.get("next_cycle_recommendations", {}).get("scope", []),
-            "objectives": results.get("next_cycle_recommendations", {}).get("objectives", []),
-            "success_criteria": results.get("next_cycle_recommendations", {}).get("success_criteria", [])
+            "planned_scope": results.get("next_cycle_recommendations", {}).get(
+                "scope", []
+            ),
+            "objectives": results.get("next_cycle_recommendations", {}).get(
+                "objectives", []
+            ),
+            "success_criteria": results.get("next_cycle_recommendations", {}).get(
+                "success_criteria", []
+            ),
         }
 
         return results
@@ -237,12 +270,22 @@ class SprintAdapter(BaseMethodologyAdapter):
                 "end_date": self.sprint_end_time.strftime("%Y-%m-%d"),
                 "completed_scope": cycle_results.get("actual_scope", []),
                 "key_metrics": {
-                    "artifacts_processed": len(cycle_results.get("expand", {}).get("processed_artifacts", [])),
-                    "inconsistencies_detected": len(cycle_results.get("differentiate", {}).get("inconsistencies", [])),
-                    "relationship_count": len(cycle_results.get("refine", {}).get("relationships", [])),
-                    "insights_generated": len(cycle_results.get("retrospect", {}).get("insights", []))
-                }
-            }
+                    "artifacts_processed": len(
+                        cycle_results.get("expand", {}).get("processed_artifacts", [])
+                    ),
+                    "inconsistencies_detected": len(
+                        cycle_results.get("differentiate", {}).get(
+                            "inconsistencies", []
+                        )
+                    ),
+                    "relationship_count": len(
+                        cycle_results.get("refine", {}).get("relationships", [])
+                    ),
+                    "insights_generated": len(
+                        cycle_results.get("retrospect", {}).get("insights", [])
+                    ),
+                },
+            },
         }
         reports.append(review_report)
 
@@ -252,10 +295,16 @@ class SprintAdapter(BaseMethodologyAdapter):
             "type": "sprint_retrospective",
             "content": {
                 "sprint_number": self.current_sprint_number,
-                "what_went_well": cycle_results.get("retrospect", {}).get("positives", []),
-                "what_could_improve": cycle_results.get("retrospect", {}).get("improvements", []),
-                "action_items": cycle_results.get("retrospect", {}).get("action_items", [])
-            }
+                "what_went_well": cycle_results.get("retrospect", {}).get(
+                    "positives", []
+                ),
+                "what_could_improve": cycle_results.get("retrospect", {}).get(
+                    "improvements", []
+                ),
+                "action_items": cycle_results.get("retrospect", {}).get(
+                    "action_items", []
+                ),
+            },
         }
         reports.append(retro_report)
 
@@ -281,7 +330,7 @@ class SprintAdapter(BaseMethodologyAdapter):
                             "description": "Sprint duration in weeks",
                             "default": 2,
                             "minimum": 0.5,
-                            "maximum": 4
+                            "maximum": 4,
                         },
                         "phaseAllocations": {
                             "type": "object",
@@ -290,9 +339,10 @@ class SprintAdapter(BaseMethodologyAdapter):
                                     "type": "number",
                                     "description": f"Percentage of sprint allocated to {phase.value} phase",
                                     "minimum": 5,
-                                    "maximum": 70
-                                } for phase in Phase
-                            }
+                                    "maximum": 70,
+                                }
+                                for phase in Phase
+                            },
                         },
                         "ceremonyMapping": {
                             "type": "object",
@@ -300,12 +350,12 @@ class SprintAdapter(BaseMethodologyAdapter):
                                 "planning": {"type": "string"},
                                 "dailyStandup": {"type": "string"},
                                 "review": {"type": "string"},
-                                "retrospective": {"type": "string"}
-                            }
-                        }
-                    }
+                                "retrospective": {"type": "string"},
+                            },
+                        },
+                    },
                 }
-            }
+            },
         }
 
         # Merge the schemas
@@ -324,10 +374,21 @@ class SprintAdapter(BaseMethodologyAdapter):
         """
         # This would typically come from configuration, but we'll hardcode for example
         required_activities = {
-            Phase.EXPAND: ["discovery_complete", "classification_complete", "extraction_complete"],
+            Phase.EXPAND: [
+                "discovery_complete",
+                "classification_complete",
+                "extraction_complete",
+            ],
             Phase.DIFFERENTIATE: ["validation_complete", "gap_analysis_complete"],
-            Phase.REFINE: ["context_merging_complete", "relationship_modeling_complete"],
-            Phase.RETROSPECT: ["evaluation_complete", "insight_capture_complete", "planning_complete"]
+            Phase.REFINE: [
+                "context_merging_complete",
+                "relationship_modeling_complete",
+            ],
+            Phase.RETROSPECT: [
+                "evaluation_complete",
+                "insight_capture_complete",
+                "planning_complete",
+            ],
         }
 
         return required_activities.get(phase, [])
@@ -339,9 +400,12 @@ class SprintAdapter(BaseMethodologyAdapter):
             phase: The phase that timed out.
             missing_activities: Activities that were not completed.
         """
-        # In a real implementation, this would log to a proper logging system
-        print(f"WARNING: Phase {phase.value} timed out with {len(missing_activities)} activities incomplete")
-        print(f"Missing activities: {', '.join(missing_activities)}")
+        logger.warning(
+            "Phase %s timed out with %d activities incomplete",
+            phase.value,
+            len(missing_activities),
+        )
+        logger.warning("Missing activities: %s", ", ".join(missing_activities))
 
     def _generate_retrospective_report(self, results: Dict[str, Any]) -> None:
         """Generate a retrospective report from sprint results.
@@ -349,10 +413,21 @@ class SprintAdapter(BaseMethodologyAdapter):
         Args:
             results: Aggregated results from all phases.
         """
-        # This would typically generate a formal report, but for example we'll just print
-        print(f"Sprint {self.current_sprint_number} Retrospective")
-        print(f"Duration: {self.sprint_duration} weeks")
-        print(f"Items completed: {len(results.get('expand', {}).get('processed_artifacts', []))}")
-        print(f"Inconsistencies identified: {len(results.get('differentiate', {}).get('inconsistencies', []))}")
-        print(f"Relationships modeled: {len(results.get('refine', {}).get('relationships', []))}")
-        print(f"Insights generated: {len(results.get('retrospect', {}).get('insights', []))}")
+        logger.info("Sprint %d Retrospective", self.current_sprint_number)
+        logger.info("Duration: %d weeks", self.sprint_duration)
+        logger.info(
+            "Items completed: %d",
+            len(results.get("expand", {}).get("processed_artifacts", [])),
+        )
+        logger.info(
+            "Inconsistencies identified: %d",
+            len(results.get("differentiate", {}).get("inconsistencies", [])),
+        )
+        logger.info(
+            "Relationships modeled: %d",
+            len(results.get("refine", {}).get("relationships", [])),
+        )
+        logger.info(
+            "Insights generated: %d",
+            len(results.get("retrospect", {}).get("insights", [])),
+        )
