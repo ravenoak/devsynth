@@ -16,8 +16,13 @@ from devsynth.exceptions import DevSynthError
 logger = DevSynthLogger(__name__)
 
 
-def edrr_cycle_cmd(manifest: str) -> None:
-    """Run an EDRR cycle from a manifest file."""
+def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
+    """Run an EDRR cycle from a manifest file.
+
+    Args:
+        manifest: Path to the manifest file.
+        auto: Whether to automatically progress through phases.
+    """
     console = Console()
     try:
         manifest_path = Path(manifest)
@@ -41,6 +46,7 @@ def edrr_cycle_cmd(manifest: str) -> None:
             ast_transformer=ast_transformer,
             prompt_manager=prompt_manager,
             documentation_manager=documentation_manager,
+            config={"edrr": {"phase_transition": {"auto": auto}}},
         )
 
         coordinator.start_cycle_from_manifest(manifest_path, is_file=True)

@@ -380,6 +380,8 @@ class EDRRCoordinator:
 
             # Save results
             self.results[phase.name] = results
+            # Refresh aggregated results
+            self._aggregate_results()
 
             # Complete tracking the phase if using a manifest
             if self.manifest is not None and self.manifest_parser:
@@ -452,8 +454,10 @@ class EDRRCoordinator:
 
     def _maybe_auto_progress(self) -> None:
         """Trigger automatic phase transition when conditions are met."""
-        next_phase = self._decide_next_phase()
-        if next_phase:
+        while True:
+            next_phase = self._decide_next_phase()
+            if not next_phase:
+                break
             self.progress_to_phase(next_phase)
 
     def create_micro_cycle(
@@ -534,9 +538,11 @@ class EDRRCoordinator:
 
         # Add a placeholder for the micro cycle results
         self.results[parent_phase]["micro_cycle_results"][micro_cycle.cycle_id] = {
+            **micro_cycle.results,
             "task": task,
-            "status": "created",
         }
+
+        self._aggregate_results()
 
         logger.info(
             f"Created micro-EDRR cycle with ID {micro_cycle.cycle_id} at recursion depth {micro_cycle.recursion_depth}"
@@ -1364,3 +1370,22 @@ class EDRRCoordinator:
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Return simple performance metrics for each phase."""
         return copy.deepcopy(self.performance_metrics)
+
+    def _aggregate_results(self) -> None:
+        """Aggregate results from all phases and child cycles."""
+        aggregated = {}
+        for phase in [
+            Phase.EXPAND,
+            Phase.DIFFERENTIATE,
+            Phase.REFINE,
+            Phase.RETROSPECT,
+        ]:
+            if phase.name in self.results:
+                aggregated[phase.value] = self.results[phase.name]
+
+        if self.child_cycles:
+            aggregated["child_cycles"] = {
+                c.cycle_id: c.results for c in self.child_cycles
+            }
+
+        self.results["AGGREGATED"] = aggregated
