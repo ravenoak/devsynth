@@ -112,7 +112,9 @@ class RequestContextFilter(logging.Filter):
         return True
 
 
-def set_request_context(request_id: Optional[str] = None, phase: Optional[str] = None) -> None:
+def set_request_context(
+    request_id: Optional[str] = None, phase: Optional[str] = None
+) -> None:
     """Set request context variables for logging."""
     if request_id is not None:
         request_id_var.set(request_id)
@@ -148,7 +150,9 @@ def get_log_file() -> str:
     if _configured_log_file is not None:
         return _configured_log_file
     log_dir = get_log_dir()
-    return os.path.join(log_dir, os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME))
+    return os.path.join(
+        log_dir, os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME)
+    )
 
 
 def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
@@ -202,7 +206,9 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
                 # Extract the path components after the root
                 relative_path = str(path_obj.relative_to(path_obj.anchor))
                 new_path = os.path.join(test_project_dir, relative_path)
-                print(f"Redirecting absolute log path {dir_path} to test path {new_path}")
+                print(
+                    f"Redirecting absolute log path {dir_path} to test path {new_path}"
+                )
                 dir_path = new_path
 
     # Only create directories if not in a test environment with file operations disabled
@@ -297,7 +303,9 @@ def configure_logging(
     if create_dir and not no_file_logging:
         root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
     else:
-        root_logger.info("Logging configured for console output only (no file logging).")
+        root_logger.info(
+            "Logging configured for console output only (no file logging)."
+        )
 
 
 class DevSynthLogger:
@@ -321,29 +329,29 @@ class DevSynthLogger:
         # Don't create log directory here - defer until explicitly configured
         # This is important for test isolation
 
-    def debug(self, msg: str, **kwargs) -> None:
+    def debug(self, msg: str, *args, **kwargs) -> None:
         """Log a debug message."""
-        self.logger.debug(msg, extra=kwargs if kwargs else None)
+        self.logger.debug(msg, *args, extra=kwargs if kwargs else None)
 
-    def info(self, msg: str, **kwargs) -> None:
+    def info(self, msg: str, *args, **kwargs) -> None:
         """Log an info message."""
-        self.logger.info(msg, extra=kwargs if kwargs else None)
+        self.logger.info(msg, *args, extra=kwargs if kwargs else None)
 
-    def warning(self, msg: str, **kwargs) -> None:
+    def warning(self, msg: str, *args, **kwargs) -> None:
         """Log a warning message."""
-        self.logger.warning(msg, extra=kwargs if kwargs else None)
+        self.logger.warning(msg, *args, extra=kwargs if kwargs else None)
 
-    def error(self, msg: str, **kwargs) -> None:
+    def error(self, msg: str, *args, **kwargs) -> None:
         """Log an error message."""
-        self.logger.error(msg, extra=kwargs if kwargs else None)
+        self.logger.error(msg, *args, extra=kwargs if kwargs else None)
 
-    def critical(self, msg: str, **kwargs) -> None:
+    def critical(self, msg: str, *args, **kwargs) -> None:
         """Log a critical message."""
-        self.logger.critical(msg, extra=kwargs if kwargs else None)
+        self.logger.critical(msg, *args, extra=kwargs if kwargs else None)
 
-    def exception(self, msg: str, **kwargs) -> None:
+    def exception(self, msg: str, *args, **kwargs) -> None:
         """Log an exception message with traceback."""
-        self.logger.exception(msg, extra=kwargs if kwargs else None)
+        self.logger.exception(msg, *args, extra=kwargs if kwargs else None)
 
 
 # Don't configure logging on import - this is now explicit
