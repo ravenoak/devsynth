@@ -7,8 +7,13 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.application.memory.lmdb_store import LMDBStore
+try:
+    from devsynth.application.memory.lmdb_store import LMDBStore
+except ImportError:  # pragma: no cover - optional dependency
+    LMDBStore = None
 from devsynth.exceptions import MemoryStoreError
+
+pytestmark = pytest.mark.requires_resource("lmdb")
 
 class TestLMDBStore:
     """Tests for the LMDBStore class."""

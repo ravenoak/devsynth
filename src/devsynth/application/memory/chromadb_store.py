@@ -14,7 +14,13 @@ from datetime import datetime
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import chromadb
+try:
+    import chromadb
+except ImportError as e:  # pragma: no cover - optional dependency
+    raise ImportError(
+        "ChromaDBStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
+    ) from e
+
 import tiktoken
 
 from devsynth.exceptions import (

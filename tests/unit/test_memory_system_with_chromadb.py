@@ -2,6 +2,7 @@
 """
 Unit tests for the MemorySystemAdapter with ChromaDB integration.
 """
+import pytest
 import os
 import json
 import shutil
@@ -18,6 +19,8 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.adapters.memory.chroma_db_adapter import ChromaDBAdapter
 from devsynth.exceptions import MemoryStoreError
+
+pytestmark = pytest.mark.requires_resource("chromadb")
 
 
 class TestMemorySystemWithChromaDB:

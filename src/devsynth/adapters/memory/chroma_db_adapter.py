@@ -6,7 +6,12 @@ ChromaDB adapter for vector storage.
 import os
 import json
 import uuid
-import chromadb
+try:
+    import chromadb
+except ImportError as e:  # pragma: no cover - optional dependency
+    raise ImportError(
+        "ChromaDBAdapter requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
+    ) from e
 import numpy as np
 from typing import Any, Dict, List, Optional, Union
 from ...domain.interfaces.memory import VectorStore

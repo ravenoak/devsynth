@@ -1,8 +1,12 @@
 import os
 import json
 import tempfile
+import pytest
 from devsynth.application.memory.json_file_store import JSONFileStore
-from devsynth.application.memory.lmdb_store import LMDBStore
+try:
+    from devsynth.application.memory.lmdb_store import LMDBStore
+except ImportError:  # pragma: no cover - optional dependency
+    LMDBStore = None
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.security.encryption import generate_key
 
@@ -21,6 +25,7 @@ def test_json_file_store_encryption(tmp_path):
     assert retrieved.content == "secret"
 
 
+@pytest.mark.requires_resource("lmdb")
 def test_lmdb_store_encryption(tmp_path):
     key = generate_key()
     store = LMDBStore(str(tmp_path), encryption_enabled=True, encryption_key=key)

@@ -9,7 +9,12 @@ import os
 import json
 import uuid
 import tiktoken
-import lmdb
+try:
+    import lmdb
+except ImportError as e:  # pragma: no cover - optional dependency
+    raise ImportError(
+        "LMDBStore requires the 'lmdb' package. Install it with 'pip install lmdb' or use the dev extras."
+    ) from e
 from typing import Dict, List, Any, Optional, ContextManager
 from datetime import datetime
 from contextlib import contextmanager

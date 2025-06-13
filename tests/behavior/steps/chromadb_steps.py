@@ -15,6 +15,8 @@ from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.ports.memory_port import MemoryPort
 from devsynth.adapters.provider_system import get_provider, embed
 
+pytestmark = pytest.mark.requires_resource("chromadb")
+
 
 @pytest.fixture
 def temp_chromadb_path(tmp_project_dir):

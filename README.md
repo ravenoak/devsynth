@@ -136,6 +136,13 @@ Before running the test suite, **install DevSynth with its development extras**.
 pip install -e ".[dev]"
 ```
 
+Some tests rely on optional backends like **ChromaDB**, **FAISS**, and **LMDB**.
+Ensure these packages are installed as well:
+
+```bash
+pip install chromadb faiss-cpu lmdb
+```
+
 For a smaller core install you can instead run:
 
 ```bash

@@ -17,6 +17,11 @@ from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.faiss_store import FAISSStore
 from devsynth.ports.memory_port import MemoryPort
 
+pytestmark = [
+    pytest.mark.requires_resource("lmdb"),
+    pytest.mark.requires_resource("faiss"),
+]
+
 # Register the scenarios from the feature file
 scenarios('../features/additional_storage_backends.feature')
 
