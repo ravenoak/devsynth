@@ -4,17 +4,21 @@ Examples of using the Promise System in DevSynth.
 This module provides concrete examples of how to use the Promise System
 for capability declaration, discovery, and fulfillment between agents.
 """
+
 import time
-import logging
+from devsynth.logging_setup import DevSynthLogger
 from typing import Dict, List, Any, Optional
 
 from devsynth.application.promises import (
-    Promise, PromiseBroker, PromiseAgent,
-    CapabilityNotFoundError, UnauthorizedAccessError
+    Promise,
+    PromiseBroker,
+    PromiseAgent,
+    CapabilityNotFoundError,
+    UnauthorizedAccessError,
 )
 
 # Setup logger
-logger = logging.getLogger(__name__)
+logger = DevSynthLogger(__name__)
 
 
 class MathAgent(PromiseAgent):
@@ -22,7 +26,9 @@ class MathAgent(PromiseAgent):
     Example agent that provides math capabilities.
     """
 
-    def __init__(self, agent_id: str = "math_agent", broker: Optional[PromiseBroker] = None):
+    def __init__(
+        self, agent_id: str = "math_agent", broker: Optional[PromiseBroker] = None
+    ):
         """Initialize the Math Agent."""
         super().__init__(agent_id, broker)
 
@@ -31,31 +37,33 @@ class MathAgent(PromiseAgent):
             name="add",
             handler_func=self.add_numbers,
             description="Add two numbers together",
-            parameters={"a": "float", "b": "float"}
+            parameters={"a": "float", "b": "float"},
         )
 
         self.register_capability(
             name="subtract",
             handler_func=self.subtract_numbers,
             description="Subtract one number from another",
-            parameters={"a": "float", "b": "float"}
+            parameters={"a": "float", "b": "float"},
         )
 
         self.register_capability(
             name="multiply",
             handler_func=self.multiply_numbers,
             description="Multiply two numbers together",
-            parameters={"a": "float", "b": "float"}
+            parameters={"a": "float", "b": "float"},
         )
 
         self.register_capability(
             name="divide",
             handler_func=self.divide_numbers,
             description="Divide one number by another",
-            parameters={"a": "float", "b": "float"}
+            parameters={"a": "float", "b": "float"},
         )
 
-        logger.info(f"Math Agent initialized with {len(self.get_own_capabilities())} capabilities")
+        logger.info(
+            f"Math Agent initialized with {len(self.get_own_capabilities())} capabilities"
+        )
 
     def add_numbers(self, a: float, b: float) -> float:
         """Add two numbers together."""
@@ -90,7 +98,9 @@ class TextAgent(PromiseAgent):
     Example agent that provides text processing capabilities.
     """
 
-    def __init__(self, agent_id: str = "text_agent", broker: Optional[PromiseBroker] = None):
+    def __init__(
+        self, agent_id: str = "text_agent", broker: Optional[PromiseBroker] = None
+    ):
         """Initialize the Text Agent."""
         super().__init__(agent_id, broker)
 
@@ -99,24 +109,26 @@ class TextAgent(PromiseAgent):
             name="concatenate",
             handler_func=self.concatenate_texts,
             description="Concatenate multiple strings",
-            parameters={"texts": "List[str]", "separator": "str"}
+            parameters={"texts": "List[str]", "separator": "str"},
         )
 
         self.register_capability(
             name="reverse",
             handler_func=self.reverse_text,
             description="Reverse a string",
-            parameters={"text": "str"}
+            parameters={"text": "str"},
         )
 
         self.register_capability(
             name="tokenize",
             handler_func=self.tokenize_text,
             description="Split text into tokens",
-            parameters={"text": "str", "delimiter": "str"}
+            parameters={"text": "str", "delimiter": "str"},
         )
 
-        logger.info(f"Text Agent initialized with {len(self.get_own_capabilities())} capabilities")
+        logger.info(
+            f"Text Agent initialized with {len(self.get_own_capabilities())} capabilities"
+        )
 
     def concatenate_texts(self, texts: List[str], separator: str = " ") -> str:
         """Concatenate multiple strings with a separator."""
@@ -133,7 +145,9 @@ class TextAgent(PromiseAgent):
     def tokenize_text(self, text: str, delimiter: str = " ") -> List[str]:
         """Split text into tokens using the delimiter."""
         tokens = text.split(delimiter)
-        logger.debug(f"Tokenized text into {len(tokens)} tokens using delimiter '{delimiter}'")
+        logger.debug(
+            f"Tokenized text into {len(tokens)} tokens using delimiter '{delimiter}'"
+        )
         return tokens
 
 
@@ -142,7 +156,9 @@ class ProjectAgent(PromiseAgent):
     Example agent that manages a project and orchestrates other agents.
     """
 
-    def __init__(self, agent_id: str = "project_agent", broker: Optional[PromiseBroker] = None):
+    def __init__(
+        self, agent_id: str = "project_agent", broker: Optional[PromiseBroker] = None
+    ):
         """Initialize the Project Agent."""
         super().__init__(agent_id, broker)
 
@@ -151,17 +167,19 @@ class ProjectAgent(PromiseAgent):
             name="create_project",
             handler_func=self.create_project,
             description="Create a new project",
-            parameters={"name": "str", "description": "str"}
+            parameters={"name": "str", "description": "str"},
         )
 
         self.register_capability(
             name="analyze_requirements",
             handler_func=self.analyze_requirements,
             description="Analyze project requirements",
-            parameters={"requirements": "str"}
+            parameters={"requirements": "str"},
         )
 
-        logger.info(f"Project Agent initialized with {len(self.get_own_capabilities())} capabilities")
+        logger.info(
+            f"Project Agent initialized with {len(self.get_own_capabilities())} capabilities"
+        )
 
     def create_project(self, name: str, description: str) -> Dict[str, Any]:
         """Create a new project."""
@@ -172,7 +190,7 @@ class ProjectAgent(PromiseAgent):
             "name": name,
             "description": description,
             "created_at": time.time(),
-            "status": "active"
+            "status": "active",
         }
 
         return project
@@ -189,9 +207,7 @@ class ProjectAgent(PromiseAgent):
         # Use text agent to tokenize requirements
         try:
             tokenize_promise = self.request_capability(
-                name="tokenize",
-                text=requirements,
-                delimiter="\n"
+                name="tokenize", text=requirements, delimiter="\n"
             )
             req_lines = self.wait_for_capability(tokenize_promise)
             logger.debug(f"Tokenized requirements into {len(req_lines)} lines")
@@ -206,7 +222,7 @@ class ProjectAgent(PromiseAgent):
         analysis = {
             "total_requirements": count,
             "lines": req_lines,
-            "analyzed_at": time.time()
+            "analyzed_at": time.time(),
         }
 
         return analysis
@@ -235,8 +251,7 @@ def run_example():
 
     # Step 1: Create a new project
     create_promise = project_agent.request_capability(
-        name="create_project",
-        description="A demonstration of the Promise System"
+        name="create_project", description="A demonstration of the Promise System"
     )
     process_all_agents()
 
@@ -244,16 +259,8 @@ def run_example():
     logger.info(f"Created project: {project_info['name']}")
 
     # Step 2: Use math capabilities
-    add_promise = math_agent.request_capability(
-        name="add",
-        a=5,
-        b=7
-    )
-    multiply_promise = math_agent.request_capability(
-        name="multiply",
-        a=3,
-        b=4
-    )
+    add_promise = math_agent.request_capability(name="add", a=5, b=7)
+    multiply_promise = math_agent.request_capability(name="multiply", a=3, b=4)
     process_all_agents()
 
     add_result = add_promise.value
@@ -262,9 +269,7 @@ def run_example():
 
     # Step 3: Use text capabilities
     concat_promise = text_agent.request_capability(
-        name="concatenate",
-        texts=["Hello", "Promise", "System"],
-        separator=", "
+        name="concatenate", texts=["Hello", "Promise", "System"], separator=", "
     )
     process_all_agents()
 
@@ -280,8 +285,7 @@ def run_example():
     """
 
     analyze_promise = project_agent.request_capability(
-        name="analyze_requirements",
-        requirements=requirements
+        name="analyze_requirements", requirements=requirements
     )
     process_all_agents()
 
@@ -292,14 +296,9 @@ def run_example():
     logger.info("Example workflow completed successfully!")
     return {
         "project": project_info,
-        "math_results": {
-            "addition": add_result,
-            "multiplication": multiply_result
-        },
-        "text_results": {
-            "concatenation": concat_result
-        },
-        "requirements_analysis": analysis
+        "math_results": {"addition": add_result, "multiplication": multiply_result},
+        "text_results": {"concatenation": concat_result},
+        "requirements_analysis": analysis,
     }
 
 
@@ -307,13 +306,16 @@ if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # Run the example
     result = run_example()
-    print("\nExample Result:")
-    print(f"Project: {result['project']['name']}")
-    print(f"Math Results: {result['math_results']}")
-    print(f"Text Results: {result['text_results']}")
-    print(f"Requirements Analysis: {result['requirements_analysis']['total_requirements']} requirements")
+    logger.info("Example Result:")
+    logger.info("Project: %s", result["project"]["name"])
+    logger.info("Math Results: %s", result["math_results"])
+    logger.info("Text Results: %s", result["text_results"])
+    logger.info(
+        "Requirements Analysis: %s requirements",
+        result["requirements_analysis"]["total_requirements"],
+    )

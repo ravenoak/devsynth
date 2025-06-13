@@ -7,7 +7,10 @@ for teams without a formal process or individual contributors.
 import datetime
 from typing import Any, Dict, List, Optional
 
+from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
+
+logger = DevSynthLogger(__name__)
 
 
 class AdHocAdapter(BaseMethodologyAdapter):
@@ -59,9 +62,9 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         return not self.cycle_in_progress and user_requested
 
-    def should_progress_to_next_phase(self, current_phase: Phase,
-                                      context: Dict[str, Any],
-                                      results: Dict[str, Any]) -> bool:
+    def should_progress_to_next_phase(
+        self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> bool:
         """Determine if the process should progress to the next phase.
 
         For ad-hoc execution, phase progression occurs when:
@@ -85,11 +88,13 @@ class AdHocAdapter(BaseMethodologyAdapter):
         # For ad-hoc mode, both must be true to progress
         if phase_complete and user_requested:
             self.completed_phases.add(current_phase)
-            self.phase_history.append({
-                "phase": current_phase.value,
-                "timestamp": datetime.datetime.now().isoformat(),
-                "results_summary": self._summarize_results(results)
-            })
+            self.phase_history.append(
+                {
+                    "phase": current_phase.value,
+                    "timestamp": datetime.datetime.now().isoformat(),
+                    "results_summary": self._summarize_results(results),
+                }
+            )
             return True
 
         return False
@@ -109,7 +114,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
         cycle_context = {
             "start_time": datetime.datetime.now().isoformat(),
             "mode": "ad-hoc",
-            "scope": self.adhoc_settings.get("scope", "user-defined")
+            "scope": self.adhoc_settings.get("scope", "user-defined"),
         }
 
         return cycle_context
@@ -133,7 +138,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
             try:
                 self.completion_callback(results)
             except Exception as e:
-                print(f"Error in completion callback: {e}")
+                logger.exception("Error in completion callback: %s", e)
 
     def before_phase(self, phase: Phase, context: Dict[str, Any]) -> Dict[str, Any]:
         """Setup before entering any phase.
@@ -150,12 +155,15 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         # Record phase start time and reset phase-specific flags
         context["phase_start_time"] = datetime.datetime.now().isoformat()
-        context["progress_to_next"] = False  # Must be explicitly set to True by user/code
+        context["progress_to_next"] = (
+            False  # Must be explicitly set to True by user/code
+        )
 
         return context
 
-    def after_phase(self, phase: Phase, context: Dict[str, Any],
-                    results: Dict[str, Any]) -> Dict[str, Any]:
+    def after_phase(
+        self, phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Wrap-up after completing any phase.
 
         Args:
@@ -206,12 +214,22 @@ class AdHocAdapter(BaseMethodologyAdapter):
                 "phases_executed": cycle_results.get("phases_executed", []),
                 "phase_history": self.phase_history,
                 "findings_summary": {
-                    "artifacts_processed": len(cycle_results.get("expand", {}).get("processed_artifacts", [])),
-                    "inconsistencies_detected": len(cycle_results.get("differentiate", {}).get("inconsistencies", [])),
-                    "relationships_identified": len(cycle_results.get("refine", {}).get("relationships", [])),
-                    "insights_generated": len(cycle_results.get("retrospect", {}).get("insights", []))
-                }
-            }
+                    "artifacts_processed": len(
+                        cycle_results.get("expand", {}).get("processed_artifacts", [])
+                    ),
+                    "inconsistencies_detected": len(
+                        cycle_results.get("differentiate", {}).get(
+                            "inconsistencies", []
+                        )
+                    ),
+                    "relationships_identified": len(
+                        cycle_results.get("refine", {}).get("relationships", [])
+                    ),
+                    "insights_generated": len(
+                        cycle_results.get("retrospect", {}).get("insights", [])
+                    ),
+                },
+            },
         }
         reports.append(summary_report)
 
@@ -235,7 +253,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
                         "startNewCycle": {
                             "type": "boolean",
                             "description": "Flag to start a new cycle",
-                            "default": False
+                            "default": False,
                         },
                         "scope": {
                             "type": "string",
@@ -243,16 +261,16 @@ class AdHocAdapter(BaseMethodologyAdapter):
                         },
                         "completionCallback": {
                             "type": "string",
-                            "description": "Python dotted path to a callback function to call when cycle completes"
+                            "description": "Python dotted path to a callback function to call when cycle completes",
                         },
                         "enableIndividualPhaseExecution": {
                             "type": "boolean",
                             "description": "Allow phases to be run independently without requiring a full cycle",
-                            "default": True
-                        }
-                    }
+                            "default": True,
+                        },
+                    },
                 }
-            }
+            },
         }
 
         # Merge the schemas

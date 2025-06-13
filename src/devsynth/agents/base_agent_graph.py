@@ -2,28 +2,33 @@
 Defines a base agent graph structure using LangGraph.
 This provides a template for creating agentic workflows with state management.
 """
+
 from langgraph.graph import StateGraph, END
 from typing import Dict, Any, Optional
 
 from devsynth.agents.graph_state import AgentState
-from devsynth.adapters.provider_system import complete as llm_complete # Renamed to avoid conflict
+from devsynth.adapters.provider_system import (
+    complete as llm_complete,
+)  # Renamed to avoid conflict
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
 
 def process_input_node(state: AgentState) -> AgentState:
     """Processes the initial input request."""
     logger.info(f"Processing input: {state['input_request'][:100]}...")
     # Simple processing for now, can be expanded
-    processed = state['input_request'].strip()
+    processed = state["input_request"].strip()
     if not processed:
         return {**state, "error": "Input request cannot be empty."}
     return {**state, "processed_input": processed}
 
+
 def llm_call_node(state: AgentState) -> AgentState:
     """Makes a call to the LLM using the provider system."""
     if state.get("error"):
-        return state # Skip if there's an error
+        return state  # Skip if there's an error
 
     input_prompt = state.get("processed_input")
     if not input_prompt:
@@ -36,7 +41,7 @@ def llm_call_node(state: AgentState) -> AgentState:
         response = llm_complete(
             prompt=input_prompt,
             system_prompt=system_prompt,
-            fallback=True # Use fallback provider
+            fallback=True,  # Use fallback provider
         )
         logger.info(f"LLM response received: {response[:100]}...")
         return {**state, "llm_response": response}
@@ -44,21 +49,23 @@ def llm_call_node(state: AgentState) -> AgentState:
         logger.error(f"LLM call failed: {e}")
         return {**state, "error": f"LLM call failed: {str(e)}"}
 
+
 def parse_output_node(state: AgentState) -> AgentState:
     """Parses the LLM response into a final output."""
     if state.get("error"):
-        return state # Skip if there's an error
+        return state  # Skip if there's an error
 
     llm_response = state.get("llm_response")
     if not llm_response:
         # This case might indicate an issue if llm_call_node was supposed to run
         logger.warning("LLM response is missing for parsing, passing through.")
-        return {**state, "final_output": ""} # Or handle as an error
+        return {**state, "final_output": ""}  # Or handle as an error
 
     logger.info(f"Parsing LLM output: {llm_response[:100]}...")
     # Simple parsing for now, can be expanded
     final_output = llm_response.strip()
     return {**state, "final_output": final_output}
+
 
 # Define the graph
 workflow = StateGraph(AgentState)
@@ -93,10 +100,16 @@ if __name__ == "__main__":
     # or .env file for this example to work.
     try:
         final_state = base_agent_graph.invoke(initial_state)
-        print("\n--- Final State ---")
+        logger.info("--- Final State ---")
         for key, value in final_state.items():
-            print(f"{key}: {str(value)[:500]}{'...' if len(str(value)) > 500 else ''}")
+            logger.info(
+                "%s: %s%s",
+                key,
+                str(value)[:500],
+                "..." if len(str(value)) > 500 else "",
+            )
     except Exception as e:
-        print(f"Error invoking graph: {e}")
-        print("Please ensure your LLM provider (OpenAI or LM Studio) is configured correctly.")
-
+        logger.exception("Error invoking graph: %s", e)
+        logger.error(
+            "Please ensure your LLM provider (OpenAI or LM Studio) is configured correctly."
+        )

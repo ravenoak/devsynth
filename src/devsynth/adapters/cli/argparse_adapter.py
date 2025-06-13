@@ -96,7 +96,9 @@ def _warn_if_features_disabled() -> None:
                 config = yaml.safe_load(f) or {}
             features = config.get("features", {})
         else:
-            default_config = Path(__file__).resolve().parents[3] / "config" / "default.yml"
+            default_config = (
+                Path(__file__).resolve().parents[3] / "config" / "default.yml"
+            )
             with open(default_config, "r") as f:
                 config = yaml.safe_load(f) or {}
             features = config.get("features", {})
@@ -116,8 +118,8 @@ def show_help() -> None:
     except SystemExit:
         pass
     # Provide a simple marker line for tests to assert
-    print("Commands:")
-    print("Run 'devsynth [COMMAND] --help' for more information on a command.")
+    logger.info("Commands:")
+    logger.info("Run 'devsynth [COMMAND] --help' for more information on a command.")
 
 
 def parse_args(args: list[str]) -> None:
