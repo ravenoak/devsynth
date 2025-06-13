@@ -62,7 +62,9 @@ class WSDETeam:
     message_protocol: Any = None  # MessageProtocol instance
     peer_reviews: List[Any] = None
     role_assignments: Dict[str, Any] = None  # Mapping of roles to assigned agents
-    dialectical_hooks: List[Callable[[Dict[str, Any], List[Dict[str, Any]]], None]] = None
+    dialectical_hooks: List[Callable[[Dict[str, Any], List[Dict[str, Any]]], None]] = (
+        None
+    )
 
     def __post_init__(self):
         if self.agents is None:
@@ -187,6 +189,17 @@ class WSDETeam:
         review.assign_reviews()
         self.peer_reviews.append(review)
         return review
+
+    def conduct_peer_review(
+        self, work_product: Any, author: Any, reviewer_agents: List[Any]
+    ) -> Dict[str, Any]:
+        """Run a full peer review cycle and return aggregated feedback."""
+
+        review = self.request_peer_review(work_product, author, reviewer_agents)
+        review.collect_reviews()
+        feedback = review.aggregate_feedback()
+        review.status = "completed"
+        return {"review": review, "feedback": feedback}
 
     def rotate_primus(self) -> None:
         """

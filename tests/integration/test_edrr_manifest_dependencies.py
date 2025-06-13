@@ -1,7 +1,9 @@
-import pytest
+import json
 from unittest.mock import MagicMock
 import sys
 import types
+
+import pytest
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -33,8 +35,7 @@ rdflib_mod.namespace = namespace_mod
 sys.modules.setdefault("rdflib", rdflib_mod)
 sys.modules.setdefault("rdflib.namespace", namespace_mod)
 
-from devsynth.application.edrr.coordinator import EDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -42,6 +43,8 @@ from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 class SimpleAgent:
@@ -51,35 +54,34 @@ class SimpleAgent:
         self.current_role = None
 
     def process(self, task):
-        return {"processed_by": self.name}
+        return {}
 
 
 @pytest.fixture
-def coordinator():
-    team = WSDETeam()
-    team.add_agent(SimpleAgent("agent1"))
-    team.generate_diverse_ideas = MagicMock(return_value=["idea"])
-    team.create_comparison_matrix = MagicMock(return_value={})
-    team.evaluate_options = MagicMock(return_value=[])
-    team.analyze_trade_offs = MagicMock(return_value=[])
-    team.formulate_decision_criteria = MagicMock(return_value={})
-    team.select_best_option = MagicMock(return_value={})
-    team.elaborate_details = MagicMock(return_value=[])
-    team.create_implementation_plan = MagicMock(return_value=[])
-    team.optimize_implementation = MagicMock(return_value={})
-    team.perform_quality_assurance = MagicMock(return_value={})
-    team.extract_learnings = MagicMock(return_value=[])
-    team.recognize_patterns = MagicMock(return_value=[])
-    team.integrate_knowledge = MagicMock(return_value={})
-    team.generate_improvement_suggestions = MagicMock(return_value=[])
+def coordinator(tmp_path):
+    manifest = {
+        "id": "m1",
+        "description": "test",
+        "phases": {
+            "expand": {"instructions": "e"},
+            "differentiate": {"instructions": "d"},
+            "refine": {"instructions": "r"},
+            "retrospect": {"instructions": "t"},
+        },
+    }
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(manifest))
 
+    team = WSDETeam()
+    team.add_agents([SimpleAgent("a1"), SimpleAgent("a2")])
     mm = MagicMock(spec=MemoryManager)
     mm.retrieve_with_edrr_phase.side_effect = lambda *a, **k: {}
     mm.retrieve_relevant_knowledge.return_value = []
     mm.retrieve_historical_patterns.return_value = []
     analyzer = MagicMock(spec=CodeAnalyzer)
     analyzer.analyze_project_structure.return_value = []
-    return EDRRCoordinator(
+
+    coord = EDRRCoordinator(
         memory_manager=mm,
         wsde_team=team,
         code_analyzer=analyzer,
@@ -88,30 +90,12 @@ def coordinator():
         documentation_manager=MagicMock(spec=DocumentationManager),
         enable_enhanced_logging=False,
     )
+    coord.start_cycle_from_manifest(str(path))
+    return coord
 
 
-def test_micro_tasks_context_spawns_cycles(coordinator):
-    coordinator.start_cycle({"description": "macro"})
-    context = {"micro_tasks": [{"description": "m1"}, {"description": "m2"}]}
-    results = coordinator.execute_current_phase(context)
-    assert len(coordinator.child_cycles) == 2
-    assert len(results["micro_cycle_results"]) == 2
-
-
-def test_nested_micro_tasks_create_recursive_cycles(coordinator):
-    coordinator.start_cycle({"description": "macro"})
-    context = {
-        "micro_tasks": [
-            {
-                "description": "m1",
-                "micro_tasks": [{"description": "m1-child"}],
-            }
-        ]
-    }
-    results = coordinator.execute_current_phase(context)
-    assert len(coordinator.child_cycles) == 1
-    child = coordinator.child_cycles[0]
-    assert len(child.child_cycles) == 1
-    assert (
-        len(results["micro_cycle_results"][child.cycle_id]["micro_cycle_results"]) == 1
-    )
+def test_manifest_dependencies_enforced(coordinator):
+    with pytest.raises(EDRRCoordinatorError):
+        coordinator.progress_to_phase(Phase.REFINE)
+    coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+    coordinator.progress_to_phase(Phase.REFINE)
