@@ -49,9 +49,20 @@ pip install -e .[dev]
 # Or use Poetry
 poetry install
 
+
 # Activate the virtual environment
 poetry shell
 ```
+
+### Run with Docker Compose
+
+To start DevSynth and its dependencies using Docker Compose:
+
+```bash
+docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.monitoring.yml up -d
+```
+
+This launches the DevSynth API, ChromaDB, and the optional Prometheus and Grafana stack.
 
 ## Creating Your First DevSynth Project
 
