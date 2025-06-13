@@ -73,6 +73,14 @@ dev = [
     "pre-commit",
     "psutil",
     "httpx",
+    "rdflib",
+    "astor",
+    "chromadb",
+    "tiktoken",
+    "tinydb",
+    "duckdb",
+    "lmdb",
+    "faiss-cpu",
 ]
 docs = [
     "mkdocs",

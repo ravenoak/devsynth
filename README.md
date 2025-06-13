@@ -121,16 +121,18 @@ Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `
 
 ## Running Tests
 
-Before running the test suite, **install DevSynth with its development extras**. You can include the minimal core for a faster setup. Use one of the following commands:
+Before running the test suite, **install DevSynth with its development extras**. The simplest approach is:
 
 ```bash
-# minimal core plus dev dependencies
-pip install -e '.[minimal,dev]'
-# or just development extras
-pip install -e '.[dev]'
-# or
-poetry install
+pip install -e ".[dev]"
 ```
+
+For a smaller core install you can instead run:
+
+```bash
+pip install -e ".[minimal,dev]"
+```
+or use `poetry install`.
 
 After installation, execute the tests with:
 
