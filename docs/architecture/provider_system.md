@@ -732,3 +732,9 @@ async def analyze_design_choice(design_question):
 - **Parameter Optimization**: Automatic tuning of temperature and other parameters based on task
 - **Cross-Provider Consistency**: Ensuring consistent outputs across different providers
 - **Modality Support**: Extending provider system to support image and audio modalities
+
+## Current Limitations
+
+- Only LM Studio has a fully functional implementation.
+- Provider fallback logic is basic and lacks cross-provider streaming support.
+

@@ -205,8 +205,14 @@ methodologyConfiguration:
         "phase.completed": "milestone.complete"
 ```
 
+## Current Limitations
+
+- Only a basic Sprint adapter is implemented; other methodologies are planned.
+- External tool integrations beyond Jira are still experimental.
+
 ## Conclusion
 
 DevSynth's Methodology Adapter System allows teams to leverage the power of the EDRR process while working within their preferred development methodology. By separating the core process from its timing and integration aspects, DevSynth provides the flexibility needed to support diverse development approaches while maintaining the benefits of its structured, iterative approach to software development.
 
 Whether your team uses Agile sprints, Kanban flow, milestone-based development, or a completely custom approach, DevSynth can adapt to your way of working rather than forcing you to adapt to it.
+
