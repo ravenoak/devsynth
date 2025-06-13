@@ -4,6 +4,7 @@ Unit Tests for WSDETeamCoordinator
 This file contains unit tests for the WSDETeamCoordinator class, which is responsible
 for coordinating WSDE teams and implementing consensus-based decision making.
 """
+
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -75,7 +76,10 @@ class TestWSDETeamCoordinator:
         # Assert
         assert self.coordinator.current_team_id is not None
         assert len(self.coordinator.teams[self.coordinator.current_team_id].agents) == 1
-        assert self.coordinator.teams[self.coordinator.current_team_id].agents[0] == self.agent1
+        assert (
+            self.coordinator.teams[self.coordinator.current_team_id].agents[0]
+            == self.agent1
+        )
 
     def test_delegate_task_single_agent(self):
         """Test delegating a task with a single agent."""
@@ -100,8 +104,12 @@ class TestWSDETeamCoordinator:
         self.coordinator.add_agent(self.agent3)
         self.coordinator.add_agent(self.agent4)
 
-        task = {"type": "code", "language": "python", "description": "Implement a feature"}
-        
+        task = {
+            "type": "code",
+            "language": "python",
+            "description": "Implement a feature",
+        }
+
         # Configure mock returns for agent processes
         self.agent1.process.return_value = {"result": "Design for the feature"}
         self.agent2.process.return_value = {"result": "Implementation of the feature"}
@@ -110,12 +118,14 @@ class TestWSDETeamCoordinator:
 
         # Mock the build_consensus method to return a predefined consensus
         team = self.coordinator.teams["test_team"]
-        team.build_consensus = MagicMock(return_value={
-            "consensus": "Consensus solution incorporating all perspectives",
-            "contributors": ["agent1", "agent2", "agent3", "agent4"],
-            "method": "consensus_synthesis",
-            "reasoning": "Combined the best elements from all solutions"
-        })
+        team.build_consensus = MagicMock(
+            return_value={
+                "consensus": "Consensus solution incorporating all perspectives",
+                "contributors": ["agent1", "agent2", "agent3", "agent4"],
+                "method": "consensus_synthesis",
+                "reasoning": "Combined the best elements from all solutions",
+            }
+        )
 
         # Act
         result = self.coordinator.delegate_task(task)
@@ -136,6 +146,28 @@ class TestWSDETeamCoordinator:
 
         # Verify that build_consensus was called
         team.build_consensus.assert_called_once()
+
+    def test_delegate_task_critical_decision(self):
+        """Ensure critical decisions trigger team voting."""
+        self.coordinator.create_team("test_team")
+        self.coordinator.add_agent(self.agent1)
+        self.coordinator.add_agent(self.agent2)
+
+        task = {
+            "type": "critical_decision",
+            "is_critical": True,
+            "options": [{"id": "a"}, {"id": "b"}],
+        }
+
+        team = self.coordinator.teams["test_team"]
+        team.vote_on_critical_decision = MagicMock(
+            return_value={"result": {"winner": "a"}}
+        )
+
+        result = self.coordinator.delegate_task(task)
+
+        assert result["result"]["winner"] == "a"
+        team.vote_on_critical_decision.assert_called_once_with(task)
 
     def test_delegate_task_no_team(self):
         """Test delegating a task with no active team."""

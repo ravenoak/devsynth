@@ -65,6 +65,7 @@ class WSDETeam:
     dialectical_hooks: List[Callable[[Dict[str, Any], List[Dict[str, Any]]], None]] = (
         None
     )
+    voting_history: List[Dict[str, Any]] = None  # History of voting decisions
 
     def __post_init__(self):
         if self.agents is None:
@@ -94,6 +95,8 @@ class WSDETeam:
             }
         if self.dialectical_hooks is None:
             self.dialectical_hooks = []
+        if self.voting_history is None:
+            self.voting_history = []
 
     def add_agent(self, agent: Any) -> None:
         """Add an agent to the team."""
@@ -742,10 +745,15 @@ class WSDETeam:
         domain = task.get("domain")
         if domain:
             # Use weighted voting based on expertise
-            return self._apply_weighted_voting(task, result, domain)
+            outcome = self._apply_weighted_voting(task, result, domain)
         else:
             # Use majority voting
-            return self._apply_majority_voting(task, result)
+            outcome = self._apply_majority_voting(task, result)
+
+        # Record the voting history
+        self._record_voting_history(task, outcome)
+
+        return outcome
 
     def _apply_majority_voting(
         self, task: Dict[str, Any], voting_result: Dict[str, Any]
@@ -923,6 +931,18 @@ class WSDETeam:
         }
 
         return voting_result
+
+    def _record_voting_history(
+        self, task: Dict[str, Any], voting_result: Dict[str, Any]
+    ) -> None:
+        """Record the outcome of a voting process."""
+        entry = {
+            "task_id": self._get_task_id(task),
+            "timestamp": datetime.now(),
+            "votes": voting_result.get("votes", {}),
+            "result": voting_result.get("result"),
+        }
+        self.voting_history.append(entry)
 
     def build_consensus(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
