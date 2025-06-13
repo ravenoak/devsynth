@@ -9,6 +9,7 @@ self-optimization at multiple levels of granularity.
 """
 
 import copy
+import json
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -502,8 +503,17 @@ class EDRRCoordinator:
             parent_phase=parent_phase,
         )
 
-        # Start the micro cycle with the given task
-        micro_cycle.start_cycle(task)
+        # Start the micro cycle with the given task or manifest
+        if isinstance(task, dict) and "manifest" in task:
+            manifest = task["manifest"]
+            if isinstance(manifest, (str, Path)):
+                micro_cycle.start_cycle_from_manifest(manifest, is_file=True)
+            else:
+                micro_cycle.start_cycle_from_manifest(
+                    json.dumps(manifest), is_file=False
+                )
+        else:
+            micro_cycle.start_cycle(task)
 
         # Add the micro cycle to the list of child cycles
         self.child_cycles.append(micro_cycle)
@@ -606,7 +616,9 @@ class EDRRCoordinator:
         for task in micro_tasks:
             try:
                 micro_cycle = self.create_micro_cycle(task, parent_phase)
-                results["micro_cycle_results"][micro_cycle.cycle_id] = micro_cycle.results
+                results["micro_cycle_results"][
+                    micro_cycle.cycle_id
+                ] = micro_cycle.results
             except EDRRCoordinatorError as exc:
                 results["micro_cycle_results"][task.get("description", "task")] = {
                     "error": str(exc)
@@ -893,6 +905,23 @@ class EDRRCoordinator:
             code_analyzer=self.code_analyzer,
         )
         results["quality_checks"] = quality_checks
+
+        # Optional peer review of the optimized plan
+        reviewers = (
+            context.get("peer_review", {}).get("reviewers", []) if context else []
+        )
+        if reviewers:
+            author = self.wsde_team.get_primus()
+            pr_result = self.wsde_team.conduct_peer_review(
+                optimized_plan, author, reviewers
+            )
+            results["peer_review"] = pr_result
+            self.memory_manager.store_with_edrr_phase(
+                pr_result,
+                "PEER_REVIEW_RESULTS",
+                "REFINE",
+                {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
+            )
 
         # Initialize micro_cycle_results if it doesn't exist
         if "micro_cycle_results" not in results:

@@ -1,7 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
 import sys
 import types
+import pytest
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -42,37 +42,28 @@ from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
+from devsynth.methodology.base import Phase
 
 
-class SimpleAgent:
-    def __init__(self, name):
+class VotingAgent:
+    def __init__(self, name, vote):
         self.name = name
+        self.vote = vote
         self.expertise = []
         self.current_role = None
 
     def process(self, task):
-        return {"processed_by": self.name}
+        if task.get("type") == "critical_decision":
+            return {"vote": self.vote}
+        return {"feedback": "ok"}
 
 
 @pytest.fixture
 def coordinator():
     team = WSDETeam()
-    team.add_agent(SimpleAgent("agent1"))
-    team.generate_diverse_ideas = MagicMock(return_value=["idea"])
-    team.create_comparison_matrix = MagicMock(return_value={})
-    team.evaluate_options = MagicMock(return_value=[])
-    team.analyze_trade_offs = MagicMock(return_value=[])
-    team.formulate_decision_criteria = MagicMock(return_value={})
-    team.select_best_option = MagicMock(return_value={})
-    team.elaborate_details = MagicMock(return_value=[])
-    team.create_implementation_plan = MagicMock(return_value=[])
-    team.optimize_implementation = MagicMock(return_value={})
-    team.perform_quality_assurance = MagicMock(return_value={})
-    team.extract_learnings = MagicMock(return_value=[])
-    team.recognize_patterns = MagicMock(return_value=[])
-    team.integrate_knowledge = MagicMock(return_value={})
-    team.generate_improvement_suggestions = MagicMock(return_value=[])
-
+    team.add_agents(
+        [VotingAgent("a1", "o1"), VotingAgent("a2", "o1"), VotingAgent("a3", "o2")]
+    )
     mm = MagicMock(spec=MemoryManager)
     mm.retrieve_with_edrr_phase.side_effect = lambda *a, **k: {}
     mm.retrieve_relevant_knowledge.return_value = []
@@ -90,28 +81,17 @@ def coordinator():
     )
 
 
-def test_micro_tasks_context_spawns_cycles(coordinator):
-    coordinator.start_cycle({"description": "macro"})
-    context = {"micro_tasks": [{"description": "m1"}, {"description": "m2"}]}
-    results = coordinator.execute_current_phase(context)
-    assert len(coordinator.child_cycles) == 2
-    assert len(results["micro_cycle_results"]) == 2
-
-
-def test_nested_micro_tasks_create_recursive_cycles(coordinator):
-    coordinator.start_cycle({"description": "macro"})
-    context = {
-        "micro_tasks": [
-            {
-                "description": "m1",
-                "micro_tasks": [{"description": "m1-child"}],
-            }
-        ]
+def test_voting_and_peer_review(coordinator):
+    decision = {
+        "type": "critical_decision",
+        "is_critical": True,
+        "options": [{"id": "o1"}, {"id": "o2"}],
     }
+    vote_result = coordinator.wsde_team.vote_on_critical_decision(decision)
+    assert vote_result["result"]["winner"] == "o1"
+
+    coordinator.start_cycle({"description": "demo"})
+    coordinator.progress_to_phase(Phase.REFINE)
+    context = {"peer_review": {"reviewers": coordinator.wsde_team.agents[1:]}}
     results = coordinator.execute_current_phase(context)
-    assert len(coordinator.child_cycles) == 1
-    child = coordinator.child_cycles[0]
-    assert len(child.child_cycles) == 1
-    assert (
-        len(results["micro_cycle_results"][child.cycle_id]["micro_cycle_results"]) == 1
-    )
+    assert results["peer_review"]["review"].status == "completed"

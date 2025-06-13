@@ -55,3 +55,10 @@ class PeerReview:
         """Mark the review as requiring revision."""
 
         self.status = "revision_requested"
+
+    def finalize(self, approved: bool = True) -> Dict[str, Any]:
+        """Finalize the peer review and return aggregated feedback."""
+
+        self.status = "approved" if approved else "rejected"
+        feedback = self.aggregate_feedback()
+        return {"status": self.status, "feedback": feedback}
