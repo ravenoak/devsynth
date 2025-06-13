@@ -119,6 +119,15 @@ devsynth run
 
 Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `.devsynth/project.yaml`. If you run into issues, see [docs/getting_started/troubleshooting.md](docs/getting_started/troubleshooting.md).
 
+## Examples
+
+The repository includes runnable examples that walk through common workflows:
+
+- [Calculator](examples/calculator) – basic CLI-driven project generation
+- [Full Workflow](examples/full_workflow) – demonstrates the adaptive workflow
+- [Agent Adapter](docs/getting_started/agent_adapter_example.md) – shows how to
+  use the `AgentAdapter` directly from Python
+
 ## Running Tests
 
 Before running the test suite, **install DevSynth with its development extras**. The simplest approach is:
