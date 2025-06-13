@@ -44,13 +44,13 @@ Each feature is scored on two dimensions:
 | Feature | Status | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|-------------------|--------------------------------|--------------|-------|-------|
 | **Core Framework** |
-| EDRR Framework | Partially Implemented (90%) | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
-| WSDE Agent Collaboration | Partially Implemented (90%) | 4 | 5 | Memory System | | Multi-agent voting, consensus, and recursive micro-cycles integrated |
-| Dialectical Reasoning | Partially Implemented (70%) | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
+| EDRR Framework | Partially Implemented (60%) | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
+| WSDE Agent Collaboration | Partially Implemented (50%) | 4 | 5 | Memory System | | Multi-agent voting, consensus, and recursive micro-cycles integrated |
+| Dialectical Reasoning | Partially Implemented (50%) | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Fully Implemented (100%) | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Partially Implemented (50%) | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
 | Memory System | Fully Implemented (100%) | 5 | 4 | None | | Complete with ChromaDB integration |
-| LLM Provider System | Fully Implemented (100%) | 5 | 3 | None | | Multiple backend support implemented |
+| LLM Provider System | Partially Implemented (80%) | 5 | 3 | None | | LM Studio provider fully implemented; OpenAI and Anthropic providers are stubs |
 | **User-Facing Features** |
 | CLI Interface | Fully Implemented (100%) | 5 | 2 | None | | All commands implemented and tested |
 | Project Initialization | Fully Implemented (100%) | 5 | 2 | None | | Complete with configuration options |
