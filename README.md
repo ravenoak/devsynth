@@ -108,6 +108,9 @@ devsynth spec
 devsynth test
 devsynth code
 
+# Install development dependencies
+pip install -e '.[dev]'
+
 # Run the tests or execute the app
 pytest
 # or
@@ -118,7 +121,7 @@ Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `
 
 ## Running Tests
 
-Before running the test suite, **install DevSynth with its development extras** or with the minimal extras for faster setup. Use one of the following commands:
+Before running the test suite, **install DevSynth with its development extras**. You can include the minimal core for a faster setup. Use one of the following commands:
 
 ```bash
 # minimal core plus dev dependencies
