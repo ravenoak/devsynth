@@ -4,6 +4,7 @@ DevSynth Ingestion Module.
 This module implements the "Expand, Differentiate, Refine, Retrospect" methodology for project ingestion,
 enabling DevSynth to understand and adapt to project structures as defined in .devsynth/project.yaml.
 """
+
 import os
 import json
 import yaml
@@ -14,9 +15,21 @@ from datetime import datetime
 import networkx as nx
 from enum import Enum, auto
 
-from devsynth.exceptions import (
-    IngestionError, ManifestError
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
 )
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
+from devsynth.methodology.base import Phase
+
+from devsynth.exceptions import IngestionError, ManifestError
 from devsynth.logging_setup import get_logger
 
 # Initialize logger
@@ -25,6 +38,7 @@ logger = get_logger(__name__)
 
 class ArtifactType(Enum):
     """Types of artifacts that can be discovered during ingestion."""
+
     CODE = auto()
     TEST = auto()
     DOCUMENTATION = auto()
@@ -36,29 +50,34 @@ class ArtifactType(Enum):
 
 class ArtifactStatus(Enum):
     """Status of artifacts relative to previous ingestion."""
-    NEW = auto()          # New artifact not present in previous ingestion
-    CHANGED = auto()      # Modified since last ingestion
-    UNCHANGED = auto()    # Existing artifact with no changes
-    OUTDATED = auto()     # Artifact exists but may be outdated (references deprecated items)
-    DEPRECATED = auto()   # Artifact marked for removal or replacement
-    MISSING = auto()      # Artifact defined in manifest but not found
+
+    NEW = auto()  # New artifact not present in previous ingestion
+    CHANGED = auto()  # Modified since last ingestion
+    UNCHANGED = auto()  # Existing artifact with no changes
+    OUTDATED = (
+        auto()
+    )  # Artifact exists but may be outdated (references deprecated items)
+    DEPRECATED = auto()  # Artifact marked for removal or replacement
+    MISSING = auto()  # Artifact defined in manifest but not found
 
 
 class IngestionPhase(Enum):
     """Phases of the ingestion process following EDRR methodology."""
-    EXPAND = auto()       # Bottom-up discovery and integration
-    DIFFERENTIATE = auto() # Top-down validation
-    REFINE = auto()       # Hygiene, resilience, and integration
-    RETROSPECT = auto()   # Learning and evolution
+
+    EXPAND = auto()  # Bottom-up discovery and integration
+    DIFFERENTIATE = auto()  # Top-down validation
+    REFINE = auto()  # Hygiene, resilience, and integration
+    RETROSPECT = auto()  # Learning and evolution
 
 
 class ProjectStructureType(Enum):
     """Types of project structures that can be defined in the manifest."""
-    STANDARD = auto()     # Standard single project
-    MONOREPO = auto()     # Monorepo with multiple projects/packages
-    FEDERATED = auto()    # Federated repositories
-    COMPOSITE = auto()    # Mixed structure with submodules
-    CUSTOM = auto()       # Custom structure defined by user rules
+
+    STANDARD = auto()  # Standard single project
+    MONOREPO = auto()  # Monorepo with multiple projects/packages
+    FEDERATED = auto()  # Federated repositories
+    COMPOSITE = auto()  # Mixed structure with submodules
+    CUSTOM = auto()  # Custom structure defined by user rules
 
 
 class IngestionMetrics:
@@ -69,10 +88,14 @@ class IngestionMetrics:
         self.end_time: Optional[float] = None
         self.artifacts_discovered = 0
         self.artifacts_by_type: Dict[ArtifactType, int] = {t: 0 for t in ArtifactType}
-        self.artifacts_by_status: Dict[ArtifactStatus, int] = {s: 0 for s in ArtifactStatus}
+        self.artifacts_by_status: Dict[ArtifactStatus, int] = {
+            s: 0 for s in ArtifactStatus
+        }
         self.errors_encountered = 0
         self.warnings_generated = 0
-        self.phase_durations: Dict[IngestionPhase, float] = {p: 0.0 for p in IngestionPhase}
+        self.phase_durations: Dict[IngestionPhase, float] = {
+            p: 0.0 for p in IngestionPhase
+        }
         self.current_phase: Optional[IngestionPhase] = None
         self.phase_start_time: Optional[float] = None
 
@@ -91,7 +114,9 @@ class IngestionMetrics:
 
         duration = time.time() - self.phase_start_time
         self.phase_durations[self.current_phase] = duration
-        logger.info(f"Completed {self.current_phase.name} phase in {duration:.2f} seconds")
+        logger.info(
+            f"Completed {self.current_phase.name} phase in {duration:.2f} seconds"
+        )
         self.current_phase = None
         self.phase_start_time = None
 
@@ -109,11 +134,13 @@ class IngestionMetrics:
             "artifacts": {
                 "total": self.artifacts_discovered,
                 "by_type": {t.name: v for t, v in self.artifacts_by_type.items()},
-                "by_status": {s.name: v for s, v in self.artifacts_by_status.items()}
+                "by_status": {s.name: v for s, v in self.artifacts_by_status.items()},
             },
-            "phases": {p.name: duration for p, duration in self.phase_durations.items()},
+            "phases": {
+                p.name: duration for p, duration in self.phase_durations.items()
+            },
             "errors": self.errors_encountered,
-            "warnings": self.warnings_generated
+            "warnings": self.warnings_generated,
         }
 
 
@@ -130,7 +157,12 @@ class Ingestion:
     4. Retrospect: Evaluation and planning for next iteration
     """
 
-    def __init__(self, project_root: Union[str, Path], manifest_path: Optional[Union[str, Path]] = None):
+    def __init__(
+        self,
+        project_root: Union[str, Path],
+        manifest_path: Optional[Union[str, Path]] = None,
+        edrr_coordinator: Optional[EDRRCoordinator] = None,
+    ):
         """
         Initialize the ingestion system.
 
@@ -146,15 +178,41 @@ class Ingestion:
             # Use .devsynth/project.yaml as the default path
             self.manifest_path = self.project_root / ".devsynth" / "project.yaml"
         self.metrics = IngestionMetrics()
-        self.project_graph = nx.DiGraph()  # Knowledge graph for project structure and relationships
+        self.project_graph = (
+            nx.DiGraph()
+        )  # Knowledge graph for project structure and relationships
         self.manifest_data: Optional[Dict[str, Any]] = None
         self.previous_state: Optional[Dict[str, Any]] = None
         self.artifacts: Dict[str, Dict[str, Any]] = {}  # Discovered artifacts
         self.project_structure: Optional[ProjectStructureType] = None
 
+        # Set up EDRR coordinator for phase tracking
+        if edrr_coordinator is not None:
+            self.edrr_coordinator = edrr_coordinator
+        else:
+            memory_adapter = TinyDBMemoryAdapter()
+            memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
+            wsde_team = WSDETeam()
+            code_analyzer = CodeAnalyzer()
+            ast_transformer = AstTransformer()
+            prompt_manager = PromptManager()
+            documentation_manager = DocumentationManager(memory_manager)
+
+            self.edrr_coordinator = EDRRCoordinator(
+                memory_manager=memory_manager,
+                wsde_team=wsde_team,
+                code_analyzer=code_analyzer,
+                ast_transformer=ast_transformer,
+                prompt_manager=prompt_manager,
+                documentation_manager=documentation_manager,
+                config={"features": {"automatic_phase_transitions": False}},
+            )
+
         # Ensure project root exists
         if not self.project_root.exists() or not self.project_root.is_dir():
-            raise IngestionError(f"Project root does not exist or is not a directory: {self.project_root}")
+            raise IngestionError(
+                f"Project root does not exist or is not a directory: {self.project_root}"
+            )
 
         logger.info(f"Initialized ingestion for project at {self.project_root}")
 
@@ -172,7 +230,7 @@ class Ingestion:
             raise ManifestError(f"Manifest file not found at {self.manifest_path}")
 
         try:
-            manifest_content = self.manifest_path.read_text(encoding='utf-8')
+            manifest_content = self.manifest_path.read_text(encoding="utf-8")
             manifest_data = yaml.safe_load(manifest_content)
 
             if not manifest_data:
@@ -197,10 +255,14 @@ class Ingestion:
                     self.project_structure = ProjectStructureType.CUSTOM
                 else:
                     self.project_structure = ProjectStructureType.STANDARD
-                    logger.warning(f"Unknown project structure type: {structure_type}, defaulting to STANDARD")
+                    logger.warning(
+                        f"Unknown project structure type: {structure_type}, defaulting to STANDARD"
+                    )
             else:
                 self.project_structure = ProjectStructureType.STANDARD
-                logger.warning("No project structure type specified in manifest, defaulting to STANDARD")
+                logger.warning(
+                    "No project structure type specified in manifest, defaulting to STANDARD"
+                )
 
             # Store the manifest data
             self.manifest_data = manifest_data
@@ -213,7 +275,9 @@ class Ingestion:
         except Exception as e:
             raise ManifestError(f"Error loading manifest: {e}")
 
-    def run_ingestion(self, dry_run: bool = False, verbose: bool = False) -> Dict[str, Any]:
+    def run_ingestion(
+        self, dry_run: bool = False, verbose: bool = False
+    ) -> Dict[str, Any]:
         """
         Run the full ingestion process using the EDRR methodology.
 
@@ -230,11 +294,47 @@ class Ingestion:
             # Load the manifest
             self.load_manifest()
 
-            # Run the EDRR phases
+            # Start EDRR cycle from the manifest
+            self.edrr_coordinator.start_cycle_from_manifest(
+                self.manifest_path, is_file=True
+            )
+
+            # Run the EDRR phases with coordinator tracking
+            self.edrr_coordinator.progress_to_phase(Phase.EXPAND)
             self._run_expand_phase(dry_run, verbose)
+            self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+                {"summary": self.metrics.get_summary()},
+                "INGEST_EXPAND_RESULTS",
+                Phase.EXPAND.value,
+                {"cycle_id": self.edrr_coordinator.cycle_id},
+            )
+
+            self.edrr_coordinator.progress_to_phase(Phase.DIFFERENTIATE)
             self._run_differentiate_phase(dry_run, verbose)
+            self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+                {"summary": self.metrics.get_summary()},
+                "INGEST_DIFFERENTIATE_RESULTS",
+                Phase.DIFFERENTIATE.value,
+                {"cycle_id": self.edrr_coordinator.cycle_id},
+            )
+
+            self.edrr_coordinator.progress_to_phase(Phase.REFINE)
             self._run_refine_phase(dry_run, verbose)
+            self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+                {"summary": self.metrics.get_summary()},
+                "INGEST_REFINE_RESULTS",
+                Phase.REFINE.value,
+                {"cycle_id": self.edrr_coordinator.cycle_id},
+            )
+
+            self.edrr_coordinator.progress_to_phase(Phase.RETROSPECT)
             self._run_retrospect_phase(dry_run, verbose)
+            self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+                {"summary": self.metrics.get_summary()},
+                "INGEST_RETROSPECT_RESULTS",
+                Phase.RETROSPECT.value,
+                {"cycle_id": self.edrr_coordinator.cycle_id},
+            )
 
             # Complete metrics collection
             self.metrics.complete()
@@ -245,10 +345,16 @@ class Ingestion:
                 "metrics": self.metrics.get_summary(),
                 "artifacts": {
                     "total": len(self.artifacts),
-                    "by_type": {t.name: sum(1 for a in self.artifacts.values() if a.get("type") == t) 
-                               for t in ArtifactType}
+                    "by_type": {
+                        t.name: sum(
+                            1 for a in self.artifacts.values() if a.get("type") == t
+                        )
+                        for t in ArtifactType
+                    },
                 },
-                "project_structure": self.project_structure.name if self.project_structure else None
+                "project_structure": (
+                    self.project_structure.name if self.project_structure else None
+                ),
             }
 
         except Exception as e:
@@ -259,7 +365,7 @@ class Ingestion:
             return {
                 "success": False,
                 "error": str(e),
-                "metrics": self.metrics.get_summary()
+                "metrics": self.metrics.get_summary(),
             }
 
     def _run_expand_phase(self, dry_run: bool, verbose: bool) -> None:
@@ -277,6 +383,7 @@ class Ingestion:
         try:
             # 1. Build the project model from the manifest
             from devsynth.domain.models.project import ProjectModel
+
             if self.manifest_data is None:
                 # For testing purposes, initialize with an empty dict if not loaded
                 self.manifest_data = {}
@@ -317,7 +424,9 @@ class Ingestion:
                 self.metrics.artifacts_by_status[ArtifactStatus.NEW] += 1
 
             if verbose:
-                logger.info(f"Discovered {self.metrics.artifacts_discovered} artifacts during Expand phase")
+                logger.info(
+                    f"Discovered {self.metrics.artifacts_discovered} artifacts during Expand phase"
+                )
                 for artifact_type, count in self.metrics.artifacts_by_type.items():
                     if count > 0:
                         logger.info(f"  - {artifact_type.name}: {count}")
@@ -337,7 +446,9 @@ class Ingestion:
         self.metrics.start_phase(IngestionPhase.DIFFERENTIATE)
 
         if verbose:
-            logger.info("Starting Differentiate phase: Validation against manifest and expected structures")
+            logger.info(
+                "Starting Differentiate phase: Validation against manifest and expected structures"
+            )
 
         try:
             # 1. Check for required directories from manifest
@@ -353,7 +464,9 @@ class Ingestion:
             for src_dir in source_dirs:
                 src_path = self.project_root / src_dir
                 if not src_path.exists():
-                    logger.warning(f"Source directory specified in manifest does not exist: {src_path}")
+                    logger.warning(
+                        f"Source directory specified in manifest does not exist: {src_path}"
+                    )
                     self.metrics.warnings_generated += 1
 
             # 2. Check for expected artifacts based on project structure type
@@ -380,7 +493,9 @@ class Ingestion:
                 self._update_artifact_statuses(verbose)
 
             if verbose:
-                logger.info(f"Completed Differentiate phase with {self.metrics.warnings_generated} warnings")
+                logger.info(
+                    f"Completed Differentiate phase with {self.metrics.warnings_generated} warnings"
+                )
 
         except Exception as e:
             logger.error(f"Error during Differentiate phase: {e}")
@@ -399,7 +514,9 @@ class Ingestion:
                 missing_dirs.append(dir_name)
 
         if missing_dirs and verbose:
-            logger.warning(f"Standard project structure missing expected directories: {', '.join(missing_dirs)}")
+            logger.warning(
+                f"Standard project structure missing expected directories: {', '.join(missing_dirs)}"
+            )
             self.metrics.warnings_generated += 1
 
     def _validate_monorepo_structure(self, verbose: bool) -> None:
@@ -409,11 +526,15 @@ class Ingestion:
             # For testing purposes, initialize with an empty dict if not loaded
             self.manifest_data = {}
             logger.warning("Manifest data is not loaded. Using empty dictionary.")
-        custom_layouts = self.manifest_data.get("structure", {}).get("customLayouts", {})
+        custom_layouts = self.manifest_data.get("structure", {}).get(
+            "customLayouts", {}
+        )
 
         if not custom_layouts or custom_layouts.get("type") != "monorepo":
             if verbose:
-                logger.warning("Project is defined as monorepo but no monorepo layout is specified in manifest")
+                logger.warning(
+                    "Project is defined as monorepo but no monorepo layout is specified in manifest"
+                )
                 self.metrics.warnings_generated += 1
             return
 
@@ -426,7 +547,9 @@ class Ingestion:
 
         # Check if packages exist
         packages_root = custom_layouts.get("packagesRoot", "")
-        packages_root_path = self.project_root / packages_root if packages_root else self.project_root
+        packages_root_path = (
+            self.project_root / packages_root if packages_root else self.project_root
+        )
 
         missing_packages = []
         for package in packages:
@@ -439,7 +562,9 @@ class Ingestion:
                 missing_packages.append(package_path)
 
         if missing_packages and verbose:
-            logger.warning(f"Missing packages defined in manifest: {', '.join(missing_packages)}")
+            logger.warning(
+                f"Missing packages defined in manifest: {', '.join(missing_packages)}"
+            )
             self.metrics.warnings_generated += 1
 
     def _validate_federated_structure(self, verbose: bool) -> None:
@@ -449,11 +574,15 @@ class Ingestion:
             # For testing purposes, initialize with an empty dict if not loaded
             self.manifest_data = {}
             logger.warning("Manifest data is not loaded. Using empty dictionary.")
-        custom_layouts = self.manifest_data.get("structure", {}).get("customLayouts", {})
+        custom_layouts = self.manifest_data.get("structure", {}).get(
+            "customLayouts", {}
+        )
 
         if not custom_layouts or custom_layouts.get("type") != "multi_project":
             if verbose:
-                logger.warning("Project is defined as federated but no multi-project layout is specified in manifest")
+                logger.warning(
+                    "Project is defined as federated but no multi-project layout is specified in manifest"
+                )
                 self.metrics.warnings_generated += 1
             return
 
@@ -476,7 +605,9 @@ class Ingestion:
                 missing_repos.append(package_path)
 
         if missing_repos and verbose:
-            logger.warning(f"Missing repositories defined in manifest: {', '.join(missing_repos)}")
+            logger.warning(
+                f"Missing repositories defined in manifest: {', '.join(missing_repos)}"
+            )
             self.metrics.warnings_generated += 1
 
     def _validate_custom_structure(self, verbose: bool) -> None:
@@ -498,18 +629,26 @@ class Ingestion:
                 missing_entry_points.append(entry_point)
 
         if missing_entry_points and verbose:
-            logger.warning(f"Missing entry points defined in manifest: {', '.join(missing_entry_points)}")
+            logger.warning(
+                f"Missing entry points defined in manifest: {', '.join(missing_entry_points)}"
+            )
             self.metrics.warnings_generated += 1
 
     def _check_code_test_consistency(self, verbose: bool) -> None:
         """Check for consistency between code and test artifacts."""
         # Get all code artifacts
-        code_artifacts = {path: data for path, data in self.artifacts.items() 
-                         if data.get("type") == "CODE"}
+        code_artifacts = {
+            path: data
+            for path, data in self.artifacts.items()
+            if data.get("type") == "CODE"
+        }
 
         # Get all test artifacts
-        test_artifacts = {path: data for path, data in self.artifacts.items() 
-                         if data.get("type") == "TEST"}
+        test_artifacts = {
+            path: data
+            for path, data in self.artifacts.items()
+            if data.get("type") == "TEST"
+        }
 
         # Simple heuristic: check if there are tests
         if not test_artifacts and code_artifacts and verbose:
@@ -553,7 +692,9 @@ class Ingestion:
                 self.artifacts[path]["status"] = ArtifactStatus.MISSING.name
                 self.metrics.artifacts_by_status[ArtifactStatus.MISSING] += 1
 
-    def _is_artifact_changed(self, current: Dict[str, Any], previous: Dict[str, Any]) -> bool:
+    def _is_artifact_changed(
+        self, current: Dict[str, Any], previous: Dict[str, Any]
+    ) -> bool:
         """
         Determine if an artifact has changed since the previous state.
 
@@ -573,7 +714,9 @@ class Ingestion:
         self.metrics.start_phase(IngestionPhase.REFINE)
 
         if verbose:
-            logger.info("Starting Refine phase: Integration of findings into the project model")
+            logger.info(
+                "Starting Refine phase: Integration of findings into the project model"
+            )
 
         try:
             # 1. Resolve conflicts and inconsistencies
@@ -589,10 +732,12 @@ class Ingestion:
             refined_data = {
                 "project_root": str(self.project_root),
                 "manifest_path": str(self.manifest_path),
-                "project_structure": self.project_structure.name if self.project_structure else None,
+                "project_structure": (
+                    self.project_structure.name if self.project_structure else None
+                ),
                 "artifacts": self.artifacts,
                 "metrics": self.metrics.get_summary(),
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             # 5. Save the refined data if not in dry run mode
@@ -627,7 +772,9 @@ class Ingestion:
         # Log conflicts
         if conflicts and verbose:
             for name, path1, path2 in conflicts:
-                logger.warning(f"Name conflict: '{name}' appears in both {path1} and {path2}")
+                logger.warning(
+                    f"Name conflict: '{name}' appears in both {path1} and {path2}"
+                )
                 self.metrics.warnings_generated += 1
 
         # Mark deprecated artifacts
@@ -697,13 +844,21 @@ class Ingestion:
                 if Path(child_path).parent == Path(path):
                     # Add edge if it doesn't exist
                     if not self.project_graph.has_edge(path, child_path):
-                        self.project_graph.add_edge(path, child_path, relationship="contains")
+                        self.project_graph.add_edge(
+                            path, child_path, relationship="contains"
+                        )
 
         # Add relationships between test files and code files (simple heuristic)
-        test_artifacts = {path: data for path, data in self.artifacts.items() 
-                         if data.get("type") == "TEST"}
-        code_artifacts = {path: data for path, data in self.artifacts.items() 
-                         if data.get("type") == "CODE"}
+        test_artifacts = {
+            path: data
+            for path, data in self.artifacts.items()
+            if data.get("type") == "TEST"
+        }
+        code_artifacts = {
+            path: data
+            for path, data in self.artifacts.items()
+            if data.get("type") == "CODE"
+        }
 
         for test_path, test_artifact in test_artifacts.items():
             test_name = Path(test_path).stem
@@ -719,10 +874,14 @@ class Ingestion:
                     if code_file_name == code_name:
                         # Add edge if it doesn't exist
                         if not self.project_graph.has_edge(test_path, code_path):
-                            self.project_graph.add_edge(test_path, code_path, relationship="tests")
+                            self.project_graph.add_edge(
+                                test_path, code_path, relationship="tests"
+                            )
 
                             if verbose:
-                                logger.info(f"Identified test relationship: {test_path} tests {code_path}")
+                                logger.info(
+                                    f"Identified test relationship: {test_path} tests {code_path}"
+                                )
 
     def _save_refined_data(self, refined_data: Dict[str, Any], verbose: bool) -> None:
         """Save the refined data to disk."""
@@ -764,7 +923,9 @@ class Ingestion:
         self.metrics.start_phase(IngestionPhase.RETROSPECT)
 
         if verbose:
-            logger.info("Starting Retrospect phase: Evaluation and planning for next iteration")
+            logger.info(
+                "Starting Retrospect phase: Evaluation and planning for next iteration"
+            )
 
         try:
             # 1. Evaluate the ingestion process
@@ -784,7 +945,7 @@ class Ingestion:
                 "metrics": self.metrics.get_summary(),
                 "evaluation": evaluation,
                 "improvements": improvements,
-                "recommendations": recommendations
+                "recommendations": recommendations,
             }
 
             # 5. Save the retrospective report if not in dry run mode
@@ -811,9 +972,19 @@ class Ingestion:
             "artifacts_discovered": self.metrics.artifacts_discovered,
             "errors": self.metrics.errors_encountered,
             "warnings": self.metrics.warnings_generated,
-            "phase_durations": {p.name: duration for p, duration in self.metrics.phase_durations.items()},
-            "artifact_types": {t.name: count for t, count in self.metrics.artifacts_by_type.items() if count > 0},
-            "artifact_statuses": {s.name: count for s, count in self.metrics.artifacts_by_status.items() if count > 0}
+            "phase_durations": {
+                p.name: duration for p, duration in self.metrics.phase_durations.items()
+            },
+            "artifact_types": {
+                t.name: count
+                for t, count in self.metrics.artifacts_by_type.items()
+                if count > 0
+            },
+            "artifact_statuses": {
+                s.name: count
+                for s, count in self.metrics.artifacts_by_status.items()
+                if count > 0
+            },
         }
 
         # Calculate total duration
@@ -823,14 +994,19 @@ class Ingestion:
         # Calculate phase percentages
         if total_duration > 0:
             evaluation["phase_percentages"] = {
-                p.name: (duration / total_duration) * 100 
+                p.name: (duration / total_duration) * 100
                 for p, duration in self.metrics.phase_durations.items()
             }
 
         # Evaluate overall performance
-        if self.metrics.errors_encountered == 0 and self.metrics.warnings_generated == 0:
+        if (
+            self.metrics.errors_encountered == 0
+            and self.metrics.warnings_generated == 0
+        ):
             evaluation["overall_assessment"] = "Excellent"
-        elif self.metrics.errors_encountered == 0 and self.metrics.warnings_generated < 5:
+        elif (
+            self.metrics.errors_encountered == 0 and self.metrics.warnings_generated < 5
+        ):
             evaluation["overall_assessment"] = "Good"
         elif self.metrics.errors_encountered == 0:
             evaluation["overall_assessment"] = "Fair"
@@ -838,8 +1014,12 @@ class Ingestion:
             evaluation["overall_assessment"] = "Needs improvement"
 
         if verbose:
-            logger.info(f"Ingestion process evaluation: {evaluation['overall_assessment']}")
-            logger.info(f"Discovered {evaluation['artifacts_discovered']} artifacts with {evaluation['errors']} errors and {evaluation['warnings']} warnings")
+            logger.info(
+                f"Ingestion process evaluation: {evaluation['overall_assessment']}"
+            )
+            logger.info(
+                f"Discovered {evaluation['artifacts_discovered']} artifacts with {evaluation['errors']} errors and {evaluation['warnings']} warnings"
+            )
 
         return evaluation
 
@@ -859,62 +1039,85 @@ class Ingestion:
 
         # Check for missing manifest fields
         if not self.manifest_data.get("projectName"):
-            improvements.append({
-                "area": "Project Configuration",
-                "issue": "Missing project name",
-                "recommendation": "Add 'projectName' field to .devsynth/project.yaml"
-            })
+            improvements.append(
+                {
+                    "area": "Project Configuration",
+                    "issue": "Missing project name",
+                    "recommendation": "Add 'projectName' field to .devsynth/project.yaml",
+                }
+            )
 
         if not self.manifest_data.get("version"):
-            improvements.append({
-                "area": "Project Configuration",
-                "issue": "Missing version",
-                "recommendation": "Add 'version' field to .devsynth/project.yaml"
-            })
+            improvements.append(
+                {
+                    "area": "Project Configuration",
+                    "issue": "Missing version",
+                    "recommendation": "Add 'version' field to .devsynth/project.yaml",
+                }
+            )
 
         # Check for project structure issues
         structure = self.manifest_data.get("structure", {})
         if not structure.get("directories", {}).get("source"):
-            improvements.append({
-                "area": "Project Structure",
-                "issue": "No source directories specified",
-                "recommendation": "Add source directories to .devsynth/project.yaml"
-            })
+            improvements.append(
+                {
+                    "area": "Project Structure",
+                    "issue": "No source directories specified",
+                    "recommendation": "Add source directories to .devsynth/project.yaml",
+                }
+            )
 
         # Check for test coverage
         code_artifacts_count = self.metrics.artifacts_by_type.get(ArtifactType.CODE, 0)
         test_artifacts_count = self.metrics.artifacts_by_type.get(ArtifactType.TEST, 0)
 
         if code_artifacts_count > 0 and test_artifacts_count == 0:
-            improvements.append({
-                "area": "Testing",
-                "issue": "No test artifacts found",
-                "recommendation": "Add tests for your code"
-            })
-        elif code_artifacts_count > 0 and test_artifacts_count / code_artifacts_count < 0.5:
-            improvements.append({
-                "area": "Testing",
-                "issue": "Low test coverage",
-                "recommendation": "Increase test coverage for your code"
-            })
+            improvements.append(
+                {
+                    "area": "Testing",
+                    "issue": "No test artifacts found",
+                    "recommendation": "Add tests for your code",
+                }
+            )
+        elif (
+            code_artifacts_count > 0
+            and test_artifacts_count / code_artifacts_count < 0.5
+        ):
+            improvements.append(
+                {
+                    "area": "Testing",
+                    "issue": "Low test coverage",
+                    "recommendation": "Increase test coverage for your code",
+                }
+            )
 
         # Check for documentation
-        doc_artifacts_count = self.metrics.artifacts_by_type.get(ArtifactType.DOCUMENTATION, 0)
+        doc_artifacts_count = self.metrics.artifacts_by_type.get(
+            ArtifactType.DOCUMENTATION, 0
+        )
         if code_artifacts_count > 0 and doc_artifacts_count == 0:
-            improvements.append({
-                "area": "Documentation",
-                "issue": "No documentation artifacts found",
-                "recommendation": "Add documentation for your code"
-            })
+            improvements.append(
+                {
+                    "area": "Documentation",
+                    "issue": "No documentation artifacts found",
+                    "recommendation": "Add documentation for your code",
+                }
+            )
 
         # Check for performance issues
-        slowest_phase = max(self.metrics.phase_durations.items(), key=lambda x: x[1], default=(None, 0))
-        if slowest_phase[0] and slowest_phase[1] > 5.0:  # If a phase took more than 5 seconds
-            improvements.append({
-                "area": "Performance",
-                "issue": f"Slow {slowest_phase[0].name} phase ({slowest_phase[1]:.2f} seconds)",
-                "recommendation": f"Optimize {slowest_phase[0].name} phase processing"
-            })
+        slowest_phase = max(
+            self.metrics.phase_durations.items(), key=lambda x: x[1], default=(None, 0)
+        )
+        if (
+            slowest_phase[0] and slowest_phase[1] > 5.0
+        ):  # If a phase took more than 5 seconds
+            improvements.append(
+                {
+                    "area": "Performance",
+                    "issue": f"Slow {slowest_phase[0].name} phase ({slowest_phase[1]:.2f} seconds)",
+                    "recommendation": f"Optimize {slowest_phase[0].name} phase processing",
+                }
+            )
 
         if verbose and improvements:
             logger.info(f"Identified {len(improvements)} areas for improvement")
@@ -935,53 +1138,69 @@ class Ingestion:
         # Recommend based on project structure
         if self.project_structure == ProjectStructureType.STANDARD:
             # For standard projects, recommend basic structure improvements
-            recommendations.append({
-                "category": "Project Structure",
-                "recommendation": "Consider organizing code into modules for better maintainability",
-                "priority": "Medium"
-            })
+            recommendations.append(
+                {
+                    "category": "Project Structure",
+                    "recommendation": "Consider organizing code into modules for better maintainability",
+                    "priority": "Medium",
+                }
+            )
         elif self.project_structure == ProjectStructureType.MONOREPO:
             # For monorepo projects, recommend package management
-            recommendations.append({
-                "category": "Project Structure",
-                "recommendation": "Consider using a monorepo management tool like Lerna or Nx",
-                "priority": "Medium"
-            })
+            recommendations.append(
+                {
+                    "category": "Project Structure",
+                    "recommendation": "Consider using a monorepo management tool like Lerna or Nx",
+                    "priority": "Medium",
+                }
+            )
 
         # Recommend based on artifact types
         if self.metrics.artifacts_by_type.get(ArtifactType.CONFIGURATION, 0) > 10:
-            recommendations.append({
-                "category": "Configuration",
-                "recommendation": "Consider consolidating configuration files to reduce complexity",
-                "priority": "Medium"
-            })
+            recommendations.append(
+                {
+                    "category": "Configuration",
+                    "recommendation": "Consider consolidating configuration files to reduce complexity",
+                    "priority": "Medium",
+                }
+            )
 
         # Recommend based on artifact statuses
         if self.metrics.artifacts_by_status.get(ArtifactStatus.DEPRECATED, 0) > 0:
-            recommendations.append({
-                "category": "Code Cleanup",
-                "recommendation": "Remove deprecated artifacts to reduce technical debt",
-                "priority": "High"
-            })
+            recommendations.append(
+                {
+                    "category": "Code Cleanup",
+                    "recommendation": "Remove deprecated artifacts to reduce technical debt",
+                    "priority": "High",
+                }
+            )
 
         # Always recommend updating the project configuration
-        recommendations.append({
-            "category": "Project Configuration",
-            "recommendation": "Keep .devsynth/project.yaml updated as the project evolves",
-            "priority": "High"
-        })
+        recommendations.append(
+            {
+                "category": "Project Configuration",
+                "recommendation": "Keep .devsynth/project.yaml updated as the project evolves",
+                "priority": "High",
+            }
+        )
 
         # Recommend running ingestion regularly
-        recommendations.append({
-            "category": "Process",
-            "recommendation": "Run ingestion regularly to keep project model up to date",
-            "priority": "Medium"
-        })
+        recommendations.append(
+            {
+                "category": "Process",
+                "recommendation": "Run ingestion regularly to keep project model up to date",
+                "priority": "Medium",
+            }
+        )
 
         if verbose:
-            logger.info(f"Generated {len(recommendations)} recommendations for next iteration")
+            logger.info(
+                f"Generated {len(recommendations)} recommendations for next iteration"
+            )
             for recommendation in recommendations:
-                logger.info(f"  - {recommendation['category']} ({recommendation['priority']}): {recommendation['recommendation']}")
+                logger.info(
+                    f"  - {recommendation['category']} ({recommendation['priority']}): {recommendation['recommendation']}"
+                )
 
         return recommendations
 
@@ -1014,26 +1233,38 @@ class Ingestion:
             logger.error(f"Error saving retrospective: {e}")
             self.metrics.errors_encountered += 1
 
-    def _generate_markdown_summary(self, retrospective: Dict[str, Any], output_file: Path) -> None:
+    def _generate_markdown_summary(
+        self, retrospective: Dict[str, Any], output_file: Path
+    ) -> None:
         """Generate a markdown summary of the retrospective report."""
         try:
             with open(output_file, "w", encoding="utf-8") as f:
                 # Write header
                 f.write(f"# DevSynth Ingestion Retrospective\n\n")
                 f.write(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"**Project:** {retrospective.get('project_root', 'Unknown')}\n")
-                f.write(f"**Overall Assessment:** {retrospective.get('evaluation', {}).get('overall_assessment', 'Unknown')}\n\n")
+                f.write(
+                    f"**Project:** {retrospective.get('project_root', 'Unknown')}\n"
+                )
+                f.write(
+                    f"**Overall Assessment:** {retrospective.get('evaluation', {}).get('overall_assessment', 'Unknown')}\n\n"
+                )
 
                 # Write metrics summary
                 f.write(f"## Metrics Summary\n\n")
                 metrics = retrospective.get("metrics", {})
-                f.write(f"- **Duration:** {metrics.get('duration_seconds', 0):.2f} seconds\n")
-                f.write(f"- **Artifacts:** {metrics.get('artifacts', {}).get('total', 0)}\n")
+                f.write(
+                    f"- **Duration:** {metrics.get('duration_seconds', 0):.2f} seconds\n"
+                )
+                f.write(
+                    f"- **Artifacts:** {metrics.get('artifacts', {}).get('total', 0)}\n"
+                )
                 f.write(f"- **Errors:** {metrics.get('errors', 0)}\n")
                 f.write(f"- **Warnings:** {metrics.get('warnings', 0)}\n\n")
 
                 # Write artifact types
-                artifact_types = retrospective.get("evaluation", {}).get("artifact_types", {})
+                artifact_types = retrospective.get("evaluation", {}).get(
+                    "artifact_types", {}
+                )
                 if artifact_types:
                     f.write(f"### Artifact Types\n\n")
                     for artifact_type, count in artifact_types.items():
@@ -1047,19 +1278,27 @@ class Ingestion:
                     for improvement in improvements:
                         f.write(f"### {improvement.get('area', 'Unknown')}\n\n")
                         f.write(f"**Issue:** {improvement.get('issue', 'Unknown')}\n\n")
-                        f.write(f"**Recommendation:** {improvement.get('recommendation', 'Unknown')}\n\n")
+                        f.write(
+                            f"**Recommendation:** {improvement.get('recommendation', 'Unknown')}\n\n"
+                        )
 
                 # Write recommendations
                 recommendations = retrospective.get("recommendations", [])
                 if recommendations:
                     f.write(f"## Recommendations for Next Iteration\n\n")
                     for recommendation in recommendations:
-                        f.write(f"### {recommendation.get('category', 'Unknown')} (Priority: {recommendation.get('priority', 'Unknown')})\n\n")
-                        f.write(f"{recommendation.get('recommendation', 'Unknown')}\n\n")
+                        f.write(
+                            f"### {recommendation.get('category', 'Unknown')} (Priority: {recommendation.get('priority', 'Unknown')})\n\n"
+                        )
+                        f.write(
+                            f"{recommendation.get('recommendation', 'Unknown')}\n\n"
+                        )
 
                 # Write footer
                 f.write(f"---\n\n")
-                f.write(f"*This report was generated automatically by DevSynth Ingestion.*\n")
+                f.write(
+                    f"*This report was generated automatically by DevSynth Ingestion.*\n"
+                )
 
         except Exception as e:
             logger.error(f"Error generating markdown summary: {e}")
