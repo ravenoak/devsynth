@@ -28,7 +28,9 @@ class DocumentationSource(ABC):
     """Abstract base class for documentation sources."""
 
     @abstractmethod
-    def fetch_documentation(self, library: str, version: str) -> List[Dict[str, Any]]:
+    def fetch_documentation(
+        self, library: str, version: str, offline: bool = False
+    ) -> List[Dict[str, Any]]:
         """
         Fetch documentation for a library version.
 
@@ -528,6 +530,10 @@ class DocumentationFetcher:
         """Initialize the documentation fetcher."""
         self.sources: List[DocumentationSource] = [PyPIDocumentationSource()]
 
+        # Directory for caching fetched documentation
+        self.cache_dir = os.path.join(tempfile.gettempdir(), "devsynth_docs_cache")
+        os.makedirs(self.cache_dir, exist_ok=True)
+
         logger.info("Documentation fetcher initialized")
 
     def fetch_documentation(self, library: str, version: str) -> List[Dict[str, Any]]:
@@ -542,13 +548,35 @@ class DocumentationFetcher:
             A list of documentation chunks
 
         Raises:
-            ValueError: If no source supports the library
+            ValueError: If no source supports the library or no cached data is available
+                when ``offline`` is True.
         """
+
+        cache_file = os.path.join(self.cache_dir, f"{library}_{version}.json")
+
+        # Return cached documentation if available
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                logger.warning("Failed to read cached documentation")
+
+        if offline:
+            raise ValueError(f"No cached documentation for {library} {version}")
+
         # Find a source that supports the library
         for source in self.sources:
             if source.supports_library(library):
                 chunks = source.fetch_documentation(library, version)
                 if chunks:
+                    # Cache the result for future offline use
+                    try:
+                        with open(cache_file, "w", encoding="utf-8") as f:
+                            json.dump(chunks, f)
+                    except Exception:
+                        logger.debug("Failed to cache documentation")
+
                     logger.info(
                         f"Fetched {len(chunks)} documentation chunks for {library} {version}"
                     )

@@ -160,6 +160,14 @@ RADIUS = 5
         self.assertEqual(len(variables), 1)
         self.assertEqual(variables[0]["name"], "RADIUS")
 
+    def test_project_structure_metrics(self):
+        """Test analyzing project structure metrics."""
+        with patch.object(self.analyzer, "_find_python_files") as mock_find:
+            mock_find.return_value = [self.test_file_path]
+            metrics = self.analyzer.analyze_project_structure()
+        self.assertEqual(metrics["files"], 1)
+        self.assertEqual(metrics["functions"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
