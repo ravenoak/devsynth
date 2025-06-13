@@ -169,15 +169,24 @@ python -m pytest
 
 ### Environment Setup
 
-Before running tests, install DevSynth with development dependencies or the minimal extras:
+Before running tests, you **must** install DevSynth with the development extras:
 
 ```bash
-# minimal core plus dev dependencies
-pip install -e '.[minimal,dev]'
-# or just development extras
 pip install -e '.[dev]'
 # or
 poetry install
+```
+
+For a minimal install you can use:
+
+```bash
+pip install -e '.[minimal,dev]'
+```
+
+Optional backends such as **ChromaDB**, **FAISS**, or **LMDB** require extra packages:
+
+```bash
+pip install chromadb faiss-cpu lmdb
 ```
 
 To run tests for a specific type:

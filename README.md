@@ -92,6 +92,16 @@ You can install DevSynth in a few different ways:
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
+## Optional Dependencies
+
+Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
+
+```bash
+pip install chromadb faiss-cpu lmdb
+```
+
+These packages enable the ChromaDB, FAISS, and LMDB memory stores and are required for the tests that cover them.
+
 ## Minimal Project Example
 
 Follow these steps to try DevSynth on a small project:
@@ -130,14 +140,16 @@ The repository includes runnable examples that walk through common workflows:
 
 ## Running Tests
 
-Before running the test suite, **install DevSynth with its development extras**. The simplest approach is:
+
+Before running the test suite, you **must** install DevSynth with its development extras:
 
 ```bash
-pip install -e ".[dev]"
+pip install -e '.[dev]'
+# or
+poetry install
 ```
 
-Some tests rely on optional backends like **ChromaDB**, **FAISS**, and **LMDB**.
-Ensure these packages are installed as well:
+Some tests and features rely on optional backends like **ChromaDB**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:
 
 ```bash
 pip install chromadb faiss-cpu lmdb
@@ -146,12 +158,10 @@ pip install chromadb faiss-cpu lmdb
 For a smaller core install you can instead run:
 
 ```bash
-pip install -e ".[minimal,dev]"
+pip install -e '.[minimal,dev]'
 ```
-or use `poetry install`.
 
 After installation, execute the tests with:
-
 ```bash
 pytest
 ```
