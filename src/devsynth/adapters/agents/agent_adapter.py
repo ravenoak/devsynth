@@ -7,6 +7,8 @@ preserving extension points for future multi-agent capabilities.
 """
 
 from typing import Any, Dict, List, Optional, Type
+from pathlib import Path
+import yaml
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -19,6 +21,14 @@ from ...ports.llm_port import LLMPort
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError, ValidationError
+
+# Load default configuration
+_DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
+try:
+    with open(_DEFAULT_CONFIG_PATH, "r") as f:
+        _DEFAULT_CONFIG = yaml.safe_load(f) or {}
+except Exception:
+    _DEFAULT_CONFIG = {}
 
 # Import legacy agent classes (commented out for MVP but retained for future reference)
 # from ...application.agents.base import BaseAgent
@@ -81,9 +91,11 @@ class SimplifiedAgentFactory(AgentFactory):
             # Use the requested agent_type for backward compatibility
             agent_config = AgentConfig(
                 name=config.get("name", f"{agent_type}_agent"),
-                agent_type=AgentType(agent_type)
-                if agent_type in [e.value for e in AgentType]
-                else AgentType.ORCHESTRATOR,
+                agent_type=(
+                    AgentType(agent_type)
+                    if agent_type in [e.value for e in AgentType]
+                    else AgentType.ORCHESTRATOR
+                ),
                 description=config.get("description", f"Agent for {agent_type} tasks"),
                 capabilities=config.get("capabilities", []),
                 parameters=config.get("parameters", {}),
@@ -191,11 +203,11 @@ class WSDETeamCoordinator(AgentCoordinator):
 
             # Add the agent's solution
             solution = {
-                "agent": agent.config.name
-                if hasattr(agent, "config") and hasattr(agent.config, "name")
-                else agent.name
-                if hasattr(agent, "name")
-                else "Agent",
+                "agent": (
+                    agent.config.name
+                    if hasattr(agent, "config") and hasattr(agent.config, "name")
+                    else agent.name if hasattr(agent, "name") else "Agent"
+                ),
                 "content": agent_solution.get("result", ""),
                 "confidence": agent_solution.get("confidence", 1.0),
                 "reasoning": agent_solution.get("reasoning", ""),
@@ -244,10 +256,17 @@ class AgentAdapter:
     extension points for future multi-agent capabilities.
     """
 
-    def __init__(self, llm_port: Optional[LLMPort] = None):
+    def __init__(
+        self,
+        llm_port: Optional[LLMPort] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ):
+        self.config = config or _DEFAULT_CONFIG
         self.agent_factory = SimplifiedAgentFactory(llm_port)
         self.agent_coordinator = WSDETeamCoordinator()
         self.llm_port = llm_port
+        feature_cfg = self.config.get("features", {})
+        self.multi_agent_enabled = feature_cfg.get("wsde_collaboration", False)
 
     def create_agent(self, agent_type: str, config: Dict[str, Any] = None) -> Agent:
         """Create an agent of the specified type."""
@@ -267,6 +286,15 @@ class AgentAdapter:
 
     def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Process a task using the current team."""
+        if not self.multi_agent_enabled:
+            team = self.agent_coordinator.teams.get(
+                self.agent_coordinator.current_team_id
+            )
+            if not team or not team.agents:
+                raise ValidationError("No agents in the team.")
+            agent = team.agents[0]
+            return agent.process(task)
+
         return self.agent_coordinator.delegate_task(task)
 
     def register_agent_type(self, agent_type: str, agent_class: Type) -> None:
