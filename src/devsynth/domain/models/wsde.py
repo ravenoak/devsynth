@@ -218,6 +218,48 @@ class WSDETeam:
             # Update roles
             self.assign_roles()
 
+    def rotate_roles(self) -> None:
+        """Rotate all WSDE roles among team members."""
+        if not self.agents:
+            return
+
+        # Rotate Primus first
+        self.rotate_primus()
+
+        role_cycle = ["Worker", "Supervisor", "Designer", "Evaluator"]
+        current_primus = self.get_primus()
+
+        for agent in self.agents:
+            if agent is current_primus:
+                agent.current_role = "Primus"
+                continue
+
+            current_role = getattr(agent, "current_role", "Worker")
+            if current_role == "Primus":
+                current_role = "Worker"
+
+            if current_role in role_cycle:
+                next_idx = (role_cycle.index(current_role) + 1) % len(role_cycle)
+                agent.current_role = role_cycle[next_idx]
+            else:
+                agent.current_role = "Worker"
+
+        assignments = {
+            "primus": current_primus,
+            "worker": [a for a in self.agents if a.current_role == "Worker"],
+            "supervisor": next(
+                (a for a in self.agents if a.current_role == "Supervisor"), None
+            ),
+            "designer": next(
+                (a for a in self.agents if a.current_role == "Designer"), None
+            ),
+            "evaluator": next(
+                (a for a in self.agents if a.current_role == "Evaluator"), None
+            ),
+        }
+
+        self.role_assignments = assignments
+
     def select_primus_by_expertise(self, task: Dict[str, Any]) -> None:
         """
         Select a Primus based on task context and agent expertise.
@@ -943,6 +985,28 @@ class WSDETeam:
             "result": voting_result.get("result"),
         }
         self.voting_history.append(entry)
+
+    def consensus_vote(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Run a voting process and require consensus on the outcome."""
+        voting_result = self.vote_on_critical_decision(task)
+
+        result = voting_result.get("result", {})
+        winner = result.get("winner")
+        votes = voting_result.get("votes", {})
+
+        if not winner:
+            return voting_result
+
+        unanimous = all(v == winner for v in votes.values())
+
+        if not unanimous:
+            consensus_task = task.copy()
+            consensus_result = self.build_consensus(consensus_task)
+            result["consensus"] = consensus_result
+            result["method"] = "consensus_vote"
+
+        voting_result["result"] = result
+        return voting_result
 
     def build_consensus(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
