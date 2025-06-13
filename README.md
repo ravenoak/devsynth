@@ -27,6 +27,7 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 - Comprehensive SDLC policy corpus for agentic and human contributors
 - Automated documentation, testing, and CI/CD pipelines
 - **Worker Self-Directed Enterprise (WSDE) Model**: Sophisticated multi-agent collaboration framework with role management, dialectical reasoning, consensus building, and knowledge integration capabilities
+- Dialectical reasoning hooks automatically analyze new solutions added to a WSDE team
 - **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and an "Expand, Differentiate, Refine, Retrospect" (EDRR) framework to keep its knowledge current. The EDRR framework is implemented through the EDRRCoordinator but is not yet fully integrated with all system components. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
 
 ## SDLC Policies and Documentation Framework

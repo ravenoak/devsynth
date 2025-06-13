@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from devsynth.domain.models.wsde import WSDETeam, WSDE
 from datetime import datetime
+from typing import Dict, List, Any
 
 
 class TestWSDETeam:
@@ -55,6 +56,25 @@ class TestWSDETeam:
         # Assert
         assert len(self.team.agents) == 1
         assert self.team.agents[0] == self.agent1
+
+    def test_dialectical_hook_invoked_on_add_solution(self):
+        """Registered dialectical hooks should run when a solution is added."""
+
+        called: Dict[str, Any] = {}
+
+        def hook(task: Dict[str, Any], solutions: List[Dict[str, Any]]):
+            called["task"] = task
+            called["solutions"] = list(solutions)
+
+        self.team.register_dialectical_hook(hook)
+
+        task = {"id": "task1"}
+        solution = {"agent": "a1", "content": "foo"}
+
+        self.team.add_solution(task, solution)
+
+        assert called["task"] == task
+        assert called["solutions"][0] == solution
 
     def test_rotate_primus(self):
         """Test rotating the Primus role."""
