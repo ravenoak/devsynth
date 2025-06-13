@@ -232,5 +232,16 @@ class TestDocumentationManagerUtils(unittest.TestCase):
         self.assertEqual(args[0], f"function:{function_name}")
         self.assertEqual(kwargs.get("libraries"), ["sklearn"])
 
+    def test_offline_fetch_uses_cache(self):
+        """Ensure offline fetch returns cached documentation."""
+        # Mock repository to simulate cached docs
+        self.documentation_manager.repository.has_documentation = MagicMock(return_value=True)
+        self.documentation_manager.repository.get_documentation = MagicMock(return_value={"stored_at": "now"})
+        self.documentation_manager.fetcher.fetch_documentation = MagicMock()
+
+        result = self.documentation_manager.fetch_documentation("foo", "1.0", offline=True)
+        self.assertEqual(result["source"], "cache")
+        self.documentation_manager.fetcher.fetch_documentation.assert_not_called()
+
 if __name__ == '__main__':
     unittest.main()

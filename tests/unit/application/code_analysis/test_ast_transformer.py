@@ -139,6 +139,31 @@ def broken_function(
         # Make sure the code is still valid Python
         self.assertTrue(self.transformer.validate_syntax(code))
 
+    def test_remove_unused_imports_and_variables(self):
+        """Test removing unused imports and variables."""
+        code = """
+import os
+import sys
+
+def func():
+    unused_var = 1
+    return os.path.basename('x')
+"""
+        code = self.transformer.remove_unused_imports(code)
+        code = self.transformer.remove_unused_variables(code)
+        self.assertNotIn('sys', code)
+        self.assertNotIn('unused_var', code)
+
+    def test_optimize_string_literals(self):
+        """Test optimizing string operations."""
+        code = """
+def greet(name):
+    greeting = "Hello, " + name + "!"
+    return greeting
+"""
+        optimized = self.transformer.optimize_string_literals(code)
+        self.assertIn('Hello, {name}!', optimized)
+
 
 if __name__ == "__main__":
     unittest.main()

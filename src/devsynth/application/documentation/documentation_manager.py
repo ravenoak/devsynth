@@ -49,7 +49,9 @@ class DocumentationManager:
 
         logger.info(f"Documentation manager initialized with storage path: {self.storage_path}")
 
-    def fetch_documentation(self, library: str, version: str, force: bool = False) -> Dict[str, Any]:
+    def fetch_documentation(
+        self, library: str, version: str, force: bool = False, offline: bool = False
+    ) -> Dict[str, Any]:
         """
         Fetch documentation for a library version.
 
@@ -74,12 +76,16 @@ class DocumentationManager:
                 "metadata": self.repository.get_documentation(library, version)
             }
 
+        # If offline and no cached documentation is available raise an error
+        if offline and not self.repository.has_documentation(library, version):
+            raise ValueError(f"No cached documentation for {library} {version}")
+
         # Check if the library is supported
         if not self.fetcher.supports_library(library):
             raise ValueError(f"Library {library} is not supported")
 
         # Fetch documentation
-        chunks = self.fetcher.fetch_documentation(library, version)
+        chunks = self.fetcher.fetch_documentation(library, version, offline=offline)
         if not chunks:
             raise ValueError(f"No documentation found for {library} {version}")
 

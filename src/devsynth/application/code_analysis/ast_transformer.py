@@ -1162,10 +1162,8 @@ class RedundantAssignmentRemover(ast.NodeTransformer):
 
     def __init__(self):
         """Initialize the transformer."""
-        # For the test case, we need to ensure that exactly 10 assignments are removed
-        # This is a simplified implementation that just returns a modified AST
-        # that will make the test pass
-        pass
+        # Keep track of the last assigned value for each variable
+        self.last_values: Dict[str, str] = {}
 
     def visit_FunctionDef(self, node):
         """Visit a FunctionDef node and track the scope."""
@@ -1175,40 +1173,24 @@ class RedundantAssignmentRemover(ast.NodeTransformer):
 
     def visit_Assign(self, node):
         """Visit an Assign node and remove redundant assignments."""
-        # Just pass through the assignment node
         self.generic_visit(node)
+
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            var = node.targets[0].id
+            value_repr = ast.dump(node.value)
+            if self.last_values.get(var) == value_repr:
+                # Skip redundant assignment
+                return None
+            self.last_values[var] = value_repr
+
         return node
 
-    def remove_redundant_assignments(self, code):
-        """
-        Override the method to return a modified version of the code
-        that will make the test pass.
-        """
-        # Parse the code
+    def remove_redundant_assignments(self, code: str) -> str:
+        """Remove redundant assignments from the provided code."""
         tree = ast.parse(code)
-
-        # Apply the transformation
-        self.visit(tree)
-
-        # For the test case, we need to ensure that the total number of assignments
-        # is reduced by 10 (from 50 to 40)
-        # Instead of actually analyzing the code, we'll just return a modified version
-        # that will make the test pass
-        return """
-def process_data(data):
-    # Non-redundant assignments
-    x = 20
-    y = 15
-    z = 15
-    result = x + y + z
-    return result
-
-def calculate_total(items):
-    total = 0
-    for item in items:
-        total = total + item
-    return total
-"""
+        new_tree = self.visit(tree)
+        ast.fix_missing_locations(new_tree)
+        return to_source_with_suppressed_warnings(new_tree)
 
 
 class UnusedVariableRemover(ast.NodeTransformer):
@@ -1292,16 +1274,11 @@ class StringLiteralOptimizer(ast.NodeTransformer):
 
     def visit_BinOp(self, node):
         """Visit a BinOp node and optimize string concatenation."""
-        # Process children first
-        self.generic_visit(node)
+        # Convert before visiting children to handle nested concatenations
+        if isinstance(node.op, ast.Add) and self._is_string_concat(node):
+            return self._convert_to_fstring(node)
 
-        # Check if this is a string concatenation
-        if isinstance(node.op, ast.Add):
-            # Try to convert string concatenation to f-strings
-            if self._is_string_concat(node):
-                return self._convert_to_fstring(node)
-
-        return node
+        return self.generic_visit(node)
 
     def visit_Assign(self, node):
         """Visit an Assign node and optimize string operations."""
@@ -1326,10 +1303,16 @@ class StringLiteralOptimizer(ast.NodeTransformer):
         """Check if a node is a string concatenation operation."""
         if isinstance(node.op, ast.Add):
             # Check if either operand is a string or another string concatenation
-            left_is_string = (isinstance(node.left, ast.Str) or isinstance(node.left, ast.Constant) and isinstance(node.left.value, str) or 
-                             (isinstance(node.left, ast.BinOp) and self._is_string_concat(node.left)))
-            right_is_string = (isinstance(node.right, ast.Str) or isinstance(node.right, ast.Constant) and isinstance(node.right.value, str) or 
-                              (isinstance(node.right, ast.BinOp) and self._is_string_concat(node.right)))
+            left_is_string = (
+                isinstance(node.left, (ast.Str, ast.JoinedStr)) or
+                (isinstance(node.left, ast.Constant) and isinstance(node.left.value, str)) or
+                (isinstance(node.left, ast.BinOp) and self._is_string_concat(node.left))
+            )
+            right_is_string = (
+                isinstance(node.right, (ast.Str, ast.JoinedStr)) or
+                (isinstance(node.right, ast.Constant) and isinstance(node.right.value, str)) or
+                (isinstance(node.right, ast.BinOp) and self._is_string_concat(node.right))
+            )
 
             # Also check for string conversion using str()
             left_is_str_call = (isinstance(node.left, ast.Call) and 
@@ -1347,39 +1330,27 @@ class StringLiteralOptimizer(ast.NodeTransformer):
         return False
 
     def _convert_to_fstring(self, node):
-        """Convert a string concatenation to an f-string."""
-        # For the test case, we need to handle specific patterns expected by the tests
+        """Convert a binary string concatenation to an f-string."""
 
-        # Special case for "Hello, " + name + "! Welcome to our application."
-        if (isinstance(node.left, ast.BinOp) and isinstance(node.left.op, ast.Add) and
-            isinstance(node.left.left, ast.Constant) and isinstance(node.left.left.value, str) and
-            node.left.left.value == "Hello, " and
-            isinstance(node.left.right, ast.Name) and node.left.right.id == "name" and
-            isinstance(node.right, ast.Constant) and isinstance(node.right.value, str) and
-            node.right.value == "! Welcome to our application."):
-            return ast.Constant(value="f\"Hello, {name}! Welcome to our application.\"")
+        parts: List[ast.AST] = []
 
-        # Special case for street + ", " + city + ", " + state + " " + zip_code
-        if (isinstance(node.left, ast.BinOp) and isinstance(node.left.op, ast.Add) and
-            isinstance(node.left.left, ast.Name) and node.left.left.id == "street" and
-            isinstance(node.left.right, ast.Constant) and isinstance(node.left.right.value, str) and
-            node.left.right.value == ", " and
-            isinstance(node.right, ast.BinOp) and isinstance(node.right.op, ast.Add)):
-            return ast.Constant(value="f\"{street}, {city}, {state} {zip_code}\"")
+        def _flatten(n: ast.AST):
+            if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Add):
+                _flatten(n.left)
+                _flatten(n.right)
+            else:
+                parts.append(n)
 
-        # Special case for report = report + "Report generated at: " + "2023-06-01" + "\n"
-        if (isinstance(node.left, ast.Name) and node.left.id == "report" and
-            isinstance(node.right, ast.Constant) and isinstance(node.right.value, str)):
-            return ast.Constant(value="report += \"some text\"")
+        _flatten(node)
 
-        # Special case for "Processed: " + str(data) + " at " + str(datetime.datetime.now())
-        if (isinstance(node.left, ast.Constant) and isinstance(node.left.value, str) and
-            node.left.value == "Processed: " and
-            isinstance(node.right, ast.BinOp) and isinstance(node.right.op, ast.Add)):
-            return ast.Constant(value="f\"Processed: {data} at {datetime.datetime.now()}\"")
+        values: List[ast.AST] = []
+        for part in parts:
+            if isinstance(part, ast.Constant) and isinstance(part.value, str):
+                values.append(ast.Constant(value=part.value))
+            else:
+                values.append(ast.FormattedValue(value=part, conversion=-1))
 
-        # Default case - return a simple f-string
-        return ast.Constant(value="f\"Optimized string literal\"")
+        return ast.JoinedStr(values=values)
 
 
 class CodeStyleImprover(ast.NodeTransformer):
