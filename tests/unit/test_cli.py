@@ -70,3 +70,35 @@ class TestTyperCLI:
         result = self.runner.invoke(app, ["config", "enable-feature", "code_generation"])
         assert result.exit_code == 0
         mock_enable_cmd.assert_called_once_with("code_generation")
+
+    @patch("devsynth.adapters.cli.argparse_adapter.edrr_cycle_cmd", autospec=True)
+    def test_cli_edrr_cycle(self, mock_cmd):
+        app = build_app()
+        result = self.runner.invoke(app, ["edrr-cycle", "path/to/manifest.yaml"])
+        assert result.exit_code == 0
+        mock_cmd.assert_called_once_with("path/to/manifest.yaml")
+
+    @patch("devsynth.adapters.cli.argparse_adapter.analyze_manifest_cmd", autospec=True)
+    def test_cli_analyze_manifest_update(self, mock_cmd):
+        app = build_app()
+        result = self.runner.invoke(app, [
+            "analyze-manifest",
+            "--path",
+            "./proj",
+            "--update",
+        ])
+        assert result.exit_code == 0
+        mock_cmd.assert_called_once_with("./proj", True, False)
+
+    @patch("devsynth.adapters.cli.argparse_adapter.analyze_manifest_cmd", autospec=True)
+    def test_cli_analyze_manifest_prune(self, mock_cmd):
+        app = build_app()
+        result = self.runner.invoke(app, [
+            "analyze-manifest",
+            "--path",
+            "./proj",
+            "--prune",
+        ])
+        assert result.exit_code == 0
+        mock_cmd.assert_called_once_with("./proj", False, True)
+
