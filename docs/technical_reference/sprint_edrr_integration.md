@@ -249,8 +249,14 @@ Connect with GitHub/GitLab project management:
 - User experience improvements
 - Documentation and examples
 
+## Current Limitations
+
+- The sprint adapter lacks automated metrics collection.
+- Integration with project management tools is still incomplete.
+
 ## 8. Conclusion
 
 By integrating the EDRR methodology with traditional sprint practices, DevSynth can provide a familiar and effective framework for development teams while leveraging its unique capabilities. This integration ensures that DevSynth operates as a highly effective SDLC tool, aligning with established team workflows while enhancing productivity and quality.
 
 The sprint-based approach to EDRR cycles provides concrete time-boxing, clear metrics, and familiar ceremonies, making it easier for teams to adopt and benefit from DevSynth's capabilities. As teams become more familiar with the integrated approach, they can further customize and optimize it for their specific needs and organizational context.
+

@@ -129,3 +129,8 @@ The implementation includes the following features:
 - Robust error handling for connection issues and invalid responses
 - Integration tests for verifying functionality
 - CLI commands for listing and selecting models
+
+## Current Limitations
+
+- Only local LM Studio servers are supported; remote deployments require manual configuration.
+- Streaming responses and advanced model parameters are experimental.

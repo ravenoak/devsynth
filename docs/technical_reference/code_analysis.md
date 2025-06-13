@@ -117,3 +117,8 @@ Future enhancements to the code analysis feature may include:
 3. **Code Smell Detection**: Identifying potential issues in the code
 4. **Refactoring Suggestions**: Suggesting improvements to the code
 5. **Integration with External Tools**: Integrating with tools like Pylint or Black
+
+## Current Limitations
+
+- AST parsing does not yet cover all Python syntax edge cases.
+- Adapters for third-party analysis tools are still under development.

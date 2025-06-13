@@ -249,6 +249,11 @@ Using knowledge graph utilities with the WSDE model for dialectical reasoning pr
 
 5. **Consistent Knowledge Access**: All agents in the team can access the same knowledge, ensuring consistency in reasoning and decision-making.
 
+## Current Limitations
+
+- Graph querying functions are minimal and lack performance optimizations.
+- More complex reasoning over graph relationships is still experimental.
+
 ## Conclusion
 
 The knowledge graph utilities in DevSynth provide a powerful way to enhance dialectical reasoning with structured knowledge. By integrating these utilities with the WSDE model, agents can generate more informed critiques, create better solutions, and provide more objective evaluations.

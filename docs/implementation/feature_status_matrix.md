@@ -41,28 +41,33 @@ Each feature is scored on two dimensions:
 
 ## Feature Status Table
 
-| Feature | Status | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
-|---------|--------|-------------------|--------------------------------|--------------|-------|-------|
+| Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
+|---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Partially Implemented (60%) | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
-| WSDE Agent Collaboration | Partially Implemented (50%) | 4 | 5 | Memory System | | Multi-agent voting, consensus, and recursive micro-cycles integrated |
-| Dialectical Reasoning | Partially Implemented (50%) | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
-| Message Passing Protocol | Fully Implemented (100%) | 4 | 2 | WSDE Model | | Enables structured agent communication |
-| Peer Review Mechanism | Partially Implemented (50%) | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
-| Memory System | Fully Implemented (100%) | 5 | 4 | None | | Complete with ChromaDB integration |
-| LLM Provider System | Partially Implemented (80%) | 5 | 3 | None | | LM Studio provider fully implemented; OpenAI and Anthropic providers are stubs |
+| EDRR Framework | Partially Implemented (60%) | src/devsynth/application/edrr | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
+| WSDE Agent Collaboration | Partially Implemented (50%) | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Multi-agent voting, consensus, and recursive micro-cycles integrated |
+| Dialectical Reasoning | Partially Implemented (50%) | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
+| Message Passing Protocol | Fully Implemented (100%) | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
+| Peer Review Mechanism | Partially Implemented (50%) | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
+| Memory System | Fully Implemented (100%) | src/devsynth/application/memory | 5 | 4 | None | | Complete with ChromaDB integration |
+| LLM Provider System | Partially Implemented (80%) | src/devsynth/application/llm | 5 | 3 | None | | LM Studio provider fully implemented; OpenAI and Anthropic providers are stubs |
+| LM Studio Integration | Partially Implemented (90%) | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | LLM Provider System | | Local provider stable; remote support experimental |
+| Code Analysis | Partially Implemented (60%) | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
+| Knowledge Graph Utilities | Partially Implemented (50%) | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
+| Methodology Integration Framework | Partially Implemented (50%) | src/devsynth/methodology | 3 | 3 | None | | Sprint adapter implemented, others planned |
+| Sprint-EDRR Integration | Partially Implemented (40%) | src/devsynth/methodology/sprint.py | 3 | 3 | Methodology Integration Framework | | Basic mapping of sprint ceremonies to EDRR phases |
 | **User-Facing Features** |
-| CLI Interface | Fully Implemented (100%) | 5 | 2 | None | | All commands implemented and tested |
-| Project Initialization | Fully Implemented (100%) | 5 | 2 | None | | Complete with configuration options |
-| Code Generation | Partially Implemented (70%) | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
-| Test Generation | Partially Implemented (60%) | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
-| Documentation Generation | Partially Implemented (50%) | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
+| CLI Interface | Fully Implemented (100%) | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested |
+| Project Initialization | Fully Implemented (100%) | src/devsynth/application/orchestration/workflow.py, src/devsynth/application/agents/unified_agent.py | 5 | 2 | None | | Complete with configuration options |
+| Code Generation | Partially Implemented (70%) | src/devsynth/application/agents/code.py | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
+| Test Generation | Partially Implemented (60%) | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
+| Documentation Generation | Partially Implemented (50%) | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
 | **Infrastructure Components** |
-| Docker Containerization | Fully Implemented (100%) | 4 | 3 | None | | Dockerfile and Compose provided |
-| Configuration Management | Partially Implemented (75%) | 4 | 3 | None | | Environment-specific templates available |
-| Deployment Automation | Partially Implemented (60%) | 3 | 3 | Docker | | Basic Docker Compose workflows |
-| Security Framework | Partially Implemented (50%) | 4 | 4 | None | | Environment validation and security policies added; encryption pending |
-| Dependency Management | Partially Implemented (40%) | 3 | 2 | None | | Basic management implemented, optimization pending |
+| Docker Containerization | Fully Implemented (100%) | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
+| Configuration Management | Partially Implemented (75%) | src/devsynth/config, config/ | 4 | 3 | None | | Environment-specific templates available |
+| Deployment Automation | Partially Implemented (60%) | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows |
+| Security Framework | Partially Implemented (50%) | src/devsynth/security | 4 | 4 | None | | Environment validation and security policies added; encryption pending |
+| Dependency Management | Partially Implemented (40%) | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
 
 ## Current Limitations and Workarounds
 
@@ -84,3 +89,4 @@ Each feature is scored on two dimensions:
 2. Update this matrix with findings from the complete audit
 3. Prioritize incomplete features based on user impact and implementation complexity
 4. Develop detailed implementation plans for high-priority features
+
