@@ -4,6 +4,8 @@
 
 This document outlines a concrete strategy for aligning DevSynth's "Expand, Differentiate, Refine, Retrospect" (EDRR) methodology with traditional Agile sprint practices. This integration enhances DevSynth's ability to function as an effective SDLC tool by structuring its iterative processes within a familiar sprint framework.
 
+**Implementation Status:** Basic sprint alignment helpers exist, but full automation of sprint ceremonies within the EDRR workflow is ongoing.
+
 > **Note**: This document describes just one of several ways to integrate EDRR into your development workflow. If your team uses a different methodology, see the [Methodology Integration Framework](./methodology_integration_framework.md) for alternative approaches or how to customize DevSynth to your specific needs.
 
 ## 1. Core Principles of Integration

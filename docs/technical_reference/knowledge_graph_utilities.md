@@ -6,6 +6,8 @@ This document provides an overview of the knowledge graph utilities in DevSynth 
 
 DevSynth includes a set of knowledge graph utilities that allow agents to query and use knowledge stored in a graph-based format. These utilities are particularly useful for enhancing dialectical reasoning by providing access to structured knowledge that can inform critiques, improvements, and evaluations.
 
+**Implementation Status:** Basic querying utilities are available, but advanced reasoning over graph relationships is still experimental.
+
 The knowledge graph utilities are implemented in the `WSDEMemoryIntegration` class and can be used with the `WSDETeam` class for dialectical reasoning.
 
 ## Knowledge Graph Utilities

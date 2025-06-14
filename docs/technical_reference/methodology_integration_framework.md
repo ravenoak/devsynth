@@ -4,6 +4,8 @@
 
 This document outlines DevSynth's approach to supporting multiple development methodologies while maintaining its core "Expand, Differentiate, Refine, Retrospect" (EDRR) process. Rather than prescribing a specific workflow, DevSynth provides an adaptable framework that can integrate with any team's preferred way of working.
 
+**Implementation Status:** A basic Sprint adapter is implemented. Additional methodology adapters and tooling integrations are planned.
+
 ## Core Design Principles
 
 1. **Methodology Agnosticism**: The core EDRR process functions independently of any specific development methodology

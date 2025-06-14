@@ -51,7 +51,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Project Analysis](docs/analysis/executive_summary.md)
-- [Implementation Status](docs/implementation/feature_status_matrix.md)
+- [Implementation Status Matrix](docs/implementation/feature_status_matrix.md)
 - [Requirements Traceability Matrix](docs/requirements_traceability.md)
 - [SDLC Policies](docs/policies/index.md)
 
