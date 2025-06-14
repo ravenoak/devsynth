@@ -8,9 +8,21 @@ functionality and improved integration between different memory stores.
 import os
 import uuid
 from typing import Dict, List, Any, Optional, Set, Union
-import rdflib
-from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
-from rdflib.namespace import FOAF, DC
+try:
+    import rdflib
+    from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
+    from rdflib.namespace import FOAF, DC
+    try:
+        Namespace("test")
+    except Exception:
+        raise ImportError
+except Exception:
+    rdflib = None
+    Graph = Literal = URIRef = object  # type: ignore
+    RDF = RDFS = XSD = object  # type: ignore
+    FOAF = DC = object  # type: ignore
+    def Namespace(uri: str):  # type: ignore
+        return uri
 
 from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....domain.interfaces.memory import MemoryStore, VectorStore

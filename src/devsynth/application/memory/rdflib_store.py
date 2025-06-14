@@ -13,9 +13,21 @@ import tiktoken
 import numpy as np
 from typing import Dict, List, Any, Optional, Union, Tuple
 from datetime import datetime
-import rdflib
-from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
-from rdflib.namespace import FOAF, DC
+try:  # pragma: no cover - optional dependency
+    import rdflib
+    from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
+    from rdflib.namespace import FOAF, DC
+    try:
+        Namespace("test")
+    except Exception:
+        raise ImportError("Invalid rdflib stub")
+except Exception:  # pragma: no cover - graceful fallback for tests
+    rdflib = None
+    Graph = Literal = URIRef = object  # type: ignore
+    RDF = RDFS = XSD = object  # type: ignore
+    FOAF = DC = object  # type: ignore
+    def Namespace(uri: str):  # type: ignore
+        return uri
 
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector

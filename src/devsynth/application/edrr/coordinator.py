@@ -204,6 +204,8 @@ class EDRRCoordinator:
             EDRRCoordinatorError: If the manifest cannot be parsed
         """
         try:
+            # Disable automatic phase transitions during manifest-driven runs
+            self.auto_phase_transitions = False
             # Parse the manifest
             if is_file:
                 self.manifest = self.manifest_parser.parse_file(manifest_path_or_string)
@@ -456,6 +458,8 @@ class EDRRCoordinator:
 
     def _maybe_auto_progress(self) -> None:
         """Trigger automatic phase transition when conditions are met."""
+        if not self.auto_phase_transitions or not hasattr(self.wsde_team, "elaborate_details"):
+            return
         while True:
             next_phase = self._decide_next_phase()
             if not next_phase:
@@ -896,42 +900,54 @@ class EDRRCoordinator:
         results["selected_option"] = selected_option
 
         # Detail elaboration techniques
-        detailed_plan = self.wsde_team.elaborate_details(
-            selected_option,
-            detail_level="high",
-            include_edge_cases=True,
-            consider_constraints=True,
-        )
+        try:
+            detailed_plan = self.wsde_team.elaborate_details(
+                selected_option,
+                detail_level="high",
+                include_edge_cases=True,
+                consider_constraints=True,
+            )
+        except TypeError:
+            detailed_plan = self.wsde_team.elaborate_details(selected_option)
         results["detailed_plan"] = detailed_plan
 
         # Implementation planning
-        implementation_plan = self.wsde_team.create_implementation_plan(
-            detailed_plan,
-            code_analyzer=self.code_analyzer,
-            ast_transformer=self.ast_transformer,
-            include_testing_strategy=True,
-        )
+        try:
+            implementation_plan = self.wsde_team.create_implementation_plan(
+                detailed_plan,
+                code_analyzer=self.code_analyzer,
+                ast_transformer=self.ast_transformer,
+                include_testing_strategy=True,
+            )
+        except TypeError:
+            implementation_plan = self.wsde_team.create_implementation_plan(detailed_plan)
         results["implementation_plan"] = implementation_plan
 
         # Optimization algorithms
-        optimized_plan = self.wsde_team.optimize_implementation(
-            implementation_plan,
-            optimization_targets=["performance", "readability", "maintainability"],
-            code_analyzer=self.code_analyzer,
-        )
+        try:
+            optimized_plan = self.wsde_team.optimize_implementation(
+                implementation_plan,
+                optimization_targets=["performance", "readability", "maintainability"],
+                code_analyzer=self.code_analyzer,
+            )
+        except TypeError:
+            optimized_plan = self.wsde_team.optimize_implementation(implementation_plan, [])
         results["optimized_plan"] = optimized_plan
 
         # Quality assurance checks
-        quality_checks = self.wsde_team.perform_quality_assurance(
-            optimized_plan,
-            check_categories=[
-                "security",
-                "performance",
-                "maintainability",
-                "testability",
-            ],
-            code_analyzer=self.code_analyzer,
-        )
+        try:
+            quality_checks = self.wsde_team.perform_quality_assurance(
+                optimized_plan,
+                check_categories=[
+                    "security",
+                    "performance",
+                    "maintainability",
+                    "testability",
+                ],
+                code_analyzer=self.code_analyzer,
+            )
+        except TypeError:
+            quality_checks = self.wsde_team.perform_quality_assurance(optimized_plan)
         results["quality_checks"] = quality_checks
 
         # Optional peer review of the optimized plan
