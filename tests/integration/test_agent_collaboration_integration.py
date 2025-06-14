@@ -17,6 +17,12 @@ from devsynth.application.collaboration.agent_collaboration import (
     MessageType,
     TaskStatus,
 )
+from devsynth.application.collaboration.message_protocol import (
+    MessageProtocol,
+    MessageStore,
+    MessageType as ProtocolMessageType,
+)
+from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.domain.interfaces.agent import Agent
 
 
@@ -26,6 +32,7 @@ class MockAgent(Agent):
     def __init__(self, agent_id: str, capabilities: list = None):
         self.id = agent_id
         self.capabilities = capabilities or []
+        self.expertise = self.capabilities
         self.current_role = None
         self._process_mock = MagicMock(
             return_value={"status": "success", "message": f"Processed by {agent_id}"}
@@ -77,9 +84,9 @@ class TestAgentCollaborationSystem:
         collaboration_system = AgentCollaborationSystem()
 
         # Create and register mock agents
-        agent1 = MockAgent("agent1", ["planning"])
-        agent2 = MockAgent("agent2", ["coding"])
-        agent3 = MockAgent("agent3", ["testing"])
+        agent1 = MockAgent("agent1", ["planning", "design"])
+        agent2 = MockAgent("agent2", ["coding", "review"])
+        agent3 = MockAgent("agent3", ["testing", "qa"])
 
         collaboration_system.register_agent(agent1)
         collaboration_system.register_agent(agent2)
@@ -265,6 +272,41 @@ class TestAgentCollaborationSystem:
         assert task1.status == TaskStatus.COMPLETED
         assert task2.status == TaskStatus.COMPLETED
         assert task3.status == TaskStatus.COMPLETED
+
+    def test_message_protocol_persistence(self, tmp_path, monkeypatch):
+        """Ensure messages are persisted to storage."""
+
+        storage_file = tmp_path / "messages.json"
+        monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "0")
+        store = MessageStore(str(storage_file))
+        proto = MessageProtocol(store)
+        proto.send_message(
+            sender="a",
+            recipients=["b"],
+            message_type=ProtocolMessageType.STATUS_UPDATE,
+            subject="s",
+            content="c",
+        )
+
+        # Recreate protocol using same store to verify persistence
+        proto2 = MessageProtocol(MessageStore(str(storage_file)))
+        msgs = proto2.get_messages()
+        assert len(msgs) == 1
+        assert msgs[0].sender == "a"
+
+    def test_peer_review_workflow(self):
+        """Run a full peer review using workflow helpers."""
+
+        author = MockAgent("author")
+        reviewer1 = MockAgent("r1")
+        reviewer2 = MockAgent("r2")
+        result = run_peer_review(
+            work_product={"text": "demo"},
+            author=author,
+            reviewers=[reviewer1, reviewer2],
+        )
+        assert result["status"] == "approved"
+        assert result["feedback"]["feedback"]
 
 
 if __name__ == "__main__":
