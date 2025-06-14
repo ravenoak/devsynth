@@ -12,6 +12,7 @@ This policy outlines security design principles and operational guidelines for D
 ## Operational Guidelines
 - Enable or disable authentication, authorization and input sanitization via environment variables (`DEVSYNTH_AUTHENTICATION_ENABLED`, `DEVSYNTH_AUTHORIZATION_ENABLED`, `DEVSYNTH_SANITIZATION_ENABLED`).
 - Encryption at rest for memory stores can be toggled with `DEVSYNTH_ENCRYPTION_AT_REST` and a base64 key provided via `DEVSYNTH_ENCRYPTION_KEY`.
+- Encryption in transit can be enforced with `DEVSYNTH_ENCRYPTION_IN_TRANSIT`.
 - TLS verification and certificates are configured using `DEVSYNTH_TLS_VERIFY`, `DEVSYNTH_TLS_CERT_FILE`, `DEVSYNTH_TLS_KEY_FILE` and `DEVSYNTH_TLS_CA_FILE`.
 - Store API keys and secrets in environment variables or a secrets manager; never commit them to the repository.
 - Report suspected security issues or vulnerabilities through the issue tracker.
@@ -26,4 +27,17 @@ export DEVSYNTH_ENCRYPTION_KEY="$(python -c 'from devsynth.security.encryption i
 export DEVSYNTH_TLS_CERT_FILE=/path/to/cert.pem
 export DEVSYNTH_TLS_KEY_FILE=/path/to/key.pem
 export DEVSYNTH_TLS_CA_FILE=/path/to/ca.pem
+export DEVSYNTH_ACCESS_TOKEN=my-secret-token
 ```
+
+## Threat Model
+
+The primary threats considered include:
+
+- Unauthorized access to memory stores
+- Interception of API traffic
+- Misuse of agent or API credentials
+
+Mitigations include encryption at rest, optional TLS for all network
+communication, bearer token authentication for API and agent actions,
+and routine dependency and static analysis checks in CI.

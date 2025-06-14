@@ -27,6 +27,8 @@ This document serves as the central index and navigation point for all Software 
 | **Deployment** | [Deployment Policy](deployment.md) | Deployment workflow, environment management, and release process | Implemented |
 | **Maintenance** | [Maintenance Policy](maintenance.md) | Bug fixing, enhancement process, and version management | Implemented |
 | **Cross-Cutting** | [Cross-Cutting Concerns](cross_cutting.md) | Security, performance, accessibility, and other cross-cutting concerns | Implemented |
+| **Privacy** | [Privacy Policy](privacy.md) | Data handling and user privacy commitments | Implemented |
+| **Data Retention** | [Data Retention Policy](data_retention.md) | How long different data types are stored | Implemented |
 | **Alignment** | [Continuous Alignment Process](continuous_alignment_process.md) | Processes, checks, and metrics for maintaining alignment between SDLC artifacts | Implemented |
 
 ## Implementation Guides

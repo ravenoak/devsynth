@@ -130,6 +130,7 @@ class Settings(BaseSettings):
                 "DEVSYNTH_MEMORY_STORE", "memory"
             ),
             "openai_api_key": lambda s: os.environ.get("OPENAI_API_KEY", None),
+            "access_token": lambda s: os.environ.get("DEVSYNTH_ACCESS_TOKEN", None),
         }
 
         # Check if we have a mapping for this key
@@ -236,6 +237,11 @@ class Settings(BaseSettings):
         default=None,
         validation_alias="DEVSYNTH_ENCRYPTION_KEY",
         json_schema_extra={"env": "DEVSYNTH_ENCRYPTION_KEY"},
+    )
+    access_token: Optional[str] = Field(
+        default=None,
+        validation_alias="DEVSYNTH_ACCESS_TOKEN",
+        json_schema_extra={"env": "DEVSYNTH_ACCESS_TOKEN"},
     )
     tls_verify: bool = Field(
         default=True,
