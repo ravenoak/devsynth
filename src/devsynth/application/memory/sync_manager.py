@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from ...logging_setup import DevSynthLogger
 from ...domain.models.memory import MemoryItem
+from .tiered_cache import TieredCache
 
 if TYPE_CHECKING:
     from .memory_manager import MemoryManager
@@ -16,9 +17,10 @@ logger = DevSynthLogger(__name__)
 class SyncManager:
     """Synchronize memory items between different stores."""
 
-    def __init__(self, memory_manager: MemoryManager) -> None:
+    def __init__(self, memory_manager: MemoryManager, cache_size: int = 50) -> None:
         self.memory_manager = memory_manager
         self._queue: List[tuple[str, MemoryItem]] = []
+        self.cache: TieredCache[Dict[str, List[Any]]] = TieredCache(max_size=cache_size)
 
     def _get_all_items(self, adapter: Any) -> List[MemoryItem]:
         if hasattr(adapter, "get_all_items"):
@@ -70,3 +72,39 @@ class SyncManager:
         for store, item in self._queue:
             self.update_item(store, item)
         self._queue = []
+
+    def cross_store_query(
+        self, query: str, stores: Optional[List[str]] | None = None
+    ) -> Dict[str, List[Any]]:
+        """Query multiple stores and cache the aggregated results."""
+
+        key_stores = ",".join(sorted(stores)) if stores else "all"
+        cache_key = f"{query}:{key_stores}"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        stores = stores or list(self.memory_manager.adapters.keys())
+        results: Dict[str, List[Any]] = {}
+        for name in stores:
+            adapter = self.memory_manager.adapters.get(name)
+            if not adapter:
+                continue
+            if name == "vector" and hasattr(adapter, "similarity_search"):
+                embedding = self.memory_manager._embed_text(query)
+                results[name] = adapter.similarity_search(embedding, top_k=5)
+            elif hasattr(adapter, "search"):
+                results[name] = adapter.search({"content": query})
+
+        self.cache.put(cache_key, results)
+        return results
+
+    def clear_cache(self) -> None:
+        """Clear cached query results."""
+
+        self.cache.clear()
+
+    def get_cache_size(self) -> int:
+        """Return number of cached queries."""
+
+        return self.cache.size()

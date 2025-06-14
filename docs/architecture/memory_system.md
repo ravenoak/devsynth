@@ -334,6 +334,10 @@ results = manager.route_query("authentication implementation", strategy="cross")
 manager.synchronize("vector", "graph")
 ```
 
+The synchronization manager keeps a small in-memory cache of cross-store
+query results. Repeating a query with `manager.sync_manager.cross_store_query()`
+will return the cached data until the cache is cleared.
+
 ## Common Usage Patterns
 
 ### RAG Pattern (Retrieval Augmented Generation)
