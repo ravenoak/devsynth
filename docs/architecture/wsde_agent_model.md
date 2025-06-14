@@ -251,11 +251,36 @@ COLLABORATIVE CODE REVIEW PROCESS:
 7. **Respect Expertise**: Value each agent's domain expertise
 8. **Collective Ownership**: Foster a sense of collective ownership of outcomes
 
+## Using WSDETeam
+
+The `WSDETeam` class in `domain.models.wsde` manages collaborative agents. To
+use it:
+
+```python
+from devsynth.domain.models.wsde import WSDETeam
+
+team = WSDETeam()
+team.add_agents([agent_a, agent_b])
+
+# Dynamically assign roles for a new task
+task = {"type": "documentation", "description": "Write API docs"}
+team.dynamic_role_reassignment(task)
+
+# Agents contribute solutions
+team.add_solution(task, {"agent": agent_a.name, "content": "Initial draft"})
+team.add_solution(task, {"agent": agent_b.name, "content": "Formatting updates"})
+
+# Build consensus on the final approach
+final = team.build_consensus(task)
+print(final["consensus"])
+```
+
 ## Current Limitations
 
-Full WSDE collaboration is still under development. Dynamic role assignment and
-advanced consensus mechanisms remain incomplete. Collaboration is disabled by
-default via the `features.wsde_collaboration` flag in `config/default.yml`.
+Full WSDE collaboration is still under development. The latest release adds
+dynamic role reassignment and fully functional consensus voting. Collaboration
+remains disabled by default via the `features.wsde_collaboration` flag in
+`config/default.yml`.
 Refer to the
 [Feature Status Matrix](../implementation/feature_status_matrix.md) for the
 latest progress details.
