@@ -281,20 +281,22 @@ class AgentCoordinatorImpl(AgentCoordinator):
         }
 
     def _resolve_conflicts(self, *agent_results) -> Dict[str, Any]:
-        """
-        Resolve conflicts between agent results.
+        """Resolve conflicts between agent results using consensus."""
 
-        In case of conflicts, the Primus's decision takes precedence.
-        """
-        # For now, we'll use a simple approach where the Primus's decision is final
-        # This can be extended with more sophisticated conflict resolution strategies
+        # If there is only one result, return it as the final decision
+        if len(agent_results) == 1:
+            return {"consensus": agent_results[0]}
 
-        # The last result is from the Primus
-        primus_result = agent_results[-1]
+        # Build a consensus task representation
+        options = [
+            {"id": str(i), "content": result.get("solution", result)}
+            for i, result in enumerate(agent_results)
+        ]
+        consensus_task = {
+            "type": "critical_decision",
+            "is_critical": True,
+            "options": options,
+        }
 
-        # Check if there's a "final_decision" key in the Primus result
-        if "final_decision" in primus_result:
-            return {"final_decision": primus_result["final_decision"]}
-
-        # Otherwise, return a generic consensus result
-        return {"consensus": "Reached based on Primus decision"}
+        consensus = self.team.build_consensus(consensus_task)
+        return consensus

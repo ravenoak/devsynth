@@ -649,6 +649,13 @@ class EDRRCoordinator:
         logger.info(f"Executing Expand phase (recursion depth: {self.recursion_depth})")
         results = {}
 
+        # Render phase-specific prompt if available
+        expand_prompt = self.prompt_manager.render_prompt(
+            "expand_phase", {"task_description": self.task.get("description", "")}
+        )
+        if expand_prompt:
+            results["prompt"] = expand_prompt
+
         # Implement divergent thinking patterns
         broad_ideas = self.wsde_team.generate_diverse_ideas(
             self.task, max_ideas=10, diversity_threshold=0.7
@@ -740,6 +747,13 @@ class EDRRCoordinator:
             f"Executing Differentiate phase (recursion depth: {self.recursion_depth})"
         )
         results = {}
+
+        diff_prompt = self.prompt_manager.render_prompt(
+            "differentiate_phase",
+            {"task_description": self.task.get("description", "")},
+        )
+        if diff_prompt:
+            results["prompt"] = diff_prompt
 
         # Get ideas from the Expand phase
         if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
@@ -856,6 +870,12 @@ class EDRRCoordinator:
 
         logger.info(f"Executing Refine phase (recursion depth: {self.recursion_depth})")
         results = {}
+
+        refine_prompt = self.prompt_manager.render_prompt(
+            "refine_phase", {"task_description": self.task.get("description", "")}
+        )
+        if refine_prompt:
+            results["prompt"] = refine_prompt
 
         # Get evaluated options from the Differentiate phase
         if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
@@ -994,6 +1014,12 @@ class EDRRCoordinator:
             f"Executing Retrospect phase (recursion depth: {self.recursion_depth})"
         )
         results = {}
+
+        retro_prompt = self.prompt_manager.render_prompt(
+            "retrospect_phase", {"task_description": self.task.get("description", "")}
+        )
+        if retro_prompt:
+            results["prompt"] = retro_prompt
 
         # Collect results from all previous phases
         if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
@@ -1389,3 +1415,9 @@ class EDRRCoordinator:
             }
 
         self.results["AGGREGATED"] = aggregated
+
+        # Aggregate performance metrics across phases
+        total_duration = sum(
+            m.get("duration", 0) for m in self.performance_metrics.values()
+        )
+        self.performance_metrics["TOTAL"] = {"duration": total_duration}
