@@ -97,7 +97,7 @@ For more on Docker deployment, see the [Deployment Guide](docs/deployment/deploy
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
 
 ```bash
-pip install chromadb faiss-cpu lmdb
+pip install 'devsynth[retrieval]'
 ```
 
 These packages enable the ChromaDB, FAISS, and LMDB memory stores and are required for the tests that cover them.
@@ -152,13 +152,13 @@ poetry install
 Some tests and features rely on optional backends like **ChromaDB**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:
 
 ```bash
-pip install chromadb faiss-cpu lmdb
+pip install 'devsynth[retrieval]'
 ```
 
 For a smaller core install you can instead run:
 
 ```bash
-pip install -e '.[minimal,dev]'
+pip install -e '.[minimal,dev,retrieval]'
 ```
 
 After installation, execute the tests with:
