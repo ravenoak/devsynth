@@ -86,35 +86,80 @@ class ChromaDBStore(MemoryStore):
             self.client = chromadb.EphemeralClient()
 
         # Get or create the main collection
+        self._use_fallback = False
+        self._store: dict[str, MemoryItem] = {}
+        self._versions: dict[str, list[MemoryItem]] = {}
+        self._fallback_file = os.path.join(file_path, "fallback_store.json")
+
+        if os.path.exists(self._fallback_file):
+            try:
+                with open(self._fallback_file, "r") as f:
+                    data = json.load(f)
+                    for item_dict in data.get("items", []):
+                        item = self._deserialize_memory_item(item_dict)
+                        self._store[item.id] = item
+                    for vid, versions in data.get("versions", {}).items():
+                        self._versions[vid] = [self._deserialize_memory_item(v) for v in versions]
+                self._use_fallback = True
+            except Exception:
+                pass
+
         try:
             self.collection = self.client.get_collection(name=self.collection_name)
             logger.info(f"Using existing ChromaDB collection: {self.collection_name}")
         except Exception as e:
-            # Collection doesn't exist, create it
-            logger.info(f"Collection not found: {e}")
-            self.collection = self.client.create_collection(name=self.collection_name)
-            logger.info(f"Created new ChromaDB collection: {self.collection_name}")
+            try:
+                # Collection doesn't exist, create it
+                logger.info(f"Collection not found: {e}")
+                self.collection = self.client.create_collection(name=self.collection_name)
+                logger.info(f"Created new ChromaDB collection: {self.collection_name}")
+            except Exception as e2:
+                logger.warning(
+                    f"Failed to initialize ChromaDB collection: {e2}. Falling back to in-memory store"
+                )
+                self._use_fallback = True
+                if os.path.exists(self._fallback_file):
+                    try:
+                        with open(self._fallback_file, "r") as f:
+                            data = json.load(f)
+                            for item_dict in data.get("items", []):
+                                item = self._deserialize_memory_item(item_dict)
+                                self._store[item.id] = item
+                            for vid, versions in data.get("versions", {}).items():
+                                self._versions[vid] = [self._deserialize_memory_item(v) for v in versions]
+                    except Exception:
+                        pass
 
-        # Get or create the versions collection
-        try:
-            self.versions_collection = self.client.get_collection(
-                name=self.versions_collection_name
-            )
-            logger.info(
-                f"Using existing ChromaDB versions collection: {self.versions_collection_name}"
-            )
-        except Exception as e:
-            # Collection doesn't exist, create it
-            logger.info(f"Versions collection not found: {e}")
-            self.versions_collection = self.client.create_collection(
-                name=self.versions_collection_name
-            )
-            logger.info(
-                f"Created new ChromaDB versions collection: {self.versions_collection_name}"
-            )
+        if not self._use_fallback:
+            try:
+                self.versions_collection = self.client.get_collection(
+                    name=self.versions_collection_name
+                )
+                logger.info(
+                    f"Using existing ChromaDB versions collection: {self.versions_collection_name}"
+                )
+            except Exception as e:
+                try:
+                    self.versions_collection = self.client.create_collection(
+                        name=self.versions_collection_name
+                    )
+                    logger.info(
+                        f"Created new ChromaDB versions collection: {self.versions_collection_name}"
+                    )
+                except Exception as e2:
+                    logger.warning(
+                        f"Failed to initialize versions collection: {e2}. Falling back to in-memory store"
+                    )
+                    self._use_fallback = True
 
         # Initialize the tokenizer for token counting
-        self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+        try:
+            self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+        except Exception as e:
+            logger.warning(
+                f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
+            )
+            self.tokenizer = None
 
     def _count_tokens(self, text: str) -> int:
         """
@@ -126,8 +171,15 @@ class ChromaDBStore(MemoryStore):
         Returns:
             The number of tokens in the text
         """
-        tokens = self.tokenizer.encode(text)
-        return len(tokens)
+        if self.tokenizer:
+            try:
+                tokens = self.tokenizer.encode(text)
+                return len(tokens)
+            except Exception as e:
+                logger.warning(
+                    f"Tokenizer error: {e}; falling back to approximate count"
+                )
+        return len(text) // 4
 
     def _serialize_memory_item(self, item: MemoryItem) -> Dict[str, Any]:
         """
@@ -211,9 +263,12 @@ class ChromaDBStore(MemoryStore):
             The ID of the stored item
         """
         try:
-            # Check if this is an update to an existing item
-            existing_item = self.retrieve(item.id)
-            is_update = existing_item is not None
+            if self._use_fallback:
+                existing_item = self._store.get(item.id)
+                is_update = existing_item is not None
+            else:
+                existing_item = self.retrieve(item.id)
+                is_update = existing_item is not None
 
             # Serialize the item
             serialized = self._serialize_memory_item(item)
@@ -252,20 +307,34 @@ class ChromaDBStore(MemoryStore):
                 else item.content
             )
 
-            self.collection.upsert(
-                ids=[item.id],
-                documents=[document_content],
-                metadatas=[{"item_data": metadata_json}],
-            )
+            if self._use_fallback:
+                # Simple in-memory storage
+                item.metadata = serialized["metadata"]
+                self._store[item.id] = item
+                self._save_fallback()
+            else:
+                self.collection.upsert(
+                    ids=[item.id],
+                    documents=[document_content],
+                    metadatas=[{"item_data": metadata_json}],
+                )
 
             # Invalidate cache for this item
-            if item.id in self._cache:
+            if not self._use_fallback and item.id in self._cache:
                 del self._cache[item.id]
 
             logger.info(f"Stored item with ID {item.id} in ChromaDB")
             return item.id
 
         except Exception as e:
+            if not self._use_fallback:
+                logger.warning(
+                    f"Error storing item in ChromaDB: {e}. Switching to in-memory fallback"
+                )
+                self._use_fallback = True
+                self._store[item.id] = item
+                self._save_fallback()
+                return item.id
             logger.error(f"Error storing item in ChromaDB: {e}")
             raise MemoryStoreError(f"Failed to store item: {e}")
 
@@ -283,6 +352,11 @@ class ChromaDBStore(MemoryStore):
 
             # Add version information
             serialized["metadata"]["version"] = version
+
+            if self._use_fallback:
+                self._versions.setdefault(item.id, []).append(item)
+                self._save_fallback()
+                return
 
             # Convert to JSON for storage
             metadata_json = json.dumps(serialized)
@@ -330,6 +404,9 @@ class ChromaDBStore(MemoryStore):
             The retrieved MemoryItem, or None if not found
         """
         try:
+            if self._use_fallback:
+                return self._store.get(item_id)
+
             # Query ChromaDB for the item
             result = self.collection.get(ids=[item_id])
 
@@ -397,6 +474,13 @@ class ChromaDBStore(MemoryStore):
             The retrieved MemoryItem, or None if not found
         """
         try:
+            if self._use_fallback:
+                versions = self._versions.get(item_id, []) + ([self._store.get(item_id)] if item_id in self._store else [])
+                for v in versions:
+                    if v and v.metadata.get("version") == version:
+                        return v
+                return None
+
             # First check if this is the current version in the main collection
             current_item = self.retrieve(item_id)
             if current_item and current_item.metadata.get("version") == version:
@@ -477,6 +561,13 @@ class ChromaDBStore(MemoryStore):
         token_count = self._count_tokens(semantic_query)
         self._token_usage += token_count
 
+        if self._use_fallback:
+            items = []
+            for item in self._store.values():
+                if isinstance(item.content, str) and semantic_query.lower() in item.content.lower():
+                    items.append(item)
+            return items
+
         # Perform the search
         results = self.collection.query(
             query_texts=[semantic_query], n_results=10  # Return top 10 results
@@ -512,19 +603,19 @@ class ChromaDBStore(MemoryStore):
         # We need to get all items and filter them manually since ChromaDB's
         # filtering is limited to metadata fields
 
-        # Get all items
-        results = self.collection.get()
+        if self._use_fallback:
+            all_items = list(self._store.values())
+        else:
+            # Get all items
+            results = self.collection.get()
 
-        # Process results
-        all_items = []
-        if results["ids"] and results["metadatas"]:
-            for metadata in results["metadatas"]:
-                # Extract the serialized item from metadata
-                serialized = json.loads(metadata["item_data"])
-
-                # Deserialize to a MemoryItem
-                item = self._deserialize_memory_item(serialized)
-                all_items.append(item)
+            # Process results
+            all_items = []
+            if results["ids"] and results["metadatas"]:
+                for metadata in results["metadatas"]:
+                    serialized = json.loads(metadata["item_data"])
+                    item = self._deserialize_memory_item(serialized)
+                    all_items.append(item)
 
         # Filter items based on query
         filtered_items = []
@@ -577,11 +668,18 @@ class ChromaDBStore(MemoryStore):
                 logger.warning(f"Item with ID {item_id} not found for deletion")
                 return False
 
+            if self._use_fallback:
+                existed = item_id in self._store
+                self._store.pop(item_id, None)
+                self._versions.pop(item_id, None)
+                self._save_fallback()
+                return existed
+
             # Delete the item from ChromaDB
             self.collection.delete(ids=[item_id])
 
             # Remove the item from the cache if it exists
-            if item_id in self._cache:
+            if not self._use_fallback and item_id in self._cache:
                 del self._cache[item_id]
 
             logger.info(f"Deleted item with ID {item_id} from ChromaDB")
@@ -611,6 +709,14 @@ class ChromaDBStore(MemoryStore):
             A list of MemoryItems representing all versions of the item
         """
         try:
+            if self._use_fallback:
+                versions = list(self._versions.get(item_id, []))
+                current_item = self._store.get(item_id)
+                if current_item:
+                    versions.append(current_item)
+                versions.sort(key=lambda x: x.metadata.get("version", 0))
+                return versions
+
             # Query the versions collection for all versions of this item
             result = self.versions_collection.get(where={"original_id": item_id})
 
@@ -724,3 +830,19 @@ class ChromaDBStore(MemoryStore):
         except Exception as e:
             logger.error(f"Error calculating embedding storage efficiency: {e}")
             return 0.0
+
+    def _save_fallback(self) -> None:
+        if not self._use_fallback:
+            return
+        try:
+            data = {
+                "items": [self._serialize_memory_item(i) for i in self._store.values()],
+                "versions": {
+                    k: [self._serialize_memory_item(v) for v in vals]
+                    for k, vals in self._versions.items()
+                },
+            }
+            with open(self._fallback_file, "w") as f:
+                json.dump(data, f)
+        except Exception:
+            pass

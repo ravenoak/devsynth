@@ -244,7 +244,10 @@ class LMDBStore(MemoryStore):
         # Store content for searching
         if item.content:
             content_key = f"content:{item.id}".encode("utf-8")
-            txn.put(content_key, item.content.encode("utf-8"), db=self.metadata_db)
+            content_bytes = item.content.encode("utf-8")
+            if self.encryption_enabled:
+                content_bytes = self._encrypt(content_bytes)
+            txn.put(content_key, content_bytes, db=self.metadata_db)
 
         return item.id
 

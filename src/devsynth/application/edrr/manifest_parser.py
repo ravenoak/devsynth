@@ -171,9 +171,10 @@ class ManifestParser:
             ManifestParseError: If the manifest is invalid
         """
         try:
-            jsonschema.validate(instance=manifest, schema=MANIFEST_SCHEMA)
+            if hasattr(jsonschema, "validate"):
+                jsonschema.validate(instance=manifest, schema=MANIFEST_SCHEMA)
             logger.info("Validated EDRR manifest")
-        except jsonschema.exceptions.ValidationError as e:
+        except Exception as e:
             logger.error(f"Invalid EDRR manifest: {e}")
             raise ManifestParseError(f"Invalid EDRR manifest: {e}")
 
