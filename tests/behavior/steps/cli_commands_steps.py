@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 from io import StringIO
 
 # Import the CLI modules
-from devsynth.adapters.cli.argparse_adapter import run_cli, show_help, parse_args
+from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
 from devsynth.application.cli.cli_commands import (
     init_cmd,
     spec_cmd,
