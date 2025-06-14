@@ -129,7 +129,9 @@ class EDRRCoordinator:
         self.recursion_depth = recursion_depth
         self.parent_phase = parent_phase
         self.child_cycles = []
-        self.max_recursion_depth = self.DEFAULT_MAX_RECURSION_DEPTH
+        self.max_recursion_depth = edrr_cfg.get(
+            "max_recursion_depth", self.DEFAULT_MAX_RECURSION_DEPTH
+        )
 
         self.manifest_parser = ManifestParser()
         self._manifest_parser = None
@@ -1265,6 +1267,10 @@ class EDRRCoordinator:
 
         if micro_cycle_results:
             report["micro_cycle_results"] = micro_cycle_results
+
+        # Include aggregated performance metrics and basic recursion stats
+        report["metrics"] = self.get_performance_metrics()
+        report["child_cycle_count"] = len(self.child_cycles)
 
         logger.info(
             f"Final report generated for cycle {self.cycle_id} (recursion depth: {self.recursion_depth})"

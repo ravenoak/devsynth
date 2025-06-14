@@ -16,6 +16,7 @@ from rich.console import Console
 
 from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.application.ingestion import Ingestion
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -71,32 +72,17 @@ def ingest_cmd(
                 console.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
             return
 
-        # Load the manifest
-        manifest = load_manifest(manifest_path)
+        # Perform the ingestion using the Ingestion class
+        ingestion = Ingestion(manifest_path.parent, manifest_path)
+        result = ingestion.run_ingestion(dry_run=dry_run, verbose=verbose)
 
-        # Perform the ingestion
-        if not dry_run:
-            console.print("[bold]Starting ingestion process...[/bold]")
-
-            # Expand phase
-            console.print("[bold]Expand phase:[/bold] Analyzing project from the ground up")
-            expand_results = expand_phase(manifest, verbose)
-
-            # Differentiate phase
-            console.print("[bold]Differentiate phase:[/bold] Validating against higher-level definitions")
-            differentiate_results = differentiate_phase(manifest, expand_results, verbose)
-
-            # Refine phase
-            console.print("[bold]Refine phase:[/bold] Hygiene, resilience, and integration")
-            refine_results = refine_phase(manifest, differentiate_results, verbose)
-
-            # Retrospect phase
-            console.print("[bold]Retrospect phase:[/bold] Evaluating outcomes and planning next steps")
-            retrospect_phase(manifest, refine_results, verbose)
-
+        if result.get("success"):
             console.print("[green]Ingestion completed successfully.[/green]")
         else:
-            console.print("[yellow]Dry run completed. No changes were made.[/yellow]")
+            console.print(f"[red]Ingestion failed:[/red] {result.get('error')}")
+
+        if verbose:
+            console.print(json.dumps(result.get("metrics", {}), indent=2))
 
     except ManifestError as e:
         console.print(f"[red]Manifest Error:[/red] {str(e)}")
