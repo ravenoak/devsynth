@@ -416,6 +416,16 @@ class WSDETeam:
         self.select_primus_by_expertise({**task, "phase": phase.value})
         self.assign_roles()
 
+    def dynamic_role_reassignment(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Dynamically reassign roles based on the provided task context."""
+
+        if not self.agents:
+            return {}
+
+        self.select_primus_by_expertise(task)
+        self.assign_roles()
+        return self.role_assignments
+
     def _validate_role_mapping(self, mapping: Dict[str, Any]) -> None:
         """Validate that a role mapping only contains agents from this team."""
         valid_agents = set(self.agents)
