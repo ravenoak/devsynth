@@ -4,13 +4,17 @@ from unittest.mock import patch, MagicMock
 import json
 import os
 from devsynth.application.llm.lmstudio_provider import LMStudioProvider
+import requests
 from devsynth.application.utils.token_tracker import TokenTracker, TokenLimitExceededError
 
 class TestLMStudioProvider(unittest.TestCase):
     """Test cases for the LMStudio LLM provider."""
-    
+
     def setUp(self):
         """Set up test environment."""
+        patcher = patch('devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE', False)
+        self.addCleanup(patcher.stop)
+        patcher.start()
         self.config = {
             "api_base": "http://localhost:1234/v1",
             "model": "local_model"
@@ -136,10 +140,27 @@ class TestLMStudioProvider(unittest.TestCase):
         mock_response.status_code = 500
         mock_response.json.return_value = {"error": "Internal server error"}
         mock_post.return_value = mock_response
-        
+
         # Call the method and expect an exception
         with self.assertRaises(Exception):
             self.provider.generate("Test prompt")
+
+    @patch('requests.post')
+    def test_circuit_breaker_opens_after_failures(self, mock_post):
+        """Ensure circuit breaker prevents repeated failing calls."""
+        mock_post.side_effect = requests.RequestException("fail")
+
+        with self.assertRaises(Exception):
+            self.provider.generate("Test prompt")
+
+        self.assertEqual(mock_post.call_count, self.provider.max_retries)
+
+        mock_post.reset_mock()
+
+        with self.assertRaises(Exception):
+            self.provider.generate("Test prompt")
+
+        mock_post.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
