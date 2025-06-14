@@ -4,9 +4,13 @@ This document describes the LLM integration in DevSynth, focusing on the LM Stud
 
 ## Overview
 
-DevSynth supports multiple LLM providers through a flexible adapter pattern. The current implementation includes:
+DevSynth supports multiple LLM providers through a flexible adapter pattern.
 
-- OpenAI provider (stub)
+**Implementation Status:** LM Studio and OpenAI providers are fully implemented. The Anthropic provider remains a stub.
+
+The current implementation includes:
+
+- OpenAI provider (implemented)
 - Anthropic provider (stub)
 - LM Studio provider (fully implemented)
 

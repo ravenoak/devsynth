@@ -19,6 +19,8 @@ last_reviewed: "2025-05-28"
 
 The DevSynth agent system leverages LangGraph to create modular, stateful, and resilient AI agents. This architecture allows for the construction of complex workflows where agents can perform tasks, make decisions, and interact with other DevSynth components like the memory system and provider system.
 
+**Implementation Status:** Core agent orchestration is implemented, but advanced WSDE collaboration features remain in progress.
+
 The agent system is organized according to the Worker Self-Directed Enterprise (WSDE) model, which provides a non-hierarchical, collaborative framework for agent interaction. This model ensures that agents work together as peers with complementary capabilities, with leadership (Primus role) rotating based on task expertise.
 
 This document outlines the foundational components of the agent system, including the WSDE model, `AgentState`, and the `base_agent_graph`.

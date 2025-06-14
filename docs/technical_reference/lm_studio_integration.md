@@ -6,6 +6,8 @@ This document describes the integration between DevSynth and LM Studio, includin
 
 DevSynth can use LM Studio as a provider for language models. LM Studio is a desktop application that allows you to run language models locally on your machine. By integrating with LM Studio, DevSynth can leverage these local models for various tasks, such as requirement analysis, specification generation, test generation, and code generation.
 
+**Implementation Status:** The LM Studio provider is stable for local use. Remote model support and advanced streaming remain experimental.
+
 ## Prerequisites
 
 - LM Studio installed and running on your machine

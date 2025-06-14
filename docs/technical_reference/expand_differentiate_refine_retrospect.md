@@ -19,6 +19,8 @@ last_reviewed: "2025-05-20"
 
 This document describes DevSynth's four-phase iterative approach that serves as the core methodology for all system processes. Originally developed for project ingestion, this dialectical methodology has evolved into DevSynth's fundamental approach for any task requiring iterative improvement and multi-disciplinary reasoning.
 
+**Implementation Status:** The EDRR framework is partially implemented. Phase behaviors and automation hooks are still being integrated across the codebase.
+
 The methodology enables DevSynth to tackle complex problems through a systematic cycle of bottom-up discovery, top-down validation, synthesis, and learning. While this document initially describes the process in the context of project ingestion, the principles apply universally across all DevSynth operations.
 
 > **Note**: While EDRR provides a logical progression for complex problem-solving, DevSynth does not require teams to adopt any specific workflow or timing for these phases. See the [Methodology Integration Framework](./methodology_integration_framework.md) for details on how to adapt EDRR to your team's preferred way of working.
@@ -310,6 +312,12 @@ While initially developed for project ingestion, the Expand-Differentiate-Refine
 2. **Differentiate**: Analyze patterns, identify potential causes, and prioritize hypotheses
 3. **Refine**: Develop and implement solution strategies, validating fixes against the identified issues
 4. **Retrospect**: Document root causes, solution patterns, and prevention strategies for future reference
+
+## Current Limitations
+
+- Full automation of phase transitions is still in development.
+- Monitoring and visualization tools are minimal.
+- Integration with WSDE collaboration features remains experimental.
 
 ## Conclusion
 

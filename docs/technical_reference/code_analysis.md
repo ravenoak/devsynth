@@ -4,6 +4,8 @@
 
 The Code Analysis feature enables DevSynth to analyze Python code and extract information about its structure, including imports, classes, functions, variables, and docstrings. This feature is a foundational component of the Self-Analysis Capabilities phase of the post-MVP roadmap, allowing DevSynth to understand its own codebase and other Python projects.
 
+**Implementation Status:** Core AST parsing and project analysis are implemented. Adapters for external tools are still under development.
+
 ## Architecture
 
 The Code Analysis feature follows the hexagonal architecture pattern used throughout DevSynth:
