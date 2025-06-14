@@ -13,8 +13,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock, call
 
 from devsynth.application.cli.ingest_cmd import (
-    ingest_cmd, validate_manifest, load_manifest,
-    expand_phase, differentiate_phase, refine_phase, retrospect_phase
+    ingest_cmd, validate_manifest, load_manifest
 )
 from devsynth.exceptions import ManifestError, IngestionError
 
@@ -42,43 +41,23 @@ def mock_load_manifest():
 
 
 @pytest.fixture
-def mock_expand_phase():
-    """Mock the expand_phase function."""
-    with patch('devsynth.application.cli.ingest_cmd.expand_phase') as mock:
-        mock.return_value = {"artifacts_discovered": 150, "files_processed": 200}
-        yield mock
-
-
-@pytest.fixture
-def mock_differentiate_phase():
-    """Mock the differentiate_phase function."""
-    with patch('devsynth.application.cli.ingest_cmd.differentiate_phase') as mock:
-        mock.return_value = {"inconsistencies_found": 10, "gaps_identified": 5}
-        yield mock
-
-
-@pytest.fixture
-def mock_refine_phase():
-    """Mock the refine_phase function."""
-    with patch('devsynth.application.cli.ingest_cmd.refine_phase') as mock:
-        mock.return_value = {"relationships_created": 75, "outdated_items_archived": 15}
-        yield mock
-
-
-@pytest.fixture
-def mock_retrospect_phase():
-    """Mock the retrospect_phase function."""
-    with patch('devsynth.application.cli.ingest_cmd.retrospect_phase') as mock:
-        mock.return_value = {"insights_captured": 8, "improvements_identified": 12}
-        yield mock
+def mock_ingestion():
+    """Mock the Ingestion class used within ingest_cmd."""
+    with patch('devsynth.application.cli.ingest_cmd.Ingestion') as cls:
+        instance = MagicMock()
+        instance.run_ingestion.return_value = {
+            "success": True,
+            "metrics": {"duration_seconds": 1},
+        }
+        cls.return_value = instance
+        yield cls
 
 
 class TestIngestCmd:
     """Tests for the ingest_cmd function."""
 
     def test_ingest_cmd_with_defaults(
-        self, mock_console, mock_validate_manifest, mock_load_manifest,
-        mock_expand_phase, mock_differentiate_phase, mock_refine_phase, mock_retrospect_phase
+        self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
         """Test ingest_cmd with default arguments."""
         # Call the function
@@ -90,11 +69,8 @@ class TestIngestCmd:
         # Verify load_manifest was called
         mock_load_manifest.assert_called_once()
 
-        # Verify all phases were called
-        mock_expand_phase.assert_called_once()
-        mock_differentiate_phase.assert_called_once()
-        mock_refine_phase.assert_called_once()
-        mock_retrospect_phase.assert_called_once()
+        # Verify ingestion was executed
+        mock_ingestion.return_value.run_ingestion.assert_called_once()
 
         # Verify console output
         assert mock_console.print.call_count >= 5  # At least 5 print calls
@@ -116,8 +92,7 @@ class TestIngestCmd:
         mock_load_manifest.assert_not_called()
 
     def test_ingest_cmd_dry_run(
-        self, mock_console, mock_validate_manifest, mock_load_manifest,
-        mock_expand_phase, mock_differentiate_phase, mock_refine_phase, mock_retrospect_phase
+        self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
         """Test ingest_cmd with dry_run=True."""
         # Call the function with dry_run=True
@@ -129,11 +104,7 @@ class TestIngestCmd:
         # Verify load_manifest was called
         mock_load_manifest.assert_called_once()
 
-        # Verify no phases were called
-        mock_expand_phase.assert_not_called()
-        mock_differentiate_phase.assert_not_called()
-        mock_refine_phase.assert_not_called()
-        mock_retrospect_phase.assert_not_called()
+        mock_ingestion.return_value.run_ingestion.assert_called_once_with(dry_run=True, verbose=False)
 
     def test_ingest_cmd_validate_only(
         self, mock_console, mock_validate_manifest, mock_load_manifest
@@ -149,8 +120,7 @@ class TestIngestCmd:
         mock_load_manifest.assert_not_called()
 
     def test_ingest_cmd_verbose(
-        self, mock_console, mock_validate_manifest, mock_load_manifest,
-        mock_expand_phase, mock_differentiate_phase, mock_refine_phase, mock_retrospect_phase
+        self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
         """Test ingest_cmd with verbose=True."""
         # Call the function with verbose=True
@@ -159,11 +129,7 @@ class TestIngestCmd:
         # Verify validate_manifest was called with verbose=True
         mock_validate_manifest.assert_called_once_with(Path(os.path.join(os.getcwd(), "manifest.yaml")), True)
 
-        # Verify all phases were called with verbose=True
-        mock_expand_phase.assert_called_once_with(mock_load_manifest.return_value, True)
-        mock_differentiate_phase.assert_called_once_with(mock_load_manifest.return_value, mock_expand_phase.return_value, True)
-        mock_refine_phase.assert_called_once_with(mock_load_manifest.return_value, mock_differentiate_phase.return_value, True)
-        mock_retrospect_phase.assert_called_once_with(mock_load_manifest.return_value, mock_refine_phase.return_value, True)
+        mock_ingestion.return_value.run_ingestion.assert_called_once_with(dry_run=False, verbose=True)
 
     def test_ingest_cmd_manifest_error(self, mock_console, mock_validate_manifest):
         """Test ingest_cmd with a ManifestError."""
@@ -179,10 +145,9 @@ class TestIngestCmd:
         # Verify console output
         mock_console.print.assert_called_once_with("[red]Manifest Error:[/red] Test manifest error")
 
-    def test_ingest_cmd_ingestion_error(self, mock_console, mock_validate_manifest, mock_load_manifest, mock_expand_phase):
+    def test_ingest_cmd_ingestion_error(self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion):
         """Test ingest_cmd with an IngestionError."""
-        # Set up the mock to raise an IngestionError
-        mock_expand_phase.side_effect = IngestionError("Test ingestion error")
+        mock_ingestion.return_value.run_ingestion.side_effect = IngestionError("Test ingestion error")
 
         # Reset the mock_console to ensure it's clean before the test
         mock_console.reset_mock()

@@ -317,14 +317,14 @@ phases:
 6. **Use Human Judgment**: Override automatic recursion decisions when human expertise suggests a different approach.
 7. **Document Recursive Structure**: Maintain clear documentation of the recursive structure for better understanding and maintenance.
 
-## Current Limitations
+## Implementation Status
 
-The recursive EDRR framework is only partially implemented. Advanced phase
-transitions and orchestration depend on collaborative capabilities that are
-disabled by default via the `features.wsde_collaboration` and
-`features.dialectical_reasoning` flags in `config/default.yml`. Refer to the
-[Feature Status Matrix](../implementation/feature_status_matrix.md) for detailed
-progress tracking.
+The recursive EDRR framework is now fully implemented. Phase transitions are
+handled automatically with configurable timeouts and recursion limits. The
+coordinator integrates deeply with memory, WSDE agents, and documentation
+management to produce a comprehensive final report after each cycle. Feature
+flags can still disable collaborative reasoning features, but the core EDRR
+orchestration operates end-to-end.
 
 ## Related Documents
 
