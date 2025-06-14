@@ -16,6 +16,7 @@ from ...config.settings import get_llm_settings
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -57,6 +58,11 @@ class OpenAIProvider(StreamingLLMProvider):
         self.max_tokens = self.config.get("max_tokens") or 1024
         self.temperature = self.config.get("temperature") or 0.7
         self.api_base = self.config.get("api_base")
+        self.max_retries = self.config.get("max_retries", 3)
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=self.config.get("failure_threshold", 3),
+            recovery_timeout=self.config.get("recovery_timeout", 60),
+        )
         
         # Check for API key in config or environment
         if not self.api_key and "OPENAI_API_KEY" in os.environ:
@@ -85,6 +91,15 @@ class OpenAIProvider(StreamingLLMProvider):
             
         self.client = OpenAI(**client_kwargs)
         self.async_client = AsyncOpenAI(**client_kwargs)
+
+    def _execute_with_resilience(self, func, *args, **kwargs):
+        """Execute a function with retry and circuit breaker protection."""
+
+        @retry_with_exponential_backoff(max_retries=self.max_retries)
+        def _wrapped():
+            return self.circuit_breaker.call(func, *args, **kwargs)
+
+        return _wrapped()
 
     def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
         """Generate text from a prompt using OpenAI.
@@ -115,15 +130,13 @@ class OpenAIProvider(StreamingLLMProvider):
         # Prepare the request payload
         messages = [{"role": "user", "content": prompt}]
 
-        # Make the API call
         try:
-            response = self.client.chat.completions.create(
+            response = self._execute_with_resilience(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=messages,
-                **params
+                **params,
             )
-            
-            # Return the generated text
             return response.choices[0].message.content
         except Exception as e:
             error_msg = f"OpenAI API error: {str(e)}"
@@ -163,15 +176,13 @@ class OpenAIProvider(StreamingLLMProvider):
         if parameters:
             params.update(parameters)
 
-        # Make the API call
         try:
-            response = self.client.chat.completions.create(
+            response = self._execute_with_resilience(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=messages,
-                **params
+                **params,
             )
-            
-            # Return the generated text
             return response.choices[0].message.content
         except Exception as e:
             error_msg = f"OpenAI API error: {str(e)}"
@@ -290,14 +301,14 @@ class OpenAIProvider(StreamingLLMProvider):
             OpenAIModelError: If there's an issue with the model or response
         """
         try:
-            # Use the text-embedding-ada-002 model by default for embeddings
-            embedding_model = self.config.get("openai_embedding_model") or "text-embedding-ada-002"
-            
-            response = self.client.embeddings.create(
-                model=embedding_model,
-                input=text
+            embedding_model = (
+                self.config.get("openai_embedding_model") or "text-embedding-ada-002"
             )
-            
+            response = self._execute_with_resilience(
+                self.client.embeddings.create,
+                model=embedding_model,
+                input=text,
+            )
             return response.data[0].embedding
         except Exception as e:
             error_msg = f"OpenAI API error: {str(e)}"

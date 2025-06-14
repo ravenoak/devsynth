@@ -14,6 +14,7 @@ from ...config import get_llm_settings
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -69,6 +70,11 @@ class LMStudioProvider(BaseLLMProvider):
         self.api_base = self.config.get("api_base")
         self.max_tokens = self.config.get("max_tokens")
         self.temperature = self.config.get("temperature")
+        self.max_retries = self.config.get("max_retries", 3)
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=self.config.get("failure_threshold", 3),
+            recovery_timeout=self.config.get("recovery_timeout", 60),
+        )
         self.token_tracker = TokenTracker()
 
         # Auto-select model if not specified
@@ -94,6 +100,15 @@ class LMStudioProvider(BaseLLMProvider):
             self.model = "local_model"
             logger.info("Using default model: local_model")
 
+    def _execute_with_resilience(self, func, *args, **kwargs):
+        """Execute a function with retry and circuit breaker protection."""
+
+        @retry_with_exponential_backoff(max_retries=self.max_retries)
+        def _wrapped():
+            return self.circuit_breaker.call(func, *args, **kwargs)
+
+        return _wrapped()
+
     def list_available_models(self) -> List[Dict[str, Any]]:
         """List available models from LM Studio.
 
@@ -105,7 +120,8 @@ class LMStudioProvider(BaseLLMProvider):
         """
         try:
             url = f"{self.api_base}/models"
-            response = requests.get(
+            response = self._execute_with_resilience(
+                requests.get,
                 url,
                 headers={"Content-Type": "application/json"}
             )
@@ -185,9 +201,9 @@ class LMStudioProvider(BaseLLMProvider):
             **params
         }
 
-        # Make the API call
         try:
-            response = requests.post(
+            response = self._execute_with_resilience(
+                requests.post,
                 url,
                 headers={"Content-Type": "application/json"},
                 data=json.dumps(payload)
@@ -254,9 +270,9 @@ class LMStudioProvider(BaseLLMProvider):
             **params
         }
 
-        # Make the API call
         try:
-            response = requests.post(
+            response = self._execute_with_resilience(
+                requests.post,
                 url,
                 headers={"Content-Type": "application/json"},
                 data=json.dumps(payload)
@@ -302,9 +318,9 @@ class LMStudioProvider(BaseLLMProvider):
             "input": text
         }
 
-        # Make the API call
         try:
-            response = requests.post(
+            response = self._execute_with_resilience(
+                requests.post,
                 url,
                 headers={"Content-Type": "application/json"},
                 data=json.dumps(payload)
