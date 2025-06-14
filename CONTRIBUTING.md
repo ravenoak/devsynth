@@ -57,6 +57,9 @@ pre-commit install
 ## Testing
 
 ```bash
+# Ensure the project is installed in editable mode
+poetry install
+
 # Run all tests
 poetry run pytest
 
