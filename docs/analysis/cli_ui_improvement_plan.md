@@ -58,3 +58,33 @@ This document summarizes the current operating modes of the DevSynth tool and ou
 
 These steps align with the documented requirements and recommendations, helping DevSynth evolve from a CLI-heavy prototype into a more approachable tool with clearer feedback, better error handling, and optional graphical interfaces.
 
+
+## Pseudocode: Init Wizard Prompts
+
+```python
+def run_init_wizard():
+    # Ask for the project root directory
+    root = Prompt.ask("Project root", default=os.getcwd())
+
+    # Determine project structure type
+    structure = Prompt.ask(
+        "Project structure",
+        choices=["single_package", "monorepo"],
+        default="single_package",
+    )
+
+    # Ask for the primary programming language
+    language = Prompt.ask("Primary language", default="python")
+
+    # Optional constraints file
+    constraints = Prompt.ask(
+        "Path to constraint file (optional)", default="", show_default=False
+    ) or None
+
+    return {
+        "project_root": root,
+        "structure": structure,
+        "language": language,
+        "constraints": constraints,
+    }
+```

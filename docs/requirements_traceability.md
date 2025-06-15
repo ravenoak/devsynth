@@ -71,5 +71,6 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-61 | Authentication utilities with Argon2 hashing | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/authentication.py | tests/unit/security/test_authentication.py | Implemented |
 | FR-62 | Role-based authorization checks | [Security and Privacy Framework](analysis/critical_recommendations.md#5-security-and-privacy-framework-high) | src/devsynth/security/authorization.py | tests/unit/security/test_authorization.py | Implemented |
 | FR-63 | Input sanitization utilities | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/sanitization.py | tests/unit/security/test_sanitization.py | Implemented |
+| FR-64 | Onboard existing projects via interactive init wizard | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#interactive-init-workflow) | src/devsynth/application/cli/cli_commands.py | tests/behavior/features/cli_commands.feature, tests/unit/test_unit_cli_commands.py | Implemented |
 
-_Last updated: May 31, 2025_
+_Last updated: June 15, 2025_

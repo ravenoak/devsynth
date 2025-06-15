@@ -87,12 +87,15 @@ devsynth help init
 Initialize a new DevSynth project.
 
 ```bash
-devsynth init [--path PATH] [--template TEMPLATE]
+devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--language LANG] [--constraints FILE]
 ```
 
 **Options:**
 - `--path`, `-p`: Path to initialize the project (default: current directory)
 - `--template`, `-t`: Template to use for initialization (default: basic)
+- `--project-root`: Root directory of an existing project to onboard
+- `--language`: Primary language of the project (default: python)
+- `--constraints`: Path to a constraint configuration file
 
 **Examples:**
 ```bash
@@ -101,6 +104,9 @@ devsynth init
 
 # Initialize in a specific directory with a specific template
 devsynth init --path ./my-project --template web-app
+
+# Onboard an existing project using custom language
+devsynth init --project-root ./existing --language javascript
 ```
 
 ### spec

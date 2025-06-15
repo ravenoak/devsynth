@@ -2,11 +2,12 @@ import os
 from typing import Optional, Union, List
 
 from rich.console import Console
-from rich.prompt import Confirm
+from rich.prompt import Confirm, Prompt
 import typer
 from pathlib import Path
 import importlib.util
 import yaml
+import toml
 
 from ..orchestration.workflow import workflow_manager
 import uvicorn
@@ -60,16 +61,57 @@ def _filter_args(args: dict) -> dict:
 
 
 def init_cmd(
-    path: str = ".", name: Optional[str] = None, template: Optional[str] = None
+    path: str = ".",
+    name: Optional[str] = None,
+    template: Optional[str] = None,
+    project_root: Optional[str] = None,
+    language: Optional[str] = None,
+    constraints: Optional[str] = None,
 ) -> None:
-    """Initialize a new project."""
+    """Initialize a new project or onboard an existing one."""
     try:
-        args = _filter_args({"path": path, "name": name, "template": template})
+        root_path = Path(path)
+        if (root_path / "pyproject.toml").exists() or (
+            root_path / "devsynth.yml"
+        ).exists():
+            console.print("[yellow]Existing project detected.[/yellow]")
+            if not Confirm.ask("Continue initializing?", default=True):
+                return
+
+        project_root = project_root or Prompt.ask("Project root", default=str(path))
+        structure = Prompt.ask(
+            "Project structure",
+            choices=["single_package", "monorepo"],
+            default="single_package",
+        )
+        language = language or Prompt.ask("Primary language", default="python")
+        constraints = (
+            constraints
+            if constraints is not None
+            else Prompt.ask(
+                "Path to constraint file (optional)", default="", show_default=False
+            )
+        )
+
+        use_pyproject = Confirm.ask(
+            "Write configuration to pyproject.toml?", default=False
+        )
+
+        args = _filter_args(
+            {
+                "path": path,
+                "name": name,
+                "template": template,
+                "project_root": project_root,
+                "language": language,
+                "constraints": constraints,
+            }
+        )
+
         result = workflow_manager.execute_command("init", args)
         if result.get("success"):
             console.print(f"[green]Initialized DevSynth project in {path}[/green]")
 
-            # Prompt for optional feature flags
             feature_flags = {
                 "code_generation": False,
                 "test_generation": False,
@@ -85,29 +127,28 @@ def init_cmd(
                     f"Enable {flag.replace('_', ' ')}?", default=False
                 )
 
-            # Create configuration file under .devsynth/project.yaml
-            project_root = Path(path)
-            devsynth_dir = project_root / ".devsynth"
-            devsynth_dir.mkdir(parents=True, exist_ok=True)
-            config_path = devsynth_dir / "project.yaml"
+            config = {
+                "project_root": project_root,
+                "structure": structure,
+                "language": language,
+                "features": feature_flags,
+            }
 
-            if config_path.exists():
-                with open(config_path, "r") as f:
-                    config = yaml.safe_load(f) or {}
+            if constraints:
+                config["constraints"] = constraints
+
+            if use_pyproject:
+                config_file = root_path / "pyproject.toml"
+                data = {}
+                if config_file.exists():
+                    data = toml.load(config_file)
+                data.setdefault("tool", {})["devsynth"] = config
+                with open(config_file, "w") as f:
+                    toml.dump(data, f)
             else:
-                template_path = (
-                    Path(__file__).resolve().parents[4] / "templates" / "project.yaml"
-                )
-                with open(template_path, "r") as f:
-                    config = yaml.safe_load(f) or {}
-
-            if name:
-                config["projectName"] = name
-
-            config.setdefault("features", {}).update(feature_flags)
-
-            with open(config_path, "w") as f:
-                yaml.safe_dump(config, f)
+                config_file = root_path / "devsynth.yml"
+                with open(config_file, "w") as f:
+                    yaml.safe_dump(config, f)
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
@@ -211,7 +252,9 @@ def enable_feature_cmd(name: str) -> None:
     try:
         project_file = Path(".devsynth") / "project.yaml"
         if not project_file.exists():
-            console.print("[red]Error:[/red] Project configuration not found", highlight=False)
+            console.print(
+                "[red]Error:[/red] Project configuration not found", highlight=False
+            )
             return
         with open(project_file, "r") as f:
             data = yaml.safe_load(f) or {}

@@ -7,7 +7,7 @@ import sys
 import logging
 import pytest
 from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 from io import StringIO
 
 # Import the CLI modules
@@ -79,6 +79,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 path = "."  # Default path
                 name = None
                 template = None
+                project_root = None
+                language = None
+                constraints = None
 
                 # Parse all arguments
                 i = 1
@@ -92,13 +95,29 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     elif args[i] == "--template" and i + 1 < len(args):
                         template = args[i + 1]
                         i += 2
+                    elif args[i] == "--project-root" and i + 1 < len(args):
+                        project_root = args[i + 1]
+                        i += 2
+                    elif args[i] == "--language" and i + 1 < len(args):
+                        language = args[i + 1]
+                        i += 2
+                    elif args[i] == "--constraints" and i + 1 < len(args):
+                        constraints = args[i + 1]
+                        i += 2
                     else:
                         i += 1
 
                 # Call the init command with the path
                 # Note: The actual init_cmd function only takes path, but we need to
                 # mock as if it's passing all parameters to the workflow manager
-                init_cmd(path)
+                init_cmd(
+                    path,
+                    name=name,
+                    template=template,
+                    project_root=project_root,
+                    language=language,
+                    constraints=constraints,
+                )
 
                 # For testing purposes, we need to manually set the call args on the mock
                 # This simulates what would happen if the init_cmd function passed all parameters
@@ -110,6 +129,12 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     init_args["name"] = name
                 if template:
                     init_args["template"] = template
+                if project_root:
+                    init_args["project_root"] = project_root
+                if language:
+                    init_args["language"] = language
+                if constraints:
+                    init_args["constraints"] = constraints
 
                 # Manually set the call args on the mock
                 mock_workflow_manager.execute_command("init", init_args)
@@ -334,7 +359,10 @@ def check_project_created(path, mock_workflow_manager):
     Verify that a new project was created at the specified path.
     """
     # Check that the init command was called with the correct path
-    mock_workflow_manager.execute_command.assert_any_call("init", {"path": path})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "init",
+        ANY,
+    )
 
 
 # This step definition matches exactly the text in the feature file
