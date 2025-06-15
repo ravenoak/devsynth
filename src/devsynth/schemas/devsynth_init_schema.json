@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "DevSynth Init Configuration",
+    "type": "object",
+    "properties": {
+        "project_root": {
+            "type": "string",
+            "description": "Root directory of the project",
+        },
+        "structure": {
+            "type": "string",
+            "enum": ["single_package", "monorepo"],
+            "description": "Overall project structure",
+        },
+        "language": {"type": "string", "description": "Primary programming language"},
+        "constraints": {
+            "type": "string",
+            "description": "Path to constraint configuration",
+        },
+    },
+    "required": ["project_root", "structure", "language"],
+}

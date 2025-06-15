@@ -49,11 +49,24 @@ class TestCLICommands:
         }
 
         # Execute
-        init_cmd("./test-project")
+        with patch(
+            "devsynth.application.cli.cli_commands.Prompt.ask",
+            side_effect=["./test-project", "single_package", "python", ""],
+        ), patch(
+            "devsynth.application.cli.cli_commands.Confirm.ask",
+            return_value=False,
+        ):
+            init_cmd("./test-project")
 
         # Verify
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "init", {"path": "./test-project"}
+            "init",
+            {
+                "path": "./test-project",
+                "project_root": "./test-project",
+                "language": "python",
+                "constraints": "",
+            },
         )
         # Check that one of the print calls contains the expected message
         success_message = (
@@ -73,11 +86,24 @@ class TestCLICommands:
         }
 
         # Execute
-        init_cmd("./test-project")
+        with patch(
+            "devsynth.application.cli.cli_commands.Prompt.ask",
+            side_effect=["./test-project", "single_package", "python", ""],
+        ), patch(
+            "devsynth.application.cli.cli_commands.Confirm.ask",
+            return_value=False,
+        ):
+            init_cmd("./test-project")
 
         # Verify
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "init", {"path": "./test-project"}
+            "init",
+            {
+                "path": "./test-project",
+                "project_root": "./test-project",
+                "language": "python",
+                "constraints": "",
+            },
         )
         mock_console.print.assert_called_once_with(
             "[red]Error:[/red] Path already exists", highlight=False
@@ -89,11 +115,24 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.side_effect = Exception("Test error")
 
         # Execute
-        init_cmd("./test-project")
+        with patch(
+            "devsynth.application.cli.cli_commands.Prompt.ask",
+            side_effect=["./test-project", "single_package", "python", ""],
+        ), patch(
+            "devsynth.application.cli.cli_commands.Confirm.ask",
+            return_value=False,
+        ):
+            init_cmd("./test-project")
 
         # Verify
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "init", {"path": "./test-project"}
+            "init",
+            {
+                "path": "./test-project",
+                "project_root": "./test-project",
+                "language": "python",
+                "constraints": "",
+            },
         )
         mock_console.print.assert_called_once_with(
             "[red]Error:[/red] Test error", highlight=False
@@ -278,9 +317,24 @@ class TestCLICommands:
     def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_console):
         """Init command with additional parameters."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
-        init_cmd(path=".", name="proj", template="web-app")
+        with patch(
+            "devsynth.application.cli.cli_commands.Prompt.ask",
+            side_effect=[".", "single_package", "python", ""],
+        ), patch(
+            "devsynth.application.cli.cli_commands.Confirm.ask",
+            return_value=False,
+        ):
+            init_cmd(path=".", name="proj", template="web-app")
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "init", {"path": ".", "name": "proj", "template": "web-app"}
+            "init",
+            {
+                "path": ".",
+                "name": "proj",
+                "template": "web-app",
+                "project_root": ".",
+                "language": "python",
+                "constraints": "",
+            },
         )
 
     @patch("devsynth.application.cli.cli_commands.Path.mkdir")
@@ -300,10 +354,21 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.return_value = {"success": True}
         mock_confirm.side_effect = [True, False, False, False, False, False]
 
-        init_cmd(path="./proj", name="proj")
+        with patch(
+            "devsynth.application.cli.cli_commands.Prompt.ask",
+            side_effect=["./proj", "single_package", "python", ""],
+        ):
+            init_cmd(path="./proj", name="proj")
 
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "init", {"path": "./proj", "name": "proj"}
+            "init",
+            {
+                "path": "./proj",
+                "name": "proj",
+                "project_root": "./proj",
+                "language": "python",
+                "constraints": "",
+            },
         )
         assert mock_yaml_dump.called
         dumped = mock_yaml_dump.call_args[0][0]
