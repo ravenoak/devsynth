@@ -136,7 +136,7 @@ This creates the implementation code in the `src` directory of your project.
 Finally, run the generated code to verify it works as expected:
 
 ```bash
-devsynth run
+devsynth run-pipeline
 ```
 
 ## Viewing and Modifying Generated Artifacts

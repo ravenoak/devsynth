@@ -51,21 +51,21 @@ devsynth init --path ./my-new-project
 **Details:**
 This command creates a new project directory with the necessary structure for DevSynth to work with. It initializes configuration files and sets up the project environment.
 
-### `analyze`
+### `inspect`
 
-Analyzes requirements from a file or interactively.
+Inspects requirements from a file or interactively.
 
 ```bash
-devsynth analyze [--input FILE] [--interactive]
+devsynth inspect [--input FILE] [--interactive]
 ```
 
 **Options:**
-- `--input FILE`: Path to requirements file to analyze
+- `--input FILE`: Path to requirements file to inspect
 - `--interactive`: Start an interactive session for requirement gathering
 
 **Example:**
 ```bash
-devsynth analyze --input requirements.md
+devsynth inspect --input requirements.md
 ```
 
 **Details:**
@@ -144,12 +144,12 @@ devsynth code
 **Details:**
 This command creates implementation code that satisfies the generated tests. It follows a test-driven development approach, ensuring that the code meets the requirements specified in the tests.
 
-### `run`
+### `run-pipeline`
 
 Executes the generated code.
 
 ```bash
-devsynth run [--target TARGET]
+devsynth run-pipeline [--target TARGET]
 ```
 
 **Options:**
@@ -157,7 +157,7 @@ devsynth run [--target TARGET]
 
 **Example:**
 ```bash
-devsynth run --target unit-tests
+devsynth run-pipeline --target unit-tests
 ```
 
 **Details:**
@@ -459,11 +459,11 @@ You can create custom workflows by combining DevSynth commands:
 ```bash
 # Example custom workflow script
 #!/bin/bash
-devsynth analyze --input requirements.md
+devsynth inspect --input requirements.md
 devsynth spec
 devsynth test
 devsynth code
-devsynth run --target unit-tests
+devsynth run-pipeline --target unit-tests
 ```
 
 ### Extending DevSynth

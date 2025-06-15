@@ -64,7 +64,7 @@ Execute the generated tests with either `pytest` or the DevSynth runner:
 pytest
 
 # Or using DevSynth
-devsynth run
+devsynth run-pipeline
 ```
 
 If the tests pass, your generated code is working. If you encounter issues, see the [Troubleshooting Guide](troubleshooting.md).

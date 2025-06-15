@@ -18,7 +18,7 @@ This document summarizes the current operating modes of the DevSynth tool and ou
 ## Current Operating Modes and UI
 
 - **Entry point**: Typer-based CLI exposing commands such as `init`, `spec`, `test`, and `code`.
-- **Interactive options**: e.g. `devsynth analyze --interactive` for manual analysis flows.
+- **Interactive options**: e.g. `devsynth inspect --interactive` for manual inspection flows.
 - **Configuration**: YAML-based project files with feature flags for capabilities like dialectical reasoning and WSDE collaboration. Flags can be toggled via CLI or during `devsynth init`.
 - **Usability requirements**: Basic progress indicators and minimal error handling.
 - **Dialectical evaluation**: Documentation notes a steep learning curve, no GUI, complex configuration, and limited guidance.

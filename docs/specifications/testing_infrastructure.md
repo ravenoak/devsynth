@@ -132,7 +132,7 @@ Feature: Code Analysis
 
   Scenario: Analyze Python project
     Given I have a Python project at "test_data/sample_project"
-    When I run "devsynth analyze --path test_data/sample_project"
+    When I run "devsynth inspect --path test_data/sample_project"
     Then the command should succeed
     And the output should contain "Analysis complete"
     And an analysis report should be created at "test_data/sample_project/.devsynth/analysis.json"

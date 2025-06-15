@@ -252,10 +252,10 @@ def code_cmd() -> None:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def run_cmd(target: Optional[str] = None) -> None:
+def run_pipeline_cmd(target: Optional[str] = None) -> None:
     """Run the generated code or a specific target."""
     try:
-        result = workflow_manager.execute_command("run", {"target": target})
+        result = workflow_manager.execute_command("run-pipeline", {"target": target})
         if result["success"]:
             if target:
                 console.print(f"[green]Executed target: {target}[/green]")
@@ -318,9 +318,9 @@ def enable_feature_cmd(name: str) -> None:
         console.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def adaptive_cmd(path: Optional[str] = None) -> None:
+def refactor_cmd(path: Optional[str] = None) -> None:
     """
-    Execute an adaptive workflow based on the current project state.
+    Execute a refactor workflow based on the current project state.
 
     This command analyzes the current project state, determines the optimal workflow,
     and suggests appropriate next steps.
@@ -339,10 +339,10 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
         # Show a welcome message for the adaptive command
         console.print(
             Panel(
-                "[bold blue]DevSynth Adaptive Workflow[/bold blue]\n\n"
+                "[bold blue]DevSynth Refactor Workflow[/bold blue]\n\n"
                 "This command will analyze your project state, determine the optimal workflow, "
                 "and suggest appropriate next steps.",
-                title="Adaptive Workflow",
+                title="Refactor Workflow",
                 border_style="blue",
             )
         )
@@ -384,15 +384,15 @@ def adaptive_cmd(path: Optional[str] = None) -> None:
         console.print(f"[red]Error:[/red] {str(e)}")
 
 
-def analyze_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
-    """Analyze requirements from a file or interactively."""
+def inspect_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
+    """Inspect requirements from a file or interactively."""
     try:
         if not _check_services():
             return
         args = _filter_args({"input": input_file, "interactive": interactive})
-        result = workflow_manager.execute_command("analyze", args)
+        result = workflow_manager.execute_command("inspect", args)
         if result.get("success"):
-            console.print("[green]Requirements analysis completed.[/green]")
+            console.print("[green]Requirements inspection completed.[/green]")
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive

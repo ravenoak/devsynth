@@ -42,7 +42,7 @@ For a complete demonstration of the refactor workflow, see the full workflow exa
    ```
 5. **Run** the project
    ```bash
-   devsynth run
+   devsynth run-pipeline
    ```
 
 The repository contains the resulting `specs.md`, tests in `tests/`, and code in `src/`. You can modify the requirements and re-run the DevSynth commands to update the project.

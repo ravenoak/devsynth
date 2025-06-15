@@ -71,7 +71,7 @@ This context refers to applying DevSynth as a tool to assist in the development 
 
 ### Example Tasks
 
-- Analyzing requirements with `devsynth analyze`
+ - Analyzing requirements with `devsynth inspect`
 - Generating specifications with `devsynth spec`
 - Creating tests with `devsynth test`
 - Generating code with `devsynth code`
@@ -93,7 +93,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 
 1. Ensure DevSynth is functional and stable
 2. Initialize DevSynth on its own repository with `devsynth init`
-3. Use DevSynth to analyze its own codebase
+3. Use DevSynth to inspect its own codebase
 4. Apply DevSynth's suggestions to improve itself
 5. Carefully review and test all self-generated improvements
 6. Merge validated self-improvements

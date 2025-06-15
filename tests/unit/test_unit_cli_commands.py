@@ -9,10 +9,11 @@ from devsynth.application.cli.cli_commands import (
     code_cmd,
     config_cmd,
     init_cmd,
-    run_cmd,
+    run_pipeline_cmd,
     spec_cmd,
     test_cmd,
-    analyze_cmd,
+    inspect_cmd,
+    refactor_cmd,
 )
 
 ORIG_CHECK_SERVICES = cli_commands._check_services
@@ -249,7 +250,7 @@ class TestCLICommands:
             for call in mock_console.print.call_args_list
         )
 
-    def test_run_cmd_success_with_target(self, mock_workflow_manager, mock_console):
+    def test_run_pipeline_cmd_success_with_target(self, mock_workflow_manager, mock_console):
         """Test successful run with target."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -258,17 +259,17 @@ class TestCLICommands:
         }
 
         # Execute
-        run_cmd("unit-tests")
+        run_pipeline_cmd("unit-tests")
 
         # Verify
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "run", {"target": "unit-tests"}
+            "run-pipeline", {"target": "unit-tests"}
         )
         mock_console.print.assert_called_once_with(
             "[green]Executed target: unit-tests[/green]"
         )
 
-    def test_run_cmd_success_without_target(self, mock_workflow_manager, mock_console):
+    def test_run_pipeline_cmd_success_without_target(self, mock_workflow_manager, mock_console):
         """Test successful run without target."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -277,11 +278,11 @@ class TestCLICommands:
         }
 
         # Execute
-        run_cmd()
+        run_pipeline_cmd()
 
         # Verify
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "run", {"target": None}
+            "run-pipeline", {"target": None}
         )
         mock_console.print.assert_called_once_with("[green]Execution complete.[/green]")
 
@@ -486,21 +487,21 @@ class TestCLICommands:
         opened_path = Path(mock_open_file.call_args[0][0])
         assert opened_path.name == "devsynth.yml"
 
-    def test_analyze_cmd_file(self, mock_workflow_manager, mock_console):
-        """Analyze command with input file."""
+    def test_inspect_cmd_file(self, mock_workflow_manager, mock_console):
+        """Inspect command with input file."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
-        analyze_cmd("requirements.md")
+        inspect_cmd("requirements.md")
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "analyze",
+            "inspect",
             {"input": "requirements.md", "interactive": False},
         )
 
-    def test_analyze_cmd_interactive(self, mock_workflow_manager, mock_console):
-        """Analyze command in interactive mode."""
+    def test_inspect_cmd_interactive(self, mock_workflow_manager, mock_console):
+        """Inspect command in interactive mode."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
-        analyze_cmd(interactive=True)
+        inspect_cmd(interactive=True)
         mock_workflow_manager.execute_command.assert_called_once_with(
-            "analyze", {"interactive": True}
+            "inspect", {"interactive": True}
         )
 
     def test_spec_cmd_missing_openai_key(self, mock_workflow_manager, mock_console):

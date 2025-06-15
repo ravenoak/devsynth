@@ -8,14 +8,14 @@ from devsynth.application.cli import (
     spec_cmd,
     test_cmd,
     code_cmd,
-    run_cmd,
+    run_pipeline_cmd,
     config_cmd,
     enable_feature_cmd,
     config_app,
-    analyze_cmd,
+    inspect_cmd,
     webapp_cmd,
     dbschema_cmd,
-    adaptive_cmd,
+    refactor_cmd,
     analyze_code_cmd,
     edrr_cycle_cmd,
     serve_cmd,
@@ -54,12 +54,12 @@ def build_app() -> typer.Typer:
     app.command(name="spec")(spec_cmd)
     app.command(name="test")(test_cmd)
     app.command(name="code")(code_cmd)
-    app.command(name="run")(run_cmd)
+    app.command(name="run-pipeline")(run_pipeline_cmd)
     app.add_typer(config_app, name="config")
-    app.command(name="analyze")(analyze_cmd)
+    app.command(name="inspect")(inspect_cmd)
     app.command(name="webapp")(webapp_cmd)
     app.command(name="dbschema")(dbschema_cmd)
-    app.command(name="adaptive")(adaptive_cmd)
+    app.command(name="refactor")(refactor_cmd)
     app.command(name="analyze-code")(analyze_code_cmd)
     app.command(name="edrr-cycle")(edrr_cycle_cmd)
     app.command(name="align")(align_cmd)
