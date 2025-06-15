@@ -32,6 +32,7 @@ DevSynth is a modular, agentic software engineering platform designed for extens
 
 ```mermaid
 graph TD
+
     A[CLI / Chat Interface] --> B[Config Loader]
     B --> C[Application Layer]
     C --> D[Agent System]
@@ -45,6 +46,22 @@ graph TD
     G --> I[LM Studio]
     D --> J[LangGraph Orchestration]
     E --> K[NetworkX Graph Analysis]
+
+    A[CLI / Chat Interface] --> B[Application Layer]
+    B --> UX[UXBridge]
+    UX --> W[Init Wizard]
+    B --> C[Agent System]
+    B --> D[Code Analysis]
+    B --> E[MemoryPort]
+    E --> F[ChromaDBMemoryStore]
+    E --> G[SQLiteMemoryStore]
+    E --> H[JSONFileStore]
+    C --> I[Provider System]
+    I --> J[OpenAI]
+    I --> K[LM Studio]
+    C --> L[LangGraph Orchestration]
+    D --> M[NetworkX Graph Analysis]
+
 ```
 
 ## Key Components

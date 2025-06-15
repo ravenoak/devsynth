@@ -20,6 +20,12 @@ Feature: CLI Command Execution
     And the workflow should execute successfully
     And the system should display a success message
 
+  Scenario: Initialize a project with language and root options
+    When I run the command "devsynth init --project-root . --language python"
+    Then a new project should be created at "."
+    And the workflow should execute successfully
+    And the system should display a success message
+
   Scenario: Generate specifications with custom requirements file
     When I run the command "devsynth spec --requirements-file custom-requirements.md"
     Then the system should process the "custom-requirements.md" file

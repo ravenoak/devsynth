@@ -466,6 +466,25 @@ Multi-agent collaboration will be deferred to a future version. The MVP will use
 - Session branching and merging
 - Advanced session analytics
 
+#### 4.1.4 Interactive Init Workflow
+
+**MVP Scope:**
+- Detect existing projects containing `pyproject.toml` or `devsynth.yml`
+- Prompt for project root, structure type, primary language, and constraint file
+- Write configuration to `devsynth.yml` by default
+- Optionally embed configuration under `[tool.devsynth]` in `pyproject.toml`
+
+**Implementation Guidance:**
+- Use Rich `Prompt` and `Confirm` for interactive questions
+- Validate that the provided root exists and is writable
+- Support common structures such as `single_package` or `monorepo`
+- Store chosen language for later LLM context
+- If the user selects the pyproject option, merge settings with existing content
+
+**Future Extension Points:**
+- Detect additional configuration formats
+- Prepopulate answers from existing files
+
 ### 4.2 Requirement Analysis and Specification
 
 #### 4.2.1 Requirement Gathering
