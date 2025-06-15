@@ -73,6 +73,8 @@ Primary users are individual software developers who:
 - [CON-02] The system must function within the resource constraints of a typical developer workstation
 - [CON-03] The system must optimize token usage to maintain reasonable performance and resource usage
 - [CON-04] The system must adhere to security practices appropriate for a single-developer proof of concept
+- [CON-05] Configuration files may be written in YAML or TOML and must be loaded using a unified parser
+- [CON-06] The CLI and WebUI shall share a common command interface to preserve feature parity
 
 ## 3. Functional Requirements
 
@@ -171,6 +173,16 @@ Primary users are individual software developers who:
 - [FR-54] The system shall support offline documentation ingestion
 - [FR-55] The system shall implement AST-based code transformations
 - [FR-56] The system shall provide prompt auto-tuning mechanisms
+
+### 3.9 CLI Enhancements
+
+- [FR-64] The system shall provide an interactive `init` workflow for onboarding existing projects
+- [FR-65] The system shall rename the `adaptive` command to `refactor`
+- [FR-66] The system shall rename the `analyze` command to `inspect`
+- [FR-67] The system shall rename the `exec` command to `run-pipeline`
+- [FR-68] The system shall rename the `replay` command to `retrace`
+- [FR-69] The system shall load configuration from either YAML or TOML using a unified parser
+- [FR-70] The system shall expose a bridge interface to enable future WebUI integration
 
 ## 4. Non-Functional Requirements
 

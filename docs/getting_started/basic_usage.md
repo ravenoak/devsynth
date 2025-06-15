@@ -31,7 +31,7 @@ devsynth init --path ./my-project
 cd my-project
 ```
 
-This command creates a new project directory with the necessary structure for DevSynth to work with.
+This command creates a new project directory with the necessary structure for DevSynth to work with. When executed inside an existing project, it now launches an interactive wizard that reads any `pyproject.toml` or `devsynth.yml` it finds.
 
 ## Define Requirements
 

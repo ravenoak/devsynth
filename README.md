@@ -26,6 +26,10 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 - Provider abstraction for OpenAI, LM Studio, and more
 - Comprehensive SDLC policy corpus for agentic and human contributors
 - Automated documentation, testing, and CI/CD pipelines
+- Interactive `init` wizard for onboarding existing projects
+- Command names updated (`refactor`, `inspect`, `run-pipeline`, `retrace`)
+- Unified YAML/TOML configuration loader
+- CLI/WebUI bridge groundwork for future web interface
 - **Worker Self-Directed Enterprise (WSDE) Model**: Sophisticated multi-agent collaboration framework with role management, dialectical reasoning, consensus building, and knowledge integration capabilities
 - Dialectical reasoning hooks automatically analyze new solutions added to a WSDE team
 - **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and an "Expand, Differentiate, Refine, Retrospect" (EDRR) framework to keep its knowledge current. The EDRR framework is implemented through the EDRRCoordinator but is not yet fully integrated with all system components. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
@@ -134,7 +138,7 @@ Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `
 The repository includes runnable examples that walk through common workflows:
 
 - [Calculator](examples/calculator) – basic CLI-driven project generation
-- [Full Workflow](examples/full_workflow) – demonstrates the adaptive workflow
+- [Full Workflow](examples/full_workflow) – demonstrates the refactor workflow
 - [Agent Adapter](docs/getting_started/agent_adapter_example.md) – shows how to
   use the `AgentAdapter` directly from Python
 

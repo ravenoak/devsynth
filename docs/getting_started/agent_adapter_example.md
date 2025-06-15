@@ -26,6 +26,7 @@ Create a new project directory and initialize DevSynth:
 devsynth init --path agent-demo
 cd agent-demo
 ```
+The initializer detects existing configuration files and will prompt you interactively when run in an existing project directory.
 
 ## 2. Invoke the CLI
 
