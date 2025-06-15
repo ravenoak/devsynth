@@ -27,6 +27,6 @@ The `examples/full_workflow` project demonstrates the complete DevSynth process:
 
 - Ensure optional dependencies such as `langgraph` are installed when running examples that rely on the adaptive workflow.
 - When packaging code in `examples/`, update test modules to adjust `sys.path` so that imports resolve correctly when running `pytest` from the repository root.
-- The command `python src/main.py <file>` runs the word counter. Using `devsynth run` executes the configured entrypoint but requires all dependencies to be available.
+ - The command `python src/main.py <file>` runs the word counter. Using `devsynth run-pipeline` executes the configured entrypoint but requires all dependencies to be available.
 
 Future examples should include clear instructions about required extras and test execution so users can reproduce the workflow without issues.

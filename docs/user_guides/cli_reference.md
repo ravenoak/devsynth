@@ -26,7 +26,6 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [spec](#spec)
   - [test](#test)
   - [code](#code)
-  - [run](#run)
   - [config](#config)
   - [memory](#memory)
   - [agent](#agent)
@@ -190,12 +189,12 @@ devsynth code
 devsynth code --spec-file custom_specs.md --output-dir custom_src/
 ```
 
-### run
+### run-pipeline
 
 Execute generated code or tests.
 
 ```bash
-devsynth run [--target TARGET]
+devsynth run-pipeline [--target TARGET]
 ```
 
 **Options:**
@@ -204,10 +203,10 @@ devsynth run [--target TARGET]
 **Examples:**
 ```bash
 # Run the application
-devsynth run
+devsynth run-pipeline
 
 # Run unit tests
-devsynth run --target unit-tests
+devsynth run-pipeline --target unit-tests
 ```
 
 ### config

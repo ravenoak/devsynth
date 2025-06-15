@@ -14,7 +14,7 @@ from pathlib import Path
 
 from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
 from devsynth.application.orchestration.adaptive_workflow import AdaptiveWorkflowManager
-from devsynth.application.cli.cli_commands import init_cmd, analyze_cmd, spec_cmd, test_cmd, code_cmd
+from devsynth.application.cli.cli_commands import init_cmd, inspect_cmd, spec_cmd, test_cmd, code_cmd
 
 
 class TestComplexWorkflow:

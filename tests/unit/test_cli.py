@@ -19,7 +19,7 @@ class TestTyperCLI:
         assert "spec" in result.output
         assert "test" in result.output
         assert "code" in result.output
-        assert "run" in result.output
+        assert "run-pipeline" in result.output
         assert "config" in result.output
 
     @patch("devsynth.adapters.cli.typer_adapter.init_cmd", autospec=True)
@@ -50,12 +50,12 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_code_cmd.assert_called_once_with()
 
-    @patch("devsynth.adapters.cli.typer_adapter.run_cmd", autospec=True)
-    def test_cli_run(self, mock_run_cmd):
+    @patch("devsynth.adapters.cli.typer_adapter.run_pipeline_cmd", autospec=True)
+    def test_cli_run(self, mock_run_pipeline_cmd):
         app = build_app()
-        result = self.runner.invoke(app, ["run", "--target", "unit-tests"])
+        result = self.runner.invoke(app, ["run-pipeline", "--target", "unit-tests"])
         assert result.exit_code == 0
-        mock_run_cmd.assert_called_once_with("unit-tests")
+        mock_run_pipeline_cmd.assert_called_once_with("unit-tests")
 
     def test_cli_config(self):
         app = build_app()

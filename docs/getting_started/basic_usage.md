@@ -72,7 +72,7 @@ Finally, run the generated code to verify it works as expected:
 
 ```bash
 # Run the generated code
-devsynth run
+devsynth run-pipeline
 ```
 
 This command executes the generated code and provides feedback on its operation.

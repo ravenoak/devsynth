@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved development documents to appropriate locations in the docs/ directory
 - Consolidated DevSynth analysis documents
 - Updated cross-references in documentation
+- Renamed CLI commands: `adaptive`→`refactor`, `analyze`→`inspect`, `run`→`run-pipeline`, `replay`→`retrace`
 
 ### Fixed
 - Improved error handling in the EDRR coordinator

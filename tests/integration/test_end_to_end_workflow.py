@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 
 from devsynth.application.cli.cli_commands import (
-    init_cmd, analyze_cmd, spec_cmd, test_cmd, code_cmd
+    init_cmd, inspect_cmd, spec_cmd, test_cmd, code_cmd
 )
 from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
 

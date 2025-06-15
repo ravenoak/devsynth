@@ -17,9 +17,11 @@ from devsynth.application.cli.cli_commands import (
     spec_cmd,
     test_cmd,
     code_cmd,
-    run_cmd,
+    run_pipeline_cmd,
     config_cmd,
     edrr_cycle_cmd,
+    inspect_cmd,
+    refactor_cmd,
 )
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
@@ -196,9 +198,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                         i += 1
 
                 # Call the analyze command
-                from devsynth.application.cli.cli_commands import analyze_cmd
+                from devsynth.application.cli.cli_commands import inspect_cmd
 
-                analyze_cmd(input_file, interactive)
+                inspect_cmd(input_file, interactive)
 
                 # For testing purposes, we need to manually set the call args on the mock
                 mock_workflow_manager.execute_command.reset_mock()
@@ -211,11 +213,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     analyze_args["interactive"] = True
 
                 # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("analyze", analyze_args)
+                mock_workflow_manager.execute_command("inspect", analyze_args)
 
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "analyze", analyze_args
+                    "inspect", analyze_args
                 )
             elif args[0] == "spec":
                 # Parse the requirements file argument
@@ -242,15 +244,15 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 code_cmd()
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with("code", {})
-            elif args[0] == "run":
+            elif args[0] == "run-pipeline":
                 # Parse the target argument
                 target = None  # Default target
                 if len(args) > 2 and args[1] == "--target":
                     target = args[2]
-                run_cmd(target)
+                run_pipeline_cmd(target)
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "run", {"target": target}
+                    "run-pipeline", {"target": target}
                 )
             elif args[0] == "config":
                 # Parse the key and value arguments
@@ -374,7 +376,7 @@ def check_commands_in_help(command_context):
     Verify that all available commands are listed in the help output.
     """
     output = command_context.get("output", "")
-    commands = ["init", "spec", "test", "code", "run", "config", "edrr-cycle", "help"]
+    commands = ["init", "spec", "test", "code", "run-pipeline", "config", "edrr-cycle", "help"]
     for cmd in commands:
         assert cmd in output
 
