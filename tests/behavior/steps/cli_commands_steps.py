@@ -82,6 +82,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 project_root = None
                 language = None
                 constraints = None
+                source_dirs = None
+                test_dirs = None
+                docs_dirs = None
+                extra_languages = None
+                goals = None
 
                 # Parse all arguments
                 i = 1
@@ -104,6 +109,21 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     elif args[i] == "--constraints" and i + 1 < len(args):
                         constraints = args[i + 1]
                         i += 2
+                    elif args[i] == "--source-dirs" and i + 1 < len(args):
+                        source_dirs = args[i + 1]
+                        i += 2
+                    elif args[i] == "--test-dirs" and i + 1 < len(args):
+                        test_dirs = args[i + 1]
+                        i += 2
+                    elif args[i] == "--docs-dirs" and i + 1 < len(args):
+                        docs_dirs = args[i + 1]
+                        i += 2
+                    elif args[i] == "--extra-languages" and i + 1 < len(args):
+                        extra_languages = args[i + 1]
+                        i += 2
+                    elif args[i] == "--goals" and i + 1 < len(args):
+                        goals = args[i + 1]
+                        i += 2
                     else:
                         i += 1
 
@@ -117,6 +137,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     project_root=project_root,
                     language=language,
                     constraints=constraints,
+                    source_dirs=source_dirs,
+                    test_dirs=test_dirs,
+                    docs_dirs=docs_dirs,
+                    extra_languages=extra_languages,
+                    goals=goals,
                 )
 
                 # For testing purposes, we need to manually set the call args on the mock
@@ -135,6 +160,16 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     init_args["language"] = language
                 if constraints:
                     init_args["constraints"] = constraints
+                if source_dirs:
+                    init_args["source_dirs"] = source_dirs
+                if test_dirs:
+                    init_args["test_dirs"] = test_dirs
+                if docs_dirs:
+                    init_args["docs_dirs"] = docs_dirs
+                if extra_languages:
+                    init_args["extra_languages"] = extra_languages
+                if goals:
+                    init_args["goals"] = goals
 
                 # Manually set the call args on the mock
                 mock_workflow_manager.execute_command("init", init_args)

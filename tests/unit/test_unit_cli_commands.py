@@ -51,7 +51,17 @@ class TestCLICommands:
         # Execute
         with patch(
             "devsynth.application.cli.cli_commands.Prompt.ask",
-            side_effect=["./test-project", "single_package", "python", ""],
+            side_effect=[
+                "./test-project",  # project_root
+                "single_package",  # structure
+                "python",  # language
+                "",  # extra_languages
+                "src",  # source_dirs
+                "tests",  # test_dirs
+                "docs",  # docs_dirs
+                "",  # goals
+                "",  # constraints path
+            ],
         ), patch(
             "devsynth.application.cli.cli_commands.Confirm.ask",
             return_value=False,
@@ -65,6 +75,11 @@ class TestCLICommands:
                 "path": "./test-project",
                 "project_root": "./test-project",
                 "language": "python",
+                "source_dirs": "src",
+                "test_dirs": "tests",
+                "docs_dirs": "docs",
+                "extra_languages": "",
+                "goals": "",
                 "constraints": "",
             },
         )
@@ -88,7 +103,17 @@ class TestCLICommands:
         # Execute
         with patch(
             "devsynth.application.cli.cli_commands.Prompt.ask",
-            side_effect=["./test-project", "single_package", "python", ""],
+            side_effect=[
+                "./test-project",
+                "single_package",
+                "python",
+                "",
+                "src",
+                "tests",
+                "docs",
+                "",
+                "",
+            ],
         ), patch(
             "devsynth.application.cli.cli_commands.Confirm.ask",
             return_value=False,
@@ -102,6 +127,11 @@ class TestCLICommands:
                 "path": "./test-project",
                 "project_root": "./test-project",
                 "language": "python",
+                "source_dirs": "src",
+                "test_dirs": "tests",
+                "docs_dirs": "docs",
+                "extra_languages": "",
+                "goals": "",
                 "constraints": "",
             },
         )
@@ -117,7 +147,17 @@ class TestCLICommands:
         # Execute
         with patch(
             "devsynth.application.cli.cli_commands.Prompt.ask",
-            side_effect=["./test-project", "single_package", "python", ""],
+            side_effect=[
+                "./test-project",
+                "single_package",
+                "python",
+                "",
+                "src",
+                "tests",
+                "docs",
+                "",
+                "",
+            ],
         ), patch(
             "devsynth.application.cli.cli_commands.Confirm.ask",
             return_value=False,
@@ -131,6 +171,11 @@ class TestCLICommands:
                 "path": "./test-project",
                 "project_root": "./test-project",
                 "language": "python",
+                "source_dirs": "src",
+                "test_dirs": "tests",
+                "docs_dirs": "docs",
+                "extra_languages": "",
+                "goals": "",
                 "constraints": "",
             },
         )
@@ -319,7 +364,17 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.return_value = {"success": True}
         with patch(
             "devsynth.application.cli.cli_commands.Prompt.ask",
-            side_effect=[".", "single_package", "python", ""],
+            side_effect=[
+                ".",
+                "single_package",
+                "python",
+                "",
+                "src",
+                "tests",
+                "docs",
+                "",
+                "",
+            ],
         ), patch(
             "devsynth.application.cli.cli_commands.Confirm.ask",
             return_value=False,
@@ -333,6 +388,11 @@ class TestCLICommands:
                 "template": "web-app",
                 "project_root": ".",
                 "language": "python",
+                "source_dirs": "src",
+                "test_dirs": "tests",
+                "docs_dirs": "docs",
+                "extra_languages": "",
+                "goals": "",
                 "constraints": "",
             },
         )
@@ -356,7 +416,17 @@ class TestCLICommands:
 
         with patch(
             "devsynth.application.cli.cli_commands.Prompt.ask",
-            side_effect=["./proj", "single_package", "python", ""],
+            side_effect=[
+                "./proj",
+                "single_package",
+                "python",
+                "",
+                "src",
+                "tests",
+                "docs",
+                "",
+                "",
+            ],
         ):
             init_cmd(path="./proj", name="proj")
 
@@ -367,12 +437,54 @@ class TestCLICommands:
                 "name": "proj",
                 "project_root": "./proj",
                 "language": "python",
+                "source_dirs": "src",
+                "test_dirs": "tests",
+                "docs_dirs": "docs",
+                "extra_languages": "",
+                "goals": "",
                 "constraints": "",
             },
         )
         assert mock_yaml_dump.called
         dumped = mock_yaml_dump.call_args[0][0]
         assert dumped["features"]["code_generation"] is True
+
+    @patch("devsynth.application.cli.cli_commands.Path.mkdir")
+    @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
+    @patch("builtins.open", new_callable=mock_open)
+    @patch("devsynth.application.cli.cli_commands.Confirm.ask", return_value=False)
+    def test_init_cmd_writes_config_file(
+        self,
+        mock_confirm,
+        mock_open_file,
+        mock_yaml_dump,
+        mock_mkdir,
+        mock_workflow_manager,
+        mock_console,
+    ):
+        """init_cmd should create .devsynth/devsynth.yml."""
+        mock_workflow_manager.execute_command.return_value = {"success": True}
+
+        with patch(
+            "devsynth.application.cli.cli_commands.Prompt.ask",
+            side_effect=[
+                "./proj",
+                "single_package",
+                "python",
+                "",
+                "src",
+                "tests",
+                "docs",
+                "",
+                "",
+            ],
+        ):
+            init_cmd(path="./proj", name="proj")
+
+        mock_mkdir.assert_called_once_with(exist_ok=True)
+        mock_open_file.assert_called()
+        opened_path = Path(mock_open_file.call_args[0][0])
+        assert opened_path.name == "devsynth.yml"
 
     def test_analyze_cmd_file(self, mock_workflow_manager, mock_console):
         """Analyze command with input file."""
