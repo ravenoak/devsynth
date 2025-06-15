@@ -8,7 +8,7 @@ tags:
   - "example"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-01"
+last_reviewed: "2025-06-15"
 ---
 
 # Agent Adapter Example

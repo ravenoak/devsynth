@@ -8,7 +8,7 @@ tags:
   - "tutorial"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+last_reviewed: "2025-06-15"
 ---
 
 # DevSynth Quick Start Guide

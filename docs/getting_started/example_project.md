@@ -7,7 +7,7 @@ tags:
   - "example"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-01"
+last_reviewed: "2025-06-15"
 ---
 
 # DevSynth Example Project
@@ -18,7 +18,7 @@ This guide walks through a small calculator example included in the `examples/` 
 
 The example lives in [`examples/calculator`](../../examples/calculator). Each file shows what you would have after running DevSynth commands.
 
-For a complete demonstration of the adaptive workflow, see the full workflow example in [`examples/full_workflow`](../../examples/full_workflow).
+For a complete demonstration of the refactor workflow, see the full workflow example in [`examples/full_workflow`](../../examples/full_workflow).
 
 ## Workflow Overview
 
