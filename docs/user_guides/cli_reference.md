@@ -30,8 +30,10 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [config](#config)
   - [memory](#memory)
   - [agent](#agent)
-  - [adaptive](#adaptive)
-  - [analyze](#analyze)
+  - [run-pipeline](#run-pipeline)
+  - [refactor](#refactor)
+  - [inspect](#inspect)
+  - [retrace](#retrace)
   - [webapp](#webapp)
   - [dbschema](#dbschema)
 - [Environment Variables](#environment-variables)
@@ -103,6 +105,8 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--extra-languages`: Additional languages used in the project
 - `--goals`: High-level goals or constraints for the project
 - `--constraints`: Path to a constraint configuration file
+
+This command now detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `devsynth.yml`.
 
 **Examples:**
 ```bash
@@ -296,12 +300,25 @@ devsynth agent --list
 devsynth agent --run documentation --input requirements.md --output docs.md
 ```
 
-### adaptive
+### run-pipeline
+
+Execute a predefined pipeline of DevSynth commands.
+
+```bash
+devsynth run-pipeline <pipeline-name>
+```
+
+**Examples:**
+```bash
+devsynth run-pipeline default
+```
+
+### refactor
 
 Analyze the project and suggest an appropriate workflow.
 
 ```bash
-devsynth adaptive [--path PATH]
+devsynth refactor [--path PATH]
 ```
 
 **Options:**
@@ -309,16 +326,16 @@ devsynth adaptive [--path PATH]
 
 **Examples:**
 ```bash
-devsynth adaptive
-devsynth adaptive --path ./my-project
+devsynth refactor
+devsynth refactor --path ./my-project
 ```
 
-### analyze
+### inspect
 
 Analyze requirements from a file or interactively.
 
 ```bash
-devsynth analyze [--input FILE] [--interactive]
+devsynth inspect [--input FILE] [--interactive]
 ```
 
 **Options:**
@@ -327,8 +344,21 @@ devsynth analyze [--input FILE] [--interactive]
 
 **Examples:**
 ```bash
-devsynth analyze --input requirements.md
-devsynth analyze --interactive
+devsynth inspect --input requirements.md
+devsynth inspect --interactive
+```
+
+### retrace
+
+Replay a previous pipeline execution for debugging.
+
+```bash
+devsynth retrace <run-id>
+```
+
+**Examples:**
+```bash
+devsynth retrace 20240601T123000
 ```
 
 ### webapp
