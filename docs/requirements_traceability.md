@@ -9,7 +9,7 @@ tags:
   - "testing"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-28"
+last_reviewed: "2025-06-15"
 ---
 
 # Requirements Traceability Matrix (RTM)
