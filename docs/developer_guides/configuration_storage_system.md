@@ -153,7 +153,7 @@ This pattern is implemented in the `settings.py` file, which provides validators
 
 - Use the `devsynth init` command to create the initial `.devsynth/project.yaml` file
 - Use the `devsynth analyze-config` command (formerly `analyze-manifest`) to keep the configuration up to date
-- Use the `devsynth validate-manifest` command to validate the configuration against its schema
+- Use the `devsynth validate-config` command to validate the configuration against its schema
 - Avoid modifying global configuration files directly unless necessary
 - Use environment variables for temporary configuration changes
 

@@ -58,14 +58,14 @@ The Expand phase performs a comprehensive bottom-up analysis, gathering all avai
 The Differentiate phase compares the discovered artifacts against declared project structure and higher-level definitions, identifying discrepancies and organizing information hierarchically.
 
 **Process:**
-1. **Manifest Validation**: Compare discovered artifacts against the project `manifest.yaml`
+1. **Manifest Validation**: Compare discovered artifacts against the project `.devsynth/project.yaml`
 2. **Structure Analysis**: Validate project structure against declared patterns (monorepo, standard layouts, etc.)
 3. **Consistency Checking**: Identify inconsistencies between different artifact types (e.g., documented features without tests)
 4. **Gap Analysis**: Detect missing artifacts, coverage gaps, or undocumented components
 5. **Change Detection**: When rerunning the process, identify changes since the last analysis
 
 **Examples:**
-- Validate that all components defined in `manifest.yaml` exist in the codebase
+- Validate that all components defined in `.devsynth/project.yaml` exist in the codebase
 - Check that the actual directory structure matches the declared project type
 - Cross-reference requirements with implementations and tests
 - Identify undocumented public APIs
@@ -219,7 +219,7 @@ The "Expand, Differentiate, Refine, Retrospect" process is implemented through:
 
 2. **Ingestion Pipeline**: Implemented in `src/devsynth/application/ingestion.py`
    - Utilizes the Memory and Context System for efficient storage and retrieval
-   - Processes the project according to the structure defined in `manifest.yaml`
+   - Processes the project according to the structure defined in `.devsynth/project.yaml`
    - Adapts to different project layouts (monorepos, multi-language, etc.)
 
 3. **Progress Feedback**: The process provides clear feedback during execution
@@ -232,9 +232,9 @@ The "Expand, Differentiate, Refine, Retrospect" process is implemented through:
    - Human-readable reports for developers
    - Visual graph representation of project components and relationships
 
-## Configuring Project Structure in `manifest.yaml`
+## Configuring Project Structure in `.devsynth/project.yaml`
 
-The `manifest.yaml` file serves as the authoritative declaration of project structure and organization. It allows users to define how DevSynth should interpret their specific project layout.
+The `.devsynth/project.yaml` file serves as the authoritative declaration of project structure and organization. It allows users to define how DevSynth should interpret their specific project layout.
 
 ### Example Configuration for Different Project Types
 

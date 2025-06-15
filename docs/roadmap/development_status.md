@@ -17,6 +17,15 @@ last_reviewed: "2025-06-01"
 
 This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases.
 
+```mermaid
+graph TD
+    CLI[DevSynth CLI] -->|loads| ConfigLoader
+    ConfigLoader --> ProjectConfig[.devsynth/project.yaml]
+    ConfigLoader --> GlobalConfig[~/.devsynth/config/global_config.yaml]
+    ConfigLoader --> App[Application Layer]
+    App --> Agents
+```
+
 ## Phase 1: Foundation Stabilization
 
 This phase focuses on stabilizing the foundation of the DevSynth project by addressing critical issues, completing core features, and optimizing dependencies and security. The implementation follows a multi-disciplined best-practices approach with dialectical reasoning.

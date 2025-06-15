@@ -57,7 +57,7 @@ This document provides a checklist for ensuring consistency across all diagrams,
 
 ### Diagrams
 - [ ] Create diagrams showing the planned documentation ingestion component
-- [ ] Ensure diagrams show the integration with manifest.yaml
+- [ ] Ensure diagrams show the integration with `.devsynth/project.yaml`
 - [ ] Add a note about the implementation status
 
 ### Pseudocode
@@ -67,7 +67,7 @@ This document provides a checklist for ensuring consistency across all diagrams,
 
 ### Behavior Files
 - [ ] Create behavior files for the documentation ingestion component
-- [ ] Add tests for the integration with manifest.yaml
+- [ ] Add tests for the integration with `.devsynth/project.yaml`
 - [ ] Ensure behavior files cover all aspects of the feature
 
 ## AST-based Transformations

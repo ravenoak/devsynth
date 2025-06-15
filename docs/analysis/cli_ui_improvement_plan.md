@@ -24,6 +24,15 @@ This document summarizes the current operating modes of the DevSynth tool and ou
 - **Dialectical evaluation**: Documentation notes a steep learning curve, no GUI, complex configuration, and limited guidance.
 - **Offline fallback**: Described in specifications but not fully implemented.
 
+```mermaid
+graph TD
+    A[User] --> B[CLI]
+    B --> C[Config Loader]
+    C --> D[Global Config]
+    C --> E[Project Config]
+    B --> F[Command Handler]
+```
+
 ## Areas Needing Improvement
 
 1. CLI output lacks rich progress feedback.
@@ -53,8 +62,18 @@ This document summarizes the current operating modes of the DevSynth tool and ou
    - Commands like `devsynth metrics` and `devsynth report` to surface history.
    - Export results to HTML or Markdown.
 7. **User Experience Testing**
-   - Recruit beta users and gather onboarding feedback.
-   - Track metrics for user success and adoption.
+ - Recruit beta users and gather onboarding feedback.
+ - Track metrics for user success and adoption.
+
+```pseudo
+# CLI initialization pseudocode
+settings = load_settings(
+    global_path="~/.devsynth/config/global_config.yaml",
+    project_path=".devsynth/project.yaml",
+)
+app = build_cli(settings)
+app.run()
+```
 
 These steps align with the documented requirements and recommendations, helping DevSynth evolve from a CLI-heavy prototype into a more approachable tool with clearer feedback, better error handling, and optional graphical interfaces.
 
