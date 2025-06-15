@@ -27,6 +27,7 @@ For a complete demonstration of the adaptive workflow, see the full workflow exa
    cd examples/calculator
    devsynth init --path .
    ```
+   The command now launches an interactive wizard when run in an existing directory and will read any `pyproject.toml` or `devsynth.yml` it detects.
 2. **Generate specifications** from the requirements
    ```bash
    devsynth spec --requirements-file requirements.md

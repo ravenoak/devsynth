@@ -1,6 +1,6 @@
 # DevSynth Full Workflow Example
 
-This example demonstrates the full DevSynth workflow using a simple word counter project. It covers project initialization, specification and test generation, code creation, the adaptive workflow, and reviewing the generated output.
+This example demonstrates the full DevSynth workflow using a simple word counter project. It covers project initialization, specification and test generation, code creation, the refactor workflow, and reviewing the generated output.
 
 ## Steps
 
@@ -28,9 +28,9 @@ This example demonstrates the full DevSynth workflow using a simple word counter
    devsynth code
    ```
 
-6. **Run the adaptive workflow**
+6. **Run the refactor workflow**
    ```bash
-   devsynth adaptive
+   devsynth refactor
    ```
    This analyzes the project and suggests further steps.
 

@@ -74,7 +74,7 @@ devsynth init --path ./my-first-project
 cd my-first-project
 ```
 
-This command creates a new project directory with the necessary structure for DevSynth to work with.
+This command creates a new project directory with the necessary structure for DevSynth to work with. If run inside an existing project, `devsynth init` now launches an interactive wizard that detects your settings from `pyproject.toml` or `devsynth.yml`.
 
 DevSynth generates a `.devsynth/project.yaml` file during initialization and
 asks which optional features to enable. The selected flags are written to the

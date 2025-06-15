@@ -484,6 +484,22 @@ Multi-agent collaboration will be deferred to a future version. The MVP will use
 **Future Extension Points:**
 - Detect additional configuration formats
 - Prepopulate answers from existing files
+- **FR-64**: Provide an interactive `init` wizard for onboarding existing projects
+
+#### 4.1.5 CLI Command Updates
+
+- **FR-65**: Rename the `adaptive` command to `refactor`
+- **FR-66**: Rename the `analyze` command to `inspect`
+- **FR-67**: Replace the `exec` command with `run-pipeline`
+- **FR-68**: Replace the `replay` command with `retrace`
+
+#### 4.1.6 Unified Configuration Loader
+
+- **FR-69**: Load project configuration from YAML or TOML using a common parser
+
+#### 4.1.7 CLI/WebUI Bridge Preparation
+
+- **FR-70**: Provide a shared interface layer to enable future WebUI integration with the CLI
 
 ### 4.2 Requirement Analysis and Specification
 

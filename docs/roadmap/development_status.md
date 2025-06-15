@@ -209,6 +209,7 @@ This work is planned for after the completion of Month 2.
 - Initial project structure established with hexagonal architecture
 - Core domain models and interfaces defined
 - Basic CLI functionality implemented
+- Interactive `init` wizard and command renames (`refactor`, `inspect`, `run-pipeline`, `retrace`) added with unified config loader and early WebUI bridge
 - Memory system with ChromaDB integration
 - LLM provider system with multiple backend support
 

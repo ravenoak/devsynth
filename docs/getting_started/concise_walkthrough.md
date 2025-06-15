@@ -25,6 +25,7 @@ Create a new project directory named `demo`:
 devsynth init --path demo
 cd demo
 ```
+`devsynth init` now walks you through an interactive setup if it detects existing project files.
 
 The command generates a `.devsynth/project.yaml` file. For reference, you can look at the example configuration in [`templates/project.yaml`](../../templates/project.yaml).
 
