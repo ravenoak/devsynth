@@ -87,7 +87,9 @@ devsynth help init
 Initialize a new DevSynth project.
 
 ```bash
-devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--language LANG] [--constraints FILE]
+devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--language LANG]
+             [--source-dirs DIRS] [--test-dirs DIRS] [--docs-dirs DIRS]
+             [--extra-languages LANGS] [--goals TEXT] [--constraints FILE]
 ```
 
 **Options:**
@@ -95,6 +97,11 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--template`, `-t`: Template to use for initialization (default: basic)
 - `--project-root`: Root directory of an existing project to onboard
 - `--language`: Primary language of the project (default: python)
+- `--source-dirs`: Comma separated list of source directories (default: src)
+- `--test-dirs`: Comma separated list of test directories (default: tests)
+- `--docs-dirs`: Comma separated list of documentation directories (default: docs)
+- `--extra-languages`: Additional languages used in the project
+- `--goals`: High-level goals or constraints for the project
 - `--constraints`: Path to a constraint configuration file
 
 **Examples:**
@@ -107,6 +114,11 @@ devsynth init --path ./my-project --template web-app
 
 # Onboard an existing project using custom language
 devsynth init --project-root ./existing --language javascript
+
+# Provide directories and project goals via flags
+devsynth init --project-root . --language python \
+  --source-dirs src --test-dirs tests --docs-dirs docs \
+  --extra-languages javascript --goals "demo"
 ```
 
 ### spec
