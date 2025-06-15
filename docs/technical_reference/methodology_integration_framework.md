@@ -65,9 +65,9 @@ DevSynth provides built-in support for several common development approaches:
 
 ## Configuring Your Preferred Methodology
 
-### Configuration in `manifest.yaml`
+### Configuration in `.devsynth/project.yaml`
 
-The project's methodology preferences are specified in the `manifest.yaml` file:
+The project's methodology preferences are specified in the `.devsynth/project.yaml` file:
 
 ```yaml
 methodologyConfiguration:
@@ -172,7 +172,7 @@ class MyTeamMethodologyAdapter(BaseMethodologyAdapter):
 Register your custom adapter in your project configuration:
 
 ```yaml
-# In manifest.yaml
+# In .devsynth/project.yaml
 methodologyConfiguration:
   type: "custom"
   customAdapterPath: "./my_team_adapter.py"
@@ -186,7 +186,7 @@ Each methodology adapter includes built-in integration capabilities with common 
 ### Tool Integration Configuration
 
 ```yaml
-# In manifest.yaml
+# In .devsynth/project.yaml
 methodologyConfiguration:
   type: "sprint"
   toolIntegration:

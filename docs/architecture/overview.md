@@ -32,18 +32,19 @@ DevSynth is a modular, agentic software engineering platform designed for extens
 
 ```mermaid
 graph TD
-    A[CLI / Chat Interface] --> B[Application Layer]
-    B --> C[Agent System]
-    B --> D[Code Analysis]
-    B --> E[MemoryPort]
-    E --> F[ChromaDBMemoryStore]
-    E --> G[SQLiteMemoryStore]
-    E --> H[JSONFileStore]
-    C --> I[Provider System]
-    I --> J[OpenAI]
-    I --> K[LM Studio]
-    C --> L[LangGraph Orchestration]
-    D --> M[NetworkX Graph Analysis]
+    A[CLI / Chat Interface] --> B[Config Loader]
+    B --> C[Application Layer]
+    C --> D[Agent System]
+    C --> E[Code Analysis]
+    C --> F[MemoryPort]
+    F --> F1[ChromaDBMemoryStore]
+    F --> F2[SQLiteMemoryStore]
+    F --> F3[JSONFileStore]
+    D --> G[Provider System]
+    G --> H[OpenAI]
+    G --> I[LM Studio]
+    D --> J[LangGraph Orchestration]
+    E --> K[NetworkX Graph Analysis]
 ```
 
 ## Key Components
@@ -76,6 +77,13 @@ graph TD
 DevSynth maintains continuous alignment between code, tests, and documentation through:
 
 - **Project Configuration (`.devsynth/project.yaml`)**: A YAML file in the `.devsynth` directory, defined by `src/devsynth/schemas/project_schema.json`, that allows users to specify their project's structure, components, and layout (e.g., monorepo, multi-language). This configuration file is the primary input for the ingestion and adaptation process.
+
+```pseudo
+# Configuration loading pseudocode
+global_cfg = read_yaml("~/.devsynth/config/global_config.yaml")
+project_cfg = read_yaml(".devsynth/project.yaml")
+settings = merge(global_cfg, project_cfg, env_vars())
+```
 - **Requirements Traceability Matrix** ([requirements_traceability.md](../requirements_traceability.md)): Maps requirements to design, code, and tests for bidirectional traceability.
 - **Documentation Policies** ([documentation_policies.md](../policies/documentation_policies.md)): Guides ongoing documentation quality, consistency, and maintenance.
 - **SDLC Policy Corpus** ([policies/README.md](../policies/README.md)): Comprehensive SDLC, security, ethics, and testing policies for both human and agentic contributors.
