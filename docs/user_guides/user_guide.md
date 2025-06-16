@@ -49,7 +49,11 @@ devsynth init --path ./my-new-project
 ```
 
 **Details:**
-This command creates a new project directory with the necessary structure for DevSynth to work with. It initializes configuration files and sets up the project environment.
+Running `devsynth init` launches a short interactive wizard. The wizard asks for
+the project root, preferred source layout (`single_package` or `monorepo`),
+primary language, optional project goals and an optional path to a constraint
+file. Your answers are written to `.devsynth/devsynth.yml` by default or to the
+`pyproject.toml` file if you choose that option when prompted.
 
 ### `inspect`
 

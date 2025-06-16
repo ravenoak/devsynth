@@ -74,13 +74,14 @@ devsynth init --path ./my-first-project
 cd my-first-project
 ```
 
-This command creates a new project directory with the necessary structure for DevSynth to work with. If run inside an existing project, `devsynth init` now launches an interactive wizard that detects your settings from `pyproject.toml` or `devsynth.yml`.
-
-DevSynth generates a `.devsynth/project.yaml` file during initialization and
-asks which optional features to enable. The selected flags are written to the
-configuration file. You can use the
-[templates/project.yaml](../../templates/project.yaml) file as a minimal
-example configuration.
+This command creates a new project directory and then launches an interactive
+wizard. The wizard prompts for the project root, source layout, language, and
+any optional goals or constraint file. These answers are written to
+`.devsynth/devsynth.yml` by default or stored under `[tool.devsynth]` in
+`pyproject.toml` if you choose. After initialization you are asked which optional
+features to enable. The selected flags are saved in the configuration file. You
+can use the [templates/project.yaml](../../templates/project.yaml) file as a
+minimal example configuration.
 
 ### Step 2: Define Your Requirements
 

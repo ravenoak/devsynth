@@ -67,10 +67,6 @@ def init_cmd(
     project_root: Optional[str] = None,
     language: Optional[str] = None,
     constraints: Optional[str] = None,
-    source_dirs: Optional[str] = None,
-    test_dirs: Optional[str] = None,
-    docs_dirs: Optional[str] = None,
-    extra_languages: Optional[str] = None,
     goals: Optional[str] = None,
 ) -> None:
     """Initialize a new project or onboard an existing one."""
@@ -84,45 +80,26 @@ def init_cmd(
             if not Confirm.ask("Continue initializing?", default=True):
                 return
 
-        project_root = project_root or Prompt.ask("Project root", default=str(path))
+        project_root = project_root or Prompt.ask(
+            "Project root",
+            default=str(path),
+        )
         structure = Prompt.ask(
-            "Project structure",
+            "Source layout",
             choices=["single_package", "monorepo"],
             default="single_package",
         )
         language = language or Prompt.ask("Primary language", default="python")
-        extra_languages = (
-            extra_languages
-            if extra_languages is not None
-            else Prompt.ask(
-                "Additional languages (comma separated, optional)",
-                default="",
-                show_default=False,
-            )
-        )
-        source_dirs = (
-            source_dirs
-            if source_dirs is not None
-            else Prompt.ask("Source directories (comma separated)", default="src")
-        )
-        test_dirs = (
-            test_dirs
-            if test_dirs is not None
-            else Prompt.ask("Test directories (comma separated)", default="tests")
-        )
-        docs_dirs = (
-            docs_dirs
-            if docs_dirs is not None
-            else Prompt.ask("Docs directories (comma separated)", default="docs")
-        )
         goals = goals or Prompt.ask(
-            "High-level goals/constraints", default="", show_default=False
+            "Project goals (optional)", default="", show_default=False
         )
         constraints = (
             constraints
             if constraints is not None
             else Prompt.ask(
-                "Path to constraint file (optional)", default="", show_default=False
+                "Path to constraint file (optional)",
+                default="",
+                show_default=False,
             )
         )
 
@@ -138,11 +115,8 @@ def init_cmd(
                 "project_root": project_root,
                 "language": language,
                 "constraints": constraints,
-                "source_dirs": source_dirs,
-                "test_dirs": test_dirs,
-                "docs_dirs": docs_dirs,
-                "extra_languages": extra_languages,
                 "goals": goals,
+                "structure": structure,
             }
         )
 
@@ -168,16 +142,11 @@ def init_cmd(
             config = {
                 "project_root": project_root,
                 "structure": structure,
-                "languages": {
-                    "primary": language,
-                    "additional": [
-                        l.strip() for l in extra_languages.split(",") if l.strip()
-                    ],
-                },
+                "language": language,
                 "directories": {
-                    "source": [d.strip() for d in source_dirs.split(",") if d.strip()],
-                    "tests": [d.strip() for d in test_dirs.split(",") if d.strip()],
-                    "docs": [d.strip() for d in docs_dirs.split(",") if d.strip()],
+                    "source": ["src"],
+                    "tests": ["tests"],
+                    "docs": ["docs"],
                 },
                 "features": feature_flags,
             }
