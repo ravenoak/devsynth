@@ -100,6 +100,23 @@ DevSynth provides several commands for managing configuration:
 - `devsynth analyze-config` (formerly `analyze-manifest`): Analyzes and updates the `.devsynth/devsynth.yml` file based on the actual project structure
 - `devsynth validate-config` (formerly `validate-manifest`): Validates the `.devsynth/devsynth.yml` file against its schema
 
+### Configuration Schema and Loader
+
+The unified configuration loader searches for `.devsynth/devsynth.yml` or a `[tool.devsynth]` section in `pyproject.toml`. Both formats share common fields:
+
+```
+project_root: str
+structure: str
+language: str
+goals: str (optional)
+constraints: str (optional)
+directories: {source: ["src"], tests: ["tests"], docs: ["docs"]}
+features: {code_generation: bool, test_generation: bool, ...}
+resources: {project: {memoryDir: str, logsDir: str}}
+```
+
+`load_config()` returns a `DevSynthConfig` dataclass with defaults when no configuration file exists. `save_config()` writes the dataclass back to YAML or TOML and is used by the CLI to persist preferences during initialization and later configuration updates.
+
 ## Best Practices
 
 1. **Version Control**: Include the `.devsynth/devsynth.yml` file in version control to ensure consistent configuration across all developers.
