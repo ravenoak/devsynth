@@ -1,6 +1,6 @@
 ---
 title: "DevSynth Architecture"
-date: "2024-06-01"
+date: "2025-06-16"
 version: "1.0.0"
 tags:
   - "architecture"
@@ -8,7 +8,7 @@ tags:
   - "system"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2024-06-01"
+last_reviewed: "2025-06-16"
 ---
 
 # Architecture
@@ -19,6 +19,7 @@ This section provides detailed information about the architecture of DevSynth, i
 
 - **[Overview](overview.md)**: A high-level overview of the DevSynth architecture.
 - **[Hexagonal Architecture](hexagonal_architecture.md)**: Details on the hexagonal (ports and adapters) architecture used in DevSynth.
+- **[Init Workflow](init_workflow.md)**: Sequence diagram for the interactive initialization process.
 
 ## System Components
 
@@ -59,3 +60,4 @@ If you're new to DevSynth's architecture, we recommend starting with the [Overvi
 - [Developer Guides](../developer_guides/index.md) - Information for developers contributing to DevSynth
 - [Technical Reference](../technical_reference/index.md) - Technical reference documentation
 - [Specifications](../specifications/index.md) - Detailed specifications for DevSynth components
+- [CLI Overhaul Pseudocode](../specifications/cli_overhaul_pseudocode.md) - Design reference for the updated initialization command

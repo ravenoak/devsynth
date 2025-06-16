@@ -1,6 +1,6 @@
 ---
 title: "DevSynth Architecture Overview"
-date: "2025-05-01"
+date: "2025-06-16"
 version: "1.0.0"
 tags:
   - "architecture"
@@ -9,7 +9,7 @@ tags:
   - "structure"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-01"
+last_reviewed: "2025-06-16"
 ---
 
 # DevSynth Architecture Overview
@@ -32,9 +32,10 @@ DevSynth is a modular, agentic software engineering platform designed for extens
 
 ```mermaid
 graph TD
-    A[CLI / Chat Interface] --> B[Application Layer]
-    B --> UX[UXBridge]
-    UX --> W[Init Wizard]
+    CLI[CLI / Chat Interface] --> UX[UXBridge]
+    Web[WebUI (Future)] --> UX
+    UX --> B[Application Layer]
+    UX --> IW[Init Wizard]
     B --> C[Agent System]
     B --> D[Code Analysis]
     B --> E[MemoryPort]
