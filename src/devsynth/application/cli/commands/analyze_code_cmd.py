@@ -16,9 +16,11 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 def analyze_code_cmd(path: Optional[str] = None) -> None:
-    """
-    Analyze a codebase to understand its architecture, structure, and quality.
-    
+    """Analyze a codebase to understand its architecture and quality.
+
+    Example:
+        `devsynth analyze-code --path ./my-project`
+
     Args:
         path: Path to the codebase to analyze (default: current directory)
     """

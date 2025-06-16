@@ -19,6 +19,9 @@ logger = DevSynthLogger(__name__)
 def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
     """Run an EDRR cycle from a manifest file.
 
+    Example:
+        `devsynth edrr-cycle manifest.yaml`
+
     Args:
         manifest: Path to the manifest file.
         auto: Whether to automatically progress through phases.

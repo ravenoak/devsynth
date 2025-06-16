@@ -343,7 +343,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 if len(args) > 2 and args[1] in ["--config-dir", "-c"]:
                     config_dir = args[2]
 
-                from devsynth.application.cli.cli_commands import doctor_cmd
+                from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 
                 doctor_cmd(config_dir or "config")
             else:

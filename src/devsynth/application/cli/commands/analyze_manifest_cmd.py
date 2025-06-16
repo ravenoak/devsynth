@@ -18,8 +18,10 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune: bool = False) -> None:
-    """
-    Analyze and manage the project configuration file (devsynth.yaml, formerly manifest.yaml).
+    """Analyze and manage the project configuration file.
+
+    Example:
+        `devsynth analyze-manifest --update`
 
     This command scans the project structure and can update, refine, or prune the configuration file
     based on the actual project structure.

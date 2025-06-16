@@ -187,6 +187,23 @@ devsynth config --key model --value gpt-4
 **Details:**
 This command allows you to view or modify DevSynth configuration settings. It provides a way to customize the behavior of DevSynth for your specific needs.
 
+### `doctor` / `check`
+
+Validates environment configuration files for common issues.
+
+```bash
+devsynth doctor [--config-dir DIR]
+devsynth check [--config-dir DIR]
+```
+
+**Example:**
+```bash
+devsynth doctor --config-dir ./config
+```
+
+**Details:**
+Run this command before other workflows to ensure your `config/*.yml` files are complete. If no configuration is found, the output suggests running `devsynth init` to generate defaults.
+
 ## Configuration Options
 
 DevSynth can be configured using the `config` command or by editing the configuration file directly. The following configuration options are available:

@@ -329,9 +329,11 @@ def generate_metrics_report(metrics: Dict, historical_metrics: List[Dict], outpu
         console.print(f"[red]Error generating metrics report: {e}[/red]")
 
 def alignment_metrics_cmd(path: str = '.', metrics_file: str = '.devsynth/alignment_metrics.json', output: Optional[str] = None):
-    """
-    Collect and report on alignment metrics.
-    
+    """Collect and report on alignment metrics.
+
+    Example:
+        `devsynth alignment-metrics --path .`
+
     Args:
         path: Path to the project directory
         metrics_file: Path to the metrics file

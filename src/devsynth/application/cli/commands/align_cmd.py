@@ -216,9 +216,11 @@ def display_issues(issues: List[Dict]):
     console.print(table)
 
 def align_cmd(path: str = '.', verbose: bool = False, output: Optional[str] = None):
-    """
-    Check alignment between SDLC artifacts.
-    
+    """Check alignment between SDLC artifacts.
+
+    Example:
+        `devsynth align --path . --verbose`
+
     Args:
         path: Path to the project directory
         verbose: Whether to show verbose output
