@@ -56,10 +56,6 @@ class TestCLICommands:
                 "./test-project",  # project_root
                 "single_package",  # structure
                 "python",  # language
-                "",  # extra_languages
-                "src",  # source_dirs
-                "tests",  # test_dirs
-                "docs",  # docs_dirs
                 "",  # goals
                 "",  # constraints path
             ],
@@ -76,12 +72,9 @@ class TestCLICommands:
                 "path": "./test-project",
                 "project_root": "./test-project",
                 "language": "python",
-                "source_dirs": "src",
-                "test_dirs": "tests",
-                "docs_dirs": "docs",
-                "extra_languages": "",
-                "goals": "",
                 "constraints": "",
+                "goals": "",
+                "structure": "single_package",
             },
         )
         # Check that one of the print calls contains the expected message
@@ -109,10 +102,6 @@ class TestCLICommands:
                 "single_package",
                 "python",
                 "",
-                "src",
-                "tests",
-                "docs",
-                "",
                 "",
             ],
         ), patch(
@@ -128,12 +117,9 @@ class TestCLICommands:
                 "path": "./test-project",
                 "project_root": "./test-project",
                 "language": "python",
-                "source_dirs": "src",
-                "test_dirs": "tests",
-                "docs_dirs": "docs",
-                "extra_languages": "",
-                "goals": "",
                 "constraints": "",
+                "goals": "",
+                "structure": "single_package",
             },
         )
         mock_console.print.assert_called_once_with(
@@ -153,10 +139,6 @@ class TestCLICommands:
                 "single_package",
                 "python",
                 "",
-                "src",
-                "tests",
-                "docs",
-                "",
                 "",
             ],
         ), patch(
@@ -172,12 +154,9 @@ class TestCLICommands:
                 "path": "./test-project",
                 "project_root": "./test-project",
                 "language": "python",
-                "source_dirs": "src",
-                "test_dirs": "tests",
-                "docs_dirs": "docs",
-                "extra_languages": "",
-                "goals": "",
                 "constraints": "",
+                "goals": "",
+                "structure": "single_package",
             },
         )
         mock_console.print.assert_called_once_with(
@@ -250,7 +229,9 @@ class TestCLICommands:
             for call in mock_console.print.call_args_list
         )
 
-    def test_run_pipeline_cmd_success_with_target(self, mock_workflow_manager, mock_console):
+    def test_run_pipeline_cmd_success_with_target(
+        self, mock_workflow_manager, mock_console
+    ):
         """Test successful run with target."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -269,7 +250,9 @@ class TestCLICommands:
             "[green]Executed target: unit-tests[/green]"
         )
 
-    def test_run_pipeline_cmd_success_without_target(self, mock_workflow_manager, mock_console):
+    def test_run_pipeline_cmd_success_without_target(
+        self, mock_workflow_manager, mock_console
+    ):
         """Test successful run without target."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -370,10 +353,6 @@ class TestCLICommands:
                 "single_package",
                 "python",
                 "",
-                "src",
-                "tests",
-                "docs",
-                "",
                 "",
             ],
         ), patch(
@@ -389,12 +368,9 @@ class TestCLICommands:
                 "template": "web-app",
                 "project_root": ".",
                 "language": "python",
-                "source_dirs": "src",
-                "test_dirs": "tests",
-                "docs_dirs": "docs",
-                "extra_languages": "",
-                "goals": "",
                 "constraints": "",
+                "goals": "",
+                "structure": "single_package",
             },
         )
 
@@ -422,10 +398,6 @@ class TestCLICommands:
                 "single_package",
                 "python",
                 "",
-                "src",
-                "tests",
-                "docs",
-                "",
                 "",
             ],
         ):
@@ -438,12 +410,9 @@ class TestCLICommands:
                 "name": "proj",
                 "project_root": "./proj",
                 "language": "python",
-                "source_dirs": "src",
-                "test_dirs": "tests",
-                "docs_dirs": "docs",
-                "extra_languages": "",
-                "goals": "",
                 "constraints": "",
+                "goals": "",
+                "structure": "single_package",
             },
         )
         assert mock_yaml_dump.called
@@ -472,10 +441,6 @@ class TestCLICommands:
                 "./proj",
                 "single_package",
                 "python",
-                "",
-                "src",
-                "tests",
-                "docs",
                 "",
                 "",
             ],
