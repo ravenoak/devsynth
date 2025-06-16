@@ -13,7 +13,12 @@ from devsynth.logging_setup import configure_logging
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
-from devsynth.config import get_settings, save_config, DevSynthConfig, load_config
+from devsynth.config import (
+    get_settings,
+    save_config,
+    get_project_config,
+    config_key_autocomplete as loader_autocomplete,
+)
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 
 logger = DevSynthLogger(__name__)
@@ -60,8 +65,7 @@ def _filter_args(args: dict) -> dict:
 
 def config_key_autocomplete(ctx: typer.Context, incomplete: str):
     """Provide autocompletion for configuration keys."""
-    cfg = load_config()
-    return [k for k in cfg.as_dict().keys() if k.startswith(incomplete)]
+    return loader_autocomplete(ctx, incomplete)
 
 
 def init_cmd(
@@ -257,20 +261,13 @@ def config_cmd(
 
 @config_app.command("enable-feature")
 def enable_feature_cmd(name: str) -> None:
-    """Enable a feature flag in .devsynth/project.yaml."""
+    """Enable a feature flag in the project configuration."""
     try:
-        project_file = Path(".devsynth") / "project.yaml"
-        if not project_file.exists():
-            console.print(
-                "[red]Error:[/red] Project configuration not found", highlight=False
-            )
-            return
-        with open(project_file, "r") as f:
-            data = yaml.safe_load(f) or {}
-        features = data.setdefault("features", {})
+        cfg = get_project_config()
+        features = cfg.features or {}
         features[name] = True
-        with open(project_file, "w") as f:
-            yaml.safe_dump(data, f)
+        cfg.features = features
+        save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
         console.print(f"[green]Feature '{name}' enabled.[/green]")
     except Exception as err:
         console.print(f"[red]Error:[/red] {err}", highlight=False)

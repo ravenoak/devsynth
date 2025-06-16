@@ -7,9 +7,19 @@ import os
 from .settings import (
     get_settings, get_llm_settings, load_dotenv, _settings
 )
-from .loader import DevSynthConfig, load_config, save_config
+from pathlib import Path
+from .loader import ConfigModel, load_config, save_config, config_key_autocomplete
 
-PROJECT_CONFIG: DevSynthConfig = load_config()
+_PROJECT_CONFIG: ConfigModel = load_config()
+PROJECT_CONFIG = _PROJECT_CONFIG
+
+
+def get_project_config(path: Path | None = None) -> ConfigModel:
+    """Return the cached project configuration."""
+    global _PROJECT_CONFIG
+    if path is not None or _PROJECT_CONFIG is None:
+        _PROJECT_CONFIG = load_config(path)
+    return _PROJECT_CONFIG
 
 # Expose settings as module-level variables for backward compatibility
 MEMORY_STORE_TYPE = _settings.memory_store_type
@@ -43,6 +53,9 @@ __all__ = [
     "load_dotenv",
     "load_config",
     "save_config",
+    "get_project_config",
+    "config_key_autocomplete",
+    "ConfigModel",
     "PROJECT_CONFIG",
 
     # Memory settings

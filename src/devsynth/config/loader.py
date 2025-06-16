@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Unified configuration loader for DevSynth."""
+"""Unified configuration loader for DevSynth projects."""
 
 import os
 from pathlib import Path
@@ -12,7 +12,7 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class DevSynthConfig:
+class ConfigModel:
     """Dataclass representing project configuration."""
 
     project_root: Optional[str] = None
@@ -57,14 +57,14 @@ def _find_config_path(start: Path) -> Optional[Path]:
     return None
 
 
-def load_config(start_path: Optional[str] = None) -> DevSynthConfig:
+def load_config(path: Optional[Path] = None) -> ConfigModel:
     """Load configuration from YAML or TOML."""
-    root = Path(start_path or os.getcwd())
+    root = path or Path(os.getcwd())
     cfg_path = _find_config_path(root)
 
     data: Dict[str, Any] = {}
     if cfg_path is None:
-        return DevSynthConfig(project_root=str(root))
+        return ConfigModel(project_root=str(root))
 
     if cfg_path.name.endswith(".yml") or cfg_path.name.endswith(".yaml"):
         with open(cfg_path, "r") as f:
@@ -74,11 +74,11 @@ def load_config(start_path: Optional[str] = None) -> DevSynthConfig:
         data = tdata.get("tool", {}).get("devsynth", {})
     if "project_root" not in data:
         data["project_root"] = str(root)
-    return DevSynthConfig(**data)
+    return ConfigModel(**data)
 
 
 def save_config(
-    config: DevSynthConfig,
+    config: ConfigModel,
     use_pyproject: bool = False,
     path: Optional[str] = None,
 ) -> Path:
@@ -100,3 +100,15 @@ def save_config(
         with open(cfg_path, "w") as f:
             yaml.safe_dump(config.as_dict(), f)
         return cfg_path
+
+
+try:  # pragma: no cover - optional dependency
+    import typer
+except Exception:  # pragma: no cover - optional dependency
+    typer = None
+
+
+def config_key_autocomplete(ctx: "typer.Context", incomplete: str):
+    """Autocomplete configuration keys for Typer CLI."""
+    keys = ConfigModel().__dataclass_fields__.keys()
+    return [k for k in keys if k.startswith(incomplete)]

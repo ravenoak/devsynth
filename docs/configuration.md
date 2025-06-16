@@ -36,3 +36,27 @@ For the UX design rationale behind gradually exposing these capabilities, see th
 
 Changes are written to the appropriate configuration file so subsequent runs use the selected features.
 
+## Unified Configuration Loader
+
+DevSynth provides a single loader that reads project configuration from either
+`.devsynth/devsynth.yml` or the `[tool.devsynth]` section of `pyproject.toml`.
+The loader returns a `ConfigModel` dataclass with these fields:
+
+```yaml
+project_root: str
+structure: str
+language: str
+goals: str | null
+constraints: str | null
+directories:
+  source: ["src"]
+  tests: ["tests"]
+  docs: ["docs"]
+features: {code_generation: bool, test_generation: bool}
+resources: dict
+```
+
+Use `from devsynth.config import get_project_config` in your code to access the
+parsed configuration. CLI commands also expose autocompletion of configuration
+keys via `config_key_autocomplete`.
+

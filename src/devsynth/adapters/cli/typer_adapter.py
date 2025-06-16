@@ -1,7 +1,6 @@
 import typer
 from devsynth.logging_setup import DevSynthLogger
-from pathlib import Path
-import yaml
+from devsynth.config import get_project_config
 
 from devsynth.application.cli import (
     init_cmd,
@@ -90,18 +89,8 @@ app = build_app()
 def _warn_if_features_disabled() -> None:
     """Emit a notice when all feature flags are disabled."""
     try:
-        project_config = Path(".devsynth") / "project.yaml"
-        if project_config.exists():
-            with open(project_config, "r") as f:
-                config = yaml.safe_load(f) or {}
-            features = config.get("features", {})
-        else:
-            default_config = (
-                Path(__file__).resolve().parents[3] / "config" / "default.yml"
-            )
-            with open(default_config, "r") as f:
-                config = yaml.safe_load(f) or {}
-            features = config.get("features", {})
+        cfg = get_project_config()
+        features = cfg.features or {}
         if features and not any(features.values()):
             typer.echo(
                 "All optional features are disabled. Enable with 'devsynth config enable-feature <name>'."
