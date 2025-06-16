@@ -53,7 +53,7 @@ Feature: CLI Command Execution
     And the system should display a success message
 
   Scenario: Run with specific target
-    When I run the command "devsynth run --target unit-tests"
+    When I run the command "devsynth run-pipeline --target unit-tests"
     Then the system should execute the "unit-tests" target
     And the workflow should execute successfully
     And the system should display a success message

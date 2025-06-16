@@ -336,7 +336,7 @@ def refactor_cmd(path: Optional[str] = None) -> None:
 
         console = Console()
 
-        # Show a welcome message for the adaptive command
+        # Show a welcome message for the refactor command
         console.print(
             Panel(
                 "[bold blue]DevSynth Refactor Workflow[/bold blue]\n\n"
@@ -350,7 +350,7 @@ def refactor_cmd(path: Optional[str] = None) -> None:
         # Set the project path
         project_path = path or os.getcwd()
 
-        # Execute the adaptive workflow
+        # Execute the refactor workflow
         result = adaptive_workflow_manager.execute_adaptive_workflow(project_path)
 
         if result.get("success", False):
