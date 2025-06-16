@@ -26,10 +26,15 @@ Feature: CLI Command Execution
     And the workflow should execute successfully
     And the system should display a success message
 
-  Scenario: Initialize a project with directories and goals
-    When I run the command "devsynth init --project-root . --language python --source-dirs src --test-dirs tests --docs-dirs docs --extra-languages javascript --goals demo"
+  Scenario: Initialize a project with goals
+    When I run the command "devsynth init --project-root . --language python --goals demo"
     Then a new project should be created at "."
     And the workflow should execute successfully
+    And the system should display a success message
+
+  Scenario: Initialize interactively
+    When I run the command "devsynth init"
+    Then the workflow should execute successfully
     And the system should display a success message
 
   Scenario: Generate specifications with custom requirements file
@@ -84,3 +89,8 @@ Feature: CLI Command Execution
     When I run the command "devsynth edrr-cycle sample_manifest.yaml"
     Then the workflow should execute successfully
     And the system should display a success message
+
+  Scenario: Validate project configuration
+    When I run the command "devsynth validate-manifest"
+    Then the system should display a success message
+    And the workflow should execute successfully

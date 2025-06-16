@@ -17,3 +17,9 @@ Feature: Project Initialization
     Then a new project directory "custom-project" should be created
     And the project should use the single_package layout
     And a configuration file should be created with javascript settings
+
+  Scenario: Interactive initialization
+    Given the DevSynth CLI is installed
+    When I run the command "devsynth init"
+    Then the project should use the default layout
+    And a configuration file should be created with default settings

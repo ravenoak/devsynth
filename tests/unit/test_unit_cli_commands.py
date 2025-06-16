@@ -521,3 +521,26 @@ class TestCLICommands:
                 "chromadb" in call.args[0].lower()
                 for call in mock_console.print.call_args_list
             )
+
+    def test_config_key_autocomplete(self, tmp_path, monkeypatch):
+        cfg_dir = tmp_path / ".devsynth"
+        cfg_dir.mkdir()
+        (cfg_dir / "devsynth.yml").write_text("language: python\nmodel: gpt-4\n")
+        monkeypatch.chdir(tmp_path)
+
+        result = cli_commands.config_key_autocomplete(None, "l")
+        assert "language" in result
+
+    def test_check_services_warns(self, monkeypatch, capsys):
+        class DummySettings:
+            vector_store_enabled = False
+            memory_store_type = "chromadb"
+            provider_type = "openai"
+            openai_api_key = None
+            lm_studio_endpoint = None
+
+        monkeypatch.setattr(cli_commands, "get_settings", lambda: DummySettings)
+        res = cli_commands._check_services()
+        output = capsys.readouterr().out
+        assert res is False
+        assert "OPENAI_API_KEY" in output

@@ -23,6 +23,9 @@ from devsynth.application.cli.cli_commands import (
     inspect_cmd,
     refactor_cmd,
 )
+from devsynth.application.cli.commands.validate_manifest_cmd import (
+    validate_manifest_cmd,
+)
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
 
@@ -84,10 +87,6 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 project_root = None
                 language = None
                 constraints = None
-                source_dirs = None
-                test_dirs = None
-                docs_dirs = None
-                extra_languages = None
                 goals = None
 
                 # Parse all arguments
@@ -111,18 +110,6 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     elif args[i] == "--constraints" and i + 1 < len(args):
                         constraints = args[i + 1]
                         i += 2
-                    elif args[i] == "--source-dirs" and i + 1 < len(args):
-                        source_dirs = args[i + 1]
-                        i += 2
-                    elif args[i] == "--test-dirs" and i + 1 < len(args):
-                        test_dirs = args[i + 1]
-                        i += 2
-                    elif args[i] == "--docs-dirs" and i + 1 < len(args):
-                        docs_dirs = args[i + 1]
-                        i += 2
-                    elif args[i] == "--extra-languages" and i + 1 < len(args):
-                        extra_languages = args[i + 1]
-                        i += 2
                     elif args[i] == "--goals" and i + 1 < len(args):
                         goals = args[i + 1]
                         i += 2
@@ -139,10 +126,6 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     project_root=project_root,
                     language=language,
                     constraints=constraints,
-                    source_dirs=source_dirs,
-                    test_dirs=test_dirs,
-                    docs_dirs=docs_dirs,
-                    extra_languages=extra_languages,
                     goals=goals,
                 )
 
@@ -162,14 +145,6 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     init_args["language"] = language
                 if constraints:
                     init_args["constraints"] = constraints
-                if source_dirs:
-                    init_args["source_dirs"] = source_dirs
-                if test_dirs:
-                    init_args["test_dirs"] = test_dirs
-                if docs_dirs:
-                    init_args["docs_dirs"] = docs_dirs
-                if extra_languages:
-                    init_args["extra_languages"] = extra_languages
                 if goals:
                     init_args["goals"] = goals
 
@@ -340,6 +315,29 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "analyze-manifest", analyze_manifest_args
                 )
+            elif args[0] == "validate-manifest":
+                manifest = None
+                schema = None
+                i = 1
+                while i < len(args):
+                    if args[i] == "--config" and i + 1 < len(args):
+                        manifest = args[i + 1]
+                        i += 2
+                    elif args[i] == "--schema" and i + 1 < len(args):
+                        schema = args[i + 1]
+                        i += 2
+                    else:
+                        i += 1
+
+                validate_manifest_cmd(manifest, schema)
+                mock_workflow_manager.execute_command.reset_mock()
+                validate_args = {"manifest_path": manifest, "schema_path": schema}
+                mock_workflow_manager.execute_command(
+                    "validate-manifest", validate_args
+                )
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "validate-manifest", validate_args
+                )
             else:
                 # Invalid command, show help
                 show_help()
@@ -376,7 +374,17 @@ def check_commands_in_help(command_context):
     Verify that all available commands are listed in the help output.
     """
     output = command_context.get("output", "")
-    commands = ["init", "spec", "test", "code", "run-pipeline", "config", "edrr-cycle", "help"]
+    commands = [
+        "init",
+        "spec",
+        "test",
+        "code",
+        "run-pipeline",
+        "config",
+        "edrr-cycle",
+        "validate-manifest",
+        "help",
+    ]
     for cmd in commands:
         assert cmd in output
 
@@ -459,7 +467,9 @@ def check_target_executed(target, mock_workflow_manager):
     """
     Verify that the system executed the specified target.
     """
-    mock_workflow_manager.execute_command.assert_any_call("run", {"target": target})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "run-pipeline", {"target": target}
+    )
 
 
 @then(parsers.parse("the system should update the configuration"))
