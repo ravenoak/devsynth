@@ -21,6 +21,8 @@ from .cli_commands import (
     inspect_cmd,
     webapp_cmd,
     dbschema_cmd,
+    doctor_cmd,
+    check_cmd,
     refactor_cmd,
     serve_cmd,
 )
@@ -41,6 +43,8 @@ __all__ = [
     "inspect_cmd",
     "webapp_cmd",
     "dbschema_cmd",
+    "doctor_cmd",
+    "check_cmd",
     "refactor_cmd",
     "serve_cmd",
     "analyze_code_cmd",

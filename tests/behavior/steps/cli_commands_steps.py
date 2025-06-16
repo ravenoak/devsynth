@@ -573,3 +573,10 @@ def project_with_invalid_env_config(tmp_project_dir):
 def check_config_errors(command_context):
     output = command_context.get("output", "")
     assert "warning" in output.lower() or "error" in output.lower()
+
+
+@then(parsers.parse('the system should display a warning message'))
+def check_warning_message(command_context):
+    """Verify that the system displayed a warning message."""
+    output = command_context.get("output", "")
+    assert "warning" in output.lower() or "warning" in output
