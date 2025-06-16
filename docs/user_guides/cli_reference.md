@@ -399,10 +399,12 @@ devsynth dbschema --db-type sqlite --name blog --path ./schema
 
 ### doctor
 
-Validate environment configuration files for common issues.
+Validate environment configuration files for common issues. The command is also
+available as `devsynth check`.
 
 ```bash
 devsynth doctor [--config-dir DIR]
+devsynth check [--config-dir DIR]
 ```
 
 **Options:**
@@ -415,6 +417,9 @@ devsynth doctor
 
 # Validate a custom configuration directory
 devsynth doctor --config-dir ./configs
+
+# Using the alias
+devsynth check
 ```
 
 ## Environment Variables

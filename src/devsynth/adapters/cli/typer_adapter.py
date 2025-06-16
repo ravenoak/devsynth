@@ -50,16 +50,44 @@ def build_app() -> typer.Typer:
     app.add_typer(requirements_app, name="requirements")
 
     # Register commands from the application layer
-    app.command(name="init")(init_cmd)
-    app.command(name="spec")(spec_cmd)
-    app.command(name="test")(test_cmd)
-    app.command(name="code")(code_cmd)
-    app.command(name="run-pipeline")(run_pipeline_cmd)
-    app.add_typer(config_app, name="config")
-    app.command(name="inspect")(inspect_cmd)
-    app.command(name="webapp")(webapp_cmd)
-    app.command(name="dbschema")(dbschema_cmd)
-    app.command(name="doctor")(doctor_cmd)
+    app.command(
+        name="init",
+        help="Initialize or onboard a project. Example: devsynth init --path ./my-project",
+    )(init_cmd)
+    app.command(
+        name="spec",
+        help="Generate specifications from requirements. Example: devsynth spec --requirements-file reqs.md",
+    )(spec_cmd)
+    app.command(
+        name="test",
+        help="Generate tests from specs. Example: devsynth test --spec-file specs.md",
+    )(test_cmd)
+    app.command(name="code", help="Generate code from tests. Example: devsynth code")(code_cmd)
+    app.command(
+        name="run-pipeline",
+        help="Execute the generated code. Example: devsynth run-pipeline --target unit-tests",
+    )(run_pipeline_cmd)
+    app.add_typer(config_app, name="config", help="Manage configuration settings")
+    app.command(
+        name="inspect",
+        help="Inspect requirements. Example: devsynth inspect --input reqs.txt",
+    )(inspect_cmd)
+    app.command(
+        name="webapp",
+        help="Generate a web application. Example: devsynth webapp --framework flask",
+    )(webapp_cmd)
+    app.command(
+        name="dbschema",
+        help="Generate a database schema. Example: devsynth dbschema --db-type sqlite",
+    )(dbschema_cmd)
+    app.command(
+        name="doctor",
+        help="Validate configuration files. Example: devsynth doctor",
+    )(doctor_cmd)
+    app.command(
+        name="check",
+        help="Alias for doctor. Example: devsynth check",
+    )(doctor_cmd)
     app.command(name="refactor")(refactor_cmd)
     app.command(name="analyze-code")(analyze_code_cmd)
     app.command(name="edrr-cycle")(edrr_cycle_cmd)

@@ -90,7 +90,13 @@ Feature: CLI Command Execution
     Then the workflow should execute successfully
     And the system should display a success message
 
-  Scenario: Validate project configuration
-    When I run the command "devsynth validate-manifest"
-    Then the system should display a success message
-    And the workflow should execute successfully
+Scenario: Validate project configuration
+  When I run the command "devsynth validate-manifest"
+  Then the system should display a success message
+  And the workflow should execute successfully
+
+Scenario: Validate environment configuration
+  Given a project with invalid environment configuration
+  When I run the command "devsynth doctor"
+  Then the system should display a warning message
+  And the output should indicate configuration errors

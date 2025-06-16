@@ -77,7 +77,11 @@ def init_cmd(
     constraints: Optional[str] = None,
     goals: Optional[str] = None,
 ) -> None:
-    """Initialize a new project or onboard an existing one."""
+    """Initialize a new project or onboard an existing one.
+
+    Example:
+        `devsynth init --path ./my-project`
+    """
     try:
         root_path = Path(path)
         devsynth_dir = root_path / ".devsynth"
@@ -169,7 +173,11 @@ def init_cmd(
 
 
 def spec_cmd(requirements_file: str = "requirements.md") -> None:
-    """Generate specifications from a requirements file."""
+    """Generate specifications from a requirements file.
+
+    Example:
+        `devsynth spec --requirements-file requirements.md`
+    """
     try:
         if not _check_services():
             return
@@ -186,7 +194,11 @@ def spec_cmd(requirements_file: str = "requirements.md") -> None:
 
 
 def test_cmd(spec_file: str = "specs.md") -> None:
-    """Generate tests based on specifications."""
+    """Generate tests based on specifications.
+
+    Example:
+        `devsynth test --spec-file specs.md`
+    """
     try:
         if not _check_services():
             return
@@ -201,7 +213,11 @@ def test_cmd(spec_file: str = "specs.md") -> None:
 
 
 def code_cmd() -> None:
-    """Generate implementation code from tests."""
+    """Generate implementation code from tests.
+
+    Example:
+        `devsynth code`
+    """
     try:
         if not _check_services():
             return
@@ -215,7 +231,11 @@ def code_cmd() -> None:
 
 
 def run_pipeline_cmd(target: Optional[str] = None) -> None:
-    """Run the generated code or a specific target."""
+    """Run the generated code or a specific target.
+
+    Example:
+        `devsynth run-pipeline --target unit-tests`
+    """
     try:
         result = workflow_manager.execute_command("run-pipeline", {"target": target})
         if result["success"]:
@@ -236,7 +256,11 @@ def config_cmd(
     value: Optional[str] = None,
     list_models: bool = False,
 ) -> None:
-    """View or set configuration options."""
+    """View or set configuration options.
+
+    Example:
+        `devsynth config --key model --value gpt-4`
+    """
     if ctx.invoked_subcommand is not None:
         return
     try:
@@ -261,7 +285,11 @@ def config_cmd(
 
 @config_app.command("enable-feature")
 def enable_feature_cmd(name: str) -> None:
-    """Enable a feature flag in the project configuration."""
+    """Enable a feature flag in the project configuration.
+
+    Example:
+        `devsynth config enable-feature code_generation`
+    """
     try:
         cfg = get_project_config()
         features = cfg.features or {}
@@ -282,6 +310,9 @@ def refactor_cmd(path: Optional[str] = None) -> None:
 
     Args:
         path: Path to the project root directory (default: current directory)
+
+    Example:
+        `devsynth refactor --path ./my-project`
     """
     try:
         from rich.console import Console
@@ -340,7 +371,11 @@ def refactor_cmd(path: Optional[str] = None) -> None:
 
 
 def inspect_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
-    """Inspect requirements from a file or interactively."""
+    """Inspect requirements from a file or interactively.
+
+    Example:
+        `devsynth inspect --input requirements.txt`
+    """
     try:
         if not _check_services():
             return
@@ -355,7 +390,11 @@ def inspect_cmd(input_file: Optional[str] = None, interactive: bool = False) -> 
 
 
 def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") -> None:
-    """Generate a web application with the specified framework."""
+    """Generate a web application with the specified framework.
+
+    Example:
+        `devsynth webapp --framework flask --name myapp --path ./apps`
+    """
     try:
         from rich.prompt import Prompt, Confirm
         from rich.markdown import Markdown
@@ -675,7 +714,11 @@ Note: Full support for {framework} will be implemented in a future version.
 
 
 def serve_cmd(host: str = "0.0.0.0", port: int = 8000) -> None:
-    """Run the DevSynth API server."""
+    """Run the DevSynth API server.
+
+    Example:
+        `devsynth serve --host 127.0.0.1 --port 8080`
+    """
     try:
         configure_logging()
         uvicorn.run("devsynth.api:app", host=host, port=port, log_level="info")
@@ -686,7 +729,11 @@ def serve_cmd(host: str = "0.0.0.0", port: int = 8000) -> None:
 def dbschema_cmd(
     db_type: str = "sqlite", name: str = "database", path: str = "."
 ) -> None:
-    """Generate a database schema for the specified database type."""
+    """Generate a database schema for the specified database type.
+
+    Example:
+        `devsynth dbschema --db-type sqlite --name blog --path ./schema`
+    """
     try:
         from rich.prompt import Prompt, Confirm
         from rich.markdown import Markdown
@@ -1184,7 +1231,11 @@ def dbschema_cmd(
 
 
 def doctor_cmd(config_dir: str = "config") -> None:
-    """Validate environment configuration files and provide hints."""
+    """Validate environment configuration files and provide hints.
+
+    Example:
+        `devsynth doctor --config-dir ./config`
+    """
     try:
         import importlib.util
 
@@ -1230,3 +1281,12 @@ def doctor_cmd(config_dir: str = "config") -> None:
             console.print("[green]All configuration files are valid.[/green]")
     except Exception as err:  # pragma: no cover - defensive
         console.print(f"[red]Error:[/red] {err}", highlight=False)
+
+
+def check_cmd(config_dir: str = "config") -> None:
+    """Alias for :func:`doctor_cmd`.
+
+    Example:
+        `devsynth check`
+    """
+    doctor_cmd(config_dir)
