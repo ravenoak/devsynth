@@ -117,6 +117,22 @@ resources: {project: {memoryDir: str, logsDir: str}}
 
 `load_config()` returns a `DevSynthConfig` dataclass with defaults when no configuration file exists. `save_config()` writes the dataclass back to YAML or TOML and is used by the CLI to persist preferences during initialization and later configuration updates.
 
+### Core configuration loader
+
+`src/devsynth/core/config_loader.py` provides a lightweight loader used by
+internal tools. It merges environment variables with project-level files and the
+global configuration stored in `~/.devsynth/config/`. Environment variables with
+the `DEVSYNTH_` prefix always take precedence. The module also exposes
+`config_key_autocomplete()` so Typer commands can offer CLI autocompletion for
+configuration keys and `save_global_config()` to persist user preferences.
+
+```python
+from devsynth.core.config_loader import load_config, save_global_config
+
+cfg = load_config()
+save_global_config(cfg)
+```
+
 ## Best Practices
 
 1. **Version Control**: Include the `.devsynth/devsynth.yml` file in version control to ensure consistent configuration across all developers.
