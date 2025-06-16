@@ -1793,6 +1793,7 @@ Mutation testing will be deferred to a future version.
 - Provide sensible defaults
 - Validate configuration on load
 - Include configuration migration for updates
+- Provide a `doctor` command for environment validation
 - Document all configuration options
 
 **Success Criteria:**

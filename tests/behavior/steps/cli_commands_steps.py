@@ -338,6 +338,14 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "validate-manifest", validate_args
                 )
+            elif args[0] == "doctor":
+                config_dir = None
+                if len(args) > 2 and args[1] in ["--config-dir", "-c"]:
+                    config_dir = args[2]
+
+                from devsynth.application.cli.cli_commands import doctor_cmd
+
+                doctor_cmd(config_dir or "config")
             else:
                 # Invalid command, show help
                 show_help()
@@ -550,3 +558,18 @@ def check_command_not_recognized(command_context):
     output = command_context.get("output", "")
     assert "DevSynth CLI" in output
     assert "Commands:" in output
+
+
+@given("a project with invalid environment configuration")
+def project_with_invalid_env_config(tmp_project_dir):
+    config_path = os.path.join(tmp_project_dir, "config")
+    os.makedirs(config_path, exist_ok=True)
+    with open(os.path.join(config_path, "development.yml"), "w") as f:
+        f.write("application:\n  name: DevSynth\n")
+    return tmp_project_dir
+
+
+@then("the output should indicate configuration errors")
+def check_config_errors(command_context):
+    output = command_context.get("output", "")
+    assert "warning" in output.lower() or "error" in output.lower()

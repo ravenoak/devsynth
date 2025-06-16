@@ -35,6 +35,7 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [retrace](#retrace)
   - [webapp](#webapp)
   - [dbschema](#dbschema)
+  - [doctor](#doctor)
 - [Environment Variables](#environment-variables)
 - [Configuration File](#configuration-file)
 - [Examples](#examples)
@@ -394,6 +395,26 @@ devsynth dbschema [--db-type TYPE] [--name NAME] [--path PATH]
 **Examples:**
 ```bash
 devsynth dbschema --db-type sqlite --name blog --path ./schema
+```
+
+### doctor
+
+Validate environment configuration files for common issues.
+
+```bash
+devsynth doctor [--config-dir DIR]
+```
+
+**Options:**
+- `--config-dir`, `-c`: Directory containing environment configs (default: ./config)
+
+**Examples:**
+```bash
+# Validate default configuration files
+devsynth doctor
+
+# Validate a custom configuration directory
+devsynth doctor --config-dir ./configs
 ```
 
 ## Environment Variables
