@@ -87,6 +87,7 @@ Primary users are individual software developers who:
 - [FR-03] The system shall validate the LM Studio connection during initialization
 - [FR-04] The system shall provide a mechanism to update configuration settings
 - [FR-05] The system shall store configuration in a user-accessible location
+- [FR-05a] The system shall load project settings from `.devsynth/devsynth.yml` or `pyproject.toml` using a unified loader
 
 #### 3.1.2 Project Management
 
