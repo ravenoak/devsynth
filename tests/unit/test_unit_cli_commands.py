@@ -36,12 +36,12 @@ class TestCLICommands:
             yield mock
 
     @pytest.fixture
-    def mock_console(self):
-        """Create a mock console."""
-        with patch("devsynth.application.cli.cli_commands.console") as mock:
+    def mock_bridge(self):
+        """Create a mock UX bridge."""
+        with patch("devsynth.application.cli.cli_commands.bridge") as mock:
             yield mock
 
-    def test_init_cmd_success(self, mock_workflow_manager, mock_console):
+    def test_init_cmd_success(self, mock_workflow_manager, mock_bridge):
         """Test successful project initialization."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -51,7 +51,7 @@ class TestCLICommands:
 
         # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.Prompt.ask",
+            "devsynth.application.cli.cli_commands.bridge.prompt",
             side_effect=[
                 "./test-project",  # project_root
                 "single_package",  # structure
@@ -60,7 +60,7 @@ class TestCLICommands:
                 "",  # constraints path
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.Confirm.ask",
+            "devsynth.application.cli.cli_commands.bridge.confirm",
             return_value=False,
         ):
             init_cmd("./test-project")
@@ -82,11 +82,10 @@ class TestCLICommands:
             "[green]Initialized DevSynth project in ./test-project[/green]"
         )
         assert any(
-            call.args[0] == success_message
-            for call in mock_console.print.call_args_list
+            call.args[0] == success_message for call in mock_bridge.print.call_args_list
         )
 
-    def test_init_cmd_failure(self, mock_workflow_manager, mock_console):
+    def test_init_cmd_failure(self, mock_workflow_manager, mock_bridge):
         """Test failed project initialization."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -96,7 +95,7 @@ class TestCLICommands:
 
         # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.Prompt.ask",
+            "devsynth.application.cli.cli_commands.bridge.prompt",
             side_effect=[
                 "./test-project",
                 "single_package",
@@ -105,7 +104,7 @@ class TestCLICommands:
                 "",
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.Confirm.ask",
+            "devsynth.application.cli.cli_commands.bridge.confirm",
             return_value=False,
         ):
             init_cmd("./test-project")
@@ -122,18 +121,18 @@ class TestCLICommands:
                 "structure": "single_package",
             },
         )
-        mock_console.print.assert_called_once_with(
+        mock_bridge.print.assert_called_once_with(
             "[red]Error:[/red] Path already exists", highlight=False
         )
 
-    def test_init_cmd_exception(self, mock_workflow_manager, mock_console):
+    def test_init_cmd_exception(self, mock_workflow_manager, mock_bridge):
         """Test exception handling in project initialization."""
         # Setup
         mock_workflow_manager.execute_command.side_effect = Exception("Test error")
 
         # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.Prompt.ask",
+            "devsynth.application.cli.cli_commands.bridge.prompt",
             side_effect=[
                 "./test-project",
                 "single_package",
@@ -142,7 +141,7 @@ class TestCLICommands:
                 "",
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.Confirm.ask",
+            "devsynth.application.cli.cli_commands.bridge.confirm",
             return_value=False,
         ):
             init_cmd("./test-project")
@@ -159,11 +158,11 @@ class TestCLICommands:
                 "structure": "single_package",
             },
         )
-        mock_console.print.assert_called_once_with(
+        mock_bridge.print.assert_called_once_with(
             "[red]Error:[/red] Test error", highlight=False
         )
 
-    def test_spec_cmd_success(self, mock_workflow_manager, mock_console):
+    def test_spec_cmd_success(self, mock_workflow_manager, mock_bridge):
         """Test successful spec generation."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -183,11 +182,10 @@ class TestCLICommands:
             "[green]Specifications generated from requirements.md.[/green]"
         )
         assert any(
-            call.args[0] == success_message
-            for call in mock_console.print.call_args_list
+            call.args[0] == success_message for call in mock_bridge.print.call_args_list
         )
 
-    def test_test_cmd_success(self, mock_workflow_manager, mock_console):
+    def test_test_cmd_success(self, mock_workflow_manager, mock_bridge):
         """Test successful test generation."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -205,11 +203,10 @@ class TestCLICommands:
         # Check that one of the print calls contains the expected message
         success_message = "[green]Tests generated from specs.md.[/green]"
         assert any(
-            call.args[0] == success_message
-            for call in mock_console.print.call_args_list
+            call.args[0] == success_message for call in mock_bridge.print.call_args_list
         )
 
-    def test_code_cmd_success(self, mock_workflow_manager, mock_console):
+    def test_code_cmd_success(self, mock_workflow_manager, mock_bridge):
         """Test successful code generation."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -225,12 +222,11 @@ class TestCLICommands:
         # Check that one of the print calls contains the expected message
         success_message = "[green]Code generated successfully.[/green]"
         assert any(
-            call.args[0] == success_message
-            for call in mock_console.print.call_args_list
+            call.args[0] == success_message for call in mock_bridge.print.call_args_list
         )
 
     def test_run_pipeline_cmd_success_with_target(
-        self, mock_workflow_manager, mock_console
+        self, mock_workflow_manager, mock_bridge
     ):
         """Test successful run with target."""
         # Setup
@@ -246,12 +242,12 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.assert_called_once_with(
             "run-pipeline", {"target": "unit-tests"}
         )
-        mock_console.print.assert_called_once_with(
+        mock_bridge.print.assert_called_once_with(
             "[green]Executed target: unit-tests[/green]"
         )
 
     def test_run_pipeline_cmd_success_without_target(
-        self, mock_workflow_manager, mock_console
+        self, mock_workflow_manager, mock_bridge
     ):
         """Test successful run without target."""
         # Setup
@@ -267,9 +263,9 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.assert_called_once_with(
             "run-pipeline", {"target": None}
         )
-        mock_console.print.assert_called_once_with("[green]Execution complete.[/green]")
+        mock_bridge.print.assert_called_once_with("[green]Execution complete.[/green]")
 
-    def test_config_cmd_set_value(self, mock_workflow_manager, mock_console):
+    def test_config_cmd_set_value(self, mock_workflow_manager, mock_bridge):
         """Test setting a configuration value."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -284,11 +280,11 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.assert_called_once_with(
             "config", {"key": "model", "value": "gpt-4"}
         )
-        mock_console.print.assert_called_once_with(
+        mock_bridge.print.assert_called_once_with(
             "[green]Configuration updated: model = gpt-4[/green]"
         )
 
-    def test_config_cmd_get_value(self, mock_workflow_manager, mock_console):
+    def test_config_cmd_get_value(self, mock_workflow_manager, mock_bridge):
         """Test getting a configuration value."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -303,9 +299,9 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.assert_called_once_with(
             "config", {"key": "model", "value": None}
         )
-        mock_console.print.assert_called_once_with("[blue]model:[/blue] gpt-4")
+        mock_bridge.print.assert_called_once_with("[blue]model:[/blue] gpt-4")
 
-    def test_config_cmd_list_all(self, mock_workflow_manager, mock_console):
+    def test_config_cmd_list_all(self, mock_workflow_manager, mock_bridge):
         """Test listing all configuration values."""
         # Setup
         mock_workflow_manager.execute_command.return_value = {
@@ -320,9 +316,9 @@ class TestCLICommands:
         mock_workflow_manager.execute_command.assert_called_once_with(
             "config", {"key": None, "value": None}
         )
-        assert mock_console.print.call_count == 4  # Header + 3 config items
+        assert mock_bridge.print.call_count == 4  # Header + 3 config items
 
-    def test_enable_feature_cmd(self, tmp_path, mock_console):
+    def test_enable_feature_cmd(self, tmp_path, mock_bridge):
         """enable_feature_cmd should toggle a flag in project.yaml."""
         dev_dir = tmp_path / ".devsynth"
         dev_dir.mkdir()
@@ -340,14 +336,14 @@ class TestCLICommands:
         assert data["features"]["code_generation"] is True
         assert any(
             "Feature 'code_generation' enabled." == call.args[0]
-            for call in mock_console.print.call_args_list
+            for call in mock_bridge.print.call_args_list
         )
 
-    def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_console):
+    def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_bridge):
         """Init command with additional parameters."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
         with patch(
-            "devsynth.application.cli.cli_commands.Prompt.ask",
+            "devsynth.application.cli.cli_commands.bridge.prompt",
             side_effect=[
                 ".",
                 "single_package",
@@ -356,7 +352,7 @@ class TestCLICommands:
                 "",
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.Confirm.ask",
+            "devsynth.application.cli.cli_commands.bridge.confirm",
             return_value=False,
         ):
             init_cmd(path=".", name="proj", template="web-app")
@@ -377,7 +373,7 @@ class TestCLICommands:
     @patch("devsynth.application.cli.cli_commands.Path.mkdir")
     @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
     @patch("builtins.open", new_callable=mock_open, read_data="projectName: ex")
-    @patch("devsynth.application.cli.cli_commands.Confirm.ask")
+    @patch("devsynth.application.cli.cli_commands.bridge.confirm")
     def test_init_cmd_writes_features(
         self,
         mock_confirm,
@@ -385,14 +381,14 @@ class TestCLICommands:
         mock_yaml_dump,
         mock_mkdir,
         mock_workflow_manager,
-        mock_console,
+        mock_bridge,
     ):
         """Init command writes feature flags to project.yaml."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
         mock_confirm.side_effect = [True, False, False, False, False, False]
 
         with patch(
-            "devsynth.application.cli.cli_commands.Prompt.ask",
+            "devsynth.application.cli.cli_commands.bridge.prompt",
             side_effect=[
                 "./proj",
                 "single_package",
@@ -422,7 +418,7 @@ class TestCLICommands:
     @patch("devsynth.application.cli.cli_commands.Path.mkdir")
     @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("devsynth.application.cli.cli_commands.Confirm.ask", return_value=False)
+    @patch("devsynth.application.cli.cli_commands.bridge.confirm", return_value=False)
     def test_init_cmd_writes_config_file(
         self,
         mock_confirm,
@@ -430,13 +426,13 @@ class TestCLICommands:
         mock_yaml_dump,
         mock_mkdir,
         mock_workflow_manager,
-        mock_console,
+        mock_bridge,
     ):
         """init_cmd should create .devsynth/devsynth.yml."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
 
         with patch(
-            "devsynth.application.cli.cli_commands.Prompt.ask",
+            "devsynth.application.cli.cli_commands.bridge.prompt",
             side_effect=[
                 "./proj",
                 "single_package",
@@ -452,7 +448,7 @@ class TestCLICommands:
         opened_path = Path(mock_open_file.call_args[0][0])
         assert opened_path.name == "devsynth.yml"
 
-    def test_inspect_cmd_file(self, mock_workflow_manager, mock_console):
+    def test_inspect_cmd_file(self, mock_workflow_manager, mock_bridge):
         """Inspect command with input file."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
         inspect_cmd("requirements.md")
@@ -461,7 +457,7 @@ class TestCLICommands:
             {"input": "requirements.md", "interactive": False},
         )
 
-    def test_inspect_cmd_interactive(self, mock_workflow_manager, mock_console):
+    def test_inspect_cmd_interactive(self, mock_workflow_manager, mock_bridge):
         """Inspect command in interactive mode."""
         mock_workflow_manager.execute_command.return_value = {"success": True}
         inspect_cmd(interactive=True)
@@ -469,7 +465,7 @@ class TestCLICommands:
             "inspect", {"interactive": True}
         )
 
-    def test_spec_cmd_missing_openai_key(self, mock_workflow_manager, mock_console):
+    def test_spec_cmd_missing_openai_key(self, mock_workflow_manager, mock_bridge):
         """spec_cmd should warn when OpenAI API key is missing."""
 
         class DummySettings:
@@ -490,11 +486,11 @@ class TestCLICommands:
             mock_workflow_manager.execute_command.assert_not_called()
             assert any(
                 "OPENAI_API_KEY" in call.args[0]
-                for call in mock_console.print.call_args_list
+                for call in mock_bridge.print.call_args_list
             )
 
     def test_spec_cmd_missing_chromadb_package(
-        self, mock_workflow_manager, mock_console
+        self, mock_workflow_manager, mock_bridge
     ):
         """spec_cmd should warn when ChromaDB package is unavailable."""
 
@@ -519,7 +515,7 @@ class TestCLICommands:
             mock_workflow_manager.execute_command.assert_not_called()
             assert any(
                 "chromadb" in call.args[0].lower()
-                for call in mock_console.print.call_args_list
+                for call in mock_bridge.print.call_args_list
             )
 
     def test_config_key_autocomplete(self, tmp_path, monkeypatch):

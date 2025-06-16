@@ -1,11 +1,13 @@
 import os
 from typing import Optional, Union, List
 
-from rich.console import Console
-from rich.prompt import Confirm, Prompt
 import typer
 from pathlib import Path
 import importlib.util
+from rich.console import Console
+
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from ..orchestration.workflow import workflow_manager
 import uvicorn
@@ -23,11 +25,12 @@ from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 config_app = typer.Typer(help="Manage configuration settings")
 
 
-def _check_services() -> bool:
+def _check_services(bridge: UXBridge = bridge) -> bool:
     """Verify required services are available."""
     settings = get_settings()
     messages: List[str] = []
@@ -50,8 +53,8 @@ def _check_services() -> bool:
 
     if messages:
         for msg in messages:
-            console.print(f"[red]{msg}[/red]", highlight=False)
-        console.print(
+            bridge.print(f"[red]{msg}[/red]", highlight=False)
+        bridge.print(
             "[yellow]Use 'devsynth config' or edit your project.yaml to update settings.[/yellow]"
         )
         return False
@@ -77,6 +80,8 @@ def init_cmd(
     language: Optional[str] = None,
     constraints: Optional[str] = None,
     goals: Optional[str] = None,
+    *,
+    bridge: UXBridge = bridge,
 ) -> None:
     """Initialize a new project or onboard an existing one.
 
@@ -89,34 +94,34 @@ def init_cmd(
         if (root_path / "pyproject.toml").exists() or (
             devsynth_dir / "devsynth.yml"
         ).exists():
-            console.print("[yellow]Existing project detected.[/yellow]")
-            if not Confirm.ask("Continue initializing?", default=True):
+            bridge.print("[yellow]Existing project detected.[/yellow]")
+            if not bridge.confirm("Continue initializing?", default=True):
                 return
 
-        project_root = project_root or Prompt.ask(
+        project_root = project_root or bridge.prompt(
             "Project root",
             default=str(path),
         )
-        structure = Prompt.ask(
+        structure = bridge.prompt(
             "Source layout",
             choices=["single_package", "monorepo"],
             default="single_package",
         )
-        language = language or Prompt.ask("Primary language", default="python")
-        goals = goals or Prompt.ask(
+        language = language or bridge.prompt("Primary language", default="python")
+        goals = goals or bridge.prompt(
             "Project goals (optional)", default="", show_default=False
         )
         constraints = (
             constraints
             if constraints is not None
-            else Prompt.ask(
+            else bridge.prompt(
                 "Path to constraint file (optional)",
                 default="",
                 show_default=False,
             )
         )
 
-        use_pyproject = Confirm.ask(
+        use_pyproject = bridge.confirm(
             "Write configuration to pyproject.toml?", default=False
         )
 
@@ -135,7 +140,7 @@ def init_cmd(
 
         result = workflow_manager.execute_command("init", args)
         if result.get("success"):
-            console.print(f"[green]Initialized DevSynth project in {path}[/green]")
+            bridge.print(f"[green]Initialized DevSynth project in {path}[/green]")
 
             feature_flags = {
                 "code_generation": False,
@@ -146,9 +151,9 @@ def init_cmd(
                 "experimental_features": False,
             }
 
-            console.print("\n[bold]Select optional features to enable:[/bold]")
+            bridge.print("\n[bold]Select optional features to enable:[/bold]")
             for flag in feature_flags:
-                feature_flags[flag] = Confirm.ask(
+                feature_flags[flag] = bridge.confirm(
                     f"Enable {flag.replace('_', ' ')}?", default=False
                 )
 
@@ -168,70 +173,74 @@ def init_cmd(
 
             save_config(config, use_pyproject, path=path)
         else:
-            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def spec_cmd(requirements_file: str = "requirements.md") -> None:
+def spec_cmd(
+    requirements_file: str = "requirements.md", *, bridge: UXBridge = bridge
+) -> None:
     """Generate specifications from a requirements file.
 
     Example:
         `devsynth spec --requirements-file requirements.md`
     """
     try:
-        if not _check_services():
+        if not _check_services(bridge):
             return
         args = _filter_args({"requirements_file": requirements_file})
         result = workflow_manager.execute_command("spec", args)
         if result.get("success"):
-            console.print(
+            bridge.print(
                 f"[green]Specifications generated from {requirements_file}.[/green]"
             )
         else:
-            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def test_cmd(spec_file: str = "specs.md") -> None:
+def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
     """Generate tests based on specifications.
 
     Example:
         `devsynth test --spec-file specs.md`
     """
     try:
-        if not _check_services():
+        if not _check_services(bridge):
             return
         args = _filter_args({"spec_file": spec_file})
         result = workflow_manager.execute_command("test", args)
         if result.get("success"):
-            console.print(f"[green]Tests generated from {spec_file}.[/green]")
+            bridge.print(f"[green]Tests generated from {spec_file}.[/green]")
         else:
-            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def code_cmd() -> None:
+def code_cmd(*, bridge: UXBridge = bridge) -> None:
     """Generate implementation code from tests.
 
     Example:
         `devsynth code`
     """
     try:
-        if not _check_services():
+        if not _check_services(bridge):
             return
         result = workflow_manager.execute_command("code", {})
         if result.get("success"):
-            console.print("[green]Code generated successfully.[/green]")
+            bridge.print("[green]Code generated successfully.[/green]")
         else:
-            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def run_pipeline_cmd(target: Optional[str] = None) -> None:
+def run_pipeline_cmd(
+    target: Optional[str] = None, *, bridge: UXBridge = bridge
+) -> None:
     """Run the generated code or a specific target.
 
     Example:
@@ -241,13 +250,13 @@ def run_pipeline_cmd(target: Optional[str] = None) -> None:
         result = workflow_manager.execute_command("run-pipeline", {"target": target})
         if result["success"]:
             if target:
-                console.print(f"[green]Executed target: {target}[/green]")
+                bridge.print(f"[green]Executed target: {target}[/green]")
             else:
-                console.print(f"[green]Execution complete.[/green]")
+                bridge.print(f"[green]Execution complete.[/green]")
         else:
-            console.print(f"[red]Error:[/red] {result['message']}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result['message']}", highlight=False)
     except Exception as err:
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
 @config_app.callback(invoke_without_command=True)
@@ -256,6 +265,8 @@ def config_cmd(
     key: Optional[str] = typer.Option(None, autocompletion=config_key_autocomplete),
     value: Optional[str] = None,
     list_models: bool = False,
+    *,
+    bridge: UXBridge = bridge,
 ) -> None:
     """View or set configuration options.
 
@@ -271,21 +282,21 @@ def config_cmd(
         result = workflow_manager.execute_command("config", args)
         if result.get("success"):
             if key and value:
-                console.print(f"[green]Configuration updated: {key} = {value}[/green]")
+                bridge.print(f"[green]Configuration updated: {key} = {value}[/green]")
             elif key:
-                console.print(f"[blue]{key}:[/blue] {result.get('value')}")
+                bridge.print(f"[blue]{key}:[/blue] {result.get('value')}")
             else:
-                console.print(f"[blue]DevSynth Configuration:[/blue]")
+                bridge.print(f"[blue]DevSynth Configuration:[/blue]")
                 for k, v in result.get("config", {}).items():
-                    console.print(f"  [yellow]{k}:[/yellow] {v}")
+                    bridge.print(f"  [yellow]{k}:[/yellow] {v}")
         else:
-            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
 @config_app.command("enable-feature")
-def enable_feature_cmd(name: str) -> None:
+def enable_feature_cmd(name: str, *, bridge: UXBridge = bridge) -> None:
     """Enable a feature flag in the project configuration.
 
     Example:
@@ -297,9 +308,9 @@ def enable_feature_cmd(name: str) -> None:
         features[name] = True
         cfg.features = features
         save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
-        console.print(f"[green]Feature '{name}' enabled.[/green]")
+        bridge.print(f"[green]Feature '{name}' enabled.[/green]")
     except Exception as err:
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def refactor_cmd(path: Optional[str] = None) -> None:
@@ -371,23 +382,28 @@ def refactor_cmd(path: Optional[str] = None) -> None:
         console.print(f"[red]Error:[/red] {str(e)}")
 
 
-def inspect_cmd(input_file: Optional[str] = None, interactive: bool = False) -> None:
+def inspect_cmd(
+    input_file: Optional[str] = None,
+    interactive: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> None:
     """Inspect requirements from a file or interactively.
 
     Example:
         `devsynth inspect --input requirements.txt`
     """
     try:
-        if not _check_services():
+        if not _check_services(bridge):
             return
         args = _filter_args({"input": input_file, "interactive": interactive})
         result = workflow_manager.execute_command("inspect", args)
         if result.get("success"):
-            console.print("[green]Requirements inspection completed.[/green]")
+            bridge.print("[green]Requirements inspection completed.[/green]")
         else:
-            console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") -> None:
