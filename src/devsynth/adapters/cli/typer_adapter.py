@@ -14,6 +14,7 @@ from devsynth.application.cli import (
     inspect_cmd,
     webapp_cmd,
     dbschema_cmd,
+    doctor_cmd,
     refactor_cmd,
     analyze_code_cmd,
     edrr_cycle_cmd,
@@ -58,6 +59,7 @@ def build_app() -> typer.Typer:
     app.command(name="inspect")(inspect_cmd)
     app.command(name="webapp")(webapp_cmd)
     app.command(name="dbschema")(dbschema_cmd)
+    app.command(name="doctor")(doctor_cmd)
     app.command(name="refactor")(refactor_cmd)
     app.command(name="analyze-code")(analyze_code_cmd)
     app.command(name="edrr-cycle")(edrr_cycle_cmd)
