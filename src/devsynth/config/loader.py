@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+"""Unified configuration loader for DevSynth."""
+
+import os
+from pathlib import Path
+from typing import Optional, Dict, Any
+
+import yaml
+import toml
+from pydantic.dataclasses import dataclass
+
+
+@dataclass
+class DevSynthConfig:
+    """Dataclass representing project configuration."""
+
+    project_root: Optional[str] = None
+    structure: str = "single_package"
+    language: str = "python"
+    goals: Optional[str] = None
+    constraints: Optional[str] = None
+    directories: Dict[str, list[str]] | None = None
+    features: Dict[str, bool] | None = None
+    resources: Dict[str, Any] | None = None
+
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            "project_root": self.project_root,
+            "structure": self.structure,
+            "language": self.language,
+            "goals": self.goals,
+            "constraints": self.constraints,
+            "directories": self.directories or {
+                "source": ["src"],
+                "tests": ["tests"],
+                "docs": ["docs"],
+            },
+            "features": self.features or {},
+            "resources": self.resources or {},
+        }
+
+
+def _find_config_path(start: Path) -> Optional[Path]:
+    """Return the configuration file path if one exists."""
+    yaml_path = start / ".devsynth" / "devsynth.yml"
+    if yaml_path.exists():
+        return yaml_path
+    toml_path = start / "pyproject.toml"
+    if toml_path.exists():
+        try:
+            data = toml.load(toml_path)
+            if "devsynth" in data.get("tool", {}):
+                return toml_path
+        except Exception:
+            return None
+    return None
+
+
+def load_config(start_path: Optional[str] = None) -> DevSynthConfig:
+    """Load configuration from YAML or TOML."""
+    root = Path(start_path or os.getcwd())
+    cfg_path = _find_config_path(root)
+
+    data: Dict[str, Any] = {}
+    if cfg_path is None:
+        return DevSynthConfig(project_root=str(root))
+
+    if cfg_path.name.endswith(".yml") or cfg_path.name.endswith(".yaml"):
+        with open(cfg_path, "r") as f:
+            data = yaml.safe_load(f) or {}
+    else:
+        tdata = toml.load(cfg_path)
+        data = tdata.get("tool", {}).get("devsynth", {})
+    if "project_root" not in data:
+        data["project_root"] = str(root)
+    return DevSynthConfig(**data)
+
+
+def save_config(
+    config: DevSynthConfig,
+    use_pyproject: bool = False,
+    path: Optional[str] = None,
+) -> Path:
+    """Persist configuration to disk."""
+    root = Path(path or config.project_root or os.getcwd())
+    if use_pyproject:
+        pyproject = root / "pyproject.toml"
+        tdata: Dict[str, Any] = {}
+        if pyproject.exists():
+            tdata = toml.load(pyproject)
+        tdata.setdefault("tool", {})["devsynth"] = config.as_dict()
+        with open(pyproject, "w") as f:
+            toml.dump(tdata, f)
+        return pyproject
+    else:
+        dev_dir = root / ".devsynth"
+        os.makedirs(dev_dir, exist_ok=True)
+        cfg_path = dev_dir / "devsynth.yml"
+        with open(cfg_path, "w") as f:
+            yaml.safe_dump(config.as_dict(), f)
+        return cfg_path

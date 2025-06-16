@@ -73,7 +73,8 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-63 | Input sanitization utilities | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/sanitization.py | tests/unit/security/test_sanitization.py | Implemented |
 | FR-64 | Onboard existing projects via interactive init wizard | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#interactive-init-workflow) | src/devsynth/application/cli/cli_commands.py | tests/behavior/features/cli_commands.feature, tests/unit/test_unit_cli_commands.py | Implemented |
 | FR-65 | Renamed commands (`adaptive`→`refactor`, `analyze`→`inspect`, `exec`→`run-pipeline`, `replay`→`retrace`) | [CLI Reference](user_guides/cli_reference.md) | src/devsynth/application/cli/cli_commands.py | tests/behavior/features/cli_commands.feature | Planned |
-| FR-66 | Unified YAML/TOML configuration loader | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#41-6-unified-configuration-loader) | src/devsynth/config/loader.py | tests/unit/test_settings.py | Planned |
+| FR-66 | Unified YAML/TOML configuration loader | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#41-6-unified-configuration-loader) | src/devsynth/config/loader.py | tests/behavior/features/config_loader.feature | Implemented |
+| FR-66a | Loader persists CLI preferences and provides autocompletion | [Configuration Loader Specification](specifications/config_loader_spec.md) | src/devsynth/config/loader.py, src/devsynth/application/cli/cli_commands.py | tests/behavior/features/config_loader.feature | Implemented |
 | FR-67 | CLI/WebUI bridge preparation | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#41-7-cliwebui-bridge-preparation) | src/devsynth/application/server/bridge.py | tests/integration/test_webui_bridge.py | Planned |
 
-_Last updated: June 15, 2025_
+_Last updated: June 16, 2025_

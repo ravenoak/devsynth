@@ -7,6 +7,9 @@ import os
 from .settings import (
     get_settings, get_llm_settings, load_dotenv, _settings
 )
+from .loader import DevSynthConfig, load_config, save_config
+
+PROJECT_CONFIG: DevSynthConfig = load_config()
 
 # Expose settings as module-level variables for backward compatibility
 MEMORY_STORE_TYPE = _settings.memory_store_type
@@ -38,6 +41,9 @@ __all__ = [
     "get_settings",
     "get_llm_settings",
     "load_dotenv",
+    "load_config",
+    "save_config",
+    "PROJECT_CONFIG",
 
     # Memory settings
     "MEMORY_STORE_TYPE",

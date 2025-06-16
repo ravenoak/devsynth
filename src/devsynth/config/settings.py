@@ -6,6 +6,7 @@ import os
 import re
 from typing import Dict, Any, Optional
 from pathlib import Path
+import toml
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
 
@@ -14,6 +15,7 @@ from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError, ConfigurationError
+from .loader import load_config
 
 
 def _parse_bool_env(value: Any, field: str) -> bool:
@@ -32,13 +34,18 @@ def _parse_bool_env(value: Any, field: str) -> bool:
     )
 
 
+from .loader import load_config
+import toml
+
+
 def is_devsynth_managed_project(project_dir: str = None) -> bool:
     """
     Check if the project is managed by DevSynth.
 
-    A project is considered managed by DevSynth if it has a .devsynth/project.yaml file.
-    The presence of a .devsynth/ directory is the marker that a project is managed by DevSynth.
-
+    A project is considered managed by DevSynth if it has a .devsynth/devsynth.yml
+    file or a pyproject.toml with a [tool.devsynth] section. The presence of a
+    .devsynth/ directory is still treated as the primary marker.
+    
     Args:
         project_dir: Path to the project directory. If None, uses the current working directory.
 
@@ -47,11 +54,19 @@ def is_devsynth_managed_project(project_dir: str = None) -> bool:
     """
     if project_dir is None:
         project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR") or os.getcwd()
+    yaml_path = os.path.join(project_dir, ".devsynth", "devsynth.yml")
+    if os.path.exists(yaml_path):
+        return True
 
-    # Check for .devsynth/project.yaml
-    project_config_path = os.path.join(project_dir, ".devsynth", "project.yaml")
+    toml_path = os.path.join(project_dir, "pyproject.toml")
+    if os.path.exists(toml_path):
+        try:
+            data = toml.load(toml_path)
+            return "devsynth" in data.get("tool", {})
+        except Exception:
+            return False
 
-    return os.path.exists(project_config_path)
+    return False
 
 
 def load_dotenv(dotenv_path: Optional[str] = None) -> None:
@@ -303,31 +318,17 @@ class Settings(BaseSettings):
 
         # Check if this is a DevSynth-managed project
         if is_devsynth_managed_project(project_dir):
-            # Check for project-level config
-            project_config_path = os.path.join(project_dir, ".devsynth", "project.yaml")
-            config_path = (
-                project_config_path if os.path.exists(project_config_path) else None
-            )
-
-            if config_path:
-                try:
-                    import yaml
-
-                    with open(config_path, "r") as f:
-                        config = yaml.safe_load(f)
-                        if (
-                            config
-                            and "resources" in config
-                            and "project" in config["resources"]
-                            and "memoryDir" in config["resources"]["project"]
-                        ):
-                            return os.path.join(
-                                project_dir, config["resources"]["project"]["memoryDir"]
-                            )
-                except Exception as e:
-                    # Log error but continue with default path
-                    logger.error(f"Error reading project config: {e}")
-                    pass
+            try:
+                cfg = load_config(project_dir)
+                mem_dir = (
+                    cfg.resources.get("project", {}).get("memoryDir")
+                    if cfg.resources
+                    else None
+                )
+                if mem_dir:
+                    return os.path.join(project_dir, mem_dir)
+            except Exception as e:  # pragma: no cover - defensive
+                logger.error(f"Error reading project config: {e}")
 
             # Fall back to default project path for DevSynth-managed projects
             return os.path.join(project_dir, ".devsynth", "memory")
@@ -409,31 +410,17 @@ class Settings(BaseSettings):
 
         # Check if this is a DevSynth-managed project
         if is_devsynth_managed_project(project_dir):
-            # Check for project-level config
-            project_config_path = os.path.join(project_dir, ".devsynth", "project.yaml")
-            config_path = (
-                project_config_path if os.path.exists(project_config_path) else None
-            )
-
-            if config_path:
-                try:
-                    import yaml
-
-                    with open(config_path, "r") as f:
-                        config = yaml.safe_load(f)
-                        if (
-                            config
-                            and "resources" in config
-                            and "project" in config["resources"]
-                            and "logsDir" in config["resources"]["project"]
-                        ):
-                            return os.path.join(
-                                project_dir, config["resources"]["project"]["logsDir"]
-                            )
-                except Exception as e:
-                    # Log error but continue with default path
-                    logger.error(f"Error reading project config: {e}")
-                    pass
+            try:
+                cfg = load_config(project_dir)
+                logs_dir = (
+                    cfg.resources.get("project", {}).get("logsDir")
+                    if cfg.resources
+                    else None
+                )
+                if logs_dir:
+                    return os.path.join(project_dir, logs_dir)
+            except Exception as e:  # pragma: no cover - defensive
+                logger.error(f"Error reading project config: {e}")
 
             # Fall back to default project path for DevSynth-managed projects
             return os.path.join(project_dir, ".devsynth", "logs")

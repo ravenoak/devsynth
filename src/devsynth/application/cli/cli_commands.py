@@ -6,8 +6,6 @@ from rich.prompt import Confirm, Prompt
 import typer
 from pathlib import Path
 import importlib.util
-import yaml
-import toml
 
 from ..orchestration.workflow import workflow_manager
 import uvicorn
@@ -15,7 +13,7 @@ from devsynth.logging_setup import configure_logging
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
-from devsynth.config import get_settings
+from devsynth.config import get_settings, save_config, DevSynthConfig, load_config
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 
 logger = DevSynthLogger(__name__)
@@ -58,6 +56,12 @@ def _check_services() -> bool:
 def _filter_args(args: dict) -> dict:
     """Return a new dict with None values removed."""
     return {k: v for k, v in args.items() if v is not None}
+
+
+def config_key_autocomplete(ctx: typer.Context, incomplete: str):
+    """Provide autocompletion for configuration keys."""
+    cfg = load_config()
+    return [k for k in cfg.as_dict().keys() if k.startswith(incomplete)]
 
 
 def init_cmd(
@@ -139,36 +143,21 @@ def init_cmd(
                     f"Enable {flag.replace('_', ' ')}?", default=False
                 )
 
-            config = {
-                "project_root": project_root,
-                "structure": structure,
-                "language": language,
-                "directories": {
+            config = DevSynthConfig(
+                project_root=project_root,
+                structure=structure,
+                language=language,
+                goals=goals or None,
+                constraints=constraints or None,
+                directories={
                     "source": ["src"],
                     "tests": ["tests"],
                     "docs": ["docs"],
                 },
-                "features": feature_flags,
-            }
+                features=feature_flags,
+            )
 
-            if goals:
-                config["goals"] = goals
-            if constraints:
-                config["constraints"] = constraints
-
-            if use_pyproject:
-                config_file = root_path / "pyproject.toml"
-                data = {}
-                if config_file.exists():
-                    data = toml.load(config_file)
-                data.setdefault("tool", {})["devsynth"] = config
-                with open(config_file, "w") as f:
-                    toml.dump(data, f)
-            else:
-                devsynth_dir.mkdir(exist_ok=True)
-                config_file = devsynth_dir / "devsynth.yml"
-                with open(config_file, "w") as f:
-                    yaml.safe_dump(config, f)
+            save_config(config, use_pyproject, path=path)
         else:
             console.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
     except Exception as err:  # pragma: no cover - defensive
@@ -239,7 +228,7 @@ def run_pipeline_cmd(target: Optional[str] = None) -> None:
 @config_app.callback(invoke_without_command=True)
 def config_cmd(
     ctx: typer.Context,
-    key: Optional[str] = None,
+    key: Optional[str] = typer.Option(None, autocompletion=config_key_autocomplete),
     value: Optional[str] = None,
     list_models: bool = False,
 ) -> None:
