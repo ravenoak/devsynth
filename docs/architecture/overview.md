@@ -32,10 +32,10 @@ DevSynth is a modular, agentic software engineering platform designed for extens
 
 ```mermaid
 graph TD
-    CLI[CLI / Chat Interface] --> UX[UXBridge]
-    Web[WebUI (Future)] --> UX
-    UX --> B[Application Layer]
-    UX --> IW[Init Wizard]
+    CLI[CLI / Chat Interface] --> UXBridge[UXBridge]
+    Web[WebUI (Future)] --> UXBridge
+    UXBridge --> B[Application Core]
+    UXBridge --> IW[Init Wizard]
     B --> C[Agent System]
     B --> D[Code Analysis]
     B --> E[MemoryPort]

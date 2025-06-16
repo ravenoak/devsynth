@@ -130,6 +130,11 @@ The MVP architecture follows a simplified layered approach with clear separation
 - Support basic verbosity levels (--quiet, --verbose)
 - Design for installation via pipx for isolated environment
 
+**UXBridge Responsibilities:**
+- Provide unified `prompt`, `confirm`, and `print` methods
+- Decouple command logic from the presentation layer
+- Allow mocking in tests and enable future WebUI integration
+
 **Future Extension Points:**
 - Plugin system for additional commands
 - Interactive mode with command completion
