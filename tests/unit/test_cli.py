@@ -27,7 +27,15 @@ class TestTyperCLI:
         app = build_app()
         result = self.runner.invoke(app, ["init", "--path", "./test-project"])
         assert result.exit_code == 0
-        mock_init_cmd.assert_called_once_with("./test-project", None, None)
+        mock_init_cmd.assert_called_once_with(
+            "./test-project",
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
 
     @patch("devsynth.adapters.cli.typer_adapter.spec_cmd", autospec=True)
     def test_cli_spec(self, mock_spec_cmd):
