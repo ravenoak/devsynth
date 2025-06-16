@@ -58,5 +58,6 @@ resources: dict
 
 Use `from devsynth.config import get_project_config` in your code to access the
 parsed configuration. CLI commands also expose autocompletion of configuration
-keys via `config_key_autocomplete`.
+keys via `config_key_autocomplete`. For additional implementation details see
+the [Unified Configuration Loader specification](specifications/unified_configuration_loader.md).
 
