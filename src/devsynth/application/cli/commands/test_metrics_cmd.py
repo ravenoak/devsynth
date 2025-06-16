@@ -20,9 +20,11 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
-    """
-    Analyze test-first development metrics.
-    
+    """Analyze test-first development metrics.
+
+    Example:
+        `devsynth test-metrics --days 14`
+
     Args:
         days: Number of days of commit history to analyze (default: 30)
         output_file: Path to output file for metrics report (default: None, prints to console)

@@ -18,12 +18,14 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = None) -> None:
-    """
-    Generate API reference documentation for a project.
-    
+    """Generate API reference documentation for a project.
+
+    Example:
+        `devsynth generate-docs --path .`
+
     This command generates API reference documentation for a project based on the manifest.yaml file,
     creating a page for each module in the project.
-    
+
     Args:
         path: Path to the project directory (default: current directory)
         output_dir: Directory where the documentation should be generated (default: docs/api_reference)

@@ -22,9 +22,11 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] = None, verbose: bool = False) -> None:
-    """
-    Validate metadata in Markdown files.
-    
+    """Validate metadata in Markdown files.
+
+    Example:
+        `devsynth validate-metadata --directory docs`
+
     Args:
         directory: Directory containing Markdown files to validate (default: docs/)
         file: Single Markdown file to validate

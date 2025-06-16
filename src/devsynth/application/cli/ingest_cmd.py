@@ -28,8 +28,10 @@ def ingest_cmd(
     verbose: bool = False,
     validate_only: bool = False
 ) -> None:
-    """
-    Ingest a project into DevSynth.
+    """Ingest a project into DevSynth.
+
+    Example:
+        `devsynth ingest manifest.yaml`
 
     This command triggers the full ingestion and adaptation pipeline (Expand, Differentiate, Refine, Retrospect),
     driven by .devsynth/project.yaml and its project structure definitions.

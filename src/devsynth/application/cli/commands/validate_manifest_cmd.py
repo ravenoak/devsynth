@@ -21,8 +21,10 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Optional[str] = None) -> None:
-    """
-    Validate the project configuration file against its schema and project structure.
+    """Validate the project configuration file against its schema.
+
+    Example:
+        `devsynth validate-manifest --manifest-path manifest.yaml`
 
     Args:
         manifest_path: Path to the project configuration file (default: .devsynth/project.yaml or manifest.yaml)

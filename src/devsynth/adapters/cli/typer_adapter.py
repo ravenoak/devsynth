@@ -88,20 +88,62 @@ def build_app() -> typer.Typer:
         name="check",
         help="Alias for doctor. Example: devsynth check",
     )(doctor_cmd)
-    app.command(name="refactor")(refactor_cmd)
-    app.command(name="analyze-code")(analyze_code_cmd)
-    app.command(name="edrr-cycle")(edrr_cycle_cmd)
-    app.command(name="align")(align_cmd)
-    app.command(name="alignment-metrics")(alignment_metrics_cmd)
-    app.command(name="analyze-manifest")(analyze_manifest_cmd)
-    app.command(name="analyze-config")(analyze_manifest_cmd)
-    app.command(name="validate-manifest")(validate_manifest_cmd)
-    app.command(name="validate-metadata")(validate_metadata_cmd)
-    app.command(name="test-metrics")(test_metrics_cmd)
-    app.command(name="generate-docs")(generate_docs_cmd)
-    app.command(name="ingest")(ingest_cmd)
-    app.command(name="apispec")(apispec_cmd)
-    app.command(name="serve")(serve_cmd)
+    app.command(
+        name="refactor",
+        help="Suggest next workflow steps. Example: devsynth refactor",
+    )(refactor_cmd)
+    app.command(
+        name="analyze-code",
+        help="Analyze a codebase. Example: devsynth analyze-code --path ./src",
+    )(analyze_code_cmd)
+    app.command(
+        name="edrr-cycle",
+        help="Run an EDRR cycle. Example: devsynth edrr-cycle manifest.yaml",
+    )(edrr_cycle_cmd)
+    app.command(
+        name="align",
+        help="Check SDLC artifact alignment. Example: devsynth align --verbose",
+    )(align_cmd)
+    app.command(
+        name="alignment-metrics",
+        help="Collect alignment metrics. Example: devsynth alignment-metrics",
+    )(alignment_metrics_cmd)
+    app.command(
+        name="analyze-manifest",
+        help="Analyze project configuration. Example: devsynth analyze-manifest",
+    )(analyze_manifest_cmd)
+    app.command(
+        name="analyze-config",
+        help="Alias for analyze-manifest. Example: devsynth analyze-config",
+    )(analyze_manifest_cmd)
+    app.command(
+        name="validate-manifest",
+        help="Validate project config file. Example: devsynth validate-manifest",
+    )(validate_manifest_cmd)
+    app.command(
+        name="validate-metadata",
+        help="Validate documentation metadata. Example: devsynth validate-metadata --directory docs",
+    )(validate_metadata_cmd)
+    app.command(
+        name="test-metrics",
+        help="Analyze test-first metrics. Example: devsynth test-metrics --days 30",
+    )(test_metrics_cmd)
+    app.command(
+        name="generate-docs",
+        help="Generate API docs. Example: devsynth generate-docs",
+    )(generate_docs_cmd)
+    app.command(
+        name="ingest",
+        help="Ingest a project. Example: devsynth ingest manifest.yaml",
+    )(ingest_cmd)
+    app.command(
+        name="apispec",
+        help="Generate an API spec. Example: devsynth apispec",
+    )(apispec_cmd)
+    app.command(
+        name="serve",
+        help="Run the DevSynth API server. Example: devsynth serve --port 8080",
+    )(serve_cmd)
 
     @app.callback(invoke_without_command=True)
     def main(ctx: typer.Context):

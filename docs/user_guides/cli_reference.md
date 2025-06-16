@@ -35,7 +35,7 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [retrace](#retrace)
   - [webapp](#webapp)
   - [dbschema](#dbschema)
-  - [doctor](#doctor)
+  - [doctor](#doctor-check)
 - [Environment Variables](#environment-variables)
 - [Configuration File](#configuration-file)
 - [Examples](#examples)
@@ -399,7 +399,7 @@ devsynth dbschema [--db-type TYPE] [--name NAME] [--path PATH]
 devsynth dbschema --db-type sqlite --name blog --path ./schema
 ```
 
-### doctor
+### doctor / check {#doctor-check}
 
 Validate environment configuration files for common issues. The command is also
 available as `devsynth check`.
