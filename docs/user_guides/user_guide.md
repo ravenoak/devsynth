@@ -368,7 +368,7 @@ In this phase, DevSynth takes high-level requirements and expands them into deta
 4. Organizing specifications into a coherent structure
 
 **Commands used in this phase:**
-- `analyze`
+- `inspect`
 - `spec`
 
 ### 2. Differentiate

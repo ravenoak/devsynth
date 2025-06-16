@@ -128,7 +128,7 @@ pip install -e '.[dev]'
 # Run the tests or execute the app
 pytest
 # or
-devsynth run
+devsynth run-pipeline
 ```
 
 Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `.devsynth/project.yaml`. If you run into issues, see [docs/getting_started/troubleshooting.md](docs/getting_started/troubleshooting.md).

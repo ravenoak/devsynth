@@ -459,10 +459,10 @@ devsynth test --spec-file specifications.md
 devsynth code --test-dir tests/
 
 # Run the tests to verify the implementation
-devsynth run --target unit-tests
+devsynth run-pipeline --target unit-tests
 
 # Run the application
-devsynth run
+devsynth run-pipeline
 ```
 
 ### Configuration Example
