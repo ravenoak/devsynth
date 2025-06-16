@@ -1,0 +1,50 @@
+---
+title: "Unified Configuration Loader"
+date: "2025-06-16"
+version: "0.2.0"
+tags:
+  - "specification"
+  - "configuration"
+status: "draft"
+author: "DevSynth Team"
+---
+
+# Unified Configuration Loader
+
+This specification describes the goals and design of the unified configuration loader. The loader reads project settings from either the YAML file `.devsynth/devsynth.yml` or the `[tool.devsynth]` table in `pyproject.toml`. Its main goals are:
+
+1. Provide a single API to read and write configuration regardless of file format.
+2. Support persistent CLI preferences so commands remember previously selected options.
+3. Offer autocompletion of configuration keys to improve the command-line experience.
+
+## Schema Outline
+
+```python
+from pydantic import BaseModel
+from typing import Dict, List, Optional
+
+class DevSynthConfig(BaseModel):
+    project_root: str = "."
+    language: str = "python"
+    structure: str = "single_package"
+    directories: Dict[str, List[str]] = {"source": ["src"], "tests": ["tests"], "docs": ["docs"]}
+    features: Dict[str, bool] = {"code_generation": False, "test_generation": False}
+    preferences: Dict[str, str] = {}
+    resources: Dict[str, str] = {}
+```
+
+## YAML and TOML Support
+
+The loader checks for `.devsynth/devsynth.yml`. If not found, it falls back to the `pyproject.toml` section. Saving can be directed to either format based on user preference, allowing teams to keep configuration alongside existing project files.
+
+## CLI Autocompletion
+
+Commands can expose key completion by returning known configuration paths. Example Bash snippet:
+
+```bash
+_complete_devsynth_config_keys() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  COMPREPLY=( $(devsynth config complete-keys "$cur") )
+}
+complete -F _complete_devsynth_config_keys devsynth
+```

@@ -213,6 +213,8 @@ devsynth run-pipeline --target unit-tests
 ### config
 
 Configure DevSynth settings.
+Configuration values are loaded through a unified loader that reads YAML or TOML
+files. See the [Unified Configuration Loader specification](../specifications/unified_configuration_loader.md) for details.
 
 ```bash
 devsynth config [--key KEY] [--value VALUE] [--list] [--reset]
