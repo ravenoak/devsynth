@@ -1,6 +1,7 @@
 """
 Pytest fixtures for behavior tests.
 """
+
 import os
 import sys
 import pytest
@@ -11,10 +12,18 @@ from unittest.mock import MagicMock, patch
 from devsynth.config.settings import ensure_path_exists
 
 # Add the src directory to the Python path if needed
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src"))
+)
 
 # Import provider system for LLM integration
-from devsynth.adapters.provider_system import get_provider, complete, embed, ProviderType
+from devsynth.adapters.provider_system import (
+    get_provider,
+    complete,
+    embed,
+    ProviderType,
+)
+
 
 @pytest.fixture
 def tmp_project_dir():
@@ -25,12 +34,12 @@ def tmp_project_dir():
     temp_dir = tempfile.mkdtemp()
 
     # Create basic project structure
-    devsynth_dir = os.path.join(temp_dir, '.devsynth')
+    devsynth_dir = os.path.join(temp_dir, ".devsynth")
     os.makedirs(devsynth_dir, exist_ok=True)  # Explicitly create the directory
 
     # Create a mock config file
-    config_path = os.path.join(devsynth_dir, 'config.json')
-    with open(config_path, 'w') as f:
+    config_path = os.path.join(devsynth_dir, "config.json")
+    with open(config_path, "w") as f:
         f.write('{"model": "gpt-4", "project_name": "test-project"}')
 
     # Return the path to the temporary directory
@@ -59,12 +68,22 @@ def patch_env_and_cleanup(tmp_project_dir):
 
     # Mock the provider system functions to prevent real API calls
     mock_provider = MagicMock()
-    mock_provider.complete.return_value = "This is a mock completion response for testing purposes."
-    mock_provider.embed.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]  # Mock embedding vector
+    mock_provider.complete.return_value = (
+        "This is a mock completion response for testing purposes."
+    )
+    mock_provider.embed.return_value = [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+    ]  # Mock embedding vector
     mock_provider.provider_type = ProviderType.OPENAI
 
     # Define mock functions
-    def mock_complete(prompt, system_prompt=None, temperature=0.7, max_tokens=2000, fallback=False):
+    def mock_complete(
+        prompt, system_prompt=None, temperature=0.7, max_tokens=2000, fallback=False
+    ):
         if "error" in str(prompt).lower():
             return "Error scenario response"
         elif "empty" in str(prompt).lower():
@@ -76,9 +95,15 @@ def patch_env_and_cleanup(tmp_project_dir):
         return [0.1, 0.2, 0.3, 0.4, 0.5]  # Mock embedding vector
 
     # Apply patches
-    with patch('devsynth.adapters.provider_system.get_provider', return_value=mock_provider):
-        with patch('devsynth.adapters.provider_system.complete', side_effect=mock_complete):
-            with patch('devsynth.adapters.provider_system.embed', side_effect=mock_embed):
+    with patch(
+        "devsynth.adapters.provider_system.get_provider", return_value=mock_provider
+    ):
+        with patch(
+            "devsynth.adapters.provider_system.complete", side_effect=mock_complete
+        ):
+            with patch(
+                "devsynth.adapters.provider_system.embed", side_effect=mock_embed
+            ):
                 yield
 
     # Cleanup: restore env and cwd, remove logs if present
@@ -104,12 +129,22 @@ def llm_provider():
     """
     # Create a mock provider
     mock_provider = MagicMock()
-    mock_provider.complete.return_value = "This is a mock completion response for testing purposes."
-    mock_provider.embed.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]  # Mock embedding vector
+    mock_provider.complete.return_value = (
+        "This is a mock completion response for testing purposes."
+    )
+    mock_provider.embed.return_value = [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+    ]  # Mock embedding vector
     mock_provider.provider_type = ProviderType.OPENAI
 
     # Patch the get_provider function to return our mock
-    with patch('devsynth.adapters.provider_system.get_provider', return_value=mock_provider):
+    with patch(
+        "devsynth.adapters.provider_system.get_provider", return_value=mock_provider
+    ):
         yield mock_provider
 
 
@@ -120,6 +155,7 @@ def llm_complete():
 
     This is a convenience wrapper that returns predefined responses for testing.
     """
+
     def _complete(prompt, system_prompt=None, temperature=0.7, max_tokens=2000):
         # Return a predictable response based on the prompt for testing
         if "error" in prompt.lower():
@@ -130,7 +166,7 @@ def llm_complete():
             return f"Mock response for: {prompt[:30]}..."
 
     # Patch the complete function
-    with patch('devsynth.adapters.provider_system.complete', side_effect=_complete):
+    with patch("devsynth.adapters.provider_system.complete", side_effect=_complete):
         yield _complete
 
 
@@ -150,13 +186,15 @@ def mock_workflow_manager():
         "config": {
             "model": "gpt-4",
             "project_name": "test-project",
-            "template": "default"
-        }
+            "template": "default",
+        },
     }
 
     # Patch the workflow_manager in the commands module
-    with patch('devsynth.application.orchestration.workflow.workflow_manager', mock_manager):
-        with patch('devsynth.application.cli.cli_commands.workflow_manager', mock_manager):
+    with patch(
+        "devsynth.application.orchestration.workflow.workflow_manager", mock_manager
+    ):
+        with patch("devsynth.core.workflows.workflow_manager", mock_manager):
             yield mock_manager
 
 
@@ -169,19 +207,19 @@ def project_template_dir():
     temp_dir = tempfile.mkdtemp()
 
     # Create default template structure
-    default_template_dir = os.path.join(temp_dir, 'default')
+    default_template_dir = os.path.join(temp_dir, "default")
     ensure_path_exists(default_template_dir)
 
     # Create a default template config file
-    with open(os.path.join(default_template_dir, 'config.json'), 'w') as f:
+    with open(os.path.join(default_template_dir, "config.json"), "w") as f:
         f.write('{"model": "gpt-4", "template": "default"}')
 
     # Create web-app template structure
-    webapp_template_dir = os.path.join(temp_dir, 'web-app')
+    webapp_template_dir = os.path.join(temp_dir, "web-app")
     ensure_path_exists(webapp_template_dir)
 
     # Create a web-app template config file
-    with open(os.path.join(webapp_template_dir, 'config.json'), 'w') as f:
+    with open(os.path.join(webapp_template_dir, "config.json"), "w") as f:
         f.write('{"model": "gpt-4", "template": "web-app", "framework": "flask"}')
 
     # Return the path to the temporary directory

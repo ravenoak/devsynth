@@ -1,6 +1,7 @@
 """
 Step definitions for Analyze Commands feature.
 """
+
 import os
 import sys
 import pytest
@@ -14,7 +15,8 @@ from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
 
 # Register the scenarios
-scenarios('../features/analyze_commands.feature')
+scenarios("../features/analyze_commands.feature")
+
 
 # Define fixtures and step definitions
 @pytest.fixture
@@ -23,6 +25,7 @@ def command_context():
     Store context about the command being executed.
     """
     return {"command": "", "output": ""}
+
 
 @pytest.fixture
 def mock_workflow_manager():
@@ -40,14 +43,17 @@ def mock_workflow_manager():
         "config": {
             "model": "gpt-4",
             "project_name": "test-project",
-            "template": "default"
-        }
+            "template": "default",
+        },
     }
 
     # Patch the workflow_manager in the commands module
-    with patch('devsynth.application.orchestration.workflow.workflow_manager', mock_manager):
-        with patch('devsynth.application.cli.cli_commands.workflow_manager', mock_manager):
+    with patch(
+        "devsynth.application.orchestration.workflow.workflow_manager", mock_manager
+    ):
+        with patch("devsynth.core.workflows.workflow_manager", mock_manager):
             yield mock_manager
+
 
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
@@ -60,6 +66,7 @@ def devsynth_cli_installed():
     assert "devsynth" in sys.modules
     return True
 
+
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     """
@@ -67,6 +74,7 @@ def valid_devsynth_project(tmp_project_dir):
     """
     # The tmp_project_dir fixture creates a temporary project directory
     return tmp_project_dir
+
 
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(command, monkeypatch, mock_workflow_manager, command_context):
@@ -85,7 +93,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     captured_output = StringIO()
 
     # Directly call the appropriate command function based on the first argument
-    with patch('sys.stdout', new=captured_output):
+    with patch("sys.stdout", new=captured_output):
         try:
             if args[0] == "analyze-code":
                 # Parse the path argument
@@ -106,7 +114,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command("analyze-code", analyze_code_args)
 
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("analyze-code", analyze_code_args)
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "analyze-code", analyze_code_args
+                )
             elif args[0] == "analyze-manifest":
                 # Parse the arguments
                 path = None
@@ -138,10 +148,14 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 analyze_manifest_args = {"path": path, "update": update, "prune": prune}
 
                 # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("analyze-manifest", analyze_manifest_args)
+                mock_workflow_manager.execute_command(
+                    "analyze-manifest", analyze_manifest_args
+                )
 
                 # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("analyze-manifest", analyze_manifest_args)
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "analyze-manifest", analyze_manifest_args
+                )
             else:
                 # Invalid command, show help
                 show_help()
@@ -158,6 +172,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
     return output
 
+
 @then("the workflow should execute successfully")
 def check_workflow_success(mock_workflow_manager):
     """
@@ -165,6 +180,7 @@ def check_workflow_success(mock_workflow_manager):
     """
     # In our mocked setup, we assume success
     assert mock_workflow_manager.execute_command.called
+
 
 @given("a project with invalid code structure")
 def project_with_invalid_code_structure(tmp_project_dir):
@@ -179,6 +195,7 @@ def project_with_invalid_code_structure(tmp_project_dir):
 
     return tmp_project_dir
 
+
 @given("a project with outdated configuration")
 def project_with_outdated_configuration(tmp_project_dir):
     """
@@ -187,7 +204,8 @@ def project_with_outdated_configuration(tmp_project_dir):
     # Create a manifest.yaml file with outdated configuration
     manifest_path = os.path.join(tmp_project_dir, "devsynth.yaml")
     with open(manifest_path, "w") as f:
-        f.write("""
+        f.write(
+            """
 projectName: test-project
 version: 1.0.0
 lastUpdated: 2025-01-01T00:00:00
@@ -198,12 +216,14 @@ structure:
     source: []
     tests: []
     docs: []
-""")
+"""
+        )
 
     # Create a source directory that's not in the manifest
     os.makedirs(os.path.join(tmp_project_dir, "src"), exist_ok=True)
 
     return tmp_project_dir
+
 
 @given("a project with configuration entries that no longer exist")
 def project_with_nonexistent_entries(tmp_project_dir):
@@ -213,7 +233,8 @@ def project_with_nonexistent_entries(tmp_project_dir):
     # Create a manifest.yaml file with entries that don't exist
     manifest_path = os.path.join(tmp_project_dir, "devsynth.yaml")
     with open(manifest_path, "w") as f:
-        f.write("""
+        f.write(
+            """
 projectName: test-project
 version: 1.0.0
 lastUpdated: 2025-01-01T00:00:00
@@ -224,13 +245,15 @@ structure:
     source: [src, lib]
     tests: [tests]
     docs: [docs]
-""")
+"""
+        )
 
     # Only create the src directory, leaving lib as a non-existent entry
     os.makedirs(os.path.join(tmp_project_dir, "src"), exist_ok=True)
     os.makedirs(os.path.join(tmp_project_dir, "tests"), exist_ok=True)
 
     return tmp_project_dir
+
 
 @given("a project without a configuration file")
 def project_without_configuration(tmp_project_dir):
@@ -248,13 +271,17 @@ def project_without_configuration(tmp_project_dir):
 
     return tmp_project_dir
 
-@then(parsers.parse('the system should analyze the codebase in the current directory'))
+
+@then(parsers.parse("the system should analyze the codebase in the current directory"))
 def check_analyze_code_current_dir(mock_workflow_manager, command_context):
     """
     Verify that the system analyzed the codebase in the current directory.
     """
     # Check that the analyze-code command was called
-    mock_workflow_manager.execute_command.assert_any_call("analyze-code", {"path": None})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "analyze-code", {"path": None}
+    )
+
 
 @then(parsers.parse('the system should analyze the codebase at "{path}"'))
 def check_analyze_code_path(path, mock_workflow_manager):
@@ -262,9 +289,12 @@ def check_analyze_code_path(path, mock_workflow_manager):
     Verify that the system analyzed the codebase at the specified path.
     """
     # Check that the analyze-code command was called with the correct path
-    mock_workflow_manager.execute_command.assert_any_call("analyze-code", {"path": path})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "analyze-code", {"path": path}
+    )
 
-@then(parsers.parse('the output should include architecture information'))
+
+@then(parsers.parse("the output should include architecture information"))
 def check_architecture_info(command_context):
     """
     Verify that the output includes architecture information.
@@ -272,7 +302,8 @@ def check_architecture_info(command_context):
     output = command_context.get("output", "")
     assert "Architecture" in output
 
-@then(parsers.parse('the output should include code quality metrics'))
+
+@then(parsers.parse("the output should include code quality metrics"))
 def check_code_quality_metrics(command_context):
     """
     Verify that the output includes code quality metrics.
@@ -280,7 +311,8 @@ def check_code_quality_metrics(command_context):
     output = command_context.get("output", "")
     assert "Code Quality Metrics" in output
 
-@then(parsers.parse('the output should include test coverage information'))
+
+@then(parsers.parse("the output should include test coverage information"))
 def check_test_coverage_info(command_context):
     """
     Verify that the output includes test coverage information.
@@ -288,7 +320,8 @@ def check_test_coverage_info(command_context):
     output = command_context.get("output", "")
     assert "Test Coverage" in output
 
-@then(parsers.parse('the output should include project health score'))
+
+@then(parsers.parse("the output should include project health score"))
 def check_project_health_score(command_context):
     """
     Verify that the output includes project health score.
@@ -296,13 +329,17 @@ def check_project_health_score(command_context):
     output = command_context.get("output", "")
     assert "Project Health Score" in output
 
-@then(parsers.parse('the system should analyze the project configuration'))
+
+@then(parsers.parse("the system should analyze the project configuration"))
 def check_analyze_manifest(mock_workflow_manager, command_context):
     """
     Verify that the system analyzed the project configuration.
     """
     # Check that the analyze-manifest command was called
-    mock_workflow_manager.execute_command.assert_any_call("analyze-manifest", {"path": None, "update": False, "prune": False})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "analyze-manifest", {"path": None, "update": False, "prune": False}
+    )
+
 
 @then(parsers.parse('the system should analyze the project configuration at "{path}"'))
 def check_analyze_manifest_path(path, mock_workflow_manager):
@@ -310,9 +347,12 @@ def check_analyze_manifest_path(path, mock_workflow_manager):
     Verify that the system analyzed the project configuration at the specified path.
     """
     # Check that the analyze-manifest command was called with the correct path
-    mock_workflow_manager.execute_command.assert_any_call("analyze-manifest", {"path": path, "update": False, "prune": False})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "analyze-manifest", {"path": path, "update": False, "prune": False}
+    )
 
-@then(parsers.parse('the output should include project information'))
+
+@then(parsers.parse("the output should include project information"))
 def check_project_info(command_context):
     """
     Verify that the output includes project information.
@@ -320,7 +360,8 @@ def check_project_info(command_context):
     output = command_context.get("output", "")
     assert "Project Name" in output
 
-@then(parsers.parse('the output should include structure information'))
+
+@then(parsers.parse("the output should include structure information"))
 def check_structure_info(command_context):
     """
     Verify that the output includes structure information.
@@ -328,7 +369,8 @@ def check_structure_info(command_context):
     output = command_context.get("output", "")
     assert "Project Type" in output
 
-@then(parsers.parse('the output should include directories information'))
+
+@then(parsers.parse("the output should include directories information"))
 def check_directories_info(command_context):
     """
     Verify that the output includes directories information.
@@ -336,15 +378,19 @@ def check_directories_info(command_context):
     output = command_context.get("output", "")
     assert "Directories" in output
 
-@then(parsers.parse('the system should update the configuration with new findings'))
+
+@then(parsers.parse("the system should update the configuration with new findings"))
 def check_update_configuration(mock_workflow_manager):
     """
     Verify that the system updated the configuration with new findings.
     """
     # Check that the analyze-manifest command was called with update=True
-    mock_workflow_manager.execute_command.assert_any_call("analyze-manifest", {"path": None, "update": True, "prune": False})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "analyze-manifest", {"path": None, "update": True, "prune": False}
+    )
 
-@then(parsers.parse('the output should indicate that the configuration was updated'))
+
+@then(parsers.parse("the output should indicate that the configuration was updated"))
 def check_configuration_updated(command_context):
     """
     Verify that the output indicates that the configuration was updated.
@@ -352,15 +398,19 @@ def check_configuration_updated(command_context):
     output = command_context.get("output", "")
     assert "Configuration updated successfully" in output
 
-@then(parsers.parse('the system should remove entries that no longer exist'))
+
+@then(parsers.parse("the system should remove entries that no longer exist"))
 def check_prune_configuration(mock_workflow_manager):
     """
     Verify that the system removed entries that no longer exist.
     """
     # Check that the analyze-manifest command was called with prune=True
-    mock_workflow_manager.execute_command.assert_any_call("analyze-manifest", {"path": None, "update": False, "prune": True})
+    mock_workflow_manager.execute_command.assert_any_call(
+        "analyze-manifest", {"path": None, "update": False, "prune": True}
+    )
 
-@then(parsers.parse('the output should indicate that the configuration was pruned'))
+
+@then(parsers.parse("the output should indicate that the configuration was pruned"))
 def check_configuration_pruned(command_context):
     """
     Verify that the output indicates that the configuration was pruned.
@@ -368,7 +418,8 @@ def check_configuration_pruned(command_context):
     output = command_context.get("output", "")
     assert "Configuration pruned successfully" in output
 
-@then(parsers.parse('the system should display a warning message'))
+
+@then(parsers.parse("the system should display a warning message"))
 def check_warning_message(command_context):
     """
     Verify that the system displayed a warning message.
@@ -376,7 +427,12 @@ def check_warning_message(command_context):
     output = command_context.get("output", "")
     assert "Warning" in output
 
-@then(parsers.parse('the warning message should indicate that no configuration file was found'))
+
+@then(
+    parsers.parse(
+        "the warning message should indicate that no configuration file was found"
+    )
+)
 def check_no_configuration_warning(command_context):
     """
     Verify that the warning message indicates that no configuration file was found.
@@ -384,7 +440,8 @@ def check_no_configuration_warning(command_context):
     output = command_context.get("output", "")
     assert "No configuration file found" in output
 
-@then(parsers.parse('the system should display an error message'))
+
+@then(parsers.parse("the system should display an error message"))
 def check_error_message(command_context):
     """
     Verify that the system displayed an error message.
@@ -392,7 +449,8 @@ def check_error_message(command_context):
     output = command_context.get("output", "")
     assert "Error" in output
 
-@then(parsers.parse('the error message should indicate the analysis problem'))
+
+@then(parsers.parse("the error message should indicate the analysis problem"))
 def check_analysis_error(command_context):
     """
     Verify that the error message indicates the analysis problem.

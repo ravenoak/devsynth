@@ -32,9 +32,7 @@ class TestCLICommands:
     @pytest.fixture
     def mock_workflow_manager(self):
         """Create a mock workflow executor."""
-        with patch(
-            "devsynth.application.cli.cli_commands.execute_workflow_command"
-        ) as mock:
+        with patch("devsynth.core.workflows.execute_command") as mock:
             yield mock
 
     @pytest.fixture
@@ -548,8 +546,6 @@ class TestCLICommands:
             assert mock_print.called
 
     def test_check_cmd_alias(self):
-        with patch(
-            "devsynth.application.cli.cli_commands.doctor_cmd"
-        ) as mock_doctor:
+        with patch("devsynth.application.cli.cli_commands.doctor_cmd") as mock_doctor:
             cli_commands.check_cmd("config")
             mock_doctor.assert_called_once_with("config")
