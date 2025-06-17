@@ -182,8 +182,9 @@ Primary users are individual software developers who:
 - [FR-66] The system shall rename the `analyze` command to `inspect`
 - [FR-67] The system shall rename the `exec` command to `run-pipeline`
 - [FR-68] The system shall rename the `replay` command to `retrace`
-- [FR-69] The system shall load configuration from either YAML or TOML using a unified parser
+ - [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
 - [FR-70] The system shall expose a bridge interface to enable future WebUI integration
+- [FR-71] The system shall provide a `doctor` command (alias `check`) for environment diagnostics
 
 ## 4. Non-Functional Requirements
 

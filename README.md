@@ -29,6 +29,7 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 - Interactive `init` wizard for onboarding existing projects
 - Command names updated (`refactor`, `inspect`, `run-pipeline`, `retrace`)
 - Unified YAML/TOML configuration loader
+- Diagnostic command `doctor`/`check` for environment validation
 - CLI/WebUI bridge groundwork for future web interface
 - **Worker Self-Directed Enterprise (WSDE) Model**: Sophisticated multi-agent collaboration framework with role management, dialectical reasoning, consensus building, and knowledge integration capabilities
 - Dialectical reasoning hooks automatically analyze new solutions added to a WSDE team
@@ -53,6 +54,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Installation Guide](docs/getting_started/installation.md) *(includes pipx instructions)*
 - [User Guide](docs/user_guides/user_guide.md)
 - [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
+- [CLI Reference](docs/user_guides/cli_reference.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Project Analysis](docs/analysis/executive_summary.md)
 - [Implementation Status Matrix](docs/implementation/feature_status_matrix.md)

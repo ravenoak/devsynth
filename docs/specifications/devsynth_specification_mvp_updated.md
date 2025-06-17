@@ -57,7 +57,7 @@ The MVP will focus on serving these core users with straightforward use cases, w
 ### 2.4 Key Use Cases
 
 **MVP Use Cases:**
-1. Initialize a new Python project with standard structure and configuration
+1. Initialize a new or existing Python project with standard structure and configuration
 2. Generate a basic specification from user-provided requirements
 3. Create unit tests based on specifications
 4. Generate functional code that satisfies the tests
@@ -117,10 +117,10 @@ The MVP architecture follows a simplified layered approach with clear separation
 
 **MVP Scope:**
 - Command parser using Click or Typer library
-- Core command set: init, spec, test, code, help
+- Core command set: init, spec, test, code, run-pipeline, inspect, refactor, retrace, doctor, config, tokens, help
 - Simple progress indicators
 - Basic error handling with clear messages
-- Configuration via simple YAML/JSON files
+- Unified YAML/TOML configuration loader
 - Single entry point script for all commands
 
 **Implementation Guidance:**
@@ -501,10 +501,12 @@ Multi-agent collaboration will be deferred to a future version. The MVP will use
 #### 4.1.6 Unified Configuration Loader
 
 - **FR-69**: Load project configuration from YAML or TOML using a common parser
+The loader merges settings from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single `DevSynthConfig` object for consistent access across commands.
 
 #### 4.1.7 CLI/WebUI Bridge Preparation
 
 - **FR-70**: Provide a shared interface layer to enable future WebUI integration with the CLI
+- **FR-71**: Add a `doctor` command (alias `check`) for environment diagnostics
 
 ### 4.2 Requirement Analysis and Specification
 
@@ -988,6 +990,10 @@ devsynth spec [--input=<file>] [--output=<file>]
 devsynth test [--spec=<file>] [--output=<directory>]
 devsynth code [--test=<directory>] [--output=<directory>]
 devsynth run-pipeline [--test] [--verbose]
+devsynth inspect [--input=<file>]
+devsynth refactor [--path=<path>]
+devsynth retrace <run-id>
+devsynth doctor [--config-dir=<dir>]
 devsynth config [--set <key=value>] [--get <key>]
 devsynth help [command]
 devsynth tokens [--report] [--reset]
