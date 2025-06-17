@@ -536,3 +536,20 @@ class TestCLICommands:
         output = capsys.readouterr().out
         assert res is False
         assert "OPENAI_API_KEY" in output
+
+    def test_doctor_cmd_invokes_loader(self):
+        with patch(
+            "devsynth.application.cli.commands.doctor_cmd.load_config"
+        ) as mock_load, patch(
+            "devsynth.application.cli.commands.doctor_cmd.console.print"
+        ) as mock_print:
+            cli_commands.doctor_cmd("config")
+            mock_load.assert_called_once()
+            assert mock_print.called
+
+    def test_check_cmd_alias(self):
+        with patch(
+            "devsynth.application.cli.cli_commands.doctor_cmd"
+        ) as mock_doctor:
+            cli_commands.check_cmd("config")
+            mock_doctor.assert_called_once_with("config")

@@ -12,3 +12,8 @@ Feature: Doctor Command
     When I run the command "devsynth doctor"
     Then the system should display a warning message
     And the output should indicate configuration errors
+
+  Scenario: Validate existing environment configuration
+    Given valid environment configuration
+    When I run the command "devsynth doctor"
+    Then the system should display a success message

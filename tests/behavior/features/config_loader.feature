@@ -12,3 +12,8 @@ Feature: Configuration Loader
     Given a project with a pyproject.toml containing a [tool.devsynth] section
     When the configuration loader runs
     Then the configuration should have the key "language" set to "python"
+
+  Scenario: Create configuration file
+    Given an empty project directory
+    When I save a default configuration
+    Then a devsynth.yml file should be created
