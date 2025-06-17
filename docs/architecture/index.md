@@ -20,6 +20,7 @@ This section provides detailed information about the architecture of DevSynth, i
 - **[Overview](overview.md)**: A high-level overview of the DevSynth architecture.
 - **[Hexagonal Architecture](hexagonal_architecture.md)**: Details on the hexagonal (ports and adapters) architecture used in DevSynth.
 - **[Init Workflow](init_workflow.md)**: Sequence diagram for the interactive initialization process.
+- **[UXBridge](uxbridge.md)**: How CLI modules are decoupled from the UI and reused by the future WebUI.
 
 ## System Components
 

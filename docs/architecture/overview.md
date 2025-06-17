@@ -34,7 +34,7 @@ DevSynth is a modular, agentic software engineering platform designed for extens
 graph TD
     CLI[CLI / Chat Interface] --> UXBridge[UXBridge]
     Web[WebUI (Future)] --> UXBridge
-    UXBridge --> B[Application Core]
+    UXBridge --> B[Core Modules]
     UXBridge --> IW[Init Wizard]
     B --> C[Agent System]
     B --> D[Code Analysis]
@@ -53,7 +53,9 @@ graph TD
 
 The CLI and upcoming WebUI interact with the application through a common
 `UXBridge`. This abstraction exposes simple `prompt`, `confirm` and `print`
-methods used by the workflow layer.
+methods used by the workflow layer. CLI modules in `src/devsynth/core` call
+these methods so that the same logic can be consumed by a WebUI without
+modification.
 
 ```mermaid
 graph LR
