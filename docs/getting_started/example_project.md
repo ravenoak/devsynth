@@ -14,6 +14,10 @@ last_reviewed: "2025-06-15"
 
 This guide walks through a small calculator example included in the `examples/` directory. It demonstrates project initialization, specification and test generation, code creation, and running the final program.
 
+## Environment Requirements
+
+Ensure you are running **Python 3.11 or higher**. Poetry is recommended for dependency management.
+
 ## Location
 
 The example lives in [`examples/calculator`](../../examples/calculator). Each file shows what you would have after running DevSynth commands.

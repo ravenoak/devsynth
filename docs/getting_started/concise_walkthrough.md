@@ -16,6 +16,10 @@ last_reviewed: "2025-06-15"
 This walkthrough provides a short overview of the DevSynth workflow.
 For additional details, see the [Quick Start Guide](quick_start_guide.md).
 
+## Environment Requirements
+
+DevSynth requires **Python 3.11 or higher**. Poetry is recommended for managing dependencies.
+
 ## 1. Initialize a Project
 
 Create a new project directory named `demo`:

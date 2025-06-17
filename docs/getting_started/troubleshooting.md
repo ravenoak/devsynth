@@ -16,6 +16,10 @@ last_reviewed: "2025-06-01"
 
 This guide provides solutions to common issues you might encounter when using DevSynth. If you're experiencing problems, check this guide before submitting an issue.
 
+## Environment Requirements
+
+Ensure your environment is running **Python 3.11 or higher**. Managing dependencies with Poetry can help avoid version conflicts.
+
 ## Table of Contents
 
 - [Installation Issues](#installation-issues)

@@ -15,6 +15,10 @@ last_reviewed: "2025-06-15"
 
 This guide provides essential information about the basic usage of DevSynth, including initializing a project, defining requirements, and generating code.
 
+## Environment Requirements
+
+Ensure you are using **Python 3.11 or higher**. Poetry is recommended for managing dependencies during development.
+
 ## Overview
 
 DevSynth follows a structured workflow that takes you from requirements to working code. This guide covers the fundamental commands you'll use in a typical DevSynth project.
