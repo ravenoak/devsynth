@@ -88,3 +88,14 @@ def run_init_wizard():
         "constraints": constraints,
     }
 ```
+
+## Unified CLI and WebUI
+
+The CLI and the planned WebUI share the same workflow logic via the `UXBridge` abstraction.
+
+```mermaid
+graph LR
+    CLI --> Bridge[UXBridge]
+    WebUI --> Bridge
+    Bridge --> Workflows[Core Workflows]
+```
