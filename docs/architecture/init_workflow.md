@@ -20,7 +20,7 @@ sequenceDiagram
     participant U as User
     participant CLI as CLI
     participant UX as UXBridge
-    participant App as Application Layer
+    participant Core as CoreModules
     U->>CLI: run `devsynth init`
     CLI->>UX: request setup info
     UX->>U: prompt for project root
@@ -29,7 +29,11 @@ sequenceDiagram
     U-->>UX: choose language(s)
     UX->>U: describe project goals
     U-->>UX: confirm goals
-    UX->>App: initialize project
-    App-->>UX: summary
+    UX->>Core: initialize project
+    Core-->>UX: summary
     UX->>U: display completion
 ```
+
+Both the CLI and the future WebUI will use this same sequence by invoking the
+`CoreModules` through the `UXBridge`. This keeps initialization logic in one
+place while supporting multiple user interfaces.
