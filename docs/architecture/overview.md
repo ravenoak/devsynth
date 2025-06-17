@@ -49,6 +49,19 @@ graph TD
     D --> M[NetworkX Graph Analysis]
 ```
 
+### Shared UX Bridge
+
+The CLI and upcoming WebUI interact with the application through a common
+`UXBridge`. This abstraction exposes simple `prompt`, `confirm` and `print`
+methods used by the workflow layer.
+
+```mermaid
+graph LR
+    CLI --> Bridge[UXBridge]
+    WebUI --> Bridge
+    Bridge --> Core[Workflow Functions]
+```
+
 ## Key Components
 
 - **CLI / Chat Interface**: Entry points for user and agent interaction

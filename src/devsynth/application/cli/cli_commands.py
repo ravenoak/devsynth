@@ -9,7 +9,9 @@ from rich.console import Console
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
-from ..orchestration.workflow import workflow_manager
+from devsynth.core.workflows import (
+    execute_command as execute_workflow_command,
+)
 import uvicorn
 from devsynth.logging_setup import configure_logging
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
@@ -138,7 +140,7 @@ def init_cmd(
             }
         )
 
-        result = workflow_manager.execute_command("init", args)
+        result = execute_workflow_command("init", args)
         if result.get("success"):
             bridge.print(f"[green]Initialized DevSynth project in {path}[/green]")
 
@@ -190,7 +192,7 @@ def spec_cmd(
         if not _check_services(bridge):
             return
         args = _filter_args({"requirements_file": requirements_file})
-        result = workflow_manager.execute_command("spec", args)
+        result = execute_workflow_command("spec", args)
         if result.get("success"):
             bridge.print(
                 f"[green]Specifications generated from {requirements_file}.[/green]"
@@ -211,7 +213,7 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
         if not _check_services(bridge):
             return
         args = _filter_args({"spec_file": spec_file})
-        result = workflow_manager.execute_command("test", args)
+        result = execute_workflow_command("test", args)
         if result.get("success"):
             bridge.print(f"[green]Tests generated from {spec_file}.[/green]")
         else:
@@ -229,7 +231,7 @@ def code_cmd(*, bridge: UXBridge = bridge) -> None:
     try:
         if not _check_services(bridge):
             return
-        result = workflow_manager.execute_command("code", {})
+        result = execute_workflow_command("code", {})
         if result.get("success"):
             bridge.print("[green]Code generated successfully.[/green]")
         else:
@@ -247,7 +249,7 @@ def run_pipeline_cmd(
         `devsynth run-pipeline --target unit-tests`
     """
     try:
-        result = workflow_manager.execute_command("run-pipeline", {"target": target})
+        result = execute_workflow_command("run-pipeline", {"target": target})
         if result["success"]:
             if target:
                 bridge.print(f"[green]Executed target: {target}[/green]")
@@ -279,7 +281,7 @@ def config_cmd(
         args = {"key": key, "value": value}
         if list_models:
             args["list_models"] = True
-        result = workflow_manager.execute_command("config", args)
+        result = execute_workflow_command("config", args)
         if result.get("success"):
             if key and value:
                 bridge.print(f"[green]Configuration updated: {key} = {value}[/green]")
@@ -397,7 +399,7 @@ def inspect_cmd(
         if not _check_services(bridge):
             return
         args = _filter_args({"input": input_file, "interactive": interactive})
-        result = workflow_manager.execute_command("inspect", args)
+        result = execute_workflow_command("inspect", args)
         if result.get("success"):
             bridge.print("[green]Requirements inspection completed.[/green]")
         else:
