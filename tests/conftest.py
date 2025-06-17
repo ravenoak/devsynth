@@ -72,6 +72,9 @@ def test_environment(tmp_path, monkeypatch):
     # Set up a basic project structure
     with open(devsynth_dir / "config.json", "w") as f:
         f.write('{"model": "test-model", "project_name": "test-project"}')
+    # Create devsynth.yml for the config loader
+    with open(devsynth_dir / "devsynth.yml", "w") as f:
+        f.write("language: python\n")
 
     # Return the environment information
     return {
@@ -105,6 +108,9 @@ def tmp_project_dir():
     # Create a mock config file
     with open(temp_dir / ".devsynth" / "config.json", "w") as f:
         f.write('{"model": "gpt-4", "project_name": "test-project"}')
+    # Also write a devsynth.yml file for the unified loader
+    with open(temp_dir / ".devsynth" / "devsynth.yml", "w") as f:
+        f.write("language: python\n")
 
     # Set environment variable to disable file logging
     old_env_value = os.environ.get("DEVSYNTH_NO_FILE_LOGGING")

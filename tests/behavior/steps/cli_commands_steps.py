@@ -155,7 +155,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "init", init_args
                 )
-            elif args[0] == "analyze":
+            elif args[0] == "inspect":
                 # Parse the arguments
                 input_file = None
                 interactive = False
@@ -172,7 +172,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     else:
                         i += 1
 
-                # Call the analyze command
+                # Call the inspect command
                 from devsynth.application.cli.cli_commands import inspect_cmd
 
                 inspect_cmd(input_file, interactive)
@@ -566,6 +566,16 @@ def project_with_invalid_env_config(tmp_project_dir):
     os.makedirs(config_path, exist_ok=True)
     with open(os.path.join(config_path, "development.yml"), "w") as f:
         f.write("application:\n  name: DevSynth\n")
+    return tmp_project_dir
+
+
+@given("valid environment configuration")
+def valid_environment_config(tmp_project_dir):
+    config_path = os.path.join(tmp_project_dir, "config")
+    os.makedirs(config_path, exist_ok=True)
+    for env in ["development", "testing"]:
+        with open(os.path.join(config_path, f"{env}.yml"), "w") as f:
+            f.write("application:\n  name: DevSynth\n")
     return tmp_project_dir
 
 

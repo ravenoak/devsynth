@@ -64,8 +64,8 @@ def check_requirements_parsed(mock_workflow_manager):
 
     command, cmd_args = args[0]
 
-    # Check that the command was "analyze"
-    assert command == "analyze"
+    # Check that the command was "inspect"
+    assert command == "inspect"
 
 
 @then("create a structured representation in the memory system")
@@ -137,8 +137,8 @@ def check_interactive_session(mock_workflow_manager, command_context):
 
     command, cmd_args = args[0]
 
-    # Check that the command was "analyze" and the interactive flag was set
-    assert command == "analyze"
+    # Check that the command was "inspect" and the interactive flag was set
+    assert command == "inspect"
     assert cmd_args.get("interactive") is True
 
 
@@ -157,6 +157,6 @@ def check_questions_asked(mock_workflow_manager):
 
     command, cmd_args = args[0]
 
-    # Check that the command was "analyze" and the interactive flag was set
-    assert command == "analyze"
+    # Check that the command was "inspect" and the interactive flag was set
+    assert command == "inspect"
     assert cmd_args.get("interactive") is True
