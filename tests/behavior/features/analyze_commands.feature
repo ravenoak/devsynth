@@ -35,8 +35,8 @@ Feature: Analyze Commands
     And the error message should indicate the analysis problem
 
   @manifest-analysis
-  Scenario: Analyze manifest in the current directory
-    When I run the command "devsynth analyze-manifest"
+  Scenario: Analyze config in the current directory
+    When I run the command "devsynth analyze-config"
     Then the system should analyze the project configuration
     And the output should include project information
     And the output should include structure information
@@ -44,8 +44,8 @@ Feature: Analyze Commands
     And the workflow should execute successfully
 
   @manifest-analysis
-  Scenario: Analyze manifest in a specific directory
-    When I run the command "devsynth analyze-manifest --path ./my-project"
+  Scenario: Analyze config in a specific directory
+    When I run the command "devsynth analyze-config --path ./my-project"
     Then the system should analyze the project configuration at "./my-project"
     And the output should include project information
     And the output should include structure information
@@ -53,18 +53,18 @@ Feature: Analyze Commands
     And the workflow should execute successfully
 
   @manifest-analysis
-  Scenario: Update manifest with new findings
+  Scenario: Update config with new findings
     Given a project with outdated configuration
-    When I run the command "devsynth analyze-manifest --update"
+    When I run the command "devsynth analyze-config --update"
     Then the system should analyze the project configuration
     And the system should update the configuration with new findings
     And the output should indicate that the configuration was updated
     And the workflow should execute successfully
 
   @manifest-analysis
-  Scenario: Prune manifest entries that no longer exist
+  Scenario: Prune config entries that no longer exist
     Given a project with configuration entries that no longer exist
-    When I run the command "devsynth analyze-manifest --prune"
+    When I run the command "devsynth analyze-config --prune"
     Then the system should analyze the project configuration
     And the system should remove entries that no longer exist
     And the output should indicate that the configuration was pruned
@@ -73,6 +73,6 @@ Feature: Analyze Commands
   @manifest-analysis
   Scenario: Handle missing configuration file
     Given a project without a configuration file
-    When I run the command "devsynth analyze-manifest"
+    When I run the command "devsynth analyze-config"
     Then the system should display a warning message
     And the warning message should indicate that no configuration file was found

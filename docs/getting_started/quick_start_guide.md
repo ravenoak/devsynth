@@ -140,6 +140,15 @@ Finally, run the generated code to verify it works as expected:
 devsynth run-pipeline
 ```
 
+### Step 7: Manage Configuration
+
+Keep your project configuration up to date and validate it:
+
+```bash
+devsynth analyze-config
+devsynth validate-config
+```
+
 ## Viewing and Modifying Generated Artifacts
 
 After completing the steps above, your project directory will contain:

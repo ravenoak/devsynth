@@ -91,7 +91,7 @@ Feature: CLI Command Execution
     And the system should display a success message
 
 Scenario: Validate project configuration
-  When I run the command "devsynth validate-manifest"
+  When I run the command "devsynth validate-config"
   Then the system should display a success message
   And the workflow should execute successfully
 

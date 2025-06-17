@@ -75,7 +75,7 @@ This context refers to applying DevSynth as a tool to assist in the development 
 - Generating specifications with `devsynth spec`
 - Creating tests with `devsynth test`
 - Generating code with `devsynth code`
-- Managing project structure with `devsynth analyze-manifest`
+ - Managing project structure with `devsynth analyze-config`
 
 ## 3. Self-Improvement: Using DevSynth to Improve DevSynth
 
@@ -101,7 +101,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 ### Example Tasks
 
 - Using `devsynth analyze-code` to identify architectural improvements
-- Applying `devsynth analyze-manifest` to maintain DevSynth's own manifest
+ - Applying `devsynth analyze-config` to maintain DevSynth's own manifest
 - Using `devsynth test` to generate additional test cases
 - Leveraging `devsynth spec` to refine internal specifications
 
@@ -133,7 +133,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 
 - Start with `devsynth init` to create the `.devsynth/project.yaml` file
 - Use `devsynth analyze-config` (formerly `analyze-manifest`) to keep the configuration up to date
-- Use `devsynth validate-manifest` to validate the configuration against its schema
+ - Use `devsynth validate-config` to validate the configuration against its schema
 - Follow the recommended workflow: analyze → spec → test → code
 - Provide detailed requirements for better results
 - Review and validate all generated outputs
