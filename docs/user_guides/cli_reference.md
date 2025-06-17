@@ -86,7 +86,7 @@ devsynth help init
 
 ### init
 
-Initialize a new DevSynth project.
+Initialize a new DevSynth project or onboard an existing one.
 
 ```bash
 devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--language LANG]
@@ -524,4 +524,4 @@ devsynth memory --restore memory_backup.json
 
 ---
 
-For more information, see the [User Guide](user_guide.md) and [Configuration Guide](../technical_reference/configuration_reference.md).
+For more information, see the [User Guide](user_guide.md), [Configuration Guide](../technical_reference/configuration_reference.md), and the [Architecture Overview](../architecture/overview.md).
