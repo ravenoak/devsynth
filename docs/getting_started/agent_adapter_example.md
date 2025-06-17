@@ -17,6 +17,10 @@ This guide demonstrates how to combine the DevSynth CLI with direct use of the
 `AgentAdapter` Python API. The accompanying script lives in
 [`examples/agent_adapter/adapter_example.py`](../../examples/agent_adapter/adapter_example.py).
 
+## Environment Requirements
+
+Ensure **Python 3.11 or higher** is installed. Poetry is recommended for dependency management during development.
+
 ## 1. Initialize a Project
 
 Create a new project directory and initialize DevSynth:

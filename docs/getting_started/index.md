@@ -21,6 +21,10 @@ This section provides essential information for getting started with DevSynth, i
 - **[Basic Usage](basic_usage.md)**: An introduction to the basic usage of DevSynth.
 - **[Example Project](example_project.md)**: A complete walk-through using the calculator example.
 
+## Environment Requirements
+
+DevSynth requires **Python 3.11 or higher**. For development workflows, the team recommends managing dependencies with [Poetry](https://python-poetry.org/).
+
 ## Overview
 
 DevSynth is a powerful tool that helps developers generate code from requirements using AI. This section will help you install DevSynth, understand its basic usage, and get started with your first project.

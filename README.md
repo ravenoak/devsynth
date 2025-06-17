@@ -63,6 +63,10 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 
 Installation instructions are covered in detail in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
 
+### Environment Requirements
+
+DevSynth requires **Python 3.11 or higher**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
+
 ## Installation
 
 You can install DevSynth in a few different ways:

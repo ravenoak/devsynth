@@ -117,7 +117,12 @@ The MVP architecture follows a simplified layered approach with clear separation
 
 **MVP Scope:**
 - Command parser using Click or Typer library
-- Core command set: init, spec, test, code, run-pipeline, inspect, refactor, retrace, doctor, config, tokens, help
+ - Core command set: `init`, `spec`, `test`, `code`, `run-pipeline`, `inspect`,
+   `refactor`, `retrace`, `doctor`/`check`, `ingest`, `apispec`, `webapp`,
+   `dbschema`, `analyze-code`, `edrr-cycle`, `align`, `alignment-metrics`,
+   `analyze-manifest` (alias `analyze-config`), `validate-manifest`,
+   `validate-metadata`, `test-metrics`, `generate-docs`, `serve`, and the
+   `config` subcommands (including `enable-feature`).
 - Simple progress indicators
 - Basic error handling with clear messages
 - Unified YAML/TOML configuration loader
@@ -439,7 +444,8 @@ Multi-agent collaboration will be deferred to a future version. The MVP will use
 - Token usage limits and tracking
 
 **Implementation Guidance:**
-- Use YAML for configuration files
+ - Use YAML or TOML for configuration files. The loader relies on the `toml`
+   package to read settings from `pyproject.toml` under `[tool.devsynth]`.
 - Support environment variable overrides
 - Validate configuration on load
 - Provide sensible defaults
@@ -500,8 +506,7 @@ Multi-agent collaboration will be deferred to a future version. The MVP will use
 
 #### 4.1.6 Unified Configuration Loader
 
-- **FR-69**: Load project configuration from YAML or TOML using a common parser
-The loader merges settings from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single `DevSynthConfig` object for consistent access across commands.
+- **FR-69**: Load project configuration from YAML or TOML using a common parser. The loader merges settings from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single `DevSynthConfig` object for consistent access across commands. Parsing of `pyproject.toml` uses the `toml` library.
 
 #### 4.1.7 CLI/WebUI Bridge Preparation
 
