@@ -53,7 +53,7 @@ graph TD
 
 The CLI and upcoming WebUI interact with the application through a common
 `UXBridge`. This abstraction exposes simple `prompt`, `confirm` and `print`
-methods used by the workflow layer. CLI modules in `src/devsynth/core` call
+methods used by the workflow layer. CLI modules in `src/devsynth/application/cli` call
 these methods so that the same logic can be consumed by a WebUI without
 modification.
 
@@ -61,7 +61,7 @@ modification.
 graph LR
     CLI --> Bridge[UXBridge]
     WebUI --> Bridge
-    Bridge --> Core[Workflow Functions]
+    Bridge --> Core[Core Workflows]
 ```
 
 ## Key Components

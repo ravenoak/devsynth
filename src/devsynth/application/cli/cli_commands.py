@@ -10,7 +10,14 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.core.workflows import (
-    execute_command as execute_workflow_command,
+    filter_args,
+    init_project,
+    generate_specs,
+    generate_tests,
+    generate_code,
+    run_pipeline,
+    update_config,
+    inspect_requirements,
 )
 import uvicorn
 from devsynth.logging_setup import configure_logging
@@ -62,11 +69,6 @@ def _check_services(bridge: UXBridge = bridge) -> bool:
         return False
 
     return True
-
-
-def _filter_args(args: dict) -> dict:
-    """Return a new dict with None values removed."""
-    return {k: v for k, v in args.items() if v is not None}
 
 
 def config_key_autocomplete(ctx: typer.Context, incomplete: str):
@@ -127,7 +129,7 @@ def init_cmd(
             "Write configuration to pyproject.toml?", default=False
         )
 
-        args = _filter_args(
+        args = filter_args(
             {
                 "path": path,
                 "name": name,
@@ -140,7 +142,7 @@ def init_cmd(
             }
         )
 
-        result = execute_workflow_command("init", args)
+        result = init_project(**args)
         if result.get("success"):
             bridge.print(f"[green]Initialized DevSynth project in {path}[/green]")
 
@@ -191,8 +193,8 @@ def spec_cmd(
     try:
         if not _check_services(bridge):
             return
-        args = _filter_args({"requirements_file": requirements_file})
-        result = execute_workflow_command("spec", args)
+        args = filter_args({"requirements_file": requirements_file})
+        result = generate_specs(**args)
         if result.get("success"):
             bridge.print(
                 f"[green]Specifications generated from {requirements_file}.[/green]"
@@ -212,8 +214,8 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
     try:
         if not _check_services(bridge):
             return
-        args = _filter_args({"spec_file": spec_file})
-        result = execute_workflow_command("test", args)
+        args = filter_args({"spec_file": spec_file})
+        result = generate_tests(**args)
         if result.get("success"):
             bridge.print(f"[green]Tests generated from {spec_file}.[/green]")
         else:
@@ -231,7 +233,7 @@ def code_cmd(*, bridge: UXBridge = bridge) -> None:
     try:
         if not _check_services(bridge):
             return
-        result = execute_workflow_command("code", {})
+        result = generate_code()
         if result.get("success"):
             bridge.print("[green]Code generated successfully.[/green]")
         else:
@@ -249,7 +251,7 @@ def run_pipeline_cmd(
         `devsynth run-pipeline --target unit-tests`
     """
     try:
-        result = execute_workflow_command("run-pipeline", {"target": target})
+        result = run_pipeline(target)
         if result["success"]:
             if target:
                 bridge.print(f"[green]Executed target: {target}[/green]")
@@ -278,10 +280,7 @@ def config_cmd(
     if ctx.invoked_subcommand is not None:
         return
     try:
-        args = {"key": key, "value": value}
-        if list_models:
-            args["list_models"] = True
-        result = execute_workflow_command("config", args)
+        result = update_config(key, value, list_models=list_models)
         if result.get("success"):
             if key and value:
                 bridge.print(f"[green]Configuration updated: {key} = {value}[/green]")
@@ -398,8 +397,8 @@ def inspect_cmd(
     try:
         if not _check_services(bridge):
             return
-        args = _filter_args({"input": input_file, "interactive": interactive})
-        result = execute_workflow_command("inspect", args)
+        args = filter_args({"input": input_file, "interactive": interactive})
+        result = inspect_requirements(**args)
         if result.get("success"):
             bridge.print("[green]Requirements inspection completed.[/green]")
         else:

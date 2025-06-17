@@ -5,7 +5,7 @@ from typing import Optional, Sequence
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from devsynth.core.ux_bridge import UXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 
 class CLIUXBridge(UXBridge):

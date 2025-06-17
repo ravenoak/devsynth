@@ -44,7 +44,7 @@ the same orchestration logic already used by the CLI.
 ## Related Components
 
 - **CLI Implementation:** `src/devsynth/interface/cli.py`
-- **Bridge Definition:** `src/devsynth/core/ux_bridge.py`
+- **Bridge Definition:** `src/devsynth/interface/ux_bridge.py`
 - **Workflow Functions:** `src/devsynth/core/workflows.py`
 
 The UXBridge ensures these components remain loosely coupled, enabling a smooth
