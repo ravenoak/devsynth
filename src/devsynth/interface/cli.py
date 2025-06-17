@@ -1,14 +1,20 @@
-"""CLI implementation of the UXBridge."""
+"""CLI implementation of the UXBridge using Typer and Rich."""
+
+from typing import Optional, Sequence
 
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
-from typing import Optional, Sequence
 
-from .ux_bridge import UXBridge
+from devsynth.core.ux_bridge import UXBridge
 
 
 class CLIUXBridge(UXBridge):
-    """Bridge for command line interactions using Rich."""
+    """Bridge for command line interactions.
+
+    This implementation uses Rich for formatted output and Typer-compatible
+    prompts so that the same workflow logic can be reused by different
+    frontends.
+    """
 
     def __init__(self) -> None:
         self.console = Console()
