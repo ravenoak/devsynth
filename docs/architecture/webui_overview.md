@@ -8,6 +8,7 @@ tags:
   - "ux"
 status: "draft"
 author: "DevSynth Team"
+last_reviewed: "2025-06-18"
 ---
 
 # WebUI Architecture Overview
@@ -15,7 +16,20 @@ author: "DevSynth Team"
 The WebUI presents DevSynth workflows via Streamlit while reusing the
 existing CLI logic through the `UXBridge` abstraction. The `WebUI`
 class implements the bridge methods and exposes navigable pages for the
-core workflows.
+core workflows. By consuming the `UXBridge` interface it reuses the same
+workflow orchestration that powers the CLI.
+
+## Side Navigation Layout
+
+```mermaid
+flowchart TB
+    Sidebar["Sidebar Navigation"]
+    Sidebar --> Onboarding
+    Sidebar --> Requirements
+    Sidebar --> Analysis
+    Sidebar --> Synthesis
+    Sidebar --> Config
+```
 
 ## Pseudocode
 
