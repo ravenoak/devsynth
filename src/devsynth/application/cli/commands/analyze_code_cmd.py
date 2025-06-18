@@ -8,12 +8,15 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.markdown import Markdown
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 
 def analyze_code_cmd(path: Optional[str] = None) -> None:
     """Analyze a codebase to understand its architecture and quality.
@@ -28,7 +31,7 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
     
     try:
         # Show a welcome message for the analyze-code command
-        console.print(Panel(
+        bridge.print(Panel(
             "[bold blue]DevSynth Code Analysis[/bold blue]\n\n"
             "This command will analyze a codebase and provide insights about its architecture, structure, and quality.",
             title="Code Analysis",
@@ -39,7 +42,7 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
         if path is None:
             path = os.getcwd()
         
-        console.print(f"[bold]Analyzing codebase at:[/bold] {path}")
+        bridge.print(f"[bold]Analyzing codebase at:[/bold] {path}")
         
         # Create a progress panel
         with console.status("[bold green]Analyzing codebase...[/bold green]"):
@@ -52,16 +55,16 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
             project_state = project_analyzer.analyze()
         
         # Display the analysis results
-        console.print("\n[bold]Analysis Results:[/bold]")
+        bridge.print("\n[bold]Analysis Results:[/bold]")
         
         # Display architecture information
         architecture = result["insights"]["architecture"]
-        console.print(f"\n[bold]Architecture:[/bold] {architecture['type']} (confidence: {architecture['confidence']:.2f})")
+        bridge.print(f"\n[bold]Architecture:[/bold] {architecture['type']} (confidence: {architecture['confidence']:.2f})")
         
         # Display layers
         layers = architecture["layers"]
         if layers:
-            console.print("\n[bold]Layers:[/bold]")
+            bridge.print("\n[bold]Layers:[/bold]")
             layers_table = Table(show_header=True, header_style="bold")
             layers_table.add_column("Layer")
             layers_table.add_column("Components")
@@ -72,12 +75,12 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
                     ", ".join(components) if components else "None"
                 )
             
-            console.print(layers_table)
+            bridge.print(layers_table)
         
         # Display architecture violations
         violations = architecture["architecture_violations"]
         if violations:
-            console.print("\n[bold]Architecture Violations:[/bold]")
+            bridge.print("\n[bold]Architecture Violations:[/bold]")
             violations_table = Table(show_header=True, header_style="bold")
             violations_table.add_column("Source Layer")
             violations_table.add_column("Target Layer")
@@ -90,11 +93,11 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
                     violation["description"]
                 )
             
-            console.print(violations_table)
+            bridge.print(violations_table)
         
         # Display code quality metrics
         code_quality = result["insights"]["code_quality"]
-        console.print("\n[bold]Code Quality Metrics:[/bold]")
+        bridge.print("\n[bold]Code Quality Metrics:[/bold]")
         quality_table = Table(show_header=True, header_style="bold")
         quality_table.add_column("Metric")
         quality_table.add_column("Value")
@@ -106,11 +109,11 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
         quality_table.add_row("Docstring Coverage (Classes)", f"{code_quality['docstring_coverage']['classes'] * 100:.1f}%")
         quality_table.add_row("Docstring Coverage (Functions)", f"{code_quality['docstring_coverage']['functions'] * 100:.1f}%")
         
-        console.print(quality_table)
+        bridge.print(quality_table)
         
         # Display test coverage
         test_coverage = result["insights"]["test_coverage"]
-        console.print("\n[bold]Test Coverage:[/bold]")
+        bridge.print("\n[bold]Test Coverage:[/bold]")
         coverage_table = Table(show_header=True, header_style="bold")
         coverage_table.add_column("Metric")
         coverage_table.add_column("Value")
@@ -119,15 +122,15 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
         coverage_table.add_row("Tested Symbols", str(test_coverage["tested_symbols"]))
         coverage_table.add_row("Coverage Percentage", f"{test_coverage['coverage_percentage'] * 100:.1f}%")
         
-        console.print(coverage_table)
+        bridge.print(coverage_table)
         
         # Display project health score
-        console.print(f"\n[bold]Project Health Score:[/bold] {project_state['health_score']:.2f}/10.0")
+        bridge.print(f"\n[bold]Project Health Score:[/bold] {project_state['health_score']:.2f}/10.0")
         
         # Display improvement opportunities
         opportunities = result["insights"]["improvement_opportunities"]
         if opportunities:
-            console.print("\n[bold]Improvement Opportunities:[/bold]")
+            bridge.print("\n[bold]Improvement Opportunities:[/bold]")
             opportunities_table = Table(show_header=True, header_style="bold")
             opportunities_table.add_column("Priority")
             opportunities_table.add_column("Type")
@@ -140,16 +143,16 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
                     opportunity["description"]
                 )
             
-            console.print(opportunities_table)
+            bridge.print(opportunities_table)
         
         # Display recommendations
         if 'recommendations' in project_state:
-            console.print("\n[bold]Recommendations:[/bold]")
+            bridge.print("\n[bold]Recommendations:[/bold]")
             for recommendation in project_state['recommendations']:
-                console.print(f"- {recommendation}")
+                bridge.print(f"- {recommendation}")
         
-        console.print("\n[green]Analysis completed successfully![/green]")
+        bridge.print("\n[green]Analysis completed successfully![/green]")
         
     except Exception as e:
         logger.error(f"Error analyzing codebase: {str(e)}")
-        console.print(f"[red]Error analyzing codebase: {str(e)}[/red]")
+        bridge.print(f"[red]Error analyzing codebase: {str(e)}[/red]")

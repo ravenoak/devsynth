@@ -11,11 +11,14 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.markdown import Markdown
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.exceptions import DevSynthError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 
 def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune: bool = False) -> None:
     """Analyze and manage the project configuration file.
@@ -35,7 +38,7 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
 
     try:
         # Show a welcome message for the analyze-manifest command
-        console.print(Panel(
+        bridge.print(Panel(
             "[bold blue]DevSynth Configuration Analysis[/bold blue]\n\n"
             "This command will analyze the project configuration file (devsynth.yaml) and the project structure, "
             "and can update the configuration to reflect the actual project structure.",
@@ -51,7 +54,7 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
         config_path = project_path / "devsynth.yaml"
         legacy_path = project_path / "manifest.yaml"
 
-        console.print(f"[bold]Analyzing project at:[/bold] {project_path}")
+        bridge.print(f"[bold]Analyzing project at:[/bold] {project_path}")
 
         # Check if devsynth.yaml or manifest.yaml exists
         if config_path.exists():
@@ -60,9 +63,9 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
         elif legacy_path.exists():
             # Use manifest.yaml for backward compatibility
             manifest_path = legacy_path
-            console.print("[yellow]Using legacy manifest.yaml file. Consider renaming to devsynth.yaml for future compatibility.[/yellow]")
+            bridge.print("[yellow]Using legacy manifest.yaml file. Consider renaming to devsynth.yaml for future compatibility.[/yellow]")
         else:
-            console.print("[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]")
+            bridge.print("[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]")
             return
 
         # Load the configuration file
@@ -78,22 +81,22 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
             differences = compare_with_manifest(manifest, project_structure)
 
         # Display the analysis results
-        console.print("\n[bold]Analysis Results:[/bold]")
+        bridge.print("\n[bold]Analysis Results:[/bold]")
 
         # Display project information
-        console.print(f"\n[bold]Project Name:[/bold] {manifest.get('projectName', 'Unknown')}")
-        console.print(f"[bold]Manifest Version:[/bold] {manifest.get('version', 'Unknown')}")
-        console.print(f"[bold]Last Updated:[/bold] {manifest.get('lastUpdated', 'Unknown')}")
+        bridge.print(f"\n[bold]Project Name:[/bold] {manifest.get('projectName', 'Unknown')}")
+        bridge.print(f"[bold]Manifest Version:[/bold] {manifest.get('version', 'Unknown')}")
+        bridge.print(f"[bold]Last Updated:[/bold] {manifest.get('lastUpdated', 'Unknown')}")
 
         # Display structure information
         structure = manifest.get("structure", {})
-        console.print(f"\n[bold]Project Type:[/bold] {structure.get('type', 'Unknown')}")
-        console.print(f"[bold]Primary Language:[/bold] {structure.get('primaryLanguage', 'Unknown')}")
+        bridge.print(f"\n[bold]Project Type:[/bold] {structure.get('type', 'Unknown')}")
+        bridge.print(f"[bold]Primary Language:[/bold] {structure.get('primaryLanguage', 'Unknown')}")
 
         # Display directories
         directories = structure.get("directories", {})
         if directories:
-            console.print("\n[bold]Directories:[/bold]")
+            bridge.print("\n[bold]Directories:[/bold]")
             directories_table = Table(show_header=True, header_style="bold")
             directories_table.add_column("Type")
             directories_table.add_column("Paths")
@@ -104,11 +107,11 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
                     ", ".join(paths) if paths else "None"
                 )
 
-            console.print(directories_table)
+            bridge.print(directories_table)
 
         # Display differences
         if differences:
-            console.print("\n[bold]Differences Found:[/bold]")
+            bridge.print("\n[bold]Differences Found:[/bold]")
             differences_table = Table(show_header=True, header_style="bold")
             differences_table.add_column("Type")
             differences_table.add_column("Path")
@@ -121,7 +124,7 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
                     diff["status"]
                 )
 
-            console.print(differences_table)
+            bridge.print(differences_table)
 
             # Update configuration if requested
             if update:
@@ -130,7 +133,7 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
                 with open(manifest_path, "w") as f:
                     yaml.dump(updated_manifest, f, default_flow_style=False, sort_keys=False)
 
-                console.print("\n[green]Configuration updated successfully![/green]")
+                bridge.print("\n[green]Configuration updated successfully![/green]")
 
             # Prune configuration if requested
             elif prune:
@@ -139,25 +142,25 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
                 with open(manifest_path, "w") as f:
                     yaml.dump(pruned_manifest, f, default_flow_style=False, sort_keys=False)
 
-                console.print("\n[green]Configuration pruned successfully![/green]")
+                bridge.print("\n[green]Configuration pruned successfully![/green]")
 
             # Show update/prune options if not requested
             else:
-                console.print("\n[yellow]To update the configuration with new findings, run:[/yellow]")
-                console.print(f"  devsynth analyze-manifest --update")
+                bridge.print("\n[yellow]To update the configuration with new findings, run:[/yellow]")
+                bridge.print(f"  devsynth analyze-manifest --update")
 
-                console.print("\n[yellow]To prune entries that no longer exist, run:[/yellow]")
-                console.print(f"  devsynth analyze-manifest --prune")
+                bridge.print("\n[yellow]To prune entries that no longer exist, run:[/yellow]")
+                bridge.print(f"  devsynth analyze-manifest --prune")
 
-                console.print("\n[yellow]Note: This command will be renamed to 'analyze-config' in a future version.[/yellow]")
+                bridge.print("\n[yellow]Note: This command will be renamed to 'analyze-config' in a future version.[/yellow]")
         else:
-            console.print("\n[green]No differences found. Configuration is up to date![/green]")
+            bridge.print("\n[green]No differences found. Configuration is up to date![/green]")
 
-        console.print("\n[green]Analysis completed successfully![/green]")
+        bridge.print("\n[green]Analysis completed successfully![/green]")
 
     except Exception as e:
         logger.error(f"Error analyzing configuration: {str(e)}")
-        console.print(f"[red]Error analyzing configuration: {str(e)}[/red]")
+        bridge.print(f"[red]Error analyzing configuration: {str(e)}[/red]")
 
 def analyze_project_structure(project_path: Path) -> Dict[str, Any]:
     """

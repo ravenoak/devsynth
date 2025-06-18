@@ -1,5 +1,9 @@
 from pathlib import Path
 from rich.console import Console
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
@@ -14,6 +18,8 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
+bridge: UXBridge = CLIUXBridge()
 
 
 def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
@@ -30,10 +36,10 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
     try:
         manifest_path = Path(manifest)
         if not manifest_path.exists():
-            console.print(f"[red]Manifest file not found:[/red] {manifest_path}")
+            bridge.print(f"[red]Manifest file not found:[/red] {manifest_path}")
             return
 
-        console.print("[bold]Starting EDRR cycle[/bold]")
+        bridge.print("[bold]Starting EDRR cycle[/bold]")
         memory_adapter = TinyDBMemoryAdapter()
         memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
         wsde_team = WSDETeam()
@@ -65,11 +71,11 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
             {"cycle_id": coordinator.cycle_id},
         )
 
-        console.print(
+        bridge.print(
             f"[green]EDRR cycle completed.[/green] Results stored with id {result_id}"
         )
     except DevSynthError as err:
-        console.print(f"[red]Error:[/red] {err}")
+        bridge.print(f"[red]Error:[/red] {err}")
     except Exception as exc:
-        console.print(f"[red]Unexpected error:[/red] {exc}")
+        bridge.print(f"[red]Unexpected error:[/red] {exc}")
         logger.error(f"Unexpected error running EDRR cycle: {exc}")

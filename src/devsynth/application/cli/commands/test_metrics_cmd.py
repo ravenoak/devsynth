@@ -13,11 +13,14 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.markdown import Markdown
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 
 def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
     """Analyze test-first development metrics.
@@ -33,7 +36,7 @@ def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
     
     try:
         # Show a welcome message for the test-metrics command
-        console.print(Panel(
+        bridge.print(Panel(
             "[bold blue]DevSynth Test-First Metrics[/bold blue]\n\n"
             "This command analyzes the commit history to determine if the project "
             "follows test-first development practices, and generates metrics and reports.",
@@ -41,17 +44,17 @@ def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
             border_style="blue"
         ))
         
-        console.print(f"[bold]Analyzing commit history for the last {days} days...[/bold]")
+        bridge.print(f"[bold]Analyzing commit history for the last {days} days...[/bold]")
         
         # Get commit history
         with console.status("[bold green]Retrieving commit history...[/bold green]"):
             commits = get_commit_history(days)
         
         if not commits:
-            console.print("[yellow]No commits found in the specified time period.[/yellow]")
+            bridge.print("[yellow]No commits found in the specified time period.[/yellow]")
             return
         
-        console.print(f"[bold]Found {len(commits)} commits to analyze.[/bold]")
+        bridge.print(f"[bold]Found {len(commits)} commits to analyze.[/bold]")
         
         # Analyze commits
         with console.status("[bold green]Analyzing commits...[/bold green]"):
@@ -64,34 +67,34 @@ def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
         if output_file:
             with open(output_file, "w") as f:
                 f.write(report)
-            console.print(f"[green]Metrics report written to {output_file}[/green]")
+            bridge.print(f"[green]Metrics report written to {output_file}[/green]")
         else:
-            console.print("\n[bold]Test-First Development Metrics:[/bold]")
-            console.print(Markdown(report))
+            bridge.print("\n[bold]Test-First Development Metrics:[/bold]")
+            bridge.print(Markdown(report))
         
         # Display summary
         test_first_ratio = metrics["test_first_ratio"]
-        console.print(f"\n[bold]Summary:[/bold]")
-        console.print(f"Total commits analyzed: {metrics['total_commits']}")
-        console.print(f"Test-first commits: {metrics['test_first_commits']} ({test_first_ratio:.1%})")
-        console.print(f"Code-first commits: {metrics['code_first_commits']} ({1 - test_first_ratio:.1%})")
+        bridge.print(f"\n[bold]Summary:[/bold]")
+        bridge.print(f"Total commits analyzed: {metrics['total_commits']}")
+        bridge.print(f"Test-first commits: {metrics['test_first_commits']} ({test_first_ratio:.1%})")
+        bridge.print(f"Code-first commits: {metrics['code_first_commits']} ({1 - test_first_ratio:.1%})")
         
         # Provide recommendations
         if test_first_ratio >= 0.8:
-            console.print("\n[bold green]✓ Excellent test-first development practices![/bold green]")
-            console.print("The project follows test-first development practices very well.")
+            bridge.print("\n[bold green]✓ Excellent test-first development practices![/bold green]")
+            bridge.print("The project follows test-first development practices very well.")
         elif test_first_ratio >= 0.6:
-            console.print("\n[bold green]✓ Good test-first development practices.[/bold green]")
-            console.print("The project generally follows test-first development, but there's room for improvement.")
+            bridge.print("\n[bold green]✓ Good test-first development practices.[/bold green]")
+            bridge.print("The project generally follows test-first development, but there's room for improvement.")
         elif test_first_ratio >= 0.4:
-            console.print("\n[bold yellow]⚠ Moderate test-first development practices.[/bold yellow]")
-            console.print("The project sometimes follows test-first development, but should improve consistency.")
+            bridge.print("\n[bold yellow]⚠ Moderate test-first development practices.[/bold yellow]")
+            bridge.print("The project sometimes follows test-first development, but should improve consistency.")
         else:
-            console.print("\n[bold red]✗ Poor test-first development practices.[/bold red]")
-            console.print("The project rarely follows test-first development. Consider adopting TDD/BDD practices.")
+            bridge.print("\n[bold red]✗ Poor test-first development practices.[/bold red]")
+            bridge.print("The project rarely follows test-first development. Consider adopting TDD/BDD practices.")
     
     except Exception as err:
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 def get_commit_history(days: int = 30) -> List[Dict[str, Any]]:
     """

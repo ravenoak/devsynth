@@ -8,12 +8,12 @@ import yaml
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
 
 
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.Console")
+@patch("devsynth.application.cli.commands.analyze_manifest_cmd.bridge")
 @patch("devsynth.application.cli.commands.analyze_manifest_cmd.analyze_project_structure")
 @patch("devsynth.application.cli.commands.analyze_manifest_cmd.compare_with_manifest")
 @patch("devsynth.application.cli.commands.analyze_manifest_cmd.update_manifest")
 @patch("yaml.dump")
-def test_analyze_manifest_update(mock_dump, mock_update, mock_compare, mock_analyze, mock_console, tmp_path):
+def test_analyze_manifest_update(mock_dump, mock_update, mock_compare, mock_analyze, mock_bridge, tmp_path):
     manifest_path = tmp_path / "devsynth.yaml"
     yaml.safe_dump({"projectName": "Test"}, manifest_path.open("w"))
 
@@ -29,16 +29,16 @@ def test_analyze_manifest_update(mock_dump, mock_update, mock_compare, mock_anal
     mock_dump.assert_called_once()
     assert any(
         "Configuration updated successfully" in str(call.args[0])
-        for call in mock_console.return_value.print.call_args_list
+        for call in mock_bridge.print.call_args_list
     )
 
 
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.Console")
+@patch("devsynth.application.cli.commands.analyze_manifest_cmd.bridge")
 @patch("devsynth.application.cli.commands.analyze_manifest_cmd.analyze_project_structure")
 @patch("devsynth.application.cli.commands.analyze_manifest_cmd.compare_with_manifest")
 @patch("devsynth.application.cli.commands.analyze_manifest_cmd.prune_manifest")
 @patch("yaml.dump")
-def test_analyze_manifest_prune(mock_dump, mock_prune, mock_compare, mock_analyze, mock_console, tmp_path):
+def test_analyze_manifest_prune(mock_dump, mock_prune, mock_compare, mock_analyze, mock_bridge, tmp_path):
     manifest_path = tmp_path / "devsynth.yaml"
     yaml.safe_dump({"projectName": "Test"}, manifest_path.open("w"))
 
@@ -54,12 +54,12 @@ def test_analyze_manifest_prune(mock_dump, mock_prune, mock_compare, mock_analyz
     mock_dump.assert_called_once()
     assert any(
         "Configuration pruned successfully" in str(call.args[0])
-        for call in mock_console.return_value.print.call_args_list
+        for call in mock_bridge.print.call_args_list
     )
 
 
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.Console")
-def test_analyze_manifest_no_config(mock_console, tmp_path):
+@patch("devsynth.application.cli.commands.analyze_manifest_cmd.bridge")
+def test_analyze_manifest_no_config(mock_bridge, tmp_path):
     analyze_manifest_cmd(path=str(tmp_path))
-    mock_console.return_value.print.assert_any_call("[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]")
+    mock_bridge.print.assert_any_call("[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]")
 

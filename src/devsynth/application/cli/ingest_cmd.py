@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 from typing import Optional, Dict, Any
 from rich.console import Console
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
@@ -20,6 +22,7 @@ from devsynth.application.ingestion import Ingestion
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 def ingest_cmd(
@@ -51,27 +54,27 @@ def ingest_cmd(
             manifest_path = Path(manifest_path)
 
         if verbose:
-            console.print(f"[bold]DevSynth Ingestion[/bold]")
-            console.print(f"Manifest path: {manifest_path}")
-            console.print(f"Dry run: {dry_run}")
-            console.print(f"Validate only: {validate_only}")
+            bridge.print(f"[bold]DevSynth Ingestion[/bold]")
+            bridge.print(f"Manifest path: {manifest_path}")
+            bridge.print(f"Dry run: {dry_run}")
+            bridge.print(f"Validate only: {validate_only}")
 
         # Check if this project is managed by DevSynth
         is_managed_by_devsynth = manifest_path.parent.exists() if manifest_path.parent.name == ".devsynth" else True
 
         if not is_managed_by_devsynth and verbose:
-            console.print("[yellow]This project is not managed by DevSynth.[/yellow]")
-            console.print("[yellow]The presence of a .devsynth/ directory is the marker that a project is managed by DevSynth.[/yellow]")
-            console.print("[yellow]Using default minimal configuration.[/yellow]")
+            bridge.print("[yellow]This project is not managed by DevSynth.[/yellow]")
+            bridge.print("[yellow]The presence of a .devsynth/ directory is the marker that a project is managed by DevSynth.[/yellow]")
+            bridge.print("[yellow]Using default minimal configuration.[/yellow]")
 
         # Validate the manifest
         validate_manifest(manifest_path, verbose)
 
         if validate_only:
             if is_managed_by_devsynth:
-                console.print("[green]Manifest validation successful.[/green]")
+                bridge.print("[green]Manifest validation successful.[/green]")
             else:
-                console.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
+                bridge.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
             return
 
         # Perform the ingestion using the Ingestion class
@@ -79,24 +82,24 @@ def ingest_cmd(
         result = ingestion.run_ingestion(dry_run=dry_run, verbose=verbose)
 
         if result.get("success"):
-            console.print("[green]Ingestion completed successfully.[/green]")
+            bridge.print("[green]Ingestion completed successfully.[/green]")
         else:
-            console.print(f"[red]Ingestion failed:[/red] {result.get('error')}")
+            bridge.print(f"[red]Ingestion failed:[/red] {result.get('error')}")
 
         if verbose:
-            console.print(json.dumps(result.get("metrics", {}), indent=2))
+            bridge.print(json.dumps(result.get("metrics", {}), indent=2))
 
     except ManifestError as e:
-        console.print(f"[red]Manifest Error:[/red] {str(e)}")
+        bridge.print(f"[red]Manifest Error:[/red] {str(e)}")
         sys.exit(1)
     except IngestionError as e:
-        console.print(f"[red]Ingestion Error:[/red] {str(e)}")
+        bridge.print(f"[red]Ingestion Error:[/red] {str(e)}")
         sys.exit(1)
     except DevSynthError as e:
-        console.print(f"[red]Error:[/red] {str(e)}")
+        bridge.print(f"[red]Error:[/red] {str(e)}")
         sys.exit(1)
     except Exception as e:
-        console.print(f"[red]Unexpected Error:[/red] {str(e)}")
+        bridge.print(f"[red]Unexpected Error:[/red] {str(e)}")
         sys.exit(1)
 
 def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
@@ -114,7 +117,7 @@ def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
     if manifest_path.parent.name == ".devsynth" and not manifest_path.parent.exists():
         # This project is not managed by DevSynth, so we don't need to validate a manifest
         if verbose:
-            console.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
+            bridge.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
         return
 
     if not manifest_path.exists():
@@ -141,7 +144,7 @@ def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
             raise ManifestError("Manifest validation failed")
 
         if verbose:
-            console.print("[green]Manifest validation successful.[/green]")
+            bridge.print("[green]Manifest validation successful.[/green]")
 
     except ImportError:
         raise ManifestError("Failed to import validate_manifest script")
@@ -214,10 +217,10 @@ def expand_phase(manifest: Dict[str, Any], verbose: bool = False) -> Dict[str, A
     # code, tests, and other artifacts to build a comprehensive understanding
 
     if verbose:
-        console.print("  Analyzing project structure...")
-        console.print("  Scanning source code...")
-        console.print("  Examining tests...")
-        console.print("  Reviewing documentation...")
+        bridge.print("  Analyzing project structure...")
+        bridge.print("  Scanning source code...")
+        bridge.print("  Examining tests...")
+        bridge.print("  Reviewing documentation...")
 
     # Return placeholder results
     return {
@@ -246,10 +249,10 @@ def differentiate_phase(manifest: Dict[str, Any], expand_results: Dict[str, Any]
     # against higher-level definitions
 
     if verbose:
-        console.print("  Validating against requirements...")
-        console.print("  Checking for inconsistencies...")
-        console.print("  Identifying gaps...")
-        console.print("  Detecting outdated components...")
+        bridge.print("  Validating against requirements...")
+        bridge.print("  Checking for inconsistencies...")
+        bridge.print("  Identifying gaps...")
+        bridge.print("  Detecting outdated components...")
 
     # Return placeholder results
     return {
@@ -279,10 +282,10 @@ def refine_phase(manifest: Dict[str, Any], differentiate_results: Dict[str, Any]
     # overall project hygiene
 
     if verbose:
-        console.print("  Creating relationships between artifacts...")
-        console.print("  Archiving outdated items...")
-        console.print("  Verifying test coverage...")
-        console.print("  Ensuring project hygiene...")
+        bridge.print("  Creating relationships between artifacts...")
+        bridge.print("  Archiving outdated items...")
+        bridge.print("  Verifying test coverage...")
+        bridge.print("  Ensuring project hygiene...")
 
     # Return placeholder results
     return {
@@ -310,10 +313,10 @@ def retrospect_phase(manifest: Dict[str, Any], refine_results: Dict[str, Any], v
     # and plan for the next iteration
 
     if verbose:
-        console.print("  Evaluating ingestion outcomes...")
-        console.print("  Capturing insights...")
-        console.print("  Identifying improvement opportunities...")
-        console.print("  Planning next steps...")
+        bridge.print("  Evaluating ingestion outcomes...")
+        bridge.print("  Capturing insights...")
+        bridge.print("  Identifying improvement opportunities...")
+        bridge.print("  Planning next steps...")
 
     # Return placeholder results
     return {

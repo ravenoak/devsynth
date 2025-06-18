@@ -13,6 +13,8 @@ from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 from devsynth.application.cli.commands.align_cmd import (
     get_all_files, is_file_of_type, extract_references,
     REQ_REF_PATTERN, SPEC_REF_PATTERN, TEST_REF_PATTERN,
@@ -23,6 +25,7 @@ from devsynth.application.cli.commands.align_cmd import (
 logger = DevSynthLogger(__name__)
 
 # Console for rich output
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 def calculate_alignment_coverage(files: List[str]) -> Dict:
@@ -197,7 +200,7 @@ def save_metrics(metrics: Dict, metrics_file: str, historical_metrics: List[Dict
 
 def display_metrics(metrics: Dict, historical_metrics: List[Dict]):
     """Display alignment metrics."""
-    console.print("\n[bold]Alignment Metrics[/bold]\n")
+    bridge.print("\n[bold]Alignment Metrics[/bold]\n")
     
     # Coverage metrics
     coverage_table = Table(title="Alignment Coverage")
@@ -231,7 +234,7 @@ def display_metrics(metrics: Dict, historical_metrics: List[Dict]):
         f"{metrics['overall_coverage']:.1f}%"
     )
     
-    console.print(coverage_table)
+    bridge.print(coverage_table)
     
     # Issues metrics
     issues_table = Table(title="Alignment Issues")
@@ -243,11 +246,11 @@ def display_metrics(metrics: Dict, historical_metrics: List[Dict]):
     issues_table.add_row("Low", str(metrics["low_severity"]))
     issues_table.add_row("Total", str(metrics["total_issues"]))
     
-    console.print(issues_table)
+    bridge.print(issues_table)
     
     # Trend analysis
     if len(historical_metrics) > 1:
-        console.print("\n[bold]Trend Analysis[/bold]\n")
+        bridge.print("\n[bold]Trend Analysis[/bold]\n")
         
         # Get previous metrics
         previous_metrics = historical_metrics[-2]
@@ -258,18 +261,18 @@ def display_metrics(metrics: Dict, historical_metrics: List[Dict]):
         
         # Display changes
         if coverage_change > 0:
-            console.print(f"[green]Coverage increased by {coverage_change:.1f}%[/green]")
+            bridge.print(f"[green]Coverage increased by {coverage_change:.1f}%[/green]")
         elif coverage_change < 0:
-            console.print(f"[red]Coverage decreased by {abs(coverage_change):.1f}%[/red]")
+            bridge.print(f"[red]Coverage decreased by {abs(coverage_change):.1f}%[/red]")
         else:
-            console.print(f"[yellow]Coverage unchanged[/yellow]")
+            bridge.print(f"[yellow]Coverage unchanged[/yellow]")
         
         if issues_change > 0:
-            console.print(f"[green]Issues decreased by {issues_change}[/green]")
+            bridge.print(f"[green]Issues decreased by {issues_change}[/green]")
         elif issues_change < 0:
-            console.print(f"[red]Issues increased by {abs(issues_change)}[/red]")
+            bridge.print(f"[red]Issues increased by {abs(issues_change)}[/red]")
         else:
-            console.print(f"[yellow]Issues unchanged[/yellow]")
+            bridge.print(f"[yellow]Issues unchanged[/yellow]")
 
 def generate_metrics_report(metrics: Dict, historical_metrics: List[Dict], output_file: str):
     """Generate a metrics report in Markdown format."""
@@ -323,10 +326,10 @@ def generate_metrics_report(metrics: Dict, historical_metrics: List[Dict], outpu
                 else:
                     f.write(f"- Issues unchanged\n")
         
-        console.print(f"[green]Metrics report saved to {output_file}[/green]")
+        bridge.print(f"[green]Metrics report saved to {output_file}[/green]")
     except Exception as e:
         logger.error(f"Error generating metrics report: {e}")
-        console.print(f"[red]Error generating metrics report: {e}[/red]")
+        bridge.print(f"[red]Error generating metrics report: {e}[/red]")
 
 def alignment_metrics_cmd(path: str = '.', metrics_file: str = '.devsynth/alignment_metrics.json', output: Optional[str] = None):
     """Collect and report on alignment metrics.
@@ -340,7 +343,7 @@ def alignment_metrics_cmd(path: str = '.', metrics_file: str = '.devsynth/alignm
         output: Path to output file for metrics report
     """
     try:
-        console.print("[bold]Collecting alignment metrics...[/bold]")
+        bridge.print("[bold]Collecting alignment metrics...[/bold]")
         
         # Ensure metrics directory exists
         os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
@@ -381,5 +384,5 @@ def alignment_metrics_cmd(path: str = '.', metrics_file: str = '.devsynth/alignm
     
     except Exception as e:
         logger.error(f"Error collecting alignment metrics: {e}")
-        console.print(f"[red]Error collecting alignment metrics: {e}[/red]")
+        bridge.print(f"[red]Error collecting alignment metrics: {e}[/red]")
         return False

@@ -11,11 +11,14 @@ from typing import Optional
 import yaml
 from rich.console import Console
 from rich.panel import Panel
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 
 def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = None) -> None:
     """Generate API reference documentation for a project.
@@ -34,7 +37,7 @@ def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = No
     
     try:
         # Show a welcome message for the generate-docs command
-        console.print(Panel(
+        bridge.print(Panel(
             "[bold blue]DevSynth Documentation Generator[/bold blue]\n\n"
             "This command will generate API reference documentation for your project "
             "based on the manifest.yaml file.",
@@ -49,11 +52,11 @@ def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = No
         project_path = Path(path).resolve()
         manifest_path = project_path / "manifest.yaml"
         
-        console.print(f"[bold]Analyzing project at:[/bold] {project_path}")
+        bridge.print(f"[bold]Analyzing project at:[/bold] {project_path}")
         
         # Check if manifest.yaml exists
         if not manifest_path.exists():
-            console.print("[yellow]Warning: manifest.yaml not found. Run 'devsynth init' to create it.[/yellow]")
+            bridge.print("[yellow]Warning: manifest.yaml not found. Run 'devsynth init' to create it.[/yellow]")
             return
         
         # Load the manifest.yaml file
@@ -61,7 +64,7 @@ def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = No
             with open(manifest_path, "r") as f:
                 manifest = yaml.safe_load(f)
         except Exception as e:
-            console.print(f"[red]Error loading manifest: {e}[/red]")
+            bridge.print(f"[red]Error loading manifest: {e}[/red]")
             return
         
         # Determine the output directory
@@ -94,10 +97,10 @@ def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = No
         # Process each source directory
         for src in src_dirs:
             if not src.exists():
-                console.print(f"[yellow]Warning: Source directory {src} does not exist[/yellow]")
+                bridge.print(f"[yellow]Warning: Source directory {src} does not exist[/yellow]")
                 continue
                 
-            console.print(f"[green]Generating API reference for {src}[/green]")
+            bridge.print(f"[green]Generating API reference for {src}[/green]")
             
             # Create a summary file for navigation
             summary_path = Path(output_dir) / "SUMMARY.md"
@@ -136,12 +139,12 @@ def generate_docs_cmd(path: Optional[str] = None, output_dir: Optional[str] = No
                     with open(summary_path, "a") as summary_file:
                         summary_file.write(f"* [{identifier}]({doc_path})\n")
         
-        console.print(f"[green]✓ Documentation generated successfully at: {output_dir}[/green]")
-        console.print("\n[bold blue]Next Steps:[/bold blue]")
-        console.print("1. Review the generated documentation")
-        console.print("2. Build the documentation site with MkDocs")
-        console.print("3. Deploy the documentation site")
+        bridge.print(f"[green]✓ Documentation generated successfully at: {output_dir}[/green]")
+        bridge.print("\n[bold blue]Next Steps:[/bold blue]")
+        bridge.print("1. Review the generated documentation")
+        bridge.print("2. Build the documentation site with MkDocs")
+        bridge.print("3. Deploy the documentation site")
         
     except Exception as e:
         logger.error(f"Error generating documentation: {str(e)}")
-        console.print(f"[red]Error generating documentation: {str(e)}[/red]")
+        bridge.print(f"[red]Error generating documentation: {str(e)}[/red]")

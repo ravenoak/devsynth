@@ -10,9 +10,9 @@ from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
-def mock_console():
-    with patch("devsynth.application.cli.commands.edrr_cycle_cmd.Console") as mock:
-        yield mock.return_value
+def mock_bridge():
+    with patch("devsynth.application.cli.commands.edrr_cycle_cmd.bridge") as mock:
+        yield mock
 
 
 @pytest.fixture
@@ -34,15 +34,15 @@ def mock_components():
         yield coordinator, memory_manager, coord_cls
 
 
-def test_edrr_cycle_cmd_manifest_missing(tmp_path, mock_console):
+def test_edrr_cycle_cmd_manifest_missing(tmp_path, mock_bridge):
     missing = tmp_path / "manifest.yaml"
     edrr_cycle_cmd(str(missing))
-    mock_console.print.assert_called_once_with(
+    mock_bridge.print.assert_called_once_with(
         f"[red]Manifest file not found:[/red] {missing}"
     )
 
 
-def test_edrr_cycle_cmd_success(tmp_path, mock_console, mock_components):
+def test_edrr_cycle_cmd_success(tmp_path, mock_bridge, mock_components):
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text("project: test")
 
@@ -67,5 +67,5 @@ def test_edrr_cycle_cmd_success(tmp_path, mock_console, mock_components):
     )
     assert any(
         "EDRR cycle completed" in call.args[0]
-        for call in mock_console.print.call_args_list
+        for call in mock_bridge.print.call_args_list
     )

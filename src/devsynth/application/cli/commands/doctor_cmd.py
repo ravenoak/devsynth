@@ -2,9 +2,12 @@ from pathlib import Path
 from rich.console import Console
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.config.loader import load_config
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 import importlib.util
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 
@@ -19,7 +22,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
         cfg_path_yaml = Path(".devsynth/devsynth.yml")
         cfg_path_toml = Path("pyproject.toml")
         if not cfg_path_yaml.exists() and not cfg_path_toml.exists():
-            console.print(
+            bridge.print(
                 "[yellow]No project configuration found. Run 'devsynth init' to create it.[/yellow]"
             )
 
@@ -41,7 +44,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
         for env in envs:
             cfg_path = Path(config_dir) / f"{env}.yml"
             if not cfg_path.exists():
-                console.print(f"[yellow]Warning: configuration file not found: {cfg_path}[/yellow]")
+                bridge.print(f"[yellow]Warning: configuration file not found: {cfg_path}[/yellow]")
                 warnings = True
                 continue
 
@@ -51,19 +54,19 @@ def doctor_cmd(config_dir: str = "config") -> None:
             schema_errors = module.validate_config(data, module.CONFIG_SCHEMA)
             env_errors = module.validate_environment_variables(data)
             for err in schema_errors + env_errors:
-                console.print(f"[yellow]{env}: {err}[/yellow]")
+                bridge.print(f"[yellow]{env}: {err}[/yellow]")
                 warnings = True
 
         consistency_errors = module.check_config_consistency(configs)
         for err in consistency_errors:
-            console.print(f"[yellow]{err}[/yellow]")
+            bridge.print(f"[yellow]{err}[/yellow]")
             warnings = True
 
         if warnings:
-            console.print(
+            bridge.print(
                 "[yellow]Configuration issues detected. Run 'devsynth init' to generate defaults.[/yellow]"
             )
         else:
-            console.print("[green]All configuration files are valid.[/green]")
+            bridge.print("[green]All configuration files are valid.[/green]")
     except Exception as err:  # pragma: no cover - defensive
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
