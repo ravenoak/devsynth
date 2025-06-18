@@ -35,7 +35,7 @@ flowchart TD
 
 ## Constraints
 
-- Must run locally via `streamlit run src/devsynth/interface/webui.py`.
+- Must run locally via `devsynth webui`.
 - Shares the same environment and configuration files as the CLI.
 - Requires the user to have Python and dependencies installed.
 

@@ -1273,3 +1273,13 @@ def check_cmd(config_dir: str = "config") -> None:
         `devsynth check`
     """
     doctor_cmd(config_dir)
+
+
+def webui_cmd() -> None:
+    """Launch the Streamlit WebUI."""
+    try:
+        from devsynth.interface.webui import run
+
+        run()
+    except Exception as err:  # pragma: no cover - defensive
+        console.print(f"[red]Error:[/red] {err}")
