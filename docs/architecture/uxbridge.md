@@ -35,11 +35,14 @@ graph LR
 
 ## WebUI Consumption
 
-The WebUI will implement the `UXBridge` interface so it can call the existing
-workflow functions without modification. CLI modules in `src/devsynth/core` will
-therefore serve both command-line users and the WebUI. By adhering to the
-`UXBridge` interface, the WebUI can provide richer interactivity while leveraging
-the same orchestration logic already used by the CLI.
+The WebUI implements the `UXBridge` interface so it can call the existing
+workflow functions without modification. CLI modules in `src/devsynth/core` and
+the WebUI therefore share the same orchestration code. A basic Streamlit
+implementation is available in `src/devsynth/interface/webui.py`.
+It presents a sidebar with collapsible sections for onboarding, requirements,
+analysis, synthesis, and configuration. By adhering to the `UXBridge`
+interface, the WebUI can provide richer interactivity while leveraging the same
+logic already used by the CLI.
 
 ## Related Components
 
