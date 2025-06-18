@@ -1,6 +1,6 @@
 ---
 title: "WebUI Pseudocode"
-date: "2025-07-01"
+date: "2025-06-18"
 version: "0.1.0"
 tags:
   - "specification"

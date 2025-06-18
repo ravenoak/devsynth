@@ -1,6 +1,6 @@
 ---
 title: "WebUI Detailed Specification"
-date: "2025-07-01"
+date: "2025-06-18"
 version: "0.2.0"
 tags:
   - "specification"

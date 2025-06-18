@@ -1,6 +1,6 @@
 ---
 title: "DevSynth WebUI Reference"
-date: "2025-07-01"
+date: "2025-06-18"
 version: "1.0.0"
 tags:
   - "webui"
