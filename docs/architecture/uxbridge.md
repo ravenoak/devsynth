@@ -44,6 +44,12 @@ analysis, synthesis, and configuration. By adhering to the `UXBridge`
 interface, the WebUI can provide richer interactivity while leveraging the same
 logic already used by the CLI.
 
+```mermaid
+graph LR
+    ST[Streamlit Pages] --> Bridge[UXBridge]
+    Bridge --> WF[Workflow Functions]
+```
+
 ## Related Components
 
 - **CLI Implementation:** `src/devsynth/interface/cli.py`

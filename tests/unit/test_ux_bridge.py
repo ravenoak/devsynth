@@ -49,6 +49,10 @@ def test_webui_bridge_methods(monkeypatch):
         analyze_stub,
     )
 
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
     from devsynth.interface.webui import WebUIUXBridge
 
     bridge = WebUIUXBridge()

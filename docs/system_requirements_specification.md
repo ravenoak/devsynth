@@ -182,9 +182,17 @@ Primary users are individual software developers who:
 - [FR-66] The system shall rename the `analyze` command to `inspect`
 - [FR-67] The system shall rename the `exec` command to `run-pipeline`
 - [FR-68] The system shall rename the `replay` command to `retrace`
- - [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
+- [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
 - [FR-70] The system shall expose a bridge interface to enable future WebUI integration
 - [FR-71] The system shall provide a `doctor` command (alias `check`) for environment diagnostics
+
+### 3.10 WebUI Integration
+
+- [FR-72] The system shall present a sidebar WebUI with pages for onboarding, requirements, code analysis, synthesis, and configuration editing.
+- [FR-73] The WebUI shall invoke the existing workflow functions through the `UXBridge` abstraction.
+- [FR-74] The WebUI shall show progress indicators while workflows execute.
+- [FR-75] The WebUI shall offer collapsible sections to simplify complex forms.
+- [FR-76] WebUI actions shall mirror CLI commands to maintain feature parity.
 
 ## 4. Non-Functional Requirements
 

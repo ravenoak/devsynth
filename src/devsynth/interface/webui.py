@@ -68,38 +68,41 @@ class WebUIUXBridge(UXBridge):
 
 def _onboarding(bridge: WebUIUXBridge) -> None:
     st.header("Project Onboarding")
-    with st.form("onboard"):
-        path = st.text_input("Project Path", ".")
-        project_root = st.text_input("Project Root", ".")
-        language = st.text_input("Primary Language", "python")
-        goals = st.text_input("Project Goals", "")
-        submitted = st.form_submit_button("Initialize")
-        if submitted:
-            with st.spinner("Initializing project..."):
-                init_cmd(
-                    path=path,
-                    project_root=project_root,
-                    language=language,
-                    goals=goals or None,
-                    bridge=bridge,
-                )
+    with st.expander("Initialize Project", expanded=True):
+        with st.form("onboard"):
+            path = st.text_input("Project Path", ".")
+            project_root = st.text_input("Project Root", ".")
+            language = st.text_input("Primary Language", "python")
+            goals = st.text_input("Project Goals", "")
+            submitted = st.form_submit_button("Initialize")
+            if submitted:
+                with st.spinner("Initializing project..."):
+                    init_cmd(
+                        path=path,
+                        project_root=project_root,
+                        language=language,
+                        goals=goals or None,
+                        bridge=bridge,
+                    )
 
 
 def _requirements(bridge: WebUIUXBridge) -> None:
     st.header("Requirements Gathering")
-    with st.form("requirements"):
-        req_file = st.text_input("Requirements File", "requirements.md")
-        submitted = st.form_submit_button("Generate Specs")
-        if submitted:
-            with st.spinner("Generating specifications..."):
-                spec_cmd(requirements_file=req_file, bridge=bridge)
+    with st.expander("Specification Generation", expanded=True):
+        with st.form("requirements"):
+            req_file = st.text_input("Requirements File", "requirements.md")
+            submitted = st.form_submit_button("Generate Specs")
+            if submitted:
+                with st.spinner("Generating specifications..."):
+                    spec_cmd(requirements_file=req_file, bridge=bridge)
     st.divider()
-    with st.form("inspect"):
-        input_file = st.text_input("Inspect File", "requirements.md")
-        submitted = st.form_submit_button("Inspect Requirements")
-        if submitted:
-            with st.spinner("Inspecting requirements..."):
-                inspect_cmd(input_file=input_file, interactive=False, bridge=bridge)
+    with st.expander("Inspect Requirements", expanded=True):
+        with st.form("inspect"):
+            input_file = st.text_input("Inspect File", "requirements.md")
+            submitted = st.form_submit_button("Inspect Requirements")
+            if submitted:
+                with st.spinner("Inspecting requirements..."):
+                    inspect_cmd(input_file=input_file, interactive=False, bridge=bridge)
 
     st.divider()
     _requirements_wizard(bridge)
@@ -171,40 +174,44 @@ def _requirements_wizard(bridge: WebUIUXBridge) -> None:
 
 def _analysis() -> None:
     st.header("Code Analysis")
-    with st.form("analysis"):
-        path = st.text_input("Path", ".")
-        submitted = st.form_submit_button("Analyze")
-        if submitted:
-            with st.spinner("Analyzing code..."):
-                analyze_code_cmd(path=path)
+    with st.expander("Analyze Code", expanded=True):
+        with st.form("analysis"):
+            path = st.text_input("Path", ".")
+            submitted = st.form_submit_button("Analyze")
+            if submitted:
+                with st.spinner("Analyzing code..."):
+                    analyze_code_cmd(path=path)
 
 
 def _synthesis(bridge: WebUIUXBridge) -> None:
     st.header("Synthesis Execution")
-    with st.form("tests"):
-        spec_file = st.text_input("Spec File", "specs.md")
-        submitted = st.form_submit_button("Generate Tests")
-        if submitted:
-            with st.spinner("Generating tests..."):
-                test_cmd(spec_file=spec_file, bridge=bridge)
+    with st.expander("Generate Tests", expanded=True):
+        with st.form("tests"):
+            spec_file = st.text_input("Spec File", "specs.md")
+            submitted = st.form_submit_button("Generate Tests")
+            if submitted:
+                with st.spinner("Generating tests..."):
+                    test_cmd(spec_file=spec_file, bridge=bridge)
     st.divider()
-    if st.button("Generate Code"):
-        with st.spinner("Generating code..."):
-            code_cmd(bridge=bridge)
-    if st.button("Run Pipeline"):
-        with st.spinner("Running pipeline..."):
-            run_pipeline_cmd(bridge=bridge)
+    with st.expander("Execute Code Generation", expanded=True):
+        if st.button("Generate Code"):
+            with st.spinner("Generating code..."):
+                code_cmd(bridge=bridge)
+        if st.button("Run Pipeline"):
+            with st.spinner("Running pipeline..."):
+                run_pipeline_cmd(bridge=bridge)
 
 
 def _config(bridge: WebUIUXBridge) -> None:
     st.header("Configuration Editing")
-    with st.form("config"):
-        key = st.text_input("Key")
-        value = st.text_input("Value")
-        submitted = st.form_submit_button("Update")
-        if submitted:
-            with st.spinner("Updating configuration..."):
-                config_cmd(key=key or None, value=value or None, bridge=bridge)
+    with st.expander("Update Settings", expanded=True):
+        with st.form("config"):
+            key = st.text_input("Key")
+            value = st.text_input("Value")
+            submitted = st.form_submit_button("Update")
+            if submitted:
+                with st.spinner("Updating configuration..."):
+                    config_cmd(key=key or None, value=value or None, bridge=bridge)
     if st.button("View All Config"):
         with st.spinner("Loading configuration..."):
             config_cmd(bridge=bridge)
