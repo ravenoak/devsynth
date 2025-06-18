@@ -392,6 +392,23 @@ devsynth webui
 
 The WebUI mirrors CLI commands using the same `UXBridge` workflows.
 
+| CLI Command | WebUI Page/Action |
+|-------------|------------------|
+| `init` | **Onboarding** page – Initialize Project |
+| `spec` | **Requirements** page – Generate Specs |
+| `inspect` | **Requirements** page – Inspect Requirements |
+| `test` | **Synthesis** page – Generate Tests |
+| `code` | **Synthesis** page – Generate Code |
+| `run-pipeline` | **Synthesis** page – Run Pipeline |
+| `config` | **Config** page – Update Settings |
+
+```python
+# Pseudocode: WebUI page invoking a CLI workflow
+def trigger_action(command: str, **kwargs):
+    cli_fn = getattr(cli_commands, f"{command}_cmd")
+    cli_fn(**kwargs, bridge=self)  # 'self' implements UXBridge
+```
+
 ### dbschema
 
 Generate a database schema for a given database type.
