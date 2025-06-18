@@ -29,7 +29,8 @@ invoke workflow functions through this common layer, allowing the same code in
 ```mermaid
 graph LR
     CLI[CLI Modules] --> Bridge[UXBridge]
-    WebUI[Future WebUI] --> Bridge
+    WebUI[WebUI] --> Bridge
+    AgentAPI[Agent API] --> Bridge
     Bridge --> Core[Workflow Functions]
 ```
 
