@@ -37,3 +37,20 @@ sequenceDiagram
 Both the CLI and the future WebUI will use this same sequence by invoking the
 `CoreModules` through the `UXBridge`. This keeps initialization logic in one
 place while supporting multiple user interfaces.
+
+## Requirements Wizard Sequence
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant CLI as CLI
+    participant UX as UXBridge
+    U->>CLI: run `devsynth requirements wizard`
+    CLI->>UX: prompt for details
+    UX->>U: gather title/description/constraints
+    U-->>UX: provide answers
+    UX->>CLI: save structured file
+```
+
+This wizard shares the same prompts across interfaces thanks to the
+`UXBridge` abstraction.
