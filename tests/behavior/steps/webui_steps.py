@@ -25,9 +25,15 @@ class DummyForm:
 @pytest.fixture
 def webui_context(monkeypatch):
     st = ModuleType("streamlit")
-    st.session_state = {}
+    class SS(dict):
+        pass
+
+    st.session_state = SS()
+    st.session_state.wizard_step = 0
+    st.session_state.wizard_data = {}
     st.sidebar = ModuleType("sidebar")
     st.sidebar.radio = MagicMock(return_value="Onboarding")
+    st.sidebar.title = MagicMock()
     st.set_page_config = MagicMock()
     st.header = MagicMock()
     st.expander = lambda *_a, **_k: DummyForm(True)
