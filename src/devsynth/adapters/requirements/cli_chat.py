@@ -8,6 +8,7 @@ from uuid import UUID
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.domain.models.requirement import ChatMessage, ChatSession
 from devsynth.ports.requirement_port import ChatPort, DialecticalReasonerPort
+from devsynth.interface.ux_bridge import UXBridge
 
 logger = DevSynthLogger(__name__)
 
@@ -17,14 +18,18 @@ class CLIChatAdapter(ChatPort):
     CLI implementation of the chat port.
     """
 
-    def __init__(self, dialectical_reasoner: DialecticalReasonerPort):
+    def __init__(
+        self, dialectical_reasoner: DialecticalReasonerPort, *, bridge: UXBridge
+    ):
         """
         Initialize the CLI chat adapter.
 
         Args:
             dialectical_reasoner: The dialectical reasoner service.
+            bridge: User interaction bridge used for prompts and output.
         """
         self.dialectical_reasoner = dialectical_reasoner
+        self.bridge = bridge
 
     def send_message(self, session_id: UUID, message: str, user_id: str) -> ChatMessage:
         """
@@ -119,9 +124,11 @@ class CLIChatAdapter(ChatPort):
         content = message.content
 
         if sender == "system":
-            logger.info("[System] %s", content)
+            text = f"[System] {content}"
         else:
-            logger.info("[%s] %s", sender, content)
+            text = f"[{sender}] {content}"
+        logger.info(text)
+        self.bridge.display_result(text)
 
     def run_interactive_session(self, session_id: UUID, user_id: str) -> None:
         """
@@ -143,10 +150,14 @@ class CLIChatAdapter(ChatPort):
 
         # Interactive loop
         logger.info("Enter your messages below. Type 'exit' to end the session.")
+        self.bridge.display_result(
+            "Enter your messages below. Type 'exit' to end the session."
+        )
         while True:
-            user_input = input(f"[{user_id}] ")
+            user_input = self.bridge.ask_question(f"[{user_id}] ")
             if user_input.lower() in ["exit", "quit", "bye"]:
                 logger.info("Ending chat session. Goodbye!")
+                self.bridge.display_result("Ending chat session. Goodbye!")
                 break
 
             # Send the message and get the response

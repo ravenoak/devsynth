@@ -21,7 +21,9 @@ invoke workflow functions through this common layer, allowing the same code in
 
 ## Responsibilities
 
-- Expose simple `prompt`, `confirm`, and `print` methods
+- Expose the descriptive `ask_question`, `confirm_choice`, and
+  `display_result` methods
+- Provide backward compatible aliases `prompt`, `confirm`, and `print`
 - Hide presentation details from workflow logic
 - Allow mocking during tests
 - Provide a single point where alternative UIs (e.g., a WebUI) can plug in
@@ -32,6 +34,20 @@ graph LR
     WebUI[WebUI] --> Bridge
     AgentAPI[Agent API] --> Bridge
     Bridge --> Core[Workflow Functions]
+```
+
+```pseudocode
+# CLI front-end
+cli_bridge = CLIUXBridge()
+cli_command(args, bridge=cli_bridge)
+
+# WebUI front-end
+web_bridge = WebUI()
+web_bridge.run()
+
+# Agent API
+api = AgentAPI(cli_bridge)
+api.init(path=".")
 ```
 
 ## WebUI Consumption
@@ -54,16 +70,16 @@ graph LR
 ## Unified Interaction Pattern
 
 Both CLI commands and the WebUI rely on the same interaction calls. A single
-`CLIUXBridge` instance is passed to command handlers so that user prompts and
-output can be easily mocked during tests.
+`CLIUXBridge` instance is passed to command handlers so that user interaction
+methods can be easily mocked during tests.
 
 ```pseudocode
 bridge = CLIUXBridge()
 
 function some_command(args, bridge=bridge):
-    answer = bridge.prompt("Enter value")
-    if bridge.confirm("Continue?"):
-        bridge.print(f"Result: {answer}")
+    answer = bridge.ask_question("Enter value")
+    if bridge.confirm_choice("Continue?"):
+        bridge.display_result(f"Result: {answer}")
 ```
 
 ## Related Components

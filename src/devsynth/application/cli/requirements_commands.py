@@ -91,7 +91,10 @@ def initialize_services(llm_service: LLMPort):
     )
 
     # Initialize the chat adapter
-    chat_adapter = CLIChatAdapter(dialectical_reasoner=dialectical_reasoner)
+    chat_adapter = CLIChatAdapter(
+        dialectical_reasoner=dialectical_reasoner,
+        bridge=bridge,
+    )
 
 
 @requirements_app.command("list")
