@@ -75,6 +75,7 @@ Primary users are individual software developers who:
 - [CON-04] The system must adhere to security practices appropriate for a single-developer proof of concept
 - [CON-05] Configuration files may be written in YAML or TOML and must be loaded using a unified parser
 - [CON-06] The CLI and WebUI shall share a common command interface to preserve feature parity
+- [CON-07] The CLI and WebUI must provide a consistent user experience across interfaces
 
 ## 3. Functional Requirements
 
@@ -185,14 +186,17 @@ Primary users are individual software developers who:
 - [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
 - [FR-70] The system shall expose a bridge interface to enable future WebUI integration
 - [FR-71] The system shall provide a `doctor` command (alias `check`) for environment diagnostics
+- [FR-72] The system shall provide a Streamlit-based WebUI for running workflows
+- [FR-73] The system shall offer an interactive requirement-gathering workflow
+- [FR-74] The system shall expose an HTTP API for agent operations
 
 ### 3.10 WebUI Integration
 
-- [FR-72] The system shall present a sidebar WebUI with pages for onboarding, requirements, code analysis, synthesis, and configuration editing.
-- [FR-73] The WebUI shall invoke the existing workflow functions through the `UXBridge` abstraction.
-- [FR-74] The WebUI shall show progress indicators while workflows execute.
-- [FR-75] The WebUI shall offer collapsible sections to simplify complex forms.
-- [FR-76] WebUI actions shall mirror CLI commands to maintain feature parity.
+- [FR-75] The system shall present a sidebar WebUI with pages for onboarding, requirements, code analysis, synthesis, and configuration editing.
+- [FR-76] The WebUI shall invoke the existing workflow functions through the `UXBridge` abstraction.
+- [FR-77] The WebUI shall show progress indicators while workflows execute.
+- [FR-78] The WebUI shall offer collapsible sections to simplify complex forms.
+- [FR-79] WebUI actions shall mirror CLI commands to maintain feature parity.
 
 ## 4. Non-Functional Requirements
 
