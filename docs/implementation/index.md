@@ -10,6 +10,8 @@ This section provides documentation on the implementation details of DevSynth, i
 - **[Init Workflow](../architecture/init_workflow.md)**: Detailed sequence for project initialization.
 - **[UXBridge Interaction Flow](uxbridge_interaction_pseudocode.md)**: How the CLI and WebUI use the shared bridge.
 - **[Configuration Loader Workflow](config_loader_workflow.md)**: Unified YAML/TOML configuration loader pseudocode.
+- **[Interactive Requirements Pseudocode](interactive_requirements_pseudocode.md)**: Outline of prompts for collecting project details.
+- **[Agent API Pseudocode](agent_api_pseudocode.md)**: Simple request/response handling for core agent routes.
 
 ## Related Documentation
 
