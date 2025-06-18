@@ -20,6 +20,7 @@ experience.
 from __future__ import annotations
 
 from typing import Optional, Sequence
+import json
 
 import streamlit as st
 
@@ -34,6 +35,7 @@ from devsynth.application.cli import (
     inspect_cmd,
 )
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
+from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 
 
 class WebUIUXBridge(UXBridge):
@@ -98,6 +100,73 @@ def _requirements(bridge: WebUIUXBridge) -> None:
         if submitted:
             with st.spinner("Inspecting requirements..."):
                 inspect_cmd(input_file=input_file, interactive=False, bridge=bridge)
+
+    st.divider()
+    _requirements_wizard(bridge)
+
+
+def _requirements_wizard(bridge: WebUIUXBridge) -> None:
+    """Interactive requirements wizard using progress steps."""
+
+    if "wizard_step" not in st.session_state:
+        st.session_state.wizard_step = 0
+        st.session_state.wizard_data = {
+            "title": "",
+            "description": "",
+            "type": RequirementType.FUNCTIONAL.value,
+            "priority": RequirementPriority.MEDIUM.value,
+            "constraints": "",
+        }
+
+    steps = ["Title", "Description", "Type", "Priority", "Constraints"]
+    step = st.session_state.wizard_step
+    st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
+    st.progress((step + 1) / len(steps))
+    data = st.session_state.wizard_data
+
+    if step == 0:
+        data["title"] = st.text_input("Requirement Title", data["title"])
+    elif step == 1:
+        data["description"] = st.text_area(
+            "Requirement Description", data["description"]
+        )
+    elif step == 2:
+        options = [t.value for t in RequirementType]
+        index = options.index(data["type"])
+        data["type"] = st.selectbox("Requirement Type", options, index=index)
+    elif step == 3:
+        options = [p.value for p in RequirementPriority]
+        index = options.index(data["priority"])
+        data["priority"] = st.selectbox("Requirement Priority", options, index=index)
+    elif step == 4:
+        data["constraints"] = st.text_area(
+            "Constraints (comma separated)", data["constraints"]
+        )
+
+    col1, col2 = st.columns(2)
+    if col1.button("Back", disabled=step == 0):
+        st.session_state.wizard_step = max(0, step - 1)
+        return
+    if col2.button("Next", disabled=step >= len(steps) - 1):
+        st.session_state.wizard_step = min(len(steps) - 1, step + 1)
+        return
+
+    if step == len(steps) - 1:
+        if st.button("Save Requirements"):
+            result = {
+                "title": data["title"],
+                "description": data["description"],
+                "type": data["type"],
+                "priority": data["priority"],
+                "constraints": [
+                    c.strip() for c in data["constraints"].split(",") if c.strip()
+                ],
+            }
+            with open("requirements_wizard.json", "w", encoding="utf-8") as f:
+                json.dump(result, f, indent=2)
+            bridge.display_result(
+                "[green]Requirements saved to requirements_wizard.json[/green]"
+            )
 
 
 def _analysis() -> None:
