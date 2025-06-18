@@ -1,4 +1,9 @@
-"""User interaction protocol for DevSynth interfaces."""
+"""User interaction protocol for DevSynth interfaces.
+
+The bridge decouples workflow logic from any particular UI framework. All
+front‑ends (CLI, WebUI, Agent API) implement this interface so that workflows
+can reuse the same interaction patterns.
+"""
 
 from __future__ import annotations
 
