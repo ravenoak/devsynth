@@ -53,9 +53,9 @@ def test_webui_bridge_methods(monkeypatch):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.interface.webui import WebUIUXBridge
+    from devsynth.interface.webui import WebUI
 
-    bridge = WebUIUXBridge()
+    bridge = WebUI()
     assert bridge.ask_question("msg") == "text"
     st.text_input.assert_called_once()
     assert bridge.confirm_choice("y?") is True

@@ -88,9 +88,9 @@ def test_onboarding_calls_init(monkeypatch, stub_streamlit):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.interface.webui import WebUIUXBridge, _onboarding
+    from devsynth.interface.webui import WebUI
 
-    _onboarding(WebUIUXBridge())
+    WebUI().onboarding_page()
     init.assert_called_once()
 
 
@@ -101,9 +101,9 @@ def test_requirements_calls_spec(monkeypatch, stub_streamlit):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.interface.webui import WebUIUXBridge, _requirements
+    from devsynth.interface.webui import WebUI
 
-    _requirements(WebUIUXBridge())
+    WebUI().requirements_page()
     assert spec.called
     assert inspect.called
 
@@ -117,9 +117,9 @@ def test_analysis_calls_analyze(monkeypatch, stub_streamlit):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.interface.webui import _analysis
+    from devsynth.interface.webui import WebUI
 
-    _analysis()
+    WebUI().analysis_page()
     analyze.assert_called_once()
 
 
@@ -132,9 +132,9 @@ def test_synthesis_buttons(monkeypatch, stub_streamlit):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.interface.webui import WebUIUXBridge, _synthesis
+    from devsynth.interface.webui import WebUI
 
-    _synthesis(WebUIUXBridge())
+    WebUI().synthesis_page()
     test_cmd.assert_called_once()
     code_cmd.assert_not_called()
     run_cmd.assert_not_called()
@@ -146,7 +146,7 @@ def test_config_update(monkeypatch, stub_streamlit):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.interface.webui import WebUIUXBridge, _config
+    from devsynth.interface.webui import WebUI
 
-    _config(WebUIUXBridge())
+    WebUI().config_page()
     assert cfg.called
