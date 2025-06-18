@@ -77,6 +77,9 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-66a | Loader persists CLI preferences and provides autocompletion | [Configuration Loader Specification](specifications/config_loader_spec.md), [Unified Configuration Loader](specifications/unified_configuration_loader.md) | src/devsynth/config/loader.py, src/devsynth/application/cli/cli_commands.py | tests/behavior/features/config_loader.feature | Implemented |
 | FR-67 | CLI/WebUI bridge preparation | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#41-7-cliwebui-bridge-preparation) | src/devsynth/application/server/bridge.py | tests/integration/test_webui_bridge.py | Planned |
 | FR-68 | Environment configuration validation command | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#14.2-configuration) | src/devsynth/application/cli/cli_commands.py | tests/behavior/features/doctor_command.feature | Planned |
+| FR-72 | Streamlit-based WebUI for running workflows | [WebUI Specification](specifications/webui_spec.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature | Planned |
+| FR-73 | Interactive requirement-gathering workflow | [Interactive Requirements Wizard](specifications/interactive_requirements_wizard.md) | src/devsynth/application/cli/requirements_commands.py, src/devsynth/interface/webui.py | tests/behavior/features/interactive_requirements.feature | Planned |
+| FR-74 | HTTP API for agent operations | [HTTP API Specification](specifications/http_api_spec.md) | src/devsynth/api.py | tests/integration/test_api_server.py | Planned |
 | FR-72 | Sidebar WebUI with pages for onboarding, requirements, analysis, synthesis and config | [WebUI Architecture](architecture/webui_overview.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature, tests/unit/interface/test_webui.py | Implemented |
 
-_Last updated: June 18, 2025_
+_Last updated: June 19, 2025_
