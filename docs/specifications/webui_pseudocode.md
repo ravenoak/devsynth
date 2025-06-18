@@ -16,7 +16,7 @@ The following pseudocode outlines the structure of the Streamlit pages and how d
 
 ```python
 # entry
-bridge = WebUIUXBridge()
+bridge = WebUI()
 page = sidebar.select("Onboarding", "Requirements", "Analysis", "Synthesis", "Config")
 
 if page == "Onboarding":

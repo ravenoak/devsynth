@@ -1,22 +1,22 @@
-Feature: WebUI Interaction
+Feature: Streamlit WebUI Navigation
   As a developer
-  I want to run DevSynth workflows from a browser
-  So that the WebUI mirrors CLI functionality
+  I want to access DevSynth workflows via a WebUI
+  So that I can manage projects graphically
 
-  Scenario: Initialize a project using the WebUI
-    Given the DevSynth WebUI is running
-    When I navigate to the "Onboarding" page
-    And I submit the initialization form
-    Then the init workflow should execute via UXBridge
+  Scenario: Open Requirements page
+    Given the WebUI is initialized
+    When I navigate to "Requirements"
+    Then the "Requirements Gathering" header is shown
 
-  Scenario: Generate specifications through the WebUI
-    Given the DevSynth WebUI is running
-    When I navigate to the "Requirements" page
-    And I submit the specification form
-    Then the spec workflow should execute via UXBridge
+  Scenario: Submit onboarding form
+    Given the WebUI is initialized
+    When I navigate to "Onboarding"
+    And I submit the onboarding form
+    Then the init command should be executed
 
-  Scenario: Update configuration from the WebUI
-    Given the DevSynth WebUI is running
-    When I navigate to the "Config" page
-    And I update a setting
-    Then the config workflow should execute via UXBridge
+  Scenario: Update configuration value
+    Given the WebUI is initialized
+    When I navigate to "Config"
+    And I update a configuration value
+    Then the config command should be executed
+

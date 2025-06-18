@@ -1,20 +1,17 @@
 """Streamlit WebUI implementation for DevSynth.
 
-This module provides a minimal Streamlit based graphical interface that
-leverages the existing CLI workflows through the :class:`UXBridge`
-interface. The WebUI exposes five main sections via a sidebar
-navigation menu:
+This module provides a graphical interface that mirrors the CLI workflows
+through the :class:`~devsynth.interface.ux_bridge.UXBridge` abstraction.
+The :class:`WebUI` exposes five pages available from a sidebar:
 
-- **Project Onboarding**: initialize or onboard an existing project.
-- **Requirements Gathering**: inspect requirements and generate
-  specifications.
-- **Code Analysis**: analyze the current project state.
-- **Synthesis Execution**: generate tests, code, and run the
-  pipeline.
-- **Configuration Editing**: view or update project settings.
+- **Project Onboarding** – initialize or onboard projects.
+- **Requirements Gathering** – generate and inspect specifications.
+- **Code Analysis** – analyze the project code base.
+- **Synthesis Execution** – generate tests, code and run the pipeline.
+- **Configuration Editing** – view or update settings.
 
-Each section uses forms and progress indicators to mirror the CLI
-experience.
+All pages use collapsible sections and progress indicators to reflect the
+UX guidance for clarity and responsiveness.
 """
 
 from __future__ import annotations
@@ -38,9 +35,12 @@ from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 
 
-class WebUIUXBridge(UXBridge):
-    """Streamlit implementation of :class:`UXBridge`."""
+class WebUI(UXBridge):
+    """Streamlit implementation of :class:`UXBridge` with navigation pages."""
 
+    # ------------------------------------------------------------------
+    # UXBridge API
+    # ------------------------------------------------------------------
     def ask_question(
         self,
         message: str,
@@ -65,97 +65,100 @@ class WebUIUXBridge(UXBridge):
         else:
             st.write(message)
 
+    # ------------------------------------------------------------------
+    # Page rendering helpers
+    # ------------------------------------------------------------------
+    def onboarding_page(self) -> None:
+        """Render the onboarding page."""
+        st.header("Project Onboarding")
+        with st.expander("Initialize Project", expanded=True):
+            with st.form("onboard"):
+                path = st.text_input("Project Path", ".")
+                project_root = st.text_input("Project Root", ".")
+                language = st.text_input("Primary Language", "python")
+                goals = st.text_input("Project Goals", "")
+                submitted = st.form_submit_button("Initialize")
+                if submitted:
+                    with st.spinner("Initializing project..."):
+                        init_cmd(
+                            path=path,
+                            project_root=project_root,
+                            language=language,
+                            goals=goals or None,
+                            bridge=self,
+                        )
 
-def _onboarding(bridge: WebUIUXBridge) -> None:
-    st.header("Project Onboarding")
-    with st.expander("Initialize Project", expanded=True):
-        with st.form("onboard"):
-            path = st.text_input("Project Path", ".")
-            project_root = st.text_input("Project Root", ".")
-            language = st.text_input("Primary Language", "python")
-            goals = st.text_input("Project Goals", "")
-            submitted = st.form_submit_button("Initialize")
-            if submitted:
-                with st.spinner("Initializing project..."):
-                    init_cmd(
-                        path=path,
-                        project_root=project_root,
-                        language=language,
-                        goals=goals or None,
-                        bridge=bridge,
-                    )
+    def requirements_page(self) -> None:
+        """Render the requirements gathering page."""
+        st.header("Requirements Gathering")
+        with st.expander("Specification Generation", expanded=True):
+            with st.form("requirements"):
+                req_file = st.text_input("Requirements File", "requirements.md")
+                submitted = st.form_submit_button("Generate Specs")
+                if submitted:
+                    with st.spinner("Generating specifications..."):
+                        spec_cmd(requirements_file=req_file, bridge=self)
+        st.divider()
+        with st.expander("Inspect Requirements", expanded=True):
+            with st.form("inspect"):
+                input_file = st.text_input("Inspect File", "requirements.md")
+                submitted = st.form_submit_button("Inspect Requirements")
+                if submitted:
+                    with st.spinner("Inspecting requirements..."):
+                        inspect_cmd(
+                            input_file=input_file, interactive=False, bridge=self
+                        )
+        st.divider()
+        self._requirements_wizard()
 
+    def _requirements_wizard(self) -> None:
+        """Interactive requirements wizard using progress steps."""
+        if "wizard_step" not in st.session_state:
+            st.session_state.wizard_step = 0
+            st.session_state.wizard_data = {
+                "title": "",
+                "description": "",
+                "type": RequirementType.FUNCTIONAL.value,
+                "priority": RequirementPriority.MEDIUM.value,
+                "constraints": "",
+            }
 
-def _requirements(bridge: WebUIUXBridge) -> None:
-    st.header("Requirements Gathering")
-    with st.expander("Specification Generation", expanded=True):
-        with st.form("requirements"):
-            req_file = st.text_input("Requirements File", "requirements.md")
-            submitted = st.form_submit_button("Generate Specs")
-            if submitted:
-                with st.spinner("Generating specifications..."):
-                    spec_cmd(requirements_file=req_file, bridge=bridge)
-    st.divider()
-    with st.expander("Inspect Requirements", expanded=True):
-        with st.form("inspect"):
-            input_file = st.text_input("Inspect File", "requirements.md")
-            submitted = st.form_submit_button("Inspect Requirements")
-            if submitted:
-                with st.spinner("Inspecting requirements..."):
-                    inspect_cmd(input_file=input_file, interactive=False, bridge=bridge)
+        steps = ["Title", "Description", "Type", "Priority", "Constraints"]
+        step = st.session_state.wizard_step
+        st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
+        st.progress((step + 1) / len(steps))
+        data = st.session_state.wizard_data
 
-    st.divider()
-    _requirements_wizard(bridge)
+        if step == 0:
+            data["title"] = st.text_input("Requirement Title", data["title"])
+        elif step == 1:
+            data["description"] = st.text_area(
+                "Requirement Description", data["description"]
+            )
+        elif step == 2:
+            options = [t.value for t in RequirementType]
+            index = options.index(data["type"])
+            data["type"] = st.selectbox("Requirement Type", options, index=index)
+        elif step == 3:
+            options = [p.value for p in RequirementPriority]
+            index = options.index(data["priority"])
+            data["priority"] = st.selectbox(
+                "Requirement Priority", options, index=index
+            )
+        elif step == 4:
+            data["constraints"] = st.text_area(
+                "Constraints (comma separated)", data["constraints"]
+            )
 
+        col1, col2 = st.columns(2)
+        if col1.button("Back", disabled=step == 0):
+            st.session_state.wizard_step = max(0, step - 1)
+            return
+        if col2.button("Next", disabled=step >= len(steps) - 1):
+            st.session_state.wizard_step = min(len(steps) - 1, step + 1)
+            return
 
-def _requirements_wizard(bridge: WebUIUXBridge) -> None:
-    """Interactive requirements wizard using progress steps."""
-
-    if "wizard_step" not in st.session_state:
-        st.session_state.wizard_step = 0
-        st.session_state.wizard_data = {
-            "title": "",
-            "description": "",
-            "type": RequirementType.FUNCTIONAL.value,
-            "priority": RequirementPriority.MEDIUM.value,
-            "constraints": "",
-        }
-
-    steps = ["Title", "Description", "Type", "Priority", "Constraints"]
-    step = st.session_state.wizard_step
-    st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
-    st.progress((step + 1) / len(steps))
-    data = st.session_state.wizard_data
-
-    if step == 0:
-        data["title"] = st.text_input("Requirement Title", data["title"])
-    elif step == 1:
-        data["description"] = st.text_area(
-            "Requirement Description", data["description"]
-        )
-    elif step == 2:
-        options = [t.value for t in RequirementType]
-        index = options.index(data["type"])
-        data["type"] = st.selectbox("Requirement Type", options, index=index)
-    elif step == 3:
-        options = [p.value for p in RequirementPriority]
-        index = options.index(data["priority"])
-        data["priority"] = st.selectbox("Requirement Priority", options, index=index)
-    elif step == 4:
-        data["constraints"] = st.text_area(
-            "Constraints (comma separated)", data["constraints"]
-        )
-
-    col1, col2 = st.columns(2)
-    if col1.button("Back", disabled=step == 0):
-        st.session_state.wizard_step = max(0, step - 1)
-        return
-    if col2.button("Next", disabled=step >= len(steps) - 1):
-        st.session_state.wizard_step = min(len(steps) - 1, step + 1)
-        return
-
-    if step == len(steps) - 1:
-        if st.button("Save Requirements"):
+        if step == len(steps) - 1 and st.button("Save Requirements"):
             result = {
                 "title": data["title"],
                 "description": data["description"],
@@ -167,89 +170,87 @@ def _requirements_wizard(bridge: WebUIUXBridge) -> None:
             }
             with open("requirements_wizard.json", "w", encoding="utf-8") as f:
                 json.dump(result, f, indent=2)
-            bridge.display_result(
+            self.display_result(
                 "[green]Requirements saved to requirements_wizard.json[/green]"
             )
 
+    def analysis_page(self) -> None:
+        """Render the code analysis page."""
+        st.header("Code Analysis")
+        with st.expander("Analyze Code", expanded=True):
+            with st.form("analysis"):
+                path = st.text_input("Path", ".")
+                submitted = st.form_submit_button("Analyze")
+                if submitted:
+                    with st.spinner("Analyzing code..."):
+                        analyze_code_cmd(path=path)
 
-def _analysis() -> None:
-    st.header("Code Analysis")
-    with st.expander("Analyze Code", expanded=True):
-        with st.form("analysis"):
-            path = st.text_input("Path", ".")
-            submitted = st.form_submit_button("Analyze")
-            if submitted:
-                with st.spinner("Analyzing code..."):
-                    analyze_code_cmd(path=path)
+    def synthesis_page(self) -> None:
+        """Render the synthesis execution page."""
+        st.header("Synthesis Execution")
+        with st.expander("Generate Tests", expanded=True):
+            with st.form("tests"):
+                spec_file = st.text_input("Spec File", "specs.md")
+                submitted = st.form_submit_button("Generate Tests")
+                if submitted:
+                    with st.spinner("Generating tests..."):
+                        test_cmd(spec_file=spec_file, bridge=self)
+        st.divider()
+        with st.expander("Execute Code Generation", expanded=True):
+            if st.button("Generate Code"):
+                with st.spinner("Generating code..."):
+                    code_cmd(bridge=self)
+            if st.button("Run Pipeline"):
+                with st.spinner("Running pipeline..."):
+                    run_pipeline_cmd(bridge=self)
 
+    def config_page(self) -> None:
+        """Render the configuration editing page."""
+        st.header("Configuration Editing")
+        with st.expander("Update Settings", expanded=True):
+            with st.form("config"):
+                key = st.text_input("Key")
+                value = st.text_input("Value")
+                submitted = st.form_submit_button("Update")
+                if submitted:
+                    with st.spinner("Updating configuration..."):
+                        config_cmd(key=key or None, value=value or None, bridge=self)
+        if st.button("View All Config"):
+            with st.spinner("Loading configuration..."):
+                config_cmd(bridge=self)
 
-def _synthesis(bridge: WebUIUXBridge) -> None:
-    st.header("Synthesis Execution")
-    with st.expander("Generate Tests", expanded=True):
-        with st.form("tests"):
-            spec_file = st.text_input("Spec File", "specs.md")
-            submitted = st.form_submit_button("Generate Tests")
-            if submitted:
-                with st.spinner("Generating tests..."):
-                    test_cmd(spec_file=spec_file, bridge=bridge)
-    st.divider()
-    with st.expander("Execute Code Generation", expanded=True):
-        if st.button("Generate Code"):
-            with st.spinner("Generating code..."):
-                code_cmd(bridge=bridge)
-        if st.button("Run Pipeline"):
-            with st.spinner("Running pipeline..."):
-                run_pipeline_cmd(bridge=bridge)
-
-
-def _config(bridge: WebUIUXBridge) -> None:
-    st.header("Configuration Editing")
-    with st.expander("Update Settings", expanded=True):
-        with st.form("config"):
-            key = st.text_input("Key")
-            value = st.text_input("Value")
-            submitted = st.form_submit_button("Update")
-            if submitted:
-                with st.spinner("Updating configuration..."):
-                    config_cmd(key=key or None, value=value or None, bridge=bridge)
-    if st.button("View All Config"):
-        with st.spinner("Loading configuration..."):
-            config_cmd(bridge=bridge)
+    # ------------------------------------------------------------------
+    # Application entry point
+    # ------------------------------------------------------------------
+    def run(self) -> None:
+        """Run the Streamlit application."""
+        st.set_page_config(page_title="DevSynth WebUI", layout="wide")
+        st.sidebar.title("DevSynth")
+        nav = st.sidebar.radio(
+            "Navigation",
+            (
+                "Onboarding",
+                "Requirements",
+                "Analysis",
+                "Synthesis",
+                "Config",
+            ),
+        )
+        if nav == "Onboarding":
+            self.onboarding_page()
+        elif nav == "Requirements":
+            self.requirements_page()
+        elif nav == "Analysis":
+            self.analysis_page()
+        elif nav == "Synthesis":
+            self.synthesis_page()
+        elif nav == "Config":
+            self.config_page()
 
 
 def run_webui() -> None:
-    """Entry point for the Streamlit application."""
-
-    st.set_page_config(page_title="DevSynth WebUI", layout="wide")
-    bridge = WebUIUXBridge()
-
-    st.sidebar.title("DevSynth")
-    nav = st.sidebar.radio(
-        "Navigation",
-        (
-            "Onboarding",
-            "Requirements",
-            "Analysis",
-            "Synthesis",
-            "Config",
-        ),
-    )
-
-    if nav == "Onboarding":
-        _onboarding(bridge)
-    elif nav == "Requirements":
-        _requirements(bridge)
-    elif nav == "Analysis":
-        _analysis()
-    elif nav == "Synthesis":
-        _synthesis(bridge)
-    elif nav == "Config":
-        _config(bridge)
+    """Convenience entry point for ``streamlit run``."""
+    WebUI().run()
 
 
-if __name__ == "__main__":  # pragma: no cover - manual execution
-    run_webui()
-
-WebUI = WebUIUXBridge  # Backwards compatibility
-
-__all__ = ["WebUIUXBridge", "WebUI", "run_webui"]
+__all__ = ["WebUI", "run_webui"]
