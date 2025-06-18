@@ -51,7 +51,7 @@ class TestCLICommands:
 
         # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.prompt",
+            "devsynth.application.cli.cli_commands.bridge.ask_question",
             side_effect=[
                 "./test-project",  # project_root
                 "single_package",  # structure
@@ -60,7 +60,7 @@ class TestCLICommands:
                 "",  # constraints path
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm",
+            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
             return_value=False,
         ):
             init_cmd("./test-project")
@@ -82,7 +82,8 @@ class TestCLICommands:
             "[green]Initialized DevSynth project in ./test-project[/green]"
         )
         assert any(
-            call.args[0] == success_message for call in mock_bridge.print.call_args_list
+            call.args[0] == success_message
+            for call in mock_bridge.display_result.call_args_list
         )
 
     def test_init_cmd_failure(self, mock_workflow_manager, mock_bridge):
@@ -95,7 +96,7 @@ class TestCLICommands:
 
         # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.prompt",
+            "devsynth.application.cli.cli_commands.bridge.ask_question",
             side_effect=[
                 "./test-project",
                 "single_package",
@@ -104,7 +105,7 @@ class TestCLICommands:
                 "",
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm",
+            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
             return_value=False,
         ):
             init_cmd("./test-project")
@@ -121,7 +122,7 @@ class TestCLICommands:
                 "structure": "single_package",
             },
         )
-        mock_bridge.print.assert_called_once_with(
+        mock_bridge.display_result.assert_called_once_with(
             "[red]Error:[/red] Path already exists", highlight=False
         )
 
@@ -132,7 +133,7 @@ class TestCLICommands:
 
         # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.prompt",
+            "devsynth.application.cli.cli_commands.bridge.ask_question",
             side_effect=[
                 "./test-project",
                 "single_package",
@@ -141,7 +142,7 @@ class TestCLICommands:
                 "",
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm",
+            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
             return_value=False,
         ):
             init_cmd("./test-project")
@@ -158,7 +159,7 @@ class TestCLICommands:
                 "structure": "single_package",
             },
         )
-        mock_bridge.print.assert_called_once_with(
+        mock_bridge.display_result.assert_called_once_with(
             "[red]Error:[/red] Test error", highlight=False
         )
 
@@ -182,7 +183,8 @@ class TestCLICommands:
             "[green]Specifications generated from requirements.md.[/green]"
         )
         assert any(
-            call.args[0] == success_message for call in mock_bridge.print.call_args_list
+            call.args[0] == success_message
+            for call in mock_bridge.display_result.call_args_list
         )
 
     def test_test_cmd_success(self, mock_workflow_manager, mock_bridge):
@@ -201,7 +203,8 @@ class TestCLICommands:
         # Check that one of the print calls contains the expected message
         success_message = "[green]Tests generated from specs.md.[/green]"
         assert any(
-            call.args[0] == success_message for call in mock_bridge.print.call_args_list
+            call.args[0] == success_message
+            for call in mock_bridge.display_result.call_args_list
         )
 
     def test_code_cmd_success(self, mock_workflow_manager, mock_bridge):
@@ -220,7 +223,8 @@ class TestCLICommands:
         # Check that one of the print calls contains the expected message
         success_message = "[green]Code generated successfully.[/green]"
         assert any(
-            call.args[0] == success_message for call in mock_bridge.print.call_args_list
+            call.args[0] == success_message
+            for call in mock_bridge.display_result.call_args_list
         )
 
     def test_run_pipeline_cmd_success_with_target(
@@ -240,7 +244,7 @@ class TestCLICommands:
         mock_workflow_manager.assert_called_once_with(
             "run-pipeline", {"target": "unit-tests"}
         )
-        mock_bridge.print.assert_called_once_with(
+        mock_bridge.display_result.assert_called_once_with(
             "[green]Executed target: unit-tests[/green]"
         )
 
@@ -259,7 +263,9 @@ class TestCLICommands:
 
         # Verify
         mock_workflow_manager.assert_called_once_with("run-pipeline", {"target": None})
-        mock_bridge.print.assert_called_once_with("[green]Execution complete.[/green]")
+        mock_bridge.display_result.assert_called_once_with(
+            "[green]Execution complete.[/green]"
+        )
 
     def test_config_cmd_set_value(self, mock_workflow_manager, mock_bridge):
         """Test setting a configuration value."""
@@ -276,7 +282,7 @@ class TestCLICommands:
         mock_workflow_manager.assert_called_once_with(
             "config", {"key": "model", "value": "gpt-4"}
         )
-        mock_bridge.print.assert_called_once_with(
+        mock_bridge.display_result.assert_called_once_with(
             "[green]Configuration updated: model = gpt-4[/green]"
         )
 
@@ -295,7 +301,7 @@ class TestCLICommands:
         mock_workflow_manager.assert_called_once_with(
             "config", {"key": "model", "value": None}
         )
-        mock_bridge.print.assert_called_once_with("[blue]model:[/blue] gpt-4")
+        mock_bridge.display_result.assert_called_once_with("[blue]model:[/blue] gpt-4")
 
     def test_config_cmd_list_all(self, mock_workflow_manager, mock_bridge):
         """Test listing all configuration values."""
@@ -312,7 +318,7 @@ class TestCLICommands:
         mock_workflow_manager.assert_called_once_with(
             "config", {"key": None, "value": None}
         )
-        assert mock_bridge.print.call_count == 4  # Header + 3 config items
+        assert mock_bridge.display_result.call_count == 4  # Header + 3 config items
 
     def test_enable_feature_cmd(self, tmp_path, mock_bridge):
         """enable_feature_cmd should toggle a flag in project.yaml."""
@@ -332,14 +338,14 @@ class TestCLICommands:
         assert data["features"]["code_generation"] is True
         assert any(
             "Feature 'code_generation' enabled." == call.args[0]
-            for call in mock_bridge.print.call_args_list
+            for call in mock_bridge.display_result.call_args_list
         )
 
     def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_bridge):
         """Init command with additional parameters."""
         mock_workflow_manager.return_value = {"success": True}
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.prompt",
+            "devsynth.application.cli.cli_commands.bridge.ask_question",
             side_effect=[
                 ".",
                 "single_package",
@@ -348,7 +354,7 @@ class TestCLICommands:
                 "",
             ],
         ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm",
+            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
             return_value=False,
         ):
             init_cmd(path=".", name="proj", template="web-app")
@@ -369,7 +375,7 @@ class TestCLICommands:
     @patch("devsynth.application.cli.cli_commands.Path.mkdir")
     @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
     @patch("builtins.open", new_callable=mock_open, read_data="projectName: ex")
-    @patch("devsynth.application.cli.cli_commands.bridge.confirm")
+    @patch("devsynth.application.cli.cli_commands.bridge.confirm_choice")
     def test_init_cmd_writes_features(
         self,
         mock_confirm,
@@ -384,7 +390,7 @@ class TestCLICommands:
         mock_confirm.side_effect = [True, False, False, False, False, False]
 
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.prompt",
+            "devsynth.application.cli.cli_commands.bridge.ask_question",
             side_effect=[
                 "./proj",
                 "single_package",
@@ -414,7 +420,10 @@ class TestCLICommands:
     @patch("devsynth.application.cli.cli_commands.Path.mkdir")
     @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("devsynth.application.cli.cli_commands.bridge.confirm", return_value=False)
+    @patch(
+        "devsynth.application.cli.cli_commands.bridge.confirm_choice",
+        return_value=False,
+    )
     def test_init_cmd_writes_config_file(
         self,
         mock_confirm,
@@ -428,7 +437,7 @@ class TestCLICommands:
         mock_workflow_manager.return_value = {"success": True}
 
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.prompt",
+            "devsynth.application.cli.cli_commands.bridge.ask_question",
             side_effect=[
                 "./proj",
                 "single_package",
@@ -480,7 +489,7 @@ class TestCLICommands:
             mock_workflow_manager.assert_not_called()
             assert any(
                 "OPENAI_API_KEY" in call.args[0]
-                for call in mock_bridge.print.call_args_list
+                for call in mock_bridge.display_result.call_args_list
             )
 
     def test_spec_cmd_missing_chromadb_package(
@@ -509,7 +518,7 @@ class TestCLICommands:
             mock_workflow_manager.assert_not_called()
             assert any(
                 "chromadb" in call.args[0].lower()
-                for call in mock_bridge.print.call_args_list
+                for call in mock_bridge.display_result.call_args_list
             )
 
     def test_config_key_autocomplete(self, tmp_path, monkeypatch):

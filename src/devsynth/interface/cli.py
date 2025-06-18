@@ -19,7 +19,7 @@ class CLIUXBridge(UXBridge):
     def __init__(self) -> None:
         self.console = Console()
 
-    def prompt(
+    def ask_question(
         self,
         message: str,
         *,
@@ -34,8 +34,8 @@ class CLIUXBridge(UXBridge):
             show_default=show_default,
         )
 
-    def confirm(self, message: str, *, default: bool = False) -> bool:
+    def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         return Confirm.ask(message, default=default)
 
-    def print(self, message: str, *, highlight: bool = False) -> None:
+    def display_result(self, message: str, *, highlight: bool = False) -> None:
         self.console.print(message, highlight=highlight)
