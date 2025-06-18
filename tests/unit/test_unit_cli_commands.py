@@ -558,3 +558,28 @@ class TestCLICommands:
         with patch("devsynth.application.cli.cli_commands.doctor_cmd") as mock_doctor:
             cli_commands.check_cmd("config")
             mock_doctor.assert_called_once_with("config")
+
+    def test_gather_cmd_creates_file(self, tmp_path):
+        from devsynth.application.cli.cli_commands import gather_cmd
+
+        answers = ["goal", "constraint", "medium"]
+
+        class Bridge(cli_commands.UXBridge):
+            def __init__(self):
+                self.calls = 0
+
+            def ask_question(self, *args, **kwargs):
+                ans = answers[self.calls]
+                self.calls += 1
+                return ans
+
+            def confirm_choice(self, *a, **k):
+                return True
+
+            def display_result(self, *a, **k):
+                pass
+
+        bridge = Bridge()
+        output = tmp_path / "requirements_plan.yaml"
+        gather_cmd(output_file=str(output), bridge=bridge)
+        assert output.exists()

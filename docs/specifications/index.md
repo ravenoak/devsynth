@@ -22,6 +22,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
 - **[Hybrid Memory Architecture](hybrid_memory_architecture.md)**: Specification for DevSynth's hybrid memory architecture.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
+- **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
 
 ## Implementation Plans
 

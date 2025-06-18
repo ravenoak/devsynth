@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import Optional, Sequence
 import json
+from pathlib import Path
+import yaml
 
 import streamlit as st
 
@@ -31,6 +33,7 @@ from devsynth.application.cli import (
     config_cmd,
     inspect_cmd,
 )
+from devsynth.config import get_project_config, save_config
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 
@@ -110,6 +113,8 @@ class WebUI(UXBridge):
                         )
         st.divider()
         self._requirements_wizard()
+        st.divider()
+        self._gather_wizard()
 
     def _requirements_wizard(self) -> None:
         """Interactive requirements wizard using progress steps."""
@@ -172,6 +177,63 @@ class WebUI(UXBridge):
                 json.dump(result, f, indent=2)
             self.display_result(
                 "[green]Requirements saved to requirements_wizard.json[/green]"
+            )
+
+    def _gather_wizard(self) -> None:
+        """Wizard to gather project goals and constraints."""
+        if "gather_step" not in st.session_state:
+            st.session_state.gather_step = 0
+            st.session_state.gather_data = {
+                "goals": "",
+                "constraints": "",
+                "priority": "medium",
+            }
+
+        steps = ["Goals", "Constraints", "Priority"]
+        step = st.session_state.gather_step
+        st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
+        st.progress((step + 1) / len(steps))
+        data = st.session_state.gather_data
+
+        if step == 0:
+            data["goals"] = st.text_area(
+                "Project Goals (comma separated)", data["goals"]
+            )
+        elif step == 1:
+            data["constraints"] = st.text_area(
+                "Project Constraints (comma separated)", data["constraints"]
+            )
+        elif step == 2:
+            options = ["low", "medium", "high"]
+            index = options.index(data["priority"])
+            data["priority"] = st.selectbox("Overall Priority", options, index=index)
+
+        col1, col2 = st.columns(2)
+        if col1.button("Back", key="g_back", disabled=step == 0):
+            st.session_state.gather_step = max(0, step - 1)
+            return
+        if col2.button("Next", key="g_next", disabled=step >= len(steps) - 1):
+            st.session_state.gather_step = min(len(steps) - 1, step + 1)
+            return
+
+        if step == len(steps) - 1 and st.button("Save Plan", key="g_save"):
+            result = {
+                "goals": [g.strip() for g in data["goals"].split(",") if g.strip()],
+                "constraints": [
+                    c.strip() for c in data["constraints"].split(",") if c.strip()
+                ],
+                "priority": data["priority"],
+            }
+            with open("requirements_plan.yaml", "w", encoding="utf-8") as f:
+                yaml.safe_dump(result, f, sort_keys=False)
+            cfg = get_project_config(Path("."))
+            cfg.goals = data["goals"]
+            cfg.constraints = data["constraints"]
+            if hasattr(cfg, "priority"):
+                setattr(cfg, "priority", data["priority"])
+            save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+            self.display_result(
+                "[green]Requirements saved to requirements_plan.yaml[/green]"
             )
 
     def analysis_page(self) -> None:

@@ -197,6 +197,12 @@ Primary users are individual software developers who:
 - [FR-77] The WebUI shall show progress indicators while workflows execute.
 - [FR-78] The WebUI shall offer collapsible sections to simplify complex forms.
 - [FR-79] WebUI actions shall mirror CLI commands to maintain feature parity.
+- [FR-80] The system shall provide a CLI wizard for gathering project goals,
+  constraints and an overall priority ranking.
+- [FR-81] The system shall store the gathered information in a
+  `requirements_plan.yaml` or `.json` file and update the project configuration.
+- [FR-82] The WebUI shall expose equivalent forms for requirements gathering
+  using the `UXBridge` abstraction.
 
 ## 4. Non-Functional Requirements
 
