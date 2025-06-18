@@ -30,3 +30,10 @@ The sidebar offers the following pages:
 Each page shows progress spinners and uses collapsible sections for optional input.
 
 For more details on individual commands see the [CLI Reference](cli_reference.md).
+
+```python
+# Pseudocode
+def webui_button_clicked():
+    # delegate to CLI workflow via UXBridge
+    spec_cmd(requirements_file="req.md", bridge=self)
+```
