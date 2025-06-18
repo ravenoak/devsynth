@@ -13,6 +13,7 @@ from devsynth.application.cli import (
     config_app,
     inspect_cmd,
     webapp_cmd,
+    webui_cmd,
     dbschema_cmd,
     doctor_cmd,
     refactor_cmd,
@@ -62,7 +63,9 @@ def build_app() -> typer.Typer:
         name="test",
         help="Generate tests from specs. Example: devsynth test --spec-file specs.md",
     )(test_cmd)
-    app.command(name="code", help="Generate code from tests. Example: devsynth code")(code_cmd)
+    app.command(name="code", help="Generate code from tests. Example: devsynth code")(
+        code_cmd
+    )
     app.command(
         name="run-pipeline",
         help="Execute the generated code. Example: devsynth run-pipeline --target unit-tests",
@@ -76,6 +79,10 @@ def build_app() -> typer.Typer:
         name="webapp",
         help="Generate a web application. Example: devsynth webapp --framework flask",
     )(webapp_cmd)
+    app.command(
+        name="webui",
+        help="Launch the Streamlit UI. Example: devsynth webui",
+    )(webui_cmd)
     app.command(
         name="dbschema",
         help="Generate a database schema. Example: devsynth dbschema --db-type sqlite",

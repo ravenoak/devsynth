@@ -14,7 +14,7 @@ author: "DevSynth Team"
 The WebUI provides a Streamlit front-end that mirrors the CLI workflow commands. Start it with:
 
 ```bash
-streamlit run src/devsynth/interface/webui.py
+devsynth webui
 ```
 
 ## Navigation

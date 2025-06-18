@@ -248,9 +248,17 @@ class WebUI(UXBridge):
             self.config_page()
 
 
-def run_webui() -> None:
-    """Convenience entry point for ``streamlit run``."""
+def run() -> None:
+    """Convenience entry point for ``streamlit run`` or the CLI."""
     WebUI().run()
 
 
-__all__ = ["WebUI", "run_webui"]
+# Backwards compatibility with older docs
+run_webui = run
+
+
+__all__ = ["WebUI", "run"]
+
+
+if __name__ == "__main__":  # pragma: no cover - manual invocation
+    run()

@@ -2,6 +2,7 @@
 Application-level CLI facades that delegate into orchestration layer.
 Each function contains only I/O & user interaction concerns.
 """
+
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 
@@ -20,11 +21,13 @@ from .cli_commands import (
     config_app,
     inspect_cmd,
     webapp_cmd,
+    webui_cmd,
     dbschema_cmd,
     check_cmd,
     refactor_cmd,
     serve_cmd,
 )
+
 # Doctor command now lives in the commands package
 from .commands.doctor_cmd import doctor_cmd
 
@@ -43,6 +46,7 @@ __all__ = [
     "config_app",
     "inspect_cmd",
     "webapp_cmd",
+    "webui_cmd",
     "dbschema_cmd",
     "doctor_cmd",
     "check_cmd",

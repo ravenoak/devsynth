@@ -387,7 +387,7 @@ devsynth webapp --framework flask --name demo --path ./apps
 Launch the Streamlit based graphical interface.
 
 ```bash
-streamlit run src/devsynth/interface/webui.py
+devsynth webui
 ```
 
 The WebUI mirrors CLI commands using the same `UXBridge` workflows.
