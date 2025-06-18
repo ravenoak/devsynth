@@ -55,3 +55,19 @@ The test runner in `test_requirement_analysis.py` imports the step definitions a
 2. **Error Cases**: Add tests for error cases, such as invalid requirements files or interrupted interactive sessions.
 
 3. **Integration Tests**: Add integration tests that verify the end-to-end flow from requirement analysis to code generation.
+
+## Interactive Flow Behavior Tests
+
+The interactive flow expands requirement analysis beyond the original CLI. New behavior tests ensure the same logic works in both the command line and upcoming WebUI.
+
+### CLI and WebUI Scenarios
+
+- `interactive_flow_cli.feature` covers the prompts, confirmations, and summary generation when users run `devsynth inspect --interactive` from the CLI.
+- `interactive_flow_webui.feature` mirrors these steps using the WebUI through the `UXBridge` abstraction.
+- Both files live in `tests/behavior/features` and rely on `UXBridge` mocks similar to the `DummyBridge` used in `interactive_requirements_steps.py`.
+
+### Agent HTTP API Scenarios
+
+- `agent_http_api.feature` outlines how external clients interact with the agent HTTP API.
+- Scenarios verify endpoints for launching workflows, retrieving status, and capturing results.
+- These tests also utilize `UXBridge` mocks so the API behaves consistently with interactive sessions.
