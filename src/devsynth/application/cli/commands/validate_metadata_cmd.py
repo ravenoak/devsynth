@@ -13,6 +13,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.markdown import Markdown
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 import yaml
 
@@ -20,6 +22,7 @@ from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 
 def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] = None, verbose: bool = False) -> None:
     """Validate metadata in Markdown files.
@@ -36,7 +39,7 @@ def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] =
     
     try:
         # Show a welcome message for the validate-metadata command
-        console.print(Panel(
+        bridge.print(Panel(
             "[bold blue]DevSynth Metadata Validation[/bold blue]\n\n"
             "This command validates the front-matter metadata in Markdown files, "
             "checking for required fields, date formats, version formats, and other constraints.",
@@ -55,14 +58,14 @@ def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] =
         if file:
             file_path = pathlib.Path(file).resolve()
             if not file_path.exists():
-                console.print(f"[red]Error: File not found: {file_path}[/red]")
+                bridge.print(f"[red]Error: File not found: {file_path}[/red]")
                 return
             files_to_validate.append(file_path)
         
         if directory:
             dir_path = pathlib.Path(directory).resolve()
             if not dir_path.exists():
-                console.print(f"[red]Error: Directory not found: {dir_path}[/red]")
+                bridge.print(f"[red]Error: Directory not found: {dir_path}[/red]")
                 return
             
             # Find all Markdown files in the directory and its subdirectories
@@ -72,10 +75,10 @@ def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] =
                         files_to_validate.append(pathlib.Path(root) / filename)
         
         if not files_to_validate:
-            console.print("[yellow]No Markdown files found to validate.[/yellow]")
+            bridge.print("[yellow]No Markdown files found to validate.[/yellow]")
             return
         
-        console.print(f"[bold]Found {len(files_to_validate)} Markdown files to validate.[/bold]")
+        bridge.print(f"[bold]Found {len(files_to_validate)} Markdown files to validate.[/bold]")
         
         # Validate each file
         validation_results = []
@@ -89,7 +92,7 @@ def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] =
         success_count = sum(1 for _, result in validation_results if result["valid"])
         error_count = len(validation_results) - success_count
         
-        console.print(f"\n[bold]Validation Results:[/bold] {success_count} valid, {error_count} with errors")
+        bridge.print(f"\n[bold]Validation Results:[/bold] {success_count} valid, {error_count} with errors")
         
         if error_count > 0:
             # Create a table for files with errors
@@ -105,8 +108,8 @@ def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] =
                         "\n".join(result["errors"])
                     )
             
-            console.print("\n[bold]Files with errors:[/bold]")
-            console.print(error_table)
+            bridge.print("\n[bold]Files with errors:[/bold]")
+            bridge.print(error_table)
         
         if verbose:
             # Create a table for all files
@@ -126,18 +129,18 @@ def validate_metadata_cmd(directory: Optional[str] = None, file: Optional[str] =
                     details
                 )
             
-            console.print("\n[bold]All files:[/bold]")
-            console.print(all_table)
+            bridge.print("\n[bold]All files:[/bold]")
+            bridge.print(all_table)
         
         # Overall validation result
         if error_count == 0:
-            console.print("\n[bold green]✓ All metadata is valid![/bold green]")
+            bridge.print("\n[bold green]✓ All metadata is valid![/bold green]")
         else:
-            console.print("\n[bold red]✗ Some files have metadata errors.[/bold red]")
-            console.print("[yellow]Please fix the errors in the files listed above.[/yellow]")
+            bridge.print("\n[bold red]✗ Some files have metadata errors.[/bold red]")
+            bridge.print("[yellow]Please fix the errors in the files listed above.[/yellow]")
     
     except Exception as err:
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 def validate_file_metadata(file_path: pathlib.Path) -> Dict[str, Any]:
     """

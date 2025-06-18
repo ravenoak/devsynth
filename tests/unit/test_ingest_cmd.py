@@ -19,9 +19,9 @@ from devsynth.exceptions import ManifestError, IngestionError
 
 
 @pytest.fixture
-def mock_console():
-    """Mock the rich console to capture output."""
-    with patch('devsynth.application.cli.ingest_cmd.console') as mock:
+def mock_bridge():
+    """Mock the UX bridge to capture output."""
+    with patch('devsynth.application.cli.ingest_cmd.bridge') as mock:
         yield mock
 
 
@@ -57,7 +57,7 @@ class TestIngestCmd:
     """Tests for the ingest_cmd function."""
 
     def test_ingest_cmd_with_defaults(
-        self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion
+        self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
         """Test ingest_cmd with default arguments."""
         # Call the function
@@ -73,10 +73,10 @@ class TestIngestCmd:
         mock_ingestion.return_value.run_ingestion.assert_called_once()
 
         # Verify console output
-        assert mock_console.print.call_count >= 5  # At least 5 print calls
+        assert mock_bridge.print.call_count >= 5  # At least 5 print calls
 
     def test_ingest_cmd_with_custom_manifest(
-        self, mock_console, mock_validate_manifest, mock_load_manifest
+        self, mock_bridge, mock_validate_manifest, mock_load_manifest
     ):
         """Test ingest_cmd with a custom manifest path."""
         # Call the function with a custom manifest path
@@ -92,7 +92,7 @@ class TestIngestCmd:
         mock_load_manifest.assert_not_called()
 
     def test_ingest_cmd_dry_run(
-        self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion
+        self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
         """Test ingest_cmd with dry_run=True."""
         # Call the function with dry_run=True
@@ -107,7 +107,7 @@ class TestIngestCmd:
         mock_ingestion.return_value.run_ingestion.assert_called_once_with(dry_run=True, verbose=False)
 
     def test_ingest_cmd_validate_only(
-        self, mock_console, mock_validate_manifest, mock_load_manifest
+        self, mock_bridge, mock_validate_manifest, mock_load_manifest
     ):
         """Test ingest_cmd with validate_only=True."""
         # Call the function with validate_only=True
@@ -120,7 +120,7 @@ class TestIngestCmd:
         mock_load_manifest.assert_not_called()
 
     def test_ingest_cmd_verbose(
-        self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion
+        self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
         """Test ingest_cmd with verbose=True."""
         # Call the function with verbose=True
@@ -131,7 +131,7 @@ class TestIngestCmd:
 
         mock_ingestion.return_value.run_ingestion.assert_called_once_with(dry_run=False, verbose=True)
 
-    def test_ingest_cmd_manifest_error(self, mock_console, mock_validate_manifest):
+    def test_ingest_cmd_manifest_error(self, mock_bridge, mock_validate_manifest):
         """Test ingest_cmd with a ManifestError."""
         # Set up the mock to raise a ManifestError
         mock_validate_manifest.side_effect = ManifestError("Test manifest error")
@@ -143,14 +143,14 @@ class TestIngestCmd:
         assert excinfo.value.code == 1
 
         # Verify console output
-        mock_console.print.assert_called_once_with("[red]Manifest Error:[/red] Test manifest error")
+        mock_bridge.print.assert_called_once_with("[red]Manifest Error:[/red] Test manifest error")
 
-    def test_ingest_cmd_ingestion_error(self, mock_console, mock_validate_manifest, mock_load_manifest, mock_ingestion):
+    def test_ingest_cmd_ingestion_error(self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion):
         """Test ingest_cmd with an IngestionError."""
         mock_ingestion.return_value.run_ingestion.side_effect = IngestionError("Test ingestion error")
 
-        # Reset the mock_console to ensure it's clean before the test
-        mock_console.reset_mock()
+        # Reset the mock_bridge to ensure it's clean before the test
+        mock_bridge.reset_mock()
 
         # Call the function and verify it exits with an error
         with pytest.raises(SystemExit) as excinfo:
@@ -159,8 +159,8 @@ class TestIngestCmd:
         assert excinfo.value.code == 1
 
         # Verify console output - allow for multiple calls but ensure the error message is printed
-        assert mock_console.print.call_count >= 1
-        mock_console.print.assert_any_call("[red]Ingestion Error:[/red] Test ingestion error")
+        assert mock_bridge.print.call_count >= 1
+        mock_bridge.print.assert_any_call("[red]Ingestion Error:[/red] Test ingestion error")
 
 
 class TestValidateManifest:
@@ -168,7 +168,7 @@ class TestValidateManifest:
 
     @patch('devsynth.application.cli.ingest_cmd.sys')
     @patch('devsynth.application.cli.ingest_cmd.Path')
-    def test_validate_manifest_success(self, mock_path, mock_sys, mock_console):
+    def test_validate_manifest_success(self, mock_path, mock_sys, mock_bridge):
         """Test validate_manifest with a valid manifest."""
         # Set up mocks
         mock_manifest_path = MagicMock()
@@ -208,7 +208,7 @@ class TestValidateManifest:
             mock_validate_manifest_script.assert_called_once_with(mock_manifest_path, mock_schema_path, mock_parent)
 
             # Verify console output
-            mock_console.print.assert_called_once_with("[green]Manifest validation successful.[/green]")
+            mock_bridge.print.assert_called_once_with("[green]Manifest validation successful.[/green]")
 
     def test_validate_manifest_file_not_found(self):
         """Test validate_manifest with a non-existent manifest file."""
@@ -363,7 +363,7 @@ class TestLoadManifest:
 class TestPhases:
     """Tests for the phase functions."""
 
-    def test_expand_phase(self, mock_console):
+    def test_expand_phase(self, mock_bridge):
         """Test expand_phase function."""
         # Call the function
         result = expand_phase({"projectName": "TestProject"}, verbose=True)
@@ -374,9 +374,9 @@ class TestPhases:
         assert "duration_seconds" in result
 
         # Verify console output
-        assert mock_console.print.call_count >= 4  # At least 4 print calls
+        assert mock_bridge.print.call_count >= 4  # At least 4 print calls
 
-    def test_differentiate_phase(self, mock_console):
+    def test_differentiate_phase(self, mock_bridge):
         """Test differentiate_phase function."""
         # Call the function
         result = differentiate_phase(
@@ -391,9 +391,9 @@ class TestPhases:
         assert "duration_seconds" in result
 
         # Verify console output
-        assert mock_console.print.call_count >= 4  # At least 4 print calls
+        assert mock_bridge.print.call_count >= 4  # At least 4 print calls
 
-    def test_refine_phase(self, mock_console):
+    def test_refine_phase(self, mock_bridge):
         """Test refine_phase function."""
         # Call the function
         result = refine_phase(
@@ -408,9 +408,9 @@ class TestPhases:
         assert "duration_seconds" in result
 
         # Verify console output
-        assert mock_console.print.call_count >= 4  # At least 4 print calls
+        assert mock_bridge.print.call_count >= 4  # At least 4 print calls
 
-    def test_retrospect_phase(self, mock_console):
+    def test_retrospect_phase(self, mock_bridge):
         """Test retrospect_phase function."""
         # Call the function
         result = retrospect_phase(
@@ -425,4 +425,4 @@ class TestPhases:
         assert "duration_seconds" in result
 
         # Verify console output
-        assert mock_console.print.call_count >= 4  # At least 4 print calls
+        assert mock_bridge.print.call_count >= 4  # At least 4 print calls

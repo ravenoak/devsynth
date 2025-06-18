@@ -44,6 +44,7 @@ from devsynth.ports.llm_port import LLMPort
 requirements_app = typer.Typer(help="Requirements management commands")
 
 # Console for rich output
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 # Global services
@@ -99,7 +100,7 @@ def list_requirements():
     requirements = requirement_repository.get_all_requirements()
 
     if not requirements:
-        console.print("[yellow]No requirements found.[/yellow]")
+        bridge.print("[yellow]No requirements found.[/yellow]")
         return
 
     table = Table(title="Requirements")
@@ -114,7 +115,7 @@ def list_requirements():
             str(req.id), req.title, req.status.value, req.priority.value, req.type.value
         )
 
-    console.print(table)
+    bridge.print(table)
 
 
 @requirements_app.command("show")
@@ -128,15 +129,15 @@ def show_requirement(requirement_id: str):
     try:
         req_id = uuid.UUID(requirement_id)
     except ValueError:
-        console.print("[red]Invalid requirement ID.[/red]")
+        bridge.print("[red]Invalid requirement ID.[/red]")
         return
 
     requirement = requirement_repository.get_requirement(req_id)
     if not requirement:
-        console.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
+        bridge.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
         return
 
-    console.print(
+    bridge.print(
         Panel(
             f"[bold cyan]ID:[/bold cyan] {requirement.id}\n"
             f"[bold green]Title:[/bold green] {requirement.title}\n"
@@ -191,7 +192,7 @@ def create_requirement(
         status_enum = RequirementStatus(status)
     except ValueError:
         valid_statuses = ", ".join(s.value for s in RequirementStatus)
-        console.print(f"[red]Invalid status. Valid values are: {valid_statuses}[/red]")
+        bridge.print(f"[red]Invalid status. Valid values are: {valid_statuses}[/red]")
         return
 
     # Validate priority
@@ -199,7 +200,7 @@ def create_requirement(
         priority_enum = RequirementPriority(priority)
     except ValueError:
         valid_priorities = ", ".join(p.value for p in RequirementPriority)
-        console.print(
+        bridge.print(
             f"[red]Invalid priority. Valid values are: {valid_priorities}[/red]"
         )
         return
@@ -209,7 +210,7 @@ def create_requirement(
         type_enum = RequirementType(type_)
     except ValueError:
         valid_types = ", ".join(t.value for t in RequirementType)
-        console.print(f"[red]Invalid type. Valid values are: {valid_types}[/red]")
+        bridge.print(f"[red]Invalid type. Valid values are: {valid_types}[/red]")
         return
 
     # Create the requirement
@@ -225,7 +226,7 @@ def create_requirement(
     # Save the requirement
     saved_requirement = requirement_service.create_requirement(requirement, user_id)
 
-    console.print(f"[green]Requirement created with ID: {saved_requirement.id}[/green]")
+    bridge.print(f"[green]Requirement created with ID: {saved_requirement.id}[/green]")
 
 
 @requirements_app.command("update")
@@ -263,13 +264,13 @@ def update_requirement(
     try:
         req_id = uuid.UUID(requirement_id)
     except ValueError:
-        console.print("[red]Invalid requirement ID.[/red]")
+        bridge.print("[red]Invalid requirement ID.[/red]")
         return
 
     # Check if the requirement exists
     requirement = requirement_repository.get_requirement(req_id)
     if not requirement:
-        console.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
+        bridge.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
         return
 
     # Prepare updates
@@ -287,7 +288,7 @@ def update_requirement(
             updates["status"] = status_enum
         except ValueError:
             valid_statuses = ", ".join(s.value for s in RequirementStatus)
-            console.print(
+            bridge.print(
                 f"[red]Invalid status. Valid values are: {valid_statuses}[/red]"
             )
             return
@@ -298,7 +299,7 @@ def update_requirement(
             updates["priority"] = priority_enum
         except ValueError:
             valid_priorities = ", ".join(p.value for p in RequirementPriority)
-            console.print(
+            bridge.print(
                 f"[red]Invalid priority. Valid values are: {valid_priorities}[/red]"
             )
             return
@@ -309,11 +310,11 @@ def update_requirement(
             updates["type"] = type_enum
         except ValueError:
             valid_types = ", ".join(t.value for t in RequirementType)
-            console.print(f"[red]Invalid type. Valid values are: {valid_types}[/red]")
+            bridge.print(f"[red]Invalid type. Valid values are: {valid_types}[/red]")
             return
 
     if not updates:
-        console.print("[yellow]No updates provided.[/yellow]")
+        bridge.print("[yellow]No updates provided.[/yellow]")
         return
 
     # Update the requirement
@@ -322,9 +323,9 @@ def update_requirement(
     )
 
     if updated_requirement:
-        console.print(f"[green]Requirement with ID {requirement_id} updated.[/green]")
+        bridge.print(f"[green]Requirement with ID {requirement_id} updated.[/green]")
     else:
-        console.print(
+        bridge.print(
             f"[red]Failed to update requirement with ID {requirement_id}.[/red]"
         )
 
@@ -348,22 +349,22 @@ def delete_requirement(
     try:
         req_id = uuid.UUID(requirement_id)
     except ValueError:
-        console.print("[red]Invalid requirement ID.[/red]")
+        bridge.print("[red]Invalid requirement ID.[/red]")
         return
 
     # Check if the requirement exists
     requirement = requirement_repository.get_requirement(req_id)
     if not requirement:
-        console.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
+        bridge.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
         return
 
     # Delete the requirement
     deleted = requirement_service.delete_requirement(req_id, user_id, reason)
 
     if deleted:
-        console.print(f"[green]Requirement with ID {requirement_id} deleted.[/green]")
+        bridge.print(f"[green]Requirement with ID {requirement_id} deleted.[/green]")
     else:
-        console.print(
+        bridge.print(
             f"[red]Failed to delete requirement with ID {requirement_id}.[/red]"
         )
 
@@ -379,20 +380,20 @@ def list_changes(requirement_id: str):
     try:
         req_id = uuid.UUID(requirement_id)
     except ValueError:
-        console.print("[red]Invalid requirement ID.[/red]")
+        bridge.print("[red]Invalid requirement ID.[/red]")
         return
 
     # Check if the requirement exists
     requirement = requirement_repository.get_requirement(req_id)
     if not requirement:
-        console.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
+        bridge.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
         return
 
     # Get changes for the requirement
     changes = change_repository.get_changes_for_requirement(req_id)
 
     if not changes:
-        console.print(
+        bridge.print(
             f"[yellow]No changes found for requirement with ID {requirement_id}.[/yellow]"
         )
         return
@@ -415,7 +416,7 @@ def list_changes(requirement_id: str):
             "Yes" if change.approved else "No",
         )
 
-    console.print(table)
+    bridge.print(table)
 
 
 @requirements_app.command("approve-change")
@@ -433,22 +434,22 @@ def approve_change(
     try:
         chg_id = uuid.UUID(change_id)
     except ValueError:
-        console.print("[red]Invalid change ID.[/red]")
+        bridge.print("[red]Invalid change ID.[/red]")
         return
 
     # Check if the change exists
     change = change_repository.get_change(chg_id)
     if not change:
-        console.print(f"[red]Change with ID {change_id} not found.[/red]")
+        bridge.print(f"[red]Change with ID {change_id} not found.[/red]")
         return
 
     # Approve the change
     approved_change = requirement_service.approve_change(chg_id, user_id)
 
     if approved_change:
-        console.print(f"[green]Change with ID {change_id} approved.[/green]")
+        bridge.print(f"[green]Change with ID {change_id} approved.[/green]")
     else:
-        console.print(f"[red]Failed to approve change with ID {change_id}.[/red]")
+        bridge.print(f"[red]Failed to approve change with ID {change_id}.[/red]")
 
 
 @requirements_app.command("reject-change")
@@ -470,22 +471,22 @@ def reject_change(
     try:
         chg_id = uuid.UUID(change_id)
     except ValueError:
-        console.print("[red]Invalid change ID.[/red]")
+        bridge.print("[red]Invalid change ID.[/red]")
         return
 
     # Check if the change exists
     change = change_repository.get_change(chg_id)
     if not change:
-        console.print(f"[red]Change with ID {change_id} not found.[/red]")
+        bridge.print(f"[red]Change with ID {change_id} not found.[/red]")
         return
 
     # Reject the change
     rejected_change = requirement_service.reject_change(chg_id, user_id, comment)
 
     if rejected_change:
-        console.print(f"[green]Change with ID {change_id} rejected.[/green]")
+        bridge.print(f"[green]Change with ID {change_id} rejected.[/green]")
     else:
-        console.print(f"[red]Failed to reject change with ID {change_id}.[/red]")
+        bridge.print(f"[red]Failed to reject change with ID {change_id}.[/red]")
 
 
 @requirements_app.command("chat")
@@ -506,20 +507,20 @@ def start_chat(
         try:
             change_uuid = uuid.UUID(change_id)
         except ValueError:
-            console.print("[red]Invalid change ID.[/red]")
+            bridge.print("[red]Invalid change ID.[/red]")
             return
 
         # Check if the change exists
         change = change_repository.get_change(change_uuid)
         if not change:
-            console.print(f"[red]Change with ID {change_id} not found.[/red]")
+            bridge.print(f"[red]Change with ID {change_id} not found.[/red]")
             return
 
     # Create a chat session
     session = chat_adapter.create_session(user_id, change_uuid)
 
-    console.print(f"[green]Chat session created with ID: {session.id}[/green]")
-    console.print("[bold]Starting chat with the dialectical reasoning agent...[/bold]")
+    bridge.print(f"[green]Chat session created with ID: {session.id}[/green]")
+    bridge.print("[bold]Starting chat with the dialectical reasoning agent...[/bold]")
 
     # Run the interactive session
     chat_adapter.run_interactive_session(session.id, user_id)
@@ -537,7 +538,7 @@ def list_chat_sessions(user_id: str = typer.Option("admin", help="ID of the user
     sessions = chat_adapter.get_sessions_for_user(user_id)
 
     if not sessions:
-        console.print(f"[yellow]No chat sessions found for user {user_id}.[/yellow]")
+        bridge.print(f"[yellow]No chat sessions found for user {user_id}.[/yellow]")
         return
 
     table = Table(title=f"Chat Sessions for User: {user_id}")
@@ -559,7 +560,7 @@ def list_chat_sessions(user_id: str = typer.Option("admin", help="ID of the user
             str(len(messages)),
         )
 
-    console.print(table)
+    bridge.print(table)
 
 
 @requirements_app.command("continue-chat")
@@ -577,23 +578,23 @@ def continue_chat(
     try:
         sess_id = uuid.UUID(session_id)
     except ValueError:
-        console.print("[red]Invalid session ID.[/red]")
+        bridge.print("[red]Invalid session ID.[/red]")
         return
 
     # Check if the session exists
     session = chat_adapter.get_session(sess_id)
     if not session:
-        console.print(f"[red]Chat session with ID {session_id} not found.[/red]")
+        bridge.print(f"[red]Chat session with ID {session_id} not found.[/red]")
         return
 
     # Check if the session belongs to the user
     if session.user_id != user_id:
-        console.print(
+        bridge.print(
             f"[red]Chat session with ID {session_id} does not belong to user {user_id}.[/red]"
         )
         return
 
-    console.print(f"[bold]Continuing chat session with ID: {session_id}[/bold]")
+    bridge.print(f"[bold]Continuing chat session with ID: {session_id}[/bold]")
 
     # Run the interactive session
     chat_adapter.run_interactive_session(sess_id, user_id)
@@ -616,21 +617,21 @@ def evaluate_change(
     try:
         chg_id = uuid.UUID(change_id)
     except ValueError:
-        console.print("[red]Invalid change ID.[/red]")
+        bridge.print("[red]Invalid change ID.[/red]")
         return
 
     # Check if the change exists
     change = change_repository.get_change(chg_id)
     if not change:
-        console.print(f"[red]Change with ID {change_id} not found.[/red]")
+        bridge.print(f"[red]Change with ID {change_id} not found.[/red]")
         return
 
-    console.print(f"[bold]Evaluating change with ID: {change_id}[/bold]")
+    bridge.print(f"[bold]Evaluating change with ID: {change_id}[/bold]")
 
     # Evaluate the change
     reasoning = dialectical_reasoner.evaluate_change(change)
 
-    console.print(
+    bridge.print(
         Panel(
             f"[bold cyan]Thesis:[/bold cyan]\n{reasoning.thesis}\n\n"
             f"[bold red]Antithesis:[/bold red]\n{reasoning.antithesis}\n\n"
@@ -646,11 +647,11 @@ def evaluate_change(
         content = arg.get("content", "")
 
         color = "cyan" if position.lower() == "thesis" else "red"
-        console.print(
+        bridge.print(
             f"[bold {color}]Argument {i} ({position}):[/bold {color}]\n{content}\n"
         )
 
-    console.print(
+    bridge.print(
         Panel(
             f"[bold yellow]Synthesis:[/bold yellow]\n{reasoning.synthesis}\n\n"
             f"[bold magenta]Conclusion:[/bold magenta]\n{reasoning.conclusion}\n\n"
@@ -678,16 +679,16 @@ def assess_impact(
     try:
         chg_id = uuid.UUID(change_id)
     except ValueError:
-        console.print("[red]Invalid change ID.[/red]")
+        bridge.print("[red]Invalid change ID.[/red]")
         return
 
     # Check if the change exists
     change = change_repository.get_change(chg_id)
     if not change:
-        console.print(f"[red]Change with ID {change_id} not found.[/red]")
+        bridge.print(f"[red]Change with ID {change_id} not found.[/red]")
         return
 
-    console.print(f"[bold]Assessing impact of change with ID: {change_id}[/bold]")
+    bridge.print(f"[bold]Assessing impact of change with ID: {change_id}[/bold]")
 
     # Assess the impact
     impact = dialectical_reasoner.assess_impact(change)
@@ -699,7 +700,7 @@ def assess_impact(
         if req:
             affected_requirements.append(req)
 
-    console.print(
+    bridge.print(
         Panel(
             f"[bold red]Risk Level:[/bold red] {impact.risk_level}\n"
             f"[bold yellow]Estimated Effort:[/bold yellow] {impact.estimated_effort}\n\n"
@@ -713,7 +714,7 @@ def assess_impact(
         )
     )
 
-    console.print(
+    bridge.print(
         Panel(
             f"[bold magenta]Analysis:[/bold magenta]\n{impact.analysis}\n\n"
             f"[bold blue]Recommendations:[/bold blue]\n"

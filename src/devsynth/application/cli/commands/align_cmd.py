@@ -10,11 +10,14 @@ from typing import Dict, List, Optional, Set, Tuple
 from rich.console import Console
 from rich.table import Table
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 # Console for rich output
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 # Regular expressions for finding references
@@ -170,7 +173,7 @@ def check_alignment(path: str = '.', verbose: bool = False) -> List[Dict]:
     existing_files = [f for f in files if os.path.isfile(f)]
     
     if verbose:
-        console.print(f"Found {len(existing_files)} files to check")
+        bridge.print(f"Found {len(existing_files)} files to check")
     
     # Run checks
     issues = []
@@ -184,7 +187,7 @@ def check_alignment(path: str = '.', verbose: bool = False) -> List[Dict]:
 def display_issues(issues: List[Dict]):
     """Display alignment issues in a table."""
     if not issues:
-        console.print("[green]No alignment issues found![/green]")
+        bridge.print("[green]No alignment issues found![/green]")
         return
     
     # Group issues by type
@@ -196,9 +199,9 @@ def display_issues(issues: List[Dict]):
         issues_by_type[issue_type].append(issue)
     
     # Display summary
-    console.print(f"[yellow]Found {len(issues)} alignment issues:[/yellow]")
+    bridge.print(f"[yellow]Found {len(issues)} alignment issues:[/yellow]")
     for issue_type, type_issues in issues_by_type.items():
-        console.print(f"  - {len(type_issues)} {issue_type.replace('_', ' ')} issues")
+        bridge.print(f"  - {len(type_issues)} {issue_type.replace('_', ' ')} issues")
     
     # Display detailed table
     table = Table(title="Alignment Issues")
@@ -213,7 +216,7 @@ def display_issues(issues: List[Dict]):
             issue['message']
         )
     
-    console.print(table)
+    bridge.print(table)
 
 def align_cmd(path: str = '.', verbose: bool = False, output: Optional[str] = None):
     """Check alignment between SDLC artifacts.
@@ -227,7 +230,7 @@ def align_cmd(path: str = '.', verbose: bool = False, output: Optional[str] = No
         output: Path to output file for alignment report
     """
     try:
-        console.print("[bold]Checking alignment between SDLC artifacts...[/bold]")
+        bridge.print("[bold]Checking alignment between SDLC artifacts...[/bold]")
         
         # Check alignment
         issues = check_alignment(path, verbose)
@@ -247,15 +250,15 @@ def align_cmd(path: str = '.', verbose: bool = False, output: Optional[str] = No
                         f.write(f"File: {issue['file']}\n\n")
                         f.write(f"Message: {issue['message']}\n\n")
                 
-                console.print(f"[green]Alignment report saved to {output}[/green]")
+                bridge.print(f"[green]Alignment report saved to {output}[/green]")
             except Exception as e:
                 logger.error(f"Error writing to output file: {e}")
-                console.print(f"[red]Error writing to output file: {e}[/red]")
+                bridge.print(f"[red]Error writing to output file: {e}[/red]")
         
         # Return success or failure
         return len(issues) == 0
     
     except Exception as e:
         logger.error(f"Error checking alignment: {e}")
-        console.print(f"[red]Error checking alignment: {e}[/red]")
+        bridge.print(f"[red]Error checking alignment: {e}[/red]")
         return False

@@ -51,6 +51,21 @@ graph LR
     Bridge --> WF[Workflow Functions]
 ```
 
+## Unified Interaction Pattern
+
+Both CLI commands and the WebUI rely on the same interaction calls. A single
+`CLIUXBridge` instance is passed to command handlers so that user prompts and
+output can be easily mocked during tests.
+
+```pseudocode
+bridge = CLIUXBridge()
+
+function some_command(args, bridge=bridge):
+    answer = bridge.prompt("Enter value")
+    if bridge.confirm("Continue?"):
+        bridge.print(f"Result: {answer}")
+```
+
 ## Related Components
 
 - **CLI Implementation:** `src/devsynth/interface/cli.py`

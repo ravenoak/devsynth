@@ -14,17 +14,20 @@ from typing import Dict, Any, List, Optional
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str = "api", path: str = ".") -> None:
     """Generate an API specification for the specified API type and format."""
     try:
         # Show a welcome message for the apispec command
-        console.print(Panel(
+        bridge.print(Panel(
             f"[bold blue]DevSynth API Specification Generator[/bold blue]\n\n"
             f"This command will generate an API specification for a {api_type} API in {format_type} format.",
             title="API Specification Generator",
@@ -36,8 +39,8 @@ def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str 
         supported_api_types = ["rest", "graphql", "grpc"]
         
         if api_type not in supported_api_types:
-            console.print(f"[yellow]Warning: '{api_type}' is not a recognized API type.[/yellow]")
-            console.print(f"[yellow]Supported API types: {', '.join(supported_api_types)}[/yellow]")
+            bridge.print(f"[yellow]Warning: '{api_type}' is not a recognized API type.[/yellow]")
+            bridge.print(f"[yellow]Supported API types: {', '.join(supported_api_types)}[/yellow]")
             
             # Ask user to select an API type
             api_table = Table(title="Supported API Types")
@@ -48,9 +51,9 @@ def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str 
             api_table.add_row("graphql", "Query language and runtime for APIs")
             api_table.add_row("grpc", "High-performance RPC framework")
             
-            console.print(api_table)
+            bridge.print(api_table)
             
-            api_type = Prompt.ask(
+            api_type = bridge.prompt(
                 "[blue]Select an API type[/blue]",
                 choices=supported_api_types,
                 default="rest"
@@ -65,11 +68,11 @@ def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str 
         }
         
         if format_type not in supported_formats.get(api_type, []):
-            console.print(f"[yellow]Warning: '{format_type}' is not a recognized format for {api_type} API.[/yellow]")
-            console.print(f"[yellow]Supported formats for {api_type}: {', '.join(supported_formats.get(api_type, []))}[/yellow]")
+            bridge.print(f"[yellow]Warning: '{format_type}' is not a recognized format for {api_type} API.[/yellow]")
+            bridge.print(f"[yellow]Supported formats for {api_type}: {', '.join(supported_formats.get(api_type, []))}[/yellow]")
             
             # Ask user to select a format
-            format_type = Prompt.ask(
+            format_type = bridge.prompt(
                 "[blue]Select a format[/blue]",
                 choices=supported_formats.get(api_type, []),
                 default=supported_formats.get(api_type, ["openapi"])[0]
@@ -77,22 +80,22 @@ def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str 
         
         # Get API name if not provided
         if name == "api":
-            name = Prompt.ask("[blue]API name[/blue]", default="api")
+            name = bridge.prompt("[blue]API name[/blue]", default="api")
         
         # Sanitize API name
         name = name.replace(" ", "_").lower()
         
         # Get API path if not provided
         if path == ".":
-            path = Prompt.ask("[blue]API path[/blue]", default=".")
+            path = bridge.prompt("[blue]API path[/blue]", default=".")
         
         # Create full API path
         api_path = os.path.join(path, f"{name}_api_spec")
         
         # Check if directory already exists
         if os.path.exists(api_path):
-            if not Confirm.ask(f"[yellow]Directory {api_path} already exists. Overwrite?[/yellow]"):
-                console.print("[yellow]Operation cancelled.[/yellow]")
+            if not bridge.confirm(f"[yellow]Directory {api_path} already exists. Overwrite?[/yellow]"):
+                bridge.print("[yellow]Operation cancelled.[/yellow]")
                 return
             
             # Remove existing directory
@@ -102,13 +105,13 @@ def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str 
         os.makedirs(api_path, exist_ok=True)
         
         # Get API information
-        console.print("\n[bold]API Information[/bold]")
+        bridge.print("\n[bold]API Information[/bold]")
         
         # Get API version
-        api_version = Prompt.ask("[blue]API version[/blue]", default="1.0.0")
+        api_version = bridge.prompt("[blue]API version[/blue]", default="1.0.0")
         
         # Get API description
-        api_description = Prompt.ask("[blue]API description[/blue]", default=f"API for {name}")
+        api_description = bridge.prompt("[blue]API description[/blue]", default=f"API for {name}")
         
         # Show progress during generation
         with Progress(
@@ -361,31 +364,31 @@ message DeleteUserResponse {{
             # Mark task as complete
             progress.update(task, completed=True)
         
-        console.print(f"[green]✓ API specification generated successfully at: {api_path}[/green]")
+        bridge.print(f"[green]✓ API specification generated successfully at: {api_path}[/green]")
         
         # Show next steps based on the API type and format
-        console.print("\n[bold blue]Next Steps:[/bold blue]")
+        bridge.print("\n[bold blue]Next Steps:[/bold blue]")
         
         if api_type == "rest":
             if format_type == "openapi" or format_type == "swagger":
-                console.print("1. View your OpenAPI specification in Swagger UI")
-                console.print("2. Generate client code from your specification")
+                bridge.print("1. View your OpenAPI specification in Swagger UI")
+                bridge.print("2. Generate client code from your specification")
             elif format_type == "raml":
-                console.print("1. View your RAML specification in API Console")
+                bridge.print("1. View your RAML specification in API Console")
         
         elif api_type == "graphql":
-            console.print("1. Use your GraphQL schema with Apollo Server or other GraphQL servers")
+            bridge.print("1. Use your GraphQL schema with Apollo Server or other GraphQL servers")
         
         elif api_type == "grpc":
-            console.print("1. Generate code from your Protocol Buffers definition")
+            bridge.print("1. Generate code from your Protocol Buffers definition")
         
     except Exception as err:
-        console.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
-        console.print("[red]An unexpected error occurred during API specification generation.[/red]")
+        bridge.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
+        bridge.print("[red]An unexpected error occurred during API specification generation.[/red]")
         
         # Show detailed error information
         import traceback
-        console.print(Panel(
+        bridge.print(Panel(
             traceback.format_exc(),
             title="Detailed Error Information",
             border_style="red"

@@ -14,11 +14,14 @@ from typing import Optional
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.exceptions import DevSynthError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+bridge: UXBridge = CLIUXBridge()
 
 def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Optional[str] = None) -> None:
     """Validate the project configuration file against its schema.
@@ -34,7 +37,7 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
 
     try:
         # Show a welcome message for the validate-manifest command
-        console.print(Panel(
+        bridge.print(Panel(
             "[bold blue]DevSynth Project Configuration Validation[/bold blue]\n\n"
             "This command validates the project configuration file (.devsynth/project.yaml or manifest.yaml) "
             "against its JSON schema, checks that referenced paths exist, validates dates and version formats, "
@@ -69,17 +72,17 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
         manifest_path_obj = Path(manifest_path).resolve()
         schema_path_obj = Path(schema_path).resolve()
 
-        console.print(f"[bold]Validating project configuration:[/bold] {manifest_path_obj}")
-        console.print(f"[bold]Using schema:[/bold] {schema_path_obj}")
+        bridge.print(f"[bold]Validating project configuration:[/bold] {manifest_path_obj}")
+        bridge.print(f"[bold]Using schema:[/bold] {schema_path_obj}")
 
         # Check if files exist
         if not manifest_path_obj.exists():
-            console.print(f"[red]Error: Project configuration file not found at {manifest_path_obj}[/red]")
-            console.print("[yellow]Run 'devsynth init' to create a project configuration file.[/yellow]")
+            bridge.print(f"[red]Error: Project configuration file not found at {manifest_path_obj}[/red]")
+            bridge.print("[yellow]Run 'devsynth init' to create a project configuration file.[/yellow]")
             return
 
         if not schema_path_obj.exists():
-            console.print(f"[red]Error: Schema file not found at {schema_path_obj}[/red]")
+            bridge.print(f"[red]Error: Schema file not found at {schema_path_obj}[/red]")
             return
 
         # Load the manifest and schema
@@ -93,60 +96,60 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
         with console.status("[bold green]Validating against schema...[/bold green]"):
             try:
                 jsonschema.validate(manifest, schema)
-                console.print("[green]✓ Project configuration is valid according to schema[/green]")
+                bridge.print("[green]✓ Project configuration is valid according to schema[/green]")
             except jsonschema.exceptions.ValidationError as e:
-                console.print(f"[red]✗ Schema validation error: {e.message}[/red]")
+                bridge.print(f"[red]✗ Schema validation error: {e.message}[/red]")
                 return
 
         # Validate paths exist
         with console.status("[bold green]Validating paths...[/bold green]"):
             path_errors = validate_paths_exist(manifest, project_root)
             if not path_errors:
-                console.print("[green]✓ All referenced paths exist[/green]")
+                bridge.print("[green]✓ All referenced paths exist[/green]")
             else:
-                console.print("[red]✗ Some referenced paths do not exist:[/red]")
+                bridge.print("[red]✗ Some referenced paths do not exist:[/red]")
                 for error in path_errors:
-                    console.print(f"  - {error}")
+                    bridge.print(f"  - {error}")
 
         # Validate dates
         with console.status("[bold green]Validating dates...[/bold green]"):
             date_errors = validate_dates(manifest)
             if not date_errors:
-                console.print("[green]✓ All dates are valid[/green]")
+                bridge.print("[green]✓ All dates are valid[/green]")
             else:
-                console.print("[red]✗ Some dates are invalid:[/red]")
+                bridge.print("[red]✗ Some dates are invalid:[/red]")
                 for error in date_errors:
-                    console.print(f"  - {error}")
+                    bridge.print(f"  - {error}")
 
         # Validate version formats
         with console.status("[bold green]Validating version formats...[/bold green]"):
             version_errors = validate_version_format(manifest)
             if not version_errors:
-                console.print("[green]✓ All version formats are valid[/green]")
+                bridge.print("[green]✓ All version formats are valid[/green]")
             else:
-                console.print("[red]✗ Some version formats are invalid:[/red]")
+                bridge.print("[red]✗ Some version formats are invalid:[/red]")
                 for error in version_errors:
-                    console.print(f"  - {error}")
+                    bridge.print(f"  - {error}")
 
         # Validate project structure
         with console.status("[bold green]Validating project structure...[/bold green]"):
             structure_errors = validate_project_structure(manifest, project_root)
             if not structure_errors:
-                console.print("[green]✓ Project structure is valid[/green]")
+                bridge.print("[green]✓ Project structure is valid[/green]")
             else:
-                console.print("[red]✗ Project structure validation errors:[/red]")
+                bridge.print("[red]✗ Project structure validation errors:[/red]")
                 for error in structure_errors:
-                    console.print(f"  - {error}")
+                    bridge.print(f"  - {error}")
 
         # Overall validation result
         if not path_errors and not date_errors and not version_errors and not structure_errors:
-            console.print("\n[bold green]✓ Project configuration is valid![/bold green]")
+            bridge.print("\n[bold green]✓ Project configuration is valid![/bold green]")
         else:
-            console.print("\n[bold red]✗ Project configuration has validation errors.[/bold red]")
-            console.print("[yellow]Run 'devsynth analyze-manifest --update' to update the project configuration.[/yellow]")
+            bridge.print("\n[bold red]✗ Project configuration has validation errors.[/bold red]")
+            bridge.print("[yellow]Run 'devsynth analyze-manifest --update' to update the project configuration.[/yellow]")
 
     except Exception as err:
-        console.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
 
 def validate_paths_exist(manifest: dict, project_root: Path) -> list:
     """

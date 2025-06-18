@@ -548,7 +548,7 @@ class TestCLICommands:
         with patch(
             "devsynth.application.cli.commands.doctor_cmd.load_config"
         ) as mock_load, patch(
-            "devsynth.application.cli.commands.doctor_cmd.console.print"
+            "devsynth.application.cli.commands.doctor_cmd.bridge.print"
         ) as mock_print:
             cli_commands.doctor_cmd("config")
             mock_load.assert_called_once()
