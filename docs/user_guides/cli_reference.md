@@ -34,6 +34,7 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [inspect](#inspect)
   - [retrace](#retrace)
   - [webapp](#webapp)
+  - [webui](#webui)
   - [dbschema](#dbschema)
   - [doctor](#doctor-check)
 - [Environment Variables](#environment-variables)
@@ -380,6 +381,16 @@ devsynth webapp [--framework FRAMEWORK] [--name NAME] [--path PATH]
 ```bash
 devsynth webapp --framework flask --name demo --path ./apps
 ```
+
+### webui
+
+Launch the Streamlit based graphical interface.
+
+```bash
+streamlit run src/devsynth/interface/webui.py
+```
+
+The WebUI mirrors CLI commands using the same `UXBridge` workflows.
 
 ### dbschema
 
