@@ -10,6 +10,7 @@ from devsynth.application.cli import (
     run_pipeline_cmd,
     config_cmd,
     enable_feature_cmd,
+    gather_cmd,
     config_app,
     inspect_cmd,
     webapp_cmd,
@@ -75,6 +76,10 @@ def build_app() -> typer.Typer:
         name="inspect",
         help="Inspect requirements. Example: devsynth inspect --input reqs.txt",
     )(inspect_cmd)
+    app.command(
+        name="gather",
+        help="Interactive requirements gathering wizard",
+    )(gather_cmd)
     app.command(
         name="webapp",
         help="Generate a web application. Example: devsynth webapp --framework flask",

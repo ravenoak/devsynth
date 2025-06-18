@@ -1,8 +1,11 @@
 import os
+import json
+from pathlib import Path
 from typing import Optional, Union, List
 
+import yaml
+
 import typer
-from pathlib import Path
 import importlib.util
 from rich.console import Console
 
@@ -328,6 +331,65 @@ def enable_feature_cmd(name: str, *, bridge: UXBridge = bridge) -> None:
         bridge.display_result(f"[green]Feature '{name}' enabled.[/green]")
     except Exception as err:
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+
+
+def gather_cmd(
+    output_file: str = "requirements_plan.yaml", *, bridge: UXBridge = bridge
+) -> None:
+    """Interactively gather project goals, constraints and priority."""
+
+    steps = [
+        ("goals", "Project goals (comma separated)", None, ""),
+        ("constraints", "Project constraints (comma separated)", None, ""),
+        (
+            "priority",
+            "Overall priority",
+            ["low", "medium", "high"],
+            "medium",
+        ),
+    ]
+
+    responses: dict[str, str] = {}
+    index = 0
+    while index < len(steps):
+        key, message, choices, default = steps[index]
+        prefix = f"Step {index + 1}/{len(steps)}: "
+        reply = bridge.ask_question(
+            prefix + message + " (type 'back' to go back)",
+            choices=choices,
+            default=default,
+        )
+        if reply.lower() == "back":
+            if index > 0:
+                index -= 1
+            else:
+                bridge.display_result("[yellow]Already at first step.[/yellow]")
+            continue
+        responses[key] = reply
+        index += 1
+
+    data = {
+        "goals": [g.strip() for g in responses["goals"].split(",") if g.strip()],
+        "constraints": [
+            c.strip() for c in responses["constraints"].split(",") if c.strip()
+        ],
+        "priority": responses["priority"],
+    }
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        if output_file.endswith(".json"):
+            json.dump(data, f, indent=2)
+        else:
+            yaml.safe_dump(data, f, sort_keys=False)
+
+    cfg = get_project_config()
+    cfg.goals = responses["goals"]
+    cfg.constraints = responses["constraints"]
+    if hasattr(cfg, "priority"):
+        setattr(cfg, "priority", responses["priority"])
+    save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+
+    bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")
 
 
 def refactor_cmd(path: Optional[str] = None) -> None:

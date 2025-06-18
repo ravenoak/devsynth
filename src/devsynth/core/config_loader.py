@@ -20,6 +20,7 @@ class CoreConfig:
     language: str = "python"
     goals: Optional[str] = None
     constraints: Optional[str] = None
+    priority: Optional[str] = None
     directories: Dict[str, list[str]] | None = None
     features: Dict[str, bool] | None = None
     resources: Dict[str, Any] | None = None
@@ -31,6 +32,7 @@ class CoreConfig:
             "language": self.language,
             "goals": self.goals,
             "constraints": self.constraints,
+            "priority": self.priority,
             "directories": self.directories
             or {
                 "source": ["src"],

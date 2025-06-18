@@ -20,6 +20,7 @@ class ConfigModel:
     language: str = "python"
     goals: Optional[str] = None
     constraints: Optional[str] = None
+    priority: Optional[str] = None
     directories: Dict[str, list[str]] | None = None
     features: Dict[str, bool] | None = None
     resources: Dict[str, Any] | None = None
@@ -31,7 +32,9 @@ class ConfigModel:
             "language": self.language,
             "goals": self.goals,
             "constraints": self.constraints,
-            "directories": self.directories or {
+            "priority": self.priority,
+            "directories": self.directories
+            or {
                 "source": ["src"],
                 "tests": ["tests"],
                 "docs": ["docs"],
