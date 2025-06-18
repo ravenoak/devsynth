@@ -36,10 +36,10 @@ from devsynth.application.cli import (
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 
 
-class WebUI(UXBridge):
+class WebUIUXBridge(UXBridge):
     """Streamlit implementation of :class:`UXBridge`."""
 
-    def prompt(
+    def ask_question(
         self,
         message: str,
         *,
@@ -54,17 +54,17 @@ class WebUI(UXBridge):
             return st.selectbox(message, list(choices), index=index, key=message)
         return st.text_input(message, value=default or "", key=message)
 
-    def confirm(self, message: str, *, default: bool = False) -> bool:
+    def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         return st.checkbox(message, value=default, key=message)
 
-    def print(self, message: str, *, highlight: bool = False) -> None:
+    def display_result(self, message: str, *, highlight: bool = False) -> None:
         if highlight:
             st.markdown(f"**{message}**")
         else:
             st.write(message)
 
 
-def _onboarding(bridge: WebUI) -> None:
+def _onboarding(bridge: WebUIUXBridge) -> None:
     st.header("Project Onboarding")
     with st.form("onboard"):
         path = st.text_input("Project Path", ".")
@@ -83,7 +83,7 @@ def _onboarding(bridge: WebUI) -> None:
                 )
 
 
-def _requirements(bridge: WebUI) -> None:
+def _requirements(bridge: WebUIUXBridge) -> None:
     st.header("Requirements Gathering")
     with st.form("requirements"):
         req_file = st.text_input("Requirements File", "requirements.md")
@@ -110,7 +110,7 @@ def _analysis() -> None:
                 analyze_code_cmd(path=path)
 
 
-def _synthesis(bridge: WebUI) -> None:
+def _synthesis(bridge: WebUIUXBridge) -> None:
     st.header("Synthesis Execution")
     with st.form("tests"):
         spec_file = st.text_input("Spec File", "specs.md")
@@ -127,7 +127,7 @@ def _synthesis(bridge: WebUI) -> None:
             run_pipeline_cmd(bridge=bridge)
 
 
-def _config(bridge: WebUI) -> None:
+def _config(bridge: WebUIUXBridge) -> None:
     st.header("Configuration Editing")
     with st.form("config"):
         key = st.text_input("Key")
@@ -145,7 +145,7 @@ def run_webui() -> None:
     """Entry point for the Streamlit application."""
 
     st.set_page_config(page_title="DevSynth WebUI", layout="wide")
-    bridge = WebUI()
+    bridge = WebUIUXBridge()
 
     st.sidebar.title("DevSynth")
     nav = st.sidebar.radio(
@@ -174,4 +174,6 @@ def run_webui() -> None:
 if __name__ == "__main__":  # pragma: no cover - manual execution
     run_webui()
 
-__all__ = ["WebUI", "run_webui"]
+WebUI = WebUIUXBridge  # Backwards compatibility
+
+__all__ = ["WebUIUXBridge", "WebUI", "run_webui"]

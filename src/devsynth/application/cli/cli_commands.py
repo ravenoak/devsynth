@@ -62,8 +62,8 @@ def _check_services(bridge: UXBridge = bridge) -> bool:
 
     if messages:
         for msg in messages:
-            bridge.print(f"[red]{msg}[/red]", highlight=False)
-        bridge.print(
+            bridge.display_result(f"[red]{msg}[/red]", highlight=False)
+        bridge.display_result(
             "[yellow]Use 'devsynth config' or edit your project.yaml to update settings.[/yellow]"
         )
         return False
@@ -98,34 +98,34 @@ def init_cmd(
         if (root_path / "pyproject.toml").exists() or (
             devsynth_dir / "devsynth.yml"
         ).exists():
-            bridge.print("[yellow]Existing project detected.[/yellow]")
-            if not bridge.confirm("Continue initializing?", default=True):
+            bridge.display_result("[yellow]Existing project detected.[/yellow]")
+            if not bridge.confirm_choice("Continue initializing?", default=True):
                 return
 
-        project_root = project_root or bridge.prompt(
+        project_root = project_root or bridge.ask_question(
             "Project root",
             default=str(path),
         )
-        structure = bridge.prompt(
+        structure = bridge.ask_question(
             "Source layout",
             choices=["single_package", "monorepo"],
             default="single_package",
         )
-        language = language or bridge.prompt("Primary language", default="python")
-        goals = goals or bridge.prompt(
+        language = language or bridge.ask_question("Primary language", default="python")
+        goals = goals or bridge.ask_question(
             "Project goals (optional)", default="", show_default=False
         )
         constraints = (
             constraints
             if constraints is not None
-            else bridge.prompt(
+            else bridge.ask_question(
                 "Path to constraint file (optional)",
                 default="",
                 show_default=False,
             )
         )
 
-        use_pyproject = bridge.confirm(
+        use_pyproject = bridge.confirm_choice(
             "Write configuration to pyproject.toml?", default=False
         )
 
@@ -144,7 +144,9 @@ def init_cmd(
 
         result = init_project(**args)
         if result.get("success"):
-            bridge.print(f"[green]Initialized DevSynth project in {path}[/green]")
+            bridge.display_result(
+                f"[green]Initialized DevSynth project in {path}[/green]"
+            )
 
             feature_flags = {
                 "code_generation": False,
@@ -155,9 +157,9 @@ def init_cmd(
                 "experimental_features": False,
             }
 
-            bridge.print("\n[bold]Select optional features to enable:[/bold]")
+            bridge.display_result("\n[bold]Select optional features to enable:[/bold]")
             for flag in feature_flags:
-                feature_flags[flag] = bridge.confirm(
+                feature_flags[flag] = bridge.confirm_choice(
                     f"Enable {flag.replace('_', ' ')}?", default=False
                 )
 
@@ -177,9 +179,11 @@ def init_cmd(
 
             save_config(config, use_pyproject, path=path)
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message')}", highlight=False
+            )
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def spec_cmd(
@@ -196,13 +200,15 @@ def spec_cmd(
         args = filter_args({"requirements_file": requirements_file})
         result = generate_specs(**args)
         if result.get("success"):
-            bridge.print(
+            bridge.display_result(
                 f"[green]Specifications generated from {requirements_file}.[/green]"
             )
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message')}", highlight=False
+            )
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
@@ -217,11 +223,13 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
         args = filter_args({"spec_file": spec_file})
         result = generate_tests(**args)
         if result.get("success"):
-            bridge.print(f"[green]Tests generated from {spec_file}.[/green]")
+            bridge.display_result(f"[green]Tests generated from {spec_file}.[/green]")
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message')}", highlight=False
+            )
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def code_cmd(*, bridge: UXBridge = bridge) -> None:
@@ -235,11 +243,13 @@ def code_cmd(*, bridge: UXBridge = bridge) -> None:
             return
         result = generate_code()
         if result.get("success"):
-            bridge.print("[green]Code generated successfully.[/green]")
+            bridge.display_result("[green]Code generated successfully.[/green]")
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message')}", highlight=False
+            )
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def run_pipeline_cmd(
@@ -254,13 +264,15 @@ def run_pipeline_cmd(
         result = run_pipeline(target)
         if result["success"]:
             if target:
-                bridge.print(f"[green]Executed target: {target}[/green]")
+                bridge.display_result(f"[green]Executed target: {target}[/green]")
             else:
-                bridge.print(f"[green]Execution complete.[/green]")
+                bridge.display_result(f"[green]Execution complete.[/green]")
         else:
-            bridge.print(f"[red]Error:[/red] {result['message']}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result['message']}", highlight=False
+            )
     except Exception as err:
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 @config_app.callback(invoke_without_command=True)
@@ -283,17 +295,21 @@ def config_cmd(
         result = update_config(key, value, list_models=list_models)
         if result.get("success"):
             if key and value:
-                bridge.print(f"[green]Configuration updated: {key} = {value}[/green]")
+                bridge.display_result(
+                    f"[green]Configuration updated: {key} = {value}[/green]"
+                )
             elif key:
-                bridge.print(f"[blue]{key}:[/blue] {result.get('value')}")
+                bridge.display_result(f"[blue]{key}:[/blue] {result.get('value')}")
             else:
-                bridge.print(f"[blue]DevSynth Configuration:[/blue]")
+                bridge.display_result(f"[blue]DevSynth Configuration:[/blue]")
                 for k, v in result.get("config", {}).items():
-                    bridge.print(f"  [yellow]{k}:[/yellow] {v}")
+                    bridge.display_result(f"  [yellow]{k}:[/yellow] {v}")
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message')}", highlight=False
+            )
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 @config_app.command("enable-feature")
@@ -309,9 +325,9 @@ def enable_feature_cmd(name: str, *, bridge: UXBridge = bridge) -> None:
         features[name] = True
         cfg.features = features
         save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
-        bridge.print(f"[green]Feature '{name}' enabled.[/green]")
+        bridge.display_result(f"[green]Feature '{name}' enabled.[/green]")
     except Exception as err:
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def refactor_cmd(path: Optional[str] = None) -> None:
@@ -400,11 +416,13 @@ def inspect_cmd(
         args = filter_args({"input": input_file, "interactive": interactive})
         result = inspect_requirements(**args)
         if result.get("success"):
-            bridge.print("[green]Requirements inspection completed.[/green]")
+            bridge.display_result("[green]Requirements inspection completed.[/green]")
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message')}", highlight=False)
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message')}", highlight=False
+            )
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def webapp_cmd(framework: str = "flask", name: str = "webapp", path: str = ".") -> None:

@@ -17,15 +17,15 @@ The following pseudocode illustrates how the CLI or WebUI communicate with core 
 
 ```pseudocode
 class UXBridge:
-    function prompt(message) -> Response
-    function confirm(message) -> bool
-    function print(message)
+    function ask_question(message) -> Response
+    function confirm_choice(message) -> bool
+    function display_result(message)
 
 function run_workflow():
-    task = UXBridge.prompt("What task should DevSynth run?")
-    if UXBridge.confirm("Run " + task + " now?"):
+    task = UXBridge.ask_question("What task should DevSynth run?")
+    if UXBridge.confirm_choice("Run " + task + " now?"):
         result = CoreModules.execute(task)
-        UXBridge.print(result.summary)
+        UXBridge.display_result(result.summary)
 ```
 
 This flow enables a shared implementation for both the command-line interface in `interface/cli` and the future WebUI.
