@@ -89,5 +89,6 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-81 | Wizard stores responses to `requirements_plan.yaml` and updates config | [Interactive Requirements Gathering](specifications/interactive_requirements_gathering.md) | src/devsynth/application/cli/requirements_commands.py | tests/behavior/features/interactive_requirements.feature | Implemented |
 | FR-82 | WebUI provides equivalent forms for requirements gathering | [Interactive Requirements Wizard](specifications/interactive_requirements_wizard.md) | src/devsynth/interface/webui.py | tests/behavior/features/interactive_requirements.feature | Implemented |
 | FR-83 | Step-wise wizard via UXBridge collects goals, constraints and priority | [Requirements Gathering Workflow](specifications/requirements_gathering.md) | src/devsynth/application/requirements/interactions.py, src/devsynth/application/cli/requirements_commands.py, src/devsynth/interface/webui.py | tests/behavior/features/requirements_gathering.feature | Implemented |
+| FR-84 | Agent API endpoints `/init`, `/gather`, `/synthesize`, `/status` using UXBridge | [Agent API Stub](specifications/agent_api_stub.md) | src/devsynth/interface/agentapi.py | tests/integration/test_agentapi_routes.py, tests/behavior/test_agentapi.py | Implemented |
 
-_Last updated: July 20, 2025_
+_Last updated: June 19, 2025
