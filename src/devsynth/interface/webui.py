@@ -23,7 +23,7 @@ import yaml
 
 import streamlit as st
 
-from devsynth.interface.ux_bridge import UXBridge
+from devsynth.interface.ux_bridge import UXBridge, ProgressIndicator
 from devsynth.application.cli import (
     init_cmd,
     spec_cmd,
@@ -67,6 +67,23 @@ class WebUI(UXBridge):
             st.markdown(f"**{message}**")
         else:
             st.write(message)
+
+    class _UIProgress(ProgressIndicator):
+        def __init__(self, total: int) -> None:
+            self._bar = st.progress(0.0)
+            self._total = total
+            self._current = 0
+
+        def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+            self._current += advance
+            self._bar.progress(min(1.0, self._current / self._total))
+
+        def complete(self) -> None:
+            self._bar.progress(1.0)
+
+    def create_progress(self, description: str, *, total: int = 100) -> ProgressIndicator:
+        st.write(description)
+        return self._UIProgress(total)
 
     # ------------------------------------------------------------------
     # Page rendering helpers

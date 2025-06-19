@@ -11,7 +11,6 @@ import datetime
 from typing import Dict, List, Optional, Set, Tuple
 from rich.console import Console
 from rich.table import Table
-from rich.progress import Progress
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
@@ -331,7 +330,13 @@ def generate_metrics_report(metrics: Dict, historical_metrics: List[Dict], outpu
         logger.error(f"Error generating metrics report: {e}")
         bridge.print(f"[red]Error generating metrics report: {e}[/red]")
 
-def alignment_metrics_cmd(path: str = '.', metrics_file: str = '.devsynth/alignment_metrics.json', output: Optional[str] = None):
+def alignment_metrics_cmd(
+    path: str = '.',
+    metrics_file: str = '.devsynth/alignment_metrics.json',
+    output: Optional[str] = None,
+    *,
+    bridge: UXBridge = bridge,
+) -> None:
     """Collect and report on alignment metrics.
 
     Example:
@@ -355,14 +360,11 @@ def alignment_metrics_cmd(path: str = '.', metrics_file: str = '.devsynth/alignm
         existing_files = [f for f in files if os.path.isfile(f)]
         
         # Calculate metrics
-        with Progress() as progress:
-            task1 = progress.add_task("[cyan]Calculating coverage metrics...", total=1)
+        with bridge.create_progress("Calculating metrics...", total=2) as progress:
             coverage_metrics = calculate_alignment_coverage(existing_files)
-            progress.update(task1, advance=1)
-            
-            task2 = progress.add_task("[cyan]Calculating issues metrics...", total=1)
+            progress.update(advance=1, description="Calculating issues metrics...")
             issues_metrics = calculate_alignment_issues(existing_files)
-            progress.update(task2, advance=1)
+            progress.update(advance=1)
         
         # Combine metrics
         metrics = {**coverage_metrics, **issues_metrics}

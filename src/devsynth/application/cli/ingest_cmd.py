@@ -29,7 +29,9 @@ def ingest_cmd(
     manifest_path: Optional[str] = None,
     dry_run: bool = False,
     verbose: bool = False,
-    validate_only: bool = False
+    validate_only: bool = False,
+    *,
+    bridge: UXBridge = bridge,
 ) -> None:
     """Ingest a project into DevSynth.
 
@@ -68,7 +70,7 @@ def ingest_cmd(
             bridge.print("[yellow]Using default minimal configuration.[/yellow]")
 
         # Validate the manifest
-        validate_manifest(manifest_path, verbose)
+        validate_manifest(manifest_path, verbose, bridge=bridge)
 
         if validate_only:
             if is_managed_by_devsynth:
@@ -102,7 +104,12 @@ def ingest_cmd(
         bridge.print(f"[red]Unexpected Error:[/red] {str(e)}")
         sys.exit(1)
 
-def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
+def validate_manifest(
+    manifest_path: Path,
+    verbose: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> None:
     """
     Validate the manifest file.
 
@@ -151,7 +158,11 @@ def validate_manifest(manifest_path: Path, verbose: bool = False) -> None:
     except Exception as e:
         raise ManifestError(f"Failed to validate manifest: {str(e)}")
 
-def load_manifest(manifest_path: Optional[Path] = None) -> Dict[str, Any]:
+def load_manifest(
+    manifest_path: Optional[Path] = None,
+    *,
+    bridge: UXBridge = bridge,
+) -> Dict[str, Any]:
     """
     Load the manifest file.
 
@@ -198,7 +209,12 @@ def load_manifest(manifest_path: Optional[Path] = None) -> Dict[str, Any]:
     except Exception as e:
         raise ManifestError(f"Failed to load manifest: {str(e)}")
 
-def expand_phase(manifest: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
+def expand_phase(
+    manifest: Dict[str, Any],
+    verbose: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> Dict[str, Any]:
     """
     Perform the Expand phase of the ingestion process.
 
@@ -229,7 +245,13 @@ def expand_phase(manifest: Dict[str, Any], verbose: bool = False) -> Dict[str, A
         "duration_seconds": 120
     }
 
-def differentiate_phase(manifest: Dict[str, Any], expand_results: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
+def differentiate_phase(
+    manifest: Dict[str, Any],
+    expand_results: Dict[str, Any],
+    verbose: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> Dict[str, Any]:
     """
     Perform the Differentiate phase of the ingestion process.
 
@@ -261,7 +283,13 @@ def differentiate_phase(manifest: Dict[str, Any], expand_results: Dict[str, Any]
         "duration_seconds": 90
     }
 
-def refine_phase(manifest: Dict[str, Any], differentiate_results: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
+def refine_phase(
+    manifest: Dict[str, Any],
+    differentiate_results: Dict[str, Any],
+    verbose: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> Dict[str, Any]:
     """
     Perform the Refine phase of the ingestion process.
 
@@ -294,7 +322,13 @@ def refine_phase(manifest: Dict[str, Any], differentiate_results: Dict[str, Any]
         "duration_seconds": 180
     }
 
-def retrospect_phase(manifest: Dict[str, Any], refine_results: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
+def retrospect_phase(
+    manifest: Dict[str, Any],
+    refine_results: Dict[str, Any],
+    verbose: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> Dict[str, Any]:
     """
     Perform the Retrospect phase of the ingestion process.
 
