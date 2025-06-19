@@ -407,6 +407,24 @@ Multi-agent collaboration will be deferred to a future version. The MVP will use
 - Track token usage at each step
 - Optimize context size to minimize token usage
 
+### 3.5 Unified UX Layer
+
+DevSynth exposes a common `UXBridge` abstraction so that multiple user
+interfaces can share the same workflows. The CLI, WebUI and Agent API all
+communicate with the orchestration layer through this bridge.
+
+```mermaid
+flowchart TD
+    CLI("CLI") --> Bridge
+    WebUI("WebUI") --> Bridge
+    API("Agent API") --> Bridge
+    Bridge("UXBridge") --> Orchestrator
+    Orchestrator --> AgentSystem("Agent System")
+```
+
+This unified layer ensures feature parity across interfaces and simplifies
+testing.
+
 ## 4. Functional Requirements and Implementation Details
 
 ### 4.1 Project Initialization and Management
@@ -741,6 +759,22 @@ Continuous learning features will be deferred to a future version.
 **Future Implementation Notes:**
 - Document intended learning mechanisms
 - Define interfaces for future implementation
+
+### 4.8 User Interface Extensions
+
+- **FR-72**: Provide a Streamlit-based WebUI for executing DevSynth workflows.
+- **FR-73**: Implement interactive requirement gathering available from both CLI and WebUI.
+- **FR-74**: Offer an HTTP Agent API stub exposing `/init`, `/gather`, `/synthesize` and `/status` endpoints.
+- **FR-75**: Organize WebUI pages in a sidebar for onboarding, requirements, analysis, synthesis and config.
+- **FR-76**: Route WebUI actions through `UXBridge` so workflows are reused across interfaces.
+- **FR-77**: Display progress indicators in the WebUI during long running tasks.
+- **FR-78**: Provide collapsible sections for optional form details.
+- **FR-79**: Mirror CLI commands in WebUI buttons and forms.
+- **FR-80**: CLI wizard collects goals, constraints and priority ranking.
+- **FR-81**: Wizard responses are saved to `requirements_plan.yaml` and merged into configuration.
+- **FR-82**: WebUI offers equivalent forms for requirement collection.
+- **FR-83**: Step-wise wizard logic is shared via `UXBridge` across CLI and WebUI.
+- **FR-84**: The Agent API uses the same bridge to drive workflows programmatically.
 
 ## 5. Non-Functional Requirements
 

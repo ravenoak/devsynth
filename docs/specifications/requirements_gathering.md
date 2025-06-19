@@ -48,6 +48,10 @@ function gather_requirements(output_file="requirements_plan.yaml"):
         index += 1
     write_yaml_or_json(output_file, responses)
     update_project_config(responses)
+
+def gather_requirements_via_bridge(bridge, output="requirements_plan.yaml"):
+    answers = gather_requirements(output)
+    bridge.display_result("Requirements saved", answers)
 ```
 
 The CLI exposes this via `devsynth requirements gather` while the WebUI

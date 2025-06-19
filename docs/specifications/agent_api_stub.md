@@ -143,9 +143,10 @@ function handle_request(path, body):
     if path == "/init":
         init_cmd(**body, bridge=bridge)
     elif path == "/gather":
-        answers = [body.goals, body.constraints, body.priority]
-        gather_cmd(bridge=APIBridge(answers))
+        gather_requirements_via_bridge(bridge, **body)
     elif path == "/synthesize":
         run_pipeline_cmd(target=body.target, bridge=bridge)
+    elif path == "/status":
+        pass  # messages already collected in bridge
     return {"messages": bridge.messages}
 ```

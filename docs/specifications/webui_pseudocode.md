@@ -17,25 +17,42 @@ The following pseudocode outlines the structure of the Streamlit pages and how d
 ```python
 # entry
 bridge = WebUI()
-page = sidebar.select("Onboarding", "Requirements", "Analysis", "Synthesis", "Config")
 
-if page == "Onboarding":
-    onboarding_page(bridge)
-elif page == "Requirements":
-    requirements_page(bridge)
-# ...
+pages = {
+    "Onboarding": onboarding_page,
+    "Requirements": requirements_page,
+    "Analysis": analysis_page,
+    "Synthesis": synthesis_page,
+    "Config": config_page,
+}
+
+choice = sidebar.selectbox("Navigate", list(pages))
+pages[choice](bridge)
 ```
 
 ```python
 # onboarding_page
 def onboarding_page(bridge):
-    with st.expander("Project Onboarding", expanded=True):
-        with st.form("onboard"):
-            path = st.text_input("Project Path", ".")
-            # additional inputs
-            if st.form_submit_button("Initialize"):
-                with st.spinner("Initializing"):
-                    init_cmd(path=path, bridge=bridge)
+    with st.form("onboard"):
+        path = st.text_input("Project Path", ".")
+        if st.form_submit_button("Initialize"):
+            with st.spinner("Initializing"):
+                init_cmd(path=path, bridge=bridge)
+
+def requirements_page(bridge):
+    if st.button("Gather Requirements"):
+        gather_requirements_via_bridge(bridge)
+
+def analysis_page(bridge):
+    if st.button("Run Analysis"):
+        inspect_cmd(bridge=bridge)
+
+def synthesis_page(bridge):
+    if st.button("Run Pipeline"):
+        run_pipeline_cmd(bridge=bridge)
+
+def config_page(bridge):
+    st.write(get_config_summary())
 ```
 
 ```python
