@@ -12,6 +12,8 @@ This section provides documentation on the implementation details of DevSynth, i
 - **[Configuration Loader Workflow](config_loader_workflow.md)**: Unified YAML/TOML configuration loader pseudocode.
 - **[Interactive Requirements Pseudocode](interactive_requirements_pseudocode.md)**: Outline of prompts for collecting project details.
 - **[Agent API Pseudocode](agent_api_pseudocode.md)**: Simple request/response handling for core agent routes.
+- **[WebUI Reference](../user_guides/webui_reference.md)**: Streamlit interface usage guide.
+- **[Agent API Reference](../user_guides/api_reference.md)**: Documentation for programmatic access to DevSynth.
 
 ## Related Documentation
 
