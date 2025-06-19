@@ -23,6 +23,8 @@ Ensure you are using **Python 3.11 or higher**. Poetry is recommended for managi
 
 DevSynth follows a structured workflow that takes you from requirements to working code. This guide covers the fundamental commands you'll use in a typical DevSynth project.
 
+If you prefer a graphical interface, start the WebUI with `devsynth webui`. The WebUI provides pages that correspond to the CLI commands described below.
+
 ## Initialize a Project
 
 Start by creating a new DevSynth project:

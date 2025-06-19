@@ -34,20 +34,23 @@ to reuse the CLI's backend functions.
 
 ## Workflows Missing WebUI Support
 
-Several CLI workflows are not yet represented in the WebUI:
+Several CLI workflows are not yet represented in the WebUI. The table below
+lists the missing commands along with proposed locations in the interface:
 
-- `edrr-cycle`
-- `align` and `alignment-metrics`
-- `analyze-manifest`
-- `generate-docs`
-- `ingest`
-- `apispec`
-- `doctor` / `check`
-- `validate-manifest` and `validate-metadata`
-- `test-metrics`
-- `refactor`
-- database helpers (`webapp`, `serve`, `dbschema`)
+| CLI Command(s)                           | Proposed WebUI Location / Action                     |
+|-----------------------------------------|------------------------------------------------------|
+| `edrr-cycle`                            | New **EDRR Cycle** page under **Analysis**           |
+| `align`, `alignment-metrics`            | **Reports** page for SDLC alignment metrics          |
+| `analyze-manifest`, `analyze-config`    | **Config** page – Manifest analysis section          |
+| `generate-docs`                         | **Synthesis** page – Add “Generate Docs” button      |
+| `ingest`                                | **Synthesis** page – Project ingestion form          |
+| `apispec`                               | **Synthesis** page – API specification form          |
+| `doctor`, `check`                       | **Config** page – Validation utility                 |
+| `validate-manifest`, `validate-metadata`| **Config** page – Validation utility                 |
+| `test-metrics`                          | **Analysis** page – Test metrics report              |
+| `refactor`                              | **Analysis** page – Workflow suggestions             |
+| `webapp`, `serve`, `dbschema`           | New **Database** helper page                         |
 
-Adding pages or sidebar entries for these commands would provide complete parity.
-Where appropriate, terminology should mirror the CLI (e.g. “EDRR Cycle”) to avoid
+Adding these pages or sidebar entries would provide complete parity. Where
+appropriate, terminology should mirror the CLI (e.g., “EDRR Cycle”) to avoid
 confusion.

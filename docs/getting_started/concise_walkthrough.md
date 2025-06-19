@@ -20,6 +20,8 @@ For additional details, see the [Quick Start Guide](quick_start_guide.md).
 
 DevSynth requires **Python 3.11 or higher**. Poetry is recommended for managing dependencies.
 
+If you prefer a GUI, you can run `devsynth webui` and follow the same steps using the WebUI pages.
+
 ## 1. Initialize a Project
 
 Create a new project directory named `demo`:

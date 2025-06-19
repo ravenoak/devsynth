@@ -64,6 +64,16 @@ docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.mon
 
 This launches the DevSynth API, ChromaDB, and the optional Prometheus and Grafana stack.
 
+### Launch the WebUI
+
+After installation you can optionally use the Streamlit-based WebUI instead of the CLI. Start it with:
+
+```bash
+devsynth webui
+```
+
+The interface mirrors the CLI workflows and provides pages for onboarding, requirements, analysis, synthesis, and configuration.
+
 ## Creating Your First DevSynth Project
 
 ### Step 1: Initialize a New Project
