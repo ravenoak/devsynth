@@ -14,6 +14,15 @@ author: "DevSynth Team"
 
 This document details the features, constraints and interaction flow for the Streamlit based WebUI. The interface builds upon the `UXBridge` abstraction to reuse the same workflow functions as the CLI.
 
+## Design Choices
+
+- **Streamlit Framework** – Chosen for its rapid prototyping capability and
+  simple state management.
+- **Bridge-Centric** – All workflow calls pass through `UXBridge` so new
+  interfaces (e.g., the Agent API) behave identically.
+- **Sidebar Navigation** – Pages are organized in a sidebar to mirror the CLI
+  command structure.
+
 ## Features
 
 - Sidebar navigation with pages:

@@ -32,8 +32,9 @@ DevSynth is a modular, agentic software engineering platform designed for extens
 
 ```mermaid
 graph TD
-    CLI[interface/cli] --> UXBridge[UXBridge]
-    Web[interface/webui (future)] --> UXBridge
+    CLI[CLI] --> UXBridge[UXBridge]
+    WebUI[Streamlit WebUI] --> UXBridge
+    API[Agent API] --> UXBridge
     UXBridge --> B[Core Modules]
     UXBridge --> IW[Init Wizard]
     B --> C[Agent System]
@@ -51,16 +52,18 @@ graph TD
 
 ### Shared UX Bridge
 
-The CLI and upcoming WebUI interact with the application through a common
-`UXBridge`. This abstraction exposes simple `prompt`, `confirm` and `print`
-methods used by the workflow layer. CLI modules in `src/devsynth/application/cli` call
-these methods so that the same logic can be consumed by a WebUI without
-modification.
+The CLI, Streamlit WebUI and Agent API all interact with the core
+application through a common `UXBridge`. The bridge exposes
+`ask_question`, `confirm_choice` and `display_result` methods so that
+workflows remain UI agnostic. CLI modules in `src/devsynth/application/cli`
+call these methods, enabling both graphical and programmatic interfaces to
+reuse the same orchestration logic without modification.
 
 ```mermaid
 graph LR
-    CLI[interface/cli] --> Bridge[UXBridge]
-    WebUI[interface/webui (future)] --> Bridge
+    CLI[CLI] --> Bridge[UXBridge]
+    WebUI[Streamlit WebUI] --> Bridge
+    API[Agent API] --> Bridge
     Bridge --> Core[Core Workflows]
 ```
 

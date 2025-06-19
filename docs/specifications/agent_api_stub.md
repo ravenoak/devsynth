@@ -15,6 +15,24 @@ This document outlines the minimal HTTP interface for driving DevSynth
 workflows programmatically. The API mirrors the CLI and WebUI behaviour
 through the `UXBridge` abstraction.
 
+## Design Choices
+
+- **REST Style** – A small set of POST endpoints invoke the same workflows as
+  the CLI to keep the surface area minimal.
+- **Message Queue** – Responses return a list of messages that match those
+  printed by the CLI or WebUI allowing clients to display progress.
+
+## Constraints
+
+- The API runs locally and exposes no authentication in this stub version.
+- Only JSON payloads are accepted and all errors return HTTP 400 with details.
+
+## Expected Behaviour
+
+- Each endpoint triggers the corresponding workflow via the UXBridge layer.
+- Subsequent `GET /status` calls return any accumulated messages until cleared
+  by the next workflow invocation.
+
 ## Endpoints
 
 ### `POST /init`
