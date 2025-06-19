@@ -1,64 +1,139 @@
-"""Programmatic API mirroring the CLI workflows."""
+"""FastAPI wrapper exposing core workflows.
+
+This module provides a minimal HTTP interface that mirrors the CLI and
+WebUI workflows via the :class:`UXBridge` abstraction. Each route
+forwards request data to the existing workflow functions and captures
+any output generated through the bridge. Responses contain those
+messages so API clients receive the same feedback normally shown in
+the terminal or WebUI.
+"""
+
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Sequence, List
 
+from fastapi import FastAPI, Depends
+from pydantic import BaseModel
+
+from devsynth.api import verify_token
+from devsynth.logging_setup import DevSynthLogger
 from devsynth.interface.ux_bridge import UXBridge
 
+logger = DevSynthLogger(__name__)
+app = FastAPI(title="DevSynth Agent API")
 
-class AgentAPI:
-    """Expose workflow functions for other integrations."""
 
-    def __init__(self, bridge: UXBridge) -> None:
-        self.bridge = bridge
+class APIBridge(UXBridge):
+    """Bridge that feeds canned responses and collects output messages."""
 
-    def init(
+    def __init__(self, answers: Optional[Sequence[str]] = None) -> None:
+        """Create bridge with optional scripted answers."""
+        self._answers = list(answers or [])
+        self.messages: List[str] = []
+
+    def ask_question(
         self,
-        path: str = ".",
+        message: str,
         *,
-        project_root: Optional[str] = None,
-        language: Optional[str] = None,
-        goals: Optional[str] = None,
-    ) -> None:
-        from devsynth.application.cli import init_cmd
+        choices: Optional[Sequence[str]] = None,
+        default: Optional[str] = None,
+        show_default: bool = True,
+    ) -> str:
+        """Return a scripted answer or the provided default."""
+        return str(self._answers.pop(0)) if self._answers else str(default or "")
 
-        init_cmd(
-            path=path,
-            project_root=project_root,
-            language=language,
-            goals=goals,
-            bridge=self.bridge,
-        )
+    def confirm_choice(self, message: str, *, default: bool = False) -> bool:
+        """Return a scripted boolean answer or the default."""
+        if self._answers:
+            return bool(self._answers.pop(0))
+        return default
 
-    def spec(self, requirements_file: str = "requirements.md") -> None:
-        from devsynth.application.cli import spec_cmd
-
-        spec_cmd(requirements_file=requirements_file, bridge=self.bridge)
-
-    def inspect(self, input_file: str = "requirements.md") -> None:
-        from devsynth.application.cli import inspect_cmd
-
-        inspect_cmd(input_file=input_file, interactive=False, bridge=self.bridge)
-
-    def test(self, spec_file: str = "specs.md") -> None:
-        from devsynth.application.cli import test_cmd
-
-        test_cmd(spec_file=spec_file, bridge=self.bridge)
-
-    def code(self) -> None:
-        from devsynth.application.cli import code_cmd
-
-        code_cmd(bridge=self.bridge)
-
-    def run_pipeline(self, target: Optional[str] = None) -> None:
-        from devsynth.application.cli import run_pipeline_cmd
-
-        run_pipeline_cmd(target=target, bridge=self.bridge)
-
-    def config(self, key: Optional[str] = None, value: Optional[str] = None) -> None:
-        from devsynth.application.cli import config_cmd
-
-        config_cmd(key=key, value=value, bridge=self.bridge)
+    def display_result(self, message: str, *, highlight: bool = False) -> None:
+        """Capture workflow output for the API response."""
+        self.messages.append(message)
 
 
-__all__ = ["AgentAPI"]
+LATEST_MESSAGES: List[str] = []
+
+
+class InitRequest(BaseModel):
+    path: str = "."
+    project_root: Optional[str] = None
+    language: Optional[str] = None
+    goals: Optional[str] = None
+
+
+class GatherRequest(BaseModel):
+    goals: str
+    constraints: str
+    priority: str = "medium"
+
+
+class SynthesizeRequest(BaseModel):
+    target: Optional[str] = None
+
+
+class WorkflowResponse(BaseModel):
+    messages: List[str]
+
+
+@app.post("/init", response_model=WorkflowResponse)
+def init_endpoint(
+    request: InitRequest, token: None = Depends(verify_token)
+) -> WorkflowResponse:
+    """Initialize or onboard a project."""
+    bridge = APIBridge()
+    from devsynth.application.cli import init_cmd
+
+    init_cmd(
+        path=request.path,
+        project_root=request.project_root,
+        language=request.language,
+        goals=request.goals,
+        bridge=bridge,
+    )
+    LATEST_MESSAGES[:] = bridge.messages
+    return WorkflowResponse(messages=bridge.messages)
+
+
+@app.post("/gather", response_model=WorkflowResponse)
+def gather_endpoint(
+    request: GatherRequest, token: None = Depends(verify_token)
+) -> WorkflowResponse:
+    """Gather project goals and constraints via the interactive wizard."""
+    answers = [request.goals, request.constraints, request.priority]
+    bridge = APIBridge(answers)
+    from devsynth.application.cli import gather_cmd
+
+    gather_cmd(bridge=bridge)
+    LATEST_MESSAGES[:] = bridge.messages
+    return WorkflowResponse(messages=bridge.messages)
+
+
+@app.post("/synthesize", response_model=WorkflowResponse)
+def synthesize_endpoint(
+    request: SynthesizeRequest, token: None = Depends(verify_token)
+) -> WorkflowResponse:
+    """Execute the synthesis pipeline."""
+    bridge = APIBridge()
+    from devsynth.application.cli import run_pipeline_cmd
+
+    run_pipeline_cmd(target=request.target, bridge=bridge)
+    LATEST_MESSAGES[:] = bridge.messages
+    return WorkflowResponse(messages=bridge.messages)
+
+
+@app.get("/status", response_model=WorkflowResponse)
+def status_endpoint(token: None = Depends(verify_token)) -> WorkflowResponse:
+    """Return messages from the most recent workflow invocation."""
+    return WorkflowResponse(messages=LATEST_MESSAGES)
+
+
+__all__ = [
+    "app",
+    "APIBridge",
+    "InitRequest",
+    "GatherRequest",
+    "SynthesizeRequest",
+    "WorkflowResponse",
+]
