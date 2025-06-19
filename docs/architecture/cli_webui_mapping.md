@@ -1,6 +1,6 @@
 ---
 title: "CLI to WebUI Command Mapping"
-date: "2025-06-18"
+date: "2025-06-19"
 version: "1.0.0"
 tags:
   - "architecture"
@@ -9,48 +9,47 @@ tags:
   - "webui"
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-06-18"
+last_reviewed: "2025-06-19"
 ---
 
 # CLI ↔ WebUI Command Mapping
 
 The table below maps each DevSynth CLI command to the WebUI page or action that
-executes the same workflow. All WebUI pages rely on the `UXBridge` abstraction
-to reuse the CLI's backend functions.
+executes the same workflow. `N/A` indicates that no equivalent page is currently
+available. All WebUI pages use the `UXBridge` abstraction to reuse the CLI's
+backend functions.
 
-| CLI Command               | WebUI Page / Action                           |
-|---------------------------|-----------------------------------------------|
-| `init`                    | **Onboarding** page – Initialize Project form |
-| `spec`                    | **Requirements** page – Generate Specs form   |
-| `inspect`                 | **Requirements** page – Inspect Requirements  |
-| `wizard`                  | **Requirements** page – Requirements Wizard   |
-| `gather`                  | **Requirements** page – Project Plan Wizard   |
-| `test`                    | **Synthesis** page – Generate Tests form      |
-| `code`                    | **Synthesis** page – Generate Code button     |
-| `run-pipeline`            | **Synthesis** page – Run Pipeline button      |
-| `config`                  | **Config** page – Update/View Configuration   |
-| `analyze-code`            | **Analysis** page – Analyze Code form         |
-| `webui`                   | Launches the WebUI                            |
+| CLI Command / Subcommand  | WebUI Page / Action                                   |
+|---------------------------|-------------------------------------------------------|
+| `init`                    | **Onboarding** – Initialize Project form             |
+| `spec`                    | **Requirements** – Generate Specs form               |
+| `test`                    | **Synthesis** – Generate Tests form                  |
+| `code`                    | **Synthesis** – Generate Code button                 |
+| `run-pipeline`            | **Synthesis** – Run Pipeline button                  |
+| `config`                  | **Config** – Update/View Configuration               |
+| `config enable-feature`   | **Config** – Manage Feature Flags                    |
+| `inspect`                 | **Requirements** – Inspect Requirements form         |
+| `gather`                  | **Requirements** – Requirements Plan Wizard          |
+| `wizard`                  | **Requirements** – Requirements Wizard               |
+| `analyze-code`            | **Analysis** – Analyze Code form                     |
+| `refactor`                | N/A (planned **Analysis** workflow suggestions)      |
+| `webapp`                  | N/A (planned **Database/Web App** helper page)       |
+| `serve`                   | N/A (runs API server from CLI)                       |
+| `dbschema`                | N/A (planned **Database** helper page)               |
+| `doctor` / `check`        | N/A (planned configuration validation)               |
+| `edrr-cycle`              | N/A (planned **EDRR Cycle** page)                    |
+| `align`                   | N/A (planned **Reports** page)                       |
+| `alignment-metrics`       | N/A (planned **Reports** page)                       |
+| `analyze-manifest`        | N/A (planned configuration analysis section)         |
+| `analyze-config`          | N/A (alias of `analyze-manifest`)                    |
+| `validate-manifest`       | N/A (planned configuration validation)               |
+| `validate-metadata`       | N/A (planned configuration validation)               |
+| `test-metrics`            | N/A (planned test metrics report)                    |
+| `generate-docs`           | N/A (planned **Synthesis** docs generation)          |
+| `ingest`                  | N/A (planned project ingestion form)                 |
+| `apispec`                 | N/A (planned API specification form)                 |
+| `webui`                   | Launches the WebUI                                   |
 
-## Workflows Missing WebUI Support
-
-Several CLI workflows are not yet represented in the WebUI. The table below
-lists the missing commands along with proposed locations in the interface:
-
-| CLI Command(s)                           | Proposed WebUI Location / Action                     |
-|-----------------------------------------|------------------------------------------------------|
-| `edrr-cycle`                            | New **EDRR Cycle** page under **Analysis**           |
-| `align`, `alignment-metrics`            | **Reports** page for SDLC alignment metrics          |
-| `analyze-manifest`, `analyze-config`    | **Config** page – Manifest analysis section          |
-| `generate-docs`                         | **Synthesis** page – Add “Generate Docs” button      |
-| `ingest`                                | **Synthesis** page – Project ingestion form          |
-| `apispec`                               | **Synthesis** page – API specification form          |
-| `doctor`, `check`                       | **Config** page – Validation utility                 |
-| `validate-manifest`, `validate-metadata`| **Config** page – Validation utility                 |
-| `test-metrics`                          | **Analysis** page – Test metrics report              |
-| `refactor`                              | **Analysis** page – Workflow suggestions             |
-| `webapp`, `serve`, `dbschema`           | New **Database** helper page                         |
-
-Adding these pages or sidebar entries would provide complete parity. Where
-appropriate, terminology should mirror the CLI (e.g., “EDRR Cycle”) to avoid
-confusion.
+Terminology across the CLI and WebUI is kept consistent. For example, the
+interactive workflow started by `gather` is called the *Requirements Plan
+Wizard* in both interfaces.
