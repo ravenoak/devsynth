@@ -82,3 +82,68 @@ Example response:
 ```json
 { "messages": ["Execution complete."] }
 ```
+## Request and Response Schemas
+
+```json
+// InitRequest
+{
+  "path": "string",
+  "project_root": "string?",
+  "language": "string?",
+  "goals": "string?"
+}
+```
+
+```json
+// GatherRequest
+{
+  "goals": "string",
+  "constraints": "string",
+  "priority": "string"
+}
+```
+
+```json
+// SynthesizeRequest
+{
+  "target": "string?"
+}
+```
+
+```json
+// WorkflowResponse
+{
+  "messages": ["string", "..."]
+}
+```
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Bridge
+    participant Workflows
+    Client->>API: POST /init
+    API->>Bridge: create APIBridge
+    API->>Workflows: init_cmd(..., bridge)
+    Workflows-->>Bridge: messages
+    Bridge-->>API: messages
+    API-->>Client: JSON response
+```
+
+## Pseudocode
+
+```pseudocode
+function handle_request(path, body):
+    bridge = APIBridge()
+    if path == "/init":
+        init_cmd(**body, bridge=bridge)
+    elif path == "/gather":
+        answers = [body.goals, body.constraints, body.priority]
+        gather_cmd(bridge=APIBridge(answers))
+    elif path == "/synthesize":
+        run_pipeline_cmd(target=body.target, bridge=bridge)
+    return {"messages": bridge.messages}
+```
