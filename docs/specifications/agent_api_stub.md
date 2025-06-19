@@ -13,7 +13,9 @@ author: "DevSynth Team"
 
 This document outlines the minimal HTTP interface for driving DevSynth
 workflows programmatically. The API mirrors the CLI and WebUI behaviour
-through the `UXBridge` abstraction.
+through the `UXBridge` abstraction. The stub is implemented as a
+`fastapi.APIRouter` in `src/devsynth/interface/agentapi.py` which can be
+mounted into the main application.
 
 ## Design Choices
 
