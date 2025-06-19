@@ -80,6 +80,13 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-72 | Streamlit-based WebUI for running workflows | [WebUI Specification](specifications/webui_spec.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature | Planned |
 | FR-73 | Interactive requirement-gathering workflow | [Interactive Requirements Wizard](specifications/interactive_requirements_wizard.md) | src/devsynth/application/cli/requirements_commands.py, src/devsynth/interface/webui.py | tests/behavior/features/interactive_requirements.feature | Planned |
 | FR-74 | HTTP API for agent operations | [HTTP API Specification](specifications/http_api_spec.md) | src/devsynth/api.py | tests/integration/test_api_server.py | Planned |
-| FR-72 | Sidebar WebUI with pages for onboarding, requirements, analysis, synthesis and config | [WebUI Architecture](architecture/webui_overview.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature, tests/unit/interface/test_webui.py | Implemented |
+| FR-75 | Sidebar WebUI with pages for onboarding, requirements, analysis, synthesis and config | [WebUI Architecture](architecture/webui_overview.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature, tests/unit/interface/test_webui.py | Implemented |
+| FR-76 | WebUI invokes workflows through UXBridge | [WebUI Detailed Specification](specifications/webui_detailed_spec.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature | Implemented |
+| FR-77 | WebUI shows progress indicators during execution | [WebUI Detailed Specification](specifications/webui_detailed_spec.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature | Implemented |
+| FR-78 | WebUI offers collapsible sections for complex forms | [WebUI Detailed Specification](specifications/webui_detailed_spec.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature | Implemented |
+| FR-79 | WebUI actions mirror CLI commands | [WebUI Specification](specifications/webui_spec.md) | src/devsynth/interface/webui.py | tests/behavior/features/webui.feature | Implemented |
+| FR-80 | CLI wizard gathers goals, constraints and priority | [Interactive Requirements Gathering](specifications/interactive_requirements_gathering.md) | src/devsynth/application/cli/requirements_commands.py | tests/behavior/features/interactive_requirements.feature | Implemented |
+| FR-81 | Wizard stores responses to `requirements_plan.yaml` and updates config | [Interactive Requirements Gathering](specifications/interactive_requirements_gathering.md) | src/devsynth/application/cli/requirements_commands.py | tests/behavior/features/interactive_requirements.feature | Implemented |
+| FR-82 | WebUI provides equivalent forms for requirements gathering | [Interactive Requirements Wizard](specifications/interactive_requirements_wizard.md) | src/devsynth/interface/webui.py | tests/behavior/features/interactive_requirements.feature | Implemented |
 
-_Last updated: June 19, 2025_
+_Last updated: July 13, 2025_

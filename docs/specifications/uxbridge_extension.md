@@ -40,3 +40,25 @@ workflow code. As additional interfaces were introduced it became necessary to
 abstract user interactions behind a stable API. These methods map cleanly to
 both textual and graphical UIs and allow tests to mock the interface easily.
 
+## Design Choices
+
+- **Clear Method Semantics** – New method names explicitly describe user
+  interactions to reduce confusion when multiple front‑ends coexist.
+- **Alias Support** – Backward compatibility is preserved via the legacy
+  `prompt`, `confirm` and `print` methods.
+- **Testability** – By avoiding direct `input()`/`print()` calls, workflows can
+  be unit tested without patching built‑ins.
+
+## Constraints
+
+- Implementations must not directly read from or write to STDOUT/STDIN.
+- Methods should return data types appropriate for the calling interface.
+- Bridge implementations are responsible for rendering choice lists and
+  highlights.
+
+## Expected Behaviour
+
+- CLI, WebUI and Agent API layers call these methods when interacting with the
+  user.
+- The same workflow code runs identically regardless of the active interface.
+

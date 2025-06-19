@@ -17,16 +17,18 @@ last_reviewed: "2025-06-16"
 function init_command():
     config = UnifiedConfigLoader.load()
     if config.exists():
-        UXBridge.notify("Project already initialized")
+        UXBridge.display_result("Project already initialized")
         return
-    root = UXBridge.prompt("Project root directory?")
-    language = UXBridge.prompt("Primary language?")
-    goals = UXBridge.prompt("Project goals?")
+    root = UXBridge.ask_question("Project root directory?")
+    language = UXBridge.ask_question("Primary language?")
+    goals = UXBridge.ask_question("Project goals?")
+    if not UXBridge.confirm_choice("Proceed with initialization?", default=True):
+        return
     config.set_root(root)
     config.set_language(language)
     config.set_goals(goals)
     config.save()
-    UXBridge.notify("Initialization complete")
+    UXBridge.display_result("Initialization complete", highlight=True)
 ```
 
 # Unified Configuration Loader
@@ -44,15 +46,26 @@ class UnifiedConfigLoader:
 
 ```pseudocode
 class UXBridge:
-    function prompt(message) -> Response:
+    function ask_question(message, choices=None, default=None) -> Response:
         if running_in_cli:
-            return CLI.prompt(message)
+            return CLI.prompt(message, choices, default)
         else if running_in_web:
-            return WebUI.prompt(message)
+            return WebUI.prompt(message, choices, default)
 
-    function notify(message):
+    function confirm_choice(message, default=False) -> bool:
         if running_in_cli:
-            CLI.display(message)
+            return CLI.confirm(message, default)
         else if running_in_web:
-            WebUI.display(message)
+            return WebUI.confirm(message, default)
+
+    function display_result(message, highlight=False):
+        if running_in_cli:
+            CLI.display(message, highlight)
+        else if running_in_web:
+            WebUI.display(message, highlight)
+
+    # legacy aliases
+    prompt = ask_question
+    confirm = confirm_choice
+    print = display_result
 ```
