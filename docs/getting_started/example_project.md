@@ -24,6 +24,8 @@ The example lives in [`examples/calculator`](../../examples/calculator). Each fi
 
 For a complete demonstration of the refactor workflow, see the full workflow example in [`examples/full_workflow`](../../examples/full_workflow).
 
+You can also explore the example using the WebUI. Start it with `devsynth webui` and navigate through the onboarding and synthesis pages instead of running commands manually.
+
 ## Workflow Overview
 
 1. **Initialize** the project

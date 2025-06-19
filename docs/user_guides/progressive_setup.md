@@ -35,6 +35,8 @@ This guide describes how to install DevSynth with minimal features and progressi
 
    The initialization command creates a `.devsynth/project.yaml` file with default settings and feature flags disabled.
 
+You may also use the WebUI for these steps by running `devsynth webui` and navigating through the onboarding page.
+
 ## Enabling Dialectical Reasoning
 
 1. Edit `.devsynth/project.yaml` or use the CLI to enable the feature:
