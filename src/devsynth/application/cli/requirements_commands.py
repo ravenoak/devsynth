@@ -809,3 +809,18 @@ def wizard_cmd(
         json.dump(result, f, indent=2)
 
     bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")
+
+
+@requirements_app.command("gather")
+def gather_requirements_cmd(
+    output_file: str = typer.Option(
+        "requirements_plan.yaml", help="File to store collected goals"
+    ),
+    *,
+    bridge: UXBridge = CLIUXBridge(),
+) -> None:
+    """Gather project goals, constraints and priority."""
+
+    from devsynth.application.requirements.interactions import gather_requirements
+
+    gather_requirements(bridge, output_file=output_file)
