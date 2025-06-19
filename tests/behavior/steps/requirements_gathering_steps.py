@@ -1,5 +1,6 @@
 import os
 from typing import Sequence, Optional
+from types import ModuleType
 from unittest.mock import MagicMock
 
 import yaml
@@ -7,6 +8,7 @@ import sys
 from pytest_bdd import scenarios, given, when, then
 
 from devsynth.interface.ux_bridge import UXBridge
+from .webui_steps import webui_context
 
 
 class DummyBridge(UXBridge):
@@ -56,6 +58,21 @@ def run_wizard(tmp_project_dir, monkeypatch):
     output = os.path.join(tmp_project_dir, "requirements_plan.yaml")
     os.chdir(tmp_project_dir)
     gather_cmd(output_file=output, bridge=bridge)
+
+
+@when("I run the requirements gathering wizard in the WebUI")
+def run_webui_wizard(tmp_project_dir, webui_context):
+    webui_context["st"].sidebar.radio.return_value = "Requirements"
+    webui_context["st"].text_area.side_effect = [
+        "Goal one,Goal two",
+        "Constraint A,Constraint B",
+    ]
+    webui_context["st"].selectbox.return_value = "high"
+    output = os.path.join(tmp_project_dir, "requirements_plan.yaml")
+    os.chdir(tmp_project_dir)
+    from devsynth.application.requirements.interactions import gather_requirements
+
+    gather_requirements(webui_context["ui"], output_file=output)
 
 
 @then('a requirements plan file "requirements_plan.yaml" should exist')
