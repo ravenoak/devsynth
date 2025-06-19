@@ -44,3 +44,4 @@ If you're new to DevSynth, we recommend starting with the [Getting Started](../g
 - [Developer Guides](../developer_guides/index.md) - Information for developers contributing to DevSynth
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
 - [Provider System](../architecture/provider_system.md) - Details on the LLM provider system used in DevSynth
+- [CLI ↔ WebUI Mapping](../architecture/cli_webui_mapping.md) - Equivalent WebUI actions for CLI commands
