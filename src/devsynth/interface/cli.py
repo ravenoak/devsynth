@@ -3,9 +3,31 @@
 from typing import Optional, Sequence
 
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 
-from devsynth.interface.ux_bridge import UXBridge
+from devsynth.interface.ux_bridge import UXBridge, ProgressIndicator
+
+
+class CLIProgressIndicator(ProgressIndicator):
+    """Rich progress indicator wrapper."""
+
+    def __init__(self, console: Console, description: str, total: int) -> None:
+        self._progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[bold blue]{task.description}[/bold blue]"),
+            console=console,
+        )
+        self._progress.start()
+        self._task = self._progress.add_task(description, total=total)
+
+    def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+        self._progress.update(self._task, advance=advance, description=description)
+
+    def complete(self) -> None:
+        self._progress.update(self._task, completed=True)
+        self._progress.stop()
+
 
 
 class CLIUXBridge(UXBridge):
@@ -39,3 +61,8 @@ class CLIUXBridge(UXBridge):
 
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         self.console.print(message, highlight=highlight)
+
+    def create_progress(
+        self, description: str, *, total: int = 100
+    ) -> ProgressIndicator:
+        return CLIProgressIndicator(self.console, description, total)

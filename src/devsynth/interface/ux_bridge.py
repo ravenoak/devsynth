@@ -11,6 +11,24 @@ from abc import ABC, abstractmethod
 from typing import Optional, Sequence
 
 
+class ProgressIndicator(ABC):
+    """Handle to update progress for long running operations."""
+
+    def __enter__(self) -> "ProgressIndicator":  # pragma: no cover - simple passthrough
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:  # pragma: no cover - simple passthrough
+        self.complete()
+
+    @abstractmethod
+    def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+        """Advance the progress indicator."""
+
+    @abstractmethod
+    def complete(self) -> None:
+        """Mark the progress indicator as complete."""
+
+
 class UXBridge(ABC):
     """Protocol defining basic user interaction methods.
 
@@ -43,6 +61,12 @@ class UXBridge(ABC):
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         """Display a message to the user."""
 
+    @abstractmethod
+    def create_progress(
+        self, description: str, *, total: int = 100
+    ) -> ProgressIndicator:
+        """Create a progress indicator for long running tasks."""
+
     # ------------------------------------------------------------------
     # Backwards compatible API
     # ------------------------------------------------------------------
@@ -72,4 +96,4 @@ class UXBridge(ABC):
         self.display_result(message, highlight=highlight)
 
 
-__all__ = ["UXBridge"]
+__all__ = ["UXBridge", "ProgressIndicator"]

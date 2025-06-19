@@ -7,7 +7,6 @@ import shutil
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
-from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.markdown import Markdown
 from typing import Dict, Any, List, Optional
@@ -23,7 +22,14 @@ from devsynth.exceptions import DevSynthError
 bridge: UXBridge = CLIUXBridge()
 console = Console()
 
-def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str = "api", path: str = ".") -> None:
+def apispec_cmd(
+    api_type: str = "rest",
+    format_type: str = "openapi",
+    name: str = "api",
+    path: str = ".",
+    *,
+    bridge: UXBridge = bridge,
+) -> None:
     """Generate an API specification for the specified API type and format."""
     try:
         # Show a welcome message for the apispec command
@@ -114,13 +120,9 @@ def apispec_cmd(api_type: str = "rest", format_type: str = "openapi", name: str 
         api_description = bridge.prompt("[blue]API description[/blue]", default=f"API for {name}")
         
         # Show progress during generation
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[bold blue]{task.description}[/bold blue]"),
-            console=console
+        with bridge.create_progress(
+            f"Generating {api_type} API specification...", total=100
         ) as progress:
-            # Create task for API specification generation
-            task = progress.add_task(f"[blue]Generating {api_type} API specification...", total=100)
             
             # Generate API specification based on type and format
             if api_type == "rest":
@@ -362,7 +364,7 @@ message DeleteUserResponse {{
                     f.write(proto_content)
             
             # Mark task as complete
-            progress.update(task, completed=True)
+            progress.complete()
         
         bridge.print(f"[green]✓ API specification generated successfully at: {api_path}[/green]")
         
