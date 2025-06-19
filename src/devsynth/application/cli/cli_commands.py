@@ -21,6 +21,7 @@ from devsynth.core.workflows import (
     run_pipeline,
     update_config,
     inspect_requirements,
+    gather_requirements,
 )
 import uvicorn
 from devsynth.logging_setup import configure_logging
@@ -337,8 +338,6 @@ def gather_cmd(
     output_file: str = "requirements_plan.yaml", *, bridge: UXBridge = bridge
 ) -> None:
     """Interactively gather project goals, constraints and priority."""
-
-    from devsynth.application.requirements.interactions import gather_requirements
 
     gather_requirements(bridge, output_file=output_file)
 

@@ -197,11 +197,9 @@ class WebUI(UXBridge):
             )
 
     def _gather_wizard(self) -> None:
-        """Run the requirements gathering workflow via :mod:`interactions`."""
+        """Run the requirements gathering workflow via :mod:`core.workflows`."""
         if st.button("Start Requirements Plan Wizard", key="g_start"):
-            from devsynth.application.requirements.interactions import (
-                gather_requirements,
-            )
+            from devsynth.core.workflows import gather_requirements
 
             gather_requirements(self)
 

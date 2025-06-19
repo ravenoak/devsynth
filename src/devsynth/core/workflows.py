@@ -1,8 +1,13 @@
-"""Wrapper functions for executing workflows."""
+"""Wrapper functions and utilities for executing workflows."""
 
 from typing import Any, Dict
+from pathlib import Path
+import json
+import yaml
 
 from devsynth.application.orchestration.workflow import workflow_manager
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.config import get_project_config, save_config
 
 
 def execute_command(command: str, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -57,3 +62,54 @@ def inspect_requirements(
     return execute_command(
         "inspect", filter_args({"input": input, "interactive": interactive})
     )
+
+
+def gather_requirements(
+    bridge: UXBridge,
+    *,
+    output_file: str = ".devsynth/requirements.json",
+) -> None:
+    """Interactively collect project goals, constraints and priority.
+
+    Parameters
+    ----------
+    bridge:
+        Interface used for user interaction.
+    output_file:
+        File where gathered requirements should be written. The extension
+        determines whether JSON or YAML will be used.
+    """
+
+    goals = bridge.prompt("Project goals (comma separated)")
+    constraints = bridge.prompt("Project constraints (comma separated)")
+    priority = bridge.prompt(
+        "Overall priority",
+        choices=["low", "medium", "high"],
+        default="medium",
+    )
+    if not bridge.confirm(f"Save requirements to {output_file}?"):
+        bridge.display_result("[yellow]Requirements not saved.[/yellow]")
+        return
+
+    data = {
+        "goals": [g.strip() for g in goals.split(",") if g.strip()],
+        "constraints": [c.strip() for c in constraints.split(",") if c.strip()],
+        "priority": priority,
+    }
+
+    path = Path(output_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        if path.suffix == ".json":
+            json.dump(data, f, indent=2)
+        else:
+            yaml.safe_dump(data, f, sort_keys=False)
+
+    cfg = get_project_config(Path("."))
+    cfg.goals = goals
+    cfg.constraints = constraints
+    if hasattr(cfg, "priority"):
+        setattr(cfg, "priority", priority)
+    save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+
+    bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")
