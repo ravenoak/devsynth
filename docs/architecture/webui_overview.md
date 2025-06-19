@@ -67,3 +67,20 @@ the same CLI commands used in the terminal interface, ensuring feature
 parity while benefiting from Streamlit components such as collapsible
 sections and progress indicators.
 
+## Programmatic Access
+
+Agents or external tools can drive these workflows using the
+`AgentAPI`. The FastAPI application defined in
+`src/devsynth/interface/agentapi.py` exposes the following JSON
+endpoints:
+
+- `/init` – initialize or onboard a project
+- `/gather` – run the requirements gathering wizard
+- `/synthesize` – execute the synthesis pipeline
+- `/status` – retrieve messages from the most recent workflow
+
+Each endpoint mirrors the `UXBridge` interactions so that automated
+clients receive the same feedback a human would see in the CLI or
+WebUI. This allows scripted agents to orchestrate DevSynth without a
+user present.
+
