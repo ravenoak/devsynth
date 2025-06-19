@@ -273,6 +273,11 @@ pytest
 # Run BDD tests
 pytest tests/behavior/
 
+# Run WebUI onboarding and API stub scenarios
+pytest tests/behavior/test_webui_onboarding_flow.py
+pytest tests/behavior/test_requirements_wizard_navigation.py
+pytest tests/behavior/test_api_stub_usage.py
+
 # Run integration tests
 pytest tests/integration/
 
