@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Optional, Sequence, List
 
-from fastapi import FastAPI, Depends
+from fastapi import APIRouter, Depends, FastAPI
 from pydantic import BaseModel
 
 from devsynth.api import verify_token
@@ -20,6 +20,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.interface.ux_bridge import UXBridge
 
 logger = DevSynthLogger(__name__)
+router = APIRouter()
 app = FastAPI(title="DevSynth Agent API")
 
 
@@ -77,7 +78,7 @@ class WorkflowResponse(BaseModel):
     messages: List[str]
 
 
-@app.post("/init", response_model=WorkflowResponse)
+@router.post("/init", response_model=WorkflowResponse)
 def init_endpoint(
     request: InitRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
@@ -96,7 +97,7 @@ def init_endpoint(
     return WorkflowResponse(messages=bridge.messages)
 
 
-@app.post("/gather", response_model=WorkflowResponse)
+@router.post("/gather", response_model=WorkflowResponse)
 def gather_endpoint(
     request: GatherRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
@@ -110,7 +111,7 @@ def gather_endpoint(
     return WorkflowResponse(messages=bridge.messages)
 
 
-@app.post("/synthesize", response_model=WorkflowResponse)
+@router.post("/synthesize", response_model=WorkflowResponse)
 def synthesize_endpoint(
     request: SynthesizeRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
@@ -123,14 +124,18 @@ def synthesize_endpoint(
     return WorkflowResponse(messages=bridge.messages)
 
 
-@app.get("/status", response_model=WorkflowResponse)
+@router.get("/status", response_model=WorkflowResponse)
 def status_endpoint(token: None = Depends(verify_token)) -> WorkflowResponse:
     """Return messages from the most recent workflow invocation."""
     return WorkflowResponse(messages=LATEST_MESSAGES)
 
 
+app.include_router(router)
+
+
 __all__ = [
     "app",
+    "router",
     "APIBridge",
     "InitRequest",
     "GatherRequest",
