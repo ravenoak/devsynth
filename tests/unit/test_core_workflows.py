@@ -1,3 +1,4 @@
+import json
 import pytest
 from unittest.mock import patch
 
@@ -62,3 +63,27 @@ def test_wrappers_call_execute_command(func, command, kwargs, expected):
         result = func(**kwargs)
         mock.assert_called_once_with(command, expected)
         assert result == {"success": True}
+
+
+def test_gather_requirements_creates_file(tmp_path):
+    class Bridge:
+        def __init__(self):
+            self.i = 0
+
+        def prompt(self, *args, **kwargs):
+            responses = ["goal1", "constraint1", "high"]
+            res = responses[self.i]
+            self.i += 1
+            return res
+
+        def confirm(self, *a, **k):
+            return True
+
+        def display_result(self, *a, **k):
+            pass
+
+    output = tmp_path / "req.json"
+    workflows.gather_requirements(Bridge(), output_file=str(output))
+    assert output.exists()
+    data = json.load(open(output))
+    assert data["priority"] == "high"

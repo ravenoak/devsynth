@@ -821,6 +821,6 @@ def gather_requirements_cmd(
 ) -> None:
     """Gather project goals, constraints and priority."""
 
-    from devsynth.application.requirements.interactions import gather_requirements
+    from devsynth.core.workflows import gather_requirements
 
     gather_requirements(bridge, output_file=output_file)
