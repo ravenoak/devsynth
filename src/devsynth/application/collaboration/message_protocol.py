@@ -57,7 +57,9 @@ class MessageStore:
             os.getcwd(), ".devsynth", "messages.json"
         )
         self._ensure_directory_exists()
-        self.messages: Dict[str, Message] = self._load_messages()
+        self.messages: Dict[str, Message] = {}
+        self.history: List[str] = []
+        self.messages, self.history = self._load_messages()
 
     # ------------------------------------------------------------------
     # Internal utilities
@@ -72,21 +74,21 @@ class MessageStore:
         if not no_file_logging:
             os.makedirs(directory, exist_ok=True)
 
-    def _load_messages(self) -> Dict[str, Message]:
+    def _load_messages(self) -> tuple[Dict[str, Message], List[str]]:
         no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
             "1",
             "true",
             "yes",
         )
         if no_file_logging or not os.path.exists(self.storage_file):
-            return {}
+            return {}, []
         try:
             with open(self.storage_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception:
-            return {}
+            return {}, []
 
-        messages = {}
+        messages: Dict[str, Message] = {}
         for item in data.get("messages", []):
             try:
                 msg = Message(
@@ -102,7 +104,10 @@ class MessageStore:
                 messages[msg.message_id] = msg
             except Exception:
                 continue
-        return messages
+        history = data.get(
+            "history", [m["message_id"] for m in data.get("messages", [])]
+        )
+        return messages, history
 
     def _save_messages(self) -> None:
         no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
@@ -124,8 +129,9 @@ class MessageStore:
                     "metadata": m.metadata,
                     "timestamp": m.timestamp.isoformat(),
                 }
-                for m in self.messages.values()
-            ]
+                for m in self.get_all_messages()
+            ],
+            "history": self.history,
         }
         with open(self.storage_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
@@ -133,12 +139,16 @@ class MessageStore:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def add_message(self, message: Message) -> None:
+    def add_message(self, message: Message, position: Optional[int] = None) -> None:
         self.messages[message.message_id] = message
+        if position is None:
+            self.history.append(message.message_id)
+        else:
+            self.history.insert(position, message.message_id)
         self._save_messages()
 
     def get_all_messages(self) -> List[Message]:
-        return list(self.messages.values())
+        return [self.messages[mid] for mid in self.history if mid in self.messages]
 
 
 class MessageProtocol:
@@ -171,13 +181,19 @@ class MessageProtocol:
             metadata=metadata or {},
             timestamp=datetime.now(),
         )
-        # High priority messages are inserted at the front of the history
-        if message.metadata.get("priority") == "high":
-            self.history.insert(0, message)
+        priority = message.metadata.get("priority", "normal")
+        if priority == "high":
+            index = 0
+        elif priority == "normal":
+            high_count = len(
+                [m for m in self.history if m.metadata.get("priority") == "high"]
+            )
+            index = high_count
         else:
-            self.history.append(message)
+            index = len(self.history)
 
-        self.store.add_message(message)
+        self.history.insert(index, message)
+        self.store.add_message(message, position=index)
         return message
 
     def get_messages(

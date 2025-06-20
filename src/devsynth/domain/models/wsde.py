@@ -60,6 +60,7 @@ class WSDETeam:
     solutions: Dict[str, List[Dict[str, Any]]] = None  # Solutions by task ID
     external_knowledge: Dict[str, Any] = None  # External knowledge sources
     message_protocol: Any = None  # MessageProtocol instance
+    message_store: Any = None  # Underlying MessageStore
     peer_reviews: List[Any] = None
     role_assignments: Dict[str, Any] = None  # Mapping of roles to assigned agents
     dialectical_hooks: List[Callable[[Dict[str, Any], List[Dict[str, Any]]], None]] = (
@@ -83,6 +84,8 @@ class WSDETeam:
                 self.message_protocol = MessageProtocol()
             except Exception:
                 self.message_protocol = None
+        if self.message_protocol and not self.message_store:
+            self.message_store = self.message_protocol.store
         if self.peer_reviews is None:
             self.peer_reviews = []
         if self.role_assignments is None:
