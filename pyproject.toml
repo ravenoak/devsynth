@@ -35,7 +35,7 @@ cryptography = "^45.0.4"
 prometheus-client = "0.20.0"
 streamlit = "1.32.0"
 httpx = {version = "0.28.1", optional = true}
-chromadb = {version = "0.4.24", optional = true}
+chromadb = {version = "^1.0.9", optional = true}
 numpy = "1.26.4"
 pyyaml = ">=6.0"
 responses = {version = "0.25.7", optional = true}
