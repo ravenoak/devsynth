@@ -27,7 +27,7 @@ An autonomous software entity powered by LLMs that performs specific tasks withi
 ## C
 
 ### ChromaDB
-A vector database used in DevSynth's memory system for storing and retrieving embeddings. ChromaDB enables semantic search capabilities.
+A vector database used in DevSynth's memory system for storing and retrieving embeddings. ChromaDB enables semantic search capabilities. Support is currently disabled.
 
 ## D
 
@@ -51,10 +51,16 @@ A numerical representation of text that captures its semantic meaning. DevSynth 
 ### Hexagonal Architecture
 Also known as Ports and Adapters architecture, it's a design pattern that separates core business logic from external systems. DevSynth uses hexagonal architecture with domain, application, ports, and adapters layers.
 
+## K
+
+### Kuzu
+A lightweight graph database used as DevSynth's primary persistent memory backend.
+
 ## M
 
+
 ### Memory Adapter
-A component that implements the MemoryStore interface to provide specific storage capabilities. DevSynth includes adapters for ChromaDB, TinyDB, RDFLib, JSON, and in-memory storage.
+A component that implements the MemoryStore interface to provide specific storage capabilities. DevSynth includes adapters for Kuzu, TinyDB, RDFLib, JSON, and in-memory storage.
 
 ### Memory System
 The subsystem responsible for storing, retrieving, and managing information in DevSynth. It supports multiple backends and provides a unified interface for semantic search and structured data storage.
