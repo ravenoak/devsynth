@@ -118,9 +118,7 @@ DevSynth uses the following environment variables for configuration:
 | `DEVSYNTH_ENV` | Deployment environment | development |
 | `DEVSYNTH_PROVIDER` | Default LLM provider | openai |
 | `DEVSYNTH_LLM_PROVIDER` | LLM provider override | openai |
-| `DEVSYNTH_MEMORY_STORE` | Memory store to use | chromadb |
-| `DEVSYNTH_CHROMADB_HOST` | ChromaDB host | chromadb |
-| `DEVSYNTH_CHROMADB_PORT` | ChromaDB port | 8000 |
+| `DEVSYNTH_MEMORY_STORE` | Memory store to use | kuzu |
 | `DEVSYNTH_OPENAI_API_KEY` | OpenAI API key (config override) | None |
 | `OPENAI_API_KEY` | OpenAI API key | None |
 | `DEVSYNTH_OPENAI_MODEL` | OpenAI model to use | gpt-4 |

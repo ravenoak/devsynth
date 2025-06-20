@@ -15,15 +15,15 @@ logging:
 
 # Memory system configuration
 memory:
-  default_store: chromadb
+  default_store: kuzu
   stores:
     chromadb:
       enabled: true
-      host: localhost
-      port: 8000
       collection_name: devsynth
       distance_function: cosine
       persist_directory: ./.devsynth/chromadb
+    kuzu:
+      persist_directory: ./.devsynth/kuzu
     faiss:
       enabled: false
       index_file: ./.devsynth/faiss/index.bin

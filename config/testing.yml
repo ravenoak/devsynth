@@ -8,12 +8,13 @@ logging:
 
 # Memory system configuration
 memory:
+  default_store: kuzu
   stores:
     chromadb:
-      host: chromadb-test  # Use the test-specific ChromaDB instance
-      port: 8000
       persist_directory: /tmp/devsynth-test/chromadb  # Ephemeral storage for tests
       collection_name: devsynth-test
+    kuzu:
+      persist_directory: /tmp/devsynth-test/kuzu
 
 # LLM provider configuration
 llm:

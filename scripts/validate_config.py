@@ -17,7 +17,17 @@ from typing import Dict, Any, List, Optional
 # Configuration schema definition
 CONFIG_SCHEMA = {
     "type": "object",
-    "required": ["application", "logging", "memory", "llm", "agents", "edrr", "security", "performance", "features"],
+    "required": [
+        "application",
+        "logging",
+        "memory",
+        "llm",
+        "agents",
+        "edrr",
+        "security",
+        "performance",
+        "features",
+    ],
     "properties": {
         "application": {
             "type": "object",
@@ -25,17 +35,20 @@ CONFIG_SCHEMA = {
             "properties": {
                 "name": {"type": "string"},
                 "version": {"type": "string"},
-                "description": {"type": "string"}
-            }
+                "description": {"type": "string"},
+            },
         },
         "logging": {
             "type": "object",
             "required": ["level", "format"],
             "properties": {
-                "level": {"type": "string", "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]},
+                "level": {
+                    "type": "string",
+                    "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                },
                 "format": {"type": "string"},
-                "file": {"type": ["string", "null"]}
-            }
+                "file": {"type": ["string", "null"]},
+            },
         },
         "memory": {
             "type": "object",
@@ -44,19 +57,21 @@ CONFIG_SCHEMA = {
                 "default_store": {"type": "string"},
                 "stores": {
                     "type": "object",
-                    "required": ["chromadb"],
+                    "required": ["chromadb", "kuzu"],
                     "properties": {
                         "chromadb": {
                             "type": "object",
                             "required": ["enabled"],
                             "properties": {
                                 "enabled": {"type": "boolean"},
-                                "host": {"type": "string"},
-                                "port": {"type": ["integer", "string"]},
                                 "collection_name": {"type": "string"},
                                 "distance_function": {"type": "string"},
-                                "persist_directory": {"type": "string"}
-                            }
+                                "persist_directory": {"type": "string"},
+                            },
+                        },
+                        "kuzu": {
+                            "type": "object",
+                            "properties": {"persist_directory": {"type": "string"}},
                         },
                         "faiss": {
                             "type": "object",
@@ -64,12 +79,12 @@ CONFIG_SCHEMA = {
                             "properties": {
                                 "enabled": {"type": "boolean"},
                                 "index_file": {"type": "string"},
-                                "dimension": {"type": "integer"}
-                            }
-                        }
-                    }
-                }
-            }
+                                "dimension": {"type": "integer"},
+                            },
+                        },
+                    },
+                },
+            },
         },
         "llm": {
             "type": "object",
@@ -85,14 +100,18 @@ CONFIG_SCHEMA = {
                             "properties": {
                                 "enabled": {"type": "boolean"},
                                 "model": {"type": "string"},
-                                "temperature": {"type": "number", "minimum": 0, "maximum": 1},
+                                "temperature": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1,
+                                },
                                 "max_tokens": {"type": "integer", "minimum": 1},
-                                "timeout": {"type": "integer", "minimum": 1}
-                            }
+                                "timeout": {"type": "integer", "minimum": 1},
+                            },
                         }
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
         "agents": {
             "type": "object",
@@ -100,8 +119,8 @@ CONFIG_SCHEMA = {
             "properties": {
                 "max_agents": {"type": "integer", "minimum": 1},
                 "default_timeout": {"type": "integer", "minimum": 1},
-                "memory_context_size": {"type": "integer", "minimum": 1}
-            }
+                "memory_context_size": {"type": "integer", "minimum": 1},
+            },
         },
         "edrr": {
             "type": "object",
@@ -113,10 +132,10 @@ CONFIG_SCHEMA = {
                     "type": "object",
                     "properties": {
                         "auto": {"type": "boolean"},
-                        "timeout": {"type": "integer", "minimum": 1}
-                    }
-                }
-            }
+                        "timeout": {"type": "integer", "minimum": 1},
+                    },
+                },
+            },
         },
         "security": {
             "type": "object",
@@ -128,17 +147,17 @@ CONFIG_SCHEMA = {
                     "properties": {
                         "enabled": {"type": "boolean"},
                         "max_requests": {"type": "integer", "minimum": 1},
-                        "period": {"type": "integer", "minimum": 1}
-                    }
+                        "period": {"type": "integer", "minimum": 1},
+                    },
                 },
                 "encryption": {
                     "type": "object",
                     "properties": {
                         "at_rest": {"type": "boolean"},
-                        "in_transit": {"type": "boolean"}
-                    }
-                }
-            }
+                        "in_transit": {"type": "boolean"},
+                    },
+                },
+            },
         },
         "performance": {
             "type": "object",
@@ -147,17 +166,17 @@ CONFIG_SCHEMA = {
                     "type": "object",
                     "properties": {
                         "enabled": {"type": "boolean"},
-                        "ttl": {"type": "integer", "minimum": 1}
-                    }
+                        "ttl": {"type": "integer", "minimum": 1},
+                    },
                 },
                 "concurrency": {
                     "type": "object",
                     "properties": {
                         "max_workers": {"type": ["integer", "string"], "minimum": 1},
-                        "timeout": {"type": "integer", "minimum": 1}
-                    }
-                }
-            }
+                        "timeout": {"type": "integer", "minimum": 1},
+                    },
+                },
+            },
         },
         "features": {
             "type": "object",
@@ -166,17 +185,17 @@ CONFIG_SCHEMA = {
                 "dialectical_reasoning": {"type": "boolean"},
                 "code_generation": {"type": "boolean"},
                 "test_generation": {"type": "boolean"},
-                "documentation_generation": {"type": "boolean"}
-            }
-        }
-    }
+                "documentation_generation": {"type": "boolean"},
+            },
+        },
+    },
 }
 
 
 def load_config(file_path: str) -> Dict[str, Any]:
     """Load a YAML configuration file."""
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             return yaml.safe_load(f)
     except Exception as e:
         print(f"Error loading configuration file {file_path}: {e}")
@@ -187,13 +206,15 @@ def validate_config(config: Dict[str, Any], schema: Dict[str, Any]) -> List[str]
     """Validate a configuration against a schema."""
     validator = jsonschema.Draft7Validator(schema)
     errors = list(validator.iter_errors(config))
-    return [f"{'.'.join(str(p) for p in error.path)}: {error.message}" for error in errors]
+    return [
+        f"{'.'.join(str(p) for p in error.path)}: {error.message}" for error in errors
+    ]
 
 
 def validate_environment_variables(config: Dict[str, Any]) -> List[str]:
     """Check for environment variables in the configuration and validate they're set."""
     errors = []
-    
+
     def check_env_vars(obj, path=""):
         if isinstance(obj, dict):
             for key, value in obj.items():
@@ -207,10 +228,12 @@ def validate_environment_variables(config: Dict[str, Any]) -> List[str]:
             env_var = obj[2:-1]
             if ":-" in env_var:  # Has default value
                 env_var = env_var.split(":-")[0]
-            
+
             if not os.environ.get(env_var):
-                errors.append(f"Environment variable {env_var} referenced in {path} is not set")
-    
+                errors.append(
+                    f"Environment variable {env_var} referenced in {path} is not set"
+                )
+
     check_env_vars(config)
     return errors
 
@@ -218,57 +241,71 @@ def validate_environment_variables(config: Dict[str, Any]) -> List[str]:
 def check_config_consistency(configs: Dict[str, Dict[str, Any]]) -> List[str]:
     """Check consistency across different environment configurations."""
     errors = []
-    
+
     # Check that all environments have the same feature flags
-    default_features = set(configs.get('default', {}).get('features', {}).keys())
+    default_features = set(configs.get("default", {}).get("features", {}).keys())
     for env, config in configs.items():
-        if env == 'default':
+        if env == "default":
             continue
-        
-        env_features = set(config.get('features', {}).keys())
+
+        env_features = set(config.get("features", {}).keys())
         missing_features = default_features - env_features
         if missing_features:
-            errors.append(f"Environment {env} is missing feature flags: {', '.join(missing_features)}")
-    
+            errors.append(
+                f"Environment {env} is missing feature flags: {', '.join(missing_features)}"
+            )
+
     return errors
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate DevSynth configuration files")
-    parser.add_argument("--config-dir", default="./config", help="Directory containing configuration files")
-    parser.add_argument("--environments", nargs="+", default=["default", "development", "testing", "staging", "production"],
-                        help="Environments to validate")
+    parser = argparse.ArgumentParser(
+        description="Validate DevSynth configuration files"
+    )
+    parser.add_argument(
+        "--config-dir",
+        default="./config",
+        help="Directory containing configuration files",
+    )
+    parser.add_argument(
+        "--environments",
+        nargs="+",
+        default=["default", "development", "testing", "staging", "production"],
+        help="Environments to validate",
+    )
     args = parser.parse_args()
-    
+
     configs = {}
     all_errors = []
-    
+
     # Load and validate each configuration file
     for env in args.environments:
         config_path = os.path.join(args.config_dir, f"{env}.yml")
         if not os.path.exists(config_path):
-            print(f"Warning: Configuration file for environment {env} not found at {config_path}")
+            print(
+                f"Warning: Configuration file for environment {env} not found at {config_path}"
+            )
             continue
-        
+
         print(f"Validating {env} configuration...")
         config = load_config(config_path)
         configs[env] = config
-        
+
         # Validate against schema
         schema_errors = validate_config(config, CONFIG_SCHEMA)
         if schema_errors:
             all_errors.extend([f"[{env}] {error}" for error in schema_errors])
-        
+
         # Validate environment variables
         env_var_errors = validate_environment_variables(config)
         if env_var_errors:
             all_errors.extend([f"[{env}] {error}" for error in env_var_errors])
-    
+
     # Check consistency across configurations
     consistency_errors = check_config_consistency(configs)
     if consistency_errors:
         all_errors.extend([f"[consistency] {error}" for error in consistency_errors])
-    
+
     # Report results
     if all_errors:
         print("\nValidation errors found:")

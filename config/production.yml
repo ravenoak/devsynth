@@ -9,13 +9,14 @@ logging:
 
 # Memory system configuration
 memory:
+  default_store: kuzu
   stores:
     chromadb:
-      host: ${DEVSYNTH_CHROMADB_HOST}  # Use environment variable
-      port: ${DEVSYNTH_CHROMADB_PORT}
       persist_directory: /data/devsynth/chromadb  # Persistent storage
       collection_name: devsynth-prod
       distance_function: cosine
+    kuzu:
+      persist_directory: /data/devsynth/kuzu
     faiss:
       enabled: true  # Enable FAISS in production for performance
       index_file: /data/devsynth/faiss/index.bin

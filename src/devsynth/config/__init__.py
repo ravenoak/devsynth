@@ -4,9 +4,7 @@ Configuration module for DevSynth.
 
 import os
 
-from .settings import (
-    get_settings, get_llm_settings, load_dotenv, _settings
-)
+from .settings import get_settings, get_llm_settings, load_dotenv, _settings
 from pathlib import Path
 from .loader import ConfigModel, load_config, save_config, config_key_autocomplete
 
@@ -21,9 +19,11 @@ def get_project_config(path: Path | None = None) -> ConfigModel:
         _PROJECT_CONFIG = load_config(path)
     return _PROJECT_CONFIG
 
+
 # Expose settings as module-level variables for backward compatibility
 MEMORY_STORE_TYPE = _settings.memory_store_type
 MEMORY_FILE_PATH = _settings.memory_file_path
+KUZU_DB_PATH = _settings.memory_file_path
 MAX_CONTEXT_SIZE = _settings.max_context_size
 CONTEXT_EXPIRATION_DAYS = _settings.context_expiration_days
 
@@ -38,7 +38,9 @@ LLM_API_BASE = _settings.lm_studio_endpoint
 LLM_MODEL = os.environ.get("DEVSYNTH_LLM_MODEL", "gpt-3.5-turbo")
 LLM_MAX_TOKENS = int(os.environ.get("DEVSYNTH_LLM_MAX_TOKENS", "2000"))
 LLM_TEMPERATURE = float(os.environ.get("DEVSYNTH_LLM_TEMPERATURE", "0.7"))
-LLM_AUTO_SELECT_MODEL = os.environ.get("DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true").lower() in ["true", "1", "yes"]
+LLM_AUTO_SELECT_MODEL = os.environ.get(
+    "DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true"
+).lower() in ["true", "1", "yes"]
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -57,18 +59,16 @@ __all__ = [
     "config_key_autocomplete",
     "ConfigModel",
     "PROJECT_CONFIG",
-
     # Memory settings
     "MEMORY_STORE_TYPE",
     "MEMORY_FILE_PATH",
+    "KUZU_DB_PATH",
     "MAX_CONTEXT_SIZE",
     "CONTEXT_EXPIRATION_DAYS",
-
     # Vector store settings
     "VECTOR_STORE_ENABLED",
     "CHROMADB_COLLECTION_NAME",
     "CHROMADB_DISTANCE_FUNC",
-
     # LLM settings
     "LLM_PROVIDER",
     "LLM_API_BASE",
