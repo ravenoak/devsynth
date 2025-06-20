@@ -57,8 +57,13 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     settings = get_settings()
     messages: List[str] = []
 
-    # Check ChromaDB availability when vector store is enabled
-    if settings.vector_store_enabled and settings.memory_store_type == "chromadb":
+    # Check ChromaDB availability only when the feature flag is enabled
+    chromadb_enabled = getattr(settings, "enable_chromadb", False)
+    if (
+        chromadb_enabled
+        and settings.vector_store_enabled
+        and settings.memory_store_type == "chromadb"
+    ):
         if importlib.util.find_spec("chromadb") is None:
             messages.append(
                 "ChromaDB support is enabled but the 'chromadb' package is missing."

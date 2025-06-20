@@ -503,6 +503,7 @@ class TestCLICommands:
             provider_type = "openai"
             openai_api_key = "key"
             lm_studio_endpoint = None
+            enable_chromadb = True
 
         with patch(
             "devsynth.application.cli.cli_commands.get_settings",
@@ -521,9 +522,7 @@ class TestCLICommands:
                 for call in mock_bridge.display_result.call_args_list
             )
 
-    def test_spec_cmd_missing_kuzu_package(
-        self, mock_workflow_manager, mock_bridge
-    ):
+    def test_spec_cmd_missing_kuzu_package(self, mock_workflow_manager, mock_bridge):
         """spec_cmd should warn when Kuzu package is unavailable."""
 
         class DummySettings:
@@ -568,6 +567,7 @@ class TestCLICommands:
             lm_studio_endpoint = None
 
         monkeypatch.setattr(cli_commands, "get_settings", lambda: DummySettings)
+        monkeypatch.setattr(cli_commands, "_check_services", ORIG_CHECK_SERVICES)
         res = cli_commands._check_services()
         output = capsys.readouterr().out
         assert res is False
