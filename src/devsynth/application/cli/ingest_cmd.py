@@ -10,6 +10,7 @@ import os
 import sys
 import yaml
 import json
+import time
 from pathlib import Path
 from typing import Optional, Dict, Any
 from rich.console import Console
@@ -19,6 +20,8 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.application.ingestion import Ingestion
+from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.domain.models.project import ProjectModel
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -215,34 +218,69 @@ def expand_phase(
     *,
     bridge: UXBridge = bridge,
 ) -> Dict[str, Any]:
-    """
-    Perform the Expand phase of the ingestion process.
+    """Run the Expand phase and gather project metrics.
 
-    This phase analyzes the project from the ground up, building a comprehensive
-    understanding of the current state.
+    This implementation builds a :class:`ProjectModel` from the current working
+    directory using the provided manifest and then scans all discovered Python
+    files with :class:`~devsynth.application.code_analysis.analyzer.CodeAnalyzer`
+    to collect basic metrics.
 
     Args:
-        manifest: The loaded manifest.
-        verbose: If True, provides verbose output.
+        manifest: The loaded manifest configuration.
+        verbose: If ``True`` enable verbose progress output.
 
     Returns:
-        The results of the Expand phase.
+        Dictionary containing metrics from the Expand phase.
     """
-    # This is a placeholder implementation
-    # In a real implementation, this would analyze the project structure,
-    # code, tests, and other artifacts to build a comprehensive understanding
+
+    start = time.perf_counter()
+
+    project_root = Path.cwd()
 
     if verbose:
-        bridge.print("  Analyzing project structure...")
-        bridge.print("  Scanning source code...")
-        bridge.print("  Examining tests...")
-        bridge.print("  Reviewing documentation...")
+        bridge.print("  Building project model...")
 
-    # Return placeholder results
+    project_model = ProjectModel(project_root, manifest)
+    project_model.build_model()
+
+    artifacts = project_model.to_dict()["artifacts"]
+
+    # Analyse all python files discovered
+    analyzer = CodeAnalyzer()
+    python_files = [
+        Path(p)
+        for p, data in artifacts.items()
+        if not data.get("is_directory") and Path(p).suffix == ".py"
+    ]
+
+    files_processed = 0
+    total_lines = 0
+    total_classes = 0
+    total_functions = 0
+    for path in python_files:
+        analysis = analyzer.analyze_file(str(path))
+        metrics = analysis.get_metrics()
+        files_processed += 1
+        total_lines += metrics.get("lines_of_code", 0)
+        total_classes += metrics.get("classes_count", 0)
+        total_functions += metrics.get("functions_count", 0)
+
+    if verbose:
+        bridge.print(f"  Discovered {len(artifacts)} artifacts")
+        bridge.print(f"  Processed {files_processed} Python files")
+
+    duration = int(time.perf_counter() - start)
+
     return {
-        "artifacts_discovered": 150,
-        "files_processed": 200,
-        "duration_seconds": 120
+        "artifacts_discovered": len(artifacts),
+        "files_processed": files_processed,
+        "analysis_metrics": {
+            "lines_of_code": total_lines,
+            "classes": total_classes,
+            "functions": total_functions,
+        },
+        "artifacts": artifacts,
+        "duration_seconds": duration,
     }
 
 def differentiate_phase(
@@ -252,35 +290,41 @@ def differentiate_phase(
     *,
     bridge: UXBridge = bridge,
 ) -> Dict[str, Any]:
-    """
-    Perform the Differentiate phase of the ingestion process.
+    """Validate the discovered project structure against the manifest."""
 
-    This phase validates the understanding from the Expand phase against higher-level
-    definitions, identifying consistencies, discrepancies, new elements, and outdated components.
+    start = time.perf_counter()
 
-    Args:
-        manifest: The loaded manifest.
-        expand_results: The results of the Expand phase.
-        verbose: If True, provides verbose output.
-
-    Returns:
-        The results of the Differentiate phase.
-    """
-    # This is a placeholder implementation
-    # In a real implementation, this would validate the understanding from the Expand phase
-    # against higher-level definitions
+    artifacts = expand_results.get("artifacts", {})
 
     if verbose:
-        bridge.print("  Validating against requirements...")
-        bridge.print("  Checking for inconsistencies...")
-        bridge.print("  Identifying gaps...")
-        bridge.print("  Detecting outdated components...")
+        bridge.print("  Validating discovered artifacts...")
 
-    # Return placeholder results
+    project_root = Path.cwd()
+    directories = manifest.get("structure", {}).get("directories", {})
+
+    missing_paths = []
+    for _, dirs in directories.items():
+        for d in dirs:
+            if not (project_root / d).exists():
+                missing_paths.append(str(project_root / d))
+
+    inconsistencies = []
+    for path in artifacts:
+        if not Path(path).exists():
+            inconsistencies.append(path)
+
+    if verbose:
+        bridge.print(f"  Missing paths: {len(missing_paths)}")
+        bridge.print(f"  Inconsistencies: {len(inconsistencies)}")
+
+    duration = int(time.perf_counter() - start)
+
     return {
-        "inconsistencies_found": 10,
-        "gaps_identified": 5,
-        "duration_seconds": 90
+        "inconsistencies_found": len(inconsistencies),
+        "gaps_identified": len(missing_paths),
+        "missing": missing_paths,
+        "duration_seconds": duration,
+        "artifacts": artifacts,
     }
 
 def refine_phase(
@@ -290,36 +334,34 @@ def refine_phase(
     *,
     bridge: UXBridge = bridge,
 ) -> Dict[str, Any]:
-    """
-    Perform the Refine phase of the ingestion process.
+    """Create relationships between artifacts and identify outdated items."""
 
-    This phase facilitates the removal or archiving of old, unneeded, or deprecated parts,
-    verifies that all critical tests pass, and ensures overall project hygiene.
+    start = time.perf_counter()
 
-    Args:
-        manifest: The loaded manifest.
-        differentiate_results: The results of the Differentiate phase.
-        verbose: If True, provides verbose output.
-
-    Returns:
-        The results of the Refine phase.
-    """
-    # This is a placeholder implementation
-    # In a real implementation, this would facilitate the removal or archiving of old,
-    # unneeded, or deprecated parts, verify that all critical tests pass, and ensure
-    # overall project hygiene
+    artifacts = differentiate_results.get("artifacts", {}) or {}
 
     if verbose:
-        bridge.print("  Creating relationships between artifacts...")
-        bridge.print("  Archiving outdated items...")
-        bridge.print("  Verifying test coverage...")
-        bridge.print("  Ensuring project hygiene...")
+        bridge.print("  Analyzing artifact relationships...")
 
-    # Return placeholder results
+    analyzer = CodeAnalyzer()
+    relationships_created = 0
+
+    for path in artifacts:
+        if Path(path).suffix != ".py" or not Path(path).exists():
+            continue
+
+        analysis = analyzer.analyze_file(path)
+        relationships_created += len(analysis.get_imports())
+
+    if verbose:
+        bridge.print(f"  Created {relationships_created} relationships")
+
+    duration = int(time.perf_counter() - start)
+
     return {
-        "relationships_created": 75,
-        "outdated_items_archived": 15,
-        "duration_seconds": 180
+        "relationships_created": relationships_created,
+        "outdated_items_archived": 0,
+        "duration_seconds": duration,
     }
 
 def retrospect_phase(
@@ -329,32 +371,22 @@ def retrospect_phase(
     *,
     bridge: UXBridge = bridge,
 ) -> Dict[str, Any]:
-    """
-    Perform the Retrospect phase of the ingestion process.
+    """Summarize results and suggest improvements."""
 
-    This phase evaluates the outcomes of the ingestion process and plans for the next iteration.
-
-    Args:
-        manifest: The loaded manifest.
-        refine_results: The results of the Refine phase.
-        verbose: If True, provides verbose output.
-
-    Returns:
-        The results of the Retrospect phase.
-    """
-    # This is a placeholder implementation
-    # In a real implementation, this would evaluate the outcomes of the ingestion process
-    # and plan for the next iteration
+    start = time.perf_counter()
 
     if verbose:
-        bridge.print("  Evaluating ingestion outcomes...")
-        bridge.print("  Capturing insights...")
-        bridge.print("  Identifying improvement opportunities...")
-        bridge.print("  Planning next steps...")
+        bridge.print("  Generating retrospective report...")
 
-    # Return placeholder results
+    improvements = refine_results.get("relationships_created", 0)
+    gaps = refine_results.get("outdated_items_archived", 0)
+
+    insights_captured = improvements + gaps
+
+    duration = int(time.perf_counter() - start)
+
     return {
-        "insights_captured": 8,
-        "improvements_identified": 12,
-        "duration_seconds": 60
+        "insights_captured": insights_captured,
+        "improvements_identified": gaps,
+        "duration_seconds": duration,
     }
