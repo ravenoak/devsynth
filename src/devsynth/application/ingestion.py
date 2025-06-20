@@ -368,6 +368,93 @@ class Ingestion:
                 "metrics": self.metrics.get_summary(),
             }
 
+    def analyze_project_structure(self, verbose: bool = False) -> Dict[str, Any]:
+        """Analyze the project structure using the Expand phase logic."""
+
+        self._run_expand_phase(dry_run=True, verbose=verbose)
+        self.metrics.end_phase()
+        result = {"artifacts": self.artifacts, "metrics": self.metrics.get_summary()}
+        self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+            result,
+            "INGEST_EXPAND_RESULTS",
+            Phase.EXPAND.value,
+            {"cycle_id": self.edrr_coordinator.cycle_id},
+        )
+        return result
+
+    def validate_artifacts(self, verbose: bool = False) -> Dict[str, Any]:
+        """Validate discovered artifacts using the Differentiate phase logic."""
+
+        self._run_differentiate_phase(dry_run=True, verbose=verbose)
+        self.metrics.end_phase()
+        result = {
+            "warnings": self.metrics.warnings_generated,
+            "status": {
+                s.name: self.metrics.artifacts_by_status[s] for s in ArtifactStatus
+            },
+        }
+        self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+            result,
+            "INGEST_DIFFERENTIATE_RESULTS",
+            Phase.DIFFERENTIATE.value,
+            {"cycle_id": self.edrr_coordinator.cycle_id},
+        )
+        return result
+
+    def remove_outdated_items(
+        self, verbose: bool = False, dry_run: bool = True
+    ) -> Dict[str, Any]:
+        """Remove or mark outdated artifacts using the Refine phase logic."""
+
+        self._run_refine_phase(dry_run=dry_run, verbose=verbose)
+        self.metrics.end_phase()
+        result = {
+            "status": {
+                s.name: self.metrics.artifacts_by_status[s] for s in ArtifactStatus
+            },
+            "artifacts": self.artifacts,
+        }
+        self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+            result,
+            "INGEST_REFINE_RESULTS",
+            Phase.REFINE.value,
+            {"cycle_id": self.edrr_coordinator.cycle_id},
+        )
+        return result
+
+    def summarize_outcomes(
+        self, verbose: bool = False, dry_run: bool = True
+    ) -> Dict[str, Any]:
+        """Summarize ingestion outcomes using the Retrospect phase logic."""
+
+        self.metrics.start_phase(IngestionPhase.RETROSPECT)
+        evaluation = self._evaluate_ingestion_process(verbose)
+        improvements = self._identify_improvement_areas(verbose)
+        recommendations = self._generate_recommendations(verbose)
+
+        retrospective = {
+            "timestamp": datetime.now().isoformat(),
+            "project_root": str(self.project_root),
+            "manifest_path": str(self.manifest_path),
+            "metrics": self.metrics.get_summary(),
+            "evaluation": evaluation,
+            "improvements": improvements,
+            "recommendations": recommendations,
+        }
+
+        if not dry_run:
+            self._save_retrospective(retrospective, verbose)
+
+        self.metrics.end_phase()
+        self.edrr_coordinator.memory_manager.store_with_edrr_phase(
+            retrospective,
+            "INGEST_RETROSPECT_RESULTS",
+            Phase.RETROSPECT.value,
+            {"cycle_id": self.edrr_coordinator.cycle_id},
+        )
+
+        return retrospective
+
     def _run_expand_phase(self, dry_run: bool, verbose: bool) -> None:
         """
         Run the Expand phase of EDRR: Bottom-up discovery of all artifacts.

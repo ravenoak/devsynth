@@ -14,7 +14,12 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from devsynth.application.ingestion import (
-    Ingestion, ArtifactType, ArtifactStatus, IngestionPhase, ProjectStructureType, IngestionMetrics
+    Ingestion,
+    ArtifactType,
+    ArtifactStatus,
+    IngestionPhase,
+    ProjectStructureType,
+    IngestionMetrics,
 )
 from devsynth.exceptions import IngestionError, ManifestError
 
@@ -30,18 +35,11 @@ def temp_project_dir():
 def basic_manifest_data():
     """Create basic manifest data for testing."""
     return {
-        "metadata": {
-            "projectName": "TestProject",
-            "version": "0.1.0"
-        },
+        "metadata": {"projectName": "TestProject", "version": "0.1.0"},
         "structure": {
             "type": "single_package",
-            "directories": {
-                "source": ["src"],
-                "tests": ["tests"],
-                "docs": ["docs"]
-            }
-        }
+            "directories": {"source": ["src"], "tests": ["tests"], "docs": ["docs"]},
+        },
     }
 
 
@@ -49,7 +47,7 @@ def basic_manifest_data():
 def create_manifest_file(temp_project_dir, basic_manifest_data):
     """Create a manifest.yaml file in the temporary project directory."""
     manifest_path = temp_project_dir / "manifest.yaml"
-    with open(manifest_path, 'w') as f:
+    with open(manifest_path, "w") as f:
         yaml.dump(basic_manifest_data, f)
     return manifest_path
 
@@ -187,7 +185,9 @@ class TestIngestion:
         with pytest.raises(IngestionError):
             Ingestion("/nonexistent/path")
 
-    def test_load_manifest(self, temp_project_dir, create_manifest_file, basic_manifest_data):
+    def test_load_manifest(
+        self, temp_project_dir, create_manifest_file, basic_manifest_data
+    ):
         """Test loading the manifest file."""
         ingestion = Ingestion(temp_project_dir, create_manifest_file)
         manifest_data = ingestion.load_manifest()
@@ -207,7 +207,7 @@ class TestIngestion:
         """Test loading an invalid YAML manifest file."""
         # Create an invalid YAML file
         manifest_path = temp_project_dir / "manifest.yaml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             f.write("invalid: yaml: content:\n  - missing colon\n")
 
         ingestion = Ingestion(temp_project_dir, manifest_path)
@@ -219,7 +219,7 @@ class TestIngestion:
         """Test loading a manifest file with missing required fields."""
         # Create a manifest with missing required fields
         manifest_path = temp_project_dir / "manifest.yaml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump({"projectName": "TestProject"}, f)  # Missing structure field
 
         ingestion = Ingestion(temp_project_dir, manifest_path)
@@ -227,8 +227,14 @@ class TestIngestion:
         with pytest.raises(ManifestError):
             ingestion.load_manifest()
 
-    @patch('devsynth.domain.models.project.ProjectModel')
-    def test_run_ingestion(self, mock_project_model, temp_project_dir, create_manifest_file, create_project_structure):
+    @patch("devsynth.domain.models.project.ProjectModel")
+    def test_run_ingestion(
+        self,
+        mock_project_model,
+        temp_project_dir,
+        create_manifest_file,
+        create_project_structure,
+    ):
         """Test running the full ingestion process."""
         # Setup mock
         mock_instance = MagicMock()
@@ -239,12 +245,16 @@ class TestIngestion:
                     "name": "file.py",
                     "type": "CODE",
                     "is_directory": False,
-                    "metadata": {}
+                    "metadata": {},
                 }
             },
             "relationships": [
-                {"source": "/test/path", "target": "/test/path/file.py", "metadata": {"relationship": "contains"}}
-            ]
+                {
+                    "source": "/test/path",
+                    "target": "/test/path/file.py",
+                    "metadata": {"relationship": "contains"},
+                }
+            ],
         }
 
         # Run ingestion
@@ -262,8 +272,10 @@ class TestIngestion:
         mock_project_model.assert_called_once()
         mock_instance.build_model.assert_called_once()
 
-    @patch('devsynth.domain.models.project.ProjectModel')
-    def test_run_ingestion_with_error(self, mock_project_model, temp_project_dir, create_manifest_file):
+    @patch("devsynth.domain.models.project.ProjectModel")
+    def test_run_ingestion_with_error(
+        self, mock_project_model, temp_project_dir, create_manifest_file
+    ):
         """Test running ingestion with an error."""
         # Setup mock to raise an error
         mock_project_model.side_effect = Exception("Test error")
@@ -279,8 +291,10 @@ class TestIngestion:
         assert "metrics" in result
         assert result["metrics"]["errors"] == 2
 
-    @patch('devsynth.domain.models.project.ProjectModel')
-    def test_expand_phase(self, mock_project_model, temp_project_dir, create_manifest_file):
+    @patch("devsynth.domain.models.project.ProjectModel")
+    def test_expand_phase(
+        self, mock_project_model, temp_project_dir, create_manifest_file
+    ):
         """Test the Expand phase of the ingestion process."""
         # Setup mock
         mock_instance = MagicMock()
@@ -291,12 +305,16 @@ class TestIngestion:
                     "name": "file.py",
                     "type": "CODE",
                     "is_directory": False,
-                    "metadata": {}
+                    "metadata": {},
                 }
             },
             "relationships": [
-                {"source": "/test/path", "target": "/test/path/file.py", "metadata": {"relationship": "contains"}}
-            ]
+                {
+                    "source": "/test/path",
+                    "target": "/test/path/file.py",
+                    "metadata": {"relationship": "contains"},
+                }
+            ],
         }
 
         # Run ingestion with just the expand phase
@@ -326,7 +344,7 @@ class TestIngestion:
                 "name": "file.py",
                 "type": "CODE",
                 "is_directory": False,
-                "metadata": {}
+                "metadata": {},
             }
         }
 
@@ -350,12 +368,14 @@ class TestIngestion:
                 "name": "file.py",
                 "type": "CODE",
                 "is_directory": False,
-                "metadata": {}
+                "metadata": {},
             }
         }
 
         # Run the refine phase
-        ingestion._run_refine_phase(True, True)  # Use dry_run=True to avoid file operations
+        ingestion._run_refine_phase(
+            True, True
+        )  # Use dry_run=True to avoid file operations
 
         # Manually end the phase since the method doesn't do it
         ingestion.metrics.end_phase()
@@ -374,12 +394,14 @@ class TestIngestion:
                 "name": "file.py",
                 "type": "CODE",
                 "is_directory": False,
-                "metadata": {}
+                "metadata": {},
             }
         }
 
         # Run the retrospect phase
-        ingestion._run_retrospect_phase(True, True)  # Use dry_run=True to avoid file operations
+        ingestion._run_retrospect_phase(
+            True, True
+        )  # Use dry_run=True to avoid file operations
 
         # Manually end the phase since the method doesn't do it
         ingestion.metrics.end_phase()
@@ -438,11 +460,15 @@ class TestIngestion:
 
         # Verify recommendations
         assert len(recommendations) > 0
-        assert any(rec["category"] == "Project Configuration" for rec in recommendations)
+        assert any(
+            rec["category"] == "Project Configuration" for rec in recommendations
+        )
 
-    @patch('builtins.open', new_callable=MagicMock)
-    @patch('json.dump')
-    def test_save_refined_data(self, mock_json_dump, mock_open, temp_project_dir, create_manifest_file):
+    @patch("builtins.open", new_callable=MagicMock)
+    @patch("json.dump")
+    def test_save_refined_data(
+        self, mock_json_dump, mock_open, temp_project_dir, create_manifest_file
+    ):
         """Test saving refined data."""
         ingestion = Ingestion(temp_project_dir, create_manifest_file)
 
@@ -451,11 +477,11 @@ class TestIngestion:
             "project_root": str(temp_project_dir),
             "manifest_path": str(create_manifest_file),
             "artifacts": {"test": "data"},
-            "metrics": {"test": "metrics"}
+            "metrics": {"test": "metrics"},
         }
 
         # Mock os.makedirs to avoid creating directories
-        with patch('os.makedirs'):
+        with patch("os.makedirs"):
             ingestion._save_refined_data(refined_data, True)
 
         # Verify that open was called twice (once for refined data, once for previous state)
@@ -464,8 +490,10 @@ class TestIngestion:
         # Verify that json.dump was called twice
         assert mock_json_dump.call_count == 2
 
-    @patch('builtins.open', new_callable=MagicMock)
-    def test_generate_markdown_summary(self, mock_open, temp_project_dir, create_manifest_file):
+    @patch("builtins.open", new_callable=MagicMock)
+    def test_generate_markdown_summary(
+        self, mock_open, temp_project_dir, create_manifest_file
+    ):
         """Test generating a markdown summary."""
         ingestion = Ingestion(temp_project_dir, create_manifest_file)
 
@@ -473,9 +501,18 @@ class TestIngestion:
         retrospective = {
             "project_root": str(temp_project_dir),
             "evaluation": {"overall_assessment": "Good"},
-            "metrics": {"duration_seconds": 2.5, "artifacts": {"total": 10}, "errors": 0, "warnings": 2},
-            "improvements": [{"area": "Testing", "issue": "No tests", "recommendation": "Add tests"}],
-            "recommendations": [{"category": "Code", "priority": "High", "recommendation": "Refactor"}]
+            "metrics": {
+                "duration_seconds": 2.5,
+                "artifacts": {"total": 10},
+                "errors": 0,
+                "warnings": 2,
+            },
+            "improvements": [
+                {"area": "Testing", "issue": "No tests", "recommendation": "Add tests"}
+            ],
+            "recommendations": [
+                {"category": "Code", "priority": "High", "recommendation": "Refactor"}
+            ],
         }
 
         # Generate markdown summary
@@ -487,3 +524,49 @@ class TestIngestion:
         # Verify that write was called multiple times
         file_handle = mock_open.return_value.__enter__.return_value
         assert file_handle.write.call_count > 10
+
+    @patch("devsynth.domain.models.project.ProjectModel")
+    def test_full_pipeline_functions(
+        self,
+        mock_project_model,
+        temp_project_dir,
+        create_manifest_file,
+        create_project_structure,
+    ):
+        """Test the wrapper methods for each ingestion phase."""
+
+        mock_instance = MagicMock()
+        mock_project_model.return_value = mock_instance
+        mock_instance.to_dict.return_value = {
+            "artifacts": {
+                str(temp_project_dir / "src" / "main.py"): {
+                    "name": "main.py",
+                    "type": "CODE",
+                    "is_directory": False,
+                    "metadata": {},
+                }
+            },
+            "relationships": [],
+        }
+
+        ingestion = Ingestion(temp_project_dir, create_manifest_file)
+        ingestion.load_manifest()
+        ingestion.edrr_coordinator.memory_manager.store_with_edrr_phase = MagicMock()
+
+        expand_res = ingestion.analyze_project_structure(True)
+        assert expand_res["artifacts"]
+
+        diff_res = ingestion.validate_artifacts(True)
+        assert "status" in diff_res
+
+        refine_res = ingestion.remove_outdated_items(True, True)
+        assert "status" in refine_res
+
+        retro_res = ingestion.summarize_outcomes(True, True)
+        assert retro_res["evaluation"]["success"] is True
+
+        # Verify memory storage calls for each phase
+        assert (
+            ingestion.edrr_coordinator.memory_manager.store_with_edrr_phase.call_count
+            == 4
+        )
