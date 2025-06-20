@@ -218,7 +218,7 @@ DevSynth can be configured using the `config` command or by editing the configur
 | `endpoint` | LM Studio API endpoint | `http://localhost:1234/v1` | Any valid URL |
 | `openai_api_key` | OpenAI API key for using OpenAI models | None | Valid OpenAI API key |
 | `serper_api_key` | Serper API key for web search functionality | None | Valid Serper API key |
-| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `chromadb`, `kuzu` |
+| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `kuzu` |
 
 ### Environment Variables and .env Files
 
@@ -301,7 +301,7 @@ API keys use their standard environment variable names:
 
 ### Memory Configuration
 
-DevSynth supports multiple memory store types for storing and retrieving memory items:
+DevSynth supports multiple memory store types for storing and retrieving memory items. ChromaDB support is presently disabled; Kuzu is the recommended persistent backend.
 
 #### In-Memory Store
 
@@ -322,60 +322,6 @@ devsynth config --key memory_store_type --value file
 devsynth config --key memory_file_path --value /path/to/memory/directory
 ```
 
-#### ChromaDB Vector Store
-
-The `chromadb` memory store type uses ChromaDB, a vector database, for persistent storage with semantic search capabilities. This is particularly useful for projects with large amounts of text data that benefit from semantic similarity search.
-
-```bash
-# Configure ChromaDB store
-devsynth config --key memory_store_type --value chromadb
-devsynth config --key memory_file_path --value /path/to/chromadb/directory
-```
-
-Key features of the ChromaDB memory store:
-
-- **Semantic Search**: Search for memory items based on semantic similarity rather than exact matches
-- **Vector Embeddings**: Automatically creates embeddings for text content to enable semantic search
-- **Persistence**: Memory items are preserved across sessions
-- **Scalability**: Efficiently handles large amounts of data
-- **Caching Layer**: Reduces disk I/O operations by caching frequently accessed items
-- **Version Tracking**: Maintains a history of changes to items over time
-- **Optimized Embedding Storage**: Efficiently stores similar embeddings to reduce storage requirements
-
-##### Caching
-
-The ChromaDB memory store includes a caching layer that reduces disk I/O operations by storing frequently accessed items in memory. This improves performance when the same items are accessed multiple times.
-
-##### Version Tracking
-
-The ChromaDB memory store automatically tracks versions of items when they are updated. This allows you to:
-
-- Retrieve the history of changes to an item
-- Access specific versions of an item
-- See when changes were made
-
-Example usage in code:
-
-```python
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-
-# Initialize the memory system adapter
-adapter = MemorySystemAdapter()
-store = adapter.get_memory_store()
-
-# Get all versions of an item
-versions = store.get_versions("item-id")
-
-# Get the history of an item
-history = store.get_history("item-id")
-
-# Retrieve a specific version of an item
-version2 = store.retrieve_version("item-id", 2)
-```
-
-##### Optimized Embedding Storage
-
-The ChromaDB memory store optimizes the storage of embeddings for similar content, reducing storage requirements and improving performance. This is particularly beneficial when storing multiple items with similar content.
 
 #### Kuzu Memory Store
 

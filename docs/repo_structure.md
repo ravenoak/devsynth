@@ -33,7 +33,7 @@ src/devsynth/
 ├── adapters/                 # External adapters (hexagonal architecture)
 │   ├── __init__.py
 │   ├── cli.py                # CLI adapter
-│   ├── chromadb_memory_store.py  # ChromaDB memory store adapter
+│   ├── kuzu_memory_store.py      # Kuzu memory store adapter
 │   ├── json_file_store.py    # JSON file store adapter
 │   └── provider_system.py    # LLM provider system (OpenAI, LM Studio)
 ├── application/              # Application services
@@ -97,7 +97,7 @@ docs/
 
 - **`src/devsynth/__main__.py`**: Main entry point for the application
 - **`src/devsynth/adapters/provider_system.py`**: Provider abstraction for LLM integration (OpenAI, LM Studio)
-- **`src/devsynth/adapters/chromadb_memory_store.py`**: ChromaDB-based memory store implementation
+- **`src/devsynth/adapters/kuzu_memory_store.py`**: Kuzu-based memory store implementation
 - **`src/devsynth/ports/memory_store.py`**: Memory store interface definition
 - **`src/devsynth/ports/memory_port.py`**: Memory system port for application interaction
 
@@ -111,18 +111,18 @@ docs/
 ### Testing Files
 
 - **`tests/behavior/conftest.py`**: Test fixtures for isolation and cleanliness
-- **`tests/behavior/test_chromadb_integration.py`**: ChromaDB integration tests
+- **`tests/unit/test_kuzu_store.py`**: Kuzu memory store tests
 
 ## File and Symbol Naming Conventions
 
 DevSynth follows these naming conventions:
 
-- **Files**: Snake case (`memory_store.py`, `test_chromadb_integration.py`)
-- **Classes**: Pascal case (`ChromaDBMemoryStore`, `MemoryPort`)
+- **Files**: Snake case (`memory_store.py`, `test_kuzu_store.py`)
+- **Classes**: Pascal case (`KuzuMemoryStore`, `MemoryPort`)
 - **Functions/Methods**: Snake case (`store_memory`, `get_from_context`)
 - **Constants**: Upper snake case (`DEFAULT_CONFIG_PATH`)
-- **Tests**: Prefixed with `test_` (`test_chromadb_integration.py`)
-- **BDD Features**: Descriptive naming (`chromadb_integration.feature`)
+- **Tests**: Prefixed with `test_` (`test_kuzu_store.py`)
+- **BDD Features**: Descriptive naming (`additional_storage_backends.feature`)
 
 ## Metadata Tags and Traceability
 

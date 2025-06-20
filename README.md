@@ -20,7 +20,7 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
-- Unified memory system with ChromaDB, TinyDB, RDFLib, and JSON backends
+- Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends
 - Agent system powered by LangGraph for orchestrated workflows
 - Advanced code analysis using NetworkX
 - Provider abstraction for OpenAI, LM Studio, and more
@@ -112,7 +112,7 @@ Certain features use additional backends that are not installed by default. Inst
 pip install 'devsynth[retrieval]'
 ```
 
-These packages enable the ChromaDB, Kuzu, FAISS, and LMDB memory stores and are required for the tests that cover them.
+These packages enable the Kuzu, FAISS, and LMDB memory stores; support for ChromaDB is presently disabled.
 
 ## Minimal Project Example
 
@@ -163,7 +163,7 @@ poetry install
 poetry sync --all-extras --all-groups
 ```
 
-Some tests and features rely on optional backends like **ChromaDB**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:
+Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** is presently disabled. Install these packages if you plan to use them:
 
 ```bash
 pip install 'devsynth[retrieval]'
