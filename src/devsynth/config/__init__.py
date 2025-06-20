@@ -32,6 +32,7 @@ CONTEXT_EXPIRATION_DAYS = _settings.context_expiration_days
 VECTOR_STORE_ENABLED = _settings.vector_store_enabled
 CHROMADB_COLLECTION_NAME = _settings.chromadb_collection_name
 CHROMADB_DISTANCE_FUNC = _settings.chromadb_distance_func
+ENABLE_CHROMADB = _settings.enable_chromadb
 
 # LLM settings
 LLM_PROVIDER = _settings.provider_type
@@ -71,6 +72,7 @@ __all__ = [
     "VECTOR_STORE_ENABLED",
     "CHROMADB_COLLECTION_NAME",
     "CHROMADB_DISTANCE_FUNC",
+    "ENABLE_CHROMADB",
     # LLM settings
     "LLM_PROVIDER",
     "LLM_API_BASE",

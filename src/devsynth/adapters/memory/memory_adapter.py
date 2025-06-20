@@ -6,7 +6,6 @@ from pathlib import Path
 from ...domain.interfaces.memory import MemoryStore, ContextManager, VectorStore
 from ...application.memory.context_manager import InMemoryStore, SimpleContextManager
 from ...application.memory.json_file_store import JSONFileStore
-from ...application.memory.chromadb_store import ChromaDBStore
 from ...application.memory.tinydb_store import TinyDBStore
 from ...application.memory.duckdb_store import DuckDBStore
 from ...application.memory.lmdb_store import LMDBStore
@@ -15,7 +14,6 @@ from ...application.memory.rdflib_store import RDFLibStore
 from ...adapters.kuzu_memory_store import KuzuMemoryStore
 from ...adapters.memory.kuzu_adapter import KuzuAdapter
 from ...application.memory.persistent_context_manager import PersistentContextManager
-from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
 from ...config.settings import get_settings, ensure_path_exists
 
 # Create a logger for this module
@@ -73,6 +71,9 @@ class MemorySystemAdapter:
         )
         self.chromadb_collection_name = self.config.get(
             "chromadb_collection_name", settings.chromadb_collection_name
+        )
+        self.enable_chromadb = self.config.get(
+            "enable_chromadb", getattr(settings, "enable_chromadb", False)
         )
         self.encryption_at_rest = self.config.get(
             "encryption_at_rest", getattr(settings, "encryption_at_rest", False)
@@ -132,20 +133,39 @@ class MemorySystemAdapter:
             # No vector store for file-based storage by default
             self.vector_store = None
         elif self.storage_type == "chromadb":
-            self.memory_store = ChromaDBStore(self.memory_path)
-            self.context_manager = PersistentContextManager(
-                self.memory_path,
-                max_context_size=self.max_context_size,
-                expiration_days=self.context_expiration_days,
-            )
-            # Initialize vector store if enabled
-            if self.vector_store_enabled:
-                self.vector_store = ChromaDBAdapter(
-                    persist_directory=self.memory_path,
-                    collection_name=self.chromadb_collection_name,
+            if not self.enable_chromadb:
+                logger.warning(
+                    "ChromaDB support disabled via ENABLE_CHROMADB; falling back to in-memory store"
                 )
-            else:
+                self.memory_store = InMemoryStore()
+                self.context_manager = SimpleContextManager()
                 self.vector_store = None
+            else:
+                try:
+                    from ...application.memory.chromadb_store import ChromaDBStore
+                    from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
+                except Exception as e:  # pragma: no cover - optional dependency
+                    logger.warning(
+                        "ChromaDB dependencies not available: %s; using in-memory store",
+                        e,
+                    )
+                    self.memory_store = InMemoryStore()
+                    self.context_manager = SimpleContextManager()
+                    self.vector_store = None
+                else:
+                    self.memory_store = ChromaDBStore(self.memory_path)
+                    self.context_manager = PersistentContextManager(
+                        self.memory_path,
+                        max_context_size=self.max_context_size,
+                        expiration_days=self.context_expiration_days,
+                    )
+                    if self.vector_store_enabled:
+                        self.vector_store = ChromaDBAdapter(
+                            persist_directory=self.memory_path,
+                            collection_name=self.chromadb_collection_name,
+                        )
+                    else:
+                        self.vector_store = None
         elif self.storage_type == "kuzu":
             self.memory_store = KuzuMemoryStore(self.memory_path)
             self.context_manager = PersistentContextManager(

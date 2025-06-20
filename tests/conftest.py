@@ -439,10 +439,16 @@ def is_cli_available() -> bool:
 
 def is_chromadb_available() -> bool:
     """Check if the chromadb package is installed."""
-    if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower() == "false":
+    if os.environ.get("ENABLE_CHROMADB", "false").lower() in {"0", "false", "no"}:
+        return False
+    if (
+        os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower()
+        == "false"
+    ):
         return False
     try:  # pragma: no cover - simple import check
         import chromadb  # noqa: F401
+
         return True
     except Exception:
         return False
@@ -454,6 +460,7 @@ def is_faiss_available() -> bool:
         return False
     try:  # pragma: no cover - simple import check
         import faiss  # noqa: F401
+
         return True
     except Exception:
         return False
@@ -465,6 +472,7 @@ def is_kuzu_available() -> bool:
         return False
     try:  # pragma: no cover - simple import check
         import kuzu  # noqa: F401
+
         return True
     except Exception:
         return False
@@ -476,6 +484,7 @@ def is_lmdb_available() -> bool:
         return False
     try:  # pragma: no cover - simple import check
         import lmdb  # noqa: F401
+
         return True
     except Exception:
         return False
