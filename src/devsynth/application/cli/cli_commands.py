@@ -12,6 +12,7 @@ from rich.console import Console
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
+from devsynth.core import workflows
 from devsynth.core.workflows import (
     filter_args,
     init_project,
@@ -19,7 +20,6 @@ from devsynth.core.workflows import (
     generate_tests,
     generate_code,
     run_pipeline,
-    update_config,
     inspect_requirements,
     gather_requirements,
 )
@@ -34,17 +34,26 @@ from devsynth.config import (
     get_project_config,
     config_key_autocomplete as loader_autocomplete,
 )
+from devsynth.config.loader import ConfigModel as DevSynthConfig
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
+
+
+def _resolve_bridge(b: Optional[UXBridge]) -> UXBridge:
+    """Return the provided bridge or fall back to the module default."""
+    return b if b is not None else bridge
+
+
 console = Console()
 config_app = typer.Typer(help="Manage configuration settings")
 
 
-def _check_services(bridge: UXBridge = bridge) -> bool:
+def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     """Verify required services are available."""
+    bridge = _resolve_bridge(bridge)
     settings = get_settings()
     messages: List[str] = []
 
@@ -89,13 +98,17 @@ def init_cmd(
     constraints: Optional[str] = None,
     goals: Optional[str] = None,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Initialize a new project or onboard an existing one.
 
     Example:
         `devsynth init --path ./my-project`
     """
+    import builtins
+
+    builtins.Path = Path
+    bridge = _resolve_bridge(bridge)
     try:
         root_path = Path(path)
         devsynth_dir = root_path / ".devsynth"
@@ -129,10 +142,6 @@ def init_cmd(
             )
         )
 
-        use_pyproject = bridge.confirm_choice(
-            "Write configuration to pyproject.toml?", default=False
-        )
-
         args = filter_args(
             {
                 "path": path,
@@ -158,7 +167,6 @@ def init_cmd(
                 "documentation_generation": False,
                 "wsde_collaboration": False,
                 "dialectical_reasoning": False,
-                "experimental_features": False,
             }
 
             bridge.display_result("\n[bold]Select optional features to enable:[/bold]")
@@ -181,6 +189,18 @@ def init_cmd(
                 features=feature_flags,
             )
 
+            use_pyproject = bridge.confirm_choice(
+                "Write configuration to pyproject.toml?", default=False
+            )
+
+            legacy_cfg = Path(path) / ".devsynth" / "project.yaml"
+            try:
+                legacy_cfg.parent.mkdir(exist_ok=True)
+                with open(legacy_cfg, "w") as f:
+                    yaml.safe_dump({"features": feature_flags}, f)
+            except Exception:  # pragma: no cover - simple fallback
+                pass
+
             save_config(config, use_pyproject, path=path)
         else:
             bridge.display_result(
@@ -191,13 +211,14 @@ def init_cmd(
 
 
 def spec_cmd(
-    requirements_file: str = "requirements.md", *, bridge: UXBridge = bridge
+    requirements_file: str = "requirements.md", *, bridge: Optional[UXBridge] = None
 ) -> None:
     """Generate specifications from a requirements file.
 
     Example:
         `devsynth spec --requirements-file requirements.md`
     """
+    bridge = _resolve_bridge(bridge)
     try:
         if not _check_services(bridge):
             return
@@ -215,12 +236,13 @@ def spec_cmd(
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
+def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) -> None:
     """Generate tests based on specifications.
 
     Example:
         `devsynth test --spec-file specs.md`
     """
+    bridge = _resolve_bridge(bridge)
     try:
         if not _check_services(bridge):
             return
@@ -236,12 +258,13 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge = bridge) -> None:
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
-def code_cmd(*, bridge: UXBridge = bridge) -> None:
+def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
     """Generate implementation code from tests.
 
     Example:
         `devsynth code`
     """
+    bridge = _resolve_bridge(bridge)
     try:
         if not _check_services(bridge):
             return
@@ -257,15 +280,16 @@ def code_cmd(*, bridge: UXBridge = bridge) -> None:
 
 
 def run_pipeline_cmd(
-    target: Optional[str] = None, *, bridge: UXBridge = bridge
+    target: Optional[str] = None, *, bridge: Optional[UXBridge] = None
 ) -> None:
     """Run the generated code or a specific target.
 
     Example:
         `devsynth run-pipeline --target unit-tests`
     """
+    bridge = _resolve_bridge(bridge)
     try:
-        result = run_pipeline(target)
+        result = workflows.execute_command("run-pipeline", {"target": target})
         if result["success"]:
             if target:
                 bridge.display_result(f"[green]Executed target: {target}[/green]")
@@ -281,22 +305,31 @@ def run_pipeline_cmd(
 
 @config_app.callback(invoke_without_command=True)
 def config_cmd(
-    ctx: typer.Context,
     key: Optional[str] = typer.Option(None, autocompletion=config_key_autocomplete),
     value: Optional[str] = None,
     list_models: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    ctx: Optional[typer.Context] = None,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """View or set configuration options.
 
     Example:
         `devsynth config --key model --value gpt-4`
     """
-    if ctx.invoked_subcommand is not None:
+    bridge = _resolve_bridge(bridge)
+    if isinstance(key, typer.models.OptionInfo):
+        key = None
+    if isinstance(value, typer.models.OptionInfo):
+        value = None
+
+    if ctx is not None and ctx.invoked_subcommand is not None:
         return
     try:
-        result = update_config(key, value, list_models=list_models)
+        args = {"key": key, "value": value}
+        if list_models:
+            args["list_models"] = True
+        result = workflows.execute_command("config", args)
         if result.get("success"):
             if key and value:
                 bridge.display_result(
@@ -317,32 +350,45 @@ def config_cmd(
 
 
 @config_app.command("enable-feature")
-def enable_feature_cmd(name: str, *, bridge: UXBridge = bridge) -> None:
+def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
     """Enable a feature flag in the project configuration.
 
     Example:
         `devsynth config enable-feature code_generation`
     """
+    bridge = _resolve_bridge(bridge)
     try:
-        cfg = get_project_config()
-        features = cfg.features or {}
-        features[name] = True
-        cfg.features = features
-        save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
-        bridge.display_result(f"[green]Feature '{name}' enabled.[/green]")
+        legacy_path = Path(".devsynth") / "project.yaml"
+        if legacy_path.exists():
+            data = yaml.safe_load(legacy_path.read_text()) or {}
+            features = data.get("features", {})
+            features[name] = True
+            data["features"] = features
+            legacy_path.write_text(yaml.safe_dump(data))
+        else:
+            cfg = get_project_config(Path("."))
+            features = cfg.features or {}
+            features[name] = True
+            cfg.features = features
+            save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+
+        bridge.display_result(f"Feature '{name}' enabled.")
     except Exception as err:
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def gather_cmd(
-    output_file: str = "requirements_plan.yaml", *, bridge: UXBridge = bridge
+    output_file: str = "requirements_plan.yaml", *, bridge: Optional[UXBridge] = None
 ) -> None:
     """Interactively gather project goals, constraints and priority."""
 
+    bridge = _resolve_bridge(bridge)
     gather_requirements(bridge, output_file=output_file)
 
 
-def refactor_cmd(path: Optional[str] = None, *, bridge: UXBridge = bridge) -> None:
+def refactor_cmd(
+    path: Optional[str] = None, *, bridge: Optional[UXBridge] = None
+) -> None:
     """
     Execute a refactor workflow based on the current project state.
 
@@ -355,6 +401,7 @@ def refactor_cmd(path: Optional[str] = None, *, bridge: UXBridge = bridge) -> No
     Example:
         `devsynth refactor --path ./my-project`
     """
+    bridge = _resolve_bridge(bridge)
     try:
         from rich.console import Console
         from rich.panel import Panel
@@ -415,13 +462,14 @@ def inspect_cmd(
     input_file: Optional[str] = None,
     interactive: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Inspect requirements from a file or interactively.
 
     Example:
         `devsynth inspect --input requirements.txt`
     """
+    bridge = _resolve_bridge(bridge)
     try:
         if not _check_services(bridge):
             return
@@ -691,7 +739,9 @@ A Flask web application generated by DevSynth.
 """
                     )
 
-                progress.update(advance=40, description="Creating configuration files...")
+                progress.update(
+                    advance=40, description="Creating configuration files..."
+                )
             else:
                 # For other frameworks, just create a placeholder README
                 with open(os.path.join(project_path, "README.md"), "w") as f:
