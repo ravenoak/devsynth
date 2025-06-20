@@ -301,7 +301,7 @@ API keys use their standard environment variable names:
 
 ### Memory Configuration
 
-DevSynth supports multiple memory store types for storing and retrieving memory items. ChromaDB support is presently disabled; Kuzu is the recommended persistent backend.
+DevSynth supports multiple memory store types for storing and retrieving memory items. ChromaDB can be enabled later, but only the embedded backend is currently supported. Kuzu is the recommended persistent backend.
 
 #### In-Memory Store
 
@@ -330,8 +330,8 @@ The `kuzu` memory store type uses KuzuDB as a lightweight database for persisten
 ```bash
 # Configure Kuzu store
 devsynth config --key memory_store_type --value kuzu
-devsynth config --key memory_file_path --value /path/to/kuzu/directory
-devsynth config --key kuzu_db_path --value /path/to/kuzu.db
+devsynth config --key memory_file_path --value ~/.devsynth/kuzu
+devsynth config --key kuzu_db_path --value ~/.devsynth/kuzu/kuzu.db
 devsynth config --key kuzu_embedded --value true
 ```
 

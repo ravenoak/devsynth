@@ -45,7 +45,10 @@ logger = DevSynthLogger(__name__)
 def build_app() -> typer.Typer:
     """Create a Typer application with all commands registered."""
     app = typer.Typer(
-        help="DevSynth CLI - Iterative 'expand, differentiate, refine' automation",
+        help=(
+            "DevSynth CLI - Iterative 'expand, differentiate, refine' automation. "
+            "ChromaDB can be enabled later, but only the embedded backend is currently supported."
+        ),
     )
 
     # Mount the requirements sub-app
