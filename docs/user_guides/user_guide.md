@@ -218,7 +218,7 @@ DevSynth can be configured using the `config` command or by editing the configur
 | `endpoint` | LM Studio API endpoint | `http://localhost:1234/v1` | Any valid URL |
 | `openai_api_key` | OpenAI API key for using OpenAI models | None | Valid OpenAI API key |
 | `serper_api_key` | Serper API key for web search functionality | None | Valid Serper API key |
-| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `chromadb` |
+| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `chromadb`, `kuzu` |
 
 ### Environment Variables and .env Files
 
@@ -374,6 +374,22 @@ version2 = store.retrieve_version("item-id", 2)
 ##### Optimized Embedding Storage
 
 The ChromaDB memory store optimizes the storage of embeddings for similar content, reducing storage requirements and improving performance. This is particularly beneficial when storing multiple items with similar content.
+
+#### Kuzu Memory Store
+
+The `kuzu` memory store type uses KuzuDB as a lightweight database for persistent storage. If the `kuzu` Python package is unavailable, the store falls back to an in-memory implementation.
+
+```bash
+# Configure Kuzu store
+devsynth config --key memory_store_type --value kuzu
+devsynth config --key memory_file_path --value /path/to/kuzu/directory
+```
+
+Key features of the Kuzu memory store:
+
+- **Embedded Database**: Stores memory items in KuzuDB for fast local access
+- **Vector Support**: Integrates a simple vector adapter for similarity search
+- **Fallback Mode**: Automatically falls back to an in-memory store when KuzuDB is not available
 
 ## Workflow Guide
 

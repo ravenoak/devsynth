@@ -18,6 +18,8 @@ try:
     from devsynth.application.memory.faiss_store import FAISSStore
 except ImportError:  # pragma: no cover - optional dependency
     FAISSStore = None
+from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.application.memory.rdflib_store import RDFLibStore
 from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
 from devsynth.application.memory.persistent_context_manager import PersistentContextManager
@@ -118,6 +120,24 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.memory_store, LMDBStore)
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is None
+
+    def test_init_with_kuzu_storage(self, temp_dir):
+        """Test initialization with Kuzu storage."""
+        config = {
+            "memory_store_type": "kuzu",
+            "memory_file_path": temp_dir,
+            "max_context_size": 1000,
+            "context_expiration_days": 1,
+            "vector_store_enabled": True,
+        }
+        adapter = MemorySystemAdapter(config=config)
+
+        assert adapter.storage_type == "kuzu"
+        assert adapter.memory_path == temp_dir
+        assert isinstance(adapter.memory_store, KuzuMemoryStore)
+        assert isinstance(adapter.context_manager, PersistentContextManager)
+        assert adapter.vector_store is not None
+        assert isinstance(adapter.vector_store, KuzuAdapter)
 
     @pytest.mark.requires_resource("faiss")
     def test_init_with_faiss_storage(self, temp_dir):
