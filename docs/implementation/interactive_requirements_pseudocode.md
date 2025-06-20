@@ -29,3 +29,9 @@ class RequirementsCollector:
 ```
 
 This approach ensures identical prompts appear in the CLI and the WebUI without duplicating logic.
+
+## Current Limitations
+
+The interactive requirements collection flow is not implemented yet. Error
+handling, persistent storage of answers, and real-time validation remain future
+work.

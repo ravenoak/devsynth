@@ -30,3 +30,8 @@ function handle_request(request):
 ```
 
 Each route invokes the corresponding workflow and returns a simple response object.
+
+## Current Limitations
+
+This API is illustrative only. The service routes are not yet implemented and
+authentication, error handling, and streaming responses remain to be designed.

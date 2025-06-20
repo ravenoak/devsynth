@@ -29,3 +29,8 @@ function run_workflow():
 ```
 
 This flow enables a shared implementation for both the command-line interface in `interface/cli` and the future WebUI.
+
+## Current Limitations
+
+The `UXBridge` abstraction is still conceptual. A concrete interface layer and
+end-to-end tests have not yet been created, and WebUI support is incomplete.
