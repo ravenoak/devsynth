@@ -459,6 +459,17 @@ def is_faiss_available() -> bool:
         return False
 
 
+def is_kuzu_available() -> bool:
+    """Check if the kuzu package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import kuzu  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
 def is_lmdb_available() -> bool:
     """Check if the lmdb package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
@@ -500,6 +511,7 @@ def is_resource_available(resource: str) -> bool:
         "cli": is_cli_available,
         "chromadb": is_chromadb_available,
         "faiss": is_faiss_available,
+        "kuzu": is_kuzu_available,
         "lmdb": is_lmdb_available,
     }
 

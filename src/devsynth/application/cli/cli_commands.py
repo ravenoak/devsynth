@@ -63,6 +63,12 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
             messages.append(
                 "ChromaDB support is enabled but the 'chromadb' package is missing."
             )
+    # Check Kuzu availability when vector store is enabled
+    if settings.vector_store_enabled and settings.memory_store_type == "kuzu":
+        if importlib.util.find_spec("kuzu") is None:
+            messages.append(
+                "Kuzu support is enabled but the 'kuzu' package is missing."
+            )
 
     # Check LLM provider configuration
     provider = settings.provider_type

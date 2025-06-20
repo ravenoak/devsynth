@@ -112,7 +112,7 @@ Certain features use additional backends that are not installed by default. Inst
 pip install 'devsynth[retrieval]'
 ```
 
-These packages enable the ChromaDB, FAISS, and LMDB memory stores and are required for the tests that cover them.
+These packages enable the ChromaDB, Kuzu, FAISS, and LMDB memory stores and are required for the tests that cover them.
 
 ## Minimal Project Example
 

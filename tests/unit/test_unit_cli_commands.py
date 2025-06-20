@@ -521,6 +521,35 @@ class TestCLICommands:
                 for call in mock_bridge.display_result.call_args_list
             )
 
+    def test_spec_cmd_missing_kuzu_package(
+        self, mock_workflow_manager, mock_bridge
+    ):
+        """spec_cmd should warn when Kuzu package is unavailable."""
+
+        class DummySettings:
+            vector_store_enabled = True
+            memory_store_type = "kuzu"
+            provider_type = "openai"
+            openai_api_key = "key"
+            lm_studio_endpoint = None
+
+        with patch(
+            "devsynth.application.cli.cli_commands.get_settings",
+            return_value=DummySettings,
+        ), patch(
+            "devsynth.application.cli.cli_commands.importlib.util.find_spec",
+            return_value=None,
+        ), patch(
+            "devsynth.application.cli.cli_commands._check_services",
+            new=ORIG_CHECK_SERVICES,
+        ):
+            spec_cmd("req.md")
+            mock_workflow_manager.assert_not_called()
+            assert any(
+                "kuzu" in call.args[0].lower()
+                for call in mock_bridge.display_result.call_args_list
+            )
+
     def test_config_key_autocomplete(self, tmp_path, monkeypatch):
         cfg_dir = tmp_path / ".devsynth"
         cfg_dir.mkdir()

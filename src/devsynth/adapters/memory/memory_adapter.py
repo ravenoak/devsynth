@@ -12,6 +12,8 @@ from ...application.memory.duckdb_store import DuckDBStore
 from ...application.memory.lmdb_store import LMDBStore
 from ...application.memory.faiss_store import FAISSStore
 from ...application.memory.rdflib_store import RDFLibStore
+from ...adapters.kuzu_memory_store import KuzuMemoryStore
+from ...adapters.memory.kuzu_adapter import KuzuAdapter
 from ...application.memory.persistent_context_manager import PersistentContextManager
 from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
 from ...config.settings import get_settings, ensure_path_exists
@@ -112,7 +114,7 @@ class MemorySystemAdapter:
             create_paths: If True, ensure the memory directory exists
         """
         # Ensure the memory directory exists if needed and requested
-        if create_paths and self.storage_type in ["file", "chromadb"]:
+        if create_paths and self.storage_type in ["file", "chromadb", "kuzu"]:
             self.memory_path = ensure_path_exists(self.memory_path, create=create_paths)
 
         # Initialize the appropriate store and context manager
@@ -139,6 +141,20 @@ class MemorySystemAdapter:
             # Initialize vector store if enabled
             if self.vector_store_enabled:
                 self.vector_store = ChromaDBAdapter(
+                    persist_directory=self.memory_path,
+                    collection_name=self.chromadb_collection_name,
+                )
+            else:
+                self.vector_store = None
+        elif self.storage_type == "kuzu":
+            self.memory_store = KuzuMemoryStore(self.memory_path)
+            self.context_manager = PersistentContextManager(
+                self.memory_path,
+                max_context_size=self.max_context_size,
+                expiration_days=self.context_expiration_days,
+            )
+            if self.vector_store_enabled:
+                self.vector_store = KuzuAdapter(
                     persist_directory=self.memory_path,
                     collection_name=self.chromadb_collection_name,
                 )
@@ -217,9 +233,14 @@ class MemorySystemAdapter:
 
         logger.info(f"Initialized memory system with storage type: {self.storage_type}")
         if self.vector_store:
-            logger.info(
-                f"Vector store enabled with ChromaDB collection: {self.chromadb_collection_name}"
-            )
+            if self.storage_type == "chromadb":
+                logger.info(
+                    f"Vector store enabled with ChromaDB collection: {self.chromadb_collection_name}"
+                )
+            elif self.storage_type == "kuzu":
+                logger.info("Vector store enabled with Kuzu adapter")
+            else:
+                logger.info("Vector store enabled")
 
     def get_memory_store(self) -> MemoryStore:
         """Get the memory store."""
@@ -398,7 +419,7 @@ class MemorySystemAdapter:
             "memory_store_type": storage_type,
             "max_context_size": 1000,  # Small context size for tests
             "context_expiration_days": 1,  # Short expiration for tests
-            "vector_store_enabled": storage_type == "chromadb",
+            "vector_store_enabled": storage_type in ["chromadb", "kuzu"],
         }
 
         if memory_path:
