@@ -4,17 +4,19 @@ Configuration settings for the DevSynth system.
 
 import os
 import re
-from typing import Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, Optional
+
 import toml
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError, ConfigurationError
+from devsynth.exceptions import ConfigurationError, DevSynthError
+
 from .loader import load_config
 
 
@@ -34,8 +36,9 @@ def _parse_bool_env(value: Any, field: str) -> bool:
     )
 
 
-from .loader import load_config
 import toml
+
+from .loader import load_config
 
 
 def is_devsynth_managed_project(project_dir: str = None) -> bool:
@@ -45,7 +48,7 @@ def is_devsynth_managed_project(project_dir: str = None) -> bool:
     A project is considered managed by DevSynth if it has a .devsynth/devsynth.yml
     file or a pyproject.toml with a [tool.devsynth] section. The presence of a
     .devsynth/ directory is still treated as the primary marker.
-    
+
     Args:
         project_dir: Path to the project directory. If None, uses the current working directory.
 
@@ -144,6 +147,11 @@ class Settings(BaseSettings):
             "memory_store_type": lambda s: os.environ.get(
                 "DEVSYNTH_MEMORY_STORE", "memory"
             ),
+            "kuzu_db_path": lambda s: os.environ.get("DEVSYNTH_KUZU_DB_PATH", None),
+            "kuzu_embedded": lambda s: os.environ.get(
+                "DEVSYNTH_KUZU_EMBEDDED", "true"
+            ).lower()
+            in ["true", "1", "yes"],
             "openai_api_key": lambda s: os.environ.get("OPENAI_API_KEY", None),
             "access_token": lambda s: os.environ.get("DEVSYNTH_ACCESS_TOKEN", None),
         }
@@ -173,6 +181,12 @@ class Settings(BaseSettings):
     )
     memory_file_path: str = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_MEMORY_PATH"}
+    )
+    kuzu_db_path: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_KUZU_DB_PATH"}
+    )
+    kuzu_embedded: bool = Field(
+        default=True, json_schema_extra={"env": "DEVSYNTH_KUZU_EMBEDDED"}
     )
     max_context_size: int = Field(
         default=1000, json_schema_extra={"env": "DEVSYNTH_MAX_CONTEXT_SIZE"}
@@ -289,6 +303,10 @@ class Settings(BaseSettings):
         mode="before",
     )
     def validate_security_bool(cls, v, info):
+        return _parse_bool_env(v, info.field_name)
+
+    @field_validator("kuzu_embedded", mode="before")
+    def validate_kuzu_embedded(cls, v, info):
         return _parse_bool_env(v, info.field_name)
 
     @field_validator("memory_file_path", mode="before")

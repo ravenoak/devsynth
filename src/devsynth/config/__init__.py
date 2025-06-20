@@ -3,10 +3,10 @@ Configuration module for DevSynth.
 """
 
 import os
-
-from .settings import get_settings, get_llm_settings, load_dotenv, _settings
 from pathlib import Path
-from .loader import ConfigModel, load_config, save_config, config_key_autocomplete
+
+from .loader import ConfigModel, config_key_autocomplete, load_config, save_config
+from .settings import _settings, get_llm_settings, get_settings, load_dotenv
 
 _PROJECT_CONFIG: ConfigModel = load_config()
 PROJECT_CONFIG = _PROJECT_CONFIG
@@ -23,7 +23,8 @@ def get_project_config(path: Path | None = None) -> ConfigModel:
 # Expose settings as module-level variables for backward compatibility
 MEMORY_STORE_TYPE = _settings.memory_store_type
 MEMORY_FILE_PATH = _settings.memory_file_path
-KUZU_DB_PATH = _settings.memory_file_path
+KUZU_DB_PATH = _settings.kuzu_db_path
+KUZU_EMBEDDED = _settings.kuzu_embedded
 MAX_CONTEXT_SIZE = _settings.max_context_size
 CONTEXT_EXPIRATION_DAYS = _settings.context_expiration_days
 
@@ -63,6 +64,7 @@ __all__ = [
     "MEMORY_STORE_TYPE",
     "MEMORY_FILE_PATH",
     "KUZU_DB_PATH",
+    "KUZU_EMBEDDED",
     "MAX_CONTEXT_SIZE",
     "CONTEXT_EXPIRATION_DAYS",
     # Vector store settings

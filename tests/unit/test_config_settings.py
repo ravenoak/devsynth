@@ -5,10 +5,11 @@ Unit tests for the configuration settings module.
 import os
 import tempfile
 from pathlib import Path
-import pytest
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
-from devsynth.config.settings import get_settings, get_llm_settings, load_dotenv
+import pytest
+
+from devsynth.config.settings import get_llm_settings, get_settings, load_dotenv
 from devsynth.exceptions import ConfigurationError
 
 
@@ -162,3 +163,21 @@ class TestConfigSettings:
         with patch.dict(os.environ, {"OPENAI_API_KEY": " "}):
             with pytest.raises(ConfigurationError):
                 get_settings(reload=True)
+
+    def test_kuzu_settings_defaults(self):
+        """kuzu settings should use defaults when env vars are not set."""
+        with patch.dict(os.environ, {}, clear=True):
+            settings = get_settings(reload=True)
+            assert settings["kuzu_db_path"] is None
+            assert settings["kuzu_embedded"] is True
+
+    def test_kuzu_settings_from_env(self):
+        """kuzu settings should respect environment variables."""
+        env = {
+            "DEVSYNTH_KUZU_DB_PATH": "/tmp/kuzu.db",
+            "DEVSYNTH_KUZU_EMBEDDED": "false",
+        }
+        with patch.dict(os.environ, env, clear=True):
+            settings = get_settings(reload=True)
+            assert settings["kuzu_db_path"] == "/tmp/kuzu.db"
+            assert settings["kuzu_embedded"] is False

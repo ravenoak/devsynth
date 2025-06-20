@@ -264,6 +264,8 @@ DevSynth-specific configuration variables use the `DEVSYNTH_` prefix:
 |----------------------|------------------|
 | `DEVSYNTH_MEMORY_STORE` | `memory_store_type` |
 | `DEVSYNTH_MEMORY_PATH` | `memory_file_path` |
+| `DEVSYNTH_KUZU_DB_PATH` | `kuzu_db_path` |
+| `DEVSYNTH_KUZU_EMBEDDED` | `kuzu_embedded` |
 | `DEVSYNTH_MAX_CONTEXT_SIZE` | `max_context_size` |
 | `DEVSYNTH_CONTEXT_EXPIRATION_DAYS` | `context_expiration_days` |
 | `DEVSYNTH_LLM_PROVIDER` | `llm_provider` |
@@ -383,6 +385,8 @@ The `kuzu` memory store type uses KuzuDB as a lightweight database for persisten
 # Configure Kuzu store
 devsynth config --key memory_store_type --value kuzu
 devsynth config --key memory_file_path --value /path/to/kuzu/directory
+devsynth config --key kuzu_db_path --value /path/to/kuzu.db
+devsynth config --key kuzu_embedded --value true
 ```
 
 Key features of the Kuzu memory store:
