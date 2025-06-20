@@ -252,13 +252,14 @@ Before executing tests, install DevSynth with its development extras so that all
 test dependencies are available. Use either:
 
 ```bash
-pip install -e .[dev]
+pip install -e '.[dev]'
 ```
 
 or
 
 ```bash
 poetry install
+poetry sync --all-extras --all-groups
 ```
 
 ### Running All Tests

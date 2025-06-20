@@ -41,11 +41,12 @@ cd devsynth
 
 # Install dependencies
 poetry install
+poetry sync --all-extras --all-groups
 
 # Alternatively, install with pip or pipx using extras
-pip install .[dev]
+pip install 'devsynth[dev]'
 # or
-pipx install --editable .[dev]
+pipx install --editable 'devsynth[dev]'
 
 # Activate virtual environment
 poetry shell
