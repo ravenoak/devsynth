@@ -2,6 +2,7 @@ import pytest
 import os
 import shutil
 import tempfile
+from unittest.mock import patch
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
@@ -16,6 +17,14 @@ class TestMemorySystemWithKuzu:
         temp_dir = tempfile.mkdtemp()
         yield temp_dir
         shutil.rmtree(temp_dir)
+
+    @pytest.fixture(autouse=True)
+    def mock_embed(self):
+        with patch(
+            "devsynth.adapters.kuzu_memory_store.embed",
+            return_value=[[0.1, 0.2, 0.3]],
+        ):
+            yield
 
     @pytest.fixture
     def memory_system(self, temp_dir):

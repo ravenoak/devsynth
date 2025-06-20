@@ -3,6 +3,14 @@ Unit tests for the enhanced ChromaDBStore class.
 """
 import pytest
 import os
+
+chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
+    "0",
+    "false",
+    "no",
+}
+if not chromadb_enabled:
+    pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 import json
 import shutil
 import tempfile
