@@ -154,18 +154,21 @@ class TestWSDETeam:
         js_agent = mock_agent_with_expertise("JSAgent", ["javascript", "frontend", "web"])
         design_agent = mock_agent_with_expertise("DesignAgent", ["design", "ui", "ux"])
         test_agent = mock_agent_with_expertise("TestAgent", ["testing", "qa", "pytest"])
+        doc_agent = mock_agent_with_expertise("DocAgent", ["documentation", "markdown"])
 
         # Add agents to the team
         team.add_agent(python_agent)
         team.add_agent(js_agent)
         team.add_agent(design_agent)
         team.add_agent(test_agent)
+        team.add_agent(doc_agent)
 
         # Define tasks requiring different expertise
         python_task = {"type": "coding", "language": "python", "domain": "backend"}
         js_task = {"type": "coding", "language": "javascript", "domain": "frontend"}
         design_task = {"type": "design", "focus": "ui", "platform": "web"}
         test_task = {"type": "testing", "framework": "pytest", "scope": "unit"}
+        doc_task = {"type": "documentation", "tool": "markdown"}
 
         # Test that the correct agent is selected as Primus for each task
         team.select_primus_by_expertise(python_task)
@@ -179,6 +182,9 @@ class TestWSDETeam:
 
         team.select_primus_by_expertise(test_task)
         assert team.get_primus() == test_agent
+
+        team.select_primus_by_expertise(doc_task)
+        assert team.get_primus() == doc_agent
 
     def test_peer_based_structure(self, mock_agent_with_expertise):
         """Test that all agents are treated as peers with no permanent hierarchy."""
