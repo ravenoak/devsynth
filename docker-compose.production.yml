@@ -9,13 +9,8 @@ services:
     environment:
       - DEVSYNTH_ENV=production
       - DEVSYNTH_LOG_LEVEL=INFO
-      - DEVSYNTH_MEMORY_STORE=chromadb
-      - DEVSYNTH_CHROMADB_HOST=chromadb
-      - DEVSYNTH_CHROMADB_PORT=8000
     volumes:
       - devsynth-data:/data/devsynth
-    depends_on:
-      - chromadb
     ports:
       - "8000:8000"
     networks:
@@ -41,23 +36,6 @@ services:
     profiles:
       - cli
 
-  chromadb:
-    image: ghcr.io/chroma-core/chroma:latest
-    volumes:
-      - chromadb-data:/chroma/chroma
-    ports:
-      - "8001:8000"
-    environment:
-      - CHROMA_DB_IMPL=duckdb+parquet
-      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
-    networks:
-      - devsynth-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
 
   prometheus:
     image: prom/prometheus
@@ -82,8 +60,6 @@ services:
       - devsynth-network
 
 volumes:
-  chromadb-data:
-    name: devsynth-chromadb-data
   grafana-data:
     name: devsynth-grafana-data
   devsynth-data:

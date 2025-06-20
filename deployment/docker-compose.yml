@@ -13,12 +13,7 @@ services:
     environment:
       - DEVSYNTH_ENV=development
       - DEVSYNTH_LOG_LEVEL=DEBUG
-      - DEVSYNTH_MEMORY_STORE=chromadb
       - DEVSYNTH_LLM_PROVIDER=openai
-      - DEVSYNTH_CHROMADB_HOST=chromadb
-      - DEVSYNTH_CHROMADB_PORT=8000
-    depends_on:
-      - chromadb
     networks:
       - devsynth-network
     healthcheck:
@@ -29,28 +24,6 @@ services:
       start_period: 5s
     restart: unless-stopped
 
-  chromadb:
-    image: ghcr.io/chroma-core/chroma:latest
-    volumes:
-      - chromadb-data:/chroma/chroma
-    ports:
-      - "8001:8000"
-    environment:
-      - CHROMA_DB_IMPL=duckdb+parquet
-      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
-    networks:
-      - devsynth-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    restart: unless-stopped
-
-volumes:
-  chromadb-data:
-    name: devsynth-chromadb-data
 
 networks:
   devsynth-network:
