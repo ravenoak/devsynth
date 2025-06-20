@@ -3,7 +3,7 @@
 This package ensures the test suite can import ``devsynth`` from the
 working tree.  If the package isn't already installed in editable mode,
 it installs it before tests are collected.  This mirrors the behaviour
-of CI workflows which call ``pip install -e .[dev]``.
+of CI workflows which call ``pip install -e '.[dev]'``.
 """
 
 from __future__ import annotations

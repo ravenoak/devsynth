@@ -175,6 +175,7 @@ Before running tests, you **must** install DevSynth with the development extras:
 pip install -e '.[dev]'
 # or
 poetry install
+poetry sync --all-extras --all-groups
 ```
 
 For a minimal install you can use:
@@ -186,7 +187,7 @@ pip install -e '.[minimal,dev]'
 Optional backends such as **ChromaDB**, **FAISS**, or **LMDB** require extra packages:
 
 ```bash
-pip install chromadb faiss-cpu lmdb
+pip install 'devsynth[retrieval]'
 ```
 
 To run tests for a specific type:

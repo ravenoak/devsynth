@@ -98,6 +98,8 @@ You can install DevSynth in a few different ways:
    pip install -e '.[minimal,dev]'
    # or
    poetry install
+   # or for all optional dependencies
+   poetry sync --all-extras --all-groups
    ```
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
@@ -157,6 +159,8 @@ Before running the test suite, you **must** install DevSynth with its developmen
 pip install -e '.[dev]'
 # or
 poetry install
+# or to install everything
+poetry sync --all-extras --all-groups
 ```
 
 Some tests and features rely on optional backends like **ChromaDB**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:

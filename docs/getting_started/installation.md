@@ -39,10 +39,11 @@ git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
 # Install with development dependencies
-pip install -e .[dev]
+pip install -e '.[dev]'
 
 # Or use Poetry
 poetry install
+poetry sync --all-extras --all-groups
 poetry shell
 ```
 
