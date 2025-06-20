@@ -5475,13 +5475,13 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
-dev = ["astor", "duckdb", "faiss-cpu", "lmdb", "rdflib", "tiktoken", "tinydb"]
+dev = ["astor", "duckdb", "faiss-cpu", "httpx", "lmdb", "rdflib", "tiktoken", "tinydb"]
 docs = []
 dsp = ["dspy-ai"]
-minimal = ["astor", "duckdb", "faiss-cpu", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
+minimal = ["astor", "duckdb", "faiss-cpu", "httpx", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
 retrieval = ["faiss-cpu"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.11"
-content-hash = "e114b7fa08ec605e4ca2b7b8b2d28dd6ec9c512af96e5f7057f4014dd818c52a"
+content-hash = "62447607b16fd14c6cbd0f779901b96a9fdfef3dcf1be22bc1f42217bf3375ef"
