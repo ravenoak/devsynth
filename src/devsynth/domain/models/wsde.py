@@ -302,34 +302,71 @@ class WSDETeam:
         return match_score
 
     def select_primus_by_expertise(self, task: Dict[str, Any]) -> None:
-        """
-        Select a Primus based on task context and agent expertise.
+        """Select the Primus based on task context and agent expertise.
 
-        This implements context-driven leadership where the agent with the most
-        relevant expertise for the current task becomes the temporary Primus.
+        Agents that haven't yet served as Primus are prioritised. The task
+        context is flattened so that nested structures contribute to the
+        expertise score. Documentation tasks explicitly favour agents with
+        documentation-oriented expertise.
 
         Args:
-            task: A dictionary containing task details and requirements
+            task: A dictionary describing the task requirements.
         """
+
         if not self.agents:
             return
 
-        best_agent_index = self.primus_index
-        best_match_score = -1.0
+        def _flatten(prefix: str, value: Any, out: Dict[str, Any]) -> None:
+            if isinstance(value, dict):
+                for k, v in value.items():
+                    _flatten(f"{prefix}_{k}" if prefix else k, v, out)
+            elif isinstance(value, list):
+                for idx, item in enumerate(value):
+                    _flatten(f"{prefix}_{idx}" if prefix else str(idx), item, out)
+            else:
+                out[prefix] = value
 
-        for i, agent in enumerate(self.agents):
-            match_score = self._calculate_expertise_score(agent, task)
-            if match_score > best_match_score:
-                best_match_score = match_score
-                best_agent_index = i
+        context: Dict[str, Any] = {}
+        _flatten("", task, context)
 
-        # Update the Primus index
-        self.primus_index = best_agent_index
+        unused_indices = [
+            i for i, a in enumerate(self.agents) if not getattr(a, "has_been_primus", False)
+        ]
+        candidate_indices = unused_indices or list(range(len(self.agents)))
 
-        # Mark the new Primus as having been Primus
+        if task.get("type") == "documentation":
+            doc_candidates = []
+            for i in candidate_indices:
+                expertise = []
+                a = self.agents[i]
+                if hasattr(a, "expertise"):
+                    expertise = a.expertise or []
+                elif (
+                    hasattr(a, "config")
+                    and hasattr(a.config, "parameters")
+                    and "expertise" in a.config.parameters
+                ):
+                    expertise = a.config.parameters["expertise"] or []
+                if any(kw in [e.lower() for e in expertise] for kw in ["documentation", "markdown", "doc_generation"]):
+                    doc_candidates.append(i)
+
+            if doc_candidates:
+                candidate_indices = doc_candidates
+
+        best_index = candidate_indices[0]
+        best_score = -1.0
+        for i in candidate_indices:
+            score = self._calculate_expertise_score(self.agents[i], context)
+            if score > best_score:
+                best_score = score
+                best_index = i
+
+        if not unused_indices:
+            for a in self.agents:
+                a.has_been_primus = False
+
+        self.primus_index = best_index
         self.agents[self.primus_index].has_been_primus = True
-
-        # Update roles
         self.assign_roles()
 
     def get_primus(self) -> Optional[Any]:
