@@ -96,6 +96,7 @@ dev = [
     "rdflib",
     "astor",
     "chromadb",
+    "networkx",
     "tiktoken",
     "tinydb",
     "duckdb",

@@ -47,4 +47,14 @@ poetry sync --all-extras --all-groups
 poetry shell
 ```
 
+### Running the Full Test Suite
+
+To execute all tests you need the optional packages installed by the `dev`
+extras. Key dependencies include `rdflib`, `tinydb`, `chromadb`, `astor`, and
+`networkx`. Install them along with the project:
+
+```bash
+pip install -e '.[dev]'
+```
+
 For more details, see the [Quick Start Guide](../getting_started/quick_start_guide.md).
