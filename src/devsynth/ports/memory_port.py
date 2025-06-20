@@ -11,15 +11,19 @@ from devsynth.exceptions import DevSynthError
 
 
 class MemoryPort:
-    """Port for the memory and context system, using ChromaDB as the default backend."""
+    """Port for the memory and context system, using Kuzu as the default backend."""
 
-    def __init__(self, context_manager: ContextManager, memory_store: Optional[MemoryStore] = None):
-        # Use ChromaDBMemoryStore by default, but allow override for testing/extensibility
+    def __init__(
+        self,
+        context_manager: ContextManager,
+        memory_store: Optional[MemoryStore] = None,
+    ):
+        # Use KuzuMemoryStore by default, but allow override for testing/extensibility
         if memory_store is None:
             # Lazy import to avoid circular dependency
-            from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+            from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 
-            memory_store = ChromaDBMemoryStore()
+            memory_store = KuzuMemoryStore()
         self.memory_store = memory_store
         self.context_manager = context_manager
 
@@ -27,7 +31,9 @@ class MemoryPort:
         self, content: Any, memory_type: MemoryType, metadata: Dict[str, Any] = None
     ) -> str:
         """Store an item in memory and return its ID."""
-        item = MemoryItem(id="", content=content, memory_type=memory_type, metadata=metadata)
+        item = MemoryItem(
+            id="", content=content, memory_type=memory_type, metadata=metadata
+        )
         inc_memory("store")
         return self.memory_store.store(item)
 
