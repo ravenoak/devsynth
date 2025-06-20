@@ -112,7 +112,7 @@ Certain features use additional backends that are not installed by default. Inst
 pip install 'devsynth[retrieval]'
 ```
 
-These packages enable the Kuzu, FAISS, and LMDB memory stores; support for ChromaDB is presently disabled.
+These packages enable the Kuzu, FAISS, and LMDB memory stores. ChromaDB can be enabled later, but only the embedded backend is currently supported.
 
 ## Minimal Project Example
 
@@ -163,7 +163,7 @@ poetry install
 poetry sync --all-extras --all-groups
 ```
 
-Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** is presently disabled. Install these packages if you plan to use them:
+Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** can be enabled later, but only the embedded backend is currently supported. Install these packages if you plan to use them:
 
 ```bash
 pip install 'devsynth[retrieval]'
