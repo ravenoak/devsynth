@@ -402,3 +402,31 @@ class TestGraphMemoryAdapter:
 
         # Check that the get_collection_stats method was called
         mock_vector_store.get_collection_stats.assert_called()
+
+    def test_save_graph_with_rdflib_store(self, rdflib_adapter, temp_dir):
+        """Ensure _save_graph persists RDF graphs when using RDFLibStore."""
+        memory_item = MemoryItem(
+            id="save_test",
+            content="Save Graph",
+            memory_type=MemoryType.CODE,
+            metadata={"source": "unit"}
+        )
+        rdflib_adapter.store(memory_item)
+        rdflib_adapter._save_graph()
+
+        graph_file = os.path.join(temp_dir, "graph_memory.ttl")
+        assert os.path.exists(graph_file)
+
+    def test_memory_item_triple_creation(self, rdflib_adapter):
+        """Verify that storing an item creates the expected RDF triples."""
+        item = MemoryItem(
+            id="triple_test",
+            content="Triple",
+            memory_type=MemoryType.CODE,
+            metadata={"source": "unit"}
+        )
+        rdflib_adapter.store(item)
+
+        item_uri = URIRef(f"{MEMORY}{item.id}")
+        assert (item_uri, RDF.type, DEVSYNTH.MemoryItem) in rdflib_adapter.graph
+        assert (item_uri, DEVSYNTH.source, Literal("unit")) in rdflib_adapter.graph
