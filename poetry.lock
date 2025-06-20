@@ -3384,7 +3384,7 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "extra == \"minimal\""
+markers = "extra == \"dev\" or extra == \"minimal\""
 files = [
     {file = "networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f"},
     {file = "networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1"},
@@ -6905,7 +6905,7 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
-dev = ["astor", "black", "chromadb", "duckdb", "faiss-cpu", "httpx", "lmdb", "pre-commit", "psutil", "pytest", "pytest-bdd", "pytest-cov", "pytest-mock", "pytest-xdist", "rdflib", "responses", "tiktoken", "tinydb"]
+dev = ["astor", "black", "chromadb", "duckdb", "faiss-cpu", "httpx", "lmdb", "networkx", "pre-commit", "psutil", "pytest", "pytest-bdd", "pytest-cov", "pytest-mock", "pytest-xdist", "rdflib", "responses", "tiktoken", "tinydb"]
 docs = ["mkdocs", "mkdocs-gen-files", "mkdocs-include-markdown-plugin", "mkdocs-literate-nav", "mkdocs-material", "mkdocs-section-index", "mkdocs-typer2", "mkdocstrings-python"]
 dsp = ["dspy-ai"]
 minimal = ["astor", "chromadb", "duckdb", "faiss-cpu", "httpx", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
@@ -6914,4 +6914,4 @@ retrieval = ["chromadb", "faiss-cpu"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.11"
-content-hash = "57da214fda2567f67e6ca82259d29f07bc7f77bd0d4dc55c403ce94a6fad1d37"
+content-hash = "ac8edf42a4dcb42d9c3497b83a0cd73276f69459e4194cffe519f411399891c9"
