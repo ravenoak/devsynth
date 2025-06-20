@@ -379,6 +379,12 @@ class TestEDRRCoordinator:
             assert coordinator.manifest_parser.start_phase.call_count == 1
             assert coordinator.manifest_parser.complete_phase.call_count == 1
 
+        # Test dependency failure
+        coordinator.current_phase = Phase.EXPAND
+        coordinator.manifest_parser.check_phase_dependencies.return_value = False
+        with pytest.raises(EDRRCoordinatorError):
+            coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+
     def test_full_cycle(self, coordinator):
         """Test a full EDRR cycle."""
         task = {"description": "Test Task", "requirements": ["Req 1", "Req 2"]}
@@ -439,6 +445,11 @@ class TestEDRRCoordinator:
             assert coordinator.current_phase == Phase.RETROSPECT
             with pytest.raises(EDRRCoordinatorError):
                 coordinator.progress_to_next_phase()
+
+    def test_progress_to_next_phase_without_current(self, coordinator):
+        """progress_to_next_phase should fail if no phase is active."""
+        with pytest.raises(EDRRCoordinatorError):
+            coordinator.progress_to_next_phase()
 
     def test_start_cycle_from_manifest(self, coordinator):
         manifest_parser = MagicMock()
