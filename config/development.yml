@@ -8,11 +8,12 @@ logging:
 
 # Memory system configuration
 memory:
+  default_store: kuzu
   stores:
     chromadb:
-      host: localhost
-      port: 8001  # Mapped port in docker-compose
       persist_directory: ./.devsynth/dev/chromadb
+    kuzu:
+      persist_directory: ./.devsynth/dev/kuzu
 
 # LLM provider configuration
 llm:

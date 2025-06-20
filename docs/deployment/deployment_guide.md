@@ -83,8 +83,6 @@ docker compose --profile test run test-runner pytest tests/unit/
 ```bash
 # Set required environment variables
 export DEVSYNTH_ENV=staging
-export DEVSYNTH_CHROMADB_HOST=chromadb
-export DEVSYNTH_CHROMADB_PORT=8000
 export DEVSYNTH_LLM_PROVIDER=openai
 export DEVSYNTH_OPENAI_API_KEY=your-api-key
 
@@ -99,8 +97,6 @@ Use the production compose file which includes Prometheus and Grafana for monito
 ```bash
 # Set required environment variables
 export DEVSYNTH_ENV=production
-export DEVSYNTH_CHROMADB_HOST=chromadb
-export DEVSYNTH_CHROMADB_PORT=8000
 export DEVSYNTH_LLM_PROVIDER=openai
 export DEVSYNTH_OPENAI_API_KEY=your-api-key
 export DEVSYNTH_OPENAI_MODEL=gpt-4

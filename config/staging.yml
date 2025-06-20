@@ -9,12 +9,13 @@ logging:
 
 # Memory system configuration
 memory:
+  default_store: kuzu
   stores:
     chromadb:
-      host: ${DEVSYNTH_CHROMADB_HOST}
-      port: ${DEVSYNTH_CHROMADB_PORT}
       persist_directory: /data/devsynth-staging/chromadb
       collection_name: devsynth-staging
+    kuzu:
+      persist_directory: /data/devsynth-staging/kuzu
     faiss:
       enabled: true
       index_file: /data/devsynth-staging/faiss/index.bin
