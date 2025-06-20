@@ -456,7 +456,7 @@ class EDRRCoordinator:
         next_phase = phase_order[idx + 1]
 
         phase_results = self.results.get(self.current_phase.name, {})
-        if phase_results.get("phase_complete", True):
+        if phase_results.get("phase_complete", False) is True:
             return next_phase
 
         start_time = self._phase_start_times.get(self.current_phase)
@@ -743,7 +743,6 @@ class EDRRCoordinator:
         logger.info(
             f"Expand phase completed with {len(broad_ideas)} ideas generated (recursion depth: {self.recursion_depth})"
         )
-        results["phase_complete"] = True
         return results
 
     def _execute_differentiate_phase(
@@ -870,7 +869,6 @@ class EDRRCoordinator:
         logger.info(
             f"Differentiate phase completed with {len(evaluated_options)} options evaluated (recursion depth: {self.recursion_depth})"
         )
-        results["phase_complete"] = True
         return results
 
     def _execute_refine_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -1026,7 +1024,6 @@ class EDRRCoordinator:
         logger.info(
             f"Refine phase completed with implementation plan created (recursion depth: {self.recursion_depth})"
         )
-        results["phase_complete"] = True
         return results
 
     def _execute_retrospect_phase(
@@ -1194,7 +1191,6 @@ class EDRRCoordinator:
         logger.info(
             f"Retrospect phase completed with learnings extracted and final report generated (recursion depth: {self.recursion_depth})"
         )
-        results["phase_complete"] = True
         return results
 
     def generate_final_report(self, cycle_data: Dict[str, Any]) -> Dict[str, Any]:
