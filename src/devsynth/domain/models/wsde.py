@@ -260,6 +260,47 @@ class WSDETeam:
 
         self.role_assignments = assignments
 
+    def _calculate_expertise_score(self, agent: Any, task: Dict[str, Any]) -> float:
+        """Return a simple match score between an agent's expertise and a task."""
+
+        agent_expertise: List[str] = []
+        if hasattr(agent, "expertise"):
+            agent_expertise = agent.expertise or []
+        elif (
+            hasattr(agent, "config")
+            and hasattr(agent.config, "parameters")
+            and "expertise" in agent.config.parameters
+        ):
+            agent_expertise = agent.config.parameters["expertise"] or []
+
+        if not agent_expertise:
+            return -1.0
+
+        match_score = 0.0
+        for key, value in task.items():
+            if isinstance(value, str):
+                if value in agent_expertise:
+                    match_score += 1
+                elif any(skill in value.lower() for skill in agent_expertise):
+                    match_score += 0.5
+
+            if key in agent_expertise:
+                match_score += 0.5
+            elif any(skill in key.lower() for skill in agent_expertise):
+                match_score += 0.25
+
+            if (
+                key == "type"
+                and value == "documentation"
+                and any(
+                    skill in ["documentation", "markdown", "doc_generation"]
+                    for skill in agent_expertise
+                )
+            ):
+                match_score += 2
+
+        return match_score
+
     def select_primus_by_expertise(self, task: Dict[str, Any]) -> None:
         """
         Select a Primus based on task context and agent expertise.
@@ -273,61 +314,11 @@ class WSDETeam:
         if not self.agents:
             return
 
-        # Default to the current Primus
         best_agent_index = self.primus_index
-        best_match_score = 0
+        best_match_score = -1.0
 
-        # Find the agent with the best expertise match for the task
         for i, agent in enumerate(self.agents):
-            # Get agent expertise from either direct attribute or config parameters
-            agent_expertise = []
-
-            # Check for direct expertise attribute
-            if hasattr(agent, "expertise"):
-                agent_expertise = agent.expertise
-
-            # Check for expertise in config parameters
-            elif (
-                hasattr(agent, "config")
-                and hasattr(agent.config, "parameters")
-                and "expertise" in agent.config.parameters
-            ):
-                agent_expertise = agent.config.parameters["expertise"]
-
-            # Skip if no expertise found
-            if not agent_expertise:
-                continue
-
-            match_score = 0
-            # Calculate a simple match score based on overlapping keywords
-            for key, value in task.items():
-                # Check if task value matches any expertise
-                if isinstance(value, str):
-                    if value in agent_expertise:
-                        match_score += 1
-                    # Check if any expertise keyword is in the task value
-                    elif any(skill in value.lower() for skill in agent_expertise):
-                        match_score += 0.5
-
-                # Check if task key matches any expertise
-                if key in agent_expertise:
-                    match_score += 0.5
-                # Check for partial matches in expertise keywords
-                elif any(skill in key.lower() for skill in agent_expertise):
-                    match_score += 0.25
-
-                # Special case for documentation tasks
-                if (
-                    key == "type"
-                    and value == "documentation"
-                    and any(
-                        skill in ["documentation", "markdown", "doc_generation"]
-                        for skill in agent_expertise
-                    )
-                ):
-                    match_score += 2
-
-            # If this agent has a better match, update the best agent
+            match_score = self._calculate_expertise_score(agent, task)
             if match_score > best_match_score:
                 best_match_score = match_score
                 best_agent_index = i
@@ -412,8 +403,39 @@ class WSDETeam:
         logger.info(f"Assigned roles: {assigned_roles}")
 
     def assign_roles_for_phase(self, phase: Phase, task: Dict[str, Any]) -> None:
-        """Select Primus based on context and assign roles for a phase."""
-        self.select_primus_by_expertise({**task, "phase": phase.value})
+        """Select Primus based on context and assign roles for a phase.
+
+        The Primus role rotates through team members. Agents that have not yet
+        served as Primus are prioritized when their expertise matches the phase
+        context. Once all agents have served as Primus, the tracking resets.
+        """
+
+        if not self.agents:
+            return
+
+        context = {**task, "phase": phase.value}
+
+        unused_indices = [
+            i
+            for i, a in enumerate(self.agents)
+            if not getattr(a, "has_been_primus", False)
+        ]
+        candidate_indices = unused_indices or list(range(len(self.agents)))
+
+        best_index = candidate_indices[0]
+        best_score = -1.0
+        for i in candidate_indices:
+            score = self._calculate_expertise_score(self.agents[i], context)
+            if score > best_score:
+                best_score = score
+                best_index = i
+
+        if not unused_indices:
+            for a in self.agents:
+                a.has_been_primus = False
+
+        self.primus_index = best_index
+        self.agents[self.primus_index].has_been_primus = True
         self.assign_roles()
 
     def dynamic_role_reassignment(self, task: Dict[str, Any]) -> Dict[str, Any]:
@@ -438,7 +460,7 @@ class WSDETeam:
                 raise DevSynthError("Invalid agent in role mapping")
 
     def _auto_assign_roles(self) -> None:
-        """Automatically assign roles based on simple expertise heuristics."""
+        """Automatically assign roles based on expertise with deterministic fallbacks."""
         primus_agent = self.agents[self.primus_index]
         primus_agent.current_role = "Primus"
 
@@ -468,9 +490,11 @@ class WSDETeam:
                 return [e.lower() for e in agent.config.parameters["expertise"]]
             return []
 
-        for role, kw in keywords.items():
-            if not remaining:
+        role_order = ["Supervisor", "Designer", "Evaluator"]
+        for role in role_order:
+            if len(remaining) <= 1:
                 break
+            kw = keywords[role]
             best_agent = None
             best_score = -1
             for agent in remaining:
@@ -479,10 +503,11 @@ class WSDETeam:
                 if score > best_score:
                     best_score = score
                     best_agent = agent
-            if best_agent is not None and best_score > 0:
-                best_agent.current_role = role
-                assignments[role.lower()] = best_agent
-                remaining.remove(best_agent)
+            if best_score <= 0:
+                best_agent = remaining[0]
+            best_agent.current_role = role
+            assignments[role.lower()] = best_agent
+            remaining.remove(best_agent)
 
         for agent in remaining:
             agent.current_role = "Worker"
