@@ -47,9 +47,11 @@ class PeerReview:
 
     def aggregate_feedback(self) -> Dict[str, Any]:
         """Aggregate feedback from reviewers into a single structure."""
-
-        feedback = [r.get("feedback", "") for r in self.reviews.values()]
-        return {"feedback": feedback}
+        aggregated = []
+        for reviewer, result in self.reviews.items():
+            name = getattr(reviewer, "name", str(reviewer))
+            aggregated.append({"reviewer": name, **result})
+        return {"feedback": aggregated}
 
     def request_revision(self) -> None:
         """Mark the review as requiring revision."""
