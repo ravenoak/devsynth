@@ -131,6 +131,13 @@ is stable and ready for production use. See the
    - Self-tuning capabilities
    - Performance optimization
 
+## Current Limitations
+
+The EDRR framework still lacks advanced optimization algorithms and robust
+monitoring tools. Phase transitions work, but the criteria for completion and
+context persistence are not fully tuned. Visualization dashboards and detailed
+metrics are pending, and manual overrides are required for complex workflows.
+
 ## Implementation Plan
 
 ### Phase 1: Core Framework and Essential Integrations (Month 2)

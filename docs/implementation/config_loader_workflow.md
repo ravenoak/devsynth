@@ -28,3 +28,8 @@ class ConfigLoader:
 ```
 
 The loader merges values from the chosen file into a common `DevSynthConfig` object so that both new and existing projects share the same configuration structure.
+
+## Current Limitations
+
+This workflow is a conceptual outline. The unified parser has not been fully
+implemented, and integration tests for various project layouts are missing.
