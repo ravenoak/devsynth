@@ -1313,56 +1313,119 @@ class EDRRCoordinator:
         return report
 
     def _extract_key_insights(self, expand_results: Dict[str, Any]) -> List[str]:
-        """Extract key insights from expand phase results"""
-        # Implementation would extract most significant findings
-        return ["Key insight 1", "Key insight 2", "Key insight 3"]
+        """Extract key insights from expand phase results."""
+
+        insights: List[str] = []
+
+        ideas = expand_results.get("ideas", [])
+        if ideas:
+            idea_names = [str(i.get("idea", i)) for i in ideas[:3]]
+            insights.append(f"Top ideas: {', '.join(idea_names)}")
+
+        knowledge_items = expand_results.get("knowledge", [])
+        if knowledge_items:
+            insights.append(f"Retrieved {len(knowledge_items)} knowledge items")
+
+        code_elements = expand_results.get("code_elements")
+        if isinstance(code_elements, dict):
+            counts = [f"{k}={v}" for k, v in code_elements.items()]
+            insights.append("Code structure -> " + ", ".join(counts))
+        elif code_elements:
+            insights.append(f"Code elements count: {len(code_elements)}")
+
+        return insights
 
     def _summarize_implementation(
         self, implementation_plan: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Summarize the implementation plan"""
-        # Implementation would create a concise summary
+        """Summarize the implementation plan."""
+
+        steps = len(implementation_plan)
+        components: Set[str] = set()
+        for step in implementation_plan:
+            component = step.get("component")
+            if component:
+                components.add(str(component))
+
+        if steps > 10:
+            complexity = "High"
+        elif steps > 5:
+            complexity = "Medium"
+        else:
+            complexity = "Low"
+
         return {
-            "steps": len(implementation_plan),
-            "estimated_complexity": "Medium",
-            "primary_components": ["Component A", "Component B"],
+            "steps": steps,
+            "estimated_complexity": complexity,
+            "primary_components": sorted(components),
         }
 
     def _summarize_quality_checks(
         self, quality_checks: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Summarize quality checks"""
-        # Implementation would create a summary of quality assessment
+        """Summarize quality checks."""
+
+        issues = quality_checks.get("issues", [])
+        critical = [i for i in issues if i.get("severity") == "critical"]
+        areas = {i.get("area") for i in issues if isinstance(i, dict) and i.get("area")}
+
         return {
-            "issues_found": len(quality_checks),
-            "critical_issues": 0,
-            "areas_of_concern": ["Area 1", "Area 2"],
+            "issues_found": len(issues),
+            "critical_issues": len(critical),
+            "areas_of_concern": sorted(a for a in areas if a),
         }
 
     def _extract_key_learnings(self, learnings: List[Dict[str, Any]]) -> List[str]:
-        """Extract key learnings"""
-        # Implementation would extract most important learnings
-        return ["Key learning 1", "Key learning 2", "Key learning 3"]
+        """Extract key learnings."""
+
+        if not learnings:
+            return []
+
+        summaries = []
+        for item in learnings[:3]:
+            if isinstance(item, dict):
+                summaries.append(str(item.get("learning", item)))
+            else:
+                summaries.append(str(item))
+
+        return summaries
 
     def _generate_next_steps(self, cycle_data: Dict[str, Any]) -> List[str]:
-        """Generate recommended next steps"""
-        # Implementation would create actionable next steps
-        return [
-            "Implement core functionality",
-            "Create test suite",
-            "Update documentation",
-        ]
+        """Generate recommended next steps."""
+
+        steps = []
+        refine = cycle_data.get("refine", {})
+        retrospect = cycle_data.get("retrospect", {})
+
+        if refine.get("optimized_plan"):
+            steps.append("Execute optimized plan")
+        elif refine.get("implementation_plan"):
+            steps.append("Implement selected option")
+
+        if retrospect.get("improvement_suggestions"):
+            steps.append("Address improvement suggestions")
+
+        if not steps:
+            steps.append("Review cycle results with team")
+
+        return steps
 
     def _extract_future_considerations(
         self, retrospect_results: Dict[str, Any]
     ) -> List[str]:
-        """Extract future considerations"""
-        # Implementation would identify important future considerations
-        return [
-            "Consider scaling strategy",
-            "Evaluate performance under high load",
-            "Plan for internationalization",
-        ]
+        """Extract future considerations."""
+
+        considerations = []
+        patterns = retrospect_results.get("patterns", [])
+        suggestions = retrospect_results.get("improvement_suggestions", [])
+
+        if patterns:
+            considerations.append(f"Monitor {len(patterns)} pattern(s)")
+
+        if suggestions:
+            considerations.append(f"Track {len(suggestions)} improvement suggestions")
+
+        return considerations
 
     def execute_current_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
