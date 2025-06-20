@@ -207,6 +207,12 @@ class Settings(BaseSettings):
         default="cosine", json_schema_extra={"env": "DEVSYNTH_CHROMADB_DISTANCE_FUNC"}
     )
 
+    enable_chromadb: bool = Field(
+        default=False,
+        validation_alias="ENABLE_CHROMADB",
+        json_schema_extra={"env": "ENABLE_CHROMADB"},
+    )
+
     # Path settings
     log_dir: str = Field(default=None, json_schema_extra={"env": "DEVSYNTH_LOG_DIR"})
     project_dir: str = Field(
