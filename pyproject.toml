@@ -136,6 +136,7 @@ minimal = [
 
 retrieval = ["kuzu", "faiss-cpu"]
 dsp = ["dspy-ai"]
+chromadb = ["chromadb"]
 
 [tool.poetry.scripts]
 devsynth = "devsynth.adapters.cli:run_cli"
