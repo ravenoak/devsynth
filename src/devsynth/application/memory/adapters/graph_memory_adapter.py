@@ -65,6 +65,16 @@ class GraphMemoryAdapter(MemoryStore):
         if use_rdflib_store and base_path:
             # Use RDFLibStore for enhanced functionality
             self.rdflib_store = RDFLibStore(base_path)
+            # Align the graph file name with the adapter expectations
+            self.graph_file = os.path.join(base_path, "graph_memory.ttl")
+            self.rdflib_store.graph_file = self.graph_file
+            # Reload the graph if the custom file exists
+            if os.path.exists(self.graph_file):
+                try:
+                    self.rdflib_store.graph.parse(self.graph_file, format="turtle")
+                    logger.info(f"Loaded RDF graph from {self.graph_file}")
+                except Exception as e:
+                    logger.error(f"Failed to load RDF graph: {e}")
             self.graph = self.rdflib_store.graph
             logger.info("Graph Memory Adapter initialized with RDFLibStore integration")
         else:
@@ -94,9 +104,10 @@ class GraphMemoryAdapter(MemoryStore):
     def _save_graph(self) -> None:
         """Save the RDF graph to disk if a base path is provided."""
         if self.use_rdflib_store and self.rdflib_store:
-            # RDFLibStore handles saving the graph
+            # Ensure the RDFLibStore uses the same graph file
+            self.rdflib_store.graph_file = getattr(self, "graph_file", os.path.join(self.base_path, "graph_memory.ttl"))
             logger.debug("Using RDFLibStore to save the graph")
-            # No need to explicitly save as RDFLibStore methods handle this
+            self.rdflib_store._save_graph()
             return
         elif self.base_path:
             try:
