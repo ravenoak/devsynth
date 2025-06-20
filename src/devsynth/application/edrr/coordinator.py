@@ -146,11 +146,13 @@ class EDRRCoordinator:
         )
 
     def start_cycle(self, task: Dict[str, Any]) -> None:
-        """
-        Start a new EDRR cycle with the given task.
+        """Start a new EDRR cycle with the given task.
 
         Args:
             task: The task to process
+
+        Example:
+            >>> coordinator.start_cycle({"description": "Implement feature"})
         """
         self.task = task
         self.cycle_id = str(uuid.uuid4())
@@ -202,6 +204,9 @@ class EDRRCoordinator:
 
         Raises:
             EDRRCoordinatorError: If the manifest cannot be parsed
+
+        Example:
+            >>> coordinator.start_cycle_from_manifest("manifest.json")
         """
         try:
             # Disable automatic phase transitions during manifest-driven runs
@@ -294,6 +299,9 @@ class EDRRCoordinator:
 
         Raises:
             EDRRCoordinatorError: If the phase dependencies are not met
+
+        Example:
+            >>> coordinator.progress_to_phase(Phase.DIFFERENTIATE)
         """
         try:
             # Check if using a manifest and if so, check phase dependencies
@@ -404,7 +412,12 @@ class EDRRCoordinator:
             )
 
     def progress_to_next_phase(self) -> None:
-        """Progress to the next phase in the standard EDRR sequence."""
+        """Progress to the next phase in the standard EDRR sequence.
+
+        Example:
+            >>> coordinator.current_phase = Phase.EXPAND
+            >>> coordinator.progress_to_next_phase()
+        """
         if self.current_phase is None:
             raise EDRRCoordinatorError("No current phase set")
 
@@ -458,7 +471,9 @@ class EDRRCoordinator:
 
     def _maybe_auto_progress(self) -> None:
         """Trigger automatic phase transition when conditions are met."""
-        if not self.auto_phase_transitions or not hasattr(self.wsde_team, "elaborate_details"):
+        if not self.auto_phase_transitions or not hasattr(
+            self.wsde_team, "elaborate_details"
+        ):
             return
         while True:
             next_phase = self._decide_next_phase()
@@ -920,7 +935,9 @@ class EDRRCoordinator:
                 include_testing_strategy=True,
             )
         except TypeError:
-            implementation_plan = self.wsde_team.create_implementation_plan(detailed_plan)
+            implementation_plan = self.wsde_team.create_implementation_plan(
+                detailed_plan
+            )
         results["implementation_plan"] = implementation_plan
 
         # Optimization algorithms
@@ -931,7 +948,9 @@ class EDRRCoordinator:
                 code_analyzer=self.code_analyzer,
             )
         except TypeError:
-            optimized_plan = self.wsde_team.optimize_implementation(implementation_plan, [])
+            optimized_plan = self.wsde_team.optimize_implementation(
+                implementation_plan, []
+            )
         results["optimized_plan"] = optimized_plan
 
         # Quality assurance checks

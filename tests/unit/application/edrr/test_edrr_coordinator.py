@@ -439,3 +439,43 @@ class TestEDRRCoordinator:
             assert coordinator.current_phase == Phase.RETROSPECT
             with pytest.raises(EDRRCoordinatorError):
                 coordinator.progress_to_next_phase()
+
+    def test_start_cycle_from_manifest(self, coordinator):
+        manifest_parser = MagicMock()
+        manifest_parser.parse_file.return_value = {
+            "id": "test-id",
+            "description": "desc",
+            "phases": {
+                "expand": {"instructions": ""},
+                "differentiate": {"instructions": ""},
+                "refine": {"instructions": ""},
+                "retrospect": {"instructions": ""},
+            },
+        }
+        manifest_parser.get_manifest_id.return_value = "test-id"
+        manifest_parser.get_manifest_description.return_value = "desc"
+        manifest_parser.get_manifest_metadata.return_value = {}
+        manifest_parser.execution_trace = {"start_time": "now"}
+        manifest_parser.start_execution.return_value = None
+        coordinator.manifest_parser = manifest_parser
+
+        with patch.object(coordinator, "progress_to_phase") as progress_mock:
+            coordinator.start_cycle_from_manifest("path.json")
+
+        manifest_parser.parse_file.assert_called_once_with("path.json")
+        progress_mock.assert_called_once_with(Phase.EXPAND)
+        assert coordinator.task["id"] == "test-id"
+        assert coordinator.manifest == manifest_parser.parse_file.return_value
+
+    def test_maybe_create_micro_cycles(self, coordinator):
+        context = {"micro_tasks": [{"description": "sub"}]}
+        results = {}
+        micro = MagicMock()
+        micro.cycle_id = "cid"
+        micro.results = {"phase_complete": True}
+        with patch.object(
+            coordinator, "create_micro_cycle", return_value=micro
+        ) as create_mock:
+            coordinator._maybe_create_micro_cycles(context, Phase.EXPAND, results)
+        create_mock.assert_called_once_with({"description": "sub"}, Phase.EXPAND)
+        assert results["micro_cycle_results"]["cid"] == micro.results
