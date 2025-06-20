@@ -6,6 +6,15 @@ feature file, testing all available memory backends with the WSDE model.
 """
 import pytest
 import time
+import os
+
+chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
+    "0",
+    "false",
+    "no",
+}
+if not chromadb_enabled:
+    pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock
 

@@ -3,6 +3,14 @@ Test runner for the ChromaDB Integration feature.
 """
 import os
 import pytest
+
+chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
+    "0",
+    "false",
+    "no",
+}
+if not chromadb_enabled:
+    pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 from pytest_bdd import scenarios
 
 pytestmark = pytest.mark.requires_resource("chromadb")
