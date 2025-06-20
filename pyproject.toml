@@ -36,6 +36,7 @@ prometheus-client = "0.20.0"
 streamlit = "1.32.0"
 httpx = {version = "0.28.1", optional = true}
 chromadb = {version = "^1.0.9", optional = true}
+kuzu = "0.10.0"
 numpy = "1.26.4"
 pyyaml = ">=6.0"
 responses = {version = "0.25.7", optional = true}
@@ -95,7 +96,7 @@ dev = [
     "httpx",
     "rdflib",
     "astor",
-    "chromadb",
+    "kuzu",
     "networkx",
     "tiktoken",
     "tinydb",
@@ -119,7 +120,7 @@ minimal = [
     "pydantic",
     "pydantic-settings",
     "langgraph",
-    "chromadb",
+    "kuzu",
     "tiktoken",
     "networkx",
     "toml",
@@ -133,7 +134,7 @@ minimal = [
     "httpx",
 ]
 
-retrieval = ["chromadb", "faiss-cpu"]
+retrieval = ["kuzu", "faiss-cpu"]
 dsp = ["dspy-ai"]
 
 [tool.poetry.scripts]
