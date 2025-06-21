@@ -63,12 +63,19 @@ cd devsynth
 
 ### 2. Install Dependencies
 
-```bash
-# Install all dependencies including development dependencies
-poetry install
+Use Poetry to install all dependencies and activate the virtual environment:
 
-# Activate the virtual environment
+```bash
+poetry install
 poetry shell
+```
+
+If you prefer `pip`, install DevSynth in editable mode with the development
+extras. This installs packages such as `pytest`, `pytest-bdd`, and
+`pre-commit` that are required for running the full test suite:
+
+```bash
+pip install -e '.[dev]'
 ```
 
 ### 3. Set Up Environment Variables
@@ -102,10 +109,10 @@ The pre-commit hooks will run automatically when you commit changes. They includ
 
 ### 5. Verify Setup
 
-Ensure your setup is working correctly by running the tests:
+Ensure your setup is working correctly by running the test suite from the project root:
 
 ```bash
-python -m pytest
+pytest
 ```
 
 ### Configuration Version Locking
@@ -192,29 +199,41 @@ For more details, see the [Contributing Guide](contributing.md).
 
 ## Running Tests
 
-DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
+DevSynth uses `pytest` for unit testing and `pytest-bdd` for behavior-driven
+tests. These and other tools (`pytest-cov`, `pytest-mock`, etc.) are installed
+when you use the `dev` extras.
 
 ### Running Unit Tests
 
 ```bash
 # Run all unit tests
-python -m pytest tests/unit/
+pytest tests/unit/
 
 # Run a specific test file
-python -m pytest tests/unit/test_workflow.py
+pytest tests/unit/test_workflow.py
 
 # Run tests with verbose output
-python -m pytest tests/unit/ -v
+pytest tests/unit/ -v
 ```
 
 ### Running Behavior Tests
 
 ```bash
 # Run all behavior tests
-python -m pytest tests/behavior/
+pytest tests/behavior/
 
 # Run a specific behavior test
-python -m pytest tests/behavior/test_simple_example_steps.py
+pytest tests/behavior/test_simple_example_steps.py
+```
+
+### Troubleshooting Import Errors
+
+If you encounter `ModuleNotFoundError` or missing plugin errors when running
+`pytest`, ensure DevSynth is installed with the development extras and that your
+virtual environment is active:
+
+```bash
+pip install -e '.[dev]'
 ```
 
 ## Common Development Tasks
