@@ -1,5 +1,6 @@
 
 from typing import Any, Dict, List, Optional
+import httpx
 from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 import os
 
@@ -31,26 +32,122 @@ class BaseLLMProvider:
         """Get an embedding vector for the given text."""
         raise NotImplementedError("Subclasses must implement this method")
 
+class AnthropicConnectionError(DevSynthError):
+    """Exception raised when there's an issue connecting to Anthropic."""
+
+
+class AnthropicModelError(DevSynthError):
+    """Exception raised for errors returned by Anthropic's API."""
+
+
 class AnthropicProvider(BaseLLMProvider):
     """Anthropic LLM provider implementation."""
-    
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+
+    def __init__(self, config: Dict[str, Any] | None = None) -> None:
+        super().__init__(config)
+
+        self.api_key = self.config.get("api_key") or os.environ.get("ANTHROPIC_API_KEY")
+        self.model = self.config.get("model", "claude-2")
+        self.max_tokens = self.config.get("max_tokens", 1024)
+        self.temperature = self.config.get("temperature", 0.7)
+        self.api_base = self.config.get("api_base", "https://api.anthropic.com")
+        self.timeout = self.config.get("timeout", 60)
+        self.embedding_model = self.config.get("embedding_model", "claude-3-embed")
+
+        if not self.api_key:
+            raise AnthropicConnectionError("Anthropic API key is required")
+
+        self.headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+        }
+
+    def _post(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        url = f"{self.api_base}{endpoint}"
+        try:
+            response = httpx.post(url, headers=self.headers, json=payload, timeout=self.timeout)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            error_msg = f"Anthropic API error: {e.response.text}"
+            logger.error(error_msg)
+            raise AnthropicModelError(error_msg) from e
+        except httpx.RequestError as e:
+            error_msg = f"Anthropic connection error: {str(e)}"
+            logger.error(error_msg)
+            raise AnthropicConnectionError(error_msg) from e
+
+    def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
         """Generate text from a prompt using Anthropic."""
-        # In a real implementation, this would use the Anthropic API
-        # For now, we'll return a placeholder
-        return f"Anthropic generated response for: {prompt[:30]}..."
-    
-    def generate_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> str:
+
+        params = {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+        }
+        if parameters:
+            params.update(parameters)
+
+        payload = {
+            "model": params["model"],
+            "max_tokens": params["max_tokens"],
+            "temperature": params["temperature"],
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        data = self._post("/v1/messages", payload)
+
+        if "content" in data and isinstance(data["content"], list):
+            return "".join(part.get("text", "") for part in data["content"])
+        if "completion" in data:
+            return data["completion"]
+        raise AnthropicModelError("Invalid response from Anthropic")
+
+    def generate_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] | None = None) -> str:
         """Generate text from a prompt with conversation context using Anthropic."""
-        # In a real implementation, this would use the Anthropic API with chat format
-        # For now, we'll return a placeholder
-        return f"Anthropic chat response for: {prompt[:30]}..."
-    
+
+        messages = context.copy()
+        messages.append({"role": "user", "content": prompt})
+
+        params = {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+        }
+        if parameters:
+            params.update(parameters)
+
+        payload = {
+            "model": params["model"],
+            "max_tokens": params["max_tokens"],
+            "temperature": params["temperature"],
+            "messages": messages,
+        }
+
+        data = self._post("/v1/messages", payload)
+
+        if "content" in data and isinstance(data["content"], list):
+            return "".join(part.get("text", "") for part in data["content"])
+        if "completion" in data:
+            return data["completion"]
+        raise AnthropicModelError("Invalid response from Anthropic")
+
     def get_embedding(self, text: str) -> List[float]:
         """Get an embedding vector for the given text using Anthropic."""
-        # In a real implementation, this would use an embedding API
-        # For now, we'll return a placeholder
-        return [0.1, 0.2, 0.3, 0.4, 0.5]  # Simplified embedding vector
+
+        payload = {
+            "model": self.embedding_model,
+            "input": text,
+        }
+
+        data = self._post("/v1/embeddings", payload)
+
+        if "embedding" in data:
+            return data["embedding"]
+        if "data" in data and data["data"]:
+            return data["data"][0]["embedding"]
+        raise AnthropicModelError("Invalid embedding response from Anthropic")
 
 class SimpleLLMProviderFactory(LLMProviderFactory):
     """Simple implementation of LLMProviderFactory."""
