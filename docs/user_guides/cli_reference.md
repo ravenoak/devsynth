@@ -499,6 +499,14 @@ logging:
 
 ## Examples
 
+Additional walkthroughs for each command can be found in the `examples` directory:
+
+- [Init](../../examples/init_example)
+- [Spec](../../examples/spec_example)
+- [Test](../../examples/test_example)
+- [Code](../../examples/code_example)
+- [EDRR Cycle](../../examples/edrr_cycle_example)
+
 ### Complete Workflow Example
 
 ```bash

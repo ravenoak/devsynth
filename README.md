@@ -149,6 +149,11 @@ The repository includes runnable examples that walk through common workflows:
 - [Full Workflow](examples/full_workflow) – demonstrates the refactor workflow
 - [Agent Adapter](docs/getting_started/agent_adapter_example.md) – shows how to
   use the `AgentAdapter` directly from Python
+- [Init Example](examples/init_example) – project setup using `devsynth init`
+- [Spec Example](examples/spec_example) – generate specifications from requirements
+- [Test Example](examples/test_example) – create tests from specs
+- [Code Example](examples/code_example) – produce code that passes the tests
+- [EDRR Cycle Example](examples/edrr_cycle_example) – run the Expand–Differentiate–Refine–Retrospect workflow
 
 ## Running Tests
 
