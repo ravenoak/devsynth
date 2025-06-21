@@ -9,7 +9,12 @@ sys.modules.setdefault("typer", types.ModuleType("typer"))
 
 spec = importlib.util.spec_from_file_location(
     "ingest_cmd",
-    Path(__file__).parents[4] / "src" / "devsynth" / "application" / "cli" / "ingest_cmd.py",
+    Path(__file__).parents[4]
+    / "src"
+    / "devsynth"
+    / "application"
+    / "cli"
+    / "ingest_cmd.py",
 )
 ingest_cmd = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ingest_cmd)
@@ -49,7 +54,15 @@ def mock_bridge():
     yield ingest_cmd.bridge
 
 
-def test_expand_phase(sample_project, monkeypatch, mock_bridge):
+@pytest.fixture
+def mock_memory_manager():
+    with patch.object(ingest_cmd, "MemoryManager") as cls:
+        inst = MagicMock()
+        cls.return_value = inst
+        yield inst
+
+
+def test_expand_phase(sample_project, monkeypatch, mock_bridge, mock_memory_manager):
     manifest, root = sample_project
     monkeypatch.chdir(root)
 
@@ -58,39 +71,50 @@ def test_expand_phase(sample_project, monkeypatch, mock_bridge):
     assert result["artifacts_discovered"] >= 2
     assert result["files_processed"] == 2
     assert result["analysis_metrics"]["functions"] >= 1
+    mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
 
-def test_differentiate_phase(sample_project, monkeypatch, mock_bridge):
+def test_differentiate_phase(
+    sample_project, monkeypatch, mock_bridge, mock_memory_manager
+):
     manifest, root = sample_project
     monkeypatch.chdir(root)
 
     expand_res = expand_phase(manifest)
+    mock_memory_manager.reset_mock()
     result = differentiate_phase(manifest, expand_res)
 
     assert result["gaps_identified"] == 0
     assert result["inconsistencies_found"] == 0
+    mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
 
-def test_refine_phase(sample_project, monkeypatch, mock_bridge):
+def test_refine_phase(sample_project, monkeypatch, mock_bridge, mock_memory_manager):
     manifest, root = sample_project
     monkeypatch.chdir(root)
 
     expand_res = expand_phase(manifest)
     diff_res = differentiate_phase(manifest, expand_res)
+    mock_memory_manager.reset_mock()
     result = refine_phase(manifest, diff_res)
 
     assert "relationships_created" in result
     assert result["relationships_created"] >= 0
+    mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
 
-def test_retrospect_phase(sample_project, monkeypatch, mock_bridge):
+def test_retrospect_phase(
+    sample_project, monkeypatch, mock_bridge, mock_memory_manager
+):
     manifest, root = sample_project
     monkeypatch.chdir(root)
 
     expand_res = expand_phase(manifest)
     diff_res = differentiate_phase(manifest, expand_res)
     refine_res = refine_phase(manifest, diff_res)
+    mock_memory_manager.reset_mock()
     result = retrospect_phase(manifest, refine_res)
 
     assert "insights_captured" in result
     assert "improvements_identified" in result
+    mock_memory_manager.store_with_edrr_phase.assert_called_once()
