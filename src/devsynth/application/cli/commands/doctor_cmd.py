@@ -5,6 +5,8 @@ from devsynth.config.loader import load_config
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 import importlib.util
+import os
+import sys
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -29,6 +31,23 @@ def doctor_cmd(config_dir: str = "config") -> None:
         # Load project configuration with the unified loader
         load_config()
 
+        warnings = False
+
+        if sys.version_info < (3, 11):
+            bridge.print(
+                f"[yellow]Warning: Python 3.11 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
+            )
+            warnings = True
+
+        missing_keys = [
+            key for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY") if not os.getenv(key)
+        ]
+        if missing_keys:
+            bridge.print(
+                f"[yellow]Missing environment variables: {', '.join(missing_keys)}[/yellow]"
+            )
+            warnings = True
+
         # Load validation utilities dynamically
         repo_root = Path(__file__).resolve().parents[4]
         script_path = repo_root / "scripts" / "validate_config.py"
@@ -39,7 +58,6 @@ def doctor_cmd(config_dir: str = "config") -> None:
 
         envs = ["default", "development", "testing", "staging", "production"]
         configs = {}
-        warnings = False
 
         for env in envs:
             cfg_path = Path(config_dir) / f"{env}.yml"
