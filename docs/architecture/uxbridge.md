@@ -90,3 +90,25 @@ function some_command(args, bridge=bridge):
 
 The UXBridge ensures these components remain loosely coupled, enabling a smooth
 transition from a purely CLI experience to a more graphical WebUI.
+
+## Method Contracts
+
+All implementations expose the following behaviours so workflows can remain UI
+agnostic:
+
+- **``ask_question(message, choices=None, default=None, show_default=True)``** –
+  returns the user's response as a string. Choice lists and default values may
+  be presented but callers always receive text.
+- **``confirm_choice(message, default=False)``** – returns ``True`` when the user
+  confirms the action, otherwise ``False``.
+- **``display_result(message, highlight=False)``** – shows a message to the user
+  without returning a value. When ``highlight`` is ``True`` the text is
+  emphasised (for example using colour or bold styling).
+- **``create_progress(description, total=100)``** – yields a progress indicator
+  object with ``update`` and ``complete`` methods. The object supports the
+  context manager protocol so ``with bridge.create_progress("Loading") as p:`` is
+  valid.
+
+These expectations are enforced by unit tests in
+``tests/unit/interface/test_uxbridge_consistency.py`` which instantiate each
+bridge and verify consistent behaviour.
