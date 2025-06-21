@@ -792,7 +792,16 @@ def embed(
     """
     provider = get_provider(provider_type=provider_type, fallback=fallback)
     inc_provider("embed")
-    return provider.embed(text=text)
+    try:
+        return provider.embed(text=text)
+    except NotImplementedError as exc:  # pragma: no cover - defensive
+        raise ProviderError(
+            f"Embeddings not supported by provider {provider.__class__.__name__}"
+        ) from exc
+    except ProviderError:
+        raise
+    except Exception as exc:  # pragma: no cover - unexpected
+        raise ProviderError(f"Embedding call failed: {exc}") from exc
 
 
 async def acomplete(
@@ -822,4 +831,13 @@ async def aembed(
     """Asynchronously generate embeddings using the configured provider."""
     provider = get_provider(provider_type=provider_type, fallback=fallback)
     inc_provider("aembed")
-    return await provider.aembed(text=text)
+    try:
+        return await provider.aembed(text=text)
+    except NotImplementedError as exc:  # pragma: no cover - defensive
+        raise ProviderError(
+            f"Embeddings not supported by provider {provider.__class__.__name__}"
+        ) from exc
+    except ProviderError:
+        raise
+    except Exception as exc:  # pragma: no cover - unexpected
+        raise ProviderError(f"Embedding call failed: {exc}") from exc
