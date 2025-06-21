@@ -1,5 +1,7 @@
 # AGENTS.md
 
+> Special note: the environment that ChatGPT Codex operates in executes `scripts/codex_setup.sh` as the setup setup. If it fails, a CODEX_ENVIRONMENT_SETUP_FAILED file will be created.
+
 ## Introduction
 
 This document provides a comprehensive guide to the agent-based components within the DevSynth project. It outlines the structure, conventions, configuration, and operational guidelines for developing, testing, and maintaining agents in this codebase.

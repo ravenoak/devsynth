@@ -3,3 +3,4 @@ devsynth.log
 .devsynth/
 __pycache__/
 .coverage
+CODEX_ENVIRONMENT_SETUP_FAILED
