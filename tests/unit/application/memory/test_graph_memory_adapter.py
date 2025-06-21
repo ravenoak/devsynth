@@ -1,6 +1,7 @@
 """
 Unit tests for the GraphMemoryAdapter.
 """
+
 import os
 import tempfile
 import pytest
@@ -9,8 +10,18 @@ from unittest.mock import patch, MagicMock
 from rdflib import Graph, URIRef, Literal, Namespace
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.application.memory.context_manager import InMemoryStore
+from devsynth.application.memory.adapters.vector_memory_adapter import (
+    VectorMemoryAdapter,
+)
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.memory.query_router import QueryRouter
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
-from devsynth.application.memory.adapters.graph_memory_adapter import DEVSYNTH, MEMORY, RDF
+from devsynth.application.memory.adapters.graph_memory_adapter import (
+    DEVSYNTH,
+    MEMORY,
+    RDF,
+)
 from devsynth.exceptions import MemoryStoreError, MemoryItemNotFoundError
 
 
@@ -40,7 +51,7 @@ class TestGraphMemoryAdapter:
             id="test-id",
             content="Test content",
             memory_type=MemoryType.CODE,
-            metadata={"source": "test", "language": "python"}
+            metadata={"source": "test", "language": "python"},
         )
 
     def test_initialization_basic(self, basic_adapter, temp_dir):
@@ -74,8 +85,13 @@ class TestGraphMemoryAdapter:
         assert retrieved_item.id == sample_memory_item.id
         assert retrieved_item.content == sample_memory_item.content
         assert retrieved_item.memory_type == sample_memory_item.memory_type
-        assert retrieved_item.metadata["source"] == sample_memory_item.metadata["source"]
-        assert retrieved_item.metadata["language"] == sample_memory_item.metadata["language"]
+        assert (
+            retrieved_item.metadata["source"] == sample_memory_item.metadata["source"]
+        )
+        assert (
+            retrieved_item.metadata["language"]
+            == sample_memory_item.metadata["language"]
+        )
 
     def test_store_and_retrieve_rdflib(self, rdflib_adapter, sample_memory_item):
         """Test storing and retrieving a memory item with RDFLibStore integration."""
@@ -89,24 +105,26 @@ class TestGraphMemoryAdapter:
         assert retrieved_item.id == sample_memory_item.id
         assert retrieved_item.content == sample_memory_item.content
         assert retrieved_item.memory_type == sample_memory_item.memory_type
-        assert retrieved_item.metadata["source"] == sample_memory_item.metadata["source"]
-        assert retrieved_item.metadata["language"] == sample_memory_item.metadata["language"]
+        assert (
+            retrieved_item.metadata["source"] == sample_memory_item.metadata["source"]
+        )
+        assert (
+            retrieved_item.metadata["language"]
+            == sample_memory_item.metadata["language"]
+        )
 
     def test_store_with_relationships(self, basic_adapter):
         """Test storing items with relationships."""
         # Create items with relationships
         item1 = MemoryItem(
-            id="item1",
-            content="Item 1",
-            memory_type=MemoryType.CODE,
-            metadata={}
+            id="item1", content="Item 1", memory_type=MemoryType.CODE, metadata={}
         )
 
         item2 = MemoryItem(
             id="item2",
             content="Item 2",
             memory_type=MemoryType.CODE,
-            metadata={"related_to": "item1"}
+            metadata={"related_to": "item1"},
         )
 
         # Store the items
@@ -127,8 +145,12 @@ class TestGraphMemoryAdapter:
         """Test searching for memory items."""
         # Create and store items
         items = [
-            MemoryItem(id=f"item{i}", content=f"Item {i}", memory_type=MemoryType.CODE, 
-                      metadata={"language": "python" if i % 2 == 0 else "javascript"})
+            MemoryItem(
+                id=f"item{i}",
+                content=f"Item {i}",
+                memory_type=MemoryType.CODE,
+                metadata={"language": "python" if i % 2 == 0 else "javascript"},
+            )
             for i in range(5)
         ]
 
@@ -144,7 +166,9 @@ class TestGraphMemoryAdapter:
         assert len(results) == 3  # items 0, 2, 4
 
         # Search by multiple criteria
-        results = basic_adapter.search({"type": MemoryType.CODE, "language": "javascript"})
+        results = basic_adapter.search(
+            {"type": MemoryType.CODE, "language": "javascript"}
+        )
         assert len(results) == 2  # items 1, 3
 
     def test_delete(self, basic_adapter, sample_memory_item):
@@ -170,10 +194,27 @@ class TestGraphMemoryAdapter:
         """Test getting all relationships."""
         # Create items with relationships
         items = [
-            MemoryItem(id="item1", content="Item 1", memory_type=MemoryType.CODE, metadata={}),
-            MemoryItem(id="item2", content="Item 2", memory_type=MemoryType.CODE, metadata={"related_to": "item1"}),
-            MemoryItem(id="item3", content="Item 3", memory_type=MemoryType.CODE, metadata={"related_to": "item1"}),
-            MemoryItem(id="item4", content="Item 4", memory_type=MemoryType.CODE, metadata={"related_to": "item2"})
+            MemoryItem(
+                id="item1", content="Item 1", memory_type=MemoryType.CODE, metadata={}
+            ),
+            MemoryItem(
+                id="item2",
+                content="Item 2",
+                memory_type=MemoryType.CODE,
+                metadata={"related_to": "item1"},
+            ),
+            MemoryItem(
+                id="item3",
+                content="Item 3",
+                memory_type=MemoryType.CODE,
+                metadata={"related_to": "item1"},
+            ),
+            MemoryItem(
+                id="item4",
+                content="Item 4",
+                memory_type=MemoryType.CODE,
+                metadata={"related_to": "item2"},
+            ),
         ]
 
         for item in items:
@@ -249,6 +290,7 @@ class TestGraphMemoryAdapter:
 
         # Mock the graph.query method to return test data
         original_query = rdflib_adapter.graph.query
+
         def mock_query(sparql_query):
             # Create a mock result for the SPARQL query
             class MockQueryResult:
@@ -256,12 +298,33 @@ class TestGraphMemoryAdapter:
                     # Return mock data for each item
                     # Format: item_uri, item_id, confidence, decay_rate, threshold, last_access, access_count
                     items = [
-                        (URIRef(f"{MEMORY}frequent"), "frequent", Literal(1.0), Literal(0.2), Literal(0.5), 
-                         Literal("2023-01-01T00:00:00"), Literal(10)),
-                        (URIRef(f"{MEMORY}rare"), "rare", Literal(1.0), Literal(0.2), Literal(0.5), 
-                         Literal("2023-01-01T00:00:00"), Literal(1)),
-                        (URIRef(f"{MEMORY}related"), "related", Literal(1.0), Literal(0.2), Literal(0.5), 
-                         Literal("2023-01-01T00:00:00"), Literal(5))
+                        (
+                            URIRef(f"{MEMORY}frequent"),
+                            "frequent",
+                            Literal(1.0),
+                            Literal(0.2),
+                            Literal(0.5),
+                            Literal("2023-01-01T00:00:00"),
+                            Literal(10),
+                        ),
+                        (
+                            URIRef(f"{MEMORY}rare"),
+                            "rare",
+                            Literal(1.0),
+                            Literal(0.2),
+                            Literal(0.5),
+                            Literal("2023-01-01T00:00:00"),
+                            Literal(1),
+                        ),
+                        (
+                            URIRef(f"{MEMORY}related"),
+                            "related",
+                            Literal(1.0),
+                            Literal(0.2),
+                            Literal(0.5),
+                            Literal("2023-01-01T00:00:00"),
+                            Literal(5),
+                        ),
                     ]
                     for item in items:
                         yield item
@@ -269,24 +332,30 @@ class TestGraphMemoryAdapter:
             return MockQueryResult()
 
         # Apply the monkeypatch for graph.query
-        monkeypatch.setattr(rdflib_adapter.graph, 'query', mock_query)
+        monkeypatch.setattr(rdflib_adapter.graph, "query", mock_query)
 
         # Mock the graph.update method
         original_update = rdflib_adapter.graph.update
+
         def mock_update(update_query):
             # Just log the update, don't actually perform it
             pass
 
         # Apply the monkeypatch for graph.update
-        monkeypatch.setattr(rdflib_adapter.graph, 'update', mock_update)
+        monkeypatch.setattr(rdflib_adapter.graph, "update", mock_update)
 
         # Mock the graph.triples method to return relationships for the 'related' item
         original_triples = rdflib_adapter.graph.triples
+
         def mock_triples(triple_pattern):
             s, p, o = triple_pattern
             if p == DEVSYNTH.relatedTo and s == URIRef(f"{MEMORY}related"):
                 # Return a relationship for the 'related' item
-                yield (URIRef(f"{MEMORY}related"), DEVSYNTH.relatedTo, URIRef(f"{MEMORY}related_to"))
+                yield (
+                    URIRef(f"{MEMORY}related"),
+                    DEVSYNTH.relatedTo,
+                    URIRef(f"{MEMORY}related_to"),
+                )
             elif p == DEVSYNTH.relatedTo and s == URIRef(f"{MEMORY}frequent"):
                 # No relationships for 'frequent'
                 return
@@ -298,14 +367,17 @@ class TestGraphMemoryAdapter:
                 yield from original_triples(triple_pattern)
 
         # Apply the monkeypatch for graph.triples
-        monkeypatch.setattr(rdflib_adapter.graph, 'triples', mock_triples)
+        monkeypatch.setattr(rdflib_adapter.graph, "triples", mock_triples)
 
         # Mock the graph.value method to return confidence values
         original_value = rdflib_adapter.graph.value
+
         def mock_value(s, p, default=None):
             if p == DEVSYNTH.confidence:
                 if s == URIRef(f"{MEMORY}frequent"):
-                    return Literal(0.9)  # Higher confidence for frequently accessed item
+                    return Literal(
+                        0.9
+                    )  # Higher confidence for frequently accessed item
                 elif s == URIRef(f"{MEMORY}rare"):
                     return Literal(0.7)  # Lower confidence for rarely accessed item
                 elif s == URIRef(f"{MEMORY}related"):
@@ -313,22 +385,43 @@ class TestGraphMemoryAdapter:
             return original_value(s, p, default)
 
         # Apply the monkeypatch for graph.value
-        monkeypatch.setattr(rdflib_adapter.graph, 'value', mock_value)
+        monkeypatch.setattr(rdflib_adapter.graph, "value", mock_value)
 
         # Create items with different access patterns
         items = [
-            MemoryItem(id="frequent", content="Frequently accessed", memory_type=MemoryType.CODE, metadata={}),
-            MemoryItem(id="rare", content="Rarely accessed", memory_type=MemoryType.CODE, metadata={}),
-            MemoryItem(id="related", content="Has relationships", memory_type=MemoryType.CODE, metadata={}),
-            MemoryItem(id="related_to", content="Related to another item", memory_type=MemoryType.CODE, 
-                      metadata={"related_to": "related"})
+            MemoryItem(
+                id="frequent",
+                content="Frequently accessed",
+                memory_type=MemoryType.CODE,
+                metadata={},
+            ),
+            MemoryItem(
+                id="rare",
+                content="Rarely accessed",
+                memory_type=MemoryType.CODE,
+                metadata={},
+            ),
+            MemoryItem(
+                id="related",
+                content="Has relationships",
+                memory_type=MemoryType.CODE,
+                metadata={},
+            ),
+            MemoryItem(
+                id="related_to",
+                content="Related to another item",
+                memory_type=MemoryType.CODE,
+                metadata={"related_to": "related"},
+            ),
         ]
 
         for item in items:
             rdflib_adapter.store(item)
 
         # Add memory volatility controls with advanced features
-        rdflib_adapter.add_memory_volatility(decay_rate=0.2, threshold=0.5, advanced_controls=True)
+        rdflib_adapter.add_memory_volatility(
+            decay_rate=0.2, threshold=0.5, advanced_controls=True
+        )
 
         # Simulate different access patterns
         for _ in range(10):
@@ -344,9 +437,15 @@ class TestGraphMemoryAdapter:
         rare_uri = URIRef(f"{MEMORY}rare")
         related_uri = URIRef(f"{MEMORY}related")
 
-        frequent_confidence = float(rdflib_adapter.graph.value(frequent_uri, DEVSYNTH.confidence))
-        rare_confidence = float(rdflib_adapter.graph.value(rare_uri, DEVSYNTH.confidence))
-        related_confidence = float(rdflib_adapter.graph.value(related_uri, DEVSYNTH.confidence))
+        frequent_confidence = float(
+            rdflib_adapter.graph.value(frequent_uri, DEVSYNTH.confidence)
+        )
+        rare_confidence = float(
+            rdflib_adapter.graph.value(rare_uri, DEVSYNTH.confidence)
+        )
+        related_confidence = float(
+            rdflib_adapter.graph.value(related_uri, DEVSYNTH.confidence)
+        )
 
         # Frequently accessed items should decay slower
         assert frequent_confidence > rare_confidence
@@ -360,8 +459,12 @@ class TestGraphMemoryAdapter:
         mock_store = MagicMock()
 
         # Create mock memory items
-        mock_item1 = MemoryItem(id="mock1", content="Mock item 1", memory_type=MemoryType.CODE, metadata={})
-        mock_item2 = MemoryItem(id="mock2", content="Mock item 2", memory_type=MemoryType.CODE, metadata={})
+        mock_item1 = MemoryItem(
+            id="mock1", content="Mock item 1", memory_type=MemoryType.CODE, metadata={}
+        )
+        mock_item2 = MemoryItem(
+            id="mock2", content="Mock item 2", memory_type=MemoryType.CODE, metadata={}
+        )
 
         # Configure the mock to return the items when search is called
         mock_store.search.return_value = [mock_item1, mock_item2]
@@ -370,7 +473,12 @@ class TestGraphMemoryAdapter:
         mock_store.retrieve.return_value = None
 
         # Store an item in the basic adapter
-        local_item = MemoryItem(id="local1", content="Local item 1", memory_type=MemoryType.CODE, metadata={})
+        local_item = MemoryItem(
+            id="local1",
+            content="Local item 1",
+            memory_type=MemoryType.CODE,
+            metadata={},
+        )
         basic_adapter.store(local_item)
 
         # Manually store the mock items in the basic adapter to simulate integration
@@ -409,7 +517,7 @@ class TestGraphMemoryAdapter:
             id="save_test",
             content="Save Graph",
             memory_type=MemoryType.CODE,
-            metadata={"source": "unit"}
+            metadata={"source": "unit"},
         )
         rdflib_adapter.store(memory_item)
         rdflib_adapter._save_graph()
@@ -423,10 +531,90 @@ class TestGraphMemoryAdapter:
             id="triple_test",
             content="Triple",
             memory_type=MemoryType.CODE,
-            metadata={"source": "unit"}
+            metadata={"source": "unit"},
         )
         rdflib_adapter.store(item)
 
         item_uri = URIRef(f"{MEMORY}{item.id}")
         assert (item_uri, RDF.type, DEVSYNTH.MemoryItem) in rdflib_adapter.graph
         assert (item_uri, DEVSYNTH.source, Literal("unit")) in rdflib_adapter.graph
+
+    # ------------------------------------------------------------------
+    # QueryRouter integration tests
+    # ------------------------------------------------------------------
+
+    @pytest.fixture
+    def router(self):
+        """Create a QueryRouter with simple in-memory adapters."""
+        adapters = {
+            "tinydb": InMemoryStore(),
+            "document": InMemoryStore(),
+            "vector": VectorMemoryAdapter(),
+        }
+        manager = MemoryManager(adapters=adapters)
+        return QueryRouter(manager)
+
+    @pytest.fixture
+    def populated_router(self, router):
+        """Populate the router's stores with simple items."""
+        manager = router.memory_manager
+        manager.adapters["tinydb"].store(
+            MemoryItem(id="tiny", content="apple tinydb", memory_type=MemoryType.CODE)
+        )
+        manager.adapters["document"].store(
+            MemoryItem(id="doc", content="apple document", memory_type=MemoryType.CODE)
+        )
+        vec = MemoryVector(
+            id="vec",
+            content="apple vector",
+            embedding=manager._embed_text("apple"),
+            metadata={"memory_type": MemoryType.CODE.value},
+        )
+        manager.adapters["vector"].store_vector(vec)
+        return router
+
+    def test_cascading_query_with_missing_adapter(self, populated_router):
+        """Ensure cascading_query aggregates results and skips missing stores."""
+        results = populated_router.cascading_query(
+            "apple", order=["vector", "tinydb", "missing", "document"]
+        )
+        assert [r.content for r in results] == [
+            "apple vector",
+            "apple tinydb",
+            "apple document",
+        ]
+
+    def test_context_aware_query(self, populated_router):
+        """Context-aware query should incorporate context into search."""
+        manager = populated_router.memory_manager
+        manager.adapters["tinydb"].store(
+            MemoryItem(
+                id="ctx", content="apple location:home", memory_type=MemoryType.CODE
+            )
+        )
+        manager.adapters["document"].store(
+            MemoryItem(
+                id="ctx2", content="apple location:home", memory_type=MemoryType.CODE
+            )
+        )
+
+        results = populated_router.context_aware_query("apple", {"location": "home"})
+        assert len(results["tinydb"]) == 1
+        assert results["tinydb"][0].content == "apple location:home"
+        assert len(results["document"]) == 1
+        assert (
+            populated_router.context_aware_query(
+                "apple", {"location": "home"}, store="missing"
+            )
+            == []
+        )
+
+    def test_query_router_route(self, populated_router):
+        """Exercise the router.route method for various strategies."""
+        direct = populated_router.route("apple", store="tinydb", strategy="direct")
+        assert len(direct) == 1
+
+        cascade = populated_router.route("apple", strategy="cascading")
+        assert len(cascade) >= 3
+
+        assert populated_router.route("apple", strategy="unknown") == []

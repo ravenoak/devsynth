@@ -9,6 +9,8 @@ from rdflib import URIRef, Literal, Namespace
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.application.memory.rdflib_store import RDFLibStore
+from devsynth.application.memory.context_manager import InMemoryStore
+from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.knowledge_graph_utils import MEMORY
 from devsynth.application.memory.knowledge_graph_utils import (
     find_related_items,
@@ -17,9 +19,10 @@ from devsynth.application.memory.knowledge_graph_utils import (
     create_relationship,
     delete_relationship,
     query_graph_pattern,
-    get_subgraph
+    get_subgraph,
 )
 from devsynth.exceptions import MemoryStoreError
+
 
 class TestKnowledgeGraphUtils:
     """Tests for the knowledge graph utility functions."""
@@ -47,29 +50,42 @@ class TestKnowledgeGraphUtils:
                 content="Class definition for User",
                 memory_type=MemoryType.CODE_ANALYSIS,
                 metadata={"file": "user.py", "type": "class", "name": "User"},
-                created_at=datetime.now()
+                created_at=datetime.now(),
             ),
             MemoryItem(
                 id="",
                 content="Method definition for authenticate",
                 memory_type=MemoryType.CODE_ANALYSIS,
-                metadata={"file": "user.py", "type": "method", "name": "authenticate", "class": "User"},
-                created_at=datetime.now()
+                metadata={
+                    "file": "user.py",
+                    "type": "method",
+                    "name": "authenticate",
+                    "class": "User",
+                },
+                created_at=datetime.now(),
             ),
             MemoryItem(
                 id="",
                 content="Function definition for hash_password",
                 memory_type=MemoryType.CODE_ANALYSIS,
-                metadata={"file": "utils.py", "type": "function", "name": "hash_password"},
-                created_at=datetime.now()
+                metadata={
+                    "file": "utils.py",
+                    "type": "function",
+                    "name": "hash_password",
+                },
+                created_at=datetime.now(),
             ),
             MemoryItem(
                 id="",
                 content="Test case for User authentication",
                 memory_type=MemoryType.EPISODIC,
-                metadata={"file": "test_user.py", "type": "test", "name": "test_user_authentication"},
-                created_at=datetime.now()
-            )
+                metadata={
+                    "file": "test_user.py",
+                    "type": "test",
+                    "name": "test_user_authentication",
+                },
+                created_at=datetime.now(),
+            ),
         ]
 
         item_ids = []
@@ -91,8 +107,13 @@ class TestKnowledgeGraphUtils:
 
         # Should find the authenticate method and the test case
         assert len(related_items) == 2
-        assert any(item.metadata.get("name") == "authenticate" for item in related_items)
-        assert any(item.metadata.get("name") == "test_user_authentication" for item in related_items)
+        assert any(
+            item.metadata.get("name") == "authenticate" for item in related_items
+        )
+        assert any(
+            item.metadata.get("name") == "test_user_authentication"
+            for item in related_items
+        )
 
         # Find items related to the authenticate method
         related_items = find_related_items(store, sample_items[1])
@@ -100,7 +121,9 @@ class TestKnowledgeGraphUtils:
         # Should find the User class and the hash_password function
         assert len(related_items) == 2
         assert any(item.metadata.get("name") == "User" for item in related_items)
-        assert any(item.metadata.get("name") == "hash_password" for item in related_items)
+        assert any(
+            item.metadata.get("name") == "hash_password" for item in related_items
+        )
 
     def test_find_items_by_relationship(self, store, sample_items):
         """Test finding items by a specific relationship."""
@@ -117,7 +140,10 @@ class TestKnowledgeGraphUtils:
 
         # Should find the test case and User class
         assert len(related_items) == 2
-        assert any(item.metadata.get("name") == "test_user_authentication" for item in related_items[0])
+        assert any(
+            item.metadata.get("name") == "test_user_authentication"
+            for item in related_items[0]
+        )
         assert any(item.metadata.get("name") == "User" for item in related_items[1])
 
     def test_get_item_relationships(self, store, sample_items):
@@ -157,29 +183,40 @@ class TestKnowledgeGraphUtils:
     def test_query_graph_pattern(self, store, sample_items):
         """Test querying the graph with a specific pattern."""
         # Create a simple query to test the function
-        results = query_graph_pattern(store, """
+        results = query_graph_pattern(
+            store,
+            """
             ?item a <http://devsynth.org/ontology/memory#MemoryItem> .
-        """)
+        """,
+        )
 
         # Should find all memory items
         assert len(results) > 0
 
         # Create a more specific query
-        results = query_graph_pattern(store, """
+        results = query_graph_pattern(
+            store,
+            """
             ?item a <http://devsynth.org/ontology/memory#MemoryItem> .
             ?item <http://devsynth.org/ontology/memory#memoryType> ?type .
             FILTER(?type = "code_analysis")
-        """)
+        """,
+        )
 
         # Should find code analysis items
         assert len(results) > 0
 
         # Test with a relationship query
-        create_relationship(store, sample_items[0], sample_items[1], "test_relationship")
+        create_relationship(
+            store, sample_items[0], sample_items[1], "test_relationship"
+        )
 
-        results = query_graph_pattern(store, """
+        results = query_graph_pattern(
+            store,
+            """
             ?source <http://devsynth.org/ontology/memory#test_relationship> ?target .
-        """)
+        """,
+        )
 
         # Should find the test relationship
         assert len(results) == 1
@@ -199,3 +236,49 @@ class TestKnowledgeGraphUtils:
         # Should include only directly connected items
         assert len(subgraph["nodes"]) == 3  # authenticate, User, and hash_password
         assert len(subgraph["edges"]) == 2  # has_method and calls
+
+    # ------------------------------------------------------------------
+    # SyncManager tests
+    # ------------------------------------------------------------------
+
+    @pytest.fixture
+    def sync_manager(self):
+        """Provide a simple SyncManager with two in-memory stores."""
+        adapters = {"s1": InMemoryStore(), "s2": InMemoryStore()}
+        manager = MemoryManager(adapters=adapters)
+        return manager.sync_manager, adapters
+
+    def test_synchronize_basic(self, sync_manager):
+        sm, adapters = sync_manager
+        adapters["s1"].store(
+            MemoryItem(id="a", content="A", memory_type=MemoryType.CODE)
+        )
+        result = sm.synchronize("s1", "s2")
+        assert result == {"s1_to_s2": 1}
+        assert adapters["s2"].retrieve("a") is not None
+
+    def test_synchronize_missing_adapter(self, sync_manager):
+        sm, _ = sync_manager
+        assert sm.synchronize("missing", "s2") == {"error": 1}
+
+    def test_synchronize_bidirectional(self, sync_manager):
+        sm, adapters = sync_manager
+        adapters["s1"].store(
+            MemoryItem(id="a", content="A", memory_type=MemoryType.CODE)
+        )
+        result = sm.synchronize("s1", "s2", bidirectional=True)
+        assert result["s1_to_s2"] == 1
+        assert result["s2_to_s1"] == 1
+        assert adapters["s2"].retrieve("a") is not None
+
+    def test_update_and_queue(self, sync_manager):
+        sm, adapters = sync_manager
+        item = MemoryItem(id="u", content="U", memory_type=MemoryType.CODE)
+        assert sm.update_item("s1", item) is True
+        assert adapters["s2"].retrieve("u") is not None
+        assert sm.update_item("missing", item) is False
+
+        item_q = MemoryItem(id="q", content="Q", memory_type=MemoryType.CODE)
+        sm.queue_update("s1", item_q)
+        sm.flush_queue()
+        assert adapters["s2"].retrieve("q") is not None
