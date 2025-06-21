@@ -7,12 +7,14 @@ from pytest_bdd import scenario, given, when, then, parsers
 
 # Import the step definitions
 from .steps.cli_commands_steps import *
+from .steps.edrr_cycle_steps import *
 
 # Mark scenarios that require specific resources
 cli_available = pytest.mark.requires_resource("cli")
 
 # Define the feature file path
 FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'features', 'cli_commands.feature')
+EDRR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'edrr_cycle.feature')
 
 # Create a scenario for each scenario in the feature file
 @cli_available
@@ -73,4 +75,16 @@ def test_view_all_config():
 @scenario(FEATURE_FILE, 'Handle invalid command')
 def test_handle_invalid_command():
     """Test handling an invalid command."""
+    pass
+
+@cli_available
+@scenario(EDRR_FEATURE, 'Run EDRR cycle with manifest file')
+def test_edrr_cycle_with_manifest():
+    """Test running the edrr-cycle command with a manifest."""
+    pass
+
+@cli_available
+@scenario(EDRR_FEATURE, 'Handle missing manifest file')
+def test_edrr_cycle_missing_manifest():
+    """Test running the edrr-cycle command with a missing manifest file."""
     pass
