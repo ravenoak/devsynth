@@ -330,7 +330,9 @@ class WSDETeam:
         _flatten("", task, context)
 
         unused_indices = [
-            i for i, a in enumerate(self.agents) if not getattr(a, "has_been_primus", False)
+            i
+            for i, a in enumerate(self.agents)
+            if not getattr(a, "has_been_primus", False)
         ]
         candidate_indices = unused_indices or list(range(len(self.agents)))
 
@@ -347,7 +349,10 @@ class WSDETeam:
                     and "expertise" in a.config.parameters
                 ):
                     expertise = a.config.parameters["expertise"] or []
-                if any(kw in [e.lower() for e in expertise] for kw in ["documentation", "markdown", "doc_generation"]):
+                if any(
+                    kw in [e.lower() for e in expertise]
+                    for kw in ["documentation", "markdown", "doc_generation"]
+                ):
                     doc_candidates.append(i)
 
             if doc_candidates:
@@ -678,8 +683,66 @@ class WSDETeam:
         conflict_detection_threshold: float = 0.7,
         identify_complementary_options: bool = True,
     ) -> List[Dict[str, Any]]:
-        """Return placeholder trade-off information for evaluated options."""
-        return [{"id": opt.get("id"), "trade_offs": []} for opt in evaluated_options]
+        """Analyze trade-offs and potential conflicts between evaluated options.
+
+        This method compares each option against the others to identify
+        conflicting choices based on evaluation scores. Options whose scores
+        differ by less than ``1 - conflict_detection_threshold`` are treated as
+        conflicting because there is no clear preference. When
+        ``identify_complementary_options`` is ``True`` the method also marks
+        options with lower scores as potential complements to higher scoring
+        alternatives.
+
+        Args:
+            evaluated_options: A list of evaluated option dictionaries. Each
+                dictionary should contain at least ``id`` and ``score`` keys.
+            conflict_detection_threshold: Value in the range ``[0, 1]`` used to
+                determine how close scores must be to be considered a conflict.
+            identify_complementary_options: If ``True``, options with lower
+                scores are noted as possible complements to higher scoring
+                options.
+
+        Returns:
+            A list with trade-off information for each option.
+        """
+
+        trade_off_results: List[Dict[str, Any]] = []
+
+        if not evaluated_options:
+            return trade_off_results
+
+        diff_threshold = 1.0 - conflict_detection_threshold
+
+        for idx, option in enumerate(evaluated_options):
+            option_trade_offs: List[Dict[str, Any]] = []
+            for jdx, other in enumerate(evaluated_options):
+                if idx == jdx:
+                    continue
+                score_diff = option.get("score", 0.0) - other.get("score", 0.0)
+                conflict = abs(score_diff) <= diff_threshold
+
+                if conflict:
+                    option_trade_offs.append(
+                        {
+                            "other_id": other.get("id"),
+                            "type": "conflict",
+                            "score_difference": round(score_diff, 4),
+                        }
+                    )
+                elif identify_complementary_options and score_diff < 0:
+                    option_trade_offs.append(
+                        {
+                            "other_id": other.get("id"),
+                            "type": "complement",
+                            "score_difference": round(score_diff, 4),
+                        }
+                    )
+
+            trade_off_results.append(
+                {"id": option.get("id"), "trade_offs": option_trade_offs}
+            )
+
+        return trade_off_results
 
     def formulate_decision_criteria(
         self,
