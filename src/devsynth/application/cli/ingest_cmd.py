@@ -22,11 +22,18 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.application.ingestion import Ingestion
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.domain.models.project import ProjectModel
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.methodology.base import Phase
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 console = Console()
+
 
 def ingest_cmd(
     manifest_path: Optional[str] = None,
@@ -65,11 +72,17 @@ def ingest_cmd(
             bridge.print(f"Validate only: {validate_only}")
 
         # Check if this project is managed by DevSynth
-        is_managed_by_devsynth = manifest_path.parent.exists() if manifest_path.parent.name == ".devsynth" else True
+        is_managed_by_devsynth = (
+            manifest_path.parent.exists()
+            if manifest_path.parent.name == ".devsynth"
+            else True
+        )
 
         if not is_managed_by_devsynth and verbose:
             bridge.print("[yellow]This project is not managed by DevSynth.[/yellow]")
-            bridge.print("[yellow]The presence of a .devsynth/ directory is the marker that a project is managed by DevSynth.[/yellow]")
+            bridge.print(
+                "[yellow]The presence of a .devsynth/ directory is the marker that a project is managed by DevSynth.[/yellow]"
+            )
             bridge.print("[yellow]Using default minimal configuration.[/yellow]")
 
         # Validate the manifest
@@ -79,7 +92,9 @@ def ingest_cmd(
             if is_managed_by_devsynth:
                 bridge.print("[green]Manifest validation successful.[/green]")
             else:
-                bridge.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
+                bridge.print(
+                    "[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]"
+                )
             return
 
         # Perform the ingestion using the Ingestion class
@@ -107,6 +122,7 @@ def ingest_cmd(
         bridge.print(f"[red]Unexpected Error:[/red] {str(e)}")
         sys.exit(1)
 
+
 def validate_manifest(
     manifest_path: Path,
     verbose: bool = False,
@@ -127,7 +143,9 @@ def validate_manifest(
     if manifest_path.parent.name == ".devsynth" and not manifest_path.parent.exists():
         # This project is not managed by DevSynth, so we don't need to validate a manifest
         if verbose:
-            bridge.print("[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]")
+            bridge.print(
+                "[yellow]Project is not managed by DevSynth. Skipping manifest validation.[/yellow]"
+            )
         return
 
     if not manifest_path.exists():
@@ -135,7 +153,9 @@ def validate_manifest(
 
     try:
         # Import the validate_manifest function from the script
-        sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent / "scripts"))
+        sys.path.append(
+            str(Path(__file__).parent.parent.parent.parent.parent / "scripts")
+        )
         from validate_manifest import validate_manifest as validate_manifest_script
 
         # Get the project root directory
@@ -160,6 +180,7 @@ def validate_manifest(
         raise ManifestError("Failed to import validate_manifest script")
     except Exception as e:
         raise ManifestError(f"Failed to validate manifest: {str(e)}")
+
 
 def load_manifest(
     manifest_path: Optional[Path] = None,
@@ -190,16 +211,16 @@ def load_manifest(
                 if not os.path.exists(str(manifest_path)):
                     # Neither .devsynth/project.yaml nor manifest.yaml exists
                     # Return a minimal default manifest
-                    logger.warning("Project is not managed by DevSynth. Using default minimal manifest.")
+                    logger.warning(
+                        "Project is not managed by DevSynth. Using default minimal manifest."
+                    )
                     return {
                         "metadata": {
                             "name": "Unmanaged Project",
                             "version": "0.1.0",
-                            "description": "This project is not managed by DevSynth."
+                            "description": "This project is not managed by DevSynth.",
                         },
-                        "structure": {
-                            "type": "standard"
-                        }
+                        "structure": {"type": "standard"},
                     }
 
         # Try to open and load the manifest
@@ -212,11 +233,15 @@ def load_manifest(
     except Exception as e:
         raise ManifestError(f"Failed to load manifest: {str(e)}")
 
+
 def expand_phase(
     manifest: Dict[str, Any],
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> Dict[str, Any]:
     """Run the Expand phase and gather project metrics.
 
@@ -237,6 +262,12 @@ def expand_phase(
 
     project_root = Path.cwd()
 
+    memory_manager = memory_manager or MemoryManager(
+        adapters={"tinydb": TinyDBMemoryAdapter()}
+    )
+    analyzer = code_analyzer or CodeAnalyzer()
+    wsde_team = wsde_team or WSDETeam()
+
     if verbose:
         bridge.print("  Building project model...")
 
@@ -246,7 +277,6 @@ def expand_phase(
     artifacts = project_model.to_dict()["artifacts"]
 
     # Analyse all python files discovered
-    analyzer = CodeAnalyzer()
     python_files = [
         Path(p)
         for p, data in artifacts.items()
@@ -265,13 +295,18 @@ def expand_phase(
         total_classes += metrics.get("classes_count", 0)
         total_functions += metrics.get("functions_count", 0)
 
+    ideas = wsde_team.generate_diverse_ideas(
+        {"description": manifest.get("metadata", {}).get("name", "project")}
+    )
+    knowledge = memory_manager.retrieve_relevant_knowledge({"manifest": manifest})
+
     if verbose:
         bridge.print(f"  Discovered {len(artifacts)} artifacts")
         bridge.print(f"  Processed {files_processed} Python files")
 
     duration = int(time.perf_counter() - start)
 
-    return {
+    results = {
         "artifacts_discovered": len(artifacts),
         "files_processed": files_processed,
         "analysis_metrics": {
@@ -280,8 +315,15 @@ def expand_phase(
             "functions": total_functions,
         },
         "artifacts": artifacts,
+        "ideas": ideas,
+        "knowledge": knowledge,
         "duration_seconds": duration,
     }
+
+    memory_manager.store_with_edrr_phase(results, "EXPAND_RESULTS", Phase.EXPAND.value)
+
+    return results
+
 
 def differentiate_phase(
     manifest: Dict[str, Any],
@@ -289,10 +331,19 @@ def differentiate_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> Dict[str, Any]:
     """Validate the discovered project structure against the manifest."""
 
     start = time.perf_counter()
+
+    memory_manager = memory_manager or MemoryManager(
+        adapters={"tinydb": TinyDBMemoryAdapter()}
+    )
+    analyzer = code_analyzer or CodeAnalyzer()
+    wsde_team = wsde_team or WSDETeam()
 
     artifacts = expand_results.get("artifacts", {})
 
@@ -313,19 +364,44 @@ def differentiate_phase(
         if not Path(path).exists():
             inconsistencies.append(path)
 
+    ideas = expand_results.get("ideas") or wsde_team.generate_diverse_ideas(
+        {"description": manifest.get("metadata", {}).get("name", "project")}
+    )
+    comparison_matrix = wsde_team.create_comparison_matrix(
+        ideas, ["feasibility", "impact"]
+    )
+    evaluated_options = wsde_team.evaluate_options(
+        ideas, comparison_matrix, {"feasibility": 0.5, "impact": 0.5}
+    )
+    trade_offs = wsde_team.analyze_trade_offs(evaluated_options)
+    decision_criteria = wsde_team.formulate_decision_criteria(
+        manifest.get("metadata", {}), evaluated_options, trade_offs, False, analyzer
+    )
+
     if verbose:
         bridge.print(f"  Missing paths: {len(missing_paths)}")
         bridge.print(f"  Inconsistencies: {len(inconsistencies)}")
 
     duration = int(time.perf_counter() - start)
 
-    return {
+    results = {
         "inconsistencies_found": len(inconsistencies),
         "gaps_identified": len(missing_paths),
         "missing": missing_paths,
+        "comparison_matrix": comparison_matrix,
+        "evaluated_options": evaluated_options,
+        "trade_offs": trade_offs,
+        "decision_criteria": decision_criteria,
         "duration_seconds": duration,
         "artifacts": artifacts,
     }
+
+    memory_manager.store_with_edrr_phase(
+        results, "DIFFERENTIATE_RESULTS", Phase.DIFFERENTIATE.value
+    )
+
+    return results
+
 
 def refine_phase(
     manifest: Dict[str, Any],
@@ -333,17 +409,25 @@ def refine_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> Dict[str, Any]:
     """Create relationships between artifacts and identify outdated items."""
 
     start = time.perf_counter()
+
+    memory_manager = memory_manager or MemoryManager(
+        adapters={"tinydb": TinyDBMemoryAdapter()}
+    )
+    analyzer = code_analyzer or CodeAnalyzer()
+    wsde_team = wsde_team or WSDETeam()
 
     artifacts = differentiate_results.get("artifacts", {}) or {}
 
     if verbose:
         bridge.print("  Analyzing artifact relationships...")
 
-    analyzer = CodeAnalyzer()
     relationships_created = 0
 
     for path in artifacts:
@@ -353,16 +437,39 @@ def refine_phase(
         analysis = analyzer.analyze_file(path)
         relationships_created += len(analysis.get_imports())
 
+    selected_option = wsde_team.select_best_option(
+        differentiate_results.get("evaluated_options", []),
+        differentiate_results.get("decision_criteria", {}),
+    )
+    detailed_plan = wsde_team.elaborate_details(selected_option)
+    implementation_plan = wsde_team.create_implementation_plan(detailed_plan)
+    optimized_plan = wsde_team.optimize_implementation(
+        implementation_plan, ["performance", "maintainability"], code_analyzer=analyzer
+    )
+    quality_checks = wsde_team.perform_quality_assurance(
+        optimized_plan, ["security", "testing"], code_analyzer=analyzer
+    )
+
     if verbose:
         bridge.print(f"  Created {relationships_created} relationships")
 
     duration = int(time.perf_counter() - start)
 
-    return {
+    results = {
         "relationships_created": relationships_created,
         "outdated_items_archived": 0,
+        "selected_option": selected_option,
+        "detailed_plan": detailed_plan,
+        "implementation_plan": implementation_plan,
+        "optimized_plan": optimized_plan,
+        "quality_checks": quality_checks,
         "duration_seconds": duration,
     }
+
+    memory_manager.store_with_edrr_phase(results, "REFINE_RESULTS", Phase.REFINE.value)
+
+    return results
+
 
 def retrospect_phase(
     manifest: Dict[str, Any],
@@ -370,10 +477,19 @@ def retrospect_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
+    memory_manager: MemoryManager | None = None,
+    code_analyzer: CodeAnalyzer | None = None,
+    wsde_team: WSDETeam | None = None,
 ) -> Dict[str, Any]:
     """Summarize results and suggest improvements."""
 
     start = time.perf_counter()
+
+    memory_manager = memory_manager or MemoryManager(
+        adapters={"tinydb": TinyDBMemoryAdapter()}
+    )
+    analyzer = code_analyzer or CodeAnalyzer()
+    wsde_team = wsde_team or WSDETeam()
 
     if verbose:
         bridge.print("  Generating retrospective report...")
@@ -381,12 +497,33 @@ def retrospect_phase(
     improvements = refine_results.get("relationships_created", 0)
     gaps = refine_results.get("outdated_items_archived", 0)
 
+    learnings = wsde_team.extract_learnings(refine_results, True)
+    patterns = wsde_team.recognize_patterns(
+        learnings,
+        historical_context=memory_manager.retrieve_historical_patterns(),
+        code_analyzer=analyzer,
+    )
+    integrated = wsde_team.integrate_knowledge(learnings, patterns, memory_manager)
+    suggestions = wsde_team.generate_improvement_suggestions(
+        learnings, patterns, refine_results.get("quality_checks", {}), True
+    )
+
     insights_captured = improvements + gaps
 
     duration = int(time.perf_counter() - start)
 
-    return {
+    results = {
         "insights_captured": insights_captured,
         "improvements_identified": gaps,
+        "learnings": learnings,
+        "patterns": patterns,
+        "integrated_knowledge": integrated,
+        "improvement_suggestions": suggestions,
         "duration_seconds": duration,
     }
+
+    memory_manager.store_with_edrr_phase(
+        results, "RETROSPECT_RESULTS", Phase.RETROSPECT.value
+    )
+
+    return results
