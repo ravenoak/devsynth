@@ -6,6 +6,9 @@ import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 
+from devsynth import __version__ as project_version
+from devsynth.logging_setup import DevSynthLogger
+
 import yaml
 import toml
 from pydantic.dataclasses import dataclass
@@ -16,6 +19,7 @@ class ConfigModel:
     """Dataclass representing project configuration."""
 
     project_root: Optional[str] = None
+    version: str = "1.0"
     structure: str = "single_package"
     language: str = "python"
     goals: Optional[str] = None
@@ -28,6 +32,7 @@ class ConfigModel:
     def as_dict(self) -> Dict[str, Any]:
         return {
             "project_root": self.project_root,
+            "version": self.version,
             "structure": self.structure,
             "language": self.language,
             "goals": self.goals,
@@ -42,6 +47,10 @@ class ConfigModel:
             "features": self.features or {},
             "resources": self.resources or {},
         }
+
+
+# Module level logger
+logger = DevSynthLogger(__name__)
 
 
 def _find_config_path(start: Path) -> Optional[Path]:
@@ -77,7 +86,15 @@ def load_config(path: Optional[Path] = None) -> ConfigModel:
         data = tdata.get("tool", {}).get("devsynth", {})
     if "project_root" not in data:
         data["project_root"] = str(root)
-    return ConfigModel(**data)
+
+    config = ConfigModel(**data)
+    if config.version != ConfigModel.version:
+        logger.warning(
+            "Configuration version %s does not match expected %s",
+            config.version,
+            ConfigModel.version,
+        )
+    return config
 
 
 def save_config(
