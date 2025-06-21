@@ -1,6 +1,54 @@
 from unittest.mock import MagicMock
+import types
+import sys
 
 import pytest
+
+argon2_mod = types.ModuleType("argon2")
+setattr(argon2_mod, "PasswordHasher", object)
+exceptions_mod = types.ModuleType("exceptions")
+setattr(exceptions_mod, "VerifyMismatchError", type("VerifyMismatchError", (), {}))
+setattr(argon2_mod, "exceptions", exceptions_mod)
+sys.modules.setdefault("argon2", argon2_mod)
+sys.modules.setdefault("argon2.exceptions", exceptions_mod)
+sys.modules.setdefault("requests", types.ModuleType("requests"))
+crypto_mod = types.ModuleType("cryptography")
+fernet_mod = types.ModuleType("fernet")
+setattr(fernet_mod, "Fernet", object)
+crypto_mod.fernet = fernet_mod
+sys.modules.setdefault("cryptography", crypto_mod)
+sys.modules.setdefault("cryptography.fernet", fernet_mod)
+sys.modules.setdefault("jsonschema", types.ModuleType("jsonschema"))
+rdflib_mod = types.ModuleType("rdflib")
+setattr(rdflib_mod, "Graph", object)
+setattr(rdflib_mod, "Literal", object)
+setattr(rdflib_mod, "URIRef", object)
+setattr(rdflib_mod, "Namespace", lambda *a, **k: object())
+setattr(rdflib_mod, "RDF", object)
+setattr(rdflib_mod, "RDFS", object)
+setattr(rdflib_mod, "XSD", object)
+namespace_mod = types.ModuleType("namespace")
+setattr(namespace_mod, "FOAF", object)
+setattr(namespace_mod, "DC", object)
+rdflib_mod.namespace = namespace_mod
+sys.modules.setdefault("rdflib", rdflib_mod)
+sys.modules.setdefault("rdflib.namespace", namespace_mod)
+astor_mod = types.ModuleType("astor")
+setattr(astor_mod, "to_source", lambda *a, **k: "")
+sys.modules.setdefault("astor", astor_mod)
+tinydb_mod = types.ModuleType("tinydb")
+setattr(tinydb_mod, "TinyDB", object)
+setattr(tinydb_mod, "Query", object)
+storages_mod = types.ModuleType("storages")
+setattr(storages_mod, "MemoryStorage", object)
+setattr(storages_mod, "JSONStorage", object)
+tinydb_mod.storages = storages_mod
+sys.modules.setdefault("tinydb", tinydb_mod)
+sys.modules.setdefault("tinydb.storages", storages_mod)
+middlewares_mod = types.ModuleType("middlewares")
+setattr(middlewares_mod, "CachingMiddleware", object)
+tinydb_mod.middlewares = middlewares_mod
+sys.modules.setdefault("tinydb.middlewares", middlewares_mod)
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -97,3 +145,42 @@ def test_full_cycle_auto_transition_dynamic_roles(coordinator):
         Phase.REFINE.value,
         Phase.RETROSPECT.value,
     ]
+
+
+def test_micro_cycle_results_aggregated(coordinator):
+    """Ensure micro cycles spawn and results are aggregated."""
+
+    valid_task = {"description": "child valid", "granularity_score": 0.8}
+    terminate_task = {"description": "child stop", "granularity_score": 0.1}
+
+    original_expand = coordinator._execute_expand_phase
+
+    def expand_with_micro(context=None):
+        context = {"micro_tasks": [valid_task, terminate_task]}
+        return original_expand(context)
+
+    coordinator._execute_expand_phase = expand_with_micro
+
+    coordinator.start_cycle({"description": "macro"})
+
+    assert coordinator.current_phase == Phase.RETROSPECT
+    assert len(coordinator.child_cycles) == 1
+
+    child = coordinator.child_cycles[0]
+
+    expand_results = coordinator.results[Phase.EXPAND.name]
+    assert child.cycle_id in expand_results["micro_cycle_results"]
+    assert "child stop" in expand_results["micro_cycle_results"]
+    assert "error" in expand_results["micro_cycle_results"]["child stop"]
+
+    aggregated = coordinator.results["AGGREGATED"]
+    assert child.cycle_id in aggregated["child_cycles"]
+    assert aggregated["child_cycles"][child.cycle_id] == child.results
+
+    assert any(
+        call.args[1] == "MICRO_CYCLE"
+        for call in coordinator.memory_manager.store_with_edrr_phase.call_args_list
+    )
+
+    assert coordinator.should_terminate_recursion(terminate_task) is True
+    assert coordinator.should_terminate_recursion(valid_task) is False
