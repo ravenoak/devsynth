@@ -108,6 +108,14 @@ Ensure your setup is working correctly by running the tests:
 python -m pytest
 ```
 
+### Configuration Version Locking
+
+DevSynth locks the configuration format to a specific version. The `version` key
+in `.devsynth/devsynth.yml` (or `[tool.devsynth]` in `pyproject.toml`) must
+match the version expected by the current DevSynth release. When `load_config`
+reads a file with a mismatched version, it logs a warning so you can regenerate
+the configuration with `devsynth init`.
+
 ## Project Structure
 
 DevSynth follows a hexagonal architecture pattern with the following key directories:
