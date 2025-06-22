@@ -5,7 +5,14 @@ from devsynth.application.cli.cli_commands import init_cmd, gather_cmd
 
 def test_gather_updates_config(tmp_path):
     os.chdir(tmp_path)
-    init_cmd(path=str(tmp_path))
+    with patch(
+        "devsynth.application.cli.cli_commands.bridge.ask_question",
+        side_effect=[str(tmp_path), "python", ""],
+    ), patch(
+        "devsynth.application.cli.cli_commands.bridge.confirm_choice",
+        return_value=True,
+    ):
+        init_cmd()
     answers = ["goal1", "constraint1", "high"]
 
     class Bridge:

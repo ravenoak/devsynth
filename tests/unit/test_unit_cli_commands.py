@@ -1,4 +1,4 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, MagicMock
 import os
 import yaml
 
@@ -41,126 +41,59 @@ class TestCLICommands:
         with patch("devsynth.application.cli.cli_commands.bridge") as mock:
             yield mock
 
-    def test_init_cmd_success(self, mock_workflow_manager, mock_bridge):
-        """Test successful project initialization."""
-        # Setup
-        mock_workflow_manager.return_value = {
-            "success": True,
-            "message": "Project initialized successfully",
-        }
+    def test_init_cmd_success(self, mock_bridge):
+        """Project initializes when no config exists."""
 
-        # Execute
+        cfg = MagicMock()
+        cfg.exists.return_value = False
+
         with patch(
+            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            return_value=cfg,
+        ), patch(
             "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=[
-                "./test-project",  # project_root
-                "single_package",  # structure
-                "python",  # language
-                "",  # goals
-                "",  # constraints path
-            ],
+            side_effect=["/proj", "python", "goal"],
         ), patch(
             "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-            return_value=False,
+            return_value=True,
         ):
-            init_cmd("./test-project")
+            init_cmd()
 
-        # Verify
-        mock_workflow_manager.assert_called_once_with(
-            "init",
-            {
-                "path": "./test-project",
-                "project_root": "./test-project",
-                "language": "python",
-                "constraints": "",
-                "goals": "",
-                "structure": "single_package",
-            },
-        )
-        # Check that one of the print calls contains the expected message
-        success_message = (
-            "[green]Initialized DevSynth project in ./test-project[/green]"
-        )
+        cfg.set_root.assert_called_once_with("/proj")
+        cfg.set_language.assert_called_once_with("python")
+        cfg.set_goals.assert_called_once_with("goal")
+        assert cfg.save.called
         assert any(
-            call.args[0] == success_message
-            for call in mock_bridge.display_result.call_args_list
+            "Initialization complete" in c.args[0]
+            for c in mock_bridge.display_result.call_args_list
         )
 
-    def test_init_cmd_failure(self, mock_workflow_manager, mock_bridge):
-        """Test failed project initialization."""
-        # Setup
-        mock_workflow_manager.return_value = {
-            "success": False,
-            "message": "Path already exists",
-        }
+    def test_init_cmd_already_initialized(self, mock_bridge):
+        """init_cmd exits when config exists."""
 
-        # Execute
+        cfg = MagicMock()
+        cfg.exists.return_value = True
+
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=[
-                "./test-project",
-                "single_package",
-                "python",
-                "",
-                "",
-            ],
-        ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-            return_value=False,
+            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            return_value=cfg,
         ):
-            init_cmd("./test-project")
+            init_cmd()
 
-        # Verify
-        mock_workflow_manager.assert_called_once_with(
-            "init",
-            {
-                "path": "./test-project",
-                "project_root": "./test-project",
-                "language": "python",
-                "constraints": "",
-                "goals": "",
-                "structure": "single_package",
-            },
-        )
-        mock_bridge.display_result.assert_called_once_with(
-            "[red]Error:[/red] Path already exists", highlight=False
-        )
+        cfg.set_root.assert_not_called()
+        mock_bridge.display_result.assert_any_call("Project already initialized")
 
-    def test_init_cmd_exception(self, mock_workflow_manager, mock_bridge):
-        """Test exception handling in project initialization."""
-        # Setup
-        mock_workflow_manager.side_effect = Exception("Test error")
+    def test_init_cmd_exception(self, mock_bridge):
+        """Errors are reported via the bridge."""
 
-        # Execute
         with patch(
-            "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=[
-                "./test-project",
-                "single_package",
-                "python",
-                "",
-                "",
-            ],
-        ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-            return_value=False,
+            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            side_effect=Exception("boom"),
         ):
-            init_cmd("./test-project")
+            init_cmd()
 
-        # Verify
-        mock_workflow_manager.assert_called_once_with(
-            "init",
-            {
-                "path": "./test-project",
-                "project_root": "./test-project",
-                "language": "python",
-                "constraints": "",
-                "goals": "",
-                "structure": "single_package",
-            },
-        )
-        mock_bridge.display_result.assert_called_once_with(
-            "[red]Error:[/red] Test error", highlight=False
+        assert any(
+            "boom" in c.args[0] for c in mock_bridge.display_result.call_args_list
         )
 
     def test_spec_cmd_success(self, mock_workflow_manager, mock_bridge):
@@ -384,118 +317,6 @@ class TestCLICommands:
 
         data = yaml.safe_load(cfg.read_text())
         assert data["features"]["code_generation"] is True
-
-    def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_bridge):
-        """Init command with additional parameters."""
-        mock_workflow_manager.return_value = {"success": True}
-        with patch(
-            "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=[
-                ".",
-                "single_package",
-                "python",
-                "",
-                "",
-            ],
-        ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-            return_value=False,
-        ):
-            init_cmd(path=".", name="proj", template="web-app")
-        mock_workflow_manager.assert_called_once_with(
-            "init",
-            {
-                "path": ".",
-                "name": "proj",
-                "template": "web-app",
-                "project_root": ".",
-                "language": "python",
-                "constraints": "",
-                "goals": "",
-                "structure": "single_package",
-            },
-        )
-
-    @patch("devsynth.application.cli.cli_commands.Path.mkdir")
-    @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
-    @patch("builtins.open", new_callable=mock_open, read_data="projectName: ex")
-    @patch("devsynth.application.cli.cli_commands.bridge.confirm_choice")
-    def test_init_cmd_writes_features(
-        self,
-        mock_confirm,
-        mock_open_file,
-        mock_yaml_dump,
-        mock_mkdir,
-        mock_workflow_manager,
-        mock_bridge,
-    ):
-        """Init command writes feature flags to project.yaml."""
-        mock_workflow_manager.return_value = {"success": True}
-        mock_confirm.side_effect = [True, False, False, False, False, False]
-
-        with patch(
-            "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=[
-                "./proj",
-                "single_package",
-                "python",
-                "",
-                "",
-            ],
-        ):
-            init_cmd(path="./proj", name="proj")
-
-        mock_workflow_manager.assert_called_once_with(
-            "init",
-            {
-                "path": "./proj",
-                "name": "proj",
-                "project_root": "./proj",
-                "language": "python",
-                "constraints": "",
-                "goals": "",
-                "structure": "single_package",
-            },
-        )
-        assert mock_yaml_dump.called
-        dumped = mock_yaml_dump.call_args[0][0]
-        assert dumped["features"]["code_generation"] is True
-
-    @patch("devsynth.application.cli.cli_commands.Path.mkdir")
-    @patch("devsynth.application.cli.cli_commands.yaml.safe_dump")
-    @patch("builtins.open", new_callable=mock_open)
-    @patch(
-        "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-        return_value=False,
-    )
-    def test_init_cmd_writes_config_file(
-        self,
-        mock_confirm,
-        mock_open_file,
-        mock_yaml_dump,
-        mock_mkdir,
-        mock_workflow_manager,
-        mock_bridge,
-    ):
-        """init_cmd should create .devsynth/devsynth.yml."""
-        mock_workflow_manager.return_value = {"success": True}
-
-        with patch(
-            "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=[
-                "./proj",
-                "single_package",
-                "python",
-                "",
-                "",
-            ],
-        ):
-            init_cmd(path="./proj", name="proj")
-
-        mock_mkdir.assert_called_once_with(exist_ok=True)
-        mock_open_file.assert_called()
-        opened_path = Path(mock_open_file.call_args[0][0])
-        assert opened_path.name == "devsynth.yml"
 
     def test_inspect_cmd_file(self, mock_workflow_manager, mock_bridge):
         """Inspect command with input file."""
