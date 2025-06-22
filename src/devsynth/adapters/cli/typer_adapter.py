@@ -46,8 +46,9 @@ def build_app() -> typer.Typer:
     """Create a Typer application with all commands registered."""
     app = typer.Typer(
         help=(
-            "DevSynth CLI - Iterative 'expand, differentiate, refine' automation. "
-            "ChromaDB can be enabled later, but only the embedded backend is currently supported."
+            "DevSynth CLI - automate iterative 'Expand, Differentiate, Refine, "
+            "Retrace' workflows. Only the embedded ChromaDB backend is currently"
+            " supported."
         ),
     )
 
@@ -77,7 +78,10 @@ def build_app() -> typer.Typer:
     app.add_typer(config_app, name="config", help="Manage configuration settings")
     app.command(
         name="inspect",
-        help="Inspect requirements. Example: devsynth inspect --input reqs.txt",
+        help=(
+            "Inspect a requirements file or run an interactive analysis. "
+            "Example: devsynth inspect --input reqs.txt"
+        ),
     )(inspect_cmd)
     app.command(
         name="gather",
@@ -109,7 +113,10 @@ def build_app() -> typer.Typer:
     )(refactor_cmd)
     app.command(
         name="analyze-code",
-        help="Analyze a codebase. Example: devsynth analyze-code --path ./src",
+        help=(
+            "Analyze a codebase and report architecture, quality and health "
+            "metrics. Example: devsynth analyze-code --path ./src"
+        ),
     )(analyze_code_cmd)
     app.command(
         name="edrr-cycle",

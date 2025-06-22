@@ -31,7 +31,7 @@ It walks through project initialization, specification generation, test creation
 
 6. **Run the project**
    ```bash
-   devsynth run
+   devsynth run-pipeline
    ```
 
 The files in this directory show the final result after running these commands.

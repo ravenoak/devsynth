@@ -37,7 +37,7 @@ This example demonstrates the full DevSynth workflow using a simple word counter
 7. **Review and run**
    Inspect `specs.md`, the `tests/` directory, and the `src/` implementation. Then run:
    ```bash
-   devsynth run
+   devsynth run-pipeline
    ```
 
 The files in this directory show the final result after executing these commands.
