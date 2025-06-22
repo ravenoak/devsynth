@@ -61,3 +61,10 @@ parsed configuration. CLI commands also expose autocompletion of configuration
 keys via `config_key_autocomplete`. For additional implementation details see
 the [Unified Configuration Loader specification](specifications/unified_configuration_loader.md).
 
+## Migrating from YAML to pyproject.toml
+
+Existing projects that store settings in `.devsynth/devsynth.yml` can move
+those values into the `[tool.devsynth]` table of `pyproject.toml`. When both
+files are present the loader now prefers the TOML table, so you may delete the
+YAML file once migrated. All configuration keys remain the same.
+
