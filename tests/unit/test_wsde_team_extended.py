@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.agents.base import BaseAgent
+from devsynth.methodology.base import Phase
 
 class TestWSDETeam:
     @pytest.fixture
@@ -606,3 +607,73 @@ def generate_jwt_token(username):
         # Verify that the synthesis improves upon the thesis
         assert dialectical_result["synthesis"]["is_improvement"]
         assert "improved_solution" in dialectical_result["synthesis"]
+
+# New tests appended
+
+
+    def test_assign_roles_for_phase_varied_contexts(self, mock_agent_with_expertise):
+        team = WSDETeam()
+        expand_agent = mock_agent_with_expertise("Expand", ["expand"])
+        diff_agent = mock_agent_with_expertise("Diff", ["differentiate"])
+        refine_agent = mock_agent_with_expertise("Refine", ["refine"])
+        doc_agent = mock_agent_with_expertise("Doc", ["documentation"])
+        team.add_agents([expand_agent, diff_agent, refine_agent, doc_agent])
+
+        generic = {"description": "demo"}
+        team.assign_roles_for_phase(Phase.EXPAND, generic)
+        assert team.get_primus() == expand_agent
+
+        team.assign_roles_for_phase(Phase.DIFFERENTIATE, generic)
+        assert team.get_primus() == diff_agent
+
+        team.assign_roles_for_phase(Phase.REFINE, generic)
+        assert team.get_primus() == refine_agent
+
+        doc_task = {"type": "documentation"}
+        team.assign_roles_for_phase(Phase.RETROSPECT, doc_task)
+        assert team.get_primus() == doc_agent
+
+    def test_vote_on_critical_decision_majority_path(self, mock_agent):
+        team = WSDETeam()
+        a1 = mock_agent
+        a1.name = "a1"
+        a2 = MagicMock(spec=BaseAgent)
+        a2.name = "a2"
+        a3 = MagicMock(spec=BaseAgent)
+        a3.name = "a3"
+        for a in [a1, a2, a3]:
+            a.process = MagicMock()
+            team.add_agent(a)
+        a1.process.return_value = {"vote": "o1"}
+        a2.process.return_value = {"vote": "o1"}
+        a3.process.return_value = {"vote": "o2"}
+        task = {"type": "critical_decision", "is_critical": True, "options": [{"id": "o1"}, {"id": "o2"}]}
+        result = team.vote_on_critical_decision(task)
+        assert result["result"]["winner"] == "o1"
+        assert result["result"]["method"] == "majority_vote"
+
+    def test_vote_on_critical_decision_weighted_path(self, mock_agent_with_expertise):
+        team = WSDETeam()
+        expert = mock_agent_with_expertise("expert", ["security"])
+        expert.config = MagicMock()
+        expert.config.name = "expert"
+        expert.config.parameters = {"expertise": ["security"], "expertise_level": "expert"}
+        intermediate = mock_agent_with_expertise("inter", ["security"])
+        intermediate.config = MagicMock()
+        intermediate.config.name = "inter"
+        intermediate.config.parameters = {"expertise": ["security"], "expertise_level": "intermediate"}
+        novice = mock_agent_with_expertise("novice", ["python"])
+        novice.config = MagicMock()
+        novice.config.name = "novice"
+        novice.config.parameters = {"expertise": ["python"], "expertise_level": "novice"}
+        for a in [expert, intermediate, novice]:
+            a.process = MagicMock()
+            team.add_agent(a)
+        expert.process.return_value = {"vote": "b"}
+        intermediate.process.return_value = {"vote": "a"}
+        novice.process.return_value = {"vote": "a"}
+        task = {"type": "critical_decision", "domain": "security", "is_critical": True, "options": [{"id": "a"}, {"id": "b"}]}
+        result = team.vote_on_critical_decision(task)
+        assert result["result"]["method"] == "weighted_vote"
+        assert result["result"]["winner"] == "b"
+        assert result["vote_weights"]["expert"] > result["vote_weights"]["inter"]
