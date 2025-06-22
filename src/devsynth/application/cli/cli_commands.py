@@ -30,11 +30,11 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 from devsynth.config import (
     get_settings,
-    save_config,
     get_project_config,
     config_key_autocomplete as loader_autocomplete,
+    save_config,
 )
-from devsynth.config.loader import ConfigModel as DevSynthConfig
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd
 
@@ -100,123 +100,29 @@ def config_key_autocomplete(ctx: typer.Context, incomplete: str):
     return loader_autocomplete(ctx, incomplete)
 
 
-def init_cmd(
-    path: str = ".",
-    name: Optional[str] = None,
-    template: Optional[str] = None,
-    project_root: Optional[str] = None,
-    language: Optional[str] = None,
-    constraints: Optional[str] = None,
-    goals: Optional[str] = None,
-    *,
-    bridge: Optional[UXBridge] = None,
-) -> None:
-    """Initialize a new project or onboard an existing one.
+def init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+    """Interactively initialize a new project."""
 
-    Example:
-        `devsynth init --path ./my-project`
-    """
-    import builtins
-
-    builtins.Path = Path
     bridge = _resolve_bridge(bridge)
     try:
-        root_path = Path(path)
-        devsynth_dir = root_path / ".devsynth"
-        if (root_path / "pyproject.toml").exists() or (
-            devsynth_dir / "devsynth.yml"
-        ).exists():
-            bridge.display_result("[yellow]Existing project detected.[/yellow]")
-            if not bridge.confirm_choice("Continue initializing?", default=True):
-                return
+        config = UnifiedConfigLoader.load()
+        if config.exists():
+            bridge.display_result("Project already initialized")
+            return
 
-        project_root = project_root or bridge.ask_question(
-            "Project root",
-            default=str(path),
-        )
-        structure = bridge.ask_question(
-            "Source layout",
-            choices=["single_package", "monorepo"],
-            default="single_package",
-        )
-        language = language or bridge.ask_question("Primary language", default="python")
-        goals = goals or bridge.ask_question(
-            "Project goals (optional)", default="", show_default=False
-        )
-        constraints = (
-            constraints
-            if constraints is not None
-            else bridge.ask_question(
-                "Path to constraint file (optional)",
-                default="",
-                show_default=False,
-            )
-        )
+        root = bridge.ask_question("Project root directory?")
+        language = bridge.ask_question("Primary language?")
+        goals = bridge.ask_question("Project goals?")
 
-        args = filter_args(
-            {
-                "path": path,
-                "name": name,
-                "template": template,
-                "project_root": project_root,
-                "language": language,
-                "constraints": constraints,
-                "goals": goals,
-                "structure": structure,
-            }
-        )
+        if not bridge.confirm_choice("Proceed with initialization?", default=True):
+            return
 
-        result = init_project(**args)
-        if result.get("success"):
-            bridge.display_result(
-                f"[green]Initialized DevSynth project in {path}[/green]"
-            )
+        config.set_root(root)
+        config.set_language(language)
+        config.set_goals(goals)
+        config.save()
 
-            feature_flags = {
-                "code_generation": False,
-                "test_generation": False,
-                "documentation_generation": False,
-                "wsde_collaboration": False,
-                "dialectical_reasoning": False,
-            }
-
-            bridge.display_result("\n[bold]Select optional features to enable:[/bold]")
-            for flag in feature_flags:
-                feature_flags[flag] = bridge.confirm_choice(
-                    f"Enable {flag.replace('_', ' ')}?", default=False
-                )
-
-            config = DevSynthConfig(
-                project_root=project_root,
-                structure=structure,
-                language=language,
-                goals=goals or None,
-                constraints=constraints or None,
-                directories={
-                    "source": ["src"],
-                    "tests": ["tests"],
-                    "docs": ["docs"],
-                },
-                features=feature_flags,
-            )
-
-            use_pyproject = bridge.confirm_choice(
-                "Write configuration to pyproject.toml?", default=False
-            )
-
-            legacy_cfg = Path(path) / ".devsynth" / "project.yaml"
-            try:
-                legacy_cfg.parent.mkdir(exist_ok=True)
-                with open(legacy_cfg, "w") as f:
-                    yaml.safe_dump({"features": feature_flags}, f)
-            except Exception:  # pragma: no cover - simple fallback
-                pass
-
-            save_config(config, use_pyproject, path=path)
-        else:
-            bridge.display_result(
-                f"[red]Error:[/red] {result.get('message')}", highlight=False
-            )
+        bridge.display_result("Initialization complete", highlight=True)
     except Exception as err:  # pragma: no cover - defensive
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 

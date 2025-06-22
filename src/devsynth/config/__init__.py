@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from .loader import ConfigModel, config_key_autocomplete, load_config, save_config
+from .unified_loader import UnifiedConfigLoader
 from .settings import _settings, get_llm_settings, get_settings, load_dotenv
 
 _PROJECT_CONFIG: ConfigModel = load_config()
@@ -59,6 +60,7 @@ __all__ = [
     "save_config",
     "get_project_config",
     "config_key_autocomplete",
+    "UnifiedConfigLoader",
     "ConfigModel",
     "PROJECT_CONFIG",
     # Memory settings
