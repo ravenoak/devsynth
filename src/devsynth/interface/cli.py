@@ -29,7 +29,6 @@ class CLIProgressIndicator(ProgressIndicator):
         self._progress.stop()
 
 
-
 class CLIUXBridge(UXBridge):
     """Bridge for command line interactions.
 
@@ -66,3 +65,6 @@ class CLIUXBridge(UXBridge):
         self, description: str, *, total: int = 100
     ) -> ProgressIndicator:
         return CLIProgressIndicator(self.console, description, total)
+
+
+__all__ = ["CLIUXBridge", "CLIProgressIndicator"]
