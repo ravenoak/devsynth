@@ -5,11 +5,11 @@ Feature: EDRR cycle command
 
   Scenario: Run EDRR cycle with manifest file
     Given a valid manifest file
-    When I execute the edrr cycle command with that file
+    When I run the command "devsynth edrr-cycle" with that file
     Then the coordinator should process the manifest
     And the workflow should complete successfully
 
   Scenario: Handle missing manifest file
     Given no manifest file exists at the provided path
-    When I execute the edrr cycle command with that file
+    When I run the command "devsynth edrr-cycle" with that file
     Then the system should report that the manifest file was not found

@@ -28,7 +28,7 @@ def missing_manifest(tmp_path, context):
     return context['manifest']
 
 
-@when('I execute the edrr cycle command with that file')
+@when('I run the command "devsynth edrr-cycle" with that file')
 def run_edrr_cycle(context):
     manifest = str(context['manifest'])
     with patch('devsynth.application.cli.commands.edrr_cycle_cmd.bridge') as mock_bridge, \

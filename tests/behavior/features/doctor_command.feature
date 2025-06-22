@@ -17,3 +17,8 @@ Feature: Doctor Command
     Given valid environment configuration
     When I run the command "devsynth doctor"
     Then the system should display a success message
+
+  Scenario: Validate configuration using the check alias
+    Given valid environment configuration
+    When I run the command "devsynth check"
+    Then the system should display a success message
