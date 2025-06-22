@@ -123,6 +123,12 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 
+[tool.devsynth]
+project_root = "."
+language = "python"
+directories = {source = ["src"], tests = ["tests"], docs = ["docs"]}
+features = {}
+
 # Per-module options
 [[tool.mypy.overrides]]
 module = "tests.*"
