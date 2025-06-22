@@ -55,6 +55,10 @@ logger = DevSynthLogger(__name__)
 
 def _find_config_path(start: Path) -> Optional[Path]:
     """Return the configuration file path if one exists."""
+    yaml_path = start / ".devsynth" / "devsynth.yml"
+    if yaml_path.exists():
+        return yaml_path
+
     toml_path = start / "pyproject.toml"
     if toml_path.exists():
         try:
@@ -63,10 +67,6 @@ def _find_config_path(start: Path) -> Optional[Path]:
                 return toml_path
         except Exception:
             return None
-
-    yaml_path = start / ".devsynth" / "devsynth.yml"
-    if yaml_path.exists():
-        return yaml_path
 
     return None
 
