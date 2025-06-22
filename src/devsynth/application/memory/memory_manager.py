@@ -34,6 +34,7 @@ class MemoryManager:
         adapters: Union[Dict[str, Any], Any] = None,
         query_router: QueryRouter | None = None,
         sync_manager: SyncManager | None = None,
+        embedding_provider: Any | None = None,
     ):
         """
         Initialize the Memory Manager with the specified adapters.
@@ -57,21 +58,28 @@ class MemoryManager:
         # Initialize helpers
         self.query_router = query_router or QueryRouter(self)
         self.sync_manager = sync_manager or SyncManager(self)
+        self.embedding_provider = embedding_provider
 
     def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
-        """Create a very simple embedding from text for similarity search.
+        """Return an embedding for ``text``.
 
-        This helper generates a deterministic numeric vector based on the
-        characters in ``text``.  It is intentionally lightweight so unit tests
-        can run without requiring an external embedding provider.
-
-        Args:
-            text: The text to embed.
-            dimension: Length of the embedding vector.
-
-        Returns:
-            A list of floats representing the embedding.
+        If an ``embedding_provider`` was supplied during initialization this
+        method delegates to ``embedding_provider.embed`` and falls back to a
+        deterministic embedding on error.  The fallback keeps unit tests
+        hermetic when no external provider is available.
         """
+        if self.embedding_provider is not None:
+            try:
+                result = self.embedding_provider.embed(text)
+                if isinstance(result, list) and result and isinstance(result[0], list):
+                    return result[0]
+                return result
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning(
+                    "Embedding provider failed: %s; falling back to deterministic embedding",
+                    exc,
+                )
+
         if not text:
             return [0.0] * dimension
 
