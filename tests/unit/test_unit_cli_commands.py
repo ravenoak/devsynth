@@ -341,6 +341,50 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    def test_config_cmd_updates_yaml(self, tmp_path, mock_bridge):
+        cfg_dir = tmp_path / ".devsynth"
+        cfg_dir.mkdir()
+        cfg = cfg_dir / "devsynth.yml"
+        cfg.write_text("language: python\n")
+
+        def fake_exec(command, args):
+            data = yaml.safe_load(cfg.read_text()) or {}
+            if command == "config" and args.get("key") and args.get("value"):
+                data[args["key"]] = args["value"]
+                cfg.write_text(yaml.safe_dump(data))
+                return {"success": True}
+            return {"success": True, "config": data}
+
+        with patch(
+            "devsynth.application.cli.cli_commands.workflows.execute_command",
+            side_effect=fake_exec,
+        ):
+            cwd = os.getcwd()
+            os.chdir(tmp_path)
+            try:
+                cli_commands.config_cmd("language", "javascript")
+            finally:
+                os.chdir(cwd)
+
+        data = yaml.safe_load(cfg.read_text())
+        assert data["language"] == "javascript"
+
+    def test_enable_feature_cmd_yaml(self, tmp_path, mock_bridge):
+        cfg_dir = tmp_path / ".devsynth"
+        cfg_dir.mkdir()
+        cfg = cfg_dir / "devsynth.yml"
+        cfg.write_text("features:\n  code_generation: false\n")
+
+        cwd = os.getcwd()
+        os.chdir(tmp_path)
+        try:
+            cli_commands.enable_feature_cmd("code_generation")
+        finally:
+            os.chdir(cwd)
+
+        data = yaml.safe_load(cfg.read_text())
+        assert data["features"]["code_generation"] is True
+
     def test_init_cmd_with_name_template(self, mock_workflow_manager, mock_bridge):
         """Init command with additional parameters."""
         mock_workflow_manager.return_value = {"success": True}

@@ -1,8 +1,30 @@
 from unittest.mock import patch
 
+import click
+import typer
+import typer.main
 from typer.testing import CliRunner
+import pytest
 
 from devsynth.adapters.cli.typer_adapter import build_app
+from devsynth.interface.ux_bridge import UXBridge
+
+
+@pytest.fixture(autouse=True)
+def patch_typer_types(monkeypatch):
+    """Allow Typer to handle custom parameter types used in the CLI."""
+
+    orig = typer.main.get_click_type
+
+    def patched_get_click_type(*, annotation, parameter_info):
+        if annotation in {UXBridge, typer.models.Context}:
+            return click.STRING
+        origin = getattr(annotation, "__origin__", None)
+        if origin in {UXBridge, typer.models.Context}:
+            return click.STRING
+        return orig(annotation=annotation, parameter_info=parameter_info)
+
+    monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
 class TestTyperCLI:
@@ -35,6 +57,7 @@ class TestTyperCLI:
             None,
             None,
             None,
+            bridge=None,
         )
 
     @patch("devsynth.adapters.cli.typer_adapter.spec_cmd", autospec=True)
@@ -42,28 +65,28 @@ class TestTyperCLI:
         app = build_app()
         result = self.runner.invoke(app, ["spec", "--requirements-file", "reqs.md"])
         assert result.exit_code == 0
-        mock_spec_cmd.assert_called_once_with("reqs.md")
+        mock_spec_cmd.assert_called_once_with("reqs.md", bridge=None)
 
     @patch("devsynth.adapters.cli.typer_adapter.test_cmd", autospec=True)
     def test_cli_test(self, mock_test_cmd):
         app = build_app()
         result = self.runner.invoke(app, ["test", "--spec-file", "specs.md"])
         assert result.exit_code == 0
-        mock_test_cmd.assert_called_once_with("specs.md")
+        mock_test_cmd.assert_called_once_with("specs.md", bridge=None)
 
     @patch("devsynth.adapters.cli.typer_adapter.code_cmd", autospec=True)
     def test_cli_code(self, mock_code_cmd):
         app = build_app()
         result = self.runner.invoke(app, ["code"])
         assert result.exit_code == 0
-        mock_code_cmd.assert_called_once_with()
+        mock_code_cmd.assert_called_once_with(bridge=None)
 
     @patch("devsynth.adapters.cli.typer_adapter.run_pipeline_cmd", autospec=True)
     def test_cli_run(self, mock_run_pipeline_cmd):
         app = build_app()
         result = self.runner.invoke(app, ["run-pipeline", "--target", "unit-tests"])
         assert result.exit_code == 0
-        mock_run_pipeline_cmd.assert_called_once_with("unit-tests")
+        mock_run_pipeline_cmd.assert_called_once_with("unit-tests", bridge=None)
 
     def test_cli_config(self):
         app = build_app()
@@ -104,4 +127,22 @@ class TestTyperCLI:
         ])
         assert result.exit_code == 0
         mock_cmd.assert_called_once_with("./proj", False, True)
+
+    @patch("devsynth.application.cli.cli_commands._check_services", return_value=True)
+    @patch("devsynth.application.cli.cli_commands.generate_specs", side_effect=FileNotFoundError("missing"))
+    def test_cli_spec_invalid_file(self, *_):
+        app = build_app()
+        result = self.runner.invoke(app, ["spec", "--requirements-file", "bad.md"])
+        assert result.exit_code == 0
+        assert "Error: missing" in result.output
+
+    @patch(
+        "devsynth.application.cli.cli_commands.workflows.execute_command",
+        return_value={"success": False, "message": "config missing"},
+    )
+    def test_cli_config_missing(self, *_):
+        app = build_app()
+        result = self.runner.invoke(app, ["config", "--key", "model"])
+        assert result.exit_code == 0
+        assert "config missing" in result.output
 
