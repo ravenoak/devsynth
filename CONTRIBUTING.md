@@ -40,8 +40,8 @@ git clone https://github.com/YOUR-USERNAME/devsynth.git
 cd devsynth
 
 # Install dependencies
-poetry install
-poetry sync --all-extras --all-groups
+poetry install --with dev,docs
+poetry install --all-extras --with dev,docs
 
 # Alternatively, install with pip or pipx using extras
 pip install 'devsynth[dev]'
@@ -59,7 +59,7 @@ pre-commit install
 
 ```bash
 # Ensure the project is installed in editable mode
-poetry install
+poetry install --with dev,docs
 
 # Run all tests
 poetry run pytest
