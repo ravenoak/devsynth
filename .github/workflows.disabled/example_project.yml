@@ -33,4 +33,4 @@ jobs:
           devsynth spec --requirements-file requirements.md
           devsynth test
           devsynth code
-          devsynth run
+          devsynth run-pipeline
