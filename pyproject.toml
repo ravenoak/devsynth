@@ -36,7 +36,7 @@ prometheus-client = "0.20.0"
 streamlit = "1.32.0"
 httpx = {version = "0.28.1", optional = true}
 chromadb = {version = "^1.0.9", optional = true}
-kuzu = "0.10.0"
+kuzu = {version = "0.10.0", optional = true}
 numpy = "1.26.4"
 pyyaml = ">=6.0"
 
@@ -67,8 +67,8 @@ mkdocs-section-index = "0.3.10"
 
 [tool.poetry.extras]
 # docs: build the project documentation
-# minimal: baseline runtime requirements
-# retrieval: enables vector retrieval support
+# minimal: baseline runtime requirements without heavy optional dependencies
+# retrieval: enables vector retrieval support via kuzu and faiss
 # dsp: includes dspy integration
 # chromadb: use chromadb as the vector store
 docs = [
@@ -87,7 +87,6 @@ minimal = [
     "pydantic",
     "pydantic-settings",
     "langgraph",
-    "kuzu",
     "tiktoken",
     "networkx",
     "toml",
@@ -95,7 +94,6 @@ minimal = [
     "tinydb",
     "duckdb",
     "lmdb",
-    "faiss-cpu",
     "rdflib",
     "astor",
     "httpx",

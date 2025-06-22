@@ -1287,7 +1287,7 @@ description = "A library for efficient similarity search and clustering of dense
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"minimal\" or extra == \"retrieval\""
+markers = "extra == \"retrieval\""
 files = [
     {file = "faiss_cpu-1.11.0-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:1995119152928c68096b0c1e5816e3ee5b1eebcf615b80370874523be009d0f6"},
     {file = "faiss_cpu-1.11.0-cp310-cp310-macosx_14_0_x86_64.whl", hash = "sha256:788d7bf24293fdecc1b93f1414ca5cc62ebd5f2fecfcbb1d77f0e0530621c95d"},
@@ -2313,10 +2313,10 @@ adal = ["adal (>=1.0.2)"]
 name = "kuzu"
 version = "0.10.0"
 description = "Highly scalable, extremely fast, easy-to-use embeddable graph database"
-optional = false
+optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"minimal\" or extra == \"retrieval\""
+markers = "extra == \"retrieval\""
 files = [
     {file = "kuzu-0.10.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:54787a8295c09643e464f2f26ef03fa79ea1abdd4c48f2151ce18bba5af11f1a"},
     {file = "kuzu-0.10.0-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:991ce52e9d6fe01f7ac0e32e85b67723e115ed4436a4e7bfefd698c04517a80e"},
@@ -6961,10 +6961,10 @@ cffi = ["cffi (>=1.11)"]
 chromadb = ["chromadb"]
 docs = []
 dsp = ["dspy-ai"]
-minimal = ["astor", "duckdb", "faiss-cpu", "httpx", "kuzu", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
+minimal = ["astor", "duckdb", "httpx", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
 retrieval = ["faiss-cpu", "kuzu"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.11"
-content-hash = "12d38b17763c0ebd89307ff5c559e8e72d7a14f3140fbae8c7dbe5631b63f595"
+content-hash = "d3d7cc902cd2011277faff907eb9fa446cc41101cbb436fb59dd721f016d7dcd"
