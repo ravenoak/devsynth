@@ -8,6 +8,8 @@ from pytest_bdd import scenario, given, when, then, parsers
 # Import the step definitions
 from .steps.cli_commands_steps import *
 from .steps.edrr_cycle_steps import *
+from .steps.delegate_task_steps import *
+from .steps.doctor_command_steps import *
 
 # Mark scenarios that require specific resources
 cli_available = pytest.mark.requires_resource("cli")
@@ -15,6 +17,8 @@ cli_available = pytest.mark.requires_resource("cli")
 # Define the feature file path
 FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'features', 'cli_commands.feature')
 EDRR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'edrr_cycle.feature')
+DELEGATE_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'delegate_task.feature')
+DOCTOR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'doctor_command.feature')
 
 # Create a scenario for each scenario in the feature file
 @cli_available
@@ -87,4 +91,16 @@ def test_edrr_cycle_with_manifest():
 @scenario(EDRR_FEATURE, 'Handle missing manifest file')
 def test_edrr_cycle_missing_manifest():
     """Test running the edrr-cycle command with a missing manifest file."""
+    pass
+
+@cli_available
+@scenario(DELEGATE_FEATURE, 'Delegate a team task to multiple agents')
+def test_delegate_task_multi_agent():
+    """Test delegating a collaborative task to multiple agents."""
+    pass
+
+@cli_available
+@scenario(DOCTOR_FEATURE, 'Validate configuration using the check alias')
+def test_doctor_check_alias():
+    """Test doctor command via the check alias."""
     pass
