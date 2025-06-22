@@ -12,6 +12,49 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.config import get_project_config, save_config
 
 
+class RequirementsCollector:
+    """Collect basic project requirements interactively."""
+
+    def __init__(
+        self, bridge: UXBridge, *, output_file: str = "interactive_requirements.json"
+    ) -> None:
+        self.bridge = bridge
+        self.output_file = output_file
+
+    def gather(self) -> None:
+        """Ask questions via the bridge and persist the answers."""
+        try:
+            name = self.bridge.ask_question("Project name?")
+            language = self.bridge.ask_question("Primary language?")
+            features = self.bridge.ask_question("Desired features (comma separated)?")
+
+            if not self.bridge.confirm_choice("Save these settings?"):
+                self.bridge.display_result("Cancelled")
+                return
+
+            data = {
+                "name": name,
+                "language": language,
+                "features": (
+                    [f.strip() for f in features.split(";") if f.strip()]
+                    if ";" in features
+                    else [f.strip() for f in features.split(",") if f.strip()]
+                ),
+            }
+
+            path = Path(self.output_file)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                if path.suffix in {".yml", ".yaml"}:
+                    yaml.safe_dump(data, f, sort_keys=False)
+                else:
+                    json.dump(data, f, indent=2)
+
+            self.bridge.display_result("Requirements saved")
+        except Exception as err:  # pragma: no cover - defensive
+            self.bridge.display_result(f"[red]Error:[/red] {err}")
+
+
 def gather_requirements(
     bridge: UXBridge,
     *,
@@ -83,4 +126,4 @@ def gather_requirements(
     bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")
 
 
-__all__ = ["gather_requirements"]
+__all__ = ["RequirementsCollector", "gather_requirements"]
