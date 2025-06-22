@@ -66,7 +66,7 @@ This context refers to applying DevSynth as a tool to assist in the development 
 
 1. Install DevSynth as a tool
 2. Initialize a project with `devsynth init`
-3. Use DevSynth commands to analyze, generate, and improve code
+3. Use DevSynth commands to inspect, generate, and improve code
 4. Integrate DevSynth into the development process
 
 ### Example Tasks
@@ -134,7 +134,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 - Start with `devsynth init` to create the `.devsynth/project.yaml` file
 - Use `devsynth analyze-config` (formerly `analyze-manifest`) to keep the configuration up to date
  - Use `devsynth validate-config` to validate the configuration against its schema
-- Follow the recommended workflow: analyze → spec → test → code
+- Follow the recommended workflow: inspect → spec → test → code
 - Provide detailed requirements for better results
 - Review and validate all generated outputs
 
