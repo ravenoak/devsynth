@@ -677,3 +677,35 @@ def generate_jwt_token(username):
         assert result["result"]["method"] == "weighted_vote"
         assert result["result"]["winner"] == "b"
         assert result["vote_weights"]["expert"] > result["vote_weights"]["inter"]
+
+    def test_documentation_task_selects_doc_agent_and_updates_role_assignments(
+        self, mock_agent_with_expertise
+    ):
+        team = WSDETeam()
+        coder = mock_agent_with_expertise("Coder", ["python"])
+        coder.has_been_primus = True
+        doc_agent = mock_agent_with_expertise("Doc", ["documentation", "markdown"])
+        doc_agent.has_been_primus = False
+        team.add_agents([coder, doc_agent])
+
+        task = {"type": "documentation", "description": "Write docs"}
+        team.select_primus_by_expertise(task)
+
+        assert team.get_primus() is doc_agent
+        assert team.role_assignments["primus"] is doc_agent
+        assert doc_agent.has_been_primus
+
+    def test_select_primus_fallback_when_no_expertise_matches(self, mock_agent_with_expertise):
+        team = WSDETeam()
+        a1 = mock_agent_with_expertise("A1", ["python"])
+        a2 = mock_agent_with_expertise("A2", ["javascript"])
+        a3 = mock_agent_with_expertise("A3", ["design"])
+        for a in [a1, a2, a3]:
+            a.has_been_primus = True
+            team.add_agent(a)
+
+        task = {"type": "unknown", "topic": "nothing"}
+        team.select_primus_by_expertise(task)
+
+        assert team.get_primus() is a1
+        assert team.role_assignments["primus"] is a1
