@@ -18,6 +18,7 @@ from functools import lru_cache, wraps
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
 from devsynth.exceptions import DevSynthError
+from devsynth.config.settings import get_settings
 from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.security.tls import TLSConfig
 

@@ -312,6 +312,24 @@ The memory system integrates with other DevSynth components:
 - **Provider System**: Utilizes embedding providers for vector representations
 - **EDRR Framework**: Supports the Evaluate-Design-Reason-Refine cycle
 
+### Vector Store Provider Factory
+
+To decouple the memory manager from concrete vector store implementations the
+`SimpleVectorStoreProviderFactory` mirrors the LLM provider factory pattern.
+Vector store classes register themselves with the factory and can then be
+instantiated by type.  The memory manager accepts these providers so embedding
+and search logic can be delegated without hard dependencies on specific
+backends.
+
+```python
+from devsynth.application.memory.vector_providers import factory
+from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+
+factory.register_provider_type("kuzu", KuzuAdapter)
+vector_store = factory.create_provider("kuzu", {"persist_directory": "./data"})
+manager = MemoryManager({"vector": vector_store})
+```
+
 ## Query Routing and Synchronization
 
 Two helper components extend the memory manager:
