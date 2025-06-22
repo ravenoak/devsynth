@@ -39,23 +39,6 @@ chromadb = {version = "^1.0.9", optional = true}
 kuzu = "0.10.0"
 numpy = "1.26.4"
 pyyaml = ">=6.0"
-responses = {version = "0.25.7", optional = true}
-pytest = {version = "8.3.5", optional = true}
-pytest-bdd = {version = "8.1.0", optional = true}
-pytest-cov = {version = "6.1.1", optional = true}
-pytest-mock = {version = "3.14.1", optional = true}
-pytest-xdist = {version = "3.7.0", optional = true}
-black = {version = "25.1.0", optional = true}
-pre-commit = {version = "3.8.0", optional = true}
-psutil = {version = "5.9.8", optional = true}
-mkdocs = {version = "1.6.1", optional = true}
-mkdocs-material = {version = "9.6.14", optional = true}
-mkdocstrings-python = {version = "1.16.11", optional = true}
-mkdocs-gen-files = {version = "0.5.0", optional = true}
-mkdocs-include-markdown-plugin = {version = "7.1.5", optional = true}
-mkdocs-typer2 = {version = "0.1.4", optional = true}
-mkdocs-literate-nav = {version = "0.6.2", optional = true}
-mkdocs-section-index = {version = "0.3.10", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 responses = "0.25.7"
@@ -83,27 +66,11 @@ mkdocs-literate-nav = "0.6.2"
 mkdocs-section-index = "0.3.10"
 
 [tool.poetry.extras]
-dev = [
-    "responses",
-    "pytest",
-    "pytest-bdd",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-xdist",
-    "black",
-    "pre-commit",
-    "psutil",
-    "httpx",
-    "rdflib",
-    "astor",
-    "kuzu",
-    "networkx",
-    "tiktoken",
-    "tinydb",
-    "duckdb",
-    "lmdb",
-    "faiss-cpu",
-]
+# docs: build the project documentation
+# minimal: baseline runtime requirements
+# retrieval: enables vector retrieval support
+# dsp: includes dspy integration
+# chromadb: use chromadb as the vector store
 docs = [
     "mkdocs",
     "mkdocs-material",
