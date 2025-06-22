@@ -552,13 +552,14 @@ class EDRRCoordinator:
         )
 
         # Initialize micro_cycle_results in the parent phase results if it doesn't exist
-        if parent_phase not in self.results:
-            self.results[parent_phase] = {}
-        if "micro_cycle_results" not in self.results[parent_phase]:
-            self.results[parent_phase]["micro_cycle_results"] = {}
+        phase_key = parent_phase.name
+        if phase_key not in self.results:
+            self.results[phase_key] = {}
+        if "micro_cycle_results" not in self.results[phase_key]:
+            self.results[phase_key]["micro_cycle_results"] = {}
 
         # Add a placeholder for the micro cycle results
-        self.results[parent_phase]["micro_cycle_results"][micro_cycle.cycle_id] = {
+        self.results[phase_key]["micro_cycle_results"][micro_cycle.cycle_id] = {
             **micro_cycle.results,
             "task": task,
         }
@@ -1477,13 +1478,18 @@ class EDRRCoordinator:
                 "retrospect": self.results.get(Phase.RETROSPECT.name, {}),
             }
         )
-        return {
+        report = {
             "task": self.task,
             "cycle_id": self.cycle_id,
             "timestamp": datetime.now().isoformat(),
             "phases": phase_data,
             "summary": final_report,
         }
+
+        if self.child_cycles:
+            report["child_cycles"] = {c.cycle_id: c.results for c in self.child_cycles}
+
+        return report
 
     def get_execution_traces(self) -> Dict[str, Any]:
         """Return collected execution traces."""

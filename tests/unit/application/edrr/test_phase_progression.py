@@ -82,7 +82,7 @@ def test_micro_cycle_result_aggregation(coordinator):
         micro_cycle = coordinator.create_micro_cycle(
             {"description": "Micro"}, Phase.EXPAND
         )
-        stored = coordinator.results[Phase.EXPAND]["micro_cycle_results"][
+        stored = coordinator.results[Phase.EXPAND.name]["micro_cycle_results"][
             micro_cycle.cycle_id
         ]
         assert stored["task"] == {"description": "Micro"}

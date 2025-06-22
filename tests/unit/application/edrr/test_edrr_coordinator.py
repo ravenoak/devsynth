@@ -490,3 +490,35 @@ class TestEDRRCoordinator:
             coordinator._maybe_create_micro_cycles(context, Phase.EXPAND, results)
         create_mock.assert_called_once_with({"description": "sub"}, Phase.EXPAND)
         assert results["micro_cycle_results"]["cid"] == micro.results
+
+    def test_create_micro_cycle(self, coordinator):
+        coordinator.start_cycle({"description": "Macro"})
+        micro_task = {"description": "Micro"}
+        micro = coordinator.create_micro_cycle(micro_task, Phase.EXPAND)
+
+        assert micro.parent_cycle_id == coordinator.cycle_id
+        assert micro_task == micro.task
+        assert micro in coordinator.child_cycles
+        stored = coordinator.results[Phase.EXPAND.name]["micro_cycle_results"][
+            micro.cycle_id
+        ]
+        assert stored["task"] == micro_task
+        for key, value in micro.results.items():
+            assert stored[key] == value
+
+    def test_micro_cycle_result_aggregation(self, coordinator):
+        with patch.object(
+            coordinator, "_execute_expand_phase", return_value={"phase_complete": True}
+        ):
+            coordinator.start_cycle({"description": "Macro"})
+            micro = coordinator.create_micro_cycle({"description": "sub"}, Phase.EXPAND)
+
+        aggregated = coordinator.results.get("AGGREGATED", {})
+        assert micro.cycle_id in aggregated.get("child_cycles", {})
+        assert aggregated["child_cycles"][micro.cycle_id] == micro.results
+
+    def test_execution_history_logging(self, coordinator):
+        coordinator.start_cycle({"description": "Task"})
+        history_len = len(coordinator.get_execution_history())
+        coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+        assert len(coordinator.get_execution_history()) > history_len
