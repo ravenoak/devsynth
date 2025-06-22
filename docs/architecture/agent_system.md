@@ -33,6 +33,23 @@ This document outlines the foundational components of the agent system, includin
 - **Nodes**: Functions that perform specific tasks within the agent workflow (e.g., processing input, calling an LLM, parsing output).
 - **Edges**: Define the sequence of operations, connecting nodes to form a directed graph.
 
+### UXBridge Interaction Layer
+
+User interaction is unified through the ``UXBridge`` abstraction.  Each
+front‑end (CLI, WebUI and Agent API) implements this interface so workflow
+functions remain UI agnostic.  ``UXBridge`` defines:
+
+- ``ask_question(message, choices=None, default=None, show_default=True)`` –
+  return a string answer.
+- ``confirm_choice(message, default=False)`` – return ``True`` when confirmed.
+- ``display_result(message, highlight=False)`` – output a message without
+  returning a value.
+- ``create_progress(description, total=100)`` – return a progress indicator with
+  ``update`` and ``complete`` methods.
+
+These methods provide a consistent user experience across all bridges while
+allowing each implementation to use its own presentation logic.
+
 ## AgentState (`graph_state.py`)
 
 The `AgentState` is crucial for managing the information flow within an agent. It typically includes:
