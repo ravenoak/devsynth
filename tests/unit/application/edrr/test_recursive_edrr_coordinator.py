@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
 from devsynth.methodology.base import Phase
@@ -458,3 +458,42 @@ class TestRecursiveEDRRCoordinator:
         results = coordinator._execute_expand_phase(context)
         assert len(coordinator.child_cycles) == 2
         assert len(results["micro_cycle_results"]) == 2
+
+    def test_create_micro_cycle_max_depth_stop(self, coordinator):
+        """Ensure micro cycle creation fails when max depth is reached."""
+        coordinator.start_cycle({"description": "root"})
+        current = coordinator
+        for i in range(coordinator.max_recursion_depth):
+            current = current.create_micro_cycle(
+                {"description": f"level {i}"}, Phase.EXPAND
+            )
+        assert current.recursion_depth == coordinator.max_recursion_depth
+        with pytest.raises(EDRRCoordinatorError):
+            current.create_micro_cycle({"description": "extra"}, Phase.EXPAND)
+        assert not current.child_cycles
+
+    def test_decide_next_phase_phase_complete(self, coordinator):
+        """_decide_next_phase should transition when phase is complete."""
+        coordinator.start_cycle({"description": "Task"})
+        coordinator.results[Phase.EXPAND.name]["phase_complete"] = True
+        next_phase = coordinator._decide_next_phase()
+        assert next_phase == Phase.DIFFERENTIATE
+
+    def test_decide_next_phase_timeout(self, coordinator):
+        """_decide_next_phase should transition after timeout."""
+        coordinator.start_cycle({"description": "Task"})
+        coordinator.results[Phase.EXPAND.name].pop("phase_complete", None)
+        coordinator.phase_transition_timeout = 1
+        coordinator._phase_start_times[Phase.EXPAND] = datetime.now() - timedelta(
+            seconds=2
+        )
+        next_phase = coordinator._decide_next_phase()
+        assert next_phase == Phase.DIFFERENTIATE
+
+    def test_decide_next_phase_no_transition(self, coordinator):
+        """_decide_next_phase should return None when conditions not met."""
+        coordinator.start_cycle({"description": "Task"})
+        coordinator.results[Phase.EXPAND.name].pop("phase_complete", None)
+        coordinator.phase_transition_timeout = 100
+        coordinator._phase_start_times[Phase.EXPAND] = datetime.now()
+        assert coordinator._decide_next_phase() is None
