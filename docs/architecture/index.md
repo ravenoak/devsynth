@@ -34,6 +34,7 @@ This section provides detailed information about the architecture of DevSynth, i
 
 - **[Dialectical Reasoning](dialectical_reasoning.md)**: Information about the dialectical reasoning approach used in DevSynth.
 - **[EDRR Framework](edrr_framework.md)**: Documentation on the Expand-Differentiate-Refine-Retrospect framework.
+- **[Recursive EDRR Architecture](recursive_edrr_architecture.md)**: Details on nesting EDRR cycles and termination logic.
 - **[WSDE Agent Model](wsde_agent_model.md)**: Details on the Wide Sweep, Deep Exploration agent model.
 
 ## Overview

@@ -23,6 +23,7 @@ Welcome to the DevSynth documentation! This site provides comprehensive guides, 
 - [User Guide](user_guides/user_guide.md)
 - [Developer Guides](developer_guides/contributing.md)
 - [Architecture Overview](architecture/overview.md)
+- [Recursive EDRR Architecture](architecture/recursive_edrr_architecture.md)
 - [API Reference](technical_reference/api_reference/index.md)
 - [Project Analysis](analysis/executive_summary.md)
 - [Implementation Status](implementation/feature_status_matrix.md)
