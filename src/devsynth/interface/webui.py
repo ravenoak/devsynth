@@ -35,6 +35,7 @@ from devsynth.application.cli import (
     config_cmd,
     inspect_cmd,
 )
+from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 from devsynth.config import get_project_config, save_config
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
@@ -255,6 +256,12 @@ class WebUI(UXBridge):
             with st.spinner("Loading configuration..."):
                 config_cmd(bridge=self)
 
+    def doctor_page(self) -> None:
+        """Render the doctor diagnostics page."""
+        st.header("Doctor")
+        with st.spinner("Validating configuration..."):
+            doctor_cmd()
+
     # ------------------------------------------------------------------
     # Application entry point
     # ------------------------------------------------------------------
@@ -270,6 +277,7 @@ class WebUI(UXBridge):
                 "Analysis",
                 "Synthesis",
                 "Config",
+                "Doctor",
             ),
         )
         if nav == "Onboarding":
@@ -282,6 +290,8 @@ class WebUI(UXBridge):
             self.synthesis_page()
         elif nav == "Config":
             self.config_page()
+        elif nav == "Doctor":
+            self.doctor_page()
 
 
 def run() -> None:
