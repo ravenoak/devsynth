@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-# Install DevSynth with development extras using Poetry
-poetry install --with dev,docs
+# Install DevSynth with all optional extras and development dependencies using Poetry
+poetry install --all-extras --with dev
