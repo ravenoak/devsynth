@@ -53,8 +53,8 @@ def parity_context(monkeypatch):
     st.expander = lambda *_a, **_k: DummyForm(True)
     st.form = lambda *_a, **_k: DummyForm(True)
     st.form_submit_button = MagicMock(return_value=True)
-    st.text_input = MagicMock(return_value="text")
-    st.text_area = MagicMock(return_value="desc")
+    st.text_input = MagicMock(side_effect=["demo", "demo", "python", ""])
+    st.text_area = MagicMock(return_value="demo goals")
     st.selectbox = MagicMock(return_value="choice")
     st.checkbox = MagicMock(return_value=True)
     st.button = MagicMock(return_value=True)
@@ -89,7 +89,7 @@ def invoke_init(parity_context):
     cli_module = parity_context["cli"]
     ui = parity_context["ui"]
     st = parity_context["st"]
-    cli_module.init_cmd(path="demo", project_root="demo", language="python", bridge=ui)
+    cli_module.init_cmd(path="demo", project_root="demo", language="python", goals=None, bridge=ui)
     st.form_submit_button.return_value = True
     ui.onboarding_page()
 

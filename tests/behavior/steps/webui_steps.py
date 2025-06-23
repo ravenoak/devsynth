@@ -3,7 +3,7 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, when, then, scenarios, parsers
 
 scenarios("../features/webui.feature")
 
@@ -94,7 +94,7 @@ def given_webui_initialized(webui_context):
     return webui_context
 
 
-@when('I navigate to "{page}"')
+@when(parsers.parse('I navigate to "{page}"'))
 def navigate_to(page, webui_context):
     webui_context["st"].sidebar.radio.return_value = page
     webui_context["ui"].run()
@@ -114,7 +114,7 @@ def update_config(webui_context):
     webui_context["ui"].run()
 
 
-@then('the "{header}" header is shown')
+@then(parsers.parse('the "{header}" header is shown'))
 def check_header(header, webui_context):
     webui_context["st"].header.assert_any_call(header)
 
