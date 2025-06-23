@@ -17,7 +17,11 @@ from pydantic import BaseModel
 
 from devsynth.api import verify_token
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.interface.ux_bridge import UXBridge, ProgressIndicator
+from devsynth.interface.ux_bridge import (
+    UXBridge,
+    ProgressIndicator,
+    sanitize_output,
+)
 
 logger = DevSynthLogger(__name__)
 router = APIRouter()
@@ -51,26 +55,32 @@ class APIBridge(UXBridge):
 
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         """Capture workflow output for the API response."""
-        self.messages.append(message)
+        self.messages.append(sanitize_output(message))
 
     class _APIProgress(ProgressIndicator):
         def __init__(self, messages: List[str], description: str, total: int) -> None:
             self._messages = messages
-            self._description = description
+            self._description = sanitize_output(description)
             self._total = total
             self._current = 0
-            self._messages.append(description)
+            self._messages.append(self._description)
 
-        def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+        def update(
+            self, *, advance: float = 1, description: Optional[str] = None
+        ) -> None:
             if description:
-                self._description = description
+                self._description = sanitize_output(description)
             self._current += advance
-            self._messages.append(f"{self._description} ({self._current}/{self._total})")
+            self._messages.append(
+                f"{self._description} ({self._current}/{self._total})"
+            )
 
         def complete(self) -> None:
             self._messages.append(f"{self._description} complete")
 
-    def create_progress(self, description: str, *, total: int = 100) -> ProgressIndicator:
+    def create_progress(
+        self, description: str, *, total: int = 100
+    ) -> ProgressIndicator:
         return self._APIProgress(self.messages, description, total)
 
 

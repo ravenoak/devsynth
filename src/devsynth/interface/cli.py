@@ -6,7 +6,11 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 
-from devsynth.interface.ux_bridge import UXBridge, ProgressIndicator
+from devsynth.interface.ux_bridge import (
+    UXBridge,
+    ProgressIndicator,
+    sanitize_output,
+)
 
 
 class CLIProgressIndicator(ProgressIndicator):
@@ -19,10 +23,11 @@ class CLIProgressIndicator(ProgressIndicator):
             console=console,
         )
         self._progress.start()
-        self._task = self._progress.add_task(description, total=total)
+        self._task = self._progress.add_task(sanitize_output(description), total=total)
 
     def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
-        self._progress.update(self._task, advance=advance, description=description)
+        desc = sanitize_output(description) if description else description
+        self._progress.update(self._task, advance=advance, description=desc)
 
     def complete(self) -> None:
         self._progress.update(self._task, completed=True)
@@ -59,6 +64,7 @@ class CLIUXBridge(UXBridge):
         return Confirm.ask(message, default=default)
 
     def display_result(self, message: str, *, highlight: bool = False) -> None:
+        message = sanitize_output(message)
         self.console.print(message, highlight=highlight)
 
     def create_progress(
