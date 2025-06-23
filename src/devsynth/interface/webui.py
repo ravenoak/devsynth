@@ -16,29 +16,27 @@ UX guidance for clarity and responsiveness.
 
 from __future__ import annotations
 
-from typing import Optional, Sequence
 import json
 from pathlib import Path
-import yaml
+from typing import Optional, Sequence
 
 import streamlit as st
+import yaml
 
-from devsynth.interface.ux_bridge import sanitize_output
-
-from devsynth.interface.ux_bridge import UXBridge, ProgressIndicator
 from devsynth.application.cli import (
+    code_cmd,
+    config_cmd,
     init_cmd,
+    inspect_cmd,
+    run_pipeline_cmd,
     spec_cmd,
     test_cmd,
-    code_cmd,
-    run_pipeline_cmd,
-    config_cmd,
-    inspect_cmd,
 )
+from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 from devsynth.config import get_project_config, save_config
-from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 
 class WebUI(UXBridge):
@@ -136,6 +134,27 @@ class WebUI(UXBridge):
                         inspect_cmd(
                             input_file=input_file, interactive=False, bridge=self
                         )
+        st.divider()
+        with st.expander("Specification Editor", expanded=True):
+            spec_path = st.text_input("Specification File", "specs.md")
+            if st.button("Load Spec", key="load_spec"):
+                try:
+                    with open(spec_path, "r", encoding="utf-8") as f:
+                        st.session_state.spec_content = f.read()
+                except FileNotFoundError:
+                    st.session_state.spec_content = ""
+            content = st.text_area(
+                "Specification Content",
+                st.session_state.get("spec_content", ""),
+                height=300,
+            )
+            if st.button("Save Spec", key="save_spec"):
+                with open(spec_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                with st.spinner("Regenerating specifications..."):
+                    spec_cmd(requirements_file=spec_path, bridge=self)
+                st.session_state.spec_content = content
+                st.markdown(content)
         st.divider()
         self._requirements_wizard()
         st.divider()
