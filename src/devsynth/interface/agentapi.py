@@ -108,6 +108,74 @@ class WorkflowResponse(BaseModel):
     messages: List[str]
 
 
+class AgentAPI:
+    """Programmatic wrapper around the CLI workflows."""
+
+    def __init__(self, bridge: UXBridge) -> None:
+        """Create the API using ``bridge`` for all interactions."""
+        self.bridge = bridge
+
+    def _collect_messages(self) -> List[str]:
+        """Return messages captured by the bridge if available."""
+        msgs = list(getattr(self.bridge, "messages", []))
+        LATEST_MESSAGES[:] = msgs
+        return msgs
+
+    def init(
+        self,
+        *,
+        path: str = ".",
+        project_root: Optional[str] = None,
+        language: Optional[str] = None,
+        goals: Optional[str] = None,
+    ) -> List[str]:
+        """Initialize or onboard a project via :func:`init_cmd`."""
+        from devsynth.application.cli import init_cmd
+
+        if hasattr(self.bridge, "messages"):
+            self.bridge.messages.clear()
+
+        init_cmd(
+            path=path,
+            project_root=project_root,
+            language=language,
+            goals=goals,
+            bridge=self.bridge,
+        )
+        return self._collect_messages()
+
+    def gather(
+        self,
+        *,
+        goals: str,
+        constraints: str,
+        priority: str = "medium",
+    ) -> List[str]:
+        """Run the requirements gathering wizard via :func:`gather_cmd`."""
+        from devsynth.application.cli import gather_cmd
+
+        if isinstance(self.bridge, APIBridge):
+            self.bridge._answers.extend([goals, constraints, priority])
+            self.bridge.messages.clear()
+
+        gather_cmd(bridge=self.bridge)
+        return self._collect_messages()
+
+    def synthesize(self, *, target: Optional[str] = None) -> List[str]:
+        """Execute the synthesis pipeline via :func:`run_pipeline_cmd`."""
+        from devsynth.application.cli import run_pipeline_cmd
+
+        if hasattr(self.bridge, "messages"):
+            self.bridge.messages.clear()
+
+        run_pipeline_cmd(target=target, bridge=self.bridge)
+        return self._collect_messages()
+
+    def status(self) -> List[str]:
+        """Return messages from the most recent workflow invocation."""
+        return LATEST_MESSAGES
+
+
 @router.post("/init", response_model=WorkflowResponse)
 def init_endpoint(
     request: InitRequest, token: None = Depends(verify_token)
@@ -167,6 +235,7 @@ __all__ = [
     "app",
     "router",
     "APIBridge",
+    "AgentAPI",
     "InitRequest",
     "GatherRequest",
     "SynthesizeRequest",
