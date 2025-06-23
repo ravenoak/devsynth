@@ -47,7 +47,9 @@ cd devsynth
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
-# pip commands are for installing from PyPI only
+# Older instructions may use `pip install -e '.[dev]'`. Prefer the Poetry
+# workflow above for a fully managed virtual environment. Pip commands are only
+# required for installing from PyPI or via `pipx`.
 
 # Activate the virtual environment
 poetry shell
