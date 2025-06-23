@@ -44,13 +44,13 @@ This document provides a comprehensive reference for the DevSynth Command Line I
 ## Installation
 
 The DevSynth CLI is installed automatically when you install the DevSynth package.
-For most users installing from PyPI is sufficient:
+For most users installing from PyPI using Poetry is sufficient:
 
 ```bash
-pip install devsynth
+poetry add devsynth
 ```
 
-You can also use `pipx` for an isolated environment:
+You can also use `pipx` *(end-user install)* for an isolated environment:
 
 ```bash
 pipx install devsynth

@@ -29,9 +29,7 @@ Some features rely on additional packages. These dependencies are grouped using 
 Example installation:
 
 ```bash
-poetry install --with dev --extras retrieval
-# or install from PyPI
-pip install "devsynth[dev,retrieval]"
+poetry add "devsynth[dev,retrieval]"
 ```
 
 ## Checking for Updates

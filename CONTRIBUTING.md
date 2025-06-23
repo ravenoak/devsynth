@@ -39,14 +39,8 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 git clone https://github.com/YOUR-USERNAME/devsynth.git
 cd devsynth
 
-# Install dependencies (recommended)
-poetry install --with dev,docs
+# Install dependencies
 poetry install --all-extras --with dev,docs
-
-# Alternatively, install from PyPI using pip or pipx
-pip install 'devsynth[dev]'
-# or
-pipx install --editable 'devsynth[dev]'
 
 # Activate virtual environment
 poetry shell
@@ -59,7 +53,7 @@ pre-commit install
 
 ```bash
 # Ensure the project is installed in editable mode
-poetry install --with dev,docs
+poetry install --all-extras --with dev,docs
 
 # Run all tests
 poetry run pytest

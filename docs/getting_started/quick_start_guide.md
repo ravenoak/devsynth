@@ -27,9 +27,9 @@ Before you begin, ensure you have the following installed:
 ### Install from PyPI
 
 ```bash
-pip install devsynth
+poetry add devsynth
 ```
-### Install with pipx
+### Install with pipx *(end-user install)*
 
 ```bash
 pipx install devsynth

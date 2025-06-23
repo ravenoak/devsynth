@@ -318,7 +318,7 @@ export LM_STUDIO_ENDPOINT=http://localhost:1234
 export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
 
 # Run the entire test suite
-pytest
+poetry run pytest
 ```
 
 Make sure LM Studio is running in API mode on the endpoint above and the
