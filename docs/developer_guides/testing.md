@@ -255,8 +255,7 @@ test dependencies are available:
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
-# (Optional) install from PyPI instead
-pip install -e '.[dev]'
+# pip commands are for installing from PyPI only
 ```
 
 ### Running All Tests

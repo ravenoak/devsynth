@@ -96,12 +96,10 @@ You can install DevSynth in a few different ways:
    # Install development and documentation dependencies
    poetry install --with dev,docs
    # Optionally include all extras
-   poetry install --all-extras --with dev,docs
-
-   # If you prefer pip or pipx, install from PyPI instead
-   pip install -e '.[dev]'        # editable mode
-   pip install -e '.[minimal,dev]'  # smaller core install
+   poetry sync --all-extras --all-groups
    ```
+
+   Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
@@ -165,12 +163,11 @@ Before running the test suite, you **must** install DevSynth with its developmen
 
 ```bash
 poetry install --with dev,docs
-# or to install everything
-poetry install --all-extras --with dev,docs
-
-# (Optional) Install from PyPI instead
-pip install -e '.[dev]'
+# or install everything
+poetry sync --all-extras --all-groups
 ```
+
+Use pip only for installing from PyPI, not for local development.
 
 Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** can be enabled later, but only the embedded backend is currently supported. Install these packages if you plan to use them:
 
@@ -184,8 +181,7 @@ For a smaller core install you can instead run:
 
 ```bash
 poetry install --with dev,docs --extras retrieval
-# or using pip
-pip install -e '.[minimal,dev,retrieval]'
+poetry sync --all-extras --all-groups
 ```
 
 After installation, execute the tests with:

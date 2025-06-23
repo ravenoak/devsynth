@@ -43,8 +43,7 @@ poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 poetry shell
 
-# (Optional) install via pip if you prefer
-pip install -e '.[dev]'
+# pip commands are for installing from PyPI only
 ```
 
 ### Running the Full Test Suite

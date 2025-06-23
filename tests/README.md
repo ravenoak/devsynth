@@ -175,16 +175,14 @@ Before running tests, you **must** install DevSynth with the development extras:
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
-# (Optional) install from PyPI instead
-pip install -e '.[dev]'
+# pip commands are for installing from PyPI only
 ```
 
 For a minimal install you can use:
 
 ```bash
 poetry install --with dev,docs --extras retrieval
-# or using pip
-pip install -e '.[minimal,dev]'
+poetry sync --all-extras --all-groups
 ```
 
 Optional backends such as **ChromaDB**, **FAISS**, or **LMDB** require extra packages:
