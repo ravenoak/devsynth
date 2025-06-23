@@ -1,4 +1,4 @@
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, when, then, scenarios, parsers
 
 from .webui_steps import webui_context
 
@@ -10,7 +10,7 @@ def init_webui(webui_context):
     return webui_context
 
 
-@when('I navigate to "{page}"')
+@when(parsers.parse('I navigate to "{page}"'))
 def nav_to(page, webui_context):
     webui_context["st"].sidebar.radio.return_value = page
     webui_context["ui"].run()
