@@ -18,13 +18,21 @@ This pseudocode describes how DevSynth loads project settings from either `devsy
 ```pseudocode
 class ConfigLoader:
     function load(path=".") -> DevSynthConfig:
+        defaults = DevSynthConfig(project_root=path)
         if file_exists(path + "/.devsynth/devsynth.yml"):
-            data = parse_yaml(path + "/.devsynth/devsynth.yml")
+            try:
+                user = parse_yaml(path + "/.devsynth/devsynth.yml")
+            except ParseError:
+                raise ConfigError("Malformed YAML configuration")
         elif file_exists(path + "/pyproject.toml"):
-            data = parse_toml(path + "/pyproject.toml").tool.devsynth
+            try:
+                user = parse_toml(path + "/pyproject.toml").tool.devsynth
+            except ParseError:
+                raise ConfigError("Malformed TOML configuration")
         else:
-            data = {}
-        return DevSynthConfig(**data)
+            user = {}
+        merged = merge(defaults, user)
+        return DevSynthConfig(**merged)
 ```
 
 The loader merges values from the chosen file into a common `DevSynthConfig` object so that both new and existing projects share the same configuration structure.
