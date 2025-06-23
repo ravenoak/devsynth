@@ -47,8 +47,7 @@ cd devsynth
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
-# (Optional) install via pip
-pip install -e '.[dev]'
+# pip commands are for installing from PyPI only
 
 # Activate the virtual environment
 poetry shell
