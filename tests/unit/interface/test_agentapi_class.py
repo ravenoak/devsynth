@@ -1,5 +1,3 @@
-"""Integration tests for the :class:`AgentAPI` wrapper."""
-
 from types import ModuleType
 from unittest.mock import MagicMock
 import importlib
@@ -37,27 +35,30 @@ def test_init(monkeypatch):
     bridge = agentapi.APIBridge()
     api = agentapi.AgentAPI(bridge)
 
-    msgs = api.init(path="proj")
-    assert msgs == ["init"]
-    cli_stub.init_cmd.assert_called_once()
+    messages = api.init(path="p", project_root="r", language="py", goals="g")
+    assert messages == ["init"]
+    assert agentapi.LATEST_MESSAGES == ["init"]
+    cli_stub.init_cmd.assert_called_once_with(
+        path="p",
+        project_root="r",
+        language="py",
+        goals="g",
+        bridge=bridge,
+    )
 
 
-def test_gather(monkeypatch):
+def test_gather_synthesize_status(monkeypatch):
     cli_stub, agentapi = _setup(monkeypatch)
     bridge = agentapi.APIBridge()
     api = agentapi.AgentAPI(bridge)
 
-    msgs = api.gather(goals="g1", constraints="c1", priority="high")
-    assert msgs == ["g1,c1,high"]
-    cli_stub.gather_cmd.assert_called_once()
+    messages = api.gather(goals="g1", constraints="c1", priority="high")
+    assert messages == ["g1,c1,high"]
+    assert agentapi.LATEST_MESSAGES == ["g1,c1,high"]
+    cli_stub.gather_cmd.assert_called_once_with(bridge=bridge)
 
-
-def test_synthesize_and_status(monkeypatch):
-    cli_stub, agentapi = _setup(monkeypatch)
-    bridge = agentapi.APIBridge()
-    api = agentapi.AgentAPI(bridge)
-
-    msgs = api.synthesize(target="unit")
-    assert msgs == ["run:unit"]
+    synth = api.synthesize(target="unit")
+    assert synth == ["run:unit"]
+    assert agentapi.LATEST_MESSAGES == ["run:unit"]
+    cli_stub.run_pipeline_cmd.assert_called_once_with(target="unit", bridge=bridge)
     assert api.status() == ["run:unit"]
-    cli_stub.run_pipeline_cmd.assert_called_once()
