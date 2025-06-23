@@ -105,7 +105,7 @@ The pre-commit hooks will run automatically when you commit changes. They includ
 Ensure your setup is working correctly by running the tests:
 
 ```bash
-python -m pytest
+poetry run pytest
 ```
 
 ### Configuration Version Locking
@@ -198,23 +198,23 @@ DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
 
 ```bash
 # Run all unit tests
-python -m pytest tests/unit/
+poetry run pytest tests/unit/
 
 # Run a specific test file
-python -m pytest tests/unit/test_workflow.py
+poetry run pytest tests/unit/test_workflow.py
 
 # Run tests with verbose output
-python -m pytest tests/unit/ -v
+poetry run pytest tests/unit/ -v
 ```
 
 ### Running Behavior Tests
 
 ```bash
 # Run all behavior tests
-python -m pytest tests/behavior/
+poetry run pytest tests/behavior/
 
 # Run a specific behavior test
-python -m pytest tests/behavior/test_simple_example_steps.py
+poetry run pytest tests/behavior/test_simple_example_steps.py
 ```
 
 ## Common Development Tasks

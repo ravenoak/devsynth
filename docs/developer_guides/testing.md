@@ -249,57 +249,54 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 ## Running Tests
 
 Before executing tests, install DevSynth with its development extras so that all
-test dependencies are available. Use either:
+test dependencies are available:
 
 ```bash
-pip install -e '.[dev]'
-```
-
-or
-
-```bash
-poetry install
+poetry install --with dev,docs
 poetry sync --all-extras --all-groups
+
+# (Optional) install from PyPI instead
+pip install -e '.[dev]'
 ```
 
 ### Running All Tests
 
 ```bash
-pytest
+poetry run pytest
 ```
 
 ### Running Specific Test Types
 
 ```bash
 # Run BDD tests
-pytest tests/behavior/
+poetry run pytest tests/behavior/
 
 # Run WebUI onboarding and API stub scenarios
-pytest tests/behavior/test_webui_onboarding_flow.py
-pytest tests/behavior/test_requirements_wizard_navigation.py
-pytest tests/behavior/test_api_stub_usage.py
+poetry run pytest tests/behavior/test_webui_onboarding_flow.py
+poetry run pytest tests/behavior/test_requirements_wizard_navigation.py
+poetry run pytest tests/behavior/test_api_stub_usage.py
 
 # Run integration tests
-pytest tests/integration/
+poetry run pytest tests/integration/
 
 # Run unit tests
-pytest tests/unit/
+poetry run pytest tests/unit/
 ```
 
 ### Running a Specific Test File
 
 ```bash
-pytest tests/behavior/test_chromadb_integration.py
+poetry run pytest tests/behavior/test_chromadb_integration.py
 ```
 
 ### Running Tests with Provider Selection
 
 ```bash
 # Use OpenAI provider
-DEVSYNTH_PROVIDER=openai pytest
+DEVSYNTH_PROVIDER=openai poetry run pytest
 
 # Use LM Studio provider
-DEVSYNTH_PROVIDER=lm_studio pytest
+DEVSYNTH_PROVIDER=lm_studio poetry run pytest
 ```
 
 ### Enabling Resource-Dependent Tests

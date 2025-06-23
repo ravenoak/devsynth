@@ -33,18 +33,18 @@ pip install devsynth
 pipx install devsynth
 ```
 
-## Install from Source
+## Install from Source (recommended for development)
 ```bash
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
-# Install with development dependencies
-pip install -e '.[dev]'
-
-# Or use Poetry
-poetry install
+# Install with Poetry
+poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 poetry shell
+
+# (Optional) install via pip if you prefer
+pip install -e '.[dev]'
 ```
 
 ### Running the Full Test Suite
@@ -54,7 +54,7 @@ extras. Key dependencies include `rdflib`, `tinydb`, `chromadb`, `astor`, and
 `networkx`. Install them along with the project:
 
 ```bash
-pip install -e '.[dev]'
+poetry install --with dev,docs
 ```
 
 For more details, see the [Quick Start Guide](../getting_started/quick_start_guide.md).

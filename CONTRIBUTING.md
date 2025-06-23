@@ -39,11 +39,11 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 git clone https://github.com/YOUR-USERNAME/devsynth.git
 cd devsynth
 
-# Install dependencies
+# Install dependencies (recommended)
 poetry install --with dev,docs
 poetry install --all-extras --with dev,docs
 
-# Alternatively, install with pip or pipx using extras
+# Alternatively, install from PyPI using pip or pipx
 pip install 'devsynth[dev]'
 # or
 pipx install --editable 'devsynth[dev]'
