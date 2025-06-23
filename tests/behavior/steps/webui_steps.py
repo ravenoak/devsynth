@@ -25,6 +25,7 @@ class DummyForm:
 @pytest.fixture
 def webui_context(monkeypatch):
     st = ModuleType("streamlit")
+
     class SS(dict):
         pass
 
@@ -66,6 +67,7 @@ def webui_context(monkeypatch):
         "run_pipeline_cmd",
         "config_cmd",
         "inspect_cmd",
+        "doctor_cmd",
     ]:
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
@@ -75,6 +77,13 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(
         sys.modules, "devsynth.application.cli.commands.analyze_code_cmd", analyze_stub
     )
+
+    doctor_stub = ModuleType("devsynth.application.cli.commands.doctor_cmd")
+    doctor_stub.doctor_cmd = MagicMock()
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.doctor_cmd", doctor_stub
+    )
+    cli_stub.doctor_cmd = doctor_stub.doctor_cmd
 
     import importlib
     import devsynth.interface.webui as webui
