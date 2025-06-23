@@ -281,6 +281,29 @@ class WebUI(UXBridge):
         with st.spinner("Validating configuration..."):
             doctor_cmd()
 
+    def diagnostics_page(self) -> None:
+        """Run environment diagnostics via :func:`doctor_cmd`."""
+        st.header("Diagnostics")
+        with st.form("diagnostics"):
+            config_dir = st.text_input("Config Directory", "config")
+            submitted = st.form_submit_button("Run Diagnostics")
+        if submitted:
+            with st.spinner("Running diagnostics..."):
+                import sys
+
+                doc_module = sys.modules.get(
+                    "devsynth.application.cli.commands.doctor_cmd"
+                )
+                if doc_module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.doctor_cmd as doc_module
+
+                original = doc_module.bridge
+                doc_module.bridge = self
+                try:
+                    doc_module.doctor_cmd(config_dir)
+                finally:
+                    doc_module.bridge = original
+
     # ------------------------------------------------------------------
     # Application entry point
     # ------------------------------------------------------------------
@@ -297,6 +320,7 @@ class WebUI(UXBridge):
                 "Synthesis",
                 "Config",
                 "Doctor",
+                "Diagnostics",
             ),
         )
         if nav == "Onboarding":
@@ -311,6 +335,8 @@ class WebUI(UXBridge):
             self.config_page()
         elif nav == "Doctor":
             self.doctor_page()
+        elif nav == "Diagnostics":
+            self.diagnostics_page()
 
 
 def run() -> None:
