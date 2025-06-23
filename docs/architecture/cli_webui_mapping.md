@@ -50,6 +50,29 @@ backend functions.
 | `apispec`                 | N/A (planned API specification form)                 |
 | `webui`                   | Launches the WebUI                                   |
 
+The following CLI commands remain **N/A** in the WebUI:
+
+- `refactor`
+- `webapp`
+- `serve`
+- `dbschema`
+- `doctor` / `check`
+- `edrr-cycle`
+- `align`
+- `alignment-metrics`
+- `analyze-manifest`
+- `analyze-config`
+- `validate-manifest`
+- `validate-metadata`
+- `test-metrics`
+- `generate-docs`
+- `ingest`
+- `apispec`
+
+Because each page calls workflow functions through the `UXBridge` layer,
+adding UI support for these commands later only requires new pages that
+invoke the same shared functions.
+
 Terminology across the CLI and WebUI is kept consistent. For example, the
 interactive workflow started by `gather` is called the *Requirements Plan
 Wizard* in both interfaces.
