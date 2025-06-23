@@ -43,7 +43,9 @@ poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 poetry shell
 
-# pip commands are for installing from PyPI only
+# Older instructions may reference `pip install -e '.[dev]'`. Use Poetry instead
+# to ensure a consistent virtual environment. Pip commands are only required for
+# installing from PyPI or via `pipx`.
 ```
 
 ### Running the Full Test Suite
