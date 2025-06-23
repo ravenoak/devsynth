@@ -36,20 +36,19 @@ pipx install devsynth
 ```
 
 
-### Install from Source
+### Install from Source (recommended for development)
 
 ```bash
 # Clone the repository
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
-# Install with development dependencies
-pip install -e '.[dev]'
-
-# Or use Poetry
-poetry install
+# Install with Poetry
+poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
+# (Optional) install via pip
+pip install -e '.[dev]'
 
 # Activate the virtual environment
 poetry shell

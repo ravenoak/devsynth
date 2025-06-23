@@ -358,7 +358,7 @@ Mutation testing evaluates the quality of your tests by introducing small change
 **Example**:
 ```bash
 # Using the pytest-mutate plugin
-python -m pytest --mutate=src/devsynth/module.py
+poetry run pytest --mutate=src/devsynth/module.py
 ```
 
 ### 7.3 Test-Driven Architecture

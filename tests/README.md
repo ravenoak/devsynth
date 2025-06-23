@@ -96,7 +96,7 @@ export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
 # Enable OpenAI integration
 export OPENAI_API_KEY=sk-your-key
 
-python -m pytest
+poetry run pytest
 ```
 
 ### Environment Variables for Tests
@@ -164,7 +164,7 @@ def test_that_needs_my_resource():
 To run all tests:
 
 ```bash
-python -m pytest
+poetry run pytest
 ```
 
 ### Environment Setup
@@ -172,40 +172,45 @@ python -m pytest
 Before running tests, you **must** install DevSynth with the development extras:
 
 ```bash
-pip install -e '.[dev]'
-# or
-poetry install
+poetry install --with dev,docs
 poetry sync --all-extras --all-groups
+
+# (Optional) install from PyPI instead
+pip install -e '.[dev]'
 ```
 
 For a minimal install you can use:
 
 ```bash
+poetry install --with dev,docs --extras retrieval
+# or using pip
 pip install -e '.[minimal,dev]'
 ```
 
 Optional backends such as **ChromaDB**, **FAISS**, or **LMDB** require extra packages:
 
 ```bash
+poetry install --extras retrieval
+# or install from PyPI
 pip install 'devsynth[retrieval]'
 ```
 
 To run tests for a specific type:
 
 ```bash
-python -m pytest tests/unit/
-python -m pytest tests/integration/
-python -m pytest tests/behavior/
+poetry run pytest tests/unit/
+poetry run pytest tests/integration/
+poetry run pytest tests/behavior/
 ```
 
 To run tests with verbose output:
 
 ```bash
-python -m pytest -v
+poetry run pytest -v
 ```
 
 To see which tests would be skipped due to missing resources:
 
 ```bash
-python -m pytest --collect-only -v
+poetry run pytest --collect-only -v
 ```

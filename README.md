@@ -71,7 +71,7 @@ DevSynth requires **Python 3.11 or higher**. Using [Poetry](https://python-poetr
 
 You can install DevSynth in a few different ways:
 
-1. **pip** – install from PyPI
+1. **pip** – install from PyPI (optional)
 
    ```bash
    pip install devsynth
@@ -90,16 +90,17 @@ You can install DevSynth in a few different ways:
    docker run --rm -p 8000:8000 devsynth
    ```
 
-4. **From Source for Development** – install with development dependencies
+4. **From Source for Development** – use Poetry
 
    ```bash
-   pip install -e '.[dev]'
-   # or for a smaller core install
-   pip install -e '.[minimal,dev]'
-   # or
+   # Install development and documentation dependencies
    poetry install --with dev,docs
-   # or for all optional dependencies
+   # Optionally include all extras
    poetry install --all-extras --with dev,docs
+
+   # If you prefer pip or pipx, install from PyPI instead
+   pip install -e '.[dev]'        # editable mode
+   pip install -e '.[minimal,dev]'  # smaller core install
    ```
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
@@ -109,6 +110,8 @@ For more on Docker deployment, see the [Deployment Guide](docs/deployment/deploy
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
 
 ```bash
+poetry install --extras retrieval
+# or install from PyPI
 pip install 'devsynth[retrieval]'
 ```
 
@@ -131,7 +134,7 @@ devsynth test
 devsynth code
 
 # Install development dependencies
-pip install -e '.[dev]'
+poetry install --with dev,docs
 
 # Run the tests or execute the app
 pytest
@@ -161,28 +164,33 @@ The repository includes runnable examples that walk through common workflows:
 Before running the test suite, you **must** install DevSynth with its development extras:
 
 ```bash
-pip install -e '.[dev]'
-# or
 poetry install --with dev,docs
 # or to install everything
 poetry install --all-extras --with dev,docs
+
+# (Optional) Install from PyPI instead
+pip install -e '.[dev]'
 ```
 
 Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** can be enabled later, but only the embedded backend is currently supported. Install these packages if you plan to use them:
 
 ```bash
+poetry install --extras retrieval
+# or install from PyPI
 pip install 'devsynth[retrieval]'
 ```
 
 For a smaller core install you can instead run:
 
 ```bash
+poetry install --with dev,docs --extras retrieval
+# or using pip
 pip install -e '.[minimal,dev,retrieval]'
 ```
 
 After installation, execute the tests with:
 ```bash
-pytest
+poetry run pytest
 ```
 
 See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.

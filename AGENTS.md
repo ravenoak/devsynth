@@ -30,7 +30,7 @@ Refer to `docs/architecture/agent_system.md` and `docs/architecture/wsde_agent_m
 
 ## Agent Configuration
 
-- **Dependencies:** Managed exclusively with Poetry (`pyproject.toml`). Do **not** run `pip install` directly. Use `poetry install` or `poetry sync` so all packages are installed in the Poetry-managed virtual environment.
+- **Dependencies:** Managed exclusively with Poetry (`pyproject.toml`). Do **not** run `pip install` directly except when installing from PyPI with `pip` or `pipx`. Use `poetry install` or `poetry sync` so all packages are installed in the Poetry-managed virtual environment.
 - **Environment:** Use the provided `config/` files for environment-specific settings.
 - **Setup:**
   1. Install dependencies with `poetry install` or `poetry sync --all-extras --all-groups` for the full development environment.
