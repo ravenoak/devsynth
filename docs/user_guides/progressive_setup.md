@@ -18,11 +18,11 @@ This guide describes how to install DevSynth with minimal features and progressi
 
 ## Basic Installation
 
-1. Install DevSynth from PyPI using `pip` or `pipx`:
+1. Install DevSynth from PyPI using Poetry or pipx:
 
    ```bash
-   pip install devsynth
-   # or
+   poetry add devsynth
+   # or for an isolated install
    pipx install devsynth
    ```
 

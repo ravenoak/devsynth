@@ -172,10 +172,8 @@ poetry run pytest
 Before running tests, you **must** install DevSynth with the development extras:
 
 ```bash
-poetry install --with dev,docs
-poetry sync --all-extras --all-groups
-
-# pip commands are for installing from PyPI only
+poetry install --all-extras --with dev,docs
+poetry shell
 ```
 
 For a minimal install you can use:

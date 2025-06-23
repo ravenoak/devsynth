@@ -22,12 +22,12 @@ This guide provides step-by-step instructions for installing DevSynth in various
 - Python 3.11 or higher
 - Poetry (recommended for development)
 
-## Install from PyPI
+## Install from PyPI using Poetry
 ```bash
-pip install devsynth
+poetry add devsynth
 ```
 
-### Install with pipx
+### Install with pipx *(end-user install)*
 
 ```bash
 pipx install devsynth

@@ -71,13 +71,13 @@ DevSynth requires **Python 3.11 or higher**. Using [Poetry](https://python-poetr
 
 You can install DevSynth in a few different ways:
 
-1. **pip** – install from PyPI (optional)
+1. **Poetry** – install from PyPI
 
    ```bash
-   pip install devsynth
+   poetry add devsynth
    ```
 
-2. **pipx** – keep DevSynth isolated from system Python
+2. **pipx** *(end-user install)* – keep DevSynth isolated from system Python
 
    ```bash
    pipx install devsynth
@@ -135,7 +135,7 @@ devsynth code
 poetry install --with dev,docs
 
 # Run the tests or execute the app
-pytest
+poetry run pytest
 # or
 devsynth run-pipeline
 ```
