@@ -9,6 +9,15 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Optional, Sequence
+import html
+
+from devsynth.security import sanitize_input
+
+
+def sanitize_output(text: str) -> str:
+    """Sanitize and escape user provided text for safe display."""
+    sanitized = sanitize_input(text)
+    return html.escape(sanitized)
 
 
 class ProgressIndicator(ABC):
@@ -113,4 +122,4 @@ class UXBridge(ABC):
         self.display_result(message, highlight=highlight)
 
 
-__all__ = ["UXBridge", "ProgressIndicator"]
+__all__ = ["UXBridge", "ProgressIndicator", "sanitize_output"]
