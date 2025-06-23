@@ -26,10 +26,16 @@ The sidebar offers the following pages:
 3. **Analysis** – analyze project code.
 4. **Synthesis** – generate tests and code then run the pipeline.
 5. **Config** – edit configuration values.
+6. **Diagnostics** – run environment checks via the doctor command.
 
 Each page shows progress spinners and uses collapsible sections for optional input.
 
 For more details on individual commands see the [CLI Reference](cli_reference.md).
+
+### Diagnostics
+
+Use the **Diagnostics** page to validate your configuration directly from the WebUI.
+Click **Run Diagnostics** and the results of `doctor_cmd` will be displayed in the main view.
 
 ```python
 # Pseudocode

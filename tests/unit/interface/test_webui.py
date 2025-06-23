@@ -60,6 +60,7 @@ def stub_streamlit(monkeypatch):
         "run_pipeline_cmd",
         "config_cmd",
         "inspect_cmd",
+        "doctor_cmd",
     ]:
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
@@ -71,6 +72,16 @@ def stub_streamlit(monkeypatch):
         "devsynth.application.cli.commands.analyze_code_cmd",
         analyze_stub,
     )
+
+    doctor_stub = ModuleType("devsynth.application.cli.commands.doctor_cmd")
+    doctor_stub.doctor_cmd = MagicMock()
+    doctor_stub.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.doctor_cmd",
+        doctor_stub,
+    )
+    cli_stub.doctor_cmd = doctor_stub.doctor_cmd
     yield st
 
 
@@ -150,3 +161,18 @@ def test_config_update(monkeypatch, stub_streamlit):
 
     WebUI().config_page()
     assert cfg.called
+
+
+def test_diagnostics_runs_doctor(monkeypatch, stub_streamlit):
+    doc = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.doctor_cmd.doctor_cmd",
+    )
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().diagnostics_page()
+    doc.assert_called_once()
