@@ -322,9 +322,9 @@ poetry run pytest
 ```
 
 Make sure LM Studio is running in API mode on the endpoint above and the
-`devsynth` CLI is installed in your path. When these variables are set, pytest
-will execute all tests, including those normally skipped when resources are
-unavailable.
+`devsynth` CLI is installed in your path. When these variables are set, the
+`poetry run pytest` command will execute all tests, including those normally
+skipped when resources are unavailable.
 
 ## Continuous Integration
 
