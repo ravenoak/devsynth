@@ -8,10 +8,12 @@ from typing import Optional, Dict, Any
 
 from devsynth import __version__ as project_version
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.exceptions import ConfigurationError
 
 import yaml
 import toml
 from pydantic.dataclasses import dataclass
+from dataclasses import field
 
 
 @dataclass
@@ -25,8 +27,16 @@ class ConfigModel:
     goals: Optional[str] = None
     constraints: Optional[str] = None
     priority: Optional[str] = None
-    directories: Dict[str, list[str]] | None = None
-    features: Dict[str, bool] | None = None
+    directories: Dict[str, list[str]] = field(
+        default_factory=lambda: {
+            "source": ["src"],
+            "tests": ["tests"],
+            "docs": ["docs"],
+        }
+    )
+    features: Dict[str, bool] = field(
+        default_factory=lambda: {"code_generation": False, "test_generation": False}
+    )
     resources: Dict[str, Any] | None = None
 
     def as_dict(self) -> Dict[str, Any]:
@@ -38,13 +48,8 @@ class ConfigModel:
             "goals": self.goals,
             "constraints": self.constraints,
             "priority": self.priority,
-            "directories": self.directories
-            or {
-                "source": ["src"],
-                "tests": ["tests"],
-                "docs": ["docs"],
-            },
-            "features": self.features or {},
+            "directories": self.directories,
+            "features": self.features,
             "resources": self.resources or {},
         }
 
@@ -65,8 +70,11 @@ def _find_config_path(start: Path) -> Optional[Path]:
             data = toml.load(toml_path)
             if "devsynth" in data.get("tool", {}):
                 return toml_path
-        except Exception:
-            return None
+        except Exception as exc:
+            logger.error("Malformed TOML configuration: %s", exc)
+            raise ConfigurationError(
+                "Malformed TOML configuration", config_key=str(toml_path)
+            ) from exc
 
     return None
 
@@ -76,18 +84,30 @@ def load_config(path: Optional[Path] = None) -> ConfigModel:
     root = path or Path(os.getcwd())
     cfg_path = _find_config_path(root)
 
-    data: Dict[str, Any] = {}
-    if cfg_path is None:
-        return ConfigModel(project_root=str(root))
+    defaults = ConfigModel(project_root=str(root))
+    data: Dict[str, Any] = defaults.as_dict()
 
-    if cfg_path.name.endswith(".yml") or cfg_path.name.endswith(".yaml"):
-        with open(cfg_path, "r") as f:
-            data = yaml.safe_load(f) or {}
-    else:
-        tdata = toml.load(cfg_path)
-        data = tdata.get("tool", {}).get("devsynth", {})
-    if "project_root" not in data:
-        data["project_root"] = str(root)
+    if cfg_path is not None:
+        if cfg_path.name.endswith(".yml") or cfg_path.name.endswith(".yaml"):
+            try:
+                with open(cfg_path, "r") as f:
+                    parsed = yaml.safe_load(f) or {}
+            except yaml.YAMLError as exc:  # pragma: no cover - protective branch
+                logger.error("Malformed YAML configuration: %s", exc)
+                raise ConfigurationError(
+                    "Malformed YAML configuration", config_key=str(cfg_path)
+                ) from exc
+        else:
+            try:
+                tdata = toml.load(cfg_path)
+                parsed = tdata.get("tool", {}).get("devsynth", {})
+            except Exception as exc:  # pragma: no cover - toml load errors
+                logger.error("Malformed TOML configuration: %s", exc)
+                raise ConfigurationError(
+                    "Malformed TOML configuration", config_key=str(cfg_path)
+                ) from exc
+
+        data.update(parsed)
 
     config = ConfigModel(**data)
     if config.version != ConfigModel.version:
