@@ -19,6 +19,7 @@ from devsynth.application.cli.cli_commands import (
     edrr_cycle_cmd,
     inspect_cmd,
     refactor_cmd,
+    serve_cmd,
 )
 from devsynth.application.cli.commands.validate_manifest_cmd import (
     validate_manifest_cmd,
@@ -332,6 +333,23 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "validate-manifest", validate_args
                 )
+            elif args[0] == "serve":
+                host = "0.0.0.0"
+                port = 8000
+                i = 1
+                while i < len(args):
+                    if args[i] == "--host" and i + 1 < len(args):
+                        host = args[i + 1]
+                        i += 2
+                    elif args[i] == "--port" and i + 1 < len(args):
+                        port = int(args[i + 1])
+                        i += 2
+                    else:
+                        i += 1
+
+                with patch("uvicorn.run") as mock_run:
+                    serve_cmd(host=host, port=port)
+                    command_context["uvicorn_call"] = mock_run.call_args
             elif args[0] == "doctor":
                 config_dir = None
                 if len(args) > 2 and args[1] in ["--config-dir", "-c"]:
@@ -584,3 +602,15 @@ def check_warning_message(command_context):
     """Verify that the system displayed a warning message."""
     output = command_context.get("output", "")
     assert "warning" in output.lower() or "warning" in output
+
+
+@then(parsers.parse('uvicorn should be called with host "{host}" and port {port:d}'))
+def uvicorn_called_with(host, port, command_context):
+    """Assert uvicorn.run was invoked with the specified host and port."""
+    call = command_context.get("uvicorn_call")
+    assert call is not None, "uvicorn.run was not called"
+    args, kwargs = call
+    if args:
+        assert args[0] == "devsynth.api:app"
+    assert kwargs.get("host") == host
+    assert kwargs.get("port") == port
