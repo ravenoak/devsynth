@@ -30,9 +30,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 from devsynth.config import (
     get_settings,
-    get_project_config,
     config_key_autocomplete as loader_autocomplete,
-    save_config,
 )
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
@@ -256,12 +254,15 @@ def config_cmd(
     if ctx is not None and ctx.invoked_subcommand is not None:
         return
     try:
+        config = UnifiedConfigLoader.load()
         args = {"key": key, "value": value}
         if list_models:
             args["list_models"] = True
         result = workflows.execute_command("config", args)
         if result.get("success"):
             if key and value:
+                setattr(config.config, key, value)
+                config.save()
                 bridge.display_result(
                     f"[green]Configuration updated: {key} = {value}[/green]"
                 )
@@ -296,11 +297,11 @@ def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
             data["features"] = features
             legacy_path.write_text(yaml.safe_dump(data))
         else:
-            cfg = get_project_config(Path("."))
-            features = cfg.features or {}
+            config = UnifiedConfigLoader.load()
+            features = config.config.features or {}
             features[name] = True
-            cfg.features = features
-            save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+            config.config.features = features
+            config.save()
 
         bridge.display_result(f"Feature '{name}' enabled.")
     except Exception as err:

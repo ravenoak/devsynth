@@ -320,6 +320,36 @@ class TestCLICommands:
         data = yaml.safe_load(cfg.read_text())
         assert data["features"]["code_generation"] is True
 
+    def test_config_cmd_uses_loader(self, mock_workflow_manager, mock_bridge):
+        cfg = MagicMock()
+        cfg.config = MagicMock()
+        cfg.config.language = "python"
+
+        mock_workflow_manager.return_value = {"success": True}
+
+        with patch(
+            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            return_value=cfg,
+        ) as mock_load:
+            cli_commands.config_cmd("language", "javascript")
+
+        mock_load.assert_called_once()
+        cfg.save.assert_called_once()
+
+    def test_enable_feature_cmd_loader(self, mock_bridge):
+        cfg = MagicMock()
+        cfg.config = MagicMock()
+        cfg.config.features = {}
+
+        with patch(
+            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            return_value=cfg,
+        ) as mock_load:
+            cli_commands.enable_feature_cmd("code_generation")
+
+        mock_load.assert_called_once()
+        cfg.save.assert_called_once()
+
     def test_inspect_cmd_file(self, mock_workflow_manager, mock_bridge):
         """Inspect command with input file."""
         mock_workflow_manager.return_value = {"success": True}
