@@ -522,3 +522,12 @@ class TestEDRRCoordinator:
         history_len = len(coordinator.get_execution_history())
         coordinator.progress_to_phase(Phase.DIFFERENTIATE)
         assert len(coordinator.get_execution_history()) > history_len
+
+    def test_create_micro_cycle_triggers_termination(self, coordinator):
+        """Ensure micro cycle is not created when granularity threshold triggers termination."""
+        coordinator.start_cycle({"description": "Macro"})
+        micro_task = {"description": "Sub", "granularity_score": 0.1}
+        assert coordinator.should_terminate_recursion(micro_task) is True
+        with pytest.raises(EDRRCoordinatorError):
+            coordinator.create_micro_cycle(micro_task, Phase.EXPAND)
+        assert not coordinator.child_cycles
