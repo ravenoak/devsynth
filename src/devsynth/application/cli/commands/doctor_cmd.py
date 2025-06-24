@@ -1,7 +1,7 @@
 from pathlib import Path
 from rich.console import Console
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.config.loader import load_config
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 import importlib.util
@@ -20,16 +20,11 @@ def doctor_cmd(config_dir: str = "config") -> None:
         `devsynth doctor --config-dir ./config`
     """
     try:
-        # Ensure project configuration is present
-        cfg_path_yaml = Path(".devsynth/devsynth.yml")
-        cfg_path_toml = Path("pyproject.toml")
-        if not cfg_path_yaml.exists() and not cfg_path_toml.exists():
+        config = UnifiedConfigLoader.load()
+        if not config.exists():
             bridge.print(
                 "[yellow]No project configuration found. Run 'devsynth init' to create it.[/yellow]"
             )
-
-        # Load project configuration with the unified loader
-        load_config()
 
         warnings = False
 
@@ -62,7 +57,9 @@ def doctor_cmd(config_dir: str = "config") -> None:
         for env in envs:
             cfg_path = Path(config_dir) / f"{env}.yml"
             if not cfg_path.exists():
-                bridge.print(f"[yellow]Warning: configuration file not found: {cfg_path}[/yellow]")
+                bridge.print(
+                    f"[yellow]Warning: configuration file not found: {cfg_path}[/yellow]"
+                )
                 warnings = True
                 continue
 

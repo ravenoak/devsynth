@@ -28,7 +28,9 @@ def test_config_warnings(tmp_path, monkeypatch):
     config_dir.mkdir()
 
     # intentionally incomplete config to trigger validation errors
-    (config_dir / "default.yml").write_text("application: {name: App, version: '1.0'}\n")
+    (config_dir / "default.yml").write_text(
+        "application: {name: App, version: '1.0'}\n"
+    )
 
     real_spec = doctor_cmd.importlib.util.spec_from_file_location
 
@@ -36,7 +38,13 @@ def test_config_warnings(tmp_path, monkeypatch):
         path = Path(__file__).parents[4] / "scripts" / "validate_config.py"
         return real_spec(name, path, *args, **kwargs)
 
-    with patch.object(doctor_cmd.importlib.util, "spec_from_file_location", side_effect=fake_spec), patch.object(doctor_cmd, "load_config"), patch.object(doctor_cmd.bridge, "print") as mock_print:
+    with (
+        patch.object(
+            doctor_cmd.importlib.util, "spec_from_file_location", side_effect=fake_spec
+        ),
+        patch.object(doctor_cmd.UnifiedConfigLoader, "load"),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
         assert "Configuration issues detected" in output
@@ -95,7 +103,13 @@ def test_config_success(tmp_path, monkeypatch):
         path = Path(__file__).parents[4] / "scripts" / "validate_config.py"
         return real_spec(name, path, *args, **kwargs)
 
-    with patch.object(doctor_cmd.importlib.util, "spec_from_file_location", side_effect=fake_spec), patch.object(doctor_cmd, "load_config"), patch.object(doctor_cmd.bridge, "print") as mock_print:
+    with (
+        patch.object(
+            doctor_cmd.importlib.util, "spec_from_file_location", side_effect=fake_spec
+        ),
+        patch.object(doctor_cmd.UnifiedConfigLoader, "load"),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
         assert "All configuration files are valid" in output
