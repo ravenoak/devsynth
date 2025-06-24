@@ -373,6 +373,26 @@ class TestRecursiveEDRRCoordinator:
         }
         assert coordinator.should_terminate_recursion(micro_task) == False
 
+    @pytest.mark.parametrize(
+        "micro_task",
+        [
+            {"description": "Too granular", "granularity_score": 0.1},
+            {
+                "description": "Too costly",
+                "cost_score": 0.9,
+                "benefit_score": 0.2,
+            },
+        ],
+    )
+    def test_create_micro_cycle_termination(self, coordinator, micro_task):
+        """create_micro_cycle should abort when delimiting principles trigger."""
+        coordinator.start_cycle({"description": "Macro Task"})
+
+        assert coordinator.should_terminate_recursion(micro_task) is True
+        with pytest.raises(EDRRCoordinatorError):
+            coordinator.create_micro_cycle(micro_task, Phase.EXPAND)
+        assert not coordinator.child_cycles
+
     def test_quality_threshold_monitoring(self, coordinator):
         """Test quality threshold monitoring for recursion termination."""
         # Start a macro cycle
