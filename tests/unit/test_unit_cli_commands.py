@@ -15,6 +15,7 @@ from devsynth.application.cli.cli_commands import (
     inspect_cmd,
     refactor_cmd,
 )
+from devsynth.config.unified_loader import UnifiedConfigLoader
 
 ORIG_CHECK_SERVICES = cli_commands._check_services
 
@@ -47,15 +48,19 @@ class TestCLICommands:
         cfg = MagicMock()
         cfg.exists.return_value = False
 
-        with patch(
-            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
-            return_value=cfg,
-        ), patch(
-            "devsynth.application.cli.cli_commands.bridge.ask_question",
-            side_effect=["/proj", "python", "goal"],
-        ), patch(
-            "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-            return_value=True,
+        with (
+            patch(
+                "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+                return_value=cfg,
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands.bridge.ask_question",
+                side_effect=["/proj", "python", "goal"],
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands.bridge.confirm_choice",
+                return_value=True,
+            ),
         ):
             init_cmd()
 
@@ -350,6 +355,50 @@ class TestCLICommands:
         mock_load.assert_called_once()
         cfg.save.assert_called_once()
 
+    def test_init_creates_config_and_commands_use_loader(self, tmp_path, mock_bridge):
+        answers = [str(tmp_path), "python", "goal"]
+
+        with (
+            patch.object(cli_commands.bridge, "ask_question", side_effect=answers),
+            patch.object(cli_commands.bridge, "confirm_choice", return_value=True),
+        ):
+            cwd = os.getcwd()
+            os.chdir(tmp_path)
+            try:
+                cli_commands.init_cmd()
+            finally:
+                os.chdir(cwd)
+
+        cfg_path = tmp_path / ".devsynth" / "devsynth.yml"
+        assert cfg_path.exists()
+
+        real_load = UnifiedConfigLoader.load
+
+        def spy_load(path=None):
+            cfg = real_load(path)
+            spy_load.path = cfg.path
+            return cfg
+
+        with (
+            patch(
+                "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+                side_effect=spy_load,
+            ) as mock_load,
+            patch(
+                "devsynth.application.cli.cli_commands.workflows.execute_command",
+                return_value={"success": True},
+            ),
+        ):
+            cwd = os.getcwd()
+            os.chdir(tmp_path)
+            try:
+                cli_commands.config_cmd()
+            finally:
+                os.chdir(cwd)
+
+        mock_load.assert_called()
+        assert spy_load.path == cfg_path
+
     def test_inspect_cmd_file(self, mock_workflow_manager, mock_bridge):
         """Inspect command with input file."""
         mock_workflow_manager.return_value = {"success": True}
@@ -375,12 +424,15 @@ class TestCLICommands:
             openai_api_key = None
             lm_studio_endpoint = None
 
-        with patch(
-            "devsynth.application.cli.cli_commands.get_settings",
-            return_value=DummySettings,
-        ), patch(
-            "devsynth.application.cli.cli_commands._check_services",
-            new=ORIG_CHECK_SERVICES,
+        with (
+            patch(
+                "devsynth.application.cli.cli_commands.get_settings",
+                return_value=DummySettings,
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands._check_services",
+                new=ORIG_CHECK_SERVICES,
+            ),
         ):
             spec_cmd("req.md")
             mock_workflow_manager.assert_not_called()
@@ -402,15 +454,19 @@ class TestCLICommands:
             lm_studio_endpoint = None
             enable_chromadb = True
 
-        with patch(
-            "devsynth.application.cli.cli_commands.get_settings",
-            return_value=DummySettings,
-        ), patch(
-            "devsynth.application.cli.cli_commands.importlib.util.find_spec",
-            return_value=None,
-        ), patch(
-            "devsynth.application.cli.cli_commands._check_services",
-            new=ORIG_CHECK_SERVICES,
+        with (
+            patch(
+                "devsynth.application.cli.cli_commands.get_settings",
+                return_value=DummySettings,
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands.importlib.util.find_spec",
+                return_value=None,
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands._check_services",
+                new=ORIG_CHECK_SERVICES,
+            ),
         ):
             spec_cmd("req.md")
             mock_workflow_manager.assert_not_called()
@@ -429,15 +485,19 @@ class TestCLICommands:
             openai_api_key = "key"
             lm_studio_endpoint = None
 
-        with patch(
-            "devsynth.application.cli.cli_commands.get_settings",
-            return_value=DummySettings,
-        ), patch(
-            "devsynth.application.cli.cli_commands.importlib.util.find_spec",
-            return_value=None,
-        ), patch(
-            "devsynth.application.cli.cli_commands._check_services",
-            new=ORIG_CHECK_SERVICES,
+        with (
+            patch(
+                "devsynth.application.cli.cli_commands.get_settings",
+                return_value=DummySettings,
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands.importlib.util.find_spec",
+                return_value=None,
+            ),
+            patch(
+                "devsynth.application.cli.cli_commands._check_services",
+                new=ORIG_CHECK_SERVICES,
+            ),
         ):
             spec_cmd("req.md")
             mock_workflow_manager.assert_not_called()
@@ -471,11 +531,14 @@ class TestCLICommands:
         assert "OPENAI_API_KEY" in output
 
     def test_doctor_cmd_invokes_loader(self):
-        with patch(
-            "devsynth.application.cli.commands.doctor_cmd.load_config"
-        ) as mock_load, patch(
-            "devsynth.application.cli.commands.doctor_cmd.bridge.print"
-        ) as mock_print:
+        with (
+            patch(
+                "devsynth.application.cli.commands.doctor_cmd.UnifiedConfigLoader.load"
+            ) as mock_load,
+            patch(
+                "devsynth.application.cli.commands.doctor_cmd.bridge.print"
+            ) as mock_print,
+        ):
             cli_commands.doctor_cmd("config")
             mock_load.assert_called_once()
             assert mock_print.called
