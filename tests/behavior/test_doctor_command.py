@@ -1,6 +1,9 @@
+import pytest
 from pytest_bdd import scenarios
 
-from .steps.cli_commands_steps import *
-from .steps.doctor_command_steps import *
+from .steps.cli_commands_steps import *  # noqa: F401,F403
+from .steps.doctor_command_steps import *  # noqa: F401,F403
 
-scenarios('features/doctor_command.feature')
+pytestmark = pytest.mark.requires_resource("cli")
+
+scenarios("features/doctor_command.feature")
