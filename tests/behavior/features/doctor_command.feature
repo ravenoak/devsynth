@@ -22,3 +22,14 @@ Feature: Doctor Command
     Given valid environment configuration
     When I run the command "devsynth check"
     Then the system should display a success message
+
+  Scenario: Warn when essential environment variables are missing
+    Given essential environment variables are missing
+    When I run the command "devsynth doctor"
+    Then the output should mention the missing variables
+
+  Scenario: Warn about invalid YAML files in the config directory
+    Given a config directory with invalid YAML
+    When I run the command "devsynth doctor"
+    Then the system should display a warning message
+    And the output should indicate configuration errors
