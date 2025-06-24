@@ -88,3 +88,23 @@ def test_micro_cycle_result_aggregation(coordinator):
         assert stored["task"] == {"description": "Micro"}
         for key, value in micro_cycle.results.items():
             assert stored[key] == value
+
+
+def test_result_aggregation_after_full_cycle(coordinator):
+    """All phase results should be aggregated after auto progression."""
+    with patch.object(
+        coordinator, "_execute_expand_phase", return_value={"expand": True, "phase_complete": True}
+    ), patch.object(
+        coordinator, "_execute_differentiate_phase", return_value={"differentiate": True, "phase_complete": True}
+    ), patch.object(
+        coordinator, "_execute_refine_phase", return_value={"refine": True, "phase_complete": True}
+    ), patch.object(
+        coordinator, "_execute_retrospect_phase", return_value={"retrospect": True, "phase_complete": True}
+    ):
+        coordinator.start_cycle({"description": "Task"})
+
+    aggregated = coordinator.results.get("AGGREGATED", {})
+    assert aggregated["expand"]["expand"] is True
+    assert aggregated["differentiate"]["differentiate"] is True
+    assert aggregated["refine"]["refine"] is True
+    assert aggregated["retrospect"]["retrospect"] is True

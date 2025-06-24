@@ -21,7 +21,9 @@ def mock_components():
         "devsynth.application.cli.commands.edrr_cycle_cmd.EDRRCoordinator"
     ) as coord_cls, patch(
         "devsynth.application.cli.commands.edrr_cycle_cmd.MemoryManager"
-    ) as manager_cls:
+    ) as manager_cls, patch(
+        "devsynth.application.cli.commands.edrr_cycle_cmd.run_pipeline"
+    ) as run_pipeline_mock:
         coordinator = MagicMock()
         coordinator.generate_report.return_value = {"ok": True}
         coordinator.cycle_id = "cid"
@@ -31,7 +33,7 @@ def mock_components():
         memory_manager.store_with_edrr_phase.return_value = "rid"
         manager_cls.return_value = memory_manager
 
-        yield coordinator, memory_manager, coord_cls
+        yield coordinator, memory_manager, coord_cls, run_pipeline_mock
 
 
 def test_edrr_cycle_cmd_manifest_missing(tmp_path, mock_bridge):
@@ -46,7 +48,7 @@ def test_edrr_cycle_cmd_success(tmp_path, mock_bridge, mock_components):
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text("project: test")
 
-    coordinator, memory_manager, coord_cls = mock_components
+    coordinator, memory_manager, coord_cls, run_pipeline_mock = mock_components
 
     edrr_cycle_cmd(str(manifest))
 
@@ -65,6 +67,7 @@ def test_edrr_cycle_cmd_success(tmp_path, mock_bridge, mock_components):
         Phase.RETROSPECT.value,
         {"cycle_id": coordinator.cycle_id},
     )
+    run_pipeline_mock.assert_called_once_with(report=coordinator.generate_report.return_value)
     assert any(
         "EDRR cycle completed" in call.args[0]
         for call in mock_bridge.print.call_args_list

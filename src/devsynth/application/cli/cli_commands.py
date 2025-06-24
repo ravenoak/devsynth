@@ -1,7 +1,7 @@
 import os
 import json
 from pathlib import Path
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict, Any
 
 import yaml
 
@@ -197,16 +197,29 @@ def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
 
 
 def run_pipeline_cmd(
-    target: Optional[str] = None, *, bridge: Optional[UXBridge] = None
+    target: Optional[str] = None,
+    report: Optional[Dict[str, Any]] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Run the generated code or a specific target.
 
-    Example:
-        `devsynth run-pipeline --target unit-tests`
+    Parameters
+    ----------
+    target:
+        Execution target (e.g. ``unit-tests``).
+    report:
+        Optional report data that should be persisted with pipeline results.
+
+    Example
+    -------
+    ``devsynth run-pipeline --target unit-tests``
     """
     bridge = _resolve_bridge(bridge)
     try:
-        result = workflows.execute_command("run-pipeline", {"target": target})
+        result = workflows.execute_command(
+            "run-pipeline", {"target": target, "report": report}
+        )
         if result["success"]:
             if target:
                 bridge.display_result(f"[green]Executed target: {target}[/green]")

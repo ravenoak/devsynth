@@ -34,8 +34,8 @@ def test_filter_args_removes_none_values():
         (
             workflows.run_pipeline,
             "run-pipeline",
-            {"target": "build"},
-            {"target": "build"},
+            {"target": "build", "report": None},
+            {"target": "build", "report": None},
         ),
         (
             workflows.update_config,
