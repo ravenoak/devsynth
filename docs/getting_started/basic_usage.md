@@ -61,13 +61,13 @@ Once you have defined your requirements, you can generate specifications, tests,
 
 ```bash
 # Generate specifications from requirements
-devsynth spec --requirements-file requirements.md
+devsynth inspect --requirements-file requirements.md
 
 # Generate tests from specifications
-devsynth test
+devsynth run-pipeline
 
 # Generate implementation code from tests
-devsynth code
+devsynth refactor
 ```
 
 Each command builds on the output of the previous command, following a test-driven development approach.

@@ -146,7 +146,7 @@ Feature: Multi-Agent Collaboration
 
   Scenario: Generate code with architecture and implementation agents
     Given I have a specification at "test_data/sample_spec.md"
-    When I run "devsynth code --spec test_data/sample_spec.md --agents architecture,implementation"
+    When I run "devsynth refactor --spec test_data/sample_spec.md --agents architecture,implementation"
     Then the command should succeed
     And the output should contain "Collaboration complete"
     And implementation files should be created

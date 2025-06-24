@@ -40,9 +40,9 @@ Generate the standard artifacts using the CLI:
 
 ```bash
 # Assuming you added requirements.md
-devsynth spec --requirements-file requirements.md
-devsynth test
-devsynth code
+devsynth inspect --requirements-file requirements.md
+devsynth run-pipeline
+devsynth refactor
 ```
 
 ## 3. Use the AgentAdapter

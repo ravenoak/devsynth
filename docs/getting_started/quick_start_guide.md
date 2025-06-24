@@ -118,7 +118,7 @@ Create a file named `requirements.md` in your project directory with your projec
 Run the following command to generate detailed specifications based on your requirements:
 
 ```bash
-devsynth spec --requirements-file requirements.md
+devsynth inspect --requirements-file requirements.md
 ```
 
 This will create a `specs.md` file in your project directory with detailed specifications derived from your requirements.
@@ -128,7 +128,7 @@ This will create a `specs.md` file in your project directory with detailed speci
 Next, generate tests based on the specifications:
 
 ```bash
-devsynth test
+devsynth run-pipeline
 ```
 
 This command creates test files in the `tests` directory of your project.
@@ -138,7 +138,7 @@ This command creates test files in the `tests` directory of your project.
 Generate the implementation code that satisfies the tests:
 
 ```bash
-devsynth code
+devsynth refactor
 ```
 
 This creates the implementation code in the `src` directory of your project.

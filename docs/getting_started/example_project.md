@@ -36,15 +36,15 @@ You can also explore the example using the WebUI. Start it with `devsynth webui`
    The command now launches an interactive wizard when run in an existing directory and will read any `pyproject.toml` or `devsynth.yml` it detects.
 2. **Generate specifications** from the requirements
    ```bash
-   devsynth spec --requirements-file requirements.md
+   devsynth inspect --requirements-file requirements.md
    ```
 3. **Generate tests**
    ```bash
-   devsynth test
+   devsynth run-pipeline
    ```
 4. **Generate code**
    ```bash
-   devsynth code
+   devsynth refactor
    ```
 5. **Run** the project
    ```bash

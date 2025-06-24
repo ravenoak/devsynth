@@ -65,12 +65,12 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
    devsynth config formalVerification.propertyTesting true
    ```
 
-   This option adds Hypothesis-based property tests when you run `devsynth test`.
+   This option adds Hypothesis-based property tests when you run `devsynth run-pipeline`.
 
 2. Execute the test generation command:
 
    ```bash
-   devsynth test --property-testing
+   devsynth run-pipeline --property-testing
    ```
 
    The `--property-testing` switch ensures property-based tests are executed alongside regular unit tests.
@@ -88,7 +88,7 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
 2. Use the proof tools during test runs:
 
    ```bash
-   devsynth test --smt-checks
+   devsynth run-pipeline --smt-checks
    ```
 
    The CLI switch engages the optional Z3/PySMT verification steps defined in `config/*.yml`.

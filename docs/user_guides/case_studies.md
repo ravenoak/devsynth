@@ -19,8 +19,8 @@ This document summarizes real-world usage examples of DevSynth. Each case study 
 The `examples/full_workflow` project demonstrates the complete DevSynth process:
 
 1. **Initialization** – `devsynth init --path .` generated `.devsynth/project.yaml`.
-2. **Specification and Test Generation** – `devsynth spec` and `devsynth test` produced `specs.md` and tests under `tests/`.
-3. **Code Generation** – `devsynth code` created the implementation in `src/`.
+2. **Specification and Test Generation** – `devsynth inspect` and `devsynth run-pipeline` produced `specs.md` and tests under `tests/`.
+3. **Code Generation** – `devsynth refactor` created the implementation in `src/`.
 4. **Running and Testing** – after installing dependencies (including `langgraph`), `python src/main.py README.md` produced line, word, and character counts. All unit tests pass with `pytest`.
 
 ### Lessons Learned

@@ -135,12 +135,12 @@ devsynth init --project-root . --language python \
   --extra-languages javascript --goals "demo"
 ```
 
-### spec
+### inspect
 
 Generate specifications from requirements.
 
 ```bash
-devsynth spec [--requirements-file FILE] [--output-file FILE]
+devsynth inspect [--requirements-file FILE] [--output-file FILE]
 ```
 
 **Options:**
@@ -150,18 +150,18 @@ devsynth spec [--requirements-file FILE] [--output-file FILE]
 **Examples:**
 ```bash
 # Generate specifications from default requirements file
-devsynth spec
+devsynth inspect
 
 # Generate specifications from a specific requirements file
-devsynth spec --requirements-file custom_requirements.md --output-file custom_specs.md
+devsynth inspect --requirements-file custom_requirements.md --output-file custom_specs.md
 ```
 
-### test
+### run-pipeline
 
 Generate tests from specifications.
 
 ```bash
-devsynth test [--spec-file FILE] [--output-dir DIR] [--test-type TYPE]
+devsynth run-pipeline [--spec-file FILE] [--output-dir DIR] [--test-type TYPE]
 ```
 
 **Options:**
@@ -172,18 +172,18 @@ devsynth test [--spec-file FILE] [--output-dir DIR] [--test-type TYPE]
 **Examples:**
 ```bash
 # Generate all test types from default specification file
-devsynth test
+devsynth run-pipeline
 
 # Generate only unit tests from a specific specification file
-devsynth test --spec-file custom_specs.md --test-type unit
+devsynth run-pipeline --spec-file custom_specs.md --test-type unit
 ```
 
-### code
+### refactor
 
 Generate code from tests or specifications.
 
 ```bash
-devsynth code [--test-dir DIR] [--spec-file FILE] [--output-dir DIR]
+devsynth refactor [--test-dir DIR] [--spec-file FILE] [--output-dir DIR]
 ```
 
 **Options:**
@@ -194,10 +194,10 @@ devsynth code [--test-dir DIR] [--spec-file FILE] [--output-dir DIR]
 **Examples:**
 ```bash
 # Generate code from tests
-devsynth code
+devsynth refactor
 
 # Generate code from a specific specification file
-devsynth code --spec-file custom_specs.md --output-dir custom_src/
+devsynth refactor --spec-file custom_specs.md --output-dir custom_src/
 ```
 
 ### run-pipeline
@@ -523,13 +523,13 @@ Additional walkthroughs for each command can be found in the `examples` director
 devsynth init --path ./my-project
 
 # Generate specifications from requirements
-devsynth spec --requirements-file requirements.md
+devsynth inspect --requirements-file requirements.md
 
 # Generate tests from specifications
-devsynth test --spec-file specifications.md
+devsynth run-pipeline --spec-file specifications.md
 
 # Generate code from tests
-devsynth code --test-dir tests/
+devsynth refactor --test-dir tests/
 
 # Run the tests to verify the implementation
 devsynth run-pipeline --target unit-tests

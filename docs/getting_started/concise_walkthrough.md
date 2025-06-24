@@ -52,13 +52,13 @@ Run the DevSynth commands in sequence:
 
 ```bash
 # Generate specifications
-devsynth spec
+devsynth inspect
 
 # Generate tests
-devsynth test
+devsynth run-pipeline
 
 # Generate implementation code
-devsynth code
+devsynth refactor
 ```
 
 ## 4. Run the Tests
