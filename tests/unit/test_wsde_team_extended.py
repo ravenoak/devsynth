@@ -1,9 +1,9 @@
-
 import pytest
 from unittest.mock import MagicMock, patch
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.agents.base import BaseAgent
 from devsynth.methodology.base import Phase
+
 
 class TestWSDETeam:
     @pytest.fixture
@@ -19,6 +19,7 @@ class TestWSDETeam:
     @pytest.fixture
     def mock_agent_with_expertise(self):
         """Create a mock agent with specific expertise for testing."""
+
         def _create_agent(name, expertise):
             agent = MagicMock(spec=BaseAgent)
             agent.name = name
@@ -26,6 +27,7 @@ class TestWSDETeam:
             agent.current_role = None
             agent.expertise = expertise
             return agent
+
         return _create_agent
 
     def test_wsde_team_initialization(self):
@@ -110,7 +112,12 @@ class TestWSDETeam:
         assert agent1.current_role == "Primus"
 
         # Other agents should have Worker, Supervisor, Designer, or Evaluator roles
-        assigned_roles = [agent2.current_role, agent3.current_role, agent4.current_role, agent5.current_role]
+        assigned_roles = [
+            agent2.current_role,
+            agent3.current_role,
+            agent4.current_role,
+            agent5.current_role,
+        ]
         assert "Worker" in assigned_roles
         assert "Supervisor" in assigned_roles
         assert "Designer" in assigned_roles
@@ -151,8 +158,12 @@ class TestWSDETeam:
         team = WSDETeam()
 
         # Create agents with different expertise
-        python_agent = mock_agent_with_expertise("PythonAgent", ["python", "coding", "backend"])
-        js_agent = mock_agent_with_expertise("JSAgent", ["javascript", "frontend", "web"])
+        python_agent = mock_agent_with_expertise(
+            "PythonAgent", ["python", "coding", "backend"]
+        )
+        js_agent = mock_agent_with_expertise(
+            "JSAgent", ["javascript", "frontend", "web"]
+        )
         design_agent = mock_agent_with_expertise("DesignAgent", ["design", "ui", "ux"])
         test_agent = mock_agent_with_expertise("TestAgent", ["testing", "qa", "pytest"])
         doc_agent = mock_agent_with_expertise("DocAgent", ["documentation", "markdown"])
@@ -306,7 +317,9 @@ class TestWSDETeam:
         # Create agents including a critic
         code_agent = mock_agent_with_expertise("CodeAgent", ["python", "coding"])
         test_agent = mock_agent_with_expertise("TestAgent", ["testing", "quality"])
-        critic_agent = mock_agent_with_expertise("CriticAgent", ["dialectical_reasoning", "critique"])
+        critic_agent = mock_agent_with_expertise(
+            "CriticAgent", ["dialectical_reasoning", "critique"]
+        )
 
         # Add agents to the team
         team.add_agent(code_agent)
@@ -314,13 +327,16 @@ class TestWSDETeam:
         team.add_agent(critic_agent)
 
         # Create a task
-        task = {"type": "implementation_task", "description": "Implement a user authentication system"}
+        task = {
+            "type": "implementation_task",
+            "description": "Implement a user authentication system",
+        }
 
         # Create a proposed solution (thesis)
         thesis = {
             "agent": "CodeAgent",
             "content": "Implement authentication using a simple username/password check",
-            "code": "def authenticate(username, password):\n    return username == 'admin' and password == 'password'"
+            "code": "def authenticate(username, password):\n    return username == 'admin' and password == 'password'",
         }
 
         # Add the thesis to the team
@@ -345,14 +361,20 @@ class TestWSDETeam:
         assert dialectical_result["synthesis"]["is_improvement"]
         assert "improved_solution" in dialectical_result["synthesis"]
 
-    def test_dialectical_reasoning_with_external_knowledge(self, mock_agent_with_expertise):
+    def test_dialectical_reasoning_with_external_knowledge(
+        self, mock_agent_with_expertise
+    ):
         """Test the dialectical reasoning process with external knowledge integration."""
         team = WSDETeam()
 
         # Create agents including a critic
         code_agent = mock_agent_with_expertise("CodeAgent", ["python", "coding"])
-        security_agent = mock_agent_with_expertise("SecurityAgent", ["security", "authentication"])
-        critic_agent = mock_agent_with_expertise("CriticAgent", ["dialectical_reasoning", "critique"])
+        security_agent = mock_agent_with_expertise(
+            "SecurityAgent", ["security", "authentication"]
+        )
+        critic_agent = mock_agent_with_expertise(
+            "CriticAgent", ["dialectical_reasoning", "critique"]
+        )
 
         # Add agents to the team
         team.add_agent(code_agent)
@@ -361,8 +383,8 @@ class TestWSDETeam:
 
         # Create a task
         task = {
-            "type": "implementation_task", 
-            "description": "Implement a secure user authentication system with multi-factor authentication"
+            "type": "implementation_task",
+            "description": "Implement a secure user authentication system with multi-factor authentication",
         }
 
         # Create a proposed solution (thesis)
@@ -379,7 +401,7 @@ def authenticate(username, password):
 def generate_jwt_token(username):
     # Generate a JWT token
     return "jwt_token_placeholder"
-            """
+            """,
         }
 
         # Add the thesis to the team
@@ -393,58 +415,56 @@ def generate_jwt_token(username):
                     "Store passwords using strong, adaptive hashing algorithms (e.g., bcrypt, Argon2)",
                     "Implement rate limiting to prevent brute force attacks",
                     "Use HTTPS for all authentication requests",
-                    "Set secure and HttpOnly flags on authentication cookies"
+                    "Set secure and HttpOnly flags on authentication cookies",
                 ],
                 "data_protection": [
                     "Encrypt sensitive data at rest and in transit",
                     "Implement proper access controls",
                     "Follow the principle of least privilege",
                     "Regularly audit access to sensitive data",
-                    "Have a data breach response plan"
-                ]
+                    "Have a data breach response plan",
+                ],
             },
             "industry_standards": {
                 "OWASP": [
                     "OWASP Top 10 Web Application Security Risks",
                     "OWASP Application Security Verification Standard (ASVS)",
-                    "OWASP Secure Coding Practices"
+                    "OWASP Secure Coding Practices",
                 ],
                 "ISO": [
                     "ISO/IEC 27001 - Information security management",
-                    "ISO/IEC 27002 - Code of practice for information security controls"
+                    "ISO/IEC 27002 - Code of practice for information security controls",
                 ],
                 "NIST": [
                     "NIST Special Publication 800-53 - Security and Privacy Controls",
-                    "NIST Cybersecurity Framework"
-                ]
+                    "NIST Cybersecurity Framework",
+                ],
             },
             "compliance_requirements": {
                 "GDPR": [
                     "Obtain explicit consent for data collection",
                     "Provide mechanisms for users to access, modify, and delete their data",
                     "Report data breaches within 72 hours",
-                    "Conduct Data Protection Impact Assessments (DPIA)"
+                    "Conduct Data Protection Impact Assessments (DPIA)",
                 ],
                 "HIPAA": [
                     "Implement technical safeguards for PHI",
                     "Conduct regular risk assessments",
                     "Maintain audit trails of PHI access",
-                    "Have Business Associate Agreements (BAA) in place"
+                    "Have Business Associate Agreements (BAA) in place",
                 ],
                 "PCI-DSS": [
                     "Maintain a secure network and systems",
                     "Protect cardholder data",
                     "Implement strong access control measures",
-                    "Regularly test security systems and processes"
-                ]
-            }
+                    "Regularly test security systems and processes",
+                ],
+            },
         }
 
         # Apply dialectical reasoning with external knowledge
         dialectical_result = team.apply_enhanced_dialectical_reasoning_with_knowledge(
-            task, 
-            critic_agent,
-            external_knowledge
+            task, critic_agent, external_knowledge
         )
 
         # Verify that the dialectical result contains all expected components
@@ -480,11 +500,21 @@ def generate_jwt_token(username):
 
         # Create agents with different disciplinary expertise
         code_agent = mock_agent_with_expertise("CodeAgent", ["python", "coding"])
-        security_agent = mock_agent_with_expertise("SecurityAgent", ["security", "authentication"])
-        ux_agent = mock_agent_with_expertise("UXAgent", ["user_experience", "interface_design"])
-        performance_agent = mock_agent_with_expertise("PerformanceAgent", ["performance", "optimization"])
-        accessibility_agent = mock_agent_with_expertise("AccessibilityAgent", ["accessibility", "inclusive_design"])
-        critic_agent = mock_agent_with_expertise("CriticAgent", ["dialectical_reasoning", "critique", "synthesis"])
+        security_agent = mock_agent_with_expertise(
+            "SecurityAgent", ["security", "authentication"]
+        )
+        ux_agent = mock_agent_with_expertise(
+            "UXAgent", ["user_experience", "interface_design"]
+        )
+        performance_agent = mock_agent_with_expertise(
+            "PerformanceAgent", ["performance", "optimization"]
+        )
+        accessibility_agent = mock_agent_with_expertise(
+            "AccessibilityAgent", ["accessibility", "inclusive_design"]
+        )
+        critic_agent = mock_agent_with_expertise(
+            "CriticAgent", ["dialectical_reasoning", "critique", "synthesis"]
+        )
 
         # Add agents to the team
         team.add_agent(code_agent)
@@ -496,8 +526,8 @@ def generate_jwt_token(username):
 
         # Create a task
         task = {
-            "type": "implementation_task", 
-            "description": "Implement a user authentication system with a focus on security, usability, performance, and accessibility"
+            "type": "implementation_task",
+            "description": "Implement a user authentication system with a focus on security, usability, performance, and accessibility",
         }
 
         # Create a proposed solution (thesis)
@@ -514,7 +544,7 @@ def authenticate(username, password):
 def generate_jwt_token(username):
     # Generate a JWT token
     return "jwt_token_placeholder"
-            """
+            """,
         }
 
         # Add the thesis to the team
@@ -528,7 +558,7 @@ def generate_jwt_token(username):
                     "Store passwords using strong, adaptive hashing algorithms (e.g., bcrypt, Argon2)",
                     "Implement rate limiting to prevent brute force attacks",
                     "Use HTTPS for all authentication requests",
-                    "Set secure and HttpOnly flags on authentication cookies"
+                    "Set secure and HttpOnly flags on authentication cookies",
                 ]
             },
             "user_experience": {
@@ -537,7 +567,7 @@ def generate_jwt_token(username):
                     "Provide clear error messages for failed authentication attempts",
                     "Offer password recovery options",
                     "Remember user preferences where appropriate",
-                    "Support single sign-on where possible"
+                    "Support single sign-on where possible",
                 ]
             },
             "performance": {
@@ -546,7 +576,7 @@ def generate_jwt_token(username):
                     "Cache frequently used authentication data",
                     "Use asynchronous processing for non-critical authentication tasks",
                     "Implement efficient database queries for user lookup",
-                    "Monitor and optimize authentication service response times"
+                    "Monitor and optimize authentication service response times",
                 ]
             },
             "accessibility": {
@@ -555,17 +585,17 @@ def generate_jwt_token(username):
                     "Provide appropriate ARIA labels for authentication form elements",
                     "Support screen readers for error messages and instructions",
                     "Maintain sufficient color contrast for text and interactive elements",
-                    "Allow authentication timeout extensions for users who need more time"
+                    "Allow authentication timeout extensions for users who need more time",
                 ]
-            }
+            },
         }
 
         # Apply multi-disciplinary dialectical reasoning
         dialectical_result = team.apply_multi_disciplinary_dialectical_reasoning(
-            task, 
+            task,
             critic_agent,
             disciplinary_knowledge,
-            [security_agent, ux_agent, performance_agent, accessibility_agent]
+            [security_agent, ux_agent, performance_agent, accessibility_agent],
         )
 
         # Verify that the dialectical result contains all expected components
@@ -579,7 +609,9 @@ def generate_jwt_token(username):
         assert len(dialectical_result["disciplinary_perspectives"]) >= 4
 
         # Check for specific disciplinary perspectives
-        perspective_disciplines = [p["discipline"] for p in dialectical_result["disciplinary_perspectives"]]
+        perspective_disciplines = [
+            p["discipline"] for p in dialectical_result["disciplinary_perspectives"]
+        ]
         assert "security" in perspective_disciplines
         assert "user_experience" in perspective_disciplines
         assert "performance" in perspective_disciplines
@@ -608,8 +640,7 @@ def generate_jwt_token(username):
         assert dialectical_result["synthesis"]["is_improvement"]
         assert "improved_solution" in dialectical_result["synthesis"]
 
-# New tests appended
-
+    # New tests appended
 
     def test_assign_roles_for_phase_varied_contexts(self, mock_agent_with_expertise):
         team = WSDETeam()
@@ -647,7 +678,11 @@ def generate_jwt_token(username):
         a1.process.return_value = {"vote": "o1"}
         a2.process.return_value = {"vote": "o1"}
         a3.process.return_value = {"vote": "o2"}
-        task = {"type": "critical_decision", "is_critical": True, "options": [{"id": "o1"}, {"id": "o2"}]}
+        task = {
+            "type": "critical_decision",
+            "is_critical": True,
+            "options": [{"id": "o1"}, {"id": "o2"}],
+        }
         result = team.vote_on_critical_decision(task)
         assert result["result"]["winner"] == "o1"
         assert result["result"]["method"] == "majority_vote"
@@ -657,22 +692,36 @@ def generate_jwt_token(username):
         expert = mock_agent_with_expertise("expert", ["security"])
         expert.config = MagicMock()
         expert.config.name = "expert"
-        expert.config.parameters = {"expertise": ["security"], "expertise_level": "expert"}
+        expert.config.parameters = {
+            "expertise": ["security"],
+            "expertise_level": "expert",
+        }
         intermediate = mock_agent_with_expertise("inter", ["security"])
         intermediate.config = MagicMock()
         intermediate.config.name = "inter"
-        intermediate.config.parameters = {"expertise": ["security"], "expertise_level": "intermediate"}
+        intermediate.config.parameters = {
+            "expertise": ["security"],
+            "expertise_level": "intermediate",
+        }
         novice = mock_agent_with_expertise("novice", ["python"])
         novice.config = MagicMock()
         novice.config.name = "novice"
-        novice.config.parameters = {"expertise": ["python"], "expertise_level": "novice"}
+        novice.config.parameters = {
+            "expertise": ["python"],
+            "expertise_level": "novice",
+        }
         for a in [expert, intermediate, novice]:
             a.process = MagicMock()
             team.add_agent(a)
         expert.process.return_value = {"vote": "b"}
         intermediate.process.return_value = {"vote": "a"}
         novice.process.return_value = {"vote": "a"}
-        task = {"type": "critical_decision", "domain": "security", "is_critical": True, "options": [{"id": "a"}, {"id": "b"}]}
+        task = {
+            "type": "critical_decision",
+            "domain": "security",
+            "is_critical": True,
+            "options": [{"id": "a"}, {"id": "b"}],
+        }
         result = team.vote_on_critical_decision(task)
         assert result["result"]["method"] == "weighted_vote"
         assert result["result"]["winner"] == "b"
@@ -695,7 +744,9 @@ def generate_jwt_token(username):
         assert team.role_assignments["primus"] is doc_agent
         assert doc_agent.has_been_primus
 
-    def test_select_primus_fallback_when_no_expertise_matches(self, mock_agent_with_expertise):
+    def test_select_primus_fallback_when_no_expertise_matches(
+        self, mock_agent_with_expertise
+    ):
         team = WSDETeam()
         a1 = mock_agent_with_expertise("A1", ["python"])
         a2 = mock_agent_with_expertise("A2", ["javascript"])
@@ -709,3 +760,16 @@ def generate_jwt_token(username):
 
         assert team.get_primus() is a1
         assert team.role_assignments["primus"] is a1
+
+    def test_documentation_expert_becomes_primus(self, mock_agent_with_expertise):
+        team = WSDETeam()
+
+        generalist = mock_agent_with_expertise("Generalist", ["python"])
+        doc_agent = mock_agent_with_expertise("Doc", ["documentation"])
+
+        team.add_agents([generalist, doc_agent])
+
+        task = {"type": "documentation", "description": "Write docs"}
+        team.select_primus_by_expertise(task)
+
+        assert team.get_primus() is doc_agent
