@@ -6,6 +6,12 @@ This directory contains tests for the DevSynth project, organized into different
 - **Integration Tests**: Tests for interactions between components (`tests/integration/`)
 - **Behavior Tests**: Tests for user-facing features using BDD (`tests/behavior/`)
 
+To execute the entire suite run:
+
+```bash
+poetry run pytest
+```
+
 ## Conditional Test Execution
 
 The test framework includes a mechanism for conditionally skipping tests based on resource availability. This is useful for tests that depend on external resources like LM Studio or other services that might not always be available.
