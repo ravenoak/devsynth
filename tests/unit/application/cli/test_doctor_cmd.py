@@ -1,9 +1,14 @@
+"""Tests for the ``doctor`` CLI command."""
+
+from textwrap import dedent
+from types import SimpleNamespace
+from pathlib import Path
 from unittest.mock import patch
+
+import importlib.util
 
 import pytest
 
-import importlib.util
-from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
     "doctor_cmd",
@@ -20,26 +25,101 @@ assert spec and spec.loader
 spec.loader.exec_module(doctor_cmd)  # type: ignore
 
 
-def test_python_version_warning():
-    with (
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load"),
-        patch.object(doctor_cmd.sys, "version_info", (3, 10, 0)),
-        patch.object(doctor_cmd.bridge, "print") as mock_print,
-    ):
-        doctor_cmd.doctor_cmd("config")
-        assert any(
-            "Python 3.11 or higher" in str(call.args[0])
-            for call in mock_print.call_args_list
-        )
+def _patch_validation_loader():
+    """Return a context manager patching ``spec_from_file_location`` for the script."""
+
+    real_spec = doctor_cmd.importlib.util.spec_from_file_location
+
+    def fake_spec(name, location, *args, **kwargs):
+        path = Path(__file__).parents[4] / "scripts" / "validate_config.py"
+        return real_spec(name, path, *args, **kwargs)
+
+    return patch.object(
+        doctor_cmd.importlib.util,
+        "spec_from_file_location",
+        side_effect=fake_spec,
+    )
 
 
-def test_missing_api_keys_warning(monkeypatch):
+def test_doctor_cmd_displays_warnings(monkeypatch):
+    """Missing configs, old Python and absent API keys should trigger warnings."""
+
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 10, 0))
+
+    cfg = SimpleNamespace()
+    cfg.exists = lambda: False
+
     with (
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load"),
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd("config")
-        output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
-        assert "OPENAI_API_KEY" in output and "ANTHROPIC_API_KEY" in output
+
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
+        assert "No project configuration found" in output
+        assert "Python 3.11 or higher" in output
+        assert "Missing environment variables" in output
+
+
+VALID_CONFIG = dedent(
+    """
+    application:
+      name: App
+      version: "1.0"
+    logging:
+      level: INFO
+      format: "%(message)s"
+    memory:
+      default_store: kuzu
+      stores:
+        chromadb:
+          enabled: true
+        kuzu: {}
+        faiss:
+          enabled: false
+    llm:
+      default_provider: openai
+      providers:
+        openai:
+          enabled: true
+    agents:
+      max_agents: 1
+      default_timeout: 1
+    edrr:
+      enabled: false
+      default_phase: expand
+    security:
+      input_validation: true
+    performance: {}
+    features:
+      wsde_collaboration: false
+    """
+)
+
+
+def test_doctor_cmd_success(tmp_path, monkeypatch):
+    """When everything is valid, a success message should be printed."""
+
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    for env in ["default", "development", "testing", "staging", "production"]:
+        (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
+
+    cfg = SimpleNamespace()
+    cfg.exists = lambda: True
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
+        doctor_cmd.doctor_cmd(str(config_dir))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
+        assert "All configuration files are valid" in output
