@@ -175,7 +175,7 @@ class TestCLICommands:
 
         # Verify
         mock_workflow_manager.assert_called_once_with(
-            "run-pipeline", {"target": "unit-tests"}
+            "run-pipeline", {"target": "unit-tests", "report": None}
         )
         mock_bridge.display_result.assert_called_once_with(
             "[green]Executed target: unit-tests[/green]"
@@ -195,7 +195,9 @@ class TestCLICommands:
         run_pipeline_cmd()
 
         # Verify
-        mock_workflow_manager.assert_called_once_with("run-pipeline", {"target": None})
+        mock_workflow_manager.assert_called_once_with(
+            "run-pipeline", {"target": None, "report": None}
+        )
         mock_bridge.display_result.assert_called_once_with(
             "[green]Execution complete.[/green]"
         )

@@ -40,9 +40,21 @@ def generate_code() -> Dict[str, Any]:
     return execute_command("code", {})
 
 
-def run_pipeline(target: str | None = None) -> Dict[str, Any]:
-    """Execute the generated code or a specific target."""
-    return execute_command("run-pipeline", filter_args({"target": target}))
+def run_pipeline(target: str | None = None, report: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    """Execute the generated code or a specific target.
+
+    Parameters
+    ----------
+    target:
+        Specific execution target such as ``unit-tests``.
+    report:
+        Optional report data to persist alongside pipeline results.
+    """
+
+    return execute_command(
+        "run-pipeline",
+        filter_args({"target": target, "report": report}),
+    )
 
 
 def update_config(

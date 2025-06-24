@@ -13,6 +13,7 @@ from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import DocumentationManager
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.core import run_pipeline
 from devsynth.methodology.base import Phase
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
@@ -70,6 +71,12 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
             Phase.RETROSPECT.value,
             {"cycle_id": coordinator.cycle_id},
         )
+
+        # Persist report through the standard pipeline workflow
+        try:
+            run_pipeline(report=final_report)
+        except Exception as pipeline_err:  # pragma: no cover - best effort
+            logger.error(f"Failed to persist report via pipeline: {pipeline_err}")
 
         bridge.print(
             f"[green]EDRR cycle completed.[/green] Results stored with id {result_id}"
