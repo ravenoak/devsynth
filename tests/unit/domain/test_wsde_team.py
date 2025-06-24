@@ -83,6 +83,36 @@ def test_build_consensus_multiple_and_single(team_with_agents):
     assert consensus["method"] == "consensus_synthesis"
     assert set(consensus["contributors"]) == {doc.name, coder.name}
 
+
+def test_documentation_task_selects_unused_doc_agent(team_with_agents):
+    team, doc, coder, tester = team_with_agents
+    team.select_primus_by_expertise({"type": "coding", "language": "python"})
+    assert team.get_primus() is coder
+
+    team.select_primus_by_expertise({"type": "documentation"})
+    assert team.get_primus() is doc
+
+
+def test_rotation_resets_after_all_have_served(team_with_agents):
+    team, doc, coder, tester = team_with_agents
+
+    team.select_primus_by_expertise({"type": "documentation"})
+    assert team.get_primus() is doc
+
+    team.select_primus_by_expertise({"type": "coding", "language": "python"})
+    assert team.get_primus() is coder
+
+    team.select_primus_by_expertise({"type": "testing"})
+    assert team.get_primus() is tester
+
+    assert all(a.has_been_primus for a in [doc, coder, tester])
+
+    team.select_primus_by_expertise({"type": "documentation"})
+    assert team.get_primus() is doc
+    assert doc.has_been_primus
+    assert not coder.has_been_primus
+    assert not tester.has_been_primus
+
 def test_force_wsde_coverage():
     import pathlib
     base = pathlib.Path(__file__).resolve().parents[3]
