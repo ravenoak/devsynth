@@ -9,14 +9,14 @@ Feature: Error Handling
 
   Scenario: Handle missing project directory
     Given I am in a directory without a DevSynth project
-    When I run the command "devsynth spec --requirements-file requirements.md"
+    When I run the command "devsynth inspect --requirements-file requirements.md"
     Then the system should detect the missing project
     And display an appropriate error message
     And exit with a non-zero status code
 
   Scenario: Handle invalid file paths
     Given I have a valid DevSynth project
-    When I run the command "devsynth spec --requirements-file nonexistent.md"
+    When I run the command "devsynth inspect --requirements-file nonexistent.md"
     Then the system should detect the missing file
     And display an appropriate error message
     And exit with a non-zero status code

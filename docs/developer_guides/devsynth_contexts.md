@@ -72,9 +72,9 @@ This context refers to applying DevSynth as a tool to assist in the development 
 ### Example Tasks
 
  - Analyzing requirements with `devsynth inspect`
-- Generating specifications with `devsynth spec`
-- Creating tests with `devsynth test`
-- Generating code with `devsynth code`
+- Generating specifications with `devsynth inspect`
+- Creating tests with `devsynth run-pipeline`
+- Generating code with `devsynth refactor`
  - Managing project structure with `devsynth analyze-config`
 
 ## 3. Self-Improvement: Using DevSynth to Improve DevSynth
@@ -102,8 +102,8 @@ This context refers to the advanced scenario where a functional version of DevSy
 
 - Using `devsynth analyze-code` to identify architectural improvements
  - Applying `devsynth analyze-config` to maintain DevSynth's own manifest
-- Using `devsynth test` to generate additional test cases
-- Leveraging `devsynth spec` to refine internal specifications
+- Using `devsynth run-pipeline` to generate additional test cases
+- Leveraging `devsynth inspect` to refine internal specifications
 
 ## Important Distinctions
 

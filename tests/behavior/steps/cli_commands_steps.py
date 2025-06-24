@@ -14,9 +14,6 @@ from io import StringIO
 from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
 from devsynth.application.cli.cli_commands import (
     init_cmd,
-    spec_cmd,
-    test_cmd,
-    code_cmd,
     run_pipeline_cmd,
     config_cmd,
     edrr_cycle_cmd,
@@ -194,31 +191,28 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "inspect", analyze_args
                 )
-            elif args[0] == "spec":
+            elif args[0] == "inspect":
                 # Parse the requirements file argument
                 req_file = "requirements.md"  # Default file
                 if len(args) > 2 and args[1] == "--requirements-file":
                     req_file = args[2]
-                spec_cmd(req_file)
+                inspect_cmd(req_file)
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "spec", {"requirements_file": req_file}
+                    "inspect", {"requirements_file": req_file}
                 )
-            elif args[0] == "test":
-                # Parse the spec file argument
-                spec_file = "specs.md"  # Default file
-                if len(args) > 2 and args[1] == "--spec-file":
-                    spec_file = args[2]
-                test_cmd(spec_file)
-                # Ensure the mock is called with the correct arguments
+            elif args[0] == "run-pipeline":
+                # Parse the spec file or target argument
+                target = None
+                if len(args) > 2 and args[1] in ["--spec-file", "--target"]:
+                    target = args[2]
+                run_pipeline_cmd(target)
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "test", {"spec_file": spec_file}
+                    "run-pipeline", {"target": target}
                 )
-            elif args[0] == "code":
-                # No arguments for code command
-                code_cmd()
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with("code", {})
+            elif args[0] == "refactor":
+                refactor_cmd()
+                mock_workflow_manager.execute_command.assert_called_with("refactor", {})
             elif args[0] == "run-pipeline":
                 # Parse the target argument
                 target = None  # Default target
@@ -384,10 +378,10 @@ def check_commands_in_help(command_context):
     output = command_context.get("output", "")
     commands = [
         "init",
-        "spec",
-        "test",
-        "code",
+        "refactor",
+        "inspect",
         "run-pipeline",
+        "retrace",
         "config",
         "edrr-cycle",
         "validate-manifest",
@@ -425,7 +419,7 @@ def check_requirements_file_processed(mock_workflow_manager):
     Verify that the system processed the custom requirements file.
     """
     mock_workflow_manager.execute_command.assert_any_call(
-        "spec", {"requirements_file": "custom-requirements.md"}
+        "inspect", {"requirements_file": "custom-requirements.md"}
     )
 
 
@@ -436,7 +430,7 @@ def check_specs_file_processed(mock_workflow_manager):
     Verify that the system processed the custom specs file.
     """
     mock_workflow_manager.execute_command.assert_any_call(
-        "test", {"spec_file": "custom-specs.md"}
+        "run-pipeline", {"target": "custom-specs.md"}
     )
 
 
@@ -585,7 +579,7 @@ def check_config_errors(command_context):
     assert "warning" in output.lower() or "error" in output.lower()
 
 
-@then(parsers.parse('the system should display a warning message'))
+@then(parsers.parse("the system should display a warning message"))
 def check_warning_message(command_context):
     """Verify that the system displayed a warning message."""
     output = command_context.get("output", "")

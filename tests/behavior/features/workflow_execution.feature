@@ -9,7 +9,7 @@ Feature: Workflow Execution
     And I have a valid DevSynth project
 
   Scenario: Execute a complete workflow without errors
-    When I run the command "devsynth spec --requirements-file requirements.md"
+    When I run the command "devsynth inspect --requirements-file requirements.md"
     Then the workflow should be created with a unique ID
     And the workflow should execute all steps in sequence
     And each step should be marked as completed
@@ -18,7 +18,7 @@ Feature: Workflow Execution
 
   Scenario: Handle errors in workflow execution
     Given the requirements file "invalid-requirements.md" does not exist
-    When I run the command "devsynth spec --requirements-file invalid-requirements.md"
+    When I run the command "devsynth inspect --requirements-file invalid-requirements.md"
     Then the workflow should be created with a unique ID
     And the workflow should fail during execution
     And the system should display an appropriate error message
@@ -35,9 +35,9 @@ Feature: Workflow Execution
     And the system should display a success message
 
   Scenario: Execute multiple workflows in sequence
-    When I run the command "devsynth spec --requirements-file requirements.md"
+    When I run the command "devsynth inspect --requirements-file requirements.md"
     And the workflow completes successfully
-    And I run the command "devsynth test --spec-file specs.md"
+    And I run the command "devsynth run-pipeline --spec-file specs.md"
     Then both workflows should execute successfully
     And the system should maintain the correct state between workflows
     And the system should display success messages for both commands

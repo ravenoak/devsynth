@@ -1025,9 +1025,9 @@ Continuous learning features will be deferred to a future version.
 **MVP Commands:**
 ```
 devsynth init [project_name] [--template=<template>] [--path=<path>]
-devsynth spec [--input=<file>] [--output=<file>]
-devsynth test [--spec=<file>] [--output=<directory>]
-devsynth code [--test=<directory>] [--output=<directory>]
+devsynth inspect [--input=<file>] [--output=<file>]
+devsynth run-pipeline [--spec=<file>] [--output=<directory>]
+devsynth refactor [--test=<directory>] [--output=<directory>]
 devsynth run-pipeline [--test] [--verbose]
 devsynth inspect [--input=<file>]
 devsynth refactor [--path=<path>]

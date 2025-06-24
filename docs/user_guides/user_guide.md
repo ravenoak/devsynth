@@ -94,12 +94,12 @@ devsynth analyze-code --path ./my-project
 **Details:**
 This command analyzes any codebase (not just DevSynth projects) to provide insights about its architecture, structure, code quality, and test coverage. It can detect different architecture types (Hexagonal, MVC, Layered, Microservices) and identify potential issues and improvement opportunities. This is useful for understanding existing projects or evaluating the quality of generated code.
 
-### `spec`
+### `inspect`
 
 Generates specifications from requirements.
 
 ```bash
-devsynth spec [--requirements-file FILE]
+devsynth inspect [--requirements-file FILE]
 ```
 
 **Options:**
@@ -107,18 +107,18 @@ devsynth spec [--requirements-file FILE]
 
 **Example:**
 ```bash
-devsynth spec --requirements-file custom-requirements.md
+devsynth inspect --requirements-file custom-requirements.md
 ```
 
 **Details:**
 This command creates detailed specifications based on the provided requirements. It expands high-level requirements into more detailed specifications that can be used for test generation.
 
-### `test`
+### `run-pipeline`
 
 Generates tests from specifications.
 
 ```bash
-devsynth test [--spec-file FILE]
+devsynth run-pipeline [--spec-file FILE]
 ```
 
 **Options:**
@@ -126,23 +126,23 @@ devsynth test [--spec-file FILE]
 
 **Example:**
 ```bash
-devsynth test --spec-file custom-specs.md
+devsynth run-pipeline --spec-file custom-specs.md
 ```
 
 **Details:**
 This command creates test files based on the specifications. It generates unit tests, integration tests, and other test types as appropriate for the project.
 
-### `code`
+### `refactor`
 
 Generates implementation code from tests.
 
 ```bash
-devsynth code
+devsynth refactor
 ```
 
 **Example:**
 ```bash
-devsynth code
+devsynth refactor
 ```
 
 **Details:**
@@ -447,9 +447,9 @@ You can create custom workflows by combining DevSynth commands:
 # Example custom workflow script
 #!/bin/bash
 devsynth inspect --input requirements.md
-devsynth spec
-devsynth test
-devsynth code
+devsynth inspect
+devsynth run-pipeline
+devsynth refactor
 devsynth run-pipeline --target unit-tests
 ```
 

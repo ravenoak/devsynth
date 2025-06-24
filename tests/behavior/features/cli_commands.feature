@@ -38,21 +38,21 @@ Feature: CLI Command Execution
     And the system should display a success message
 
   Scenario: Generate specifications with custom requirements file
-    When I run the command "devsynth spec --requirements-file custom-requirements.md"
+    When I run the command "devsynth inspect --requirements-file custom-requirements.md"
     Then the system should process the "custom-requirements.md" file
     And generate specifications based on the requirements
     And the workflow should execute successfully
     And the system should display a success message
 
   Scenario: Generate tests with custom specification file
-    When I run the command "devsynth test --spec-file custom-specs.md"
+    When I run the command "devsynth run-pipeline --spec-file custom-specs.md"
     Then the system should process the "custom-specs.md" file
     And generate tests based on the specifications
     And the workflow should execute successfully
     And the system should display a success message
 
   Scenario: Generate code without parameters
-    When I run the command "devsynth code"
+    When I run the command "devsynth refactor"
     Then the system should generate code based on the tests
     And the workflow should execute successfully
     And the system should display a success message
