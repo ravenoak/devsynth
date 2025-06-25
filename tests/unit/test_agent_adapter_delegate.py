@@ -1,0 +1,85 @@
+import typer
+import click
+from click.testing import CliRunner
+from unittest.mock import MagicMock
+
+import devsynth.adapters.cli.typer_adapter as typer_adapter
+from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
+from devsynth.domain.models.wsde import WSDETeam
+
+
+def test_delegate_task_single_agent():
+    coord = WSDETeamCoordinator()
+    coord.create_team("t")
+    agent = MagicMock()
+    agent.process.return_value = {"result": "ok"}
+    coord.add_agent(agent)
+    result = coord.delegate_task({"description": "do"})
+    assert result["result"] == "ok"
+    agent.process.assert_called_once_with({"description": "do"})
+
+
+def test_delegate_task_multi_agent():
+    coord = WSDETeamCoordinator()
+    coord.create_team("team")
+    a1 = MagicMock()
+    a1.process.return_value = {"result": "a"}
+    a2 = MagicMock()
+    a2.process.return_value = {"result": "b"}
+    coord.add_agents([a1, a2])
+    team = coord.get_team("team")
+    team.select_primus_by_expertise = MagicMock()
+    team.get_primus = MagicMock(return_value=a1)
+    team.add_solution = MagicMock()
+    team.build_consensus = MagicMock(return_value={
+        "consensus": "final",
+        "contributors": ["a1", "a2"],
+        "method": "consensus",
+        "reasoning": "",
+    })
+    team.apply_enhanced_dialectical_reasoning_multi = MagicMock(return_value={"eval": "ok"})
+    task = {"type": "code"}
+    result = coord.delegate_task(task)
+    team.select_primus_by_expertise.assert_called_once_with(task)
+    assert result["result"] == "final"
+    assert result["dialectical_analysis"] == {"eval": "ok"}
+
+
+def test_parse_args_runs(monkeypatch):
+    executed = {}
+    app = typer.Typer()
+
+    @app.command()
+    def hello():
+        executed["run"] = True
+
+    @app.command()
+    def bye():
+        pass
+
+    monkeypatch.setattr(typer_adapter, "build_app", lambda: app)
+    monkeypatch.setattr(
+        typer_adapter,
+        "_warn_if_features_disabled",
+        lambda: executed.setdefault("warn", True),
+    )
+
+    runner = CliRunner()
+    cmd = click.Command("cmd", callback=lambda: typer_adapter.parse_args(["hello"]))
+    result = runner.invoke(cmd, [])
+    assert result.exit_code == 0
+    assert executed["run"] and executed["warn"]
+
+
+def test_show_help(monkeypatch):
+    app = typer.Typer()
+
+    @app.command()
+    def hello():
+        pass
+
+    monkeypatch.setattr(typer_adapter, "build_app", lambda: app)
+    runner = CliRunner()
+    cmd = click.Command("cmd", callback=typer_adapter.show_help)
+    result = runner.invoke(cmd, [])
+    assert result.exit_code == 0
