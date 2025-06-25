@@ -9,3 +9,11 @@ Feature: Multi-agent task delegation
     Then each agent should process the task
     And the delegation result should include all contributors
     And the delegation method should be consensus based
+
+  Scenario: Delegate a task with dialectical reasoning and consensus
+    Given a team coordinator with multiple agents
+    And a critic agent with dialectical reasoning expertise
+    When I delegate a dialectical reasoning task
+    Then each agent should process the task
+    And the team should apply dialectical reasoning before consensus
+    And the delegation method should be consensus based
