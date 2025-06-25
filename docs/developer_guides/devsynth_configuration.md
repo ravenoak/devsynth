@@ -21,7 +21,7 @@ Note: The presence of a `.devsynth/` directory is the marker that a project is m
 
 The `.devsynth/devsynth.yml` file is the configuration file for projects managed by DevSynth. It describes the shape and attributes of the project in a minimal but functional, featureful, and human-friendly way. This file is created automatically when you run `devsynth init` in a directory, which also creates the `.devsynth/` directory.
 
-The project configuration file follows a schema defined in `src/devsynth/schemas/project_schema.json` and can be validated using the `devsynth validate-config` command (formerly `validate-manifest`).
+The project configuration file follows a schema defined in `src/devsynth/schemas/project_schema.json` and can be validated using the `devsynth validate-manifest` command (formerly `validate-manifest`).
 
 Example devsynth.yml:
 ```yaml
@@ -97,8 +97,8 @@ Project-level resources are specific to each DevSynth project:
 DevSynth provides several commands for managing configuration:
 
 - `devsynth init`: Creates a new project with a default `.devsynth/devsynth.yml` file and establishes the project as managed by DevSynth
-- `devsynth analyze-config` (formerly `analyze-manifest`): Analyzes and updates the `.devsynth/devsynth.yml` file based on the actual project structure
-- `devsynth validate-config` (formerly `validate-manifest`): Validates the `.devsynth/devsynth.yml` file against its schema
+- `devsynth inspect-config` (formerly `analyze-manifest`): Analyzes and updates the `.devsynth/devsynth.yml` file based on the actual project structure
+- `devsynth validate-manifest` (formerly `validate-manifest`): Validates the `.devsynth/devsynth.yml` file against its schema
 
 ### Configuration Schema and Loader
 
@@ -138,5 +138,5 @@ save_global_config(cfg)
 1. **Version Control**: Include the `.devsynth/devsynth.yml` file in version control to ensure consistent configuration across all developers.
 2. **Gitignore**: Add `.devsynth/cache/`, `.devsynth/logs/`, and `.devsynth/memory/` to your `.gitignore` file to exclude volatile project-level resources from version control, but keep `.devsynth/devsynth.yml`.
 3. **Environment Variables**: Use environment variables for sensitive information like API keys instead of storing them in configuration files.
-4. **Regular Updates**: Periodically run `devsynth analyze-config` to keep your project configuration file in sync with the actual project structure.
+4. **Regular Updates**: Periodically run `devsynth inspect-config` to keep your project configuration file in sync with the actual project structure.
 5. **Project Marker**: Remember that the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. Do not create this directory manually; use `devsynth init` to establish a project as managed by DevSynth.

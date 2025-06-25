@@ -156,8 +156,8 @@ devsynth run-pipeline
 Keep your project configuration up to date and validate it:
 
 ```bash
-devsynth analyze-config
-devsynth validate-config
+devsynth inspect-config
+devsynth validate-manifest
 ```
 
 ## Viewing and Modifying Generated Artifacts
