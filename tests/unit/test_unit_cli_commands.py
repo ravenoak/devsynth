@@ -50,7 +50,7 @@ class TestCLICommands:
 
         with (
             patch(
-                "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+                "devsynth.application.cli.cli_commands.load_project_config",
                 return_value=cfg,
             ),
             patch(
@@ -80,7 +80,7 @@ class TestCLICommands:
         cfg.exists.return_value = True
 
         with patch(
-            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            "devsynth.application.cli.cli_commands.load_project_config",
             return_value=cfg,
         ):
             init_cmd()
@@ -92,7 +92,7 @@ class TestCLICommands:
         """Errors are reported via the bridge."""
 
         with patch(
-            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            "devsynth.application.cli.cli_commands.load_project_config",
             side_effect=Exception("boom"),
         ):
             init_cmd()
@@ -333,7 +333,7 @@ class TestCLICommands:
         mock_workflow_manager.return_value = {"success": True}
 
         with patch(
-            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            "devsynth.application.cli.cli_commands.load_project_config",
             return_value=cfg,
         ) as mock_load:
             cli_commands.config_cmd("language", "javascript")
@@ -347,7 +347,7 @@ class TestCLICommands:
         cfg.config.features = {}
 
         with patch(
-            "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+            "devsynth.application.cli.cli_commands.load_project_config",
             return_value=cfg,
         ) as mock_load:
             cli_commands.enable_feature_cmd("code_generation")
@@ -372,7 +372,7 @@ class TestCLICommands:
         cfg_path = tmp_path / ".devsynth" / "devsynth.yml"
         assert cfg_path.exists()
 
-        real_load = UnifiedConfigLoader.load
+        real_load = cli_commands.load_project_config
 
         def spy_load(path=None):
             cfg = real_load(path)
@@ -381,7 +381,7 @@ class TestCLICommands:
 
         with (
             patch(
-                "devsynth.application.cli.cli_commands.UnifiedConfigLoader.load",
+                "devsynth.application.cli.cli_commands.load_project_config",
                 side_effect=spy_load,
             ) as mock_load,
             patch(

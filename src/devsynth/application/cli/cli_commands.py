@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 from typing import Optional, Union, List, Dict, Any
 
-import yaml
 
 import typer
 import importlib.util
@@ -32,7 +31,7 @@ from devsynth.config import (
     get_settings,
     config_key_autocomplete as loader_autocomplete,
 )
-from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.config import load_project_config
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd
 
@@ -103,7 +102,7 @@ def init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
 
     bridge = _resolve_bridge(bridge)
     try:
-        config = UnifiedConfigLoader.load()
+        config = load_project_config()
         if config.exists():
             bridge.display_result("Project already initialized")
             return
@@ -254,7 +253,7 @@ def config_cmd(
     if ctx is not None and ctx.invoked_subcommand is not None:
         return
     try:
-        config = UnifiedConfigLoader.load()
+        config = load_project_config()
         args = {"key": key, "value": value}
         if list_models:
             args["list_models"] = True
@@ -289,19 +288,11 @@ def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
     """
     bridge = _resolve_bridge(bridge)
     try:
-        legacy_path = Path(".devsynth") / "project.yaml"
-        if legacy_path.exists():
-            data = yaml.safe_load(legacy_path.read_text()) or {}
-            features = data.get("features", {})
-            features[name] = True
-            data["features"] = features
-            legacy_path.write_text(yaml.safe_dump(data))
-        else:
-            config = UnifiedConfigLoader.load()
-            features = config.config.features or {}
-            features[name] = True
-            config.config.features = features
-            config.save()
+        config = load_project_config()
+        features = config.config.features or {}
+        features[name] = True
+        config.config.features = features
+        config.save()
 
         bridge.display_result(f"Feature '{name}' enabled.")
     except Exception as err:
