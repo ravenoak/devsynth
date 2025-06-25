@@ -4,9 +4,14 @@ Configuration module for DevSynth.
 
 import os
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Any
+
+import yaml
+import toml
 
 from .loader import ConfigModel, config_key_autocomplete, load_config, save_config
-from .unified_loader import UnifiedConfigLoader
+from .unified_loader import UnifiedConfig, UnifiedConfigLoader
 from .settings import _settings, get_llm_settings, get_settings, load_dotenv
 
 _PROJECT_CONFIG: ConfigModel = load_config()
@@ -51,6 +56,50 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+
+@dataclass
+class ProjectUnifiedConfig(UnifiedConfig):
+    """Configuration wrapper for project.yaml or pyproject.toml."""
+
+    def save(self) -> Path:  # type: ignore[override]
+        if self.use_pyproject:
+            tdata: dict[str, Any] = {}
+            if self.path.exists():
+                tdata = toml.load(self.path)
+            tdata.setdefault("tool", {})["devsynth"] = self.config.as_dict()
+            with open(self.path, "w", encoding="utf-8") as f:
+                toml.dump(tdata, f)
+            return self.path
+
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(self.config.as_dict(), f)
+        return self.path
+
+
+def load_project_config(path: Path | None = None) -> ProjectUnifiedConfig:
+    """Load project configuration from project.yaml or pyproject.toml."""
+    root = Path(path or os.getcwd())
+    yaml_path = root / ".devsynth" / "project.yaml"
+    if yaml_path.exists():
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        cfg = ConfigModel(project_root=str(root))
+        cfg = ConfigModel(**{**cfg.as_dict(), **data})
+        return ProjectUnifiedConfig(cfg, yaml_path, False)
+
+    toml_path = root / "pyproject.toml"
+    if toml_path.exists():
+        data = toml.load(toml_path)
+        parsed = data.get("tool", {}).get("devsynth", {})
+        cfg = ConfigModel(project_root=str(root))
+        cfg = ConfigModel(**{**cfg.as_dict(), **parsed})
+        return ProjectUnifiedConfig(cfg, toml_path, True)
+
+    cfg = ConfigModel(project_root=str(root))
+    return ProjectUnifiedConfig(cfg, yaml_path, False)
+
+
 __all__ = [
     # Functions
     "get_settings",
@@ -59,9 +108,11 @@ __all__ = [
     "load_config",
     "save_config",
     "get_project_config",
+    "load_project_config",
     "config_key_autocomplete",
     "UnifiedConfigLoader",
     "ConfigModel",
+    "ProjectUnifiedConfig",
     "PROJECT_CONFIG",
     # Memory settings
     "MEMORY_STORE_TYPE",
