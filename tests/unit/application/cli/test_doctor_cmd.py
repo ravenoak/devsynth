@@ -41,7 +41,7 @@ def _patch_validation_loader():
     )
 
 
-def test_doctor_cmd_displays_warnings(monkeypatch):
+def test_doctor_cmd_old_python_and_missing_env_warn(monkeypatch):
     """Missing configs, old Python and absent API keys should trigger warnings."""
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -123,3 +123,49 @@ def test_doctor_cmd_success(tmp_path, monkeypatch):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "All configuration files are valid" in output
+
+
+def test_doctor_cmd_invalid_config(tmp_path, monkeypatch):
+    """Invalid configuration should result in warnings being printed."""
+
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    (config_dir / "default.yml").write_text("application: {name: App}\n")
+
+    cfg = SimpleNamespace()
+    cfg.exists = lambda: True
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
+        doctor_cmd.doctor_cmd(str(config_dir))
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
+        assert "Configuration issues detected" in output
+
+
+@pytest.mark.parametrize("missing", ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"])
+def test_doctor_cmd_missing_env_vars(monkeypatch, missing):
+    """Doctor warns about whichever API key is absent."""
+
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    monkeypatch.delenv(missing)
+
+    cfg = SimpleNamespace()
+    cfg.exists = lambda: True
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
+        doctor_cmd.doctor_cmd("config")
+        output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
+        assert missing in output

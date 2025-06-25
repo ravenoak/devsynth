@@ -73,6 +73,22 @@ Ensure your environment is running **Python 3.11 or higher**. Managing dependenc
 - Validate the configuration file format (should be valid YAML)
 - Try running `devsynth config --reset` to reset to default configuration
 
+### Running `devsynth doctor`
+
+Use this command to check your environment and configuration files. It warns
+about Python versions below 3.11 and any missing API keys.
+
+```bash
+$ devsynth doctor
+No project configuration found. Run 'devsynth init' to create it.
+Warning: Python 3.11 or higher is required. Current version: 3.10.0
+Missing environment variables: OPENAI_API_KEY, ANTHROPIC_API_KEY
+Configuration issues detected. Run 'devsynth init' to generate defaults.
+
+$ devsynth doctor
+All configuration files are valid.
+```
+
 ## LLM Provider Issues
 
 ### Connection Errors with LM Studio
