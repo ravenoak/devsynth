@@ -27,12 +27,9 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [test](#test)
   - [code](#code)
   - [config](#config)
-  - [memory](#memory)
-  - [agent](#agent)
   - [run-pipeline](#run-pipeline)
   - [refactor](#refactor)
   - [inspect](#inspect)
-  - [retrace](#retrace)
   - [webapp](#webapp)
   - [webui](#webui)
   - [dbschema](#dbschema)
@@ -259,58 +256,6 @@ Toggle a feature flag in your project configuration.
 devsynth config enable-feature <name>
 ```
 
-### memory
-
-Manage the DevSynth memory system.
-
-```bash
-devsynth memory [--clear] [--backup FILE] [--restore FILE] [--list] [--type TYPE]
-```
-
-**Options:**
-- `--clear`, `-c`: Clear the memory store
-- `--backup`, `-b`: Backup memory to a file
-- `--restore`, `-r`: Restore memory from a file
-- `--list`, `-l`: List memory contents
-- `--type`, `-t`: Memory store type (vector, document, graph, all) (default: all)
-
-**Examples:**
-```bash
-# List all memory contents
-devsynth memory --list
-
-# Clear vector memory
-devsynth memory --clear --type vector
-
-# Backup all memory to a file
-devsynth memory --backup memory_backup.json
-
-# Restore memory from a file
-devsynth memory --restore memory_backup.json
-```
-
-### agent
-
-Manage and interact with DevSynth agents.
-
-```bash
-devsynth agent [--list] [--run AGENT] [--input FILE] [--output FILE]
-```
-
-**Options:**
-- `--list`, `-l`: List available agents
-- `--run`, `-r`: Run a specific agent
-- `--input`, `-i`: Input file for the agent
-- `--output`, `-o`: Output file for agent results
-
-**Examples:**
-```bash
-# List all available agents
-devsynth agent --list
-
-# Run a specific agent with input and output files
-devsynth agent --run documentation --input requirements.md --output docs.md
-```
 
 ### run-pipeline
 
@@ -360,18 +305,6 @@ devsynth inspect --input requirements.md
 devsynth inspect --interactive
 ```
 
-### retrace
-
-Replay a previous pipeline execution for debugging.
-
-```bash
-devsynth retrace <run-id>
-```
-
-**Examples:**
-```bash
-devsynth retrace 20240601T123000
-```
 
 ### webapp
 

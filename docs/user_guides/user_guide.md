@@ -80,7 +80,7 @@ This command processes requirements and provides insights about their completene
 Analyzes a codebase to understand its architecture, structure, and quality.
 
 ```bash
-devsynth analyze-code [--path PATH]
+devsynth inspect-code [--path PATH]
 ```
 
 **Options:**
@@ -88,7 +88,7 @@ devsynth analyze-code [--path PATH]
 
 **Example:**
 ```bash
-devsynth analyze-code --path ./my-project
+devsynth inspect-code --path ./my-project
 ```
 
 **Details:**
