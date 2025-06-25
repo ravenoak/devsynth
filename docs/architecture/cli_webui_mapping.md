@@ -34,7 +34,7 @@ backend functions.
 | `analyze-code`            | **Analysis** – Analyze Code form                     |
 | `refactor`                | N/A (planned **Analysis** workflow suggestions)      |
 | `webapp`                  | N/A (planned **Database/Web App** helper page)       |
-| `serve`                   | N/A (runs API server from CLI)                       |
+| `serve`                   | N/A (planned server management page; currently runs API server from CLI)                       |
 | `dbschema`                | N/A (planned **Database** helper page)               |
 | `doctor` / `check`        | N/A (planned configuration validation)               |
 | `edrr-cycle`              | N/A (planned **EDRR Cycle** page)                    |
@@ -50,24 +50,26 @@ backend functions.
 | `apispec`                 | N/A (planned API specification form)                 |
 | `webui`                   | Launches the WebUI                                   |
 
-The following CLI commands remain **N/A** in the WebUI:
+The following CLI commands remain **N/A** in the WebUI (all planned for future integration):
 
-- `refactor`
-- `webapp`
-- `serve`
-- `dbschema`
-- `doctor` / `check`
-- `edrr-cycle`
-- `align`
-- `alignment-metrics`
-- `analyze-manifest`
-- `analyze-config`
-- `validate-manifest`
-- `validate-metadata`
-- `test-metrics`
-- `generate-docs`
-- `ingest`
-- `apispec`
+- `refactor` (planned)
+- `webapp` (planned)
+- `serve` (planned)
+- `dbschema` (planned)
+- `doctor` / `check` (planned)
+- `edrr-cycle` (planned)
+- `align` (planned)
+- `alignment-metrics` (planned)
+- `analyze-manifest` (planned)
+- `analyze-config` (planned)
+- `validate-manifest` (planned)
+- `validate-metadata` (planned)
+- `test-metrics` (planned)
+- `generate-docs` (planned)
+- `ingest` (planned)
+- `apispec` (planned)
+
+Planned pages will integrate these commands into the WebUI. The `refactor` command is expected to appear in the **Analysis** section for automated improvement suggestions. A new operations page will manage the API server for `serve`, and `dbschema` will hook into the **Database** helper page for schema visualization.
 
 Because each page calls workflow functions through the `UXBridge` layer,
 adding UI support for these commands later only requires new pages that
