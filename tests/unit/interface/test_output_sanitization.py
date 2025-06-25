@@ -1,9 +1,9 @@
+import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
-import sys
 
-from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.agentapi import APIBridge
+from devsynth.interface.cli import CLIUXBridge
 
 
 def test_cliuxbridge_sanitizes_output():
@@ -11,6 +11,14 @@ def test_cliuxbridge_sanitizes_output():
     with patch("rich.console.Console.print") as out:
         bridge.display_result("<script>alert('x')</script>Hello")
         out.assert_called_once_with("Hello", highlight=False)
+
+
+def test_cliuxbridge_escapes_html():
+    """Ensure raw HTML is escaped before printing to the console."""
+    bridge = CLIUXBridge()
+    with patch("rich.console.Console.print") as out:
+        bridge.display_result("<script>")
+        out.assert_called_once_with("&lt;script&gt;", highlight=False)
 
 
 def test_apibridge_sanitizes_output():
@@ -29,6 +37,7 @@ def test_webui_sanitizes_output(monkeypatch):
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
