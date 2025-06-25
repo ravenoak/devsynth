@@ -22,6 +22,8 @@ def patch_typer_types(monkeypatch):
         origin = getattr(annotation, "__origin__", None)
         if origin in {UXBridge, typer.models.Context}:
             return click.STRING
+        if annotation is dict or origin is dict:
+            return click.STRING
         return orig(annotation=annotation, parameter_info=parameter_info)
 
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
@@ -90,13 +92,17 @@ class TestTyperCLI:
 
     def test_cli_config(self):
         app = build_app()
-        result = self.runner.invoke(app, ["config", "--key", "model", "--value", "gpt-4"])
+        result = self.runner.invoke(
+            app, ["config", "--key", "model", "--value", "gpt-4"]
+        )
         assert result.exit_code == 0
         assert "Configuration updated" in result.output
 
     def test_cli_enable_feature(self):
         app = build_app()
-        result = self.runner.invoke(app, ["config", "enable-feature", "code_generation"])
+        result = self.runner.invoke(
+            app, ["config", "enable-feature", "code_generation"]
+        )
         assert result.exit_code == 0
 
     def test_cli_edrr_cycle(self):
@@ -107,29 +113,38 @@ class TestTyperCLI:
     @patch("devsynth.adapters.cli.typer_adapter.analyze_manifest_cmd", autospec=True)
     def test_cli_analyze_manifest_update(self, mock_cmd):
         app = build_app()
-        result = self.runner.invoke(app, [
-            "analyze-manifest",
-            "--path",
-            "./proj",
-            "--update",
-        ])
+        result = self.runner.invoke(
+            app,
+            [
+                "analyze-manifest",
+                "--path",
+                "./proj",
+                "--update",
+            ],
+        )
         assert result.exit_code == 0
         mock_cmd.assert_called_once_with("./proj", True, False)
 
     @patch("devsynth.adapters.cli.typer_adapter.analyze_manifest_cmd", autospec=True)
     def test_cli_analyze_manifest_prune(self, mock_cmd):
         app = build_app()
-        result = self.runner.invoke(app, [
-            "analyze-manifest",
-            "--path",
-            "./proj",
-            "--prune",
-        ])
+        result = self.runner.invoke(
+            app,
+            [
+                "analyze-manifest",
+                "--path",
+                "./proj",
+                "--prune",
+            ],
+        )
         assert result.exit_code == 0
         mock_cmd.assert_called_once_with("./proj", False, True)
 
     @patch("devsynth.application.cli.cli_commands._check_services", return_value=True)
-    @patch("devsynth.application.cli.cli_commands.generate_specs", side_effect=FileNotFoundError("missing"))
+    @patch(
+        "devsynth.application.cli.cli_commands.generate_specs",
+        side_effect=FileNotFoundError("missing"),
+    )
     def test_cli_spec_invalid_file(self, *_):
         app = build_app()
         result = self.runner.invoke(app, ["spec", "--requirements-file", "bad.md"])
@@ -146,3 +161,31 @@ class TestTyperCLI:
         assert result.exit_code == 0
         assert "config missing" in result.output
 
+    def test_parse_args_help_has_new_commands(self, capsys, monkeypatch):
+        from devsynth.adapters.cli import typer_adapter as adapter
+
+        def patched_get_click_type(*, annotation, parameter_info):
+            if annotation in {UXBridge, typer.models.Context}:
+                return click.STRING
+            origin = getattr(annotation, "__origin__", None)
+            if origin in {UXBridge, typer.models.Context, dict} or annotation is dict:
+                return click.STRING
+            return orig(annotation=annotation, parameter_info=parameter_info)
+
+        orig = typer.main.get_click_type
+        monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
+        monkeypatch.setattr(adapter, "_warn_if_features_disabled", lambda: None)
+
+        with pytest.raises(SystemExit) as exc:
+            adapter.parse_args(["--help"])
+        assert exc.value.code == 0
+        output = capsys.readouterr().out
+        assert "refactor" in output
+        assert "inspect" in output
+        assert "run-pipeline" in output
+        lines = [line.strip() for line in output.splitlines()]
+        assert all(not line.startswith("adaptive") for line in lines)
+        assert all(
+            not line.startswith("analyze ") and " analyze " not in line
+            for line in lines
+        )
