@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Special note: the environment that ChatGPT Codex operates in executes `scripts/codex_setup.sh` as the setup setup. If it fails, a CODEX_ENVIRONMENT_SETUP_FAILED file will be created.
+> Special note: the environment that ChatGPT Codex operates in executes `scripts/codex_setup.sh` as the setup script **while network access is enabled**. If the script fails for any reason, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be created. After provisioning finishes, network access is disabled.
 
 ## Introduction
 
@@ -9,6 +9,27 @@ This document provides a comprehensive guide to the agent-based components withi
 ## Scope
 
 This file covers all AI and service agents implemented in the `src/devsynth/` directory and related scripts in `scripts/` that embody agentic behavior.
+
+## Environment Setup
+
+The automated Codex environment runs the setup script as:
+
+```bash
+scripts/codex_setup.sh || touch CODEX_ENVIRONMENT_SETUP_FAILED
+```
+
+If `scripts/codex_setup.sh` fails, a file named `CODEX_ENVIRONMENT_SETUP_FAILED`
+will appear in the repository root. After the initial provisioning, network
+access is disabled, so you may need to adjust the script or install packages
+manually to make it succeed. To fix your environment:
+
+1. Review and update `scripts/codex_setup.sh` so it succeeds in your
+   environment. You may need to install packages manually or modify the script.
+2. Run `bash scripts/codex_setup.sh` (without network access) until it completes
+   without errors.
+3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
+
+Development and test commands may fail until the setup script completes successfully and the marker file is removed.
 
 ## Project Structure
 

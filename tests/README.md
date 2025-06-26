@@ -175,6 +175,8 @@ poetry run pytest
 
 ### Environment Setup
 
+The test environment relies on [`scripts/codex_setup.sh`](../scripts/codex_setup.sh) being executed successfully during provisioning (with network access). If the script fails, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be present in the repository root. Network access is disabled when you run the tests manually. See [AGENTS.md#environment-setup](../AGENTS.md#environment-setup) for instructions on how to resolve the failure and remove the marker offline.
+
 Before running tests, you **must** install DevSynth with the development extras:
 
 ```bash
