@@ -14,21 +14,18 @@ from pathlib import Path
 def _ensure_dev_synth_importable() -> None:
     """Ensure ``devsynth`` can be imported from ``src`` or is installed."""
 
+    root = Path(__file__).resolve().parents[1]
+    src = root / "src"
+
+    # Always place the ``src`` directory on ``sys.path`` so imports work
+    if src.exists() and str(src) not in sys.path:
+        sys.path.insert(0, str(src))
+
     try:  # pragma: no cover - quick check
         import devsynth  # noqa: F401
         return
     except Exception:
         pass
-
-    root = Path(__file__).resolve().parents[1]
-    src = root / "src"
-    if src.exists():
-        sys.path.insert(0, str(src))
-        try:
-            import devsynth  # noqa: F401
-            return
-        except Exception:
-            pass
 
     raise RuntimeError(
         "DevSynth is not installed and could not be imported from the 'src'\n"
