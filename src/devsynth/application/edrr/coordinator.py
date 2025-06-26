@@ -528,6 +528,26 @@ class EDRRCoordinator:
             parent_phase=parent_phase,
         )
 
+        # When the micro cycle aggregates its results, refresh the parent's
+        # aggregated results as well so that the parent always has the latest
+        # child data.
+        original_aggregate = micro_cycle._aggregate_results
+
+        def _aggregate_with_parent() -> None:  # type: ignore[override]
+            original_aggregate()
+            phase_key = parent_phase.name
+            if phase_key not in self.results:
+                self.results[phase_key] = {}
+            if "micro_cycle_results" not in self.results[phase_key]:
+                self.results[phase_key]["micro_cycle_results"] = {}
+            self.results[phase_key]["micro_cycle_results"][micro_cycle.cycle_id] = {
+                **micro_cycle.results,
+                "task": task,
+            }
+            self._aggregate_results()
+
+        micro_cycle._aggregate_results = _aggregate_with_parent
+
         # Start the micro cycle with the given task or manifest
         if isinstance(task, dict) and "manifest" in task:
             manifest = task["manifest"]
