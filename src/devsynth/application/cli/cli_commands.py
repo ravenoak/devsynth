@@ -351,11 +351,11 @@ def refactor_cmd(
 
         if result.get("success", False):
             # Display the workflow information
-            bridge.print(f"[green]Workflow:[/green] {result['workflow']}")
-            bridge.print(f"[green]Entry Point:[/green] {result['entry_point']}")
+            bridge.display_result(f"[green]Workflow:[/green] {result['workflow']}")
+            bridge.display_result(f"[green]Entry Point:[/green] {result['entry_point']}")
 
             # Display the suggestions
-            bridge.print("\n[bold]Suggested Next Steps:[/bold]")
+            bridge.display_result("\n[bold]Suggested Next Steps:[/bold]")
 
             # Create a table for the suggestions
             table = Table(show_header=True, header_style="bold")
@@ -373,11 +373,13 @@ def refactor_cmd(
             bridge.print(table)
 
             # Display the message
-            bridge.print(f"\n[green]{result['message']}[/green]")
+            bridge.display_result(f"\n[green]{result['message']}[/green]")
         else:
-            bridge.print(f"[red]Error:[/red] {result.get('message', 'Unknown error')}")
+            bridge.display_result(
+                f"[red]Error:[/red] {result.get('message', 'Unknown error')}"
+            )
     except Exception as e:
-        bridge.print(f"[red]Error:[/red] {str(e)}")
+        bridge.display_result(f"[red]Error:[/red] {str(e)}")
 
 
 def inspect_cmd(
@@ -440,10 +442,10 @@ def webapp_cmd(
         supported_frameworks = ["flask", "fastapi", "django", "express"]
 
         if framework not in supported_frameworks:
-            bridge.print(
+            bridge.display_result(
                 f"[yellow]Warning: '{framework}' is not a recognized framework.[/yellow]"
             )
-            bridge.print(
+            bridge.display_result(
                 f"[yellow]Supported frameworks: {', '.join(supported_frameworks)}[/yellow]"
             )
 
@@ -493,7 +495,7 @@ def webapp_cmd(
             if not bridge.confirm(
                 f"[yellow]Directory {project_path} already exists. Overwrite?[/yellow]"
             ):
-                bridge.print("[yellow]Operation cancelled.[/yellow]")
+                bridge.display_result("[yellow]Operation cancelled.[/yellow]")
                 return
 
             # Remove existing directory
@@ -680,37 +682,37 @@ Note: Full support for {framework} will be implemented in a future version.
             # Mark task as complete
             progress.complete()
 
-        bridge.print(
+        bridge.display_result(
             f"[green]✓ Web application generated successfully at: {project_path}[/green]"
         )
 
         # Show next steps based on the framework
-        bridge.print("\n[bold blue]Next Steps:[/bold blue]")
+        bridge.display_result("\n[bold blue]Next Steps:[/bold blue]")
 
         if framework == "flask":
-            bridge.print("1. Create a virtual environment:")
-            bridge.print(f"   [green]cd {project_path} && python -m venv venv[/green]")
-            bridge.print("2. Activate the virtual environment:")
-            bridge.print(
+            bridge.display_result("1. Create a virtual environment:")
+            bridge.display_result(f"   [green]cd {project_path} && python -m venv venv[/green]")
+            bridge.display_result("2. Activate the virtual environment:")
+            bridge.display_result(
                 f"   [green]source venv/bin/activate  # On Windows: venv\\Scripts\\activate[/green]"
             )
-            bridge.print("3. Install dependencies:")
-            bridge.print(f"   [green]pip install -r requirements.txt[/green]")
-            bridge.print("4. Run the application:")
-            bridge.print(f"   [green]flask run[/green]")
+            bridge.display_result("3. Install dependencies:")
+            bridge.display_result(f"   [green]pip install -r requirements.txt[/green]")
+            bridge.display_result("4. Run the application:")
+            bridge.display_result(f"   [green]flask run[/green]")
         else:
-            bridge.print(
+            bridge.display_result(
                 f"Support for {framework} will be implemented in a future version."
             )
 
-        bridge.print("\n[bold blue]Access your application:[/bold blue]")
-        bridge.print(
+        bridge.display_result("\n[bold blue]Access your application:[/bold blue]")
+        bridge.display_result(
             "Open your browser and navigate to: [green]http://localhost:5000[/green]"
         )
 
     except Exception as err:
-        bridge.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
-        bridge.print(
+        bridge.display_result(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
+        bridge.display_result(
             "[red]An unexpected error occurred during web application generation.[/red]"
         )
 
@@ -741,7 +743,7 @@ def serve_cmd(
         configure_logging()
         uvicorn.run("devsynth.api:app", host=host, port=port, log_level="info")
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
 
 def dbschema_cmd(
@@ -777,10 +779,10 @@ def dbschema_cmd(
         supported_db_types = ["sqlite", "mysql", "postgresql", "mongodb"]
 
         if db_type not in supported_db_types:
-            bridge.print(
+            bridge.display_result(
                 f"[yellow]Warning: '{db_type}' is not a recognized database type.[/yellow]"
             )
-            bridge.print(
+            bridge.display_result(
                 f"[yellow]Supported database types: {', '.join(supported_db_types)}[/yellow]"
             )
 
@@ -824,7 +826,7 @@ def dbschema_cmd(
             if not bridge.confirm(
                 f"[yellow]Directory {schema_path} already exists. Overwrite?[/yellow]"
             ):
-                bridge.print("[yellow]Operation cancelled.[/yellow]")
+                bridge.display_result("[yellow]Operation cancelled.[/yellow]")
                 return
 
             # Remove existing directory
@@ -834,8 +836,8 @@ def dbschema_cmd(
         os.makedirs(schema_path, exist_ok=True)
 
         # Get entity information
-        bridge.print("\n[bold]Entity Information[/bold]")
-        bridge.print(
+        bridge.display_result("\n[bold]Entity Information[/bold]")
+        bridge.display_result(
             "Let's define the entities (tables/collections) for your database schema."
         )
 
@@ -851,7 +853,7 @@ def dbschema_cmd(
             entity_name = entity_name.replace(" ", "_").lower()
 
             # Get entity fields
-            bridge.print(f"\n[bold]Fields for {entity_name}[/bold]")
+            bridge.display_result(f"\n[bold]Fields for {entity_name}[/bold]")
             fields = []
             while True:
                 field_name = bridge.prompt(
@@ -923,12 +925,12 @@ def dbschema_cmd(
             if fields:
                 entities.append({"name": entity_name, "fields": fields})
             else:
-                bridge.print(
+                bridge.display_result(
                     "[yellow]Warning: Entity has no fields and will be skipped.[/yellow]"
                 )
 
         if not entities:
-            bridge.print(
+            bridge.display_result(
                 "[yellow]Warning: No entities defined. Creating a sample schema instead.[/yellow]"
             )
 
@@ -1203,35 +1205,35 @@ def dbschema_cmd(
             # Mark task as complete
             progress.complete()
 
-        bridge.print(
+        bridge.display_result(
             f"[green]✓ Database schema generated successfully at: {schema_path}[/green]"
         )
 
         # Show next steps based on the database type
-        bridge.print("\n[bold blue]Next Steps:[/bold blue]")
+        bridge.display_result("\n[bold blue]Next Steps:[/bold blue]")
 
         if db_type == "sqlite":
-            bridge.print("1. Use the schema to create your SQLite database:")
-            bridge.print(f"   [green]sqlite3 {name}.db < {schema_file}[/green]")
+            bridge.display_result("1. Use the schema to create your SQLite database:")
+            bridge.display_result(f"   [green]sqlite3 {name}.db < {schema_file}[/green]")
         elif db_type == "mysql":
-            bridge.print("1. Use the schema to create your MySQL database:")
-            bridge.print(f"   [green]mysql -u username -p < {schema_file}[/green]")
+            bridge.display_result("1. Use the schema to create your MySQL database:")
+            bridge.display_result(f"   [green]mysql -u username -p < {schema_file}[/green]")
         elif db_type == "postgresql":
-            bridge.print("1. Use the schema to create your PostgreSQL database:")
-            bridge.print(
+            bridge.display_result("1. Use the schema to create your PostgreSQL database:")
+            bridge.display_result(
                 f"   [green]psql -U username -d {name} -f {schema_file}[/green]"
             )
         elif db_type == "mongodb":
-            bridge.print("1. Install Mongoose in your Node.js project:")
-            bridge.print(f"   [green]npm install mongoose[/green]")
-            bridge.print("2. Import the schema in your application:")
-            bridge.print(
+            bridge.display_result("1. Install Mongoose in your Node.js project:")
+            bridge.display_result(f"   [green]npm install mongoose[/green]")
+            bridge.display_result("2. Import the schema in your application:")
+            bridge.display_result(
                 f"   [green]const {{ {', '.join([entity['name'].capitalize() for entity in entities])} }} = require('./path/to/{name}_schema.js');[/green]"
             )
 
     except Exception as err:
-        bridge.print(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
-        bridge.print(
+        bridge.display_result(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
+        bridge.display_result(
             "[red]An unexpected error occurred during database schema generation.[/red]"
         )
 
@@ -1263,4 +1265,4 @@ def webui_cmd(*, bridge: UXBridge = bridge) -> None:
 
         run()
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}")
+        bridge.display_result(f"[red]Error:[/red] {err}")
