@@ -61,6 +61,32 @@ def test_documentation_tasks_prefer_doc_experts():
     assert team.get_primus() is doc
     assert doc.has_been_primus
 
+
+def test_nested_task_metadata_is_flattened():
+    team = WSDETeam()
+    py = _agent("py", ["python"])
+    doc = _agent("doc", ["documentation"])
+    team.add_agents([doc, py])
+
+    task = {"context": {"info": [{"language": "python"}]}}
+    team.select_primus_by_expertise(task)
+
+    assert team.get_primus() is py
+
+
+def test_rotation_when_all_agents_used_resets_flags():
+    team = WSDETeam()
+    a1 = _agent("a1", ["python"], used=True)
+    a2 = _agent("a2", ["docs"], used=True)
+    team.add_agents([a1, a2])
+
+    team.select_primus_by_expertise({"language": "python"})
+
+    assert team.get_primus() is a1
+    assert a1.has_been_primus
+    assert not a2.has_been_primus
+
+
 def test_select_primus_by_expertise_coverage():
     import inspect
     import os
@@ -72,17 +98,29 @@ def test_select_primus_by_expertise_coverage():
     cov = coverage.Coverage()
     cov.start()
     team.select_primus_by_expertise({})
-    team.add_agent(SimpleNamespace(name="a1", expertise=["python"], current_role=None, has_been_primus=False))
+    team.add_agent(
+        SimpleNamespace(
+            name="a1", expertise=["python"], current_role=None, has_been_primus=False
+        )
+    )
     team.add_agent(
         SimpleNamespace(
             name="a2",
-            config=SimpleNamespace(parameters={"expertise": ["doc_generation", "markdown"]}),
+            config=SimpleNamespace(
+                parameters={"expertise": ["doc_generation", "markdown"]}
+            ),
             current_role=None,
             has_been_primus=False,
         )
     )
-    team.add_agent(SimpleNamespace(name="a3", expertise=["testing"], current_role=None, has_been_primus=False))
-    team.select_primus_by_expertise({"type": "documentation", "details": [1, 2], "extra": {"foo": "bar"}})
+    team.add_agent(
+        SimpleNamespace(
+            name="a3", expertise=["testing"], current_role=None, has_been_primus=False
+        )
+    )
+    team.select_primus_by_expertise(
+        {"type": "documentation", "details": [1, 2], "extra": {"foo": "bar"}}
+    )
     team.select_primus_by_expertise({"language": "python"})
     team.select_primus_by_expertise({"type": "testing"})
     team.select_primus_by_expertise({"type": "documentation"})
@@ -94,13 +132,17 @@ def test_select_primus_by_expertise_coverage():
     skip = False
     for i, line in enumerate(lines, start):
         stripped = line.strip()
-        if stripped.startswith("\"\"\""):
-            if stripped.count("\"\"\"") == 2 and stripped.endswith("\"\"") and stripped != "\"\"\"":
+        if stripped.startswith('"""'):
+            if (
+                stripped.count('"""') == 2
+                and stripped.endswith('""')
+                and stripped != '"""'
+            ):
                 continue
             skip = not skip
             continue
         if skip:
-            if stripped.endswith("\"\"\""):
+            if stripped.endswith('"""'):
                 skip = False
             continue
         if stripped:
