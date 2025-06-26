@@ -5,21 +5,22 @@ This module implements a unified interface for different LLM providers with
 automatic fallback and selection based on configuration.
 """
 
-import os
 import json
 import logging
-import requests
-import httpx
+import os
 import time
-from typing import Dict, Any, List, Optional, Union, Callable
 from enum import Enum
 from functools import lru_cache, wraps
+from typing import Any, Callable, Dict, List, Optional, Union
 
+import httpx
+import requests
+
+from devsynth.config.settings import get_settings
+from devsynth.exceptions import DevSynthError
+from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
-from devsynth.exceptions import DevSynthError
-from devsynth.config.settings import get_settings
-from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.security.tls import TLSConfig
 
 # Create a logger for this module
@@ -530,9 +531,7 @@ class LMStudioProvider(BaseProvider):
 
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
-        Generate embeddings using LM Studio API.
-        Note: LM Studio might not support embeddings directly.
-        This implementation is a placeholder.
+        Generate embeddings using the LM Studio API.
 
         Args:
             text: Input text or list of texts
@@ -541,15 +540,58 @@ class LMStudioProvider(BaseProvider):
             List[List[float]]: Embeddings
 
         Raises:
-            ProviderError: If API call fails or not supported
+            ProviderError: If API call fails
         """
-        # If LM Studio supports embeddings, implement here
-        # For now, raise an error
-        raise ProviderError("Embeddings not supported by LM Studio provider")
+        url = f"{self.endpoint}/v1/embeddings"
+
+        if isinstance(text, str):
+            text = [text]
+
+        payload = {"input": text, "model": self.model}
+
+        try:
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                **self.tls_config.as_requests_kwargs(),
+            )
+            response.raise_for_status()
+            response_data = response.json()
+
+            if "data" in response_data and len(response_data["data"]) > 0:
+                return [item["embedding"] for item in response_data["data"]]
+            raise ProviderError(
+                f"Invalid LM Studio embedding response format: {response_data}"
+            )
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"LM Studio embedding API error: {e}")
+            raise ProviderError(f"LM Studio embedding API error: {e}")
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
-        """Asynchronous embeddings placeholder for LM Studio."""
-        raise ProviderError("Embeddings not supported by LM Studio provider")
+        """Asynchronously generate embeddings using the LM Studio API."""
+        url = f"{self.endpoint}/v1/embeddings"
+
+        if isinstance(text, str):
+            text = [text]
+
+        payload = {"input": text, "model": self.model}
+
+        try:
+            async with httpx.AsyncClient(
+                **self.tls_config.as_requests_kwargs()
+            ) as client:
+                response = await client.post(url, headers=self.headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            if "data" in data and len(data["data"]) > 0:
+                return [item["embedding"] for item in data["data"]]
+            raise ProviderError(f"Invalid LM Studio embedding response format: {data}")
+        except httpx.HTTPError as e:
+            logger.error(f"LM Studio embedding API error: {e}")
+            raise ProviderError(f"LM Studio embedding API error: {e}")
 
 
 class FallbackProvider(BaseProvider):
