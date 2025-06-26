@@ -317,6 +317,7 @@ The agent system is tightly integrated with the `provider_system`. The `llm_call
 -   Access to configured LLM providers (OpenAI, LM Studio).
 -   Automatic fallback between providers if one is unavailable.
 -   Consistent LLM interaction logic across different agents.
+-   Unified embedding support across providers. Previously, LM Studio only offered placeholder embedding behavior; the provider now exposes a working embedding API.
 
 ## Extensibility
 
