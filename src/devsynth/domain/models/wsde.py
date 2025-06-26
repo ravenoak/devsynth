@@ -213,9 +213,13 @@ class WSDETeam:
         """
         if self.agents:
             self.primus_index = (self.primus_index + 1) % len(self.agents)
-            # Mark the new Primus as having been Primus
+
+            if all(getattr(a, "has_been_primus", False) for a in self.agents):
+                for a in self.agents:
+                    a.has_been_primus = False
+
             self.agents[self.primus_index].has_been_primus = True
-            # Update roles
+
             self.assign_roles()
 
     def rotate_roles(self) -> None:
