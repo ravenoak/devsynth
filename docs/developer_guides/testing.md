@@ -255,6 +255,9 @@ test dependencies are available:
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
+# Verify that pytest can start without import errors
+poetry run pytest -q
+
 # pip commands are for installing from PyPI only
 ```
 
