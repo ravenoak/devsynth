@@ -216,3 +216,17 @@ To see which tests would be skipped due to missing resources:
 ```bash
 poetry run pytest --collect-only -v
 ```
+
+## Referencing Requirements in Tests
+
+All tests should include the requirement ID they verify in the test's docstring. This links the test back to the relevant entry in `docs/requirements_traceability.md`.
+
+Example:
+
+```python
+def test_workflow_progress_tracking():
+    """Validate workflow status retrieval. ReqID: FR-09"""
+    ...
+```
+
+Including the requirement ID ensures traceability between tests and requirements.
