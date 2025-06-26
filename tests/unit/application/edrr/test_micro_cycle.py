@@ -131,3 +131,16 @@ def test_store_metadata_and_results(coordinator, memory_manager):
     assert parent_results["task"] == micro_task
     for key, value in micro.results.items():
         assert parent_results[key] == value
+
+
+def test_parent_aggregates_after_micro_phase(coordinator):
+    """Parent aggregated results should refresh when a micro cycle progresses."""
+    coordinator.start_cycle({"description": "macro"})
+    micro = coordinator.create_micro_cycle({"description": "micro"}, Phase.EXPAND)
+
+    with patch.object(micro, "_execute_differentiate_phase", return_value={"done": True}):
+        micro.progress_to_phase(Phase.DIFFERENTIATE)
+
+    aggregated = coordinator.results.get("AGGREGATED", {})
+    assert micro.cycle_id in aggregated.get("child_cycles", {})
+    assert aggregated["child_cycles"][micro.cycle_id] == micro.results
