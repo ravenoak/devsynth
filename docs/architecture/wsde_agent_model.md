@@ -18,6 +18,22 @@ last_reviewed: "2025-06-01"
 
 The Worker Self-Directed Enterprise (WSDE) model is a collaborative multi-agent framework used in DevSynth that enables autonomous agents to work together in a democratic, self-organizing manner. Inspired by real-world worker cooperatives, the WSDE model distributes authority and responsibility among specialized agents, each contributing their expertise while collectively making decisions.
 
+```mermaid
+graph TD
+    TEAM[WSDETeam] --> Planner[PlannerAgent]
+    TEAM --> Code[CodeAgent]
+    TEAM --> Critic[CriticAgent]
+    TEAM --> Diagram[DiagramAgent]
+    TEAM --> Docs[DocumentationAgent]
+    TEAM --> Primus[Dynamic Primus Role]
+    TEAM --> Memory[MemoryManager]
+```
+
+**Implementation Status**
+
+- Dynamic role rotation and consensus voting are fully implemented.
+- Dialectical reasoning hooks and advanced knowledge integration are in progress.
+
 ## Core Principles
 
 1. **Distributed Authority**: No single agent has complete control; decision-making is collaborative.

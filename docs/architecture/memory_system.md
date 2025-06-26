@@ -40,25 +40,28 @@ The DevSynth memory system is designed for extensibility, resilience, and semant
 
 ```mermaid
 graph TD
-    A[Application Layer] -->|store/search/retrieve| B[MemoryPort]
-    B -->|uses| C[ChromaDBStore]
-    B -->|uses| C2[ChromaDBMemoryStore]
-    B -->|uses| E[JSONFileStore]
-    B -->|uses| F[TinyDBStore]
-    B -->|uses| F2[TinyDBMemoryAdapter]
-    B -->|uses| G[GraphMemoryAdapter]
-    B -->|uses| H[RDFLibStore]
-    B -->|uses| I[VectorMemoryAdapter]
-    
-    C -->|depends on| J[ChromaDB]
-    H -->|depends on| K[RDFLib]
-    F -->|depends on| L[TinyDB]
-    
-    C & C2 & I -->|uses| M[EmbeddingProvider]
-    M -->|uses| N[OpenAIProvider]
-    M -->|uses| O[LMStudioProvider]
-    M -->|uses| P[LocalEmbeddingProvider]
+    A[Application Layer] --> MM[MemoryManager]
+    MM --> QR[QueryRouter]
+    MM --> SY[SyncManager]
+    MM --> TD[TinyDBMemoryAdapter]
+    MM --> CH[ChromaDBStore]
+    MM --> JS[JSONFileStore]
+    MM --> GR[GraphMemoryAdapter]
+    MM --> RDF[RDFLibStore]
+    MM --> VC[VectorMemoryAdapter]
+
+    CH --> EMB[EmbeddingProvider]
+    VC --> EMB
+    EMB --> Open[OpenAIProvider]
+    EMB --> LM[LMStudioProvider]
+    EMB --> Local[LocalEmbeddingProvider]
 ```
+
+**Implementation Status**
+
+- `MemoryManager`, `QueryRouter`, `SyncManager`, `TinyDBMemoryAdapter`, `ChromaDBStore`,
+  `JSONFileStore`, `GraphMemoryAdapter`, and `VectorMemoryAdapter` are fully implemented.
+- `RDFLibStore` is partially implemented with limited query optimization.
 
 ## Implementation Details
 

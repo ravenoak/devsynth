@@ -13,29 +13,19 @@ last_reviewed: "2025-06-16"
 
 # Configuration Loader Workflow
 
-This pseudocode describes how DevSynth loads project settings from either `devsynth.yml` or `pyproject.toml` using a unified parser.
+DevSynth uses the implemented `UnifiedConfigLoader` to read configuration from
+either `devsynth.yml` or `pyproject.toml`.
 
-```pseudocode
-class ConfigLoader:
-    function load(path=".") -> DevSynthConfig:
-        defaults = DevSynthConfig(project_root=path)
-        if file_exists(path + "/.devsynth/devsynth.yml"):
-            try:
-                user = parse_yaml(path + "/.devsynth/devsynth.yml")
-            except ParseError:
-                raise ConfigError("Malformed YAML configuration")
-        elif file_exists(path + "/pyproject.toml"):
-            try:
-                user = parse_toml(path + "/pyproject.toml").tool.devsynth
-            except ParseError:
-                raise ConfigError("Malformed TOML configuration")
-        else:
-            user = {}
-        merged = merge(defaults, user)
-        return DevSynthConfig(**merged)
+```python
+from devsynth.config.unified_loader import UnifiedConfigLoader
+
+
+def load_config(path: str = "."):
+    unified = UnifiedConfigLoader.load(path)
+    return unified.config
 ```
 
-The loader merges values from the chosen file into a common `DevSynthConfig` object so that both new and existing projects share the same configuration structure.
+The loader merges values from the chosen file into a common configuration object so both new and existing projects share the same structure.
 
 ## Current Limitations
 
