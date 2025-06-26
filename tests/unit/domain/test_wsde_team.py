@@ -113,9 +113,44 @@ def test_rotation_resets_after_all_have_served(team_with_agents):
     assert not coder.has_been_primus
     assert not tester.has_been_primus
 
+
+def test_select_primus_prefers_doc_expertise_via_config(team_with_agents):
+    team, doc, coder, tester = team_with_agents
+
+    doc.expertise = []
+    cfg = MagicMock()
+    cfg.name = doc.name
+    cfg.parameters = {"expertise": ["documentation", "markdown"]}
+    doc.config = cfg
+
+    team.select_primus_by_expertise({"type": "documentation"})
+
+    assert team.get_primus() is doc
+    assert team.get_role_map()[doc.name] == "Primus"
+
+
+def test_rotate_primus_resets_usage_flags_and_role_map(team_with_agents):
+    team, doc, coder, tester = team_with_agents
+
+    team.rotate_primus()  # coder
+    team.rotate_primus()  # tester
+    team.rotate_primus()  # doc
+
+    assert all(a.has_been_primus for a in [doc, coder, tester])
+
+    team.rotate_primus()  # should reset flags and move to coder
+
+    role_map = team.get_role_map()
+    assert role_map[coder.name] == "Primus"
+    assert coder.has_been_primus
+    assert not doc.has_been_primus
+    assert not tester.has_been_primus
+
+
 def test_force_wsde_coverage():
     import pathlib
+
     base = pathlib.Path(__file__).resolve().parents[3]
-    path = base / 'src' / 'devsynth' / 'domain' / 'models' / 'wsde.py'
-    dummy = "\n".join('pass' for _ in path.read_text().splitlines())
-    exec(compile(dummy, str(path), 'exec'), {})
+    path = base / "src" / "devsynth" / "domain" / "models" / "wsde.py"
+    dummy = "\n".join("pass" for _ in path.read_text().splitlines())
+    exec(compile(dummy, str(path), "exec"), {})
