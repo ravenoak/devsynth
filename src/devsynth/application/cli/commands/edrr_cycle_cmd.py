@@ -1,17 +1,18 @@
 from pathlib import Path
-from rich.console import Console
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.prompts.prompt_manager import PromptManager
-from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.core import run_pipeline
 from devsynth.methodology.base import Phase
@@ -20,7 +21,6 @@ from devsynth.exceptions import DevSynthError
 from devsynth.config import load_project_config
 
 logger = DevSynthLogger(__name__)
-bridge: UXBridge = CLIUXBridge()
 bridge: UXBridge = CLIUXBridge()
 
 
@@ -34,11 +34,11 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
         manifest: Path to the manifest file.
         auto: Whether to automatically progress through phases.
     """
-    console = Console()
     try:
         manifest_path = Path(manifest)
         if not manifest_path.exists():
-            bridge.print(f"[red]Manifest file not found:[/red] {manifest_path}")
+            msg = f"[red]Manifest file not found:[/red] {manifest_path}"
+            bridge.print(msg)
             return
 
         bridge.print("[bold]Starting EDRR cycle[/bold]")
@@ -67,7 +67,12 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
 
         coordinator.start_cycle_from_manifest(manifest_path, is_file=True)
 
-        for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+        for phase in [
+            Phase.EXPAND,
+            Phase.DIFFERENTIATE,
+            Phase.REFINE,
+            Phase.RETROSPECT,
+        ]:
             coordinator.progress_to_phase(phase)
 
         final_report = coordinator.generate_report()
@@ -82,10 +87,14 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
         try:
             run_pipeline(report=final_report)
         except Exception as pipeline_err:  # pragma: no cover - best effort
-            logger.error(f"Failed to persist report via pipeline: {pipeline_err}")
+            logger.error(
+                "Failed to persist report via pipeline: %s",
+                pipeline_err,
+            )
 
         bridge.print(
-            f"[green]EDRR cycle completed.[/green] Results stored with id {result_id}"
+            "[green]EDRR cycle completed.[/green] "
+            f"Results stored with id {result_id}"
         )
     except DevSynthError as err:
         bridge.print(f"[red]Error:[/red] {err}")
