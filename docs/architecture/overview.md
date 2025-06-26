@@ -41,7 +41,7 @@ graph TD
     B --> D[Code Analysis]
     B --> E[MemoryPort]
     E --> F[ChromaDBMemoryStore]
-    E --> G[SQLiteMemoryStore]
+    E --> G[TinyDBMemoryAdapter]
     E --> H[JSONFileStore]
     C --> I[Provider System]
     I --> J[OpenAI]
@@ -74,9 +74,9 @@ graph LR
 - **Agent System**: Modular agents for code generation, analysis, and requirement refinement (LangGraph-powered)
 - **Provider System**: Abstraction for LLM providers (OpenAI, LM Studio, etc.) with fallback and selection logic
 - **Code Analysis**: Uses NetworkX for dependency graphing, complexity metrics, and refactoring suggestions
-- **MemoryPort**: Unified interface for memory operations, supporting ChromaDB, SQLite, and JSON backends. Manages storage and retrieval of project artifacts, metadata, and the project's structural model derived from `.devsynth/project.yaml`.
+- **MemoryPort**: Unified interface for memory operations, supporting ChromaDB, TinyDB, and JSON backends. Manages storage and retrieval of project artifacts, metadata, and the project's structural model derived from `.devsynth/project.yaml`.
 - **ChromaDBMemoryStore**: Vector database for semantic search and scalable artifact storage
-- **SQLiteMemoryStore**: Structured data storage for project metadata, relationships, and the project structure model.
+- **TinyDBMemoryAdapter**: Structured data storage for project metadata, relationships, and the project structure model.
 - **JSONFileStore**: Simple file-based storage for legacy and lightweight use cases
 
 ## Architectural Principles

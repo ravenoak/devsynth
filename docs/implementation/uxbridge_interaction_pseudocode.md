@@ -13,22 +13,35 @@ last_reviewed: "2025-06-16"
 
 # UXBridge Interaction Flow
 
-The following pseudocode illustrates how the CLI or WebUI communicate with core workflows through the `UXBridge` abstraction.
+The following example shows how both the CLI and WebUI use a common `UXBridge`
+implementation with the `EDRRCoordinator`.
 
-```pseudocode
-class UXBridge:
-    function ask_question(message) -> Response
-    function confirm_choice(message) -> bool
-    function display_result(message)
+```python
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.wsde import WSDETeam
 
-function run_workflow():
-    task = UXBridge.ask_question("What task should DevSynth run?")
-    if UXBridge.confirm_choice("Run " + task + " now?"):
-        result = CoreModules.execute(task)
-        UXBridge.display_result(result.summary)
+
+def run_workflow(bridge: UXBridge) -> None:
+    memory = MemoryManager(adapters={"tinydb": TinyDBMemoryAdapter()})
+    coordinator = EDRRCoordinator(
+        memory_manager=memory,
+        wsde_team=WSDETeam(),
+        code_analyzer=None,
+        ast_transformer=None,
+        prompt_manager=None,
+        documentation_manager=None,
+    )
+
+    task = bridge.ask_question("What task should DevSynth run?")
+    if bridge.confirm_choice(f"Run {task} now?"):
+        coordinator.start_cycle({"description": task})
+        bridge.display_result("Cycle started")
 ```
 
-This flow enables a shared implementation for both the command-line interface in `interface/cli` and the future WebUI.
+This shared implementation works across the command-line interface and the future WebUI.
 
 ## Current Limitations
 

@@ -16,7 +16,30 @@ last_reviewed: "2025-06-01"
 
 ## Overview
 
+
 The EDRR (Expand, Differentiate, Refine, Retrospect) framework is a core methodology used in DevSynth for structured problem-solving and implementation. This dialectical approach ensures comprehensive exploration of solutions, critical evaluation of alternatives, focused implementation, and reflective learning.
+
+```mermaid
+graph TD
+    CO[EDRRCoordinator] --> EX[Expand]
+    EX --> DI[Differentiate]
+    DI --> RE[Refine]
+    RE --> RT[Retrospect]
+    RT --> EX
+    CO --> MM[MemoryManager]
+    CO --> TEAM[WSDETeam]
+    CO --> AST[AstTransformer]
+    CO --> CA[CodeAnalyzer]
+    CO --> PM[PromptManager]
+    CO --> DM[DocumentationManager]
+    DM --> MP[ManifestParser]
+```
+
+**Implementation Status**
+
+- The `EDRRCoordinator` fully orchestrates all phases with manifest parser integration.
+- Integration with `MemoryManager` and `WSDETeam` is complete, while `AstTransformer`
+  and advanced documentation features remain in progress.
 
 ## Recursive EDRR Architecture
 
