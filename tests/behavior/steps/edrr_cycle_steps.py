@@ -33,7 +33,11 @@ def run_edrr_cycle(context):
     manifest = str(context['manifest'])
     with patch('devsynth.application.cli.commands.edrr_cycle_cmd.bridge') as mock_bridge, \
          patch('devsynth.application.cli.commands.edrr_cycle_cmd.EDRRCoordinator') as coord_cls, \
-         patch('devsynth.application.cli.commands.edrr_cycle_cmd.MemoryManager') as manager_cls:
+         patch('devsynth.application.cli.commands.edrr_cycle_cmd.MemoryManager') as manager_cls, \
+         patch('devsynth.application.cli.commands.edrr_cycle_cmd.load_project_config') as cfg_loader:
+        cfg = MagicMock()
+        cfg.config.as_dict.return_value = {}
+        cfg_loader.return_value = cfg
         coordinator = MagicMock()
         coordinator.generate_report.return_value = {'ok': True}
         coordinator.cycle_id = 'cid'
