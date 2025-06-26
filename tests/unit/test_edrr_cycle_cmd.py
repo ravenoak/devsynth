@@ -1,6 +1,5 @@
 """Tests for the edrr_cycle_cmd CLI command."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -36,7 +35,19 @@ def mock_components():
         yield coordinator, memory_manager, coord_cls, run_pipeline_mock
 
 
-def test_edrr_cycle_cmd_manifest_missing(tmp_path, mock_bridge):
+@pytest.fixture
+def mock_config():
+    """Patch load_project_config to return an empty config."""
+    cfg = MagicMock()
+    cfg.config.as_dict.return_value = {}
+    with patch(
+        "devsynth.application.cli.commands.edrr_cycle_cmd.load_project_config",
+        return_value=cfg,
+    ) as mock_loader:
+        yield mock_loader
+
+
+def test_edrr_cycle_cmd_manifest_missing(tmp_path, mock_bridge, mock_config):
     missing = tmp_path / "manifest.yaml"
     edrr_cycle_cmd(str(missing))
     mock_bridge.print.assert_called_once_with(
@@ -44,7 +55,7 @@ def test_edrr_cycle_cmd_manifest_missing(tmp_path, mock_bridge):
     )
 
 
-def test_edrr_cycle_cmd_success(tmp_path, mock_bridge, mock_components):
+def test_edrr_cycle_cmd_success(tmp_path, mock_bridge, mock_components, mock_config):
     manifest = tmp_path / "manifest.yaml"
     manifest.write_text("project: test")
 
@@ -72,3 +83,17 @@ def test_edrr_cycle_cmd_success(tmp_path, mock_bridge, mock_components):
         "EDRR cycle completed" in call.args[0]
         for call in mock_bridge.print.call_args_list
     )
+
+
+def test_edrr_cycle_cmd_manual(tmp_path, mock_bridge, mock_components, mock_config):
+    """Ensure manual mode passes auto flag through config and calls phases sequentially."""
+    manifest = tmp_path / "manifest.yaml"
+    manifest.write_text("project: test")
+
+    coordinator, _, coord_cls, _ = mock_components
+
+    edrr_cycle_cmd(str(manifest), auto=False)
+
+    assert coord_cls.call_args.kwargs["config"]["edrr"]["phase_transition"]["auto"] is False
+    expected = [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]
+    assert [c.args[0] for c in coordinator.progress_to_phase.call_args_list] == expected

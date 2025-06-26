@@ -17,6 +17,7 @@ from devsynth.core import run_pipeline
 from devsynth.methodology.base import Phase
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
+from devsynth.config import load_project_config
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -49,6 +50,11 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
         prompt_manager = PromptManager()
         documentation_manager = DocumentationManager(memory_manager)
 
+        project_cfg = load_project_config().config.as_dict()
+        edrr_cfg = project_cfg.get("edrr", {})
+        edrr_cfg.setdefault("phase_transition", {})["auto"] = auto
+        project_cfg["edrr"] = edrr_cfg
+
         coordinator = EDRRCoordinator(
             memory_manager=memory_manager,
             wsde_team=wsde_team,
@@ -56,7 +62,7 @@ def edrr_cycle_cmd(manifest: str, auto: bool = True) -> None:
             ast_transformer=ast_transformer,
             prompt_manager=prompt_manager,
             documentation_manager=documentation_manager,
-            config={"edrr": {"phase_transition": {"auto": auto}}},
+            config=project_cfg,
         )
 
         coordinator.start_cycle_from_manifest(manifest_path, is_file=True)
