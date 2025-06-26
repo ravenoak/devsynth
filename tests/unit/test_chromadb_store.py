@@ -12,7 +12,10 @@ from typing import Dict, Any
 from unittest.mock import patch, MagicMock
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.application.memory.chromadb_store import ChromaDBStore
+try:  # pragma: no cover - allow running without chromadb
+    from devsynth.application.memory.chromadb_store import ChromaDBStore
+except Exception as exc:  # pragma: no cover - skip if import fails
+    pytest.skip(f"ChromaDBStore unavailable: {exc}", allow_module_level=True)
 
 pytestmark = pytest.mark.requires_resource("chromadb")
 
