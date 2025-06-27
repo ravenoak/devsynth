@@ -8,6 +8,8 @@ from devsynth.adapters.agents.agent_adapter import (
     WSDETeamCoordinator,
     AgentAdapter,
 )
+from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
+from devsynth.exceptions import ValidationError
 
 
 class TestAgentCollaboration:
@@ -65,6 +67,81 @@ class TestAgentCollaboration:
         # Even if we request a different agent type, we should get a UnifiedAgent
         agent = factory.create_agent(AgentType.CODE.value)
         assert isinstance(agent, UnifiedAgent)
+
+    def test_team_task_phase_notifications(self):
+        coordinator = AgentCoordinatorImpl(
+            {
+                "features": {
+                    "wsde_collaboration": True,
+                    "collaboration_notifications": True,
+                }
+            }
+        )
+
+        planner = MagicMock(spec=UnifiedAgent)
+        planner.name = "planner"
+        planner.agent_type = "planner"
+        planner.current_role = None
+        planner.process.return_value = {"solution": "plan"}
+
+        worker = MagicMock(spec=UnifiedAgent)
+        worker.name = "worker"
+        worker.agent_type = "code"
+        worker.current_role = None
+        worker.process.return_value = {"solution": "code"}
+
+        coordinator.add_agent(planner)
+        coordinator.add_agent(worker)
+
+        team = coordinator.team
+        team.assign_roles_for_phase = MagicMock()
+        team.assign_roles = MagicMock()
+        team.select_primus_by_expertise = MagicMock()
+        team.get_primus = MagicMock(return_value=planner)
+        team.broadcast_message = MagicMock()
+        team.add_solution = MagicMock()
+        team.build_consensus = MagicMock(
+            return_value={
+                "consensus": "final",
+                "contributors": ["planner", "worker"],
+                "method": "consensus",
+            }
+        )
+
+        task = {"team_task": True, "phase": "expand", "description": "demo"}
+        result = coordinator.delegate_task(task)
+
+        team.assign_roles_for_phase.assert_called_once()
+        phase_arg = team.assign_roles_for_phase.call_args[0][0]
+        assert phase_arg.value == "expand"
+
+        team.broadcast_message.assert_any_call(
+            "planner",
+            "task_assignment",
+            subject="Team task started",
+            content=task,
+            metadata={"phase": "expand"},
+        )
+        team.broadcast_message.assert_any_call(
+            "system",
+            "status_update",
+            subject="Team task completed",
+            content=team.build_consensus.return_value,
+            metadata={"phase": "expand"},
+        )
+
+        assert result["result"] == "final"
+
+    def test_delegate_task_agent_type_not_found(self):
+        coordinator = AgentCoordinatorImpl({"features": {"wsde_collaboration": True}})
+
+        agent = MagicMock(spec=UnifiedAgent)
+        agent.name = "planner"
+        agent.agent_type = "planner"
+        coordinator.add_agent(agent)
+
+        with pytest.raises(ValidationError):
+            coordinator.delegate_task({"agent_type": "nonexistent"})
 
     def test_delegate_task_multi_agent_consensus(self):
         coordinator = WSDETeamCoordinator()
