@@ -7,6 +7,7 @@ Feature: Multi-agent task delegation
     Given a team coordinator with multiple agents
     When I delegate a collaborative team task
     Then each agent should process the task
+    And the consensus result should be final
     And the delegation result should include all contributors
     And the delegation method should be consensus based
 
@@ -16,4 +17,5 @@ Feature: Multi-agent task delegation
     When I delegate a dialectical reasoning task
     Then each agent should process the task
     And the team should apply dialectical reasoning before consensus
+    And the consensus result should be final
     And the delegation method should be consensus based

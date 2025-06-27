@@ -99,6 +99,11 @@ def result_includes_contributors(context):
     }
 
 
+@then("the consensus result should be final")
+def consensus_result_final(context):
+    assert context.result.get("result") == "final"
+
+
 @then("the delegation method should be consensus based")
 def method_consensus(context):
     assert context.result.get("method") == "consensus_synthesis"
@@ -108,4 +113,4 @@ def method_consensus(context):
 def dialectical_reasoning_applied(context):
     team = context.coordinator.teams[context.coordinator.current_team_id]
     team.perform_dialectical_reasoning.assert_called()
-    assert "dialectical" in context.result
+    assert "dialectical_analysis" in context.result
