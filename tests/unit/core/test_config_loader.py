@@ -31,11 +31,11 @@ def test_load_from_pyproject_toml(tmp_path, monkeypatch):
         lambda p: str(home) if p == "~" else os.path.expanduser(p),
     )
 
-    (tmp_path / "pyproject.toml").write_text("[tool.devsynth]\nlanguage = 'go'\n")
+    (tmp_path / "pyproject.toml").write_text("[tool.devsynth]\nlanguage = 'python'\n")
 
     cfg = load_config(tmp_path)
 
-    assert cfg.language == "go"
+    assert cfg.language == "python"
 
 
 def test_yaml_toml_equivalence(tmp_path, monkeypatch):
@@ -82,9 +82,9 @@ def test_load_project_config_yaml(tmp_path):
 
 def test_load_project_config_pyproject(tmp_path):
     """load_project_config reads [tool.devsynth] table."""
-    (tmp_path / "pyproject.toml").write_text("[tool.devsynth]\nlanguage = 'go'\n")
+    (tmp_path / "pyproject.toml").write_text("[tool.devsynth]\nlanguage = 'python'\n")
 
     cfg = load_project_config(tmp_path)
 
-    assert cfg.config.language == "go"
+    assert cfg.config.language == "python"
     assert cfg.use_pyproject
