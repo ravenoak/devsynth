@@ -2,13 +2,15 @@
 
 This module provides a graphical interface that mirrors the CLI workflows
 through the :class:`~devsynth.interface.ux_bridge.UXBridge` abstraction.
-The :class:`WebUI` exposes five pages available from a sidebar:
+The :class:`WebUI` exposes seven pages available from a sidebar:
 
 - **Project Onboarding** – initialize or onboard projects.
 - **Requirements Gathering** – generate and inspect specifications.
 - **Code Analysis** – analyze the project code base.
 - **Synthesis Execution** – generate tests, code and run the pipeline.
 - **Configuration Editing** – view or update settings.
+- **EDRR Cycle** – execute a full Expand-Differentiate-Refine-Retrospect cycle.
+- **Alignment** – check SDLC artifacts for traceability and consistency.
 
 All pages use collapsible sections and progress indicators to reflect the
 UX guidance for clarity and responsiveness.
@@ -34,6 +36,8 @@ from devsynth.application.cli import (
 )
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
+from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
+from devsynth.application.cli.commands.align_cmd import align_cmd
 from devsynth.config import get_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
@@ -275,6 +279,52 @@ class WebUI(UXBridge):
             with st.spinner("Loading configuration..."):
                 config_cmd(bridge=self)
 
+    def edrr_cycle_page(self) -> None:
+        """Run an Expand-Differentiate-Refine-Retrospect cycle."""
+        st.header("EDRR Cycle")
+        with st.form("edrr_cycle"):
+            manifest = self.ask_question("Manifest Path", default="manifest.yaml")
+            auto = self.confirm_choice("Auto Progress", default=True)
+            submitted = st.form_submit_button("Run Cycle")
+        if submitted:
+            with st.spinner("Running EDRR cycle..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.edrr_cycle_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.edrr_cycle_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.edrr_cycle_cmd(manifest=manifest, auto=auto)
+                finally:
+                    module.bridge = original
+
+    def alignment_page(self) -> None:
+        """Check SDLC alignment between artifacts."""
+        st.header("Alignment")
+        with st.form("alignment"):
+            path = self.ask_question("Project Path", default=".")
+            verbose = self.confirm_choice("Verbose Output", default=False)
+            submitted = st.form_submit_button("Check Alignment")
+        if submitted:
+            with st.spinner("Checking alignment..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.commands.align_cmd")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.align_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.align_cmd(path=path, verbose=verbose)
+                finally:
+                    module.bridge = original
+
     def doctor_page(self) -> None:
         """Render the doctor diagnostics page."""
         st.header("Doctor")
@@ -318,6 +368,8 @@ class WebUI(UXBridge):
                 "Requirements",
                 "Analysis",
                 "Synthesis",
+                "EDRR Cycle",
+                "Alignment",
                 "Config",
                 "Doctor",
                 "Diagnostics",
@@ -331,6 +383,10 @@ class WebUI(UXBridge):
             self.analysis_page()
         elif nav == "Synthesis":
             self.synthesis_page()
+        elif nav == "EDRR Cycle":
+            self.edrr_cycle_page()
+        elif nav == "Alignment":
+            self.alignment_page()
         elif nav == "Config":
             self.config_page()
         elif nav == "Doctor":

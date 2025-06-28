@@ -44,3 +44,13 @@ Feature: WebUI Command Execution
     When I navigate to "Config"
     And I view all configuration
     Then the config command should be executed
+
+  Scenario: Run an EDRR cycle from the EDRR Cycle page
+    When I navigate to "EDRR Cycle"
+    And I submit the edrr cycle form
+    Then the edrr_cycle command should be executed
+
+  Scenario: Check alignment from the Alignment page
+    When I navigate to "Alignment"
+    And I submit the alignment form
+    Then the align command should be executed

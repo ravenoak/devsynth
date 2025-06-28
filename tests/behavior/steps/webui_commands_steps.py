@@ -1,4 +1,3 @@
-from types import ModuleType
 from unittest.mock import MagicMock
 import sys
 
@@ -61,6 +60,20 @@ def view_all_config(webui_context):
     webui_context["ui"].run()
 
 
+@when("I submit the edrr cycle form")
+def submit_edrr_cycle(webui_context):
+    webui_context["st"].sidebar.radio.return_value = "EDRR Cycle"
+    webui_context["st"].form_submit_button.return_value = True
+    webui_context["ui"].run()
+
+
+@when("I submit the alignment form")
+def submit_alignment(webui_context):
+    webui_context["st"].sidebar.radio.return_value = "Alignment"
+    webui_context["st"].form_submit_button.return_value = True
+    webui_context["ui"].run()
+
+
 @then("the spec command should be executed")
 def check_spec(webui_context):
     assert webui_context["cli"].spec_cmd.called
@@ -84,3 +97,13 @@ def check_code(webui_context):
 @then("the run_pipeline command should be executed")
 def check_run_pipeline(webui_context):
     assert webui_context["cli"].run_pipeline_cmd.called
+
+
+@then("the edrr_cycle command should be executed")
+def check_edrr_cycle(webui_context):
+    assert webui_context["cli"].edrr_cycle_cmd.called
+
+
+@then("the align command should be executed")
+def check_align(webui_context):
+    assert webui_context["cli"].align_cmd.called
