@@ -32,6 +32,9 @@ See also: [Quick Start Guide](../getting_started/quick_start_guide.md), [Command
 
 DevSynth provides a command-line interface with the following commands:
 
+> **Note**: The commands previously named `analyze` and `adaptive` were renamed
+> to `inspect` and `refactor`.
+
 ### `init`
 
 Initializes a new DevSynth project.
