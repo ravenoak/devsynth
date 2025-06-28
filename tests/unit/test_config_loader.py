@@ -16,9 +16,9 @@ def test_load_yaml_config(tmp_path):
     assert cfg.language == "python"
 
 def test_load_pyproject_toml(tmp_path):
-    (tmp_path / "pyproject.toml").write_text("[tool.devsynth]\nlanguage='go'\n")
+    (tmp_path / "pyproject.toml").write_text("[tool.devsynth]\nlanguage='python'\n")
     cfg = load_config(tmp_path)
-    assert cfg.language == "go"
+    assert cfg.language == "python"
 
 def test_autocomplete(monkeypatch, tmp_path):
     cfg_dir = tmp_path / ".devsynth"

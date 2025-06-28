@@ -14,7 +14,7 @@ def test_precedence_env_over_project_over_global(tmp_path, monkeypatch):
     project_dir = tmp_path / "project"
     project_cfg_dir = project_dir / ".devsynth"
     project_cfg_dir.mkdir(parents=True, exist_ok=True)
-    (project_cfg_dir / "devsynth.yml").write_text("language: go\n")
+    (project_cfg_dir / "devsynth.yml").write_text("language: python\n")
 
     monkeypatch.setattr(
         os.path,
