@@ -5,6 +5,7 @@ import toml
 
 from devsynth.application.cli.cli_commands import init_cmd
 from devsynth.interface.cli import CLIUXBridge
+import pytest
 
 
 def _run_init(tmp_path, monkeypatch, *, use_pyproject=False):
@@ -52,3 +53,37 @@ def test_init_cmd_idempotent(tmp_path, monkeypatch):
     _run_init(tmp_path, monkeypatch)
     printed = _run_init(tmp_path, monkeypatch)
     assert any("Project already initialized" in msg for msg in printed)
+
+
+def test_cli_help_lists_renamed_commands(capsys, monkeypatch):
+    """Verify CLI help shows updated command names."""
+    from devsynth.adapters.cli import typer_adapter
+    from devsynth.interface.ux_bridge import UXBridge
+    import click
+    import typer
+
+    orig = typer.main.get_click_type
+
+    def patched_get_click_type(*, annotation, parameter_info):
+        if annotation in {UXBridge, typer.models.Context}:
+            return click.STRING
+        origin = getattr(annotation, "__origin__", None)
+        if origin in {UXBridge, typer.models.Context, dict} or annotation is dict:
+            return click.STRING
+        return orig(annotation=annotation, parameter_info=parameter_info)
+
+    monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
+    monkeypatch.setattr(typer_adapter, "_warn_if_features_disabled", lambda: None)
+
+    with pytest.raises(SystemExit) as exc:
+        typer_adapter.parse_args(["--help"])
+    assert exc.value.code == 0
+    output = capsys.readouterr().out
+    lines = [line.strip() for line in output.splitlines()]
+    assert "refactor" in output
+    assert "inspect" in output
+    assert "run-pipeline" in output
+    assert all(not line.startswith("adaptive") for line in lines)
+    assert all(
+        not line.startswith("analyze ") and " analyze " not in line for line in lines
+    )

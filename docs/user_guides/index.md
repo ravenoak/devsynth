@@ -16,6 +16,7 @@ last_reviewed: "2024-06-01"
 This section provides comprehensive guides for users of DevSynth, covering general usage, the command-line interface (CLI), and configuration options.
 
 - **[User Guide](user_guide.md)**: A detailed guide to using DevSynth, its features, and workflows.
+- **[CLI Usage](cli_usage.md)**: Quick reference for the most common commands.
   - [Command Reference](user_guide.md#command-reference): Complete reference for all DevSynth CLI commands and their options.
   - [Configuration Options](user_guide.md#configuration-options): Information on how to configure DevSynth to suit your project needs.
   - [Workflow Guide](user_guide.md#workflow-guide): Understanding the DevSynth workflow.

@@ -26,6 +26,8 @@ same core logic to support both the CLI and the future WebUI.
   can be reused by other front‑ends.
 - The `init` command has been simplified and now delegates user interaction to
   the bridge and configuration loader.
+- The former `analyze` and `adaptive` commands are now called `inspect` and
+  `refactor` to better reflect their behavior.
 
 ## Unified Configuration System
 
