@@ -97,3 +97,58 @@ Each feature is scored on two dimensions:
 3. Prioritize incomplete features based on user impact and implementation complexity
 4. Develop detailed implementation plans for high-priority features
 
+## Implementation Plans for Missing Features
+
+### Core Values Subsystem
+**Expected Modules**
+- `src/devsynth/core/values.py`
+- `tests/unit/core/test_values.py`
+
+**Planned Timeline**
+- Q3 2025: initial subsystem prototype
+- Q4 2025: CLI integration and policy enforcement
+
+Related TODOs are described in `docs/specifications/specification_evaluation.md` lines 197-203.
+
+### Guided Setup Wizard
+**Expected Modules**
+- `src/devsynth/application/cli/setup_wizard.py`
+- `src/devsynth/interface/webui_setup.py`
+
+**Planned Timeline**
+- Q2 2025: CLI wizard skeleton
+- Q3 2025: WebUI integration
+
+See `docs/analysis/cli_ui_improvement_plan.md` lines 20-51 for action items.
+
+### Offline Fallback Mode
+**Expected Modules**
+- `src/devsynth/application/llm/offline_provider.py`
+- `tests/unit/application/llm/test_offline_provider.py`
+
+**Planned Timeline**
+- Q2 2025: local provider implementation
+- Q3 2025: offline workflow support
+
+Relevant references include `docs/analysis/cli_ui_improvement_plan.md` lines 25 and 49-51 and `docs/configuration.md` lines 71-88.
+
+### Prompt Auto-Tuning
+**Expected Modules**
+- `src/devsynth/application/prompts/auto_tuning.py`
+- `tests/unit/application/prompts/test_auto_tuning.py`
+
+**Planned Timeline**
+- Q3 2025: iterative tuning utilities and integration hooks
+
+See `docs/policies/consistency_checklist.md` lines 91-106 for TODO items.
+
+### Extended WebUI Pages
+**Expected Modules**
+- `src/devsynth/interface/webui.py`
+- `tests/integration/test_webui_pages.py`
+
+**Planned Timeline**
+- Q4 2025: new pages for `edrr-cycle`, `align`, and other commands
+
+Implementation tasks are tracked in `docs/architecture/cli_webui_mapping.md` lines 40-76.
+
