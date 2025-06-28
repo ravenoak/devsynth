@@ -68,6 +68,8 @@ def webui_context(monkeypatch):
         "config_cmd",
         "inspect_cmd",
         "doctor_cmd",
+        "edrr_cycle_cmd",
+        "align_cmd",
     ]:
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
@@ -84,6 +86,20 @@ def webui_context(monkeypatch):
         sys.modules, "devsynth.application.cli.commands.doctor_cmd", doctor_stub
     )
     cli_stub.doctor_cmd = doctor_stub.doctor_cmd
+
+    edrr_stub = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")
+    edrr_stub.edrr_cycle_cmd = MagicMock()
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.edrr_cycle_cmd", edrr_stub
+    )
+    cli_stub.edrr_cycle_cmd = edrr_stub.edrr_cycle_cmd
+
+    align_stub = ModuleType("devsynth.application.cli.commands.align_cmd")
+    align_stub.align_cmd = MagicMock()
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.align_cmd", align_stub
+    )
+    cli_stub.align_cmd = align_stub.align_cmd
 
     import importlib
     import devsynth.interface.webui as webui
