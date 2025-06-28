@@ -270,8 +270,9 @@ class WSDETeam:
         agent_expertise: List[str] = []
         if hasattr(agent, "expertise"):
             agent_expertise = agent.expertise or []
-        elif (
-            hasattr(agent, "config")
+        if (
+            not agent_expertise
+            and hasattr(agent, "config")
             and hasattr(agent.config, "parameters")
             and "expertise" in agent.config.parameters
         ):
@@ -347,8 +348,9 @@ class WSDETeam:
                 a = self.agents[i]
                 if hasattr(a, "expertise"):
                     expertise = a.expertise or []
-                elif (
-                    hasattr(a, "config")
+                if (
+                    not expertise
+                    and hasattr(a, "config")
                     and hasattr(a.config, "parameters")
                     and "expertise" in a.config.parameters
                 ):
