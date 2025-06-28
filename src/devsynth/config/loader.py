@@ -35,8 +35,17 @@ class ConfigModel:
         }
     )
     features: Dict[str, bool] = field(
-        default_factory=lambda: {"code_generation": False, "test_generation": False}
+        default_factory=lambda: {
+            "wsde_collaboration": False,
+            "dialectical_reasoning": False,
+            "code_generation": False,
+            "test_generation": False,
+            "documentation_generation": False,
+            "experimental_features": False,
+        }
     )
+    memory_store_type: str = "memory"
+    offline_mode: bool = False
     resources: Dict[str, Any] | None = None
 
     def as_dict(self) -> Dict[str, Any]:
@@ -50,6 +59,8 @@ class ConfigModel:
             "priority": self.priority,
             "directories": self.directories,
             "features": self.features,
+            "memory_store_type": self.memory_store_type,
+            "offline_mode": self.offline_mode,
             "resources": self.resources or {},
         }
 

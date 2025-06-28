@@ -107,9 +107,30 @@ def init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
             bridge.display_result("Project already initialized")
             return
 
-        root = bridge.ask_question("Project root directory?")
-        language = bridge.ask_question("Primary language?")
-        goals = bridge.ask_question("Project goals?")
+        root = bridge.ask_question("Project root directory?", default=str(Path.cwd()))
+        language = bridge.ask_question("Primary language?", default="python")
+        goals = bridge.ask_question("Project goals?", default="")
+
+        memory_backend = bridge.ask_question(
+            "Select memory backend",
+            choices=["memory", "file", "kuzu", "chromadb"],
+            default="memory",
+        )
+        offline_mode = bridge.confirm_choice("Enable offline mode?", default=False)
+
+        features = config.config.features or {}
+        for feat in [
+            "wsde_collaboration",
+            "dialectical_reasoning",
+            "code_generation",
+            "test_generation",
+            "documentation_generation",
+            "experimental_features",
+        ]:
+            features[feat] = bridge.confirm_choice(
+                f"Enable {feat.replace('_', ' ')}?",
+                default=features.get(feat, False),
+            )
 
         if not bridge.confirm_choice("Proceed with initialization?", default=True):
             return
@@ -117,6 +138,9 @@ def init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
         config.set_root(root)
         config.set_language(language)
         config.set_goals(goals)
+        config.config.memory_store_type = memory_backend
+        config.config.offline_mode = offline_mode
+        config.config.features = features
         config.save()
 
         bridge.display_result("Initialization complete", highlight=True)
@@ -352,7 +376,9 @@ def refactor_cmd(
         if result.get("success", False):
             # Display the workflow information
             bridge.display_result(f"[green]Workflow:[/green] {result['workflow']}")
-            bridge.display_result(f"[green]Entry Point:[/green] {result['entry_point']}")
+            bridge.display_result(
+                f"[green]Entry Point:[/green] {result['entry_point']}"
+            )
 
             # Display the suggestions
             bridge.display_result("\n[bold]Suggested Next Steps:[/bold]")
@@ -691,7 +717,9 @@ Note: Full support for {framework} will be implemented in a future version.
 
         if framework == "flask":
             bridge.display_result("1. Create a virtual environment:")
-            bridge.display_result(f"   [green]cd {project_path} && python -m venv venv[/green]")
+            bridge.display_result(
+                f"   [green]cd {project_path} && python -m venv venv[/green]"
+            )
             bridge.display_result("2. Activate the virtual environment:")
             bridge.display_result(
                 f"   [green]source venv/bin/activate  # On Windows: venv\\Scripts\\activate[/green]"
@@ -1214,12 +1242,18 @@ def dbschema_cmd(
 
         if db_type == "sqlite":
             bridge.display_result("1. Use the schema to create your SQLite database:")
-            bridge.display_result(f"   [green]sqlite3 {name}.db < {schema_file}[/green]")
+            bridge.display_result(
+                f"   [green]sqlite3 {name}.db < {schema_file}[/green]"
+            )
         elif db_type == "mysql":
             bridge.display_result("1. Use the schema to create your MySQL database:")
-            bridge.display_result(f"   [green]mysql -u username -p < {schema_file}[/green]")
+            bridge.display_result(
+                f"   [green]mysql -u username -p < {schema_file}[/green]"
+            )
         elif db_type == "postgresql":
-            bridge.display_result("1. Use the schema to create your PostgreSQL database:")
+            bridge.display_result(
+                "1. Use the schema to create your PostgreSQL database:"
+            )
             bridge.display_result(
                 f"   [green]psql -U username -d {name} -f {schema_file}[/green]"
             )
