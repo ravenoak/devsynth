@@ -25,6 +25,7 @@ from devsynth.application.documentation.documentation_manager import (
 from devsynth.application.edrr.manifest_parser import ManifestParseError, ManifestParser
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.core import CoreValues, check_report_for_value_conflicts
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
@@ -1323,6 +1324,12 @@ class EDRRCoordinator:
         # Include aggregated performance metrics and basic recursion stats
         report["metrics"] = self.get_performance_metrics()
         report["child_cycle_count"] = len(self.child_cycles)
+
+        # Check the report against project core values
+        core_values = CoreValues.load(self.config.get("project_root"))
+        conflicts = check_report_for_value_conflicts(report, core_values)
+        if conflicts:
+            report["value_conflicts"] = conflicts
 
         logger.info(
             f"Final report generated for cycle {self.cycle_id} (recursion depth: {self.recursion_depth})"

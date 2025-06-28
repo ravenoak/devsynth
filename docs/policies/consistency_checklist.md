@@ -35,6 +35,7 @@ This document provides a checklist for ensuring consistency across all diagrams,
 - [ ] Update step definitions to use the actual EDRRCoordinator implementation instead of mocks
 - [ ] Add tests for the integration with other components
 - [ ] Ensure behavior files cover all phases of the EDRR cycle
+- [ ] Document how to verify Retrospect reports against `CoreValues`
 
 ## WSDE (Worker Self-Directed Enterprise)
 
