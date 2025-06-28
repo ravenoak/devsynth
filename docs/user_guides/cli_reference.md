@@ -114,6 +114,11 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--constraints`: Path to a constraint configuration file
 
 This command now detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `devsynth.yml`.
+During the wizard you will:
+
+1. Select the memory backend (``memory``, ``file``, ``kuzu`` or ``chromadb``).
+2. Choose whether to enable optional features such as ``wsde_collaboration`` and ``dialectical_reasoning``.
+3. Decide if DevSynth should operate in offline mode.
 
 **Examples:**
 ```bash

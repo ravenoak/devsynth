@@ -177,6 +177,39 @@ class WorkflowManager:
             ),
         )
 
+        # Step 4: Select memory backend
+        self.orchestration_port.add_step(
+            workflow,
+            WorkflowStep(
+                id=f"select-memory-{uuid4().hex[:8]}",
+                name="Select Memory Backend",
+                description="Choose persistent memory backend",
+                agent_type="config_manager",
+            ),
+        )
+
+        # Step 5: Configure optional features
+        self.orchestration_port.add_step(
+            workflow,
+            WorkflowStep(
+                id=f"set-features-{uuid4().hex[:8]}",
+                name="Configure Features",
+                description="Enable or disable optional features",
+                agent_type="config_manager",
+            ),
+        )
+
+        # Step 6: Offline mode selection
+        self.orchestration_port.add_step(
+            workflow,
+            WorkflowStep(
+                id=f"offline-mode-{uuid4().hex[:8]}",
+                name="Set Offline Mode",
+                description="Choose offline or online mode",
+                agent_type="config_manager",
+            ),
+        )
+
     def _add_spec_workflow_steps(
         self, workflow: Workflow, args: Dict[str, Any]
     ) -> None:

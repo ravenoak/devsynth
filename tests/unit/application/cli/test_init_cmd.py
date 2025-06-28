@@ -12,11 +12,14 @@ def _run_init(tmp_path, monkeypatch, *, use_pyproject=False):
     """Helper to run init_cmd with patched bridge."""
     monkeypatch.chdir(tmp_path)
 
-    answers = iter([str(tmp_path), "python", "do stuff"])
+    answers = iter([str(tmp_path), "python", "do stuff", "memory"])
+    confirms = iter([False, False, False, False, False, False, False, True])
     monkeypatch.setattr(
         "devsynth.interface.cli.Prompt.ask", lambda *a, **k: next(answers)
     )
-    monkeypatch.setattr("devsynth.interface.cli.Confirm.ask", lambda *a, **k: True)
+    monkeypatch.setattr(
+        "devsynth.interface.cli.Confirm.ask", lambda *a, **k: next(confirms)
+    )
     printed = []
     monkeypatch.setattr(
         "rich.console.Console.print",
@@ -46,6 +49,8 @@ def test_init_cmd_creates_config(tmp_path, monkeypatch):
     assert data["project_root"] == str(tmp_path)
     assert data["language"] == "python"
     assert data["goals"] == "do stuff"
+    assert data["memory_store_type"] == "memory"
+    assert data["offline_mode"] is False
     assert any("Initialization complete" in msg for msg in printed)
 
 
