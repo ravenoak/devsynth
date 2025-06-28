@@ -1,19 +1,19 @@
-"""Tests for the analyze_manifest_cmd CLI command."""
+"""Tests for the inspect_config_cmd CLI command."""
 
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import yaml
 
-from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
+from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
 
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.bridge")
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.analyze_project_structure")
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.compare_with_manifest")
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.update_manifest")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.bridge")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.analyze_project_structure")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.compare_with_manifest")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.update_manifest")
 @patch("yaml.dump")
-def test_analyze_manifest_update(mock_dump, mock_update, mock_compare, mock_analyze, mock_bridge, tmp_path):
+def test_inspect_config_update(mock_dump, mock_update, mock_compare, mock_analyze, mock_bridge, tmp_path):
     manifest_path = tmp_path / "devsynth.yaml"
     yaml.safe_dump({"projectName": "Test"}, manifest_path.open("w"))
 
@@ -21,7 +21,7 @@ def test_analyze_manifest_update(mock_dump, mock_update, mock_compare, mock_anal
     mock_compare.return_value = [{"type": "source", "path": "src", "status": "missing in manifest"}]
     mock_update.return_value = {"updated": True}
 
-    analyze_manifest_cmd(path=str(tmp_path), update=True)
+    inspect_config_cmd(path=str(tmp_path), update=True)
 
     mock_analyze.assert_called_once_with(Path(str(tmp_path)))
     mock_compare.assert_called_once()
@@ -33,12 +33,12 @@ def test_analyze_manifest_update(mock_dump, mock_update, mock_compare, mock_anal
     )
 
 
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.bridge")
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.analyze_project_structure")
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.compare_with_manifest")
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.prune_manifest")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.bridge")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.analyze_project_structure")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.compare_with_manifest")
+@patch("devsynth.application.cli.commands.inspect_config_cmd.prune_manifest")
 @patch("yaml.dump")
-def test_analyze_manifest_prune(mock_dump, mock_prune, mock_compare, mock_analyze, mock_bridge, tmp_path):
+def test_inspect_config_prune(mock_dump, mock_prune, mock_compare, mock_analyze, mock_bridge, tmp_path):
     manifest_path = tmp_path / "devsynth.yaml"
     yaml.safe_dump({"projectName": "Test"}, manifest_path.open("w"))
 
@@ -46,7 +46,7 @@ def test_analyze_manifest_prune(mock_dump, mock_prune, mock_compare, mock_analyz
     mock_compare.return_value = [{"type": "tests", "path": "tests", "status": "missing in project"}]
     mock_prune.return_value = {"pruned": True}
 
-    analyze_manifest_cmd(path=str(tmp_path), prune=True)
+    inspect_config_cmd(path=str(tmp_path), prune=True)
 
     mock_analyze.assert_called_once_with(Path(str(tmp_path)))
     mock_compare.assert_called_once()
@@ -58,8 +58,8 @@ def test_analyze_manifest_prune(mock_dump, mock_prune, mock_compare, mock_analyz
     )
 
 
-@patch("devsynth.application.cli.commands.analyze_manifest_cmd.bridge")
-def test_analyze_manifest_no_config(mock_bridge, tmp_path):
-    analyze_manifest_cmd(path=str(tmp_path))
+@patch("devsynth.application.cli.commands.inspect_config_cmd.bridge")
+def test_inspect_config_no_config(mock_bridge, tmp_path):
+    inspect_config_cmd(path=str(tmp_path))
     mock_bridge.print.assert_any_call("[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]")
 

@@ -112,13 +112,13 @@ class TestTyperCLI:
         result = self.runner.invoke(app, ["edrr-cycle", "path/to/manifest.yaml"])
         assert result.exit_code == 0
 
-    @patch("devsynth.adapters.cli.typer_adapter.analyze_manifest_cmd", autospec=True)
-    def test_cli_analyze_manifest_update(self, mock_cmd):
+    @patch("devsynth.adapters.cli.typer_adapter.inspect_config_cmd", autospec=True)
+    def test_cli_inspect_config_update(self, mock_cmd):
         app = build_app()
         result = self.runner.invoke(
             app,
             [
-                "analyze-manifest",
+                "inspect-config",
                 "--path",
                 "./proj",
                 "--update",
@@ -127,13 +127,13 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_cmd.assert_called_once_with("./proj", True, False)
 
-    @patch("devsynth.adapters.cli.typer_adapter.analyze_manifest_cmd", autospec=True)
-    def test_cli_analyze_manifest_prune(self, mock_cmd):
+    @patch("devsynth.adapters.cli.typer_adapter.inspect_config_cmd", autospec=True)
+    def test_cli_inspect_config_prune(self, mock_cmd):
         app = build_app()
         result = self.runner.invoke(
             app,
             [
-                "analyze-manifest",
+                "inspect-config",
                 "--path",
                 "./proj",
                 "--prune",

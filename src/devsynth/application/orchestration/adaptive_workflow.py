@@ -108,7 +108,7 @@ class AdaptiveWorkflowManager:
         logger.info(f"Determining entry point for {workflow} workflow")
 
         if workflow == "requirements":
-            return "analyze"
+            return "inspect"
         elif workflow == "specifications":
             return "spec"
         elif workflow == "tests":
@@ -116,7 +116,7 @@ class AdaptiveWorkflowManager:
         elif workflow == "code":
             return "code"
         else:
-            return "analyze"
+            return "inspect"
 
     def suggest_next_steps(self, project_path: str) -> List[Dict[str, Any]]:
         """
@@ -144,11 +144,13 @@ class AdaptiveWorkflowManager:
 
         # Check for missing requirements
         if project_state['requirements_count'] == 0:
-            suggestions.append({
-                'command': 'analyze',
-                'description': 'Create requirements documentation to define project goals',
-                'priority': 'high'
-            })
+            suggestions.append(
+                {
+                    'command': 'inspect',
+                    'description': 'Create requirements documentation to define project goals',
+                    'priority': 'high',
+                }
+            )
 
         # Check for missing specifications
         if project_state['specifications_count'] == 0:

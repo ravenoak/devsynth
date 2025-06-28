@@ -65,8 +65,8 @@ class WorkflowManager:
         # Add steps based on the command
         if command == "init":
             self._add_init_workflow_steps(workflow, args)
-        elif command == "analyze":
-            self._add_analyze_workflow_steps(workflow, args)
+        elif command == "inspect":
+            self._add_inspect_workflow_steps(workflow, args)
         elif command == "spec":
             self._add_spec_workflow_steps(workflow, args)
         elif command == "test":
@@ -80,10 +80,10 @@ class WorkflowManager:
 
         return workflow
 
-    def _add_analyze_workflow_steps(
+    def _add_inspect_workflow_steps(
         self, workflow: Workflow, args: Dict[str, Any]
     ) -> None:
-        """Add steps for the analyze command workflow."""
+        """Add steps for the inspect command workflow."""
         if args.get("interactive"):
             # Step 1: Start interactive session
             self.orchestration_port.add_step(

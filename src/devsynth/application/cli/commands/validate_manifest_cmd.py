@@ -146,7 +146,9 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
             bridge.print("\n[bold green]✓ Project configuration is valid![/bold green]")
         else:
             bridge.print("\n[bold red]✗ Project configuration has validation errors.[/bold red]")
-            bridge.print("[yellow]Run 'devsynth analyze-manifest --update' to update the project configuration.[/yellow]")
+            bridge.print(
+                "[yellow]Run 'devsynth inspect-config --update' to update the project configuration.[/yellow]"
+            )
 
     except Exception as err:
         bridge.print(f"[red]Error:[/red] {err}", highlight=False)
