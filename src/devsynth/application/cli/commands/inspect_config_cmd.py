@@ -1,5 +1,7 @@
 """
-Command to analyze and manage the project configuration file (devsynth.yaml, formerly manifest.yaml).
+Command to inspect and manage the project configuration file (``devsynth.yaml``).
+
+This command was previously called ``analyze-manifest``.
 """
 
 import os
@@ -20,11 +22,11 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
-def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune: bool = False) -> None:
-    """Analyze and manage the project configuration file.
+def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: bool = False) -> None:
+    """Inspect and manage the project configuration file.
 
     Example:
-        `devsynth analyze-manifest --update`
+        ``devsynth inspect-config --update``
 
     This command scans the project structure and can update, refine, or prune the configuration file
     based on the actual project structure.
@@ -37,14 +39,16 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
     console = Console()
 
     try:
-        # Show a welcome message for the analyze-manifest command
-        bridge.print(Panel(
-            "[bold blue]DevSynth Configuration Analysis[/bold blue]\n\n"
-            "This command will analyze the project configuration file (devsynth.yaml) and the project structure, "
-            "and can update the configuration to reflect the actual project structure.",
-            title="Configuration Analysis",
-            border_style="blue"
-        ))
+        # Show a welcome message for the inspect-config command
+        bridge.print(
+            Panel(
+                "[bold blue]DevSynth Configuration Analysis[/bold blue]\n\n"
+                "This command will analyze the project configuration file (devsynth.yaml) and the project structure, "
+                "and can update the configuration to reflect the actual project structure.",
+                title="Configuration Analysis",
+                border_style="blue",
+            )
+        )
 
         # Determine the path to analyze
         if path is None:
@@ -146,13 +150,19 @@ def analyze_manifest_cmd(path: Optional[str] = None, update: bool = False, prune
 
             # Show update/prune options if not requested
             else:
-                bridge.print("\n[yellow]To update the configuration with new findings, run:[/yellow]")
-                bridge.print(f"  devsynth analyze-manifest --update")
+                bridge.print(
+                    "\n[yellow]To update the configuration with new findings, run:[/yellow]"
+                )
+                bridge.print("  devsynth inspect-config --update")
 
-                bridge.print("\n[yellow]To prune entries that no longer exist, run:[/yellow]")
-                bridge.print(f"  devsynth analyze-manifest --prune")
+                bridge.print(
+                    "\n[yellow]To prune entries that no longer exist, run:[/yellow]"
+                )
+                bridge.print("  devsynth inspect-config --prune")
 
-                bridge.print("\n[yellow]Note: This command will be renamed to 'analyze-config' in a future version.[/yellow]")
+                bridge.print(
+                    "\n[yellow]Previously known as 'analyze-manifest'.[/yellow]"
+                )
         else:
             bridge.print("\n[green]No differences found. Configuration is up to date![/green]")
 

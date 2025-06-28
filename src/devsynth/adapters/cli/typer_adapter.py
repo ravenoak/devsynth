@@ -28,7 +28,7 @@ from devsynth.application.cli.commands.align_cmd import align_cmd
 from devsynth.application.cli.commands.alignment_metrics_cmd import (
     alignment_metrics_cmd,
 )
-from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
+from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 from devsynth.application.cli.commands.validate_manifest_cmd import (
     validate_manifest_cmd,
 )
@@ -131,13 +131,9 @@ def build_app() -> typer.Typer:
         help="Collect alignment metrics. Example: devsynth alignment-metrics",
     )(alignment_metrics_cmd)
     app.command(
-        name="analyze-manifest",
-        help="Analyze project configuration. Example: devsynth analyze-manifest",
-    )(analyze_manifest_cmd)
-    app.command(
-        name="analyze-config",
-        help="Alias for analyze-manifest. Example: devsynth analyze-config",
-    )(analyze_manifest_cmd)
+        name="inspect-config",
+        help="Inspect project configuration. Example: devsynth inspect-config",
+    )(inspect_config_cmd)
     app.command(
         name="validate-manifest",
         help="Validate project config file. Example: devsynth validate-manifest",
