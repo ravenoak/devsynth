@@ -68,3 +68,23 @@ those values into the `[tool.devsynth]` table of `pyproject.toml`. When both
 files are present the loader now prefers the TOML table, so you may delete the
 YAML file once migrated. All configuration keys remain the same.
 
+## Offline Mode and Local Provider
+
+When `offline_mode` is set to `true` in project configuration DevSynth avoids remote LLM calls and relies on a local model. The following keys control this behaviour:
+
+| Key | Description |
+| --- | ----------- |
+| `offline_mode` | Enable offline operation and select the local provider. |
+| `resources.local.model_path` | Filesystem path to a local HF model directory. |
+| `resources.local.context_length` | Maximum tokens kept when pruning conversation history. |
+
+Example configuration:
+
+```yaml
+offline_mode: true
+resources:
+  local:
+    model_path: /models/mistral
+    context_length: 4096
+```
+
