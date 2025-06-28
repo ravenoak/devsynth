@@ -189,6 +189,7 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
 # Import providers at the end to avoid circular imports
 from .lmstudio_provider import LMStudioProvider
 from .openai_provider import OpenAIProvider
+from .local_provider import LocalProvider
 
 # Create factory instance
 factory = SimpleLLMProviderFactory()
@@ -197,3 +198,4 @@ factory = SimpleLLMProviderFactory()
 factory.register_provider_type("anthropic", AnthropicProvider)
 factory.register_provider_type("lmstudio", LMStudioProvider)
 factory.register_provider_type("openai", OpenAIProvider)
+factory.register_provider_type("local", LocalProvider)
