@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 import os
+from devsynth.config import load_project_config, get_llm_settings
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -186,10 +187,23 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
         self.provider_types[provider_type] = provider_class
 
 
+# Provider selection logic
+def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
+    """Return an LLM provider based on configuration."""
+
+    cfg = config or load_project_config().config.as_dict()
+    offline = cfg.get("offline_mode", False)
+
+    llm_cfg = get_llm_settings()
+    provider_type = "offline" if offline else llm_cfg.get("provider", "openai")
+    return factory.create_provider(provider_type, llm_cfg)
+
+
 # Import providers at the end to avoid circular imports
 from .lmstudio_provider import LMStudioProvider
 from .openai_provider import OpenAIProvider
 from .local_provider import LocalProvider
+from .offline_provider import OfflineProvider
 
 # Create factory instance
 factory = SimpleLLMProviderFactory()
@@ -199,3 +213,4 @@ factory.register_provider_type("anthropic", AnthropicProvider)
 factory.register_provider_type("lmstudio", LMStudioProvider)
 factory.register_provider_type("openai", OpenAIProvider)
 factory.register_provider_type("local", LocalProvider)
+factory.register_provider_type("offline", OfflineProvider)
