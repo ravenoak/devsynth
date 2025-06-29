@@ -70,11 +70,11 @@ Each feature is scored on two dimensions:
 | Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
 | Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
 | **Planned/Unimplemented Features** |
-| Core Values Subsystem | Missing | N/A | 2 | 3 | None | | Documented in specifications but no implementation |
-| Guided Setup Wizard | Missing | N/A | 3 | 3 | None | | Referenced in CLI UI Improvement Plan, not implemented |
-| Offline Fallback Mode | Missing | N/A | 3 | 4 | LLM Providers | | Offline mode remains conceptual with partial support only |
-| Prompt Auto-Tuning | Missing | N/A | 2 | 4 | None | | Planned in documentation, no modules exist |
-| Extended WebUI Pages | Missing | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages like `edrr-cycle` and `align` not implemented |
+| Core Values Subsystem | Partial | src/devsynth/core/values.py | 2 | 3 | None | | Documented in specifications but no implementation |
+| Guided Setup Wizard | Partial | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Referenced in CLI UI Improvement Plan, not implemented |
+| Offline Fallback Mode | Partial | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Offline mode remains conceptual with partial support only |
+| Prompt Auto-Tuning | Partial | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Planned in documentation, no modules exist |
+| Extended WebUI Pages | Partial | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages like `edrr-cycle` and `align` not implemented |
 
 ## Current Limitations and Workarounds
 
