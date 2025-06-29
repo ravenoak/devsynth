@@ -614,3 +614,26 @@ def uvicorn_called_with(host, port, command_context):
         assert args[0] == "devsynth.api:app"
     assert kwargs.get("host") == host
     assert kwargs.get("port") == port
+
+
+@given("essential environment variables are missing")
+def missing_env_vars(monkeypatch):
+    """Unset environment variables required for the doctor command."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("LM_STUDIO_ENDPOINT", raising=False)
+
+
+@given("a project with an invalid manifest file")
+def invalid_manifest_file(tmp_project_dir):
+    """Create a malformed manifest file in the project directory."""
+    manifest_path = os.path.join(tmp_project_dir, "invalid_manifest.yaml")
+    with open(manifest_path, "w") as f:
+        f.write("invalid: [unclosed")
+    return manifest_path
+
+
+@then("the output should mention the missing variables")
+def output_mentions_missing_vars(command_context):
+    """Check that missing environment variables are referenced in output."""
+    output = command_context.get("output", "")
+    assert "OPENAI_API_KEY" in output or "LM_STUDIO_ENDPOINT" in output
