@@ -6974,13 +6974,13 @@ cffi = ["cffi (>=1.11)"]
 
 [extras]
 chromadb = ["chromadb"]
-dev = []
+dev = ["pydantic-settings", "pyyaml", "toml"]
 docs = []
 dsp = ["dspy-ai"]
-minimal = ["astor", "duckdb", "httpx", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
+minimal = ["astor", "duckdb", "httpx", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "pyyaml", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
 retrieval = ["faiss-cpu", "kuzu"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.11"
-content-hash = "1ec8f402faf831025bdd768a3a59a908a425c6fdb3faf53cce0627c2570f31ac"
+content-hash = "70b472bff5bd923e5953ebeb5d9fea425469ac7896add9309b82dc6ba35d5514"

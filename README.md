@@ -134,7 +134,7 @@ devsynth test
 devsynth code
 
 # Install development dependencies
-poetry install --with dev,docs
+poetry install --with dev
 
 # Run the tests or execute the app
 poetry run pytest
@@ -164,7 +164,7 @@ The repository includes runnable examples that walk through common workflows:
 Before running the test suite, you **must** install DevSynth with its development extras:
 
 ```bash
-poetry install --with dev,docs
+poetry install --with dev
 # or install everything
 poetry sync --all-extras --all-groups
 ```
@@ -182,7 +182,7 @@ pip install 'devsynth[retrieval]'
 For a smaller core install you can instead run:
 
 ```bash
-poetry install --with dev,docs --extras retrieval
+poetry install --with dev --extras retrieval
 poetry sync --all-extras --all-groups
 ```
 
