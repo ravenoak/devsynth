@@ -147,6 +147,38 @@ def test_rotate_primus_resets_usage_flags_and_role_map(team_with_agents):
     assert not tester.has_been_primus
 
 
+def test_multiple_task_cycles_reset_primus_flags(team_with_agents):
+    team, doc, coder, tester = team_with_agents
+
+    first_cycle = [
+        {"type": "documentation"},
+        {"type": "coding", "language": "python"},
+        {"type": "testing"},
+    ]
+
+    for task in first_cycle:
+        team.select_primus_by_expertise(task)
+
+    assert all(a.has_been_primus for a in [doc, coder, tester])
+
+    second_cycle = [
+        {"type": "testing"},
+        {"type": "coding", "language": "python"},
+        {"type": "documentation"},
+    ]
+
+    team.select_primus_by_expertise(second_cycle[0])
+    first = team.get_primus()
+    others = [a for a in [doc, coder, tester] if a is not first]
+    assert first.has_been_primus
+    assert all(not a.has_been_primus for a in others)
+
+    for task in second_cycle[1:]:
+        team.select_primus_by_expertise(task)
+
+    assert all(a.has_been_primus for a in [doc, coder, tester])
+
+
 def test_force_wsde_coverage():
     import pathlib
 
