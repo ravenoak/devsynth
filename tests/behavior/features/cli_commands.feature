@@ -104,3 +104,15 @@ Scenario: Validate environment configuration
 Scenario: Serve API on custom port
   When I run the command "devsynth serve --port 8081"
   Then uvicorn should be called with host "0.0.0.0" and port 8081
+
+Scenario: Doctor warns about missing environment variables
+  Given essential environment variables are missing
+  When I run the command "devsynth doctor"
+  Then the system should display a warning message
+  And the output should mention the missing variables
+
+Scenario: Handle invalid manifest in EDRR cycle
+  Given a project with an invalid manifest file
+  When I run the command "devsynth edrr-cycle invalid_manifest.yaml"
+  Then the system should display a warning message
+  And the output should indicate configuration errors
