@@ -26,14 +26,28 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [spec](#spec)
   - [test](#test)
   - [code](#code)
-  - [config](#config)
   - [run-pipeline](#run-pipeline)
-  - [refactor](#refactor)
+  - [config](#config)
   - [inspect](#inspect)
+  - [gather](#gather)
   - [webapp](#webapp)
   - [webui](#webui)
   - [dbschema](#dbschema)
   - [doctor](#doctor-check)
+  - [check](#doctor-check)
+  - [refactor](#refactor)
+  - [analyze-code](#analyze-code)
+  - [edrr-cycle](#edrr-cycle)
+  - [align](#align)
+  - [alignment-metrics](#alignment-metrics)
+  - [inspect-config](#inspect-config)
+  - [validate-manifest](#validate-manifest)
+  - [validate-metadata](#validate-metadata)
+  - [test-metrics](#test-metrics)
+  - [generate-docs](#generate-docs)
+  - [ingest](#ingest)
+  - [apispec](#apispec)
+  - [serve](#serve)
 - [Environment Variables](#environment-variables)
 - [Configuration File](#configuration-file)
 - [Examples](#examples)
@@ -70,6 +84,36 @@ These options can be used with any command:
 | `--help`, `-h` | Show help message and exit | - |
 
 ## Command Reference
+
+The following commands are available via `devsynth`:
+
+```
+init
+spec
+test
+code
+run-pipeline
+config
+inspect
+gather
+webapp
+webui
+dbschema
+doctor (alias: check)
+refactor
+analyze-code
+edrr-cycle
+align
+alignment-metrics
+inspect-config
+validate-manifest
+validate-metadata
+test-metrics
+generate-docs
+ingest
+apispec
+serve
+```
 
 ### help
 
@@ -397,6 +441,27 @@ devsynth doctor --config-dir ./configs
 
 # Using the alias
 devsynth check
+```
+
+### Additional commands
+
+The CLI also provides several specialized commands used for advanced workflows.
+These commands mirror the names reported by `devsynth --help`:
+
+```
+gather
+analyze-code
+edrr-cycle
+align
+alignment-metrics
+inspect-config
+validate-manifest
+validate-metadata
+test-metrics
+generate-docs
+ingest
+apispec
+serve
 ```
 
 ## Environment Variables
