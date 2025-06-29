@@ -6,6 +6,7 @@ This implementation includes enhanced features:
 - Version tracking for stored artifacts
 - Optimized embedding storage for similar content
 """
+
 import json
 import os
 import uuid
@@ -99,10 +100,14 @@ class ChromaDBStore(MemoryStore):
                         item = self._deserialize_memory_item(item_dict)
                         self._store[item.id] = item
                     for vid, versions in data.get("versions", {}).items():
-                        self._versions[vid] = [self._deserialize_memory_item(v) for v in versions]
+                        self._versions[vid] = [
+                            self._deserialize_memory_item(v) for v in versions
+                        ]
                 self._use_fallback = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(
+                    f"Failed to load fallback store from {self._fallback_file}: {e}"
+                )
 
         try:
             self.collection = self.client.get_collection(name=self.collection_name)
@@ -111,7 +116,9 @@ class ChromaDBStore(MemoryStore):
             try:
                 # Collection doesn't exist, create it
                 logger.info(f"Collection not found: {e}")
-                self.collection = self.client.create_collection(name=self.collection_name)
+                self.collection = self.client.create_collection(
+                    name=self.collection_name
+                )
                 logger.info(f"Created new ChromaDB collection: {self.collection_name}")
             except Exception as e2:
                 logger.warning(
@@ -126,9 +133,13 @@ class ChromaDBStore(MemoryStore):
                                 item = self._deserialize_memory_item(item_dict)
                                 self._store[item.id] = item
                             for vid, versions in data.get("versions", {}).items():
-                                self._versions[vid] = [self._deserialize_memory_item(v) for v in versions]
-                    except Exception:
-                        pass
+                                self._versions[vid] = [
+                                    self._deserialize_memory_item(v) for v in versions
+                                ]
+                    except Exception as e3:
+                        logger.error(
+                            f"Failed to load fallback store from {self._fallback_file}: {e3}"
+                        )
 
         if not self._use_fallback:
             try:
@@ -475,7 +486,9 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             if self._use_fallback:
-                versions = self._versions.get(item_id, []) + ([self._store.get(item_id)] if item_id in self._store else [])
+                versions = self._versions.get(item_id, []) + (
+                    [self._store.get(item_id)] if item_id in self._store else []
+                )
                 for v in versions:
                     if v and v.metadata.get("version") == version:
                         return v
@@ -564,7 +577,10 @@ class ChromaDBStore(MemoryStore):
         if self._use_fallback:
             items = []
             for item in self._store.values():
-                if isinstance(item.content, str) and semantic_query.lower() in item.content.lower():
+                if (
+                    isinstance(item.content, str)
+                    and semantic_query.lower() in item.content.lower()
+                ):
                     items.append(item)
             return items
 
@@ -778,9 +794,11 @@ class ChromaDBStore(MemoryStore):
                 # Create a history entry
                 entry = {
                     "version": version_num,
-                    "timestamp": version.created_at.isoformat()
-                    if version.created_at
-                    else datetime.now().isoformat(),
+                    "timestamp": (
+                        version.created_at.isoformat()
+                        if version.created_at
+                        else datetime.now().isoformat()
+                    ),
                     "content_summary": content_summary,
                     "metadata": version.metadata,
                 }
@@ -844,5 +862,5 @@ class ChromaDBStore(MemoryStore):
             }
             with open(self._fallback_file, "w") as f:
                 json.dump(data, f)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"Failed to save fallback store to {self._fallback_file}: {e}")
