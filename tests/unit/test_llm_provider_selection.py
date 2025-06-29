@@ -1,7 +1,7 @@
 import types
 
 from devsynth.application.llm import get_llm_provider
-from devsynth.application.llm.local_provider import LocalProvider
+from devsynth.application.llm.offline_provider import OfflineProvider
 from devsynth.application.llm.openai_provider import OpenAIProvider
 
 
@@ -12,15 +12,16 @@ def _mock_config(offline: bool):
     return cfg
 
 
-def test_offline_mode_selects_local_provider(monkeypatch):
+def test_offline_mode_selects_offline_provider(monkeypatch):
     monkeypatch.setattr(
         "devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE", False
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.load_project_config", lambda: _mock_config(True)
+        "devsynth.application.llm.providers.load_project_config",
+        lambda: _mock_config(True),
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.get_llm_settings",
+        "devsynth.application.llm.providers.get_llm_settings",
         lambda: {
             "provider": "openai",
             "openai_api_key": "key",
@@ -28,7 +29,7 @@ def test_offline_mode_selects_local_provider(monkeypatch):
         },
     )
     provider = get_llm_provider()
-    assert isinstance(provider, LocalProvider)
+    assert isinstance(provider, OfflineProvider)
 
 
 def test_online_mode_uses_configured_provider(monkeypatch):
@@ -36,10 +37,11 @@ def test_online_mode_uses_configured_provider(monkeypatch):
         "devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE", False
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.load_project_config", lambda: _mock_config(False)
+        "devsynth.application.llm.providers.load_project_config",
+        lambda: _mock_config(False),
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.get_llm_settings",
+        "devsynth.application.llm.providers.get_llm_settings",
         lambda: {
             "provider": "openai",
             "openai_api_key": "key",
