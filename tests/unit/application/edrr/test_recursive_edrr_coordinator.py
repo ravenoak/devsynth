@@ -517,3 +517,62 @@ class TestRecursiveEDRRCoordinator:
         coordinator.phase_transition_timeout = 100
         coordinator._phase_start_times[Phase.EXPAND] = datetime.now()
         assert coordinator._decide_next_phase() is None
+
+    def test_should_terminate_recursion_all_factors_true(self, coordinator):
+        """If all delimiting principles trigger, recursion should terminate."""
+        coordinator.start_cycle({"description": "Macro"})
+        task = {
+            "description": "child",
+            "human_override": "terminate",
+            "granularity_score": 0.1,
+            "cost_score": 0.9,
+            "benefit_score": 0.2,
+            "quality_score": 0.95,
+            "resource_usage": 0.9,
+        }
+        assert coordinator.should_terminate_recursion(task) is True
+
+    def test_should_terminate_recursion_all_factors_false(self, coordinator):
+        """If no delimiting principle triggers, recursion should continue."""
+        coordinator.start_cycle({"description": "Macro"})
+        task = {
+            "description": "child",
+            "human_override": "continue",
+            "granularity_score": 0.8,
+            "cost_score": 0.2,
+            "benefit_score": 0.9,
+            "quality_score": 0.5,
+            "resource_usage": 0.3,
+        }
+        assert coordinator.should_terminate_recursion(task) is False
+
+    def test_get_performance_metrics_total_duration(self, coordinator):
+        """get_performance_metrics should report aggregated duration."""
+        coordinator.performance_metrics = {
+            Phase.EXPAND.name: {"duration": 1.0},
+            Phase.DIFFERENTIATE.name: {"duration": 2.0},
+            Phase.REFINE.name: {"duration": 3.0},
+            Phase.RETROSPECT.name: {"duration": 4.0},
+        }
+        coordinator._aggregate_results()
+        metrics = coordinator.get_performance_metrics()
+        assert metrics["TOTAL"]["duration"] == pytest.approx(10.0)
+
+    def test_create_micro_cycle_persists_results(self, coordinator):
+        """Parent should retain child cycle results after further cycles."""
+        coordinator.start_cycle({"description": "macro"})
+        micro1 = coordinator.create_micro_cycle({"description": "child1"}, Phase.EXPAND)
+        with patch.object(
+            micro1, "_execute_differentiate_phase", return_value={"done": True}
+        ):
+            micro1.progress_to_phase(Phase.DIFFERENTIATE)
+
+        # Create a second child cycle
+        micro2 = coordinator.create_micro_cycle({"description": "child2"}, Phase.EXPAND)
+
+        results = coordinator.results[Phase.EXPAND.name]["micro_cycle_results"]
+        assert micro1.cycle_id in results
+        assert micro2.cycle_id in results
+        entry = results[micro1.cycle_id]
+        assert entry["task"] == {"description": "child1"}
+        assert {k: v for k, v in entry.items() if k != "task"} == micro1.results
