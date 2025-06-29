@@ -5,6 +5,7 @@ This command validates the project configuration file (.devsynth/project.yaml or
 against its JSON schema, checks that referenced paths exist, validates dates and version formats,
 and ensures the project structure is correctly represented.
 """
+
 import json
 import jsonschema
 import yaml
@@ -13,17 +14,17 @@ from pathlib import Path
 from typing import Optional
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
-
-from devsynth.exceptions import DevSynthError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
-def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Optional[str] = None) -> None:
+
+def validate_manifest_cmd(
+    manifest_path: Optional[str] = None, schema_path: Optional[str] = None
+) -> None:
     """Validate the project configuration file against its schema.
 
     Example:
@@ -37,14 +38,16 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
 
     try:
         # Show a welcome message for the validate-manifest command
-        bridge.print(Panel(
-            "[bold blue]DevSynth Project Configuration Validation[/bold blue]\n\n"
-            "This command validates the project configuration file (.devsynth/project.yaml or manifest.yaml) "
-            "against its JSON schema, checks that referenced paths exist, validates dates and version formats, "
-            "and ensures the project structure is correctly represented.",
-            title="Project Configuration Validation",
-            border_style="blue"
-        ))
+        bridge.print(
+            Panel(
+                "[bold blue]DevSynth Project Configuration Validation[/bold blue]\n\n"
+                "This command validates the project configuration file (.devsynth/project.yaml or manifest.yaml) "
+                "against its JSON schema, checks that referenced paths exist, validates dates and version formats, "
+                "and ensures the project structure is correctly represented.",
+                title="Project Configuration Validation",
+                border_style="blue",
+            )
+        )
 
         # Determine the paths
         project_root = Path(os.getcwd()).resolve()
@@ -61,7 +64,9 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
 
         if schema_path is None:
             # Use the new schema location
-            schema_path = str(project_root / "src" / "devsynth" / "schemas" / "project_schema.json")
+            schema_path = str(
+                project_root / "src" / "devsynth" / "schemas" / "project_schema.json"
+            )
 
             # Fall back to legacy location if new location doesn't exist
             if not Path(schema_path).exists():
@@ -72,17 +77,25 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
         manifest_path_obj = Path(manifest_path).resolve()
         schema_path_obj = Path(schema_path).resolve()
 
-        bridge.print(f"[bold]Validating project configuration:[/bold] {manifest_path_obj}")
+        bridge.print(
+            f"[bold]Validating project configuration:[/bold] {manifest_path_obj}"
+        )
         bridge.print(f"[bold]Using schema:[/bold] {schema_path_obj}")
 
         # Check if files exist
         if not manifest_path_obj.exists():
-            bridge.print(f"[red]Error: Project configuration file not found at {manifest_path_obj}[/red]")
-            bridge.print("[yellow]Run 'devsynth init' to create a project configuration file.[/yellow]")
+            bridge.print(
+                f"[red]Error: Project configuration file not found at {manifest_path_obj}[/red]"
+            )
+            bridge.print(
+                "[yellow]Run 'devsynth init' to create a project configuration file.[/yellow]"
+            )
             return
 
         if not schema_path_obj.exists():
-            bridge.print(f"[red]Error: Schema file not found at {schema_path_obj}[/red]")
+            bridge.print(
+                f"[red]Error: Schema file not found at {schema_path_obj}[/red]"
+            )
             return
 
         # Load the manifest and schema
@@ -96,7 +109,9 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
         with console.status("[bold green]Validating against schema...[/bold green]"):
             try:
                 jsonschema.validate(manifest, schema)
-                bridge.print("[green]✓ Project configuration is valid according to schema[/green]")
+                bridge.print(
+                    "[green]✓ Project configuration is valid according to schema[/green]"
+                )
             except jsonschema.exceptions.ValidationError as e:
                 bridge.print(f"[red]✗ Schema validation error: {e.message}[/red]")
                 return
@@ -142,16 +157,24 @@ def validate_manifest_cmd(manifest_path: Optional[str] = None, schema_path: Opti
                     bridge.print(f"  - {error}")
 
         # Overall validation result
-        if not path_errors and not date_errors and not version_errors and not structure_errors:
+        if (
+            not path_errors
+            and not date_errors
+            and not version_errors
+            and not structure_errors
+        ):
             bridge.print("\n[bold green]✓ Project configuration is valid![/bold green]")
         else:
-            bridge.print("\n[bold red]✗ Project configuration has validation errors.[/bold red]")
+            bridge.print(
+                "\n[bold red]✗ Project configuration has validation errors.[/bold red]"
+            )
             bridge.print(
                 "[yellow]Run 'devsynth inspect-config --update' to update the project configuration.[/yellow]"
             )
 
     except Exception as err:
         bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+
 
 def validate_paths_exist(manifest: dict, project_root: Path) -> list:
     """
@@ -173,7 +196,9 @@ def validate_paths_exist(manifest: dict, project_root: Path) -> list:
                 if "path" in artifact:
                     path = project_root / artifact["path"]
                     if not path.exists():
-                        errors.append(f"Key artifact path does not exist: {artifact['path']}")
+                        errors.append(
+                            f"Key artifact path does not exist: {artifact['path']}"
+                        )
 
     # Check structure directories
     if "structure" in manifest and "directories" in manifest["structure"]:
@@ -191,6 +216,7 @@ def validate_paths_exist(manifest: dict, project_root: Path) -> list:
                 errors.append(f"Entry point does not exist: {entry_point}")
 
     return errors
+
 
 def validate_dates(manifest: dict) -> list:
     """
@@ -211,11 +237,13 @@ def validate_dates(manifest: dict) -> list:
             date_str = manifest["lastUpdated"]
             if isinstance(date_str, str):
                 import dateutil.parser
+
                 dateutil.parser.parse(date_str)
         except Exception:
             errors.append(f"Invalid lastUpdated date format: {manifest['lastUpdated']}")
 
     return errors
+
 
 def validate_version_format(manifest: dict) -> list:
     """
@@ -238,6 +266,7 @@ def validate_version_format(manifest: dict) -> list:
             errors.append(f"Invalid version format: {version}. Expected format: X.Y.Z")
 
     return errors
+
 
 def validate_project_structure(manifest: dict, project_root: Path) -> list:
     """
@@ -277,9 +306,12 @@ def validate_project_structure(manifest: dict, project_root: Path) -> list:
                 if dir_type not in directories:
                     errors.append(f"Missing common directory type: {dir_type}")
                 elif not isinstance(directories[dir_type], list):
-                    errors.append(f"Directory type '{dir_type}' must be a list of paths")
+                    errors.append(
+                        f"Directory type '{dir_type}' must be a list of paths"
+                    )
 
     return errors
+
 
 # Add missing import
 import re

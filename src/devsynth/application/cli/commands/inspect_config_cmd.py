@@ -6,23 +6,23 @@ This command was previously called ``analyze-manifest``.
 
 import os
 import yaml
-import json
 from pathlib import Path
 from typing import Optional, Dict, Any
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.markdown import Markdown
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
-from devsynth.exceptions import DevSynthError, ManifestError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
-def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: bool = False) -> None:
+
+def inspect_config_cmd(
+    path: Optional[str] = None, update: bool = False, prune: bool = False
+) -> None:
     """Inspect and manage the project configuration file.
 
     Example:
@@ -67,9 +67,13 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
         elif legacy_path.exists():
             # Use manifest.yaml for backward compatibility
             manifest_path = legacy_path
-            bridge.print("[yellow]Using legacy manifest.yaml file. Consider renaming to devsynth.yaml for future compatibility.[/yellow]")
+            bridge.print(
+                "[yellow]Using legacy manifest.yaml file. Consider renaming to devsynth.yaml for future compatibility.[/yellow]"
+            )
         else:
-            bridge.print("[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]")
+            bridge.print(
+                "[yellow]Warning: No configuration file found. Run 'devsynth init' to create it.[/yellow]"
+            )
             return
 
         # Load the configuration file
@@ -88,14 +92,22 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
         bridge.print("\n[bold]Analysis Results:[/bold]")
 
         # Display project information
-        bridge.print(f"\n[bold]Project Name:[/bold] {manifest.get('projectName', 'Unknown')}")
-        bridge.print(f"[bold]Manifest Version:[/bold] {manifest.get('version', 'Unknown')}")
-        bridge.print(f"[bold]Last Updated:[/bold] {manifest.get('lastUpdated', 'Unknown')}")
+        bridge.print(
+            f"\n[bold]Project Name:[/bold] {manifest.get('projectName', 'Unknown')}"
+        )
+        bridge.print(
+            f"[bold]Manifest Version:[/bold] {manifest.get('version', 'Unknown')}"
+        )
+        bridge.print(
+            f"[bold]Last Updated:[/bold] {manifest.get('lastUpdated', 'Unknown')}"
+        )
 
         # Display structure information
         structure = manifest.get("structure", {})
         bridge.print(f"\n[bold]Project Type:[/bold] {structure.get('type', 'Unknown')}")
-        bridge.print(f"[bold]Primary Language:[/bold] {structure.get('primaryLanguage', 'Unknown')}")
+        bridge.print(
+            f"[bold]Primary Language:[/bold] {structure.get('primaryLanguage', 'Unknown')}"
+        )
 
         # Display directories
         directories = structure.get("directories", {})
@@ -107,8 +119,7 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
 
             for dir_type, paths in directories.items():
                 directories_table.add_row(
-                    dir_type,
-                    ", ".join(paths) if paths else "None"
+                    dir_type, ", ".join(paths) if paths else "None"
                 )
 
             bridge.print(directories_table)
@@ -122,11 +133,7 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
             differences_table.add_column("Status")
 
             for diff in differences:
-                differences_table.add_row(
-                    diff["type"],
-                    diff["path"],
-                    diff["status"]
-                )
+                differences_table.add_row(diff["type"], diff["path"], diff["status"])
 
             bridge.print(differences_table)
 
@@ -135,7 +142,9 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
                 updated_manifest = update_manifest(manifest, differences)
 
                 with open(manifest_path, "w") as f:
-                    yaml.dump(updated_manifest, f, default_flow_style=False, sort_keys=False)
+                    yaml.dump(
+                        updated_manifest, f, default_flow_style=False, sort_keys=False
+                    )
 
                 bridge.print("\n[green]Configuration updated successfully![/green]")
 
@@ -144,7 +153,9 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
                 pruned_manifest = prune_manifest(manifest, differences)
 
                 with open(manifest_path, "w") as f:
-                    yaml.dump(pruned_manifest, f, default_flow_style=False, sort_keys=False)
+                    yaml.dump(
+                        pruned_manifest, f, default_flow_style=False, sort_keys=False
+                    )
 
                 bridge.print("\n[green]Configuration pruned successfully![/green]")
 
@@ -164,13 +175,16 @@ def inspect_config_cmd(path: Optional[str] = None, update: bool = False, prune: 
                     "\n[yellow]Previously known as 'analyze-manifest'.[/yellow]"
                 )
         else:
-            bridge.print("\n[green]No differences found. Configuration is up to date![/green]")
+            bridge.print(
+                "\n[green]No differences found. Configuration is up to date![/green]"
+            )
 
         bridge.print("\n[green]Analysis completed successfully![/green]")
 
     except Exception as e:
         logger.error(f"Error analyzing configuration: {str(e)}")
         bridge.print(f"[red]Error analyzing configuration: {str(e)}[/red]")
+
 
 def analyze_project_structure(project_path: Path) -> Dict[str, Any]:
     """
@@ -182,14 +196,7 @@ def analyze_project_structure(project_path: Path) -> Dict[str, Any]:
     Returns:
         Dictionary containing the project structure
     """
-    structure = {
-        "directories": {
-            "source": [],
-            "tests": [],
-            "docs": []
-        },
-        "files": []
-    }
+    structure = {"directories": {"source": [], "tests": [], "docs": []}, "files": []}
 
     # Common source directories
     source_dirs = ["src", "lib", "app", "source"]
@@ -198,7 +205,11 @@ def analyze_project_structure(project_path: Path) -> Dict[str, Any]:
 
     # Scan the project directory
     for item in project_path.iterdir():
-        if item.is_dir() and not item.name.startswith(".") and item.name != "__pycache__":
+        if (
+            item.is_dir()
+            and not item.name.startswith(".")
+            and item.name != "__pycache__"
+        ):
             # Check if it's a source directory
             if item.name.lower() in source_dirs:
                 structure["directories"]["source"].append(item.name)
@@ -213,7 +224,10 @@ def analyze_project_structure(project_path: Path) -> Dict[str, Any]:
 
     return structure
 
-def compare_with_manifest(manifest: Dict[str, Any], project_structure: Dict[str, Any]) -> list:
+
+def compare_with_manifest(
+    manifest: Dict[str, Any], project_structure: Dict[str, Any]
+) -> list:
     """
     Compare the manifest with the actual project structure and return a list of differences.
 
@@ -235,19 +249,15 @@ def compare_with_manifest(manifest: Dict[str, Any], project_structure: Dict[str,
 
     for dir_name in actual_source:
         if dir_name not in manifest_source:
-            differences.append({
-                "type": "source",
-                "path": dir_name,
-                "status": "missing in manifest"
-            })
+            differences.append(
+                {"type": "source", "path": dir_name, "status": "missing in manifest"}
+            )
 
     for dir_name in manifest_source:
         if dir_name not in actual_source:
-            differences.append({
-                "type": "source",
-                "path": dir_name,
-                "status": "missing in project"
-            })
+            differences.append(
+                {"type": "source", "path": dir_name, "status": "missing in project"}
+            )
 
     # Check test directories
     manifest_tests = manifest_dirs.get("tests", [])
@@ -255,19 +265,15 @@ def compare_with_manifest(manifest: Dict[str, Any], project_structure: Dict[str,
 
     for dir_name in actual_tests:
         if dir_name not in manifest_tests:
-            differences.append({
-                "type": "tests",
-                "path": dir_name,
-                "status": "missing in manifest"
-            })
+            differences.append(
+                {"type": "tests", "path": dir_name, "status": "missing in manifest"}
+            )
 
     for dir_name in manifest_tests:
         if dir_name not in actual_tests:
-            differences.append({
-                "type": "tests",
-                "path": dir_name,
-                "status": "missing in project"
-            })
+            differences.append(
+                {"type": "tests", "path": dir_name, "status": "missing in project"}
+            )
 
     # Check documentation directories
     manifest_docs = manifest_dirs.get("docs", [])
@@ -275,21 +281,18 @@ def compare_with_manifest(manifest: Dict[str, Any], project_structure: Dict[str,
 
     for dir_name in actual_docs:
         if dir_name not in manifest_docs:
-            differences.append({
-                "type": "docs",
-                "path": dir_name,
-                "status": "missing in manifest"
-            })
+            differences.append(
+                {"type": "docs", "path": dir_name, "status": "missing in manifest"}
+            )
 
     for dir_name in manifest_docs:
         if dir_name not in actual_docs:
-            differences.append({
-                "type": "docs",
-                "path": dir_name,
-                "status": "missing in project"
-            })
+            differences.append(
+                {"type": "docs", "path": dir_name, "status": "missing in project"}
+            )
 
     return differences
+
 
 def update_manifest(manifest: Dict[str, Any], differences: list) -> Dict[str, Any]:
     """
@@ -330,6 +333,7 @@ def update_manifest(manifest: Dict[str, Any], differences: list) -> Dict[str, An
 
     return updated_manifest
 
+
 def prune_manifest(manifest: Dict[str, Any], differences: list) -> Dict[str, Any]:
     """
     Prune entries from the manifest that no longer exist in the project.
@@ -356,8 +360,14 @@ def prune_manifest(manifest: Dict[str, Any], differences: list) -> Dict[str, Any
             dir_type = diff["type"]
             dir_path = diff["path"]
 
-            if "structure" in pruned_manifest and "directories" in pruned_manifest["structure"] and dir_type in pruned_manifest["structure"]["directories"]:
+            if (
+                "structure" in pruned_manifest
+                and "directories" in pruned_manifest["structure"]
+                and dir_type in pruned_manifest["structure"]["directories"]
+            ):
                 if dir_path in pruned_manifest["structure"]["directories"][dir_type]:
-                    pruned_manifest["structure"]["directories"][dir_type].remove(dir_path)
+                    pruned_manifest["structure"]["directories"][dir_type].remove(
+                        dir_path
+                    )
 
     return pruned_manifest
