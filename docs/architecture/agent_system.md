@@ -48,7 +48,11 @@ functions remain UI agnostic.  ``UXBridge`` defines:
   ``update`` and ``complete`` methods.
 
 These methods provide a consistent user experience across all bridges while
-allowing each implementation to use its own presentation logic.
+allowing each implementation to use its own presentation logic.  Every
+front‑end bridge (CLI, WebUI, Agent API or others) **must** implement these four
+methods so workflow functions remain UI agnostic.  Unit tests instantiate each
+bridge to verify that ``ask_question``, ``confirm_choice``, ``display_result`` and
+``create_progress`` are present and callable.
 
 ## AgentState (`graph_state.py`)
 
