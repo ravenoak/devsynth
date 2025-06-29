@@ -17,3 +17,42 @@ def no_devsynth_config(tmp_project_dir):
 def output_should_include_hint(command_context):
     output = command_context.get("output", "")
     assert "devsynth init" in output
+
+
+@given("a devsynth.yml file with invalid YAML syntax")
+def devsynth_yaml_invalid(tmp_project_dir, monkeypatch):
+    """Create a DevSynth config file containing malformed YAML."""
+    dev_dir = os.path.join(tmp_project_dir, ".devsynth")
+    os.makedirs(dev_dir, exist_ok=True)
+    with open(os.path.join(dev_dir, "devsynth.yml"), "w") as f:
+        f.write("invalid: [unclosed")
+    monkeypatch.chdir(tmp_project_dir)
+    return tmp_project_dir
+
+
+@given("a devsynth.yml file with unsupported configuration keys")
+def devsynth_yaml_unsupported_keys(tmp_project_dir, monkeypatch):
+    """Create a DevSynth config file containing unknown keys."""
+    dev_dir = os.path.join(tmp_project_dir, ".devsynth")
+    os.makedirs(dev_dir, exist_ok=True)
+    with open(os.path.join(dev_dir, "devsynth.yml"), "w") as f:
+        f.write("unsupported_option: true\n")
+    monkeypatch.chdir(tmp_project_dir)
+    return tmp_project_dir
+
+
+@given("no .env file exists in the project")
+def remove_env_file(tmp_project_dir, monkeypatch):
+    """Ensure the project has no .env file."""
+    env_path = os.path.join(tmp_project_dir, ".env")
+    if os.path.exists(env_path):
+        os.remove(env_path)
+    monkeypatch.chdir(tmp_project_dir)
+    return tmp_project_dir
+
+
+@then("the output should mention the missing .env file")
+def output_mentions_missing_env_file(command_context):
+    """Verify that the doctor output references the missing .env file."""
+    output = command_context.get("output", "")
+    assert ".env" in output

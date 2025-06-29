@@ -33,3 +33,21 @@ Feature: Doctor Command
     When I run the command "devsynth doctor"
     Then the system should display a warning message
     And the output should indicate configuration errors
+
+  Scenario: Detect invalid YAML syntax in devsynth.yml
+    Given a devsynth.yml file with invalid YAML syntax
+    When I run the command "devsynth doctor"
+    Then the system should display a warning message
+    And the output should indicate configuration errors
+
+  Scenario: Warn about unsupported configuration keys
+    Given a devsynth.yml file with unsupported configuration keys
+    When I run the command "devsynth doctor"
+    Then the system should display a warning message
+    And the output should indicate configuration errors
+
+  Scenario: Warn when .env file is missing
+    Given no .env file exists in the project
+    When I run the command "devsynth doctor"
+    Then the system should display a warning message
+    And the output should mention the missing .env file
