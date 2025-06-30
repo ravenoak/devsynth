@@ -61,6 +61,56 @@ from devsynth.exceptions import DevSynthError
 class ProjectUnifiedConfig(UnifiedConfig):
     """Configuration wrapper for project.yaml or pyproject.toml."""
 
+    @classmethod
+    def load(cls, path: Path | None = None) -> "ProjectUnifiedConfig":
+        """Load and validate a project configuration."""
+        root = Path(path or os.getcwd())
+        yaml_path = root / ".devsynth" / "project.yaml"
+        use_pyproject = False
+        data: dict[str, Any] = {}
+
+        if yaml_path.exists():
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+        else:
+            toml_path = root / "pyproject.toml"
+            if toml_path.exists():
+                tdata = toml.load(toml_path)
+                data = tdata.get("tool", {}).get("devsynth", {})
+                yaml_path = toml_path
+                use_pyproject = True
+
+        schema_file = (
+            Path(__file__).resolve().parent.parent / "schemas" / "project_schema.json"
+        )
+        try:
+            import json
+            import jsonschema
+
+            with open(schema_file, "r", encoding="utf-8") as sf:
+                schema = json.load(sf)
+            jsonschema.validate(instance=data, schema=schema)
+        except jsonschema.exceptions.ValidationError as err:  # type: ignore
+            logger.error("Project configuration validation failed: %s", err)
+            raise DevSynthError(
+                "Configuration issues detected. Run 'devsynth init' to generate defaults."
+            ) from err
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Could not validate project config: %s", exc)
+
+        cfg = ConfigModel(project_root=str(root))
+        allowed = cfg.__dataclass_fields__
+        subset: dict[str, Any] = {}
+        for key, value in data.items():
+            if key not in allowed:
+                continue
+            field = allowed[key]
+            if field.type in (str, "str") and not isinstance(value, str):
+                continue
+            subset[key] = value
+        cfg = ConfigModel(**{**cfg.as_dict(), **subset})
+        return cls(cfg, yaml_path, use_pyproject)
+
     def save(self) -> Path:  # type: ignore[override]
         if self.use_pyproject:
             tdata: dict[str, Any] = {}
@@ -79,25 +129,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
 
 def load_project_config(path: Path | None = None) -> ProjectUnifiedConfig:
     """Load project configuration from project.yaml or pyproject.toml."""
-    root = Path(path or os.getcwd())
-    yaml_path = root / ".devsynth" / "project.yaml"
-    if yaml_path.exists():
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
-        cfg = ConfigModel(project_root=str(root))
-        cfg = ConfigModel(**{**cfg.as_dict(), **data})
-        return ProjectUnifiedConfig(cfg, yaml_path, False)
-
-    toml_path = root / "pyproject.toml"
-    if toml_path.exists():
-        data = toml.load(toml_path)
-        parsed = data.get("tool", {}).get("devsynth", {})
-        cfg = ConfigModel(project_root=str(root))
-        cfg = ConfigModel(**{**cfg.as_dict(), **parsed})
-        return ProjectUnifiedConfig(cfg, toml_path, True)
-
-    cfg = ConfigModel(project_root=str(root))
-    return ProjectUnifiedConfig(cfg, yaml_path, False)
+    return ProjectUnifiedConfig.load(path)
 
 
 __all__ = [
