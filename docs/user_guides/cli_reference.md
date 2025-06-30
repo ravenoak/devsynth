@@ -158,6 +158,8 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--constraints`: Path to a constraint configuration file
 
 This command now detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `devsynth.yml`.
+The wizard reads configuration using the [Unified Config Loader](../implementation/config_loader_workflow.md),
+which prefers the `[tool.devsynth]` table in `pyproject.toml` when both files are present.
 During the wizard you will:
 
 1. Select the memory backend (``memory``, ``file``, ``kuzu`` or ``chromadb``).
