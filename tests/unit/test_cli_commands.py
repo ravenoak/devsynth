@@ -64,3 +64,11 @@ class TestCLIHelpOutput:
         ]
         for cmd in expected:
             assert cmd in result.output
+
+    def test_help_omits_deprecated_aliases(self):
+        app = build_app()
+        result = self.runner.invoke(app, ["--help"])
+        assert result.exit_code == 0
+        lines = [line.strip() for line in result.output.splitlines()]
+        assert all(not line.startswith("adaptive") for line in lines)
+        assert all(not line.startswith("analyze ") for line in lines)

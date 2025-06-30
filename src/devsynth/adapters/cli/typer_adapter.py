@@ -1,4 +1,5 @@
 import typer
+from typing import Optional
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.core.config_loader import load_config
 
@@ -40,6 +41,18 @@ from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cm
 from devsynth.application.cli.requirements_commands import requirements_app
 
 logger = DevSynthLogger(__name__)
+
+
+def analyze_alias(input_file: Optional[str] = None, interactive: bool = False) -> None:
+    """Deprecated alias for the ``inspect`` command."""
+    typer.secho("'analyze' is deprecated. Use 'inspect' instead.", fg="yellow", err=True)
+    inspect_cmd(input_file=input_file, interactive=interactive)
+
+
+def adaptive_alias(path: Optional[str] = None) -> None:
+    """Deprecated alias for the ``refactor`` command."""
+    typer.secho("'adaptive' is deprecated. Use 'refactor' instead.", fg="yellow", err=True)
+    refactor_cmd(path=path)
 
 
 def build_app() -> typer.Typer:
@@ -84,6 +97,11 @@ def build_app() -> typer.Typer:
         ),
     )(inspect_cmd)
     app.command(
+        name="analyze",
+        help="DEPRECATED: use 'inspect' instead",
+        hidden=True,
+    )(analyze_alias)
+    app.command(
         name="gather",
         help="Interactive requirements gathering wizard",
     )(gather_cmd)
@@ -111,6 +129,11 @@ def build_app() -> typer.Typer:
         name="refactor",
         help="Suggest next workflow steps. Example: devsynth refactor",
     )(refactor_cmd)
+    app.command(
+        name="adaptive",
+        help="DEPRECATED: use 'refactor' instead",
+        hidden=True,
+    )(adaptive_alias)
     app.command(
         name="analyze-code",
         help=(
