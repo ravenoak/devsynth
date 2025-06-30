@@ -4,6 +4,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
 
+import toml
+
 from .loader import ConfigModel, load_config, save_config, _find_config_path
 
 
@@ -16,6 +18,14 @@ class UnifiedConfig:
     use_pyproject: bool
 
     def exists(self) -> bool:
+        if self.use_pyproject:
+            if not self.path.exists():
+                return False
+            try:
+                data = toml.load(self.path)
+            except Exception:
+                return False
+            return "devsynth" in data.get("tool", {})
         return self.path.exists()
 
     def set_root(self, root: str) -> None:
@@ -45,5 +55,15 @@ class UnifiedConfigLoader:
             use_pyproject = True
         else:
             cfg_path = root / ".devsynth" / "devsynth.yml"
+
         cfg = load_config(root)
         return UnifiedConfig(cfg, cfg_path, use_pyproject)
+
+    @staticmethod
+    def save(config: UnifiedConfig) -> Path:
+        """Persist a :class:`UnifiedConfig` to disk."""
+        return save_config(
+            config.config,
+            config.use_pyproject,
+            path=config.config.project_root,
+        )
