@@ -1,4 +1,20 @@
-from devsynth.core import CoreValues, check_report_for_value_conflicts
+import importlib.util
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location(
+    "devsynth.core.values",
+    Path(__file__).resolve().parents[2] / "src" / "devsynth" / "core" / "values.py",
+)
+values_mod = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+import sys
+
+sys.modules[spec.name] = values_mod
+spec.loader.exec_module(values_mod)
+
+CoreValues = values_mod.CoreValues
+find_value_conflicts = values_mod.find_value_conflicts
+check_report_for_value_conflicts = values_mod.check_report_for_value_conflicts
 
 
 def test_load_core_values(tmp_path):
@@ -10,7 +26,13 @@ def test_load_core_values(tmp_path):
     assert values.statements == ["integrity", "transparency"]
 
 
-def test_conflict_detection(tmp_path):
+def test_find_value_conflicts():
+    values = CoreValues(["integrity", "transparency"])
+    text = "This plan would violate integrity while remaining transparent."
+    assert find_value_conflicts(text, values) == ["integrity"]
+
+
+def test_check_report_for_value_conflicts(tmp_path):
     values_dir = tmp_path / ".devsynth"
     values_dir.mkdir()
     (values_dir / "values.yml").write_text("- honesty\n")

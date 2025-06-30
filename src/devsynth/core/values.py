@@ -14,6 +14,22 @@ class CoreValues:
 
     statements: List[str] = field(default_factory=list)
 
+    def add_value(self, value: str) -> None:
+        """Add a value to ``statements`` if not already present."""
+        value = str(value).strip()
+        if value and value not in self.statements:
+            self.statements.append(value)
+
+    def update_values(self, values: Iterable[str]) -> None:
+        """Replace ``statements`` with the given values, ensuring uniqueness."""
+        self.statements = []
+        for val in values:
+            self.add_value(val)
+
+    def validate_report(self, report: Dict[str, Any]) -> List[str]:
+        """Return any value conflicts found within ``report``."""
+        return check_report_for_value_conflicts(report, self)
+
     @classmethod
     def load(cls, start_path: Optional[str | Path] = None) -> "CoreValues":
         """Load values from ``.devsynth/values.yml``.
