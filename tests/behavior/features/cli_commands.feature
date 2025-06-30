@@ -37,6 +37,11 @@ Feature: CLI Command Execution
     Then the workflow should execute successfully
     And the system should display a success message
 
+  Scenario: Run the wizard via command line
+    When I run the command "devsynth init --wizard"
+    Then the workflow should execute successfully
+    And the system should display a success message
+
   Scenario: Generate specifications with custom requirements file
     When I run the command "devsynth inspect --requirements-file custom-requirements.md"
     Then the system should process the "custom-requirements.md" file

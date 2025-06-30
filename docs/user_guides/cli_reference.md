@@ -143,6 +143,7 @@ Initialize a new DevSynth project or onboard an existing one.
 devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--language LANG]
              [--source-dirs DIRS] [--test-dirs DIRS] [--docs-dirs DIRS]
              [--extra-languages LANGS] [--goals TEXT] [--constraints FILE]
+             [--wizard]
 ```
 
 **Options:**
@@ -156,8 +157,9 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--extra-languages`: Additional languages used in the project
 - `--goals`: High-level goals or constraints for the project
 - `--constraints`: Path to a constraint configuration file
+- `--wizard`: Launch the guided setup wizard even outside a detected project
 
-This command now detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `devsynth.yml`.
+This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `devsynth.yml`. Use the `--wizard` flag to start the wizard explicitly in any directory.
 The wizard reads configuration using the [Unified Config Loader](../implementation/config_loader_workflow.md),
 which prefers the `[tool.devsynth]` table in `pyproject.toml` when both files are present.
 During the wizard you will:
@@ -192,6 +194,9 @@ devsynth init --project-root ./existing --language javascript
 devsynth init --project-root . --language python \
   --source-dirs src --test-dirs tests --docs-dirs docs \
   --extra-languages javascript --goals "demo"
+
+# Start the guided wizard directly
+devsynth init --wizard
 ```
 
 ### inspect

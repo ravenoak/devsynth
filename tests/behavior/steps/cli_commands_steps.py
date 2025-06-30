@@ -92,6 +92,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 language = None
                 constraints = None
                 goals = None
+                wizard_flag = False
 
                 # Parse all arguments
                 i = 1
@@ -117,21 +118,31 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     elif args[i] == "--goals" and i + 1 < len(args):
                         goals = args[i + 1]
                         i += 2
+                    elif args[i] == "--wizard":
+                        wizard_flag = True
+                        i += 1
                     else:
                         i += 1
 
                 # Call the init command with the path
                 # Note: The actual init_cmd function only takes path, but we need to
                 # mock as if it's passing all parameters to the workflow manager
-                init_cmd(
-                    path,
-                    name=name,
-                    template=template,
-                    project_root=project_root,
-                    language=language,
-                    constraints=constraints,
-                    goals=goals,
-                )
+                if wizard_flag:
+                    with patch(
+                        "devsynth.application.cli.setup_wizard.SetupWizard"
+                    ) as MockWiz:
+                        MockWiz.return_value.run.return_value = None
+                        init_cmd(wizard=True)
+                else:
+                    init_cmd(
+                        path,
+                        name=name,
+                        template=template,
+                        project_root=project_root,
+                        language=language,
+                        constraints=constraints,
+                        goals=goals,
+                    )
 
                 # For testing purposes, we need to manually set the call args on the mock
                 # This simulates what would happen if the init_cmd function passed all parameters
@@ -151,6 +162,8 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     init_args["constraints"] = constraints
                 if goals:
                     init_args["goals"] = goals
+                if wizard_flag:
+                    init_args = {"wizard": True}
 
                 # Manually set the call args on the mock
                 mock_workflow_manager.execute_command("init", init_args)
