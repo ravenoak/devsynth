@@ -316,6 +316,32 @@ Toggle a feature flag in your project configuration.
 devsynth config enable-feature <name>
 ```
 
+#### Feature Flags
+
+The `config enable-feature` command toggles optional capabilities defined in
+the configuration file. The default feature flags are:
+
+| Flag | Default |
+|------|---------|
+| `wsde_collaboration` | `true` |
+| `dialectical_reasoning` | `false` |
+| `code_generation` | `false` |
+| `test_generation` | `false` |
+| `documentation_generation` | `false` |
+| `prompt_auto_tuning` | `false` |
+| `automatic_phase_transitions` | `true` |
+| `collaboration_notifications` | `true` |
+
+If every feature is disabled, the CLI emits a warning at startup. This behaviour
+is implemented in
+`src/devsynth/adapters/cli/typer_adapter.py` via the `_warn_if_features_disabled`
+helper.
+
+**Example:**
+```bash
+devsynth config enable-feature code_generation
+```
+
 
 ### run-pipeline
 
