@@ -87,6 +87,12 @@ def _web_bridge(monkeypatch):
     st.spinner = DummyForm
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
+    setup_module = ModuleType("devsynth.application.cli.setup_wizard")
+    setup_module.SetupWizard = MagicMock()
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.setup_wizard", setup_module
+    )
+
     cli_stub = ModuleType("devsynth.application.cli")
     for name in [
         "init_cmd",

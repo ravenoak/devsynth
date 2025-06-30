@@ -36,9 +36,9 @@ backend functions.
 | `webapp`                  | N/A (planned **Database/Web App** helper page)       |
 | `serve`                   | N/A (planned server management page; currently runs API server from CLI)                       |
 | `dbschema`                | N/A (planned **Database** helper page)               |
-| `doctor` / `check`        | N/A (planned configuration validation)               |
-| `edrr-cycle`              | N/A (planned **EDRR Cycle** page)                    |
-| `align`                   | N/A (planned **Reports** page)                       |
+| `doctor` / `check`        | **Doctor** – Diagnostics page   |
+| `edrr-cycle`              | **EDRR Cycle** – Cycle execution page   |
+| `align`                   | **Alignment** – SDLC consistency checks   |
 | `alignment-metrics`       | N/A (planned **Reports** page)                       |
 | `analyze-manifest`        | N/A (planned configuration analysis section)         |
 | `analyze-config`          | N/A (alias of `analyze-manifest`)                    |
@@ -56,9 +56,6 @@ The following CLI commands remain **N/A** in the WebUI (all planned for future i
 - `webapp` (planned)
 - `serve` (planned)
 - `dbschema` (planned)
-- `doctor` / `check` (planned)
-- `edrr-cycle` (planned)
-- `align` (planned)
 - `alignment-metrics` (planned)
 - `analyze-manifest` (planned)
 - `analyze-config` (planned)
