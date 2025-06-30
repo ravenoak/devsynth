@@ -13,19 +13,29 @@ last_reviewed: "2025-06-16"
 
 # Delimiting Recursion Algorithms
 
-This specification describes heuristics for terminating recursive EDRR cycles. These algorithms ensure the system balances thorough exploration with resource constraints.
+This specification describes heuristics for terminating recursive EDRR cycles.
+They mirror the logic in `EDRRCoordinator.should_terminate_recursion`, ensuring
+the system balances exploration with cost and quality constraints.
 
 ## Termination Heuristics
 
 1. **Maximum Depth**
-   - Abort recursion when `depth` exceeds a configurable limit.
+   - Recursion is aborted when `recursion_depth` reaches `DEFAULT_MAX_RECURSION_DEPTH`.
 2. **Granularity Threshold**
-   - Skip recursion for tasks estimated below a complexity threshold.
+   - If a task provides `granularity_score` below `DEFAULT_GRANULARITY_THRESHOLD`
+     the coordinator skips creating a micro cycle.
 3. **Cost Benefit Ratio**
-   - Estimate potential benefit of another cycle versus expected cost. Stop when benefit drops below a defined ratio.
-4. **Quality Plateau Detection**
-   - Track quality metrics between cycles and stop when improvements fall below a minimum delta.
-5. **Human Override**
-   - Allow manual confirmation to continue or abort recursion when automated metrics are inconclusive.
+   - When both `cost_score` and `benefit_score` are supplied, their ratio is compared
+     against `DEFAULT_COST_BENEFIT_RATIO`. Higher values terminate recursion.
+4. **Quality Threshold**
+   - A `quality_score` exceeding `DEFAULT_QUALITY_THRESHOLD` indicates sufficient
+     quality, so further recursion is not pursued.
+5. **Resource Limit**
+   - If `resource_usage` surpasses `DEFAULT_RESOURCE_LIMIT` the cycle stops to
+     conserve resources.
+6. **Human Override**
+   - A task may include `human_override` with values `"terminate"` or
+     `"continue"` to explicitly control recursion.
 
-These heuristics are referenced by `should_terminate` in the [Recursive EDRR Pseudocode](recursive_edrr_pseudocode.md).
+These heuristics are implemented in `EDRRCoordinator.should_terminate_recursion`
+and referenced in the [Recursive EDRR Pseudocode](recursive_edrr_pseudocode.md).

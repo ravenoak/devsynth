@@ -13,7 +13,11 @@ last_reviewed: "2025-06-16"
 
 # Recursive EDRR Pseudocode
 
-This document outlines the pseudocode for orchestrating recursive EDRR cycles. It focuses on the main function signatures and how control flows between nested cycles.
+This document outlines the pseudocode for orchestrating recursive EDRR cycles.
+It summarizes the logic implemented in `EDRRCoordinator`, the class that
+manages the Expand-Differentiate-Refine-Retrospect workflow. The coordinator can
+spawn micro cycles within each phase and aggregates their results back into the
+parent cycle.
 
 ## Core Functions
 
@@ -64,3 +68,33 @@ function retrospect(context) -> Context:
 5. Results propagate back up the call stack once termination conditions are met.
 
 For more background on the EDRR methodology, see the [EDRR Cycle Specification](edrr_cycle_specification.md).
+
+## Micro Cycle Creation
+
+`EDRRCoordinator.create_micro_cycle` encapsulates the recursion logic:
+
+```pseudocode
+function create_micro_cycle(task, parent_phase) -> EDRRCoordinator:
+    if recursion_depth >= DEFAULT_MAX_RECURSION_DEPTH:
+        raise Error("Maximum recursion depth exceeded")
+    if should_terminate_recursion(task):
+        raise Error("Recursion terminated based on heuristics")
+
+    micro = EDRRCoordinator(
+        memory_manager,
+        wsde_team,
+        ...,
+        recursion_depth + 1,
+        parent_phase = parent_phase
+    )
+
+    micro.start_cycle(task)
+    child_cycles.append(micro)
+    store_micro_cycle_results(micro)
+    return micro
+```
+
+The coordinator checks `should_terminate_recursion` before spawning a micro
+cycle. If recursion proceeds, the child coordinator inherits the parent's
+dependencies and increments `recursion_depth`. Results from the micro cycle are
+stored under the parent's phase data so the overall cycle reflects nested work.
