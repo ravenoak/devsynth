@@ -37,7 +37,7 @@ This document outlines the foundational components of the agent system, includin
 
 User interaction is unified through the ``UXBridge`` abstraction.  Each
 front‑end (CLI, WebUI and Agent API) implements this interface so workflow
-functions remain UI agnostic.  ``UXBridge`` defines:
+functions remain UI agnostic.  ``UXBridge`` defines four core methods:
 
 - ``ask_question(message, choices=None, default=None, show_default=True)`` –
   return a string answer.
@@ -49,10 +49,10 @@ functions remain UI agnostic.  ``UXBridge`` defines:
 
 These methods provide a consistent user experience across all bridges while
 allowing each implementation to use its own presentation logic.  Every
-front‑end bridge (CLI, WebUI, Agent API or others) **must** implement these four
-methods so workflow functions remain UI agnostic.  Unit tests instantiate each
-bridge to verify that ``ask_question``, ``confirm_choice``, ``display_result`` and
-``create_progress`` are present and callable.
+front‑end bridge (CLI, WebUI, Agent API or others) **must** implement the four
+methods ``ask_question``, ``confirm_choice``, ``display_result`` and
+``create_progress`` so workflow functions remain UI agnostic.  Unit tests
+instantiate each bridge to verify these methods are present and callable.
 
 ## AgentState (`graph_state.py`)
 
