@@ -1,7 +1,6 @@
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
-import inspect
 
 import pytest
 
@@ -54,17 +53,28 @@ def _get_webui(monkeypatch):
     return WebUI, st
 
 
-@pytest.mark.parametrize("cls", [CLIUXBridge, APIBridge])
-def test_class_inherits_uxbridge(cls):
-    assert issubclass(cls, UXBridge)
-    bridge = cls() if cls is not APIBridge else cls([])
-    for name in ["ask_question", "confirm_choice", "display_result", "create_progress"]:
-        assert callable(getattr(bridge, name))
-    assert isinstance(bridge.create_progress("x"), ProgressIndicator)
+def _make_cli(monkeypatch):
+    return CLIUXBridge()
 
 
-def test_webui_inherits_uxbridge(monkeypatch):
+def _make_api(monkeypatch):
+    return APIBridge([])
+
+
+def _make_web(monkeypatch):
     WebUI, _ = _get_webui(monkeypatch)
-    assert issubclass(WebUI, UXBridge)
-    bridge = WebUI()
+    return WebUI()
+
+
+@pytest.mark.parametrize("factory", [_make_cli, _make_api, _make_web])
+def test_bridge_implements_methods(factory, monkeypatch):
+    bridge = factory(monkeypatch)
+    assert isinstance(bridge, UXBridge)
+    for name in [
+        "ask_question",
+        "confirm_choice",
+        "display_result",
+        "create_progress",
+    ]:
+        assert callable(getattr(bridge, name))
     assert isinstance(bridge.create_progress("x"), ProgressIndicator)
