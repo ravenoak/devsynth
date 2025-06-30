@@ -40,8 +40,7 @@ backend functions.
 | `edrr-cycle`              | **EDRR Cycle** – Cycle execution page   |
 | `align`                   | **Alignment** – SDLC consistency checks   |
 | `alignment-metrics`       | N/A (planned **Reports** page)                       |
-| `analyze-manifest`        | N/A (planned configuration analysis section)         |
-| `analyze-config`          | N/A (alias of `analyze-manifest`)                    |
+| `inspect-config`          | N/A (configuration analysis section)                 |
 | `validate-manifest`       | N/A (planned configuration validation)               |
 | `validate-metadata`       | N/A (planned configuration validation)               |
 | `test-metrics`            | N/A (planned test metrics report)                    |
@@ -57,8 +56,7 @@ The following CLI commands remain **N/A** in the WebUI (all planned for future i
 - `serve` (planned)
 - `dbschema` (planned)
 - `alignment-metrics` (planned)
-- `analyze-manifest` (planned)
-- `analyze-config` (planned)
+- `inspect-config` (planned)
 - `validate-manifest` (planned)
 - `validate-metadata` (planned)
 - `test-metrics` (planned)

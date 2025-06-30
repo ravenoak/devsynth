@@ -12,7 +12,7 @@ from io import StringIO
 # Import the CLI modules
 from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
-from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
+from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
 # Register the scenarios
 scenarios("../features/analyze_commands.feature")
@@ -117,7 +117,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "analyze-code", analyze_code_args
                 )
-            elif args[0] == "analyze-manifest":
+            elif args[0] == "inspect-config":
                 # Parse the arguments
                 path = None
                 update = False
@@ -138,23 +138,23 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     else:
                         i += 1
 
-                # Call the analyze-manifest command
-                analyze_manifest_cmd(path, update, prune)
+                # Call the inspect-config command
+                inspect_config_cmd(path, update, prune)
 
                 # For testing purposes, we need to manually set the call args on the mock
                 mock_workflow_manager.execute_command.reset_mock()
 
                 # Prepare the arguments for the mock
-                analyze_manifest_args = {"path": path, "update": update, "prune": prune}
+                inspect_config_args = {"path": path, "update": update, "prune": prune}
 
                 # Manually set the call args on the mock
                 mock_workflow_manager.execute_command(
-                    "analyze-manifest", analyze_manifest_args
+                    "inspect-config", inspect_config_args
                 )
 
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "analyze-manifest", analyze_manifest_args
+                    "inspect-config", inspect_config_args
                 )
             else:
                 # Invalid command, show help
@@ -331,24 +331,24 @@ def check_project_health_score(command_context):
 
 
 @then(parsers.parse("the system should analyze the project configuration"))
-def check_analyze_manifest(mock_workflow_manager, command_context):
+def check_inspect_config(mock_workflow_manager, command_context):
     """
     Verify that the system analyzed the project configuration.
     """
-    # Check that the analyze-manifest command was called
+    # Check that the inspect-config command was called
     mock_workflow_manager.execute_command.assert_any_call(
-        "analyze-manifest", {"path": None, "update": False, "prune": False}
+        "inspect-config", {"path": None, "update": False, "prune": False}
     )
 
 
 @then(parsers.parse('the system should analyze the project configuration at "{path}"'))
-def check_analyze_manifest_path(path, mock_workflow_manager):
+def check_inspect_config_path(path, mock_workflow_manager):
     """
     Verify that the system analyzed the project configuration at the specified path.
     """
-    # Check that the analyze-manifest command was called with the correct path
+    # Check that the inspect-config command was called with the correct path
     mock_workflow_manager.execute_command.assert_any_call(
-        "analyze-manifest", {"path": path, "update": False, "prune": False}
+        "inspect-config", {"path": path, "update": False, "prune": False}
     )
 
 
@@ -384,9 +384,9 @@ def check_update_configuration(mock_workflow_manager):
     """
     Verify that the system updated the configuration with new findings.
     """
-    # Check that the analyze-manifest command was called with update=True
+    # Check that the inspect-config command was called with update=True
     mock_workflow_manager.execute_command.assert_any_call(
-        "analyze-manifest", {"path": None, "update": True, "prune": False}
+        "inspect-config", {"path": None, "update": True, "prune": False}
     )
 
 
@@ -404,9 +404,9 @@ def check_prune_configuration(mock_workflow_manager):
     """
     Verify that the system removed entries that no longer exist.
     """
-    # Check that the analyze-manifest command was called with prune=True
+    # Check that the inspect-config command was called with prune=True
     mock_workflow_manager.execute_command.assert_any_call(
-        "analyze-manifest", {"path": None, "update": False, "prune": True}
+        "inspect-config", {"path": None, "update": False, "prune": True}
     )
 
 
