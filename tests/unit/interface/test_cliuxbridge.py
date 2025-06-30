@@ -23,3 +23,23 @@ def test_cliuxbridge_display_result():
     with patch("rich.console.Console.print") as out:
         bridge.display_result("done", highlight=True)
         out.assert_called_once_with("done", highlight=True)
+
+
+def test_cliuxbridge_ask_question_validates_input():
+    bridge = CLIUXBridge()
+    with (
+        patch("rich.prompt.Prompt.ask", return_value="bad") as ask,
+        patch(
+            "devsynth.interface.cli.validate_safe_input",
+            side_effect=lambda x: f"clean-{x}",
+        ) as validate,
+    ):
+        result = bridge.ask_question("msg")
+        ask.assert_called_once_with(
+            "msg",
+            choices=None,
+            default=None,
+            show_default=True,
+        )
+        validate.assert_called_once_with("bad")
+        assert result == "clean-bad"
