@@ -1,6 +1,7 @@
 from unittest.mock import patch, mock_open, MagicMock
 import os
 import yaml
+from devsynth.config.unified_loader import UnifiedConfigLoader
 
 import pytest
 
@@ -51,7 +52,7 @@ class TestCLICommands:
 
         with (
             patch(
-                "devsynth.core.config_loader.load_config",
+                "devsynth.config.unified_loader.UnifiedConfigLoader.load",
                 return_value=cfg,
             ),
             patch(
@@ -80,7 +81,7 @@ class TestCLICommands:
         cfg.exists.return_value = True
 
         with patch(
-            "devsynth.core.config_loader.load_config",
+            "devsynth.config.unified_loader.UnifiedConfigLoader.load",
             return_value=cfg,
         ):
             init_cmd()
@@ -90,7 +91,7 @@ class TestCLICommands:
         """Errors are reported via the bridge."""
 
         with patch(
-            "devsynth.core.config_loader.load_config",
+            "devsynth.config.unified_loader.UnifiedConfigLoader.load",
             side_effect=Exception("boom"),
         ):
             init_cmd()
@@ -272,8 +273,8 @@ class TestCLICommands:
         finally:
             os.chdir(cwd)
 
-        data = yaml.safe_load(config_file.read_text())
-        assert data["features"]["code_generation"] is True
+        cfg = UnifiedConfigLoader.load(tmp_path).config
+        assert cfg.features["code_generation"] is True
         assert any(
             "Feature 'code_generation' enabled." == call.args[0]
             for call in mock_bridge.display_result.call_args_list
@@ -286,7 +287,7 @@ class TestCLICommands:
         cfg.write_text("language: python\n")
 
         def fake_exec(command, args):
-            data = yaml.safe_load(cfg.read_text()) or {}
+            data = UnifiedConfigLoader.load(tmp_path).config.as_dict()
             if command == "config" and args.get("key") and args.get("value"):
                 data[args["key"]] = args["value"]
                 cfg.write_text(yaml.safe_dump(data))
@@ -304,8 +305,8 @@ class TestCLICommands:
             finally:
                 os.chdir(cwd)
 
-        data = yaml.safe_load(cfg.read_text())
-        assert data["language"] == "javascript"
+        cfg_loaded = UnifiedConfigLoader.load(tmp_path).config
+        assert cfg_loaded.language == "javascript"
 
     def test_enable_feature_cmd_yaml(self, tmp_path, mock_bridge):
         cfg_dir = tmp_path / ".devsynth"
@@ -320,8 +321,8 @@ class TestCLICommands:
         finally:
             os.chdir(cwd)
 
-        data = yaml.safe_load(cfg.read_text())
-        assert data["features"]["code_generation"] is True
+        cfg_loaded = UnifiedConfigLoader.load(tmp_path).config
+        assert cfg_loaded.features["code_generation"] is True
 
     def test_config_cmd_uses_loader(self, mock_workflow_manager, mock_bridge):
         cfg = MagicMock()
@@ -331,7 +332,7 @@ class TestCLICommands:
         mock_workflow_manager.return_value = {"success": True}
 
         with patch(
-            "devsynth.core.config_loader.load_config",
+            "devsynth.config.unified_loader.UnifiedConfigLoader.load",
             return_value=cfg,
         ) as mock_load:
             cli_commands.config_cmd("language", "javascript")
@@ -343,7 +344,7 @@ class TestCLICommands:
         cfg.features = {}
 
         with patch(
-            "devsynth.core.config_loader.load_config",
+            "devsynth.config.unified_loader.UnifiedConfigLoader.load",
             return_value=cfg,
         ) as mock_load:
             cli_commands.enable_feature_cmd("code_generation")
@@ -376,7 +377,7 @@ class TestCLICommands:
 
         with (
             patch(
-                "devsynth.core.config_loader.load_config",
+                "devsynth.config.unified_loader.UnifiedConfigLoader.load",
                 side_effect=spy_load,
             ) as mock_load,
             patch(
@@ -528,7 +529,7 @@ class TestCLICommands:
     def test_doctor_cmd_invokes_loader(self):
         with (
             patch(
-                "devsynth.core.config_loader.load_config"
+                "devsynth.config.unified_loader.UnifiedConfigLoader.load"
             ) as mock_load,
             patch(
                 "devsynth.application.cli.commands.doctor_cmd.bridge.print"

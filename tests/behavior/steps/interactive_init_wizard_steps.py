@@ -4,6 +4,7 @@ import os
 import json
 import toml
 import yaml
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from pathlib import Path
 from typing import Sequence, Optional
 from unittest.mock import MagicMock
@@ -72,13 +73,7 @@ def run_wizard(tmp_project_dir, monkeypatch):
 
 @then("a project configuration file should include the selected options")
 def check_config(tmp_project_dir):
-    cfg_file = Path(tmp_project_dir) / ".devsynth" / "project.yaml"
-    if not cfg_file.exists():
-        cfg_file = Path(tmp_project_dir) / "pyproject.toml"
-    if cfg_file.suffix == ".toml":
-        data = toml.load(cfg_file)["tool"]["devsynth"]
-    else:
-        data = yaml.safe_load(cfg_file.read_text())
-    assert data["memory_store_type"] == "kuzu"
-    assert data["offline_mode"] is True
-    assert data["features"]["wsde_collaboration"] is True
+    cfg = UnifiedConfigLoader.load(tmp_project_dir).config
+    assert cfg.memory_store_type == "kuzu"
+    assert cfg.offline_mode is True
+    assert cfg.features["wsde_collaboration"] is True
