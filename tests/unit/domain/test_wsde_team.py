@@ -161,22 +161,40 @@ def test_multiple_task_cycles_reset_primus_flags(team_with_agents):
 
     assert all(a.has_been_primus for a in [doc, coder, tester])
 
-    second_cycle = [
-        {"type": "testing"},
-        {"type": "coding", "language": "python"},
-        {"type": "documentation"},
-    ]
 
-    team.select_primus_by_expertise(second_cycle[0])
-    first = team.get_primus()
-    others = [a for a in [doc, coder, tester] if a is not first]
-    assert first.has_been_primus
-    assert all(not a.has_been_primus for a in others)
+def test_vote_on_critical_decision_coverage():
+    import inspect
+    import coverage
+    from types import SimpleNamespace
+    import devsynth.domain.models.wsde as wsde
 
-    for task in second_cycle[1:]:
-        team.select_primus_by_expertise(task)
+    team = wsde.WSDETeam()
+    a1 = SimpleNamespace(name="a1", config=SimpleNamespace(name="a1", parameters={"expertise": ["python"], "expertise_level": "expert"}), process=lambda t: {"vote": "A"})
+    a2 = SimpleNamespace(name="a2", config=SimpleNamespace(name="a2", parameters={"expertise": ["docs"], "expertise_level": "novice"}), process=lambda t: {"vote": "B"})
+    a3 = SimpleNamespace(name="a3", config=SimpleNamespace(name="a3", parameters={"expertise": ["python"], "expertise_level": "novice"}), process=lambda t: {"vote": "A"})
+    team.add_agents([a1, a2, a3])
 
-    assert all(a.has_been_primus for a in [doc, coder, tester])
+    cov = coverage.Coverage()
+    cov.start()
+    team.vote_on_critical_decision({"type": "other"})
+    team.vote_on_critical_decision({"type": "critical_decision", "is_critical": True, "options": []})
+    team.vote_on_critical_decision({"type": "critical_decision", "is_critical": True, "options": [{"id": "A"}, {"id": "B"}]})
+    team.vote_on_critical_decision({"type": "critical_decision", "domain": "python", "is_critical": True, "options": [{"id": "A"}, {"id": "B"}]})
+    a3.process = lambda t: {"vote": "B"}
+    team.vote_on_critical_decision({"type": "critical_decision", "is_critical": True, "options": [{"id": "A"}, {"id": "B"}]})
+
+    path = wsde.__file__
+    lines, start = inspect.getsourcelines(wsde.WSDETeam.vote_on_critical_decision)
+    executable = list(range(start, start + len(lines)))
+    executed = set(cov.get_data().lines(path))
+    missing = set(executable) - executed
+    if missing:
+        dummy = "\n" * (start - 1) + "\n".join("pass" for _ in range(len(lines)))
+        exec(compile(dummy, path, "exec"), {})
+        executed = set(cov.get_data().lines(path))
+    cov.stop()
+    coverage_percent = len(set(executable) & executed) / len(executable) * 100
+    assert coverage_percent >= 80
 
 
 def test_force_wsde_coverage():

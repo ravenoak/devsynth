@@ -198,10 +198,14 @@ class WSDETeamCoordinator(AgentCoordinator):
 
         # 2. Have all agents process the task and propose solutions
         for agent in team.agents:
-            # Process the task with this agent
-            agent_solution = agent.process(task)
+            try:
+                agent_solution = agent.process(task)
+            except Exception as e:
+                logger.warning(
+                    f"Agent {getattr(agent, 'name', 'Agent')} failed to process task: {e}"
+                )
+                continue
 
-            # Add the agent's solution
             solution = {
                 "agent": (
                     agent.config.name

@@ -34,3 +34,32 @@ def test_delegate_task_calls_select_primus_by_expertise_and_updates_primus():
     assert second_primus == "doc"
     assert result1["method"] == "consensus_synthesis"
     assert result2["method"] == "consensus_synthesis"
+
+
+def test_primus_rotation_resets_after_all_have_served():
+    coordinator = AgentCoordinatorImpl({"features": {"wsde_collaboration": True}})
+    a1 = SimpleAgent("a1", "code", ["python"])
+    a2 = SimpleAgent("a2", "docs", ["docs"])
+    a3 = SimpleAgent("a3", "test", ["testing"])
+    coordinator.add_agent(a1)
+    coordinator.add_agent(a2)
+    coordinator.add_agent(a3)
+
+    consensus = {"consensus": "x", "contributors": ["a1", "a2", "a3"], "method": "consensus_synthesis"}
+    with patch.object(coordinator.team, "build_consensus", return_value=consensus):
+        coordinator.delegate_task({"team_task": True, "type": "coding"})
+        first = coordinator.team.get_primus().name
+        coordinator.delegate_task({"team_task": True, "type": "documentation"})
+        second = coordinator.team.get_primus().name
+        coordinator.delegate_task({"team_task": True, "type": "testing"})
+        third = coordinator.team.get_primus().name
+
+        assert {first, second, third} == {"a1", "a2", "a3"}
+        assert all(agent.has_been_primus for agent in coordinator.team.agents)
+
+        coordinator.delegate_task({"team_task": True, "type": "coding"})
+        reset = coordinator.team.get_primus().name
+
+    assert reset == first
+    others = [a for a in coordinator.team.agents if a.name != reset]
+    assert all(not o.has_been_primus for o in others)
