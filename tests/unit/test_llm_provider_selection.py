@@ -7,8 +7,7 @@ from devsynth.application.llm.openai_provider import OpenAIProvider
 
 def _mock_config(offline: bool):
     cfg = types.SimpleNamespace()
-    cfg.config = types.SimpleNamespace()
-    cfg.config.as_dict = lambda: {"offline_mode": offline}
+    cfg.as_dict = lambda: {"offline_mode": offline}
     return cfg
 
 
@@ -17,7 +16,7 @@ def test_offline_mode_selects_offline_provider(monkeypatch):
         "devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE", False
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.load_project_config",
+        "devsynth.application.llm.providers.load_config",
         lambda: _mock_config(True),
     )
     monkeypatch.setattr(
@@ -37,7 +36,7 @@ def test_online_mode_uses_configured_provider(monkeypatch):
         "devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE", False
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.load_project_config",
+        "devsynth.application.llm.providers.load_config",
         lambda: _mock_config(False),
     )
     monkeypatch.setattr(

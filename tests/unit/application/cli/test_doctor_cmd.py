@@ -53,7 +53,7 @@ def test_doctor_cmd_old_python_and_missing_env_warn(monkeypatch):
 
     with (
         _patch_validation_loader(),
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd("config")
@@ -117,7 +117,7 @@ def test_doctor_cmd_success(tmp_path, monkeypatch):
 
     with (
         _patch_validation_loader(),
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
@@ -141,7 +141,7 @@ def test_doctor_cmd_invalid_config(tmp_path, monkeypatch):
 
     with (
         _patch_validation_loader(),
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
@@ -163,7 +163,7 @@ def test_doctor_cmd_missing_env_vars(monkeypatch, missing):
 
     with (
         _patch_validation_loader(),
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load", return_value=cfg),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd("config")

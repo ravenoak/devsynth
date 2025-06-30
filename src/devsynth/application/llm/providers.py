@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional
 import httpx
 from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 import os
-from devsynth.config import load_project_config, get_llm_settings
+from devsynth.core.config_loader import load_config
+from devsynth.config import get_llm_settings
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -191,7 +192,7 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
 def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
     """Return an LLM provider based on configuration."""
 
-    cfg = config or load_project_config().config.as_dict()
+    cfg = config or load_config().as_dict()
     offline = cfg.get("offline_mode", False)
 
     llm_cfg = get_llm_settings()

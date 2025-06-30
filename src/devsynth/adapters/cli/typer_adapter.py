@@ -1,6 +1,6 @@
 import typer
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.config import load_project_config
+from devsynth.core.config_loader import load_config
 
 from devsynth.application.cli import (
     init_cmd,
@@ -179,7 +179,7 @@ app = build_app()
 def _warn_if_features_disabled() -> None:
     """Emit a notice when all feature flags are disabled."""
     try:
-        cfg = load_project_config().config
+        cfg = load_config()
         features = cfg.features or {}
         if features and not any(features.values()):
             typer.echo(

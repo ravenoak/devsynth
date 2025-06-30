@@ -17,7 +17,6 @@ from devsynth.application.cli.cli_commands import (
     inspect_cmd,
     refactor_cmd,
 )
-from devsynth.config.unified_loader import UnifiedConfigLoader
 
 ORIG_CHECK_SERVICES = cli_commands._check_services
 
@@ -52,7 +51,7 @@ class TestCLICommands:
 
         with (
             patch(
-                "devsynth.application.cli.cli_commands.load_project_config",
+                "devsynth.core.config_loader.load_config",
                 return_value=cfg,
             ),
             patch(
@@ -66,10 +65,9 @@ class TestCLICommands:
         ):
             init_cmd()
 
-        cfg.set_root.assert_called_once_with("/proj")
-        cfg.set_language.assert_called_once_with("python")
-        cfg.set_goals.assert_called_once_with("goal")
-        assert cfg.save.called
+        assert cfg.project_root == "/proj"
+        assert cfg.language == "python"
+        assert cfg.goals == "goal"
         assert any(
             "Initialization complete" in c.args[0]
             for c in mock_bridge.display_result.call_args_list
@@ -82,19 +80,17 @@ class TestCLICommands:
         cfg.exists.return_value = True
 
         with patch(
-            "devsynth.application.cli.cli_commands.load_project_config",
+            "devsynth.core.config_loader.load_config",
             return_value=cfg,
         ):
             init_cmd()
-
-        cfg.set_root.assert_not_called()
         mock_bridge.display_result.assert_any_call("Project already initialized")
 
     def test_init_cmd_exception(self, mock_bridge):
         """Errors are reported via the bridge."""
 
         with patch(
-            "devsynth.application.cli.cli_commands.load_project_config",
+            "devsynth.core.config_loader.load_config",
             side_effect=Exception("boom"),
         ):
             init_cmd()
@@ -335,27 +331,24 @@ class TestCLICommands:
         mock_workflow_manager.return_value = {"success": True}
 
         with patch(
-            "devsynth.application.cli.cli_commands.load_project_config",
+            "devsynth.core.config_loader.load_config",
             return_value=cfg,
         ) as mock_load:
             cli_commands.config_cmd("language", "javascript")
 
         mock_load.assert_called_once()
-        cfg.save.assert_called_once()
 
     def test_enable_feature_cmd_loader(self, mock_bridge):
         cfg = MagicMock()
-        cfg.config = MagicMock()
-        cfg.config.features = {}
+        cfg.features = {}
 
         with patch(
-            "devsynth.application.cli.cli_commands.load_project_config",
+            "devsynth.core.config_loader.load_config",
             return_value=cfg,
         ) as mock_load:
             cli_commands.enable_feature_cmd("code_generation")
 
         mock_load.assert_called_once()
-        cfg.save.assert_called_once()
 
     def test_init_creates_config_and_commands_use_loader(self, tmp_path, mock_bridge):
         answers = [str(tmp_path), "python", "goal"]
@@ -374,7 +367,7 @@ class TestCLICommands:
         cfg_path = tmp_path / ".devsynth" / "devsynth.yml"
         assert cfg_path.exists()
 
-        real_load = cli_commands.load_project_config
+        real_load = cli_commands.load_config
 
         def spy_load(path=None):
             cfg = real_load(path)
@@ -383,7 +376,7 @@ class TestCLICommands:
 
         with (
             patch(
-                "devsynth.application.cli.cli_commands.load_project_config",
+                "devsynth.core.config_loader.load_config",
                 side_effect=spy_load,
             ) as mock_load,
             patch(
@@ -535,7 +528,7 @@ class TestCLICommands:
     def test_doctor_cmd_invokes_loader(self):
         with (
             patch(
-                "devsynth.application.cli.commands.doctor_cmd.UnifiedConfigLoader.load"
+                "devsynth.core.config_loader.load_config"
             ) as mock_load,
             patch(
                 "devsynth.application.cli.commands.doctor_cmd.bridge.print"

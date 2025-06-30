@@ -42,7 +42,7 @@ def test_config_warnings(tmp_path, monkeypatch):
         patch.object(
             doctor_cmd.importlib.util, "spec_from_file_location", side_effect=fake_spec
         ),
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load"),
+        patch.object(doctor_cmd, "load_config"),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
@@ -107,7 +107,7 @@ def test_config_success(tmp_path, monkeypatch):
         patch.object(
             doctor_cmd.importlib.util, "spec_from_file_location", side_effect=fake_spec
         ),
-        patch.object(doctor_cmd.UnifiedConfigLoader, "load"),
+        patch.object(doctor_cmd, "load_config"),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))

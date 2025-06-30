@@ -6,14 +6,13 @@ from devsynth.application.llm.offline_provider import OfflineProvider
 
 def _mock_config():
     cfg = types.SimpleNamespace()
-    cfg.config = types.SimpleNamespace()
-    cfg.config.as_dict = lambda: {"offline_mode": True}
+    cfg.as_dict = lambda: {"offline_mode": True}
     return cfg
 
 
 def test_get_llm_provider_returns_offline(monkeypatch):
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.load_project_config",
+        "devsynth.application.llm.providers.load_config",
         lambda: _mock_config(),
     )
     monkeypatch.setattr(

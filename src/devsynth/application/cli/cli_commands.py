@@ -31,7 +31,8 @@ from devsynth.config import (
     get_settings,
     config_key_autocomplete as loader_autocomplete,
 )
-from devsynth.config import load_project_config
+from devsynth.core.config_loader import load_config
+from devsynth.config.loader import ConfigModel, save_config, _find_config_path
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd
 
@@ -111,8 +112,8 @@ def init_cmd(interactive: bool = False, *, bridge: Optional[UXBridge] = None) ->
             SetupWizard(bridge).run()
             return
 
-        config = load_project_config()
-        if config.exists():
+        config = load_config()
+        if _find_config_path(Path.cwd()) is not None:
             bridge.display_result("Project already initialized")
             return
 
@@ -127,7 +128,7 @@ def init_cmd(interactive: bool = False, *, bridge: Optional[UXBridge] = None) ->
         )
         offline_mode = bridge.confirm_choice("Enable offline mode?", default=False)
 
-        features = config.config.features or {}
+        features = config.features or {}
         for feat in [
             "wsde_collaboration",
             "dialectical_reasoning",
@@ -144,13 +145,16 @@ def init_cmd(interactive: bool = False, *, bridge: Optional[UXBridge] = None) ->
         if not bridge.confirm_choice("Proceed with initialization?", default=True):
             return
 
-        config.set_root(root)
-        config.set_language(language)
-        config.set_goals(goals)
-        config.config.memory_store_type = memory_backend
-        config.config.offline_mode = offline_mode
-        config.config.features = features
-        config.save()
+        config.project_root = root
+        config.language = language
+        config.goals = goals
+        config.memory_store_type = memory_backend
+        config.offline_mode = offline_mode
+        config.features = features
+        save_config(
+            ConfigModel(**config.as_dict()),
+            use_pyproject=(Path("pyproject.toml").exists()),
+        )
 
         bridge.display_result("Initialization complete", highlight=True)
     except Exception as err:  # pragma: no cover - defensive
@@ -286,15 +290,18 @@ def config_cmd(
     if ctx is not None and ctx.invoked_subcommand is not None:
         return
     try:
-        config = load_project_config()
+        config = load_config()
         args = {"key": key, "value": value}
         if list_models:
             args["list_models"] = True
         result = workflows.execute_command("config", args)
         if result.get("success"):
             if key and value:
-                setattr(config.config, key, value)
-                config.save()
+                setattr(config, key, value)
+                save_config(
+                    ConfigModel(**config.as_dict()),
+                    use_pyproject=(Path("pyproject.toml").exists()),
+                )
                 bridge.display_result(
                     f"[green]Configuration updated: {key} = {value}[/green]"
                 )
@@ -321,11 +328,14 @@ def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
     """
     bridge = _resolve_bridge(bridge)
     try:
-        config = load_project_config()
-        features = config.config.features or {}
+        config = load_config()
+        features = config.features or {}
         features[name] = True
-        config.config.features = features
-        config.save()
+        config.features = features
+        save_config(
+            ConfigModel(**config.as_dict()),
+            use_pyproject=(Path("pyproject.toml").exists()),
+        )
 
         bridge.display_result(f"Feature '{name}' enabled.")
     except Exception as err:

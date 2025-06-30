@@ -37,11 +37,11 @@ def mock_components():
 
 @pytest.fixture
 def mock_config():
-    """Patch load_project_config to return an empty config."""
+    """Patch config loader to return an empty config."""
     cfg = MagicMock()
-    cfg.config.as_dict.return_value = {}
+    cfg.as_dict.return_value = {}
     with patch(
-        "devsynth.application.cli.commands.edrr_cycle_cmd.load_project_config",
+        "devsynth.core.config_loader.load_config",
         return_value=cfg,
     ) as mock_loader:
         yield mock_loader
