@@ -24,6 +24,12 @@ from devsynth.application.cli.cli_commands import (
 from devsynth.application.cli.commands.validate_manifest_cmd import (
     validate_manifest_cmd,
 )
+from devsynth.application.cli.commands.validate_metadata_cmd import (
+    validate_metadata_cmd,
+)
+from devsynth.application.cli.commands.alignment_metrics_cmd import (
+    alignment_metrics_cmd,
+)
 from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.analyze_manifest_cmd import analyze_manifest_cmd
 
@@ -310,6 +316,37 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "analyze-manifest", analyze_manifest_args
                 )
+            elif args[0] == "alignment-metrics":
+                path = "."
+                metrics_file = ".devsynth/alignment_metrics.json"
+                output_file = None
+                i = 1
+                while i < len(args):
+                    if args[i] == "--path" and i + 1 < len(args):
+                        path = args[i + 1]
+                        i += 2
+                    elif args[i] == "--metrics-file" and i + 1 < len(args):
+                        metrics_file = args[i + 1]
+                        i += 2
+                    elif args[i] == "--output" and i + 1 < len(args):
+                        output_file = args[i + 1]
+                        i += 2
+                    else:
+                        i += 1
+
+                alignment_metrics_cmd(path, metrics_file, output_file)
+                mock_workflow_manager.execute_command.reset_mock()
+                metrics_args = {
+                    "path": path,
+                    "metrics_file": metrics_file,
+                    "output": output_file,
+                }
+                mock_workflow_manager.execute_command(
+                    "alignment-metrics", metrics_args
+                )
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "alignment-metrics", metrics_args
+                )
             elif args[0] == "validate-manifest":
                 manifest = None
                 schema = None
@@ -332,6 +369,37 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 )
                 mock_workflow_manager.execute_command.assert_called_with(
                     "validate-manifest", validate_args
+                )
+            elif args[0] == "validate-metadata":
+                directory = None
+                file = None
+                verbose = False
+                i = 1
+                while i < len(args):
+                    if args[i] == "--directory" and i + 1 < len(args):
+                        directory = args[i + 1]
+                        i += 2
+                    elif args[i] == "--file" and i + 1 < len(args):
+                        file = args[i + 1]
+                        i += 2
+                    elif args[i] == "--verbose":
+                        verbose = True
+                        i += 1
+                    else:
+                        i += 1
+
+                validate_metadata_cmd(directory, file, verbose)
+                mock_workflow_manager.execute_command.reset_mock()
+                metadata_args = {
+                    "directory": directory,
+                    "file": file,
+                    "verbose": verbose,
+                }
+                mock_workflow_manager.execute_command(
+                    "validate-metadata", metadata_args
+                )
+                mock_workflow_manager.execute_command.assert_called_with(
+                    "validate-metadata", metadata_args
                 )
             elif args[0] == "serve":
                 host = "0.0.0.0"
