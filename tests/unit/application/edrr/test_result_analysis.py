@@ -43,6 +43,39 @@ def coordinator():
     )
 
 
+@pytest.fixture
+def coordinator_with_values(tmp_path):
+    memory_manager = MagicMock(spec=MemoryManager)
+    memory_manager.stored_items = {}
+    memory_manager.store_with_edrr_phase.side_effect = (
+        lambda item, item_type, phase, metadata: memory_manager.stored_items.update(
+            {item_type: {"item": item, "phase": phase, "metadata": metadata}}
+        )
+    )
+    memory_manager.retrieve_with_edrr_phase.side_effect = (
+        lambda item_type, phase, metadata: memory_manager.stored_items.get(item_type, {}).get("item", {})
+    )
+    wsde_team = MagicMock(spec=WSDETeam)
+    code_analyzer = MagicMock(spec=CodeAnalyzer)
+    ast_transformer = MagicMock(spec=AstTransformer)
+    prompt_manager = MagicMock(spec=PromptManager)
+    documentation_manager = MagicMock(spec=DocumentationManager)
+
+    values_dir = tmp_path / ".devsynth"
+    values_dir.mkdir()
+    (values_dir / "values.yml").write_text("- honesty\n")
+
+    return EDRRCoordinator(
+        memory_manager=memory_manager,
+        wsde_team=wsde_team,
+        code_analyzer=code_analyzer,
+        ast_transformer=ast_transformer,
+        prompt_manager=prompt_manager,
+        documentation_manager=documentation_manager,
+        config={"project_root": str(tmp_path)},
+    )
+
+
 def test_extract_key_insights(coordinator):
     expand_results = {
         "ideas": [{"idea": "A"}, {"idea": "B"}],
@@ -110,3 +143,17 @@ def test_extract_future_considerations(coordinator):
     assert considerations
     assert any("pattern" in c for c in considerations)
     assert any("improvement" in c for c in considerations)
+
+
+def test_final_report_includes_value_conflicts(coordinator_with_values):
+    coordinator_with_values.cycle_id = "cid"
+    cycle_data = {
+        "task": {"description": "This will violate honesty."},
+        "expand": {},
+        "differentiate": {},
+        "refine": {},
+        "retrospect": {},
+    }
+    report = coordinator_with_values.generate_final_report(cycle_data)
+    assert "value_conflicts" in report
+    assert report["value_conflicts"] == ["honesty"]
