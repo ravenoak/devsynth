@@ -46,3 +46,11 @@ function config_key_autocomplete(incomplete):
     config = load_config()
     return [k for k in config.keys() if k.starts_with(incomplete)]
 ```
+
+## Prompt Auto Tuning
+
+When the feature flag `prompt_auto_tuning` is enabled in the loaded
+configuration, the :class:`UnifiedAgent` will adjust LLM generation
+parameters such as `temperature` using the `BasicPromptTuner`. Feedback
+recorded through the agent's `record_prompt_feedback` method gradually
+raises or lowers the sampling temperature to refine future prompts.
