@@ -1,7 +1,7 @@
 from pathlib import Path
 from rich.console import Console
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.core.config_loader import load_config, _find_project_config
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 import importlib.util
@@ -20,8 +20,8 @@ def doctor_cmd(config_dir: str = "config") -> None:
         `devsynth doctor --config-dir ./config`
     """
     try:
-        config = UnifiedConfigLoader.load()
-        if not config.exists():
+        config = load_config()
+        if _find_project_config(Path.cwd()) is None:
             bridge.print(
                 "[yellow]No project configuration found. Run 'devsynth init' to create it.[/yellow]"
             )
