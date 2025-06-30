@@ -126,6 +126,10 @@ class AgentCoordinatorImpl(AgentCoordinator):
         if not self.agents:
             raise TeamConfigurationError("No agents available in the team")
 
+        # Critical decisions use the WSDE voting mechanism
+        if task.get("type") == "critical_decision" and task.get("is_critical", False):
+            return self.team.vote_on_critical_decision(task)
+
         # Assign roles to team members
         phase_name = task.get("phase")
         if phase_name:
