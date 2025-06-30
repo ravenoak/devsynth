@@ -31,3 +31,5 @@ See the [Recursive EDRR Pseudocode](../specifications/recursive_edrr_pseudocode.
 
 - [EDRR Framework](edrr_framework.md)
 - [EDRR Cycle Specification](../specifications/edrr_cycle_specification.md)
+- [Recursive EDRR Pseudocode](../specifications/recursive_edrr_pseudocode.md)
+- [Delimiting Recursion Algorithms](../specifications/delimiting_recursion_algorithms.md)
