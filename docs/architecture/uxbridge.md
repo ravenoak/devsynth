@@ -112,3 +112,14 @@ agnostic:
 These expectations are enforced by unit tests in
 ``tests/unit/interface/test_uxbridge_consistency.py`` which instantiate each
 bridge and verify consistent behaviour.
+
+## Bridge Invariants
+
+Regardless of implementation, all bridges guarantee a few key invariants:
+
+- **Consistent return types** – `ask_question` always yields a string and
+  `confirm_choice` always yields a boolean.
+- **Output sanitization** – messages passed to `display_result` and progress
+  descriptions are sanitized with `sanitize_output` before presentation.
+- **Safe CLI input** – the CLI bridge validates user responses with
+  `validate_safe_input` so unsafe content is rejected early.

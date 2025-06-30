@@ -11,6 +11,7 @@ from devsynth.interface.ux_bridge import (
     ProgressIndicator,
     sanitize_output,
 )
+from devsynth.security import validate_safe_input
 
 
 class CLIProgressIndicator(ProgressIndicator):
@@ -53,12 +54,13 @@ class CLIUXBridge(UXBridge):
         default: Optional[str] = None,
         show_default: bool = True,
     ) -> str:
-        return Prompt.ask(
+        answer = Prompt.ask(
             message,
             choices=list(choices) if choices else None,
             default=default,
             show_default=show_default,
         )
+        return validate_safe_input(str(answer))
 
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         return Confirm.ask(message, default=default)
