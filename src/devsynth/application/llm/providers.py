@@ -196,6 +196,9 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
     offline = cfg.get("offline_mode", False)
 
     llm_cfg = get_llm_settings()
+    if "offline_provider" in cfg:
+        llm_cfg["offline_provider"] = cfg["offline_provider"]
+
     provider_type = "offline" if offline else llm_cfg.get("provider", "openai")
     return factory.create_provider(provider_type, llm_cfg)
 

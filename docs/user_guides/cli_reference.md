@@ -164,6 +164,10 @@ During the wizard you will:
 2. Choose whether to enable optional features such as ``wsde_collaboration`` and ``dialectical_reasoning``.
 3. Decide if DevSynth should operate in offline mode.
 
+When offline mode is enabled the CLI uses the settings under
+`offline_provider`. Set `offline_provider.model_path` to a local HuggingFace
+model so generation commands work without network access.
+
 **Examples:**
 ```bash
 # Initialize in current directory

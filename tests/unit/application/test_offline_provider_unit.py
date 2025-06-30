@@ -1,7 +1,7 @@
 from devsynth.application.llm.offline_provider import OfflineProvider
 
 
-def test_offline_provider_instantiation() -> None:
+def test_offline_provider_instantiation(tmp_path) -> None:
     provider = OfflineProvider()
     assert isinstance(provider, OfflineProvider)
     assert provider.generate("hello") == "[offline] hello"
