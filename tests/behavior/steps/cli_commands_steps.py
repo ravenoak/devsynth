@@ -407,6 +407,8 @@ def check_commands_in_help(command_context):
     ]
     for cmd in commands:
         assert cmd in output
+    assert "adaptive" not in output
+    assert "analyze" not in output
 
 
 @then("the output should include usage examples")
