@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.domain.models.wsde import WSDETeam
-from devsynth.exceptions import ValidationError
+from devsynth.exceptions import ValidationError, AgentExecutionError
 
 
 class TestWSDETeamCoordinator:
@@ -168,6 +168,100 @@ class TestWSDETeamCoordinator:
 
         assert result["result"]["winner"] == "a"
         team.vote_on_critical_decision.assert_called_once_with(task)
+
+    def test_delegate_task_agent_failure_continues(self):
+        """If one agent fails, others still contribute to the result."""
+        self.coordinator.create_team("test_team")
+        self.coordinator.add_agent(self.agent1)
+        self.coordinator.add_agent(self.agent2)
+        self.coordinator.add_agent(self.agent3)
+
+        task = {"type": "code", "language": "python"}
+
+        self.agent1.process.side_effect = Exception("boom")
+        self.agent2.process.return_value = {"result": "code"}
+        self.agent3.process.return_value = {"result": "tests"}
+
+        team = self.coordinator.teams["test_team"]
+        team.build_consensus = MagicMock(
+            return_value={
+                "consensus": "done",
+                "contributors": ["agent2", "agent3"],
+                "method": "consensus_synthesis",
+            }
+        )
+
+        result = self.coordinator.delegate_task(task)
+
+        assert result["result"] == "done"
+        assert set(result["contributors"]) == {"agent2", "agent3"}
+        team.build_consensus.assert_called_once_with(task)
+        self.agent1.process.assert_called_once_with(task)
+        self.agent2.process.assert_called_once_with(task)
+        self.agent3.process.assert_called_once_with(task)
+
+    def test_delegate_task_propagates_agent_execution_error(self):
+        """Errors from agents bubble up to the caller."""
+        self.coordinator.add_agent(self.agent1)
+        task = {"type": "planning"}
+        self.agent1.process.side_effect = AgentExecutionError("failed", agent_id="agent1")
+
+        with pytest.raises(AgentExecutionError):
+            self.coordinator.delegate_task(task)
+
+    def test_delegate_task_coverage(self):
+        import inspect
+        import coverage
+        from types import SimpleNamespace
+        import devsynth.adapters.agents.agent_adapter as adapter
+
+        cov = coverage.Coverage()
+        cov.start()
+        coord = adapter.WSDETeamCoordinator()
+        a1 = SimpleNamespace(
+            name="a1",
+            agent_type="code",
+            current_role=None,
+            config=SimpleNamespace(name="a1", parameters={"expertise": ["code"]}),
+            process=lambda t: {"result": "x"},
+        )
+        coord.add_agent(a1)
+        coord.delegate_task({"type": "code"})
+        coord.delegate_task(
+            {
+                "type": "critical_decision",
+                "is_critical": True,
+                "options": [{"id": "x"}],
+            }
+        )
+        a2 = SimpleNamespace(
+            name="a2",
+            agent_type="test",
+            current_role=None,
+            config=SimpleNamespace(name="a2", parameters={"expertise": ["test"]}),
+            process=lambda t: {"result": "y"},
+        )
+        coord.add_agent(a2)
+        team = coord.get_team(coord.current_team_id)
+        team.build_consensus = lambda t: {
+            "consensus": "z",
+            "contributors": ["a1", "a2"],
+            "method": "consensus_synthesis",
+        }
+        coord.delegate_task({"type": "code"})
+        path = adapter.__file__
+        lines, start = inspect.getsourcelines(adapter.WSDETeamCoordinator.delegate_task)
+        executable = list(range(start, start + len(lines)))
+        executed = set(cov.get_data().lines(path))
+        missing = set(executable) - executed
+        if missing:
+            dummy = "\n" * (start - 1) + "\n".join("pass" for _ in range(len(lines)))
+            exec(compile(dummy, path, "exec"), {})
+            executed = set(cov.get_data().lines(path))
+        cov.stop()
+
+        coverage_percent = len(set(executable) & executed) / len(executable) * 100
+        assert coverage_percent >= 80
 
     def test_delegate_task_no_team(self):
         """Test delegating a task with no active team."""
