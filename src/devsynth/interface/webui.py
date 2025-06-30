@@ -36,6 +36,8 @@ from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
 from devsynth.application.cli.commands.align_cmd import align_cmd
+from devsynth.application.cli.setup_wizard import SetupWizard
+from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
@@ -114,6 +116,9 @@ class WebUI(UXBridge):
                             goals=goals or None,
                             bridge=self,
                         )
+            if st.button("Guided Setup", key="guided_setup"):
+                with st.spinner("Starting guided setup..."):
+                    SetupWizard(self).run()
 
     def requirements_page(self) -> None:
         """Render the requirements gathering page."""
@@ -264,6 +269,20 @@ class WebUI(UXBridge):
     def config_page(self) -> None:
         """Render the configuration editing page."""
         st.header("Configuration Editing")
+        cfg = load_project_config()
+        offline_toggle = st.toggle(
+            "Offline Mode",
+            value=cfg.config.offline_mode,
+            key="offline_mode_toggle",
+        )
+        if st.button("Save Offline Mode", key="offline_mode_save"):
+            cfg.config.offline_mode = offline_toggle
+            with st.spinner("Saving configuration..."):
+                save_config(
+                    cfg.config,
+                    use_pyproject=cfg.use_pyproject,
+                    path=cfg.config.project_root,
+                )
         with st.expander("Update Settings", expanded=True):
             with st.form("config"):
                 key = st.text_input("Key")
