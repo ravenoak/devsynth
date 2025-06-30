@@ -16,11 +16,11 @@ def test_offline_mode_selects_offline_provider(monkeypatch):
         "devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE", False
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.load_config",
+        "devsynth.application.llm.load_config",
         lambda: _mock_config(True),
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.get_llm_settings",
+        "devsynth.application.llm.get_llm_settings",
         lambda: {
             "provider": "openai",
             "openai_api_key": "key",
@@ -36,11 +36,11 @@ def test_online_mode_uses_configured_provider(monkeypatch):
         "devsynth.application.utils.token_tracker.TIKTOKEN_AVAILABLE", False
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.load_config",
+        "devsynth.application.llm.load_config",
         lambda: _mock_config(False),
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.get_llm_settings",
+        "devsynth.application.llm.get_llm_settings",
         lambda: {
             "provider": "openai",
             "openai_api_key": "key",

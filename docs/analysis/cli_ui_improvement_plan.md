@@ -47,8 +47,12 @@ This document summarizes the current operating modes of the DevSynth tool and ou
    - Simple interface for EDRR cycle status and sprint metrics.
    - CLI remains primary; GUI provides at-a-glance information.
 5. **Support Offline/Minimal Modes**
-   - Local LLM fallback when internet is unavailable.
-   - Document limitations of offline mode.
+ - Local LLM fallback when internet is unavailable.
+ - Document limitations of offline mode.
+    - Offline mode disables remote LLM calls, so advanced model features such
+      as streaming completions or external search integrations are not
+      available. The built-in provider offers deterministic but lower quality
+      responses suitable for testing and repeatable pipelines.
 6. **Expose EDRR Metrics**
    - Commands like `devsynth metrics` and `devsynth report` to surface history.
    - Export results to HTML or Markdown.
