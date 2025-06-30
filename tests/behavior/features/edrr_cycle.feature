@@ -8,8 +8,10 @@ Feature: EDRR cycle command
     When I run the command "devsynth edrr-cycle" with that file
     Then the coordinator should process the manifest
     And the workflow should complete successfully
+    And the output should indicate the cycle started
 
   Scenario: Handle missing manifest file
     Given no manifest file exists at the provided path
     When I run the command "devsynth edrr-cycle" with that file
     Then the system should report that the manifest file was not found
+    And the coordinator should not be invoked
