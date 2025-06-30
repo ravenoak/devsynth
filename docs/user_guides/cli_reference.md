@@ -172,7 +172,10 @@ manifest.
 
 When offline mode is enabled the CLI uses the settings under
 `offline_provider`. Set `offline_provider.model_path` to a local HuggingFace
-model so generation commands work without network access.
+model so generation commands work without network access. Be aware that offline
+mode disables remote LLM capabilities including streaming responses and
+third-party integrations. The built-in provider focuses on deterministic output
+for testing rather than high quality completions.
 
 **Examples:**
 ```bash
