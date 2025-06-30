@@ -47,7 +47,20 @@ class SetupWizard:
             return cfg
 
         root = self.bridge.ask_question("Project root", default=os.getcwd())
+        structure = self.bridge.ask_question(
+            "Project structure",
+            choices=["single_package", "monorepo"],
+            default="single_package",
+        )
         language = self.bridge.ask_question("Primary language", default="python")
+        constraints = (
+            self.bridge.ask_question(
+                "Path to constraint file (optional)",
+                default="",
+                show_default=False,
+            )
+            or None
+        )
         goals = (
             self.bridge.ask_question(
                 "Project goals (optional)",
@@ -73,8 +86,10 @@ class SetupWizard:
             return cfg
 
         cfg.set_root(root)
+        cfg.config.structure = structure
         cfg.set_language(language)
         cfg.set_goals(goals or "")
+        cfg.config.constraints = constraints
         cfg.config.memory_store_type = memory_backend
         cfg.config.offline_mode = offline_mode
         cfg.config.features = features
