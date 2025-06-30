@@ -14,6 +14,7 @@ from devsynth.exceptions import DevSynthError
 import os
 from typing import Any, Dict, List
 from .base import BaseAgent
+from ..prompts.auto_tuning import BasicPromptTuner
 
 # Define MVP capabilities
 MVP_CAPABILITIES = [
@@ -33,6 +34,33 @@ class UnifiedAgent(BaseAgent):
     This agent combines functionality from specialized agents (Specification, Test, Code, etc.)
     into a single agent for the MVP. It preserves extension points for future multi-agent capabilities.
     """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.prompt_tuner = BasicPromptTuner()
+
+    def record_prompt_feedback(
+        self, success: bool | None = None, feedback_score: float | None = None
+    ) -> None:
+        """Record feedback used for tuning future prompts."""
+        self.prompt_tuner.adjust(success, feedback_score)
+
+    def generate_text(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
+        params = self.prompt_tuner.parameters()
+        if parameters:
+            params.update(parameters)
+        return super().generate_text(prompt, params)
+
+    def generate_text_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        parameters: Dict[str, Any] | None = None,
+    ) -> str:
+        params = self.prompt_tuner.parameters()
+        if parameters:
+            params.update(parameters)
+        return super().generate_text_with_context(prompt, context, params)
 
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce outputs based on the requested task."""

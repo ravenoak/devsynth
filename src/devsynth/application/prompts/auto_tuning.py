@@ -535,3 +535,40 @@ class PromptAutoTuner:
             logger.info(f"Saved {sum(len(variants) for variants in self.prompt_variants.values())} prompt variants to storage")
         except Exception as e:
             logger.error(f"Failed to save prompt variants to storage: {e}")
+
+
+class BasicPromptTuner:
+    """Simple tuner that adjusts LLM temperature based on feedback."""
+
+    def __init__(
+        self,
+        base_temperature: float = 0.7,
+        min_temp: float = 0.1,
+        max_temp: float = 1.0,
+        step: float = 0.05,
+    ) -> None:
+        self.temperature = base_temperature
+        self.min_temp = min_temp
+        self.max_temp = max_temp
+        self.step = step
+
+    def adjust(self, success: bool | None = None, feedback_score: float | None = None) -> None:
+        """Adjust the sampling temperature based on feedback."""
+        delta = 0.0
+        if success is True:
+            delta -= self.step
+        elif success is False:
+            delta += self.step
+
+        if feedback_score is not None:
+            if feedback_score > 0.8:
+                delta -= self.step
+            elif feedback_score < 0.5:
+                delta += self.step
+
+        self.temperature = max(self.min_temp, min(self.max_temp, self.temperature + delta))
+
+    def parameters(self) -> Dict[str, float]:
+        """Return LLM generation parameters."""
+        return {"temperature": self.temperature}
+
