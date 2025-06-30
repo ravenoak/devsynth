@@ -10,5 +10,5 @@ Feature: DevSynth Doctor
   Scenario: Suggest initialization when config is absent
     Given no DevSynth configuration file in the project
     When I run the command "devsynth doctor"
-    Then the system should display a warning message
+    Then the output should mention that no project configuration was found
     And the output should include onboarding hints

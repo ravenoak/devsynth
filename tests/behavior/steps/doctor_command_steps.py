@@ -29,6 +29,13 @@ def output_mentions_missing_vars(command_context):
     assert "OPENAI_API_KEY" in output or "LM_STUDIO_ENDPOINT" in output
 
 
+@then("the output should mention that no project configuration was found")
+def output_mentions_missing_project_config(command_context):
+    """Assert the CLI reports missing project configuration."""
+    output = command_context.get("output", "")
+    assert "No project configuration found" in output
+
+
 @given("a config directory with invalid YAML")
 def config_dir_with_invalid_yaml(tmp_path, monkeypatch):
     """Create a temporary config directory containing malformed YAML."""
