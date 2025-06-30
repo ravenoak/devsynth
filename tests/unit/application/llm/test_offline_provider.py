@@ -1,24 +1,48 @@
-import types
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from devsynth.application.llm import get_llm_provider
 from devsynth.application.llm.offline_provider import OfflineProvider
 
 
-def _mock_config():
-    cfg = types.SimpleNamespace()
-    cfg.as_dict = lambda: {"offline_mode": True}
-    return cfg
+def test_offline_provider_fallback() -> None:
+    provider = OfflineProvider()
+    assert provider.generate("hello") == "[offline] hello"
 
 
-def test_get_llm_provider_returns_offline(monkeypatch):
+def test_offline_provider_loads_model(tmp_path, monkeypatch) -> None:
+    called = {}
+
+    def fake_model_from_pretrained(path, *args, **kwargs):
+        called["model_path"] = path
+
+        class Dummy:
+            def generate(self, **_):
+                return torch.tensor([[0]])
+
+        return Dummy()
+
+    def fake_tokenizer_from_pretrained(path, *args, **kwargs):
+        called["tokenizer_path"] = path
+
+        class Dummy:
+            def __call__(self, text, return_tensors=None):
+                return {}
+
+            def decode(self, ids, skip_special_tokens=True):
+                return "Hello world"
+
+        return Dummy()
+
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.load_config",
-        lambda: _mock_config(),
+        AutoModelForCausalLM, "from_pretrained", fake_model_from_pretrained
     )
     monkeypatch.setattr(
-        "devsynth.application.llm.providers.get_llm_settings",
-        lambda: {"provider": "openai"},
+        AutoTokenizer, "from_pretrained", fake_tokenizer_from_pretrained
     )
 
-    provider = get_llm_provider()
-    assert isinstance(provider, OfflineProvider)
+    provider = OfflineProvider({"offline_provider": {"model_path": str(tmp_path)}})
+    result = provider.generate("Hello")
+
+    assert result == "Hello world"
+    assert called["model_path"] == str(tmp_path)
+    assert called["tokenizer_path"] == str(tmp_path)

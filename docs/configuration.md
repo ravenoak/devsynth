@@ -75,6 +75,7 @@ When `offline_mode` is set to `true` in project configuration DevSynth avoids re
 | Key | Description |
 | --- | ----------- |
 | `offline_mode` | Enable offline operation and select the offline provider. |
+| `offline_provider.model_path` | Path to a local HF model used by the offline provider. |
 | `resources.local.model_path` | Optional path to a local HF model if you wish to run a real model while offline. |
 | `resources.local.context_length` | Maximum tokens kept when pruning conversation history when using a local model. |
 
@@ -82,6 +83,8 @@ Example configuration:
 
 ```yaml
 offline_mode: true
+offline_provider:
+  model_path: /models/tiny-gpt2
 resources:
   local:
     model_path: /models/mistral
