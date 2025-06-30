@@ -86,11 +86,12 @@ cd my-first-project
 ```
 
 This command creates a new project directory and then launches an interactive
-wizard. The wizard prompts for the project root, source layout, language, and
-any optional goals or constraint file. These answers are written to
-`.devsynth/devsynth.yml` by default or stored under `[tool.devsynth]` in
-`pyproject.toml` if you choose. After initialization you are asked which optional
-features to enable. The selected flags are saved in the configuration file. You
+wizard when the `--wizard` flag is used. The wizard prompts for the project
+root, language, optional goals, and where to store memory. The collected answers
+are written to `.devsynth/project.yaml` by default or stored under
+`[tool.devsynth]` in `pyproject.toml` if you choose. After initialization you are
+asked which optional features to enable. The selected flags are saved in the
+configuration file. You
 can use the [templates/project.yaml](../../templates/project.yaml) file as a
 minimal example configuration.
 
