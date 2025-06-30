@@ -8,7 +8,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-os.environ.setdefault("ENABLE_CHROMADB", "1")
+pytest.importorskip("chromadb")
+
+if os.environ.get("ENABLE_CHROMADB", "false").lower() in {"0", "false", "no"}:
+    pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.domain.models.memory import MemoryItem

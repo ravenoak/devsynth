@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+import os
 
 def _ensure_dev_synth_importable() -> None:
     """Ensure ``devsynth`` can be imported from ``src`` or is installed."""
@@ -34,3 +35,7 @@ def _ensure_dev_synth_importable() -> None:
 
 
 _ensure_dev_synth_importable()
+
+# Disable optional backends by default so tests don't try to import
+# heavy dependencies unless explicitly enabled.
+os.environ.setdefault("ENABLE_CHROMADB", "0")
