@@ -5,10 +5,7 @@ from __future__ import annotations
 import os
 from typing import Dict, Optional
 
-from pathlib import Path
-
-from devsynth.core.config_loader import load_config
-from devsynth.config.loader import ConfigModel, save_config, _find_config_path
+from devsynth.config import load_project_config, ProjectUnifiedConfig
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
@@ -22,8 +19,8 @@ class SetupWizard:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
-    def _prompt_features(self, cfg) -> Dict[str, bool]:
-        features = cfg.features or {}
+    def _prompt_features(self, cfg: ProjectUnifiedConfig) -> Dict[str, bool]:
+        features = cfg.config.features or {}
         for feat in [
             "wsde_collaboration",
             "dialectical_reasoning",
@@ -41,11 +38,11 @@ class SetupWizard:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def run(self):
+    def run(self) -> ProjectUnifiedConfig:
         """Execute the wizard steps and persist configuration."""
 
-        cfg = load_config()
-        if _find_config_path(Path.cwd()) is not None:
+        cfg = load_project_config()
+        if cfg.exists():
             self.bridge.display_result("Project already initialized")
             return cfg
 
@@ -68,10 +65,10 @@ class SetupWizard:
         memory_backend = self.bridge.ask_question(
             "Select memory backend",
             choices=["memory", "file", "kuzu", "chromadb"],
-            default=cfg.memory_store_type,
+            default=cfg.config.memory_store_type,
         )
         offline_mode = self.bridge.confirm_choice(
-            "Enable offline mode?", default=cfg.offline_mode
+            "Enable offline mode?", default=cfg.config.offline_mode
         )
 
         features = self._prompt_features(cfg)
@@ -80,17 +77,14 @@ class SetupWizard:
             self.bridge.display_result("[yellow]Initialization aborted.[/yellow]")
             return cfg
 
-        cfg.project_root = root
-        cfg.structure = structure
-        cfg.language = language
-        cfg.constraints = constraints
-        cfg.memory_store_type = memory_backend
-        cfg.offline_mode = offline_mode
-        cfg.features = features
-        save_config(
-            ConfigModel(**cfg.as_dict()),
-            use_pyproject=(Path("pyproject.toml").exists()),
-        )
+        cfg.set_root(root)
+        cfg.config.structure = structure
+        cfg.set_language(language)
+        cfg.config.constraints = constraints
+        cfg.config.memory_store_type = memory_backend
+        cfg.config.offline_mode = offline_mode
+        cfg.config.features = features
+        cfg.save()
 
         self.bridge.display_result("Initialization complete", highlight=True)
         return cfg
