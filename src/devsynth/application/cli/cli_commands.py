@@ -97,11 +97,20 @@ def config_key_autocomplete(ctx: typer.Context, incomplete: str):
     return loader_autocomplete(ctx, incomplete)
 
 
-def init_cmd(*, bridge: Optional[UXBridge] = None) -> None:
-    """Interactively initialize a new project."""
+def init_cmd(interactive: bool = False, *, bridge: Optional[UXBridge] = None) -> None:
+    """Initialize a new project.
+
+    If ``interactive`` is True, run the :class:`SetupWizard` for a guided setup.
+    """
 
     bridge = _resolve_bridge(bridge)
     try:
+        if interactive:
+            from .setup_wizard import SetupWizard
+
+            SetupWizard(bridge).run()
+            return
+
         config = load_project_config()
         if config.exists():
             bridge.display_result("Project already initialized")
