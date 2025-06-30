@@ -39,7 +39,7 @@ def run_edrr_cycle(context):
         patch(
             "devsynth.application.cli.commands.edrr_cycle_cmd.MemoryManager"
         ) as manager_cls,
-        patch("devsynth.core.config_loader.load_config") as cfg_loader,
+        patch("devsynth.config.unified_loader.UnifiedConfigLoader.load") as cfg_loader,
     ):
         cfg = MagicMock()
         cfg.as_dict.return_value = {}

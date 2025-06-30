@@ -1,7 +1,6 @@
 from pathlib import Path
 
-import yaml
-import toml
+from devsynth.config.unified_loader import UnifiedConfigLoader
 
 from devsynth.application.cli.cli_commands import init_cmd
 from devsynth.interface.cli import CLIUXBridge
@@ -33,9 +32,8 @@ def _run_init(tmp_path, monkeypatch, *, use_pyproject=False):
 
 
 def _load_config(path: Path):
-    if path.suffix == ".toml":
-        return toml.load(path)["tool"]["devsynth"]
-    return yaml.safe_load(path.read_text())
+    root = path.parent.parent if path.parent.name == ".devsynth" else path.parent
+    return UnifiedConfigLoader.load(root).config.as_dict()
 
 
 def test_init_cmd_creates_config(tmp_path, monkeypatch):

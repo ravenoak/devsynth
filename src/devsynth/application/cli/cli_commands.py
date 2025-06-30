@@ -31,7 +31,7 @@ from devsynth.config import (
     get_settings,
     config_key_autocomplete as loader_autocomplete,
 )
-from devsynth.core.config_loader import load_config
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.config.loader import ConfigModel, save_config, _find_config_path
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd
@@ -112,7 +112,7 @@ def init_cmd(interactive: bool = False, *, bridge: Optional[UXBridge] = None) ->
             SetupWizard(bridge).run()
             return
 
-        config = load_config()
+        config = UnifiedConfigLoader.load().config
         if _find_config_path(Path.cwd()) is not None:
             bridge.display_result("Project already initialized")
             return
@@ -290,7 +290,7 @@ def config_cmd(
     if ctx is not None and ctx.invoked_subcommand is not None:
         return
     try:
-        config = load_config()
+        config = UnifiedConfigLoader.load().config
         args = {"key": key, "value": value}
         if list_models:
             args["list_models"] = True
@@ -328,7 +328,7 @@ def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
     """
     bridge = _resolve_bridge(bridge)
     try:
-        config = load_config()
+        config = UnifiedConfigLoader.load().config
         features = config.features or {}
         features[name] = True
         config.features = features

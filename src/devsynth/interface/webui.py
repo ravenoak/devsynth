@@ -23,8 +23,6 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 import streamlit as st
-import yaml
-
 from devsynth.application.cli import (
     code_cmd,
     config_cmd,
@@ -38,7 +36,6 @@ from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
 from devsynth.application.cli.commands.align_cmd import align_cmd
-from devsynth.config import get_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 

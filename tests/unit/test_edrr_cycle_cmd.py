@@ -41,7 +41,7 @@ def mock_config():
     cfg = MagicMock()
     cfg.as_dict.return_value = {}
     with patch(
-        "devsynth.core.config_loader.load_config",
+        "devsynth.config.unified_loader.UnifiedConfigLoader.load",
         return_value=cfg,
     ) as mock_loader:
         yield mock_loader
