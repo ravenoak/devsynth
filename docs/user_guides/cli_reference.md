@@ -164,6 +164,10 @@ During the wizard you will:
 2. Choose whether to enable optional features such as ``wsde_collaboration`` and ``dialectical_reasoning``.
 3. Decide if DevSynth should operate in offline mode.
 
+The resulting `.devsynth/project.yaml` is validated against
+`project_schema.json` using `jsonschema` to ensure a well-formed project
+manifest.
+
 When offline mode is enabled the CLI uses the settings under
 `offline_provider`. Set `offline_provider.model_path` to a local HuggingFace
 model so generation commands work without network access.
@@ -434,6 +438,9 @@ available as `devsynth check`.
 devsynth doctor [--config-dir DIR]
 devsynth check [--config-dir DIR]
 ```
+
+If the project configuration fails schema validation, the command raises
+``Configuration issues detected. Run 'devsynth init' to generate defaults.``
 
 **Options:**
 - `--config-dir`, `-c`: Directory containing environment configs (default: ./config)
