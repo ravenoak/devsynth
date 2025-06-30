@@ -106,6 +106,22 @@ def test_recursion_depth_exceeded(coordinator):
         current.create_micro_cycle({"description": "too deep"}, Phase.EXPAND)
 
 
+def test_recursion_depth_increments(coordinator):
+    """Micro cycles should increment recursion depth until the limit."""
+    coordinator.auto_phase_transitions = False
+    coordinator.start_cycle({"description": "root"})
+
+    micro1 = coordinator.create_micro_cycle({"description": "level1"}, Phase.EXPAND)
+    assert micro1.recursion_depth == 1
+
+    micro2 = micro1.create_micro_cycle({"description": "level2"}, Phase.EXPAND)
+    assert micro2.recursion_depth == 2
+
+    # Creating a cycle at exactly the max depth should succeed
+    micro3 = micro2.create_micro_cycle({"description": "level3"}, Phase.EXPAND)
+    assert micro3.recursion_depth == coordinator.max_recursion_depth
+
+
 def test_abort_when_should_terminate(coordinator):
     coordinator.start_cycle({"description": "macro"})
     with patch.object(coordinator, "should_terminate_recursion", return_value=True):
@@ -138,7 +154,9 @@ def test_parent_aggregates_after_micro_phase(coordinator):
     coordinator.start_cycle({"description": "macro"})
     micro = coordinator.create_micro_cycle({"description": "micro"}, Phase.EXPAND)
 
-    with patch.object(micro, "_execute_differentiate_phase", return_value={"done": True}):
+    with patch.object(
+        micro, "_execute_differentiate_phase", return_value={"done": True}
+    ):
         micro.progress_to_phase(Phase.DIFFERENTIATE)
 
     aggregated = coordinator.results.get("AGGREGATED", {})

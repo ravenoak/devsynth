@@ -109,3 +109,23 @@ def test_should_terminate_recursion_no_factors(coordinator):
         "resource_usage": 0.1,
     }
     assert coordinator.should_terminate_recursion(task) is False
+
+
+def test_should_terminate_recursion_at_thresholds(coordinator):
+    """Exactly meeting thresholds should not trigger termination."""
+    task = {
+        "granularity_score": coordinator.DEFAULT_GRANULARITY_THRESHOLD,
+        "cost_score": coordinator.DEFAULT_COST_BENEFIT_RATIO,
+        "benefit_score": 1.0,
+    }
+    assert coordinator.should_terminate_recursion(task) is False
+
+
+def test_should_terminate_recursion_combined_factors(coordinator):
+    """Multiple failing factors still trigger termination."""
+    task = {
+        "granularity_score": coordinator.DEFAULT_GRANULARITY_THRESHOLD / 2,
+        "cost_score": 0.6,
+        "benefit_score": 0.2,
+    }
+    assert coordinator.should_terminate_recursion(task) is True

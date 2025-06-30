@@ -385,23 +385,41 @@ class TestEDRRCoordinator:
         with pytest.raises(EDRRCoordinatorError):
             coordinator.progress_to_phase(Phase.DIFFERENTIATE)
 
+    def test_progress_to_phase_dependency_failure_no_auto(self, coordinator):
+        """Dependency failures should raise without triggering auto progression."""
+        coordinator.task = {"description": "task"}
+        coordinator.cycle_id = "cid"
+        coordinator.auto_phase_transitions = False
+        coordinator.manifest = {}
+        coordinator.manifest_parser = MagicMock()
+        coordinator.manifest_parser.check_phase_dependencies.return_value = False
+        with patch.object(coordinator, "_maybe_auto_progress") as auto_mock:
+            with pytest.raises(EDRRCoordinatorError):
+                coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+        auto_mock.assert_not_called()
+
     def test_full_cycle(self, coordinator):
         """Test a full EDRR cycle."""
         task = {"description": "Test Task", "requirements": ["Req 1", "Req 2"]}
 
         # Mock the phase execution methods
-        with patch.object(
-            coordinator, "_execute_expand_phase", return_value={"ideas": []}
-        ), patch.object(
-            coordinator,
-            "_execute_differentiate_phase",
-            return_value={"evaluated_options": []},
-        ), patch.object(
-            coordinator,
-            "_execute_refine_phase",
-            return_value={"implementation_plan": []},
-        ), patch.object(
-            coordinator, "_execute_retrospect_phase", return_value={"learnings": []}
+        with (
+            patch.object(
+                coordinator, "_execute_expand_phase", return_value={"ideas": []}
+            ),
+            patch.object(
+                coordinator,
+                "_execute_differentiate_phase",
+                return_value={"evaluated_options": []},
+            ),
+            patch.object(
+                coordinator,
+                "_execute_refine_phase",
+                return_value={"implementation_plan": []},
+            ),
+            patch.object(
+                coordinator, "_execute_retrospect_phase", return_value={"learnings": []}
+            ),
         ):
 
             # Start the cycle
@@ -426,14 +444,11 @@ class TestEDRRCoordinator:
 
     def test_progress_to_next_phase(self, coordinator):
         task = {"description": "Test"}
-        with patch.object(
-            coordinator, "_execute_expand_phase", return_value={}
-        ), patch.object(
-            coordinator, "_execute_differentiate_phase", return_value={}
-        ), patch.object(
-            coordinator, "_execute_refine_phase", return_value={}
-        ), patch.object(
-            coordinator, "_execute_retrospect_phase", return_value={}
+        with (
+            patch.object(coordinator, "_execute_expand_phase", return_value={}),
+            patch.object(coordinator, "_execute_differentiate_phase", return_value={}),
+            patch.object(coordinator, "_execute_refine_phase", return_value={}),
+            patch.object(coordinator, "_execute_retrospect_phase", return_value={}),
         ):
             coordinator.start_cycle(task)
             assert coordinator.current_phase == Phase.EXPAND
