@@ -35,13 +35,46 @@ def doctor_cmd(config_dir: str = "config") -> None:
             warnings = True
 
         missing_keys = [
-            key for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY") if not os.getenv(key)
+            key
+            for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY")
+            if not os.getenv(key)
         ]
         if missing_keys:
             bridge.print(
                 f"[yellow]Missing environment variables: {', '.join(missing_keys)}[/yellow]"
             )
             warnings = True
+
+        # Warn when optional dependencies for enabled features are missing
+        feature_pkgs = {
+            "wsde_collaboration": "langgraph",
+            "documentation_generation": "mkdocs",
+            "test_generation": "pytest",
+        }
+        for feat, pkg in feature_pkgs.items():
+            if getattr(config, "features", {}).get(feat) and importlib.util.find_spec(pkg) is None:
+                bridge.print(
+                    f"[yellow]Feature '{feat}' requires the '{pkg}' package which is not installed.[/yellow]"
+                )
+                warnings = True
+
+        store_pkgs = {
+            "chromadb": "chromadb",
+            "kuzu": "kuzu",
+            "faiss": "faiss",
+        }
+        store_type = getattr(config, "memory_store_type", "memory")
+        pkg = store_pkgs.get(store_type)
+        if pkg:
+            if pkg == "faiss":
+                spec = importlib.util.find_spec("faiss") or importlib.util.find_spec("faiss-cpu")
+            else:
+                spec = importlib.util.find_spec(pkg)
+            if spec is None:
+                bridge.print(
+                    f"[yellow]{store_type.capitalize()} support is enabled but the '{pkg}' package is missing.[/yellow]"
+                )
+                warnings = True
 
         # Load validation utilities dynamically
         repo_root = Path(__file__).resolve().parents[4]

@@ -488,6 +488,21 @@ devsynth doctor --config-dir ./configs
 devsynth check
 ```
 
+Typical successful output:
+
+```text
+All configuration files are valid.
+```
+
+If issues are detected you may see warnings like:
+
+```text
+Warning: Python 3.11 or higher is required. Current version: 3.10
+Missing environment variables: OPENAI_API_KEY
+ChromaDB support is enabled but the 'chromadb' package is missing.
+Configuration issues detected. Run 'devsynth init' to generate defaults.
+```
+
 ### Additional commands
 
 The CLI also provides several specialized commands used for advanced workflows.
