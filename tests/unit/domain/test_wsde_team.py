@@ -169,19 +169,58 @@ def test_vote_on_critical_decision_coverage():
     import devsynth.domain.models.wsde as wsde
 
     team = wsde.WSDETeam()
-    a1 = SimpleNamespace(name="a1", config=SimpleNamespace(name="a1", parameters={"expertise": ["python"], "expertise_level": "expert"}), process=lambda t: {"vote": "A"})
-    a2 = SimpleNamespace(name="a2", config=SimpleNamespace(name="a2", parameters={"expertise": ["docs"], "expertise_level": "novice"}), process=lambda t: {"vote": "B"})
-    a3 = SimpleNamespace(name="a3", config=SimpleNamespace(name="a3", parameters={"expertise": ["python"], "expertise_level": "novice"}), process=lambda t: {"vote": "A"})
+    a1 = SimpleNamespace(
+        name="a1",
+        config=SimpleNamespace(
+            name="a1", parameters={"expertise": ["python"], "expertise_level": "expert"}
+        ),
+        process=lambda t: {"vote": "A"},
+    )
+    a2 = SimpleNamespace(
+        name="a2",
+        config=SimpleNamespace(
+            name="a2", parameters={"expertise": ["docs"], "expertise_level": "novice"}
+        ),
+        process=lambda t: {"vote": "B"},
+    )
+    a3 = SimpleNamespace(
+        name="a3",
+        config=SimpleNamespace(
+            name="a3", parameters={"expertise": ["python"], "expertise_level": "novice"}
+        ),
+        process=lambda t: {"vote": "A"},
+    )
     team.add_agents([a1, a2, a3])
 
     cov = coverage.Coverage()
     cov.start()
     team.vote_on_critical_decision({"type": "other"})
-    team.vote_on_critical_decision({"type": "critical_decision", "is_critical": True, "options": []})
-    team.vote_on_critical_decision({"type": "critical_decision", "is_critical": True, "options": [{"id": "A"}, {"id": "B"}]})
-    team.vote_on_critical_decision({"type": "critical_decision", "domain": "python", "is_critical": True, "options": [{"id": "A"}, {"id": "B"}]})
+    team.vote_on_critical_decision(
+        {"type": "critical_decision", "is_critical": True, "options": []}
+    )
+    team.vote_on_critical_decision(
+        {
+            "type": "critical_decision",
+            "is_critical": True,
+            "options": [{"id": "A"}, {"id": "B"}],
+        }
+    )
+    team.vote_on_critical_decision(
+        {
+            "type": "critical_decision",
+            "domain": "python",
+            "is_critical": True,
+            "options": [{"id": "A"}, {"id": "B"}],
+        }
+    )
     a3.process = lambda t: {"vote": "B"}
-    team.vote_on_critical_decision({"type": "critical_decision", "is_critical": True, "options": [{"id": "A"}, {"id": "B"}]})
+    team.vote_on_critical_decision(
+        {
+            "type": "critical_decision",
+            "is_critical": True,
+            "options": [{"id": "A"}, {"id": "B"}],
+        }
+    )
 
     path = wsde.__file__
     lines, start = inspect.getsourcelines(wsde.WSDETeam.vote_on_critical_decision)
@@ -204,3 +243,38 @@ def test_force_wsde_coverage():
     path = base / "src" / "devsynth" / "domain" / "models" / "wsde.py"
     dummy = "\n".join("pass" for _ in path.read_text().splitlines())
     exec(compile(dummy, str(path), "exec"), {})
+
+
+def test_expertise_selection_and_flag_rotation():
+    team = WSDETeam()
+    doc = MagicMock()
+    doc.name = "doc"
+    doc.expertise = ["documentation"]
+    coder = MagicMock()
+    coder.name = "coder"
+    coder.expertise = ["python"]
+    tester = MagicMock()
+    tester.name = "tester"
+    tester.expertise = ["testing"]
+
+    team.add_agents([doc, coder, tester])
+
+    tasks = [
+        {"type": "coding", "language": "python"},
+        {"type": "documentation"},
+        {"type": "testing"},
+    ]
+    expected = [coder, doc, tester]
+
+    for task, agent in zip(tasks, expected):
+        team.select_primus_by_expertise(task)
+        assert team.get_primus() is agent
+        assert agent.has_been_primus
+
+    assert all(a.has_been_primus for a in [doc, coder, tester])
+
+    team.select_primus_by_expertise({"type": "coding", "language": "python"})
+    assert team.get_primus() is coder
+    assert coder.has_been_primus
+    assert not doc.has_been_primus
+    assert not tester.has_been_primus

@@ -306,3 +306,52 @@ class TestAgentCollaboration:
 
         agent = factory.create_agent(AgentType.CODE.value)
         assert isinstance(agent, UnifiedAgent)
+
+    def test_delegate_calls_select_primus_before_processing(self):
+        coordinator = AgentCoordinatorImpl({"features": {"wsde_collaboration": True}})
+        a1 = MagicMock(spec=UnifiedAgent)
+        a1.name = "a1"
+        a1.agent_type = "code"
+        a1.current_role = None
+        a1.expertise = ["python"]
+        a2 = MagicMock(spec=UnifiedAgent)
+        a2.name = "a2"
+        a2.agent_type = "docs"
+        a2.current_role = None
+        a2.expertise = ["documentation"]
+        coordinator.add_agent(a1)
+        coordinator.add_agent(a2)
+
+        team = coordinator.team
+        order = []
+        original_select = team.select_primus_by_expertise
+
+        def select_spy(task):
+            order.append("select")
+            return original_select(task)
+
+        with patch.object(
+            team, "select_primus_by_expertise", side_effect=select_spy
+        ) as spy:
+
+            def process_side_effect(task):
+                order.append("process")
+                return {"solution": "ok"}
+
+            a1.process.side_effect = process_side_effect
+            a2.process.return_value = {"solution": "ok"}
+            team.get_primus = MagicMock(return_value=a1)
+            team.add_solution = MagicMock()
+            team.build_consensus = MagicMock(
+                return_value={
+                    "consensus": "x",
+                    "contributors": ["a1", "a2"],
+                    "method": "consensus",
+                }
+            )
+
+            result = coordinator.delegate_task({"team_task": True, "type": "code"})
+
+        spy.assert_called_once_with({"team_task": True, "type": "code"})
+        assert order and order[0] == "select"
+        assert result["method"] == "consensus"

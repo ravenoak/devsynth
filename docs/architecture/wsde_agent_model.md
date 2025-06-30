@@ -290,6 +290,7 @@ team.add_solution(task, {"agent": agent_b.name, "content": "Formatting updates"}
 final = team.build_consensus(task)
 print(final["consensus"])
 ```
+The team uses `select_primus_by_expertise()` to choose a Primus for each task. This scores agents against the task context and rotates leadership so everyone eventually serves. Automated tests cover this behaviour.
 
 ## Current Limitations
 
