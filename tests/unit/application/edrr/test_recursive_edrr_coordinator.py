@@ -576,3 +576,27 @@ class TestRecursiveEDRRCoordinator:
         entry = results[micro1.cycle_id]
         assert entry["task"] == {"description": "child1"}
         assert {k: v for k, v in entry.items() if k != "task"} == micro1.results
+
+    def test_micro_cycle_updates_parent_results(self, coordinator):
+        """Child cycle aggregation should refresh parent data."""
+        coordinator.start_cycle({"description": "macro"})
+        micro = coordinator.create_micro_cycle({"description": "child"}, Phase.EXPAND)
+        with patch.object(micro, "_execute_differentiate_phase", return_value={"analysis": "ok"}):
+            micro.progress_to_phase(Phase.DIFFERENTIATE)
+
+        entry = coordinator.results[Phase.EXPAND.name]["micro_cycle_results"][micro.cycle_id]
+        assert entry[Phase.DIFFERENTIATE.name] == {"analysis": "ok"}
+
+    def test_human_continue_overrides_delimiting_principles(self, coordinator):
+        """A continue override should prevent termination even if other factors trigger."""
+        coordinator.start_cycle({"description": "macro"})
+        micro_task = {
+            "description": "override task",
+            "human_override": "continue",
+            "granularity_score": 0.1,
+            "cost_score": 0.9,
+            "benefit_score": 0.2,
+            "quality_score": 0.95,
+            "resource_usage": 0.9,
+        }
+        assert coordinator.should_terminate_recursion(micro_task) is False
