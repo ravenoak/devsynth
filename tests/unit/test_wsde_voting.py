@@ -75,3 +75,15 @@ def test_weighted_voting_prefers_expert_vote():
 
     assert result["result"]["method"] == "weighted_vote"
     assert result["result"]["winner"] == "option2"
+
+
+def test_vote_on_critical_decision_no_votes():
+    team = WSDETeam()
+    a1 = _make_agent("a1", vote=None)
+    a1.process.return_value = {}
+    team.add_agent(a1)
+    task = _basic_task()
+    result = team.vote_on_critical_decision(task)
+    assert result["voting_initiated"] is True
+    assert result["votes"] == {}
+    assert result["result"] is None
