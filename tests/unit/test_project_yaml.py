@@ -74,3 +74,26 @@ class TestProjectYamlLoading:
 
                 # Verify open was called with the new path
                 mock_open.assert_called_once_with(Path(".devsynth/project.yaml"), "r")
+
+    @patch('builtins.open')
+    @patch('yaml.safe_load')
+    def test_manifest_version_locking(self, mock_yaml_load, mock_open):
+        """Version field is preserved when loading project.yaml."""
+        mock_yaml_load.return_value = {"metadata": {"version": "9.9.9"}}
+
+        result = load_manifest(Path(".devsynth/project.yaml"))
+
+        assert result["metadata"]["version"] == "9.9.9"
+        mock_open.assert_called_once_with(Path(".devsynth/project.yaml"), "r")
+        mock_yaml_load.assert_called_once()
+
+    @patch('os.path.exists')
+    def test_default_manifest_returned_when_missing(self, mock_exists):
+        """load_manifest returns minimal default manifest when no file is present."""
+        mock_exists.return_value = False
+
+        manifest = load_manifest(None)
+
+        assert manifest["metadata"]["name"] == "Unmanaged Project"
+        assert manifest["metadata"]["version"] == "0.1.0"
+        assert manifest["structure"]["type"] == "standard"

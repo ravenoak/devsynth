@@ -83,6 +83,10 @@ def _find_config_path(start: Path) -> Optional[Path]:
                 "Malformed TOML configuration", config_key=str(toml_path)
             ) from exc
 
+    proj_yaml = start / ".devsynth" / "project.yaml"
+    if proj_yaml.exists():
+        return proj_yaml
+
     yaml_path = start / ".devsynth" / "devsynth.yml"
     if yaml_path.exists():
         return yaml_path

@@ -51,10 +51,11 @@ class UnifiedConfigLoader:
         root = Path(path or Path.cwd())
         cfg_path = _find_config_path(root)
         use_pyproject = False
-        if cfg_path is not None and cfg_path.name == "pyproject.toml":
-            use_pyproject = True
+        if cfg_path is not None:
+            if cfg_path.name == "pyproject.toml":
+                use_pyproject = True
         else:
-            cfg_path = root / ".devsynth" / "devsynth.yml"
+            cfg_path = root / ".devsynth" / "project.yaml"
 
         cfg = load_config(root)
         return UnifiedConfig(cfg, cfg_path, use_pyproject)
