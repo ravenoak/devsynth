@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Dict, Optional
 
 from devsynth.config import load_project_config, ProjectUnifiedConfig
@@ -41,7 +42,16 @@ class SetupWizard:
     def run(self) -> ProjectUnifiedConfig:
         """Execute the wizard steps and persist configuration."""
 
-        cfg = load_project_config()
+        try:
+            cfg = load_project_config()
+        except Exception:
+            from devsynth.config.loader import ConfigModel
+
+            cfg = ProjectUnifiedConfig(
+                ConfigModel(project_root=os.getcwd()),
+                Path(os.getcwd()) / ".devsynth" / "project.yaml",
+                False,
+            )
         if cfg.exists():
             self.bridge.display_result("Project already initialized")
             return cfg
