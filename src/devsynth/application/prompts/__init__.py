@@ -9,7 +9,12 @@ from .prompt_manager import PromptManager
 from .prompt_template import PromptTemplate, PromptTemplateVersion
 from .prompt_efficacy import PromptEfficacyTracker
 from .prompt_reflection import PromptReflection
-from .auto_tuning import BasicPromptTuner, PromptAutoTuner
+from .auto_tuning import (
+    BasicPromptTuner,
+    PromptAutoTuner,
+    iterative_prompt_adjustment,
+    run_tuning_iteration,
+)
 
 __all__ = [
     "PromptManager",
@@ -19,4 +24,6 @@ __all__ = [
     "PromptReflection",
     "BasicPromptTuner",
     "PromptAutoTuner",
+    "run_tuning_iteration",
+    "iterative_prompt_adjustment",
 ]
