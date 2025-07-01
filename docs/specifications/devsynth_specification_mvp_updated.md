@@ -119,7 +119,7 @@ The MVP architecture follows a simplified layered approach with clear separation
 - Command parser using Click or Typer library
  - Core command set: `init`, `spec`, `test`, `code`, `run-pipeline`, `inspect`,
    `refactor`, `retrace`, `doctor`/`check`, `ingest`, `apispec`, `webapp`,
-  `dbschema`, `analyze-code`, `edrr-cycle`, `align`, `alignment-metrics`,
+  `dbschema`, `inspect-code`, `edrr-cycle`, `align`, `alignment-metrics`,
   `inspect-config`, `validate-manifest`,
    `validate-metadata`, `test-metrics`, `generate-docs`, `serve`, and the
    `config` subcommands (including `enable-feature`).

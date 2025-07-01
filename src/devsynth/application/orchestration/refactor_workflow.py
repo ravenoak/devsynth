@@ -1,5 +1,5 @@
 """
-Adaptive Workflow Engine for DevSynth.
+Refactor Workflow Engine for DevSynth.
 
 This module provides an enhanced workflow engine that can adapt to projects
 in any state, detect the current project state automatically, and suggest
@@ -19,16 +19,16 @@ from ...domain.models.workflow import Workflow, WorkflowStep, WorkflowStatus
 from ...application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
 from .workflow import WorkflowManager
 
-class AdaptiveWorkflowManager:
+class RefactorWorkflowManager:
     """
-    Enhanced workflow manager with adaptive capabilities.
+    Enhanced workflow manager with refactor capabilities.
 
     This class extends the standard workflow manager to handle projects in any state,
     detect the current project state automatically, and suggest appropriate next steps.
     """
 
     def __init__(self):
-        """Initialize the adaptive workflow manager."""
+        """Initialize the refactor workflow manager."""
         self.workflow_manager = WorkflowManager()
 
     def analyze_project_state(self, project_path: str) -> Dict[str, Any]:
@@ -244,9 +244,9 @@ class AdaptiveWorkflowManager:
 
         return result
 
-    def execute_adaptive_workflow(self, project_path: str, max_steps: int = 3) -> Dict[str, Any]:
+    def execute_refactor_workflow(self, project_path: str, max_steps: int = 3) -> Dict[str, Any]:
         """
-        Execute an adaptive workflow based on the current project state.
+        Execute a refactor workflow based on the current project state.
 
         This method executes a multi-step workflow that adapts based on the project state.
         It will execute up to max_steps commands, analyzing the project state after each step
@@ -265,7 +265,7 @@ class AdaptiveWorkflowManager:
             - suggestions: Suggestions for next steps
             - final_state: Summary of the final project state
         """
-        logger.info(f"Executing adaptive workflow for {project_path} with max_steps={max_steps}")
+        logger.info(f"Executing refactor workflow for {project_path} with max_steps={max_steps}")
 
         # Initialize the workflow
         workflow, entry_point, suggestions = self.initialize_workflow(project_path)
@@ -345,5 +345,5 @@ class AdaptiveWorkflowManager:
 
         return result
 
-# Create a singleton instance of the adaptive workflow manager
-adaptive_workflow_manager = AdaptiveWorkflowManager()
+# Create a singleton instance of the refactor workflow manager
+refactor_workflow_manager = RefactorWorkflowManager()

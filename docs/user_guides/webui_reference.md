@@ -23,7 +23,7 @@ The sidebar offers the following pages:
 
 1. **Onboarding** – initialize projects.
 2. **Requirements** – generate and inspect specifications.
-3. **Analysis** – analyze project code.
+3. **Analysis** – inspect project code.
 4. **Synthesis** – generate tests and code then run the pipeline.
 5. **Config** – edit configuration values.
 6. **Diagnostics** – run environment checks via the doctor command.

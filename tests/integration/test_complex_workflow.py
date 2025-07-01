@@ -15,7 +15,7 @@ from pathlib import Path
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
 )
-from devsynth.application.orchestration.adaptive_workflow import AdaptiveWorkflowManager
+from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 from devsynth.application.cli.cli_commands import (
     init_cmd,
     inspect_cmd,
@@ -253,8 +253,8 @@ class TestComplexWorkflow:
             )
             assert initial_report["spec_code_alignment"]["implementation_score"] < 1.0
 
-            # Step 6: Use the adaptive workflow manager to determine the optimal workflow
-            adaptive_manager = AdaptiveWorkflowManager()
+            # Step 6: Use the refactor workflow manager to determine the optimal workflow
+            adaptive_manager = RefactorWorkflowManager()
             workflow = adaptive_manager.determine_optimal_workflow(initial_report)
 
             # The optimal workflow should be either "specifications" or "code" due to the partial coverage
@@ -353,8 +353,8 @@ class TestComplexWorkflow:
                 adaptive_manager, "execute_command", mock_execute_command
             )
 
-            # Step 9: Execute the adaptive workflow
-            result = adaptive_manager.execute_adaptive_workflow(temp_project_dir)
+            # Step 9: Execute the refactor workflow
+            result = adaptive_manager.execute_refactor_workflow(temp_project_dir)
 
             # Verify that the workflow execution was successful
             assert result["status"] == "success"

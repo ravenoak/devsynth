@@ -65,11 +65,11 @@ def stub_streamlit(monkeypatch):
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
-    analyze_stub = ModuleType("devsynth.application.cli.commands.analyze_code_cmd")
-    analyze_stub.analyze_code_cmd = MagicMock()
+    analyze_stub = ModuleType("devsynth.application.cli.commands.inspect_code_cmd")
+    analyze_stub.inspect_code_cmd = MagicMock()
     monkeypatch.setitem(
         sys.modules,
-        "devsynth.application.cli.commands.analyze_code_cmd",
+        "devsynth.application.cli.commands.inspect_code_cmd",
         analyze_stub,
     )
 
@@ -122,7 +122,7 @@ def test_requirements_calls_spec(monkeypatch, stub_streamlit):
 def test_analysis_calls_analyze(monkeypatch, stub_streamlit):
     analyze = _patch_cmd(
         monkeypatch,
-        "devsynth.application.cli.commands.analyze_code_cmd.analyze_code_cmd",
+        "devsynth.application.cli.commands.inspect_code_cmd.inspect_code_cmd",
     )
     import importlib
     import devsynth.interface.webui as webui

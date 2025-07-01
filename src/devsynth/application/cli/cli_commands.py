@@ -24,7 +24,7 @@ from devsynth.core.workflows import (
 )
 import uvicorn
 from devsynth.logging_setup import configure_logging
-from ..orchestration.adaptive_workflow import adaptive_workflow_manager
+from ..orchestration.refactor_workflow import refactor_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 from devsynth.config import (
@@ -390,7 +390,7 @@ def refactor_cmd(
         project_path = path or os.getcwd()
 
         # Execute the refactor workflow
-        result = adaptive_workflow_manager.execute_adaptive_workflow(project_path)
+        result = refactor_workflow_manager.execute_refactor_workflow(project_path)
 
         if result.get("success", False):
             # Display the workflow information

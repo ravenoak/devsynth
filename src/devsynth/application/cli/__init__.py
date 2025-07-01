@@ -33,7 +33,7 @@ from .cli_commands import (
 from .commands.doctor_cmd import doctor_cmd
 
 # Import commands from the commands directory
-from .commands.analyze_code_cmd import analyze_code_cmd
+from .commands.inspect_code_cmd import inspect_code_cmd
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 
 __all__ = [
@@ -54,6 +54,6 @@ __all__ = [
     "check_cmd",
     "refactor_cmd",
     "serve_cmd",
-    "analyze_code_cmd",
+    "inspect_code_cmd",
     "edrr_cycle_cmd",
 ]

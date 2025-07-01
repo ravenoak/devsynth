@@ -78,16 +78,16 @@ devsynth inspect --input requirements.md
 **Details:**
 This command processes requirements and provides insights about their completeness, consistency, and clarity. It helps identify potential issues before proceeding to specification generation.
 
-### `analyze-code`
+### `inspect-code`
 
-Analyzes a codebase to understand its architecture, structure, and quality.
+Inspects a codebase to understand its architecture, structure, and quality.
 
 ```bash
 devsynth inspect-code [--path PATH]
 ```
 
 **Options:**
-- `--path PATH`: Path to the codebase to analyze (default: current directory)
+- `--path PATH`: Path to the codebase to inspect (default: current directory)
 
 **Example:**
 ```bash

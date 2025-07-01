@@ -1,5 +1,5 @@
 """
-Command to analyze a codebase and provide insights about its architecture, structure, and quality.
+Command to inspect a codebase and provide insights about its architecture, structure, and quality.
 """
 
 import os
@@ -20,46 +20,46 @@ logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
 
-def analyze_code_cmd(path: Optional[str] = None) -> None:
-    """Analyze a codebase to understand its architecture and quality.
+def inspect_code_cmd(path: Optional[str] = None) -> None:
+    """Inspect a codebase to understand its architecture and quality.
 
     Example:
-        `devsynth analyze-code --path ./my-project`
+        `devsynth inspect-code --path ./my-project`
 
     Args:
-        path: Path to the codebase to analyze (default: current directory)
+        path: Path to the codebase to inspect (default: current directory)
     """
     console = Console()
 
     try:
-        # Show a welcome message for the analyze-code command
+        # Show a welcome message for the inspect-code command
         bridge.print(
             Panel(
-                "[bold blue]DevSynth Code Analysis[/bold blue]\n\n"
-                "This command will analyze a codebase and provide insights about its architecture, structure, and quality.",
-                title="Code Analysis",
+                "[bold blue]DevSynth Code Inspection[/bold blue]\n\n"
+                "This command will inspect a codebase and provide insights about its architecture, structure, and quality.",
+                title="Code Inspection",
                 border_style="blue",
             )
         )
 
-        # Determine the path to analyze
+        # Determine the path to inspect
         if path is None:
             path = os.getcwd()
 
-        bridge.print(f"[bold]Analyzing codebase at:[/bold] {path}")
+        bridge.print(f"[bold]Inspecting codebase at:[/bold] {path}")
 
         # Create a progress panel
-        with console.status("[bold green]Analyzing codebase...[/bold green]"):
-            # Analyze the codebase using SelfAnalyzer
+        with console.status("[bold green]Inspecting codebase...[/bold green]"):
+            # Inspect the codebase using SelfAnalyzer
             analyzer = SelfAnalyzer(path)
             result = analyzer.analyze()
 
-            # Analyze the project state using ProjectStateAnalyzer
+            # Inspect the project state using ProjectStateAnalyzer
             project_analyzer = ProjectStateAnalyzer(path)
             project_state = project_analyzer.analyze()
 
         # Display the analysis results
-        bridge.print("\n[bold]Analysis Results:[/bold]")
+        bridge.print("\n[bold]Inspection Results:[/bold]")
 
         # Display architecture information
         architecture = result["insights"]["architecture"]
@@ -169,7 +169,7 @@ def analyze_code_cmd(path: Optional[str] = None) -> None:
             for recommendation in project_state["recommendations"]:
                 bridge.print(f"- {recommendation}")
 
-        bridge.print("\n[green]Analysis completed successfully![/green]")
+        bridge.print("\n[green]Inspection completed successfully![/green]")
 
     except Exception as e:
         logger.error(f"Error analyzing codebase: {str(e)}")

@@ -31,7 +31,7 @@ backend functions.
 | `inspect`                 | **Requirements** – Inspect Requirements form         |
 | `gather`                  | **Requirements** – Requirements Plan Wizard          |
 | `wizard`                  | **Requirements** – Requirements Wizard               |
-| `analyze-code`            | **Analysis** – Analyze Code form                     |
+| `inspect-code`            | **Analysis** – Inspect Code form                     |
 | `refactor`                | N/A (planned **Analysis** workflow suggestions)      |
 | `webapp`                  | N/A (planned **Database/Web App** helper page)       |
 | `serve`                   | N/A (planned server management page; currently runs API server from CLI)                       |

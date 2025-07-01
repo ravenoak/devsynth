@@ -6,7 +6,7 @@ from pathlib import Path
 
 from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
-from devsynth.application.orchestration.adaptive_workflow import AdaptiveWorkflowManager
+from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 from devsynth.application.orchestration.workflow import WorkflowManager
 
 
@@ -204,10 +204,10 @@ class TestUser(unittest.TestCase):
         print(f"File Count: {report['file_count']}")
         print(f"Requirements Count: {report['requirements_count']}")
 
-    def test_adaptive_workflow_with_external_codebase(self, sample_project):
-        """Test that AdaptiveWorkflowManager can work with an external codebase."""
-        # Create an AdaptiveWorkflowManager instance
-        workflow_manager = AdaptiveWorkflowManager()
+    def test_refactor_workflow_with_external_codebase(self, sample_project):
+        """Test that RefactorWorkflowManager can work with an external codebase."""
+        # Create a RefactorWorkflowManager instance
+        workflow_manager = RefactorWorkflowManager()
 
         # Get suggestions for next steps
         suggestions = workflow_manager.suggest_next_steps(sample_project)
@@ -248,7 +248,7 @@ class TestUser(unittest.TestCase):
         code_analysis = code_analyzer.analyze()
 
         # Step 3: Determine the optimal workflow
-        workflow_manager = AdaptiveWorkflowManager()
+        workflow_manager = RefactorWorkflowManager()
         workflow = workflow_manager.determine_optimal_workflow(project_state)
         entry_point = workflow_manager.determine_entry_point(project_state, workflow)
 

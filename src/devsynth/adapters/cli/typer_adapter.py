@@ -19,7 +19,7 @@ from devsynth.application.cli import (
     dbschema_cmd,
     doctor_cmd,
     refactor_cmd,
-    analyze_code_cmd,
+    inspect_code_cmd,
     edrr_cycle_cmd,
     serve_cmd,
 )
@@ -110,12 +110,12 @@ def build_app() -> typer.Typer:
         help="Suggest next workflow steps. Example: devsynth refactor",
     )(refactor_cmd)
     app.command(
-        name="analyze-code",
+        name="inspect-code",
         help=(
-            "Analyze a codebase and report architecture, quality and health "
-            "metrics. Example: devsynth analyze-code --path ./src"
+            "Inspect a codebase and report architecture, quality and health "
+            "metrics. Example: devsynth inspect-code --path ./src"
         ),
-    )(analyze_code_cmd)
+    )(inspect_code_cmd)
     app.command(
         name="edrr-cycle",
         help="Run an EDRR cycle. Example: devsynth edrr-cycle manifest.yaml",

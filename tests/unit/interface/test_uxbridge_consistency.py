@@ -128,10 +128,10 @@ def _web_bridge(monkeypatch):
         sys.modules, "devsynth.application.cli.commands.align_cmd", align_module
     )
 
-    analyze_stub = ModuleType("devsynth.application.cli.commands.analyze_code_cmd")
-    analyze_stub.analyze_code_cmd = MagicMock()
+    analyze_stub = ModuleType("devsynth.application.cli.commands.inspect_code_cmd")
+    analyze_stub.inspect_code_cmd = MagicMock()
     monkeypatch.setitem(
-        sys.modules, "devsynth.application.cli.commands.analyze_code_cmd", analyze_stub
+        sys.modules, "devsynth.application.cli.commands.inspect_code_cmd", analyze_stub
     )
 
     import importlib
