@@ -22,7 +22,6 @@ from devsynth.core.workflows import (
     inspect_requirements,
     gather_requirements,
 )
-import uvicorn
 from devsynth.logging_setup import configure_logging
 from ..orchestration.adaptive_workflow import adaptive_workflow_manager
 from devsynth.logging_setup import DevSynthLogger
@@ -788,7 +787,14 @@ def serve_cmd(
     """
     try:
         configure_logging()
+        import uvicorn
+
         uvicorn.run("devsynth.api:app", host=host, port=port, log_level="info")
+    except ImportError:  # pragma: no cover - optional dependency
+        bridge.display_result(
+            "[red]Serve command requires the 'uvicorn' package. Install it with 'pip install uvicorn' or use the dev extras.[/red]",
+            highlight=False,
+        )
     except Exception as err:  # pragma: no cover - defensive
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
 
