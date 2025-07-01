@@ -1,56 +1,42 @@
-"""Offline LLM provider using a small local model."""
+"""Offline LLM provider for deterministic generation without network access."""
 
 from __future__ import annotations
 
 from hashlib import sha256
 from typing import Any, Dict, List
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from ...domain.interfaces.llm import LLMProvider
+
+try:  # pragma: no cover - optional heavy deps
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+except Exception:  # pragma: no cover - fallback when deps missing
+    torch = None  # type: ignore
+    AutoModelForCausalLM = None  # type: ignore
+    AutoTokenizer = None  # type: ignore
 
 
-class BaseLLMProvider:
-    """Minimal base class for LLM providers."""
+class OfflineProvider(LLMProvider):
+    """Provider that loads a local model or returns deterministic strings."""
 
     def __init__(self, config: Dict[str, Any] | None = None) -> None:
         self.config = config or {}
-
-    def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
-        raise NotImplementedError
-
-    def generate_with_context(
-        self,
-        prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] | None = None,
-    ) -> str:
-        raise NotImplementedError
-
-    def get_embedding(self, text: str) -> List[float]:
-        raise NotImplementedError
-
-
-class OfflineProvider(BaseLLMProvider):
-    """Provider that loads a local model for deterministic generation."""
-
-    def __init__(self, config: Dict[str, Any] | None = None) -> None:
-        super().__init__(config)
         provider_cfg = self.config.get("offline_provider", {})
         self.model_path = provider_cfg.get("model_path") or self.config.get(
             "model_path"
         )
         self.model = None
         self.tokenizer = None
-        if self.model_path:
+        if self.model_path and AutoTokenizer and AutoModelForCausalLM:
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
             self.model = AutoModelForCausalLM.from_pretrained(self.model_path)
 
     def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
-        if self.model and self.tokenizer:
+        if self.model and self.tokenizer and torch:
             params = parameters or {}
             max_new_tokens = params.get("max_new_tokens", 20)
             inputs = self.tokenizer(prompt, return_tensors="pt")
-            with torch.no_grad():
+            with torch.no_grad():  # pragma: no cover - deterministic
                 output_ids = self.model.generate(
                     **inputs, max_new_tokens=max_new_tokens, do_sample=False
                 )
