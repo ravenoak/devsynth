@@ -206,8 +206,13 @@ def test_doctor_cmd_warns_missing_optional_feature_pkg(monkeypatch, tmp_path):
         assert "langgraph" in output
 
 
-def test_doctor_cmd_warns_missing_memory_store_pkg(monkeypatch, tmp_path):
-    """Warn when memory store backends lack required packages."""
+@pytest.mark.parametrize(
+    "store_type,pkg", [("chromadb", "chromadb"), ("tinydb", "tinydb")]
+)
+def test_doctor_cmd_warns_missing_memory_store_pkg(
+    monkeypatch, tmp_path, store_type, pkg
+):
+    """Warn and exit when memory store backends lack required packages."""
 
     monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
     monkeypatch.setenv("OPENAI_API_KEY", "1")
@@ -221,12 +226,49 @@ def test_doctor_cmd_warns_missing_memory_store_pkg(monkeypatch, tmp_path):
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
     cfg.features = {}
-    cfg.memory_store_type = "chromadb"
+    cfg.memory_store_type = store_type
 
     real_find = doctor_cmd.importlib.util.find_spec
 
     def fake_find(name, *args, **kwargs):
-        if name == "chromadb":
+        if name == pkg:
+            return None
+        return real_find(name, *args, **kwargs)
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.importlib.util, "find_spec", side_effect=fake_find),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+        pytest.raises(SystemExit) as exc,
+    ):
+        doctor_cmd.doctor_cmd(str(config_dir))
+    assert exc.value.code == 1
+    output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
+    assert pkg in output
+
+
+def test_doctor_cmd_warns_missing_uvicorn(monkeypatch, tmp_path):
+    """Warn when uvicorn is not installed."""
+
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    for env in ["default", "development", "testing", "staging", "production"]:
+        (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
+
+    cfg = SimpleNamespace()
+    cfg.exists = lambda: True
+    cfg.features = {}
+    cfg.memory_store_type = "memory"
+
+    real_find = doctor_cmd.importlib.util.find_spec
+
+    def fake_find(name, *args, **kwargs):
+        if name == "uvicorn":
             return None
         return real_find(name, *args, **kwargs)
 
@@ -238,7 +280,7 @@ def test_doctor_cmd_warns_missing_memory_store_pkg(monkeypatch, tmp_path):
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
-        assert "chromadb" in output
+        assert "uvicorn" in output
 
 
 def test_check_cmd_alias(monkeypatch):
