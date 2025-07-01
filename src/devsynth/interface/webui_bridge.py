@@ -1,0 +1,31 @@
+from __future__ import annotations
+
+from typing import List, Optional, Sequence
+
+from .ux_bridge import UXBridge, sanitize_output
+
+
+class WebUIBridge(UXBridge):
+    """Lightweight placeholder implementing the :class:`UXBridge` API."""
+
+    def __init__(self) -> None:
+        self.messages: List[str] = []
+
+    def ask_question(
+        self,
+        message: str,
+        *,
+        choices: Optional[Sequence[str]] = None,
+        default: Optional[str] = None,
+        show_default: bool = True,
+    ) -> str:
+        return str(default or "")
+
+    def confirm_choice(self, message: str, *, default: bool = False) -> bool:
+        return default
+
+    def display_result(self, message: str, *, highlight: bool = False) -> None:
+        self.messages.append(sanitize_output(message))
+
+
+__all__ = ["WebUIBridge"]
