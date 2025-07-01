@@ -59,7 +59,7 @@ def build_app() -> typer.Typer:
     # Register commands from the application layer
     app.command(
         name="init",
-        help="Initialize or onboard a project. Example: devsynth init --path ./my-project",
+        help=("Initialize or onboard a project. Use --wizard for interactive setup."),
     )(init_cmd)
     app.command(
         name="spec",

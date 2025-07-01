@@ -28,7 +28,7 @@ def test_wizard_prompts_via_cli_bridge(tmp_path, monkeypatch) -> None:
     """Ensure the wizard uses CLIUXBridge for prompting."""
     monkeypatch.chdir(tmp_path)
 
-    answers = iter([str(tmp_path), "python", "my goal", "memory"])
+    answers = iter([str(tmp_path), "single_package", "python", "", "my goal", "memory"])
     confirms = iter([False, False, False, False, False, False, False, True])
 
     asked = []
@@ -57,7 +57,9 @@ def test_setup_wizard_run(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     answers = [
         str(tmp_path),
+        "single_package",
         "python",
+        "",
         "do stuff",
         "kuzu",
     ]
@@ -87,7 +89,9 @@ def test_setup_wizard_abort(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     answers = [
         str(tmp_path),
+        "single_package",
         "python",
+        "",
         "",
         "memory",
     ]
