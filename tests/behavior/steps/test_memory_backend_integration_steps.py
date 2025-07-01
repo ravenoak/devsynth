@@ -16,7 +16,6 @@ chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
 if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 from pytest_bdd import given, when, then, parsers, scenarios
-from unittest.mock import MagicMock
 
 # Import the feature file
 scenarios('../features/memory_backend_integration.feature')
