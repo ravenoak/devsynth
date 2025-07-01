@@ -4,25 +4,27 @@ Step Definitions for WSDE Model and Memory System Integration BDD Tests
 This file implements the step definitions for the WSDE model and memory system integration
 feature file, testing the integration between the WSDE model and the memory system.
 """
+
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/wsde_memory_integration.feature')
+scenarios("../features/wsde_memory_integration.feature")
 
 # Import the modules needed for the steps
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from rdflib import Graph, Namespace, RDF
 
 
 @pytest.fixture
 def context():
     """Fixture to provide a context object for sharing state between steps."""
+
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()
@@ -43,6 +45,7 @@ def context():
 
 
 # Background steps
+
 
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
@@ -72,16 +75,19 @@ def wsde_model_enabled(context):
 def memory_system_configured(context):
     """Configure the memory system with a test backend."""
     # Create a memory system adapter with an in-memory backend for testing
-    context.memory_adapter = MemorySystemAdapter.create_for_testing(storage_type="memory")
+    context.memory_adapter = MemorySystemAdapter.create_for_testing(
+        storage_type="memory"
+    )
 
     # Create a memory manager that uses the memory store from the adapter
     # This is the key change - we're passing the memory store, not the adapter itself
-    context.memory_manager = MemoryManager({
-        'default': context.memory_adapter.get_memory_store()
-    })
+    context.memory_manager = MemoryManager(
+        {"default": context.memory_adapter.get_memory_store()}
+    )
 
 
 # Scenario: Store and retrieve WSDE team state
+
 
 @when("I create a team with multiple agents")
 def create_team_with_multiple_agents(context):
@@ -91,7 +97,7 @@ def create_team_with_multiple_agents(context):
         AgentType.PLANNER.value,
         AgentType.SPECIFICATION.value,
         AgentType.CODE.value,
-        AgentType.VALIDATION.value
+        AgentType.VALIDATION.value,
     ]
 
     for agent_type in agent_types:
@@ -101,7 +107,7 @@ def create_team_with_multiple_agents(context):
             agent_type=AgentType(agent_type),
             description=f"Agent for {agent_type} tasks",
             capabilities=[],
-            parameters={}
+            parameters={},
         )
         agent.initialize(agent_config)
         context.agents[agent_type] = agent
@@ -118,7 +124,7 @@ def store_team_state_in_memory(context):
     context.original_team_state = {
         "team_id": context.current_team_id,
         "agents": [agent.config.name for agent in team.agents],
-        "primus_index": team.primus_index
+        "primus_index": team.primus_index,
     }
 
     # Create a memory item for the team state
@@ -126,10 +132,7 @@ def store_team_state_in_memory(context):
         id="team_state_1",
         memory_type=MemoryType.TEAM_STATE,
         content=context.original_team_state,
-        metadata={
-            "team_id": context.current_team_id,
-            "agent_count": len(team.agents)
-        }
+        metadata={"team_id": context.current_team_id, "agent_count": len(team.agents)},
     )
 
     # Store the memory item
@@ -160,24 +163,33 @@ def verify_team_state_matches(context):
     assert context.original_team_state is not None
 
     # Compare team_id
-    assert context.retrieved_team_state["team_id"] == context.original_team_state["team_id"]
+    assert (
+        context.retrieved_team_state["team_id"]
+        == context.original_team_state["team_id"]
+    )
 
     # Compare agents (order may not matter)
-    assert set(context.retrieved_team_state["agents"]) == set(context.original_team_state["agents"])
+    assert set(context.retrieved_team_state["agents"]) == set(
+        context.original_team_state["agents"]
+    )
 
     # Compare primus_index
-    assert context.retrieved_team_state["primus_index"] == context.original_team_state["primus_index"]
+    assert (
+        context.retrieved_team_state["primus_index"]
+        == context.original_team_state["primus_index"]
+    )
 
 
 # Scenario: Store and retrieve solutions with EDRR phase tagging
 
-@when(parsers.parse('a solution is proposed for a task'))
+
+@when(parsers.parse("a solution is proposed for a task"))
 def solution_proposed_for_task(context):
     """Propose a solution for a task."""
     # Create a task
     task = {
         "type": "code_generation",
-        "description": "Generate a Python function to calculate Fibonacci numbers"
+        "description": "Generate a Python function to calculate Fibonacci numbers",
     }
     context.tasks["fibonacci_task"] = task
 
@@ -185,7 +197,7 @@ def solution_proposed_for_task(context):
     solution = {
         "agent": "code_agent",
         "content": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
-        "description": "Recursive implementation of Fibonacci"
+        "description": "Recursive implementation of Fibonacci",
     }
     context.solutions["fibonacci_solution"] = solution
 
@@ -209,8 +221,8 @@ def store_solution_with_edrr_phase(context, phase):
         metadata={
             "task_id": str(hash(frozenset(task.items()))),
             "agent": solution["agent"],
-            "edrr_phase": phase
-        }
+            "edrr_phase": phase,
+        },
     )
 
     # Store the memory item
@@ -254,6 +266,7 @@ def verify_solution_edrr_phase(context):
 
 # Scenario: Store and retrieve dialectical reasoning results
 
+
 @given("a team with multiple agents")
 def team_with_multiple_agents(context):
     """Create a team with multiple agents."""
@@ -262,7 +275,7 @@ def team_with_multiple_agents(context):
         AgentType.PLANNER.value,
         AgentType.SPECIFICATION.value,
         AgentType.CODE.value,
-        AgentType.VALIDATION.value
+        AgentType.VALIDATION.value,
     ]
 
     for agent_type in agent_types:
@@ -272,11 +285,12 @@ def team_with_multiple_agents(context):
             agent_type=AgentType(agent_type),
             description=f"Agent for {agent_type} tasks",
             capabilities=[],
-            parameters={}
+            parameters={},
         )
         agent.initialize(agent_config)
         context.agents[agent_type] = agent
         context.team_coordinator.add_agent(agent)
+
 
 @given("a team with a Critic agent")
 def team_with_critic_agent(context):
@@ -288,7 +302,7 @@ def team_with_critic_agent(context):
         agent_type=AgentType.ORCHESTRATOR,
         description="Agent for applying dialectical reasoning",
         capabilities=[],
-        parameters={"expertise": ["dialectical_reasoning", "critique", "synthesis"]}
+        parameters={"expertise": ["dialectical_reasoning", "critique", "synthesis"]},
     )
     agent.initialize(agent_config)
     context.agents["critic_agent"] = agent
@@ -302,7 +316,7 @@ def solution_proposed(context):
     context.solutions["proposed_solution"] = {
         "agent": "code_agent",
         "description": "Solution for user authentication",
-        "code": "def authenticate(username, password):\n    # Implementation details\n    return True"
+        "code": "def authenticate(username, password):\n    # Implementation details\n    return True",
     }
 
 
@@ -341,8 +355,8 @@ def store_dialectical_results(context):
         content=dialectical_result,
         metadata={
             "task_id": str(hash(frozenset(task.items()))),
-            "critic_agent": "critic_agent"
-        }
+            "critic_agent": "critic_agent",
+        },
     )
 
     # Store the memory item
@@ -353,7 +367,9 @@ def store_dialectical_results(context):
 def retrieve_dialectical_results(context):
     """Retrieve the dialectical reasoning results from memory."""
     # Query for dialectical reasoning memory items
-    query_result = context.memory_manager.query_by_type(MemoryType.DIALECTICAL_REASONING)
+    query_result = context.memory_manager.query_by_type(
+        MemoryType.DIALECTICAL_REASONING
+    )
 
     # Verify that we got at least one result
     assert len(query_result) > 0
@@ -377,54 +393,36 @@ def verify_dialectical_results(context):
 
 # Scenario: Access knowledge graph for enhanced reasoning
 
+
 @given("a knowledge graph with domain knowledge")
 def knowledge_graph_with_domain_knowledge(context):
-    """Create a knowledge graph with domain knowledge."""
-    # For testing purposes, we'll create a simple knowledge graph
-    # In a real implementation, this would be an RDF graph or similar
-    context.knowledge_graph = {
-        "entities": {
-            "authentication": {
-                "type": "concept",
-                "related": ["security", "password", "username"]
-            },
-            "password": {
-                "type": "concept",
-                "related": ["authentication", "security"]
-            },
-            "security": {
-                "type": "concept",
-                "related": ["authentication", "password", "encryption"]
-            },
-            "encryption": {
-                "type": "concept",
-                "related": ["security", "hashing"]
-            },
-            "hashing": {
-                "type": "concept",
-                "related": ["encryption", "password"]
-            }
-        },
-        "relationships": [
-            {"source": "authentication", "target": "password", "type": "uses"},
-            {"source": "authentication", "target": "username", "type": "uses"},
-            {"source": "password", "target": "hashing", "type": "should_use"},
-            {"source": "security", "target": "encryption", "type": "requires"}
-        ]
-    }
+    """Create a knowledge graph with domain knowledge using RDFLib."""
 
-    # Store the knowledge graph in memory
+    graph = Graph()
+    EX = Namespace("http://example.org/")
+    context.EX = EX
+
+    # Define simple relationships
+    graph.add((EX.authentication, RDF.type, EX.Concept))
+    graph.add((EX.password, RDF.type, EX.Concept))
+    graph.add((EX.encryption, RDF.type, EX.Concept))
+    graph.add((EX.hashing, RDF.type, EX.Concept))
+    graph.add((EX.security, RDF.type, EX.Concept))
+
+    graph.add((EX.authentication, EX.uses, EX.password))
+    graph.add((EX.authentication, EX.uses, EX.username))
+    graph.add((EX.password, EX.should_use, EX.hashing))
+    graph.add((EX.security, EX.requires, EX.encryption))
+
+    context.knowledge_graph = graph
+
     memory_item = MemoryItem(
         id="knowledge_graph_1",
         memory_type=MemoryType.KNOWLEDGE_GRAPH,
-        content=context.knowledge_graph,
-        metadata={
-            "domain": "security",
-            "version": "1.0"
-        }
+        content=graph.serialize(format="turtle"),
+        metadata={"domain": "security", "version": "1.0"},
     )
 
-    # Store the memory item
     context.memory_manager.store_item(memory_item)
 
 
@@ -435,7 +433,7 @@ def team_reasons_about_complex_task(context):
     task = {
         "type": "security_implementation",
         "description": "Implement a secure authentication system",
-        "requirements": ["user authentication", "password security", "encryption"]
+        "requirements": ["user authentication", "password security", "encryption"],
     }
     context.tasks["security_task"] = task
 
@@ -449,14 +447,13 @@ def team_queries_knowledge_graph(context):
     # Verify that we got at least one result
     assert len(query_result) > 0
 
-    # Get the first result (should be our knowledge graph)
     knowledge_graph_item = query_result[0]
 
-    # Verify that it's a knowledge graph
     assert knowledge_graph_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
 
-    # Store the retrieved knowledge graph for later use
-    context.retrieved_knowledge_graph = knowledge_graph_item.content
+    graph = Graph()
+    graph.parse(data=knowledge_graph_item.content, format="turtle")
+    context.retrieved_knowledge_graph = graph
 
 
 @then("incorporate the knowledge into their reasoning process")
@@ -466,11 +463,13 @@ def incorporate_knowledge_into_reasoning(context):
     team = context.teams[context.current_team_id]
     task = context.tasks["security_task"]
 
-    # Get the knowledge graph
     knowledge_graph = context.retrieved_knowledge_graph
 
-    # In a real implementation, the team would use the knowledge graph to enhance reasoning
-    # For testing purposes, we'll simulate this by creating a solution that incorporates knowledge
+    EX = context.EX
+
+    assert (EX.hashing, RDF.type, EX.Concept) in knowledge_graph
+
+    # For testing purposes, simulate creating a solution that incorporates knowledge
     solution = {
         "agent": "code_agent",
         "description": "Secure authentication implementation",
@@ -488,7 +487,7 @@ def hash_password(password):
     # Use a secure hashing algorithm
     import hashlib
     return hashlib.sha256(password.encode()).hexdigest()
-        """
+        """,
     }
 
     # Add the solution to the team
@@ -502,8 +501,8 @@ def hash_password(password):
         metadata={
             "task_id": str(hash(frozenset(task.items()))),
             "agent": solution["agent"],
-            "knowledge_sources": ["authentication", "password", "hashing", "security"]
-        }
+            "knowledge_sources": ["authentication", "password", "hashing", "security"],
+        },
     )
 
     # Store the memory item
@@ -516,6 +515,7 @@ def hash_password(password):
 
 
 # Scenario: Use different memory backends for WSDE artifacts
+
 
 @given("the memory system is configured with multiple backends")
 def memory_system_with_multiple_backends(context):
@@ -530,9 +530,7 @@ def memory_system_with_multiple_backends(context):
 
     # Create a memory manager that can use multiple backends
     context.memory_managers = {
-        backend_name: MemoryManager({
-            'default': memory_store
-        })
+        backend_name: MemoryManager({"default": memory_store})
         for backend_name, memory_store in context.memory_backends.items()
     }
 
@@ -543,22 +541,24 @@ def store_artifacts_in_different_backends(context):
     # Create a task
     task = {
         "type": "multi_backend_test",
-        "description": "Test storing artifacts in different backends"
+        "description": "Test storing artifacts in different backends",
     }
     context.tasks["multi_backend_task"] = task
 
     # Create a team state artifact
     team_state = {
         "team_id": context.current_team_id,
-        "agents": [agent.config.name for agent in context.teams[context.current_team_id].agents],
-        "primus_index": context.teams[context.current_team_id].primus_index
+        "agents": [
+            agent.config.name for agent in context.teams[context.current_team_id].agents
+        ],
+        "primus_index": context.teams[context.current_team_id].primus_index,
     }
 
     # Create a solution artifact
     solution = {
         "agent": "code_agent",
         "description": "Solution for multi-backend test",
-        "code": "def test_function():\n    return 'Hello, world!'"
+        "code": "def test_function():\n    return 'Hello, world!'",
     }
 
     # Store team state in the file backend
@@ -566,10 +566,7 @@ def store_artifacts_in_different_backends(context):
         id="team_state_2",
         memory_type=MemoryType.TEAM_STATE,
         content=team_state,
-        metadata={
-            "team_id": context.current_team_id,
-            "backend": "file"
-        }
+        metadata={"team_id": context.current_team_id, "backend": "file"},
     )
     context.memory_managers["file"].store_item(file_memory_item)
 
@@ -581,8 +578,8 @@ def store_artifacts_in_different_backends(context):
         metadata={
             "task_id": str(hash(frozenset(task.items()))),
             "agent": solution["agent"],
-            "backend": "tinydb"
-        }
+            "backend": "tinydb",
+        },
     )
     context.memory_managers["tinydb"].store_item(tinydb_memory_item)
 
@@ -597,12 +594,9 @@ def store_artifacts_in_different_backends(context):
             "source_id": file_memory_item.id,
             "target_type": MemoryType.SOLUTION,
             "target_id": tinydb_memory_item.id,
-            "relationship_type": "created_by"
+            "relationship_type": "created_by",
         },
-        metadata={
-            "source_backend": "file",
-            "target_backend": "tinydb"
-        }
+        metadata={"source_backend": "file", "target_backend": "tinydb"},
     )
     context.memory_managers["file"].store_item(relationship_item)
 
@@ -611,7 +605,9 @@ def store_artifacts_in_different_backends(context):
 def retrieve_artifacts_from_backends(context):
     """Retrieve the artifacts from their respective backends."""
     # Query for team state in the file backend
-    file_query_result = context.memory_managers["file"].query_by_type(MemoryType.TEAM_STATE)
+    file_query_result = context.memory_managers["file"].query_by_type(
+        MemoryType.TEAM_STATE
+    )
 
     # Verify that we got at least one result
     assert len(file_query_result) > 0
@@ -626,7 +622,9 @@ def retrieve_artifacts_from_backends(context):
     context.retrieved_team_state = team_state_item.content
 
     # Query for solution in the tinydb backend
-    tinydb_query_result = context.memory_managers["tinydb"].query_by_type(MemoryType.SOLUTION)
+    tinydb_query_result = context.memory_managers["tinydb"].query_by_type(
+        MemoryType.SOLUTION
+    )
 
     # Verify that we got at least one result
     assert len(tinydb_query_result) > 0
@@ -645,7 +643,9 @@ def retrieve_artifacts_from_backends(context):
 def verify_artifact_relationships(context):
     """Verify that the artifacts maintain their relationships."""
     # Query for relationships in the file backend
-    relationship_query_result = context.memory_managers["file"].query_by_type(MemoryType.RELATIONSHIP)
+    relationship_query_result = context.memory_managers["file"].query_by_type(
+        MemoryType.RELATIONSHIP
+    )
 
     # Verify that we got at least one result
     assert len(relationship_query_result) > 0
