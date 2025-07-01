@@ -106,6 +106,8 @@ minimal = [
 retrieval = ["kuzu", "faiss-cpu"]
 dsp = ["dspy-ai"]
 chromadb = ["chromadb"]
+memory = ["tinydb", "duckdb", "lmdb", "kuzu", "faiss-cpu", "chromadb"]
+llm = ["tiktoken", "httpx", "dspy-ai"]
 dev = [
     "responses",
     "pytest",

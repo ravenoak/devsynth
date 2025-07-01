@@ -110,12 +110,12 @@ For more on Docker deployment, see the [Deployment Guide](docs/deployment/deploy
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
 
 ```bash
-poetry install --extras retrieval
+poetry install --extras retrieval --extras memory --extras llm
 # or install from PyPI
-pip install 'devsynth[retrieval]'
+pip install 'devsynth[retrieval,memory,llm]'
 ```
 
-These packages enable the Kuzu, FAISS, and LMDB memory stores. ChromaDB can be enabled later, but only the embedded backend is currently supported.
+These packages enable the Kuzu, FAISS, and LMDB memory stores along with optional LLM provider helpers. ChromaDB can be enabled later, but only the embedded backend is currently supported.
 
 ## Minimal Project Example
 
