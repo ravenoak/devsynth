@@ -13,6 +13,37 @@ def create_agent(name: str, expertise: list[str]):
     return agent
 
 
+@pytest.fixture
+def rotation_team():
+    """Team with two identical agents for deterministic rotation tests."""
+    team = WSDETeam()
+    a1 = create_agent("A1", ["python"])
+    a2 = create_agent("A2", ["python"])
+    team.add_agents([a1, a2])
+    return team, a1, a2
+
+
+@pytest.fixture
+def weighted_team():
+    """Team with a specialist and a generalist for expertise weighting."""
+    team = WSDETeam()
+    generalist = create_agent("Generalist", ["python"])
+    specialist = create_agent("Specialist", ["python", "backend"])
+    team.add_agents([generalist, specialist])
+    return team, generalist, specialist
+
+
+@pytest.fixture
+def documentation_team():
+    """Team containing multiple documentation experts."""
+    team = WSDETeam()
+    coder = create_agent("Coder", ["python"])
+    writer = create_agent("Writer", ["documentation"])
+    doc = create_agent("Doc", ["documentation", "markdown"])
+    team.add_agents([coder, writer, doc])
+    return team, coder, writer, doc
+
+
 def test_highest_expertise_score_becomes_primus():
     team = WSDETeam()
     python_agent = create_agent("Python", ["python", "backend"])
@@ -53,3 +84,39 @@ def test_documentation_tasks_prefer_documentation_experts():
 
     assert team.get_primus() is doc_agent
     assert doc_agent.has_been_primus
+
+
+def test_weighted_expertise_prefers_specialist(weighted_team):
+    team, generalist, specialist = weighted_team
+
+    task = {"type": "coding", "language": "python", "domain": "backend"}
+    team.select_primus_by_expertise(task)
+
+    assert team.get_primus() is specialist
+
+
+def test_rotation_resets_after_all_agents_served(rotation_team):
+    team, a1, a2 = rotation_team
+
+    task = {"language": "python"}
+    team.select_primus_by_expertise(task)
+    team.select_primus_by_expertise(task)
+
+    assert a1.has_been_primus and a2.has_been_primus
+
+    team.select_primus_by_expertise(task)
+
+    assert team.get_primus() is a1
+    assert a1.has_been_primus
+    assert not a2.has_been_primus
+
+
+def test_documentation_tasks_prioritize_best_doc_expert(documentation_team):
+    team, coder, writer, doc = documentation_team
+
+    task = {"type": "documentation", "description": "Write docs"}
+    team.select_primus_by_expertise(task)
+
+    primus = team.get_primus()
+    assert primus in (writer, doc)
+    assert primus.has_been_primus
