@@ -141,12 +141,21 @@ class MessageStore:
         return list(self.messages.values())
 
 
+from ..memory.memory_manager import MemoryManager
+from ...domain.models.memory import MemoryItem, MemoryType
+
+
 class MessageProtocol:
     """Message passing implementation with optional persistence."""
 
-    def __init__(self, store: Optional[MessageStore] = None) -> None:
+    def __init__(
+        self,
+        store: Optional[MessageStore] = None,
+        memory_manager: Optional[MemoryManager] = None,
+    ) -> None:
         self.store = store or MessageStore()
         self.history: List[Message] = self.store.get_all_messages()
+        self.memory_manager = memory_manager
 
     def send_message(
         self,
@@ -178,6 +187,18 @@ class MessageProtocol:
             self.history.append(message)
 
         self.store.add_message(message)
+
+        if self.memory_manager is not None:
+            item = MemoryItem(
+                id=message.message_id,
+                content={**asdict(message), "message_type": message.message_type.value},
+                memory_type=MemoryType.CONVERSATION,
+                metadata=message.metadata,
+            )
+            try:
+                self.memory_manager.store_item(item)
+            except Exception:
+                pass
         return message
 
     def get_messages(

@@ -19,6 +19,7 @@ class PeerReview:
 
     reviews: Dict[Any, Dict[str, Any]] = field(default_factory=dict)
     revision: Any = None
+    revision_history: List[Any] = field(default_factory=list)
     status: str = "pending"
 
     def assign_reviews(self) -> None:
@@ -60,6 +61,7 @@ class PeerReview:
         """Submit a revised work product for further review."""
 
         self.revision = revision
+        self.revision_history.append(revision)
         self.status = "revised"
 
     def finalize(self, approved: bool = True) -> Dict[str, Any]:
@@ -67,7 +69,11 @@ class PeerReview:
 
         self.status = "approved" if approved else "rejected"
         feedback = self.aggregate_feedback()
-        return {"status": self.status, "feedback": feedback}
+        return {
+            "status": self.status,
+            "feedback": feedback,
+            "revisions": list(self.revision_history),
+        }
 
 
 @dataclass
