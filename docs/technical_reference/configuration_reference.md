@@ -34,6 +34,14 @@ This document provides a comprehensive reference for configuring DevSynth. It co
 
 DevSynth uses a YAML configuration file located at `~/.devsynth/config.yaml` by default. You can specify a different location using the `--config-file` CLI option or the `DEVSYNTH_CONFIG_PATH` environment variable.
 
+For project configuration DevSynth relies on a *unified loader* that searches the
+project root for either a `[tool.devsynth]` table in `pyproject.toml` or the file
+`.devsynth/devsynth.yml`. When both are present the TOML entry takes precedence.
+Saving a configuration writes back to whichever file was originally loaded. The
+loader also checks the `version` field against the CLI's expected
+`ConfigModel.version` and logs a warning if they differ, providing a simple form
+of version locking.
+
 ### Example Configuration File
 
 ```yaml
