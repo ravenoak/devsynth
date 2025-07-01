@@ -38,8 +38,8 @@ pipx install devsynth
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
-# Install with Poetry
-poetry install --with dev,docs
+# Install with Poetry (including all extras for development)
+poetry install --all-extras --with dev,docs
 poetry sync --all-extras --all-groups
 poetry shell
 
@@ -55,7 +55,7 @@ extras. Key dependencies include `rdflib`, `tinydb`, `chromadb`, `astor`, and
 `networkx`. Install them along with the project:
 
 ```bash
-poetry install --with dev,docs
+poetry install --all-extras --with dev,docs
 ```
 
 For more details, see the [Quick Start Guide](../getting_started/quick_start_guide.md).

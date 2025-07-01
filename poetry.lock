@@ -6091,10 +6091,9 @@ blobfile = ["blobfile (>=2)"]
 name = "tinydb"
 version = "4.8.2"
 description = "TinyDB is a tiny, document oriented database optimized for your happiness :)"
-optional = true
+optional = false
 python-versions = "<4.0,>=3.8"
-groups = ["main"]
-markers = "extra == \"minimal\" or extra == \"memory\""
+groups = ["main", "dev"]
 files = [
     {file = "tinydb-4.8.2-py3-none-any.whl", hash = "sha256:f97030ee5cbc91eeadd1d7af07ab0e48ceb04aa63d4a983adbaca4cba16e86c3"},
     {file = "tinydb-4.8.2.tar.gz", hash = "sha256:f7dfc39b8d7fda7a1ca62a8dbb449ffd340a117c1206b68c50b1a481fb95181d"},
@@ -7398,4 +7397,4 @@ retrieval = ["faiss-cpu", "kuzu"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.11"
-content-hash = "ca55b1374fc836494aff52b43e51e16f0d756b65953cf842fa5c91ca614bd460"
+content-hash = "1d662e3a1fbfec1ca5a30fc79091c05713a94807fb76e54c35553e64f0d47964"
