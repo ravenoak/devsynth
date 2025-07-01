@@ -2,7 +2,11 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
-from devsynth.application.collaboration.exceptions import TeamConfigurationError
+from devsynth.application.collaboration.exceptions import (
+    TeamConfigurationError,
+    RoleAssignmentError,
+    CollaborationError,
+)
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.exceptions import ValidationError
 
@@ -67,3 +71,23 @@ class TestDelegateTask:
     def test_invalid_task_format(self) -> None:
         with pytest.raises(ValidationError):
             self.coordinator.delegate_task({})
+
+    def test_delegate_task_propagates_agent_error(self) -> None:
+        with patch.object(
+            self.coordinator,
+            "_delegate_to_agent_type",
+            side_effect=Exception("boom"),
+        ) as del_mock:
+            with pytest.raises(Exception):
+                self.coordinator.delegate_task({"agent_type": "planner"})
+        del_mock.assert_called_once()
+
+    def test_delegate_task_role_assignment_error(self) -> None:
+        with patch.object(
+            self.coordinator,
+            "_handle_team_task",
+            side_effect=RoleAssignmentError("no primus"),
+        ) as handler:
+            with pytest.raises(CollaborationError):
+                self.coordinator.delegate_task({"team_task": True})
+        handler.assert_called_once()

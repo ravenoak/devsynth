@@ -1,3 +1,4 @@
+import json
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -162,3 +163,14 @@ def test_parent_aggregates_after_micro_phase(coordinator):
     aggregated = coordinator.results.get("AGGREGATED", {})
     assert micro.cycle_id in aggregated.get("child_cycles", {})
     assert aggregated["child_cycles"][micro.cycle_id] == micro.results
+
+
+def test_create_micro_cycle_from_manifest_dict(coordinator):
+    coordinator.start_cycle({"description": "root"})
+    task = {"manifest": {"task": {"description": "micro"}}}
+    with patch.object(EDRRCoordinator, "start_cycle_from_manifest") as start_mock:
+        micro = coordinator.create_micro_cycle(task, Phase.EXPAND)
+    start_mock.assert_called_once_with(
+        json.dumps({"task": {"description": "micro"}}), is_file=False
+    )
+    assert micro.parent_cycle_id == coordinator.cycle_id

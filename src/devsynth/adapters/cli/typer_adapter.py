@@ -1,3 +1,4 @@
+import inspect
 import typer
 from typing import Optional
 from devsynth.logging_setup import DevSynthLogger
@@ -100,11 +101,17 @@ def build_app() -> typer.Typer:
         name="dbschema",
         help="Generate a database schema. Example: devsynth dbschema --db-type sqlite",
     )(dbschema_cmd)
-    app.command(
-        name="doctor",
-        help="Validate configuration files. Example: devsynth doctor",
-        aliases=["check"],
-    )(doctor_cmd)
+    if "aliases" in inspect.signature(app.command).parameters:
+        app.command(
+            name="doctor",
+            help="Validate configuration files. Example: devsynth doctor",
+            aliases=["check"],
+        )(doctor_cmd)
+    else:
+        app.command(
+            name="doctor",
+            help="Validate configuration files. Example: devsynth doctor",
+        )(doctor_cmd)
     app.command(
         name="refactor",
         help="Suggest next workflow steps. Example: devsynth refactor",
