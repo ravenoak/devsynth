@@ -28,11 +28,14 @@ def parity_env(monkeypatch):
     monkeypatch.setitem(sys.modules, "uvicorn", MagicMock())
 
     from devsynth.application import cli as cli_module
+
     monkeypatch.setattr(cli_module, "init_cmd", MagicMock())
 
     st = ModuleType("streamlit")
+
     class SS(dict):
         pass
+
     st.session_state = SS()
     st.session_state.wizard_step = 0
     st.session_state.wizard_data = {}
@@ -48,7 +51,7 @@ def parity_env(monkeypatch):
     st.text_area = MagicMock(return_value="demo goals")
     st.selectbox = MagicMock(return_value="choice")
     st.checkbox = MagicMock(return_value=True)
-    st.button = MagicMock(return_value=True)
+    st.button = MagicMock(return_value=False)
     st.spinner = DummyForm
     st.divider = MagicMock()
     st.columns = MagicMock(
@@ -63,6 +66,7 @@ def parity_env(monkeypatch):
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
     return cli_module, webui.WebUI()
 
@@ -71,7 +75,13 @@ def test_init_invocations_match(parity_env):
     cli_module, webui_bridge = parity_env
     cli_bridge = CLIUXBridge()
 
-    cli_module.init_cmd(path="demo", project_root="demo", language="python", goals=None, bridge=cli_bridge)
+    cli_module.init_cmd(
+        path="demo",
+        project_root="demo",
+        language="python",
+        goals=None,
+        bridge=cli_bridge,
+    )
     args_cli = cli_module.init_cmd.call_args_list[-1].kwargs
     cli_module.init_cmd.reset_mock()
 
@@ -81,3 +91,26 @@ def test_init_invocations_match(parity_env):
     args_cli.pop("bridge", None)
     args_web.pop("bridge", None)
     assert args_cli == args_web
+
+
+def test_display_result_sanitization(parity_env, monkeypatch):
+    """Ensure CLI and WebUI bridges sanitize output consistently."""
+    _, webui_bridge = parity_env
+    cli_bridge = CLIUXBridge()
+
+    out_cli: list[str] = []
+    monkeypatch.setattr(
+        "rich.console.Console.print",
+        lambda self, msg, *, highlight=False: out_cli.append(msg),
+    )
+
+    st = sys.modules["streamlit"]
+    out_web: list[str] = []
+    st.write = MagicMock(side_effect=lambda msg: out_web.append(msg))
+    st.markdown = MagicMock(side_effect=lambda msg: out_web.append(msg))
+
+    sample = "<script>bad</script>Hello"
+    cli_bridge.display_result(sample)
+    webui_bridge.display_result(sample)
+
+    assert out_cli == out_web
