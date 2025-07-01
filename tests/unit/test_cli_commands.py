@@ -49,7 +49,7 @@ class TestCLIHelpOutput:
             "doctor",
             "check",
             "refactor",
-            "analyze-code",
+            "inspect-code",
             "edrr-cycle",
             "align",
             "alignment-metrics",

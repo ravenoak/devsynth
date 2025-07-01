@@ -74,10 +74,10 @@ def parity_env(monkeypatch):
     cli_stub.doctor_cmd = doctor_mod.doctor_cmd
 
     # Additional stub command modules required by the WebUI import
-    analyze_mod = ModuleType("devsynth.application.cli.commands.analyze_code_cmd")
-    analyze_mod.analyze_code_cmd = MagicMock()
+    analyze_mod = ModuleType("devsynth.application.cli.commands.inspect_code_cmd")
+    analyze_mod.inspect_code_cmd = MagicMock()
     monkeypatch.setitem(
-        sys.modules, "devsynth.application.cli.commands.analyze_code_cmd", analyze_mod
+        sys.modules, "devsynth.application.cli.commands.inspect_code_cmd", analyze_mod
     )
 
     edrr_mod = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")

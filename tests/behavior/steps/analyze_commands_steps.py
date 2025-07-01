@@ -11,7 +11,7 @@ from io import StringIO
 
 # Import the CLI modules
 from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
-from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
+from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
 # Register the scenarios
@@ -95,14 +95,14 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     # Directly call the appropriate command function based on the first argument
     with patch("sys.stdout", new=captured_output):
         try:
-            if args[0] == "analyze-code":
+            if args[0] == "inspect-code":
                 # Parse the path argument
                 path = None
                 if len(args) > 2 and args[1] == "--path":
                     path = args[2]
 
-                # Call the analyze-code command
-                analyze_code_cmd(path)
+                # Call the inspect-code command
+                inspect_code_cmd(path)
 
                 # For testing purposes, we need to manually set the call args on the mock
                 mock_workflow_manager.execute_command.reset_mock()
@@ -111,11 +111,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 analyze_code_args = {"path": path}
 
                 # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("analyze-code", analyze_code_args)
+                mock_workflow_manager.execute_command("inspect-code", analyze_code_args)
 
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "analyze-code", analyze_code_args
+                    "inspect-code", analyze_code_args
                 )
             elif args[0] == "inspect-config":
                 # Parse the arguments
@@ -277,9 +277,9 @@ def check_analyze_code_current_dir(mock_workflow_manager, command_context):
     """
     Verify that the system analyzed the codebase in the current directory.
     """
-    # Check that the analyze-code command was called
+    # Check that the inspect-code command was called
     mock_workflow_manager.execute_command.assert_any_call(
-        "analyze-code", {"path": None}
+        "inspect-code", {"path": None}
     )
 
 
@@ -288,9 +288,9 @@ def check_analyze_code_path(path, mock_workflow_manager):
     """
     Verify that the system analyzed the codebase at the specified path.
     """
-    # Check that the analyze-code command was called with the correct path
+    # Check that the inspect-code command was called with the correct path
     mock_workflow_manager.execute_command.assert_any_call(
-        "analyze-code", {"path": path}
+        "inspect-code", {"path": path}
     )
 
 

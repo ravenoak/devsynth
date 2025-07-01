@@ -1,6 +1,6 @@
-Feature: Analyze Commands
+Feature: Inspect Commands
   As a developer using DevSynth
-  I want to use the analyze commands
+  I want to use the inspect commands
   So that I can gain insights about my codebase and project configuration
 
   Background:
@@ -8,8 +8,8 @@ Feature: Analyze Commands
     And I have a valid DevSynth project
 
   @code-analysis
-  Scenario: Analyze code in the current directory
-    When I run the command "devsynth analyze-code"
+  Scenario: Inspect code in the current directory
+    When I run the command "devsynth inspect-code"
     Then the system should analyze the codebase in the current directory
     And the output should include architecture information
     And the output should include code quality metrics
@@ -18,8 +18,8 @@ Feature: Analyze Commands
     And the workflow should execute successfully
 
   @code-analysis
-  Scenario: Analyze code in a specific directory
-    When I run the command "devsynth analyze-code --path ./src"
+  Scenario: Inspect code in a specific directory
+    When I run the command "devsynth inspect-code --path ./src"
     Then the system should analyze the codebase at "./src"
     And the output should include architecture information
     And the output should include code quality metrics
@@ -28,9 +28,9 @@ Feature: Analyze Commands
     And the workflow should execute successfully
 
   @code-analysis
-  Scenario: Handle errors during code analysis
+  Scenario: Handle errors during code inspection
     Given a project with invalid code structure
-    When I run the command "devsynth analyze-code"
+    When I run the command "devsynth inspect-code"
     Then the system should display an error message
     And the error message should indicate the analysis problem
 

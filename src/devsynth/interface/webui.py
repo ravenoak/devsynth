@@ -42,7 +42,7 @@ from devsynth.application.cli import (
     spec_cmd,
     test_cmd,
 )
-from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
+from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
 from devsynth.application.cli.commands.align_cmd import align_cmd
@@ -263,13 +263,13 @@ class WebUI(UXBridge):
     def analysis_page(self) -> None:
         """Render the code analysis page."""
         st.header("Code Analysis")
-        with st.expander("Analyze Code", expanded=True):
+        with st.expander("Inspect Code", expanded=True):
             with st.form("analysis"):
                 path = st.text_input("Path", ".")
-                submitted = st.form_submit_button("Analyze")
+                submitted = st.form_submit_button("Inspect")
                 if submitted:
-                    with st.spinner("Analyzing code..."):
-                        analyze_code_cmd(path=path)
+                    with st.spinner("Inspecting code..."):
+                        inspect_code_cmd(path=path)
 
     def synthesis_page(self) -> None:
         """Render the synthesis execution page."""

@@ -36,7 +36,7 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [doctor](#doctor-check)
   - [check](#doctor-check)
   - [refactor](#refactor)
-  - [analyze-code](#analyze-code)
+  - [inspect-code](#inspect-code)
   - [edrr-cycle](#edrr-cycle)
   - [align](#align)
   - [alignment-metrics](#alignment-metrics)
@@ -101,7 +101,7 @@ webui
 dbschema
 doctor (alias: check)
 refactor
-analyze-code
+inspect-code
 edrr-cycle
 align
 alignment-metrics
@@ -515,7 +515,7 @@ These commands mirror the names reported by `devsynth --help`:
 
 ```
 gather
-analyze-code
+inspect-code
 edrr-cycle
 align
 alignment-metrics

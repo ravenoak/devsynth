@@ -41,11 +41,11 @@ def test_webui_bridge_methods(monkeypatch):
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
-    analyze_stub = ModuleType("devsynth.application.cli.commands.analyze_code_cmd")
-    analyze_stub.analyze_code_cmd = MagicMock()
+    analyze_stub = ModuleType("devsynth.application.cli.commands.inspect_code_cmd")
+    analyze_stub.inspect_code_cmd = MagicMock()
     monkeypatch.setitem(
         sys.modules,
-        "devsynth.application.cli.commands.analyze_code_cmd",
+        "devsynth.application.cli.commands.inspect_code_cmd",
         analyze_stub,
     )
 

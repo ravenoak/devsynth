@@ -1,7 +1,7 @@
 """
-Integration tests for the AdaptiveWorkflowManager class.
+Integration tests for the RefactorWorkflowManager class.
 
-These tests verify that the AdaptiveWorkflowManager can correctly analyze
+These tests verify that the RefactorWorkflowManager can correctly analyze
 a project's state, determine the optimal workflow, and suggest appropriate
 next steps.
 """
@@ -12,12 +12,12 @@ import tempfile
 import shutil
 from pathlib import Path
 
-from devsynth.application.orchestration.adaptive_workflow import AdaptiveWorkflowManager
+from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 from devsynth.application.cli.cli_commands import init_cmd
 
 
-class TestAdaptiveWorkflowManager:
-    """Tests for the AdaptiveWorkflowManager class."""
+class TestRefactorWorkflowManager:
+    """Tests for the RefactorWorkflowManager class."""
 
     @pytest.fixture
     def temp_project_dir(self):
@@ -59,8 +59,8 @@ class TestAdaptiveWorkflowManager:
         with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
             f.write(requirements_content)
 
-        # Create an AdaptiveWorkflowManager
-        manager = AdaptiveWorkflowManager()
+        # Create a RefactorWorkflowManager
+        manager = RefactorWorkflowManager()
 
         # Analyze the project state
         project_state = manager.analyze_project_state(temp_project_dir)
@@ -121,8 +121,8 @@ class TestAdaptiveWorkflowManager:
         with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
             f.write(requirements_content)
 
-        # Create an AdaptiveWorkflowManager
-        manager = AdaptiveWorkflowManager()
+        # Create a RefactorWorkflowManager
+        manager = RefactorWorkflowManager()
 
         # Analyze the project state
         project_state = manager.analyze_project_state(temp_project_dir)
@@ -238,8 +238,8 @@ class TestAdaptiveWorkflowManager:
         ):
             init_cmd()
 
-        # Create an AdaptiveWorkflowManager
-        manager = AdaptiveWorkflowManager()
+        # Create a RefactorWorkflowManager
+        manager = RefactorWorkflowManager()
 
         # Suggest next steps
         suggestions = manager.suggest_next_steps(temp_project_dir)
@@ -313,8 +313,8 @@ class TestAdaptiveWorkflowManager:
         with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
             f.write(requirements_content)
 
-        # Create an AdaptiveWorkflowManager
-        manager = AdaptiveWorkflowManager()
+        # Create a RefactorWorkflowManager
+        manager = RefactorWorkflowManager()
 
         # Initialize the workflow
         workflow, entry_point, suggestions = manager.initialize_workflow(
@@ -335,8 +335,8 @@ class TestAdaptiveWorkflowManager:
         assert "specifications" in suggestions[0]["description"].lower()
         assert suggestions[0]["priority"] == "high"
 
-    def test_execute_adaptive_workflow(self, temp_project_dir, monkeypatch):
-        """Test executing an adaptive workflow."""
+    def test_execute_refactor_workflow(self, temp_project_dir, monkeypatch):
+        """Test executing a refactor workflow."""
         # Initialize a new project
         with patch(
             "devsynth.application.cli.cli_commands.bridge.ask_question",
@@ -366,8 +366,8 @@ class TestAdaptiveWorkflowManager:
         with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
             f.write(requirements_content)
 
-        # Create an AdaptiveWorkflowManager
-        manager = AdaptiveWorkflowManager()
+        # Create a RefactorWorkflowManager
+        manager = RefactorWorkflowManager()
 
         # Mock the execute_command method to avoid actually executing commands
         def mock_execute_command(command, args):
@@ -379,8 +379,8 @@ class TestAdaptiveWorkflowManager:
 
         monkeypatch.setattr(manager, "execute_command", mock_execute_command)
 
-        # Execute the adaptive workflow
-        result = manager.execute_adaptive_workflow(temp_project_dir)
+        # Execute the refactor workflow
+        result = manager.execute_refactor_workflow(temp_project_dir)
 
         # Verify that the result contains the expected fields
         assert "success" in result
@@ -400,4 +400,4 @@ class TestAdaptiveWorkflowManager:
 
 
 if __name__ == "__main__":
-    pytest.main(["-v", "test_adaptive_workflow.py"])
+    pytest.main(["-v", "test_refactor_workflow.py"])

@@ -30,7 +30,7 @@ from devsynth.application.cli.commands.validate_metadata_cmd import (
 from devsynth.application.cli.commands.alignment_metrics_cmd import (
     alignment_metrics_cmd,
 )
-from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
+from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
 
@@ -257,14 +257,14 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 mock_workflow_manager.execute_command.assert_called_with(
                     "config", {"key": key, "value": value}
                 )
-            elif args[0] == "analyze-code":
+            elif args[0] == "inspect-code":
                 # Parse the path argument
                 path = None
                 if len(args) > 2 and args[1] == "--path":
                     path = args[2]
 
-                # Call the analyze-code command
-                analyze_code_cmd(path)
+                # Call the inspect-code command
+                inspect_code_cmd(path)
 
                 # For testing purposes, we need to manually set the call args on the mock
                 mock_workflow_manager.execute_command.reset_mock()
@@ -273,11 +273,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 analyze_code_args = {"path": path}
 
                 # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("analyze-code", analyze_code_args)
+                mock_workflow_manager.execute_command("inspect-code", analyze_code_args)
 
                 # Ensure the mock is called with the correct arguments
                 mock_workflow_manager.execute_command.assert_called_with(
-                    "analyze-code", analyze_code_args
+                    "inspect-code", analyze_code_args
                 )
             elif args[0] == "edrr-cycle":
                 manifest = args[1] if len(args) > 1 else None
