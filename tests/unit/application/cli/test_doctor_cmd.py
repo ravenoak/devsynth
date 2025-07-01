@@ -239,3 +239,13 @@ def test_doctor_cmd_warns_missing_memory_store_pkg(monkeypatch, tmp_path):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(call.args[0]) for call in mock_print.call_args_list)
         assert "chromadb" in output
+
+
+def test_check_cmd_alias(monkeypatch):
+    """The ``check`` alias should delegate to ``doctor_cmd``."""
+
+    from devsynth.application.cli.cli_commands import check_cmd
+
+    with patch("devsynth.application.cli.cli_commands.doctor_cmd") as mock_doc:
+        check_cmd("config")
+        mock_doc.assert_called_once_with("config")

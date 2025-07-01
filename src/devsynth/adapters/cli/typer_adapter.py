@@ -103,10 +103,7 @@ def build_app() -> typer.Typer:
     app.command(
         name="doctor",
         help="Validate configuration files. Example: devsynth doctor",
-    )(doctor_cmd)
-    app.command(
-        name="check",
-        help="Alias for doctor. Example: devsynth check",
+        aliases=["check"],
     )(doctor_cmd)
     app.command(
         name="refactor",
