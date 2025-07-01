@@ -2,7 +2,7 @@
 
 This module provides a graphical interface that mirrors the CLI workflows
 through the :class:`~devsynth.interface.ux_bridge.UXBridge` abstraction.
-The :class:`WebUI` exposes seven pages available from a sidebar:
+The :class:`WebUI` exposes multiple pages available from a sidebar:
 
 - **Project Onboarding** – initialize or onboard projects.
 - **Requirements Gathering** – generate and inspect specifications.
@@ -11,6 +11,16 @@ The :class:`WebUI` exposes seven pages available from a sidebar:
 - **Configuration Editing** – view or update settings.
 - **EDRR Cycle** – execute a full Expand-Differentiate-Refine-Retrospect cycle.
 - **Alignment** – check SDLC artifacts for traceability and consistency.
+- **Alignment Metrics** – collect SDLC traceability metrics.
+- **Inspect Config** – analyze and update project configuration.
+- **Validate Manifest** – schema validation of project manifests.
+- **Validate Metadata** – check Markdown front matter for consistency.
+- **Test Metrics** – analyze commit history for test-first practices.
+- **Generate Docs** – build API reference documentation.
+- **Ingest Project** – run the ingestion pipeline.
+- **API Spec** – generate API specifications.
+- **Doctor** – quick diagnostics.
+- **Diagnostics** – run detailed diagnostics.
 
 All pages use collapsible sections and progress indicators to reflect the
 UX guidance for clarity and responsiveness.
@@ -36,6 +46,20 @@ from devsynth.application.cli.commands.analyze_code_cmd import analyze_code_cmd
 from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
 from devsynth.application.cli.commands.align_cmd import align_cmd
+from devsynth.application.cli.commands.alignment_metrics_cmd import (
+    alignment_metrics_cmd,
+)
+from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
+from devsynth.application.cli.commands.validate_manifest_cmd import (
+    validate_manifest_cmd,
+)
+from devsynth.application.cli.commands.validate_metadata_cmd import (
+    validate_metadata_cmd,
+)
+from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
+from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
+from devsynth.application.cli.ingest_cmd import ingest_cmd
+from devsynth.application.cli.apispec import apispec_cmd
 from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
@@ -341,6 +365,233 @@ class WebUI(UXBridge):
                 finally:
                     module.bridge = original
 
+    def alignment_metrics_page(self) -> None:
+        """Collect and display alignment metrics."""
+        st.header("Alignment Metrics")
+        with st.form("alignment_metrics"):
+            path = self.ask_question("Project Path", default=".")
+            metrics_file = self.ask_question(
+                "Metrics File", default=".devsynth/alignment_metrics.json"
+            )
+            output = st.text_input("Report File", "")
+            submitted = st.form_submit_button("Collect Metrics")
+        if submitted:
+            with st.spinner("Collecting metrics..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.alignment_metrics_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.alignment_metrics_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.alignment_metrics_cmd(
+                        path=path,
+                        metrics_file=metrics_file,
+                        output=output or None,
+                    )
+                finally:
+                    module.bridge = original
+
+    def inspect_config_page(self) -> None:
+        """Analyze and optionally update the project configuration."""
+        st.header("Inspect Config")
+        with st.form("inspect_config"):
+            path = self.ask_question("Project Path", default=".")
+            update = self.confirm_choice("Update", default=False)
+            prune = self.confirm_choice("Prune", default=False)
+            submitted = st.form_submit_button("Inspect Config")
+        if submitted:
+            with st.spinner("Inspecting configuration..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.inspect_config_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.inspect_config_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.inspect_config_cmd(
+                        path=path,
+                        update=update,
+                        prune=prune,
+                    )
+                finally:
+                    module.bridge = original
+
+    def validate_manifest_page(self) -> None:
+        """Validate the project manifest against its schema."""
+        st.header("Validate Manifest")
+        with st.form("validate_manifest"):
+            manifest_path = st.text_input("Manifest Path", "manifest.yaml")
+            schema_path = st.text_input("Schema Path", "")
+            submitted = st.form_submit_button("Validate Manifest")
+        if submitted:
+            with st.spinner("Validating manifest..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.validate_manifest_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.validate_manifest_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.validate_manifest_cmd(
+                        manifest_path=manifest_path or None,
+                        schema_path=schema_path or None,
+                    )
+                finally:
+                    module.bridge = original
+
+    def validate_metadata_page(self) -> None:
+        """Validate Markdown front-matter metadata."""
+        st.header("Validate Metadata")
+        with st.form("validate_metadata"):
+            directory = st.text_input("Docs Directory", "docs")
+            file = st.text_input("Single File", "")
+            verbose = self.confirm_choice("Verbose Output", default=False)
+            submitted = st.form_submit_button("Validate Metadata")
+        if submitted:
+            with st.spinner("Validating metadata..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.validate_metadata_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.validate_metadata_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.validate_metadata_cmd(
+                        directory=directory or None,
+                        file=file or None,
+                        verbose=verbose,
+                    )
+                finally:
+                    module.bridge = original
+
+    def test_metrics_page(self) -> None:
+        """Analyze test-first development metrics."""
+        st.header("Test Metrics")
+        with st.form("test_metrics"):
+            days = st.number_input("Days", min_value=1, step=1, value=30)
+            output_file = st.text_input("Output File", "")
+            submitted = st.form_submit_button("Analyze Metrics")
+        if submitted:
+            with st.spinner("Analyzing metrics..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.test_metrics_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.test_metrics_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.test_metrics_cmd(
+                        days=int(days), output_file=output_file or None
+                    )
+                finally:
+                    module.bridge = original
+
+    def docs_generation_page(self) -> None:
+        """Generate API reference documentation."""
+        st.header("Generate Docs")
+        with st.form("generate_docs"):
+            path = st.text_input("Project Path", ".")
+            output_dir = st.text_input("Output Directory", "")
+            submitted = st.form_submit_button("Generate Docs")
+        if submitted:
+            with st.spinner("Generating documentation..."):
+                import sys
+
+                module = sys.modules.get(
+                    "devsynth.application.cli.commands.generate_docs_cmd"
+                )
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.commands.generate_docs_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.generate_docs_cmd(
+                        path=path or None,
+                        output_dir=output_dir or None,
+                    )
+                finally:
+                    module.bridge = original
+
+    def ingestion_page(self) -> None:
+        """Run the ingestion pipeline."""
+        st.header("Ingest Project")
+        with st.form("ingest"):
+            manifest_path = st.text_input("Manifest Path", "manifest.yaml")
+            dry_run = self.confirm_choice("Dry Run", default=False)
+            verbose = self.confirm_choice("Verbose Output", default=False)
+            validate_only = self.confirm_choice("Validate Only", default=False)
+            submitted = st.form_submit_button("Ingest Project")
+        if submitted:
+            with st.spinner("Running ingestion..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.ingest_cmd")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.ingest_cmd as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.ingest_cmd(
+                        manifest_path=manifest_path or None,
+                        dry_run=dry_run,
+                        verbose=verbose,
+                        validate_only=validate_only,
+                    )
+                finally:
+                    module.bridge = original
+
+    def apispec_page(self) -> None:
+        """Generate an API specification."""
+        st.header("API Spec")
+        with st.form("apispec"):
+            api_type = st.selectbox("API Type", ("rest", "graphql", "grpc"))
+            format_type = st.text_input("Format", "openapi")
+            name = st.text_input("Name", "api")
+            path = st.text_input("Path", ".")
+            submitted = st.form_submit_button("Generate Spec")
+        if submitted:
+            with st.spinner("Generating API spec..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.apispec")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.apispec as module
+
+                original = module.bridge
+                module.bridge = self
+                try:
+                    module.apispec_cmd(
+                        api_type=api_type,
+                        format_type=format_type,
+                        name=name,
+                        path=path,
+                    )
+                finally:
+                    module.bridge = original
+
     def doctor_page(self) -> None:
         """Render the doctor diagnostics page."""
         st.header("Doctor")
@@ -386,6 +637,14 @@ class WebUI(UXBridge):
                 "Synthesis",
                 "EDRR Cycle",
                 "Alignment",
+                "Alignment Metrics",
+                "Inspect Config",
+                "Validate Manifest",
+                "Validate Metadata",
+                "Test Metrics",
+                "Generate Docs",
+                "Ingest",
+                "API Spec",
                 "Config",
                 "Doctor",
                 "Diagnostics",
@@ -403,6 +662,22 @@ class WebUI(UXBridge):
             self.edrr_cycle_page()
         elif nav == "Alignment":
             self.alignment_page()
+        elif nav == "Alignment Metrics":
+            self.alignment_metrics_page()
+        elif nav == "Inspect Config":
+            self.inspect_config_page()
+        elif nav == "Validate Manifest":
+            self.validate_manifest_page()
+        elif nav == "Validate Metadata":
+            self.validate_metadata_page()
+        elif nav == "Test Metrics":
+            self.test_metrics_page()
+        elif nav == "Generate Docs":
+            self.docs_generation_page()
+        elif nav == "Ingest":
+            self.ingestion_page()
+        elif nav == "API Spec":
+            self.apispec_page()
         elif nav == "Config":
             self.config_page()
         elif nav == "Doctor":
