@@ -8,7 +8,7 @@ import pytest
 scenarios('../features/edrr_coordinator.feature')
 
 # Import the necessary components
-from unittest.mock import MagicMock, patch
+
 import os
 import json
 import tempfile
