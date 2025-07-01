@@ -23,6 +23,8 @@ All core packages are pinned in `pyproject.toml` to guarantee reproducible build
 Some features rely on additional packages. These dependencies are grouped using [Poetry extras](https://python-poetry.org/docs/pyproject/#extras). Install them when needed:
 
 - **`retrieval`** – Provides vector store backends such as ChromaDB and FAISS.
+- **`memory`** – Installs Kuzu, LMDB, FAISS, and related memory backends.
+- **`llm`** – Optional helpers for provider integrations.
 - **`dsp`** – Experimental [DSPy](https://github.com/stanford-oval/dspy) integration.
 - **`dev`** and **`docs`** – Development and documentation tooling.
 

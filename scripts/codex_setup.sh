@@ -1,7 +1,17 @@
 set -exo pipefail
 
-# Simplified setup for offline Codex environment
-python - <<'EOF'
+# Install the minimal runtime and development packages needed for tests.
+# Optional extras enable memory and LLM providers so pytest can run
+# without manual intervention in the offline environment.
+poetry install \
+  --with dev \
+  --extras minimal \
+  --extras memory \
+  --extras llm \
+  --no-interaction
+
+# Verify key packages are present
+poetry run python - <<'EOF'
 import sys
 import pkg_resources
 
