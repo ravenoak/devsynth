@@ -76,7 +76,7 @@ def test_setup_wizard_run(tmp_path, monkeypatch) -> None:
     bridge = DummyBridge(answers, confirms)
     wizard = SetupWizard(bridge)
     cfg = wizard.run()
-    cfg_file = tmp_path / ".devsynth" / "project.yaml"
+    cfg_file = tmp_path / ".devsynth" / "devsynth.yml"
     assert cfg_file.exists()
     assert cfg.config.goals == "do stuff"
     assert cfg.config.memory_store_type == "kuzu"
@@ -108,6 +108,6 @@ def test_setup_wizard_abort(tmp_path, monkeypatch) -> None:
     bridge = DummyBridge(answers, confirms)
     wizard = SetupWizard(bridge)
     wizard.run()
-    cfg_file = tmp_path / ".devsynth" / "project.yaml"
+    cfg_file = tmp_path / ".devsynth" / "devsynth.yml"
     assert not cfg_file.exists()
     assert "Initialization aborted." in bridge.messages[-1]

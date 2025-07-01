@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from devsynth.config import load_project_config, ProjectUnifiedConfig
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
@@ -103,7 +104,7 @@ class SetupWizard:
         cfg.config.memory_store_type = memory_backend
         cfg.config.offline_mode = offline_mode
         cfg.config.features = features
-        cfg.save()
+        cfg.path = UnifiedConfigLoader.save(cfg)
 
         self.bridge.display_result("Initialization complete", highlight=True)
         return cfg
