@@ -27,6 +27,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
             )
 
         warnings = False
+        critical_missing = False
 
         if sys.version_info < (3, 11):
             bridge.print(
@@ -35,9 +36,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
             warnings = True
 
         missing_keys = [
-            key
-            for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY")
-            if not os.getenv(key)
+            key for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY") if not os.getenv(key)
         ]
         if missing_keys:
             bridge.print(
@@ -52,7 +51,10 @@ def doctor_cmd(config_dir: str = "config") -> None:
             "test_generation": "pytest",
         }
         for feat, pkg in feature_pkgs.items():
-            if getattr(config, "features", {}).get(feat) and importlib.util.find_spec(pkg) is None:
+            if (
+                getattr(config, "features", {}).get(feat)
+                and importlib.util.find_spec(pkg) is None
+            ):
                 bridge.print(
                     f"[yellow]Feature '{feat}' requires the '{pkg}' package which is not installed.[/yellow]"
                 )
@@ -62,12 +64,15 @@ def doctor_cmd(config_dir: str = "config") -> None:
             "chromadb": "chromadb",
             "kuzu": "kuzu",
             "faiss": "faiss",
+            "tinydb": "tinydb",
         }
         store_type = getattr(config, "memory_store_type", "memory")
         pkg = store_pkgs.get(store_type)
         if pkg:
             if pkg == "faiss":
-                spec = importlib.util.find_spec("faiss") or importlib.util.find_spec("faiss-cpu")
+                spec = importlib.util.find_spec("faiss") or importlib.util.find_spec(
+                    "faiss-cpu"
+                )
             else:
                 spec = importlib.util.find_spec(pkg)
             if spec is None:
@@ -75,6 +80,13 @@ def doctor_cmd(config_dir: str = "config") -> None:
                     f"[yellow]{store_type.capitalize()} support is enabled but the '{pkg}' package is missing.[/yellow]"
                 )
                 warnings = True
+                critical_missing = True
+
+        if importlib.util.find_spec("uvicorn") is None:
+            bridge.print(
+                "[yellow]The 'uvicorn' package is required for the API server but is not installed.[/yellow]"
+            )
+            warnings = True
 
         # Load validation utilities dynamically
         repo_root = Path(__file__).resolve().parents[4]
@@ -116,5 +128,8 @@ def doctor_cmd(config_dir: str = "config") -> None:
             )
         else:
             bridge.print("[green]All configuration files are valid.[/green]")
+
+        if critical_missing:
+            raise SystemExit(1)
     except Exception as err:  # pragma: no cover - defensive
         bridge.print(f"[red]Error:[/red] {err}", highlight=False)
