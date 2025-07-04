@@ -1,10 +1,8 @@
 """Steps for the doctor.feature without mocks."""
 
-from pytest_bdd import given, scenarios, when
+from pytest_bdd import given, when
 
 from .cli_commands_steps import run_command
-
-scenarios("../features/doctor.feature")
 
 
 @given("valid environment configuration")

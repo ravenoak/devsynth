@@ -178,11 +178,17 @@ class WebUI(UXBridge):
                 st.session_state.get("spec_content", ""),
                 height=300,
             )
-            if st.button("Save Spec", key="save_spec"):
+            col1, col2 = st.columns(2)
+            if col1.button("Save Spec", key="save_spec"):
                 with open(spec_path, "w", encoding="utf-8") as f:
                     f.write(content)
                 with st.spinner("Regenerating specifications..."):
                     spec_cmd(requirements_file=spec_path, bridge=self)
+                st.session_state.spec_content = content
+                st.markdown(content)
+            if col2.button("Save Only", key="save_only"):
+                with open(spec_path, "w", encoding="utf-8") as f:
+                    f.write(content)
                 st.session_state.spec_content = content
                 st.markdown(content)
         st.divider()
@@ -596,7 +602,20 @@ class WebUI(UXBridge):
         """Render the doctor diagnostics page."""
         st.header("Doctor")
         with st.spinner("Validating configuration..."):
-            doctor_cmd()
+            import sys
+
+            doc_module = sys.modules.get(
+                "devsynth.application.cli.commands.doctor_cmd"
+            )
+            if doc_module is None:  # pragma: no cover - defensive fallback
+                import devsynth.application.cli.commands.doctor_cmd as doc_module
+
+            original = doc_module.bridge
+            doc_module.bridge = self
+            try:
+                doc_module.doctor_cmd()
+            finally:
+                doc_module.bridge = original
 
     def diagnostics_page(self) -> None:
         """Run environment diagnostics via :func:`doctor_cmd`."""
