@@ -1,10 +1,8 @@
 """Step definitions for doctor_command.feature."""
 
-from pytest_bdd import given, scenarios, then, when
+from pytest_bdd import given, then, when
 
 from .cli_commands_steps import run_command
-
-scenarios("../features/doctor_command.feature")
 
 
 @when('I run the command "devsynth check"')

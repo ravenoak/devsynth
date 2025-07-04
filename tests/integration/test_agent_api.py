@@ -21,43 +21,123 @@ def _setup(monkeypatch):
     def run_pipeline_cmd(target=None, *, bridge):
         bridge.display_result(f"run:{target}")
 
+    def spec_cmd(requirements_file="requirements.md", *, bridge):
+        bridge.display_result(f"spec:{requirements_file}")
+
+    def test_cmd(spec_file="specs.md", output_dir=None, *, bridge):
+        bridge.display_result(f"test:{spec_file}")
+
+    def code_cmd(output_dir=None, *, bridge):
+        bridge.display_result("code")
+
     cli_stub.init_cmd = MagicMock(side_effect=init_cmd)
     cli_stub.gather_cmd = MagicMock(side_effect=gather_cmd)
     cli_stub.run_pipeline_cmd = MagicMock(side_effect=run_pipeline_cmd)
+    cli_stub.spec_cmd = MagicMock(side_effect=spec_cmd)
+    cli_stub.test_cmd = MagicMock(side_effect=test_cmd)
+    cli_stub.code_cmd = MagicMock(side_effect=code_cmd)
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
+
+    # Mock doctor_cmd
+    doctor_stub = ModuleType("devsynth.application.cli.commands.doctor_cmd")
+    def doctor_cmd(path=".", fix=False, *, bridge):
+        bridge.display_result(f"doctor:{path}:{fix}")
+    doctor_stub.doctor_cmd = MagicMock(side_effect=doctor_cmd)
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.commands.doctor_cmd", doctor_stub)
+
+    # Mock edrr_cycle_cmd
+    edrr_stub = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")
+    def edrr_cycle_cmd(prompt, context=None, max_iterations=3, *, bridge):
+        bridge.display_result(f"edrr:{prompt}")
+    edrr_stub.edrr_cycle_cmd = MagicMock(side_effect=edrr_cycle_cmd)
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.commands.edrr_cycle_cmd", edrr_stub)
 
     import devsynth.interface.agentapi as agentapi
 
     importlib.reload(agentapi)
-    return cli_stub, agentapi
+    return {
+        "cli": cli_stub, 
+        "agentapi": agentapi,
+        "doctor_cmd": doctor_stub.doctor_cmd,
+        "edrr_cycle_cmd": edrr_stub.edrr_cycle_cmd
+    }
 
 
 def test_init_route(monkeypatch):
-    cli_stub, agentapi = _setup(monkeypatch)
-    client = TestClient(agentapi.app)
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
     resp = client.post("/init", json={"path": "proj"})
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["init"]}
-    cli_stub.init_cmd.assert_called_once()
+    setup["cli"].init_cmd.assert_called_once()
 
 
 def test_gather_route(monkeypatch):
-    cli_stub, agentapi = _setup(monkeypatch)
-    client = TestClient(agentapi.app)
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
     resp = client.post(
         "/gather",
         json={"goals": "g1", "constraints": "c1", "priority": "high"},
     )
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["g1,c1,high"]}
-    cli_stub.gather_cmd.assert_called_once()
+    setup["cli"].gather_cmd.assert_called_once()
 
 
 def test_synthesize_and_status(monkeypatch):
-    cli_stub, agentapi = _setup(monkeypatch)
-    client = TestClient(agentapi.app)
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
     resp = client.post("/synthesize", json={"target": "unit"})
     assert resp.json() == {"messages": ["run:unit"]}
     status = client.get("/status")
     assert status.json() == {"messages": ["run:unit"]}
-    cli_stub.run_pipeline_cmd.assert_called_once()
+    setup["cli"].run_pipeline_cmd.assert_called_once()
+
+
+def test_spec_route(monkeypatch):
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
+    resp = client.post("/spec", json={"requirements_file": "custom_reqs.md"})
+    assert resp.status_code == 200
+    assert resp.json() == {"messages": ["spec:custom_reqs.md"]}
+    # Just verify that spec_cmd was called once
+    setup["cli"].spec_cmd.assert_called_once()
+    # And verify that it was called with the correct requirements_file
+    args, kwargs = setup["cli"].spec_cmd.call_args
+    assert kwargs["requirements_file"] == "custom_reqs.md"
+
+
+def test_test_route(monkeypatch):
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
+    resp = client.post("/test", json={"spec_file": "custom_specs.md", "output_dir": "tests"})
+    assert resp.status_code == 200
+    assert resp.json() == {"messages": ["test:custom_specs.md"]}
+    setup["cli"].test_cmd.assert_called_once()
+
+
+def test_code_route(monkeypatch):
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
+    resp = client.post("/code", json={"output_dir": "src"})
+    assert resp.status_code == 200
+    assert resp.json() == {"messages": ["code"]}
+    setup["cli"].code_cmd.assert_called_once()
+
+
+def test_doctor_route(monkeypatch):
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
+    resp = client.post("/doctor", json={"path": "project", "fix": True})
+    assert resp.status_code == 200
+    assert resp.json() == {"messages": ["doctor:project:True"]}
+    setup["doctor_cmd"].assert_called_once()
+
+
+def test_edrr_cycle_route(monkeypatch):
+    setup = _setup(monkeypatch)
+    client = TestClient(setup["agentapi"].app)
+    resp = client.post("/edrr-cycle", json={"prompt": "Improve code", "max_iterations": 5})
+    assert resp.status_code == 200
+    assert resp.json() == {"messages": ["edrr:Improve code"]}
+    setup["edrr_cycle_cmd"].assert_called_once()

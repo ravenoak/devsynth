@@ -7,6 +7,7 @@ functionality and improved integration between different memory stores.
 """
 import os
 import uuid
+import json
 from typing import Dict, List, Any, Optional, Set, Union
 try:
     import rdflib
@@ -133,14 +134,46 @@ class GraphMemoryAdapter(MemoryStore):
         # Add basic triples
         self.graph.add((item_uri, RDF.type, DEVSYNTH.MemoryItem))
         self.graph.add((item_uri, DEVSYNTH.id, Literal(item.id)))
-        self.graph.add((item_uri, DEVSYNTH.content, Literal(item.content)))
+
+        # Handle content based on its type
+        if isinstance(item.content, (str, int, float, bool)):
+            # Simple types can be stored directly
+            self.graph.add((item_uri, DEVSYNTH.content, Literal(item.content)))
+            # Add a flag to indicate this is a simple type
+            self.graph.add((item_uri, DEVSYNTH.content_type, Literal("simple")))
+        else:
+            try:
+                # Complex objects need to be serialized to JSON
+                json_content = json.dumps(item.content)
+                self.graph.add((item_uri, DEVSYNTH.content, Literal(json_content)))
+                # Add a flag to indicate this is a JSON-serialized object
+                self.graph.add((item_uri, DEVSYNTH.content_type, Literal("json")))
+                logger.debug(f"Serialized complex content to JSON for item {item.id}")
+            except (TypeError, ValueError) as e:
+                # If serialization fails, store as string and log a warning
+                logger.warning(f"Failed to serialize content to JSON for item {item.id}: {e}")
+                self.graph.add((item_uri, DEVSYNTH.content, Literal(str(item.content))))
+                self.graph.add((item_uri, DEVSYNTH.content_type, Literal("string")))
+
         self.graph.add((item_uri, DEVSYNTH.memory_type, Literal(item.memory_type.value)))
 
         # Add metadata
         for key, value in item.metadata.items():
-            # Skip complex objects in metadata
+            # Handle metadata values based on their type
             if isinstance(value, (str, int, float, bool)):
+                # Simple types can be stored directly
                 self.graph.add((item_uri, DEVSYNTH[key], Literal(value)))
+            else:
+                try:
+                    # Complex objects need to be serialized to JSON
+                    json_value = json.dumps(value)
+                    self.graph.add((item_uri, DEVSYNTH[key], Literal(json_value)))
+                    # Add a flag to indicate this is a JSON-serialized value
+                    self.graph.add((item_uri, DEVSYNTH[f"{key}_type"], Literal("json")))
+                    logger.debug(f"Serialized complex metadata value for key {key} to JSON for item {item.id}")
+                except (TypeError, ValueError) as e:
+                    # If serialization fails, skip this metadata
+                    logger.warning(f"Failed to serialize metadata value for key {key} to JSON for item {item.id}: {e}")
 
         return item_uri
 
@@ -160,20 +193,63 @@ class GraphMemoryAdapter(MemoryStore):
 
         # Get basic properties
         item_id = str(self.graph.value(item_uri, DEVSYNTH.id))
-        content = str(self.graph.value(item_uri, DEVSYNTH.content))
+        content_str = str(self.graph.value(item_uri, DEVSYNTH.content))
         memory_type_value = str(self.graph.value(item_uri, DEVSYNTH.memory_type))
         memory_type = MemoryType(memory_type_value)
 
+        # Get content type
+        content_type = self.graph.value(item_uri, DEVSYNTH.content_type)
+        content_type = str(content_type) if content_type else "simple"  # Default to simple for backward compatibility
+
+        # Process content based on its type
+        if content_type == "json":
+            try:
+                # Deserialize JSON content
+                content = json.loads(content_str)
+                logger.debug(f"Deserialized JSON content for item {item_id}")
+            except json.JSONDecodeError as e:
+                # If deserialization fails, use the string content
+                logger.warning(f"Failed to deserialize JSON content for item {item_id}: {e}")
+                content = content_str
+        else:
+            # For simple or string types, use the content as is
+            content = content_str
+
         # Get metadata
         metadata = {}
+        metadata_types = {}
+
+        # First pass: collect all metadata and their types
         for s, p, o in self.graph.triples((item_uri, None, None)):
             # Skip non-metadata properties
-            if p in [RDF.type, DEVSYNTH.id, DEVSYNTH.content, DEVSYNTH.memory_type]:
+            if p in [RDF.type, DEVSYNTH.id, DEVSYNTH.content, DEVSYNTH.memory_type, DEVSYNTH.content_type]:
                 continue
 
             # Extract the property name from the URI
             prop_name = p.split('/')[-1]
-            metadata[prop_name] = o.toPython()
+
+            # Check if this is a type indicator
+            if prop_name.endswith("_type"):
+                base_prop = prop_name[:-5]  # Remove "_type" suffix
+                metadata_types[base_prop] = o.toPython()
+            else:
+                metadata[prop_name] = o.toPython()
+
+        # Second pass: process metadata values based on their types
+        for key, value in list(metadata.items()):
+            if key in metadata_types and metadata_types[key] == "json":
+                try:
+                    # Deserialize JSON metadata
+                    metadata[key] = json.loads(value)
+                    logger.debug(f"Deserialized JSON metadata for key {key} in item {item_id}")
+                except json.JSONDecodeError as e:
+                    # If deserialization fails, keep the string value
+                    logger.warning(f"Failed to deserialize JSON metadata for key {key} in item {item_id}: {e}")
+
+        # Remove type indicators from metadata
+        for key in list(metadata.keys()):
+            if key.endswith("_type"):
+                del metadata[key]
 
         # Create and return the memory item
         return MemoryItem(

@@ -306,6 +306,52 @@ class WSDETeam:
 
         return match_score
 
+    def _calculate_phase_expertise_score(self, agent: Any, task: Dict[str, Any], phase_keywords: List[str]) -> float:
+        """
+        Calculate an expertise score that considers phase-specific requirements.
+
+        This enhanced scoring method gives higher weight to expertise that matches
+        the current EDRR phase requirements.
+
+        Args:
+            agent: The agent to evaluate
+            task: The task context dictionary
+            phase_keywords: List of expertise keywords relevant for the current phase
+
+        Returns:
+            float: A score representing how well the agent's expertise matches the phase requirements
+        """
+        # Get the base expertise score
+        base_score = self._calculate_expertise_score(agent, task)
+
+        # If we have no phase keywords or the agent has no expertise, return the base score
+        agent_expertise: List[str] = []
+        if hasattr(agent, "expertise"):
+            agent_expertise = agent.expertise or []
+        if (
+            not agent_expertise
+            and hasattr(agent, "config")
+            and hasattr(agent.config, "parameters")
+            and "expertise" in agent.config.parameters
+        ):
+            agent_expertise = agent.config.parameters["expertise"] or []
+
+        if not agent_expertise or not phase_keywords:
+            return base_score
+
+        # Calculate phase-specific bonus
+        phase_bonus = 0.0
+        for expertise in agent_expertise:
+            # Direct match with phase keywords
+            if expertise in phase_keywords:
+                phase_bonus += 2.0
+            # Partial match with phase keywords
+            elif any(keyword in expertise for keyword in phase_keywords) or any(expertise in keyword for keyword in phase_keywords):
+                phase_bonus += 1.0
+
+        # Return combined score with phase bonus
+        return base_score + phase_bonus
+
     def select_primus_by_expertise(self, task: Dict[str, Any]) -> None:
         """Select the Primus based on task context and agent expertise.
 
@@ -456,13 +502,54 @@ class WSDETeam:
         The Primus role rotates through team members. Agents that have not yet
         served as Primus are prioritized when their expertise matches the phase
         context. Once all agents have served as Primus, the tracking resets.
+
+        For EDRR integration, this method considers phase-specific expertise
+        requirements and rotates roles based on the current phase.
         """
 
         if not self.agents:
             return
 
-        context = {**task, "phase": phase.value}
+        # Define phase-specific expertise keywords for each EDRR phase
+        phase_expertise = {
+            Phase.EXPAND: [
+                "brainstorming", "exploration", "creativity", "ideation", 
+                "divergent thinking", "research", "analysis", "requirements"
+            ],
+            Phase.DIFFERENTIATE: [
+                "comparison", "analysis", "evaluation", "critical thinking",
+                "trade-offs", "decision making", "prioritization", "selection"
+            ],
+            Phase.REFINE: [
+                "implementation", "coding", "development", "optimization",
+                "detail-oriented", "testing", "debugging", "quality"
+            ],
+            Phase.RETROSPECT: [
+                "evaluation", "reflection", "learning", "improvement",
+                "documentation", "knowledge management", "patterns", "synthesis"
+            ]
+        }
 
+        # Add phase-specific expertise to the context
+        context = {
+            **task, 
+            "phase": phase.value,
+            "phase_expertise": phase_expertise.get(phase, [])
+        }
+
+        # Track the previous phase to detect phase transitions
+        previous_phase = getattr(self, "_previous_phase", None)
+        self._previous_phase = phase
+
+        # Determine if this is a phase transition
+        is_phase_transition = previous_phase is not None and previous_phase != phase
+
+        # If this is a phase transition, rotate roles to ensure fresh perspectives
+        if is_phase_transition:
+            logger.info(f"Phase transition detected: {previous_phase} -> {phase}. Rotating roles.")
+            self.rotate_roles()
+
+        # Select the best Primus for this phase based on expertise
         unused_indices = [
             i
             for i, a in enumerate(self.agents)
@@ -473,7 +560,12 @@ class WSDETeam:
         best_index = candidate_indices[0]
         best_score = -1.0
         for i in candidate_indices:
-            score = self._calculate_expertise_score(self.agents[i], context)
+            # Use phase-specific expertise scoring
+            score = self._calculate_phase_expertise_score(
+                self.agents[i], 
+                context, 
+                phase_expertise.get(phase, [])
+            )
             if score > best_score:
                 best_score = score
                 best_index = i
@@ -484,7 +576,9 @@ class WSDETeam:
 
         self.primus_index = best_index
         self.agents[self.primus_index].has_been_primus = True
-        self.assign_roles()
+
+        # Assign roles with phase-specific considerations
+        self._assign_roles_for_edrr_phase(phase, task)
 
     def dynamic_role_reassignment(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Dynamically reassign roles based on the provided task context."""
@@ -506,6 +600,125 @@ class WSDETeam:
                         raise DevSynthError("Invalid agent in role mapping")
             elif agent is not None and agent not in valid_agents:
                 raise DevSynthError("Invalid agent in role mapping")
+
+    def _assign_roles_for_edrr_phase(self, phase: Phase, task: Dict[str, Any]) -> None:
+        """
+        Assign roles to agents based on the current EDRR phase.
+
+        This method optimizes role assignments for each phase of the EDRR cycle,
+        ensuring that agents with the most relevant expertise are assigned to
+        the most critical roles for that phase.
+
+        Args:
+            phase: The current EDRR phase
+            task: The task context dictionary
+        """
+        # Define phase-specific role importance and required expertise
+        phase_role_priorities = {
+            Phase.EXPAND: {
+                # In Expand phase, we prioritize creative roles
+                "Designer": 3,  # Highest priority - needs creative thinking
+                "Worker": 2,     # Second priority - implements ideas
+                "Supervisor": 1, # Third priority - guides the process
+                "Evaluator": 0   # Lowest priority - evaluation comes later
+            },
+            Phase.DIFFERENTIATE: {
+                # In Differentiate phase, we prioritize analytical roles
+                "Evaluator": 3,  # Highest priority - critical analysis
+                "Supervisor": 2, # Second priority - decision making
+                "Designer": 1,   # Third priority - alternative designs
+                "Worker": 0      # Lowest priority - implementation comes later
+            },
+            Phase.REFINE: {
+                # In Refine phase, we prioritize implementation roles
+                "Worker": 3,     # Highest priority - implementation focus
+                "Supervisor": 2, # Second priority - quality control
+                "Designer": 1,   # Third priority - design adjustments
+                "Evaluator": 0   # Lowest priority - final evaluation comes later
+            },
+            Phase.RETROSPECT: {
+                # In Retrospect phase, we prioritize evaluation roles
+                "Evaluator": 3,  # Highest priority - critical review
+                "Supervisor": 2, # Second priority - process improvement
+                "Worker": 1,     # Third priority - documentation
+                "Designer": 0    # Lowest priority - future planning
+            }
+        }
+
+        # Get the role priorities for the current phase
+        role_priorities = phase_role_priorities.get(phase, {
+            "Supervisor": 2, "Designer": 1, "Evaluator": 0, "Worker": 3
+        })
+
+        # The Primus is already assigned, so we need to assign the other roles
+        primus_agent = self.agents[self.primus_index]
+        primus_agent.current_role = "Primus"
+
+        # Get the remaining agents
+        remaining = [a for i, a in enumerate(self.agents) if i != self.primus_index]
+
+        # If we don't have enough agents, return early
+        if not remaining:
+            self.role_assignments = {"primus": primus_agent, "worker": [], "supervisor": None, 
+                                    "designer": None, "evaluator": None}
+            return
+
+        # Calculate expertise scores for each agent for each role
+        role_scores = {}
+        for role, priority in role_priorities.items():
+            if role == "Worker":
+                continue  # We'll assign workers later
+
+            role_scores[role] = []
+            for agent in remaining:
+                # Create a task context with role-specific keywords
+                role_context = {**task, "role": role.lower()}
+                score = self._calculate_expertise_score(agent, role_context)
+                role_scores[role].append((agent, score))
+
+            # Sort by score in descending order
+            role_scores[role].sort(key=lambda x: x[1], reverse=True)
+
+        # Assign roles in order of priority
+        assigned_agents = set()
+        assignments = {
+            "primus": primus_agent,
+            "worker": [],
+            "supervisor": None,
+            "designer": None,
+            "evaluator": None
+        }
+
+        # Sort roles by priority
+        sorted_roles = sorted(role_priorities.items(), key=lambda x: x[1], reverse=True)
+
+        # Assign each role to the best available agent
+        for role, _ in sorted_roles:
+            if role == "Worker":
+                continue  # We'll assign workers later
+
+            role_key = role.lower()
+
+            # Find the best unassigned agent for this role
+            for agent, score in role_scores[role]:
+                if agent not in assigned_agents:
+                    assignments[role_key] = agent
+                    agent.current_role = role
+                    assigned_agents.add(agent)
+                    break
+
+        # Assign all remaining agents as Workers
+        for agent in remaining:
+            if agent not in assigned_agents:
+                assignments["worker"].append(agent)
+                agent.current_role = "Worker"
+                assigned_agents.add(agent)
+
+        # Update role assignments
+        self.role_assignments = assignments
+
+        # Log the assignments
+        logger.info(f"EDRR Phase {phase.value} role assignments: {[a.current_role for a in self.agents]}")
 
     def _auto_assign_roles(self) -> None:
         """Automatically assign roles based on expertise with deterministic fallbacks."""
@@ -993,7 +1206,13 @@ class WSDETeam:
         tied_options: List[str],
     ) -> Dict[str, Any]:
         """
-        Handle a tied vote by falling back to consensus building.
+        Handle a tied vote using multiple tie-breaking strategies.
+
+        This method implements a multi-stage tie-breaking process:
+        1. First, try to break the tie using the Primus vote as a tiebreaker
+        2. If that fails, try to break the tie using domain expertise weighting
+        3. If that fails, try to break the tie using historical voting patterns
+        4. If all else fails, fall back to consensus building
 
         Args:
             task: The critical decision task
@@ -1002,8 +1221,237 @@ class WSDETeam:
             tied_options: The options that are tied for the most votes
 
         Returns:
-            The updated voting result with consensus fallback
+            The updated voting result with tie-breaking applied
         """
+        logger.info(f"Handling tied vote between options: {tied_options}")
+
+        # Initialize tie-breaking result
+        tie_breaking_result = {
+            "tied": True,
+            "tied_options": tied_options,
+            "vote_counts": vote_counts,
+            "method": "tied_vote",
+            "tie_breaking_attempts": []
+        }
+
+        # 1. Try to break the tie using the Primus vote
+        primus_agent = self.get_primus()
+        if primus_agent:
+            primus_name = (
+                primus_agent.config.name
+                if hasattr(primus_agent, "config") and hasattr(primus_agent.config, "name")
+                else getattr(primus_agent, "name", "Primus")
+            )
+
+            primus_vote = voting_result["votes"].get(primus_name)
+            if primus_vote and primus_vote in tied_options:
+                # Primus vote breaks the tie
+                winner = primus_vote
+
+                # Find the winning option details
+                winning_option = next(
+                    (option for option in task["options"] if option["id"] == winner), None
+                )
+
+                # Record the tie-breaking attempt
+                tie_breaking_result["tie_breaking_attempts"].append({
+                    "method": "primus_tiebreaker",
+                    "successful": True,
+                    "winner": winner
+                })
+
+                # Update the result
+                tie_breaking_result["winner"] = winner
+                tie_breaking_result["winning_option"] = winning_option
+                tie_breaking_result["fallback"] = "primus_tiebreaker"
+
+                logger.info(f"Tie broken by Primus vote: {winner}")
+
+                voting_result["result"] = tie_breaking_result
+                return voting_result
+            else:
+                # Record the failed tie-breaking attempt
+                tie_breaking_result["tie_breaking_attempts"].append({
+                    "method": "primus_tiebreaker",
+                    "successful": False
+                })
+
+                logger.info("Primus tiebreaker failed, trying domain expertise weighting")
+
+        # 2. Try to break the tie using domain expertise weighting
+        domain = task.get("domain")
+        if domain:
+            # Calculate expertise-weighted votes for the tied options only
+            weighted_votes = {}
+
+            for agent in self.agents:
+                agent_name = (
+                    agent.config.name
+                    if hasattr(agent, "config") and hasattr(agent.config, "name")
+                    else getattr(agent, "name", "Agent")
+                )
+
+                # Skip agents that didn't vote or didn't vote for a tied option
+                agent_vote = voting_result["votes"].get(agent_name)
+                if not agent_vote or agent_vote not in tied_options:
+                    continue
+
+                # Get the agent's expertise
+                expertise = []
+                expertise_level = "novice"
+
+                if hasattr(agent, "config") and hasattr(agent.config, "parameters"):
+                    expertise = agent.config.parameters.get("expertise", [])
+                    expertise_level = agent.config.parameters.get("expertise_level", "novice")
+
+                # Determine the weight based on expertise
+                if domain in expertise:
+                    if expertise_level == "expert":
+                        weight = 3.0
+                    elif expertise_level == "intermediate":
+                        weight = 2.0
+                    else:  # novice
+                        weight = 1.0
+                else:
+                    # Agent has no expertise in this domain
+                    weight = 0.5
+
+                # Add the weighted vote
+                weighted_votes[agent_vote] = weighted_votes.get(agent_vote, 0) + weight
+
+            # Check if we have weighted votes
+            if weighted_votes:
+                # Find the option with the highest weighted vote
+                max_weighted_votes = max(weighted_votes.values())
+                expertise_winners = [
+                    option for option, weight in weighted_votes.items() 
+                    if weight == max_weighted_votes
+                ]
+
+                if len(expertise_winners) == 1:
+                    # Expertise weighting breaks the tie
+                    winner = expertise_winners[0]
+
+                    # Find the winning option details
+                    winning_option = next(
+                        (option for option in task["options"] if option["id"] == winner), None
+                    )
+
+                    # Record the tie-breaking attempt
+                    tie_breaking_result["tie_breaking_attempts"].append({
+                        "method": "expertise_weighting",
+                        "successful": True,
+                        "winner": winner,
+                        "weighted_votes": weighted_votes
+                    })
+
+                    # Update the result
+                    tie_breaking_result["winner"] = winner
+                    tie_breaking_result["winning_option"] = winning_option
+                    tie_breaking_result["fallback"] = "expertise_weighting"
+
+                    logger.info(f"Tie broken by expertise weighting: {winner}")
+
+                    voting_result["result"] = tie_breaking_result
+                    return voting_result
+                else:
+                    # Record the failed tie-breaking attempt
+                    tie_breaking_result["tie_breaking_attempts"].append({
+                        "method": "expertise_weighting",
+                        "successful": False,
+                        "weighted_votes": weighted_votes,
+                        "expertise_tied_options": expertise_winners
+                    })
+
+                    logger.info("Expertise weighting tiebreaker failed, trying historical voting patterns")
+            else:
+                # Record the failed tie-breaking attempt
+                tie_breaking_result["tie_breaking_attempts"].append({
+                    "method": "expertise_weighting",
+                    "successful": False,
+                    "reason": "no_weighted_votes"
+                })
+        else:
+            # Record the skipped tie-breaking attempt
+            tie_breaking_result["tie_breaking_attempts"].append({
+                "method": "expertise_weighting",
+                "successful": False,
+                "reason": "no_domain_specified"
+            })
+
+        # 3. Try to break the tie using historical voting patterns
+        if hasattr(self, "voting_history") and self.voting_history:
+            # Count historical wins for each tied option
+            historical_wins = {option: 0 for option in tied_options}
+
+            for past_vote in self.voting_history:
+                if "result" in past_vote and "winner" in past_vote["result"]:
+                    past_winner = past_vote["result"]["winner"]
+                    if past_winner in historical_wins:
+                        historical_wins[past_winner] += 1
+
+            # Check if we have a historical winner
+            if any(historical_wins.values()):
+                max_wins = max(historical_wins.values())
+                historical_winners = [
+                    option for option, wins in historical_wins.items() 
+                    if wins == max_wins
+                ]
+
+                if len(historical_winners) == 1:
+                    # Historical pattern breaks the tie
+                    winner = historical_winners[0]
+
+                    # Find the winning option details
+                    winning_option = next(
+                        (option for option in task["options"] if option["id"] == winner), None
+                    )
+
+                    # Record the tie-breaking attempt
+                    tie_breaking_result["tie_breaking_attempts"].append({
+                        "method": "historical_pattern",
+                        "successful": True,
+                        "winner": winner,
+                        "historical_wins": historical_wins
+                    })
+
+                    # Update the result
+                    tie_breaking_result["winner"] = winner
+                    tie_breaking_result["winning_option"] = winning_option
+                    tie_breaking_result["fallback"] = "historical_pattern"
+
+                    logger.info(f"Tie broken by historical pattern: {winner}")
+
+                    voting_result["result"] = tie_breaking_result
+                    return voting_result
+                else:
+                    # Record the failed tie-breaking attempt
+                    tie_breaking_result["tie_breaking_attempts"].append({
+                        "method": "historical_pattern",
+                        "successful": False,
+                        "historical_wins": historical_wins,
+                        "historical_tied_options": historical_winners
+                    })
+
+                    logger.info("Historical pattern tiebreaker failed, falling back to consensus building")
+            else:
+                # Record the failed tie-breaking attempt
+                tie_breaking_result["tie_breaking_attempts"].append({
+                    "method": "historical_pattern",
+                    "successful": False,
+                    "reason": "no_historical_wins"
+                })
+        else:
+            # Record the skipped tie-breaking attempt
+            tie_breaking_result["tie_breaking_attempts"].append({
+                "method": "historical_pattern",
+                "successful": False,
+                "reason": "no_voting_history"
+            })
+
+        # 4. Fall back to consensus building as a last resort
+        logger.info("All tie-breaking methods failed, falling back to consensus building")
+
         # Create a modified task for consensus building
         consensus_task = task.copy()
         consensus_task["tied_options"] = tied_options
@@ -1011,16 +1459,17 @@ class WSDETeam:
         # Build consensus
         consensus_result = self.build_consensus(consensus_task)
 
-        # Update the result
-        voting_result["result"] = {
-            "tied": True,
-            "tied_options": tied_options,
-            "vote_counts": vote_counts,
-            "method": "tied_vote",
-            "fallback": "consensus",
-            "consensus_result": consensus_result,
-        }
+        # Record the tie-breaking attempt
+        tie_breaking_result["tie_breaking_attempts"].append({
+            "method": "consensus_building",
+            "successful": True
+        })
 
+        # Update the result
+        tie_breaking_result["fallback"] = "consensus"
+        tie_breaking_result["consensus_result"] = consensus_result
+
+        voting_result["result"] = tie_breaking_result
         return voting_result
 
     def _apply_weighted_voting(
@@ -1089,7 +1538,14 @@ class WSDETeam:
             if weight == max_weighted_votes
         ]
 
-        # There should be only one winner with weighted voting
+        # Check if there's a tie in weighted voting
+        if len(winners) > 1:
+            logger.info(f"Weighted voting resulted in a tie between options: {winners}")
+
+            # Handle the tie using the tie-breaking mechanism
+            return self._handle_tied_vote(task, voting_result, weighted_votes, winners)
+
+        # Get the single winner
         winner = winners[0]
 
         # Find the winning option details
@@ -1417,37 +1873,78 @@ class WSDETeam:
         Returns:
             A dictionary containing the critique
         """
-        # In a real implementation, this would involve the critic agent analyzing the thesis
-        # For now, we'll create a simple critique based on common issues
+        # Use the critic agent to analyze the thesis
+        try:
+            # Prepare inputs for the critic agent
+            inputs = {
+                "content": thesis.get("content", ""),
+                "context": thesis.get("context", ""),
+                "code": thesis.get("code", "")
+            }
 
-        critique = []
+            # Process the inputs using the critic agent
+            result = critic_agent.process(inputs)
 
-        # Check for hardcoded credentials
-        if "code" in thesis and "password" in thesis["code"]:
-            critique.append("Security issue: Hardcoded credentials detected")
+            # Extract the critique from the result
+            critique = result.get("critique", "")
 
-        # Check for lack of error handling
-        if (
-            "code" in thesis
-            and "try" not in thesis["code"]
-            and "except" not in thesis["code"]
-        ):
-            critique.append("Reliability issue: No error handling detected")
+            # Try to parse the critique as JSON if it's a string
+            import json
+            if isinstance(critique, str):
+                try:
+                    critique_data = json.loads(critique)
+                    # If parsing succeeded, extract the antithesis
+                    if isinstance(critique_data, dict) and "antithesis" in critique_data:
+                        return {
+                            "agent": critic_agent.name,
+                            "critique": critique_data["antithesis"].get("critique", []),
+                            "challenges": critique_data["antithesis"].get("challenges", []),
+                            "reasoning": "Dialectical analysis by critic agent"
+                        }
+                except json.JSONDecodeError:
+                    # If parsing failed, use the critique as is
+                    logger.warning(f"Failed to parse critique as JSON: {critique[:100]}...")
 
-        # Check for lack of validation
-        if (
-            "code" in thesis
-            and "validate" not in thesis["code"]
-            and "check" not in thesis["code"]
-        ):
-            critique.append("Security issue: No input validation detected")
+            # If we couldn't extract structured data, return the raw critique
+            return {
+                "agent": critic_agent.name,
+                "critique": [critique] if isinstance(critique, str) else critique,
+                "reasoning": "Dialectical analysis by critic agent"
+            }
 
-        # Return the antithesis
-        return {
-            "agent": critic_agent.name,
-            "critique": critique,
-            "reasoning": "Dialectical analysis identified potential issues with the proposed solution",
-        }
+        except Exception as e:
+            # Log the error and fall back to a simple critique
+            logger.error(f"Error generating antithesis: {str(e)}")
+
+            # Fall back to a simple critique based on common issues
+            critique = []
+
+            # Check for hardcoded credentials
+            if "code" in thesis and "password" in thesis["code"]:
+                critique.append("Security issue: Hardcoded credentials detected")
+
+            # Check for lack of error handling
+            if (
+                "code" in thesis
+                and "try" not in thesis["code"]
+                and "except" not in thesis["code"]
+            ):
+                critique.append("Reliability issue: No error handling detected")
+
+            # Check for lack of validation
+            if (
+                "code" in thesis
+                and "validate" not in thesis["code"]
+                and "check" not in thesis["code"]
+            ):
+                critique.append("Security issue: No input validation detected")
+
+            # Return the fallback antithesis
+            return {
+                "agent": critic_agent.name,
+                "critique": critique,
+                "reasoning": "Fallback dialectical analysis (critic agent failed)"
+            }
 
     def _generate_synthesis(
         self, thesis: Dict[str, Any], antithesis: Dict[str, Any]
@@ -1462,70 +1959,343 @@ class WSDETeam:
         Returns:
             A dictionary containing the improved solution
         """
-        # In a real implementation, this would involve sophisticated resolution of contradictions
-        # For now, we'll create a simple improved solution based on the critique
-
         # Start with the original solution
         improved_solution = thesis.copy()
 
-        # Apply improvements based on the critique
-        if "code" in improved_solution:
-            code = improved_solution["code"]
+        # Try to extract structured improvements from the critique
+        import json
+        synthesis_improvements = []
+        synthesis_reasoning = ""
 
-            # Fix hardcoded credentials
-            if any(
-                "hardcoded credentials" in critique.lower()
-                for critique in antithesis["critique"]
-            ):
-                code = code.replace(
-                    "username == 'admin' and password == 'password'",
-                    "validate_credentials(username, password)",
-                )
-                code = (
-                    "def validate_credentials(username, password):\n    # Securely validate credentials against database\n    return False  # Placeholder\n\n"
-                    + code
-                )
+        # Check if we have a structured critique from the critic agent
+        if "critique" in antithesis and isinstance(antithesis["critique"], list):
+            # Get the critique points
+            critique_points = antithesis["critique"]
 
-            # Add error handling
-            if any(
-                "error handling" in critique.lower()
-                for critique in antithesis["critique"]
-            ):
-                if "def authenticate" in code:
-                    code = code.replace(
-                        "def authenticate(username, password):",
-                        "def authenticate(username, password):\n    try:",
-                    )
-                    code += '\n    except Exception as e:\n        logger.error(f"Authentication error: {e}")\n        return False'
+            # Check if we have challenges as well
+            challenges = antithesis.get("challenges", [])
 
-            # Add input validation
-            if any(
-                "input validation" in critique.lower()
-                for critique in antithesis["critique"]
-            ):
-                if "def authenticate" in code:
-                    code = code.replace(
-                        "def authenticate(username, password):",
-                        "def authenticate(username, password):\n    # Validate inputs\n    if not username or not password:\n        return False",
-                    )
+            # Combine critique points and challenges
+            all_critiques = critique_points + challenges
 
-            improved_solution["code"] = code
+            # Apply improvements based on the critique
+            if "code" in improved_solution:
+                code = improved_solution["code"]
 
-        # Update the content to reflect improvements
-        if "content" in improved_solution:
-            improved_solution[
-                "content"
-            ] += "\n\nImprovements based on dialectical review:"
-            for critique in antithesis["critique"]:
-                improved_solution["content"] += f"\n- Addressed: {critique}"
+                # Apply code improvements based on the critique
+                for critique in all_critiques:
+                    # Convert critique to lowercase for case-insensitive matching
+                    critique_lower = critique.lower() if isinstance(critique, str) else ""
 
-        # Return the synthesis
+                    # Fix hardcoded credentials
+                    if "hardcoded credential" in critique_lower or "password" in critique_lower:
+                        code = self._improve_credentials(code)
+                        synthesis_improvements.append("Removed hardcoded credentials")
+
+                    # Add error handling
+                    if "error handling" in critique_lower or "exception" in critique_lower:
+                        code = self._improve_error_handling(code)
+                        synthesis_improvements.append("Added error handling")
+
+                    # Add input validation
+                    if "input validation" in critique_lower or "validate input" in critique_lower:
+                        code = self._improve_input_validation(code)
+                        synthesis_improvements.append("Added input validation")
+
+                    # Improve security
+                    if "security" in critique_lower or "vulnerable" in critique_lower:
+                        code = self._improve_security(code)
+                        synthesis_improvements.append("Improved security measures")
+
+                    # Improve performance
+                    if "performance" in critique_lower or "slow" in critique_lower:
+                        code = self._improve_performance(code)
+                        synthesis_improvements.append("Optimized for performance")
+
+                    # Improve readability
+                    if "readability" in critique_lower or "unclear" in critique_lower:
+                        code = self._improve_readability(code)
+                        synthesis_improvements.append("Improved code readability")
+
+                improved_solution["code"] = code
+
+            # Update the content to reflect improvements
+            if "content" in improved_solution:
+                content = improved_solution["content"]
+
+                # Apply content improvements based on the critique
+                for critique in all_critiques:
+                    # Convert critique to lowercase for case-insensitive matching
+                    critique_lower = critique.lower() if isinstance(critique, str) else ""
+
+                    # Improve clarity
+                    if "clarity" in critique_lower or "unclear" in critique_lower:
+                        content = self._improve_clarity(content)
+                        synthesis_improvements.append("Improved clarity")
+
+                    # Add examples
+                    if "example" in critique_lower or "illustration" in critique_lower:
+                        content = self._improve_with_examples(content)
+                        synthesis_improvements.append("Added examples for clarity")
+
+                    # Improve structure
+                    if "structure" in critique_lower or "organization" in critique_lower:
+                        content = self._improve_structure(content)
+                        synthesis_improvements.append("Improved document structure")
+
+                improved_solution["content"] = content
+
+            # Generate reasoning for the synthesis
+            synthesis_reasoning = f"Improvements made based on {len(all_critiques)} critique points, addressing key issues identified in the antithesis."
+
+        # If we couldn't extract structured improvements, use a generic approach
+        if not synthesis_improvements:
+            # Apply generic improvements based on the critique
+            if "code" in improved_solution:
+                code = improved_solution["code"]
+
+                # Fix hardcoded credentials
+                if any(
+                    isinstance(critique, str) and "hardcoded credentials" in critique.lower()
+                    for critique in antithesis.get("critique", [])
+                ):
+                    code = self._improve_credentials(code)
+                    synthesis_improvements.append("Removed hardcoded credentials")
+
+                # Add error handling
+                if any(
+                    isinstance(critique, str) and "error handling" in critique.lower()
+                    for critique in antithesis.get("critique", [])
+                ):
+                    code = self._improve_error_handling(code)
+                    synthesis_improvements.append("Added error handling")
+
+                # Add input validation
+                if any(
+                    isinstance(critique, str) and "input validation" in critique.lower()
+                    for critique in antithesis.get("critique", [])
+                ):
+                    code = self._improve_input_validation(code)
+                    synthesis_improvements.append("Added input validation")
+
+                improved_solution["code"] = code
+
+            # Generate reasoning for the synthesis
+            synthesis_reasoning = "Generic improvements applied based on common issues identified in the critique."
+
+        # Return the synthesis with improvements and reasoning
         return {
-            "is_improvement": len(antithesis["critique"]) > 0,
             "improved_solution": improved_solution,
-            "resolution_method": "Dialectical synthesis",
-            "improvements_count": len(antithesis["critique"]),
+            "improvements": synthesis_improvements,
+            "reasoning": synthesis_reasoning,
+            "is_improvement": len(synthesis_improvements) > 0
         }
+
+    def _improve_credentials(self, code: str) -> str:
+        """Improve code by removing hardcoded credentials."""
+        # Replace hardcoded credentials with a secure validation method
+        code = code.replace(
+            "username == 'admin' and password == 'password'",
+            "validate_credentials(username, password)",
+        )
+
+        # Add a validation function if it doesn't exist
+        if "def validate_credentials" not in code:
+            code = (
+                "def validate_credentials(username, password):\n"
+                "    # Securely validate credentials against database\n"
+                "    # In a real implementation, this would use a secure password hashing algorithm\n"
+                "    # and compare against stored hashed passwords\n"
+                "    return False  # Placeholder\n\n"
+            ) + code
+
+        return code
+
+    def _improve_error_handling(self, code: str) -> str:
+        """Improve code by adding error handling."""
+        # Add try-except blocks to functions that might need them
+        for func_name in ["authenticate", "process", "validate", "execute", "run"]:
+            if f"def {func_name}" in code and "try:" not in code:
+                code = code.replace(
+                    f"def {func_name}(",
+                    f"def {func_name}(",
+                )
+
+                # Find the function body and add try-except
+                import re
+                pattern = rf"def {func_name}\([^)]*\):(.*?)(?=\ndef|\Z)"
+                match = re.search(pattern, code, re.DOTALL)
+
+                if match:
+                    func_body = match.group(1)
+                    indented_body = "\n    try:" + func_body.replace("\n", "\n    ")
+                    exception_handler = "\n    except Exception as e:\n        logger.error(f\"{func_name} error: {e}\")\n        return None"
+                    new_body = indented_body + exception_handler
+                    code = code.replace(func_body, new_body)
+
+        return code
+
+    def _improve_input_validation(self, code: str) -> str:
+        """Improve code by adding input validation."""
+        # Add input validation to functions that might need it
+        for func_name in ["authenticate", "process", "validate", "execute", "run"]:
+            if f"def {func_name}" in code and "if not " not in code:
+                # Find the function signature and parameters
+                import re
+                pattern = rf"def {func_name}\(([^)]*)\):"
+                match = re.search(pattern, code)
+
+                if match:
+                    params = match.group(1).split(",")
+                    param_names = [p.strip().split(":")[0].split("=")[0].strip() for p in params if p.strip()]
+
+                    # Create validation code for each parameter
+                    validation_code = "\n    # Validate inputs\n"
+                    for param in param_names:
+                        if param != "self":
+                            validation_code += f"    if {param} is None:\n        return None\n"
+
+                    # Insert validation code after function definition
+                    code = code.replace(
+                        f"def {func_name}({match.group(1)}):",
+                        f"def {func_name}({match.group(1)}):{validation_code}"
+                    )
+
+        return code
+
+    def _improve_security(self, code: str) -> str:
+        """Improve code security."""
+        # Add security improvements
+        # This is a simplified implementation - in a real system, this would be more sophisticated
+
+        # Replace insecure functions
+        replacements = {
+            "eval(": "safe_eval(",
+            "exec(": "safe_exec(",
+            "os.system(": "subprocess.run([",
+            "subprocess.call(": "subprocess.run(",
+            "pickle.loads(": "safe_deserialize("
+        }
+
+        for old, new in replacements.items():
+            if old in code:
+                code = code.replace(old, new)
+
+                # Add safe wrapper functions if needed
+                if new == "safe_eval(" and "def safe_eval" not in code:
+                    code = (
+                        "def safe_eval(expr, globals=None, locals=None):\n"
+                        "    # A safer version of eval that restricts the available functions\n"
+                        "    # In a real implementation, this would use a proper sandboxing solution\n"
+                        "    safe_globals = {'__builtins__': {}}\n"
+                        "    if globals:\n"
+                        "        safe_globals.update({k: v for k, v in globals.items() if k in ['math', 'datetime']})\n"
+                        "    return eval(expr, safe_globals, locals)\n\n"
+                    ) + code
+
+                if new == "safe_deserialize(" and "def safe_deserialize" not in code:
+                    code = (
+                        "def safe_deserialize(data):\n"
+                        "    # A safer version of pickle.loads\n"
+                        "    # In a real implementation, this would use a safer serialization format like JSON\n"
+                        "    import pickle\n"
+                        "    return pickle.loads(data)\n\n"
+                    ) + code
+
+        return code
+
+    def _improve_performance(self, code: str) -> str:
+        """Improve code performance."""
+        # This is a simplified implementation - in a real system, this would be more sophisticated
+
+        # Add caching for expensive operations
+        if "def calculate" in code and "@lru_cache" not in code:
+            code = "from functools import lru_cache\n\n" + code
+            code = code.replace(
+                "def calculate",
+                "@lru_cache(maxsize=128)\ndef calculate"
+            )
+
+        return code
+
+    def _improve_readability(self, code: str) -> str:
+        """Improve code readability."""
+        # Add docstrings to functions that don't have them
+        import re
+        functions = re.finditer(r"def ([a-zA-Z0-9_]+)\(([^)]*)\):", code)
+
+        for match in functions:
+            func_name = match.group(1)
+            params = match.group(2)
+
+            # Check if function already has a docstring
+            func_pos = match.start()
+            next_lines = code[func_pos:func_pos+200].split("\n")
+            has_docstring = False
+
+            for i, line in enumerate(next_lines[1:3]):
+                if '"""' in line or "'''" in line:
+                    has_docstring = True
+                    break
+
+            if not has_docstring:
+                # Create a simple docstring
+                docstring = f'\n    """\n    {func_name.replace("_", " ").title()}.\n    """\n'
+                code = code.replace(
+                    f"def {func_name}({params}):",
+                    f"def {func_name}({params}):{docstring}"
+                )
+
+        return code
+
+    def _improve_clarity(self, content: str) -> str:
+        """Improve content clarity."""
+        # This is a simplified implementation - in a real system, this would be more sophisticated
+        if not content:
+            return content
+
+        # Add a clear introduction if it doesn't exist
+        if not content.startswith("# ") and not content.startswith("## "):
+            content = "# Introduction\n\nThis document provides information about the system.\n\n" + content
+
+        # Add a conclusion if it doesn't exist
+        if "conclusion" not in content.lower():
+            content += "\n\n# Conclusion\n\nThis concludes the document."
+
+        return content
+
+    def _improve_with_examples(self, content: str) -> str:
+        """Improve content by adding examples."""
+        # This is a simplified implementation - in a real system, this would be more sophisticated
+        if not content:
+            return content
+
+        # Add an examples section if it doesn't exist
+        if "example" not in content.lower():
+            content += "\n\n# Examples\n\nHere are some examples to illustrate the concepts:\n\n1. Example 1: Basic usage\n2. Example 2: Advanced usage"
+
+        return content
+
+    def _improve_structure(self, content: str) -> str:
+        """Improve content structure."""
+        # This is a simplified implementation - in a real system, this would be more sophisticated
+        if not content:
+            return content
+
+        # Add a table of contents if it doesn't exist
+        if "table of contents" not in content.lower():
+            # Extract headings
+            import re
+            headings = re.findall(r"^#+ (.+)$", content, re.MULTILINE)
+
+            if headings:
+                toc = "# Table of Contents\n\n"
+                for i, heading in enumerate(headings):
+                    toc += f"{i+1}. {heading}\n"
+
+                content = toc + "\n\n" + content
+
+        return content
 
     def _identify_thesis(
         self, thesis_solution: Dict[str, Any], task: Dict[str, Any]
@@ -1589,9 +2359,9 @@ class WSDETeam:
             critic_agent: The agent responsible for the critique
 
         Returns:
-            A dictionary containing the critique across multiple dimensions
+            A dictionary containing the critique across multiple dimensions with weighted arguments
         """
-        # Initialize critique categories
+        # Initialize critique categories with weighted critiques
         critique_categories = {
             "security": [],
             "performance": [],
@@ -1600,66 +2370,118 @@ class WSDETeam:
             "testability": [],
         }
 
+        # Define category weights (higher = more important)
+        category_weights = {
+            "security": 1.0,
+            "performance": 0.8,
+            "maintainability": 0.7,
+            "usability": 0.6,
+            "testability": 0.5,
+        }
+
         # Analyze the code if present
         if "code" in thesis:
             code = thesis["code"]
 
             # Security critiques
             if "password" in code and ("'password'" in code or '"password"' in code):
-                critique_categories["security"].append("Hardcoded credentials detected")
+                critique_categories["security"].append({
+                    "critique": "Hardcoded credentials detected",
+                    "weight": 0.9,  # High severity
+                    "reasoning": "Hardcoded credentials are a serious security vulnerability that can lead to unauthorized access"
+                })
             if "validate" not in code.lower() and "check" not in code.lower():
-                critique_categories["security"].append("No input validation detected")
+                critique_categories["security"].append({
+                    "critique": "No input validation detected",
+                    "weight": 0.8,  # High severity
+                    "reasoning": "Lack of input validation can lead to security vulnerabilities like injection attacks"
+                })
             if "sql" in code.lower() and "prepare" not in code.lower():
-                critique_categories["security"].append(
-                    "Potential SQL injection vulnerability"
-                )
+                critique_categories["security"].append({
+                    "critique": "Potential SQL injection vulnerability",
+                    "weight": 0.9,  # High severity
+                    "reasoning": "SQL injection is a critical security vulnerability that can lead to data breaches"
+                })
 
             # Performance critiques
             if "for" in code and "in range" in code and len(code.split("\n")) > 10:
-                critique_categories["performance"].append(
-                    "Potentially inefficient loop implementation"
-                )
+                critique_categories["performance"].append({
+                    "critique": "Potentially inefficient loop implementation",
+                    "weight": 0.6,  # Medium severity
+                    "reasoning": "Inefficient loops can cause performance issues, especially with large datasets"
+                })
             if code.count("if") > 3:
-                critique_categories["performance"].append(
-                    "Complex conditional logic may impact performance"
-                )
+                critique_categories["performance"].append({
+                    "critique": "Complex conditional logic may impact performance",
+                    "weight": 0.5,  # Medium severity
+                    "reasoning": "Excessive conditional logic can lead to performance bottlenecks and code that's difficult to optimize"
+                })
 
             # Maintainability critiques
             if code.count("\n") > 20 and code.count("def") <= 1:
-                critique_categories["maintainability"].append(
-                    "Function may be too long and complex"
-                )
+                critique_categories["maintainability"].append({
+                    "critique": "Function may be too long and complex",
+                    "weight": 0.7,  # Medium severity
+                    "reasoning": "Long functions are harder to understand, test, and maintain"
+                })
             if code.count("#") < code.count("\n") / 10:
-                critique_categories["maintainability"].append(
-                    "Insufficient comments for code complexity"
-                )
+                critique_categories["maintainability"].append({
+                    "critique": "Insufficient comments for code complexity",
+                    "weight": 0.5,  # Medium severity
+                    "reasoning": "Lack of comments makes code harder to understand and maintain, especially for complex logic"
+                })
 
             # Usability critiques
             if "error" not in code.lower() and "exception" not in code.lower():
-                critique_categories["usability"].append(
-                    "No user-friendly error messages"
-                )
+                critique_categories["usability"].append({
+                    "critique": "No user-friendly error messages",
+                    "weight": 0.6,  # Medium severity
+                    "reasoning": "Without clear error messages, users won't understand what went wrong or how to fix it"
+                })
             if "print" in code and "log" not in code.lower():
-                critique_categories["usability"].append(
-                    "Using print statements instead of proper logging"
-                )
+                critique_categories["usability"].append({
+                    "critique": "Using print statements instead of proper logging",
+                    "weight": 0.4,  # Lower severity
+                    "reasoning": "Print statements are not suitable for production code; proper logging is essential for debugging and monitoring"
+                })
 
             # Testability critiques
             if "try" not in code and "except" not in code:
-                critique_categories["testability"].append(
-                    "No error handling for robust testing"
-                )
+                critique_categories["testability"].append({
+                    "critique": "No error handling for robust testing",
+                    "weight": 0.6,  # Medium severity
+                    "reasoning": "Lack of error handling makes code less robust and harder to test thoroughly"
+                })
             if code.count("return") == 0 and "def" in code:
-                critique_categories["testability"].append(
-                    "Function doesn't return a value, making testing difficult"
-                )
+                critique_categories["testability"].append({
+                    "critique": "Function doesn't return a value, making testing difficult",
+                    "weight": 0.5,  # Medium severity
+                    "reasoning": "Functions without return values are harder to test because their effects must be observed indirectly"
+                })
 
-        # Return the enhanced antithesis
+        # Calculate weighted scores for each category
+        category_scores = {}
+        for category, critiques in critique_categories.items():
+            if critiques:
+                # Calculate the weighted average of critique weights
+                total_weight = sum(critique["weight"] for critique in critiques)
+                category_scores[category] = total_weight * category_weights[category] / len(critiques)
+            else:
+                category_scores[category] = 0.0
+
+        # Determine the most critical categories based on scores
+        sorted_categories = sorted(category_scores.items(), key=lambda x: x[1], reverse=True)
+        critical_categories = [cat for cat, score in sorted_categories if score > 0.5]
+
+        # Return the enhanced antithesis with weighted critiques
         return {
             "agent": critic_agent.name,
             "critique_categories": critique_categories,
-            "reasoning": "Multi-dimensional dialectical analysis identified potential issues across several categories",
-            "overall_assessment": "The solution requires improvements in multiple dimensions",
+            "category_weights": category_weights,
+            "category_scores": category_scores,
+            "critical_categories": critical_categories,
+            "reasoning": "Multi-dimensional dialectical analysis identified potential issues across several categories, with weights assigned based on severity and importance",
+            "overall_assessment": "The solution requires improvements in multiple dimensions, with priority given to the most critical issues",
         }
 
     def _generate_enhanced_synthesis(

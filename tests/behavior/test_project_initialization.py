@@ -10,5 +10,8 @@ from pytest_bdd import scenarios
 from .steps.cli_commands_steps import *
 from .steps.project_init_steps import *
 
+# Get the absolute path to the feature file
+feature_file = os.path.join(os.path.dirname(__file__), "features", "project_initialization.feature")
+
 # Define the feature file to test
-scenarios('features/project_initialization.feature')
+scenarios(feature_file)

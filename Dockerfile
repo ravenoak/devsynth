@@ -4,7 +4,7 @@
 ###################
 # BASE STAGE
 ###################
-FROM python:3.11-slim AS base
+FROM python:3.12-slim AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -80,7 +80,7 @@ CMD ["poetry", "run", "pytest"]
 ###################
 # PRODUCTION STAGE
 ###################
-FROM python:3.11-slim AS production
+FROM python:3.12-slim AS production
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -110,4 +110,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
 
 # Command to run the application
-CMD ["devsynth", "serve"]
+#CMD ["devsynth", "serve"]

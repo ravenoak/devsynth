@@ -1,0 +1,171 @@
+Understood. I will thoroughly examine the current state of the DevSynth repository, with a strong focus on recent UX-related changes, and synthesize a fully comprehensive implementation plan. This plan will employ a BDD/TDD methodology and include all necessary documentation, specifications, Gherkin feature files, pseudocode, architectural diagrams, and integration tests. It will also evaluate what is needed for the project to reach code complete status and outline all required tasks in detail to bring DevSynth to a releasable state.
+
+I’ll begin analyzing the repository now and will return with a structured plan.
+
+WDSE == Worker Self-Directed Enterprise
+
+# DevSynth 1.0 Release Plan
+
+We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and completeness.  Each phase defines targeted milestones and implementation-ready tasks, emphasizing BDD/TDD practices.  We draw on the current codebase and docs to identify missing features and gaps.
+
+## Phase 1: Core Architecture & Foundation Stabilization
+
+**Goals:** Finalize architectural components (EDRR, WSDE, providers, memory), resolve tech debt, and ensure code structure and config standards.
+
+* **Audit & Gap Analysis:** Review the \[Feature Status Matrix] to identify incomplete features.  Key gaps: finalize EDRR framework (phase transitions, recursion), complete WSDE multi-agent workflows, implement full dialectical/peer-review pipelines, and fill any “documented only” stubs (e.g. Anthropic LLM provider).
+
+* **UXBridge & Hexagonal Layers:** Ensure all interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction.  This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.  *(Task: write unit tests for `UXBridge.ask_question`/`display_result` to guarantee consistent behavior across CLI and future UI.)*
+
+* **Configuration & Requirements:** Confirm Python 3.11+ support (per \[README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
+
+* **Pseudocode & BDD Examples:** Draft pseudocode for core routines, e.g.:
+
+  ```python
+  # Pseudocode: high-level workflow orchestration (EDS: Expand/Differentiate/Synthesize)
+  task = load_task()
+  cycle = EDRRCoordinator(memory, team, analyzer, transformer, prompts, docs)
+  cycle.start_cycle(task)  # initiates Expand->Differentiate->Refine...
+  result = team.delegate_task(task)  # WSDE consensus/dialectical
+  ```
+
+  *Example Gherkin (feature file)*:
+
+  ```gherkin
+  Feature: Project Initialization Wizard  
+    As a user, I can initialize a DevSynth project with guided prompts.  
+    Scenario: Initialize new project  
+      Given no DevSynth project exists at path "myproj"  
+      When I run `devsynth init` and answer setup questions  
+      Then a `.devsynth/project.yaml` is created with my inputs  
+      And `devsynth config` shows the selected feature flags
+  ```
+
+  *(Step definitions would call `init_cmd` and assert file outputs.)*
+
+* **Missing Modules & Refactoring:** Identify any unused or commented-out code (e.g. specialized agent classes in `agent_adapter.py`).  Remove dead code or implement missing pieces (e.g. if we want separate Planner/Test/Code agents).  Address technical debt in logic (e.g. simplify overly complex methods, ensure logging consistency).
+
+* **Tests:** Write unit tests for all core modules.  For example, test `WSDETeam.assign_roles`, `select_primus_by_expertise`, `build_consensus`, etc.  *Coverage goal:* ≥80% lines in core modules (EDRR, WSDE, memory, LLM provider, code analysis).
+
+## Phase 2: CLI UX Polishing & Web UI Integration
+
+**Goals:** Complete and polish the CLI user experience, and build a preliminary Web UI leveraging the CLI logic.
+
+* **CLI Commands:** Ensure all CLI flows work end-to-end and are tested.  Key commands include `init`, `spec`, `test`, `code`, `run-pipeline`, `config`, `gather`, `refactor`, `inspect`, `webapp`, `serve`, `dbschema`.  For each:
+
+  * **UX Specifications/User Stories:**
+
+    * *Init:* “As a developer, I can run `devsynth init` to configure a new or existing project.”
+    * *Spec/Test/Code:* “Given requirements/specs, DevSynth generates specs/tests/code.”
+    * *Doctor/Check:* “As a user, I can run `devsynth doctor` to validate my environment (Python version, API keys).”
+    * *Config:* “I can view and set config (e.g. model selection).”
+    * *Refactor:* “DevSynth suggests next steps via `devsynth refactor`.”
+    * *Inspect:* “I can interactively parse `requirements.txt`.”
+    * *Webapp:* “I can scaffold a sample web app (`flask`, etc) easily.”
+    * *Serve:* “I can launch the DevSynth API server (`uvicorn`) for integrations.”
+  * **BDD / Gherkin Tests:** For each story, write scenarios.  Example for `spec`:
+
+    ```gherkin
+    Feature: Specification Generation  
+      Scenario: Generate specs from requirements  
+        Given a `requirements.md` file with user stories  
+        When I run `devsynth spec --requirements-file requirements.md`  
+        Then a `specs.md` file is created with generated specifications  
+        And the CLI outputs a success message  
+    ```
+
+    *(Implement step defs that invoke `spec_cmd` and verify file output.)*
+  * **UX Flow Diagrams:** Document CLI flowcharts, e.g.:
+
+    ```
+    [User Input] --devsynth init--> [init_cmd prompts] --> [init_project executes] --> [Write project.yaml] --> [Feature flags toggled]
+    ```
+
+    (Refer to the UXBridge diagram for shared flow.)
+  * **CLI Improvements:** Add any missing prompts or validations.  E.g. the `doctor` command (from key features) should check services (like `_check_services` does) and be accessible via CLI.  Write tests for the `doctor_cmd` (e.g. missing API keys triggers a warning).
+
+* **Web UI (Streamlit) Integration:** Based on the **WebUI Architecture** spec:
+
+  * Implement a `WebUI` class that inherits `UXBridge`, using Streamlit pages (“Onboarding”, “Requirements”, “Analysis”, “Synthesis”, “Config”) as outlined.  Each page should call the same CLI workflows under the hood.
+  * **Pseudocode** (in docs) shows the navigation logic; code tasks include wiring up each page (calling `init_cmd`, `gather_cmd`, etc.).  *BDD example:*
+
+    ```gherkin
+    Feature: WebUI Navigation  
+      Scenario: Access project onboarding page  
+        When I select "Onboarding" in the sidebar  
+        Then the Onboarding UI appears  
+        And the same prompts from `devsynth init` are displayed  
+    ```
+
+    *(Step defs would simulate Streamlit UI selection and assert pages call underlying workflows.)*
+  * **Agent Interface:** Ensure the Agent API endpoints (per `agentapi.py`) are fully implemented and tested: `/init`, `/gather`, `/synthesize`, `/status`.  For example, write an integration test that calls `POST /init` and checks that `LATEST_MESSAGES` reflects the `init_cmd` output.  *User story:* “As an external agent, I can invoke DevSynth workflows via HTTP.”
+  * **Bridging CLI and WebUI:** Use the same `UXBridge` for both interfaces.  Tests should verify that both CLI commands and HTTP API produce identical effects (e.g. project files) when given the same input.
+
+## Phase 3: Multi-Agent Collaboration & EDRR Enhancements
+
+**Goals:** Complete team collaboration features and ensure the adaptive EDRR pipeline is fully integrated.
+
+* **WSDE Model:** Finalize non-hierarchical collaboration.  The **WSDETeam** and **WSDETeamCoordinator** already support rotating primus, consensus voting, and dialectical hooks.  Tasks:
+
+  * Verify and test *peer-based* behavior: write BDD for scenarios like “creating multiple agents leads to peer roles”, “rotating Primus works”.
+  * Ensure `delegate_task` (in `WSDETeamCoordinator`) aggregates solutions and builds consensus/dialectical analysis.  *Example test:* mock multiple `UnifiedAgent.process` calls and assert that `delegate_task`’s output includes all contributors and a `method: consensus_synthesis` (as in the BDD steps).
+  * Implement or fix any missing logic: e.g. `vote_on_critical_decision`, peer review cycles.  The Feature Matrix notes consensus is 100% and peer review 50%.  Finish peer-review workflow (e.g. integrate `PeerReview` class, test it end-to-end).
+  * **Context-Driven Leadership:** Ensure `select_primus_by_expertise` works as intended (as per tests).  Write unit tests for tasks switching Primus roles.
+  * **DSL & EDRR Integration:** The EDRRCoordinator orchestrates expand/differentiate/refine cycles. Complete its CLI integration: e.g. an `edrr-cycle` command to step through phases (see `edrr_cycle_cmd` imported in CLI).  Test a full EDRR run on a sample task, verifying that source code is analyzed and artifacts stored in memory.
+  * **Test Goals:** Achieve complete behavior-driven coverage for collaboration: every Gherkin scenario in `tests/behavior` should pass.  Add missing scenarios (e.g. dialectical reasoning, retrospection) and step definitions.
+
+## Phase 4: Testing, Documentation & Final Polish
+
+**Goals:** Attain high test coverage, finalize all documentation, and polish UX details.
+
+* **Test Coverage:** Target ≥90% for unit tests in critical modules (especially core and UX bridges).  Add integration tests for CLI/WebUI/AgentAPI pipelines.  Cover corner cases (invalid config, missing files).  Automate coverage checks in CI.
+* **Behavior Tests:** Complete feature files for any remaining user stories (e.g. `Feature: Generate documentation`, `Feature: Web Application Generator`).  Implement step definitions in Python to drive these flows via `CLIUXBridge` or `APIBridge`.
+* **Documentation:** Ensure **all** features and workflows are documented: update **User Guide**, **Quick Start**, **CLI Reference**, and **Architecture** docs.  In particular, document new features (WebUI, API endpoints, agent workflows).  Verify docs match code via traceability matrix.  Add missing images or diagrams to docs.
+* **UX Polish:** Refine command-line messaging (colors, formatting), fix any inconsistent naming.  E.g. confirm that all commands have help text.  Ensure CLI prompts and WebUI labels are clear.  Resolve any reported issues or TODOs in UI.
+
+## Phase 5: Release Readiness & Deployment
+
+**Goals:** Final verification, packaging, and release CI.
+
+* **Functional Completeness:** Confirm that every feature on the status matrix has reached “Fully Implemented” or an acceptable level for v1.0.  Checklist items include: all CLI commands exercised, WebUI navigation complete, agent API functional, multi-agent collaboration stable, memory backends integrated, all optional providers handled.
+* **UX Polish & Consistency:** Perform usability checks.  For CLI, run user stories from quick start.  For WebUI, navigate pages end-to-end.  Ensure CLI/WebUI produce consistent outputs for same tasks.
+* **Agent Interface:** Validate API endpoints with and without authentication (bearer token).  Ensure the `/metrics` and `/health` endpoints work and are secured if needed.  Integrate Prometheus metrics.
+* **Documentation Readiness:** Finalize versioned docs (mkdocs site).  Include a “DevSynth Roadmap” and “Release Notes” summarizing this phase.  Tag documentation review to pass CI (spelling, formatting).
+* **CI/CD & Packaging:** Ensure all tests pass in CI.  Build and test the `devsynth` pip package.  Verify Docker image build and deployment scripts.  Publish to PyPI (if applicable) and update CHANGELOG.  Ensure version bump to 1.0.0.
+
+### Explicit Code-Complete Checklist
+
+1. **Functional Completeness:**
+
+   * All CLI commands implemented and tested (as per README).
+   * WebUI (Streamlit) implements key pages and workflows.
+   * Agent API supports `/init`, `/gather`, `/synthesize`, `/status`.
+   * Core features (spec, test, code generation; WSDE; EDRR) work end-to-end.
+   * Optional features (code/test/doc generation, WSDE, dialectical reasoning) toggled via config are verified.
+
+2. **UX Polish:**
+
+   * CLI messages and prompts are clear (ANSI colors, progress bars).  Example: successful spec generation shows a green message.
+   * Configuration wizard (`devsynth init`) collects user input logically.
+   * WebUI interface matches CLI workflows and is responsive. (E.g. sidebar navigation, progress indicators via `UXBridge`.
+
+3. **Agent Interface Readiness:**
+
+   * FastAPI endpoints respond correctly (health, metrics, workflow endpoints).  Health check returns `{"status":"ok"}`.
+   * Agent API security (Bearer token) is functional.
+   * API and CLI share the same logic via `UXBridge`, so agentic invocations produce same outputs as interactive use.
+
+4. **Documentation Readiness:**
+
+   * All user/developer guides cover new features (WebUI, API, new commands).  Quickstart example in README updated.
+   * Architecture and design docs reflect final implementation (including any changes).  Feature Status Matrix updated to 100% or notes for incomplete “enhancements only” (e.g. future frameworks in `webapp`).
+   * Testing and traceability matrices reviewed.
+
+5. **Packaging & CI:**
+
+   * `devsynth` package builds on Python 3.11+ and installs with extras (dev, retrieval).  Dockerfile and Compose verified.
+   * CI pipeline passes linting, tests (unit, integration, BDD) and deploys on successful tag.
+   * CHANGELOG updated and a release branch/tag created.
+
+By progressing through these phases and rigorously testing via BDD/TDD, DevSynth will achieve a stable, user-ready 1.0 release.  The plan ensures thorough coverage of UX flows, architectural solidity, and documentation.  Each bullet above corresponds to discrete tasks (e.g. writing specific Gherkin scenarios, implementing missing endpoints) that can be handed off as atomic development tickets for the AI assistant.
+
+**Sources:** Current DevSynth docs and code provide guidance on features, architecture, and status.

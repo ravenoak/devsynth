@@ -42,11 +42,51 @@ class ConfigModel:
             "test_generation": False,
             "documentation_generation": False,
             "experimental_features": False,
+            "edrr_framework": False,
+            "micro_edrr_cycles": False,
+            "recursive_edrr": False,
+            "wsde_peer_review": False,
+            "wsde_consensus_voting": False,
+            "uxbridge_webui": False,
+            "uxbridge_agent_api": False,
         }
     )
     memory_store_type: str = "memory"
     offline_mode: bool = False
     resources: Dict[str, Any] | None = None
+    edrr_settings: Dict[str, Any] = field(
+        default_factory=lambda: {
+            "max_recursion_depth": 3,
+            "enable_memory_integration": True,
+            "termination_threshold": 0.8,
+            "phase_weights": {
+                "expand": 1.0,
+                "differentiate": 1.0,
+                "refine": 1.0,
+                "retrospect": 1.0,
+            },
+        }
+    )
+    wsde_settings: Dict[str, Any] = field(
+        default_factory=lambda: {
+            "team_size": 5,
+            "peer_review_threshold": 0.7,
+            "consensus_threshold": 0.6,
+            "voting_weights": {
+                "expertise": 0.6,
+                "historical": 0.3,
+                "primus": 0.1,
+            },
+        }
+    )
+    uxbridge_settings: Dict[str, Any] = field(
+        default_factory=lambda: {
+            "default_interface": "cli",
+            "webui_port": 8501,
+            "api_port": 8000,
+            "enable_authentication": False,
+        }
+    )
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -62,6 +102,9 @@ class ConfigModel:
             "memory_store_type": self.memory_store_type,
             "offline_mode": self.offline_mode,
             "resources": self.resources or {},
+            "edrr_settings": self.edrr_settings,
+            "wsde_settings": self.wsde_settings,
+            "uxbridge_settings": self.uxbridge_settings,
         }
 
 
@@ -110,7 +153,8 @@ def load_config(path: Optional[Path] = None) -> ConfigModel:
             except yaml.YAMLError as exc:  # pragma: no cover - protective branch
                 logger.error("Malformed YAML configuration: %s", exc)
                 raise ConfigurationError(
-                    "Malformed YAML configuration", config_key=str(cfg_path)
+                    f"Malformed YAML configuration in {cfg_path}. Please check the syntax and formatting.",
+                    config_key=str(cfg_path)
                 ) from exc
         else:
             try:
@@ -119,18 +163,69 @@ def load_config(path: Optional[Path] = None) -> ConfigModel:
             except Exception as exc:  # pragma: no cover - toml load errors
                 logger.error("Malformed TOML configuration: %s", exc)
                 raise ConfigurationError(
-                    "Malformed TOML configuration", config_key=str(cfg_path)
+                    f"Malformed TOML configuration in {cfg_path}. Please check the syntax and formatting.",
+                    config_key=str(cfg_path)
                 ) from exc
 
         data.update(parsed)
 
-    config = ConfigModel(**data)
+    # Validate configuration before creating the model
+    try:
+        config = ConfigModel(**data)
+    except Exception as exc:
+        logger.error("Invalid configuration values: %s", exc)
+        raise ConfigurationError(
+            f"Invalid configuration values: {exc}. Please check the configuration documentation for valid options.",
+            config_key="validation"
+        ) from exc
+
+    # Validate version
     if config.version != ConfigModel.version:
         logger.warning(
             "Configuration version %s does not match expected %s",
             config.version,
             ConfigModel.version,
         )
+
+    # Validate EDRR settings
+    if config.features.get("edrr_framework", False):
+        if config.edrr_settings.get("max_recursion_depth", 0) < 1:
+            logger.warning("max_recursion_depth should be at least 1, setting to default (3)")
+            config.edrr_settings["max_recursion_depth"] = 3
+
+        if not isinstance(config.edrr_settings.get("phase_weights", {}), dict):
+            logger.warning("phase_weights should be a dictionary, setting to default values")
+            config.edrr_settings["phase_weights"] = {
+                "expand": 1.0,
+                "differentiate": 1.0,
+                "refine": 1.0,
+                "retrospect": 1.0,
+            }
+
+    # Validate WSDE settings
+    if config.features.get("wsde_collaboration", False):
+        if config.wsde_settings.get("team_size", 0) < 2:
+            logger.warning("team_size should be at least 2, setting to default (5)")
+            config.wsde_settings["team_size"] = 5
+
+        if not isinstance(config.wsde_settings.get("voting_weights", {}), dict):
+            logger.warning("voting_weights should be a dictionary, setting to default values")
+            config.wsde_settings["voting_weights"] = {
+                "expertise": 0.6,
+                "historical": 0.3,
+                "primus": 0.1,
+            }
+
+    # Validate UXBridge settings
+    if config.features.get("uxbridge_webui", False) or config.features.get("uxbridge_agent_api", False):
+        if config.uxbridge_settings.get("webui_port", 0) < 1024 or config.uxbridge_settings.get("webui_port", 0) > 65535:
+            logger.warning("webui_port should be between 1024 and 65535, setting to default (8501)")
+            config.uxbridge_settings["webui_port"] = 8501
+
+        if config.uxbridge_settings.get("api_port", 0) < 1024 or config.uxbridge_settings.get("api_port", 0) > 65535:
+            logger.warning("api_port should be between 1024 and 65535, setting to default (8000)")
+            config.uxbridge_settings["api_port"] = 8000
+
     return config
 
 

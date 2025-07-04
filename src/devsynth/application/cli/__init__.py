@@ -36,6 +36,9 @@ from .commands.doctor_cmd import doctor_cmd
 from .commands.inspect_code_cmd import inspect_code_cmd
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 
+# Import ingest_cmd
+from .ingest_cmd import ingest_cmd
+
 __all__ = [
     "init_cmd",
     "spec_cmd",
@@ -56,4 +59,5 @@ __all__ = [
     "serve_cmd",
     "inspect_code_cmd",
     "edrr_cycle_cmd",
+    "ingest_cmd",
 ]
