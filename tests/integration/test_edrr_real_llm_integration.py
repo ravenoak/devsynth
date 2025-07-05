@@ -14,6 +14,7 @@ from typing import Dict, Any, Optional
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -21,6 +22,7 @@ from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import DocumentationManager
 from devsynth.adapters.provider_system import get_provider, ProviderType
 from devsynth.methodology.base import Phase
+from devsynth.domain.models.memory import MemoryType
 
 
 @pytest.mark.skipif(
@@ -29,16 +31,22 @@ from devsynth.methodology.base import Phase
 )
 def test_edrr_cycle_with_real_llm(tmp_path):
     """
-    Test EDRR cycle with a real LLM provider.
+    Test EDRR cycle with a real LLM provider and verify memory integration.
 
     This test will use the configured LLM provider (OpenAI or LM Studio)
-    to run a complete EDRR cycle with a simple task.
+    to run a complete EDRR cycle with a simple task. It also verifies that
+    the results are properly stored in and retrieved from the memory system
+    with the correct EDRR phase tags.
 
     It requires either OPENAI_API_KEY or LM_STUDIO_ENDPOINT to be set.
     """
-    # Set up memory components
-    memory_adapter = TinyDBMemoryAdapter()
-    memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
+    # Set up memory components with both TinyDB and Graph adapters
+    tinydb_adapter = TinyDBMemoryAdapter()
+    graph_adapter = GraphMemoryAdapter(base_path=str(tmp_path / "graph_memory"))
+    memory_manager = MemoryManager(adapters={
+        "tinydb": tinydb_adapter,
+        "graph": graph_adapter
+    })
 
     # Create WSDE team
     wsde_team = WSDETeam()
@@ -67,9 +75,23 @@ def test_edrr_cycle_with_real_llm(tmp_path):
     # Start EDRR cycle
     coordinator.start_cycle(task)
 
+    # Verify that EXPAND phase results are stored in memory
+    expand_results = memory_manager.retrieve_with_edrr_phase(
+        "EXPAND_RESULTS", "EXPAND", {"cycle_id": coordinator.cycle_id}
+    )
+    assert expand_results, "EXPAND phase results not found in memory"
+    assert "ideas" in expand_results, "EXPAND phase results missing 'ideas' key"
+    assert "knowledge" in expand_results, "EXPAND phase results missing 'knowledge' key"
+
     # Progress through all phases
     for phase in [Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
         coordinator.progress_to_phase(phase)
+
+        # Verify that phase results are stored in memory
+        phase_results = memory_manager.retrieve_with_edrr_phase(
+            f"{phase.value}_RESULTS", phase.value, {"cycle_id": coordinator.cycle_id}
+        )
+        assert phase_results, f"{phase.value} phase results not found in memory"
 
     # Generate report and get execution traces
     report = coordinator.generate_report()
@@ -97,9 +119,18 @@ def test_edrr_cycle_with_real_llm(tmp_path):
     assert final_solution is not None
     assert "def factorial" in str(final_solution).lower()
 
+    # Verify that the final solution can be retrieved from memory
+    refine_results = memory_manager.retrieve_with_edrr_phase(
+        "REFINE_RESULTS", "REFINE", {"cycle_id": coordinator.cycle_id}
+    )
+    assert refine_results, "REFINE phase results not found in memory"
+    assert "solution" in refine_results, "REFINE phase results missing 'solution' key"
+    assert "def factorial" in str(refine_results["solution"]).lower()
+
     # Print summary for debugging
     print(f"EDRR cycle completed with provider: {provider.__class__.__name__}")
     print(f"Final solution: {final_solution}")
+    print(f"Memory integration verified with GraphMemoryAdapter")
 
 
 @pytest.mark.skipif(

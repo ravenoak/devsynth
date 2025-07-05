@@ -203,6 +203,44 @@ class TinyDBMemoryAdapter(MemoryStore):
         # In a real implementation, this could support more complex queries
         return self.search(query)
 
+    def retrieve_with_edrr_phase(
+        self,
+        item_type: str,
+        edrr_phase: str,
+        metadata: Dict[str, Any] | None = None,
+    ) -> Any:
+        """
+        Retrieve an item stored with a specific EDRR phase.
+
+        Args:
+            item_type: Identifier of the stored item.
+            edrr_phase: The phase tag used during storage.
+            metadata: Optional additional metadata for adapter queries.
+
+        Returns:
+            The retrieved item or an empty dictionary if not found.
+        """
+        search_meta = metadata.copy() if metadata else {}
+        search_meta["edrr_phase"] = edrr_phase
+
+        # Build TinyDB query
+        tinydb_query = Query()
+        query_conditions = (tinydb_query.memory_type == item_type)
+
+        for key, value in search_meta.items():
+            condition = (tinydb_query.metadata[key] == value)
+            query_conditions &= condition
+
+        results = self.items_table.search(query_conditions)
+
+        if results:
+            # Return the content of the first matching item
+            item_dict = results[0]
+            memory_item = self._dict_to_memory_item(item_dict)
+            return memory_item.content
+
+        return {}
+
     def close(self):
         """Close the TinyDB database."""
         self.db.close()

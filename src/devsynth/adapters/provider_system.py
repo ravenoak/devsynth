@@ -5,6 +5,7 @@ This module implements a unified interface for different LLM providers with
 automatic fallback and selection based on configuration.
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -53,6 +54,8 @@ def get_provider_config() -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Provider configuration
     """
+    settings = get_settings()
+
     config = {
         "default_provider": get_env_or_default("DEVSYNTH_PROVIDER", "openai"),
         "openai": {
@@ -67,6 +70,22 @@ def get_provider_config() -> Dict[str, Any]:
                 "LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"
             ),
             "model": get_env_or_default("LM_STUDIO_MODEL", "default"),
+        },
+        "retry": {
+            "max_retries": getattr(settings, "provider_max_retries", 3),
+            "initial_delay": getattr(settings, "provider_initial_delay", 1.0),
+            "exponential_base": getattr(settings, "provider_exponential_base", 2.0),
+            "max_delay": getattr(settings, "provider_max_delay", 60.0),
+            "jitter": getattr(settings, "provider_jitter", True),
+        },
+        "fallback": {
+            "enabled": getattr(settings, "provider_fallback_enabled", True),
+            "order": getattr(settings, "provider_fallback_order", "openai,lm_studio").split(","),
+        },
+        "circuit_breaker": {
+            "enabled": getattr(settings, "provider_circuit_breaker_enabled", True),
+            "failure_threshold": getattr(settings, "provider_failure_threshold", 5),
+            "recovery_timeout": getattr(settings, "provider_recovery_timeout", 60.0),
         },
     }
 
@@ -166,6 +185,35 @@ class BaseProvider:
         self.kwargs = kwargs
         self.tls_config = tls_config or TLSConfig()
 
+        # Get retry configuration
+        config = get_provider_config()
+        self.retry_config = config.get("retry", {
+            "max_retries": 3,
+            "initial_delay": 1.0,
+            "exponential_base": 2.0,
+            "max_delay": 60.0,
+            "jitter": True,
+        })
+
+    def get_retry_decorator(self, retryable_exceptions=(Exception,)):
+        """
+        Get a retry decorator configured with the provider's retry settings.
+
+        Args:
+            retryable_exceptions: Tuple of exception types to retry on
+
+        Returns:
+            Callable: A configured retry decorator
+        """
+        return retry_with_exponential_backoff(
+            max_retries=self.retry_config["max_retries"],
+            initial_delay=self.retry_config["initial_delay"],
+            exponential_base=self.retry_config["exponential_base"],
+            max_delay=self.retry_config["max_delay"],
+            jitter=self.retry_config["jitter"],
+            retryable_exceptions=retryable_exceptions,
+        )
+
     def complete(
         self,
         prompt: str,
@@ -249,7 +297,26 @@ class OpenAIProvider(BaseProvider):
             "Authorization": f"Bearer {api_key}",
         }
 
-    @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
+        # Get retry configuration
+        config = get_provider_config()
+        self.retry_config = config.get("retry", {
+            "max_retries": 3,
+            "initial_delay": 1.0,
+            "exponential_base": 2.0,
+            "max_delay": 60.0,
+            "jitter": True,
+        })
+
+    def _get_retry_config(self):
+        """Get the retry configuration for OpenAI API calls."""
+        return {
+            "max_retries": self.retry_config["max_retries"],
+            "initial_delay": self.retry_config["initial_delay"],
+            "exponential_base": self.retry_config["exponential_base"],
+            "max_delay": self.retry_config["max_delay"],
+            "jitter": self.retry_config["jitter"],
+        }
+
     def complete(
         self,
         prompt: str,
@@ -272,21 +339,22 @@ class OpenAIProvider(BaseProvider):
         Raises:
             ProviderError: If API call fails
         """
-        url = f"{self.base_url}/chat/completions"
+        # Define the actual API call function
+        def _api_call():
+            url = f"{self.base_url}/chat/completions"
 
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
 
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
 
-        try:
             response = requests.post(
                 url,
                 headers=self.headers,
@@ -301,6 +369,17 @@ class OpenAIProvider(BaseProvider):
             else:
                 raise ProviderError(f"Invalid response format: {response_data}")
 
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retryable_exceptions=(requests.exceptions.RequestException,)
+            )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI API error: {e}")
             raise ProviderError(f"OpenAI API error: {e}")
@@ -313,21 +392,22 @@ class OpenAIProvider(BaseProvider):
         max_tokens: int = 2000,
     ) -> str:
         """Asynchronously generate a completion using the OpenAI API."""
-        url = f"{self.base_url}/chat/completions"
+        # Define the actual API call function
+        async def _api_call():
+            url = f"{self.base_url}/chat/completions"
 
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
 
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
 
-        try:
             async with httpx.AsyncClient(
                 **self.tls_config.as_requests_kwargs()
             ) as client:
@@ -338,11 +418,71 @@ class OpenAIProvider(BaseProvider):
             if "choices" in data and len(data["choices"]) > 0:
                 return data["choices"][0]["message"]["content"]
             raise ProviderError(f"Invalid response format: {data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            # For async functions, we need to create a wrapper that handles the async nature
+            async def _retry_async_wrapper():
+                decorator = retry_with_exponential_backoff(
+                    max_retries=retry_config["max_retries"],
+                    initial_delay=retry_config["initial_delay"],
+                    exponential_base=retry_config["exponential_base"],
+                    max_delay=retry_config["max_delay"],
+                    jitter=retry_config["jitter"],
+                    retryable_exceptions=(httpx.HTTPError,)
+                )
+                # Create a sync function that awaits the async function
+                def _sync_wrapper():
+                    import asyncio
+                    return asyncio.run(_api_call())
+
+                # Apply the decorator to the sync wrapper
+                decorated_sync = decorator(_sync_wrapper)
+
+                # Call the decorated sync function
+                return decorated_sync()
+
+            # Since we can't easily decorate async functions with retry,
+            # we'll just implement a simple retry loop here
+            max_retries = retry_config["max_retries"]
+            initial_delay = retry_config["initial_delay"]
+            exponential_base = retry_config["exponential_base"]
+            max_delay = retry_config["max_delay"]
+            jitter = retry_config["jitter"]
+
+            retry_count = 0
+            last_exception = None
+
+            while retry_count <= max_retries:
+                try:
+                    return await _api_call()
+                except httpx.HTTPError as e:
+                    last_exception = e
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        break
+
+                    # Calculate delay with exponential backoff
+                    delay = min(initial_delay * (exponential_base ** (retry_count - 1)), max_delay)
+
+                    # Add jitter if enabled
+                    if jitter:
+                        import random
+                        delay = delay * (0.5 + random.random())
+
+                    # Wait before retrying
+                    await asyncio.sleep(delay)
+
+            # If we've exhausted all retries, raise the last exception
+            logger.error(f"OpenAI API error after {max_retries} retries: {last_exception}")
+            raise ProviderError(f"OpenAI API error after {max_retries} retries: {last_exception}")
+
         except httpx.HTTPError as e:
             logger.error(f"OpenAI API error: {e}")
             raise ProviderError(f"OpenAI API error: {e}")
 
-    @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
         Generate embeddings using OpenAI API.
@@ -356,17 +496,20 @@ class OpenAIProvider(BaseProvider):
         Raises:
             ProviderError: If API call fails
         """
-        url = f"{self.base_url}/embeddings"
+        # Define the actual API call function
+        def _api_call():
+            url = f"{self.base_url}/embeddings"
 
-        if isinstance(text, str):
-            text = [text]
+            if isinstance(text, str):
+                text_list = [text]
+            else:
+                text_list = text
 
-        payload = {
-            "model": "text-embedding-3-small",  # Use appropriate embedding model
-            "input": text,
-        }
+            payload = {
+                "model": "text-embedding-3-small",  # Use appropriate embedding model
+                "input": text_list,
+            }
 
-        try:
             response = requests.post(
                 url,
                 headers=self.headers,
@@ -383,23 +526,37 @@ class OpenAIProvider(BaseProvider):
                     f"Invalid embedding response format: {response_data}"
                 )
 
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retryable_exceptions=(requests.exceptions.RequestException,)
+            )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI embedding API error: {e}")
             raise ProviderError(f"OpenAI embedding API error: {e}")
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously generate embeddings using the OpenAI API."""
-        url = f"{self.base_url}/embeddings"
+        # Define the actual API call function
+        async def _api_call():
+            url = f"{self.base_url}/embeddings"
 
-        if isinstance(text, str):
-            text = [text]
+            if isinstance(text, str):
+                text_list = [text]
+            else:
+                text_list = text
 
-        payload = {
-            "model": "text-embedding-3-small",
-            "input": text,
-        }
+            payload = {
+                "model": "text-embedding-3-small",
+                "input": text_list,
+            }
 
-        try:
             async with httpx.AsyncClient(
                 **self.tls_config.as_requests_kwargs()
             ) as client:
@@ -410,6 +567,47 @@ class OpenAIProvider(BaseProvider):
             if "data" in data and len(data["data"]) > 0:
                 return [item["embedding"] for item in data["data"]]
             raise ProviderError(f"Invalid embedding response format: {data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+
+            # Since we can't easily decorate async functions with retry,
+            # we'll just implement a simple retry loop here
+            max_retries = retry_config["max_retries"]
+            initial_delay = retry_config["initial_delay"]
+            exponential_base = retry_config["exponential_base"]
+            max_delay = retry_config["max_delay"]
+            jitter = retry_config["jitter"]
+
+            retry_count = 0
+            last_exception = None
+
+            while retry_count <= max_retries:
+                try:
+                    return await _api_call()
+                except httpx.HTTPError as e:
+                    last_exception = e
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        break
+
+                    # Calculate delay with exponential backoff
+                    delay = min(initial_delay * (exponential_base ** (retry_count - 1)), max_delay)
+
+                    # Add jitter if enabled
+                    if jitter:
+                        import random
+                        delay = delay * (0.5 + random.random())
+
+                    # Wait before retrying
+                    await asyncio.sleep(delay)
+
+            # If we've exhausted all retries, raise the last exception
+            logger.error(f"OpenAI embedding API error after {max_retries} retries: {last_exception}")
+            raise ProviderError(f"OpenAI embedding API error after {max_retries} retries: {last_exception}")
+
         except httpx.HTTPError as e:
             logger.error(f"OpenAI embedding API error: {e}")
             raise ProviderError(f"OpenAI embedding API error: {e}")
@@ -436,7 +634,16 @@ class LMStudioProvider(BaseProvider):
         self.model = model
         self.headers = {"Content-Type": "application/json"}
 
-    @retry_with_exponential_backoff(max_retries=3, initial_delay=1, max_delay=10)
+    def _get_retry_config(self):
+        """Get the retry configuration for LM Studio API calls."""
+        return {
+            "max_retries": self.retry_config["max_retries"],
+            "initial_delay": self.retry_config["initial_delay"],
+            "exponential_base": self.retry_config["exponential_base"],
+            "max_delay": self.retry_config["max_delay"],
+            "jitter": self.retry_config["jitter"],
+        }
+
     def complete(
         self,
         prompt: str,
@@ -459,20 +666,21 @@ class LMStudioProvider(BaseProvider):
         Raises:
             ProviderError: If API call fails
         """
-        url = f"{self.endpoint}/v1/chat/completions"
+        # Define the actual API call function
+        def _api_call():
+            url = f"{self.endpoint}/v1/chat/completions"
 
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
 
-        payload = {
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+            payload = {
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
 
-        try:
             response = requests.post(
                 url,
                 headers=self.headers,
@@ -489,6 +697,17 @@ class LMStudioProvider(BaseProvider):
                     f"Invalid LM Studio response format: {response_data}"
                 )
 
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retryable_exceptions=(requests.exceptions.RequestException,)
+            )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio API error: {e}")
             raise ProviderError(f"LM Studio API error: {e}")
@@ -501,20 +720,21 @@ class LMStudioProvider(BaseProvider):
         max_tokens: int = 2000,
     ) -> str:
         """Asynchronously generate a completion using LM Studio."""
-        url = f"{self.endpoint}/v1/chat/completions"
+        # Define the actual API call function
+        async def _api_call():
+            url = f"{self.endpoint}/v1/chat/completions"
 
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
 
-        payload = {
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
+            payload = {
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
 
-        try:
             async with httpx.AsyncClient(
                 **self.tls_config.as_requests_kwargs()
             ) as client:
@@ -525,6 +745,47 @@ class LMStudioProvider(BaseProvider):
             if "choices" in data and len(data["choices"]) > 0:
                 return data["choices"][0]["message"]["content"]
             raise ProviderError(f"Invalid LM Studio response format: {data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+
+            # Since we can't easily decorate async functions with retry,
+            # we'll just implement a simple retry loop here
+            max_retries = retry_config["max_retries"]
+            initial_delay = retry_config["initial_delay"]
+            exponential_base = retry_config["exponential_base"]
+            max_delay = retry_config["max_delay"]
+            jitter = retry_config["jitter"]
+
+            retry_count = 0
+            last_exception = None
+
+            while retry_count <= max_retries:
+                try:
+                    return await _api_call()
+                except httpx.HTTPError as e:
+                    last_exception = e
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        break
+
+                    # Calculate delay with exponential backoff
+                    delay = min(initial_delay * (exponential_base ** (retry_count - 1)), max_delay)
+
+                    # Add jitter if enabled
+                    if jitter:
+                        import random
+                        delay = delay * (0.5 + random.random())
+
+                    # Wait before retrying
+                    await asyncio.sleep(delay)
+
+            # If we've exhausted all retries, raise the last exception
+            logger.error(f"LM Studio API error after {max_retries} retries: {last_exception}")
+            raise ProviderError(f"LM Studio API error after {max_retries} retries: {last_exception}")
+
         except httpx.HTTPError as e:
             logger.error(f"LM Studio API error: {e}")
             raise ProviderError(f"LM Studio API error: {e}")
@@ -542,14 +803,17 @@ class LMStudioProvider(BaseProvider):
         Raises:
             ProviderError: If API call fails
         """
-        url = f"{self.endpoint}/v1/embeddings"
+        # Define the actual API call function
+        def _api_call():
+            url = f"{self.endpoint}/v1/embeddings"
 
-        if isinstance(text, str):
-            text = [text]
+            if isinstance(text, str):
+                text_list = [text]
+            else:
+                text_list = text
 
-        payload = {"input": text, "model": self.model}
+            payload = {"input": text_list, "model": self.model}
 
-        try:
             response = requests.post(
                 url,
                 headers=self.headers,
@@ -565,20 +829,34 @@ class LMStudioProvider(BaseProvider):
                 f"Invalid LM Studio embedding response format: {response_data}"
             )
 
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retryable_exceptions=(requests.exceptions.RequestException,)
+            )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio embedding API error: {e}")
             raise ProviderError(f"LM Studio embedding API error: {e}")
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously generate embeddings using the LM Studio API."""
-        url = f"{self.endpoint}/v1/embeddings"
+        # Define the actual API call function
+        async def _api_call():
+            url = f"{self.endpoint}/v1/embeddings"
 
-        if isinstance(text, str):
-            text = [text]
+            if isinstance(text, str):
+                text_list = [text]
+            else:
+                text_list = text
 
-        payload = {"input": text, "model": self.model}
+            payload = {"input": text_list, "model": self.model}
 
-        try:
             async with httpx.AsyncClient(
                 **self.tls_config.as_requests_kwargs()
             ) as client:
@@ -589,6 +867,47 @@ class LMStudioProvider(BaseProvider):
             if "data" in data and len(data["data"]) > 0:
                 return [item["embedding"] for item in data["data"]]
             raise ProviderError(f"Invalid LM Studio embedding response format: {data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+
+            # Since we can't easily decorate async functions with retry,
+            # we'll just implement a simple retry loop here
+            max_retries = retry_config["max_retries"]
+            initial_delay = retry_config["initial_delay"]
+            exponential_base = retry_config["exponential_base"]
+            max_delay = retry_config["max_delay"]
+            jitter = retry_config["jitter"]
+
+            retry_count = 0
+            last_exception = None
+
+            while retry_count <= max_retries:
+                try:
+                    return await _api_call()
+                except httpx.HTTPError as e:
+                    last_exception = e
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        break
+
+                    # Calculate delay with exponential backoff
+                    delay = min(initial_delay * (exponential_base ** (retry_count - 1)), max_delay)
+
+                    # Add jitter if enabled
+                    if jitter:
+                        import random
+                        delay = delay * (0.5 + random.random())
+
+                    # Wait before retrying
+                    await asyncio.sleep(delay)
+
+            # If we've exhausted all retries, raise the last exception
+            logger.error(f"LM Studio embedding API error after {max_retries} retries: {last_exception}")
+            raise ProviderError(f"LM Studio embedding API error after {max_retries} retries: {last_exception}")
+
         except httpx.HTTPError as e:
             logger.error(f"LM Studio embedding API error: {e}")
             raise ProviderError(f"LM Studio embedding API error: {e}")
@@ -606,31 +925,58 @@ class FallbackProvider(BaseProvider):
         """
         super().__init__()
 
+        # Get fallback and circuit breaker configuration
+        config = get_provider_config()
+        self.fallback_config = config.get("fallback", {
+            "enabled": True,
+            "order": ["openai", "lm_studio"],
+        })
+        self.circuit_breaker_config = config.get("circuit_breaker", {
+            "enabled": True,
+            "failure_threshold": 5,
+            "recovery_timeout": 60.0,
+        })
+
+        # Initialize circuit breakers for providers
+        self.circuit_breakers = {}
+
         if providers is None:
-            # Try to create providers in order: OpenAI, LM Studio
+            # Try to create providers based on fallback order
             providers = []
-            config = get_provider_config()
+            provider_order = self.fallback_config["order"]
 
-            # Try OpenAI
-            if config["openai"]["api_key"]:
-                try:
-                    providers.append(
-                        ProviderFactory.create_provider(ProviderType.OPENAI.value)
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to create OpenAI provider: {e}; attempting LM Studio"
-                    )
-            else:
-                logger.info("OpenAI API key missing; skipping OpenAI provider")
-
-            # Try LM Studio
-            try:
-                providers.append(
-                    ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
-                )
-            except Exception as e:
-                logger.warning(f"Failed to create LM Studio provider: {e}")
+            for provider_type in provider_order:
+                if provider_type.lower() == ProviderType.OPENAI.value:
+                    if config["openai"]["api_key"]:
+                        try:
+                            providers.append(
+                                ProviderFactory.create_provider(ProviderType.OPENAI.value)
+                            )
+                            # Create circuit breaker for this provider
+                            if self.circuit_breaker_config["enabled"]:
+                                self.circuit_breakers[ProviderType.OPENAI.value] = CircuitBreaker(
+                                    failure_threshold=self.circuit_breaker_config["failure_threshold"],
+                                    recovery_timeout=self.circuit_breaker_config["recovery_timeout"]
+                                )
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to create OpenAI provider: {e}; continuing with next provider"
+                            )
+                    else:
+                        logger.info("OpenAI API key missing; skipping OpenAI provider")
+                elif provider_type.lower() == ProviderType.LM_STUDIO.value:
+                    try:
+                        providers.append(
+                            ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+                        )
+                        # Create circuit breaker for this provider
+                        if self.circuit_breaker_config["enabled"]:
+                            self.circuit_breakers[ProviderType.LM_STUDIO.value] = CircuitBreaker(
+                                failure_threshold=self.circuit_breaker_config["failure_threshold"],
+                                recovery_timeout=self.circuit_breaker_config["recovery_timeout"]
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to create LM Studio provider: {e}")
 
         if not providers:
             raise ProviderError("No valid providers available for fallback")
@@ -665,17 +1011,62 @@ class FallbackProvider(BaseProvider):
         """
         last_error = None
 
-        for provider in self.providers:
-            try:
-                logger.info(
-                    f"Trying completion with provider: {provider.__class__.__name__}"
-                )
+        # If fallback is disabled and we have providers, just use the first one
+        if not self.fallback_config.get("enabled", True) and self.providers:
+            provider = self.providers[0]
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # Use circuit breaker if enabled
+            if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                try:
+                    return self.circuit_breakers[provider_type].call(
+                        provider.complete,
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                    )
+                except Exception as e:
+                    logger.error(f"Provider {provider.__class__.__name__} failed with circuit breaker: {e}")
+                    raise ProviderError(f"Provider {provider.__class__.__name__} failed: {e}")
+            else:
                 return provider.complete(
                     prompt=prompt,
                     system_prompt=system_prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
                 )
+
+        # Try each provider in sequence
+        for provider in self.providers:
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # Skip if circuit breaker is open
+            if (self.circuit_breaker_config.get("enabled", True) and 
+                provider_type in self.circuit_breakers and 
+                self.circuit_breakers[provider_type].state != "closed"):
+                logger.warning(f"Skipping provider {provider.__class__.__name__} due to open circuit breaker")
+                continue
+
+            try:
+                logger.info(f"Trying completion with provider: {provider.__class__.__name__}")
+
+                # Use circuit breaker if enabled
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    return self.circuit_breakers[provider_type].call(
+                        provider.complete,
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                    )
+                else:
+                    return provider.complete(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                    )
             except Exception as e:
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
@@ -694,11 +1085,20 @@ class FallbackProvider(BaseProvider):
         """Asynchronously try each provider until one succeeds."""
         last_error = None
 
-        for provider in self.providers:
+        # If fallback is disabled and we have providers, just use the first one
+        if not self.fallback_config.get("enabled", True) and self.providers:
+            provider = self.providers[0]
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # For async methods, we can't use the circuit breaker directly
+            # since it doesn't support async calls, so we'll just check the state
+            if (self.circuit_breaker_config.get("enabled", True) and 
+                provider_type in self.circuit_breakers and 
+                self.circuit_breakers[provider_type].state != "closed"):
+                logger.warning(f"Provider {provider.__class__.__name__} circuit breaker is open")
+                raise ProviderError(f"Provider {provider.__class__.__name__} circuit breaker is open")
+
             try:
-                logger.info(
-                    f"Trying completion with provider: {provider.__class__.__name__}"
-                )
                 return await provider.acomplete(
                     prompt=prompt,
                     system_prompt=system_prompt,
@@ -706,6 +1106,42 @@ class FallbackProvider(BaseProvider):
                     max_tokens=max_tokens,
                 )
             except Exception as e:
+                # Update circuit breaker state manually
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    self.circuit_breakers[provider_type]._record_failure()
+                logger.error(f"Provider {provider.__class__.__name__} failed: {e}")
+                raise ProviderError(f"Provider {provider.__class__.__name__} failed: {e}")
+
+        # Try each provider in sequence
+        for provider in self.providers:
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # Skip if circuit breaker is open
+            if (self.circuit_breaker_config.get("enabled", True) and 
+                provider_type in self.circuit_breakers and 
+                self.circuit_breakers[provider_type].state != "closed"):
+                logger.warning(f"Skipping provider {provider.__class__.__name__} due to open circuit breaker")
+                continue
+
+            try:
+                logger.info(f"Trying async completion with provider: {provider.__class__.__name__}")
+                result = await provider.acomplete(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+
+                # Update circuit breaker state manually on success
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    self.circuit_breakers[provider_type]._record_success()
+
+                return result
+            except Exception as e:
+                # Update circuit breaker state manually on failure
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    self.circuit_breakers[provider_type]._record_failure()
+
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {e}")
                 last_error = e
 
@@ -728,16 +1164,48 @@ class FallbackProvider(BaseProvider):
         """
         last_error = None
 
-        for provider in self.providers:
-            try:
-                logger.info(
-                    f"Trying embeddings with provider: {provider.__class__.__name__}"
-                )
+        # If fallback is disabled and we have providers, just use the first one
+        if not self.fallback_config.get("enabled", True) and self.providers:
+            provider = self.providers[0]
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # Use circuit breaker if enabled
+            if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                try:
+                    return self.circuit_breakers[provider_type].call(
+                        provider.embed,
+                        text=text,
+                    )
+                except Exception as e:
+                    logger.error(f"Provider {provider.__class__.__name__} failed with circuit breaker: {e}")
+                    raise ProviderError(f"Provider {provider.__class__.__name__} failed: {e}")
+            else:
                 return provider.embed(text=text)
+
+        # Try each provider in sequence
+        for provider in self.providers:
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # Skip if circuit breaker is open
+            if (self.circuit_breaker_config.get("enabled", True) and 
+                provider_type in self.circuit_breakers and 
+                self.circuit_breakers[provider_type].state != "closed"):
+                logger.warning(f"Skipping provider {provider.__class__.__name__} due to open circuit breaker")
+                continue
+
+            try:
+                logger.info(f"Trying embeddings with provider: {provider.__class__.__name__}")
+
+                # Use circuit breaker if enabled
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    return self.circuit_breakers[provider_type].call(
+                        provider.embed,
+                        text=text,
+                    )
+                else:
+                    return provider.embed(text=text)
             except Exception as e:
-                logger.warning(
-                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
-                )
+                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
                 last_error = e
 
         raise ProviderError(
@@ -748,16 +1216,54 @@ class FallbackProvider(BaseProvider):
         """Asynchronously try to generate embeddings with providers."""
         last_error = None
 
-        for provider in self.providers:
+        # If fallback is disabled and we have providers, just use the first one
+        if not self.fallback_config.get("enabled", True) and self.providers:
+            provider = self.providers[0]
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # For async methods, we can't use the circuit breaker directly
+            # since it doesn't support async calls, so we'll just check the state
+            if (self.circuit_breaker_config.get("enabled", True) and 
+                provider_type in self.circuit_breakers and 
+                self.circuit_breakers[provider_type].state != "closed"):
+                logger.warning(f"Provider {provider.__class__.__name__} circuit breaker is open")
+                raise ProviderError(f"Provider {provider.__class__.__name__} circuit breaker is open")
+
             try:
-                logger.info(
-                    f"Trying embeddings with provider: {provider.__class__.__name__}"
-                )
                 return await provider.aembed(text=text)
             except Exception as e:
-                logger.warning(
-                    f"Provider {provider.__class__.__name__} failed for embeddings: {e}"
-                )
+                # Update circuit breaker state manually
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    self.circuit_breakers[provider_type]._record_failure()
+                logger.error(f"Provider {provider.__class__.__name__} failed: {e}")
+                raise ProviderError(f"Provider {provider.__class__.__name__} failed: {e}")
+
+        # Try each provider in sequence
+        for provider in self.providers:
+            provider_type = provider.__class__.__name__.replace("Provider", "").lower()
+
+            # Skip if circuit breaker is open
+            if (self.circuit_breaker_config.get("enabled", True) and 
+                provider_type in self.circuit_breakers and 
+                self.circuit_breakers[provider_type].state != "closed"):
+                logger.warning(f"Skipping provider {provider.__class__.__name__} due to open circuit breaker")
+                continue
+
+            try:
+                logger.info(f"Trying async embeddings with provider: {provider.__class__.__name__}")
+                result = await provider.aembed(text=text)
+
+                # Update circuit breaker state manually on success
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    self.circuit_breakers[provider_type]._record_success()
+
+                return result
+            except Exception as e:
+                # Update circuit breaker state manually on failure
+                if self.circuit_breaker_config.get("enabled", True) and provider_type in self.circuit_breakers:
+                    self.circuit_breakers[provider_type]._record_failure()
+
+                logger.warning(f"Provider {provider.__class__.__name__} failed for embeddings: {e}")
                 last_error = e
 
         raise ProviderError(

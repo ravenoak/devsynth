@@ -1,7 +1,7 @@
 import importlib.util
 import pathlib
 import types
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -28,7 +28,7 @@ memory_manager_module = _load_module(
 )
 
 MemoryManager = memory_manager_module.MemoryManager
-from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.memory import MemoryType, MemoryItem
 
 
 class DummyVectorStore:
@@ -40,6 +40,25 @@ class DummyVectorStore:
         return "vector-id"
 
 
+class DummyGraphStore:
+    def __init__(self):
+        self.stored = []
+        self.edrr_items = {}
+
+    def store(self, item):
+        self.stored.append(item)
+        return "graph-id"
+
+    def retrieve_with_edrr_phase(self, item_type, edrr_phase, metadata=None):
+        key = f"{item_type}_{edrr_phase}"
+        return self.edrr_items.get(key)
+
+    def store_with_edrr_phase(self, content, memory_type, edrr_phase, metadata=None):
+        key = f"{memory_type}_{edrr_phase}"
+        self.edrr_items[key] = content
+        return "graph-edrr-id"
+
+
 class TestMemoryManagerStore:
     @pytest.fixture
     def adapters(self):
@@ -47,17 +66,62 @@ class TestMemoryManagerStore:
         vector = DummyVectorStore()
         return {"tinydb": tinydb, "vector": vector}
 
-    def test_store_prefers_tinydb(self, adapters):
-        manager = MemoryManager(adapters=adapters)
+    @pytest.fixture
+    def graph_adapters(self):
+        graph = DummyGraphStore()
+        tinydb = MagicMock()
+        return {"graph": graph, "tinydb": tinydb}
+
+    def test_store_prefers_graph_for_edrr(self, graph_adapters):
+        manager = MemoryManager(adapters=graph_adapters)
         manager.store_with_edrr_phase("x", MemoryType.CODE, "EXPAND")
-        adapters["tinydb"].store.assert_called_once()
-        assert not adapters["vector"].stored
+        assert len(graph_adapters["graph"].stored) == 1
+        graph_adapters["tinydb"].store.assert_not_called()
+
+    def test_store_falls_back_to_tinydb(self):
+        tinydb = MagicMock()
+        manager = MemoryManager(adapters={"tinydb": tinydb})
+        manager.store_with_edrr_phase("x", MemoryType.CODE, "EXPAND")
+        tinydb.store.assert_called_once()
 
     def test_store_falls_back_to_first(self):
         vector = DummyVectorStore()
         manager = MemoryManager(adapters={"vector": vector})
         manager.store_with_edrr_phase("x", MemoryType.CODE, "EXPAND")
         assert vector.stored
+
+
+class TestMemoryManagerRetrieve:
+    @pytest.fixture
+    def graph_adapter(self):
+        return DummyGraphStore()
+
+    @pytest.fixture
+    def manager_with_graph(self, graph_adapter):
+        return MemoryManager(adapters={"graph": graph_adapter})
+
+    def test_retrieve_with_edrr_phase(self, manager_with_graph, graph_adapter):
+        # Setup test data
+        test_content = {"key": "value"}
+        graph_adapter.edrr_items["CODE_EXPAND"] = test_content
+
+        # Test retrieval
+        result = manager_with_graph.retrieve_with_edrr_phase("CODE", "EXPAND")
+        assert result == test_content
+
+    def test_retrieve_with_edrr_phase_not_found(self, manager_with_graph):
+        # Test retrieval of non-existent item
+        result = manager_with_graph.retrieve_with_edrr_phase("CODE", "NONEXISTENT")
+        assert result == {}
+
+    def test_retrieve_with_edrr_phase_with_metadata(self, manager_with_graph, graph_adapter):
+        # Setup test data
+        test_content = {"key": "value"}
+        graph_adapter.edrr_items["CODE_EXPAND"] = test_content
+
+        # Test retrieval with metadata
+        result = manager_with_graph.retrieve_with_edrr_phase("CODE", "EXPAND", {"cycle_id": "123"})
+        assert result == test_content
 
 
 class TestEmbedText:

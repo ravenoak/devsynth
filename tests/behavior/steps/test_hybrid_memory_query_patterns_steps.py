@@ -43,7 +43,7 @@ def system_initialized(context):
     assert context is not None
 
 
-@given("the Memory Manager is configured with the following adapters")
+@given("the Memory Manager is configured with the following adapters:")
 def memory_manager_configured(context, table):
     for row in table:
         if row["adapter_type"] == "Graph" and row["enabled"].lower() == "true":

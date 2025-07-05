@@ -357,8 +357,8 @@ class WSDETeam:
 
         Agents that haven't yet served as Primus are prioritised. The task
         context is flattened so that nested structures contribute to the
-        expertise score. Documentation tasks explicitly favour agents with
-        documentation-oriented expertise.
+        expertise score. Tasks are matched with agents based on their expertise
+        in the relevant domain.
 
         Args:
             task: A dictionary describing the task requirements.
@@ -387,8 +387,34 @@ class WSDETeam:
         ]
         candidate_indices = unused_indices or list(range(len(self.agents)))
 
-        if task.get("type") == "documentation":
-            doc_candidates = []
+        # Determine the task domain
+        task_domain = None
+        task_type = task.get("type", "")
+
+        # Check for domain in task
+        if "domain" in task:
+            task_domain = task["domain"]
+        # Extract domain from task type if not explicitly specified
+        elif "_" in task_type:
+            task_domain = task_type.split("_")[0]
+
+        # If we have a task domain, prioritize agents with matching expertise
+        if task_domain:
+            domain_candidates = []
+            domain_keywords = [task_domain.lower()]
+
+            # Add related keywords based on common domains
+            if task_domain.lower() == "documentation":
+                domain_keywords.extend(["technical_writing", "doc", "markdown", "doc_generation"])
+            elif task_domain.lower() == "security":
+                domain_keywords.extend(["authentication", "encryption", "secure", "vulnerability"])
+            elif task_domain.lower() == "frontend":
+                domain_keywords.extend(["ui", "ux", "javascript", "css", "html", "react", "vue", "angular"])
+            elif task_domain.lower() == "backend":
+                domain_keywords.extend(["api", "database", "server", "python", "java", "node", "express"])
+            elif task_domain.lower() == "design":
+                domain_keywords.extend(["ui", "ux", "interface", "user experience", "wireframe", "prototype"])
+
             for i in candidate_indices:
                 expertise = []
                 a = self.agents[i]
@@ -401,14 +427,16 @@ class WSDETeam:
                     and "expertise" in a.config.parameters
                 ):
                     expertise = a.config.parameters["expertise"] or []
-                if any(
-                    kw in [e.lower() for e in expertise]
-                    for kw in ["documentation", "markdown", "doc_generation"]
-                ):
-                    doc_candidates.append(i)
 
-            if doc_candidates:
-                candidate_indices = doc_candidates
+                # Check if any expertise matches domain keywords
+                if any(
+                    any(kw in e.lower() for kw in domain_keywords)
+                    for e in expertise
+                ):
+                    domain_candidates.append(i)
+
+            if domain_candidates:
+                candidate_indices = domain_candidates
 
         best_index = candidate_indices[0]
         best_score = -1.0
@@ -1879,7 +1907,13 @@ class WSDETeam:
             inputs = {
                 "content": thesis.get("content", ""),
                 "context": thesis.get("context", ""),
-                "code": thesis.get("code", "")
+                "code": thesis.get("code", ""),
+                "task": "perform_dialectical_critique",
+                "critique_aspects": [
+                    "security", "performance", "maintainability", 
+                    "readability", "error_handling", "input_validation"
+                ],
+                "format": "structured"
             }
 
             # Process the inputs using the critic agent
@@ -1896,21 +1930,45 @@ class WSDETeam:
                     # If parsing succeeded, extract the antithesis
                     if isinstance(critique_data, dict) and "antithesis" in critique_data:
                         return {
-                            "agent": critic_agent.name,
+                            "agent": getattr(critic_agent, "name", str(critic_agent)),
                             "critique": critique_data["antithesis"].get("critique", []),
                             "challenges": critique_data["antithesis"].get("challenges", []),
-                            "reasoning": "Dialectical analysis by critic agent"
+                            "reasoning": critique_data["antithesis"].get("reasoning", "Dialectical analysis by critic agent")
                         }
                 except json.JSONDecodeError:
                     # If parsing failed, use the critique as is
                     logger.warning(f"Failed to parse critique as JSON: {critique[:100]}...")
 
-            # If we couldn't extract structured data, return the raw critique
-            return {
-                "agent": critic_agent.name,
-                "critique": [critique] if isinstance(critique, str) else critique,
-                "reasoning": "Dialectical analysis by critic agent"
-            }
+            # If we couldn't extract structured data, try to structure the critique
+            if isinstance(critique, str):
+                # Split by lines or sentences to create a list
+                import re
+                critique_points = re.split(r'[\n\r]+|(?<=[.!?])\s+', critique)
+                critique_points = [p.strip() for p in critique_points if p.strip()]
+
+                return {
+                    "agent": getattr(critic_agent, "name", str(critic_agent)),
+                    "critique": critique_points,
+                    "reasoning": "Dialectical analysis by critic agent"
+                }
+            elif isinstance(critique, list):
+                return {
+                    "agent": getattr(critic_agent, "name", str(critic_agent)),
+                    "critique": critique,
+                    "reasoning": "Dialectical analysis by critic agent"
+                }
+            elif isinstance(critique, dict):
+                return {
+                    "agent": getattr(critic_agent, "name", str(critic_agent)),
+                    "critique": critique.get("points", [critique.get("summary", "No specific critique points")]),
+                    "reasoning": critique.get("reasoning", "Dialectical analysis by critic agent")
+                }
+            else:
+                return {
+                    "agent": getattr(critic_agent, "name", str(critic_agent)),
+                    "critique": ["The solution has areas for improvement"],
+                    "reasoning": "Dialectical analysis by critic agent"
+                }
 
         except Exception as e:
             # Log the error and fall back to a simple critique
@@ -1939,9 +1997,18 @@ class WSDETeam:
             ):
                 critique.append("Security issue: No input validation detected")
 
+            # Check for lack of documentation
+            if (
+                "code" in thesis
+                and '"""' not in thesis["code"]
+                and "'''" not in thesis["code"]
+                and "#" not in thesis["code"]
+            ):
+                critique.append("Maintainability issue: No documentation or comments detected")
+
             # Return the fallback antithesis
             return {
-                "agent": critic_agent.name,
+                "agent": getattr(critic_agent, "name", str(critic_agent)),
                 "critique": critique,
                 "reasoning": "Fallback dialectical analysis (critic agent failed)"
             }
@@ -2083,12 +2150,21 @@ class WSDETeam:
             # Generate reasoning for the synthesis
             synthesis_reasoning = "Generic improvements applied based on common issues identified in the critique."
 
+        # Create the improved solution with appropriate security measures
+        if "code" in improved_solution and "password" in improved_solution["code"]:
+            # Ensure we're using secure password handling
+            if "hashlib" not in improved_solution["code"] and "bcrypt" not in improved_solution["code"]:
+                improved_solution["code"] = self._improve_security(improved_solution["code"])
+                if "Improved security measures" not in synthesis_improvements:
+                    synthesis_improvements.append("Improved security measures")
+
         # Return the synthesis with improvements and reasoning
         return {
-            "improved_solution": improved_solution,
+            "improved_solution": improved_solution.get("code", "") if "code" in improved_solution else improved_solution.get("content", ""),
             "improvements": synthesis_improvements,
             "reasoning": synthesis_reasoning,
-            "is_improvement": len(synthesis_improvements) > 0
+            "is_improvement": len(synthesis_improvements) > 0,
+            "agent": thesis.get("agent", "unknown")
         }
 
     def _improve_credentials(self, code: str) -> str:
@@ -2383,6 +2459,20 @@ class WSDETeam:
         if "code" in thesis:
             code = thesis["code"]
 
+            # Ensure code is a string before proceeding
+            if isinstance(code, dict):
+                # If code is a dictionary, try to extract the actual code
+                if "content" in code:
+                    code = code["content"]
+                elif "implementation" in code:
+                    code = code["implementation"]
+                else:
+                    # Use a string representation as fallback
+                    code = str(code)
+            elif not isinstance(code, str):
+                # Convert to string if it's not already a string
+                code = str(code)
+
             # Security critiques
             if "password" in code and ("'password'" in code or '"password"' in code):
                 critique_categories["security"].append({
@@ -2432,13 +2522,13 @@ class WSDETeam:
                 })
 
             # Usability critiques
-            if "error" not in code.lower() and "exception" not in code.lower():
+            if isinstance(code, str) and "error" not in code.lower() and "exception" not in code.lower():
                 critique_categories["usability"].append({
                     "critique": "No user-friendly error messages",
                     "weight": 0.6,  # Medium severity
                     "reasoning": "Without clear error messages, users won't understand what went wrong or how to fix it"
                 })
-            if "print" in code and "log" not in code.lower():
+            if isinstance(code, str) and "print" in code and "log" not in code.lower():
                 critique_categories["usability"].append({
                     "critique": "Using print statements instead of proper logging",
                     "weight": 0.4,  # Lower severity
@@ -2512,7 +2602,8 @@ class WSDETeam:
 
                 # Fix hardcoded credentials
                 if any(
-                    "hardcoded credentials" in critique.lower()
+                    (isinstance(critique, str) and "hardcoded credentials" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "hardcoded credentials" in critique["critique"].lower())
                     for critique in security_critiques
                 ):
                     code = code.replace(
@@ -2529,7 +2620,8 @@ class WSDETeam:
 
                 # Add input validation
                 if any(
-                    "input validation" in critique.lower()
+                    (isinstance(critique, str) and "input validation" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "input validation" in critique["critique"].lower())
                     for critique in security_critiques
                 ):
                     if "def " in code:
@@ -2562,7 +2654,8 @@ class WSDETeam:
 
                 # Optimize loops
                 if any(
-                    "inefficient loop" in critique.lower()
+                    (isinstance(critique, str) and "inefficient loop" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "inefficient loop" in critique["critique"].lower())
                     for critique in performance_critiques
                 ):
                     if "for" in code and "range" in code:
@@ -2576,7 +2669,8 @@ class WSDETeam:
 
                 # Simplify conditional logic
                 if any(
-                    "conditional logic" in critique.lower()
+                    (isinstance(critique, str) and "conditional logic" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "conditional logic" in critique["critique"].lower())
                     for critique in performance_critiques
                 ):
                     if code.count("if") > 3:
@@ -2597,7 +2691,8 @@ class WSDETeam:
 
                 # Add comments
                 if any(
-                    "insufficient comments" in critique.lower()
+                    (isinstance(critique, str) and "insufficient comments" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "insufficient comments" in critique["critique"].lower())
                     for critique in maintainability_critiques
                 ):
                     lines = code.split("\n")
@@ -2618,7 +2713,8 @@ class WSDETeam:
 
                 # Break down long functions
                 if any(
-                    "too long" in critique.lower()
+                    (isinstance(critique, str) and "too long" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "too long" in critique["critique"].lower())
                     for critique in maintainability_critiques
                 ):
                     code = (
@@ -2636,7 +2732,8 @@ class WSDETeam:
 
                 # Add error messages
                 if any(
-                    "error messages" in critique.lower()
+                    (isinstance(critique, str) and "error messages" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "error messages" in critique["critique"].lower())
                     for critique in usability_critiques
                 ):
                     if "raise" in code:
@@ -2653,7 +2750,8 @@ class WSDETeam:
 
                 # Replace print with logging
                 if any(
-                    "print statements" in critique.lower()
+                    (isinstance(critique, str) and "print statements" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "print statements" in critique["critique"].lower())
                     for critique in usability_critiques
                 ):
                     if "print" in code:
@@ -2674,7 +2772,8 @@ class WSDETeam:
 
                 # Add error handling
                 if any(
-                    "error handling" in critique.lower()
+                    (isinstance(critique, str) and "error handling" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "error handling" in critique["critique"].lower())
                     for critique in testability_critiques
                 ):
                     if "def " in code and "try" not in code:
@@ -2702,7 +2801,8 @@ class WSDETeam:
 
                 # Ensure return values
                 if any(
-                    "doesn't return" in critique.lower()
+                    (isinstance(critique, str) and "doesn't return" in critique.lower()) or
+                    (isinstance(critique, dict) and "critique" in critique and "doesn't return" in critique["critique"].lower())
                     for critique in testability_critiques
                 ):
                     if "def " in code and "return" not in code:
@@ -2811,10 +2911,11 @@ class WSDETeam:
         # Check for partially addressed categories
         for category in addressed_categories:
             addressed_critiques = set(
-                c.lower() for c in synthesis["addressed_critiques"].get(category, [])
+                c.lower() if isinstance(c, str) else str(c) for c in synthesis["addressed_critiques"].get(category, [])
             )
             all_critiques = set(
-                c.lower() for c in antithesis["critique_categories"].get(category, [])
+                c.lower() if isinstance(c, str) else (c["critique"].lower() if isinstance(c, dict) and "critique" in c else str(c)) 
+                for c in antithesis["critique_categories"].get(category, [])
             )
             if len(addressed_critiques) < len(all_critiques):
                 weaknesses.append(f"Only partially addressed {category} critiques")

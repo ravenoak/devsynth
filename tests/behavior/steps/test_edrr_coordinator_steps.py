@@ -1,5 +1,7 @@
 """Step definitions for the EDRR Coordinator feature."""
 
+from __future__ import annotations
+
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
 import pytest
@@ -13,6 +15,7 @@ import os
 import json
 import tempfile
 from pathlib import Path
+from typing import Dict, Tuple
 from devsynth.methodology.base import Phase
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.wsde import WSDETeam

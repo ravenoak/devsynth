@@ -351,7 +351,7 @@ class GraphMemoryAdapter(MemoryStore):
             for item in all_items:
                 match = True
                 memory_type_value = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
-                logger.info(f"Checking item with ID: {item.id}, memory_type: {memory_type_value}, metadata: {item.metadata}")
+                logger.debug(f"Checking item with ID: {item.id}, memory_type: {memory_type_value}, metadata: {item.metadata}")
 
                 for key, value in query.items():
                     if key == "type":
@@ -361,18 +361,18 @@ class GraphMemoryAdapter(MemoryStore):
                         if memory_type_value != value_str:
                             # Also check if the type is in metadata
                             if key in item.metadata and item.metadata[key] == value_str:
-                                logger.info(f"Item {item.id} matches type in metadata: {item.metadata[key]} == {value_str}")
+                                logger.debug(f"Item {item.id} matches type in metadata: {item.metadata[key]} == {value_str}")
                             else:
-                                logger.info(f"Item {item.id} doesn't match type: {memory_type_value} != {value_str}")
+                                logger.debug(f"Item {item.id} doesn't match type: {memory_type_value} != {value_str}")
                                 match = False
                                 break
                     elif key in item.metadata:
                         if item.metadata[key] != value:
-                            logger.info(f"Item {item.id} doesn't match metadata {key}: {item.metadata[key]} != {value}")
+                            logger.debug(f"Item {item.id} doesn't match metadata {key}: {item.metadata[key]} != {value}")
                             match = False
                             break
                     else:
-                        logger.info(f"Item {item.id} doesn't have metadata key: {key}")
+                        logger.debug(f"Item {item.id} doesn't have metadata key: {key}")
                         match = False
                         break
 
@@ -705,35 +705,96 @@ class GraphMemoryAdapter(MemoryStore):
         # Create metadata with EDRR phase
         if metadata is None:
             metadata = {}
-        metadata["edrr_phase"] = edrr_phase
 
-        # Store the original memory_type as a metadata field for searching
-        if isinstance(memory_type, str):
-            metadata["type"] = memory_type
-        elif hasattr(memory_type, 'value'):
-            metadata["type"] = memory_type.value
-        else:
-            metadata["type"] = str(memory_type)
+        # Make a copy of the metadata to avoid modifying the original
+        metadata_copy = metadata.copy()
+        metadata_copy["edrr_phase"] = edrr_phase
 
         # Convert memory_type to MemoryType enum if it's a string
         if isinstance(memory_type, str):
             try:
-                memory_type = MemoryType(memory_type)
+                memory_type_enum = MemoryType(memory_type)
             except ValueError:
                 # If the string doesn't match any enum value, use a default
                 logger.warning(f"Unknown memory type: {memory_type}, using CODE as default")
-                memory_type = MemoryType.CODE
+                memory_type_enum = MemoryType.CODE
+        else:
+            memory_type_enum = memory_type
 
         # Create the memory item
         memory_item = MemoryItem(
             id="",
             content=content,
-            memory_type=memory_type,
-            metadata=metadata
+            memory_type=memory_type_enum,
+            metadata=metadata_copy
         )
 
         # Store the memory item
         return self.store(memory_item)
+
+    def retrieve_with_edrr_phase(
+        self,
+        item_type: str,
+        edrr_phase: str,
+        metadata: Dict[str, Any] | None = None,
+    ) -> Any:
+        """
+        Retrieve an item stored with a specific EDRR phase.
+
+        Args:
+            item_type: Identifier of the stored item.
+            edrr_phase: The phase tag used during storage.
+            metadata: Optional additional metadata for adapter queries.
+
+        Returns:
+            The retrieved item or an empty dictionary if not found.
+        """
+        try:
+            # Get all items from the graph
+            all_items = []
+            for s, p, o in self.graph.triples((None, RDF.type, DEVSYNTH.MemoryItem)):
+                item = self._triples_to_memory_item(s)
+                if item:
+                    all_items.append(item)
+
+            logger.debug(f"Found {len(all_items)} total memory items")
+
+            # Filter items by memory type, EDRR phase, and additional metadata
+            matching_items = []
+            for item in all_items:
+                # Convert memory_type to string for comparison
+                item_memory_type = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
+
+                # Check if the item has the correct memory type
+                if item_memory_type != item_type and str(item.memory_type) != item_type:
+                    continue
+
+                # Check if the item has the specified EDRR phase
+                if item.metadata.get("edrr_phase") != edrr_phase:
+                    continue
+
+                # Check if the item matches additional metadata
+                match = True
+                if metadata:
+                    for key, value in metadata.items():
+                        if item.metadata.get(key) != value:
+                            match = False
+                            break
+
+                if match:
+                    matching_items.append(item)
+                    logger.debug(f"Found matching item: {item.id}, Type: {item.memory_type}, Metadata: {item.metadata}")
+
+            if matching_items:
+                # Return the content of the first matching item
+                logger.info(f"Retrieved item with type {item_type}, EDRR phase {edrr_phase}, and metadata {metadata}")
+                return matching_items[0].content
+
+            logger.debug(f"No items found with type {item_type} and EDRR phase {edrr_phase}")
+            return {}
+        except Exception as e:
+            logger.error(f"Failed to retrieve item with EDRR phase: {e}")
+            return {}
 
     def integrate_with_store(self, other_store: Union[MemoryStore, VectorStore], 
                            sync_mode: str = "bidirectional") -> None:

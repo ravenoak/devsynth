@@ -26,6 +26,24 @@ class TestWSDETeam:
             agent.agent_type = "mock"
             agent.current_role = None
             agent.expertise = expertise
+
+            # Mock the process method to return a critique
+            def mock_process(inputs):
+                if "dialectical_reasoning" in expertise or "critique" in expertise:
+                    return {
+                        "critique": [
+                            "Security issue: Hardcoded credentials detected",
+                            "Reliability issue: No error handling detected",
+                            "Security issue: No input validation detected"
+                        ],
+                        "challenges": [
+                            "The solution doesn't handle edge cases",
+                            "The solution doesn't follow best practices"
+                        ]
+                    }
+                return {"result": "Processed by " + name}
+
+            agent.process = MagicMock(side_effect=mock_process)
             return agent
 
         return _create_agent
@@ -361,6 +379,288 @@ class TestWSDETeam:
         assert dialectical_result["synthesis"]["is_improvement"]
         assert "improved_solution" in dialectical_result["synthesis"]
 
+    def test_peer_review_with_acceptance_criteria(self, mock_agent_with_expertise):
+        """Test the peer review process with specific acceptance criteria."""
+        team = WSDETeam()
+
+        # Create agents
+        author_agent = mock_agent_with_expertise("AuthorAgent", ["python", "coding"])
+        reviewer1 = mock_agent_with_expertise("ReviewerAgent1", ["testing", "quality"])
+        reviewer2 = mock_agent_with_expertise("ReviewerAgent2", ["security", "best_practices"])
+
+        # Add agents to the team
+        team.add_agent(author_agent)
+        team.add_agent(reviewer1)
+        team.add_agent(reviewer2)
+
+        # Create a work product
+        work_product = {
+            "code": "def authenticate(username, password):\n    return username == 'admin' and password == 'password'",
+            "description": "Simple authentication function"
+        }
+
+        # Define acceptance criteria
+        acceptance_criteria = [
+            "Code follows security best practices",
+            "Function handles edge cases",
+            "Code is well-documented"
+        ]
+
+        # Request peer review with acceptance criteria
+        review = team.request_peer_review(
+            work_product=work_product,
+            author=author_agent,
+            reviewer_agents=[reviewer1, reviewer2]
+        )
+
+        # Set acceptance criteria
+        review.acceptance_criteria = acceptance_criteria
+
+        # Mock the review process
+        for reviewer in review.reviewers:
+            # Simulate reviewer evaluating against criteria
+            review.reviews[reviewer.name] = {
+                "overall_feedback": "The code needs improvement",
+                "criteria_results": {
+                    "Code follows security best practices": False,
+                    "Function handles edge cases": False,
+                    "Code is well-documented": True
+                },
+                "suggestions": ["Use a secure password hashing algorithm", "Add input validation"]
+            }
+
+        # Collect and aggregate the reviews
+        review.collect_reviews()
+        feedback = review.aggregate_feedback()
+
+        # Verify the review results
+        assert "criteria_results" in feedback
+        assert len(feedback["criteria_results"]) == len(acceptance_criteria)
+        assert feedback["criteria_results"]["Code follows security best practices"] == False
+        assert feedback["criteria_results"]["Function handles edge cases"] == False
+        assert feedback["criteria_results"]["Code is well-documented"] == True
+        assert feedback["all_criteria_passed"] == False
+
+        # Finalize the review
+        final_result = review.finalize(approved=False)
+        assert final_result["status"] == "rejected"
+        assert final_result["reasons"] == ["Code follows security best practices: Failed", "Function handles edge cases: Failed"]
+
+    def test_peer_review_with_revision_cycle(self, mock_agent_with_expertise):
+        """Test the peer review process with a revision cycle."""
+        team = WSDETeam()
+
+        # Create agents
+        author_agent = mock_agent_with_expertise("AuthorAgent", ["python", "coding"])
+        reviewer1 = mock_agent_with_expertise("ReviewerAgent1", ["testing", "quality"])
+        reviewer2 = mock_agent_with_expertise("ReviewerAgent2", ["security", "best_practices"])
+
+        # Add agents to the team
+        team.add_agent(author_agent)
+        team.add_agent(reviewer1)
+        team.add_agent(reviewer2)
+
+        # Create a work product
+        work_product = {
+            "code": "def authenticate(username, password):\n    return username == 'admin' and password == 'password'",
+            "description": "Simple authentication function"
+        }
+
+        # Request peer review
+        review = team.request_peer_review(
+            work_product=work_product,
+            author=author_agent,
+            reviewer_agents=[reviewer1, reviewer2]
+        )
+
+        # Mock the initial review process
+        for reviewer in review.reviewers:
+            # Simulate reviewer providing feedback
+            review.reviews[reviewer.name] = {
+                "overall_feedback": "The code needs improvement",
+                "suggestions": ["Use a secure password hashing algorithm", "Add input validation"],
+                "approved": False
+            }
+
+        # Collect reviews and request revision
+        review.collect_reviews()
+        review.request_revision()
+        assert review.status == "revision_requested"
+
+        # Create a revised work product
+        revised_work = {
+            "code": """def authenticate(username, password):
+    # Validate inputs
+    if not username or not password:
+        return False
+
+    # In a real system, this would use a secure password hashing algorithm
+    # and compare against stored hashed passwords
+    import hashlib
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    return username == 'admin' and hashed_password == '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'
+    """,
+            "description": "Improved authentication function with input validation and hashing"
+        }
+
+        # Submit the revision
+        new_review = review.submit_revision(revised_work)
+        assert new_review.previous_review == review
+        assert new_review.work_product == revised_work
+
+        # Mock the review process for the revised work
+        for reviewer in new_review.reviewers:
+            # Simulate reviewer approving the revised work
+            new_review.reviews[reviewer.name] = {
+                "overall_feedback": "The code is now acceptable",
+                "suggestions": [],
+                "approved": True
+            }
+
+        # Collect reviews and finalize
+        new_review.collect_reviews()
+        final_result = new_review.finalize(approved=True)
+        assert final_result["status"] == "approved"
+        assert final_result["previous_review_id"] == review.review_id
+
+    def test_peer_review_with_dialectical_analysis(self, mock_agent_with_expertise):
+        """Test the peer review process with dialectical analysis."""
+        team = WSDETeam()
+
+        # Create agents including a critic
+        author_agent = mock_agent_with_expertise("AuthorAgent", ["python", "coding"])
+        critic_agent = mock_agent_with_expertise(
+            "CriticAgent", ["dialectical_reasoning", "critique"]
+        )
+
+        # Add agents to the team
+        team.add_agent(author_agent)
+        team.add_agent(critic_agent)
+
+        # Create a work product
+        work_product = {
+            "code": "def authenticate(username, password):\n    return username == 'admin' and password == 'password'",
+            "description": "Simple authentication function"
+        }
+
+        # Request peer review with the critic agent
+        review = team.request_peer_review(
+            work_product=work_product,
+            author=author_agent,
+            reviewer_agents=[critic_agent]
+        )
+
+        # Mock the critic's dialectical analysis
+        dialectical_analysis = {
+            "thesis": {
+                "strengths": ["Simple and easy to understand", "Functional for basic use cases"],
+                "key_points": ["Direct string comparison for authentication"]
+            },
+            "antithesis": {
+                "weaknesses": [
+                    "Security vulnerability: Hardcoded credentials",
+                    "No input validation",
+                    "No error handling",
+                    "No password hashing"
+                ],
+                "challenges": ["Insecure for production use", "Vulnerable to timing attacks"]
+            },
+            "synthesis": {
+                "improvements": [
+                    "Use secure password hashing",
+                    "Add input validation",
+                    "Implement proper error handling",
+                    "Use environment variables or a secure configuration for credentials"
+                ],
+                "improved_solution": """def authenticate(username, password):
+    # Validate inputs
+    if not username or not password:
+        return False
+
+    try:
+        # In a real system, this would use a secure password hashing algorithm
+        # and compare against stored hashed passwords
+        import hashlib
+        import hmac
+        import os
+
+        # Use constant-time comparison to prevent timing attacks
+        stored_hash = hashlib.sha256(os.environ.get('ADMIN_PASSWORD', '').encode()).hexdigest()
+        user_hash = hashlib.sha256(password.encode()).hexdigest()
+
+        return username == os.environ.get('ADMIN_USERNAME', '') and hmac.compare_digest(stored_hash, user_hash)
+    except Exception as e:
+        logger.error(f"Authentication error: {e}")
+        return False
+"""
+            }
+        }
+
+        # Set the critic's review with dialectical analysis
+        review.reviews[critic_agent.name] = {
+            "overall_feedback": "The code needs significant improvement for security",
+            "dialectical_analysis": dialectical_analysis,
+            "approved": False
+        }
+
+        # Collect reviews and aggregate feedback
+        review.collect_reviews()
+        feedback = review.aggregate_feedback()
+
+        # Verify the dialectical analysis is included in the feedback
+        assert "dialectical_analysis" in feedback
+        assert "thesis" in feedback["dialectical_analysis"]
+        assert "antithesis" in feedback["dialectical_analysis"]
+        assert "synthesis" in feedback["dialectical_analysis"]
+
+        # Verify the synthesis contains improvements
+        assert "improvements" in feedback["dialectical_analysis"]["synthesis"]
+        assert len(feedback["dialectical_analysis"]["synthesis"]["improvements"]) > 0
+
+        # Verify the improved solution is provided
+        assert "improved_solution" in feedback["dialectical_analysis"]["synthesis"]
+        assert "hashlib" in feedback["dialectical_analysis"]["synthesis"]["improved_solution"]
+
+    def test_contextdriven_leadership(self, mock_agent_with_expertise):
+        """Test context-driven leadership in the WSDE team."""
+        team = WSDETeam()
+
+        # Create agents with different expertise
+        python_agent = mock_agent_with_expertise("PythonAgent", ["python", "backend"])
+        js_agent = mock_agent_with_expertise("JSAgent", ["javascript", "frontend"])
+        security_agent = mock_agent_with_expertise("SecurityAgent", ["security", "authentication"])
+        design_agent = mock_agent_with_expertise("DesignAgent", ["design", "ui", "ux"])
+        doc_agent = mock_agent_with_expertise("DocAgent", ["documentation", "technical_writing"])
+
+        # Add agents to the team
+        team.add_agent(python_agent)
+        team.add_agent(js_agent)
+        team.add_agent(security_agent)
+        team.add_agent(design_agent)
+        team.add_agent(doc_agent)
+
+        # Test context-driven leadership for a documentation task
+        doc_task = {
+            "type": "documentation_task",
+            "description": "Write API documentation",
+            "domain": "documentation",
+            "requirements": ["Clear examples", "Complete coverage"]
+        }
+
+        # Select primus based on expertise for the documentation task
+        team.select_primus_by_expertise(doc_task)
+        assert team.get_primus() == doc_agent
+
+        # Test that the primus has the correct role
+        assert doc_agent.current_role == "Primus"
+
+        # Verify other roles are assigned appropriately
+        roles = [agent.current_role for agent in team.agents]
+        assert "Worker" in roles
+        assert "Supervisor" in roles
+        assert "Designer" in roles
+        assert "Evaluator" in roles
+
     def test_dialectical_reasoning_with_external_knowledge(
         self, mock_agent_with_expertise
     ):
@@ -375,11 +675,6 @@ class TestWSDETeam:
         critic_agent = mock_agent_with_expertise(
             "CriticAgent", ["dialectical_reasoning", "critique"]
         )
-
-        # Add agents to the team
-        team.add_agent(code_agent)
-        team.add_agent(security_agent)
-        team.add_agent(critic_agent)
 
         # Create a task
         task = {

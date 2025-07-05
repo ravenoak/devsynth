@@ -187,9 +187,10 @@ class TestRecursiveEDRRCoordinator:
 
     def test_create_micro_cycle_terminated(self, coordinator):
         coordinator.start_cycle({"description": "Macro"})
-        with patch.object(coordinator, "should_terminate_recursion", return_value=True):
-            with pytest.raises(EDRRCoordinatorError):
+        with patch.object(coordinator, "should_terminate_recursion", return_value=(True, "test reason")):
+            with pytest.raises(EDRRCoordinatorError) as excinfo:
                 coordinator.create_micro_cycle({"description": "Sub"}, Phase.EXPAND)
+            assert "test reason" in str(excinfo.value)
         assert not coordinator.child_cycles
 
     def test_micro_edrr_within_expand_phase(self, coordinator):
@@ -346,11 +347,15 @@ class TestRecursiveEDRRCoordinator:
 
         # Test with a task that is too granular
         micro_task = {"description": "Very small task", "granularity_score": 0.1}
-        assert coordinator.should_terminate_recursion(micro_task) == True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == True
+        assert reason == "granularity threshold"
 
         # Test with a task that is not too granular
         micro_task = {"description": "Complex task", "granularity_score": 0.8}
-        assert coordinator.should_terminate_recursion(micro_task) == False
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == False
+        assert reason is None
 
     def test_cost_benefit_analysis(self, coordinator):
         """Test cost-benefit analysis for recursion termination."""
@@ -363,7 +368,9 @@ class TestRecursiveEDRRCoordinator:
             "cost_score": 0.9,
             "benefit_score": 0.2,
         }
-        assert coordinator.should_terminate_recursion(micro_task) == True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == True
+        assert reason == "cost-benefit analysis"
 
         # Test with a task where benefit exceeds cost
         micro_task = {
@@ -371,7 +378,9 @@ class TestRecursiveEDRRCoordinator:
             "cost_score": 0.3,
             "benefit_score": 0.8,
         }
-        assert coordinator.should_terminate_recursion(micro_task) == False
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == False
+        assert reason is None
 
     @pytest.mark.parametrize(
         "micro_task",
@@ -388,7 +397,9 @@ class TestRecursiveEDRRCoordinator:
         """create_micro_cycle should abort when delimiting principles trigger."""
         coordinator.start_cycle({"description": "Macro Task"})
 
-        assert coordinator.should_terminate_recursion(micro_task) is True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate is True
+        assert reason is not None
         with pytest.raises(EDRRCoordinatorError):
             coordinator.create_micro_cycle(micro_task, Phase.EXPAND)
         assert not coordinator.child_cycles
@@ -400,11 +411,15 @@ class TestRecursiveEDRRCoordinator:
 
         # Test with a task that already meets quality threshold
         micro_task = {"description": "High quality task", "quality_score": 0.95}
-        assert coordinator.should_terminate_recursion(micro_task) == True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == True
+        assert reason == "quality threshold"
 
         # Test with a task that doesn't meet quality threshold
         micro_task = {"description": "Low quality task", "quality_score": 0.5}
-        assert coordinator.should_terminate_recursion(micro_task) == False
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == False
+        assert reason is None
 
     def test_resource_limits(self, coordinator):
         """Test resource limits for recursion termination."""
@@ -413,11 +428,15 @@ class TestRecursiveEDRRCoordinator:
 
         # Test with a task that would exceed resource limits
         micro_task = {"description": "Resource intensive task", "resource_usage": 0.9}
-        assert coordinator.should_terminate_recursion(micro_task) == True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == True
+        assert reason == "resource limit"
 
         # Test with a task within resource limits
         micro_task = {"description": "Lightweight task", "resource_usage": 0.2}
-        assert coordinator.should_terminate_recursion(micro_task) == False
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == False
+        assert reason is None
 
     def test_human_judgment_override(self, coordinator):
         """Test human judgment override for recursion termination."""
@@ -429,16 +448,25 @@ class TestRecursiveEDRRCoordinator:
             "description": "Task with override",
             "human_override": "terminate",
         }
-        assert coordinator.should_terminate_recursion(micro_task) == True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == True
+        assert reason == "human override"
 
         # Test with a task that has human override to continue
         micro_task = {"description": "Task with override", "human_override": "continue"}
-        assert coordinator.should_terminate_recursion(micro_task) == False
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate == False
+        assert reason is None
 
         # Test with a task without human override
         micro_task = {"description": "Task without override"}
         # Should fall back to other criteria
-        assert coordinator.should_terminate_recursion(micro_task) in [True, False]
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate in [True, False]
+        if should_terminate:
+            assert reason is not None
+        else:
+            assert reason is None
 
     def test_recursive_execution_tracking(self, coordinator):
         """Test tracking of recursive execution."""
@@ -530,7 +558,10 @@ class TestRecursiveEDRRCoordinator:
             "quality_score": 0.95,
             "resource_usage": 0.9,
         }
-        assert coordinator.should_terminate_recursion(task) is True
+        should_terminate, reason = coordinator.should_terminate_recursion(task)
+        assert should_terminate is True
+        # Human override has highest priority, so it should be the reason
+        assert reason == "human override"
 
     def test_should_terminate_recursion_all_factors_false(self, coordinator):
         """If no delimiting principle triggers, recursion should continue."""
@@ -544,7 +575,9 @@ class TestRecursiveEDRRCoordinator:
             "quality_score": 0.5,
             "resource_usage": 0.3,
         }
-        assert coordinator.should_terminate_recursion(task) is False
+        should_terminate, reason = coordinator.should_terminate_recursion(task)
+        assert should_terminate is False
+        assert reason is None
 
     def test_get_performance_metrics_total_duration(self, coordinator):
         """get_performance_metrics should report aggregated duration."""
@@ -599,4 +632,6 @@ class TestRecursiveEDRRCoordinator:
             "quality_score": 0.95,
             "resource_usage": 0.9,
         }
-        assert coordinator.should_terminate_recursion(micro_task) is False
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate is False
+        assert reason is None

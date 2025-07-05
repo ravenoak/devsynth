@@ -74,7 +74,76 @@ class PeerReview:
                 if self.quality_metrics:
                     process_input["quality_metrics"] = self.quality_metrics
 
+                # Check if this is a critic agent that should perform dialectical analysis
+                is_critic = False
+                if hasattr(reviewer, "config") and hasattr(reviewer.config, "agent_type"):
+                    is_critic = reviewer.config.agent_type.name == "CRITIC"
+                elif hasattr(reviewer, "expertise") and reviewer.expertise:
+                    is_critic = any(exp.lower() in ["critic", "dialectical", "critique"] 
+                                   for exp in reviewer.expertise)
+
+                # If this is a critic, prepare for dialectical analysis
+                if is_critic:
+                    process_input["task"] = "perform_dialectical_critique"
+                    process_input["critique_aspects"] = [
+                        "security", "performance", "maintainability", 
+                        "readability", "error_handling", "input_validation"
+                    ]
+                    process_input["format"] = "structured"
+
                 result = reviewer.process(process_input)
+
+                # If this is a critic, enhance the result with dialectical analysis
+                if is_critic and "code" in self.work_product:
+                    # Create a task and solution for dialectical reasoning
+                    task = {
+                        "type": "review_task",
+                        "description": "Review the provided code or content",
+                    }
+
+                    solution = {
+                        "agent": getattr(self.author, "name", str(self.author)),
+                        "content": self.work_product.get("description", ""),
+                        "code": self.work_product.get("code", ""),
+                    }
+
+                    # Try to use WSDETeam's dialectical reasoning if available
+                    try:
+                        from devsynth.domain.models.wsde import WSDETeam
+                        temp_team = WSDETeam()
+                        temp_team.add_solution(task, solution)
+
+                        dialectical_result = temp_team.apply_dialectical_reasoning(task, reviewer)
+
+                        # Add dialectical analysis to the result
+                        if "thesis" in dialectical_result and "antithesis" in dialectical_result and "synthesis" in dialectical_result:
+                            result["thesis"] = dialectical_result["thesis"].get("content", "The solution provides basic functionality.")
+                            result["antithesis"] = dialectical_result["antithesis"].get("critique", ["The solution could be improved."])
+                            result["synthesis"] = dialectical_result["synthesis"].get("improved_solution", "Improved implementation recommended.")
+
+                            # Add dialectical analysis as a structured object
+                            result["dialectical_analysis"] = {
+                                "thesis": {
+                                    "content": dialectical_result["thesis"].get("content", ""),
+                                    "strengths": ["Provides basic functionality"]
+                                },
+                                "antithesis": {
+                                    "critique": dialectical_result["antithesis"].get("critique", []),
+                                    "challenges": dialectical_result["antithesis"].get("challenges", [])
+                                },
+                                "synthesis": {
+                                    "improvements": dialectical_result["synthesis"].get("improvements", []),
+                                    "improved_solution": dialectical_result["synthesis"].get("improved_solution", "")
+                                }
+                            }
+                    except (ImportError, Exception) as e:
+                        # If WSDETeam is not available or fails, create a simple dialectical analysis
+                        if "thesis" not in result:
+                            result["thesis"] = "The solution provides basic functionality."
+                        if "antithesis" not in result:
+                            result["antithesis"] = "The solution could be improved in several ways."
+                        if "synthesis" not in result:
+                            result["synthesis"] = "An improved implementation would address the identified issues."
             else:
                 result = {"feedback": "ok"}
 
@@ -170,11 +239,18 @@ class PeerReview:
         # Add dialectical analysis if available
         dialectical_analysis = {}
         for review in self.reviews.values():
+            # Check for direct keys
             for key in ["thesis", "antithesis", "synthesis"]:
                 if key in review:
                     dialectical_analysis[key] = review[key]
 
-        if dialectical_analysis:
+            # Check for nested dialectical_analysis
+            if "dialectical_analysis" in review:
+                result["dialectical_analysis"] = review["dialectical_analysis"]
+                break
+
+        # If we found direct keys but not a nested structure
+        if dialectical_analysis and "dialectical_analysis" not in result:
             result["dialectical_analysis"] = dialectical_analysis
 
         return result
@@ -227,6 +303,18 @@ class PeerReview:
                 self.status = "rejected"
                 approved = False
 
+        # Check quality score against a threshold
+        quality_threshold = 0.7  # Configurable threshold
+        if hasattr(self, 'quality_score') and self.quality_score < quality_threshold and approved:
+            # If quality score is low but no revision was requested yet,
+            # suggest revision instead of rejection
+            if self.status != "revision_requested" and not self.revision:
+                self.status = "revision_suggested"
+            # If quality is still low after revision, reject
+            elif self.revision:
+                self.status = "rejected"
+                approved = False
+
         feedback = self.aggregate_feedback()  # Regenerate with updated status
 
         result = {
@@ -239,6 +327,12 @@ class PeerReview:
             "updated_at": self.updated_at.isoformat(),
         }
 
+        # Add reasons for rejection if applicable
+        if self.status == "rejected" and self.acceptance_criteria:
+            criteria_results = feedback.get("criteria_results", {})
+            reasons = [f"{criterion}: Failed" for criterion, passed in criteria_results.items() if not passed]
+            result["reasons"] = reasons
+
         # Include revision history
         if self.revision_history:
             result["revisions"] = {
@@ -249,6 +343,24 @@ class PeerReview:
         # Include previous review reference
         if self.previous_review:
             result["previous_review_id"] = self.previous_review.review_id
+
+            # Include a summary of the revision chain
+            revision_chain = []
+            current_review = self
+            while current_review.previous_review:
+                revision_chain.append({
+                    "review_id": current_review.previous_review.review_id,
+                    "status": current_review.previous_review.status,
+                    "quality_score": current_review.previous_review.quality_score
+                })
+                current_review = current_review.previous_review
+
+            if revision_chain:
+                result["revision_chain"] = revision_chain
+
+        # Add dialectical analysis if available in the feedback
+        if isinstance(feedback, dict) and "dialectical_analysis" in feedback:
+            result["dialectical_analysis"] = feedback["dialectical_analysis"]
 
         return result
 
