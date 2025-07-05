@@ -1,0 +1,15 @@
+.git
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+tests/__pycache__/
+CODEX_ENVIRONMENT_SETUP_FAILED
+docs/
+examples/
+tests/
+deployment/
+templates/
+*.log
+.vscode/
+
