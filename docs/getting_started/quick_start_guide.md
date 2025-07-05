@@ -73,7 +73,24 @@ After installation you can optionally use the Streamlit-based WebUI instead of t
 devsynth webui
 ```
 
+
 The interface mirrors the CLI workflows and provides pages for onboarding, requirements, analysis, synthesis, and configuration.
+
+## Using the Dev Container
+
+DevSynth ships with a `.devcontainer` directory that sets up an isolated development environment. You can open the project directly in **VS Code** or **PyCharm Professional** using this configuration.
+
+1. Make sure Docker is running on your machine.
+2. In **VS Code**, run **"Dev Containers: Open Folder in Container…"** and select the repository folder.
+   In **PyCharm**, use the Remote Development > Docker option and point to `.devcontainer/devcontainer.json`.
+3. Wait for the container to build. Dependencies are installed automatically with Poetry.
+4. If you need the full stack (API, ChromaDB, and monitoring), run:
+
+```bash
+docker compose up
+```
+
+This launches all services defined in `docker-compose.yml` and `docker-compose.monitoring.yml` inside the container.
 
 ## Creating Your First DevSynth Project
 
