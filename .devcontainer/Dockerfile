@@ -50,4 +50,4 @@ USER dev
 ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Default command
-CMD ["pytest", "-q"]
+CMD ["poetry", "run", "pytest", "-q"]
