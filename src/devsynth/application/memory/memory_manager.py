@@ -120,11 +120,12 @@ class MemoryManager:
         )
 
         # Store in the appropriate adapter
-        # Prefer TinyDB for structured data, then Graph for relationships, then default to first available
-        if "tinydb" in self.adapters:
-            return self.adapters["tinydb"].store(memory_item)
-        elif "graph" in self.adapters:
+        # Prefer Graph for EDRR phases due to relationship tracking capabilities,
+        # then TinyDB for structured data, then default to first available
+        if "graph" in self.adapters:
             return self.adapters["graph"].store(memory_item)
+        elif "tinydb" in self.adapters:
+            return self.adapters["tinydb"].store(memory_item)
         elif self.adapters:
             # Use the first available adapter
             adapter_name = next(iter(self.adapters))

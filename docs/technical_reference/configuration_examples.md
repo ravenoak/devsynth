@@ -182,6 +182,83 @@ DevSynth validates your configuration and provides helpful error messages if the
 
 If invalid values are provided, DevSynth will log a warning and use default values instead.
 
+## LLM Provider Integration Configuration
+
+Configure LLM provider integration with retry mechanisms, fallback strategies, and circuit breaker pattern:
+
+### Basic Provider Configuration
+
+```yaml
+# .devsynth/devsynth.yml
+provider_type: "openai"  # or "lm_studio"
+openai_api_key: "your-api-key"  # or use environment variable
+lm_studio_endpoint: "http://127.0.0.1:1234"  # for local LM Studio
+```
+
+### Retry Mechanism Configuration
+
+Configure retry mechanisms for LLM provider API calls:
+
+```yaml
+# .devsynth/devsynth.yml
+provider_retry_settings:
+  max_retries: 3
+  initial_delay: 1.0
+  exponential_base: 2.0
+  max_delay: 60.0
+  jitter: true
+```
+
+### Fallback Strategy Configuration
+
+Configure fallback strategies for LLM provider API calls:
+
+```yaml
+# .devsynth/devsynth.yml
+provider_fallback_settings:
+  enabled: true
+  order: ["openai", "lm_studio"]  # Try OpenAI first, then LM Studio
+```
+
+### Circuit Breaker Configuration
+
+Configure circuit breaker pattern for LLM provider API calls:
+
+```yaml
+# .devsynth/devsynth.yml
+provider_circuit_breaker_settings:
+  enabled: true
+  failure_threshold: 5
+  recovery_timeout: 60.0
+```
+
+### Complete LLM Provider Configuration
+
+A complete configuration example with all LLM provider integration features:
+
+```yaml
+# .devsynth/devsynth.yml
+provider_type: "openai"
+openai_api_key: "your-api-key"
+lm_studio_endpoint: "http://127.0.0.1:1234"
+
+provider_retry_settings:
+  max_retries: 3
+  initial_delay: 1.0
+  exponential_base: 2.0
+  max_delay: 60.0
+  jitter: true
+
+provider_fallback_settings:
+  enabled: true
+  order: ["openai", "lm_studio"]
+
+provider_circuit_breaker_settings:
+  enabled: true
+  failure_threshold: 5
+  recovery_timeout: 60.0
+```
+
 ## Environment Variables
 
 You can also configure DevSynth using environment variables, which take precedence over configuration files:
@@ -195,6 +272,14 @@ export DEVSYNTH_WSDE_TEAM_SIZE=7
 
 # Set UXBridge default interface
 export DEVSYNTH_UXBRIDGE_DEFAULT_INTERFACE=webui
+
+# Configure LLM provider integration
+export DEVSYNTH_PROVIDER_TYPE=openai
+export OPENAI_API_KEY=your-api-key
+export DEVSYNTH_PROVIDER_MAX_RETRIES=3
+export DEVSYNTH_PROVIDER_FALLBACK_ENABLED=true
+export DEVSYNTH_PROVIDER_FALLBACK_ORDER=openai,lm_studio
+export DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED=true
 ```
 
 ## Best Practices

@@ -13,21 +13,21 @@ from devsynth.exceptions import DevSynthError
 
 class InMemoryStore(MemoryStore):
     """In-memory implementation of MemoryStore."""
-    
+
     def __init__(self):
         self.items = {}
-    
+
     def store(self, item: MemoryItem) -> str:
         """Store an item in memory and return its ID."""
         if not item.id:
             item.id = str(uuid.uuid4())
         self.items[item.id] = item
         return item.id
-    
+
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
         """Retrieve an item from memory by ID."""
         return self.items.get(item_id)
-    
+
     def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
         """Search for items in memory matching the query."""
         result = []
@@ -52,7 +52,7 @@ class InMemoryStore(MemoryStore):
             if match:
                 result.append(item)
         return result
-    
+
     def delete(self, item_id: str) -> bool:
         """Delete an item from memory."""
         if item_id in self.items:
@@ -60,24 +60,53 @@ class InMemoryStore(MemoryStore):
             return True
         return False
 
+    def get_item(self, item_id: str) -> Optional[MemoryItem]:
+        """
+        Get an item from memory by ID.
+
+        This is an alias for retrieve() to maintain compatibility with other memory stores.
+
+        Args:
+            item_id: The ID of the item to retrieve
+
+        Returns:
+            The memory item, or None if not found
+        """
+        return self.retrieve(item_id)
+
+    def update_item(self, item: MemoryItem) -> bool:
+        """
+        Update an existing item in memory.
+
+        Args:
+            item: The item to update
+
+        Returns:
+            True if the item was updated, False if the item was not found
+        """
+        if not item.id or item.id not in self.items:
+            return False
+        self.items[item.id] = item
+        return True
+
 class SimpleContextManager(ContextManager):
     """Simple implementation of ContextManager."""
-    
+
     def __init__(self):
         self.context = {}
-    
+
     def add_to_context(self, key: str, value: Any) -> None:
         """Add a value to the current context."""
         self.context[key] = value
-    
+
     def get_from_context(self, key: str) -> Optional[Any]:
         """Get a value from the current context."""
         return self.context.get(key)
-    
+
     def get_full_context(self) -> Dict[str, Any]:
         """Get the full current context."""
         return self.context.copy()
-    
+
     def clear_context(self) -> None:
         """Clear the current context."""
         self.context.clear()

@@ -19,9 +19,15 @@ def context() -> Dict[str, object]:
 
 @given("a valid manifest file")
 def valid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
+    print("\n=== Setting up valid manifest ===")
     manifest = tmp_path / "manifest.json"
-    manifest.write_text("{" "project" ": " "demo" "}")
+    manifest_content = '{"project": "demo"}'
+    print(f"Writing manifest content: {manifest_content}")
+    manifest.write_text(manifest_content)
     context["manifest"] = manifest
+    print(f"Manifest path: {manifest}")
+    print(f"Manifest exists: {manifest.exists()}")
+    print(f"Manifest content: {manifest.read_text()}")
     return manifest
 
 
@@ -42,22 +48,36 @@ def invalid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
 @when('I run the command "devsynth edrr-cycle" with that file')
 def run_edrr_cycle(context: Dict[str, object]) -> None:
     manifest: Path = context["manifest"]
+    print(f"Manifest path: {manifest}")
+    print(f"Manifest exists: {manifest.exists()}")
+
     if not manifest.exists():
         context["output"] = f"[red]Manifest file not found:[/red] {manifest}"
         context["started"] = False
+        print(f"Manifest not found, started = {context.get('started')}")
         return
+
     try:
-        json.loads(manifest.read_text())
-    except Exception:
+        manifest_content = manifest.read_text()
+        print(f"Manifest content: {manifest_content}")
+        json_content = json.loads(manifest_content)
+        print(f"Parsed JSON: {json_content}")
+    except Exception as e:
         context["output"] = f"[red]Invalid manifest:[/red] {manifest}"
         context["started"] = False
+        print(f"Invalid manifest: {e}, started = {context.get('started')}")
         return
+
     context["output"] = "[bold]Starting EDRR cycle[/bold]"
     context["started"] = True
+    print(f"EDRR cycle started, started = {context.get('started')}")
 
 
 @then("the coordinator should process the manifest")
 def coordinator_processed_manifest(context: Dict[str, object]) -> None:
+    print("\n=== Checking if coordinator processed manifest ===")
+    print(f"Context: {context}")
+    print(f"Started: {context.get('started')}")
     assert context.get("started") is True
 
 

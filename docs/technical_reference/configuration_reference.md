@@ -137,6 +137,16 @@ DevSynth uses the following environment variables for configuration:
 | `DEVSYNTH_MEMORY_PATH` | Path to memory storage | ~/.devsynth/memory |
 | `DEVSYNTH_LOG_LEVEL` | Logging level | info |
 | `DEVSYNTH_LOG_FILE` | Path to log file | ~/.devsynth/logs/devsynth.log |
+| `DEVSYNTH_PROVIDER_MAX_RETRIES` | Maximum number of retry attempts | 3 |
+| `DEVSYNTH_PROVIDER_INITIAL_DELAY` | Initial delay between retries in seconds | 1.0 |
+| `DEVSYNTH_PROVIDER_EXPONENTIAL_BASE` | Base for exponential backoff | 2.0 |
+| `DEVSYNTH_PROVIDER_MAX_DELAY` | Maximum delay between retries in seconds | 60.0 |
+| `DEVSYNTH_PROVIDER_JITTER` | Add randomness to retry delays | true |
+| `DEVSYNTH_PROVIDER_FALLBACK_ENABLED` | Enable fallback strategy | true |
+| `DEVSYNTH_PROVIDER_FALLBACK_ORDER` | Provider fallback order (comma-separated) | openai,lm_studio |
+| `DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED` | Enable circuit breaker pattern | true |
+| `DEVSYNTH_PROVIDER_FAILURE_THRESHOLD` | Number of failures before opening circuit | 5 |
+| `DEVSYNTH_PROVIDER_RECOVERY_TIMEOUT` | Time in seconds before attempting recovery | 60.0 |
 
 Environment variables take precedence over configuration file settings.
 
@@ -145,6 +155,8 @@ Environment variables take precedence over configuration file settings.
 ### Provider Configuration
 
 The `provider` section configures the LLM provider used by DevSynth.
+
+#### Basic Provider Settings
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
@@ -156,6 +168,37 @@ The `provider` section configures the LLM provider used by DevSynth.
 | `frequency_penalty` | Penalty for token frequency | 0.0 | 0.0-2.0 |
 | `presence_penalty` | Penalty for token presence | 0.0 | 0.0-2.0 |
 | `timeout` | Request timeout in seconds | 60 | Any positive integer |
+
+#### Retry Mechanism Settings
+
+The `provider.retry` section configures retry mechanisms for LLM provider API calls.
+
+| Key | Description | Default | Valid Values |
+|-----|-------------|---------|--------------|
+| `max_retries` | Maximum number of retry attempts | 3 | Any non-negative integer |
+| `initial_delay` | Initial delay between retries in seconds | 1.0 | Any positive number |
+| `exponential_base` | Base for exponential backoff | 2.0 | Any number greater than 1.0 |
+| `max_delay` | Maximum delay between retries in seconds | 60.0 | Any positive number |
+| `jitter` | Add randomness to retry delays | true | true, false |
+
+#### Fallback Strategy Settings
+
+The `provider.fallback` section configures fallback strategies for LLM provider API calls.
+
+| Key | Description | Default | Valid Values |
+|-----|-------------|---------|--------------|
+| `enabled` | Enable fallback strategy | true | true, false |
+| `order` | Provider fallback order | ["openai", "lm_studio"] | Array of provider names |
+
+#### Circuit Breaker Settings
+
+The `provider.circuit_breaker` section configures circuit breaker pattern for LLM provider API calls.
+
+| Key | Description | Default | Valid Values |
+|-----|-------------|---------|--------------|
+| `enabled` | Enable circuit breaker pattern | true | true, false |
+| `failure_threshold` | Number of failures before opening circuit | 5 | Any positive integer |
+| `recovery_timeout` | Time in seconds before attempting recovery | 60.0 | Any positive number |
 
 ### Memory Configuration
 

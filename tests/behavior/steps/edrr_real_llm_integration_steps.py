@@ -16,6 +16,25 @@ from devsynth.application.documentation.documentation_manager import Documentati
 from devsynth.adapters.provider_system import get_provider, ProviderType
 from devsynth.methodology.base import Phase
 
+@pytest.fixture
+def context():
+    """Fixture to provide a context object for storing test state between steps."""
+    class Context:
+        def __init__(self):
+            self.memory_adapter = None
+            self.memory_manager = None
+            self.wsde_team = None
+            self.provider = None
+            self.coordinator = None
+            self.project_dir = None
+            self.graph_memory_adapter = None
+            self.task = None
+            self.report = None
+            self.traces = None
+            self.history = None
+
+    return Context()
+
 # Skip scenarios if no LLM provider is configured
 @pytest.fixture(autouse=True)
 def check_llm_provider(request):
@@ -86,11 +105,15 @@ flask==2.0.1
 
 @given("a configured graph memory system")
 def step_configured_graph_memory_system(context):
-    # Add graph memory adapter to the memory manager
+    # Create a new memory manager with both adapters
     context.graph_memory_adapter = GraphMemoryAdapter()
-    context.memory_manager.add_adapter("graph", context.graph_memory_adapter)
+    context.memory_adapter = TinyDBMemoryAdapter()
+    context.memory_manager = MemoryManager(adapters={
+        "tinydb": context.memory_adapter,
+        "graph": context.graph_memory_adapter
+    })
 
-@when(r'I start an EDRR cycle for "([^"]*)"')
+@when(parsers.parse('I start an EDRR cycle for "{task_description}"'))
 def step_start_edrr_cycle(context, task_description):
     # Create a task for testing
     context.task = {
@@ -102,7 +125,7 @@ def step_start_edrr_cycle(context, task_description):
     # Start EDRR cycle
     context.coordinator.start_cycle(context.task)
 
-@when(r'I start an EDRR cycle to "([^"]*)"')
+@when(parsers.parse('I start an EDRR cycle to "{task_description}"'))
 def step_start_edrr_cycle_for_project(context, task_description):
     # Create a task for testing with project path
     context.task = {
@@ -213,15 +236,15 @@ def step_memory_system_stores_results(context):
     # Check that the memory system has stored the phase results
     if hasattr(context, 'graph_memory_adapter'):
         # For graph memory adapter
-        nodes = context.graph_memory_adapter.get_all_nodes()
-        assert len(nodes) > 0
+        items = context.graph_memory_adapter.search({})
+        assert len(items) > 0
 
     # Check tinydb adapter
-    records = context.memory_adapter.get_all_records()
+    records = context.memory_adapter.search({})
     assert len(records) > 0
 
     # Check that the cycle_id is in the records
-    cycle_records = [r for r in records if r.get('cycle_id') == context.coordinator.cycle_id]
+    cycle_records = [r for r in records if r.metadata.get('cycle_id') == context.coordinator.cycle_id]
     assert len(cycle_records) > 0
 
 @then("the final solution should reference previous phase insights")
