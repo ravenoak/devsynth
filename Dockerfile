@@ -1,5 +1,5 @@
 # DevSynth Dockerfile
-# Development and testing environment
+# Multi-stage build for development, testing, and production environments
 
 FROM python:3.12-slim AS base
 
@@ -36,8 +36,33 @@ WORKDIR /workspace
 # Copy dependency files first for caching
 COPY pyproject.toml poetry.lock* ./
 
-# Install Python dependencies
+# Development stage with all dependencies and dev tools
+FROM base AS development
+
+# Install all dependencies including development dependencies
 RUN poetry install --with dev --all-extras --no-root
+
+# Copy source and tests
+COPY src ./src
+COPY tests ./tests
+COPY docs ./docs
+COPY scripts ./scripts
+COPY templates ./templates
+
+# Ensure user owns workspace
+RUN chown -R ${USERNAME}:${USERNAME} /workspace
+
+USER ${USERNAME}
+
+ENV PATH="/workspace/.venv/bin:$PATH"
+
+CMD ["poetry", "run", "pytest", "-q"]
+
+# Testing stage with minimal dependencies needed for testing
+FROM base AS testing
+
+# Install dependencies needed for testing
+RUN poetry install --with dev --extras "minimal memory retrieval" --no-root
 
 # Copy source and tests
 COPY src ./src
@@ -51,3 +76,21 @@ USER ${USERNAME}
 ENV PATH="/workspace/.venv/bin:$PATH"
 
 CMD ["poetry", "run", "pytest", "-q"]
+
+# Production stage with minimal dependencies
+FROM base AS production
+
+# Install only production dependencies
+RUN poetry install --without dev --extras "minimal memory" --no-root
+
+# Copy only source code (no tests)
+COPY src ./src
+
+# Ensure user owns workspace
+RUN chown -R ${USERNAME}:${USERNAME} /workspace
+
+USER ${USERNAME}
+
+ENV PATH="/workspace/.venv/bin:$PATH"
+
+CMD ["poetry", "run", "uvicorn", "devsynth.api:app", "--host", "0.0.0.0", "--port", "8000"]

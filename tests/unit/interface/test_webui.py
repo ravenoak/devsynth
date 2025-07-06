@@ -176,3 +176,295 @@ def test_diagnostics_runs_doctor(monkeypatch, stub_streamlit):
 
     WebUI().diagnostics_page()
     doc.assert_called_once()
+
+
+def test_edrr_cycle_page(monkeypatch, stub_streamlit):
+    edrr = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.edrr_cycle_cmd.edrr_cycle_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")
+    module.edrr_cycle_cmd = edrr
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.edrr_cycle_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().edrr_cycle_page()
+    edrr.assert_called_once()
+
+
+def test_alignment_page(monkeypatch, stub_streamlit):
+    align = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.align_cmd.align_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.align_cmd")
+    module.align_cmd = align
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.align_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().alignment_page()
+    align.assert_called_once()
+
+
+def test_alignment_metrics_page(monkeypatch, stub_streamlit):
+    metrics = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.alignment_metrics_cmd.alignment_metrics_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.alignment_metrics_cmd")
+    module.alignment_metrics_cmd = metrics
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.alignment_metrics_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().alignment_metrics_page()
+    metrics.assert_called_once()
+
+
+def test_inspect_config_page(monkeypatch, stub_streamlit):
+    inspect = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.inspect_config_cmd.inspect_config_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.inspect_config_cmd")
+    module.inspect_config_cmd = inspect
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.inspect_config_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().inspect_config_page()
+    inspect.assert_called_once()
+
+
+def test_validate_manifest_page(monkeypatch, stub_streamlit):
+    validate = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.validate_manifest_cmd.validate_manifest_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.validate_manifest_cmd")
+    module.validate_manifest_cmd = validate
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.validate_manifest_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().validate_manifest_page()
+    validate.assert_called_once()
+
+
+def test_validate_metadata_page(monkeypatch, stub_streamlit):
+    validate = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.validate_metadata_cmd.validate_metadata_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.validate_metadata_cmd")
+    module.validate_metadata_cmd = validate
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.validate_metadata_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().validate_metadata_page()
+    validate.assert_called_once()
+
+
+def test_test_metrics_page(monkeypatch, stub_streamlit):
+    metrics = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.test_metrics_cmd.test_metrics_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.test_metrics_cmd")
+    module.test_metrics_cmd = metrics
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.test_metrics_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().test_metrics_page()
+    metrics.assert_called_once()
+
+
+def test_docs_generation_page(monkeypatch, stub_streamlit):
+    generate = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.generate_docs_cmd.generate_docs_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.generate_docs_cmd")
+    module.generate_docs_cmd = generate
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.generate_docs_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().docs_generation_page()
+    generate.assert_called_once()
+
+
+def test_ingestion_page(monkeypatch, stub_streamlit):
+    ingest = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.ingest_cmd.ingest_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.ingest_cmd")
+    module.ingest_cmd = ingest
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.ingest_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().ingestion_page()
+    ingest.assert_called_once()
+
+
+def test_apispec_page(monkeypatch, stub_streamlit):
+    apispec = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.apispec.apispec_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.apispec")
+    module.apispec_cmd = apispec
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.apispec",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().apispec_page()
+    apispec.assert_called_once()
+
+
+def test_doctor_page(monkeypatch, stub_streamlit):
+    doctor = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.doctor_cmd.doctor_cmd",
+    )
+    module = ModuleType("devsynth.application.cli.commands.doctor_cmd")
+    module.doctor_cmd = doctor
+    module.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.doctor_cmd",
+        module,
+    )
+
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    WebUI().doctor_page()
+    doctor.assert_called_once()
+
+
+def test_run_method_renders_pages(monkeypatch, stub_streamlit):
+    """Test that the run method renders the appropriate page based on navigation."""
+    # Mock the page methods
+    import importlib
+    import devsynth.interface.webui as webui
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    webui_instance = WebUI()
+    webui_instance.onboarding_page = MagicMock()
+    webui_instance.requirements_page = MagicMock()
+    webui_instance.analysis_page = MagicMock()
+    webui_instance.synthesis_page = MagicMock()
+    webui_instance.edrr_cycle_page = MagicMock()
+    webui_instance.alignment_page = MagicMock()
+
+    # Test different navigation options
+    stub_streamlit.sidebar.radio = MagicMock(return_value="Onboarding")
+    webui_instance.run()
+    webui_instance.onboarding_page.assert_called_once()
+
+    # Reset mocks and test another navigation option
+    webui_instance.onboarding_page.reset_mock()
+    stub_streamlit.sidebar.radio = MagicMock(return_value="Requirements")
+    webui_instance.run()
+    webui_instance.requirements_page.assert_called_once()

@@ -19,10 +19,46 @@ def _setup(monkeypatch):
     def run_pipeline_cmd(target=None, *, bridge):
         bridge.display_result(f"run:{target}")
 
+    def spec_cmd(requirements_file="requirements.md", *, bridge):
+        bridge.display_result(f"spec:{requirements_file}")
+
+    def test_cmd(spec_file="specs.md", output_dir=None, *, bridge):
+        bridge.display_result(f"test:{spec_file}:{output_dir}")
+
+    def code_cmd(output_dir=None, *, bridge):
+        bridge.display_result(f"code:{output_dir}")
+
+    def doctor_cmd(path=".", fix=False, *, bridge):
+        bridge.display_result(f"doctor:{path}:{fix}")
+
+    def edrr_cycle_cmd(prompt, context=None, max_iterations=3, *, bridge):
+        bridge.display_result(f"edrr:{prompt}:{context}:{max_iterations}")
+
     cli_stub.init_cmd = MagicMock(side_effect=init_cmd)
     cli_stub.gather_cmd = MagicMock(side_effect=gather_cmd)
     cli_stub.run_pipeline_cmd = MagicMock(side_effect=run_pipeline_cmd)
+    cli_stub.spec_cmd = MagicMock(side_effect=spec_cmd)
+    cli_stub.test_cmd = MagicMock(side_effect=test_cmd)
+    cli_stub.code_cmd = MagicMock(side_effect=code_cmd)
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
+
+    # Setup doctor_cmd module
+    doctor_module = ModuleType("devsynth.application.cli.commands.doctor_cmd")
+    doctor_module.doctor_cmd = MagicMock(side_effect=doctor_cmd)
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.doctor_cmd",
+        doctor_module,
+    )
+
+    # Setup edrr_cycle_cmd module
+    edrr_module = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")
+    edrr_module.edrr_cycle_cmd = MagicMock(side_effect=edrr_cycle_cmd)
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.edrr_cycle_cmd",
+        edrr_module,
+    )
 
     import devsynth.interface.agentapi as agentapi
 
@@ -62,3 +98,79 @@ def test_gather_synthesize_status(monkeypatch):
     assert agentapi.LATEST_MESSAGES == ["run:unit"]
     cli_stub.run_pipeline_cmd.assert_called_once_with(target="unit", bridge=bridge)
     assert api.status() == ["run:unit"]
+
+
+def test_spec(monkeypatch):
+    cli_stub, agentapi = _setup(monkeypatch)
+    bridge = agentapi.APIBridge()
+    api = agentapi.AgentAPI(bridge)
+
+    messages = api.spec(requirements_file="custom_reqs.md")
+    assert messages == ["spec:custom_reqs.md"]
+    assert agentapi.LATEST_MESSAGES == ["spec:custom_reqs.md"]
+    cli_stub.spec_cmd.assert_called_once_with(
+        requirements_file="custom_reqs.md",
+        bridge=bridge,
+    )
+
+
+def test_test(monkeypatch):
+    cli_stub, agentapi = _setup(monkeypatch)
+    bridge = agentapi.APIBridge()
+    api = agentapi.AgentAPI(bridge)
+
+    messages = api.test(spec_file="custom_specs.md", output_dir="tests/output")
+    assert messages == ["test:custom_specs.md:tests/output"]
+    assert agentapi.LATEST_MESSAGES == ["test:custom_specs.md:tests/output"]
+    cli_stub.test_cmd.assert_called_once_with(
+        spec_file="custom_specs.md",
+        output_dir="tests/output",
+        bridge=bridge,
+    )
+
+
+def test_code(monkeypatch):
+    cli_stub, agentapi = _setup(monkeypatch)
+    bridge = agentapi.APIBridge()
+    api = agentapi.AgentAPI(bridge)
+
+    messages = api.code(output_dir="src/output")
+    assert messages == ["code:src/output"]
+    assert agentapi.LATEST_MESSAGES == ["code:src/output"]
+    cli_stub.code_cmd.assert_called_once_with(
+        output_dir="src/output",
+        bridge=bridge,
+    )
+
+
+def test_doctor(monkeypatch):
+    cli_stub, agentapi = _setup(monkeypatch)
+    doctor_module = sys.modules["devsynth.application.cli.commands.doctor_cmd"]
+    bridge = agentapi.APIBridge()
+    api = agentapi.AgentAPI(bridge)
+
+    messages = api.doctor(path="custom_path", fix=True)
+    assert messages == ["doctor:custom_path:True"]
+    assert agentapi.LATEST_MESSAGES == ["doctor:custom_path:True"]
+    doctor_module.doctor_cmd.assert_called_once_with(
+        path="custom_path",
+        fix=True,
+        bridge=bridge,
+    )
+
+
+def test_edrr_cycle(monkeypatch):
+    cli_stub, agentapi = _setup(monkeypatch)
+    edrr_module = sys.modules["devsynth.application.cli.commands.edrr_cycle_cmd"]
+    bridge = agentapi.APIBridge()
+    api = agentapi.AgentAPI(bridge)
+
+    messages = api.edrr_cycle(prompt="test prompt", context="test context", max_iterations=5)
+    assert messages == ["edrr:test prompt:test context:5"]
+    assert agentapi.LATEST_MESSAGES == ["edrr:test prompt:test context:5"]
+    edrr_module.edrr_cycle_cmd.assert_called_once_with(
+        prompt="test prompt",
+        context="test context",
+        max_iterations=5,
+        bridge=bridge,
+    )
