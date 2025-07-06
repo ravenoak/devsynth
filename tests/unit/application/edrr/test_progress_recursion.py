@@ -69,34 +69,47 @@ def test_progress_to_phase_auto_recursion(coordinator):
 def test_should_terminate_recursion_granularity(coordinator):
     """Recursion stops when granularity is below the threshold."""
     task = {"granularity_score": 0.1}
-    assert coordinator.should_terminate_recursion(task) is True
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is True
+    assert result[1] == "granularity threshold"
 
 
 def test_should_terminate_recursion_cost_benefit(coordinator):
     """Recursion stops when cost outweighs benefit."""
     task = {"cost_score": 0.8, "benefit_score": 0.1}
-    assert coordinator.should_terminate_recursion(task) is True
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is True
+    assert result[1] == "cost-benefit analysis"
 
 
 def test_should_terminate_recursion_quality_threshold(coordinator):
     """Recursion stops when quality already meets the threshold."""
     task = {"quality_score": 0.95}
-    assert coordinator.should_terminate_recursion(task) is True
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is True
+    assert result[1] == "quality threshold"
 
 
 def test_should_terminate_recursion_resource_limit(coordinator):
     """Recursion stops when resource usage is too high."""
     task = {"resource_usage": 0.9}
-    assert coordinator.should_terminate_recursion(task) is True
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is True
+    assert result[1] == "resource limit"
 
 
 @pytest.mark.parametrize(
-    "task,expected",
-    [({"human_override": "terminate"}, True), ({"human_override": "continue"}, False)],
+    "task,expected,reason",
+    [
+        ({"human_override": "terminate"}, True, "human override"),
+        ({"human_override": "continue"}, False, None)
+    ],
 )
-def test_should_terminate_recursion_human_override(coordinator, task, expected):
+def test_should_terminate_recursion_human_override(coordinator, task, expected, reason):
     """Human override explicitly controls termination."""
-    assert coordinator.should_terminate_recursion(task) is expected
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is expected
+    assert result[1] == reason
 
 
 def test_should_terminate_recursion_no_factors(coordinator):
@@ -108,7 +121,9 @@ def test_should_terminate_recursion_no_factors(coordinator):
         "quality_score": 0.1,
         "resource_usage": 0.1,
     }
-    assert coordinator.should_terminate_recursion(task) is False
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is False
+    assert result[1] is None
 
 
 def test_should_terminate_recursion_at_thresholds(coordinator):
@@ -118,7 +133,9 @@ def test_should_terminate_recursion_at_thresholds(coordinator):
         "cost_score": coordinator.DEFAULT_COST_BENEFIT_RATIO,
         "benefit_score": 1.0,
     }
-    assert coordinator.should_terminate_recursion(task) is False
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is False
+    assert result[1] is None
 
 
 def test_should_terminate_recursion_combined_factors(coordinator):
@@ -128,4 +145,6 @@ def test_should_terminate_recursion_combined_factors(coordinator):
         "cost_score": 0.6,
         "benefit_score": 0.2,
     }
-    assert coordinator.should_terminate_recursion(task) is True
+    result = coordinator.should_terminate_recursion(task)
+    assert result[0] is True
+    assert result[1] == "granularity threshold"

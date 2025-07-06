@@ -344,6 +344,71 @@ Key features of the Kuzu memory store:
 - **Vector Support**: Integrates a simple vector adapter for similarity search
 - **Fallback Mode**: Automatically falls back to an in-memory store when KuzuDB is not available
 
+### UXBridge Configuration
+
+DevSynth uses the UXBridge abstraction to provide a consistent interface across different user interfaces (CLI, WebUI, Agent API). The following configuration options are available for UXBridge:
+
+#### UXBridge Settings
+
+| Key | Description | Default Value | Possible Values |
+|-----|-------------|---------------|----------------|
+| `uxbridge_settings.default_interface` | The default interface to use | `cli` | `cli`, `webui`, `api` |
+
+```bash
+# Configure default interface
+devsynth config --key uxbridge_settings.default_interface --value webui
+```
+
+#### WebUI Configuration
+
+The WebUI interface is built using Streamlit and provides a graphical interface for DevSynth. To enable the WebUI interface, you need to enable the `uxbridge_webui` feature flag:
+
+```bash
+# Enable WebUI interface
+devsynth enable-feature uxbridge_webui
+```
+
+#### Agent API Configuration
+
+The Agent API interface provides a REST API for DevSynth. To enable the Agent API interface, you need to enable the `uxbridge_agent_api` feature flag:
+
+```bash
+# Enable Agent API interface
+devsynth enable-feature uxbridge_agent_api
+```
+
+### Feature Flags
+
+DevSynth uses feature flags to enable or disable specific features. The following feature flags are available:
+
+| Feature Flag | Description | Default Value |
+|--------------|-------------|---------------|
+| `experimental_features` | Enable experimental features | `false` |
+| `edrr_framework` | Enable the EDRR framework | `false` |
+| `wsde_collaboration` | Enable WSDE collaboration | `false` |
+| `uxbridge_webui` | Enable the WebUI interface | `false` |
+| `uxbridge_agent_api` | Enable the Agent API interface | `false` |
+
+You can enable or disable feature flags using the `enable-feature` and `disable-feature` commands:
+
+```bash
+# Enable a feature
+devsynth enable-feature edrr_framework
+
+# Disable a feature
+devsynth disable-feature experimental_features
+```
+
+Alternatively, you can set feature flags directly in the configuration:
+
+```bash
+# Enable a feature
+devsynth config --key features.edrr_framework --value true
+
+# Disable a feature
+devsynth config --key features.experimental_features --value false
+```
+
 ## Workflow Guide
 
 DevSynth follows an "expand, differentiate, refine" approach to software development:

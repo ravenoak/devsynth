@@ -31,20 +31,78 @@ Do not attempt to search or process websites yourself.
 Requirements:
 - A .env file in the project root with the following variables:
   - SERPER_API_KEY: Your Google Serper API key
-  - OPENAI_API_KEY: Your OpenAI API key
+  - OPENAI_API_KEY: Your OpenAI API key (only required when using OpenAI provider)
+
+Configuration Options (via environment variables):
+- DEVSYNTH_PROVIDER: The LLM provider to use (default: "openai", options: "openai", "lm_studio")
+- DEVSYNTH_THINKING_MODE: Enable thinking mode for more detailed reasoning (default: "false", options: "true", "false")
+- DEVSYNTH_TEMPERATURE: Temperature for generation (default: 0.0 for standard mode, 0.7 for thinking mode)
+
+OpenAI-specific configuration:
+- OPENAI_MODEL: The model to use for standard mode (default: "gpt-4o-mini-2024-07-18")
+- OPENAI_THINKING_MODEL: The model to use for thinking mode (default: "gpt-4o")
+
+LM Studio-specific configuration:
+- LM_STUDIO_ENDPOINT: The API endpoint for LM Studio (default: "http://127.0.0.1:1234/v1")
+- LM_STUDIO_MODEL: The model to use with LM Studio (default: "llama3-70b-8192")
 
 === END INSTRUCTIONS ===
 """
 
 import os
 import sys
+from enum import Enum
+from typing import Optional
 
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from langchain.tools.base import BaseTool
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import AgentExecutor, create_react_agent
+
+
+class Provider(str, Enum):
+    """Enum for supported LLM providers."""
+    OPENAI = "openai"
+    LM_STUDIO = "lm_studio"
+
+
+def get_provider_config() -> tuple[Provider, str, Optional[str], float, bool]:
+    """
+    Get the LLM provider configuration from environment variables.
+
+    Returns:
+        tuple: (provider, model, base_url, temperature, thinking_mode)
+            - provider: The LLM provider to use (OpenAI or LM Studio)
+            - model: The model name to use
+            - base_url: The base URL for the API (only for LM Studio)
+            - temperature: The temperature to use for generation
+            - thinking_mode: Whether to use thinking mode
+    """
+    # Get provider from environment or default to OpenAI
+    provider_str = os.getenv("DEVSYNTH_PROVIDER", Provider.OPENAI.value).lower()
+    provider = Provider.LM_STUDIO if provider_str == Provider.LM_STUDIO.value else Provider.OPENAI
+
+    # Get model based on provider and thinking mode
+    thinking_mode = os.getenv("DEVSYNTH_THINKING_MODE", "false").lower() == "true"
+
+    if provider == Provider.OPENAI:
+        # For OpenAI, use thinking mode models if enabled
+        if thinking_mode:
+            model = os.getenv("OPENAI_THINKING_MODEL", "gpt-4o")
+        else:
+            model = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
+        base_url = None
+    else:  # LM_STUDIO
+        # For LM Studio, use the configured model
+        model = os.getenv("LM_STUDIO_MODEL", "llama3-70b-8192")
+        base_url = os.getenv("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234/v1")
+
+    # Get temperature (higher for thinking mode)
+    temperature = float(os.getenv("DEVSYNTH_TEMPERATURE", "0.7" if thinking_mode else "0"))
+
+    return provider, model, base_url, temperature, thinking_mode
 
 
 def run_search_agent(query: str) -> str:
@@ -72,13 +130,23 @@ def run_search_agent(query: str) -> str:
     serper_api_key = os.getenv("SERPER_API_KEY")
     openai_api_key = os.getenv("OPENAI_API_KEY")
 
-    if not serper_api_key or not openai_api_key:
-        raise EnvironmentError("Missing SERPER_API_KEY or OPENAI_API_KEY.")
+    # Get full provider configuration
+    provider, model, base_url, temperature, thinking_mode = get_provider_config()
+
+    # Check required environment variables
+    if not serper_api_key:
+        raise EnvironmentError("Missing SERPER_API_KEY.")
+
+    # OpenAI API key is only required when using OpenAI provider
+    if provider == Provider.OPENAI and not openai_api_key:
+        raise EnvironmentError("Missing OPENAI_API_KEY. Required when using OpenAI provider.")
 
     # Initialize tools
     search_tool = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
 
     # Define the tool in a format compatible with LangGraph
+    from langchain.tools.base import BaseTool
+
     class WebSearchTool(BaseTool):
         name: str = "WebSearch"
         description: str = "Use this to search for real-time information about current events, tools, definitions, or any other factual information from the web. Use this for any questions requiring up-to-date information."
@@ -92,8 +160,10 @@ def run_search_agent(query: str) -> str:
 
     tools = [WebSearchTool()]
 
-    # Create a custom prompt template for dialectical reasoning
-    dialectical_template = """You are an advanced search assistant using dialectical reasoning to provide comprehensive answers.
+    # Create a custom prompt template for dialectical reasoning that includes the required variables for ReAct agent
+
+    # Base dialectical template
+    base_template = """You are an advanced search assistant using dialectical reasoning to provide comprehensive answers.
 
 QUERY: {input}
 
@@ -114,47 +184,95 @@ GUIDELINES:
 - Cite specific sources when possible
 - Acknowledge limitations in available information
 - Provide a nuanced, well-reasoned conclusion
-
-Begin your analysis now, using the WebSearch tool to gather information.
 """
 
-    # Initialize the LLM and agent
-    #llm = ChatOpenAI(temperature=0, api_key=None, model="qwen3-30b-a3b", base_url="http://localhost:1234/v1")
+    # Additional instructions for thinking mode
+    thinking_mode_instructions = """
+THINKING MODE INSTRUCTIONS:
+- Before responding, explicitly work through your reasoning step by step
+- Consider multiple approaches to the problem and evaluate their merits
+- Identify potential biases or limitations in your initial thinking
+- Explore counterarguments to your own reasoning
+- Synthesize your thoughts into a coherent, well-structured response
+- Show your work by explaining how you arrived at your conclusions
+"""
 
-    # gpt-4.1-2025-04-14
-    # gpt-4o-mini-2024-07-18
-    llm = ChatOpenAI(temperature=0, api_key=openai_api_key, model="gpt-4o-mini-2024-07-18")
+    # Combine templates based on thinking mode
+    dialectical_template = base_template
+    if thinking_mode:
+        dialectical_template += thinking_mode_instructions
 
-    # Create the prompt template
+    # Add tools section
+    dialectical_template += """
+TOOLS:
+------
+You have access to the following tools:
+
+{tools}
+
+To use a tool, please use the following format:
+```
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+```
+
+When you have a response to say to the Human, or if you do not need to use a tool, you MUST use the format:
+```
+Final Answer: <your response here>
+```
+
+Begin your analysis now, using the WebSearch tool to gather information.
+
+{agent_scratchpad}
+"""
+
+    # Initialize the LLM based on provider
+    if provider == Provider.OPENAI:
+        llm = ChatOpenAI(
+            temperature=temperature,
+            api_key=openai_api_key,
+            model=model
+        )
+    else:  # LM_STUDIO
+        llm = ChatOpenAI(
+            temperature=temperature,
+            api_key=None,  # LM Studio doesn't require an API key for local instances
+            model=model,
+            base_url=base_url
+        )
+
+    # Create the prompt template with all required variables
     prompt = PromptTemplate(
         template=dialectical_template,
-        input_variables=["input"]
+        input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
     )
 
     # Create a ReAct agent using LangGraph instead of LangChain's initialize_agent
     # This eliminates the deprecation warning and provides more flexibility
 
-    # Format the prompt with the actual query
-    formatted_prompt = prompt.format(input=query)
-
+    # Create a ReAct agent using LangChain's create_react_agent
     agent = create_react_agent(
-        model=llm,
+        llm=llm,
         tools=tools,
-        prompt=formatted_prompt
+        prompt=prompt
     )
 
     # Create the agent executor with the agent and tools
-    agent_executor = agent.with_config(
-        {"recursion_limit": 10}  # Similar to max_iterations in LangChain
+    agent_executor = AgentExecutor.from_agent_and_tools(
+        agent=agent,
+        tools=tools,
+        max_iterations=10,
+        verbose=True
     )
 
     # Run the query through the agent
-    # Extract the content of the last message in the messages list
     result = agent_executor.invoke({"input": query})
 
-    # The last message in the list is the final response from the agent
-    result = result["messages"][-1].content
-    return result
+    # Extract the result from the output
+    if isinstance(result, dict) and "output" in result:
+        return result["output"]
+    else:
+        return str(result)
 
 
 def main():

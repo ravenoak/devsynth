@@ -8,11 +8,11 @@ You can send complex or structured questions, and the agent will determine how t
 retrieve, synthesize, and present the results from the web using the Serper API.
 
 Usage:
-    python original_agentic_serper_search.py "<your complex query>"
+    python agentic_serper_search.py "<your complex query>"
 
 Examples:
-    python original_agentic_serper_search.py "Summarize recent developments in LangChain and how it compares to Haystack."
-    python original_agentic_serper_search.py "What are the main limitations of using vector databases in production in 2025?"
+    python agentic_serper_search.py "Summarize recent developments in LangChain and how it compares to Haystack."
+    python agentic_serper_search.py "What are the main limitations of using vector databases in production in 2025?"
 
 The agent will:
 1. Analyze your query using dialectical reasoning.
@@ -44,7 +44,7 @@ from langchain.prompts import PromptTemplate
 from langchain.tools.base import BaseTool
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import AgentExecutor, create_react_agent
 
 
 def run_search_agent(query: str) -> str:
@@ -79,6 +79,8 @@ def run_search_agent(query: str) -> str:
     search_tool = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
 
     # Define the tool in a format compatible with LangGraph
+    from langchain.tools.base import BaseTool
+
     class WebSearchTool(BaseTool):
         name: str = "WebSearch"
         description: str = "Use this to search for real-time information about current events, tools, definitions, or any other factual information from the web. Use this for any questions requiring up-to-date information."
@@ -92,7 +94,7 @@ def run_search_agent(query: str) -> str:
 
     tools = [WebSearchTool()]
 
-    # Create a custom prompt template for dialectical reasoning
+    # Create a custom prompt template for dialectical reasoning that includes the required variables for ReAct agent
     dialectical_template = """You are an advanced search assistant using dialectical reasoning to provide comprehensive answers.
 
 QUERY: {input}
@@ -115,7 +117,26 @@ GUIDELINES:
 - Acknowledge limitations in available information
 - Provide a nuanced, well-reasoned conclusion
 
+TOOLS:
+------
+You have access to the following tools:
+
+{tools}
+
+To use a tool, please use the following format:
+```
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+```
+
+When you have a response to say to the Human, or if you do not need to use a tool, you MUST use the format:
+```
+Final Answer: <your response here>
+```
+
 Begin your analysis now, using the WebSearch tool to gather information.
+
+{agent_scratchpad}
 """
 
     # Initialize the LLM and agent
@@ -125,36 +146,38 @@ Begin your analysis now, using the WebSearch tool to gather information.
     # gpt-4o-mini-2024-07-18
     llm = ChatOpenAI(temperature=0, api_key=openai_api_key, model="gpt-4o-mini-2024-07-18")
 
-    # Create the prompt template
+    # Create the prompt template with all required variables
     prompt = PromptTemplate(
         template=dialectical_template,
-        input_variables=["input"]
+        input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
     )
 
     # Create a ReAct agent using LangGraph instead of LangChain's initialize_agent
     # This eliminates the deprecation warning and provides more flexibility
 
-    # Format the prompt with the actual query
-    formatted_prompt = prompt.format(input=query)
-
+    # Create a ReAct agent using LangChain's create_react_agent
     agent = create_react_agent(
-        model=llm,
+        llm=llm,
         tools=tools,
-        prompt=formatted_prompt
+        prompt=prompt
     )
 
     # Create the agent executor with the agent and tools
-    agent_executor = agent.with_config(
-        {"recursion_limit": 10}  # Similar to max_iterations in LangChain
+    agent_executor = AgentExecutor.from_agent_and_tools(
+        agent=agent,
+        tools=tools,
+        max_iterations=10,
+        verbose=True
     )
 
     # Run the query through the agent
-    # Extract the content of the last message in the messages list
     result = agent_executor.invoke({"input": query})
 
-    # The last message in the list is the final response from the agent
-    result = result["messages"][-1].content
-    return result
+    # Extract the result from the output
+    if isinstance(result, dict) and "output" in result:
+        return result["output"]
+    else:
+        return str(result)
 
 
 def main():
@@ -166,10 +189,10 @@ def main():
     to make them easy to parse by other programs.
 
     Command-line usage:
-        python original_agentic_serper_search.py "<your query>"
+        python agentic_serper_search.py "<your query>"
     """
     if len(sys.argv) < 2:
-        print("Usage: python original_agentic_serper_search.py '<your query>'")
+        print("Usage: python agentic_serper_search.py '<your query>'")
         sys.exit(1)
 
     query = " ".join(sys.argv[1:])
