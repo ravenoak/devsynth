@@ -1,3 +1,16 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- technical-reference
+
+title: 'Methodology Integration Framework: Supporting Diverse Development Approaches'
+version: 1.0.0
+---
+
 # Methodology Integration Framework: Supporting Diverse Development Approaches
 
 ## Overview
@@ -14,6 +27,7 @@ This document outlines DevSynth's approach to supporting multiple development me
 4. **Extensible Framework**: Clear interfaces for creating custom methodology integrations
 5. **Default with Options**: Sensible defaults that can be easily overridden
 
+
 ## The Methodology Adapter System
 
 DevSynth implements a Methodology Adapter pattern that:
@@ -23,6 +37,7 @@ DevSynth implements a Methodology Adapter pattern that:
 3. Integrates with external tools and processes
 4. Provides templates for common methodologies
 5. Supports creating custom implementations
+
 
 ### Available Methodology Adapters
 
@@ -35,12 +50,14 @@ DevSynth provides built-in support for several common development approaches:
 - Integration with common Agile tools (Jira, GitHub Projects, etc.)
 - Detailed in [Sprint-EDRR Integration](./sprint_edrr_integration.md)
 
+
 #### 2. Kanban Flow Adapter
 
 - Continuous progression through EDRR phases
 - WIP limits for each phase
 - Pull-based advancement
 - Integration with Kanban boards and visualization tools
+
 
 #### 3. Milestone-Based Adapter
 
@@ -49,12 +66,14 @@ DevSynth provides built-in support for several common development approaches:
 - Documentation generation for compliance
 - Support for regulated environments
 
+
 #### 4. Ad-Hoc Processing Adapter
 
 - On-demand execution of individual EDRR phases
 - No prescribed timing or sequence
 - Maximum flexibility for experimental or exploratory work
 - Support for individual contributor workflows
+
 
 #### 5. Custom Methodology Adapter
 
@@ -63,11 +82,12 @@ DevSynth provides built-in support for several common development approaches:
 - Documentation for creating adapters
 - Example implementations
 
+
 ## Configuring Your Preferred Methodology
 
-### Configuration in `manifest.yaml`
+### Configuration in `Project Configuration`
 
-The project's methodology preferences are specified in the `manifest.yaml` file:
+The project's methodology preferences are specified in the `Project Configuration` file:
 
 ```yaml
 methodologyConfiguration:
@@ -123,13 +143,17 @@ methodologyConfiguration:
 Methodology settings can be configured and updated via the CLI:
 
 ```bash
+
 # Set the methodology type
+
 devsynth config set methodology.type sprint
 
 # Configure phase-specific settings
+
 devsynth config set methodology.phases.expand.skipable false
 
 # Configure methodology-specific settings
+
 devsynth config set methodology.settings.sprintDuration 2
 ```
 
@@ -141,6 +165,7 @@ To create a custom methodology adapter for your team's specific needs:
 2. Implement the required interface methods
 3. Register your adapter with DevSynth
 4. Configure your project to use the custom adapter
+
 
 ### Example Custom Adapter
 
@@ -172,7 +197,9 @@ class MyTeamMethodologyAdapter(BaseMethodologyAdapter):
 Register your custom adapter in your project configuration:
 
 ```yaml
-# In manifest.yaml
+
+# In Project Configuration
+
 methodologyConfiguration:
   type: "custom"
   customAdapterPath: "./my_team_adapter.py"
@@ -186,7 +213,9 @@ Each methodology adapter includes built-in integration capabilities with common 
 ### Tool Integration Configuration
 
 ```yaml
-# In manifest.yaml
+
+# In Project Configuration
+
 methodologyConfiguration:
   type: "sprint"
   toolIntegration:
@@ -212,9 +241,9 @@ methodologyConfiguration:
 - Only a basic Sprint adapter is implemented; other methodologies are planned.
 - External tool integrations beyond Jira are still experimental.
 
+
 ## Conclusion
 
 DevSynth's Methodology Adapter System allows teams to leverage the power of the EDRR process while working within their preferred development methodology. By separating the core process from its timing and integration aspects, DevSynth provides the flexibility needed to support diverse development approaches while maintaining the benefits of its structured, iterative approach to software development.
 
 Whether your team uses Agile sprints, Kanban flow, milestone-based development, or a completely custom approach, DevSynth can adapt to your way of working rather than forcing you to adapt to it.
-

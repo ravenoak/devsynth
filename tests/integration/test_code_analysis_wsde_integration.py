@@ -1,0 +1,314 @@
+"""
+Integration test for the interaction between code analysis components and WSDE.
+
+This test verifies that the code analysis components (ProjectStateAnalyzer,
+SelfAnalyzer, CodeTransformer, AstWorkflowIntegration) can be used effectively
+within the WSDE framework to analyze and transform code during the development process.
+"""
+
+import os
+import pytest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
+from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
+from devsynth.application.code_analysis.transformer import CodeTransformer
+from devsynth.application.code_analysis.ast_workflow_integration import AstWorkflowIntegration
+from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.task import Task, TaskStatus
+
+
+class CodeAnalysisAgent(UnifiedAgent):
+    """An agent that uses code analysis components to analyze and transform code."""
+    
+    def __init__(self, name, code_analyzer, ast_transformer, project_analyzer, self_analyzer, code_transformer, ast_workflow):
+        """Initialize the agent with code analysis components."""
+        super().__init__(
+            config=AgentConfig(
+                name=name,
+                agent_type=AgentType.EXPERT,
+                expertise=["code analysis", "refactoring", "architecture"]
+            )
+        )
+        self.code_analyzer = code_analyzer
+        self.ast_transformer = ast_transformer
+        self.project_analyzer = project_analyzer
+        self.self_analyzer = self_analyzer
+        self.code_transformer = code_transformer
+        self.ast_workflow = ast_workflow
+        
+    def process(self, task):
+        """Process a task using code analysis components."""
+        if isinstance(task, dict):
+            # Handle dictionary-style tasks
+            if "analyze_code" in task:
+                code = task["analyze_code"]
+                return {
+                    "analysis": self.code_analyzer.analyze_code(code),
+                    "quality_metrics": self.ast_workflow._calculate_complexity(self.code_analyzer.analyze_code(code))
+                }
+            elif "transform_code" in task:
+                code = task["transform_code"]
+                transformations = task.get("transformations", ["remove_unused_imports", "remove_unused_variables"])
+                return {
+                    "transformed": self.code_transformer.transform_code(code, transformations)
+                }
+            elif "analyze_project" in task:
+                project_path = task["analyze_project"]
+                return {
+                    "project_analysis": self.project_analyzer.analyze()
+                }
+            elif "analyze_self" in task:
+                return {
+                    "self_analysis": self.self_analyzer.analyze()
+                }
+            elif "refine_implementation" in task:
+                code = task["refine_implementation"]
+                task_id = task.get("task_id", "test_task")
+                return {
+                    "refined": self.ast_workflow.refine_implementation(code, task_id)
+                }
+            else:
+                return {"error": "Unknown task type"}
+        elif isinstance(task, Task):
+            # Handle Task objects
+            task_data = task.data or {}
+            if "code" in task_data:
+                code = task_data["code"]
+                if task.task_type == "analyze":
+                    analysis = self.code_analyzer.analyze_code(code)
+                    quality_metrics = self.ast_workflow._calculate_complexity(analysis)
+                    task.result = {
+                        "analysis": analysis,
+                        "quality_metrics": quality_metrics
+                    }
+                elif task.task_type == "transform":
+                    transformations = task_data.get("transformations", ["remove_unused_imports", "remove_unused_variables"])
+                    transformed = self.code_transformer.transform_code(code, transformations)
+                    task.result = {
+                        "transformed": transformed
+                    }
+                elif task.task_type == "refine":
+                    refined = self.ast_workflow.refine_implementation(code, str(task.id))
+                    task.result = {
+                        "refined": refined
+                    }
+                else:
+                    task.result = {"error": "Unknown task type"}
+            else:
+                task.result = {"error": "No code provided"}
+            
+            task.status = TaskStatus.COMPLETED
+            return task
+        else:
+            return {"error": "Unsupported task format"}
+
+
+@pytest.fixture
+def wsde_team_with_code_analysis():
+    """Create a WSDE team with code analysis components."""
+    # Create memory manager
+    memory_manager = MemoryManager()
+    
+    # Create code analysis components
+    code_analyzer = CodeAnalyzer()
+    ast_transformer = AstTransformer()
+    
+    # Create a temporary project directory for testing
+    with pytest.MonkeyPatch.context() as mp:
+        with pytest.TempPathFactory.getbasetemp().joinpath("test_project").open("w") as f:
+            f.write("# Test project")
+        project_path = str(pytest.TempPathFactory.getbasetemp().joinpath("test_project"))
+        mp.setenv("DEVSYNTH_PROJECT_DIR", project_path)
+        
+        # Create project and self analyzers
+        project_analyzer = ProjectStateAnalyzer(project_path)
+        self_analyzer = SelfAnalyzer(project_path)
+        
+        # Create code transformer and AST workflow integration
+        code_transformer = CodeTransformer()
+        ast_workflow = AstWorkflowIntegration(memory_manager)
+        
+        # Create a code analysis agent
+        code_analysis_agent = CodeAnalysisAgent(
+            "code_analyst",
+            code_analyzer,
+            ast_transformer,
+            project_analyzer,
+            self_analyzer,
+            code_transformer,
+            ast_workflow
+        )
+        
+        # Create a code reviewer agent
+        code_reviewer_agent = CodeAnalysisAgent(
+            "code_reviewer",
+            code_analyzer,
+            ast_transformer,
+            project_analyzer,
+            self_analyzer,
+            code_transformer,
+            ast_workflow
+        )
+        
+        # Create WSDE team with the code analysis agents
+        wsde_team = WSDETeam()
+        wsde_team.add_agent(code_analysis_agent)
+        wsde_team.add_agent(code_reviewer_agent)
+        
+        yield wsde_team
+
+
+def test_code_analysis_in_wsde_team(wsde_team_with_code_analysis):
+    """Test that code analysis can be performed by a WSDE team."""
+    # Define a simple code analysis task
+    task_data = {
+        "analyze_code": """
+def calculate_sum(a, b):
+    result = a + b
+    return result
+        """
+    }
+    
+    # Get the code analyst agent
+    code_analyst = wsde_team_with_code_analysis.get_agent("code_analyst")
+    
+    # Process the task
+    result = code_analyst.process(task_data)
+    
+    # Verify that the code analysis was performed
+    assert "analysis" in result
+    assert "quality_metrics" in result
+    
+    # Verify that the analysis contains the expected information
+    analysis = result["analysis"]
+    assert analysis.get_functions()[0]["name"] == "calculate_sum"
+    
+    # Verify that the quality metrics were calculated
+    quality_metrics = result["quality_metrics"]
+    assert 0 <= quality_metrics <= 1
+
+
+def test_code_transformation_in_wsde_team(wsde_team_with_code_analysis):
+    """Test that code transformation can be performed by a WSDE team."""
+    # Define a code transformation task
+    task_data = {
+        "transform_code": """
+import os
+import sys
+import re  # This import is unused
+
+def calculate_sum(a, b):
+    # Redundant assignment
+    result = a + b
+    return result
+
+def main():
+    x = 5
+    y = 10
+    z = 15  # This variable is unused
+    total = calculate_sum(x, y)
+    print(f"The sum is {total}")
+        """,
+        "transformations": ["remove_unused_imports", "remove_unused_variables"]
+    }
+    
+    # Get the code analyst agent
+    code_analyst = wsde_team_with_code_analysis.get_agent("code_analyst")
+    
+    # Process the task
+    result = code_analyst.process(task_data)
+    
+    # Verify that the code transformation was performed
+    assert "transformed" in result
+    
+    # Verify that the transformed code doesn't contain unused imports and variables
+    transformed = result["transformed"]
+    assert "import re" not in transformed.transformed_code
+    assert "z = 15" not in transformed.transformed_code
+
+
+def test_code_review_collaboration_in_wsde_team(wsde_team_with_code_analysis):
+    """Test that code analysis agents can collaborate in a WSDE team."""
+    # Define a code to be analyzed and reviewed
+    code = """
+def calculate_sum(a, b):
+    # Redundant assignment
+    result = a + b
+    return result
+
+def main():
+    x = 5
+    y = 10
+    z = 15  # This variable is unused
+    total = calculate_sum(x, y)
+    print(f"The sum is {total}")
+    """
+    
+    # Create tasks for analysis and review
+    analysis_task = Task(
+        id="task1",
+        task_type="analyze",
+        data={"code": code},
+        assigned_to="code_analyst"
+    )
+    
+    review_task = Task(
+        id="task2",
+        task_type="transform",
+        data={"code": code, "transformations": ["remove_unused_variables"]},
+        assigned_to="code_reviewer"
+    )
+    
+    # Process the tasks
+    wsde_team_with_code_analysis.process_task(analysis_task)
+    wsde_team_with_code_analysis.process_task(review_task)
+    
+    # Verify that both tasks were completed
+    assert analysis_task.status == TaskStatus.COMPLETED
+    assert review_task.status == TaskStatus.COMPLETED
+    
+    # Verify that the analysis task produced the expected results
+    assert "analysis" in analysis_task.result
+    assert "quality_metrics" in analysis_task.result
+    
+    # Verify that the review task produced the expected results
+    assert "transformed" in review_task.result
+    transformed = review_task.result["transformed"]
+    assert "z = 15" not in transformed.transformed_code
+
+
+def test_code_refinement_in_wsde_team(wsde_team_with_code_analysis):
+    """Test that code refinement can be performed by a WSDE team."""
+    # Define a code refinement task
+    task_data = {
+        "refine_implementation": """
+def calculate(a, b):
+    # Redundant variable
+    result = a + b
+    return result
+        """,
+        "task_id": "test_refinement"
+    }
+    
+    # Get the code analyst agent
+    code_analyst = wsde_team_with_code_analysis.get_agent("code_analyst")
+    
+    # Process the task
+    result = code_analyst.process(task_data)
+    
+    # Verify that the code refinement was performed
+    assert "refined" in result
+    
+    # Verify that the refined code contains the expected improvements
+    refined = result["refined"]
+    assert "original_code" in refined
+    assert "refined_code" in refined
+    assert "improvements" in refined

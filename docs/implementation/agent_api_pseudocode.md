@@ -1,30 +1,32 @@
 ---
-title: "Agent API Pseudocode"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "implementation"
-  - "pseudocode"
-  - "api"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- implementation
+- pseudocode
+- api
+
+title: Agent API Pseudocode
+version: 1.0.0
 ---
 
-# Agent API
+# Agent API Pseudocode
 
 This example demonstrates the real API layer using FastAPI and the implemented
 `EDRRCoordinator`.
 
 ```python
 from fastapi import FastAPI
-from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.EDRR.coordinator import EDRRCoordinator
 from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.WSDE import WSDETeam
 
 app = FastAPI()
-memory = MemoryManager(adapters={"tinydb": TinyDBMemoryAdapter()})
+memory = MemoryManager(adapters={"TinyDB": TinyDBMemoryAdapter()})
 coordinator = EDRRCoordinator(
     memory_manager=memory,
     wsde_team=WSDETeam(),
@@ -34,7 +36,7 @@ coordinator = EDRRCoordinator(
     documentation_manager=None,
 )
 
-@app.post("/edrr-cycle")
+@app.post("/EDRR-cycle")
 async def run_cycle(payload: dict):
     coordinator.start_cycle(payload)
     return {"status": "started"}

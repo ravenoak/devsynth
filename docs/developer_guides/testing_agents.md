@@ -1,3 +1,15 @@
+---
+title: "Testing Agents in DevSynth"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "developer-guide"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # Testing Agents in DevSynth
 
 This guide explains how to test agent implementations in the DevSynth project, focusing on both unit testing and behavior-driven testing (BDD) approaches.
@@ -26,6 +38,7 @@ The unit tests for `BaseAgent` are located in `tests/unit/application/agents/tes
 4. **Role-specific functionality**
    - Testing role-specific prompts for Worker, Supervisor, Designer, Evaluator, and Primus roles
 
+
 ### Testing Concrete Agent Implementations
 
 When testing concrete agent implementations that extend `BaseAgent`, follow these guidelines:
@@ -34,6 +47,7 @@ When testing concrete agent implementations that extend `BaseAgent`, follow thes
 2. **Mock external dependencies** like LLM ports to isolate the agent's behavior
 3. **Test the `process` method** with various input scenarios
 4. **Verify that the agent's output** matches the expected format and content
+
 
 Example:
 
@@ -73,18 +87,23 @@ DevSynth uses pytest-bdd for behavior-driven testing. BDD tests for agents are o
 1. **Feature files** in `tests/behavior/features/` that describe agent behavior in Gherkin syntax
 2. **Step definition files** in `tests/behavior/steps/` that implement the steps
 
+
 ### Example: WSDE Agent Model
 
 The WSDE agent model is tested using BDD in:
+
 - Feature file: `tests/behavior/features/wsde_agent_model.feature`
 - Step definitions: `tests/behavior/steps/test_wsde_agent_model_steps.py`
 
+
 These tests verify the non-hierarchical, context-driven agent collaboration model, including:
+
 - Peer-based collaboration
 - Context-driven leadership
 - Autonomous collaboration
 - Consensus-based decision making
 - Dialectical review process
+
 
 ### Writing New BDD Tests for Agents
 
@@ -95,6 +114,7 @@ When writing new BDD tests for agents:
 3. **Use a context object** to share state between steps
 4. **Mock external dependencies** to isolate the agent's behavior
 5. **Make assertions** that verify the agent's behavior matches the expected outcomes
+
 
 ## Best Practices
 

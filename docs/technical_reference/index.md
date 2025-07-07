@@ -1,17 +1,17 @@
 ---
-title: "DevSynth Technical Reference"
-date: "2024-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2024-06-01'
+last_reviewed: '2024-06-01'
+status: published
 tags:
-  - "technical-reference"
-  - "api"
-  - "documentation"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2024-06-01"
+- technical-reference
+- api
+- documentation
+title: DevSynth Technical Reference
+version: 1.0.0
 ---
 
-# Technical Reference
+# DevSynth Technical Reference
 
 This section provides detailed technical information about DevSynth, including API references, error handling strategies, methodologies, and utilities.
 
@@ -22,7 +22,7 @@ This section provides detailed technical information about DevSynth, including A
 
 ## Methodologies and Frameworks
 
-- **[EDRR Methodology](expand_differentiate_refine_retrospect.md)**: Detailed technical reference for the Expand-Differentiate-Refine-Retrospect methodology.
+- **[EDRR Methodology](expand_differentiate_refine_retrospect.md)**: Detailed technical reference for the EDRR methodology.
 - **[Methodology Integration Framework](methodology_integration_framework.md)**: Technical details about the framework for integrating different methodologies.
 - **[Sprint EDRR Integration](sprint_edrr_integration.md)**: Technical reference for integrating EDRR with sprint methodologies.
 

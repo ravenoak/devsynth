@@ -5,6 +5,7 @@ version: "1.0.0"
 tags:
   - "development"
   - "dependencies"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-06-01"
@@ -27,6 +28,7 @@ Some features rely on additional packages. These dependencies are grouped using 
 - **`llm`** – Optional helpers for provider integrations.
 - **`dsp`** – Experimental [DSPy](https://github.com/stanford-oval/dspy) integration.
 - **`dev`** and **`docs`** – Development and documentation tooling.
+
 
 Example installation:
 

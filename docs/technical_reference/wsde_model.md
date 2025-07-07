@@ -1,3 +1,16 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- technical-reference
+
+title: WSDE Model Implementation Guide
+version: 1.0.0
+---
+
 # WSDE Model Implementation Guide
 
 ## Overview
@@ -32,36 +45,43 @@ def calculate_expertise_score(agent, task):
 ```
 
 Factors considered in expertise scoring include:
+
 - **Base Expertise**: Direct match between agent expertise and task requirements
 - **Experience**: Agent's historical experience with similar tasks
 - **Past Performance**: Agent's success rate on similar tasks
 - **Task Context**: Contextual factors such as domain, complexity, and phase
+
 
 #### Dynamic Role Switching
 
 The enhanced WSDE model supports dynamic role switching based on task context:
 
 ```python
+
 # Select Primus based on task context
+
 team.select_primus_by_expertise(task)
 
 # Assign roles based on current Primus
+
 team.assign_roles()
 
 # Later, when task context changes
+
 team.select_primus_by_expertise(new_task)
 team.assign_roles()
 ```
 
 This dynamic role switching ensures that leadership adapts to changing requirements throughout the development process.
 
-### Dialectical Reasoning
+## Dialectical Reasoning
 
 The WSDE model incorporates dialectical reasoning to improve solution quality. This process involves:
 
 1. **Thesis**: An initial solution or proposal
 2. **Antithesis**: Critical evaluation and identification of weaknesses
 3. **Synthesis**: A refined solution that addresses the identified weaknesses
+
 
 This dialectical process ensures that solutions are thoroughly examined and improved through critical thinking.
 
@@ -76,17 +96,19 @@ Decision-making in the WSDE model is based on consensus rather than authority. A
 The `WSDETeam` class is the core implementation of the WSDE model. It manages a team of agents and coordinates their collaboration.
 
 ```python
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.WSDE import WSDETeam
 
 # Create a team
+
 team = WSDETeam()
 
 # Add agents to the team
+
 team.add_agent(agent1)
 team.add_agent(agent2)
 ```
 
-### Role Management
+## Role Management
 
 The WSDE model includes several methods for managing agent roles:
 
@@ -94,6 +116,7 @@ The WSDE model includes several methods for managing agent roles:
 - `select_primus_by_expertise(task)`: Selects the Primus based on task context
 - `assign_roles()`: Assigns WSDE roles to agents
 - `get_agent_by_role(role)`: Gets an agent with a specific role
+
 
 ### Collaboration Methods
 
@@ -103,9 +126,10 @@ The WSDE model provides methods for agent collaboration:
 - `vote_on_critical_decision(task)`: Conducts a vote on a critical decision
 - `apply_enhanced_dialectical_reasoning(task, critic_agent)`: Applies dialectical reasoning to improve a solution
 
+
 ## Integration with EDRR Framework
 
-The WSDE model integrates with the Expand-Differentiate-Refine-Retrospect (EDRR) framework to provide a comprehensive approach to problem-solving.
+The WSDE model integrates with the EDRR (EDRR) framework to provide a comprehensive approach to problem-solving.
 
 ### Phase-Specific Role Assignment
 
@@ -147,12 +171,15 @@ The enhanced implementation includes:
 3. **Expertise Weighting**: Weights expertise scores based on phase requirements
 4. **Context Preservation**: Maintains context across phase transitions
 
+
 ### Quality-Based Phase Transitions
 
 The WSDE team contributes to quality-based phase transitions in the EDRR framework:
 
 ```python
+
 # In EnhancedEDRRCoordinator
+
 def _assess_phase_quality(self, phase=None):
     if phase is None:
         phase = self.current_phase
@@ -169,12 +196,14 @@ def _assess_phase_quality(self, phase=None):
     }
 ```
 
-### Micro-Cycle Collaboration
+## Micro-Cycle Collaboration
 
 The WSDE team collaborates on micro-cycles within each EDRR phase:
 
 ```python
+
 # In EnhancedEDRRCoordinator
+
 def _execute_micro_cycle(self, phase, iteration):
     # Create a micro-cycle task
     micro_task = self._create_micro_cycle_task(phase, iteration)
@@ -193,47 +222,56 @@ def _execute_micro_cycle(self, phase, iteration):
 ### Basic Usage
 
 ```python
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.WSDE import WSDETeam
 from devsynth.application.agents.unified_agent import UnifiedAgent
 
 # Create a team
+
 team = WSDETeam()
 
 # Add agents to the team
+
 team.add_agents([agent1, agent2, agent3])
 
 # Assign roles
+
 team.assign_roles()
 
 # Process a task
+
 task = {"description": "Implement a feature", "domain": "coding"}
 team.select_primus_by_expertise(task)
 
 # Build consensus
+
 consensus = team.build_consensus(task)
 ```
 
-### Integration with EDRR
+## Integration with EDRR
 
 ```python
-from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.EDRR.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.domain.models.WSDE import WSDETeam
 
 # Create a team
+
 team = WSDETeam()
 team.add_agents([agent1, agent2, agent3])
 
 # Create an EDRR coordinator
+
 coordinator = EnhancedEDRRCoordinator(
     wsde_team=team,
     # Other required parameters...
 )
 
 # Start a cycle
+
 task = {"description": "Implement a feature"}
 coordinator.start_cycle(task)
 
 # Progress through phases
+
 coordinator.progress_to_phase(Phase.DIFFERENTIATE)
 ```
 
@@ -273,6 +311,7 @@ result = team.apply_multi_disciplinary_dialectical_reasoning(
 3. **Phase-Specific Roles**: Use phase-specific role assignment for optimal EDRR integration.
 4. **Dialectical Improvement**: Apply dialectical reasoning to improve solution quality.
 5. **Consensus Building**: Use consensus building for important decisions to incorporate diverse perspectives.
+
 
 ## Conclusion
 

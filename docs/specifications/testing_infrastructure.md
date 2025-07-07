@@ -1,3 +1,16 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- specification
+
+title: DevSynth Post-MVP Testing Infrastructure
+version: 1.0.0
+---
+
 # DevSynth Post-MVP Testing Infrastructure
 
 ## 1. Introduction
@@ -14,6 +27,7 @@ The testing strategy for post-MVP DevSynth follows a comprehensive approach with
 4. **Property-Based Testing**: Testing with randomly generated inputs to find edge cases
 5. **Self-Testing**: Using DevSynth's own capabilities to test itself
 
+
 This multi-layered approach ensures that all aspects of the system are thoroughly tested, from individual components to complete workflows.
 
 ## 3. Testing Infrastructure Components
@@ -28,6 +42,7 @@ The unit testing framework will be expanded to cover all new components:
 - Minimum 80% code coverage for utility components
 - All public methods must have associated unit tests
 - All error handling paths must be tested
+
 
 #### Mock Infrastructure
 
@@ -222,8 +237,11 @@ The configuration file now includes a `formalVerification` section with two
 flags:
 
 - `propertyTesting` &ndash; enables these Hypothesis-based checks when set to
+
   `true`.
+
 - `smtChecks` &ndash; runs optional SMT solver verification passes when `true`.
+
 
 Both flags default to `false` in the example configurations.
 
@@ -258,7 +276,7 @@ def test_self_analysis():
 
 A comprehensive test data repository will be created to support testing:
 
-```
+```text
 test_data/
   sample_project/           # A sample Python project for testing
     pyproject.toml
@@ -354,7 +372,9 @@ class TestDataGenerator:
 A comprehensive CI pipeline will be implemented to ensure code quality:
 
 ```yaml
+
 # .github/workflows/ci.yml
+
 name: CI
 
 on:
@@ -373,41 +393,53 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
+
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
+
       run: |
         python -m pip install --upgrade pip
         pip install poetry
         poetry install
     - name: Lint with flake8
+
       run: |
         poetry run flake8 src tests
     - name: Type check with mypy
+
       run: |
         poetry run mypy src
     - name: Test with pytest
+
       run: |
         poetry run pytest tests/unit
     - name: Integration tests
+
       run: |
         poetry run pytest tests/integration
     - name: Behavior tests
+
       run: |
         poetry run pytest tests/behavior
     - name: Upload coverage
+
       uses: codecov/codecov-action@v3
 ```
 
-### 5.2 Pre-commit Hooks
+## 5.2 Pre-commit Hooks
 
 Pre-commit hooks will be implemented to ensure code quality before commits:
 
 ```yaml
+
 # .pre-commit-config.yaml
+
 repos:
+
 -   repo: https://github.com/pre-commit/pre-commit-hooks
+
     rev: v4.4.0
     hooks:
     -   id: trailing-whitespace
@@ -416,25 +448,31 @@ repos:
     -   id: check-added-large-files
 
 -   repo: https://github.com/pycqa/flake8
+
     rev: 6.0.0
     hooks:
     -   id: flake8
+
         additional_dependencies: [flake8-docstrings]
 
 -   repo: https://github.com/pycqa/isort
+
     rev: 5.12.0
     hooks:
     -   id: isort
 
 -   repo: https://github.com/psf/black
+
     rev: 23.3.0
     hooks:
     -   id: black
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
+
     rev: v1.3.0
     hooks:
     -   id: mypy
+
         additional_dependencies: [types-requests, types-PyYAML]
 ```
 
@@ -554,6 +592,7 @@ class TestReportGenerator:
    - Implement pre-commit hooks
    - Set up code coverage reporting
 
+
 ### Phase 2: Advanced Testing Features (Month 2)
 
 5. **Week 5**: Implement property-based testing
@@ -575,6 +614,7 @@ class TestReportGenerator:
    - Create test dashboards
    - Implement test trend analysis
    - Set up alerting for test failures
+
 
 ## 8. Conclusion
 

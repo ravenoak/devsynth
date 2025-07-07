@@ -7,6 +7,7 @@ tags:
   - "user guide"
   - "dialectical-reasoning"
   - "formal-verification"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-06-01"
@@ -19,6 +20,7 @@ This guide describes how to install DevSynth with minimal features and progressi
 ## Basic Installation
 
 1. Install DevSynth from PyPI using Poetry or pipx:
+
 
    ```bash
    poetry add devsynth
@@ -34,6 +36,7 @@ This guide describes how to install DevSynth with minimal features and progressi
 
 2. Initialize a new project:
 
+
    ```bash
    devsynth init --path ./my-project
    cd my-project
@@ -47,6 +50,7 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
 
 1. Edit `.devsynth/project.yaml` or use the CLI to enable the feature:
 
+
    ```bash
    devsynth config features.dialectical_reasoning true
    ```
@@ -57,9 +61,11 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
 
 2. Run your workflows as usual. When dialectical reasoning is enabled, agents will perform critique and synthesis steps automatically.
 
+
 ## Enabling Property-Based Tests
 
 1. Activate the `formalVerification.propertyTesting` flag:
+
 
    ```bash
    devsynth config formalVerification.propertyTesting true
@@ -68,6 +74,7 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
    This option adds Hypothesis-based property tests when you run `devsynth run-pipeline`.
 
 2. Execute the test generation command:
+
 
    ```bash
    devsynth run-pipeline --property-testing
@@ -79,6 +86,7 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
 
 1. Turn on SMT checks in your configuration:
 
+
    ```bash
    devsynth config formalVerification.smtChecks true
    ```
@@ -86,6 +94,7 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
    This writes `formalVerification.smtChecks: true` to `.devsynth/project.yaml`.
 
 2. Use the proof tools during test runs:
+
 
    ```bash
    devsynth run-pipeline --smt-checks

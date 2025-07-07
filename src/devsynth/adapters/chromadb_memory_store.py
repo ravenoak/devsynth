@@ -1,5 +1,6 @@
 try:
     import chromadb
+    from chromadb.api import ClientAPI
     from chromadb.config import Settings
     from chromadb.utils import embedding_functions
 except ImportError as e:  # pragma: no cover - optional dependency
@@ -37,7 +38,7 @@ def _cleanup_chromadb_clients():
             logging.error(f"Error cleaning up ChromaDB client {client_id}: {e}")
 
 @contextmanager
-def chromadb_client_context(persist_directory: str, instance_id: str = None) -> ContextManager[chromadb.Client]:
+def chromadb_client_context(persist_directory: str, instance_id: str = None) -> ContextManager[ClientAPI]:
     """
     Context manager for ChromaDB clients to ensure proper resource management.
 
@@ -69,7 +70,7 @@ def chromadb_client_context(persist_directory: str, instance_id: str = None) -> 
             anonymized_telemetry=False  # Disable telemetry
         )
 
-        client = chromadb.Client(settings)
+        client = ClientAPI(settings)
         _chromadb_clients[client_id] = client
         logging.debug(f"Created new ChromaDB client with ID {client_id} in directory {actual_persist_dir}")
 

@@ -4,7 +4,7 @@ date: "2025-06-16"
 version: "0.1.0"
 tags:
   - "architecture"
-  - "edrr"
+  - "EDRR"
   - "design"
 status: "draft"
 author: "DevSynth Team"
@@ -13,7 +13,7 @@ last_reviewed: "2025-06-16"
 
 # Recursive EDRR Architecture
 
-This document describes how the Expand-Differentiate-Refine-Retrospect (EDRR) framework operates recursively within DevSynth. It explains the flow of nested cycles and points to the underlying algorithms.
+This document describes how the EDRR (EDRR) framework operates recursively within DevSynth. It explains the flow of nested cycles and points to the underlying algorithms.
 
 ## Overview
 
@@ -30,6 +30,6 @@ See the [Recursive EDRR Pseudocode](../specifications/recursive_edrr_pseudocode.
 ## Related Documents
 
 - [EDRR Framework](edrr_framework.md)
-- [EDRR Cycle Specification](../specifications/edrr_cycle_specification.md)
+- [EDRR Specification](../specifications/edrr_cycle_specification.md)
 - [Recursive EDRR Pseudocode](../specifications/recursive_edrr_pseudocode.md)
 - [Delimiting Recursion Algorithms](../specifications/delimiting_recursion_algorithms.md)

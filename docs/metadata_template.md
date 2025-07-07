@@ -1,24 +1,25 @@
 ---
-title: "Document Title"
-date: "YYYY-MM-DD"  # or YYYY-MM-DDTHH:MM:SSZ (ISO 8601)
-version: "X.Y.Z"    # Semantic versioning for the document content
+author: Author Name
+date: YYYY-MM-DD
+last_reviewed: YYYY-MM-DD
+status: draft
 tags:
-  - "tag1"
-  - "tag2"
-  - "relevant_keyword"
-status: "draft"     # Allowed values: draft, review, published, archived
-author: "Author Name" # Optional: Original author or primary maintainer of this doc
-last_reviewed: "YYYY-MM-DD" # Optional: Date of last review
-# Add other custom fields as needed, but the above are recommended for consistency.
+
+- tag1
+- tag2
+- relevant_keyword
+
+title: Document Title
+version: X.Y.Z
 ---
 
-# Document Front-Matter Metadata Template
+# Document Title
 
 This document serves as a template and guide for the front-matter metadata to be included at the beginning of every Markdown file in the DevSynth project. Consistent metadata is crucial for documentation management, versioning, searchability, and for tools like DevSynth to ingest and analyze project artifacts.
 
 ## Field Explanations:
 
-*   **`title`**: (String, Required)
+- **`title`**: (String, Required)
     *   The main title of the document.
     *   Example: `"DevSynth Architecture Overview"`
 
@@ -51,6 +52,7 @@ This document serves as a template and guide for the front-matter metadata to be
     *   The date when the document was last reviewed for accuracy and relevance.
     *   Format: `YYYY-MM-DD`
     *   Example: `"2025-01-15"`
+
 
 ## Usage:
 

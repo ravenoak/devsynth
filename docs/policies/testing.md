@@ -1,3 +1,15 @@
+---
+title: "DevSynth Testing Policy"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "policy"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # DevSynth Testing Policy
 
 This document defines the testing policy for the DevSynth project, establishing standards and requirements for all test creation and maintenance. It serves as a governing policy that all contributors—both human and agentic—must follow to ensure the project's ongoing health, resilience, and stability.
@@ -10,6 +22,7 @@ This document defines the testing policy for the DevSynth project, establishing 
 4. **Enable Provider Agnosticism**: Tests must work with either OpenAI or LM Studio.
 5. **Support Traceability**: Tests must be traceable to requirements and specifications.
 6. **Facilitate Continuous Integration**: Tests must be automatable and reliable in CI environments.
+
 
 ## Testing Requirements
 
@@ -28,6 +41,7 @@ This document defines the testing policy for the DevSynth project, establishing 
 3. **Refactoring**: Code refactoring must not break existing tests, and may require:
    - Updates to existing tests
    - Additional tests for new patterns or components
+
 
 ### Test Types and Coverage
 
@@ -49,6 +63,7 @@ This document defines the testing policy for the DevSynth project, establishing 
    - Should use hypothesis or similar for generating test cases
    - Should verify properties across a range of inputs
 
+
 ### Test Isolation and Cleanliness
 
 1. **Temporary Resources**: Tests must use temporary directories for all artifacts.
@@ -66,9 +81,10 @@ This document defines the testing policy for the DevSynth project, establishing 
 4. **Verification**: CI must verify that tests do not leave artifacts.
    - Tests that pollute the workspace will fail CI checks
 
+
 ### Provider Abstraction
 
-1. **LLM Provider Testing**: Tests involving LLMs must use the provider abstraction.
+1. **Provider Testing**: Tests involving LLMs must use the provider abstraction.
    - Must use the `llm_provider` or `llm_complete` fixtures
    - Must not directly instantiate provider classes without abstraction
 
@@ -79,6 +95,7 @@ This document defines the testing policy for the DevSynth project, establishing 
 3. **Mock Providers**: Unit tests should use mock providers where appropriate.
    - Should avoid actual API calls in unit tests
    - Should test fallback and error handling
+
 
 ### Test Documentation and Traceability
 
@@ -94,6 +111,7 @@ This document defines the testing policy for the DevSynth project, establishing 
    - Should include comments linking to requirement IDs
    - Should be listed in the Requirements Traceability Matrix
 
+
 ## Testing Process
 
 ### Creating Tests
@@ -106,6 +124,7 @@ This document defines the testing policy for the DevSynth project, establishing 
    - Review for coverage, isolation, and cleanliness
    - Ensure tests follow this policy
 
+
 ### Running Tests
 
 1. **Local Testing**: Contributors must run tests locally before submitting PRs.
@@ -116,6 +135,7 @@ This document defines the testing policy for the DevSynth project, establishing 
    - CI will run the full test suite
    - CI will verify test isolation and cleanliness
    - CI will check test coverage
+
 
 ### Test Maintenance
 
@@ -131,6 +151,7 @@ This document defines the testing policy for the DevSynth project, establishing 
    - Tests for deprecated features should be marked but not removed
    - Tests should be removed only when the feature is removed
 
+
 ## Enforcement
 
 1. **CI Checks**: Automated checks will enforce this policy.
@@ -145,6 +166,7 @@ This document defines the testing policy for the DevSynth project, establishing 
 3. **Documentation**: Testing requirements must be documented.
    - Policy must be available in the repository
    - Guidelines must be available for contributors
+
 
 ---
 

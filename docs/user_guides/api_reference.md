@@ -6,6 +6,7 @@ tags:
   - "api"
   - "reference"
   - "user-guide"
+
 status: "draft"
 author: "DevSynth Team"
 ---
@@ -20,6 +21,7 @@ This guide demonstrates how to interact with DevSynth programmatically using the
 - `POST /gather` – collect project goals and constraints
 - `POST /synthesize` – run the synthesis pipeline
 - `GET /status` – fetch messages from the most recent invocation
+
 
 All requests must include the bearer token header `Authorization: Bearer <token>`.
 

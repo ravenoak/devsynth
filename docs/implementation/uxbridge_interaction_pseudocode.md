@@ -1,14 +1,16 @@
 ---
-title: "UXBridge Interaction Flow"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "implementation"
-  - "pseudocode"
-  - "uxbridge"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- implementation
+- pseudocode
+- uxbridge
+
+title: UXBridge Interaction Flow
+version: 1.0.0
 ---
 
 # UXBridge Interaction Flow
@@ -18,14 +20,13 @@ implementation with the `EDRRCoordinator`.
 
 ```python
 from devsynth.interface.ux_bridge import UXBridge
-from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.EDRR.coordinator import EDRRCoordinator
 from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
-
+from devsynth.domain.models.WSDE import WSDETeam
 
 def run_workflow(bridge: UXBridge) -> None:
-    memory = MemoryManager(adapters={"tinydb": TinyDBMemoryAdapter()})
+    memory = MemoryManager(adapters={"TinyDB": TinyDBMemoryAdapter()})
     coordinator = EDRRCoordinator(
         memory_manager=memory,
         wsde_team=WSDETeam(),

@@ -1,17 +1,17 @@
 ---
-title: "DevSynth Developer Guides"
-date: "2024-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2024-06-01'
+last_reviewed: '2024-06-01'
+status: published
 tags:
-  - "developer-guides"
-  - "contributing"
-  - "development"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2024-06-01"
+- developer-guides
+- contributing
+- development
+title: DevSynth Developer Guides
+version: 1.0.0
 ---
 
-# Developer Guides
+# DevSynth Developer Guides
 
 This section is for developers contributing to the DevSynth project or those looking to understand its internal workings for extension or integration.
 

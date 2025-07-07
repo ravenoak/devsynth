@@ -4,7 +4,11 @@ Domain models for code analysis.
 
 from typing import Dict, List, Any, Optional
 
-from devsynth.domain.interfaces.code_analysis import FileAnalysisResult, CodeAnalysisResult
+from devsynth.domain.interfaces.code_analysis import (
+    FileAnalysisResult, 
+    CodeAnalysisResult,
+    TransformationResult
+)
 
 
 class FileAnalysis(FileAnalysisResult):
@@ -127,4 +131,45 @@ class CodeAnalysis(CodeAnalysisResult):
             "variables": file_analysis.get_variables(),
             "docstring": file_analysis.get_docstring(),
             "metrics": file_analysis.get_metrics()
+        }
+
+
+class CodeTransformation(TransformationResult):
+    """Implementation of TransformationResult for storing code transformation data."""
+
+    def __init__(
+        self,
+        original_code: str,
+        transformed_code: str,
+        changes: List[Dict[str, Any]]
+    ):
+        """Initialize a CodeTransformation instance.
+
+        Args:
+            original_code: The original code before transformation
+            transformed_code: The transformed code after transformation
+            changes: List of dictionaries containing change information
+        """
+        self._original_code = original_code
+        self._transformed_code = transformed_code
+        self._changes = changes
+
+    def get_original_code(self) -> str:
+        """Get the original code before transformation."""
+        return self._original_code
+
+    def get_transformed_code(self) -> str:
+        """Get the transformed code after transformation."""
+        return self._transformed_code
+
+    def get_changes(self) -> List[Dict[str, Any]]:
+        """Get the changes made during transformation."""
+        return self._changes
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the CodeTransformation object to a dictionary representation."""
+        return {
+            "original_code": self._original_code,
+            "transformed_code": self._transformed_code,
+            "changes": self._changes
         }

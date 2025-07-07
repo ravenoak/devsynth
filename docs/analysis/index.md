@@ -1,3 +1,14 @@
+---
+title: "Analysis"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "analysis"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # Analysis
 
 This section contains various analysis documents related to the DevSynth project, including evaluations, recommendations, and technical deep dives.

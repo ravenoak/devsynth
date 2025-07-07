@@ -1,8 +1,20 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- policy
+title: Maintenance Policy
+version: 1.0.0
+---
+
 # Maintenance Policy
 
 This policy defines best practices for ongoing support, updates, and knowledge continuity in DevSynth.
 
 ## Key Practices
+
 - Maintain a maintenance plan in `docs/maintenance_plan.md` (release/versioning, update schedule, deprecated features).
 - Use issue tracking and triage conventions; assign/label issues to avoid duplicate work.
 - Require documentation updates with all code/feature changes.
@@ -12,12 +24,13 @@ This policy defines best practices for ongoing support, updates, and knowledge c
 - Provide handoff/retirement procedures for agents/components.
 
 ## Artifacts
+
 - Maintenance Plan: `docs/maintenance_plan.md`
 - Changelog: `CHANGELOG.md`
 - Issue Templates: `.github/ISSUE_TEMPLATE/`
 - Dependency Files: `requirements.txt`, `pyproject.toml`
 
 ## References
+
 - See [Deployment Policy](deployment.md) for release/rollback.
 - See [Development Policy](development.md) for code quality and documentation.
-

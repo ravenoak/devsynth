@@ -1,8 +1,20 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- policy
+title: Development Policy
+version: 1.0.0
+---
+
 # Development Policy
 
 This policy defines best practices for implementation, code quality, collaboration, and security in DevSynth.
 
 ## Key Practices
+
 - Follow the [Contributing Guide](../developer_guides/contributing.md) for branching, PRs, and commit conventions.
 - Reference requirement IDs in commit messages, PRs, and code/test docstrings for traceability.
 - Adhere to the [Code Style Guide](../developer_guides/code_style.md) and use automated tools (Black, isort, flake8).
@@ -12,6 +24,7 @@ This policy defines best practices for implementation, code quality, collaborati
 - Update documentation and changelog with every significant code change.
 
 ## Artifacts
+
 - Contribution Guide: `docs/developer_guides/contributing.md`
 - Code Style Guide: `docs/developer_guides/code_style.md`
 - Changelog: `CHANGELOG.md`
@@ -19,6 +32,6 @@ This policy defines best practices for implementation, code quality, collaborati
 - Security Policy: `docs/policies/security.md` (if present)
 
 ## References
+
 - See [Design Policy](design.md) for architecture and interface contracts.
 - See [Testing Policy](testing.md) for test requirements.
-

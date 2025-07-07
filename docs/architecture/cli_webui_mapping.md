@@ -1,18 +1,20 @@
 ---
-title: "CLI to WebUI Command Mapping"
-date: "2025-06-19"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-19'
+last_reviewed: '2025-06-19'
+status: draft
 tags:
-  - "architecture"
-  - "ux"
-  - "cli"
-  - "webui"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-19"
+
+- architecture
+- ux
+- cli
+- webui
+
+title: CLI to WebUI Command Mapping
+version: 1.0.0
 ---
 
-# CLI ↔ WebUI Command Mapping
+# CLI to WebUI Command Mapping
 
 The table below maps each DevSynth CLI command to the WebUI page or action that
 executes the same workflow. `N/A` indicates that no equivalent page is currently
@@ -37,7 +39,7 @@ backend functions.
 | `serve`                   | N/A (planned server management page; currently runs API server from CLI)                       |
 | `dbschema`                | N/A (planned **Database** helper page)               |
 | `doctor` / `check`        | **Doctor** – Diagnostics page   |
-| `edrr-cycle`              | **EDRR Cycle** – Cycle execution page   |
+| `EDRR-cycle`              | **EDRR** – Cycle execution page   |
 | `align`                   | **Alignment** – SDLC consistency checks   |
 | `alignment-metrics`       | N/A (planned **Reports** page)                       |
 | `inspect-config`          | N/A (configuration analysis section)                 |
@@ -63,6 +65,7 @@ The following CLI commands remain **N/A** in the WebUI (all planned for future i
 - `generate-docs` (planned)
 - `ingest` (planned)
 - `apispec` (planned)
+
 
 Planned pages will integrate these commands into the WebUI. The `refactor` command is expected to appear in the **Analysis** section for automated improvement suggestions. A new operations page will manage the API server for `serve`, and `dbschema` will hook into the **Database** helper page for schema visualization.
 

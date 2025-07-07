@@ -1,0 +1,251 @@
+"""
+Integration test for the interaction between code analysis components and EDRR.
+
+This test verifies that the code analysis components (ProjectStateAnalyzer,
+SelfAnalyzer, CodeTransformer, AstWorkflowIntegration) can be used effectively
+within the EDRR framework to analyze and transform code during the development process.
+"""
+
+import os
+import pytest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
+from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
+from devsynth.application.code_analysis.transformer import CodeTransformer
+from devsynth.application.code_analysis.ast_workflow_integration import AstWorkflowIntegration
+from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.methodology.base import Phase
+from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.domain.models.memory import MemoryType
+
+
+class CodeAnalysisAgent(UnifiedAgent):
+    """An agent that uses code analysis components to analyze and transform code."""
+    
+    def __init__(self, name, code_analyzer, ast_transformer, project_analyzer, self_analyzer, code_transformer, ast_workflow):
+        """Initialize the agent with code analysis components."""
+        super().__init__(
+            config=AgentConfig(
+                name=name,
+                agent_type=AgentType.EXPERT,
+                expertise=["code analysis", "refactoring", "architecture"]
+            )
+        )
+        self.code_analyzer = code_analyzer
+        self.ast_transformer = ast_transformer
+        self.project_analyzer = project_analyzer
+        self.self_analyzer = self_analyzer
+        self.code_transformer = code_transformer
+        self.ast_workflow = ast_workflow
+        
+    def process(self, task):
+        """Process a task using code analysis components."""
+        if "analyze_code" in task:
+            code = task["analyze_code"]
+            return {
+                "analysis": self.code_analyzer.analyze_code(code),
+                "quality_metrics": self.ast_workflow._calculate_complexity(self.code_analyzer.analyze_code(code))
+            }
+        elif "transform_code" in task:
+            code = task["transform_code"]
+            transformations = task.get("transformations", ["remove_unused_imports", "remove_unused_variables"])
+            return {
+                "transformed": self.code_transformer.transform_code(code, transformations)
+            }
+        elif "analyze_project" in task:
+            project_path = task["analyze_project"]
+            return {
+                "project_analysis": self.project_analyzer.analyze()
+            }
+        elif "analyze_self" in task:
+            return {
+                "self_analysis": self.self_analyzer.analyze()
+            }
+        elif "refine_implementation" in task:
+            code = task["refine_implementation"]
+            task_id = task.get("task_id", "test_task")
+            return {
+                "refined": self.ast_workflow.refine_implementation(code, task_id)
+            }
+        else:
+            return {"error": "Unknown task type"}
+
+
+@pytest.fixture
+def code_analysis_coordinator():
+    """Create an EDRR coordinator with code analysis components."""
+    # Create memory manager
+    memory_manager = MemoryManager()
+    
+    # Create code analysis components
+    code_analyzer = CodeAnalyzer()
+    ast_transformer = AstTransformer()
+    
+    # Create a temporary project directory for testing
+    with pytest.MonkeyPatch.context() as mp:
+        with pytest.TempPathFactory.getbasetemp().joinpath("test_project").open("w") as f:
+            f.write("# Test project")
+        project_path = str(pytest.TempPathFactory.getbasetemp().joinpath("test_project"))
+        mp.setenv("DEVSYNTH_PROJECT_DIR", project_path)
+        
+        # Create project and self analyzers
+        project_analyzer = ProjectStateAnalyzer(project_path)
+        self_analyzer = SelfAnalyzer(project_path)
+        
+        # Create code transformer and AST workflow integration
+        code_transformer = CodeTransformer()
+        ast_workflow = AstWorkflowIntegration(memory_manager)
+        
+        # Create a code analysis agent
+        code_analysis_agent = CodeAnalysisAgent(
+            "code_analyst",
+            code_analyzer,
+            ast_transformer,
+            project_analyzer,
+            self_analyzer,
+            code_transformer,
+            ast_workflow
+        )
+        
+        # Create WSDE team with the code analysis agent
+        wsde_team = WSDETeam()
+        wsde_team.add_agent(code_analysis_agent)
+        
+        # Create prompt manager and documentation manager
+        prompt_manager = PromptManager()
+        doc_manager = DocumentationManager()
+        
+        # Create EDRR coordinator
+        coordinator = EnhancedEDRRCoordinator(
+            wsde_team=wsde_team,
+            memory_manager=memory_manager,
+            prompt_manager=prompt_manager,
+            documentation_manager=doc_manager
+        )
+        
+        yield coordinator
+
+
+def test_code_analysis_in_edrr_workflow(code_analysis_coordinator):
+    """Test that code analysis components can be used in an EDRR workflow."""
+    # Define a simple code analysis task
+    task = {
+        "analyze_code": """
+def calculate_sum(a, b):
+    result = a + b
+    return result
+        """
+    }
+    
+    # Mock the LLM provider to avoid actual API calls
+    with patch("devsynth.application.edrr.edrr_coordinator_enhanced.EnhancedEDRRCoordinator._get_llm_response") as mock_llm:
+        # Set up the mock to return a simple response
+        mock_llm.return_value = "This code looks good."
+        
+        # Execute the task using the EDRR coordinator
+        result = code_analysis_coordinator.execute_single_agent_task(
+            task=task,
+            agent_name="code_analyst",
+            phase=Phase.ANALYSIS
+        )
+        
+        # Verify that the code analysis was performed
+        assert "analysis" in result
+        assert "quality_metrics" in result
+        
+        # Verify that the analysis contains the expected information
+        analysis = result["analysis"]
+        assert analysis.get_functions()[0]["name"] == "calculate_sum"
+        
+        # Verify that the quality metrics were calculated
+        quality_metrics = result["quality_metrics"]
+        assert 0 <= quality_metrics <= 1
+
+
+def test_code_transformation_in_edrr_workflow(code_analysis_coordinator):
+    """Test that code transformation can be performed in an EDRR workflow."""
+    # Define a code transformation task
+    task = {
+        "transform_code": """
+import os
+import sys
+import re  # This import is unused
+
+def calculate_sum(a, b):
+    # Redundant assignment
+    result = a + b
+    return result
+
+def main():
+    x = 5
+    y = 10
+    z = 15  # This variable is unused
+    total = calculate_sum(x, y)
+    print(f"The sum is {total}")
+        """,
+        "transformations": ["remove_unused_imports", "remove_unused_variables"]
+    }
+    
+    # Mock the LLM provider to avoid actual API calls
+    with patch("devsynth.application.edrr.edrr_coordinator_enhanced.EnhancedEDRRCoordinator._get_llm_response") as mock_llm:
+        # Set up the mock to return a simple response
+        mock_llm.return_value = "Code has been transformed."
+        
+        # Execute the task using the EDRR coordinator
+        result = code_analysis_coordinator.execute_single_agent_task(
+            task=task,
+            agent_name="code_analyst",
+            phase=Phase.IMPLEMENTATION
+        )
+        
+        # Verify that the code transformation was performed
+        assert "transformed" in result
+        
+        # Verify that the transformed code doesn't contain unused imports and variables
+        transformed = result["transformed"]
+        assert "import re" not in transformed.transformed_code
+        assert "z = 15" not in transformed.transformed_code
+
+
+def test_code_refinement_in_edrr_workflow(code_analysis_coordinator):
+    """Test that code refinement can be performed in an EDRR workflow."""
+    # Define a code refinement task
+    task = {
+        "refine_implementation": """
+def calculate(a, b):
+    # Redundant variable
+    result = a + b
+    return result
+        """,
+        "task_id": "test_refinement"
+    }
+    
+    # Mock the LLM provider to avoid actual API calls
+    with patch("devsynth.application.edrr.edrr_coordinator_enhanced.EnhancedEDRRCoordinator._get_llm_response") as mock_llm:
+        # Set up the mock to return a simple response
+        mock_llm.return_value = "Code has been refined."
+        
+        # Execute the task using the EDRR coordinator
+        result = code_analysis_coordinator.execute_single_agent_task(
+            task=task,
+            agent_name="code_analyst",
+            phase=Phase.REFINEMENT
+        )
+        
+        # Verify that the code refinement was performed
+        assert "refined" in result
+        
+        # Verify that the refined code contains the expected improvements
+        refined = result["refined"]
+        assert "original_code" in refined
+        assert "refined_code" in refined
+        assert "improvements" in refined

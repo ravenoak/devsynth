@@ -1,3 +1,16 @@
+---
+title: "DevSynth Configuration and Storage System"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "developer-guide"
+  - "configuration"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # DevSynth Configuration and Storage System
 
 This document provides a comprehensive overview of the DevSynth configuration and storage systems, including where resources are stored and how they're configured.
@@ -9,11 +22,14 @@ DevSynth uses a hierarchical configuration system with both global and project-l
 1. **Global Configuration**: Stored in `~/.devsynth/config/global_config.yaml`
 2. **Project Configuration**: Stored in `.devsynth/devsynth.yml` for projects managed by DevSynth
 
+
 The configuration system follows a precedence order:
+
 1. Environment variables (highest precedence)
 2. Project-level configuration in `.devsynth/devsynth.yml` (for projects managed by DevSynth)
 3. Global configuration in `~/.devsynth/config/global_config.yaml`
 4. Default values (lowest precedence)
+
 
 Note: The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. If a project is not managed by DevSynth, it will not have a `.devsynth/` directory or a project configuration file.
 
@@ -24,6 +40,7 @@ The `.devsynth/devsynth.yml` file is the configuration file for projects managed
 The project configuration file follows a schema defined in `src/devsynth/schemas/project_schema.json` and can be validated using the `devsynth validate-manifest` command (formerly `validate-manifest`).
 
 Example devsynth.yml:
+
 ```yaml
 metadata:
   name: my-project
@@ -46,6 +63,7 @@ goals: Build a demo application
     - "**/.git/**"
     - "**/venv/**"
     - "**/.env"
+
 ```
 
 ## Storage System
@@ -72,6 +90,7 @@ Global resources are shared across all DevSynth projects on the system:
    - Stores global memory files for DevSynth
    - Includes vector databases, context history, etc. that can be shared across projects
 
+
 ### Project-Level Resources
 
 Project-level resources are specific to each DevSynth project:
@@ -92,6 +111,7 @@ Project-level resources are specific to each DevSynth project:
    - Stores project-specific memory files
    - Includes vector databases, context history, etc. that are specific to the project
 
+
 ## Managing Configuration
 
 DevSynth provides several commands for managing configuration:
@@ -100,11 +120,12 @@ DevSynth provides several commands for managing configuration:
 - `devsynth inspect-config` (formerly `analyze-manifest`): Analyzes and updates the `.devsynth/devsynth.yml` file based on the actual project structure
 - `devsynth validate-manifest` (formerly `validate-manifest`): Validates the `.devsynth/devsynth.yml` file against its schema
 
+
 ### Configuration Schema and Loader
 
 The unified configuration loader searches for `.devsynth/devsynth.yml` or a `[tool.devsynth]` section in `pyproject.toml`. Both formats share common fields:
 
-```
+```text
 project_root: str
 structure: str
 language: str

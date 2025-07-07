@@ -1,3 +1,18 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- user-guide
+- cli
+- reference
+
+title: DevSynth CLI Command Reference
+version: 1.0.0
+---
+
 # DevSynth CLI Command Reference
 
 ## Introduction
@@ -22,6 +37,7 @@ These options are available for all DevSynth commands:
 Initialize a new DevSynth project or configure an existing one.
 
 **Usage:**
+
 ```bash
 devsynth init [OPTIONS]
 ```
@@ -35,22 +51,28 @@ devsynth init [OPTIONS]
 | `--goals TEXT` | High-level goals or description of the project |
 
 **Examples:**
+
 ```bash
+
 # Initialize a new project in the current directory
+
 devsynth init
 
 # Initialize a new Python project in ./my-project
+
 devsynth init --path ./my-project --language python
 
 # Initialize a project with specific goals
+
 devsynth init --goals "A CLI tool for managing tasks"
 ```
 
-### spec
+## spec
 
 Generate specifications from requirements.
 
 **Usage:**
+
 ```bash
 devsynth spec [OPTIONS]
 ```
@@ -63,22 +85,28 @@ devsynth spec [OPTIONS]
 | `--format TEXT` | Output format (markdown, json, yaml) (default: markdown) |
 
 **Examples:**
+
 ```bash
+
 # Generate specifications from the default requirements file
+
 devsynth spec
 
 # Generate specifications from a custom requirements file
+
 devsynth spec --requirements-file docs/requirements.md
 
 # Generate specifications in JSON format
+
 devsynth spec --format json
 ```
 
-### test
+## test
 
 Generate tests from specifications.
 
 **Usage:**
+
 ```bash
 devsynth test [OPTIONS]
 ```
@@ -91,22 +119,28 @@ devsynth test [OPTIONS]
 | `--framework TEXT` | Test framework to use (pytest, unittest) (default: pytest) |
 
 **Examples:**
+
 ```bash
+
 # Generate tests from the default specifications file
+
 devsynth test
 
 # Generate tests from a custom specifications file
+
 devsynth test --spec-file docs/specs.md
 
 # Generate tests using unittest framework
+
 devsynth test --framework unittest
 ```
 
-### code
+## code
 
 Generate code from tests.
 
 **Usage:**
+
 ```bash
 devsynth code [OPTIONS]
 ```
@@ -118,22 +152,28 @@ devsynth code [OPTIONS]
 | `--language TEXT` | Programming language to use (default: from project config) |
 
 **Examples:**
+
 ```bash
+
 # Generate code from tests
+
 devsynth code
 
 # Generate code in a custom directory
+
 devsynth code --output-dir lib
 
 # Generate code in a specific language
+
 devsynth code --language typescript
 ```
 
-### run-pipeline
+## run-pipeline
 
 Run the complete synthesis pipeline (spec, test, code).
 
 **Usage:**
+
 ```bash
 devsynth run-pipeline [OPTIONS]
 ```
@@ -145,22 +185,28 @@ devsynth run-pipeline [OPTIONS]
 | `--requirements-file TEXT` | Path to the requirements file (default: requirements.md) |
 
 **Examples:**
+
 ```bash
+
 # Run the complete pipeline
+
 devsynth run-pipeline
 
 # Run the pipeline for unit tests only
+
 devsynth run-pipeline --target unit
 
 # Run the pipeline with a custom requirements file
+
 devsynth run-pipeline --requirements-file docs/requirements.md
 ```
 
-### config
+## config
 
 View or modify DevSynth configuration.
 
 **Usage:**
+
 ```bash
 devsynth config [OPTIONS] [KEY] [VALUE]
 ```
@@ -173,14 +219,19 @@ devsynth config [OPTIONS] [KEY] [VALUE]
 | `--file TEXT` | Path to the configuration file (default: .devsynth/config.yaml) |
 
 **Examples:**
+
 ```bash
+
 # List all configuration settings
+
 devsynth config --list
 
 # Set the default language
+
 devsynth config language python
 
 # Reset configuration to default values
+
 devsynth config --reset
 ```
 
@@ -191,6 +242,7 @@ devsynth config --reset
 Run the requirements gathering wizard.
 
 **Usage:**
+
 ```bash
 devsynth gather [OPTIONS]
 ```
@@ -202,19 +254,24 @@ devsynth gather [OPTIONS]
 | `--interactive` | Run in interactive mode (default: True) |
 
 **Examples:**
+
 ```bash
+
 # Run the requirements gathering wizard
+
 devsynth gather
 
 # Run the wizard and save to a custom file
+
 devsynth gather --output-file docs/requirements.yaml
 ```
 
-### inspect
+## inspect
 
 Inspect and analyze requirements or code.
 
 **Usage:**
+
 ```bash
 devsynth inspect [OPTIONS] [FILE]
 ```
@@ -226,22 +283,28 @@ devsynth inspect [OPTIONS] [FILE]
 | `--output-file TEXT` | Path where the analysis will be written |
 
 **Examples:**
+
 ```bash
+
 # Inspect a requirements file
+
 devsynth inspect requirements.md
 
 # Inspect a code file interactively
+
 devsynth inspect src/main.py --interactive
 
 # Inspect a requirements file and save the analysis
+
 devsynth inspect requirements.md --output-file analysis.md
 ```
 
-### refactor
+## refactor
 
 Suggest refactoring improvements for code.
 
 **Usage:**
+
 ```bash
 devsynth refactor [OPTIONS] [FILE]
 ```
@@ -253,22 +316,28 @@ devsynth refactor [OPTIONS] [FILE]
 | `--apply` | Apply the suggested refactorings (default: False) |
 
 **Examples:**
+
 ```bash
+
 # Suggest refactoring improvements for a file
+
 devsynth refactor src/main.py
 
 # Apply refactoring improvements to a file
+
 devsynth refactor src/main.py --apply
 
 # Save refactored code to a new file
+
 devsynth refactor src/main.py --output-file src/main_refactored.py
 ```
 
-### webapp
+## webapp
 
 Generate a web application scaffold.
 
 **Usage:**
+
 ```bash
 devsynth webapp [OPTIONS]
 ```
@@ -280,19 +349,24 @@ devsynth webapp [OPTIONS]
 | `--output-dir TEXT` | Directory where the web application will be generated (default: webapp) |
 
 **Examples:**
+
 ```bash
+
 # Generate a Flask web application
+
 devsynth webapp --framework flask
 
 # Generate a Django web application in a custom directory
+
 devsynth webapp --framework django --output-dir my_webapp
 ```
 
-### serve
+## serve
 
 Start the DevSynth API server.
 
 **Usage:**
+
 ```bash
 devsynth serve [OPTIONS]
 ```
@@ -305,22 +379,28 @@ devsynth serve [OPTIONS]
 | `--reload` | Enable auto-reload on code changes (default: False) |
 
 **Examples:**
+
 ```bash
+
 # Start the API server
+
 devsynth serve
 
 # Start the API server on a custom host and port
+
 devsynth serve --host 0.0.0.0 --port 9000
 
 # Start the API server with auto-reload
+
 devsynth serve --reload
 ```
 
-### dbschema
+## dbschema
 
 Generate database schema from models.
 
 **Usage:**
+
 ```bash
 devsynth dbschema [OPTIONS]
 ```
@@ -333,22 +413,28 @@ devsynth dbschema [OPTIONS]
 | `--dialect TEXT` | SQL dialect to use (sqlite, postgresql, mysql) (default: sqlite) |
 
 **Examples:**
+
 ```bash
+
 # Generate a SQLite schema from models
+
 devsynth dbschema
 
 # Generate a PostgreSQL schema from models in a custom directory
+
 devsynth dbschema --models-dir app/models --dialect postgresql
 
 # Generate a schema and save it to a custom file
+
 devsynth dbschema --output-file db/schema.sql
 ```
 
-### webui
+## webui
 
 Start the DevSynth Web UI.
 
 **Usage:**
+
 ```bash
 devsynth webui [OPTIONS]
 ```
@@ -360,14 +446,19 @@ devsynth webui [OPTIONS]
 | `--browser` | Open the Web UI in a browser (default: True) |
 
 **Examples:**
+
 ```bash
+
 # Start the Web UI
+
 devsynth webui
 
 # Start the Web UI on a custom port
+
 devsynth webui --port 9501
 
 # Start the Web UI without opening a browser
+
 devsynth webui --browser=False
 ```
 
@@ -378,6 +469,7 @@ devsynth webui --browser=False
 Check the health of your DevSynth installation and project.
 
 **Usage:**
+
 ```bash
 devsynth doctor [OPTIONS]
 ```
@@ -389,50 +481,62 @@ devsynth doctor [OPTIONS]
 | `--fix` | Attempt to fix issues automatically (default: False) |
 
 **Examples:**
+
 ```bash
+
 # Check the health of the current project
+
 devsynth doctor
 
 # Check the health of a project in a custom directory
+
 devsynth doctor --path ./my-project
 
 # Check the health and fix issues automatically
+
 devsynth doctor --fix
 ```
 
-### edrr-cycle
+## EDRR-cycle
 
 Run an Expand-Differentiate-Refine-Reflect cycle.
 
 **Usage:**
+
 ```bash
-devsynth edrr-cycle [OPTIONS]
+devsynth EDRR-cycle [OPTIONS]
 ```
 
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--prompt TEXT` | Prompt for the EDRR cycle |
-| `--context TEXT` | Additional context for the EDRR cycle |
+| `--prompt TEXT` | Prompt for the EDRR |
+| `--context TEXT` | Additional context for the EDRR |
 | `--max-iterations INTEGER` | Maximum number of iterations (default: 3) |
 
 **Examples:**
+
 ```bash
-# Run an EDRR cycle with a prompt
-devsynth edrr-cycle --prompt "Improve error handling in the API endpoints"
 
-# Run an EDRR cycle with a prompt and context
-devsynth edrr-cycle --prompt "Optimize database queries" --context "Focus on reducing N+1 queries"
+# Run an EDRR with a prompt
 
-# Run an EDRR cycle with a custom number of iterations
-devsynth edrr-cycle --prompt "Refactor the authentication system" --max-iterations 5
+devsynth EDRR-cycle --prompt "Improve error handling in the API endpoints"
+
+# Run an EDRR with a prompt and context
+
+devsynth EDRR-cycle --prompt "Optimize database queries" --context "Focus on reducing N+1 queries"
+
+# Run an EDRR with a custom number of iterations
+
+devsynth EDRR-cycle --prompt "Refactor the authentication system" --max-iterations 5
 ```
 
-### align
+## align
 
 Align code with requirements.
 
 **Usage:**
+
 ```bash
 devsynth align [OPTIONS]
 ```
@@ -445,22 +549,28 @@ devsynth align [OPTIONS]
 | `--output-file TEXT` | Path where the alignment report will be written (default: alignment.md) |
 
 **Examples:**
+
 ```bash
+
 # Check alignment between code and requirements
+
 devsynth align
 
 # Check alignment with custom paths
+
 devsynth align --code-dir app --requirements-file docs/requirements.md
 
 # Check alignment and save the report to a custom file
+
 devsynth align --output-file reports/alignment.md
 ```
 
-### alignment-metrics
+## alignment-metrics
 
 Generate metrics for code-requirements alignment.
 
 **Usage:**
+
 ```bash
 devsynth alignment-metrics [OPTIONS]
 ```
@@ -474,22 +584,28 @@ devsynth alignment-metrics [OPTIONS]
 | `--format TEXT` | Output format (json, yaml, markdown) (default: json) |
 
 **Examples:**
+
 ```bash
+
 # Generate alignment metrics
+
 devsynth alignment-metrics
 
 # Generate alignment metrics with custom paths
+
 devsynth alignment-metrics --code-dir app --requirements-file docs/requirements.md
 
 # Generate alignment metrics in markdown format
+
 devsynth alignment-metrics --format markdown
 ```
 
-### inspect-config
+## inspect-config
 
 Inspect and analyze project configuration.
 
 **Usage:**
+
 ```bash
 devsynth inspect-config [OPTIONS]
 ```
@@ -500,19 +616,24 @@ devsynth inspect-config [OPTIONS]
 | `--output-file TEXT` | Path where the analysis will be written |
 
 **Examples:**
+
 ```bash
+
 # Inspect project configuration
+
 devsynth inspect-config
 
 # Inspect project configuration and save the analysis
+
 devsynth inspect-config --output-file config_analysis.md
 ```
 
-### validate-manifest
+## validate-manifest
 
-Validate the project manifest.
+Validate the Project Configuration.
 
 **Usage:**
+
 ```bash
 devsynth validate-manifest [OPTIONS]
 ```
@@ -520,26 +641,32 @@ devsynth validate-manifest [OPTIONS]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--manifest-file TEXT` | Path to the manifest file (default: .devsynth/manifest.yaml) |
+| `--manifest-file TEXT` | Path to the manifest file (default: .devsynth/Project Configuration) |
 | `--fix` | Attempt to fix issues automatically (default: False) |
 
 **Examples:**
+
 ```bash
-# Validate the project manifest
+
+# Validate the Project Configuration
+
 devsynth validate-manifest
 
 # Validate a custom manifest file
+
 devsynth validate-manifest --manifest-file custom_manifest.yaml
 
 # Validate the manifest and fix issues automatically
+
 devsynth validate-manifest --fix
 ```
 
-### validate-metadata
+## validate-metadata
 
 Validate the project metadata.
 
 **Usage:**
+
 ```bash
 devsynth validate-metadata [OPTIONS]
 ```
@@ -551,22 +678,28 @@ devsynth validate-metadata [OPTIONS]
 | `--fix` | Attempt to fix issues automatically (default: False) |
 
 **Examples:**
+
 ```bash
+
 # Validate the project metadata
+
 devsynth validate-metadata
 
 # Validate a custom metadata file
+
 devsynth validate-metadata --metadata-file custom_metadata.yaml
 
 # Validate the metadata and fix issues automatically
+
 devsynth validate-metadata --fix
 ```
 
-### test-metrics
+## test-metrics
 
 Generate metrics for test coverage and quality.
 
 **Usage:**
+
 ```bash
 devsynth test-metrics [OPTIONS]
 ```
@@ -580,22 +713,28 @@ devsynth test-metrics [OPTIONS]
 | `--format TEXT` | Output format (json, yaml, markdown) (default: json) |
 
 **Examples:**
+
 ```bash
+
 # Generate test metrics
+
 devsynth test-metrics
 
 # Generate test metrics with custom paths
+
 devsynth test-metrics --tests-dir custom_tests --code-dir app
 
 # Generate test metrics in markdown format
+
 devsynth test-metrics --format markdown
 ```
 
-### generate-docs
+## generate-docs
 
 Generate documentation from code.
 
 **Usage:**
+
 ```bash
 devsynth generate-docs [OPTIONS]
 ```
@@ -608,14 +747,19 @@ devsynth generate-docs [OPTIONS]
 | `--format TEXT` | Output format (markdown, html, pdf) (default: markdown) |
 
 **Examples:**
+
 ```bash
+
 # Generate documentation from code
+
 devsynth generate-docs
 
 # Generate documentation with custom paths
+
 devsynth generate-docs --code-dir app --output-dir api_docs
 
 # Generate documentation in HTML format
+
 devsynth generate-docs --format html
 ```
 
@@ -626,7 +770,7 @@ DevSynth respects the following environment variables:
 | Variable | Description |
 |----------|-------------|
 | `DEVSYNTH_CONFIG` | Path to the configuration file |
-| `DEVSYNTH_PROVIDER` | Default LLM provider to use |
+| `DEVSYNTH_PROVIDER` | Default Provider to use |
 | `OPENAI_API_KEY` | API key for OpenAI |
 | `ANTHROPIC_API_KEY` | API key for Anthropic |
 | `DEVSYNTH_LOG_LEVEL` | Log level (DEBUG, INFO, WARNING, ERROR) |
@@ -640,7 +784,9 @@ DevSynth uses a YAML configuration file located at `.devsynth/config.yaml` by de
 Example configuration file:
 
 ```yaml
+
 # DevSynth Configuration
+
 project:
   name: my-project
   language: python
@@ -655,8 +801,8 @@ llm:
 features:
   dialectical_reasoning: true
   peer_review: true
-  edrr: true
-  wsde: true
+  EDRR: true
+  WSDE: true
 
 paths:
   requirements: requirements.md

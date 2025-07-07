@@ -1,15 +1,17 @@
 ---
-title: "DevSynth User Guide"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-01'
+status: published
 tags:
-  - "user guide"
-  - "documentation"
-  - "commands"
-  - "configuration"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+
+- user guide
+- documentation
+- commands
+- configuration
+
+title: DevSynth User Guide
+version: 1.0.0
 ---
 
 # DevSynth User Guide
@@ -28,6 +30,7 @@ See also: [Quick Start Guide](../getting_started/quick_start_guide.md), [Command
 - [Best Practices](#best-practices)
 - [Advanced Usage](#advanced-usage)
 
+
 ## Command Reference
 
 DevSynth provides a command-line interface with the following commands:
@@ -44,9 +47,12 @@ devsynth init [--path PATH]
 ```
 
 **Options:**
+
 - `--path PATH`: Path to initialize the project (default: current directory)
 
+
 **Example:**
+
 ```bash
 devsynth init --path ./my-new-project
 ```
@@ -67,10 +73,13 @@ devsynth inspect [--input FILE] [--interactive]
 ```
 
 **Options:**
+
 - `--input FILE`: Path to requirements file to inspect
 - `--interactive`: Start an interactive session for requirement gathering
 
+
 **Example:**
+
 ```bash
 devsynth inspect --input requirements.md
 ```
@@ -87,9 +96,12 @@ devsynth inspect-code [--path PATH]
 ```
 
 **Options:**
+
 - `--path PATH`: Path to the codebase to inspect (default: current directory)
 
+
 **Example:**
+
 ```bash
 devsynth inspect-code --path ./my-project
 ```
@@ -106,9 +118,12 @@ devsynth inspect [--requirements-file FILE]
 ```
 
 **Options:**
+
 - `--requirements-file FILE`: Path to requirements file (default: requirements.md)
 
+
 **Example:**
+
 ```bash
 devsynth inspect --requirements-file custom-requirements.md
 ```
@@ -125,9 +140,12 @@ devsynth run-pipeline [--spec-file FILE]
 ```
 
 **Options:**
+
 - `--spec-file FILE`: Path to specifications file (default: specs.md)
 
+
 **Example:**
+
 ```bash
 devsynth run-pipeline --spec-file custom-specs.md
 ```
@@ -144,6 +162,7 @@ devsynth refactor
 ```
 
 **Example:**
+
 ```bash
 devsynth refactor
 ```
@@ -160,9 +179,12 @@ devsynth run-pipeline [--target TARGET]
 ```
 
 **Options:**
+
 - `--target TARGET`: Specific target to run (e.g., unit-tests, integration-tests, all)
 
+
 **Example:**
+
 ```bash
 devsynth run-pipeline --target unit-tests
 ```
@@ -179,10 +201,13 @@ devsynth config [--key KEY] [--value VALUE]
 ```
 
 **Options:**
+
 - `--key KEY`: Configuration key to set or view
 - `--value VALUE`: Value to set for the configuration key
 
+
 **Example:**
+
 ```bash
 devsynth config --key model --value gpt-4
 ```
@@ -200,6 +225,7 @@ devsynth check [--config-dir DIR]
 ```
 
 **Example:**
+
 ```bash
 devsynth doctor --config-dir ./config
 ```
@@ -221,7 +247,7 @@ DevSynth can be configured using the `config` command or by editing the configur
 | `endpoint` | LM Studio API endpoint | `http://localhost:1234/v1` | Any valid URL |
 | `openai_api_key` | OpenAI API key for using OpenAI models | None | Valid OpenAI API key |
 | `serper_api_key` | Serper API key for web search functionality | None | Valid Serper API key |
-| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `kuzu` |
+| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `Kuzu` |
 
 ### Environment Variables and .env Files
 
@@ -232,34 +258,41 @@ DevSynth supports loading configuration from environment variables and `.env` fi
 You can set environment variables directly in your shell:
 
 ```bash
+
 # Set OpenAI API key
+
 export OPENAI_API_KEY=your-api-key
 
 # Set Serper API key
+
 export SERPER_API_KEY=your-serper-key
 
 # Set DevSynth-specific configuration
+
 export DEVSYNTH_LLM_MODEL=gpt-4
 export DEVSYNTH_LLM_TEMPERATURE=0.8
 ```
 
-#### Using .env Files
+## Using .env Files
 
 Alternatively, you can create a `.env` file in your project directory:
 
-```
+```text
+
 # API Keys
+
 OPENAI_API_KEY=your-api-key
 SERPER_API_KEY=your-serper-key
 
 # DevSynth Configuration
+
 DEVSYNTH_LLM_MODEL=gpt-4
 DEVSYNTH_LLM_TEMPERATURE=0.8
 ```
 
 DevSynth will automatically load this file when it starts.
 
-#### Environment Variable Naming
+## Environment Variable Naming
 
 DevSynth-specific configuration variables use the `DEVSYNTH_` prefix:
 
@@ -311,73 +344,85 @@ DevSynth supports multiple memory store types for storing and retrieving memory 
 The default memory store type is `memory`, which stores all items in memory. This is fast but not persistent across sessions.
 
 ```bash
+
 # Configure in-memory store
+
 devsynth config --key memory_store_type --value memory
 ```
 
-#### File-Based Store
+## File-Based Store
 
 The `file` memory store type uses a JSON file for persistent storage. This ensures that memory items are preserved across sessions.
 
 ```bash
+
 # Configure file-based store
+
 devsynth config --key memory_store_type --value file
 devsynth config --key memory_file_path --value /path/to/memory/directory
 ```
 
+## Kuzu Memory Store
 
-#### Kuzu Memory Store
-
-The `kuzu` memory store type uses KuzuDB as a lightweight database for persistent storage. If the `kuzu` Python package is unavailable, the store falls back to an in-memory implementation.
+The `Kuzu` memory store type uses Kuzu as a lightweight database for persistent storage. If the `Kuzu` Python package is unavailable, the store falls back to an in-memory implementation.
 
 ```bash
+
 # Configure Kuzu store
-devsynth config --key memory_store_type --value kuzu
-devsynth config --key memory_file_path --value ~/.devsynth/kuzu
-devsynth config --key kuzu_db_path --value ~/.devsynth/kuzu/kuzu.db
+
+devsynth config --key memory_store_type --value Kuzu
+devsynth config --key memory_file_path --value ~/.devsynth/Kuzu
+devsynth config --key kuzu_db_path --value ~/.devsynth/Kuzu/Kuzu.db
 devsynth config --key kuzu_embedded --value true
 ```
 
 Key features of the Kuzu memory store:
 
-- **Embedded Database**: Stores memory items in KuzuDB for fast local access
+- **Embedded Database**: Stores memory items in Kuzu for fast local access
 - **Vector Support**: Integrates a simple vector adapter for similarity search
-- **Fallback Mode**: Automatically falls back to an in-memory store when KuzuDB is not available
+- **Fallback Mode**: Automatically falls back to an in-memory store when Kuzu is not available
 
-### UXBridge Configuration
+
+## UXBridge Configuration
 
 DevSynth uses the UXBridge abstraction to provide a consistent interface across different user interfaces (CLI, WebUI, Agent API). The following configuration options are available for UXBridge:
 
-#### UXBridge Settings
+### UXBridge Settings
 
 | Key | Description | Default Value | Possible Values |
 |-----|-------------|---------------|----------------|
 | `uxbridge_settings.default_interface` | The default interface to use | `cli` | `cli`, `webui`, `api` |
 
 ```bash
+
 # Configure default interface
+
 devsynth config --key uxbridge_settings.default_interface --value webui
 ```
 
-#### WebUI Configuration
+## WebUI Configuration
 
 The WebUI interface is built using Streamlit and provides a graphical interface for DevSynth. To enable the WebUI interface, you need to enable the `uxbridge_webui` feature flag:
 
 ```bash
+
 # Enable WebUI interface
+
 devsynth enable-feature uxbridge_webui
 ```
 
-#### Agent API Configuration
+## Agent API Configuration
 
 The Agent API interface provides a REST API for DevSynth. To enable the Agent API interface, you need to enable the `uxbridge_agent_api` feature flag:
 
 ```bash
+
 # Enable Agent API interface
+
 devsynth enable-feature uxbridge_agent_api
 ```
 
-### Feature Flags
+## Feature Flags
 
 DevSynth uses feature flags to enable or disable specific features. The following feature flags are available:
 
@@ -392,20 +437,26 @@ DevSynth uses feature flags to enable or disable specific features. The followin
 You can enable or disable feature flags using the `enable-feature` and `disable-feature` commands:
 
 ```bash
+
 # Enable a feature
+
 devsynth enable-feature edrr_framework
 
 # Disable a feature
+
 devsynth disable-feature experimental_features
 ```
 
 Alternatively, you can set feature flags directly in the configuration:
 
 ```bash
+
 # Enable a feature
+
 devsynth config --key features.edrr_framework --value true
 
 # Disable a feature
+
 devsynth config --key features.experimental_features --value false
 ```
 
@@ -422,9 +473,12 @@ In this phase, DevSynth takes high-level requirements and expands them into deta
 3. Expanding requirements into detailed specifications
 4. Organizing specifications into a coherent structure
 
+
 **Commands used in this phase:**
+
 - `inspect`
 - `spec`
+
 
 ### 2. Differentiate
 
@@ -435,8 +489,11 @@ In this phase, DevSynth differentiates the specifications into concrete tests an
 3. Establishing acceptance criteria
 4. Planning the implementation structure
 
+
 **Commands used in this phase:**
+
 - `test`
+
 
 ### 3. Refine
 
@@ -447,9 +504,12 @@ In this phase, DevSynth refines the implementation based on the tests. This invo
 3. Refining the code to address any issues
 4. Ensuring the code meets all requirements
 
+
 **Commands used in this phase:**
+
 - `code`
 - `run`
+
 
 ## Best Practices
 
@@ -461,8 +521,10 @@ In this phase, DevSynth refines the implementation based on the tests. This invo
 4. **Include constraints**: Specify any limitations or constraints
 5. **Prioritize requirements**: Indicate which requirements are essential
 
+
 Example of a good requirement:
-```
+
+```text
 The system shall allow users to reset their password via email within 5 minutes of the request.
 ```
 
@@ -474,6 +536,7 @@ The system shall allow users to reset their password via email within 5 minutes 
 4. **Review generated artifacts**: Always review specifications, tests, and code
 5. **Maintain traceability**: Ensure you can trace code back to requirements
 
+
 ### Optimizing LLM Usage
 
 1. **Start with clear requirements**: Well-defined requirements lead to better results
@@ -481,6 +544,7 @@ The system shall allow users to reset their password via email within 5 minutes 
 3. **Review and refine**: Iteratively improve generated artifacts
 4. **Use appropriate context**: Provide relevant context for better results
 5. **Balance token usage**: Be mindful of token limits
+
 
 ## Advanced Usage
 
@@ -492,27 +556,34 @@ DevSynth supports custom templates for specifications, tests, and code. You can 
 - `tests/templates/unit_test_template.py`: Template for test files
 - `tests/templates/code_template.py`: Template for code files
 
+
 ### Integration with Version Control
 
 DevSynth works well with version control systems like Git:
 
 ```bash
+
 # Initialize Git repository
+
 git init
 
 # Add DevSynth files
+
 git add requirements.md specs.md tests/ src/
 
 # Commit changes
+
 git commit -m "Initial DevSynth project"
 ```
 
-### Custom Workflows
+## Custom Workflows
 
 You can create custom workflows by combining DevSynth commands:
 
 ```bash
+
 # Example custom workflow script
+
 #!/bin/bash
 devsynth inspect --input requirements.md
 devsynth inspect
@@ -521,7 +592,7 @@ devsynth refactor
 devsynth run-pipeline --target unit-tests
 ```
 
-### Extending DevSynth
+## Extending DevSynth
 
 DevSynth follows a hexagonal architecture that makes it extensible. You can extend it by:
 
@@ -529,6 +600,7 @@ DevSynth follows a hexagonal architecture that makes it extensible. You can exte
 2. Implementing custom agents for specialized tasks
 3. Adding new commands for additional functionality
 4. Creating plugins for integration with other tools
+
 
 For more information on extending DevSynth, refer to the [Architecture Documentation](architecture_documentation.md) and [API Reference](api_reference.md).
 
@@ -551,6 +623,7 @@ For more information on extending DevSynth, refer to the [Architecture Documenta
    - Adjust temperature settings
    - Review and refine generated artifacts
 
+
 ## Current Limitations
 
 Collaborative WSDE workflows, dialectical reasoning, and full EDRR automation are
@@ -566,6 +639,7 @@ If you encounter issues not covered in this guide:
 1. Check the [GitHub Issues](https://github.com/ravenoak/devsynth/issues) for similar problems
 2. Join the DevSynth community for support
 3. Submit a detailed bug report with steps to reproduce the issue
+
 
 ## Conclusion
 

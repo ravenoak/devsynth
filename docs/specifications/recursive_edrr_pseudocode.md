@@ -4,8 +4,9 @@ date: "2025-06-16"
 version: "0.1.0"
 tags:
   - "specification"
-  - "edrr"
+  - "EDRR"
   - "pseudocode"
+
 status: "draft"
 author: "DevSynth Team"
 last_reviewed: "2025-06-16"
@@ -15,7 +16,7 @@ last_reviewed: "2025-06-16"
 
 This document outlines the pseudocode for orchestrating recursive EDRR cycles.
 It summarizes the logic implemented in `EDRRCoordinator`, the class that
-manages the Expand-Differentiate-Refine-Retrospect workflow. The coordinator can
+manages the EDRR workflow. The coordinator can
 spawn micro cycles within each phase and aggregates their results back into the
 parent cycle.
 
@@ -57,7 +58,8 @@ function refine(context) -> Context:
 function retrospect(context) -> Context:
     // capture lessons learned and spawn follow-ups
 ```
-```
+
+```text
 
 ## Recursion Flow
 
@@ -67,13 +69,15 @@ function retrospect(context) -> Context:
 4. The **retrospect** phase may spawn subtasks. For each subtask, `run_cycle` recurses with a child context and increased `depth`.
 5. Results propagate back up the call stack once termination conditions are met.
 
-For more background on the EDRR methodology, see the [EDRR Cycle Specification](edrr_cycle_specification.md).
+
+For more background on the EDRR methodology, see the [EDRR Specification](edrr_cycle_specification.md).
 
 ## Micro Cycle Creation
 
 `EDRRCoordinator.create_micro_cycle` encapsulates the recursion logic:
 
 ```pseudocode
+
 function create_micro_cycle(task, parent_phase) -> EDRRCoordinator:
     if recursion_depth >= DEFAULT_MAX_RECURSION_DEPTH:
         raise Error("Maximum recursion depth exceeded")
@@ -92,6 +96,7 @@ function create_micro_cycle(task, parent_phase) -> EDRRCoordinator:
     child_cycles.append(micro)
     store_micro_cycle_results(micro)
     return micro
+
 ```
 
 The coordinator checks `should_terminate_recursion` before spawning a micro

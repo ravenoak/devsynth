@@ -7,6 +7,7 @@ tags:
   - "standards"
   - "sdlc"
   - "governance"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-06-01"
@@ -71,7 +72,7 @@ Key implementation artifacts that embody the standards:
 | Implementation | Description | Related Policy |
 |----------------|-------------|----------------|
 | [Test Fixtures](../../tests/behavior/conftest.py) | Test fixtures ensuring isolation and cleanliness | Testing Policy |
-| [Provider System](../../src/devsynth/adapters/provider_system.py) | LLM provider abstraction with fallback | Development, Design Policy |
+| [Provider System](../../src/devsynth/adapters/provider_system.py) | Provider abstraction with fallback | Development, Design Policy |
 | [Memory Store](../../src/devsynth/adapters/chromadb_memory_store.py) | ChromaDB memory store with provider integration | Development, Design Policy |
 
 ## Documentation Structure
@@ -86,6 +87,7 @@ The overall documentation structure follows the patterns defined in the [Documen
 - `getting_started/` - Quick start and onboarding
 - `specifications/` - Project specifications (current and archived)
 
+
 ## Governance
 
 This policy corpus is governed by the following principles:
@@ -95,6 +97,7 @@ This policy corpus is governed by the following principles:
 3. **Clarity**: Policies must be clear, unambiguous, and actionable
 4. **Completeness**: The policy set must cover all SDLC phases and cross-cutting concerns
 5. **Maintainability**: Policies must be maintained and updated as the project evolves
+
 
 ## Policy Lifecycle
 
@@ -107,6 +110,7 @@ Policies follow this lifecycle:
 5. **Verification**: Confirming policy is followed in practice
 6. **Maintenance**: Regular review and updates
 
+
 ## For Agentic Contributors
 
 LLM agents and AI systems contributing to DevSynth should:
@@ -117,6 +121,7 @@ LLM agents and AI systems contributing to DevSynth should:
 4. Update documentation alongside code changes
 5. Verify changes against the relevant architectural standards
 6. Ensure tests meet isolation and coverage requirements
+
 
 ---
 

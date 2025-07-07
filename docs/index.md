@@ -1,14 +1,15 @@
 ---
-title: "DevSynth Documentation"
-date: "2025-06-16"
-version: "1.0.0"
+title: DevSynth Documentation
+date: 2025-07-07
+version: 1.0.0
 tags:
-  - "documentation"
-  - "overview"
-  - "index"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+- documentation
+- overview
+- index
+
+status: published
+author: DevSynth Team
+last_reviewed: 2025-07-07
 ---
 
 # DevSynth Documentation
@@ -29,6 +30,7 @@ Welcome to the DevSynth documentation! This site provides comprehensive guides, 
 - [Implementation Status](implementation/feature_status_matrix.md)
 - [Project Roadmap](roadmap/development_plan.md)
 
+
 ## Project Policies
 
 See [Documentation Policies](policies/documentation_policies.md) and [Contributing Guide](developer_guides/contributing.md) for standards and review processes.
@@ -42,7 +44,8 @@ DevSynth is governed by a comprehensive set of SDLC policies and documentation a
 - **Development Protocols**: Contribution guide, code style, module ownership, secure coding, and peer review ([developer_guides/contributing.md](developer_guides/contributing.md), [developer_guides/code_style.md](developer_guides/code_style.md))
 - **Testing Strategy**: Test plan, unit/integration/property-based/regression tests, CI coverage, and testing documentation ([developer_guides/testing.md](developer_guides/testing.md))
 - **Deployment & Maintenance**: Infrastructure-as-code, deployment workflow, access control, observability, rollback, and maintenance plan ([policies/deployment.md](policies/deployment.md), [policies/maintenance.md](policies/maintenance.md))
-- **Repository Structure & Metadata**: Predictable directory layout, file/symbol annotations, metadata tags, and an automated knowledge base for agentic retrieval ([roadmap/documentation_policies.md](roadmap/documentation_policies.md))
+- **Repository Structure & Metadata**: Predictable directory layout, file/symbol annotations, metadata tags, and an automated knowledge base for agentic retrieval ([policies/documentation_policies.md](policies/documentation_policies.md))
+
 
 For a detailed rationale and best practices for agentic LLM projects, see [SDLC Policies and Repository Artifacts for Agentic LLM Projects](policies/sdlc_policies_for_agentic_llm_projects.md).
 
@@ -61,6 +64,7 @@ The documentation corpus is organized for clarity and agentic navigation, follow
 - `roadmap/` – Roadmaps and improvement plans
 - `policies/` – SDLC, security, testing, and maintenance policies
 
+
 The [mkdocs.yml](../mkdocs.yml) file provides a navigable structure for all documentation. The [Repository Structure](repo_structure.md) document provides a comprehensive map of the repository for both human and agentic contributors.
 
 ## Documentation Quality & Continuous Improvement
@@ -68,12 +72,13 @@ The [mkdocs.yml](../mkdocs.yml) file provides a navigable structure for all docu
 - All requirements, code, and tests are linked via the [Requirements Traceability Matrix](requirements_traceability.md)
 - Documentation, code, and tests are kept in sync through regular audits, metadata tagging, and automated CI/CD
 - Changelog and semantic versioning ensure all changes are tracked ([../CHANGELOG.md](../CHANGELOG.md))
-- Documentation review, testing, and style policies are enforced ([roadmap/documentation_policies.md](roadmap/documentation_policies.md))
+- Documentation review, testing, and style policies are enforced ([policies/documentation_policies.md](policies/documentation_policies.md))
+
 
 ## Current Limitations
 
 Several capabilities remain experimental. WSDE collaboration, dialectical reasoning,
-and automated EDRR cycle management are only partially implemented and disabled by
+and automated EDRR management are only partially implemented and disabled by
 default in `config/default.yml`. Generation features often need manual oversight.
 See the [Implementation Status](implementation/feature_status_matrix.md) for the
 latest progress.

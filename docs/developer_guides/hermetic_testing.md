@@ -1,16 +1,18 @@
 ---
-title: "Hermetic Testing Guide"
-date: "2025-05-20"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-05-20'
+last_reviewed: '2025-05-20'
+status: published
 tags:
-  - "testing"
-  - "hermetic"
-  - "isolation"
-  - "best-practices"
-  - "developer-guide"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-05-20"
+
+- testing
+- hermetic
+- isolation
+- best-practices
+- developer-guide
+
+title: Hermetic Testing Guide
+version: 1.0.0
 ---
 
 # Hermetic Testing Guide
@@ -24,25 +26,31 @@ This guide outlines DevSynth's approach to hermetic testing - creating tests tha
 ### 1. Isolation
 
 Tests must be completely isolated from:
+
 - The real filesystem
 - External services and APIs
 - Global state and environment variables
 - Other tests
 
+
 ### 2. Determinism
 
 Tests should be deterministic and reproducible:
+
 - Fixed timestamps and random values
 - Consistent ordering of operations
 - No reliance on external state
 
+
 ### 3. Zero Side Effects
 
 Tests must not:
+
 - Create files outside of temporary directories
 - Modify environment variables without restoring them
 - Leave any artifacts in the developer's workspace
 - Make real network calls
+
 
 ## Implementation Guide
 
@@ -51,7 +59,9 @@ Tests must not:
 Always use temporary directories for any file operations:
 
 ```python
+
 # GOOD: Using pytest's tmp_path fixture
+
 def test_file_operations(tmp_path):
     test_file = tmp_path / "test.txt"
     with open(test_file, 'w') as f:
@@ -59,36 +69,42 @@ def test_file_operations(tmp_path):
     # Test logic...
 
 # BAD: Using hard-coded paths
+
 def test_file_operations_bad():
     with open("test.txt", 'w') as f:  # DON'T DO THIS
         f.write("test content")
     # Test logic...
 ```
 
-### Environment Variable Isolation
+## Environment Variable Isolation
 
 Always save and restore environment variables:
 
 ```python
+
 # GOOD: Using monkeypatch fixture
+
 def test_env_vars(monkeypatch):
     monkeypatch.setenv("DEVSYNTH_TEST_VAR", "test_value")
     # Test logic...
     # monkeypatch automatically restores environment after test
 
 # BAD: Directly modifying os.environ
+
 def test_env_vars_bad():
     os.environ["DEVSYNTH_TEST_VAR"] = "test_value"  # DON'T DO THIS
     # Test logic...
     # Environment is now polluted
 ```
 
-### Global State Isolation
+## Global State Isolation
 
 Reset any global state between tests:
 
 ```python
+
 # GOOD: Using fixtures to reset global state
+
 @pytest.fixture
 def reset_globals():
     # Save original state
@@ -101,18 +117,21 @@ def test_with_global_state(reset_globals):
     # Test logic...
 ```
 
-### External Service Mocking
+## External Service Mocking
 
 Mock all external services:
 
 ```python
+
 # GOOD: Using mock objects
+
 def test_external_service(mocker):
     mock_service = mocker.patch("devsynth.adapters.some_service.Client")
     mock_service.return_value.get_data.return_value = {"test": "data"}
     # Test logic using the mocked service...
 
 # BAD: Using real services
+
 def test_external_service_bad():
     real_client = some_service.Client()  # DON'T DO THIS
     data = real_client.get_data()  # Makes real API call
@@ -125,12 +144,14 @@ stub implementations. When your tests rely on LLM calls or memory store
 operations, use the dedicated fixtures described below to avoid hitting real
 APIs or persistent storage.
 
-### Working Directory Isolation
+## Working Directory Isolation
 
 Always change the working directory in a controlled way:
 
 ```python
+
 # GOOD: Saving and restoring cwd
+
 def test_with_cwd_change(tmp_path):
     original_cwd = os.getcwd()
     try:
@@ -140,6 +161,7 @@ def test_with_cwd_change(tmp_path):
         os.chdir(original_cwd)
 
 # BAD: Changing cwd without restoration
+
 def test_with_cwd_change_bad(tmp_path):
     os.chdir(tmp_path)  # DON'T DO THIS without restoration
     # Test logic...
@@ -224,12 +246,15 @@ persistent databases or stateful backends.
 7. **Use `capsys` or `caplog`** to capture and verify output rather than checking real log files
 8. **Use `ensure_path_exists` from settings.py** for directory creation to respect test isolation
 
+
 ### Directory Creation and .devsynth/ Isolation
 
 When implementing components that need to create directories (especially `.devsynth/` directories):
 
 ```python
+
 # GOOD: Using ensure_path_exists which respects test isolation
+
 from devsynth.config.settings import ensure_path_exists
 
 def initialize_component(directory_path=None):
@@ -246,6 +271,7 @@ def initialize_component(directory_path=None):
     return directory_path
 
 # BAD: Directly creating directories without respecting test isolation
+
 def initialize_component_bad(directory_path=".devsynth/component_data"):
     os.makedirs(directory_path, exist_ok=True)  # DON'T DO THIS
     return directory_path
@@ -261,6 +287,7 @@ The `ensure_path_exists` function checks for the `DEVSYNTH_NO_FILE_LOGGING` envi
 4. **Global registries or singletons** that persist state between tests
 5. **Time-dependent tests** without proper mocking of datetime
 
+
 ## CI and Verification
 
 The DevSynth CI system enforces hermetic testing by:
@@ -270,6 +297,7 @@ The DevSynth CI system enforces hermetic testing by:
 3. Verifying that no side effects remain after test execution
 4. Running tests in random order to detect inter-test dependencies
 
+
 ## Contributing New Tests
 
 When adding new tests:
@@ -278,5 +306,6 @@ When adding new tests:
 2. Use appropriate isolation techniques based on this guide
 3. Ensure tests pass when run in any order or repeated multiple times
 4. Add new fixtures to `conftest.py` if needed for common isolation patterns
+
 
 By following these guidelines, we ensure that DevSynth's test suite remains reliable, fast, and maintainable.

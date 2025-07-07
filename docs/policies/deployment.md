@@ -1,8 +1,20 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- policy
+title: Deployment Policy
+version: 1.0.0
+---
+
 # Deployment Policy
 
 This policy defines best practices for deployment, CI/CD, and operational safety in DevSynth.
 
 ## Key Practices
+
 - Use infrastructure-as-code for all deployment scripts and configs (e.g., Docker, Compose, Terraform).
 - Store deployment docs and scripts in `deployment/` and document the process in `deployment/README.md`.
 - Automate deployment via CI/CD; require all tests to pass and review/approval before production deploys.
@@ -16,6 +28,7 @@ This policy defines best practices for deployment, CI/CD, and operational safety
   scraping and Grafana dashboards.
 
 ## Artifacts
+
 - Deployment Scripts: `deployment/`
 - Deployment Docs: `deployment/README.md`
 - CI/CD Config: `.github/workflows/` or `ci/`
@@ -29,8 +42,7 @@ Example command to start the core services with monitoring:
 docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.monitoring.yml up -d
 ```
 
-
 ## References
+
 - See [Testing Policy](testing.md) for release testing.
 - See [Maintenance Policy](maintenance.md) for post-release support.
-

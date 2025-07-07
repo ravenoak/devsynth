@@ -1,24 +1,24 @@
 ---
-title: "DevSynth Specifications"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: published
 tags:
-  - "specifications"
-  - "requirements"
-  - "design"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+- specifications
+- requirements
+- design
+title: DevSynth Specifications
+version: 1.0.0
 ---
 
-# Specifications
+# DevSynth Specifications
 
 This section contains the official specifications for the DevSynth project, outlining its requirements, features, and intended behavior.
 
 ## Core Specifications
 
 - **[DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md)**: The current authoritative specification for DevSynth.
-- **[EDRR Cycle Specification](edrr_cycle_specification.md)**: Specification for the Expand-Differentiate-Refine-Retrospect cycle.
+- **[EDRR Specification](edrr_cycle_specification.md)**: Specification for the EDRR cycle.
 - **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
 - **[Hybrid Memory Architecture](hybrid_memory_architecture.md)**: Specification for DevSynth's hybrid memory architecture.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
@@ -45,7 +45,7 @@ This section contains the official specifications for the DevSynth project, outl
 
 The Specifications section provides detailed documentation of DevSynth's design, requirements, and intended behavior. These specifications serve as the authoritative reference for what DevSynth is supposed to do and how it should work.
 
-The Core Specifications include the primary DevSynth specification, which defines the overall system, as well as specifications for key components like the EDRR cycle, WSDE interaction model, and hybrid memory architecture.
+The Core Specifications include the primary DevSynth specification, which defines the overall system, as well as specifications for key components like the EDRR, WSDE interaction model, and hybrid memory architecture.
 
 The Implementation Plans provide detailed plans for implementing various aspects of DevSynth, including the EDRR framework integration, documentation structure, and testing infrastructure.
 
@@ -53,7 +53,7 @@ The Historical and Planning Documents include earlier versions of specifications
 
 ## Getting Started
 
-If you're new to DevSynth's specifications, we recommend starting with the [DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md), which is the current authoritative specification for the entire system. Then, explore the specifications for specific components that interest you, such as the [EDRR Cycle Specification](edrr_cycle_specification.md) or the [Hybrid Memory Architecture](hybrid_memory_architecture.md).
+If you're new to DevSynth's specifications, we recommend starting with the [DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md), which is the current authoritative specification for the entire system. Then, explore the specifications for specific components that interest you, such as the [EDRR Specification](edrr_cycle_specification.md) or the [Hybrid Memory Architecture](hybrid_memory_architecture.md).
 
 ## Related Documents
 

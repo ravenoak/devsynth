@@ -1,18 +1,18 @@
 ---
-title: "TDD/BDD-EDRR Integration Training Guide"
-date: "2025-05-25"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-05-25'
+last_reviewed: '2025-05-25'
+status: published
 tags:
-  - "training"
-  - "TDD"
-  - "BDD"
-  - "EDRR"
-  - "methodology"
-  - "integration"
-  - "best-practices"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-05-25"
+- training
+- TDD
+- BDD
+- EDRR
+- methodology
+- integration
+- best-practices
+title: TDD/BDD-EDRR Integration Training Guide
+version: 1.0.0
 ---
 
 # TDD/BDD-EDRR Integration Training Guide
@@ -133,6 +133,7 @@ Tests and scenarios serve as up-to-date documentation:
 The Promise System in DevSynth was developed using TDD/BDD integrated with EDRR:
 
 #### Expand Phase:
+
 ```gherkin
 Feature: Promise System Capability Management
   As a developer using DevSynth
@@ -152,6 +153,7 @@ Feature: Promise System Capability Management
 ```
 
 #### Differentiate Phase:
+
 ```python
 def test_resolve(self):
     """Test resolving a Promise."""
@@ -169,6 +171,7 @@ def test_resolve(self):
 ```
 
 #### Refine Phase:
+
 ```python
 def resolve(self, value: T) -> None:
     """
@@ -201,6 +204,7 @@ def resolve(self, value: T) -> None:
 ```
 
 #### Retrospect Phase:
+
 - Review test coverage (100% for Promise class)
 - Identify additional scenarios (promise chaining, timeout handling)
 - Plan improvements for the next iteration
@@ -210,6 +214,7 @@ def resolve(self, value: T) -> None:
 The Methodology Adapters feature also followed the TDD/BDD-EDRR integration:
 
 #### Expand Phase:
+
 ```gherkin
 Feature: Methodology Adapters Integration
   As a developer using DevSynth
@@ -339,6 +344,7 @@ Feature: Methodology Adapters Integration
 Property-based testing generates random inputs to test properties of your code. It's useful for finding edge cases and unexpected behaviors.
 
 **Example**:
+
 ```python
 from hypothesis import given
 from hypothesis import strategies as st
@@ -356,12 +362,15 @@ def test_sort_idempotent(lst):
 Mutation testing evaluates the quality of your tests by introducing small changes (mutations) to your code and checking if your tests catch them.
 
 **Example**:
+
 ```bash
+
 # Using the pytest-mutate plugin
+
 poetry run pytest --mutate=src/devsynth/module.py
 ```
 
-### 7.3 Test-Driven Architecture
+## 7.3 Test-Driven Architecture
 
 Test-Driven Architecture applies TDD principles to architectural decisions, using tests to drive the design of the system architecture.
 

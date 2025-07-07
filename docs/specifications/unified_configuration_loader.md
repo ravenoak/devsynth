@@ -5,6 +5,7 @@ version: "0.2.0"
 tags:
   - "specification"
   - "configuration"
+
 status: "draft"
 author: "DevSynth Team"
 ---
@@ -16,6 +17,7 @@ This specification describes the goals and design of the unified configuration l
 1. Provide a single API to read and write configuration regardless of file format.
 2. Support persistent CLI preferences so commands remember previously selected options.
 3. Offer autocompletion of configuration keys to improve the command-line experience.
+
 
 ## Schema Outline
 

@@ -1,17 +1,17 @@
 ---
-title: "DevSynth Basic Usage Guide"
-date: "2024-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2024-06-01'
+last_reviewed: '2025-06-15'
+status: published
 tags:
-  - "getting-started"
-  - "basic-usage"
-  - "tutorial"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-15"
+- getting-started
+- basic-usage
+- tutorial
+title: DevSynth Basic Usage Guide
+version: 1.0.0
 ---
 
-# Basic Usage
+# DevSynth Basic Usage Guide
 
 This guide provides essential information about the basic usage of DevSynth, including initializing a project, defining requirements, and generating code.
 
@@ -30,10 +30,13 @@ If you prefer a graphical interface, start the WebUI with `devsynth webui`. The 
 Start by creating a new DevSynth project:
 
 ```bash
+
 # Create a new project directory
+
 devsynth init --path ./my-project
 
 # Navigate to the project directory
+
 cd my-project
 ```
 
@@ -44,9 +47,11 @@ This command creates a new project directory with the necessary structure for De
 Create a file named `requirements.md` in your project directory with your project requirements:
 
 ```markdown
+
 # Project Requirements
 
 ## Calculator Functionality
+
 - The system shall provide addition of two numbers
 - The system shall provide subtraction of two numbers
 - The system shall provide multiplication of two numbers
@@ -60,13 +65,17 @@ Requirements should be clear, specific, and focused on what the system should do
 Once you have defined your requirements, you can generate specifications, tests, and code:
 
 ```bash
+
 # Generate specifications from requirements
+
 devsynth inspect --requirements-file requirements.md
 
 # Generate tests from specifications
+
 devsynth run-pipeline
 
 # Generate implementation code from tests
+
 devsynth refactor
 ```
 
@@ -77,7 +86,9 @@ Each command builds on the output of the previous command, following a test-driv
 Finally, run the generated code to verify it works as expected:
 
 ```bash
+
 # Run the generated code
+
 devsynth run-pipeline
 ```
 

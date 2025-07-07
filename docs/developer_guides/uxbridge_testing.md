@@ -1,16 +1,16 @@
 ---
-title: "UXBridge Testing Guide"
-date: "2025-07-12"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-07-12'
+last_reviewed: '2025-07-12'
+status: published
 tags:
-  - "development"
-  - "testing"
-  - "uxbridge"
-  - "interfaces"
-  - "cross-interface"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-07-12"
+- development
+- testing
+- uxbridge
+- interfaces
+- cross-interface
+title: UXBridge Testing Guide
+version: 1.0.0
 ---
 
 # UXBridge Testing Guide
@@ -95,10 +95,13 @@ The tests verify that:
 ### Running Cross-Interface Tests
 
 ```bash
+
 # Run basic cross-interface tests
+
 python -m pytest tests/behavior/features/cross_interface_consistency.feature -v
 
 # Run extended cross-interface tests
+
 python -m pytest tests/behavior/test_cross_interface_consistency_extended.py -v
 ```
 
@@ -107,30 +110,37 @@ python -m pytest tests/behavior/test_cross_interface_consistency_extended.py -v
 ### Testing User Input
 
 ```python
+
 # Mock user input
+
 with patch('builtins.input', return_value="user response"):
     result = bridge.ask_question("Test question?")
     assert result == "user response"
 ```
 
-### Testing Result Display
+## Testing Result Display
 
 ```python
+
 # Mock console output
+
 with patch('rich.console.Console.print') as mock_print:
     bridge.display_result("Test result")
     mock_print.assert_called_once()
     assert "Test result" in mock_print.call_args[0][0]
 ```
 
-### Testing Progress Indicators
+## Testing Progress Indicators
 
 ```python
+
 # Test progress indicator creation and updates
+
 progress = bridge.create_progress("Processing", total=10)
 assert progress is not None
 
 # Test progress updates
+
 with patch('rich.progress.Progress.update') as mock_update:
     progress.update(advance=2, description="Step 2")
     mock_update.assert_called_once()
@@ -141,7 +151,9 @@ with patch('rich.progress.Progress.update') as mock_update:
 Testing the Streamlit-based WebUI requires mocking Streamlit components:
 
 ```python
+
 # Mock Streamlit components
+
 with patch('streamlit.text_input', return_value="user input") as mock_input:
     result = webui.ask_question("Test question?")
     assert result == "user input"
@@ -153,7 +165,9 @@ with patch('streamlit.text_input', return_value="user input") as mock_input:
 Testing the Agent API implementation requires mocking HTTP requests:
 
 ```python
+
 # Test APIBridge with predefined answers
+
 bridge = APIBridge(answers=["yes", "option 1", "42"])
 result1 = bridge.ask_question("Question 1?")
 result2 = bridge.ask_question("Question 2?")
@@ -183,7 +197,9 @@ assert result3 == "42"
 If you encounter test collection errors with BDD tests:
 
 ```python
+
 # Use absolute path to the feature file
+
 feature_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'features',
@@ -192,12 +208,14 @@ feature_path = os.path.join(
 scenarios(feature_path)
 ```
 
-### Step Definition Not Found
+## Step Definition Not Found
 
 If you encounter "step definition not found" errors:
 
 ```python
+
 # Import step implementations directly in the test file
+
 @when(parsers.parse('{command} is invoked from all interfaces'))
 def invoke_command_all_interfaces(cross_interface_context, command):
     """Invoke the specified command from all interfaces."""

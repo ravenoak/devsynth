@@ -1,14 +1,14 @@
 ---
-title: "DevSynth Quick Start Guide"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-15'
+status: published
 tags:
-  - "getting-started"
-  - "quick-start"
-  - "tutorial"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-15"
+- getting-started
+- quick-start
+- tutorial
+title: DevSynth Quick Start Guide
+version: 1.0.0
 ---
 
 # DevSynth Quick Start Guide
@@ -29,33 +29,39 @@ Before you begin, ensure you have the following installed:
 ```bash
 poetry add devsynth
 ```
+
 ### Install with pipx *(end-user install)*
 
 ```bash
 pipx install devsynth
 ```
 
-
 ### Install from Source (recommended for development)
 
 ```bash
+
 # Clone the repository
+
 git clone https://github.com/ravenoak/devsynth.git
 cd devsynth
 
 # Install with Poetry
+
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
 # Older instructions may use `pip install -e '.[dev]'`. Prefer the Poetry
+
 # workflow above for a fully managed virtual environment. Pip commands are only
+
 # required for installing from PyPI or via `pipx`.
 
 # Activate the virtual environment
+
 poetry shell
 ```
 
-### Run with Docker Compose
+## Run with Docker Compose
 
 To start DevSynth and its dependencies using Docker Compose:
 
@@ -72,7 +78,6 @@ After installation you can optionally use the Streamlit-based WebUI instead of t
 ```bash
 devsynth webui
 ```
-
 
 The interface mirrors the CLI workflows and provides pages for onboarding, requirements, analysis, synthesis, and configuration.
 
@@ -97,7 +102,9 @@ This launches all services defined in `docker-compose.yml` and `docker-compose.m
 ### Step 1: Initialize a New Project
 
 ```bash
+
 # Create a new DevSynth project
+
 devsynth init --path ./my-first-project
 cd my-first-project
 ```
@@ -112,14 +119,16 @@ configuration file. You
 can use the [templates/project.yaml](../../templates/project.yaml) file as a
 minimal example configuration.
 
-### Step 2: Define Your Requirements
+## Step 2: Define Your Requirements
 
 Create a file named `requirements.md` in your project directory with your project requirements:
 
 ```markdown
+
 # Project Requirements
 
 ## Calculator Functionality
+
 - The system shall provide addition of two numbers
 - The system shall provide subtraction of two numbers
 - The system shall provide multiplication of two numbers
@@ -127,6 +136,7 @@ Create a file named `requirements.md` in your project directory with your projec
 - The system shall handle division by zero gracefully
 
 ## User Interface
+
 - The system shall provide a command-line interface
 - The system shall display results with appropriate formatting
 ```
@@ -188,6 +198,172 @@ After completing the steps above, your project directory will contain:
 - `src/`: Directory containing generated implementation code
 
 You can review and modify any of these files as needed. If you make changes to your requirements, you can re-run the DevSynth commands to update the specifications, tests, and code.
+
+## Use Case: Web API Development
+
+### Step 1: Define API Requirements
+
+Create a file named `api_requirements.md` with the following content:
+
+```markdown
+
+# API Requirements
+
+## Endpoints
+
+- The API shall provide a GET endpoint for retrieving user information
+- The API shall provide a POST endpoint for creating new users
+- The API shall provide a PUT endpoint for updating user information
+- The API shall provide a DELETE endpoint for removing users
+
+## Authentication
+
+- The API shall require JWT authentication for all endpoints
+- The API shall provide a login endpoint that returns a JWT token
+- The API shall validate JWT tokens for expiration and signature
+
+## Data Validation
+
+- The API shall validate all input data against a schema
+- The API shall return appropriate error messages for invalid input
+- The API shall sanitize input to prevent injection attacks
+```
+
+### Step 2: Generate API Specifications and Code
+
+```bash
+
+# Generate specifications
+
+devsynth inspect --requirements-file api_requirements.md
+
+# Generate tests and code
+
+devsynth run-pipeline
+devsynth refactor
+```
+
+## Step 3: Run and Test the API
+
+```bash
+
+# Run the API server
+
+devsynth serve
+
+# In another terminal, test the API
+
+curl http://localhost:8000/api/users
+```
+
+## Use Case: Data Analysis Tool
+
+### Step 1: Define Data Analysis Requirements
+
+Create a file named `data_analysis_requirements.md` with the following content:
+
+```markdown
+
+# Data Analysis Tool Requirements
+
+## Data Import
+
+- The system shall import data from CSV files
+- The system shall import data from Excel files
+- The system shall import data from JSON files
+- The system shall validate imported data for consistency
+
+## Data Processing
+
+- The system shall calculate basic statistics (mean, median, mode)
+- The system shall identify outliers in the data
+- The system shall support data filtering based on criteria
+- The system shall support data grouping and aggregation
+
+## Data Visualization
+
+- The system shall generate bar charts from data
+- The system shall generate line charts from data
+- The system shall generate scatter plots from data
+- The system shall export visualizations as PNG and PDF
+```
+
+### Step 2: Generate Data Analysis Tool
+
+```bash
+
+# Generate specifications
+
+devsynth inspect --requirements-file data_analysis_requirements.md
+
+# Generate tests and code
+
+devsynth run-pipeline
+devsynth refactor
+```
+
+## Step 3: Use the Data Analysis Tool
+
+```bash
+
+# Run the data analysis tool
+
+python -m src.main --input data.csv --output analysis_results
+```
+
+## Use Case: Automated Testing Framework
+
+### Step 1: Define Testing Framework Requirements
+
+Create a file named `testing_framework_requirements.md` with the following content:
+
+```markdown
+
+# Testing Framework Requirements
+
+## Test Discovery
+
+- The system shall automatically discover test files in a directory
+- The system shall support custom test file patterns
+- The system shall support inclusion and exclusion filters
+
+## Test Execution
+
+- The system shall execute tests in parallel when possible
+- The system shall support test timeouts
+- The system shall capture stdout and stderr during test execution
+- The system shall support test fixtures and dependencies
+
+## Reporting
+
+- The system shall generate HTML test reports
+- The system shall generate XML test reports for CI integration
+- The system shall calculate test coverage metrics
+- The system shall identify flaky tests based on historical data
+```
+
+### Step 2: Generate Testing Framework
+
+```bash
+
+# Generate specifications
+
+devsynth inspect --requirements-file testing_framework_requirements.md
+
+# Generate tests and code
+
+devsynth run-pipeline
+devsynth refactor
+```
+
+## Step 3: Use the Testing Framework
+
+```bash
+
+# Run the testing framework
+
+python -m src.main --test-dir ./tests --report-format html
+```
 
 ## Next Steps
 

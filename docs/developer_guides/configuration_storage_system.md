@@ -1,3 +1,16 @@
+---
+title: "DevSynth Configuration and Storage System"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "developer-guide"
+  - "configuration"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # DevSynth Configuration and Storage System
 
 ## Overview
@@ -10,15 +23,16 @@ DevSynth uses a hierarchical configuration system with multiple levels of preced
 
 1. **Command-line arguments**: Highest precedence, overrides all other settings
 2. **Environment variables**: Prefixed with `DEVSYNTH_`
-3. **Project-level configuration**: Stored in `.devsynth/project.yaml` (formerly `manifest.yaml` or `devsynth.yaml`)
+3. **Project-level configuration**: Stored in `.devsynth/project.yaml` (formerly `Project Configuration` or `Project Configuration`)
 4. **Global configuration**: Stored in `~/.devsynth/config/global_config.yaml`
 5. **Default values**: Hardcoded in the application
+
 
 ### Configuration Files
 
 #### Project-Level Configuration: `.devsynth/project.yaml`
 
-The `.devsynth/project.yaml` file (formerly `manifest.yaml` or `devsynth.yaml`) is the primary configuration file for a project. It is created by the `devsynth init` command and contains:
+The `.devsynth/project.yaml` file (formerly `Project Configuration` or `Project Configuration`) is the primary configuration file for a project. It is created by the `devsynth init` command and contains:
 
 - Project metadata (name, version, last updated)
 - Project structure information (type, primary language, directories)
@@ -28,7 +42,9 @@ The `.devsynth/project.yaml` file (formerly `manifest.yaml` or `devsynth.yaml`) 
 - Methodology settings
 - Resource locations (both global and project-level)
 
+
 Example:
+
 ```yaml
 projectName: example-project
 version: 0.1.0
@@ -45,6 +61,7 @@ structure:
 keyArtifacts:
   docs:
     - path: README.md
+
       purpose: Project overview and getting started guide
 methodology:
   type: sprint
@@ -69,6 +86,7 @@ resources:
 The global configuration file contains settings that apply to all projects. It is created automatically when DevSynth is first used and can be modified by the user.
 
 Example:
+
 ```yaml
 resources:
   global:
@@ -83,13 +101,15 @@ resources:
 DevSynth supports configuration through environment variables, which take precedence over configuration files. All environment variables are prefixed with `DEVSYNTH_`.
 
 Common environment variables:
+
 - `DEVSYNTH_MEMORY_STORE`: Type of memory store to use (default: "memory")
 - `DEVSYNTH_MEMORY_PATH`: Path to the memory file
 - `DEVSYNTH_MAX_CONTEXT_SIZE`: Maximum context size (default: 1000)
 - `DEVSYNTH_CONTEXT_EXPIRATION_DAYS`: Number of days before context expires (default: 7)
 - `DEVSYNTH_LOG_DIR`: Directory for logs
 - `DEVSYNTH_PROJECT_DIR`: Project directory
-- `DEVSYNTH_PROVIDER_TYPE`: LLM provider type (default: "openai")
+- `DEVSYNTH_PROVIDER_TYPE`: Provider type (default: "openai")
+
 
 ## Storage System
 
@@ -101,7 +121,7 @@ Global storage locations are shared across all projects and are stored in the us
 
 - **Configuration**: `~/.devsynth/config/`
   - Contains global configuration files like `global_config.yaml`
-  - Stores LLM provider settings, default templates, and other global settings
+  - Stores Provider settings, default templates, and other global settings
 
 - **Cache**: `~/.devsynth/cache/`
   - Stores cached data like LLM responses, external documentation, and other reusable resources
@@ -115,13 +135,14 @@ Global storage locations are shared across all projects and are stored in the us
   - Stores persistent memory for DevSynth
   - Includes conversation history, project context, and other long-term memory
 
+
 ### Project-Level Storage Locations
 
 Project-level storage locations are specific to each project and are stored in the project directory:
 
 - **Configuration**: `.devsynth/`
   - Contains project-specific configuration files
-  - Includes the `.devsynth/project.yaml` file (formerly `manifest.yaml` or `devsynth.yaml`)
+  - Includes the `.devsynth/project.yaml` file (formerly `Project Configuration` or `Project Configuration`)
 
 - **Cache**: `.devsynth/cache/`
   - Stores project-specific cached data
@@ -135,6 +156,7 @@ Project-level storage locations are specific to each project and are stored in t
   - Stores project-specific memory
   - Includes project-specific conversation history and context
 
+
 ## Access Patterns
 
 DevSynth uses a consistent pattern for accessing configuration and storage:
@@ -144,6 +166,7 @@ DevSynth uses a consistent pattern for accessing configuration and storage:
 3. Check for project-level configuration in `.devsynth/project.yaml`
 4. Check for global configuration in `~/.devsynth/config/global_config.yaml`
 5. Fall back to default values
+
 
 This pattern is implemented in the `settings.py` file, which provides validators for paths like `memory_file_path`, `log_dir`, and `project_dir` that follow this hierarchy.
 
@@ -157,6 +180,7 @@ This pattern is implemented in the `settings.py` file, which provides validators
 - Avoid modifying global configuration files directly unless necessary
 - Use environment variables for temporary configuration changes
 
+
 ### For DevSynth Developers
 
 - Always use the `get_settings()` function to access configuration values
@@ -164,6 +188,7 @@ This pattern is implemented in the `settings.py` file, which provides validators
 - Use the `ensure_path_exists()` function to create directories when needed
 - Follow the established pattern for accessing configuration and storage
 - Add validators for new settings that need to check multiple sources
+
 
 ## Conclusion
 

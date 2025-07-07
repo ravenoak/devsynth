@@ -5,6 +5,7 @@ version: "1.0.0"
 tags:
   - "configuration"
   - "feature-flags"
+
 status: "draft"
 author: "DevSynth Team"
 ---
@@ -29,10 +30,13 @@ For the UX design rationale behind gradually exposing these capabilities, see th
 ## Enabling Flags
 
 1. **CLI**: use the `config` command to set a flag:
+
    ```bash
    devsynth config features.code_generation true
    ```
+
 2. **Setup Wizard**: running `devsynth init` will prompt you to enable optional features interactively.
+
 
 Changes are written to the appropriate configuration file so subsequent runs use the selected features.
 

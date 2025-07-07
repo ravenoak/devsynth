@@ -7,6 +7,7 @@ tags:
   - "usage"
   - "self-improvement"
   - "contexts"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-05-25"
@@ -20,6 +21,7 @@ This document clarifies the distinction between three different contexts in whic
 2. **Using DevSynth**: Applying DevSynth to other projects
 3. **Self-Improvement**: Using DevSynth to improve itself once functional
 
+
 ## 1. Developing DevSynth
 
 This context refers to the process of building, enhancing, and maintaining the DevSynth application itself.
@@ -32,6 +34,7 @@ This context refers to the process of building, enhancing, and maintaining the D
 - **Tools Used**: Standard development tools (IDE, git, etc.), not DevSynth itself
 - **Documentation**: Internal architecture docs, developer guides, contribution guidelines
 
+
 ### Development Workflow
 
 1. Clone the DevSynth repository
@@ -42,6 +45,7 @@ This context refers to the process of building, enhancing, and maintaining the D
 6. Participate in code reviews
 7. Merge approved changes
 
+
 ### Example Tasks
 
 - Implementing a new CLI command
@@ -49,6 +53,7 @@ This context refers to the process of building, enhancing, and maintaining the D
 - Improving test coverage
 - Refactoring code for better maintainability
 - Updating documentation
+
 
 ## 2. Using DevSynth
 
@@ -62,12 +67,14 @@ This context refers to applying DevSynth as a tool to assist in the development 
 - **Tools Used**: DevSynth CLI and its features
 - **Documentation**: User guides, command references, tutorials
 
+
 ### Usage Workflow
 
 1. Install DevSynth as a tool
 2. Initialize a project with `devsynth init`
 3. Use DevSynth commands to inspect, generate, and improve code
 4. Integrate DevSynth into the development process
+
 
 ### Example Tasks
 
@@ -76,6 +83,7 @@ This context refers to applying DevSynth as a tool to assist in the development 
 - Creating tests with `devsynth run-pipeline`
 - Generating code with `devsynth refactor`
  - Managing project structure with `devsynth inspect-config`
+
 
 ## 3. Self-Improvement: Using DevSynth to Improve DevSynth
 
@@ -89,6 +97,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 - **Tools Used**: Both development tools and DevSynth itself
 - **Documentation**: Meta-level guides, self-improvement patterns
 
+
 ### Self-Improvement Workflow
 
 1. Ensure DevSynth is functional and stable
@@ -98,12 +107,14 @@ This context refers to the advanced scenario where a functional version of DevSy
 5. Carefully review and test all self-generated improvements
 6. Merge validated self-improvements
 
+
 ### Example Tasks
 
 - Using `devsynth inspect-code` to identify architectural improvements
  - Applying `devsynth inspect-config` to maintain DevSynth's own manifest
 - Using `devsynth run-pipeline` to generate additional test cases
 - Leveraging `devsynth inspect` to refine internal specifications
+
 
 ## Important Distinctions
 
@@ -113,11 +124,13 @@ This context refers to the advanced scenario where a functional version of DevSy
 - **Different Expertise**: Development requires understanding DevSynth internals; usage requires understanding DevSynth commands
 - **Different Workflows**: Development follows software engineering practices; usage follows tool application patterns
 
+
 ### Using DevSynth vs. Self-Improvement
 
 - **Different Complexity**: Self-improvement involves meta-level reasoning and careful validation
 - **Different Risks**: Self-improvement carries higher risks of recursive issues or self-reinforcing biases
 - **Different Validation**: Self-improvement requires more rigorous review and testing
+
 
 ## Best Practices
 
@@ -129,6 +142,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 - Document all public APIs and user-facing features
 - Consider how changes will affect all three contexts
 
+
 ### For DevSynth Usage
 
 - Start with `devsynth init` to create the `.devsynth/project.yaml` file
@@ -138,6 +152,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 - Provide detailed requirements for better results
 - Review and validate all generated outputs
 
+
 ### For DevSynth Self-Improvement
 
 - Proceed with caution and thorough validation
@@ -145,6 +160,7 @@ This context refers to the advanced scenario where a functional version of DevSy
 - Avoid circular dependencies in self-improvement tasks
 - Maintain clear separation between the tool and its application
 - Document all self-improvement patterns and outcomes
+
 
 ## Conclusion
 

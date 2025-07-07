@@ -1,12 +1,14 @@
 ---
-title: "DevSynth WebUI Reference"
-date: "2025-06-18"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-18'
+status: draft
 tags:
-  - "webui"
-  - "user-guide"
-status: "draft"
-author: "DevSynth Team"
+
+- webui
+- user-guide
+
+title: DevSynth WebUI Reference
+version: 1.0.0
 ---
 
 # DevSynth WebUI Reference
@@ -28,6 +30,7 @@ The sidebar offers the following pages:
 5. **Config** – edit configuration values.
 6. **Diagnostics** – run environment checks via the doctor command.
 
+
 Each page shows progress spinners and uses collapsible sections for optional input.
 
 For more details on individual commands see the [CLI Reference](cli_reference.md).
@@ -38,7 +41,9 @@ Use the **Diagnostics** page to validate your configuration directly from the We
 Click **Run Diagnostics** and the results of `doctor_cmd` will be displayed in the main view.
 
 ```python
+
 # Pseudocode
+
 def webui_button_clicked():
     # delegate to CLI workflow via UXBridge
     spec_cmd(requirements_file="req.md", bridge=self)

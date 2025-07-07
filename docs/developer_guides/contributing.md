@@ -1,15 +1,17 @@
 ---
-title: "Contributing Guide"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-01'
+status: published
 tags:
-  - "contributing"
-  - "development"
-  - "guidelines"
-  - "process"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+
+- contributing
+- development
+- guidelines
+- process
+
+title: Contributing Guide
+version: 1.0.0
 ---
 
 # Contributing Guide
@@ -29,6 +31,7 @@ See also: [Development Setup](development_setup.md), [Code Style](code_style.md)
 - [Pull Request Process](#pull-request-process)
 - [Issue Reporting](#issue-reporting)
 
+
 ## Code of Conduct
 
 We are committed to providing a friendly, safe, and welcoming environment for all contributors. By participating in this project, you agree to abide by our Code of Conduct:
@@ -39,23 +42,27 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 - Focus on what is best for the community
 - Show empathy towards other community members
 
+
 ## Getting Started
 
 ### Fork and Clone the Repository
 
 1. Fork the repository on GitHub
 2. Clone your fork locally:
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/devsynth.git
    cd devsynth
    ```
 
 3. Add the original repository as an upstream remote:
+
    ```bash
    git remote add upstream https://github.com/ravenoak/devsynth.git
    ```
 
 4. Create a new branch for your changes:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -67,19 +74,23 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 - Python 3.11 or higher
 - Poetry (for dependency management)
 
+
 ### Setup
 
 1. Install dependencies using Poetry:
+
    ```bash
    poetry install
    ```
 
 2. Activate the Poetry virtual environment:
+
    ```bash
    poetry shell
    ```
 
 3. Install pre-commit hooks:
+
    ```bash
    pre-commit install
    ```
@@ -89,6 +100,7 @@ We are committed to providing a friendly, safe, and welcoming environment for al
    - Linting (flake8)
    - Type checking (mypy)
    - Test-first development check (ensures tests exist before implementing functionality)
+
 
    The test-first check enforces the TDD/BDD approach by verifying that new or modified Python files have corresponding test files. This ensures that you write tests before implementing functionality.
 
@@ -104,6 +116,7 @@ DevSynth follows these coding standards:
 - Use meaningful variable and function names
 - Write self-documenting code where possible
 
+
 ### Code Formatting
 
 We use the following tools to enforce code style:
@@ -112,24 +125,30 @@ We use the following tools to enforce code style:
 - [isort](https://pycqa.github.io/isort/) for import sorting
 - [flake8](https://flake8.pycqa.org/) for linting
 
+
 You can run these tools manually:
 
 ```bash
+
 # Format code with Black
+
 poetry run black src tests
 
 # Sort imports with isort
+
 poetry run isort src tests
 
 # Lint with flake8
+
 poetry run flake8 src tests
 ```
 
-### Type Hints
+## Type Hints
 
 - Use type hints for all function parameters and return values
 - Use the `typing` module for complex types
 - Run mypy to check type correctness:
+
   ```bash
   poetry run mypy src
   ```
@@ -141,6 +160,7 @@ poetry run flake8 src tests
 - Use interfaces (abstract base classes) to define contracts
 - Implement adapters for external systems
 - Use dependency injection for better testability
+
 
 ## Testing Requirements
 
@@ -160,23 +180,29 @@ DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
 - Use descriptive test names that explain what is being tested
 - Use fixtures for common setup and teardown
 
+
 ### Running Tests
 
 ```bash
+
 # Run all tests
+
 poetry run pytest
 
 # Run unit tests only
+
 poetry run pytest tests/unit/
 
 # Run behavior tests only
+
 poetry run pytest tests/behavior/
 
 # Run tests with coverage report
+
 poetry run pytest --cov=src --cov-report=term-missing
 ```
 
-### Test Requirements
+## Test Requirements
 
 - All tests must pass before submitting a pull request
 - **Tests must be written before implementing functionality (TDD/BDD approach)**
@@ -184,6 +210,7 @@ poetry run pytest --cov=src --cov-report=term-missing
 - Bug fixes should include tests that reproduce the bug
 - No significant decrease in code coverage
 - Pre-commit hooks will enforce the test-first approach by checking for test files
+
 
 ## Documentation
 
@@ -196,6 +223,7 @@ Good documentation is essential for the project. Please follow these guidelines:
 - Document exceptions that may be raised
 - Add inline comments for complex logic
 
+
 ### Project Documentation
 
 - Update relevant documentation for new features or changes
@@ -203,26 +231,31 @@ Good documentation is essential for the project. Please follow these guidelines:
 - Add examples for new functionality
 - Document API changes
 
+
 ## Pull Request Process
 
 1. **Update your fork**: Before creating a pull request, make sure your fork is up to date with the main repository:
+
    ```bash
    git fetch upstream
    git rebase upstream/main
    ```
 
 2. **Run tests**: Ensure all tests pass locally:
+
    ```bash
    poetry run pytest
    ```
 
 3. **Format code**: Run the code formatters:
+
    ```bash
    poetry run black src tests
    poetry run isort src tests
    ```
 
 4. **Create a pull request**: Push your changes to your fork and create a pull request:
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -241,6 +274,7 @@ Good documentation is essential for the project. Please follow these guidelines:
 
 7. **Merge**: Once approved, your pull request will be merged
 
+
 ## Issue Reporting
 
 If you find a bug or have a feature request, please create an issue on GitHub:
@@ -251,6 +285,7 @@ If you find a bug or have a feature request, please create an issue on GitHub:
    - For bugs: steps to reproduce, expected behavior, actual behavior, environment details
    - For features: clear description, use cases, benefits
 
+
 ## Commit Guidelines
 
 - Use clear and descriptive commit messages
@@ -258,13 +293,16 @@ If you find a bug or have a feature request, please create an issue on GitHub:
 - Keep commits focused on a single change
 - Use present tense ("Add feature" not "Added feature")
 
+
 Example commit message:
-```
+
+```text
 Add token tracking functionality for LLM interactions
 
 - Implement TokenTracker class
 - Add token counting to LLMAdapter
 - Update documentation with token usage examples
+
 
 Fixes #123
 ```
@@ -276,6 +314,7 @@ DevSynth follows [Semantic Versioning](https://semver.org/):
 - MAJOR version for incompatible API changes
 - MINOR version for new functionality in a backward-compatible manner
 - PATCH version for backward-compatible bug fixes
+
 
 ## License
 

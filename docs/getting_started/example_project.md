@@ -5,6 +5,7 @@ version: "1.0.0"
 tags:
   - "getting-started"
   - "example"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-06-15"
@@ -29,24 +30,33 @@ You can also explore the example using the WebUI. Start it with `devsynth webui`
 ## Workflow Overview
 
 1. **Initialize** the project
+
    ```bash
    cd examples/calculator
    devsynth init --path .
    ```
    The command now launches an interactive wizard when run in an existing directory and will read any `pyproject.toml` or `devsynth.yml` it detects.
+
 2. **Generate specifications** from the requirements
+
    ```bash
    devsynth inspect --requirements-file requirements.md
    ```
+
 3. **Generate tests**
+
    ```bash
    devsynth run-pipeline
    ```
+
 4. **Generate code**
+
    ```bash
    devsynth refactor
    ```
+
 5. **Run** the project
+
    ```bash
    devsynth run-pipeline
    ```

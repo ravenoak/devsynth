@@ -5,6 +5,7 @@ version: "0.1.0"
 tags:
   - "specification"
   - "requirements"
+
 status: "draft"
 author: "DevSynth Team"
 ---

@@ -1,17 +1,19 @@
 ---
-title: "CLI Overhaul Pseudocode"
-date: "2025-06-16"
-version: "0.1.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "specification"
-  - "cli"
-  - "pseudocode"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- specification
+- cli
+- pseudocode
+
+title: CLI Overhaul Pseudocode
+version: 0.1.0
 ---
 
-# Refactored `init` Command
+# CLI Overhaul Pseudocode
 
 ```pseudocode
 function init_command():

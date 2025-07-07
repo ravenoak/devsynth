@@ -1,10 +1,22 @@
+---
+title: DevSynth Repository Structure
+date: 2025-07-07
+version: 1.0.0
+tags:
+- documentation
+
+status: published
+author: DevSynth Team
+last_reviewed: 2025-07-07
+---
+
 # DevSynth Repository Structure
 
 This document provides a comprehensive map of the DevSynth repository structure, serving as a navigation guide for both human and agentic contributors. It outlines the organization of the codebase, tests, documentation, and related artifacts.
 
 ## Directory Structure Overview
 
-```
+```text
 devsynth/
 ├── CHANGELOG.md              # Project changelog with version history
 ├── CONTRIBUTING.md           # Contribution guidelines
@@ -22,7 +34,7 @@ devsynth/
 
 The source code follows a hexagonal architecture pattern, separating core domain logic from external adapters and application services:
 
-```
+```text
 src/devsynth/
 ├── __init__.py               # Package initialization
 ├── __main__.py               # Entry point
@@ -35,7 +47,7 @@ src/devsynth/
 │   ├── cli.py                # CLI adapter
 │   ├── kuzu_memory_store.py      # Kuzu memory store adapter
 │   ├── json_file_store.py    # JSON file store adapter
-│   └── provider_system.py    # LLM provider system (OpenAI, LM Studio)
+│   └── provider_system.py    # Provider system (OpenAI, LM Studio)
 ├── application/              # Application services
 │   ├── __init__.py
 │   ├── orchestration/        # Workflow orchestration
@@ -55,7 +67,7 @@ src/devsynth/
 
 ## Tests Structure (`tests/`)
 
-```
+```text
 tests/
 ├── conftest.py               # Shared test fixtures
 ├── README.md                 # Testing documentation
@@ -72,7 +84,7 @@ tests/
 
 Following the [Documentation Policies](policies/documentation_policies.md), the documentation is organized as:
 
-```
+```text
 docs/
 ├── index.md                       # Documentation home
 ├── requirements_traceability.md   # Requirements traceability matrix
@@ -101,6 +113,7 @@ docs/
 - **`src/devsynth/ports/memory_store.py`**: Memory store interface definition
 - **`src/devsynth/ports/memory_port.py`**: Memory system port for application interaction
 
+
 ### Documentation Files
 
 - **`docs/index.md`**: Documentation home and overview
@@ -108,10 +121,12 @@ docs/
 - **`docs/architecture/memory_system.md`**: Memory system architecture
 - **`docs/requirements_traceability.md`**: Requirements traceability matrix
 
+
 ### Testing Files
 
 - **`tests/behavior/conftest.py`**: Test fixtures for isolation and cleanliness
 - **`tests/unit/test_kuzu_store.py`**: Kuzu memory store tests
+
 
 ## File and Symbol Naming Conventions
 
@@ -124,17 +139,20 @@ DevSynth follows these naming conventions:
 - **Tests**: Prefixed with `test_` (`test_kuzu_store.py`)
 - **BDD Features**: Descriptive naming (`additional_storage_backends.feature`)
 
+
 ## Metadata Tags and Traceability
 
 - **Requirements**: Tagged with unique IDs (e.g., `REQ-001`) in the Requirements Traceability Matrix
 - **Code**: Comments reference requirement IDs where applicable
 - **Tests**: Test names and docstrings reference the requirements they validate
 
+
 ## Version Control Standards
 
 - **Branches**: Feature branches from `main`, named as `feature/feature-name`
 - **Commits**: Descriptive messages with requirement IDs where applicable
 - **Pull Requests**: Reference requirement IDs and include description of changes
+
 
 ## Getting Started with the Repository
 
@@ -145,6 +163,7 @@ New contributors should:
 3. Familiarize with the [Architecture Overview](architecture/overview.md)
 4. Follow the coding standards in [Code Style Guide](developer_guides/code_style.md)
 
+
 ---
 
-_Last updated: June 2025_
+_Last updated: July 7, 2025_

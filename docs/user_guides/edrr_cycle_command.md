@@ -1,15 +1,26 @@
-# EDRR Cycle Command User Guide
+---
+title: "EDRR Command User Guide"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "user-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
+# EDRR Command User Guide
 
 ## Overview
 
-The `edrr-cycle` command is a powerful tool in the DevSynth CLI that executes an Expand-Differentiate-Refine-Retrospect (EDRR) cycle. This structured approach to problem-solving and development helps you systematically tackle complex tasks by breaking them down into distinct phases.
+The `EDRR-cycle` command is a powerful tool in the DevSynth CLI that executes an EDRR (EDRR) cycle. This structured approach to problem-solving and development helps you systematically tackle complex tasks by breaking them down into distinct phases.
 
 This implementation uses the Enhanced EDRR Coordinator which provides improved phase transitions, quality metrics, and safeguards against infinite loops.
 
 ## Command Syntax
 
 ```bash
-devsynth edrr-cycle [OPTIONS]
+devsynth EDRR-cycle [OPTIONS]
 ```
 
 ## Options
@@ -26,7 +37,7 @@ devsynth edrr-cycle [OPTIONS]
 
 ## EDRR Phases
 
-The EDRR cycle consists of four phases:
+The EDRR consists of four phases:
 
 1. **Expand**: Generate a wide range of ideas, approaches, and potential solutions.
 2. **Differentiate**: Categorize and evaluate the ideas from the Expand phase.
@@ -47,31 +58,31 @@ The Enhanced EDRR Coordinator provides several improvements over the standard ED
 ### Running from a Manifest File
 
 ```bash
-devsynth edrr-cycle --manifest manifest.yaml
+devsynth EDRR-cycle --manifest Project Configuration
 ```
 
-This command starts an EDRR cycle using the task definition in the manifest file.
+This command starts an EDRR using the task definition in the manifest file.
 
 ### Running from a Prompt
 
 ```bash
-devsynth edrr-cycle --prompt "Improve error handling in the API endpoints"
+devsynth EDRR-cycle --prompt "Improve error handling in the API endpoints"
 ```
 
-This command starts an EDRR cycle with the given prompt as the task description.
+This command starts an EDRR with the given prompt as the task description.
 
 ### Adding Context to a Prompt
 
 ```bash
-devsynth edrr-cycle --prompt "Optimize database queries" --context "Focus on reducing N+1 queries"
+devsynth EDRR-cycle --prompt "Optimize database queries" --context "Focus on reducing N+1 queries"
 ```
 
-This command starts an EDRR cycle with additional context for the prompt.
+This command starts an EDRR with additional context for the prompt.
 
 ### Controlling Iterations
 
 ```bash
-devsynth edrr-cycle --prompt "Refactor the authentication system" --max-iterations 5
+devsynth EDRR-cycle --prompt "Refactor the authentication system" --max-iterations 5
 ```
 
 This command sets the maximum number of iterations for the cycle to 5.
@@ -79,7 +90,7 @@ This command sets the maximum number of iterations for the cycle to 5.
 ### Disabling Automatic Phase Transitions
 
 ```bash
-devsynth edrr-cycle --prompt "Implement authentication" --auto false
+devsynth EDRR-cycle --prompt "Implement authentication" --auto false
 ```
 
 This command disables automatic phase transitions, requiring manual progression through phases.
@@ -88,7 +99,7 @@ This command disables automatic phase transitions, requiring manual progression 
 
 The command provides progress information during execution and generates a final report at the end. The report includes:
 
-- Key insights from the EDRR cycle
+- Key insights from the EDRR
 - Recommended next steps
 - Quality metrics for each phase
 - Detailed results from each phase
@@ -114,7 +125,7 @@ The command provides progress information during execution and generates a final
 For more information, use the help command:
 
 ```bash
-devsynth edrr-cycle --help
+devsynth EDRR-cycle --help
 ```
 
 ## Related Commands

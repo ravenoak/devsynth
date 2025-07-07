@@ -19,7 +19,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
 
 # Import from specialized modules
-from devsynth.domain.models.wsde_base import WSDE, WSDETeam
+from devsynth.domain.models.wsde_base import WSDE, WSDETeam as BaseWSDETeam
 from devsynth.domain.models.wsde_roles import (
     assign_roles, assign_roles_for_phase, dynamic_role_reassignment,
     _validate_role_mapping, _auto_assign_roles, get_role_map,
@@ -103,8 +103,7 @@ class WSDE:
             self.updated_at = self.created_at
 
 
-@dataclass
-class WSDETeam:
+class WSDETeam(BaseWSDETeam):
     """
     Worker Self-Directed Enterprise Team (WSDE Team) - A team of agents organized
     according to the WSDE model with a context-driven Primus role.
@@ -118,48 +117,44 @@ class WSDETeam:
       flexibly based on the current context and agent expertise
     """
 
-    agents: List[Any] = None  # List of Agent objects
-    primus_index: int = 0  # Index of the current Primus agent
-    solutions: Dict[str, List[Dict[str, Any]]] = None  # Solutions by task ID
-    external_knowledge: Dict[str, Any] = None  # External knowledge sources
-    message_protocol: Any = None  # MessageProtocol instance
-    peer_reviews: List[Any] = None
-    role_assignments: Dict[str, Any] = None  # Mapping of roles to assigned agents
-    dialectical_hooks: List[Callable[[Dict[str, Any], List[Dict[str, Any]]], None]] = (
-        None
-    )
-    voting_history: List[Dict[str, Any]] = None  # History of voting decisions
+    def __init__(self, name: str, description: Optional[str] = None):
+        """
+        Initialize a new WSDE Team.
 
-    def __post_init__(self):
-        if self.agents is None:
-            self.agents = []
-        if self.solutions is None:
-            self.solutions = {}
-        if self.external_knowledge is None:
-            self.external_knowledge = {}
+        Args:
+            name: The name of the team
+            description: Optional description of the team's purpose
+        """
+        super().__init__(name, description)
+        self.primus_index = 0  # Index of the current Primus agent
+        self.solutions = {}  # Solutions by task ID
+        self.external_knowledge = {}  # External knowledge sources
+        self.message_protocol = None  # MessageProtocol instance
+        self.peer_reviews = []
+        self.role_assignments = {
+            "primus": None,
+            "worker": [],
+            "supervisor": None,
+            "designer": None,
+            "evaluator": None,
+        }
+        self.dialectical_hooks = []
+        self.voting_history = []
+
+        # Initialize message protocol
+        self._init_message_protocol()
+
+    # Initialize message protocol if possible
+    def _init_message_protocol(self):
+        """Initialize the message protocol if the module is available."""
         if self.message_protocol is None:
             try:
                 from devsynth.application.collaboration.message_protocol import (
                     MessageProtocol,
                 )
-
                 self.message_protocol = MessageProtocol()
             except Exception:
                 self.message_protocol = None
-        if self.peer_reviews is None:
-            self.peer_reviews = []
-        if self.role_assignments is None:
-            self.role_assignments = {
-                "primus": None,
-                "worker": [],
-                "supervisor": None,
-                "designer": None,
-                "evaluator": None,
-            }
-        if self.dialectical_hooks is None:
-            self.dialectical_hooks = []
-        if self.voting_history is None:
-            self.voting_history = []
 
     def add_agent(self, agent: Any) -> None:
         """Add an agent to the team."""

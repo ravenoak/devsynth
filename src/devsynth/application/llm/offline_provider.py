@@ -6,6 +6,7 @@ from hashlib import sha256
 from typing import Any, Dict, List
 
 from ...domain.interfaces.llm import LLMProvider
+from ...logging_setup import DevSynthLogger
 
 try:  # pragma: no cover - optional heavy deps
     import torch

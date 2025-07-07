@@ -1,15 +1,17 @@
 ---
-title: "UXBridge Abstraction"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "architecture"
-  - "ux"
-  - "cli"
-  - "webui"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- architecture
+- ux
+- cli
+- webui
+
+title: UXBridge Abstraction
+version: 1.0.0
 ---
 
 # UXBridge Abstraction
@@ -22,11 +24,14 @@ invoke workflow functions through this common layer, allowing the same code in
 ## Responsibilities
 
 - Expose the descriptive `ask_question`, `confirm_choice`, and
+
   `display_result` methods
+
 - Provide backward compatible aliases `prompt`, `confirm`, and `print`
 - Hide presentation details from workflow logic
 - Allow mocking during tests
 - Provide a single point where alternative UIs (e.g., a WebUI) can plug in
+
 
 ```mermaid
 graph LR
@@ -37,15 +42,19 @@ graph LR
 ```
 
 ```pseudocode
+
 # CLI front-end
+
 cli_bridge = CLIUXBridge()
 cli_command(args, bridge=cli_bridge)
 
 # WebUI front-end
+
 web_bridge = WebUI()
 web_bridge.run()
 
 # Agent API
+
 api = AgentAPI(cli_bridge)
 api.init(path=".")
 ```
@@ -88,6 +97,7 @@ function some_command(args, bridge=bridge):
 - **Bridge Definition:** `src/devsynth/interface/ux_bridge.py`
 - **Workflow Functions:** `src/devsynth/core/workflows.py`
 
+
 The UXBridge ensures these components remain loosely coupled, enabling a smooth
 transition from a purely CLI experience to a more graphical WebUI.
 
@@ -97,14 +107,21 @@ All implementations expose the following behaviours so workflows can remain UI
 agnostic:
 
 - **``ask_question(message, choices=None, default=None, show_default=True)``** –
+
   returns the user's response as a string. Choice lists and default values may
   be presented but callers always receive text.
+
 - **``confirm_choice(message, default=False)``** – returns ``True`` when the user
+
   confirms the action, otherwise ``False``.
+
 - **``display_result(message, highlight=False)``** – shows a message to the user
+
   without returning a value. When ``highlight`` is ``True`` the text is
   emphasised (for example using colour or bold styling).
+
 - **``create_progress(description, total=100)``** – yields a progress indicator
+
   object with ``update`` and ``complete`` methods. The object supports the
   context manager protocol so ``with bridge.create_progress("Loading") as p:`` is
   valid.
@@ -118,8 +135,13 @@ bridge and verify consistent behaviour.
 Regardless of implementation, all bridges guarantee a few key invariants:
 
 - **Consistent return types** – `ask_question` always yields a string and
+
   `confirm_choice` always yields a boolean.
+
 - **Output sanitization** – messages passed to `display_result` and progress
+
   descriptions are sanitized with `sanitize_output` before presentation.
+
 - **Safe CLI input** – the CLI bridge validates user responses with
+
   `validate_safe_input` so unsafe content is rejected early.
