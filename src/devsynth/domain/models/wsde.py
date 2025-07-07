@@ -551,6 +551,24 @@ class WSDETeam:
                 return agent
         return None
 
+    def get_agent_by_role(self, role: str) -> Optional[Any]:
+        """Get an agent with the specified role.
+
+        Args:
+            role: The role to look for (e.g., "Primus", "Worker", "Supervisor", "Designer", "Evaluator")
+
+        Returns:
+            The agent with the specified role, or None if no agent has that role
+        """
+        if role.lower() == "primus":
+            return self.get_primus()
+
+        role_capitalized = role.capitalize()
+        for agent in self.agents:
+            if getattr(agent, "current_role", None) == role_capitalized:
+                return agent
+        return None
+
     def assign_roles(self, role_mapping: Optional[Dict[str, Any]] = None) -> None:
         """Assign WSDE roles to agents.
 
