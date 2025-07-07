@@ -529,8 +529,15 @@ class TestEDRRCoordinator:
             micro = coordinator.create_micro_cycle({"description": "sub"}, Phase.EXPAND)
 
         aggregated = coordinator.results.get("AGGREGATED", {})
-        assert micro.cycle_id in aggregated.get("child_cycles", {})
-        assert aggregated["child_cycles"][micro.cycle_id] == micro.results
+        # Check that the micro cycle results are in the aggregated results
+        # The structure has changed to organize by phase
+        assert "child_cycles" in aggregated
+        assert "EXPAND" in aggregated["child_cycles"]
+        assert micro.cycle_id in aggregated["child_cycles"]["EXPAND"]
+
+        # Check that the individual cycle results are also present
+        assert "individual_cycles" in aggregated["child_cycles"]
+        assert micro.cycle_id in aggregated["child_cycles"]["individual_cycles"]
 
     def test_execution_history_logging(self, coordinator):
         coordinator.start_cycle({"description": "Task"})
@@ -542,7 +549,9 @@ class TestEDRRCoordinator:
         """Ensure micro cycle is not created when granularity threshold triggers termination."""
         coordinator.start_cycle({"description": "Macro"})
         micro_task = {"description": "Sub", "granularity_score": 0.1}
-        assert coordinator.should_terminate_recursion(micro_task) is True
+        should_terminate, reason = coordinator.should_terminate_recursion(micro_task)
+        assert should_terminate is True
+        assert reason == "granularity threshold"
         with pytest.raises(EDRRCoordinatorError):
             coordinator.create_micro_cycle(micro_task, Phase.EXPAND)
         assert not coordinator.child_cycles

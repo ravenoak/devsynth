@@ -125,7 +125,7 @@ def test_recursion_depth_increments(coordinator):
 
 def test_abort_when_should_terminate(coordinator):
     coordinator.start_cycle({"description": "macro"})
-    with patch.object(coordinator, "should_terminate_recursion", return_value=True):
+    with patch.object(coordinator, "should_terminate_recursion", return_value=(True, "test reason")):
         with pytest.raises(EDRRCoordinatorError):
             coordinator.create_micro_cycle({"description": "micro"}, Phase.EXPAND)
     assert not coordinator.child_cycles
@@ -161,8 +161,15 @@ def test_parent_aggregates_after_micro_phase(coordinator):
         micro.progress_to_phase(Phase.DIFFERENTIATE)
 
     aggregated = coordinator.results.get("AGGREGATED", {})
-    assert micro.cycle_id in aggregated.get("child_cycles", {})
-    assert aggregated["child_cycles"][micro.cycle_id] == micro.results
+    # Check that the micro cycle results are in the aggregated results
+    # The structure has changed to organize by phase
+    assert "child_cycles" in aggregated
+    assert "EXPAND" in aggregated["child_cycles"]
+    assert micro.cycle_id in aggregated["child_cycles"]["EXPAND"]
+
+    # Check that the individual cycle results are also present
+    assert "individual_cycles" in aggregated["child_cycles"]
+    assert micro.cycle_id in aggregated["child_cycles"]["individual_cycles"]
 
 
 def test_create_micro_cycle_from_manifest_dict(coordinator):

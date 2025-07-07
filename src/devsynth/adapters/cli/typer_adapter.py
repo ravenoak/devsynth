@@ -125,7 +125,7 @@ def build_app() -> typer.Typer:
     )(inspect_code_cmd)
     app.command(
         name="edrr-cycle",
-        help="Run an EDRR cycle. Example: devsynth edrr-cycle manifest.yaml",
+        help="Run an EDRR cycle from a manifest file or prompt. Examples: devsynth edrr-cycle --manifest manifest.yaml, devsynth edrr-cycle --prompt 'Improve error handling'",
     )(edrr_cycle_cmd)
     app.command(
         name="align",
