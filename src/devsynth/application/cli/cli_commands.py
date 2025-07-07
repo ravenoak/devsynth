@@ -92,6 +92,49 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     return True
 
 
+def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]) -> None:
+    """Handle errors consistently across all commands.
+
+    Args:
+        bridge: The UX bridge to use for displaying messages
+        error: The error to handle, can be an Exception, a result dict, or a string
+    """
+    if isinstance(error, Exception):
+        # Log the error for debugging
+        logger = DevSynthLogger.get_logger()
+        logger.error(f"Command error: {str(error)}", exc_info=error)
+
+        # Display a user-friendly error message
+        bridge.display_result(f"[red]Error:[/red] {str(error)}", highlight=False)
+    elif isinstance(error, dict):
+        # Handle result dict with error message
+        message = error.get('message', 'Unknown error')
+        bridge.display_result(f"[red]Error:[/red] {message}", highlight=False)
+    else:
+        # Handle string error message
+        bridge.display_result(f"[red]Error:[/red] {error}", highlight=False)
+
+
+def _validate_file_path(path: str, must_exist: bool = True) -> Optional[str]:
+    """Validate a file path.
+
+    Args:
+        path: The file path to validate
+        must_exist: Whether the file must exist
+
+    Returns:
+        An error message if validation fails, None otherwise
+    """
+    if not path:
+        return "File path cannot be empty"
+
+    file_path = Path(path)
+    if must_exist and not file_path.exists():
+        return f"File '{path}' does not exist"
+
+    return None
+
+
 def config_key_autocomplete(ctx: typer.Context, incomplete: str):
     """Provide autocompletion for configuration keys."""
     return loader_autocomplete(ctx, incomplete)
@@ -100,7 +143,23 @@ def config_key_autocomplete(ctx: typer.Context, incomplete: str):
 def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None:
     """Initialize a new project.
 
-    If ``wizard`` is True, run the :class:`SetupWizard` for a guided setup.
+    This command sets up a new DevSynth project with the specified configuration.
+    It will create a configuration file in the project directory.
+
+    Args:
+        wizard: If True, run the interactive setup wizard for a guided setup
+        bridge: Optional UX bridge for interaction
+
+    Examples:
+        Initialize a project with interactive prompts:
+        ```
+        devsynth init
+        ```
+
+        Initialize a project with the guided setup wizard:
+        ```
+        devsynth init --wizard
+        ```
     """
 
     bridge = _resolve_bridge(bridge)
@@ -113,10 +172,21 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
 
         config = UnifiedConfigLoader.load().config
         if _find_config_path(Path.cwd()) is not None:
-            bridge.display_result("Project already initialized")
+            bridge.display_result("[yellow]Project already initialized[/yellow]")
             return
 
+        # Get project information
         root = bridge.ask_question("Project root directory?", default=str(Path.cwd()))
+
+        # Validate root directory
+        root_path = Path(root)
+        if not root_path.exists():
+            if bridge.confirm_choice(f"Directory '{root}' does not exist. Create it?", default=True):
+                root_path.mkdir(parents=True, exist_ok=True)
+            else:
+                bridge.display_result("[yellow]Initialization cancelled[/yellow]")
+                return
+
         language = bridge.ask_question("Primary language?", default="python")
         goals = bridge.ask_question("Project goals?", default="")
 
@@ -127,6 +197,7 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
         )
         offline_mode = bridge.confirm_choice("Enable offline mode?", default=False)
 
+        # Configure features
         features = config.features or {}
         for feat in [
             "wsde_collaboration",
@@ -141,7 +212,9 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
                 default=features.get(feat, False),
             )
 
+        # Confirm and save
         if not bridge.confirm_choice("Proceed with initialization?", default=True):
+            bridge.display_result("[yellow]Initialization cancelled[/yellow]")
             return
 
         config.project_root = root
@@ -150,14 +223,17 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
         config.memory_store_type = memory_backend
         config.offline_mode = offline_mode
         config.features = features
-        save_config(
-            ConfigModel(**config.as_dict()),
-            use_pyproject=(Path("pyproject.toml").exists()),
-        )
 
-        bridge.display_result("Initialization complete", highlight=True)
+        try:
+            save_config(
+                ConfigModel(**config.as_dict()),
+                use_pyproject=(Path("pyproject.toml").exists()),
+            )
+            bridge.display_result("[green]Initialization complete[/green]", highlight=True)
+        except Exception as save_err:
+            _handle_error(bridge, save_err)
     except Exception as err:  # pragma: no cover - defensive
-        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+        _handle_error(bridge, err)
 
 
 def spec_cmd(
@@ -165,68 +241,155 @@ def spec_cmd(
 ) -> None:
     """Generate specifications from a requirements file.
 
-    Example:
-        `devsynth spec --requirements-file requirements.md`
+    This command analyzes a requirements file and generates detailed specifications
+    that can be used for implementation.
+
+    Args:
+        requirements_file: Path to the requirements file (Markdown format)
+        bridge: Optional UX bridge for interaction
+
+    Examples:
+        Generate specifications from the default requirements file:
+        ```
+        devsynth spec
+        ```
+
+        Generate specifications from a custom requirements file:
+        ```
+        devsynth spec --requirements-file custom_requirements.md
+        ```
     """
     bridge = _resolve_bridge(bridge)
     try:
+        # Check required services
         if not _check_services(bridge):
             return
+
+        # Validate input file
+        error = _validate_file_path(requirements_file)
+        if error:
+            bridge.display_result(f"[yellow]{error}[/yellow]")
+            if bridge.confirm_choice(f"Create empty '{requirements_file}' file?", default=False):
+                Path(requirements_file).touch()
+                bridge.display_result(f"[green]Created empty file: {requirements_file}[/green]")
+            else:
+                return
+
+        # Generate specifications
         args = filter_args({"requirements_file": requirements_file})
         result = generate_specs(**args)
+
+        # Handle result
         if result.get("success"):
+            output_file = result.get("output_file", "specs.md")
             bridge.display_result(
                 f"[green]Specifications generated from {requirements_file}.[/green]"
             )
-        else:
             bridge.display_result(
-                f"[red]Error:[/red] {result.get('message')}", highlight=False
+                f"[blue]Output saved to: {output_file}[/blue]"
             )
+        else:
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+        _handle_error(bridge, err)
 
 
 def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) -> None:
     """Generate tests based on specifications.
 
-    Example:
-        `devsynth test --spec-file specs.md`
+    This command analyzes a specifications file and generates test cases
+    that can be used to validate the implementation.
+
+    Args:
+        spec_file: Path to the specifications file (Markdown format)
+        bridge: Optional UX bridge for interaction
+
+    Examples:
+        Generate tests from the default specifications file:
+        ```
+        devsynth test
+        ```
+
+        Generate tests from a custom specifications file:
+        ```
+        devsynth test --spec-file custom_specs.md
+        ```
     """
     bridge = _resolve_bridge(bridge)
     try:
+        # Check required services
         if not _check_services(bridge):
             return
+
+        # Validate input file
+        error = _validate_file_path(spec_file)
+        if error:
+            bridge.display_result(f"[yellow]{error}[/yellow]")
+            if bridge.confirm_choice(f"Run 'devsynth spec' to generate {spec_file}?", default=True):
+                # Call spec_cmd to generate the specifications file
+                spec_cmd(bridge=bridge)
+            else:
+                return
+
+        # Generate tests
         args = filter_args({"spec_file": spec_file})
         result = generate_tests(**args)
+
+        # Handle result
         if result.get("success"):
+            output_dir = result.get("output_dir", "tests")
             bridge.display_result(f"[green]Tests generated from {spec_file}.[/green]")
+            bridge.display_result(f"[blue]Tests saved to directory: {output_dir}[/blue]")
         else:
-            bridge.display_result(
-                f"[red]Error:[/red] {result.get('message')}", highlight=False
-            )
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+        _handle_error(bridge, err)
 
 
 def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
     """Generate implementation code from tests.
 
-    Example:
-        `devsynth code`
+    This command analyzes the test files and generates implementation code
+    that satisfies the test requirements.
+
+    Args:
+        bridge: Optional UX bridge for interaction
+
+    Examples:
+        Generate implementation code:
+        ```
+        devsynth code
+        ```
     """
     bridge = _resolve_bridge(bridge)
     try:
+        # Check required services
         if not _check_services(bridge):
             return
+
+        # Check if tests directory exists
+        tests_dir = Path("tests")
+        if not tests_dir.exists() or not any(tests_dir.iterdir()):
+            bridge.display_result("[yellow]No tests found in 'tests' directory.[/yellow]")
+            if bridge.confirm_choice("Run 'devsynth test' to generate tests?", default=True):
+                # Call test_cmd to generate the tests
+                test_cmd(bridge=bridge)
+            else:
+                return
+
+        # Generate code
+        bridge.display_result("[blue]Generating implementation code from tests...[/blue]")
         result = generate_code()
+
+        # Handle result
         if result.get("success"):
+            output_dir = result.get("output_dir", "src")
             bridge.display_result("[green]Code generated successfully.[/green]")
+            bridge.display_result(f"[blue]Code saved to directory: {output_dir}[/blue]")
         else:
-            bridge.display_result(
-                f"[red]Error:[/red] {result.get('message')}", highlight=False
-            )
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+        _handle_error(bridge, err)
 
 
 def run_pipeline_cmd(
@@ -237,33 +400,60 @@ def run_pipeline_cmd(
 ) -> None:
     """Run the generated code or a specific target.
 
-    Parameters
-    ----------
-    target:
-        Execution target (e.g. ``unit-tests``).
-    report:
-        Optional report data that should be persisted with pipeline results.
+    This command executes the generated code or a specific target, such as unit tests.
+    It can also persist a report with the results.
 
-    Example
-    -------
-    ``devsynth run-pipeline --target unit-tests``
+    Args:
+        target: Execution target (e.g. "unit-tests", "integration-tests", "all")
+        report: Optional report data that should be persisted with pipeline results
+        bridge: Optional UX bridge for interaction
+
+    Examples:
+        Run the default pipeline:
+        ```
+        devsynth run-pipeline
+        ```
+
+        Run a specific target:
+        ```
+        devsynth run-pipeline --target unit-tests
+        ```
     """
     bridge = _resolve_bridge(bridge)
     try:
+        # Check required services
+        if not _check_services(bridge):
+            return
+
+        # Validate target if provided
+        valid_targets = ["unit-tests", "integration-tests", "behavior-tests", "all"]
+        if target and target not in valid_targets:
+            bridge.display_result(
+                f"[yellow]Warning: '{target}' is not a standard target. Valid targets are: {', '.join(valid_targets)}[/yellow]"
+            )
+            if not bridge.confirm_choice(f"Continue with target '{target}'?", default=True):
+                return
+
+        # Execute command
+        bridge.display_result(f"[blue]Running {'target: ' + target if target else 'default pipeline'}...[/blue]")
         result = workflows.execute_command(
             "run-pipeline", {"target": target, "report": report}
         )
-        if result["success"]:
+
+        # Handle result
+        if result.get("success"):
             if target:
-                bridge.display_result(f"[green]Executed target: {target}[/green]")
+                bridge.display_result(f"[green]Successfully executed target: {target}[/green]")
             else:
-                bridge.display_result(f"[green]Execution complete.[/green]")
+                bridge.display_result(f"[green]Pipeline execution complete.[/green]")
+
+            # Display additional result information if available
+            if "output" in result:
+                bridge.display_result(f"[blue]Output:[/blue]\n{result['output']}")
         else:
-            bridge.display_result(
-                f"[red]Error:[/red] {result['message']}", highlight=False
-            )
-    except Exception as err:
-        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+            _handle_error(bridge, result)
+    except Exception as err:  # pragma: no cover - defensive
+        _handle_error(bridge, err)
 
 
 @config_app.callback(invoke_without_command=True)
@@ -277,45 +467,95 @@ def config_cmd(
 ) -> None:
     """View or set configuration options.
 
-    Example:
-        `devsynth config --key model --value gpt-4`
+    This command allows you to view or modify DevSynth configuration settings.
+    Without arguments, it displays all configuration settings.
+    With a key, it displays the value for that key.
+    With a key and value, it updates the configuration.
+
+    Args:
+        key: Configuration key to view or set
+        value: Value to set for the specified key
+        list_models: List available LLM models
+        ctx: Typer context
+        bridge: Optional UX bridge for interaction
+
+    Examples:
+        View all configuration settings:
+        ```
+        devsynth config
+        ```
+
+        View a specific configuration setting:
+        ```
+        devsynth config --key model
+        ```
+
+        Update a configuration setting:
+        ```
+        devsynth config --key model --value gpt-4
+        ```
+
+        List available LLM models:
+        ```
+        devsynth config --list-models
+        ```
     """
     bridge = _resolve_bridge(bridge)
+
+    # Handle Typer's OptionInfo objects
     if isinstance(key, typer.models.OptionInfo):
         key = None
     if isinstance(value, typer.models.OptionInfo):
         value = None
 
+    # Skip if a subcommand is being invoked
     if ctx is not None and ctx.invoked_subcommand is not None:
         return
+
     try:
+        # Load configuration
         config = UnifiedConfigLoader.load().config
+
+        # Prepare arguments
         args = {"key": key, "value": value}
         if list_models:
             args["list_models"] = True
+
+        # Execute command
         result = workflows.execute_command("config", args)
+
+        # Handle result
         if result.get("success"):
             if key and value:
-                setattr(config, key, value)
-                save_config(
-                    ConfigModel(**config.as_dict()),
-                    use_pyproject=(Path("pyproject.toml").exists()),
-                )
-                bridge.display_result(
-                    f"[green]Configuration updated: {key} = {value}[/green]"
-                )
+                # Update configuration
+                try:
+                    setattr(config, key, value)
+                    save_config(
+                        ConfigModel(**config.as_dict()),
+                        use_pyproject=(Path("pyproject.toml").exists()),
+                    )
+                    bridge.display_result(
+                        f"[green]Configuration updated: {key} = {value}[/green]"
+                    )
+                except Exception as save_err:
+                    _handle_error(bridge, save_err)
             elif key:
+                # Display specific configuration value
                 bridge.display_result(f"[blue]{key}:[/blue] {result.get('value')}")
+            elif list_models:
+                # Display available models
+                bridge.display_result(f"[blue]Available LLM Models:[/blue]")
+                for model in result.get("models", []):
+                    bridge.display_result(f"  [yellow]{model}[/yellow]")
             else:
+                # Display all configuration settings
                 bridge.display_result(f"[blue]DevSynth Configuration:[/blue]")
                 for k, v in result.get("config", {}).items():
                     bridge.display_result(f"  [yellow]{k}:[/yellow] {v}")
         else:
-            bridge.display_result(
-                f"[red]Error:[/red] {result.get('message')}", highlight=False
-            )
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
+        _handle_error(bridge, err)
 
 
 @config_app.command("enable-feature")

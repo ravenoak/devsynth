@@ -20,11 +20,11 @@ from devsynth.domain.interfaces.memory import ContextManager, MemoryStore
 
 class MockMemoryStore(MemoryStore):
     """Mock implementation of MemoryStore for testing."""
-    
+
     def __init__(self):
         self.items = {}
         self.next_id = 1
-    
+
     def store(self, item: MemoryItem) -> str:
         """Store an item and return its ID."""
         item_id = f"item_{self.next_id}"
@@ -32,11 +32,11 @@ class MockMemoryStore(MemoryStore):
         item.id = item_id
         self.items[item_id] = item
         return item_id
-    
+
     def retrieve(self, item_id: str) -> MemoryItem:
         """Retrieve an item by ID."""
         return self.items.get(item_id)
-    
+
     def search(self, query):
         """Search for items matching the query."""
         results = []
@@ -58,24 +58,35 @@ class MockMemoryStore(MemoryStore):
                 results.append(item)
         return results
 
+    def delete(self, item_id: str) -> bool:
+        """Delete an item from memory by ID."""
+        if item_id in self.items:
+            del self.items[item_id]
+            return True
+        return False
+
 
 class MockContextManager(ContextManager):
     """Mock implementation of ContextManager for testing."""
-    
+
     def __init__(self):
         self.context = {}
-    
+
     def add_to_context(self, key, value):
         """Add a value to the context."""
         self.context[key] = value
-    
+
     def get_from_context(self, key):
         """Get a value from the context."""
         return self.context.get(key)
-    
+
     def get_full_context(self):
         """Get the full context."""
         return self.context
+
+    def clear_context(self):
+        """Clear the current context."""
+        self.context = {}
 
 
 @pytest.fixture
@@ -94,7 +105,7 @@ def context():
             self.search_results = None
             self.context_value = None
             self.full_context = None
-    
+
     return Context()
 
 
@@ -223,6 +234,11 @@ def check_first_search_result_content(context, content):
 
 # Scenario: Add and retrieve context values
 
+@given(parsers.parse('I have added a value "{value}" to the context with key "{key}"'))
+def given_add_value_to_context(context, value, key):
+    """Step: I have added a value to the context with a key."""
+    context.memory_port.add_to_context(key, value)
+
 @when(parsers.parse('I add a value "{value}" to the context with key "{key}"'))
 def add_value_to_context(context, value, key):
     """Step: I add a value to the context with a key."""
@@ -232,6 +248,12 @@ def add_value_to_context(context, value, key):
 @then(parsers.parse('I should be able to retrieve the value using the key "{key}"'))
 def retrieve_value_from_context(context, key):
     """Step: I should be able to retrieve the value using a key."""
+    context.context_value = context.memory_port.get_from_context(key)
+    assert context.context_value is not None
+
+@then(parsers.parse('I should still be able to retrieve the value using the key "{key}"'))
+def still_retrieve_value_from_context(context, key):
+    """Step: I should still be able to retrieve the value using a key after operations."""
     context.context_value = context.memory_port.get_from_context(key)
     assert context.context_value is not None
 
@@ -289,9 +311,9 @@ def perform_multiple_memory_operations(context):
         content="Test content",
         memory_type=MemoryType.CODE
     )
-    
+
     # Search for memory items
     context.memory_port.search_memory({'type': MemoryType.CODE})
-    
+
     # Add another context value
     context.memory_port.add_to_context("another_key", "another_value")

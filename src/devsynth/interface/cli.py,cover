@@ -1,0 +1,163 @@
+> """CLI implementation of the UXBridge using Typer and Rich."""
+  
+! from typing import Optional, Sequence, Dict, Any
+  
+! from rich.console import Console
+! from rich.panel import Panel
+! from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
+! from rich.prompt import Confirm, Prompt
+! from rich.style import Style
+! from rich.theme import Theme
+! from rich.text import Text
+  
+! from devsynth.interface.ux_bridge import (
+!     UXBridge,
+!     ProgressIndicator,
+!     sanitize_output,
+! )
+! from devsynth.security import validate_safe_input
+  
+  
+  # Define a custom theme for consistent styling
+! DEVSYNTH_THEME = Theme({
+!     "info": "cyan",
+!     "success": "green",
+!     "warning": "yellow",
+!     "error": "bold red",
+!     "heading": "bold blue",
+!     "subheading": "bold cyan",
+!     "prompt": "bold yellow",
+!     "command": "bold green",
+!     "path": "italic yellow",
+!     "code": "bold cyan on black",
+!     "highlight": "bold white on blue",
+! })
+  
+  
+! class CLIProgressIndicator(ProgressIndicator):
+!     """Enhanced Rich progress indicator with better visual feedback."""
+  
+!     def __init__(self, console: Console, description: str, total: int) -> None:
+!         self._progress = Progress(
+!             SpinnerColumn(),
+!             TextColumn("[bold blue]{task.description}[/bold blue]"),
+!             BarColumn(complete_style="green", finished_style="bold green"),
+!             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+!             TimeRemainingColumn(),
+!             console=console,
+!         )
+!         self._progress.start()
+!         self._task = self._progress.add_task(sanitize_output(description), total=total)
+!         self._subtasks: Dict[str, Any] = {}
+  
+!     def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+!         desc = sanitize_output(description) if description else description
+!         self._progress.update(self._task, advance=advance, description=desc)
+  
+!     def complete(self) -> None:
+!         self._progress.update(self._task, completed=True)
+!         self._progress.stop()
+  
+!     def add_subtask(self, description: str, total: int = 100) -> str:
+!         """Add a subtask to the progress indicator.
+  
+!         Args:
+!             description: Description of the subtask
+!             total: Total steps for the subtask
+  
+!         Returns:
+!             task_id: ID of the created subtask
+!         """
+!         task_id = self._progress.add_task(
+!             f"  ↳ {sanitize_output(description)}", 
+!             total=total
+!         )
+!         self._subtasks[task_id] = description
+!         return task_id
+  
+!     def update_subtask(self, task_id: str, advance: float = 1, description: Optional[str] = None) -> None:
+!         """Update a subtask's progress.
+  
+!         Args:
+!             task_id: ID of the subtask to update
+!             advance: Amount to advance the progress
+!             description: New description for the subtask
+!         """
+!         desc = sanitize_output(description) if description else None
+!         self._progress.update(task_id, advance=advance, description=f"  ↳ {desc}" if desc else None)
+  
+!     def complete_subtask(self, task_id: str) -> None:
+!         """Mark a subtask as complete.
+  
+!         Args:
+!             task_id: ID of the subtask to complete
+!         """
+!         self._progress.update(task_id, completed=True)
+  
+  
+! class CLIUXBridge(UXBridge):
+!     """Bridge for command line interactions.
+  
+!     This implementation uses Rich for formatted output and Typer-compatible
+!     prompts so that the same workflow logic can be reused by different
+!     frontends.
+!     """
+  
+!     def __init__(self) -> None:
+!         self.console = Console(theme=DEVSYNTH_THEME)
+  
+!     def ask_question(
+!         self,
+!         message: str,
+!         *,
+!         choices: Optional[Sequence[str]] = None,
+!         default: Optional[str] = None,
+!         show_default: bool = True,
+!     ) -> str:
+!         styled_message = Text(message, style="prompt")
+!         answer = Prompt.ask(
+!             styled_message,
+!             choices=list(choices) if choices else None,
+!             default=default,
+!             show_default=show_default,
+!         )
+!         return validate_safe_input(str(answer))
+  
+!     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
+!         styled_message = Text(message, style="prompt")
+!         return Confirm.ask(styled_message, default=default)
+  
+!     def display_result(self, message: str, *, highlight: bool = False) -> None:
+!         message = sanitize_output(message)
+  
+          # Process Rich markup in the message if present
+!         if "[" in message and "]" in message:
+!             self.console.print(message, highlight=highlight)
+!             return
+  
+          # Apply appropriate styling based on message content and highlight flag
+!         if highlight:
+!             self.console.print(Panel(message, style="highlight"))
+!         elif message.startswith("ERROR") or message.startswith("FAILED"):
+!             self.console.print(message, style="error")
+!         elif message.startswith("WARNING"):
+!             self.console.print(message, style="warning")
+!         elif message.startswith("SUCCESS") or "successfully" in message.lower():
+!             self.console.print(message, style="success")
+!         elif message.startswith("#"):
+              # Handle markdown-style headings
+!             level = len(message.split(" ")[0])
+!             if level == 1:
+!                 self.console.print(message[2:], style="heading")
+!             else:
+!                 self.console.print(message[level+1:], style="subheading")
+!         else:
+!             self.console.print(message, style="info" if highlight else None)
+  
+!     def create_progress(
+!         self, description: str, *, total: int = 100
+!     ) -> ProgressIndicator:
+!         return CLIProgressIndicator(self.console, description, total)
+  
+  
+! __all__ = ["CLIUXBridge", "CLIProgressIndicator"]

@@ -269,11 +269,11 @@ COLLABORATIVE CODE REVIEW PROCESS:
 
 ## Using WSDETeam
 
-The `WSDETeam` class in `domain.models.wsde` manages collaborative agents. To
+The `WSDETeam` class in `domain.models.wsde_facade` manages collaborative agents. To
 use it:
 
 ```python
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 team = WSDETeam()
 team.add_agents([agent_a, agent_b])

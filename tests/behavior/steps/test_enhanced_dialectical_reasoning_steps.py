@@ -6,6 +6,7 @@ feature file, testing the advanced dialectical reasoning capabilities of the WSD
 """
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
+from unittest.mock import MagicMock, patch
 
 # Import the feature file
 scenarios('../features/enhanced_dialectical_reasoning.feature')
@@ -14,6 +15,7 @@ scenarios('../features/enhanced_dialectical_reasoning.feature')
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.application.agents.base import BaseAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from typing import Dict, List, Any
 
@@ -23,76 +25,86 @@ def context():
     """Fixture to provide a context object for sharing state between steps."""
     class Context:
         def __init__(self):
-            self.team_coordinator = WSDETeamCoordinator()
+            self.team = None
             self.agents = {}
-            self.teams = {}
-            self.tasks = {}
-            self.solutions = {}
-            self.current_team_id = None
+            self.task = None
+            self.solution = None
             self.dialectical_result = None
+            self.knowledge_graph = None
+            self.standards = None
 
     return Context()
 
 
+# Helper function to create a mock agent with expertise
+def create_mock_agent(name, expertise, experience_level=5):
+    agent = MagicMock(spec=BaseAgent)
+    agent.name = name
+    agent.agent_type = "mock"
+    agent.current_role = None
+    agent.expertise = expertise
+    agent.experience_level = experience_level
+    agent.has_been_primus = False
+    return agent
+
+
 # Background steps
 
-@given("the DevSynth system is initialized")
-def devsynth_system_initialized(context):
-    """Initialize the DevSynth system."""
-    # The system is initialized by creating the team coordinator
-    assert context.team_coordinator is not None
+@given("a WSDE team with multiple agents")
+def wsde_team_with_multiple_agents(context):
+    """Create a WSDE team with multiple agents."""
+    context.team = WSDETeam()
+
+    # Create agents with different expertise areas
+    solution_agent = create_mock_agent("SolutionAgent", ["python", "coding", "solution_design"], 7)
+    critic_agent = create_mock_agent("CriticAgent", ["critique", "dialectical_reasoning", "evaluation"], 8)
+    synthesis_agent = create_mock_agent("SynthesisAgent", ["synthesis", "integration", "reconciliation"], 7)
+
+    # Add agents to the team
+    context.team.add_agent(solution_agent)
+    context.team.add_agent(critic_agent)
+    context.team.add_agent(synthesis_agent)
+
+    # Store agents for later use
+    context.agents["solution_agent"] = solution_agent
+    context.agents["critic_agent"] = critic_agent
+    context.agents["synthesis_agent"] = synthesis_agent
 
 
-@given("a team of agents is configured")
-def team_of_agents_configured(context):
-    """Configure a team of agents."""
-    # Create a default team
-    team_id = "test_team"
-    context.team_coordinator.create_team(team_id)
-    context.current_team_id = team_id
-    context.teams[team_id] = context.team_coordinator.get_team(team_id)
+@given("at least one agent designated as a critic")
+def agent_designated_as_critic(context):
+    """Verify that at least one agent is designated as a critic."""
+    # Verify that the critic agent exists
+    assert "critic_agent" in context.agents
+    assert "critique" in context.agents["critic_agent"].expertise
+    assert "dialectical_reasoning" in context.agents["critic_agent"].expertise
 
 
-@given("the WSDE model is enabled")
-def wsde_model_enabled(context):
-    """Enable the WSDE model."""
-    # The WSDE model is enabled by default when a team is created
-    assert context.teams[context.current_team_id] is not None
+@given("the team is configured for enhanced dialectical reasoning")
+def team_configured_for_enhanced_dialectical_reasoning(context):
+    """Configure the team for enhanced dialectical reasoning."""
+    # Set the team's dialectical reasoning mode to enhanced
+    context.team.dialectical_reasoning_mode = "enhanced"
+
+    # Verify that the team is configured for enhanced dialectical reasoning
+    assert context.team.dialectical_reasoning_mode == "enhanced"
 
 
-@given("a Critic agent with dialectical reasoning expertise is added to the team")
-def critic_agent_added(context):
-    """Add a Critic agent with dialectical reasoning expertise to the team."""
-    # Create a Critic agent
-    agent = UnifiedAgent()
-    agent_config = AgentConfig(
-        name="critic_agent",
-        agent_type=AgentType.ORCHESTRATOR,
-        description="Agent for applying enhanced dialectical reasoning",
-        capabilities=[],
-        parameters={"expertise": ["dialectical_reasoning", "critique", "synthesis", "evaluation"]}
-    )
-    agent.initialize(agent_config)
-    context.agents["critic_agent"] = agent
-    context.team_coordinator.add_agent(agent)
+# Scenario: Complete thesis-antithesis-synthesis workflow
 
-
-# Scenario: Multi-stage dialectical reasoning process
-
-@when("a solution is proposed for a complex task")
-def solution_proposed_for_complex_task(context):
-    """Propose a solution for a complex task."""
+@given("a solution proposed by an agent as a thesis")
+def solution_proposed_as_thesis(context):
+    """Create a solution proposed by an agent as a thesis."""
     # Create a complex task
-    task = {
+    context.task = {
         "id": "complex_task_1",
         "type": "implementation_task",
         "description": "Implement a secure user authentication system with multi-factor authentication"
     }
-    context.tasks["complex_task"] = task
 
-    # Create a proposed solution
-    solution = {
-        "agent": "code_agent",
+    # Create a proposed solution (thesis)
+    context.solution = {
+        "agent": "solution_agent",
         "content": "Implement authentication using username/password with JWT tokens",
         "code": """
 def authenticate(username, password):
@@ -108,57 +120,793 @@ def generate_jwt_token(username):
     }
 
     # Add the solution to the team
-    team = context.teams[context.current_team_id]
-    team.add_solution(task, solution)
+    context.team.add_solution(context.task, context.solution)
 
-
-@then("the Critic agent should apply multi-stage dialectical reasoning")
-def critic_applies_multi_stage_reasoning(context):
-    """Verify that the Critic agent applies multi-stage dialectical reasoning."""
-    # Apply dialectical reasoning to the task
-    team = context.teams[context.current_team_id]
+@when("the dialectical reasoning process is initiated")
+def dialectical_reasoning_initiated(context):
+    """Initiate the dialectical reasoning process."""
+    # Apply enhanced dialectical reasoning to the task
     critic_agent = context.agents["critic_agent"]
-    task = context.tasks["complex_task"]
+    context.dialectical_result = context.team.apply_enhanced_dialectical_reasoning(
+        context.task, 
+        critic_agent
+    )
 
-    # Apply enhanced dialectical reasoning
-    context.dialectical_result = team.apply_enhanced_dialectical_reasoning(task, critic_agent)
-
-    # Verify that the result contains all stages
-    assert "thesis" in context.dialectical_result
+@then("a critic agent should generate a comprehensive antithesis")
+def critic_generates_comprehensive_antithesis(context):
+    """Verify that a critic agent generates a comprehensive antithesis."""
+    # Verify that the antithesis is generated
     assert "antithesis" in context.dialectical_result
-    assert "synthesis" in context.dialectical_result
-    assert "evaluation" in context.dialectical_result
+    assert context.dialectical_result["antithesis"] is not None
 
-
-@then("the reasoning should include thesis identification")
-def reasoning_includes_thesis_identification(context):
-    """Verify that the reasoning includes thesis identification."""
-    # Verify that the thesis is properly identified
-    assert "thesis" in context.dialectical_result
-    assert "identification" in context.dialectical_result["thesis"]
-    assert "key_points" in context.dialectical_result["thesis"]
-    assert len(context.dialectical_result["thesis"]["key_points"]) > 0
-
-
-@then("the reasoning should include antithesis generation with multiple critique categories")
-def reasoning_includes_antithesis_with_categories(context):
-    """Verify that the reasoning includes antithesis generation with multiple critique categories."""
-    # Verify that the antithesis includes multiple critique categories
-    assert "antithesis" in context.dialectical_result
+    # Verify that the antithesis is comprehensive
     assert "critique_categories" in context.dialectical_result["antithesis"]
     assert len(context.dialectical_result["antithesis"]["critique_categories"]) >= 3
 
+    # Verify that the antithesis includes detailed critiques
+    assert "detailed_critiques" in context.dialectical_result["antithesis"]
+    assert len(context.dialectical_result["antithesis"]["detailed_critiques"]) >= 3
 
-@then("the reasoning should include synthesis creation that addresses all critiques")
-def reasoning_includes_synthesis_addressing_all_critiques(context):
-    """Verify that the reasoning includes synthesis creation that addresses all critiques."""
-    # Verify that the synthesis addresses all critiques
+@then("the antithesis should challenge key assumptions of the thesis")
+def antithesis_challenges_key_assumptions(context):
+    """Verify that the antithesis challenges key assumptions of the thesis."""
+    # Verify that the antithesis challenges key assumptions
+    assert "challenged_assumptions" in context.dialectical_result["antithesis"]
+    assert len(context.dialectical_result["antithesis"]["challenged_assumptions"]) > 0
+
+    # Verify that each challenged assumption has a rationale
+    for assumption in context.dialectical_result["antithesis"]["challenged_assumptions"]:
+        assert "assumption" in assumption
+        assert "rationale" in assumption
+        assert assumption["rationale"], "Empty rationale for challenged assumption"
+
+@then("a synthesis should be generated combining strengths of both")
+def synthesis_combines_strengths(context):
+    """Verify that a synthesis is generated combining strengths of both thesis and antithesis."""
+    # Verify that the synthesis is generated
     assert "synthesis" in context.dialectical_result
-    assert "addressed_critiques" in context.dialectical_result["synthesis"]
+    assert context.dialectical_result["synthesis"] is not None
 
-    # All critiques should be addressed
-    antithesis_categories = context.dialectical_result["antithesis"]["critique_categories"]
-    addressed_critiques = context.dialectical_result["synthesis"]["addressed_critiques"]
+    # Verify that the synthesis combines strengths from both
+    assert "incorporated_thesis_strengths" in context.dialectical_result["synthesis"]
+    assert "incorporated_antithesis_insights" in context.dialectical_result["synthesis"]
+
+    # Verify that multiple strengths and insights are incorporated
+    assert len(context.dialectical_result["synthesis"]["incorporated_thesis_strengths"]) > 0
+    assert len(context.dialectical_result["synthesis"]["incorporated_antithesis_insights"]) > 0
+
+@then("the synthesis should resolve contradictions between thesis and antithesis")
+def synthesis_resolves_contradictions(context):
+    """Verify that the synthesis resolves contradictions between thesis and antithesis."""
+    # Verify that contradictions are identified
+    assert "identified_contradictions" in context.dialectical_result["synthesis"]
+
+    # Verify that resolutions are provided for each contradiction
+    assert "contradiction_resolutions" in context.dialectical_result["synthesis"]
+
+    # Verify that all contradictions have resolutions
+    contradictions = context.dialectical_result["synthesis"]["identified_contradictions"]
+    resolutions = context.dialectical_result["synthesis"]["contradiction_resolutions"]
+
+    assert len(contradictions) == len(resolutions), "Not all contradictions have resolutions"
+
+@then("the final solution should be demonstrably better than the original thesis")
+def final_solution_better_than_original(context):
+    """Verify that the final solution is demonstrably better than the original thesis."""
+    # Verify that the synthesis includes a final solution
+    assert "final_solution" in context.dialectical_result["synthesis"]
+
+    # Verify that an improvement assessment is included
+    assert "improvement_assessment" in context.dialectical_result["synthesis"]
+
+    # Verify that the improvement assessment shows the solution is better
+    assessment = context.dialectical_result["synthesis"]["improvement_assessment"]
+    assert "is_improvement" in assessment
+    assert assessment["is_improvement"] == True
+
+    # Verify that improvement metrics are included
+    assert "metrics" in assessment
+    assert "security_score" in assessment["metrics"]
+    assert "maintainability_score" in assessment["metrics"]
+    assert "completeness_score" in assessment["metrics"]
+
+    # Verify that the metrics show improvement
+    assert assessment["metrics"]["security_score"]["improved"] == True
+    assert assessment["metrics"]["maintainability_score"]["improved"] == True
+    assert assessment["metrics"]["completeness_score"]["improved"] == True
+
+
+# Scenario: Multi-perspective analysis in dialectical reasoning
+
+@given("a complex problem with multiple valid approaches")
+def complex_problem_with_multiple_approaches(context):
+    """Create a complex problem with multiple valid approaches."""
+    # Create a complex problem
+    context.task = {
+        "id": "complex_problem_1",
+        "type": "design_task",
+        "description": "Design a scalable data processing pipeline for real-time analytics",
+        "constraints": ["high throughput", "low latency", "fault tolerance", "cost efficiency"]
+    }
+
+    # Create multiple approaches to the problem
+    context.approaches = [
+        {
+            "id": "approach_1",
+            "name": "Kafka-based streaming pipeline",
+            "agent": "solution_agent",
+            "description": "Use Kafka for message streaming with Spark Streaming for processing",
+            "pros": ["High throughput", "Mature ecosystem", "Good fault tolerance"],
+            "cons": ["Complex setup", "Requires careful tuning", "Higher operational overhead"]
+        },
+        {
+            "id": "approach_2",
+            "name": "Serverless event processing",
+            "agent": "solution_agent",
+            "description": "Use AWS Lambda with Kinesis for serverless event processing",
+            "pros": ["Low operational overhead", "Automatic scaling", "Pay-per-use pricing"],
+            "cons": ["Potential cold start latency", "Limited execution time", "Vendor lock-in"]
+        },
+        {
+            "id": "approach_3",
+            "name": "Custom stream processing framework",
+            "agent": "solution_agent",
+            "description": "Build a custom stream processing framework using Redis and worker pools",
+            "pros": ["Tailored to specific needs", "No vendor lock-in", "Potentially lower cost"],
+            "cons": ["Development time", "Maintenance burden", "Scaling complexity"]
+        }
+    ]
+
+    # Add the approaches to the task
+    context.task["approaches"] = context.approaches
+
+    # Add each approach as a solution to the team
+    for approach in context.approaches:
+        context.team.add_solution(context.task, approach)
+
+@when("the team applies enhanced dialectical reasoning")
+def team_applies_enhanced_dialectical_reasoning(context):
+    """Apply enhanced dialectical reasoning to the complex problem."""
+    # Apply enhanced dialectical reasoning with multiple perspectives
+    critic_agent = context.agents["critic_agent"]
+    context.dialectical_result = context.team.apply_enhanced_dialectical_reasoning_multi(
+        context.task, 
+        critic_agent
+    )
+
+@then("multiple perspectives should be considered")
+def multiple_perspectives_considered(context):
+    """Verify that multiple perspectives are considered."""
+    # Verify that multiple perspectives are analyzed
+    assert "perspective_analyses" in context.dialectical_result
+    assert len(context.dialectical_result["perspective_analyses"]) >= 3
+
+    # Verify that each approach has been analyzed
+    approach_ids = [approach["id"] for approach in context.approaches]
+    analyzed_ids = [analysis["approach_id"] for analysis in context.dialectical_result["perspective_analyses"]]
+
+    for approach_id in approach_ids:
+        assert approach_id in analyzed_ids, f"Approach {approach_id} was not analyzed"
+
+@then("each perspective should be analyzed for strengths and weaknesses")
+def each_perspective_analyzed(context):
+    """Verify that each perspective is analyzed for strengths and weaknesses."""
+    # Verify that each perspective analysis includes strengths and weaknesses
+    for analysis in context.dialectical_result["perspective_analyses"]:
+        assert "strengths" in analysis
+        assert "weaknesses" in analysis
+        assert len(analysis["strengths"]) > 0
+        assert len(analysis["weaknesses"]) > 0
+
+@then("the analysis should consider different domains of expertise")
+def analysis_considers_different_domains(context):
+    """Verify that the analysis considers different domains of expertise."""
+    # Verify that different domains are considered in the analysis
+    domains = set()
+
+    for analysis in context.dialectical_result["perspective_analyses"]:
+        assert "domain_considerations" in analysis
+        for domain in analysis["domain_considerations"]:
+            domains.add(domain["domain"])
+
+    # Verify that multiple domains are considered
+    assert len(domains) >= 3
+
+    # Verify that specific domains are considered
+    assert "performance" in domains
+    assert "scalability" in domains
+    assert "maintainability" in domains
+
+@then("the synthesis should incorporate insights from all perspectives")
+def synthesis_incorporates_all_perspectives(context):
+    """Verify that the synthesis incorporates insights from all perspectives."""
+    # Verify that the synthesis exists
+    assert "synthesis" in context.dialectical_result
+
+    # Verify that the synthesis incorporates insights from all perspectives
+    assert "incorporated_insights" in context.dialectical_result["synthesis"]
+
+    # Get the approach IDs
+    approach_ids = [approach["id"] for approach in context.approaches]
+
+    # Verify that insights from each approach are incorporated
+    for approach_id in approach_ids:
+        insights = [insight for insight in context.dialectical_result["synthesis"]["incorporated_insights"] 
+                   if insight["source_approach_id"] == approach_id]
+        assert len(insights) > 0, f"No insights incorporated from approach {approach_id}"
+
+@then("the final solution should be more robust than any single perspective")
+def final_solution_more_robust(context):
+    """Verify that the final solution is more robust than any single perspective."""
+    # Verify that the synthesis includes a robustness assessment
+    assert "robustness_assessment" in context.dialectical_result["synthesis"]
+
+    # Verify that the robustness assessment shows improvement over individual approaches
+    assessment = context.dialectical_result["synthesis"]["robustness_assessment"]
+
+    # Verify that the synthesis has higher robustness scores than any individual approach
+    assert "synthesis_score" in assessment
+    assert "approach_scores" in assessment
+
+    synthesis_score = assessment["synthesis_score"]
+    approach_scores = assessment["approach_scores"]
+
+    for approach_id, score in approach_scores.items():
+        assert synthesis_score > score, f"Synthesis score ({synthesis_score}) not higher than approach {approach_id} score ({score})"
+
+
+# Scenario: Knowledge integration from dialectical process
+
+@given("a dialectical reasoning process has completed")
+def dialectical_reasoning_process_completed(context):
+    """Set up a completed dialectical reasoning process."""
+    # Create a task
+    context.task = {
+        "id": "knowledge_integration_task",
+        "type": "implementation_task",
+        "description": "Implement a secure authentication system for a web application"
+    }
+
+    # Create a solution
+    context.solution = {
+        "agent": "solution_agent",
+        "content": "Implement JWT-based authentication with password hashing",
+        "code": """
+def authenticate(username, password):
+    user = find_user(username)
+    if user and verify_password(password, user.password_hash):
+        token = generate_jwt_token(user.id)
+        return token
+    return None
+        """
+    }
+
+    # Add the solution to the team
+    context.team.add_solution(context.task, context.solution)
+
+    # Apply dialectical reasoning to generate a result
+    critic_agent = context.agents["critic_agent"]
+    context.dialectical_result = context.team.apply_enhanced_dialectical_reasoning(
+        context.task, 
+        critic_agent
+    )
+
+    # Verify that the dialectical reasoning process completed successfully
+    assert "thesis" in context.dialectical_result
+    assert "antithesis" in context.dialectical_result
+    assert "synthesis" in context.dialectical_result
+
+@when("the team integrates the knowledge gained")
+def team_integrates_knowledge(context):
+    """Have the team integrate the knowledge gained from the dialectical process."""
+    # Integrate the knowledge from the dialectical process
+    context.knowledge_integration = context.team.integrate_knowledge_from_dialectical_process(
+        context.dialectical_result
+    )
+
+@then("key insights should be extracted and documented")
+def key_insights_extracted(context):
+    """Verify that key insights are extracted and documented."""
+    # Verify that key insights are extracted
+    assert "key_insights" in context.knowledge_integration
+    assert len(context.knowledge_integration["key_insights"]) > 0
+
+    # Verify that each insight is documented
+    for insight in context.knowledge_integration["key_insights"]:
+        assert "description" in insight
+        assert "source" in insight
+        assert "importance" in insight
+        assert insight["description"], "Empty insight description"
+
+@then("the knowledge should be stored in the team's memory system")
+def knowledge_stored_in_memory(context):
+    """Verify that the knowledge is stored in the team's memory system."""
+    # Verify that the knowledge is stored in memory
+    assert "memory_storage" in context.knowledge_integration
+    assert context.knowledge_integration["memory_storage"]["success"] == True
+
+    # Verify that memory references are returned
+    assert "memory_references" in context.knowledge_integration["memory_storage"]
+    assert len(context.knowledge_integration["memory_storage"]["memory_references"]) > 0
+
+    # Verify that the team can retrieve the stored knowledge
+    retrieved_knowledge = context.team.retrieve_knowledge_from_memory(
+        context.knowledge_integration["memory_storage"]["memory_references"][0]
+    )
+    assert retrieved_knowledge is not None
+
+@then("the knowledge should be categorized by domain and relevance")
+def knowledge_categorized(context):
+    """Verify that the knowledge is categorized by domain and relevance."""
+    # Verify that the knowledge is categorized
+    assert "categorization" in context.knowledge_integration
+
+    # Verify that domains are assigned
+    assert "domains" in context.knowledge_integration["categorization"]
+    assert len(context.knowledge_integration["categorization"]["domains"]) > 0
+
+    # Verify that relevance scores are assigned
+    assert "relevance_scores" in context.knowledge_integration["categorization"]
+    for domain, score in context.knowledge_integration["categorization"]["relevance_scores"].items():
+        assert 0 <= score <= 10, f"Relevance score {score} for domain {domain} is out of range"
+
+@then("the integrated knowledge should be available for future tasks")
+def knowledge_available_for_future_tasks(context):
+    """Verify that the integrated knowledge is available for future tasks."""
+    # Create a new task that could benefit from the integrated knowledge
+    new_task = {
+        "id": "future_task",
+        "type": "implementation_task",
+        "description": "Implement a secure login system for a mobile application"
+    }
+
+    # Retrieve relevant knowledge for the new task
+    relevant_knowledge = context.team.retrieve_relevant_knowledge_for_task(new_task)
+
+    # Verify that relevant knowledge is retrieved
+    assert relevant_knowledge is not None
+    assert len(relevant_knowledge) > 0
+
+    # Verify that at least one piece of knowledge from the previous dialectical process is retrieved
+    previous_knowledge_refs = context.knowledge_integration["memory_storage"]["memory_references"]
+    retrieved_refs = [item["memory_reference"] for item in relevant_knowledge]
+
+    assert any(ref in retrieved_refs for ref in previous_knowledge_refs), \
+           "No knowledge from previous dialectical process retrieved for new task"
+
+@then("the knowledge integration should improve team performance over time")
+def knowledge_integration_improves_performance(context):
+    """Verify that the knowledge integration improves team performance over time."""
+    # Verify that performance metrics are tracked
+    assert "performance_metrics" in context.knowledge_integration
+
+    # Verify that baseline metrics exist
+    assert "baseline_metrics" in context.knowledge_integration["performance_metrics"]
+
+    # Verify that projected improvement metrics exist
+    assert "projected_improvements" in context.knowledge_integration["performance_metrics"]
+
+    # Verify that at least one metric shows improvement
+    improvements = context.knowledge_integration["performance_metrics"]["projected_improvements"]
+    assert any(improvement["value"] > 0 for improvement in improvements), \
+           "No projected performance improvements from knowledge integration"
+
+
+# Scenario: Enhanced antithesis generation with knowledge graph
+
+@given("a solution proposed as a thesis")
+def solution_proposed_as_thesis_with_knowledge_graph(context):
+    """Create a solution proposed as a thesis for knowledge graph scenario."""
+    # Create a task
+    context.task = {
+        "id": "knowledge_graph_task",
+        "type": "implementation_task",
+        "description": "Implement a data access layer for a microservices architecture"
+    }
+
+    # Create a proposed solution (thesis)
+    context.solution = {
+        "agent": "solution_agent",
+        "content": "Implement a direct database access layer with connection pooling",
+        "code": """
+class DataAccessLayer:
+    def __init__(self, connection_string):
+        self.connection_pool = create_connection_pool(connection_string)
+
+    def execute_query(self, query, params=None):
+        conn = self.connection_pool.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(query, params or {})
+            return cursor.fetchall()
+        finally:
+            self.connection_pool.release_connection(conn)
+        """
+    }
+
+    # Add the solution to the team
+    context.team.add_solution(context.task, context.solution)
+
+@given("a knowledge graph with relevant domain knowledge")
+def knowledge_graph_with_domain_knowledge(context):
+    """Set up a knowledge graph with relevant domain knowledge."""
+    # Create a knowledge graph with domain knowledge
+    context.knowledge_graph = {
+        "microservices_patterns": {
+            "data_access": [
+                {
+                    "pattern": "API Gateway",
+                    "description": "Centralized entry point for clients to access microservices",
+                    "best_practices": [
+                        "Implement authentication and authorization",
+                        "Handle request routing",
+                        "Implement rate limiting"
+                    ]
+                },
+                {
+                    "pattern": "Database per Service",
+                    "description": "Each microservice has its own database",
+                    "best_practices": [
+                        "Ensure data autonomy",
+                        "Use eventual consistency for cross-service data",
+                        "Implement saga pattern for distributed transactions"
+                    ]
+                },
+                {
+                    "pattern": "CQRS",
+                    "description": "Command Query Responsibility Segregation",
+                    "best_practices": [
+                        "Separate read and write models",
+                        "Optimize read and write operations independently",
+                        "Consider event sourcing for write operations"
+                    ]
+                }
+            ],
+            "common_issues": [
+                {
+                    "issue": "Tight coupling",
+                    "description": "Direct database access creates tight coupling between services",
+                    "solutions": [
+                        "Use API contracts",
+                        "Implement service discovery",
+                        "Use event-driven communication"
+                    ]
+                },
+                {
+                    "issue": "Data consistency",
+                    "description": "Maintaining data consistency across services",
+                    "solutions": [
+                        "Implement saga pattern",
+                        "Use eventual consistency",
+                        "Define clear boundaries"
+                    ]
+                },
+                {
+                    "issue": "Performance",
+                    "description": "Performance issues in distributed systems",
+                    "solutions": [
+                        "Implement caching",
+                        "Use asynchronous communication",
+                        "Optimize database queries"
+                    ]
+                }
+            ]
+        }
+    }
+
+    # Add the knowledge graph to the team
+    context.team.set_knowledge_graph(context.knowledge_graph)
+
+@when("a critic agent generates an antithesis")
+def critic_generates_antithesis_with_knowledge_graph(context):
+    """Have a critic agent generate an antithesis using the knowledge graph."""
+    # Apply dialectical reasoning with knowledge graph
+    critic_agent = context.agents["critic_agent"]
+    context.dialectical_result = context.team.apply_dialectical_reasoning_with_knowledge_graph(
+        context.task,
+        critic_agent,
+        context.knowledge_graph
+    )
+
+@then("the antithesis should leverage insights from the knowledge graph")
+def antithesis_leverages_knowledge_graph(context):
+    """Verify that the antithesis leverages insights from the knowledge graph."""
+    # Verify that the antithesis exists
+    assert "antithesis" in context.dialectical_result
+
+    # Verify that the antithesis references the knowledge graph
+    assert "knowledge_graph_references" in context.dialectical_result["antithesis"]
+    assert len(context.dialectical_result["antithesis"]["knowledge_graph_references"]) > 0
+
+    # Verify that specific patterns from the knowledge graph are referenced
+    references = context.dialectical_result["antithesis"]["knowledge_graph_references"]
+    patterns = [ref["pattern"] for ref in references if "pattern" in ref]
+
+    assert any("API Gateway" in pattern for pattern in patterns) or \
+           any("Database per Service" in pattern for pattern in patterns) or \
+           any("CQRS" in pattern for pattern in patterns), \
+           "No specific patterns from knowledge graph referenced in antithesis"
+
+@then("the antithesis should reference established best practices")
+def antithesis_references_best_practices(context):
+    """Verify that the antithesis references established best practices."""
+    # Verify that the antithesis references best practices
+    assert "best_practices" in context.dialectical_result["antithesis"]
+    assert len(context.dialectical_result["antithesis"]["best_practices"]) > 0
+
+    # Verify that the best practices are from the knowledge graph
+    best_practices = context.dialectical_result["antithesis"]["best_practices"]
+
+    # Extract all best practices from the knowledge graph
+    kg_best_practices = []
+    for pattern in context.knowledge_graph["microservices_patterns"]["data_access"]:
+        kg_best_practices.extend(pattern["best_practices"])
+
+    # Verify that at least one best practice from the knowledge graph is referenced
+    assert any(bp in kg_best_practices for bp in best_practices), \
+           "No best practices from knowledge graph referenced in antithesis"
+
+@then("the antithesis should identify potential issues based on historical patterns")
+def antithesis_identifies_historical_issues(context):
+    """Verify that the antithesis identifies potential issues based on historical patterns."""
+    # Verify that the antithesis identifies potential issues
+    assert "identified_issues" in context.dialectical_result["antithesis"]
+    assert len(context.dialectical_result["antithesis"]["identified_issues"]) > 0
+
+    # Verify that the issues are from the knowledge graph
+    identified_issues = [issue["issue"] for issue in context.dialectical_result["antithesis"]["identified_issues"]]
+
+    # Extract all issues from the knowledge graph
+    kg_issues = [issue["issue"] for issue in context.knowledge_graph["microservices_patterns"]["common_issues"]]
+
+    # Verify that at least one issue from the knowledge graph is identified
+    assert any(issue in kg_issues for issue in identified_issues), \
+           "No issues from knowledge graph identified in antithesis"
+
+@then("the quality of the antithesis should be higher than without knowledge graph")
+def antithesis_quality_higher(context):
+    """Verify that the quality of the antithesis is higher than without knowledge graph."""
+    # Verify that the antithesis includes a quality assessment
+    assert "quality_assessment" in context.dialectical_result["antithesis"]
+
+    # Verify that the quality assessment includes a comparison
+    assert "comparison" in context.dialectical_result["antithesis"]["quality_assessment"]
+
+    # Verify that the comparison shows higher quality with knowledge graph
+    comparison = context.dialectical_result["antithesis"]["quality_assessment"]["comparison"]
+    assert "with_knowledge_graph" in comparison
+    assert "without_knowledge_graph" in comparison
+    assert comparison["with_knowledge_graph"] > comparison["without_knowledge_graph"], \
+           "Quality with knowledge graph not higher than without knowledge graph"
+
+
+# Scenario: Enhanced synthesis with standards compliance
+
+@given("a thesis and antithesis for a technical solution")
+def thesis_and_antithesis_for_technical_solution(context):
+    """Set up a thesis and antithesis for a technical solution."""
+    # Create a task
+    context.task = {
+        "id": "standards_compliance_task",
+        "type": "implementation_task",
+        "description": "Implement a REST API for a financial application"
+    }
+
+    # Create a thesis solution
+    context.thesis = {
+        "agent": "solution_agent",
+        "content": "Implement a REST API using Flask with basic authentication",
+        "code": """
+from flask import Flask, request, jsonify
+import base64
+
+app = Flask(__name__)
+
+@app.route('/api/transactions', methods=['GET'])
+def get_transactions():
+    auth = request.headers.get('Authorization')
+    if not auth or not check_auth(auth):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # Get transactions from database
+    transactions = get_transactions_from_db()
+    return jsonify(transactions)
+
+def check_auth(auth_header):
+    encoded = auth_header.split(' ')[1]
+    decoded = base64.b64decode(encoded).decode('utf-8')
+    username, password = decoded.split(':')
+    return username == 'admin' and password == 'password'
+        """
+    }
+
+    # Create an antithesis
+    context.antithesis = {
+        "agent": "critic_agent",
+        "content": "The current implementation has security issues and doesn't follow REST best practices",
+        "critique_categories": ["security", "api_design", "maintainability"],
+        "detailed_critiques": [
+            {
+                "category": "security",
+                "issue": "Hardcoded credentials",
+                "description": "The code contains hardcoded credentials which is a security risk"
+            },
+            {
+                "category": "security",
+                "issue": "Basic authentication without HTTPS",
+                "description": "Using basic authentication without HTTPS exposes credentials"
+            },
+            {
+                "category": "api_design",
+                "issue": "Missing versioning",
+                "description": "The API doesn't include versioning in the URL"
+            },
+            {
+                "category": "maintainability",
+                "issue": "No separation of concerns",
+                "description": "Authentication logic is mixed with route handling"
+            }
+        ]
+    }
+
+    # Add the thesis to the team
+    context.team.add_solution(context.task, context.thesis)
+
+@given("a set of technical standards and best practices")
+def technical_standards_and_best_practices(context):
+    """Set up a set of technical standards and best practices."""
+    # Create a set of technical standards and best practices
+    context.standards = {
+        "rest_api": {
+            "security": [
+                {
+                    "standard": "OWASP API Security",
+                    "requirements": [
+                        "Use HTTPS for all API communications",
+                        "Implement proper authentication and authorization",
+                        "Don't expose sensitive information in URLs",
+                        "Implement rate limiting to prevent abuse",
+                        "Use secure password storage with strong hashing"
+                    ]
+                },
+                {
+                    "standard": "PCI-DSS",
+                    "requirements": [
+                        "Encrypt transmission of cardholder data",
+                        "Protect stored cardholder data",
+                        "Restrict access to cardholder data",
+                        "Track and monitor all access to network resources and cardholder data",
+                        "Regularly test security systems and processes"
+                    ]
+                }
+            ],
+            "design": [
+                {
+                    "standard": "REST API Design Best Practices",
+                    "requirements": [
+                        "Use resource-based URLs",
+                        "Use HTTP methods appropriately (GET, POST, PUT, DELETE)",
+                        "Use versioning in the URL (e.g., /api/v1/resource)",
+                        "Use proper HTTP status codes",
+                        "Implement pagination for large collections"
+                    ]
+                },
+                {
+                    "standard": "API Documentation Standards",
+                    "requirements": [
+                        "Document all endpoints",
+                        "Include request and response examples",
+                        "Document error responses",
+                        "Use OpenAPI/Swagger for documentation",
+                        "Keep documentation up-to-date"
+                    ]
+                }
+            ]
+        }
+    }
+
+    # Add the standards to the team
+    context.team.set_standards(context.standards)
+
+@when("the synthesis is generated")
+def synthesis_is_generated(context):
+    """Generate a synthesis from the thesis and antithesis with standards compliance."""
+    # Generate a synthesis with standards compliance
+    context.dialectical_result = context.team.generate_synthesis_with_standards_compliance(
+        context.task,
+        context.thesis,
+        context.antithesis,
+        context.standards
+    )
+
+@then("the synthesis should comply with all applicable standards")
+def synthesis_complies_with_standards(context):
+    """Verify that the synthesis complies with all applicable standards."""
+    # Verify that the synthesis exists
+    assert "synthesis" in context.dialectical_result
+
+    # Verify that the synthesis includes a standards compliance assessment
+    assert "standards_compliance" in context.dialectical_result["synthesis"]
+
+    # Verify that all applicable standards are assessed
+    compliance = context.dialectical_result["synthesis"]["standards_compliance"]
+
+    # Check that OWASP API Security standard is assessed
+    assert "OWASP API Security" in compliance
+
+    # Check that REST API Design Best Practices standard is assessed
+    assert "REST API Design Best Practices" in compliance
+
+    # Verify that the synthesis has high compliance scores
+    for standard, assessment in compliance.items():
+        assert "compliance_score" in assessment
+        assert assessment["compliance_score"] >= 8, f"Compliance score for {standard} is below threshold"
+
+@then("the synthesis should incorporate best practices from both thesis and antithesis")
+def synthesis_incorporates_best_practices(context):
+    """Verify that the synthesis incorporates best practices from both thesis and antithesis."""
+    # Verify that the synthesis incorporates best practices
+    assert "incorporated_practices" in context.dialectical_result["synthesis"]
+
+    # Verify that practices from both thesis and antithesis are incorporated
+    incorporated_practices = context.dialectical_result["synthesis"]["incorporated_practices"]
+    assert "from_thesis" in incorporated_practices
+    assert "from_antithesis" in incorporated_practices
+
+    # Verify that multiple practices are incorporated from each source
+    assert len(incorporated_practices["from_thesis"]) > 0
+    assert len(incorporated_practices["from_antithesis"]) > 0
+
+    # Verify that the synthesis code reflects the incorporated practices
+    assert "code" in context.dialectical_result["synthesis"]
+    synthesis_code = context.dialectical_result["synthesis"]["code"]
+
+    # Check for specific improvements based on best practices
+    assert "v1" in synthesis_code, "API versioning not incorporated in synthesis"
+    assert "https" in synthesis_code.lower(), "HTTPS requirement not incorporated in synthesis"
+
+@then("the synthesis should explicitly address compliance requirements")
+def synthesis_addresses_compliance_requirements(context):
+    """Verify that the synthesis explicitly addresses compliance requirements."""
+    # Verify that the synthesis addresses compliance requirements
+    assert "compliance_requirements" in context.dialectical_result["synthesis"]
+
+    # Verify that multiple compliance requirements are addressed
+    compliance_requirements = context.dialectical_result["synthesis"]["compliance_requirements"]
+    assert len(compliance_requirements) > 0
+
+    # Verify that each requirement has an implementation description
+    for requirement in compliance_requirements:
+        assert "requirement" in requirement
+        assert "implementation" in requirement
+        assert requirement["implementation"], "Empty implementation for compliance requirement"
+
+    # Verify that specific compliance requirements are addressed
+    requirement_texts = [req["requirement"] for req in compliance_requirements]
+    assert any("HTTPS" in req for req in requirement_texts), "HTTPS requirement not addressed"
+    assert any("authentication" in req.lower() for req in requirement_texts), "Authentication requirement not addressed"
+    assert any("versioning" in req.lower() for req in requirement_texts), "Versioning requirement not addressed"
+
+@then("the synthesis should include justification for any standards exceptions")
+def synthesis_includes_standards_exceptions(context):
+    """Verify that the synthesis includes justification for any standards exceptions."""
+    # Verify that the synthesis includes standards exceptions if any
+    assert "standards_exceptions" in context.dialectical_result["synthesis"]
+
+    # If there are exceptions, verify that each has a justification
+    exceptions = context.dialectical_result["synthesis"]["standards_exceptions"]
+    if exceptions:
+        for exception in exceptions:
+            assert "standard" in exception
+            assert "requirement" in exception
+            assert "justification" in exception
+            assert exception["justification"], "Empty justification for standards exception"
+
+            # Verify that the justification is substantial
+            assert len(exception["justification"]) >= 50, "Justification too short"
+
+    # If there are no exceptions, that's fine too - just verify the list exists
+    assert isinstance(exceptions, list), "Standards exceptions is not a list"
 
     for category in antithesis_categories:
         assert category in addressed_critiques

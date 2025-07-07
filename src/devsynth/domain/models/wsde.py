@@ -1,3 +1,13 @@
+"""
+Worker Self-Directed Enterprise (WSDE) model implementation.
+
+This module provides the WSDE and WSDETeam classes for implementing
+a non-hierarchical, collaborative multi-agent system.
+
+Note: This file is a facade that re-exports classes and methods from
+more specialized modules to maintain backward compatibility.
+"""
+
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Callable
 from datetime import datetime
@@ -5,12 +15,65 @@ from uuid import uuid4
 import re
 
 from devsynth.methodology.base import Phase
-
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.exceptions import DevSynthError
+
+# Import from specialized modules
+from devsynth.domain.models.wsde_base import WSDE, WSDETeam
+from devsynth.domain.models.wsde_roles import (
+    assign_roles, assign_roles_for_phase, dynamic_role_reassignment,
+    _validate_role_mapping, _auto_assign_roles, get_role_map,
+    _calculate_expertise_score, _calculate_phase_expertise_score,
+    select_primus_by_expertise, rotate_roles, _assign_roles_for_edrr_phase
+)
+from devsynth.domain.models.wsde_voting import (
+    vote_on_critical_decision, _apply_majority_voting, _handle_tied_vote,
+    _apply_weighted_voting, _record_voting_history, consensus_vote, build_consensus
+)
+from devsynth.domain.models.wsde_dialectical import (
+    apply_dialectical_reasoning, _generate_antithesis, _generate_synthesis,
+    _categorize_critiques_by_domain, _identify_domain_conflicts, _prioritize_critiques,
+    _calculate_priority_score, _resolve_code_improvement_conflict,
+    _resolve_content_improvement_conflict, _check_code_standards_compliance,
+    _check_content_standards_compliance, _check_pep8_compliance,
+    _check_security_best_practices, _balance_security_and_performance,
+    _balance_security_and_usability, _balance_performance_and_maintainability,
+    _generate_detailed_synthesis_reasoning, _improve_credentials,
+    _improve_error_handling, _improve_input_validation, _improve_security,
+    _improve_performance, _improve_readability, _improve_clarity,
+    _improve_with_examples, _improve_structure
+)
+from devsynth.domain.models.wsde_knowledge import (
+    apply_dialectical_reasoning_with_knowledge_graph, _get_task_id,
+    _generate_antithesis_with_knowledge_graph, _generate_synthesis_with_knowledge_graph,
+    _generate_evaluation_with_knowledge_graph, apply_enhanced_dialectical_reasoning_with_knowledge,
+    _identify_relevant_knowledge, _generate_enhanced_antithesis_with_knowledge,
+    _generate_enhanced_synthesis_with_standards, _generate_evaluation_with_compliance
+)
+from devsynth.domain.models.wsde_multidisciplinary import (
+    apply_multi_disciplinary_dialectical_reasoning, _gather_disciplinary_perspectives,
+    _determine_agent_discipline, _solution_addresses_item, _identify_perspective_conflicts,
+    _generate_multi_disciplinary_synthesis, _generate_multi_disciplinary_evaluation
+)
+from devsynth.domain.models.wsde_enhanced_dialectical import (
+    apply_enhanced_dialectical_reasoning, apply_enhanced_dialectical_reasoning_multi,
+    _identify_thesis, _generate_enhanced_antithesis, _generate_enhanced_synthesis,
+    _generate_evaluation
+)
+from devsynth.domain.models.wsde_solution_analysis import (
+    _analyze_solution, _generate_comparative_analysis, _generate_multi_solution_synthesis,
+    _generate_comparative_evaluation
+)
+from devsynth.domain.models.wsde_decision_making import (
+    generate_diverse_ideas, _calculate_idea_similarity, create_comparison_matrix,
+    evaluate_options, analyze_trade_offs, formulate_decision_criteria,
+    select_best_option, elaborate_details, create_implementation_plan,
+    _topological_sort_steps, optimize_implementation, _optimize_for_performance,
+    _optimize_for_maintainability, _optimize_for_security, perform_quality_assurance,
+    _check_completeness, _check_consistency, _check_testability, _check_security
+)
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 @dataclass
@@ -1714,7 +1777,7 @@ class WSDETeam:
         }
 
     def apply_dialectical_reasoning(
-        self, task: Dict[str, Any], critic_agent: Any
+        self, task: Dict[str, Any], critic_agent: Any, memory_integration: Any = None
     ) -> Dict[str, Any]:
         """
         Apply dialectical reasoning to a task with a proposed solution.
@@ -1723,10 +1786,12 @@ class WSDETeam:
         1. A thesis (initial solution) is proposed
         2. An antithesis (critique) is developed by the critic agent
         3. A synthesis (improved solution) is created by resolving the contradictions
+        4. Key insights are extracted and integrated into the team's memory system (if memory_integration is provided)
 
         Args:
             task: The task for which dialectical reasoning is being applied
             critic_agent: The agent responsible for applying dialectical reasoning
+            memory_integration: Optional WSDEMemoryIntegration instance for knowledge integration
 
         Returns:
             A dictionary containing the thesis, antithesis, and synthesis
@@ -1754,11 +1819,36 @@ class WSDETeam:
         # Generate the synthesis (improved solution)
         synthesis = self._generate_synthesis(thesis, antithesis)
 
+        # Create the dialectical result
+        dialectical_result = {
+            "thesis": thesis,
+            "antithesis": antithesis,
+            "synthesis": synthesis
+        }
+
+        # Integrate knowledge from the dialectical process if memory_integration is provided
+        if memory_integration is not None:
+            try:
+                logger.info(f"Integrating knowledge from dialectical process for task {task_id}")
+                integrated_knowledge = memory_integration.integrate_knowledge_from_dialectical_process(
+                    task_id, dialectical_result
+                )
+                # Add the integrated knowledge to the result
+                dialectical_result["integrated_knowledge"] = {
+                    "num_insights": len(integrated_knowledge.get("key_insights", [])),
+                    "domains": list(integrated_knowledge.get("domain_categories", {}).keys()),
+                    "timestamp": integrated_knowledge.get("timestamp", "")
+                }
+                logger.info(f"Successfully integrated knowledge from dialectical process for task {task_id}")
+            except Exception as e:
+                logger.error(f"Failed to integrate knowledge from dialectical process: {str(e)}")
+                # Continue even if knowledge integration fails
+
         # Return the dialectical result
-        return {"thesis": thesis, "antithesis": antithesis, "synthesis": synthesis}
+        return dialectical_result
 
     def apply_enhanced_dialectical_reasoning(
-        self, task: Dict[str, Any], critic_agent: Any
+        self, task: Dict[str, Any], critic_agent: Any, memory_integration: Any = None
     ) -> Dict[str, Any]:
         """
         Apply enhanced dialectical reasoning to a task with a proposed solution.
@@ -1768,10 +1858,12 @@ class WSDETeam:
         2. An antithesis (critique) is developed across multiple dimensions
         3. A synthesis (improved solution) is created addressing all critiques
         4. A final evaluation assesses the strengths and weaknesses of the synthesis
+        5. Key insights are extracted and integrated into the team's memory system (if memory_integration is provided)
 
         Args:
             task: The task for which enhanced dialectical reasoning is being applied
             critic_agent: The agent responsible for applying dialectical reasoning
+            memory_integration: Optional WSDEMemoryIntegration instance for knowledge integration
 
         Returns:
             A dictionary containing the thesis, antithesis, synthesis, and evaluation
@@ -1810,16 +1902,37 @@ class WSDETeam:
         # Generate the final evaluation
         evaluation = self._generate_evaluation(synthesis, antithesis, task)
 
-        # Return the enhanced dialectical result
-        return {
+        # Create the dialectical result
+        dialectical_result = {
             "thesis": thesis,
             "antithesis": antithesis,
             "synthesis": synthesis,
             "evaluation": evaluation,
         }
 
+        # Integrate knowledge from the dialectical process if memory_integration is provided
+        if memory_integration is not None:
+            try:
+                logger.info(f"Integrating knowledge from dialectical process for task {task_id}")
+                integrated_knowledge = memory_integration.integrate_knowledge_from_dialectical_process(
+                    task_id, dialectical_result
+                )
+                # Add the integrated knowledge to the result
+                dialectical_result["integrated_knowledge"] = {
+                    "num_insights": len(integrated_knowledge.get("key_insights", [])),
+                    "domains": list(integrated_knowledge.get("domain_categories", {}).keys()),
+                    "timestamp": integrated_knowledge.get("timestamp", "")
+                }
+                logger.info(f"Successfully integrated knowledge from dialectical process for task {task_id}")
+            except Exception as e:
+                logger.error(f"Failed to integrate knowledge from dialectical process: {str(e)}")
+                # Continue even if knowledge integration fails
+
+        # Return the enhanced dialectical result
+        return dialectical_result
+
     def apply_enhanced_dialectical_reasoning_multi(
-        self, task: Dict[str, Any], critic_agent: Any
+        self, task: Dict[str, Any], critic_agent: Any, memory_integration: Any = None
     ) -> Dict[str, Any]:
         """
         Apply enhanced dialectical reasoning to compare multiple solutions for a task.
@@ -1829,10 +1942,12 @@ class WSDETeam:
         2. Comparative critiques are generated across solutions
         3. A synthesized solution incorporates the best elements of each proposal
         4. The final solution is evaluated against the individual proposals
+        5. Key insights are extracted and integrated into the team's memory system (if memory_integration is provided)
 
         Args:
             task: The task for which enhanced dialectical reasoning is being applied
             critic_agent: The agent responsible for applying dialectical reasoning
+            memory_integration: Optional WSDEMemoryIntegration instance for knowledge integration
 
         Returns:
             A dictionary containing solution analyses, comparative analysis, synthesis, and evaluation
@@ -1880,13 +1995,44 @@ class WSDETeam:
             synthesis, solutions, comparative_analysis
         )
 
-        # Return the multi-solution dialectical result
-        return {
+        # Create the multi-solution dialectical result
+        dialectical_result = {
             "solution_analyses": solution_analyses,
             "comparative_analysis": comparative_analysis,
             "synthesis": synthesis,
             "evaluation": evaluation,
         }
+
+        # Integrate knowledge from the dialectical process if memory_integration is provided
+        if memory_integration is not None:
+            try:
+                logger.info(f"Integrating knowledge from multi-solution dialectical process for task {task_id}")
+
+                # Adapt the result format for knowledge integration
+                adapted_result = {
+                    "thesis": {"multiple_solutions": True, "solution_analyses": solution_analyses},
+                    "antithesis": {"comparative_analysis": comparative_analysis},
+                    "synthesis": synthesis,
+                    "evaluation": evaluation
+                }
+
+                integrated_knowledge = memory_integration.integrate_knowledge_from_dialectical_process(
+                    task_id, adapted_result
+                )
+
+                # Add the integrated knowledge to the result
+                dialectical_result["integrated_knowledge"] = {
+                    "num_insights": len(integrated_knowledge.get("key_insights", [])),
+                    "domains": list(integrated_knowledge.get("domain_categories", {}).keys()),
+                    "timestamp": integrated_knowledge.get("timestamp", "")
+                }
+                logger.info(f"Successfully integrated knowledge from multi-solution dialectical process for task {task_id}")
+            except Exception as e:
+                logger.error(f"Failed to integrate knowledge from multi-solution dialectical process: {str(e)}")
+                # Continue even if knowledge integration fails
+
+        # Return the multi-solution dialectical result
+        return dialectical_result
 
     def _generate_antithesis(
         self, thesis: Dict[str, Any], critic_agent: Any
@@ -2019,12 +2165,19 @@ class WSDETeam:
         """
         Generate a synthesis by resolving the contradictions between thesis and antithesis.
 
+        This enhanced implementation:
+        1. Categorizes critique points by domain
+        2. Prioritizes critique points based on severity and relevance
+        3. Resolves conflicts between different domain perspectives
+        4. Ensures compliance with standards and best practices across domains
+        5. Provides more detailed reasoning about the synthesis process
+
         Args:
             thesis: The thesis (initial solution)
             antithesis: The antithesis (critique)
 
         Returns:
-            A dictionary containing the improved solution
+            A dictionary containing the improved solution with domain-specific insights
         """
         # Start with the original solution
         improved_solution = thesis.copy()
@@ -2033,6 +2186,10 @@ class WSDETeam:
         import json
         synthesis_improvements = []
         synthesis_reasoning = ""
+        domain_improvements = {}
+        domain_conflicts = []
+        resolved_conflicts = []
+        standards_compliance = {}
 
         # Check if we have a structured critique from the critic agent
         if "critique" in antithesis and isinstance(antithesis["critique"], list):
@@ -2045,44 +2202,94 @@ class WSDETeam:
             # Combine critique points and challenges
             all_critiques = critique_points + challenges
 
-            # Apply improvements based on the critique
+            # Categorize critiques by domain
+            domain_critiques = self._categorize_critiques_by_domain(all_critiques)
+
+            # Identify conflicts between domains
+            domain_conflicts = self._identify_domain_conflicts(domain_critiques)
+
+            # Prioritize critiques by severity and relevance
+            prioritized_critiques = self._prioritize_critiques(all_critiques)
+
+            # Apply improvements based on the prioritized critique
             if "code" in improved_solution:
                 code = improved_solution["code"]
 
+                # Track domain-specific code improvements
+                code_improvements = {}
+
                 # Apply code improvements based on the critique
-                for critique in all_critiques:
-                    # Convert critique to lowercase for case-insensitive matching
-                    critique_lower = critique.lower() if isinstance(critique, str) else ""
+                for domain, critiques in domain_critiques.items():
+                    domain_improvements[domain] = []
 
-                    # Fix hardcoded credentials
-                    if "hardcoded credential" in critique_lower or "password" in critique_lower:
-                        code = self._improve_credentials(code)
-                        synthesis_improvements.append("Removed hardcoded credentials")
+                    for critique in critiques:
+                        # Convert critique to lowercase for case-insensitive matching
+                        critique_lower = critique.lower() if isinstance(critique, str) else ""
 
-                    # Add error handling
-                    if "error handling" in critique_lower or "exception" in critique_lower:
-                        code = self._improve_error_handling(code)
-                        synthesis_improvements.append("Added error handling")
+                        # Fix hardcoded credentials
+                        if "hardcoded credential" in critique_lower or "password" in critique_lower:
+                            code = self._improve_credentials(code)
+                            improvement = "Removed hardcoded credentials"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            code_improvements[domain] = code_improvements.get(domain, []) + [improvement]
 
-                    # Add input validation
-                    if "input validation" in critique_lower or "validate input" in critique_lower:
-                        code = self._improve_input_validation(code)
-                        synthesis_improvements.append("Added input validation")
+                        # Add error handling
+                        if "error handling" in critique_lower or "exception" in critique_lower:
+                            code = self._improve_error_handling(code)
+                            improvement = "Added error handling"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            code_improvements[domain] = code_improvements.get(domain, []) + [improvement]
 
-                    # Improve security
-                    if "security" in critique_lower or "vulnerable" in critique_lower:
-                        code = self._improve_security(code)
-                        synthesis_improvements.append("Improved security measures")
+                        # Add input validation
+                        if "input validation" in critique_lower or "validate input" in critique_lower:
+                            code = self._improve_input_validation(code)
+                            improvement = "Added input validation"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            code_improvements[domain] = code_improvements.get(domain, []) + [improvement]
 
-                    # Improve performance
-                    if "performance" in critique_lower or "slow" in critique_lower:
-                        code = self._improve_performance(code)
-                        synthesis_improvements.append("Optimized for performance")
+                        # Improve security
+                        if "security" in critique_lower or "vulnerable" in critique_lower:
+                            code = self._improve_security(code)
+                            improvement = "Improved security measures"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            code_improvements[domain] = code_improvements.get(domain, []) + [improvement]
 
-                    # Improve readability
-                    if "readability" in critique_lower or "unclear" in critique_lower:
-                        code = self._improve_readability(code)
-                        synthesis_improvements.append("Improved code readability")
+                        # Improve performance
+                        if "performance" in critique_lower or "slow" in critique_lower:
+                            code = self._improve_performance(code)
+                            improvement = "Optimized for performance"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            code_improvements[domain] = code_improvements.get(domain, []) + [improvement]
+
+                        # Improve readability
+                        if "readability" in critique_lower or "unclear" in critique_lower:
+                            code = self._improve_readability(code)
+                            improvement = "Improved code readability"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            code_improvements[domain] = code_improvements.get(domain, []) + [improvement]
+
+                # Resolve conflicts in code improvements
+                if domain_conflicts:
+                    for conflict in domain_conflicts:
+                        if conflict["domains"][0] in code_improvements and conflict["domains"][1] in code_improvements:
+                            resolution = self._resolve_code_improvement_conflict(
+                                conflict, 
+                                code_improvements[conflict["domains"][0]], 
+                                code_improvements[conflict["domains"][1]]
+                            )
+                            resolved_conflicts.append(resolution)
+                            # Apply the resolution to the code
+                            if "code_change" in resolution:
+                                code = resolution["code_change"](code)
+
+                # Check compliance with standards
+                standards_compliance["code"] = self._check_code_standards_compliance(code)
 
                 improved_solution["code"] = code
 
@@ -2090,30 +2297,69 @@ class WSDETeam:
             if "content" in improved_solution:
                 content = improved_solution["content"]
 
+                # Track domain-specific content improvements
+                content_improvements = {}
+
                 # Apply content improvements based on the critique
-                for critique in all_critiques:
-                    # Convert critique to lowercase for case-insensitive matching
-                    critique_lower = critique.lower() if isinstance(critique, str) else ""
+                for domain, critiques in domain_critiques.items():
+                    if domain not in domain_improvements:
+                        domain_improvements[domain] = []
 
-                    # Improve clarity
-                    if "clarity" in critique_lower or "unclear" in critique_lower:
-                        content = self._improve_clarity(content)
-                        synthesis_improvements.append("Improved clarity")
+                    for critique in critiques:
+                        # Convert critique to lowercase for case-insensitive matching
+                        critique_lower = critique.lower() if isinstance(critique, str) else ""
 
-                    # Add examples
-                    if "example" in critique_lower or "illustration" in critique_lower:
-                        content = self._improve_with_examples(content)
-                        synthesis_improvements.append("Added examples for clarity")
+                        # Improve clarity
+                        if "clarity" in critique_lower or "unclear" in critique_lower:
+                            content = self._improve_clarity(content)
+                            improvement = "Improved clarity"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            content_improvements[domain] = content_improvements.get(domain, []) + [improvement]
 
-                    # Improve structure
-                    if "structure" in critique_lower or "organization" in critique_lower:
-                        content = self._improve_structure(content)
-                        synthesis_improvements.append("Improved document structure")
+                        # Add examples
+                        if "example" in critique_lower or "illustration" in critique_lower:
+                            content = self._improve_with_examples(content)
+                            improvement = "Added examples for clarity"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            content_improvements[domain] = content_improvements.get(domain, []) + [improvement]
+
+                        # Improve structure
+                        if "structure" in critique_lower or "organization" in critique_lower:
+                            content = self._improve_structure(content)
+                            improvement = "Improved document structure"
+                            synthesis_improvements.append(improvement)
+                            domain_improvements[domain].append(improvement)
+                            content_improvements[domain] = content_improvements.get(domain, []) + [improvement]
+
+                # Resolve conflicts in content improvements
+                if domain_conflicts:
+                    for conflict in domain_conflicts:
+                        if conflict["domains"][0] in content_improvements and conflict["domains"][1] in content_improvements:
+                            resolution = self._resolve_content_improvement_conflict(
+                                conflict, 
+                                content_improvements[conflict["domains"][0]], 
+                                content_improvements[conflict["domains"][1]]
+                            )
+                            resolved_conflicts.append(resolution)
+                            # Apply the resolution to the content
+                            if "content_change" in resolution:
+                                content = resolution["content_change"](content)
+
+                # Check compliance with standards
+                standards_compliance["content"] = self._check_content_standards_compliance(content)
 
                 improved_solution["content"] = content
 
-            # Generate reasoning for the synthesis
-            synthesis_reasoning = f"Improvements made based on {len(all_critiques)} critique points, addressing key issues identified in the antithesis."
+            # Generate detailed reasoning for the synthesis
+            synthesis_reasoning = self._generate_detailed_synthesis_reasoning(
+                domain_critiques, 
+                domain_improvements, 
+                domain_conflicts, 
+                resolved_conflicts,
+                standards_compliance
+            )
 
         # If we couldn't extract structured improvements, use a generic approach
         if not synthesis_improvements:
@@ -2128,6 +2374,7 @@ class WSDETeam:
                 ):
                     code = self._improve_credentials(code)
                     synthesis_improvements.append("Removed hardcoded credentials")
+                    domain_improvements["security"] = domain_improvements.get("security", []) + ["Removed hardcoded credentials"]
 
                 # Add error handling
                 if any(
@@ -2136,6 +2383,7 @@ class WSDETeam:
                 ):
                     code = self._improve_error_handling(code)
                     synthesis_improvements.append("Added error handling")
+                    domain_improvements["reliability"] = domain_improvements.get("reliability", []) + ["Added error handling"]
 
                 # Add input validation
                 if any(
@@ -2144,6 +2392,7 @@ class WSDETeam:
                 ):
                     code = self._improve_input_validation(code)
                     synthesis_improvements.append("Added input validation")
+                    domain_improvements["security"] = domain_improvements.get("security", []) + ["Added input validation"]
 
                 improved_solution["code"] = code
 
@@ -2157,15 +2406,478 @@ class WSDETeam:
                 improved_solution["code"] = self._improve_security(improved_solution["code"])
                 if "Improved security measures" not in synthesis_improvements:
                     synthesis_improvements.append("Improved security measures")
+                    domain_improvements["security"] = domain_improvements.get("security", []) + ["Improved security measures"]
 
-        # Return the synthesis with improvements and reasoning
+        # Return the enhanced synthesis with domain-specific improvements and reasoning
         return {
             "improved_solution": improved_solution.get("code", "") if "code" in improved_solution else improved_solution.get("content", ""),
             "improvements": synthesis_improvements,
+            "domain_improvements": domain_improvements,
+            "domain_conflicts": domain_conflicts,
+            "resolved_conflicts": resolved_conflicts,
+            "standards_compliance": standards_compliance,
             "reasoning": synthesis_reasoning,
             "is_improvement": len(synthesis_improvements) > 0,
             "agent": thesis.get("agent", "unknown")
         }
+
+    def _categorize_critiques_by_domain(self, critiques: List[str]) -> Dict[str, List[str]]:
+        """
+        Categorize critique points by domain.
+
+        Args:
+            critiques: List of critique points
+
+        Returns:
+            Dictionary mapping domains to lists of critique points
+        """
+        domain_critiques = {}
+
+        # Define domain keywords for categorization
+        domain_keywords = {
+            "security": ["security", "authentication", "authorization", "vulnerability", "exploit", "password", "encryption", "csrf", "xss"],
+            "performance": ["performance", "speed", "latency", "throughput", "optimization", "efficient", "slow", "fast", "bottleneck"],
+            "maintainability": ["maintainability", "readability", "documentation", "comment", "structure", "organization", "clean", "technical debt"],
+            "reliability": ["reliability", "error handling", "exception", "fault tolerance", "recovery", "robustness", "stability"],
+            "usability": ["usability", "user experience", "ux", "interface", "accessibility", "intuitive", "user-friendly"],
+            "scalability": ["scalability", "scale", "load", "concurrent", "distributed", "horizontal", "vertical"],
+            "testability": ["testability", "test", "mock", "stub", "assertion", "coverage", "unit test", "integration test"]
+        }
+
+        for critique in critiques:
+            if not isinstance(critique, str):
+                continue
+
+            critique_lower = critique.lower()
+            assigned_domain = False
+
+            # Check each domain for keyword matches
+            for domain, keywords in domain_keywords.items():
+                if any(keyword in critique_lower for keyword in keywords):
+                    if domain not in domain_critiques:
+                        domain_critiques[domain] = []
+                    domain_critiques[domain].append(critique)
+                    assigned_domain = True
+                    break
+
+            # If no domain matched, assign to general
+            if not assigned_domain:
+                if "general" not in domain_critiques:
+                    domain_critiques["general"] = []
+                domain_critiques["general"].append(critique)
+
+        return domain_critiques
+
+    def _identify_domain_conflicts(self, domain_critiques: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+        """
+        Identify conflicts between different domain perspectives.
+
+        Args:
+            domain_critiques: Dictionary mapping domains to lists of critique points
+
+        Returns:
+            List of conflicts between domains
+        """
+        conflicts = []
+
+        # Define potential conflicts between domains
+        potential_conflicts = [
+            {
+                "domains": ["security", "performance"],
+                "keywords": [
+                    {"security": ["encryption", "validation", "checks"], "performance": ["speed", "optimization", "efficient"]}
+                ],
+                "description": "Security measures may impact performance"
+            },
+            {
+                "domains": ["security", "usability"],
+                "keywords": [
+                    {"security": ["authentication", "authorization"], "usability": ["user-friendly", "intuitive"]}
+                ],
+                "description": "Security requirements may affect usability"
+            },
+            {
+                "domains": ["performance", "maintainability"],
+                "keywords": [
+                    {"performance": ["optimization"], "maintainability": ["readability", "clean"]}
+                ],
+                "description": "Performance optimizations may reduce code maintainability"
+            }
+        ]
+
+        # Check for conflicts
+        for conflict in potential_conflicts:
+            domain1, domain2 = conflict["domains"]
+
+            if domain1 in domain_critiques and domain2 in domain_critiques:
+                # Check if there are critiques in both domains
+                critiques1 = domain_critiques[domain1]
+                critiques2 = domain_critiques[domain2]
+
+                # Check for keyword matches indicating a conflict
+                for keyword_set in conflict["keywords"]:
+                    keywords1 = keyword_set[domain1]
+                    keywords2 = keyword_set[domain2]
+
+                    if any(any(kw in c.lower() for kw in keywords1) for c in critiques1) and \
+                       any(any(kw in c.lower() for kw in keywords2) for c in critiques2):
+                        # Found a conflict
+                        conflicts.append({
+                            "domains": [domain1, domain2],
+                            "description": conflict["description"],
+                            "critiques": {
+                                domain1: [c for c in critiques1 if any(kw in c.lower() for kw in keywords1)],
+                                domain2: [c for c in critiques2 if any(kw in c.lower() for kw in keywords2)]
+                            }
+                        })
+
+        return conflicts
+
+    def _prioritize_critiques(self, critiques: List[str]) -> List[Dict[str, Any]]:
+        """
+        Prioritize critique points based on severity and relevance.
+
+        Args:
+            critiques: List of critique points
+
+        Returns:
+            List of prioritized critique points with severity and relevance scores
+        """
+        prioritized = []
+
+        # Define severity keywords
+        severity_keywords = {
+            "high": ["critical", "severe", "major", "important", "security", "vulnerability", "crash", "error"],
+            "medium": ["moderate", "issue", "problem", "concern", "performance", "usability"],
+            "low": ["minor", "cosmetic", "suggestion", "consider", "might", "could"]
+        }
+
+        for critique in critiques:
+            if not isinstance(critique, str):
+                continue
+
+            critique_lower = critique.lower()
+
+            # Determine severity
+            severity = "medium"  # Default
+            for level, keywords in severity_keywords.items():
+                if any(keyword in critique_lower for keyword in keywords):
+                    severity = level
+                    break
+
+            # Determine relevance (simple heuristic based on specificity)
+            relevance = 0.5  # Default medium relevance
+            if len(critique_lower.split()) > 10:  # More detailed critiques are more relevant
+                relevance = 0.8
+            if any(term in critique_lower for term in ["must", "should", "need to", "important"]):
+                relevance = 0.9
+
+            prioritized.append({
+                "critique": critique,
+                "severity": severity,
+                "relevance": relevance,
+                "priority_score": self._calculate_priority_score(severity, relevance)
+            })
+
+        # Sort by priority score (descending)
+        return sorted(prioritized, key=lambda x: x["priority_score"], reverse=True)
+
+    def _calculate_priority_score(self, severity: str, relevance: float) -> float:
+        """
+        Calculate a priority score based on severity and relevance.
+
+        Args:
+            severity: Severity level (high, medium, low)
+            relevance: Relevance score (0.0 to 1.0)
+
+        Returns:
+            Priority score
+        """
+        severity_scores = {"high": 0.9, "medium": 0.6, "low": 0.3}
+        return severity_scores.get(severity, 0.5) * relevance
+
+    def _resolve_code_improvement_conflict(
+        self, conflict: Dict[str, Any], improvements1: List[str], improvements2: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Resolve a conflict between code improvements from different domains.
+
+        Args:
+            conflict: The conflict to resolve
+            improvements1: Improvements from the first domain
+            improvements2: Improvements from the second domain
+
+        Returns:
+            Resolution for the conflict
+        """
+        domain1, domain2 = conflict["domains"]
+
+        # Define resolution strategies for common conflicts
+        if domain1 == "security" and domain2 == "performance":
+            # Security takes precedence over performance
+            return {
+                "resolution": f"Prioritized security over performance while maintaining acceptable performance levels",
+                "reasoning": "Security is critical for protecting user data and preventing vulnerabilities",
+                "code_change": lambda code: self._balance_security_and_performance(code)
+            }
+        elif domain1 == "security" and domain2 == "usability":
+            # Balance security and usability
+            return {
+                "resolution": f"Balanced security requirements with usability considerations",
+                "reasoning": "Implemented security measures with minimal impact on user experience",
+                "code_change": lambda code: self._balance_security_and_usability(code)
+            }
+        elif domain1 == "performance" and domain2 == "maintainability":
+            # Balance performance and maintainability
+            return {
+                "resolution": f"Optimized performance while maintaining code readability",
+                "reasoning": "Used clear variable names and added comments to explain performance optimizations",
+                "code_change": lambda code: self._balance_performance_and_maintainability(code)
+            }
+        else:
+            # Generic resolution
+            return {
+                "resolution": f"Balanced requirements from {domain1} and {domain2}",
+                "reasoning": "Implemented a compromise solution that addresses both concerns",
+                "code_change": lambda code: code  # No specific change
+            }
+
+    def _resolve_content_improvement_conflict(
+        self, conflict: Dict[str, Any], improvements1: List[str], improvements2: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Resolve a conflict between content improvements from different domains.
+
+        Args:
+            conflict: The conflict to resolve
+            improvements1: Improvements from the first domain
+            improvements2: Improvements from the second domain
+
+        Returns:
+            Resolution for the conflict
+        """
+        domain1, domain2 = conflict["domains"]
+
+        # Generic resolution for content conflicts
+        return {
+            "resolution": f"Integrated perspectives from {domain1} and {domain2}",
+            "reasoning": "Combined insights from multiple domains to create a comprehensive solution",
+            "content_change": lambda content: content  # No specific change
+        }
+
+    def _check_code_standards_compliance(self, code: str) -> Dict[str, Any]:
+        """
+        Check if the code complies with standards and best practices.
+
+        Args:
+            code: The code to check
+
+        Returns:
+            Compliance assessment
+        """
+        # Simple heuristic checks for standards compliance
+        compliance = {
+            "pep8": self._check_pep8_compliance(code),
+            "security_best_practices": self._check_security_best_practices(code),
+            "error_handling": "try" in code and "except" in code,
+            "input_validation": "validate" in code or "check" in code,
+            "documentation": '"""' in code or "'''" in code or "#" in code
+        }
+
+        # Calculate overall compliance score
+        compliance_score = sum(1 for v in compliance.values() if v) / len(compliance)
+
+        return {
+            "details": compliance,
+            "score": compliance_score,
+            "level": "high" if compliance_score >= 0.8 else "medium" if compliance_score >= 0.5 else "low"
+        }
+
+    def _check_content_standards_compliance(self, content: str) -> Dict[str, Any]:
+        """
+        Check if the content complies with standards and best practices.
+
+        Args:
+            content: The content to check
+
+        Returns:
+            Compliance assessment
+        """
+        # Simple heuristic checks for content standards
+        compliance = {
+            "clarity": len(content.split(".")) > 3,  # Multiple sentences indicate some structure
+            "examples": "example" in content.lower() or "for instance" in content.lower(),
+            "structure": content.count("\n\n") > 0  # Paragraphs indicate structure
+        }
+
+        # Calculate overall compliance score
+        compliance_score = sum(1 for v in compliance.values() if v) / len(compliance)
+
+        return {
+            "details": compliance,
+            "score": compliance_score,
+            "level": "high" if compliance_score >= 0.8 else "medium" if compliance_score >= 0.5 else "low"
+        }
+
+    def _check_pep8_compliance(self, code: str) -> bool:
+        """
+        Check if the code complies with PEP 8 style guide.
+
+        Args:
+            code: The code to check
+
+        Returns:
+            True if the code generally follows PEP 8, False otherwise
+        """
+        # Simple heuristic checks for PEP 8 compliance
+        lines = code.split("\n")
+
+        # Check line length
+        long_lines = sum(1 for line in lines if len(line) > 100)
+
+        # Check indentation (assuming 4 spaces)
+        bad_indentation = sum(1 for line in lines if line.startswith(" ") and not line.startswith("    "))
+
+        # Check naming conventions
+        snake_case_vars = sum(1 for line in lines if "=" in line and "_" in line.split("=")[0])
+        camel_case_vars = sum(1 for line in lines if "=" in line and not "_" in line.split("=")[0] and not line.strip().startswith("#"))
+
+        # Simple heuristic: more snake_case than camel_case, few long lines, and few bad indentations
+        return long_lines < len(lines) * 0.2 and bad_indentation < len(lines) * 0.1 and snake_case_vars > camel_case_vars
+
+    def _check_security_best_practices(self, code: str) -> bool:
+        """
+        Check if the code follows security best practices.
+
+        Args:
+            code: The code to check
+
+        Returns:
+            True if the code generally follows security best practices, False otherwise
+        """
+        # Simple heuristic checks for security best practices
+        security_issues = [
+            "password" in code.lower() and "=" in code,  # Potential hardcoded password
+            "token" in code.lower() and "=" in code,     # Potential hardcoded token
+            "exec(" in code.lower(),                     # Potential code injection
+            "eval(" in code.lower(),                     # Potential code injection
+            "subprocess" in code.lower() and "shell=True" in code.lower()  # Potential command injection
+        ]
+
+        return not any(security_issues)
+
+    def _balance_security_and_performance(self, code: str) -> str:
+        """
+        Balance security and performance in the code.
+
+        Args:
+            code: The code to balance
+
+        Returns:
+            Balanced code
+        """
+        # Add a comment explaining the balance
+        if not "# Security and performance balance:" in code:
+            code = code + "\n\n# Security and performance balance:\n# - Using efficient validation methods\n# - Implementing security checks at critical points only\n# - Using cached results where appropriate for repeated operations"
+
+        return code
+
+    def _balance_security_and_usability(self, code: str) -> str:
+        """
+        Balance security and usability in the code.
+
+        Args:
+            code: The code to balance
+
+        Returns:
+            Balanced code
+        """
+        # Add a comment explaining the balance
+        if not "# Security and usability balance:" in code:
+            code = code + "\n\n# Security and usability balance:\n# - Implementing progressive security measures\n# - Using clear error messages for security issues\n# - Providing helpful guidance for users"
+
+        return code
+
+    def _balance_performance_and_maintainability(self, code: str) -> str:
+        """
+        Balance performance and maintainability in the code.
+
+        Args:
+            code: The code to balance
+
+        Returns:
+            Balanced code
+        """
+        # Add a comment explaining the balance
+        if not "# Performance and maintainability balance:" in code:
+            code = code + "\n\n# Performance and maintainability balance:\n# - Using descriptive variable names even in performance-critical sections\n# - Adding comments to explain optimization techniques\n# - Extracting complex optimizations into well-named functions"
+
+        return code
+
+    def _generate_detailed_synthesis_reasoning(
+        self, 
+        domain_critiques: Dict[str, List[str]], 
+        domain_improvements: Dict[str, List[str]], 
+        domain_conflicts: List[Dict[str, Any]], 
+        resolved_conflicts: List[Dict[str, Any]],
+        standards_compliance: Dict[str, Any]
+    ) -> str:
+        """
+        Generate detailed reasoning about the synthesis process.
+
+        Args:
+            domain_critiques: Critiques categorized by domain
+            domain_improvements: Improvements categorized by domain
+            domain_conflicts: Conflicts between domains
+            resolved_conflicts: Resolutions for domain conflicts
+            standards_compliance: Compliance with standards and best practices
+
+        Returns:
+            Detailed reasoning about the synthesis process
+        """
+        reasoning_parts = []
+
+        # Add overview
+        num_domains = len(domain_critiques)
+        num_critiques = sum(len(critiques) for critiques in domain_critiques.values())
+        num_improvements = sum(len(improvements) for improvements in domain_improvements.values())
+
+        reasoning_parts.append(
+            f"Synthesis integrated {num_critiques} critique points across {num_domains} domains, "
+            f"resulting in {num_improvements} specific improvements."
+        )
+
+        # Add domain-specific reasoning
+        for domain, improvements in domain_improvements.items():
+            if improvements:
+                reasoning_parts.append(
+                    f"In the {domain} domain: {', '.join(improvements)}."
+                )
+
+        # Add conflict resolution reasoning
+        if domain_conflicts:
+            reasoning_parts.append(
+                f"Resolved {len(domain_conflicts)} conflicts between different domain perspectives:"
+            )
+            for resolution in resolved_conflicts:
+                reasoning_parts.append(f"- {resolution['resolution']}: {resolution['reasoning']}")
+
+        # Add standards compliance reasoning
+        if "code" in standards_compliance:
+            code_compliance = standards_compliance["code"]
+            reasoning_parts.append(
+                f"Code compliance with standards: {code_compliance['level']} "
+                f"({int(code_compliance['score'] * 100)}% compliance score)"
+            )
+
+        if "content" in standards_compliance:
+            content_compliance = standards_compliance["content"]
+            reasoning_parts.append(
+                f"Content compliance with standards: {content_compliance['level']} "
+                f"({int(content_compliance['score'] * 100)}% compliance score)"
+            )
+
+        return "\n".join(reasoning_parts)
 
     def _improve_credentials(self, code: str) -> str:
         """Improve code by removing hardcoded credentials."""
@@ -4424,6 +5136,7 @@ class WSDETeam:
         critic_agent: Any,
         disciplinary_knowledge: Dict[str, Any],
         disciplinary_agents: List[Any],
+        memory_integration: Any = None
     ) -> Dict[str, Any]:
         """
         Apply dialectical reasoning with multiple disciplinary perspectives.
@@ -4433,12 +5146,14 @@ class WSDETeam:
         2. Multiple disciplinary perspectives critique the thesis
         3. A synthesis integrates the perspectives, resolving conflicts
         4. A final evaluation assesses the solution from multiple perspectives
+        5. Key insights are extracted and integrated into the team's memory system (if memory_integration is provided)
 
         Args:
             task: The task for which multi-disciplinary dialectical reasoning is being applied
             critic_agent: The agent responsible for synthesizing perspectives
             disciplinary_knowledge: Dictionary of knowledge from different disciplines
             disciplinary_agents: List of agents with different disciplinary expertise
+            memory_integration: Optional WSDEMemoryIntegration instance for knowledge integration
 
         Returns:
             A dictionary containing the thesis, disciplinary perspectives, synthesis, and evaluation
@@ -4498,14 +5213,50 @@ class WSDETeam:
         # Prepare knowledge sources
         knowledge_sources = {"disciplines": list(disciplinary_knowledge.keys())}
 
-        # Return the multi-disciplinary dialectical result
-        return {
+        # Create the multi-disciplinary dialectical result
+        dialectical_result = {
             "thesis": thesis,
             "disciplinary_perspectives": disciplinary_perspectives,
             "synthesis": synthesis,
             "evaluation": evaluation,
             "knowledge_sources": knowledge_sources,
         }
+
+        # Integrate knowledge from the dialectical process if memory_integration is provided
+        if memory_integration is not None:
+            try:
+                logger.info(f"Integrating knowledge from multi-disciplinary dialectical process for task {task_id}")
+
+                # Adapt the result format for knowledge integration
+                adapted_result = {
+                    "thesis": thesis,
+                    "antithesis": {
+                        "multi_disciplinary": True,
+                        "disciplinary_perspectives": disciplinary_perspectives,
+                        "perspective_conflicts": perspective_conflicts
+                    },
+                    "synthesis": synthesis,
+                    "evaluation": evaluation
+                }
+
+                integrated_knowledge = memory_integration.integrate_knowledge_from_dialectical_process(
+                    task_id, adapted_result
+                )
+
+                # Add the integrated knowledge to the result
+                dialectical_result["integrated_knowledge"] = {
+                    "num_insights": len(integrated_knowledge.get("key_insights", [])),
+                    "domains": list(integrated_knowledge.get("domain_categories", {}).keys()),
+                    "timestamp": integrated_knowledge.get("timestamp", ""),
+                    "disciplines_integrated": len(disciplinary_knowledge.keys())
+                }
+                logger.info(f"Successfully integrated knowledge from multi-disciplinary dialectical process for task {task_id}")
+            except Exception as e:
+                logger.error(f"Failed to integrate knowledge from multi-disciplinary dialectical process: {str(e)}")
+                # Continue even if knowledge integration fails
+
+        # Return the multi-disciplinary dialectical result
+        return dialectical_result
 
     def _gather_disciplinary_perspectives(
         self,

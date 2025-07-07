@@ -18,7 +18,7 @@ class TestWSDEVotingMechanisms:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.team = WSDETeam()
+        self.team = WSDETeam(name="test_voting_mechanisms_team")
 
         # Create mock agents with different expertise
         self.agent1 = MagicMock()

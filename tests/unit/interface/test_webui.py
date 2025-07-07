@@ -49,8 +49,15 @@ def stub_streamlit(monkeypatch):
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
+    st.set_page_config = MagicMock()
+    st.sidebar = MagicMock()
+    st.sidebar.title = MagicMock()
+    st.sidebar.radio = MagicMock(return_value="Onboarding")
+    st.number_input = MagicMock(return_value=30)
+    st.toggle = MagicMock(return_value=False)
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
+    # Create CLI module and commands
     cli_stub = ModuleType("devsynth.application.cli")
     for name in [
         "init_cmd",
@@ -65,28 +72,66 @@ def stub_streamlit(monkeypatch):
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
-    analyze_stub = ModuleType("devsynth.application.cli.commands.inspect_code_cmd")
-    analyze_stub.inspect_code_cmd = MagicMock()
-    monkeypatch.setitem(
-        sys.modules,
-        "devsynth.application.cli.commands.inspect_code_cmd",
-        analyze_stub,
-    )
+    # Create ingest_cmd module separately
+    ingest_stub = ModuleType("devsynth.application.cli.ingest_cmd")
+    ingest_stub.ingest_cmd = MagicMock()
+    ingest_stub.bridge = MagicMock()
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.ingest_cmd", ingest_stub)
+    cli_stub.ingest_cmd = ingest_stub.ingest_cmd
 
-    doctor_stub = ModuleType("devsynth.application.cli.commands.doctor_cmd")
-    doctor_stub.doctor_cmd = MagicMock()
-    doctor_stub.bridge = MagicMock()
-    monkeypatch.setitem(
-        sys.modules,
-        "devsynth.application.cli.commands.doctor_cmd",
-        doctor_stub,
-    )
-    cli_stub.doctor_cmd = doctor_stub.doctor_cmd
+    # Create CLI commands module
+    commands_stub = ModuleType("devsynth.application.cli.commands")
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.commands", commands_stub)
+
+    # Create individual command modules
+    command_modules = {
+        "inspect_code_cmd": "inspect_code_cmd",
+        "doctor_cmd": "doctor_cmd",
+        "edrr_cycle_cmd": "edrr_cycle_cmd",
+        "align_cmd": "align_cmd",
+        "alignment_metrics_cmd": "alignment_metrics_cmd",
+        "inspect_config_cmd": "inspect_config_cmd",
+        "validate_manifest_cmd": "validate_manifest_cmd",
+        "validate_metadata_cmd": "validate_metadata_cmd",
+        "test_metrics_cmd": "test_metrics_cmd",
+        "generate_docs_cmd": "generate_docs_cmd",
+    }
+
+    for module_name, cmd_name in command_modules.items():
+        module_path = f"devsynth.application.cli.commands.{module_name}"
+        module_stub = ModuleType(module_path)
+        setattr(module_stub, cmd_name, MagicMock())
+        module_stub.bridge = MagicMock()
+        monkeypatch.setitem(sys.modules, module_path, module_stub)
+        if module_name == "doctor_cmd":
+            cli_stub.doctor_cmd = module_stub.doctor_cmd
+
+    # Create additional modules
+    apispec_stub = ModuleType("devsynth.application.cli.apispec")
+    apispec_stub.apispec_cmd = MagicMock()
+    apispec_stub.bridge = MagicMock()
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.apispec", apispec_stub)
+
+    setup_wizard_stub = ModuleType("devsynth.application.cli.setup_wizard")
+    setup_wizard_stub.SetupWizard = MagicMock()
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.setup_wizard", setup_wizard_stub)
+
     yield st
 
 
 def _patch_cmd(monkeypatch, path):
     module_name, attr = path.rsplit(".", 1)
+
+    # Ensure the module exists in sys.modules
+    if module_name not in sys.modules:
+        # Create a mock module if it doesn't exist
+        parts = module_name.split('.')
+        current = ''
+        for part in parts:
+            current = current + '.' + part if current else part
+            if current not in sys.modules:
+                sys.modules[current] = ModuleType(current)
+
     mod = sys.modules[module_name]
     func = MagicMock()
     setattr(mod, attr, func)
@@ -153,6 +198,40 @@ def test_synthesis_buttons(monkeypatch, stub_streamlit):
 
 def test_config_update(monkeypatch, stub_streamlit):
     cfg = _patch_cmd(monkeypatch, "devsynth.application.cli.config_cmd")
+
+    # Mock configuration
+    from pathlib import Path
+    from devsynth.config import ProjectUnifiedConfig, ConfigModel
+    mock_config = ProjectUnifiedConfig(
+        config=ConfigModel(
+            offline_mode=False,
+            project_root=".",
+            features={}
+        ),
+        path=Path("."),
+        use_pyproject=False
+    )
+
+    # Mock ProjectUnifiedConfig.load to return our mock config
+    def mock_load(cls, path=None):
+        return mock_config
+
+    monkeypatch.setattr(
+        ProjectUnifiedConfig, 
+        "load", 
+        classmethod(mock_load)
+    )
+
+    # Mock load_project_config and save_config
+    monkeypatch.setattr(
+        "devsynth.interface.webui.load_project_config",
+        MagicMock(return_value=mock_config)
+    )
+    monkeypatch.setattr(
+        "devsynth.interface.webui.save_config",
+        MagicMock()
+    )
+
     import importlib
     import devsynth.interface.webui as webui
 

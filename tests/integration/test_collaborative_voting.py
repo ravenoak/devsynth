@@ -36,7 +36,7 @@ astor_mod = types.ModuleType("astor")
 setattr(astor_mod, "to_source", lambda *a, **k: "")
 sys.modules.setdefault("astor", astor_mod)
 
-from devsynth.application.collaboration.wsde_team_extended import CollaborativeWSDETeam
+from devsynth.application.collaboration.collaborative_wsde_team import CollaborativeWSDETeam
 
 
 class VotingAgent:

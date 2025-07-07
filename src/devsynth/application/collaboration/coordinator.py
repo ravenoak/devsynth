@@ -14,7 +14,7 @@ from devsynth.exceptions import DevSynthError, ValidationError
 from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.agent import Agent, AgentCoordinator
-from ...domain.models.wsde import WSDE, WSDETeam
+from ...domain.models.wsde_facade import WSDE, WSDETeam
 from .exceptions import (
     AgentExecutionError,
     CollaborationError,
@@ -40,7 +40,7 @@ class AgentCoordinatorImpl(AgentCoordinator):
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the agent coordinator."""
         self.agents: List[Agent] = []
-        self.team = WSDETeam()
+        self.team = WSDETeam(name="AgentCoordinatorTeam")
         self.config = config or _DEFAULT_CONFIG
         feature_cfg = self.config.get("features", {})
         self.collaboration_enabled = feature_cfg.get("wsde_collaboration", False)

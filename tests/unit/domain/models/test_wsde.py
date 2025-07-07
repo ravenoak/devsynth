@@ -6,7 +6,7 @@ focusing on the WSDETeam class and its functionality.
 """
 import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.domain.models.wsde import WSDETeam, WSDE
+from devsynth.domain.models.wsde_facade import WSDETeam, WSDE
 from datetime import datetime
 from typing import Dict, List, Any
 
@@ -16,7 +16,7 @@ class TestWSDETeam:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.team = WSDETeam()
+        self.team = WSDETeam(name="test_team")
 
         # Create mock agents
         self.agent1 = MagicMock()
@@ -290,13 +290,12 @@ class TestWSDE:
     def test_initialization(self):
         """Test that a WSDE is initialized correctly."""
         # Arrange & Act
-        wsde = WSDE(content="Test content", content_type="text")
+        wsde = WSDE(name="Test WSDE")
 
         # Assert
-        assert wsde.content == "Test content"
-        assert wsde.content_type == "text"
-        assert wsde.id is not None
-        assert wsde.metadata == {}
+        assert wsde.name == "Test WSDE"
+        assert wsde.description is None
+        assert wsde.metadata is None
         assert isinstance(wsde.created_at, datetime)
         assert wsde.updated_at == wsde.created_at
 
@@ -304,9 +303,10 @@ class TestWSDE:
         """Test that a WSDE is initialized correctly with metadata."""
         # Arrange & Act
         metadata = {"key": "value", "another_key": 123}
-        wsde = WSDE(content="Test content", content_type="text", metadata=metadata)
+        wsde = WSDE(name="Test WSDE", metadata=metadata)
 
         # Assert
+        assert wsde.name == "Test WSDE"
         assert wsde.metadata == metadata
         assert wsde.metadata["key"] == "value"
         assert wsde.metadata["another_key"] == 123

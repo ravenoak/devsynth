@@ -27,9 +27,20 @@ class OfflineProvider(LLMProvider):
         )
         self.model = None
         self.tokenizer = None
+
+        # Initialize logger
+        self.logger = DevSynthLogger("offline_provider")
+
         if self.model_path and AutoTokenizer and AutoModelForCausalLM:
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-            self.model = AutoModelForCausalLM.from_pretrained(self.model_path)
+            try:
+                self.logger.info(f"Loading model from {self.model_path}")
+                self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+                self.model = AutoModelForCausalLM.from_pretrained(self.model_path)
+                self.logger.info(f"Successfully loaded model from {self.model_path}")
+            except Exception as e:
+                self.logger.error(f"Failed to load model from {self.model_path}: {str(e)}")
+                self.model = None
+                self.tokenizer = None
 
     def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
         if self.model and self.tokenizer and torch:

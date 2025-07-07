@@ -1,14 +1,14 @@
 import sys
 from types import ModuleType
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_bdd import given, when, then, scenarios, parsers
 from rich.console import Console
 from rich.progress import Progress
 
-# Import the feature file
-scenarios("../features/cli_ux_enhancements.feature")
+# The scenarios function is called in the test file, so we don't need to call it here
+# scenarios("../features/cli_ux_enhancements.feature")
 
 # Mock the CLI bridge and related components
 @pytest.fixture
@@ -19,17 +19,17 @@ def cli_context(monkeypatch):
     cli_bridge.create_progress = MagicMock()
     cli_bridge.ask_question = MagicMock(return_value="y")
     cli_bridge.confirm_choice = MagicMock(return_value=True)
-    
+
     # Mock progress indicator
     progress_indicator = MagicMock()
     progress_indicator.update = MagicMock()
     progress_indicator.complete = MagicMock()
     cli_bridge.create_progress.return_value = progress_indicator
-    
+
     # Mock rich components
     rich_console = MagicMock(spec=Console)
     rich_progress = MagicMock(spec=Progress)
-    
+
     # Mock CLI commands
     cli_commands = ModuleType("devsynth.application.cli")
     cli_commands.run_pipeline_cmd = MagicMock()
@@ -38,19 +38,19 @@ def cli_context(monkeypatch):
     cli_commands.test_cmd = MagicMock()
     cli_commands.code_cmd = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_commands)
-    
+
     # Mock CLI error handling
     cli_errors = ModuleType("devsynth.application.cli.errors")
     cli_errors.CommandError = type("CommandError", (Exception,), {})
     cli_errors.ParameterError = type("ParameterError", (Exception,), {})
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.errors", cli_errors)
-    
+
     # Mock CLI autocompletion
     cli_autocomplete = ModuleType("devsynth.application.cli.autocomplete")
     cli_autocomplete.get_completions = MagicMock(return_value=["init", "spec", "test", "code", "run-pipeline"])
     cli_autocomplete.complete_command = MagicMock(return_value="init")
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.autocomplete", cli_autocomplete)
-    
+
     # Return context with all mocks
     return {
         "bridge": cli_bridge,
@@ -71,7 +71,7 @@ def cli_initialized(cli_context):
 def run_long_command(cli_context):
     # Simulate running a long command like run-pipeline
     cli_context["commands"].run_pipeline_cmd(bridge=cli_context["bridge"])
-    
+
 @then("I should see a progress indicator")
 def check_progress_indicator(cli_context):
     cli_context["bridge"].create_progress.assert_called_once()
@@ -91,7 +91,7 @@ def check_progress_completion(cli_context):
 def run_invalid_command(cli_context):
     # Simulate running a command with invalid parameters
     cli_context["command_error"] = cli_context["errors"].ParameterError("Invalid parameter: --format must be one of [json, yaml, markdown]")
-    
+
 @then("I should see a detailed error message")
 def check_detailed_error(cli_context):
     # In the implementation, we'll ensure detailed error messages are displayed
@@ -161,12 +161,26 @@ def run_output_command(cli_context):
     with patch("rich.console.Console.print") as mock_print:
         console = Console()
         console.print("Success: Project initialized", style="green")
-        cli_context["console_calls"] = mock_print.mock_calls
+
+        # Store only the string representation of the calls to avoid unhashable objects
+        cli_context["console_calls"] = []
+        for mock_call in mock_print.mock_calls:
+            # Convert args and kwargs to strings to avoid unhashable objects
+            args_str = ", ".join(repr(arg) for arg in mock_call[1])
+            kwargs_str = ", ".join(f"{k}={repr(v)}" for k, v in mock_call[2].items())
+            cli_context["console_calls"].append(f"args: {args_str}, kwargs: {kwargs_str}")
 
 @then("the output should be colorized for better readability")
 def check_colorized_output(cli_context):
     # Verify that output was printed with color
-    assert any("style" in str(call) for call in cli_context["console_calls"])
+    has_style = False
+    for call_str in cli_context["console_calls"]:
+        # Check if the call string contains 'style'
+        if "style" in call_str:
+            has_style = True
+            break
+
+    assert has_style, "No colorized output (with style) was found in the console calls"
 
 @then("different types of information should have different colors")
 def check_different_colors(cli_context):

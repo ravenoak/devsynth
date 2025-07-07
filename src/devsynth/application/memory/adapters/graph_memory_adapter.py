@@ -155,7 +155,9 @@ class GraphMemoryAdapter(MemoryStore):
                 self.graph.add((item_uri, DEVSYNTH.content, Literal(str(item.content))))
                 self.graph.add((item_uri, DEVSYNTH.content_type, Literal("string")))
 
-        self.graph.add((item_uri, DEVSYNTH.memory_type, Literal(item.memory_type.value)))
+        # Handle memory_type which could be an enum or a string
+        memory_type_value = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
+        self.graph.add((item_uri, DEVSYNTH.memory_type, Literal(memory_type_value)))
 
         # Add metadata
         for key, value in item.metadata.items():
