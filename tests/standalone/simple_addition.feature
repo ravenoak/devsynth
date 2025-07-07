@@ -1,10 +1,6 @@
 
-Feature: Simple Addition
-  As a user
-  I want to add two numbers
-  So that I can get their sum
-
-  Scenario: Add two numbers
-    Given I have the numbers 1 and 2
-    When I add them together
-    Then the result should be 3
+# This file has been moved to tests/behavior/features/examples/simple_addition.feature
+# as part of the test reorganization effort.
+#
+# The feature file has been moved to the behavior tests directory because it is
+# a BDD feature file used for behavior-driven development testing.
