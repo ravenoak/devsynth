@@ -42,7 +42,7 @@ class OpenAIProvider(StreamingLLMProvider):
                 - max_tokens: Maximum tokens for responses (default: from config)
                 - temperature: Temperature for generation (default: from config)
                 - api_base: Base URL for the OpenAI API (default: from config)
-                
+
         Raises:
             OpenAIConnectionError: If no API key is provided or available in environment
         """
@@ -63,32 +63,32 @@ class OpenAIProvider(StreamingLLMProvider):
             failure_threshold=self.config.get("failure_threshold", 3),
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
-        
+
         # Check for API key in config or environment
         if not self.api_key and "OPENAI_API_KEY" in os.environ:
             self.api_key = os.environ["OPENAI_API_KEY"]
-            
+
         # Raise error if no API key is available
         if not self.api_key:
             raise OpenAIConnectionError("OpenAI API key is required")
-        
+
         # Initialize token tracker
         self.token_tracker = TokenTracker()
 
         # Initialize OpenAI client
         self._init_client()
-        
+
         logger.info(f"Initialized OpenAI provider with model: {self.model}")
 
     def _init_client(self):
         """Initialize the OpenAI client."""
         client_kwargs = {}
-        
+
         client_kwargs["api_key"] = self.api_key
-        
+
         if self.api_base:
             client_kwargs["base_url"] = self.api_base
-            
+
         self.client = OpenAI(**client_kwargs)
         self.async_client = AsyncOpenAI(**client_kwargs)
 
@@ -218,15 +218,23 @@ class OpenAIProvider(StreamingLLMProvider):
         # Prepare the request payload
         messages = [{"role": "user", "content": prompt}]
 
-        # Make the API call
+        # Define a function to create the stream with retry and circuit breaker protection
+        async def create_stream_with_resilience():
+            @retry_with_exponential_backoff(max_retries=self.max_retries)
+            def _wrapped():
+                return self.circuit_breaker.call(
+                    self.async_client.chat.completions.create,
+                    model=self.model,
+                    messages=messages,
+                    stream=True,
+                    **params
+                )
+            return await _wrapped()
+
+        # Make the API call with resilience
         try:
-            stream = await self.async_client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                stream=True,
-                **params
-            )
-            
+            stream = await create_stream_with_resilience()
+
             # Yield chunks of generated text
             async for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
@@ -269,15 +277,23 @@ class OpenAIProvider(StreamingLLMProvider):
         if parameters:
             params.update(parameters)
 
-        # Make the API call
+        # Define a function to create the stream with retry and circuit breaker protection
+        async def create_stream_with_resilience():
+            @retry_with_exponential_backoff(max_retries=self.max_retries)
+            def _wrapped():
+                return self.circuit_breaker.call(
+                    self.async_client.chat.completions.create,
+                    model=self.model,
+                    messages=messages,
+                    stream=True,
+                    **params
+                )
+            return await _wrapped()
+
+        # Make the API call with resilience
         try:
-            stream = await self.async_client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                stream=True,
-                **params
-            )
-            
+            stream = await create_stream_with_resilience()
+
             # Yield chunks of generated text
             async for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:

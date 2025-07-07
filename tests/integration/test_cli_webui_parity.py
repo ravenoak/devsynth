@@ -1,11 +1,13 @@
 from types import ModuleType
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import importlib
 import sys
+import time
 
 import pytest
 
 from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import ProgressIndicator
 
 
 class DummyForm:
@@ -63,6 +65,7 @@ def parity_env(monkeypatch):
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
+    st.empty = MagicMock(return_value=MagicMock())
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     import devsynth.interface.webui as webui
@@ -101,16 +104,51 @@ def test_display_result_sanitization(parity_env, monkeypatch):
     out_cli: list[str] = []
     monkeypatch.setattr(
         "rich.console.Console.print",
-        lambda self, msg, *, highlight=False: out_cli.append(msg),
+        lambda self, msg, *, highlight=False: out_cli.append(str(msg) if hasattr(msg, "__str__") else msg),
     )
 
     st = sys.modules["streamlit"]
     out_web: list[str] = []
-    st.write = MagicMock(side_effect=lambda msg: out_web.append(msg))
-    st.markdown = MagicMock(side_effect=lambda msg: out_web.append(msg))
+
+    # Mock all Streamlit functions that might be called by display_result
+    st.write = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.markdown = MagicMock(side_effect=lambda msg, **kwargs: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.info = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.error = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.warning = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.success = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.header = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
+    st.subheader = MagicMock(side_effect=lambda msg: out_web.append(str(msg) if hasattr(msg, "__str__") else msg))
 
     sample = "<script>bad</script>Hello"
     cli_bridge.display_result(sample)
     webui_bridge.display_result(sample)
 
-    assert out_cli == out_web
+    # Convert all items to strings for comparison
+    out_cli_str = [str(item) for item in out_cli]
+    out_web_str = [str(item) for item in out_web]
+
+    assert out_cli_str == out_web_str
+
+
+def test_progress_indicator_parity(parity_env, monkeypatch):
+    """Ensure CLI and WebUI bridges can create progress indicators with the same interface."""
+    _, webui_bridge = parity_env
+    cli_bridge = CLIUXBridge()
+
+    # Create progress indicators
+    cli_progress = cli_bridge.create_progress("Test Progress", total=100)
+    web_progress = webui_bridge.create_progress("Test Progress", total=100)
+
+    # Verify that both progress indicators implement the ProgressIndicator interface
+    assert isinstance(cli_progress, ProgressIndicator)
+    assert isinstance(web_progress, ProgressIndicator)
+
+    # Verify that both progress indicators have the required methods
+    assert hasattr(cli_progress, "update")
+    assert hasattr(web_progress, "update")
+    assert hasattr(cli_progress, "complete")
+    assert hasattr(web_progress, "complete")
+
+    # No need to actually call the methods, just verify they exist
+    # This test verifies API compatibility, not behavior or visual appearance

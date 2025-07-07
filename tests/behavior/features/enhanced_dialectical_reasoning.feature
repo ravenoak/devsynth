@@ -1,44 +1,54 @@
 Feature: Enhanced Dialectical Reasoning
-  As a developer using DevSynth
-  I want to use enhanced dialectical reasoning capabilities
-  So that I can generate more comprehensive and nuanced solutions
+  As a developer
+  I want to use enhanced dialectical reasoning in WSDE teams
+  So that solutions can be improved through structured thesis-antithesis-synthesis processes
 
   Background:
-    Given the DevSynth system is initialized
-    And a team of agents is configured
-    And the WSDE model is enabled
-    And a Critic agent with dialectical reasoning expertise is added to the team
+    Given a WSDE team with multiple agents
+    And at least one agent designated as a critic
+    And the team is configured for enhanced dialectical reasoning
 
-  Scenario: Multi-stage dialectical reasoning process
-    When a solution is proposed for a complex task
-    Then the Critic agent should apply multi-stage dialectical reasoning
-    And the reasoning should include thesis identification
-    And the reasoning should include antithesis generation with multiple critique categories
-    And the reasoning should include synthesis creation that addresses all critiques
-    And the reasoning should include a final evaluation of the synthesis
+  Scenario: Complete thesis-antithesis-synthesis workflow
+    Given a solution proposed by an agent as a thesis
+    When the dialectical reasoning process is initiated
+    Then a critic agent should generate a comprehensive antithesis
+    And the antithesis should challenge key assumptions of the thesis
+    And a synthesis should be generated combining strengths of both
+    And the synthesis should resolve contradictions between thesis and antithesis
+    And the final solution should be demonstrably better than the original thesis
 
-  Scenario: Comprehensive critique categories
-    When a solution is proposed for a complex task
-    Then the Critic agent should analyze the solution across multiple dimensions
-    And the critique should include security considerations
-    And the critique should include performance considerations
-    And the critique should include maintainability considerations
-    And the critique should include usability considerations
-    And the critique should include testability considerations
+  Scenario: Multi-perspective analysis in dialectical reasoning
+    Given a complex problem with multiple valid approaches
+    When the team applies enhanced dialectical reasoning
+    Then multiple perspectives should be considered
+    And each perspective should be analyzed for strengths and weaknesses
+    And the analysis should consider different domains of expertise
+    And the synthesis should incorporate insights from all perspectives
+    And the final solution should be more robust than any single perspective
 
-  Scenario: Dialectical reasoning with multiple solutions
-    Given multiple solutions are proposed for a task
-    When dialectical reasoning is applied to compare the solutions
-    Then each solution should be analyzed as a potential thesis
-    And comparative critiques should be generated
-    And a synthesized solution should incorporate the best elements of each proposal
-    And the final solution should be superior to any individual proposal
+  Scenario: Knowledge integration from dialectical process
+    Given a dialectical reasoning process has completed
+    When the team integrates the knowledge gained
+    Then key insights should be extracted and documented
+    And the knowledge should be stored in the team's memory system
+    And the knowledge should be categorized by domain and relevance
+    And the integrated knowledge should be available for future tasks
+    And the knowledge integration should improve team performance over time
 
-  Scenario: Dialectical reasoning with external knowledge integration
-    Given external knowledge sources are available
-    And a solution is proposed for a complex task
-    When dialectical reasoning with external knowledge is applied
-    Then the reasoning should incorporate relevant external knowledge
-    And the critique should reference industry best practices
-    And the synthesis should align with external standards
-    And the evaluation should consider compliance with external requirements
+  Scenario: Enhanced antithesis generation with knowledge graph
+    Given a solution proposed as a thesis
+    And a knowledge graph with relevant domain knowledge
+    When a critic agent generates an antithesis
+    Then the antithesis should leverage insights from the knowledge graph
+    And the antithesis should reference established best practices
+    And the antithesis should identify potential issues based on historical patterns
+    And the quality of the antithesis should be higher than without knowledge graph
+
+  Scenario: Enhanced synthesis with standards compliance
+    Given a thesis and antithesis for a technical solution
+    And a set of technical standards and best practices
+    When the synthesis is generated
+    Then the synthesis should comply with all applicable standards
+    And the synthesis should incorporate best practices from both thesis and antithesis
+    And the synthesis should explicitly address compliance requirements
+    And the synthesis should include justification for any standards exceptions

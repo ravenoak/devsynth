@@ -1,0 +1,207 @@
+> """
+> Version Monitor module.
+  
+> This module defines the VersionMonitor class for monitoring library versions
+> and detecting updates.
+> """
+  
+! from typing import Dict, List, Optional, Any
+! import os
+! import json
+! from datetime import datetime
+! import requests
+  
+! from devsynth.logging_setup import DevSynthLogger
+  
+  # Create a logger for this module
+! logger = DevSynthLogger(__name__)
+  
+  
+! class VersionMonitor:
+!     """
+!     Monitors library versions and detects updates.
+      
+!     This class provides methods for registering libraries, checking for updates,
+!     and maintaining version history.
+!     """
+      
+!     def __init__(self, storage_path: Optional[str] = None):
+!         """
+!         Initialize the version monitor.
+          
+!         Args:
+!             storage_path: Path to store version data (defaults to .devsynth/documentation)
+!         """
+!         self.storage_path = storage_path or os.path.join(os.getcwd(), ".devsynth", "documentation")
+!         self.libraries: Dict[str, Dict[str, Any]] = {}
+          
+          # Create the storage directory if it doesn't exist
+!         os.makedirs(self.storage_path, exist_ok=True)
+          
+          # Load any existing version data
+!         self._load_data()
+          
+!         logger.info(f"Version monitor initialized with storage path: {self.storage_path}")
+      
+!     def register_library(self, library: str, version: str) -> None:
+!         """
+!         Register a library version.
+          
+!         Args:
+!             library: The name of the library
+!             version: The version of the library
+!         """
+!         if library not in self.libraries:
+!             self.libraries[library] = {
+!                 "versions": [],
+!                 "last_checked": None
+!             }
+          
+!         if version not in self.libraries[library]["versions"]:
+!             self.libraries[library]["versions"].append(version)
+!             self.libraries[library]["versions"].sort(key=self._version_key)
+          
+!         self._save_data()
+          
+!         logger.info(f"Registered library {library} version {version}")
+      
+!     def check_for_updates(self, library: str) -> Dict[str, Any]:
+!         """
+!         Check for updates to a library.
+          
+!         Args:
+!             library: The name of the library
+              
+!         Returns:
+!             A dictionary with update information
+!         """
+!         if library not in self.libraries:
+!             return {"error": f"Library {library} is not registered"}
+          
+          # Get the latest registered version
+!         registered_versions = self.libraries[library]["versions"]
+!         if not registered_versions:
+!             return {"error": f"No versions registered for library {library}"}
+          
+!         latest_registered = max(registered_versions, key=self._version_key)
+          
+          # Check for newer versions on PyPI
+!         try:
+!             response = requests.get(f"https://pypi.org/pypi/{library}/json", timeout=10)
+!             if response.status_code == 200:
+!                 data = response.json()
+!                 available_versions = list(data.get("releases", {}).keys())
+                  
+                  # Find newer versions
+!                 newer_versions = [v for v in available_versions 
+!                                  if self._version_key(v) > self._version_key(latest_registered)]
+                  
+                  # Update last checked timestamp
+!                 self.libraries[library]["last_checked"] = datetime.now().isoformat()
+!                 self._save_data()
+                  
+!                 if newer_versions:
+!                     latest_available = max(newer_versions, key=self._version_key)
+!                     return {
+!                         "library": library,
+!                         "latest_registered": latest_registered,
+!                         "latest_available": latest_available,
+!                         "newer_versions": newer_versions,
+!                         "update_available": True
+!                     }
+!                 else:
+!                     return {
+!                         "library": library,
+!                         "latest_registered": latest_registered,
+!                         "update_available": False
+!                     }
+              
+!             return {"error": f"Failed to check for updates to {library}"}
+!         except Exception as e:
+!             logger.warning(f"Error checking for updates to {library}: {str(e)}")
+!             return {"error": str(e)}
+      
+!     def check_all_libraries(self) -> List[Dict[str, Any]]:
+!         """
+!         Check for updates to all registered libraries.
+          
+!         Returns:
+!             A list of update information dictionaries
+!         """
+!         results = []
+          
+!         for library in self.libraries:
+!             result = self.check_for_updates(library)
+!             if "error" not in result:
+!                 results.append(result)
+          
+!         return results
+      
+!     def get_library_info(self, library: str) -> Optional[Dict[str, Any]]:
+!         """
+!         Get information about a registered library.
+          
+!         Args:
+!             library: The name of the library
+              
+!         Returns:
+!             A dictionary with library information, or None if not registered
+!         """
+!         if library not in self.libraries:
+!             return None
+          
+!         library_info = self.libraries[library].copy()
+!         library_info["name"] = library
+          
+!         return library_info
+      
+!     def list_libraries(self) -> List[Dict[str, Any]]:
+!         """
+!         List all registered libraries.
+          
+!         Returns:
+!             A list of library information dictionaries
+!         """
+!         return [
+!             {
+!                 "name": library,
+!                 "versions": info["versions"],
+!                 "last_checked": info["last_checked"]
+!             }
+!             for library, info in self.libraries.items()
+!         ]
+      
+!     def _version_key(self, version: str) -> tuple:
+!         """Convert a version string to a tuple for sorting."""
+          # Convert each part to an integer if possible, otherwise use string
+!         parts = []
+!         for part in version.split('.'):
+!             try:
+!                 parts.append(int(part))
+!             except ValueError:
+!                 parts.append(part)
+!         return tuple(parts)
+      
+!     def _load_data(self) -> None:
+!         """Load version data from the storage path."""
+!         data_file = os.path.join(self.storage_path, "version_data.json")
+!         if os.path.exists(data_file):
+!             try:
+!                 with open(data_file, "r") as f:
+!                     self.libraries = json.load(f)
+!                 logger.debug("Loaded version data")
+!             except Exception as e:
+!                 logger.error(f"Error loading version data: {str(e)}")
+!                 self.libraries = {}
+!         else:
+!             self.libraries = {}
+      
+!     def _save_data(self) -> None:
+!         """Save version data to the storage path."""
+!         data_file = os.path.join(self.storage_path, "version_data.json")
+!         try:
+!             with open(data_file, "w") as f:
+!                 json.dump(self.libraries, f, indent=2)
+!             logger.debug("Saved version data")
+!         except Exception as e:
+!             logger.error(f"Error saving version data: {str(e)}")

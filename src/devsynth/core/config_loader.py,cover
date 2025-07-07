@@ -1,0 +1,153 @@
+> """Unified configuration loader for DevSynth core modules."""
+  
+! from __future__ import annotations
+  
+! import os
+! from pathlib import Path
+! from typing import Any, Dict, Optional
+  
+! import toml
+! import yaml
+! from pydantic.dataclasses import dataclass
+  
+  
+! @dataclass
+! class CoreConfig:
+!     """Dataclass representing configuration options."""
+  
+!     project_root: str = "."
+!     structure: str = "single_package"
+!     language: str = "python"
+!     goals: Optional[str] = None
+!     constraints: Optional[str] = None
+!     priority: Optional[str] = None
+!     directories: Dict[str, list[str]] | None = None
+!     features: Dict[str, bool] | None = None
+!     resources: Dict[str, Any] | None = None
+  
+!     def as_dict(self) -> Dict[str, Any]:
+!         return {
+!             "project_root": self.project_root,
+!             "structure": self.structure,
+!             "language": self.language,
+!             "goals": self.goals,
+!             "constraints": self.constraints,
+!             "priority": self.priority,
+!             "directories": self.directories
+!             or {
+!                 "source": ["src"],
+!                 "tests": ["tests"],
+!                 "docs": ["docs"],
+!             },
+!             "features": self.features or {},
+!             "resources": self.resources or {},
+!         }
+  
+  
+! _ENV_PREFIX = "DEVSYNTH_"
+  
+  
+! def _parse_env(cfg: CoreConfig) -> Dict[str, Any]:
+!     data: Dict[str, Any] = {}
+!     for field in cfg.as_dict().keys():
+!         env_key = f"{_ENV_PREFIX}{field.upper()}"
+!         value = os.environ.get(env_key)
+!         if value is not None:
+!             if isinstance(getattr(cfg, field), bool):
+!                 data[field] = value.strip().lower() in {"1", "true", "yes"}
+!             else:
+!                 data[field] = value
+!     return data
+  
+  
+! def _load_yaml(path: Path) -> Dict[str, Any]:
+!     if not path.exists():
+!         return {}
+!     with open(path, "r") as f:
+!         return yaml.safe_load(f) or {}
+  
+  
+! def _load_toml(path: Path) -> Dict[str, Any]:
+!     if not path.exists():
+!         return {}
+!     data = toml.load(path)
+!     return data.get("tool", {}).get("devsynth", data.get("devsynth", {}))
+  
+  
+! def _find_project_config(start: Path) -> Optional[Path]:
+!     yaml_path = start / ".devsynth" / "devsynth.yml"
+!     if yaml_path.exists():
+!         return yaml_path
+!     toml_path = start / "devsynth.toml"
+!     if toml_path.exists():
+!         return toml_path
+!     pyproject = start / "pyproject.toml"
+!     if pyproject.exists():
+!         try:
+!             data = toml.load(pyproject)
+!             if "devsynth" in data.get("tool", {}):
+!                 return pyproject
+!         except Exception:
+!             return None
+!     return None
+  
+  
+! def load_config(start_path: Optional[str] = None) -> CoreConfig:
+!     """Load configuration merging global, project and environment settings."""
+  
+!     root = Path(start_path or os.getcwd())
+  
+!     defaults = CoreConfig(project_root=str(root))
+!     config_data: Dict[str, Any] = defaults.as_dict()
+  
+      # Global configuration
+!     home = Path(os.path.expanduser("~"))
+!     global_dir = home / ".devsynth" / "config"
+!     global_yaml = global_dir / "global_config.yaml"
+!     global_toml = global_dir / "devsynth.toml"
+!     if global_yaml.exists():
+!         config_data.update(_load_yaml(global_yaml))
+!     elif global_toml.exists():
+!         config_data.update(_load_toml(global_toml))
+  
+      # Project configuration
+!     project_cfg = _find_project_config(root)
+!     if project_cfg:
+!         if project_cfg.suffix in {".yaml", ".yml"}:
+!             config_data.update(_load_yaml(project_cfg))
+!         else:
+!             config_data.update(_load_toml(project_cfg))
+  
+      # Environment overrides
+!     config_data.update(_parse_env(defaults))
+  
+!     return CoreConfig(**config_data)
+  
+  
+! def save_global_config(config: CoreConfig, use_toml: bool = False) -> Path:
+!     """Persist global configuration to the user's home directory."""
+!     home = Path(os.path.expanduser("~"))
+!     cfg_dir = home / ".devsynth" / "config"
+!     cfg_dir.mkdir(parents=True, exist_ok=True)
+!     if use_toml:
+!         path = cfg_dir / "devsynth.toml"
+!         with open(path, "w") as f:
+!             toml.dump({"devsynth": config.as_dict()}, f)
+!     else:
+!         path = cfg_dir / "global_config.yaml"
+!         with open(path, "w") as f:
+!             yaml.safe_dump(config.as_dict(), f)
+!     return path
+  
+  
+  # ---- Typer integration ----
+- try:  # pragma: no cover - optional import
+-     import typer
+- except Exception:  # pragma: no cover - optional import
+-     typer = None
+  
+  
+! def config_key_autocomplete(ctx: "typer.Context", incomplete: str):
+!     """Return config keys matching the partial input for Typer."""
+!     keys = CoreConfig().__dataclass_fields__.keys()
+!     return [k for k in keys if k.startswith(incomplete)]

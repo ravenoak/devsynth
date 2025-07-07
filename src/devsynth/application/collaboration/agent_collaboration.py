@@ -12,7 +12,7 @@ from datetime import datetime
 from enum import Enum, auto
 
 from devsynth.domain.interfaces.agent import Agent
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)

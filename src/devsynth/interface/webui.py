@@ -29,8 +29,10 @@ UX guidance for clarity and responsiveness.
 from __future__ import annotations
 
 import json
+import time
+import traceback
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Any, Callable, Optional, Sequence, TypeVar
 
 import streamlit as st
 from devsynth.application.cli import (
@@ -70,6 +72,58 @@ class WebUI(UXBridge):
     """Streamlit implementation of :class:`UXBridge` with navigation pages."""
 
     # ------------------------------------------------------------------
+    # Helper methods
+    # ------------------------------------------------------------------
+    # Type variable for the return type of the wrapped function
+    T = TypeVar('T')
+
+    def _handle_command_errors(
+        self, 
+        func: Callable[..., T], 
+        error_message: str = "An error occurred", 
+        *args: Any, 
+        **kwargs: Any
+    ) -> Optional[T]:
+        """Execute a command with error handling.
+
+        Args:
+            func: The function to execute
+            error_message: The message to display if an error occurs
+            *args: Positional arguments to pass to the function
+            **kwargs: Keyword arguments to pass to the function
+
+        Returns:
+            The result of the function call, or None if an error occurred
+        """
+        try:
+            return func(*args, **kwargs)
+        except FileNotFoundError as e:
+            self.display_result(f"ERROR: File not found: {e.filename}", highlight=False)
+            self.display_result(f"Make sure the file exists and the path is correct.", highlight=False)
+            return None
+        except PermissionError as e:
+            self.display_result(f"ERROR: Permission denied: {e.filename}", highlight=False)
+            self.display_result(f"Make sure you have the necessary permissions to access this file.", highlight=False)
+            return None
+        except ValueError as e:
+            self.display_result(f"ERROR: Invalid value: {str(e)}", highlight=False)
+            self.display_result(f"Please check your input and try again.", highlight=False)
+            return None
+        except Exception as e:
+            self.display_result(f"ERROR: {error_message}: {str(e)}", highlight=False)
+            # Get the traceback for debugging
+            tb = traceback.format_exc()
+            # Display a more user-friendly message
+            self.display_result("An unexpected error occurred. Here are some suggestions:", highlight=False)
+            self.display_result("1. Check your input values and try again", highlight=False)
+            self.display_result("2. Make sure all required files exist", highlight=False)
+            self.display_result("3. Check the logs for more details", highlight=False)
+            # Add a collapsible section with the full traceback for debugging
+            with st.expander("Technical Details (for debugging)"):
+                st.code(tb, language="python")
+            return None
+
+    # ------------------------------------------------------------------
     # UXBridge API
     # ------------------------------------------------------------------
     def ask_question(
@@ -91,32 +145,231 @@ class WebUI(UXBridge):
         return st.checkbox(message, value=default, key=message)
 
     def display_result(self, message: str, *, highlight: bool = False) -> None:
+        """Display a message to the user with appropriate styling.
+
+        Args:
+            message: The message to display
+            highlight: Whether to highlight the message
+        """
         message = sanitize_output(message)
+
+        # Process Rich markup in the message if present
+        if "[" in message and "]" in message:
+            # Convert Rich markup to Markdown
+            # [bold] -> **
+            # [italic] -> *
+            # [red] -> <span style="color:red">
+            message = (message
+                .replace("[bold]", "**")
+                .replace("[/bold]", "**")
+                .replace("[italic]", "*")
+                .replace("[/italic]", "*")
+                .replace("[green]", '<span style="color:green">')
+                .replace("[/green]", '</span>')
+                .replace("[red]", '<span style="color:red">')
+                .replace("[/red]", '</span>')
+                .replace("[blue]", '<span style="color:blue">')
+                .replace("[/blue]", '</span>')
+                .replace("[yellow]", '<span style="color:orange">')
+                .replace("[/yellow]", '</span>')
+                .replace("[cyan]", '<span style="color:cyan">')
+                .replace("[/cyan]", '</span>')
+            )
+            st.markdown(message, unsafe_allow_html=True)
+            return
+
+        # Apply appropriate styling based on message content and highlight flag
         if highlight:
-            st.markdown(f"**{message}**")
+            st.info(message)
+        elif message.startswith("ERROR") or message.startswith("FAILED"):
+            st.error(message)
+        elif message.startswith("WARNING"):
+            st.warning(message)
+        elif message.startswith("SUCCESS") or "successfully" in message.lower():
+            st.success(message)
+        elif message.startswith("#"):
+            # Handle markdown-style headings
+            level = len(message.split(" ")[0])
+            if level == 1:
+                st.header(message[2:])
+            elif level == 2:
+                st.subheader(message[3:])
+            else:
+                st.markdown(f"**{message[level+1:]}**")
         else:
             st.write(message)
 
     class _UIProgress(ProgressIndicator):
-        def __init__(self, total: int) -> None:
-            self._bar = st.progress(0.0)
+        def __init__(self, description: str, total: int) -> None:
+            self._description = description
             self._total = total
             self._current = 0
+            self._subtasks = {}
+            self._status_container = st.empty()
+            self._bar_container = st.empty()
+            self._time_container = st.empty()
+            self._subtask_containers = {}
+            self._start_time = time.time()
+            self._update_times = []
+            self._update_display()
+
+        def _update_display(self) -> None:
+            """Update the progress display with current status."""
+            progress_pct = min(1.0, self._current / self._total)
+            current_time = time.time()
+
+            # Record update time for ETA calculation
+            self._update_times.append((current_time, self._current))
+
+            # Calculate estimated time remaining
+            eta_text = ""
+            if self._current > 0 and progress_pct < 1.0:
+                # Use the last 5 updates to calculate rate
+                recent_updates = self._update_times[-5:] if len(self._update_times) > 5 else self._update_times
+                if len(recent_updates) > 1:
+                    # Calculate progress rate (units per second)
+                    first_time, first_progress = recent_updates[0]
+                    last_time, last_progress = recent_updates[-1]
+                    time_diff = last_time - first_time
+                    progress_diff = last_progress - first_progress
+
+                    if time_diff > 0 and progress_diff > 0:
+                        rate = progress_diff / time_diff
+                        remaining_progress = self._total - self._current
+                        eta_seconds = remaining_progress / rate
+
+                        # Format ETA
+                        if eta_seconds < 60:
+                            eta_text = f"ETA: {int(eta_seconds)} seconds"
+                        elif eta_seconds < 3600:
+                            eta_text = f"ETA: {int(eta_seconds / 60)} minutes"
+                        else:
+                            eta_text = f"ETA: {int(eta_seconds / 3600)} hours, {int((eta_seconds % 3600) / 60)} minutes"
+
+            # Update status text with description and percentage
+            status_text = f"**{self._description}** - {int(progress_pct * 100)}%"
+            self._status_container.markdown(status_text)
+
+            # Update ETA text
+            if eta_text:
+                self._time_container.info(eta_text)
+            else:
+                self._time_container.empty()
+
+            # Update progress bar
+            self._bar_container.progress(progress_pct)
 
         def update(
             self, *, advance: float = 1, description: Optional[str] = None
         ) -> None:
+            """Update the progress indicator."""
             self._current += advance
-            self._bar.progress(min(1.0, self._current / self._total))
+            if description:
+                self._description = sanitize_output(description)
+            self._update_display()
 
         def complete(self) -> None:
-            self._bar.progress(1.0)
+            """Mark the progress indicator as complete."""
+            self._current = self._total
+            self._update_display()
+
+            # Mark all subtasks as complete
+            for subtask_id in self._subtasks:
+                self.complete_subtask(subtask_id)
+
+            # Add success message
+            st.success(f"Completed: {self._description}")
+
+        def add_subtask(self, description: str, total: int = 100) -> str:
+            """Add a subtask to the progress indicator.
+
+            Args:
+                description: Description of the subtask
+                total: Total steps for the subtask
+
+            Returns:
+                task_id: ID of the created subtask
+            """
+            # Create a unique ID for the subtask
+            task_id = f"subtask_{len(self._subtasks)}"
+
+            # Store subtask information
+            self._subtasks[task_id] = {
+                "description": sanitize_output(description),
+                "total": total,
+                "current": 0
+            }
+
+            # Create containers for subtask display
+            with st.container():
+                status_container = st.empty()
+                bar_container = st.empty()
+                self._subtask_containers[task_id] = {
+                    "status": status_container,
+                    "bar": bar_container
+                }
+
+            # Update subtask display
+            self._update_subtask_display(task_id)
+
+            return task_id
+
+        def _update_subtask_display(self, task_id: str) -> None:
+            """Update the display for a specific subtask."""
+            if task_id not in self._subtasks or task_id not in self._subtask_containers:
+                return
+
+            subtask = self._subtasks[task_id]
+            containers = self._subtask_containers[task_id]
+
+            progress_pct = min(1.0, subtask["current"] / subtask["total"])
+
+            # Update status text with indentation, description and percentage
+            status_text = f"&nbsp;&nbsp;&nbsp;↳ {subtask['description']} - {int(progress_pct * 100)}%"
+            containers["status"].markdown(status_text)
+
+            # Update progress bar
+            containers["bar"].progress(progress_pct)
+
+        def update_subtask(self, task_id: str, advance: float = 1, description: Optional[str] = None) -> None:
+            """Update a subtask's progress.
+
+            Args:
+                task_id: ID of the subtask to update
+                advance: Amount to advance the progress
+                description: New description for the subtask
+            """
+            if task_id not in self._subtasks:
+                return
+
+            # Update subtask information
+            self._subtasks[task_id]["current"] += advance
+            if description:
+                self._subtasks[task_id]["description"] = sanitize_output(description)
+
+            # Update subtask display
+            self._update_subtask_display(task_id)
+
+        def complete_subtask(self, task_id: str) -> None:
+            """Mark a subtask as complete.
+
+            Args:
+                task_id: ID of the subtask to complete
+            """
+            if task_id not in self._subtasks:
+                return
+
+            # Set current progress to total
+            self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
+
+            # Update subtask display
+            self._update_subtask_display(task_id)
 
     def create_progress(
         self, description: str, *, total: int = 100
     ) -> ProgressIndicator:
-        st.write(sanitize_output(description))
-        return self._UIProgress(total)
+        """Create a progress indicator with the given description and total steps."""
+        return self._UIProgress(sanitize_output(description), total)
 
     # ------------------------------------------------------------------
     # Page rendering helpers
@@ -150,47 +403,101 @@ class WebUI(UXBridge):
         with st.expander("Specification Generation", expanded=True):
             with st.form("requirements"):
                 req_file = st.text_input("Requirements File", "requirements.md")
+                # Add validation for the requirements file
+                if not req_file:
+                    st.error("Please enter a requirements file path")
+
                 submitted = st.form_submit_button("Generate Specs")
-                if submitted:
-                    with st.spinner("Generating specifications..."):
-                        spec_cmd(requirements_file=req_file, bridge=self)
+                if submitted and req_file:
+                    # Validate that the requirements file exists
+                    if not Path(req_file).exists():
+                        st.error(f"Requirements file '{req_file}' not found")
+                        st.info("Make sure the file exists and the path is correct")
+                    else:
+                        with st.spinner("Generating specifications..."):
+                            self._handle_command_errors(
+                                spec_cmd,
+                                "Failed to generate specifications",
+                                requirements_file=req_file,
+                                bridge=self
+                            )
         st.divider()
         with st.expander("Inspect Requirements", expanded=True):
             with st.form("inspect"):
                 input_file = st.text_input("Inspect File", "requirements.md")
+                # Add validation for the input file
+                if not input_file:
+                    st.error("Please enter a file path to inspect")
+
                 submitted = st.form_submit_button("Inspect Requirements")
-                if submitted:
-                    with st.spinner("Inspecting requirements..."):
-                        inspect_cmd(
-                            input_file=input_file, interactive=False, bridge=self
-                        )
+                if submitted and input_file:
+                    # Validate that the input file exists
+                    if not Path(input_file).exists():
+                        st.error(f"File '{input_file}' not found")
+                        st.info("Make sure the file exists and the path is correct")
+                    else:
+                        with st.spinner("Inspecting requirements..."):
+                            self._handle_command_errors(
+                                inspect_cmd,
+                                "Failed to inspect requirements",
+                                input_file=input_file,
+                                interactive=False,
+                                bridge=self
+                            )
         st.divider()
         with st.expander("Specification Editor", expanded=True):
             spec_path = st.text_input("Specification File", "specs.md")
-            if st.button("Load Spec", key="load_spec"):
+            # Add validation for the spec path
+            if not spec_path:
+                st.error("Please enter a specification file path")
+
+            if st.button("Load Spec", key="load_spec") and spec_path:
                 try:
                     with open(spec_path, "r", encoding="utf-8") as f:
                         st.session_state.spec_content = f.read()
+                    st.success(f"Loaded specification from {spec_path}")
                 except FileNotFoundError:
+                    st.error(f"Specification file '{spec_path}' not found")
+                    st.info("Creating a new specification file")
                     st.session_state.spec_content = ""
+                except Exception as e:
+                    st.error(f"Error loading specification: {str(e)}")
+                    st.session_state.spec_content = ""
+
             content = st.text_area(
                 "Specification Content",
                 st.session_state.get("spec_content", ""),
                 height=300,
             )
+
             col1, col2 = st.columns(2)
-            if col1.button("Save Spec", key="save_spec"):
-                with open(spec_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                with st.spinner("Regenerating specifications..."):
-                    spec_cmd(requirements_file=spec_path, bridge=self)
-                st.session_state.spec_content = content
-                st.markdown(content)
-            if col2.button("Save Only", key="save_only"):
-                with open(spec_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                st.session_state.spec_content = content
-                st.markdown(content)
+            if col1.button("Save Spec", key="save_spec") and spec_path:
+                try:
+                    with open(spec_path, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    st.success(f"Saved specification to {spec_path}")
+
+                    with st.spinner("Regenerating specifications..."):
+                        self._handle_command_errors(
+                            spec_cmd,
+                            "Failed to regenerate specifications",
+                            requirements_file=spec_path,
+                            bridge=self
+                        )
+                    st.session_state.spec_content = content
+                    st.markdown(content)
+                except Exception as e:
+                    st.error(f"Error saving specification: {str(e)}")
+
+            if col2.button("Save Only", key="save_only") and spec_path:
+                try:
+                    with open(spec_path, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    st.success(f"Saved specification to {spec_path}")
+                    st.session_state.spec_content = content
+                    st.markdown(content)
+                except Exception as e:
+                    st.error(f"Error saving specification: {str(e)}")
         st.divider()
         self._requirements_wizard()
         st.divider()
@@ -272,10 +579,23 @@ class WebUI(UXBridge):
         with st.expander("Inspect Code", expanded=True):
             with st.form("analysis"):
                 path = st.text_input("Path", ".")
+                # Add validation for the path
+                if not path:
+                    st.error("Please enter a path to inspect")
+
                 submitted = st.form_submit_button("Inspect")
-                if submitted:
-                    with st.spinner("Inspecting code..."):
-                        inspect_code_cmd(path=path)
+                if submitted and path:
+                    # Validate that the path exists
+                    if not Path(path).exists():
+                        st.error(f"Path '{path}' not found")
+                        st.info("Make sure the directory or file exists and the path is correct")
+                    else:
+                        with st.spinner("Inspecting code..."):
+                            self._handle_command_errors(
+                                inspect_code_cmd,
+                                "Failed to inspect code",
+                                path=path
+                            )
 
     def synthesis_page(self) -> None:
         """Render the synthesis execution page."""
@@ -283,47 +603,109 @@ class WebUI(UXBridge):
         with st.expander("Generate Tests", expanded=True):
             with st.form("tests"):
                 spec_file = st.text_input("Spec File", "specs.md")
+                # Add validation for the spec file
+                if not spec_file:
+                    st.error("Please enter a specification file path")
+
                 submitted = st.form_submit_button("Generate Tests")
-                if submitted:
-                    with st.spinner("Generating tests..."):
-                        test_cmd(spec_file=spec_file, bridge=self)
+                if submitted and spec_file:
+                    # Validate that the spec file exists
+                    if not Path(spec_file).exists():
+                        st.error(f"Specification file '{spec_file}' not found")
+                        st.info("Make sure the file exists and the path is correct")
+                    else:
+                        with st.spinner("Generating tests..."):
+                            self._handle_command_errors(
+                                test_cmd,
+                                "Failed to generate tests",
+                                spec_file=spec_file,
+                                bridge=self
+                            )
+
         st.divider()
         with st.expander("Execute Code Generation", expanded=True):
             if st.button("Generate Code"):
                 with st.spinner("Generating code..."):
-                    code_cmd(bridge=self)
+                    self._handle_command_errors(
+                        code_cmd,
+                        "Failed to generate code",
+                        bridge=self
+                    )
+
             if st.button("Run Pipeline"):
                 with st.spinner("Running pipeline..."):
-                    run_pipeline_cmd(bridge=self)
+                    self._handle_command_errors(
+                        run_pipeline_cmd,
+                        "Failed to run pipeline",
+                        bridge=self
+                    )
 
     def config_page(self) -> None:
         """Render the configuration editing page."""
         st.header("Configuration Editing")
-        cfg = load_project_config()
-        offline_toggle = st.toggle(
-            "Offline Mode",
-            value=cfg.config.offline_mode,
-            key="offline_mode_toggle",
-        )
-        if st.button("Save Offline Mode", key="offline_mode_save"):
-            cfg.config.offline_mode = offline_toggle
-            with st.spinner("Saving configuration..."):
-                save_config(
-                    cfg.config,
-                    use_pyproject=cfg.use_pyproject,
-                    path=cfg.config.project_root,
-                )
-        with st.expander("Update Settings", expanded=True):
-            with st.form("config"):
-                key = st.text_input("Key")
-                value = st.text_input("Value")
-                submitted = st.form_submit_button("Update")
-                if submitted:
-                    with st.spinner("Updating configuration..."):
-                        config_cmd(key=key or None, value=value or None, bridge=self)
-        if st.button("View All Config"):
-            with st.spinner("Loading configuration..."):
-                config_cmd(bridge=self)
+
+        try:
+            cfg = load_project_config()
+            offline_toggle = st.toggle(
+                "Offline Mode",
+                value=cfg.config.offline_mode,
+                key="offline_mode_toggle",
+            )
+
+            if st.button("Save Offline Mode", key="offline_mode_save"):
+                cfg.config.offline_mode = offline_toggle
+                with st.spinner("Saving configuration..."):
+                    try:
+                        save_config(
+                            cfg.config,
+                            use_pyproject=cfg.use_pyproject,
+                            path=cfg.config.project_root,
+                        )
+                        st.success("Offline mode setting saved successfully")
+                    except Exception as e:
+                        st.error(f"Error saving configuration: {str(e)}")
+                        st.info("Make sure you have write permissions to the configuration file")
+
+            with st.expander("Update Settings", expanded=True):
+                with st.form("config"):
+                    key = st.text_input("Key")
+                    value = st.text_input("Value")
+
+                    # Add validation for the key
+                    if not key and st.form_submit_button():
+                        st.error("Please enter a configuration key")
+
+                    submitted = st.form_submit_button("Update")
+                    if submitted and key:
+                        with st.spinner("Updating configuration..."):
+                            self._handle_command_errors(
+                                config_cmd,
+                                "Failed to update configuration",
+                                key=key,
+                                value=value or None,
+                                bridge=self
+                            )
+
+            if st.button("View All Config"):
+                with st.spinner("Loading configuration..."):
+                    self._handle_command_errors(
+                        config_cmd,
+                        "Failed to load configuration",
+                        bridge=self
+                    )
+
+        except Exception as e:
+            st.error(f"Error loading configuration: {str(e)}")
+            st.info("Make sure your project is properly initialized with a valid configuration file")
+
+            # Provide a button to initialize the project
+            if st.button("Initialize Project"):
+                with st.spinner("Initializing project..."):
+                    self._handle_command_errors(
+                        init_cmd,
+                        "Failed to initialize project",
+                        bridge=self
+                    )
 
     def edrr_cycle_page(self) -> None:
         """Run an Expand-Differentiate-Refine-Retrospect cycle."""
@@ -331,23 +713,57 @@ class WebUI(UXBridge):
         with st.form("edrr_cycle"):
             manifest = self.ask_question("Manifest Path", default="manifest.yaml")
             auto = self.confirm_choice("Auto Progress", default=True)
+
+            # Add validation for the manifest path
+            if not manifest:
+                st.error("Please enter a manifest path")
+
             submitted = st.form_submit_button("Run Cycle")
-        if submitted:
-            with st.spinner("Running EDRR cycle..."):
-                import sys
 
-                module = sys.modules.get(
-                    "devsynth.application.cli.commands.edrr_cycle_cmd"
-                )
-                if module is None:  # pragma: no cover - defensive fallback
-                    import devsynth.application.cli.commands.edrr_cycle_cmd as module
+        if submitted and manifest:
+            # Validate that the manifest file exists
+            if not Path(manifest).exists():
+                st.error(f"Manifest file '{manifest}' not found")
+                st.info("Make sure the file exists and the path is correct")
 
-                original = module.bridge
-                module.bridge = self
-                try:
-                    module.edrr_cycle_cmd(manifest=manifest, auto=auto)
-                finally:
-                    module.bridge = original
+                # Provide guidance on creating a manifest
+                with st.expander("How to create a manifest file"):
+                    st.markdown("""
+                    A manifest file is a YAML file that defines the structure of your project.
+                    It includes information about requirements, specifications, and code organization.
+
+                    Example manifest.yaml:
+                    ```yaml
+                    project:
+                      name: my-project
+                      description: A sample project
+                    requirements:
+                      path: requirements.md
+                    specifications:
+                      path: specs.md
+                    ```
+                    """)
+            else:
+                with st.spinner("Running EDRR cycle..."):
+                    import sys
+
+                    module = sys.modules.get(
+                        "devsynth.application.cli.commands.edrr_cycle_cmd"
+                    )
+                    if module is None:  # pragma: no cover - defensive fallback
+                        import devsynth.application.cli.commands.edrr_cycle_cmd as module
+
+                    original = module.bridge
+                    module.bridge = self
+                    try:
+                        self._handle_command_errors(
+                            module.edrr_cycle_cmd,
+                            "Failed to run EDRR cycle",
+                            manifest=manifest,
+                            auto=auto
+                        )
+                    finally:
+                        module.bridge = original
 
     def alignment_page(self) -> None:
         """Check SDLC alignment between artifacts."""

@@ -12,7 +12,7 @@ from datetime import datetime
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module

@@ -1,0 +1,55 @@
+  
+! from abc import ABC, abstractmethod
+! from typing import Any, Dict, List, Optional, Protocol
+! from ...domain.models.agent import AgentConfig
+! from ...domain.models.wsde import WSDE
+  
+  # Create a logger for this module
+! from devsynth.logging_setup import DevSynthLogger
+  
+! logger = DevSynthLogger(__name__)
+! from devsynth.exceptions import DevSynthError
+  
+! class Agent(Protocol):
+!     """Protocol for agents in the DevSynth system."""
+      
+!     @abstractmethod
+!     def initialize(self, config: AgentConfig) -> None:
+!         """Initialize the agent with configuration."""
+!         ...
+      
+!     @abstractmethod
+!     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+!         """Process inputs and produce outputs."""
+!         ...
+      
+!     @abstractmethod
+!     def get_capabilities(self) -> List[str]:
+!         """Get the capabilities of this agent."""
+!         ...
+  
+! class AgentFactory(Protocol):
+!     """Protocol for creating agents."""
+      
+!     @abstractmethod
+!     def create_agent(self, agent_type: str, config: Dict[str, Any] = None) -> Agent:
+!         """Create an agent of the specified type."""
+!         ...
+      
+!     @abstractmethod
+!     def register_agent_type(self, agent_type: str, agent_class: type) -> None:
+!         """Register a new agent type."""
+!         ...
+  
+! class AgentCoordinator(Protocol):
+!     """Protocol for coordinating multiple agents."""
+      
+!     @abstractmethod
+!     def add_agent(self, agent: Agent) -> None:
+!         """Add an agent to the coordinator."""
+!         ...
+      
+!     @abstractmethod
+!     def delegate_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+!         """Delegate a task to the appropriate agent(s)."""
+!         ...

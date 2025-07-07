@@ -382,3 +382,250 @@ class WSDEMemoryIntegration:
         results = self.query_knowledge_graph(query, limit=limit)
         logger.info(f"Queried for knowledge relevant to task, found {len(results)} results")
         return results
+
+    def integrate_knowledge_from_dialectical_process(
+        self, task_id: str, dialectical_process: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Extract key insights from a dialectical process and integrate them into the team's memory system.
+
+        This method implements the knowledge integration requirements from the dialectical process:
+        1. Extract key insights from the dialectical process
+        2. Store the knowledge in the team's memory system
+        3. Categorize the knowledge by domain and relevance
+        4. Make the integrated knowledge available for future tasks
+
+        Args:
+            task_id: The ID of the task associated with the dialectical process
+            dialectical_process: The dialectical process containing thesis, antithesis, and synthesis
+
+        Returns:
+            A dictionary containing the integrated knowledge with categorization and metadata
+        """
+        logger.info(f"Integrating knowledge from dialectical process for task {task_id}")
+
+        # Extract components from the dialectical process
+        thesis = dialectical_process.get("thesis", {})
+        antithesis = dialectical_process.get("antithesis", {})
+        synthesis = dialectical_process.get("synthesis", {})
+        evaluation = dialectical_process.get("evaluation", {})
+
+        # Initialize the integrated knowledge structure
+        integrated_knowledge = {
+            "task_id": task_id,
+            "timestamp": datetime.now().isoformat(),
+            "key_insights": [],
+            "domain_categories": {},
+            "relevance_scores": {},
+            "knowledge_graph_entries": []
+        }
+
+        # Extract key insights from the synthesis
+        if "improvements" in synthesis:
+            integrated_knowledge["key_insights"].extend(synthesis["improvements"])
+
+        if "addressed_critiques" in synthesis:
+            for category, critiques in synthesis["addressed_critiques"].items():
+                if category not in integrated_knowledge["domain_categories"]:
+                    integrated_knowledge["domain_categories"][category] = []
+                integrated_knowledge["domain_categories"][category].extend(critiques)
+
+        # Extract insights from the evaluation
+        if "strengths" in evaluation:
+            integrated_knowledge["key_insights"].extend(
+                [f"Strength: {strength}" for strength in evaluation["strengths"]]
+            )
+
+        if "weaknesses" in evaluation:
+            integrated_knowledge["key_insights"].extend(
+                [f"Area for improvement: {weakness}" for weakness in evaluation["weaknesses"]]
+            )
+
+        # Extract insights from the antithesis
+        if "critique" in antithesis and isinstance(antithesis["critique"], list):
+            for critique in antithesis["critique"]:
+                # Categorize the critique by domain
+                domain = self._categorize_insight_by_domain(critique)
+                if domain not in integrated_knowledge["domain_categories"]:
+                    integrated_knowledge["domain_categories"][domain] = []
+                integrated_knowledge["domain_categories"][domain].append(critique)
+
+                # Assign relevance score based on whether it was addressed in the synthesis
+                relevance = self._calculate_insight_relevance(critique, synthesis)
+                integrated_knowledge["relevance_scores"][critique] = relevance
+
+        # Prepare knowledge graph entries
+        for insight in integrated_knowledge["key_insights"]:
+            # Create a knowledge graph entry for each key insight
+            entry = {
+                "concept": f"insight:{task_id}:{uuid.uuid4()}",
+                "properties": {
+                    "text": insight,
+                    "task_id": task_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "source": "dialectical_process"
+                },
+                "relationships": []
+            }
+
+            # Add domain categorization as a relationship
+            domain = self._categorize_insight_by_domain(insight)
+            entry["relationships"].append({
+                "type": "categorized_as",
+                "target": f"domain:{domain}"
+            })
+
+            # Add relevance as a property
+            relevance = integrated_knowledge["relevance_scores"].get(insight, 0.5)
+            entry["properties"]["relevance"] = relevance
+
+            integrated_knowledge["knowledge_graph_entries"].append(entry)
+
+        # Store the integrated knowledge in the memory system
+        self._store_integrated_knowledge(integrated_knowledge)
+
+        logger.info(f"Successfully integrated {len(integrated_knowledge['key_insights'])} insights from dialectical process")
+        return integrated_knowledge
+
+    def _categorize_insight_by_domain(self, insight: str) -> str:
+        """
+        Categorize an insight by domain based on its content.
+
+        Args:
+            insight: The insight text to categorize
+
+        Returns:
+            The domain category for the insight
+        """
+        # Convert insight to lowercase for case-insensitive matching
+        insight_lower = insight.lower() if isinstance(insight, str) else ""
+
+        # Define domain keywords for categorization
+        domain_keywords = {
+            "security": ["security", "authentication", "authorization", "vulnerability", "exploit", "password", "encryption", "csrf", "xss"],
+            "performance": ["performance", "speed", "latency", "throughput", "optimization", "efficient", "slow", "fast", "bottleneck"],
+            "maintainability": ["maintainability", "readability", "documentation", "comment", "structure", "organization", "clean", "technical debt"],
+            "reliability": ["reliability", "error handling", "exception", "fault tolerance", "recovery", "robustness", "stability"],
+            "usability": ["usability", "user experience", "ux", "interface", "accessibility", "intuitive", "user-friendly"],
+            "scalability": ["scalability", "scale", "load", "concurrent", "distributed", "horizontal", "vertical"],
+            "testability": ["testability", "test", "mock", "stub", "assertion", "coverage", "unit test", "integration test"]
+        }
+
+        # Check each domain for keyword matches
+        for domain, keywords in domain_keywords.items():
+            if any(keyword in insight_lower for keyword in keywords):
+                return domain
+
+        # Default domain if no matches found
+        return "general"
+
+    def _calculate_insight_relevance(self, insight: str, synthesis: Dict[str, Any]) -> float:
+        """
+        Calculate the relevance score of an insight based on whether it was addressed in the synthesis.
+
+        Args:
+            insight: The insight text to evaluate
+            synthesis: The synthesis from the dialectical process
+
+        Returns:
+            A relevance score between 0.0 and 1.0
+        """
+        # Default medium relevance
+        relevance = 0.5
+
+        # Check if the insight was explicitly addressed in the synthesis
+        if "addressed_critiques" in synthesis:
+            for category, critiques in synthesis["addressed_critiques"].items():
+                if any(insight in critique for critique in critiques):
+                    relevance = 0.9
+                    break
+
+        # Check if the insight is mentioned in the improvements
+        if "improvements" in synthesis:
+            if any(insight in improvement for improvement in synthesis["improvements"]):
+                relevance = 0.8
+
+        # Check if the insight is mentioned in the synthesis content
+        if "content" in synthesis:
+            insight_words = set(insight.lower().split())
+            content_words = set(synthesis["content"].lower().split())
+            word_overlap = len(insight_words.intersection(content_words)) / len(insight_words) if insight_words else 0
+            if word_overlap > 0.5:
+                relevance = max(relevance, 0.7)
+
+        return relevance
+
+    def _store_integrated_knowledge(self, integrated_knowledge: Dict[str, Any]) -> None:
+        """
+        Store the integrated knowledge in the memory system.
+
+        Args:
+            integrated_knowledge: The integrated knowledge to store
+        """
+        # Create a memory item for the integrated knowledge
+        knowledge_item = MemoryItem(
+            id=str(uuid.uuid4()),
+            content=json.dumps(integrated_knowledge),
+            memory_type=MemoryType.KNOWLEDGE,
+            metadata={
+                "task_id": integrated_knowledge["task_id"],
+                "timestamp": integrated_knowledge["timestamp"],
+                "source": "dialectical_process",
+                "num_insights": len(integrated_knowledge["key_insights"]),
+                "domains": list(integrated_knowledge["domain_categories"].keys())
+            }
+        )
+
+        # Store the knowledge in memory
+        memory_store = self.memory_adapter.get_memory_store()
+        item_id = memory_store.store(knowledge_item)
+
+        logger.info(f"Stored integrated knowledge in memory with ID {item_id}")
+
+        # If the memory store supports knowledge graph operations, add the entries
+        if hasattr(memory_store, "add_to_graph"):
+            for entry in integrated_knowledge["knowledge_graph_entries"]:
+                try:
+                    memory_store.add_to_graph(
+                        entry["concept"],
+                        entry["properties"],
+                        entry["relationships"]
+                    )
+                    logger.info(f"Added knowledge graph entry for concept {entry['concept']}")
+                except Exception as e:
+                    logger.error(f"Failed to add knowledge graph entry: {str(e)}")
+
+    def retrieve_integrated_knowledge(self, task_id: str) -> List[Dict[str, Any]]:
+        """
+        Retrieve integrated knowledge for a specific task from memory.
+
+        Args:
+            task_id: The ID of the task to retrieve integrated knowledge for
+
+        Returns:
+            A list of integrated knowledge items for the task
+        """
+        # Query the memory store for integrated knowledge
+        memory_store = self.memory_adapter.get_memory_store()
+
+        # Create a query to find integrated knowledge for the task
+        query = {
+            "memory_type": MemoryType.KNOWLEDGE,
+            "metadata.task_id": task_id,
+            "metadata.source": "dialectical_process"
+        }
+
+        # Execute the query
+        results = memory_store.search(query)
+
+        # Parse the content of each result
+        knowledge_items = []
+        for result in results:
+            try:
+                content = json.loads(result.content)
+                knowledge_items.append(content)
+            except json.JSONDecodeError:
+                logger.warning(f"Failed to parse integrated knowledge content for item {result.id}")
+
+        logger.info(f"Retrieved {len(knowledge_items)} integrated knowledge items for task {task_id}")
+        return knowledge_items

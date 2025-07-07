@@ -6,7 +6,7 @@ from devsynth.domain.models.wsde import WSDETeam
 
 class TestWSDERoleReassignment:
     def setup_method(self):
-        self.team = WSDETeam()
+        self.team = WSDETeam(name="test_dynamic_workflows_team")
         self.doc_agent = MagicMock()
         self.doc_agent.name = "doc"
         self.doc_agent.expertise = ["documentation", "markdown"]

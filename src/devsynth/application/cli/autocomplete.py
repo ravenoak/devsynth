@@ -1,0 +1,230 @@
+"""Command autocompletion for the DevSynth CLI.
+
+This module provides autocompletion functionality for the DevSynth CLI commands
+and their arguments. It uses Typer's autocompletion mechanism to provide
+suggestions as the user types.
+"""
+
+from typing import List, Optional, Any
+import typer
+from pathlib import Path
+
+# List of all available commands
+COMMANDS = [
+    "init",
+    "spec",
+    "test",
+    "code",
+    "run-pipeline",
+    "config",
+    "gather",
+    "inspect",
+    "refactor",
+    "webapp",
+    "serve",
+    "dbschema",
+    "check",
+    "doctor",
+    "edrr-cycle",
+    "webui",
+]
+
+# Command descriptions for help text
+COMMAND_DESCRIPTIONS = {
+    "init": "Initialize a new project",
+    "spec": "Generate specifications from requirements",
+    "test": "Generate tests from specifications",
+    "code": "Generate code from tests",
+    "run-pipeline": "Run the generated code or a specific target",
+    "config": "View or set configuration options",
+    "gather": "Interactively gather project goals, constraints and priority",
+    "inspect": "Inspect requirements from a file or interactively",
+    "refactor": "Execute a refactor workflow based on the current project state",
+    "webapp": "Generate a web application with the specified framework",
+    "serve": "Run the DevSynth API server",
+    "dbschema": "Generate a database schema for the specified database type",
+    "check": "Alias for doctor command",
+    "doctor": "Run diagnostics on the current environment",
+    "edrr-cycle": "Run an EDRR cycle",
+    "webui": "Launch the Streamlit WebUI",
+}
+
+# Command examples for help text
+COMMAND_EXAMPLES = {
+    "init": [
+        "devsynth init",
+        "devsynth init --wizard",
+    ],
+    "spec": [
+        "devsynth spec",
+        "devsynth spec --requirements-file custom_requirements.md",
+    ],
+    "test": [
+        "devsynth test",
+        "devsynth test --spec-file custom_specs.md",
+    ],
+    "code": [
+        "devsynth code",
+    ],
+    "run-pipeline": [
+        "devsynth run-pipeline",
+        "devsynth run-pipeline --target unit-tests",
+    ],
+    "config": [
+        "devsynth config",
+        "devsynth config --key model --value gpt-4",
+        "devsynth config --list-models",
+    ],
+    "gather": [
+        "devsynth gather",
+        "devsynth gather --output-file custom_requirements.yaml",
+    ],
+    "inspect": [
+        "devsynth inspect --input requirements.txt",
+        "devsynth inspect --interactive",
+    ],
+    "refactor": [
+        "devsynth refactor",
+        "devsynth refactor --path ./my-project",
+    ],
+    "webapp": [
+        "devsynth webapp",
+        "devsynth webapp --framework flask --name myapp --path ./apps",
+    ],
+    "serve": [
+        "devsynth serve",
+        "devsynth serve --host 127.0.0.1 --port 8080",
+    ],
+    "dbschema": [
+        "devsynth dbschema",
+        "devsynth dbschema --db-type sqlite --name blog --path ./schema",
+    ],
+    "doctor": [
+        "devsynth doctor",
+        "devsynth doctor --config-dir custom_config",
+    ],
+    "edrr-cycle": [
+        "devsynth edrr-cycle",
+        "devsynth edrr-cycle --manifest manifest.yaml --auto",
+    ],
+    "webui": [
+        "devsynth webui",
+    ],
+}
+
+def get_completions(incomplete: str) -> List[str]:
+    """Get command completion suggestions based on the incomplete input.
+    
+    Args:
+        incomplete: The incomplete command string
+        
+    Returns:
+        A list of command suggestions that match the incomplete string
+    """
+    return [cmd for cmd in COMMANDS if cmd.startswith(incomplete)]
+
+def complete_command(incomplete: str) -> str:
+    """Complete a command based on the incomplete input.
+    
+    Args:
+        incomplete: The incomplete command string
+        
+    Returns:
+        The completed command if there's a unique match, otherwise the incomplete string
+    """
+    matches = get_completions(incomplete)
+    if len(matches) == 1:
+        return matches[0]
+    return incomplete
+
+def command_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
+    """Provide autocompletion for DevSynth commands.
+    
+    This function is used by Typer to provide command autocompletion.
+    
+    Args:
+        ctx: The Typer context
+        incomplete: The incomplete command string
+        
+    Returns:
+        A list of command suggestions that match the incomplete string
+    """
+    return get_completions(incomplete)
+
+def file_path_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
+    """Provide autocompletion for file paths.
+    
+    Args:
+        ctx: The Typer context
+        incomplete: The incomplete file path
+        
+    Returns:
+        A list of file path suggestions that match the incomplete string
+    """
+    # Get the current directory
+    current_dir = Path.cwd()
+    
+    # If incomplete is empty, return all files and directories in the current directory
+    if not incomplete:
+        return [str(p) for p in current_dir.iterdir()]
+    
+    # If incomplete contains a path separator, get the parent directory
+    if "/" in incomplete or "\\" in incomplete:
+        parent_dir = Path(incomplete).parent
+        if not parent_dir.is_absolute():
+            parent_dir = current_dir / parent_dir
+        
+        # Get the incomplete filename
+        incomplete_name = Path(incomplete).name
+        
+        # Return all files and directories in the parent directory that match the incomplete name
+        return [
+            str(p)
+            for p in parent_dir.iterdir()
+            if p.name.startswith(incomplete_name)
+        ]
+    
+    # Return all files and directories in the current directory that match the incomplete name
+    return [
+        str(p)
+        for p in current_dir.iterdir()
+        if p.name.startswith(incomplete)
+    ]
+
+def get_command_help(command: str) -> str:
+    """Get detailed help text for a command.
+    
+    Args:
+        command: The command name
+        
+    Returns:
+        Detailed help text for the command, including description and examples
+    """
+    description = COMMAND_DESCRIPTIONS.get(command, "No description available")
+    examples = COMMAND_EXAMPLES.get(command, [])
+    
+    help_text = f"Command: {command}\n\n"
+    help_text += f"Description:\n  {description}\n\n"
+    
+    if examples:
+        help_text += "Examples:\n"
+        for example in examples:
+            help_text += f"  {example}\n"
+    
+    return help_text
+
+def get_all_commands_help() -> str:
+    """Get help text for all available commands.
+    
+    Returns:
+        Help text for all available commands
+    """
+    help_text = "Available Commands:\n\n"
+    
+    for command in sorted(COMMANDS):
+        description = COMMAND_DESCRIPTIONS.get(command, "No description available")
+        help_text += f"{command:15} {description}\n"
+    
+    help_text += "\nUse 'devsynth <command> --help' for more information about a command."
+    
+    return help_text

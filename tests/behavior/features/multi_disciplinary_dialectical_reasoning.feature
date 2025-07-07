@@ -1,48 +1,50 @@
-Feature: Multi-Disciplinary Dialectical Reasoning
+Feature: Multi-disciplinary Dialectical Reasoning
   As a developer
-  I want to apply multi-disciplinary dialectical reasoning to proposed solutions
-  So that I can create better solutions that balance multiple perspectives
+  I want to use multi-disciplinary dialectical reasoning in WSDE teams
+  So that solutions can benefit from diverse expertise across multiple domains
 
   Background:
-    Given the DevSynth system is initialized
-    And a WSDE team is created with multiple disciplinary agents
+    Given a WSDE team with agents specialized in different disciplines
+    And a knowledge base with multi-disciplinary information
+    And the team is configured for multi-disciplinary dialectical reasoning
 
-  Scenario: Apply multi-disciplinary dialectical reasoning to a proposed solution
-    Given a task requiring multiple disciplinary perspectives
-    And a proposed solution for the task
-    And knowledge sources from multiple disciplines
-    When multi-disciplinary dialectical reasoning is applied
-    Then the result should contain the original thesis
-    And the result should contain perspectives from multiple disciplines
-    And the result should contain a synthesis that integrates multiple perspectives
-    And the result should contain an evaluation from multiple perspectives
-    And the synthesis should address conflicts between perspectives
-    And the synthesis should be an improvement over the original solution
+  Scenario: Gathering disciplinary perspectives
+    Given a complex problem spanning multiple disciplines
+    When the team initiates multi-disciplinary dialectical reasoning
+    Then each disciplinary agent should provide a specialized perspective
+    And each perspective should focus on domain-specific considerations
+    And the perspectives should be documented with disciplinary context
+    And the collection of perspectives should cover all relevant disciplines
 
-  Scenario: Handle conflicts between security and user experience perspectives
-    Given a task requiring security and user experience considerations
-    And a proposed solution for the task
-    And knowledge sources for security and user experience
-    When multi-disciplinary dialectical reasoning is applied
-    Then the result should identify conflicts between security and user experience
-    And the synthesis should resolve conflicts between security and user experience
-    And the evaluation should assess the solution from both security and user experience perspectives
+  Scenario: Identifying perspective conflicts across disciplines
+    Given perspectives from multiple disciplinary agents
+    When the team analyzes the perspectives
+    Then conflicts between disciplinary perspectives should be identified
+    And each conflict should be categorized by type and severity
+    And the underlying disciplinary assumptions should be documented
+    And the conflicts should be prioritized for resolution
 
-  Scenario: Handle conflicts between performance and accessibility perspectives
-    Given a task requiring performance and accessibility considerations
-    And a proposed solution for the task
-    And knowledge sources for performance and accessibility
-    When multi-disciplinary dialectical reasoning is applied
-    Then the result should identify conflicts between performance and accessibility
-    And the synthesis should resolve conflicts between performance and accessibility
-    And the evaluation should assess the solution from both performance and accessibility perspectives
+  Scenario: Multi-disciplinary synthesis generation
+    Given perspectives and identified conflicts from multiple disciplines
+    When the team generates a multi-disciplinary synthesis
+    Then the synthesis should address all identified conflicts
+    And the synthesis should integrate insights from all disciplines
+    And the synthesis should maintain disciplinary integrity where appropriate
+    And the synthesis should document trade-offs between disciplinary requirements
 
-  Scenario: Integrate perspectives from four different disciplines
-    Given a task requiring security, user experience, performance, and accessibility considerations
-    And a proposed solution for the task
-    And knowledge sources for all four disciplines
-    When multi-disciplinary dialectical reasoning is applied
-    Then the result should contain perspectives from all four disciplines
-    And the synthesis should integrate recommendations from all four disciplines
-    And the evaluation should assess the solution from all four perspectives
-    And the overall assessment should reflect the balance of all perspectives
+  Scenario: Multi-disciplinary evaluation
+    Given a synthesis generated from multi-disciplinary perspectives
+    When the team evaluates the synthesis
+    Then the evaluation should assess the solution from each disciplinary perspective
+    And the evaluation should verify compliance with discipline-specific standards
+    And the evaluation should identify any remaining disciplinary concerns
+    And the evaluation should provide an overall assessment of multi-disciplinary quality
+
+  Scenario: Integration with domain-specific knowledge
+    Given a multi-disciplinary reasoning process
+    And domain-specific knowledge sources for each discipline
+    When the team applies multi-disciplinary dialectical reasoning
+    Then each disciplinary perspective should incorporate domain-specific knowledge
+    And the knowledge should be properly attributed to authoritative sources
+    And the synthesis should reflect current best practices across all disciplines
+    And the solution should demonstrate awareness of cross-disciplinary implications

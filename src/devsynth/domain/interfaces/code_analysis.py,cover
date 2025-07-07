@@ -1,0 +1,160 @@
+> """
+> Domain interfaces for code analysis.
+> """
+  
+! from abc import ABC, abstractmethod
+! from typing import List, Dict, Any, Optional
+  
+  
+! class FileAnalysisResult(ABC):
+!     """Interface for the result of analyzing a single file."""
+  
+!     @abstractmethod
+!     def get_imports(self) -> List[Dict[str, Any]]:
+!         """Get the imports found in the file.
+          
+!         Returns:
+!             A list of dictionaries containing import information.
+!             Each dictionary should have at least 'name' and 'path' keys.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_classes(self) -> List[Dict[str, Any]]:
+!         """Get the classes found in the file.
+          
+!         Returns:
+!             A list of dictionaries containing class information.
+!             Each dictionary should have at least 'name', 'methods', and 'attributes' keys.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_functions(self) -> List[Dict[str, Any]]:
+!         """Get the functions found in the file.
+          
+!         Returns:
+!             A list of dictionaries containing function information.
+!             Each dictionary should have at least 'name', 'params', and 'return_type' keys.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_variables(self) -> List[Dict[str, Any]]:
+!         """Get the variables found in the file.
+          
+!         Returns:
+!             A list of dictionaries containing variable information.
+!             Each dictionary should have at least 'name' and 'type' keys.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_docstring(self) -> str:
+!         """Get the module-level docstring of the file.
+          
+!         Returns:
+!             The docstring as a string, or an empty string if no docstring is found.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_metrics(self) -> Dict[str, Any]:
+!         """Get metrics about the file.
+          
+!         Returns:
+!             A dictionary of metrics, such as lines of code, complexity, etc.
+!         """
+-         pass
+  
+  
+! class CodeAnalysisResult(ABC):
+!     """Interface for the result of analyzing a codebase."""
+  
+!     @abstractmethod
+!     def get_file_analysis(self, file_path: str) -> Optional[FileAnalysisResult]:
+!         """Get the analysis result for a specific file.
+          
+!         Args:
+!             file_path: The path to the file.
+              
+!         Returns:
+!             The FileAnalysisResult for the file, or None if the file was not analyzed.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_symbol_references(self, symbol_name: str) -> List[Dict[str, Any]]:
+!         """Get all references to a symbol in the codebase.
+          
+!         Args:
+!             symbol_name: The name of the symbol to find references for.
+              
+!         Returns:
+!             A list of dictionaries containing reference information.
+!             Each dictionary should have at least 'file', 'line', and 'column' keys.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_dependencies(self, module_name: str) -> List[str]:
+!         """Get the dependencies of a module.
+          
+!         Args:
+!             module_name: The name of the module.
+              
+!         Returns:
+!             A list of module names that the specified module depends on.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def get_metrics(self) -> Dict[str, Any]:
+!         """Get metrics about the codebase.
+          
+!         Returns:
+!             A dictionary of metrics, such as total lines of code, number of files, etc.
+!         """
+-         pass
+  
+  
+! class CodeAnalysisProvider(ABC):
+!     """Interface for code analysis providers."""
+  
+!     @abstractmethod
+!     def analyze_file(self, file_path: str) -> FileAnalysisResult:
+!         """Analyze a single file.
+          
+!         Args:
+!             file_path: The path to the file to analyze.
+              
+!         Returns:
+!             A FileAnalysisResult containing the analysis of the file.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def analyze_directory(self, dir_path: str, recursive: bool = True) -> CodeAnalysisResult:
+!         """Analyze a directory of files.
+          
+!         Args:
+!             dir_path: The path to the directory to analyze.
+!             recursive: Whether to recursively analyze subdirectories.
+              
+!         Returns:
+!             A CodeAnalysisResult containing the analysis of the directory.
+!         """
+-         pass
+  
+!     @abstractmethod
+!     def analyze_code(self, code: str, file_name: str = "<string>") -> FileAnalysisResult:
+!         """Analyze a string of code.
+          
+!         Args:
+!             code: The code to analyze.
+!             file_name: A name for the code, used in error messages.
+              
+!         Returns:
+!             A FileAnalysisResult containing the analysis of the code.
+!         """
+-         pass

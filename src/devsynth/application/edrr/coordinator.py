@@ -77,6 +77,7 @@ class EDRRCoordinator:
     DEFAULT_COMPLEXITY_THRESHOLD = 0.7
     DEFAULT_CONVERGENCE_THRESHOLD = 0.85
     DEFAULT_DIMINISHING_RETURNS_THRESHOLD = 0.3
+    DEFAULT_MEMORY_USAGE_LIMIT = 0.9
 
     def __init__(
         self,
@@ -113,6 +114,10 @@ class EDRRCoordinator:
         self.ast_transformer = ast_transformer
         self.prompt_manager = prompt_manager
         self.documentation_manager = documentation_manager
+
+        # Register EDRR templates with the prompt manager
+        from .templates import register_edrr_templates
+        register_edrr_templates(prompt_manager)
         self.config = config or _DEFAULT_CONFIG
         edrr_cfg = self.config.get("edrr", {})
         pt_cfg = edrr_cfg.get("phase_transition", {})
@@ -150,6 +155,78 @@ class EDRRCoordinator:
             f"EDRR coordinator initialized (recursion depth: {recursion_depth})"
         )
 
+    def _safe_store_with_edrr_phase(
+        self,
+        content: Any,
+        memory_type: Union[str, MemoryType],
+        edrr_phase: str,
+        metadata: Dict[str, Any] = None,
+    ) -> Optional[str]:
+        """
+        Safely store a memory item with an EDRR phase.
+
+        This method wraps memory_manager.store_with_edrr_phase with proper error handling
+        to ensure that the EDRRCoordinator can continue functioning even if memory
+        operations fail.
+
+        Args:
+            content: The content of the memory item
+            memory_type: The type of memory (e.g., CODE, REQUIREMENT)
+            edrr_phase: The EDRR phase (EXPAND, DIFFERENTIATE, REFINE, RETROSPECT)
+            metadata: Additional metadata for the memory item
+
+        Returns:
+            The ID of the stored memory item, or None if the operation failed
+        """
+        if not self.memory_manager:
+            logger.warning("Memory manager not available for storing memory items")
+            return None
+
+        try:
+            return self.memory_manager.store_with_edrr_phase(
+                content, memory_type, edrr_phase, metadata
+            )
+        except Exception as e:
+            logger.error(f"Failed to store memory item with EDRR phase: {e}")
+            return None
+
+    def _safe_retrieve_with_edrr_phase(
+        self,
+        item_type: str,
+        edrr_phase: str,
+        metadata: Dict[str, Any] = None,
+    ) -> Any:
+        """
+        Safely retrieve an item stored with a specific EDRR phase.
+
+        This method wraps memory_manager.retrieve_with_edrr_phase with proper error handling
+        to ensure that the EDRRCoordinator can continue functioning even if memory
+        operations fail.
+
+        Args:
+            item_type: Identifier of the stored item.
+            edrr_phase: The phase tag used during storage.
+            metadata: Optional additional metadata for adapter queries.
+
+        Returns:
+            The retrieved item or an empty dictionary if not found or if an error occurred.
+        """
+        if not self.memory_manager:
+            logger.warning("Memory manager not available for retrieving memory items")
+            return {}
+
+        try:
+            if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
+                return self.memory_manager.retrieve_with_edrr_phase(
+                    item_type, edrr_phase, metadata
+                )
+            else:
+                logger.warning("Memory manager does not support retrieve_with_edrr_phase")
+                return {}
+        except Exception as e:
+            logger.error(f"Failed to retrieve memory item with EDRR phase: {e}")
+            return {}
+
     def start_cycle(self, task: Dict[str, Any]) -> None:
         """Start a new EDRR cycle with the given task.
 
@@ -163,6 +240,7 @@ class EDRRCoordinator:
         self.cycle_id = str(uuid.uuid4())
         self.results = {}
         self.manifest = None
+        self._cycle_start_time = datetime.now()
 
         if self._enable_enhanced_logging:
             self._execution_traces = {
@@ -177,17 +255,22 @@ class EDRRCoordinator:
             self._execution_history = []
 
         # Store the task in memory
-        self.memory_manager.store_with_edrr_phase(
-            self.task, "TASK", "EXPAND", {"cycle_id": self.cycle_id}
+        metadata = {"cycle_id": self.cycle_id, "type": "TASK"}
+        self._safe_store_with_edrr_phase(
+            self.task, MemoryType.TASK_HISTORY, "EXPAND", metadata
         )
 
         # Initial role assignment before the first phase using dynamic roles
         self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
-        self.memory_manager.store_with_edrr_phase(
+        role_metadata = {
+            "cycle_id": self.cycle_id,
+            "type": "ROLE_ASSIGNMENT"
+        }
+        self._safe_store_with_edrr_phase(
             self.wsde_team.get_role_map(),
-            "ROLE_ASSIGNMENT",
+            MemoryType.TEAM_STATE,
             Phase.EXPAND.value,
-            {"cycle_id": self.cycle_id},
+            role_metadata
         )
 
         # Enter the Expand phase
@@ -236,6 +319,7 @@ class EDRRCoordinator:
 
             self.cycle_id = str(uuid.uuid4())
             self.results = {}
+            self._cycle_start_time = datetime.now()
 
             if self._enable_enhanced_logging:
                 self._execution_traces = {
@@ -250,39 +334,47 @@ class EDRRCoordinator:
                 self._execution_history = []
 
             # Store the task and manifest in memory with enhanced traceability
-            self.memory_manager.store_with_edrr_phase(
+            metadata = {
+                "cycle_id": self.cycle_id,
+                "type": "TASK",
+                "from_manifest": True,
+                "manifest_id": self.manifest_parser.get_manifest_id(),
+                "execution_start_time": self.manifest_parser.execution_trace[
+                    "start_time"
+                ],
+            }
+            self._safe_store_with_edrr_phase(
                 self.task,
-                "TASK",
+                MemoryType.TASK_HISTORY,
                 Phase.EXPAND.value,
-                metadata={
-                    "cycle_id": self.cycle_id,
-                    "from_manifest": True,
-                    "manifest_id": self.manifest_parser.get_manifest_id(),
-                    "execution_start_time": self.manifest_parser.execution_trace[
-                        "start_time"
-                    ],
-                },
+                metadata
             )
 
-            self.memory_manager.store_with_edrr_phase(
+            manifest_metadata = {
+                "cycle_id": self.cycle_id,
+                "type": "MANIFEST",
+                "execution_trace_id": self.manifest_parser.execution_trace.get(
+                    "manifest_id"
+                ),
+            }
+            self._safe_store_with_edrr_phase(
                 self.manifest,
-                "MANIFEST",
+                MemoryType.CONTEXT,
                 Phase.EXPAND.value,
-                metadata={
-                    "cycle_id": self.cycle_id,
-                    "execution_trace_id": self.manifest_parser.execution_trace.get(
-                        "manifest_id"
-                    ),
-                },
+                manifest_metadata
             )
 
             # Initial role assignment before the first phase using dynamic roles
             self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
-            self.memory_manager.store_with_edrr_phase(
+            role_metadata = {
+                "cycle_id": self.cycle_id,
+                "type": "ROLE_ASSIGNMENT"
+            }
+            self._safe_store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
-                "ROLE_ASSIGNMENT",
+                MemoryType.TEAM_STATE,
                 Phase.EXPAND.value,
-                {"cycle_id": self.cycle_id},
+                role_metadata
             )
 
             # Enter the Expand phase
@@ -329,22 +421,30 @@ class EDRRCoordinator:
 
             # Dynamic role assignment for the new phase
             self.wsde_team.assign_roles_for_phase(phase, self.task)
-            self.memory_manager.store_with_edrr_phase(
+            role_metadata = {
+                "cycle_id": self.cycle_id,
+                "type": "ROLE_ASSIGNMENT"
+            }
+            self._safe_store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
-                "ROLE_ASSIGNMENT",
+                MemoryType.TEAM_STATE,
                 phase.value,
-                {"cycle_id": self.cycle_id},
+                role_metadata
             )
 
             # Store the phase transition in memory
-            self.memory_manager.store_with_edrr_phase(
+            phase_metadata = {
+                "cycle_id": self.cycle_id,
+                "type": "PHASE_TRANSITION"
+            }
+            self._safe_store_with_edrr_phase(
                 {
                     "from": previous_phase.value if previous_phase else None,
                     "to": phase.value,
                 },
-                "PHASE_TRANSITION",
+                MemoryType.EPISODIC,
                 phase.value,
-                {"cycle_id": self.cycle_id},
+                phase_metadata
             )
 
             # Update the current phase
@@ -612,6 +712,10 @@ class EDRRCoordinator:
         8. Diminishing returns - whether additional recursion yields minimal improvements
         9. Parent phase compatibility - whether recursion makes sense in the current phase
         10. Historical effectiveness - whether recursion has been effective for similar tasks
+        11. Maximum recursion depth - whether we've reached the maximum allowed recursion depth
+        12. Time-based termination - whether we've exceeded the maximum allowed time
+        13. Memory usage - whether we're approaching memory limits
+        14. Approaching limits - whether we're approaching any of the above limits
 
         Args:
             task: The task for the potential micro cycle
@@ -756,6 +860,72 @@ class EDRRCoordinator:
                     logger.info(reason)
                     return True, "historical ineffectiveness"
 
+        # Check maximum recursion depth
+        if self.recursion_depth >= self.max_recursion_depth:
+            reason = f"Recursion terminated due to maximum recursion depth: {self.recursion_depth} >= {self.max_recursion_depth}"
+            logger.info(reason)
+            return True, "maximum recursion depth"
+
+        # Check if approaching maximum recursion depth (within 80%)
+        if self.recursion_depth >= int(self.max_recursion_depth * 0.8):
+            # Only terminate if other factors suggest it might be beneficial
+            if any([
+                task.get("granularity_score", 1.0) < self.DEFAULT_GRANULARITY_THRESHOLD * 1.5,
+                task.get("quality_score", 0.0) > self.DEFAULT_QUALITY_THRESHOLD * 0.8,
+                task.get("resource_usage", 0.0) > self.DEFAULT_RESOURCE_LIMIT * 0.8
+            ]):
+                reason = f"Recursion terminated due to approaching maximum recursion depth: {self.recursion_depth} >= {int(self.max_recursion_depth * 0.8)}"
+                logger.info(reason)
+                return True, "approaching maximum recursion depth"
+
+        # Check time-based termination
+        if hasattr(self, "_cycle_start_time") and self._cycle_start_time:
+            from datetime import datetime
+
+            # Get maximum duration from config with default of 1 hour
+            max_duration = self.config.get("edrr", {}).get("recursion", {}).get("max_duration", 3600)
+
+            # Calculate elapsed time
+            elapsed_seconds = (datetime.now() - self._cycle_start_time).total_seconds()
+
+            # Check if exceeded maximum duration
+            if elapsed_seconds > max_duration:
+                reason = f"Recursion terminated due to time limit exceeded: {elapsed_seconds:.2f}s > {max_duration}s"
+                logger.info(reason)
+                return True, "time limit exceeded"
+
+            # Check if approaching time limit (within 90%)
+            if elapsed_seconds > max_duration * 0.9:
+                # Only terminate if other factors suggest it might be beneficial
+                if any([
+                    task.get("granularity_score", 1.0) < self.DEFAULT_GRANULARITY_THRESHOLD * 1.5,
+                    task.get("quality_score", 0.0) > self.DEFAULT_QUALITY_THRESHOLD * 0.8,
+                    task.get("resource_usage", 0.0) > self.DEFAULT_RESOURCE_LIMIT * 0.8
+                ]):
+                    reason = f"Recursion terminated due to approaching time limit: {elapsed_seconds:.2f}s > {max_duration * 0.9}s"
+                    logger.info(reason)
+                    return True, "approaching time limit"
+
+        # Check memory usage
+        if "memory_usage" in task:
+            memory_limit = self.config.get("edrr", {}).get("recursion", {}).get("memory_limit", self.DEFAULT_MEMORY_USAGE_LIMIT)
+            if task["memory_usage"] > memory_limit:
+                reason = f"Recursion terminated due to memory usage limit: {task['memory_usage']} > {memory_limit}"
+                logger.info(reason)
+                return True, "memory usage limit"
+
+            # Check if approaching memory limit (within 90%)
+            if task["memory_usage"] > memory_limit * 0.9:
+                # Only terminate if other factors suggest it might be beneficial
+                if any([
+                    task.get("granularity_score", 1.0) < self.DEFAULT_GRANULARITY_THRESHOLD * 1.5,
+                    task.get("quality_score", 0.0) > self.DEFAULT_QUALITY_THRESHOLD * 0.8,
+                    task.get("resource_usage", 0.0) > self.DEFAULT_RESOURCE_LIMIT * 0.8
+                ]):
+                    reason = f"Recursion terminated due to approaching memory limit: {task['memory_usage']} > {memory_limit * 0.9}"
+                    logger.info(reason)
+                    return True, "approaching memory limit"
+
         # Default to allowing recursion
         return False, None
 
@@ -814,14 +984,19 @@ class EDRRCoordinator:
         results["ideas"] = broad_ideas
 
         # Perform knowledge retrieval optimization
-        if hasattr(self.memory_manager, "retrieve_relevant_knowledge"):
-            relevant_knowledge = self.memory_manager.retrieve_relevant_knowledge(
-                self.task,
-                retrieval_strategy="broad",
-                max_results=15,
-                similarity_threshold=0.6,
-            )
-        else:
+        try:
+            if hasattr(self.memory_manager, "retrieve_relevant_knowledge"):
+                relevant_knowledge = self.memory_manager.retrieve_relevant_knowledge(
+                    self.task,
+                    retrieval_strategy="broad",
+                    max_results=15,
+                    similarity_threshold=0.6,
+                )
+            else:
+                logger.debug("Memory manager does not support retrieve_relevant_knowledge")
+                relevant_knowledge = []
+        except Exception as e:
+            logger.error(f"Failed to retrieve relevant knowledge: {e}")
             relevant_knowledge = []
         results["knowledge"] = relevant_knowledge
 
@@ -838,7 +1013,7 @@ class EDRRCoordinator:
             results["micro_cycle_results"] = {}
 
         # Store results in memory with phase tag
-        self.memory_manager.store_with_edrr_phase(
+        self._safe_store_with_edrr_phase(
             results,
             MemoryType.SOLUTION,
             "EXPAND",
@@ -906,12 +1081,9 @@ class EDRRCoordinator:
             results["prompt"] = diff_prompt
 
         # Get ideas from the Expand phase
-        if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
-            expand_results = self.memory_manager.retrieve_with_edrr_phase(
-                MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
-            )
-        else:
-            expand_results = {}
+        expand_results = self._safe_retrieve_with_edrr_phase(
+            MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
+        )
         ideas = expand_results.get("ideas", [])
 
         # Implement comparative analysis frameworks
@@ -964,7 +1136,7 @@ class EDRRCoordinator:
             results["micro_cycle_results"] = {}
 
         # Store results in memory with phase tag
-        self.memory_manager.store_with_edrr_phase(
+        self._safe_store_with_edrr_phase(
             results,
             MemoryType.SOLUTION,
             "DIFFERENTIATE",
@@ -1027,12 +1199,9 @@ class EDRRCoordinator:
             results["prompt"] = refine_prompt
 
         # Get evaluated options from the Differentiate phase
-        if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
-            differentiate_results = self.memory_manager.retrieve_with_edrr_phase(
-                MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
-            )
-        else:
-            differentiate_results = {}
+        differentiate_results = self._safe_retrieve_with_edrr_phase(
+            MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
+        )
         evaluated_options = differentiate_results.get("evaluated_options", [])
         decision_criteria = differentiate_results.get("decision_criteria", {})
 
@@ -1107,7 +1276,7 @@ class EDRRCoordinator:
                 optimized_plan, author, reviewers
             )
             results["peer_review"] = pr_result
-            self.memory_manager.store_with_edrr_phase(
+            self._safe_store_with_edrr_phase(
                 pr_result,
                 MemoryType.SOLUTION,
                 "REFINE",
@@ -1119,7 +1288,7 @@ class EDRRCoordinator:
             results["micro_cycle_results"] = {}
 
         # Store results in memory with phase tag
-        self.memory_manager.store_with_edrr_phase(
+        self._safe_store_with_edrr_phase(
             results,
             MemoryType.SOLUTION,
             "REFINE",
@@ -1186,20 +1355,15 @@ class EDRRCoordinator:
             results["prompt"] = retro_prompt
 
         # Collect results from all previous phases
-        if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
-            expand_results = self.memory_manager.retrieve_with_edrr_phase(
-                MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
-            )
-            differentiate_results = self.memory_manager.retrieve_with_edrr_phase(
-                MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
-            )
-            refine_results = self.memory_manager.retrieve_with_edrr_phase(
-                MemoryType.SOLUTION.value, "REFINE", {"cycle_id": self.cycle_id}
-            )
-        else:
-            expand_results = {}
-            differentiate_results = {}
-            refine_results = {}
+        expand_results = self._safe_retrieve_with_edrr_phase(
+            MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
+        )
+        differentiate_results = self._safe_retrieve_with_edrr_phase(
+            MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
+        )
+        refine_results = self._safe_retrieve_with_edrr_phase(
+            MemoryType.SOLUTION.value, "REFINE", {"cycle_id": self.cycle_id}
+        )
 
         # Learning extraction methods
         learnings = self.wsde_team.extract_learnings(
@@ -1255,7 +1419,7 @@ class EDRRCoordinator:
             }
 
             # Store the micro cycle results for potential retrieval by the parent cycle
-            self.memory_manager.store_with_edrr_phase(
+            self._safe_store_with_edrr_phase(
                 micro_cycle_results,
                 MemoryType.SOLUTION,
                 self.parent_phase.value,
@@ -1278,7 +1442,7 @@ class EDRRCoordinator:
         results["final_report"] = final_report
 
         # Store results in memory with phase tag
-        self.memory_manager.store_with_edrr_phase(
+        self._safe_store_with_edrr_phase(
             results,
             "RETROSPECT_RESULTS",
             "RETROSPECT",
@@ -1289,7 +1453,7 @@ class EDRRCoordinator:
         self._maybe_create_micro_cycles(context, Phase.RETROSPECT, results)
 
         # Store the final report
-        self.memory_manager.store_with_edrr_phase(
+        self._safe_store_with_edrr_phase(
             final_report,
             "FINAL_REPORT",
             "RETROSPECT",
@@ -1782,6 +1946,7 @@ class EDRRCoordinator:
                         group_id = f"merged_{similarity_key[:8]}"
                         merged_results[group_id] = merged_result
 
+                # Replace the original micro_cycle_results with the merged results
                 processed_results["micro_cycle_results"] = merged_results
 
             # Apply prioritization by quality
