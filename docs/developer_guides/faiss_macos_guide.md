@@ -1,16 +1,16 @@
 ---
-title: "FAISS Installation Guide for macOS"
-date: "2025-07-12"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-07-12'
+last_reviewed: '2025-07-12'
+status: published
 tags:
-  - "development"
-  - "setup"
-  - "macos"
-  - "faiss"
-  - "troubleshooting"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-07-12"
+- development
+- setup
+- macos
+- faiss
+- troubleshooting
+title: FAISS Installation Guide for macOS
+version: 1.0.0
 ---
 
 # FAISS Installation Guide for macOS
@@ -31,14 +31,18 @@ The `faiss-cpu` package often encounters installation and runtime issues on macO
 The most reliable way to install FAISS on macOS is through Conda:
 
 ```bash
+
 # Create a new conda environment
+
 conda create -n devsynth-env python=3.11
 conda activate devsynth-env
 
 # Install faiss-cpu from conda-forge
+
 conda install -c conda-forge faiss-cpu
 
 # Install DevSynth in the same environment
+
 cd /path/to/devsynth
 pip install -e .
 ```
@@ -48,15 +52,19 @@ pip install -e .
 If you prefer not to use Conda, you can install the OpenMP dependency with Homebrew:
 
 ```bash
+
 # Install libomp with Homebrew
+
 brew install libomp
 
 # Set compiler flags
+
 export CFLAGS="-Xpreprocessor -fopenmp"
 export CXXFLAGS="-Xpreprocessor -fopenmp"
 export LDFLAGS="-lomp"
 
 # Install faiss-cpu
+
 pip install faiss-cpu
 ```
 
@@ -65,10 +73,13 @@ pip install faiss-cpu
 To completely avoid macOS-specific issues, you can use the Docker container:
 
 ```bash
+
 # Build and run the Docker container
+
 docker compose -f docker-compose.yml up -d
 
 # Execute commands inside the container
+
 docker exec -it devsynth-devsynth-1 bash
 ```
 
@@ -87,14 +98,17 @@ If you encounter segmentation faults when using FAISS:
 If you see an error like `ImportError: dlopen(... Library not loaded: @rpath/libomp.dylib`:
 
 ```bash
+
 # Install libomp
+
 brew install libomp
 
 # Create symlinks to the library
+
 sudo ln -s "$(brew --prefix libomp)/lib/libomp.dylib" /usr/local/lib/libomp.dylib
 ```
 
-### Apple Silicon (M1/M2) Issues
+## Apple Silicon (M1/M2) Issues
 
 For Apple Silicon Macs:
 

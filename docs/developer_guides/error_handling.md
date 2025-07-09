@@ -1,3 +1,14 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- developer-guide
+title: Error Handling Guidelines
+version: 1.0.0
+---
+
 # Error Handling Guidelines
 
 ## Introduction
@@ -42,7 +53,7 @@ Categorize errors based on:
 
 All errors should inherit from the base `DevSynthError` class defined in `src/devsynth/exceptions.py`. The existing hierarchy provides a good foundation:
 
-```
+```text
 DevSynthError
 ├── UserInputError
 │   ├── ValidationError
@@ -68,7 +79,8 @@ DevSynthError
 Use consistent templates for error messages:
 
 #### CLI Errors
-```
+
+```text
 ERROR: <brief description>
 <detailed explanation>
 
@@ -80,6 +92,7 @@ For more information, see: <documentation link>
 ```
 
 #### API Errors
+
 ```json
 {
   "error": {
@@ -118,6 +131,7 @@ For input validation errors:
 - Be specific about what's wrong and how to fix it
 
 Example:
+
 ```python
 def process_config(config_data):
     errors = []

@@ -1,3 +1,16 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- technical-reference
+
+title: LLM Integration in DevSynth
+version: 1.0.0
+---
+
 # LLM Integration in DevSynth
 
 This document describes the LLM integration in DevSynth, focusing on the LM Studio provider and token optimization mechanisms.
@@ -14,6 +27,7 @@ The current implementation includes:
 - Anthropic provider (stub)
 - LM Studio provider (fully implemented)
 
+
 The LLM integration also includes token tracking and optimization mechanisms to efficiently manage context windows and prevent token limit errors.
 
 ## Architecture
@@ -21,8 +35,9 @@ The LLM integration also includes token tracking and optimization mechanisms to 
 The LLM integration follows a layered architecture:
 
 1. **Domain Layer**: Defines the interfaces for LLM providers and factories
-2. **Application Layer**: Implements the core LLM provider classes and token utilities
+2. **Application Layer**: Implements the core Provider classes and token utilities
 3. **Adapter Layer**: Provides the adapter for connecting the application to LLM backends
+
 
 ## LM Studio Provider
 
@@ -36,15 +51,18 @@ The LM Studio provider can be configured with the following parameters:
 - `model`: Model name to use (default: local_model)
 - `max_tokens`: Maximum tokens for responses (default: 1024)
 
+
 ### Usage
 
 ```python
 from devsynth.adapters.llm.llm_adapter import LLMBackendAdapter
 
 # Create the LLM adapter
+
 adapter = LLMBackendAdapter()
 
 # Create an LM Studio provider
+
 config = {
     "api_base": "http://localhost:1234/v1",
     "model": "local_model",
@@ -53,9 +71,11 @@ config = {
 provider = adapter.create_provider("lmstudio", config)
 
 # Generate text
+
 response = provider.generate("Hello, world!")
 
 # Generate text with context
+
 context = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Hi"},
@@ -75,23 +95,28 @@ DevSynth includes a `TokenTracker` utility for tracking and optimizing token usa
 - Token limit enforcement
 - Fallback tokenizer when tiktoken is not available
 
+
 ### Usage
 
 ```python
 from devsynth.application.utils.token_tracker import TokenTracker
 
 # Create a token tracker
+
 tracker = TokenTracker()
 
 # Count tokens in text
+
 text = "Hello, world!"
 token_count = tracker.count_tokens(text)
 
 # Count tokens in a message
+
 message = {"role": "user", "content": "Hello, world!"}
 token_count = tracker.count_message_tokens(message)
 
 # Count tokens in a conversation
+
 conversation = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Hi"},
@@ -100,10 +125,12 @@ conversation = [
 token_count = tracker.count_conversation_tokens(conversation)
 
 # Prune a conversation to fit within a token limit
+
 max_tokens = 100
 pruned_conversation = tracker.prune_conversation(conversation, max_tokens)
 
 # Ensure a text is within a token limit
+
 try:
     tracker.ensure_token_limit(text, max_tokens=50)
 except TokenLimitExceededError:
@@ -118,6 +145,7 @@ To use the LM Studio provider:
 2. Download a model in LM Studio
 3. Start a local server with your chosen model
 4. Configure the DevSynth LM Studio provider with the correct API base URL and model name
+
 
 ## Implementation Details
 

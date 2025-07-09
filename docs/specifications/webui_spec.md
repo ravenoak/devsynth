@@ -1,16 +1,16 @@
 ---
-title: "WebUI Specification"
-date: "2025-06-16"
-version: "0.1.0"
+author: DevSynth Team
+date: '2025-06-16'
+status: draft
 tags:
-  - "specification"
-  - "webui"
-  - "ux"
-status: "draft"
-author: "DevSynth Team"
+- specification
+- webui
+- ux
+title: WebUI Specification
+version: 0.1.0
 ---
 
-# DevSynth WebUI
+# WebUI Specification
 
 This specification describes the initial graphical interface for
 DevSynth. The WebUI is implemented using Streamlit and communicates
@@ -43,4 +43,3 @@ interfaces and keeps workflow logic in a single location.
 - Improve layout and styling.
 - Provide real-time log streaming to the browser.
 - Support multi-user collaboration.
-

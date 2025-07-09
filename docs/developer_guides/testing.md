@@ -1,15 +1,17 @@
 ---
-title: "DevSynth Testing Guide"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-01'
+status: published
 tags:
-  - "testing"
-  - "development"
-  - "best practices"
-  - "quality assurance"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+
+- testing
+- development
+- best practices
+- quality assurance
+
+title: DevSynth Testing Guide
+version: 1.0.0
 ---
 
 # DevSynth Testing Guide
@@ -25,11 +27,12 @@ This guide documents the testing standards, practices, and infrastructure for th
 - [Test Types](#test-types)
 - [Test Isolation & Cleanliness](#test-isolation--cleanliness)
 - [Provider System Testing](#provider-system-testing)
-- [ChromaDB Memory Store Testing](#chromadb-memory-store-testing)
+- [ChromaDB Memory Store Testing](#ChromaDB-memory-store-testing)
 - [Writing New Tests](#writing-new-tests)
 - [Running Tests](#running-tests)
 - [Continuous Integration](#continuous-integration)
 - [Test Coverage](#test-coverage)
+
 
 ## Testing Philosophy
 
@@ -40,6 +43,7 @@ DevSynth follows a comprehensive testing approach that combines multiple testing
 - **Integration Testing**: Testing the interaction between multiple components.
 - **Property-Based Testing**: Using strategies like hypothesis testing to verify properties of functions across a range of inputs.
 
+
 Our testing philosophy emphasizes:
 
 1. **Test Isolation**: Tests should not interfere with each other and should run independently.
@@ -48,9 +52,10 @@ Our testing philosophy emphasizes:
 4. **Test Readability**: Tests should be clear and serve as documentation for the code they test.
 5. **Provider Abstraction**: Tests should work with either OpenAI or LM Studio through our provider abstraction layer.
 
+
 ## Test Directory Structure
 
-```
+```text
 tests/
 ├── conftest.py              # Global test fixtures and configuration
 ├── README.md                # Testing overview and instructions
@@ -81,7 +86,7 @@ Feature: ChromaDB Integration
 
   Scenario: Initialize ChromaDB memory store
     Given the DevSynth CLI is installed
-    When I configure the memory store type as "chromadb"
+    When I configure the memory store type as "ChromaDB"
     Then a ChromaDB memory store should be initialized
 ```
 
@@ -103,10 +108,12 @@ DevSynth tests are designed to be isolated and clean:
 - Environment variables are patched during tests to prevent pollution of the real environment.
 - Tests clean up after themselves, even if they fail.
 
+
 The main test fixtures for isolation and cleanliness are:
 
 - `tmp_project_dir`: Creates a temporary directory for test artifacts.
 - `patch_env_and_cleanup`: Patches environment variables and ensures cleanup.
+
 
 Example of test isolation (from `tests/behavior/conftest.py`):
 
@@ -153,6 +160,7 @@ DevSynth tests the provider system (OpenAI, LM Studio) with a combination of uni
 - **Unit Tests**: Mock the provider APIs to test the provider system's logic.
 - **Integration Tests**: Optionally connect to real LLM services to test actual API integration.
 
+
 The provider system tests validate:
 
 1. Provider selection logic (choosing between OpenAI and LM Studio)
@@ -160,10 +168,12 @@ The provider system tests validate:
 3. Environment variable configuration
 4. Error handling and retries
 
+
 Test fixtures for provider system testing include:
 
 - `llm_provider`: Returns a configured provider instance.
 - `llm_complete`: Provides a function to generate LLM completions.
+
 
 Example of provider system testing fixtures (from `tests/behavior/conftest.py`):
 
@@ -201,11 +211,13 @@ The ChromaDB memory store is tested with both standard and enhanced features:
 - **Provider Integration**: Testing ChromaDB with provider-based embeddings.
 - **Advanced Features**: Testing caching, versioning, and optimized embedding storage.
 
+
 The ChromaDB tests use fixtures for isolation and provider integration:
 
 - `temp_chromadb_path`: Creates a temporary ChromaDB data directory.
 - `memory_store`: Creates a ChromaDB memory store configured to use the provider system.
 - `memory_port`: Creates a memory port with the ChromaDB memory store.
+
 
 ## Writing New Tests
 
@@ -228,11 +240,13 @@ The ChromaDB tests use fixtures for isolation and provider integration:
    - Name tests to clearly indicate the feature/requirement they validate.
    - Add comments linking to requirement IDs where appropriate.
 
+
 ### Adding a New BDD Test
 
 1. Create a new feature file in `tests/behavior/` with Gherkin syntax.
 2. Add step definitions in `tests/behavior/steps/` if needed.
 3. Create a test runner file in `tests/behavior/test_*.py`.
+
 
 ### Adding a New Integration Test
 
@@ -240,11 +254,13 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 2. Use provider system and memory store fixtures as needed.
 3. Test the interaction between components.
 
+
 ### Adding a New Unit Test
 
 1. Create a new test file in `tests/unit/test_*.py`.
 2. Mock external dependencies to isolate the component under test.
 3. Test component behavior with various inputs and edge cases.
+
 
 ## Running Tests
 
@@ -256,12 +272,14 @@ poetry install --with dev,docs
 poetry sync --all-extras --all-groups
 
 # Verify that pytest can start without import errors
+
 poetry run pytest -q
 
 # pip commands are for installing from PyPI only
+
 ```
 
-### Running All Tests
+## Running All Tests
 
 ```bash
 poetry run pytest
@@ -270,22 +288,27 @@ poetry run pytest
 ### Running Specific Test Types
 
 ```bash
+
 # Run BDD tests
+
 poetry run pytest tests/behavior/
 
 # Run WebUI onboarding and API stub scenarios
+
 poetry run pytest tests/behavior/test_webui_onboarding_flow.py
 poetry run pytest tests/behavior/test_requirements_wizard_navigation.py
 poetry run pytest tests/behavior/test_api_stub_usage.py
 
 # Run integration tests
+
 poetry run pytest tests/integration/
 
 # Run unit tests
+
 poetry run pytest tests/unit/
 ```
 
-### Running a Specific Test File
+## Running a Specific Test File
 
 ```bash
 poetry run pytest tests/behavior/test_chromadb_integration.py
@@ -294,14 +317,17 @@ poetry run pytest tests/behavior/test_chromadb_integration.py
 ### Running Tests with Provider Selection
 
 ```bash
+
 # Use OpenAI provider
+
 DEVSYNTH_PROVIDER=openai poetry run pytest
 
 # Use LM Studio provider
+
 DEVSYNTH_PROVIDER=lm_studio poetry run pytest
 ```
 
-### Enabling Resource-Dependent Tests
+## Enabling Resource-Dependent Tests
 
 Some tests require external services such as LM Studio or the DevSynth CLI. By
 default `tests/conftest.py` disables these tests by setting environment
@@ -310,17 +336,22 @@ variables like `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE` and
 resources enabled:
 
 ```bash
+
 # Provide an OpenAI API key
+
 export OPENAI_API_KEY=sk-your-key
 
 # Enable LM Studio tests and specify the endpoint
+
 export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
 export LM_STUDIO_ENDPOINT=http://localhost:1234
 
 # Ensure CLI commands are available
+
 export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
 
 # Run the entire test suite
+
 poetry run pytest
 ```
 
@@ -338,6 +369,7 @@ DevSynth uses GitHub Actions for continuous integration testing. The CI pipeline
 3. Checks test coverage.
 4. Runs linting and type checking.
 
+
 ## Test Coverage
 
 DevSynth aims for high test coverage, with a focus on covering:
@@ -346,6 +378,7 @@ DevSynth aims for high test coverage, with a focus on covering:
 2. API endpoints and CLI commands.
 3. Error handling paths.
 4. Configuration handling.
+
 
 Test coverage is tracked and reported in CI runs.
 

@@ -1,3 +1,14 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- developer-guide
+title: Secure Coding Guidelines
+version: 1.0.0
+---
+
 # Secure Coding Guidelines
 
 ## Introduction
@@ -45,7 +56,9 @@ Simple designs are easier to secure:
 Always validate and sanitize input:
 
 ```python
+
 # GOOD: Validate input type and range
+
 def process_count(count_str):
     try:
         count = int(count_str)
@@ -58,34 +71,40 @@ def process_count(count_str):
     return count
 
 # BAD: No validation
+
 def process_count_bad(count_str):
     return int(count_str)  # Could raise exception or allow negative values
 ```
 
-### SQL Injection Prevention
+## SQL Injection Prevention
 
 Use parameterized queries or ORM:
 
 ```python
+
 # GOOD: Using parameters
+
 def get_user(db, user_id):
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     return cursor.fetchone()
 
 # BAD: String concatenation
+
 def get_user_bad(db, user_id):
     cursor = db.cursor()
     cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")  # VULNERABLE!
     return cursor.fetchone()
 ```
 
-### Command Injection Prevention
+## Command Injection Prevention
 
 Avoid shell commands when possible. If necessary, use subprocess with arguments as a list:
 
 ```python
+
 # GOOD: Using subprocess with arguments as a list
+
 import subprocess
 
 def run_command(command_args):
@@ -93,17 +112,20 @@ def run_command(command_args):
     return result.stdout
 
 # BAD: Using shell=True or string concatenation
+
 def run_command_bad(command_str):
     result = subprocess.run(command_str, shell=True, capture_output=True, text=True)  # VULNERABLE!
     return result.stdout
 ```
 
-### Secure Password Handling
+## Secure Password Handling
 
 Use proper password hashing:
 
 ```python
+
 # GOOD: Using a proper password hashing library
+
 import argon2
 
 def hash_password(password):
@@ -119,18 +141,21 @@ def verify_password(stored_hash, password):
         return False
 
 # BAD: Using weak hashing or no hashing
+
 import hashlib
 
 def hash_password_bad(password):
     return hashlib.md5(password.encode()).hexdigest()  # VULNERABLE!
 ```
 
-### Secure File Operations
+## Secure File Operations
 
 Validate file paths and avoid path traversal:
 
 ```python
+
 # GOOD: Validate and sanitize file paths
+
 import os
 from pathlib import Path
 
@@ -146,6 +171,7 @@ def read_file(base_dir, filename):
         return f.read()
 
 # BAD: Not validating file paths
+
 def read_file_bad(base_dir, filename):
     with open(os.path.join(base_dir, filename), 'r') as f:  # VULNERABLE!
         return f.read()

@@ -1,3 +1,14 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- technical-reference
+title: Code Analysis Feature
+version: 1.0.0
+---
+
 # Code Analysis Feature
 
 ## Overview
@@ -31,12 +42,15 @@ The Code Analysis feature follows the hexagonal architecture pattern used throug
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 
 # Create a code analyzer
+
 analyzer = CodeAnalyzer()
 
 # Analyze a file
+
 result = analyzer.analyze_file("path/to/file.py")
 
 # Access the analysis results
+
 imports = result.get_imports()
 classes = result.get_classes()
 functions = result.get_functions()
@@ -45,33 +59,38 @@ docstring = result.get_docstring()
 metrics = result.get_metrics()
 ```
 
-### Analyzing a Directory
+## Analyzing a Directory
 
 ```python
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 
 # Create a code analyzer
+
 analyzer = CodeAnalyzer()
 
 # Analyze a directory
+
 result = analyzer.analyze_directory("path/to/directory")
 
 # Access the analysis results
+
 file_analysis = result.get_file_analysis("path/to/file.py")
 symbol_references = result.get_symbol_references("ClassName")
 dependencies = result.get_dependencies("module_name")
 metrics = result.get_metrics()
 ```
 
-### Analyzing Code Directly
+## Analyzing Code Directly
 
 ```python
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 
 # Create a code analyzer
+
 analyzer = CodeAnalyzer()
 
 # Analyze code
+
 code = """
 def hello_world():
     print("Hello, world!")
@@ -79,6 +98,7 @@ def hello_world():
 result = analyzer.analyze_code(code)
 
 # Access the analysis results
+
 functions = result.get_functions()
 ```
 

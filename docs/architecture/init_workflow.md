@@ -1,17 +1,19 @@
 ---
-title: "Init Workflow"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "architecture"
-  - "workflow"
-  - "cli"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- architecture
+- workflow
+- cli
+
+title: Init Workflow
+version: 1.0.0
 ---
 
-# Init Workflow Sequence
+# Init Workflow
 
 The redesigned `init` command collects essential project details before creating a configuration file.
 

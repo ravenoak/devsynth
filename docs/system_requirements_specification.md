@@ -1,3 +1,15 @@
+---
+title: "DevSynth System Requirements Specification"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "documentation"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # DevSynth System Requirements Specification
 
 ## Document Information
@@ -36,6 +48,7 @@ The DevSynth system will provide functionality for project initialization, requi
 3. DevSynth Performance Guide
 4. DevSynth Deployment Guide
 
+
 ## 2. System Description
 
 ### 2.1 System Context
@@ -45,10 +58,12 @@ DevSynth operates as a local CLI tool that assists a single developer throughout
 ### 2.2 User Characteristics
 
 Primary users are individual software developers who:
+
 - Have basic command-line proficiency
 - Are familiar with test-driven development concepts
 - Have LM Studio installed on their local machine
 - Seek to accelerate development tasks with AI assistance
+
 
 ### 2.3 Assumptions and Dependencies
 
@@ -60,12 +75,14 @@ Primary users are individual software developers who:
 - [ASM-04] The user understands basic software development concepts and practices
 - [ASM-05] The system is intended as a proof of concept for a single developer
 
+
 #### 2.3.2 Dependencies
 
 - [DEP-01] LM Studio is properly installed and configured on the user's machine
 - [DEP-02] At least one suitable LLM model is available through LM Studio
 - [DEP-03] Python environment with required dependencies
 - [DEP-04] Local file system access for storing project files and configuration
+
 
 ### 2.4 Constraints
 
@@ -76,6 +93,7 @@ Primary users are individual software developers who:
 - [CON-05] Configuration files may be written in YAML or TOML and must be loaded using a unified parser
 - [CON-06] The CLI and WebUI shall share a common command interface to preserve feature parity
 - [CON-07] The CLI and WebUI must provide a consistent user experience across interfaces
+
 
 ## 3. Functional Requirements
 
@@ -90,6 +108,7 @@ Primary users are individual software developers who:
 - [FR-05] The system shall store configuration in a user-accessible location
 - [FR-05a] The system shall load project settings from `.devsynth/devsynth.yml` or `pyproject.toml` using a unified loader
 
+
 #### 3.1.2 Project Management
 
 - [FR-06] The system shall provide a command to initialize a new software project
@@ -97,8 +116,9 @@ Primary users are individual software developers who:
 - [FR-08] The system shall support multiple projects with separate contexts
 - [FR-09] The system shall track project status and progress
 - [FR-10] The system shall persist project information between sessions
-- [FR-10a] The system shall read and interpret a `manifest.yaml` file to understand project structure, components, and custom layouts (e.g., monorepo, multi-language) as defined by the user.
-- [FR-10b] The system shall adapt its understanding of the project based on changes to `manifest.yaml` and the file system, following an "Expand, Differentiate, Refine" process.
+- [FR-10a] The system shall read and interpret a `Project Configuration` file to understand project structure, components, and custom layouts (e.g., monorepo, multi-language) as defined by the user.
+- [FR-10b] The system shall adapt its understanding of the project based on changes to `Project Configuration` and the file system, following an "Expand, Differentiate, Refine" process.
+
 
 ### 3.2 Requirement Analysis and Specification
 
@@ -108,6 +128,7 @@ Primary users are individual software developers who:
 - [FR-14] The system shall validate requirements for completeness and consistency
 - [FR-15] The system shall categorize requirements by type (functional, non-functional, constraint)
 - [FR-16] The system shall track requirement status and priority
+
 
 ### 3.3 Test Development
 
@@ -119,6 +140,7 @@ Primary users are individual software developers who:
 - [FR-22] The system shall provide functionality to run tests and report results
 - [FR-23] The system shall track test status (pending, passing, failing)
 
+
 ### 3.4 Code Implementation
 
 - [FR-24] The system shall generate code based on requirements, specifications, and tests
@@ -127,15 +149,16 @@ Primary users are individual software developers who:
 - [FR-27] The system shall validate code against requirements and tests
 - [FR-28] The system shall provide functionality to run and debug code
 
+
 ### 3.5 Agent System
 
-- [FR-29] The system shall implement a single AI agent for automation tasks
+- [FR-29] The system shall implement a single Agent for automation tasks
 - [FR-30] The system shall provide task execution capabilities for the agent
 - [FR-31] The system shall track agent status (idle, working, waiting, error)
 - [FR-32] The system shall support agent capabilities for different development tasks
 - [FR-33] The system shall provide error handling and recovery for agent tasks
 - [FR-40] The system shall implement the EDRR (Expand, Differentiate, Refine, Retrospect) framework for iterative development as a recursive, fractal structure where each macro phase contains its own nested micro-EDRR cycles
-- [FR-41] The system shall implement the WSDE (Worker Self-Directed Enterprise) model for agent organization
+- [FR-41] The system shall implement the WSDE (WSDE) model for agent organization
 - [FR-42] The system shall support role management in multi-agent collaboration
 - [FR-43] The system shall implement dialectical reasoning in agent collaboration
 - [FR-44a] The system shall implement micro-EDRR cycles within the Expand macro phase
@@ -145,10 +168,11 @@ Primary users are individual software developers who:
 - [FR-44e] The system shall provide mechanisms to define and enforce delimiting principles for determining recursion depth
 - [FR-44f] The system shall support configurable human oversight points within recursive EDRR cycles
 
+
 ### 3.6 Memory and Context System
 
 - [FR-34] The system shall maintain context information for projects, requirements, tests, and code.
-- [FR-34a] The system shall build and maintain a model of the project's structure based on `manifest.yaml` and file system analysis, supporting diverse layouts (monorepos, sub-projects, etc.).
+- [FR-34a] The system shall build and maintain a model of the project's structure based on `Project Configuration` and file system analysis, supporting diverse layouts (monorepos, sub-projects, etc.).
 - [FR-35] The system shall provide context management functions (add, update, retrieve, delete)
 - [FR-36] The system shall implement context pruning strategies for token optimization
 - [FR-37] The system shall persist context information between sessions
@@ -162,6 +186,7 @@ Primary users are individual software developers who:
 - [FR-47] The system shall implement a vector memory adapter for semantic search
 - [FR-48] The system shall support alternative vector stores (DuckDB, FAISS, LMDB)
 
+
 ### 3.7 Token Management
 
 - [FR-49] The system shall track token usage for all LLM operations
@@ -170,11 +195,13 @@ Primary users are individual software developers who:
 - [FR-52] The system shall support token budget constraints for operations
 - [FR-53] The system shall estimate costs based on token usage
 
+
 ### 3.8 Documentation and Code Analysis
 
 - [FR-54] The system shall support offline documentation ingestion
 - [FR-55] The system shall implement AST-based code transformations
 - [FR-56] The system shall provide prompt auto-tuning mechanisms
+
 
 ### 3.9 CLI Enhancements
 
@@ -190,6 +217,7 @@ Primary users are individual software developers who:
 - [FR-73] The system shall offer an interactive requirement-gathering workflow
 - [FR-74] The system shall expose an HTTP API for agent operations
 
+
 ### 3.10 WebUI Integration
 
 - [FR-75] The system shall present a sidebar WebUI with pages for onboarding, requirements, code analysis, synthesis, and configuration editing.
@@ -198,10 +226,15 @@ Primary users are individual software developers who:
 - [FR-78] The WebUI shall offer collapsible sections to simplify complex forms.
 - [FR-79] WebUI actions shall mirror CLI commands to maintain feature parity.
 - [FR-80] The system shall provide a CLI wizard for gathering project goals,
+
   constraints and an overall priority ranking.
+
 - [FR-81] The system shall store the gathered information in a
+
   `requirements_plan.yaml` or `.json` file and update the project configuration.
+
 - [FR-82] The WebUI shall expose equivalent forms for requirements gathering
+
   using the `UXBridge` abstraction.
 
 ## 4. Non-Functional Requirements
@@ -214,12 +247,14 @@ Primary users are individual software developers who:
 - [NFR-04] The system shall support configuration of performance parameters
 - [NFR-05] The system shall degrade gracefully under resource constraints
 
+
 ### 4.2 Security Requirements
 
 - [NFR-06] The system shall operate entirely on the local machine with no external data transmission
 - [NFR-07] The system shall implement appropriate security measures for a single-developer PoC
 - [NFR-08] The system shall provide secure storage for configuration and context data
 - [NFR-09] The system shall validate all inputs to prevent injection attacks
+
 
 ### 4.3 Usability Requirements
 
@@ -229,12 +264,14 @@ Primary users are individual software developers who:
 - [NFR-13] The system shall provide progress indicators for long-running operations
 - [NFR-14] The system shall follow CLI best practices for user interaction
 
+
 ### 4.4 Reliability Requirements
 
 - [NFR-15] The system shall recover gracefully from errors and exceptions
 - [NFR-16] The system shall implement retry mechanisms for LLM API failures
 - [NFR-17] The system shall persist state to prevent data loss
 - [NFR-18] The system shall validate inputs and outputs to ensure consistency
+
 
 ### 4.5 Maintainability Requirements
 
@@ -243,11 +280,13 @@ Primary users are individual software developers who:
 - [NFR-21] The system shall include appropriate documentation
 - [NFR-22] The system shall implement logging for troubleshooting
 
+
 ### 4.6 Portability Requirements
 
 - [NFR-23] The system shall support Windows, macOS, and Linux operating systems
 - [NFR-24] The system shall provide installation methods for different environments
 - [NFR-25] The system shall minimize external dependencies
+
 
 ## 5. Data Requirements
 
@@ -262,8 +301,9 @@ Primary users are individual software developers who:
   - Creation and update timestamps
   - Status
   - Token usage metrics
-  - Path to `manifest.yaml`
+  - Path to `Project Configuration`
   - Key structural metadata derived from the manifest (e.g., project type, primary language)
+
 
 #### 5.1.2 Requirement
 
@@ -276,6 +316,7 @@ Primary users are individual software developers who:
   - Priority
   - Status
   - Token count
+
 
 #### 5.1.3 Test
 
@@ -290,6 +331,7 @@ Primary users are individual software developers who:
   - Associated requirements
   - Token count
 
+
 #### 5.1.4 Context
 
 - [DR-04] The system shall store context information including:
@@ -300,6 +342,7 @@ Primary users are individual software developers who:
   - Creation and update timestamps
   - Token count
 
+
 #### 5.1.5 Token Usage
 
 - [DR-05] The system shall store token usage information including:
@@ -309,12 +352,14 @@ Primary users are individual software developers who:
   - Estimated cost
   - Last reset timestamp
 
+
 ### 5.2 Data Storage
 
 - [DR-06] The system shall store data locally on the user's machine
 - [DR-07] The system shall use appropriate storage formats (JSON, SQLite) based on data characteristics
 - [DR-08] The system shall implement data validation and integrity checks
 - [DR-09] The system shall provide data backup and recovery mechanisms
+
 
 ## 6. Interface Requirements
 
@@ -324,18 +369,21 @@ Primary users are individual software developers who:
 - [IR-02] The system shall support standard CLI conventions and patterns
 - [IR-03] The system shall provide help documentation for all commands
 
+
 ### 6.2 Software Interfaces
 
 - [IR-04] The system shall interface with LM Studio through its API endpoint
 - [IR-05] The system shall integrate with version control systems (e.g., Git)
 - [IR-06] The system shall interface with testing frameworks (e.g., pytest)
 - [IR-07] The system shall access the local file system for project files
-- [IR-07a] The system shall parse and interpret `manifest.yaml` for project structure and artifact definitions.
+- [IR-07a] The system shall parse and interpret `Project Configuration` for project structure and artifact definitions.
+
 
 ### 6.3 Communication Interfaces
 
 - [IR-08] The system shall communicate with the LM Studio API using HTTP/HTTPS
 - [IR-09] The system shall implement appropriate error handling for communication failures
+
 
 ## 7. Quality Attributes
 
@@ -346,11 +394,13 @@ Primary users are individual software developers who:
 - [QA-03] The system shall support integration testing
 - [QA-04] The system shall provide mechanisms to validate functionality
 
+
 ### 7.2 Extensibility
 
 - [QA-05] The system shall follow a modular architecture to support future extensions
 - [QA-06] The system shall provide clear extension points for future features
 - [QA-07] The system shall support a transition path from single-agent to multi-agent capabilities
+
 
 ### 7.3 Reliability
 
@@ -358,11 +408,13 @@ Primary users are individual software developers who:
 - [QA-09] The system shall provide meaningful error messages
 - [QA-10] The system shall implement retry mechanisms for transient failures
 
+
 ### 7.4 Performance Efficiency
 
 - [QA-11] The system shall optimize token usage for all LLM operations
 - [QA-12] The system shall minimize resource usage (memory, CPU, disk)
 - [QA-13] The system shall provide configuration options for performance tuning
+
 
 ## 8. Verification and Validation
 
@@ -370,6 +422,7 @@ Primary users are individual software developers who:
 - [VV-02] Non-functional requirements shall have measurable acceptance criteria
 - [VV-03] The system shall include tools for validating requirements coverage
 - [VV-04] The system shall provide mechanisms for verifying correct operation
+
 
 ## Appendix A: Requirements Traceability Matrix
 
@@ -386,6 +439,6 @@ Primary users are individual software developers who:
 |------|------------|
 | Context Pruning | The process of reducing the size of context information to optimize token usage |
 | Token Optimization | Strategies and techniques to reduce the number of tokens used in LLM interactions |
-| LM Studio | A local LLM provider that runs on the developer's machine |
+| LM Studio | A local Provider that runs on the developer's machine |
 | Test-Driven Development | A software development approach where tests are written before the code |
 | Token | The basic unit of text processed by language models, roughly 3/4 the number of words |

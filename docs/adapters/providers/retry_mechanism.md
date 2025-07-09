@@ -1,3 +1,14 @@
+---
+title: "Retry Mechanism with Exponential Backoff"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "documentation"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 
 # Retry Mechanism with Exponential Backoff
 

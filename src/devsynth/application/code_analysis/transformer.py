@@ -102,6 +102,33 @@ class RedundantAssignmentRemover(AstTransformer):
             self.record_change(node, f"Removed redundant self-assignment: {node.targets[0].id} = {node.value.id}")
             return None
 
+        # Check if this is a redundant assignment in a function (result = a + b followed by return result)
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            # Get the parent node (function body)
+            parent = getattr(node, 'parent', None)
+            if parent and isinstance(parent, list):
+                # Find this node's index in the parent list
+                try:
+                    idx = parent.index(node)
+                    # Check if the next node is a return statement returning the assigned variable
+                    if idx < len(parent) - 1 and isinstance(parent[idx + 1], ast.Return) and \
+                       isinstance(parent[idx + 1].value, ast.Name) and \
+                       parent[idx + 1].value.id == node.targets[0].id:
+                        # Replace the return statement with a return of the original expression
+                        parent[idx + 1].value = node.value
+                        self.record_change(node, f"Simplified redundant assignment: {node.targets[0].id} = <expr> followed by return {node.targets[0].id}")
+                        # Remove this assignment
+                        return None
+                except ValueError:
+                    pass
+
+        return self.generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        """Visit a FunctionDef node and set parent references."""
+        # Set parent reference for all nodes in the function body
+        for child in node.body:
+            setattr(child, 'parent', node.body)
         return self.generic_visit(node)
 
 
@@ -123,8 +150,12 @@ class UnusedVariableRemover(AstTransformer):
         # Only handle simple assignments to a single target
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
             var_name = node.targets[0].id
-            # Check if the variable is unused (usage count is 0 or 1 for just the assignment)
-            if var_name in self.symbol_usage and self.symbol_usage[var_name] <= 1:
+            # Debug: Print the symbol usage for this variable
+            logger.debug(f"Variable: {var_name}, Usage count: {self.symbol_usage.get(var_name, 'Not in dictionary')}")
+            logger.debug(f"Symbol usage dictionary: {self.symbol_usage}")
+
+            # Check if the variable is truly unused (usage count is 0)
+            if var_name in self.symbol_usage and self.symbol_usage[var_name] == 0:
                 # Check if the value has side effects (calls, etc.)
                 if not self._has_side_effects(node.value):
                     self.record_change(node, f"Removed unused variable assignment: {var_name}")
@@ -210,11 +241,19 @@ class CodeTransformer(CodeTransformationProvider):
         """Initialize the code transformer."""
         self.analyzer = CodeAnalyzer()
         self.transformers = {
+            # Original names
             "unused_imports": UnusedImportRemover,
             "redundant_assignments": RedundantAssignmentRemover,
             "unused_variables": UnusedVariableRemover,
             "string_optimization": StringLiteralOptimizer,
-            "code_style": CodeStyleTransformer
+            "code_style": CodeStyleTransformer,
+
+            # Aliases used in tests
+            "remove_unused_imports": UnusedImportRemover,
+            "remove_redundant_assignments": RedundantAssignmentRemover,
+            "remove_unused_variables": UnusedVariableRemover,
+            "optimize_string_literals": StringLiteralOptimizer,
+            "improve_code_style": CodeStyleTransformer
         }
 
     def transform_code(self, code: str, transformations: List[str] = None) -> TransformationResult:
@@ -379,10 +418,30 @@ class SymbolUsageCounter(ast.NodeVisitor):
             symbol_usage: Dictionary mapping symbol names to their usage count
         """
         self.symbol_usage = symbol_usage
+        # Keep track of variables being assigned to avoid counting them as used
+        self.being_assigned = set()
+
+    def visit_Assign(self, node):
+        """Visit an Assign node and handle variable assignments."""
+        # Mark targets as being assigned
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                self.being_assigned.add(target.id)
+
+        # Visit the value first (right side of assignment)
+        self.visit(node.value)
+
+        # Then visit the targets (left side of assignment)
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                self.being_assigned.remove(target.id)
+                # Don't count the assignment itself as a usage
+                # The variable will be counted as used only if it appears elsewhere
 
     def visit_Name(self, node):
         """Visit a Name node and count its usage."""
-        if node.id in self.symbol_usage:
+        # Only count as usage if not being assigned
+        if node.id in self.symbol_usage and node.id not in self.being_assigned:
             self.symbol_usage[node.id] += 1
         self.generic_visit(node)
 
@@ -396,7 +455,7 @@ class SymbolUsageCounter(ast.NodeVisitor):
 
             if full_name in self.symbol_usage:
                 self.symbol_usage[full_name] += 1
-            if module_name in self.symbol_usage:
+            if module_name in self.symbol_usage and module_name not in self.being_assigned:
                 self.symbol_usage[module_name] += 1
 
         self.generic_visit(node)

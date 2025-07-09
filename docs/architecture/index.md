@@ -1,24 +1,24 @@
 ---
-title: "DevSynth Architecture"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: published
 tags:
-  - "architecture"
-  - "design"
-  - "system"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+- architecture
+- design
+- system
+title: DevSynth Architecture
+version: 1.0.0
 ---
 
-# Architecture
+# DevSynth Architecture
 
 This section provides detailed information about the architecture of DevSynth, including its components, design patterns, and frameworks.
 
 ## Core Architecture Documents
 
 - **[Overview](overview.md)**: A high-level overview of the DevSynth architecture.
-- **[Hexagonal Architecture](hexagonal_architecture.md)**: Details on the hexagonal (ports and adapters) architecture used in DevSynth.
+- **[Hexagonal Architecture](hexagonal_architecture.md)**: Details on the hexagonal (Hexagonal Architecture) architecture used in DevSynth.
 - **[Init Workflow](init_workflow.md)**: Sequence diagram for the interactive initialization process.
 - **[UXBridge](uxbridge.md)**: How CLI modules are decoupled from the UI and reused by the future WebUI.
 - **[Phase 1 Overhaul](phase1_overhaul.md)**: Summary of the CLI refactor, unified configuration, and UXBridge pattern.
@@ -33,7 +33,7 @@ This section provides detailed information about the architecture of DevSynth, i
 ## Methodologies and Frameworks
 
 - **[Dialectical Reasoning](dialectical_reasoning.md)**: Information about the dialectical reasoning approach used in DevSynth.
-- **[EDRR Framework](edrr_framework.md)**: Documentation on the Expand-Differentiate-Refine-Retrospect framework.
+- **[EDRR Framework](edrr_framework.md)**: Documentation on the EDRR framework.
 - **[Recursive EDRR Architecture](recursive_edrr_architecture.md)**: Details on nesting EDRR cycles and termination logic.
 - **[WSDE Agent Model](wsde_agent_model.md)**: Details on the Wide Sweep, Deep Exploration agent model.
 
@@ -41,7 +41,7 @@ This section provides detailed information about the architecture of DevSynth, i
 
 The Architecture section provides a comprehensive view of DevSynth's design and structure. It explains how the different components of the system work together to achieve the project's goals.
 
-DevSynth follows a hexagonal architecture (also known as ports and adapters) that separates the core domain logic from external adapters and application services. This architecture enables flexibility, testability, and maintainability by ensuring that the core business logic is isolated from external concerns.
+DevSynth follows a hexagonal architecture (also known as Hexagonal Architecture) that separates the core domain logic from external adapters and application services. This architecture enables flexibility, testability, and maintainability by ensuring that the core business logic is isolated from external concerns.
 
 The system is composed of several key components:
 

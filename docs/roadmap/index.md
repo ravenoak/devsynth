@@ -1,17 +1,17 @@
 ---
-title: "DevSynth Roadmap"
-date: "2024-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2024-06-01'
+last_reviewed: '2024-06-01'
+status: published
 tags:
-  - "roadmap"
-  - "development-plan"
-  - "project-planning"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2024-06-01"
+- roadmap
+- development-plan
+- project-planning
+title: DevSynth Roadmap
+version: 1.0.0
 ---
 
-# Roadmap
+# DevSynth Roadmap
 
 This section outlines the future plans and development trajectory for the DevSynth project.
 

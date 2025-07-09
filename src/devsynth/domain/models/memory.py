@@ -14,6 +14,7 @@ class MemoryType(Enum):
     SHORT_TERM = "short_term"
     LONG_TERM = "long_term"
     WORKING = "working"
+    WORKING_MEMORY = "working"  # Alias for WORKING for backward compatibility
     EPISODIC = "episodic"
     SOLUTION = "solution"
     DIALECTICAL_REASONING = "dialectical_reasoning"

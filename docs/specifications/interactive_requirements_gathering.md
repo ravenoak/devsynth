@@ -1,13 +1,15 @@
 ---
-title: "Interactive Requirements Gathering"
-date: "2025-07-01"
-version: "0.1.0"
+author: DevSynth Team
+date: '2025-07-01'
+status: draft
 tags:
-  - "specification"
-  - "requirements"
-  - "workflow"
-status: "draft"
-author: "DevSynth Team"
+
+- specification
+- requirements
+- workflow
+
+title: Interactive Requirements Gathering
+version: 0.1.0
 ---
 
 # Interactive Requirements Gathering
@@ -21,18 +23,23 @@ This specification defines the prompts, data model and storage format for a guid
 3. **Priority** – overall project priority (`low`, `medium`, `high`).
 4. **Confirmation** – save responses to disk.
 
+
 Users may type `back` in the CLI or use the *Back* button in the WebUI to revisit previous steps.
 
 ## Data Model
 
 ```yaml
+
 # requirements_plan.yaml
+
  goals:
    - example goal 1
    - example goal 2
+
  constraints:
    - must run offline
    - use Python
+
  priority: medium
 ```
 
@@ -45,6 +52,7 @@ Responses are written to `requirements_plan.yaml` (or `.json`) in the project ro
 - `goals` – original comma separated string
 - `constraints` – original comma separated string
 - `priority` – single value
+
 
 ## User Flow
 
@@ -89,7 +97,9 @@ function gather_requirements(output_file="requirements_plan.yaml"):
 ```
 
 ```pseudocode
+
 # WebUI wrapper
+
 if st.button("Start Wizard"):
     gather_requirements_via_bridge(WebUI())
 ```

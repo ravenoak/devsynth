@@ -8,6 +8,7 @@ tags:
   - "BDD"
   - "development"
   - "best-practices"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-05-25"
@@ -29,12 +30,15 @@ TDD is a development process that relies on the repetition of a very short devel
 2. Write the minimum amount of code to make the test pass
 3. Refactor the code to meet quality standards
 
+
 Benefits of TDD in DevSynth:
+
 - Ensures code correctness from the beginning
 - Provides immediate feedback on code changes
 - Creates a comprehensive test suite that prevents regressions
 - Encourages modular, loosely coupled designs
 - Serves as living documentation of the system's behavior
+
 
 ### 2.2 Behavior-Driven Development (BDD)
 
@@ -44,12 +48,15 @@ BDD extends TDD by focusing on the behavior of the system from the user's perspe
 2. Implement step definitions that map the scenarios to executable code
 3. Run the scenarios as automated tests to verify system behavior
 
+
 Benefits of BDD in DevSynth:
+
 - Bridges the communication gap between technical and non-technical stakeholders
 - Ensures features are developed according to user needs
 - Creates living documentation that describes system behavior
 - Facilitates collaboration between developers, testers, and domain experts
 - Provides clear acceptance criteria for features
+
 
 ## 3. Implementation in DevSynth
 
@@ -61,6 +68,7 @@ DevSynth uses pytest as its primary testing framework, with the following extens
 - **pytest-mock**: For mocking dependencies
 - **pytest-cov**: For measuring test coverage
 
+
 ### 3.2 Test Organization
 
 Tests are organized into three main categories:
@@ -68,6 +76,7 @@ Tests are organized into three main categories:
 1. **Unit Tests** (`tests/unit/`): Test individual components in isolation
 2. **Integration Tests** (`tests/integration/`): Test interactions between components
 3. **Behavior Tests** (`tests/behavior/`): Test system behavior from a user perspective
+
 
 ### 3.3 Hermetic Testing
 
@@ -78,6 +87,7 @@ All tests in DevSynth follow hermetic testing principles:
 - External services are mocked
 - Environment variables are saved and restored
 - Global state is reset between tests
+
 
 For more details, see the [Hermetic Testing Guide](hermetic_testing.md).
 
@@ -92,6 +102,7 @@ For more details, see the [Hermetic Testing Guide](hermetic_testing.md).
 5. **Run the test again**: Confirm that it now passes
 6. **Refactor**: Clean up the code while ensuring the test still passes
 7. **Repeat**: Continue the cycle for additional functionality
+
 
 ### 4.2 Example: Promise System Unit Test
 
@@ -114,10 +125,12 @@ def test_resolve(self):
 ```
 
 This test:
+
 1. Creates a Promise instance
 2. Resolves it with a value
 3. Verifies that the state and properties are correct
 4. Verifies that attempting to resolve it again raises an error
+
 
 The implementation was then written to satisfy this test:
 
@@ -162,6 +175,7 @@ def resolve(self, value: T) -> None:
 4. **Run the scenarios**: Execute the scenarios to verify the feature's behavior
 5. **Implement the feature**: Write the code needed to make the scenarios pass
 6. **Refactor**: Clean up the code while ensuring the scenarios still pass
+
 
 ### 5.2 Example: Promise System BDD Test
 
@@ -262,6 +276,7 @@ By combining these perspectives, DevSynth ensures that the system is correct at 
 - Aim for high test coverage, but focus on critical paths
 - Use mocks and stubs to isolate components
 
+
 ### 7.2 BDD-Specific Guidelines
 
 - Write scenarios from the user's perspective
@@ -271,6 +286,7 @@ By combining these perspectives, DevSynth ensures that the system is correct at 
 - Reuse step definitions where appropriate
 - Keep step definitions simple and focused
 
+
 ### 7.3 TDD-Specific Guidelines
 
 - Start with the simplest test case
@@ -278,6 +294,7 @@ By combining these perspectives, DevSynth ensures that the system is correct at 
 - Refactor after each passing test
 - Use test doubles (mocks, stubs) to isolate dependencies
 - Test edge cases and error conditions
+
 
 ## 8. Conclusion
 

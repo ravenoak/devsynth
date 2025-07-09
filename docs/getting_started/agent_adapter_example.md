@@ -1,14 +1,16 @@
 ---
-title: "Agent Adapter Example"
-date: "2025-07-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-07-01'
+last_reviewed: '2025-06-15'
+status: published
 tags:
-  - "getting-started"
-  - "agent-adapter"
-  - "example"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-15"
+
+- getting-started
+- agent-adapter
+- example
+
+title: Agent Adapter Example
+version: 1.0.0
 ---
 
 # Agent Adapter Example
@@ -28,10 +30,13 @@ You can perform the following CLI steps via the WebUI as well. Launch it with `d
 Create a new project directory and initialize DevSynth:
 
 ```bash
+
 # Create a project named agent-demo
+
 devsynth init --path agent-demo
 cd agent-demo
 ```
+
 The initializer detects existing configuration files and will prompt you interactively when run in an existing project directory.
 
 ## 2. Invoke the CLI
@@ -39,7 +44,9 @@ The initializer detects existing configuration files and will prompt you interac
 Generate the standard artifacts using the CLI:
 
 ```bash
+
 # Assuming you added requirements.md
+
 devsynth inspect --requirements-file requirements.md
 devsynth run-pipeline
 devsynth refactor

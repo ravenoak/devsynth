@@ -14,24 +14,24 @@ from devsynth.exceptions import DevSynthError
 
 class PlannerAgent(BaseAgent):
     """Agent responsible for creating development plans."""
-    
+
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce a development plan."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
-        
+
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
-        
+
         You are a planning expert. Your task is to create a detailed development plan.
-        
+
         Project context:
         {inputs.get('context', '')}
-        
+
         Requirements:
         {inputs.get('requirements', '')}
-        
+
         Create a detailed development plan with the following sections:
         1. Project overview
         2. Architecture design
@@ -40,29 +40,33 @@ class PlannerAgent(BaseAgent):
         5. Testing strategy
         6. Deployment plan
         """
-        
+
         # In a real implementation, this would call the LLM through a port
         # For now, we'll just return a placeholder
         plan = f"Development Plan (created by {self.name} as {self.current_role})"
-        
+
         # Create a WSDE with the plan
-        plan_wsde = self.create_wsde(
-            content=plan,
-            content_type="text",
-            metadata={
-                "agent": self.name,
-                "role": self.current_role,
-                "type": "development_plan"
-            }
-        )
-        
+        plan_wsde = None
+        try:
+            plan_wsde = self.create_wsde(
+                content=plan,
+                content_type="text",
+                metadata={
+                    "agent": self.name,
+                    "role": self.current_role,
+                    "type": "development_plan"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error creating WSDE: {str(e)}")
+
         return {
             "plan": plan,
             "wsde": plan_wsde,
             "agent": self.name,
             "role": self.current_role
         }
-    
+
     def get_capabilities(self) -> List[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()

@@ -1,3 +1,14 @@
+---
+title: "DevSynth Documentation Generator Requirements"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "specification"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # DevSynth Documentation Generator Requirements
 
 ## 1. Project Overview

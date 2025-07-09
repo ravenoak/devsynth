@@ -1,14 +1,16 @@
 ---
-title: "Configuration Loader Workflow"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "implementation"
-  - "pseudocode"
-  - "configuration"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- implementation
+- pseudocode
+- configuration
+
+title: Configuration Loader Workflow
+version: 1.0.0
 ---
 
 # Configuration Loader Workflow
@@ -18,7 +20,6 @@ either `devsynth.yml` or `pyproject.toml`.
 
 ```python
 from devsynth.config.unified_loader import UnifiedConfigLoader
-
 
 def load_config(path: str = "."):
     unified = UnifiedConfigLoader.load(path)

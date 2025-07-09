@@ -1,3 +1,15 @@
+---
+title: "DevSynth Code Style Guide"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "developer-guide"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # DevSynth Code Style Guide
 
 This document outlines the coding standards and style guidelines for the DevSynth project. Adhering to these guidelines ensures consistency, readability, and maintainability of the codebase.
@@ -7,6 +19,7 @@ This document outlines the coding standards and style guidelines for the DevSynt
 - **Readability:** Write code that is easy to understand. Prioritize clarity over conciseness where appropriate.
 - **Simplicity:** Keep solutions as simple as possible (KISS principle).
 - **Consistency:** Follow the established style throughout the project.
+
 
 ## 2. Python Style
 
@@ -40,6 +53,7 @@ This document outlines the coding standards and style guidelines for the DevSynt
     - Use the centralized logger from `src/devsynth/logging_setup.py`.
     - Follow defined logging levels and conventions.
 
+
 ## 3. Markdown Style
 
 - **Line Length:** Keep lines to a reasonable length (e.g., 80-120 characters) for readability, especially in documentation.
@@ -48,6 +62,7 @@ This document outlines the coding standards and style guidelines for the DevSynt
 - **Code Blocks:** Use fenced code blocks with language identifiers (e.g., ```python ... ```).
 - **Front-matter:** All Markdown documents should include front-matter metadata as defined in `docs/metadata_template.md` and validated by `scripts/validate_metadata.py`.
 
+
 ## 4. Gherkin (.feature file) Style
 
 - **Clarity and Conciseness:** Scenarios should be easy to understand by both technical and non-technical stakeholders.
@@ -55,12 +70,14 @@ This document outlines the coding standards and style guidelines for the DevSynt
 - **Tags:** Use tags (`@tagname`) to categorize features and scenarios (e.g., `@smoke`, `@regression`, `@module-X`).
 - **Linting:** (Specify if a Gherkin linter like `gherkin-lint` is used and its configuration).
 
+
 ## 5. Commit Messages
 
 - Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
 - Example: `feat: add user authentication service`
 - Example: `fix: resolve issue with config parsing`
 - Example: `docs: update installation guide`
+
 
 ## 6. Updating This Guide
 

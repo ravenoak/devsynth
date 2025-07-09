@@ -1,17 +1,17 @@
 ---
-title: "Getting Started with DevSynth"
-date: "2024-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2024-06-01'
+last_reviewed: '2024-06-01'
+status: published
 tags:
-  - "getting-started"
-  - "installation"
-  - "basic-usage"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2024-06-01"
+- getting-started
+- installation
+- basic-usage
+title: Getting Started with DevSynth
+version: 1.0.0
 ---
 
-# Getting Started
+# Getting Started with DevSynth
 
 This section provides essential information for getting started with DevSynth, including installation instructions and basic usage guides.
 

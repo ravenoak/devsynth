@@ -1,13 +1,15 @@
 ---
-title: "WebUI Pseudocode"
-date: "2025-06-18"
-version: "0.1.0"
+author: DevSynth Team
+date: '2025-06-18'
+status: draft
 tags:
-  - "specification"
-  - "webui"
-  - "ux"
-status: "draft"
-author: "DevSynth Team"
+
+- specification
+- webui
+- ux
+
+title: WebUI Pseudocode
+version: 0.1.0
 ---
 
 # WebUI Pseudocode
@@ -15,7 +17,9 @@ author: "DevSynth Team"
 The following pseudocode outlines the structure of the Streamlit pages and how data flows through the `UXBridge` abstraction.
 
 ```python
+
 # entry
+
 bridge = WebUI()
 
 pages = {
@@ -31,7 +35,9 @@ pages[choice](bridge)
 ```
 
 ```python
+
 # onboarding_page
+
 def onboarding_page(bridge):
     with st.form("onboard"):
         path = st.text_input("Project Path", ".")
@@ -56,7 +62,9 @@ def config_page(bridge):
 ```
 
 ```python
+
 # data flow
+
 User -> Streamlit Widget -> UXBridge -> Workflow -> UXBridge -> Streamlit
 ```
 

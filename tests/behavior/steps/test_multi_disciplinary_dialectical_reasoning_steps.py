@@ -39,7 +39,7 @@ def create_mock_agent(name, expertise):
 @given("a WSDE team with agents specialized in different disciplines")
 def wsde_team_with_specialized_agents(context):
     """Create a WSDE team with agents specialized in different disciplines."""
-    context.team = WSDETeam()
+    context.team = WSDETeam(name="TestMultiDisciplinaryDialecticalReasoningStepsTeam")
 
     # Create agents with different disciplinary expertise
     code_agent = create_mock_agent("CodeAgent", ["python", "coding"])
@@ -1079,7 +1079,7 @@ def multi_disciplinary_reasoning_process(context):
     """Set up a multi-disciplinary reasoning process."""
     # Create a team if it doesn't exist yet
     if not hasattr(context, 'team') or not context.team:
-        context.team = WSDETeam()
+        context.team = WSDETeam(name="TestMultiDisciplinaryDialecticalReasoningStepsTeam")
         
         # Create agents with different disciplinary expertise
         code_agent = create_mock_agent("CodeAgent", ["python", "coding"])

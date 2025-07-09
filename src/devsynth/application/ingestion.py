@@ -192,7 +192,7 @@ class Ingestion:
         else:
             memory_adapter = TinyDBMemoryAdapter()
             memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
-            wsde_team = WSDETeam()
+            wsde_team = WSDETeam(name="IngestionTeam")
             code_analyzer = CodeAnalyzer()
             ast_transformer = AstTransformer()
             prompt_manager = PromptManager()

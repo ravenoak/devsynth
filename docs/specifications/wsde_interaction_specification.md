@@ -1,8 +1,20 @@
+---
+title: "WSDE Multi-Agent Interaction Specification"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "specification"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # WSDE Multi-Agent Interaction Specification
 
 ## 1. Overview
 
-The Worker Self-Directed Enterprise (WSDE) model in DevSynth provides a framework for organizing and coordinating multiple AI agents in collaborative software development tasks. This specification defines the interaction patterns, role responsibilities, and coordination mechanisms for the WSDE multi-agent system.
+The WSDE (WSDE) model in DevSynth provides a framework for organizing and coordinating multiple AI agents in collaborative software development tasks. This specification defines the interaction patterns, role responsibilities, and coordination mechanisms for the WSDE multi-agent system.
 
 ## 2. Purpose and Goals
 
@@ -14,6 +26,7 @@ The WSDE multi-agent interaction system aims to:
 4. Support dynamic role assignment based on task requirements
 5. Facilitate dialectical reasoning through structured agent interactions
 
+
 ## 3. WSDE Roles and Responsibilities
 
 ### 3.1 Primus
@@ -21,85 +34,105 @@ The WSDE multi-agent interaction system aims to:
 **Purpose**: Coordinate the overall workflow and ensure alignment with project goals.
 
 **Responsibilities**:
+
 - Task decomposition and assignment
 - Progress monitoring and coordination
 - Conflict resolution between agents
 - Integration of work products
 - Communication with human users
 
+
 **Decision Authority**:
+
 - Workflow sequencing
 - Resource allocation
 - Final integration decisions
 - Human intervention requests
+
 
 ### 3.2 Worker
 
 **Purpose**: Execute specific development tasks and implement solutions.
 
 **Responsibilities**:
+
 - Code implementation
 - Test development
 - Documentation writing
 - Artifact generation
 - Technical problem-solving
 
+
 **Decision Authority**:
+
 - Implementation details
 - Technical approaches
 - Local optimizations
 - Task-specific adaptations
+
 
 ### 3.3 Supervisor
 
 **Purpose**: Ensure quality and consistency across the development process.
 
 **Responsibilities**:
+
 - Quality assurance
 - Standard enforcement
 - Process oversight
 - Risk identification
 - Performance monitoring
 
+
 **Decision Authority**:
+
 - Quality acceptance
 - Process adjustments
 - Standard interpretations
 - Risk mitigation strategies
+
 
 ### 3.4 Designer
 
 **Purpose**: Create high-level designs and creative solutions.
 
 **Responsibilities**:
+
 - Architecture design
 - Interface design
 - Solution conceptualization
 - Innovation exploration
 - Pattern identification
 
+
 **Decision Authority**:
+
 - Design approaches
 - Architectural decisions
 - Creative directions
 - Pattern applications
+
 
 ### 3.5 Evaluator
 
 **Purpose**: Assess outputs and provide critical feedback.
 
 **Responsibilities**:
+
 - Output evaluation
 - Dialectical critique
 - Alternative perspective provision
 - Improvement suggestion
 - Validation against requirements
 
+
 **Decision Authority**:
+
 - Evaluation criteria
 - Feedback prioritization
 - Acceptance recommendations
 - Improvement directions
+
 
 ## 4. Interaction Patterns
 
@@ -108,6 +141,7 @@ The WSDE multi-agent interaction system aims to:
 **Pattern**: Multiple agents collaborate to reach agreement on important decisions.
 
 **Process**:
+
 1. Issue identification by any agent
 2. Proposal generation by assigned agent
 3. Critique and counter-proposals by other agents
@@ -115,7 +149,9 @@ The WSDE multi-agent interaction system aims to:
 5. Voting or weighted decision mechanism
 6. Implementation of consensus decision
 
+
 **Implementation**:
+
 ```python
 class ConsensusDecision:
     def __init__(self, agents, decision_topic, decision_context):
@@ -149,6 +185,7 @@ class ConsensusDecision:
 **Pattern**: Structured thesis-antithesis-synthesis process for problem-solving.
 
 **Process**:
+
 1. Thesis presentation by one agent
 2. Antithesis development by another agent
 3. Dialectical analysis by a third agent
@@ -156,7 +193,9 @@ class ConsensusDecision:
 5. Validation by Evaluator
 6. Refinement based on feedback
 
+
 **Implementation**:
+
 ```python
 class DialecticalReasoning:
     def __init__(self, thesis_agent, antithesis_agent, synthesis_agent):
@@ -185,6 +224,7 @@ class DialecticalReasoning:
 **Pattern**: Systematic review of work products by peers.
 
 **Process**:
+
 1. Work submission by producing agent
 2. Review assignment to one or more agents
 3. Independent review execution
@@ -192,7 +232,9 @@ class DialecticalReasoning:
 5. Revision by original agent
 6. Acceptance or further review
 
+
 **Implementation**:
+
 ```python
 class PeerReview:
     def __init__(self, work_product, author_agent, reviewer_agents):
@@ -225,6 +267,7 @@ class PeerReview:
 **Pattern**: Dynamic reassignment of roles based on task needs and agent capabilities.
 
 **Process**:
+
 1. Task analysis by Primus
 2. Capability matching with available agents
 3. Role assignment proposal
@@ -232,7 +275,9 @@ class PeerReview:
 5. Handover of responsibilities
 6. Performance monitoring in new roles
 
+
 **Implementation**:
+
 ```python
 class RoleRotation:
     def __init__(self, agent_registry, task_context):
@@ -265,6 +310,7 @@ class RoleRotation:
 **Purpose**: Enable structured communication between agents.
 
 **Message Types**:
+
 - **Task Assignment**: Delegation of work
 - **Status Update**: Progress reporting
 - **Information Request**: Knowledge seeking
@@ -272,7 +318,9 @@ class RoleRotation:
 - **Decision Request**: Request for decision input
 - **Notification**: General information sharing
 
+
 **Message Structure**:
+
 ```json
 {
   "message_id": "unique-identifier",
@@ -295,22 +343,27 @@ class RoleRotation:
 **Purpose**: Provide common knowledge repository for all agents.
 
 **Access Patterns**:
+
 - Read-only for reference information
 - Read-write for collaborative artifacts
 - Append-only for logs and history
 - Transactional for critical updates
 
+
 **Implementation**:
+
 - Vector store for semantic search
 - Graph store for relationship navigation
 - Structured store for metadata and state
 - Locking mechanisms for concurrent access
+
 
 ### 5.3 Workflow Orchestration
 
 **Purpose**: Coordinate the sequence and dependencies of agent activities.
 
 **Features**:
+
 - Task dependency management
 - Parallel task execution
 - Synchronization points
@@ -318,22 +371,26 @@ class RoleRotation:
 - Progress tracking
 - Timeout management
 
+
 **Implementation**:
+
 - LangGraph-based workflow definitions
 - Event-driven state transitions
 - Persistent workflow state
 - Human intervention hooks
 
+
 ## 6. Integration with Other Components
 
-### 6.1 EDRR Cycle Integration
+### 6.1 EDRR Integration
 
-The WSDE multi-agent system integrates with the EDRR cycle:
+The WSDE multi-agent system integrates with the EDRR:
 
 - **Expand**: Designer and Worker agents generate diverse approaches
 - **Differentiate**: Evaluator and Supervisor agents analyze options
 - **Refine**: Worker and Designer agents improve selected solutions
 - **Retrospect**: All agents participate in review and learning
+
 
 ### 6.2 Memory System Integration
 
@@ -344,6 +401,7 @@ The WSDE multi-agent system leverages the hybrid memory system:
 - Agent communication history persistence
 - Decision rationale documentation
 
+
 ### 6.3 Promise System Integration
 
 The WSDE multi-agent system uses the Promise system for capability management:
@@ -352,6 +410,7 @@ The WSDE multi-agent system uses the Promise system for capability management:
 - Capability verification for role assignment
 - Authorization for sensitive operations
 - Capability discovery for task matching
+
 
 ## 7. Implementation Details
 
@@ -455,6 +514,7 @@ The WSDE multi-agent interaction system can be customized through configuration:
 - **Review Policies**: Requirements for peer review processes
 - **Communication Patterns**: Allowed message types and frequencies
 
+
 ## Current Limitations
 
 Full WSDE collaboration is still under development. Dynamic role assignment and advanced consensus mechanisms remain incomplete. Collaboration features are disabled by default via the `features.wsde_collaboration` flag in `config/default.yml`. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for progress tracking.
@@ -468,6 +528,7 @@ Planned improvements to the WSDE multi-agent interaction system:
 - **Conflict Resolution Strategies**: Advanced mechanisms for resolving agent disagreements
 - **Performance Analytics**: Metrics for team effectiveness and collaboration quality
 - **Learning from Interactions**: Improvement of interaction patterns based on past performance
+
 
 ## 10. Conclusion
 

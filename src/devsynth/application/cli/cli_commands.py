@@ -24,7 +24,7 @@ from devsynth.core.workflows import (
 )
 from devsynth.logging_setup import configure_logging
 from ..orchestration.refactor_workflow import refactor_workflow_manager
-from devsynth.logging_setup import DevSynthLogger
+from devsynth.logging_setup import DevSynthLogger, get_logger
 from devsynth.exceptions import DevSynthError
 from devsynth.config import (
     get_settings,
@@ -99,20 +99,157 @@ def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
         bridge: The UX bridge to use for displaying messages
         error: The error to handle, can be an Exception, a result dict, or a string
     """
-    if isinstance(error, Exception):
-        # Log the error for debugging
-        logger = DevSynthLogger.get_logger()
-        logger.error(f"Command error: {str(error)}", exc_info=error)
+    logger = get_logger("cli_commands")
 
-        # Display a user-friendly error message
-        bridge.display_result(f"[red]Error:[/red] {str(error)}", highlight=False)
+    # Common error patterns and their solutions
+    error_solutions = {
+        "file not found": "Make sure the file exists and the path is correct. Use absolute paths if needed.",
+        "permission denied": "Check file permissions. You may need to run with elevated privileges or change file permissions.",
+        "invalid format": "Verify the file format matches what the command expects (e.g., YAML, JSON, Markdown).",
+        "invalid parameter": "Check the command parameters. Use --help to see valid options.",
+        "connection error": "Check your internet connection. If using a proxy, verify your proxy settings.",
+        "timeout": "The operation timed out. Try again or increase the timeout setting in your configuration.",
+        "api key": "Ensure your API key is correctly set in the environment or configuration file.",
+        "out of memory": "The operation requires more memory. Try closing other applications or increasing available memory.",
+        "configuration": "There may be an issue with your configuration. Run 'devsynth doctor' to diagnose configuration problems.",
+    }
+
+    # Documentation links for different error types
+    doc_links = {
+        "file": "[link=https://devsynth.ai/docs/file-handling]File Handling Documentation[/link]",
+        "parameter": "[link=https://devsynth.ai/docs/command-parameters]Command Parameters Documentation[/link]",
+        "configuration": "[link=https://devsynth.ai/docs/configuration]Configuration Documentation[/link]",
+        "api": "[link=https://devsynth.ai/docs/api-integration]API Integration Documentation[/link]",
+        "network": "[link=https://devsynth.ai/docs/network-troubleshooting]Network Troubleshooting[/link]",
+        "memory": "[link=https://devsynth.ai/docs/performance]Performance Optimization[/link]",
+    }
+
+    if isinstance(error, Exception):
+        # Log the error for debugging with full traceback
+        logger.error(f"Command error: {str(error)}", exc_info=True)
+
+        # Get the error message
+        error_msg = str(error)
+
+        # Create a panel with the error details
+        bridge.display_result(f"[bold red]Error:[/bold red] {error_msg}", highlight=False)
+
+        # Find relevant solutions based on error message
+        solutions = []
+        relevant_docs = []
+
+        # Check for known error patterns
+        for pattern, solution in error_solutions.items():
+            if pattern.lower() in error_msg.lower():
+                solutions.append(solution)
+
+        # Add documentation links based on error type
+        for keyword, link in doc_links.items():
+            if keyword.lower() in error_msg.lower():
+                relevant_docs.append(link)
+
+        # Display solutions if found
+        if solutions:
+            bridge.display_result("[bold yellow]Suggested solutions:[/bold yellow]", highlight=False)
+            for i, solution in enumerate(solutions, 1):
+                bridge.display_result(f"  [yellow]{i}.[/yellow] {solution}", highlight=False)
+
+        # Display documentation links if found
+        if relevant_docs:
+            bridge.display_result("[bold cyan]Relevant documentation:[/bold cyan]", highlight=False)
+            for doc in relevant_docs:
+                bridge.display_result(f"  • {doc}", highlight=False)
+
+        # Always provide a general help tip
+        bridge.display_result(
+            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
+            highlight=False
+        )
+
     elif isinstance(error, dict):
         # Handle result dict with error message
         message = error.get('message', 'Unknown error')
-        bridge.display_result(f"[red]Error:[/red] {message}", highlight=False)
+        code = error.get('code', '')
+        details = error.get('details', '')
+
+        # Log the error
+        logger.error(f"Command error: {message} (Code: {code})")
+
+        # Display a structured error message
+        bridge.display_result(f"[bold red]Error {code if code else ''}:[/bold red] {message}", highlight=False)
+
+        if details:
+            bridge.display_result(f"[yellow]Details:[/yellow] {details}", highlight=False)
+
+        # Find relevant solutions based on error message
+        solutions = []
+        relevant_docs = []
+
+        # Check for known error patterns
+        for pattern, solution in error_solutions.items():
+            if pattern.lower() in message.lower() or (details and pattern.lower() in details.lower()):
+                solutions.append(solution)
+
+        # Add documentation links based on error type
+        for keyword, link in doc_links.items():
+            if keyword.lower() in message.lower() or (details and keyword.lower() in details.lower()):
+                relevant_docs.append(link)
+
+        # Display solutions if found
+        if solutions:
+            bridge.display_result("[bold yellow]Suggested solutions:[/bold yellow]", highlight=False)
+            for i, solution in enumerate(solutions, 1):
+                bridge.display_result(f"  [yellow]{i}.[/yellow] {solution}", highlight=False)
+
+        # Display documentation links if found
+        if relevant_docs:
+            bridge.display_result("[bold cyan]Relevant documentation:[/bold cyan]", highlight=False)
+            for doc in relevant_docs:
+                bridge.display_result(f"  • {doc}", highlight=False)
+
+        # Always provide a general help tip
+        bridge.display_result(
+            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
+            highlight=False
+        )
     else:
         # Handle string error message
-        bridge.display_result(f"[red]Error:[/red] {error}", highlight=False)
+        logger.error(f"Command error: {error}")
+
+        # Display a user-friendly error message
+        bridge.display_result(f"[bold red]Error:[/bold red] {error}", highlight=False)
+
+        # Find relevant solutions based on error message
+        solutions = []
+        relevant_docs = []
+
+        # Check for known error patterns
+        for pattern, solution in error_solutions.items():
+            if pattern.lower() in str(error).lower():
+                solutions.append(solution)
+
+        # Add documentation links based on error type
+        for keyword, link in doc_links.items():
+            if keyword.lower() in str(error).lower():
+                relevant_docs.append(link)
+
+        # Display solutions if found
+        if solutions:
+            bridge.display_result("[bold yellow]Suggested solutions:[/bold yellow]", highlight=False)
+            for i, solution in enumerate(solutions, 1):
+                bridge.display_result(f"  [yellow]{i}.[/yellow] {solution}", highlight=False)
+
+        # Display documentation links if found
+        if relevant_docs:
+            bridge.display_result("[bold cyan]Relevant documentation:[/bold cyan]", highlight=False)
+            for doc in relevant_docs:
+                bridge.display_result(f"  • {doc}", highlight=False)
+
+        # Always provide a general help tip
+        bridge.display_result(
+            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
+            highlight=False
+        )
 
 
 def _validate_file_path(path: str, must_exist: bool = True) -> Optional[str]:

@@ -14,63 +14,74 @@ from devsynth.exceptions import DevSynthError
 
 class RefactorAgent(BaseAgent):
     """Agent responsible for improving existing code."""
-    
+
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and refactor code."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
-        
+
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
-        
+
         You are a refactoring expert. Your task is to improve existing code.
-        
+
         Project context:
         {inputs.get('context', '')}
-        
+
         Code:
         {inputs.get('code', '')}
-        
+
         Validation report:
         {inputs.get('validation_report', '')}
-        
+
         Refactor the code to improve:
         1. Readability
         2. Maintainability
         3. Performance
         4. Security
         5. Testability
-        
+
         Provide a detailed explanation of the changes made.
         """
-        
+
         # In a real implementation, this would call the LLM through a port
         # For now, we'll just return a placeholder
         refactored_code = f"Refactored Code (created by {self.name} as {self.current_role})"
         refactor_explanation = f"Refactor Explanation (created by {self.name} as {self.current_role})"
-        
+
         # Create WSDEs with the refactored code and explanation
-        code_wsde = self.create_wsde(
-            content=refactored_code,
-            content_type="code",
-            metadata={
-                "agent": self.name,
-                "role": self.current_role,
-                "type": "refactored_code"
-            }
-        )
-        
-        explanation_wsde = self.create_wsde(
-            content=refactor_explanation,
-            content_type="text",
-            metadata={
-                "agent": self.name,
-                "role": self.current_role,
-                "type": "refactor_explanation"
-            }
-        )
-        
+        code_wsde = None
+        explanation_wsde = None
+
+        # Try to create the code WSDE, but handle any exceptions
+        try:
+            code_wsde = self.create_wsde(
+                content=refactored_code,
+                content_type="code",
+                metadata={
+                    "agent": self.name,
+                    "role": self.current_role,
+                    "type": "refactored_code"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error creating code WSDE: {str(e)}")
+
+        # Try to create the explanation WSDE, but handle any exceptions
+        try:
+            explanation_wsde = self.create_wsde(
+                content=refactor_explanation,
+                content_type="text",
+                metadata={
+                    "agent": self.name,
+                    "role": self.current_role,
+                    "type": "refactor_explanation"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error creating explanation WSDE: {str(e)}")
+
         return {
             "refactored_code": refactored_code,
             "explanation": refactor_explanation,
@@ -79,7 +90,7 @@ class RefactorAgent(BaseAgent):
             "agent": self.name,
             "role": self.current_role
         }
-    
+
     def get_capabilities(self) -> List[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()

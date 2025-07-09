@@ -1,3 +1,14 @@
+---
+title: "Adapters"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "documentation"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # Adapters
 
 This section provides documentation on the adapters used in DevSynth to connect the application to external systems and services.
@@ -12,5 +23,5 @@ The providers subdirectory contains documentation on various provider implementa
 
 For more information on the adapter pattern and how it's used in DevSynth, see:
 
-- **[Hexagonal Architecture](../architecture/hexagonal_architecture.md)**: Details on the hexagonal (ports and adapters) architecture used in DevSynth.
+- **[Hexagonal Architecture](../architecture/hexagonal_architecture.md)**: Details on the hexagonal (Hexagonal Architecture) architecture used in DevSynth.
 - **[Provider System](../architecture/provider_system.md)**: Details on the provider system for integrating external services.

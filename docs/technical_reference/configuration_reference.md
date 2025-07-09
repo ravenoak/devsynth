@@ -1,15 +1,17 @@
 ---
-title: "DevSynth Configuration Reference"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-01'
+status: published
 tags:
-  - "configuration"
-  - "reference"
-  - "settings"
-  - "technical"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+
+- configuration
+- reference
+- settings
+- technical
+
+title: DevSynth Configuration Reference
+version: 1.0.0
 ---
 
 # DevSynth Configuration Reference
@@ -26,9 +28,10 @@ This document provides a comprehensive reference for configuring DevSynth. It co
   - [Project Configuration](#project-configuration)
   - [Logging Configuration](#logging-configuration)
   - [Agent Configuration](#agent-configuration)
-  - [EDRR Configuration](#edrr-configuration)
+  - [EDRR Configuration](#EDRR-configuration)
 - [Configuration API](#configuration-api)
 - [Best Practices](#best-practices)
+
 
 ## Configuration File
 
@@ -45,7 +48,9 @@ of version locking.
 ### Example Configuration File
 
 ```yaml
-# LLM Provider Configuration
+
+# Provider Configuration
+
 provider:
   name: openai
   model: gpt-4
@@ -57,21 +62,24 @@ provider:
   timeout: 60
 
 # Memory Configuration
+
 memory:
-  vector_store: chromadb
-  document_store: tinydb
-  graph_store: rdflib
+  vector_store: ChromaDB
+  document_store: TinyDB
+  graph_store: RDFLib
   path: ~/.devsynth/memory
   persistence: true
   embedding_model: text-embedding-3-small
 
 # Project Configuration
+
 project:
   default_path: ~/projects
   templates_path: ~/.devsynth/templates
   default_template: basic
 
 # Logging Configuration
+
 logging:
   level: info
   file: ~/.devsynth/logs/devsynth.log
@@ -80,6 +88,7 @@ logging:
   backup_count: 5
 
 # Agent Configuration
+
 agents:
   documentation:
     enabled: true
@@ -98,7 +107,8 @@ agents:
     model: gpt-4
 
 # EDRR Configuration
-edrr:
+
+EDRR:
   expand:
     depth: 3
     breadth: 5
@@ -115,6 +125,7 @@ edrr:
       - code_quality
       - test_coverage
       - performance
+
 ```
 
 ## Environment Variables
@@ -124,9 +135,9 @@ DevSynth uses the following environment variables for configuration:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `DEVSYNTH_ENV` | Deployment environment | development |
-| `DEVSYNTH_PROVIDER` | Default LLM provider | openai |
-| `DEVSYNTH_LLM_PROVIDER` | LLM provider override | openai |
-| `DEVSYNTH_MEMORY_STORE` | Memory store to use | kuzu |
+| `DEVSYNTH_PROVIDER` | Default Provider | openai |
+| `DEVSYNTH_LLM_PROVIDER` | Provider override | openai |
+| `DEVSYNTH_MEMORY_STORE` | Memory store to use | Kuzu |
 | `DEVSYNTH_OPENAI_API_KEY` | OpenAI API key (config override) | None |
 | `OPENAI_API_KEY` | OpenAI API key | None |
 | `DEVSYNTH_OPENAI_MODEL` | OpenAI model to use | gpt-4 |
@@ -154,7 +165,7 @@ Environment variables take precedence over configuration file settings.
 
 ### Provider Configuration
 
-The `provider` section configures the LLM provider used by DevSynth.
+The `provider` section configures the Provider used by DevSynth.
 
 #### Basic Provider Settings
 
@@ -171,7 +182,7 @@ The `provider` section configures the LLM provider used by DevSynth.
 
 #### Retry Mechanism Settings
 
-The `provider.retry` section configures retry mechanisms for LLM provider API calls.
+The `provider.retry` section configures retry mechanisms for Provider API calls.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
@@ -183,7 +194,7 @@ The `provider.retry` section configures retry mechanisms for LLM provider API ca
 
 #### Fallback Strategy Settings
 
-The `provider.fallback` section configures fallback strategies for LLM provider API calls.
+The `provider.fallback` section configures fallback strategies for Provider API calls.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
@@ -192,7 +203,7 @@ The `provider.fallback` section configures fallback strategies for LLM provider 
 
 #### Circuit Breaker Settings
 
-The `provider.circuit_breaker` section configures circuit breaker pattern for LLM provider API calls.
+The `provider.circuit_breaker` section configures circuit breaker pattern for Provider API calls.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
@@ -206,9 +217,9 @@ The `memory` section configures DevSynth's memory system.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
-| `vector_store` | Vector storage backend | chromadb | chromadb, faiss, in_memory |
-| `document_store` | Document storage backend | tinydb | tinydb, json, in_memory |
-| `graph_store` | Graph storage backend | rdflib | rdflib, in_memory |
+| `vector_store` | Vector storage backend | ChromaDB | ChromaDB, faiss, in_memory |
+| `document_store` | Document storage backend | TinyDB | TinyDB, json, in_memory |
+| `graph_store` | Graph storage backend | RDFLib | RDFLib, in_memory |
 | `path` | Path to memory storage | ~/.devsynth/memory | Any valid directory path |
 | `persistence` | Enable memory persistence | true | true, false |
 | `embedding_model` | Model for generating embeddings | text-embedding-3-small | Any embedding model name |
@@ -250,7 +261,7 @@ Each agent can have the following settings:
 
 ### EDRR Configuration
 
-The `edrr` section configures the EDRR (Expand, Differentiate, Refine, Retrospect) cycle.
+The `EDRR` section configures the EDRR (Expand, Differentiate, Refine, Retrospect) cycle.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
@@ -268,20 +279,25 @@ DevSynth provides a programmatic API for configuration management:
 from devsynth.config import Config
 
 # Load configuration
+
 config = Config.load()
 
 # Get configuration values
+
 provider_name = config.get("provider.name")
 memory_path = config.get("memory.path")
 
 # Set configuration values
+
 config.set("provider.model", "gpt-4")
 config.set("logging.level", "debug")
 
 # Save configuration
+
 config.save()
 
 # Reset to defaults
+
 config.reset()
 ```
 
@@ -293,11 +309,13 @@ config.reset()
 - Use environment-specific configuration files for different environments
 - Restrict access to configuration files containing sensitive information
 
+
 ### Performance
 
 - Configure memory persistence based on your needs (disable for ephemeral usage)
 - Adjust model parameters (temperature, max_tokens) based on your use case
 - Use local models via LM Studio for faster development iterations
+
 
 ### Organization
 
@@ -305,11 +323,13 @@ config.reset()
 - Document any custom configuration in your project's README
 - Version control your configuration templates but not your actual configuration files with secrets
 
+
 ### Troubleshooting
 
 - Increase logging level to debug for troubleshooting
 - Check environment variables if configuration doesn't seem to be applied
 - Use `devsynth config --list` to verify current configuration
+
 
 ---
 

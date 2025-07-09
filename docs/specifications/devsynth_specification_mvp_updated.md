@@ -1,5 +1,15 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- specification
+title: DevSynth Application Technical Specification - MVP Version
+version: 1.0.0
+---
 
-## Project Naming Conventions
+# Project Naming Conventions
 
 - Python package name: `devsynth` (lowercase)
 - Display Name / Project Title: DevSynth (CamelCase)
@@ -8,6 +18,7 @@
 - Import example: `import devsynth`
 
 ---
+
 # DevSynth Application Technical Specification - MVP Version
 
 ## 1. Executive Summary
@@ -73,7 +84,7 @@ The MVP will focus on serving these core users with straightforward use cases, w
 
 The MVP architecture follows a simplified layered approach with clear separation of concerns, designed to run entirely on a developer's local machine:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │                  CLI Interface Layer                 │
 └───────────────────────────┬─────────────────────────┘
@@ -119,7 +130,7 @@ The MVP architecture follows a simplified layered approach with clear separation
 - Command parser using Click or Typer library
  - Core command set: `init`, `spec`, `test`, `code`, `run-pipeline`, `inspect`,
    `refactor`, `retrace`, `doctor`/`check`, `ingest`, `apispec`, `webapp`,
-  `dbschema`, `inspect-code`, `edrr-cycle`, `align`, `alignment-metrics`,
+  `dbschema`, `inspect-code`, `EDRR-cycle`, `align`, `alignment-metrics`,
   `inspect-config`, `validate-manifest`,
    `validate-metadata`, `test-metrics`, `generate-docs`, `serve`, and the
    `config` subcommands (including `enable-feature`).
@@ -265,7 +276,7 @@ The Promise System will be deferred to a future version. For the MVP, basic vali
 
 **MVP Workflow:**
 
-```
+```text
 ┌─────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  ┌────────────┐
 │  User   │  │ CLI Interface│  │Orchestrator │  │   Agent    │  │ LLM Backend│
 └────┬────┘  └──────┬──────┘  └──────┬──────┘  └──────┬─────┘  └──────┬─────┘
@@ -298,7 +309,7 @@ The Promise System will be deferred to a future version. For the MVP, basic vali
 
 #### 3.3.2 Error Handling Sequence
 
-```
+```text
 ┌─────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  ┌────────────┐
 │  User   │  │ CLI Interface│  │Orchestrator │  │   Agent    │  │ LLM Backend│
 └────┬────┘  └──────┬──────┘  └──────┬──────┘  └──────┬─────┘  └──────┬─────┘
@@ -455,7 +466,7 @@ testing.
 #### 4.1.2 Project Configuration
 
 **MVP Scope:**
-- Basic configuration file (.devsynth.yaml)
+- Basic configuration file (.Project Configuration)
 - LM Studio endpoint configuration
 - Project metadata storage
 - Simple user preferences
@@ -1023,7 +1034,8 @@ Continuous learning features will be deferred to a future version.
 ### 7.1 Command-Line Interface
 
 **MVP Commands:**
-```
+
+```text
 devsynth init [project_name] [--template=<template>] [--path=<path>]
 devsynth inspect [--input=<file>] [--output=<file>]
 devsynth run-pipeline [--spec=<file>] [--output=<directory>]
@@ -1056,22 +1068,29 @@ devsynth tokens [--report] [--reset]
 **MVP API:**
 
 ```python
+
 # Initialize with configuration
+
 from devsynth import DevSynth
 
 # Create a new project
+
 project = DevSynth.init_project("my_project", template="library")
 
 # Generate specifications
+
 spec = project.generate_spec(requirements="Create a function to calculate fibonacci numbers")
 
 # Generate tests
+
 tests = project.generate_tests(spec=spec)
 
 # Generate code
+
 code = project.generate_code(tests=tests)
 
 # Get token usage report
+
 token_report = project.get_token_usage()
 ```
 
@@ -1087,7 +1106,7 @@ token_report = project.get_token_usage()
 - Custom pipeline definition
 - Advanced configuration options
 
-### 7.3 Extension API
+## 7.3 Extension API
 
 **Deferred from MVP**
 
@@ -1112,6 +1131,7 @@ The agent communication protocol will be deferred to a future version.
 ### 8.1 Project Model
 
 **MVP Schema:**
+
 ```python
 class Project:
     name: str
@@ -1155,6 +1175,7 @@ class TokenUsage:
 ### 8.2 Requirement Model
 
 **MVP Schema:**
+
 ```python
 class Requirement:
     id: str
@@ -1187,6 +1208,7 @@ class RequirementSet:
 ### 8.3 Test Model
 
 **MVP Schema:**
+
 ```python
 class TestCase:
     id: str
@@ -1223,6 +1245,7 @@ class TestSuite:
 ### 8.4 Agent Model
 
 **MVP Schema:**
+
 ```python
 class Agent:
     id: str
@@ -1833,8 +1856,8 @@ Mutation testing will be deferred to a future version.
 ### 14.2 Configuration
 
 **MVP Requirements:**
-- User-level configuration (~/.devsynth.yaml)
-- Project-level configuration (.devsynth.yaml)
+- User-level configuration (~/.Project Configuration)
+- Project-level configuration (.Project Configuration)
 - Environment variable overrides
 - LM Studio endpoint configuration
 
@@ -1886,4 +1909,3 @@ Mutation testing will be deferred to a future version.
 - Uninstallation succeeds with a single command
 - No orphaned files or configurations remain
 - User data is preserved or removed as requested
-

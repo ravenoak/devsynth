@@ -8,6 +8,7 @@ tags:
   - "policies"
   - "agentic"
   - "llm"
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-05-30"
@@ -33,6 +34,7 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 
 5. **Human-Agent Collaboration**: Effective collaboration between human developers and LLM agents requires shared understanding of project structure and conventions.
 
+
 ## Core SDLC Policy Components
 
 ### 1. Repository Structure and Metadata
@@ -42,11 +44,13 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 - **Metadata Tags**: Standardized headers in documentation files with title, date, version, tags, status, and last review date
 - **Project Configuration**: A `.devsynth/project.yaml` file that describes the shape and attributes of the project
 
+
 ### 2. Requirements Documentation
 
 - **Product Requirements Document (PRD)**: Clear, testable requirements with acceptance criteria
 - **Domain Glossary**: Consistent terminology definitions to ensure shared understanding
 - **Requirements Traceability Matrix**: Links between requirements, design, implementation, and tests
+
 
 ### 3. Design Documentation
 
@@ -54,6 +58,7 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 - **Design Principles**: Guiding principles and patterns for implementation decisions
 - **API and Data Schemas**: Clear interface definitions and data structures
 - **Security Design**: Threat models, security controls, and privacy considerations
+
 
 ### 4. Development Protocols
 
@@ -63,12 +68,14 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 - **Secure Coding Guidelines**: Practices to prevent security vulnerabilities
 - **Peer Review Process**: Standards for code review and feedback
 
+
 ### 5. Testing Strategy
 
 - **Test Plan**: Overall approach to testing different aspects of the system
 - **Test Coverage Requirements**: Minimum coverage thresholds for different types of code
 - **Test-First Development**: Writing tests before implementing functionality
 - **Continuous Integration**: Automated testing on every code change
+
 
 ### 6. Deployment and Maintenance
 
@@ -78,6 +85,7 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 - **Observability**: Logging, monitoring, and alerting
 - **Rollback Procedures**: Process for reverting problematic changes
 - **Maintenance Schedule**: Regular updates and dependency management
+
 
 ## Best Practices for Agentic-Friendly Documentation
 
@@ -90,6 +98,7 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 7. **Documentation as Code**: Apply the same review and quality standards to documentation as code
 8. **Living Documentation**: Regularly update documentation to reflect current state
 
+
 ## Implementation in DevSynth
 
 DevSynth implements these SDLC policies through:
@@ -100,6 +109,7 @@ DevSynth implements these SDLC policies through:
 4. **Requirements Traceability**: Links between requirements, code, and tests
 5. **Automated Validation**: CI/CD checks for documentation quality and consistency
 6. **Regular Reviews**: Scheduled documentation reviews and updates
+
 
 ## Conclusion
 

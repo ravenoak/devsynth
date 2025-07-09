@@ -1,21 +1,20 @@
 ---
-title: "EDRR Framework: Expand, Differentiate, Refine, Retrospect"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-01'
+status: active
 tags:
-  - "architecture"
-  - "edrr"
-  - "methodology"
-  - "framework"
-status: "active"
-author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+- architecture
+- EDRR
+- methodology
+- framework
+title: 'EDRR Framework: Expand, Differentiate, Refine, Retrospect'
+version: 1.0.0
 ---
 
 # EDRR Framework: Expand, Differentiate, Refine, Retrospect
 
 ## Overview
-
 
 The EDRR (Expand, Differentiate, Refine, Retrospect) framework is a core methodology used in DevSynth for structured problem-solving and implementation. This dialectical approach ensures comprehensive exploration of solutions, critical evaluation of alternatives, focused implementation, and reflective learning.
 
@@ -57,7 +56,7 @@ The EDRR framework is implemented as a recursive, fractal structure where each m
 
 ### Example of Recursive EDRR
 
-When implementing a complex feature, the main EDRR cycle might handle the overall process, while micro-cycles address specific challenges:
+When implementing a complex feature, the main EDRR might handle the overall process, while micro-cycles address specific challenges:
 
 1. **Main Cycle - Expand Phase**: Exploring approaches for implementing the feature
    - **Micro-Cycle**: Conducting detailed research on a specific technology
@@ -83,6 +82,7 @@ When implementing a complex feature, the main EDRR cycle might handle the overal
 The Expand phase focuses on divergent thinking and comprehensive exploration of the problem space.
 
 #### Key Activities
+
 - Brainstorming multiple approaches to solving the problem
 - Exploring different implementation strategies
 - Gathering relevant documentation and examples
@@ -90,14 +90,17 @@ The Expand phase focuses on divergent thinking and comprehensive exploration of 
 - Identifying potential challenges and edge cases
 
 #### Integration Points
+
 - **WSDE Team**: Engages in collaborative brainstorming
 - **AST Analyzer**: Analyzes existing code structures
 - **Prompt Manager**: Provides templates for exploration
 - **Documentation Manager**: Retrieves relevant documentation
 
 #### Example
+
 When tasked with implementing a new feature like "vector memory storage":
-```
+
+```text
 EXPAND PHASE OUTPUT:
 1. Approach A: Use ChromaDB as the vector store backend
    - Pros: Well-documented, efficient for small to medium datasets
@@ -118,6 +121,7 @@ EXPAND PHASE OUTPUT:
 The Differentiate phase focuses on critical evaluation and comparison of the approaches identified in the Expand phase.
 
 #### Key Activities
+
 - Evaluating each approach against requirements
 - Comparing approaches based on performance, maintainability, etc.
 - Identifying trade-offs between different approaches
@@ -125,14 +129,17 @@ The Differentiate phase focuses on critical evaluation and comparison of the app
 - Documenting the decision-making process
 
 #### Integration Points
+
 - **WSDE Team**: Evaluates and compares approaches
 - **AST Analyzer**: Evaluates code quality of potential implementations
 - **Prompt Manager**: Provides templates for evaluation
 - **Documentation Manager**: Retrieves best practices documentation
 
 #### Example
+
 Continuing with the "vector memory storage" feature:
-```
+
+```sql
 DIFFERENTIATE PHASE OUTPUT:
 Evaluation Criteria:
 - Performance: Speed and efficiency for typical workloads
@@ -156,6 +163,7 @@ Rationale: Best balance of performance, maintainability, and integration ease wi
 The Refine phase focuses on implementing the selected approach with attention to detail and quality.
 
 #### Key Activities
+
 - Implementing the selected approach
 - Applying best practices and design patterns
 - Optimizing for performance and maintainability
@@ -163,20 +171,23 @@ The Refine phase focuses on implementing the selected approach with attention to
 - Documenting the implementation
 
 #### Integration Points
+
 - **WSDE Team**: Implements the selected approach
 - **AST Analyzer**: Applies code transformations for optimization
 - **Prompt Manager**: Provides templates for implementation
 - **Documentation Manager**: Retrieves implementation examples
 
 #### Example
+
 Implementing the ChromaDB vector store:
-```
+
+```text
 REFINE PHASE OUTPUT:
 Implementation Steps:
 1. Created VectorMemoryAdapter interface in domain layer
 2. Implemented ChromaDBAdapter in adapters layer
 3. Added configuration options for ChromaDB in settings
-4. Implemented vector embedding utilities
+4. Implemented Embedding utilities
 5. Created factory for instantiating the appropriate adapter
 6. Added comprehensive unit tests for all components
 7. Integrated with existing MemoryManager class
@@ -195,6 +206,7 @@ Code Quality Improvements:
 The Retrospect phase focuses on evaluating the implementation, learning from the process, and identifying improvements.
 
 #### Key Activities
+
 - Evaluating the implementation against requirements
 - Identifying lessons learned
 - Documenting challenges and solutions
@@ -202,14 +214,17 @@ The Retrospect phase focuses on evaluating the implementation, learning from the
 - Sharing knowledge with the team
 
 #### Integration Points
+
 - **WSDE Team**: Evaluates the implementation
 - **AST Analyzer**: Verifies code quality
 - **Prompt Manager**: Provides templates for evaluation
 - **Documentation Manager**: Retrieves evaluation criteria
 
 #### Example
+
 Reflecting on the ChromaDB implementation:
-```
+
+```text
 RETROSPECT PHASE OUTPUT:
 Evaluation:
 - All requirements successfully implemented
@@ -237,10 +252,11 @@ Knowledge Sharing:
 
 ## EDRR Coordinator
 
-The EDRR Coordinator orchestrates the flow between components according to the EDRR pattern. It manages the transitions between phases, ensures proper data flow, and maintains the state of the EDRR cycle.
+The EDRR Coordinator orchestrates the flow between components according to the EDRR pattern. It manages the transitions between phases, ensures proper data flow, and maintains the state of the EDRR.
 
 ### Key Responsibilities
-- Initializing and managing the EDRR cycle
+
+- Initializing and managing the EDRR
 - Coordinating component interactions in each phase
 - Managing phase transitions
 - Storing and retrieving phase-specific data
@@ -250,6 +266,7 @@ The EDRR Coordinator orchestrates the flow between components according to the E
 - Enforcing recursion depth limits and quality thresholds
 
 ### Recursive Coordination
+
 The coordinator supports recursive EDRR cycles by:
 - Creating child coordinators for micro-cycles
 - Maintaining parent-child relationships between cycles
@@ -262,6 +279,7 @@ The coordinator supports recursive EDRR cycles by:
 - Integrating results from micro-cycles back into parent cycles
 
 ### Integration with Other Components
+
 - **Memory System**: Stores and retrieves phase-specific data
 - **WSDE Team**: Coordinates agent activities in each phase
 - **AST Analyzer**: Directs code analysis and transformation activities
@@ -270,12 +288,13 @@ The coordinator supports recursive EDRR cycles by:
 
 ## EDRR Manifest
 
-The EDRR Manifest is a configuration file that defines the structure and parameters of an EDRR cycle. It allows for customization of the EDRR process for specific tasks.
+The EDRR Manifest is a configuration file that defines the structure and parameters of an EDRR. It allows for customization of the EDRR process for specific tasks.
 
 ### Manifest Structure
+
 ```yaml
 name: "Feature Implementation Cycle"
-description: "EDRR cycle for implementing a new feature"
+description: "EDRR for implementing a new feature"
 version: "1.0.0"
 phases:
   expand:
@@ -351,7 +370,7 @@ orchestration operates end-to-end.
 
 ## Related Documents
 
-- [EDRR Cycle Specification](../specifications/edrr_cycle_specification.md)
+- [EDRR Specification](../specifications/edrr_cycle_specification.md)
 - [Dialectical Reasoning](dialectical_reasoning.md)
 - [WSDE Agent Model](wsde_agent_model.md)
 - [Memory System Architecture](memory_system.md)

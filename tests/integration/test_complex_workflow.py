@@ -5,28 +5,20 @@ This test creates a project with requirements, specifications, and code, then
 analyzes the project state, determines the optimal workflow, and executes the
 workflow. It verifies that the workflow execution produces the expected results.
 """
-
 import os
 import pytest
 import tempfile
 import shutil
 from pathlib import Path
-
-from devsynth.application.code_analysis.project_state_analyzer import (
-    ProjectStateAnalyzer,
-)
+from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
 from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
-from devsynth.application.cli.cli_commands import (
-    init_cmd,
-    inspect_cmd,
-    spec_cmd,
-    test_cmd,
-    code_cmd,
-)
+from devsynth.application.cli.cli_commands import init_cmd, inspect_cmd, spec_cmd, test_cmd, code_cmd
 
 
 class TestComplexWorkflow:
-    """Test complex workflows that exercise multiple components of the system."""
+    """Test complex workflows that exercise multiple components of the system.
+
+ReqID: N/A"""
 
     @pytest.fixture
     def temp_project_dir(self):
@@ -37,44 +29,33 @@ class TestComplexWorkflow:
         finally:
             shutil.rmtree(temp_dir)
 
-    def test_complex_workflow_with_inconsistent_state(
-        self, temp_project_dir, monkeypatch
-    ):
-        """
-        Test a complex workflow with an inconsistent project state.
+    def test_complex_workflow_with_inconsistent_state_succeeds(self,
+        temp_project_dir, monkeypatch):
+        """Test a complex workflow with an inconsistent project state.
 
-        This test simulates a complex workflow with an inconsistent project state:
-        1. Initialize a new project
-        2. Create requirements
-        3. Create specifications that only partially cover the requirements
-        4. Create code that only partially implements the specifications
-        5. Analyze the project state (should detect inconsistencies)
-        6. Use the adaptive workflow manager to determine the optimal workflow
-        7. Execute the workflow
-        8. Verify that the workflow execution improves the project state
-        """
-        # Set the current working directory to the temporary project directory
+This test simulates a complex workflow with an inconsistent project state:
+1. Initialize a new project
+2. Create requirements
+3. Create specifications that only partially cover the requirements
+4. Create code that only partially implements the specifications
+5. Analyze the project state (should detect inconsistencies)
+6. Use the adaptive workflow manager to determine the optimal workflow
+7. Execute the workflow
+8. Verify that the workflow execution improves the project state
+
+ReqID: N/A"""
         original_dir = os.getcwd()
         os.chdir(temp_project_dir)
-
         try:
-            # Step 1: Initialize a new project
             with patch(
-                "devsynth.application.cli.cli_commands.bridge.ask_question",
-                side_effect=[temp_project_dir, "python", ""],
-            ), patch(
-                "devsynth.application.cli.cli_commands.bridge.confirm_choice",
-                return_value=True,
-            ):
+                'devsynth.application.cli.cli_commands.bridge.ask_question',
+                side_effect=[temp_project_dir, 'python', '']), patch(
+                'devsynth.application.cli.cli_commands.bridge.confirm_choice',
+                return_value=True):
                 init_cmd()
-
-            # Verify that the project was initialized
-            assert os.path.exists(os.path.join(temp_project_dir, ".devsynth"))
-
-            # Step 2: Create requirements
-            requirements_dir = os.path.join(temp_project_dir, "docs")
+            assert os.path.exists(os.path.join(temp_project_dir, '.devsynth'))
+            requirements_dir = os.path.join(temp_project_dir, 'docs')
             os.makedirs(requirements_dir, exist_ok=True)
-
             requirements_content = """
             # Data Processing API Requirements
             
@@ -96,11 +77,9 @@ class TestComplexWorkflow:
             3. The system shall provide a download link for exported data
             4. The system shall allow scheduling of regular exports
             """
-
-            with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
+            with open(os.path.join(requirements_dir, 'requirements.md'), 'w'
+                ) as f:
                 f.write(requirements_content)
-
-            # Step 3: Create specifications that only partially cover the requirements
             specs_content = """
             # Data Processing API Specifications
             
@@ -141,15 +120,10 @@ class TestComplexWorkflow:
               - 404 Not Found: File not found
               - 500 Internal Server Error: Processing error
             """
-
-            with open(os.path.join(temp_project_dir, "specs.md"), "w") as f:
+            with open(os.path.join(temp_project_dir, 'specs.md'), 'w') as f:
                 f.write(specs_content)
-
-            # Step 4: Create code that only partially implements the specifications
-            src_dir = os.path.join(temp_project_dir, "src")
+            src_dir = os.path.join(temp_project_dir, 'src')
             os.makedirs(src_dir, exist_ok=True)
-
-            # Create a data_ingestion.py file with partial implementation
             data_ingestion_code = """
             class DataIngestion:
                 def __init__(self, max_file_size=104857600):  # 100MB in bytes
@@ -195,14 +169,10 @@ class TestComplexWorkflow:
                     
                     return {"status": "success", "message": "JSON file uploaded successfully"}
             """
-
-            with open(os.path.join(src_dir, "data_ingestion.py"), "w") as f:
+            with open(os.path.join(src_dir, 'data_ingestion.py'), 'w') as f:
                 f.write(data_ingestion_code)
-
-            # Create tests directory with minimal tests
-            tests_dir = os.path.join(temp_project_dir, "tests")
+            tests_dir = os.path.join(temp_project_dir, 'tests')
             os.makedirs(tests_dir, exist_ok=True)
-
             test_data_ingestion_code = """
             import unittest
             from src.data_ingestion import DataIngestion
@@ -227,52 +197,29 @@ class TestComplexWorkflow:
             if __name__ == '__main__':
                 unittest.main()
             """
-
-            with open(os.path.join(tests_dir, "test_data_ingestion.py"), "w") as f:
+            with open(os.path.join(tests_dir, 'test_data_ingestion.py'), 'w'
+                ) as f:
                 f.write(test_data_ingestion_code)
-
-            # Step 5: Analyze the project state
             analyzer = ProjectStateAnalyzer(temp_project_dir)
             initial_report = analyzer.analyze()
-
-            # Verify that requirements were found
-            assert initial_report["requirements_count"] > 0
-
-            # Verify that specifications were found
-            assert initial_report["specifications_count"] > 0
-
-            # Verify that code files were found
-            assert initial_report["code_count"] > 0
-
-            # Verify that test files were found
-            assert initial_report["test_count"] > 0
-
-            # Verify that there are alignment issues
-            assert (
-                initial_report["requirements_spec_alignment"]["alignment_score"] < 1.0
-            )
-            assert initial_report["spec_code_alignment"]["implementation_score"] < 1.0
-
-            # Step 6: Use the refactor workflow manager to determine the optimal workflow
+            assert initial_report['requirements_count'] > 0
+            assert initial_report['specifications_count'] > 0
+            assert initial_report['code_count'] > 0
+            assert initial_report['test_count'] > 0
+            assert initial_report['requirements_spec_alignment'][
+                'alignment_score'] < 1.0
+            assert initial_report['spec_code_alignment']['implementation_score'
+                ] < 1.0
             adaptive_manager = RefactorWorkflowManager()
-            workflow = adaptive_manager.determine_optimal_workflow(initial_report)
-
-            # The optimal workflow should be either "specifications" or "code" due to the partial coverage
-            assert workflow in ["specifications", "code"]
-
-            # Step 7: Get suggested next steps
+            workflow = adaptive_manager.determine_optimal_workflow(
+                initial_report)
+            assert workflow in ['specifications', 'code']
             suggestions = adaptive_manager.suggest_next_steps(temp_project_dir)
-
-            # Verify that there are suggestions
             assert len(suggestions) > 0
 
-            # Step 8: Mock the execution of commands
             def mock_execute_command(command, args):
-                if command == "spec":
-                    # Simulate generating complete specifications
-                    complete_specs_content = (
-                        specs_content
-                        + """
+                if command == 'spec':
+                    complete_specs_content = specs_content + """
                     ### Process JSON Endpoint
                     - **Endpoint**: POST /api/process/json
                     - **Description**: Processes a previously uploaded JSON file
@@ -308,12 +255,11 @@ class TestComplexWorkflow:
                       - 404 Not Found: No data to export
                       - 500 Internal Server Error: Export error
                     """
-                    )
-                    with open(os.path.join(temp_project_dir, "specs.md"), "w") as f:
+                    with open(os.path.join(temp_project_dir, 'specs.md'), 'w'
+                        ) as f:
                         f.write(complete_specs_content)
-                    return {"status": "success"}
-                elif command == "code":
-                    # Simulate generating complete code
+                    return {'status': 'success'}
+                elif command == 'code':
                     data_processing_code = """
                     class DataProcessing:
                         def __init__(self):
@@ -327,9 +273,9 @@ class TestComplexWorkflow:
                             # Implementation for JSON processing
                             return {"status": "success", "message": "JSON file processed successfully"}
                     """
-                    with open(os.path.join(src_dir, "data_processing.py"), "w") as f:
+                    with open(os.path.join(src_dir, 'data_processing.py'), 'w'
+                        ) as f:
                         f.write(data_processing_code)
-
                     data_export_code = """
                     class DataExport:
                         def __init__(self):
@@ -343,53 +289,39 @@ class TestComplexWorkflow:
                             # Implementation for JSON export
                             return {"status": "success", "message": "Data exported as JSON successfully"}
                     """
-                    with open(os.path.join(src_dir, "data_export.py"), "w") as f:
+                    with open(os.path.join(src_dir, 'data_export.py'), 'w'
+                        ) as f:
                         f.write(data_export_code)
-                    return {"status": "success"}
-                return {"status": "error", "message": f"Unknown command: {command}"}
-
-            # Patch the execute_command method
-            monkeypatch.setattr(
-                adaptive_manager, "execute_command", mock_execute_command
-            )
-
-            # Step 9: Execute the refactor workflow
-            result = adaptive_manager.execute_refactor_workflow(temp_project_dir)
-
-            # Verify that the workflow execution was successful
-            assert result["status"] == "success"
-
-            # Step 10: Analyze the project state again
+                    return {'status': 'success'}
+                return {'status': 'error', 'message':
+                    f'Unknown command: {command}'}
+            monkeypatch.setattr(adaptive_manager, 'execute_command',
+                mock_execute_command)
+            result = adaptive_manager.execute_refactor_workflow(
+                temp_project_dir)
+            assert result['status'] == 'success'
             final_report = analyzer.analyze()
-
-            # Verify that the alignment scores have improved
-            assert (
-                final_report["requirements_spec_alignment"]["alignment_score"]
-                > initial_report["requirements_spec_alignment"]["alignment_score"]
-            )
-            assert (
-                final_report["spec_code_alignment"]["implementation_score"]
-                > initial_report["spec_code_alignment"]["implementation_score"]
-            )
-
-            # Print the initial and final alignment scores for debugging
+            assert final_report['requirements_spec_alignment'][
+                'alignment_score'] > initial_report[
+                'requirements_spec_alignment']['alignment_score']
+            assert final_report['spec_code_alignment']['implementation_score'
+                ] > initial_report['spec_code_alignment'][
+                'implementation_score']
             print(
                 f"Initial requirements-spec alignment: {initial_report['requirements_spec_alignment']['alignment_score']}"
-            )
+                )
             print(
                 f"Final requirements-spec alignment: {final_report['requirements_spec_alignment']['alignment_score']}"
-            )
+                )
             print(
                 f"Initial spec-code alignment: {initial_report['spec_code_alignment']['implementation_score']}"
-            )
+                )
             print(
                 f"Final spec-code alignment: {final_report['spec_code_alignment']['implementation_score']}"
-            )
-
+                )
         finally:
-            # Restore the original working directory
             os.chdir(original_dir)
 
 
-if __name__ == "__main__":
-    pytest.main(["-v", "test_complex_workflow.py"])
+if __name__ == '__main__':
+    pytest.main(['-v', 'test_complex_workflow.py'])

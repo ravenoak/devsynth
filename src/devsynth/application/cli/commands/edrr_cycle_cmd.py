@@ -85,7 +85,7 @@ def edrr_cycle_cmd(
         ux_bridge.print("[bold]Starting Enhanced EDRR cycle[/bold]")
         memory_adapter = TinyDBMemoryAdapter()
         memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
-        wsde_team = WSDETeam()
+        wsde_team = WSDETeam(name="EdrrCycleCmdTeam")
         code_analyzer = CodeAnalyzer()
         ast_transformer = AstTransformer()
         prompt_manager = PromptManager()

@@ -1,16 +1,18 @@
 ---
-title: "Configuration Loader Specification"
-date: "2025-06-16"
-version: "0.1.0"
+author: DevSynth Team
+date: '2025-06-16'
+status: draft
 tags:
-  - "specification"
-  - "configuration"
-  - "pseudocode"
-status: "draft"
-author: "DevSynth Team"
+
+- specification
+- configuration
+- pseudocode
+
+title: Configuration Loader Specification
+version: 0.1.0
 ---
 
-# Unified Configuration Loader
+# Configuration Loader Specification
 
 ```pseudocode
 class DevSynthConfig:

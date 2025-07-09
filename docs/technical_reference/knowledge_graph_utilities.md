@@ -1,3 +1,16 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- technical-reference
+
+title: Knowledge Graph Utilities in DevSynth
+version: 1.0.0
+---
+
 # Knowledge Graph Utilities in DevSynth
 
 This document provides an overview of the knowledge graph utilities in DevSynth and how to use them with the WSDE model for dialectical reasoning.
@@ -135,6 +148,7 @@ def apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, Any],
     4. A synthesis (improved solution) is created that incorporates knowledge graph insights
     5. A final evaluation assesses alignment with knowledge graph best practices
     
+
     Args:
         task: The task for which dialectical reasoning is being applied
         critic_agent: The agent responsible for applying dialectical reasoning
@@ -150,24 +164,29 @@ def apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, Any],
 Here's an example of how to use the knowledge graph utilities with the WSDE model for dialectical reasoning:
 
 ```python
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.WSDE import WSDETeam
 from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegration
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 
 # Create a WSDE team
+
 team = WSDETeam()
 
 # Add agents to the team
+
 team.add_agent(agent1)
 team.add_agent(agent2)
 
 # Create a memory adapter with a knowledge graph-capable backend
-memory_adapter = MemorySystemAdapter.create("rdflib")
+
+memory_adapter = MemorySystemAdapter.create("RDFLib")
 
 # Create a WSDE memory integration
+
 wsde_memory = WSDEMemoryIntegration(memory_adapter, team)
 
 # Create a task
+
 task = {
     "id": "task1",
     "type": "code_generation",
@@ -176,6 +195,7 @@ task = {
 }
 
 # Add a solution to the team
+
 solution = {
     "id": "solution1",
     "agent": "agent1",
@@ -185,9 +205,11 @@ solution = {
 team.add_solution(task, solution)
 
 # Apply dialectical reasoning with knowledge graph integration
+
 result = team.apply_dialectical_reasoning_with_knowledge_graph(task, critic_agent, wsde_memory)
 
 # Access the results
+
 thesis = result["thesis"]
 antithesis = result["antithesis"]
 synthesis = result["synthesis"]
@@ -195,6 +217,7 @@ evaluation = result["evaluation"]
 knowledge_graph_insights = result["knowledge_graph_insights"]
 
 # Use the knowledge graph utilities directly
+
 related_concepts = wsde_memory.query_related_concepts("authentication")
 concept_relationships = wsde_memory.query_concept_relationships("authentication", "security")
 security_concepts = wsde_memory.query_by_concept_type("security_concept")
@@ -251,10 +274,12 @@ Using knowledge graph utilities with the WSDE model for dialectical reasoning pr
 
 5. **Consistent Knowledge Access**: All agents in the team can access the same knowledge, ensuring consistency in reasoning and decision-making.
 
+
 ## Current Limitations
 
 - Graph querying functions are minimal and lack performance optimizations.
 - More complex reasoning over graph relationships is still experimental.
+
 
 ## Conclusion
 

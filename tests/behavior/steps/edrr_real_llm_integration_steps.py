@@ -37,9 +37,14 @@ def context():
 
 # Skip scenarios if no LLM provider is configured
 @pytest.fixture(autouse=True)
-def check_llm_provider(request):
+def check_llm_provider(request, monkeypatch):
     """Skip tests marked with requires_llm_provider if no provider is configured."""
-    if request.node.get_closest_marker('requires_llm_provider'):
+    # Unset the mock environment variables set by the patch_env_and_cleanup fixture
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("LM_STUDIO_ENDPOINT", raising=False)
+
+    # Check if the test is marked with requires_llm_provider
+    if request.node.get_closest_marker('requires_llm_provider') or 'requires_llm_provider' in request.keywords:
         if not os.environ.get("OPENAI_API_KEY") and not os.environ.get("LM_STUDIO_ENDPOINT"):
             pytest.skip("No LLM provider configured. Set OPENAI_API_KEY or LM_STUDIO_ENDPOINT.")
 
@@ -50,7 +55,7 @@ def step_initialized_edrr_coordinator_with_real_llm(context):
     context.memory_manager = MemoryManager(adapters={"tinydb": context.memory_adapter})
 
     # Create WSDE team
-    context.wsde_team = WSDETeam()
+    context.wsde_team = WSDETeam(name="EdrrRealLlmIntegrationStepsTeam")
 
     # Get a real LLM provider
     context.provider = get_provider(fallback=True)

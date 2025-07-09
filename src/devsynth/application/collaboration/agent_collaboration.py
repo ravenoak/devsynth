@@ -219,7 +219,7 @@ class AgentCollaborationSystem:
         Returns:
             The created team
         """
-        team = WSDETeam()
+        team = WSDETeam(name="AgentCollaborationTeam")
 
         # Add agents to the team
         for agent_id in agent_ids:

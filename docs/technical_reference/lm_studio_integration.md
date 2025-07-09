@@ -1,3 +1,14 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+- technical-reference
+title: LM Studio Integration
+version: 1.0.0
+---
+
 # LM Studio Integration
 
 This document describes the integration between DevSynth and LM Studio, including how to configure and use LM Studio models with DevSynth.
@@ -20,7 +31,7 @@ DevSynth provides several configuration options for the LM Studio integration:
 
 | Setting | Environment Variable | Description | Default Value |
 |---------|---------------------|-------------|---------------|
-| Provider | DEVSYNTH_LLM_PROVIDER | The LLM provider to use | "lmstudio" |
+| Provider | DEVSYNTH_LLM_PROVIDER | The Provider to use | "lmstudio" |
 | API Base | DEVSYNTH_LLM_API_BASE | Base URL for the LM Studio API | "http://localhost:1234/v1" |
 | Model | DEVSYNTH_LLM_MODEL | Model name to use (empty for auto-selection) | "" |
 | Max Tokens | DEVSYNTH_LLM_MAX_TOKENS | Maximum tokens for responses | 1024 |
@@ -30,7 +41,9 @@ DevSynth provides several configuration options for the LM Studio integration:
 You can set these options using environment variables or the `config` command:
 
 ```bash
+
 # Set using environment variables
+
 export DEVSYNTH_LLM_PROVIDER=lmstudio
 export DEVSYNTH_LLM_API_BASE=http://localhost:1234/v1
 export DEVSYNTH_LLM_MODEL=my_model
@@ -39,6 +52,7 @@ export DEVSYNTH_LLM_TEMPERATURE=0.8
 export DEVSYNTH_LLM_AUTO_SELECT_MODEL=true
 
 # Set using config command
+
 devsynth config --key llm_provider --value lmstudio
 devsynth config --key llm_api_base --value http://localhost:1234/v1
 devsynth config --key llm_model --value my_model

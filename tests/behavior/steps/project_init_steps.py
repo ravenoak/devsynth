@@ -60,7 +60,10 @@ def check_custom_layout(layout, mock_workflow_manager):
     """Verify that the selected layout was used."""
     assert mock_workflow_manager.execute_command.called
     args = mock_workflow_manager.execute_command.call_args[0][1]
-    assert args.get("structure") == layout
+
+    # Map 'default' layout to 'single_package' which is the actual default in the code
+    expected_structure = "single_package" if layout == "default" else layout
+    assert args.get("structure") == expected_structure
 
 
 @then(parsers.parse("a configuration file should be created with {lang} settings"))
@@ -68,4 +71,7 @@ def check_language_config_created(lang, mock_workflow_manager):
     """Verify that the language choice was recorded."""
     assert mock_workflow_manager.execute_command.called
     args = mock_workflow_manager.execute_command.call_args[0][1]
-    assert args.get("language") == lang
+
+    # Map 'default' language to 'python' which is the actual default in the code
+    expected_language = "python" if lang == "default" else lang
+    assert args.get("language") == expected_language

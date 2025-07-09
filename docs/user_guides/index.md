@@ -1,17 +1,17 @@
 ---
-title: "DevSynth User Guides"
-date: "2024-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2024-06-01'
+last_reviewed: '2024-06-01'
+status: published
 tags:
-  - "user-guides"
-  - "documentation"
-  - "usage"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2024-06-01"
+- user-guides
+- documentation
+- usage
+title: DevSynth User Guides
+version: 1.0.0
 ---
 
-# User Guides
+# DevSynth User Guides
 
 This section provides comprehensive guides for users of DevSynth, covering general usage, the command-line interface (CLI), and configuration options.
 
@@ -44,5 +44,5 @@ If you're new to DevSynth, we recommend starting with the [Getting Started](../g
 - [Getting Started](../getting_started/index.md) - Essential information for getting started with DevSynth
 - [Developer Guides](../developer_guides/index.md) - Information for developers contributing to DevSynth
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
-- [Provider System](../architecture/provider_system.md) - Details on the LLM provider system used in DevSynth
+- [Provider System](../architecture/provider_system.md) - Details on the Provider system used in DevSynth
 - [CLI ↔ WebUI Mapping](../architecture/cli_webui_mapping.md) - Equivalent WebUI actions for CLI commands

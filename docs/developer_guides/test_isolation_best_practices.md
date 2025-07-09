@@ -1,3 +1,16 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- developer-guide
+
+title: Test Isolation Best Practices
+version: 1.0.0
+---
+
 # Test Isolation Best Practices
 
 ## Overview
@@ -7,9 +20,11 @@ This document outlines best practices for ensuring proper test isolation in the 
 ## Problem
 
 During test execution, random `.devsynth/` directories were being created in various locations, including:
+
 - The current working directory
 - The user's home directory
 - Other unexpected locations
+
 
 These directories were not always properly cleaned up after tests, leading to pollution of the developer's environment and potential interference between tests.
 
@@ -31,6 +46,7 @@ We've implemented several measures to ensure proper test isolation:
 
 5. **Comprehensive Cleanup**: Added cleanup code to all test fixtures to remove any stray directories that might be created during tests.
 
+
 ## Memory Store Isolation
 
 Memory stores like `JSONFileStore` and `ChromaDBStore` need special handling to ensure proper test isolation:
@@ -43,12 +59,14 @@ The `JSONFileStore` has been updated to respect test isolation:
 2. The `_load_items()` method returns an empty dictionary in test environments without accessing the file system.
 3. The `_save_items()` method skips file operations in test environments.
 
+
 ### ChromaDBStore
 
 The `ChromaDBStore` has been updated to use an in-memory client in test environments:
 
-1. In test environments with `DEVSYNTH_NO_FILE_LOGGING` set, it uses `chromadb.EphemeralClient()` instead of `chromadb.PersistentClient()`.
+1. In test environments with `DEVSYNTH_NO_FILE_LOGGING` set, it uses `ChromaDB.EphemeralClient()` instead of `ChromaDB.PersistentClient()`.
 2. This prevents the creation of directories and files on disk during tests.
+
 
 ### Best Practices for Memory Stores
 
@@ -58,6 +76,7 @@ When implementing or using memory stores:
 2. Provide in-memory alternatives for test environments.
 3. Use temporary directories for tests that need to create files.
 4. Clean up any resources created during tests.
+
 
 ## General Best Practices
 
@@ -127,17 +146,20 @@ def my_fixture():
 Avoid implicit directory creation. Always use explicit functions like `os.makedirs()` to create directories, and only create them when necessary:
 
 ```python
+
 # Bad - implicit directory creation
+
 with open(os.path.join(some_dir, "file.txt"), "w") as f:
     f.write("content")
 
 # Good - explicit directory creation
+
 os.makedirs(some_dir, exist_ok=True)
 with open(os.path.join(some_dir, "file.txt"), "w") as f:
     f.write("content")
 ```
 
-### 5. Handle Cleanup Errors Gracefully
+## 5. Handle Cleanup Errors Gracefully
 
 When cleaning up directories, handle errors gracefully to avoid failing tests due to cleanup issues:
 
@@ -157,6 +179,7 @@ The project includes tests specifically designed to verify that test isolation i
 2. Global configuration is isolated during tests.
 3. Memory paths are isolated during tests.
 4. When file logging is disabled, no log directories are created.
+
 
 If you make changes to the test isolation system, ensure these tests still pass.
 

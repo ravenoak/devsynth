@@ -44,7 +44,7 @@ def create_mock_agent(name, expertise):
 @given("a WSDE team with multiple agents")
 def wsde_team_with_multiple_agents(context):
     """Create a WSDE team with multiple agents."""
-    context.team = WSDETeam()
+    context.team = WSDETeam(name="TestNonHierarchicalCollaborationStepsTeam")
     
     # Create agents with different expertise areas
     code_agent = create_mock_agent("CodeAgent", ["python", "coding", "algorithms"])

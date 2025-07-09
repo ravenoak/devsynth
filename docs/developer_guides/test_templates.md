@@ -1,16 +1,18 @@
 ---
-title: "Test Templates in DevSynth"
-date: "2025-05-25"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-05-25'
+last_reviewed: '2025-05-25'
+status: published
 tags:
-  - "testing"
-  - "templates"
-  - "TDD"
-  - "BDD"
-  - "best-practices"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-05-25"
+
+- testing
+- templates
+- TDD
+- BDD
+- best-practices
+
+title: Test Templates in DevSynth
+version: 1.0.0
 ---
 
 # Test Templates in DevSynth
@@ -28,27 +30,35 @@ Test templates are located in the `tests/templates/` directory. This location wa
 The decision to organize test templates within the `tests/templates/` directory was based on several factors:
 
 **Thesis (Keep templates in tests/):**
+
 - Templates are closely related to tests and should be kept near where they'll be used
 - Developers will naturally look for test examples in the tests directory
 - Proximity to actual tests makes templates more discoverable
 
+
 **Antithesis (Move templates to a dedicated directory):**
+
 - Templates are not tests themselves and don't belong in a test directory
 - Test runners might try to run template files as actual tests
 - A dedicated templates directory provides a clear separation of concerns
 - The project already has a convention for templates in `tests/templates/`
 
+
 **Synthesis (Final Decision):**
+
 - Templates should be in a dedicated directory to clearly separate them from actual tests
 - The location should follow existing project conventions for templates
 - The templates should be well-documented and easily discoverable
 - The `tests/templates/` directory provides the best balance of these considerations
 
+
 This approach ensures that:
+
 1. Test templates are not accidentally run as tests by test runners
 2. Templates are organized according to project conventions
 3. There is a clear separation between templates and actual tests
 4. Templates are still easily discoverable through documentation
+
 
 ## 3. Template Organization
 
@@ -58,6 +68,7 @@ The test templates are organized into subdirectories based on the type of test:
 - `integration/`: Templates for integration tests
 - `behavior/`: Templates for behavior tests (BDD)
 
+
 Each subdirectory contains templates specific to that type of test, and the root directory contains a README.md file with usage instructions.
 
 ## 4. Using Templates
@@ -65,16 +76,21 @@ Each subdirectory contains templates specific to that type of test, and the root
 To use a template, copy it to the appropriate location in the `tests/` directory and customize it for your specific needs. For example:
 
 ```bash
+
 # Copy a unit test template
+
 cp tests/templates/unit/unit_test_template.py tests/unit/test_my_module.py
 
 # Copy an integration test template
+
 cp tests/templates/integration/integration_test_template.py tests/integration/test_my_integration.py
 
 # Copy a BDD feature template
+
 cp tests/templates/behavior/feature_template.feature tests/behavior/features/my_feature.feature
 
 # Copy a BDD step definitions template
+
 cp tests/templates/behavior/step_definitions_template.py tests/behavior/steps/test_my_feature_steps.py
 ```
 
@@ -88,6 +104,7 @@ Each template includes:
 2. Examples of different types of tests (success cases, error cases, etc.)
 3. Placeholders for test code
 4. Comments explaining the purpose of each section
+
 
 Templates follow best practices like the Arrange-Act-Assert pattern and include examples of fixtures, parameterized tests, and other pytest features.
 
@@ -103,6 +120,7 @@ If you need to create a new template:
 6. Add comments explaining the purpose of each section
 7. Update the README.md file to include the new template
 
+
 ## 7. Best Practices
 
 When using templates to create tests, follow these best practices:
@@ -115,6 +133,7 @@ When using templates to create tests, follow these best practices:
 6. **Descriptive Names**: Use descriptive names for test functions and variables
 7. **Arrange-Act-Assert**: Follow the Arrange-Act-Assert pattern for clear test structure
 8. **Dialectical Reasoning**: Consider multiple perspectives in test design
+
 
 For more details on testing approaches, see the [TDD/BDD Approach Documentation](/docs/developer_guides/tdd_bdd_approach.md).
 

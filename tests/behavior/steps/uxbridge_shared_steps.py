@@ -67,6 +67,16 @@ def parity_context(monkeypatch):
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
+    # Add missing Streamlit attributes
+    st.empty = MagicMock(return_value=MagicMock())
+    st.info = MagicMock()
+    st.error = MagicMock()
+    st.warning = MagicMock()
+    st.success = MagicMock()
+    st.number_input = MagicMock(return_value=1)
+    st.radio = MagicMock(return_value="option1")
+    st.multiselect = MagicMock(return_value=["option1"])
+    st.file_uploader = MagicMock(return_value=None)
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     import devsynth.interface.webui as webui

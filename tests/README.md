@@ -5,6 +5,78 @@ This directory contains tests for the DevSynth project, organized into different
 - **Unit Tests**: Tests for individual components in isolation (`tests/unit/`)
 - **Integration Tests**: Tests for interactions between components (`tests/integration/`)
 - **Behavior Tests**: Tests for user-facing features using BDD (`tests/behavior/`)
+- **Standalone Tests**: Special-purpose tests that don't fit the other categories (`tests/standalone/`)
+
+## Test Organization
+
+### Directory Structure
+
+The test directory follows a standardized structure:
+
+```
+tests/
+├── __init__.py                 # Package initialization
+├── conftest.py                 # Global pytest configuration
+├── conftest_extensions.py      # Extensions to pytest configuration
+├── README.md                   # This documentation file
+├── behavior/                   # Behavior-driven tests (BDD)
+│   ├── __init__.py
+│   ├── features/               # Feature files (.feature)
+│   │   ├── __init__.py
+│   │   └── <feature_area>/     # Feature files grouped by area
+│   │       ├── __init__.py
+│   │       └── <feature>.feature
+│   ├── steps/                  # Step definitions for features
+│   │   ├── __init__.py
+│   │   └── test_<feature>_steps.py
+│   └── custom_steps/           # Custom step definitions (legacy)
+│       └── __init__.py
+├── fixtures/                   # Shared test fixtures
+│   └── __init__.py
+├── integration/                # Integration tests
+│   ├── __init__.py
+│   └── <feature_area>/         # Integration tests grouped by area
+│       ├── __init__.py
+│       └── test_<feature>.py
+├── standalone/                 # Special-purpose tests
+│   └── __init__.py
+└── unit/                       # Unit tests
+    ├── __init__.py
+    └── <module_path>/          # Unit tests follow source structure
+        ├── __init__.py
+        └── test_<module>.py
+```
+
+### Standard Patterns
+
+The following patterns are used for test file placement:
+
+1. **Unit Tests**: `tests/unit/<module_path>/test_<module_name>.py`
+   - Unit tests follow the same directory structure as the source code
+   - Example: `src/devsynth/domain/models/wsde.py` → `tests/unit/domain/models/test_wsde.py`
+
+2. **Integration Tests**: `tests/integration/<feature_area>/test_<feature_name>.py`
+   - Integration tests are grouped by feature area
+   - Example: `tests/integration/edrr/test_wsde_edrr_integration.py`
+
+3. **Behavior Tests**:
+   - Feature files: `tests/behavior/features/<feature_area>/<feature_name>.feature`
+   - Step definitions: `tests/behavior/steps/test_<feature_name>_steps.py`
+   - Example: `tests/behavior/features/examples/simple_addition.feature` and `tests/behavior/steps/test_simple_addition_steps.py`
+
+### Purpose of __init__.py Files
+
+Each test directory contains an `__init__.py` file that serves two purposes:
+
+1. Makes the directory a proper Python package for import resolution
+2. Contains a docstring that describes the purpose of the tests in that directory
+
+Example:
+```python
+"""
+Unit tests for interface components including CLI, API, and web UI.
+"""
+```
 
 To execute the entire suite run:
 
@@ -137,7 +209,7 @@ def is_my_resource_available() -> bool:
     # Check environment variable override
     if os.environ.get("DEVSYNTH_RESOURCE_MY_RESOURCE_AVAILABLE", "true").lower() == "false":
         return False
-    
+
     # Actual availability check
     try:
         # Check if the resource is available

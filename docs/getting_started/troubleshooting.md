@@ -24,7 +24,7 @@ Ensure your environment is running **Python 3.11 or higher**. Managing dependenc
 
 - [Installation Issues](#installation-issues)
 - [Configuration Issues](#configuration-issues)
-- [LLM Provider Issues](#llm-provider-issues)
+- [Provider Issues](#llm-provider-issues)
 - [Memory System Issues](#memory-system-issues)
 - [Command Execution Issues](#command-execution-issues)
 - [Performance Issues](#performance-issues)
@@ -89,7 +89,7 @@ $ devsynth doctor
 All configuration files are valid.
 ```
 
-## LLM Provider Issues
+## Provider Issues
 
 ### Connection Errors with LM Studio
 
@@ -138,7 +138,7 @@ All configuration files are valid.
 **Issue**: Memory items not persisting between sessions.
 
 **Solution**:
-- Ensure you're using a persistent memory store type (file or chromadb)
+- Ensure you're using a persistent memory store type (file or ChromaDB)
 - Check the memory file path configuration
 - Verify file permissions for the memory directory
 - Make sure you're properly saving items before ending the session

@@ -1,3 +1,17 @@
+---
+author: DevSynth Team
+date: '2025-07-07'
+last_reviewed: '2025-07-07'
+status: published
+tags:
+
+- technical-reference
+- configuration
+
+title: DevSynth Configuration Examples
+version: 1.0.0
+---
+
 # DevSynth Configuration Examples
 
 This document provides examples of common configuration patterns for DevSynth projects, focusing on Phase 1 features.
@@ -7,7 +21,9 @@ This document provides examples of common configuration patterns for DevSynth pr
 A minimal configuration file for a Python project:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 version: "1.0"
 structure: "single_package"
 language: "python"
@@ -17,7 +33,9 @@ goals: "Create a web application with user authentication and database integrati
 Or in TOML format:
 
 ```toml
+
 # pyproject.toml
+
 [tool.devsynth]
 version = "1.0"
 structure = "single_package"
@@ -32,7 +50,9 @@ goals = "Create a web application with user authentication and database integrat
 Enable the EDRR framework with default settings:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 features:
   edrr_framework: true
 ```
@@ -40,7 +60,9 @@ features:
 Enable the EDRR framework with custom settings:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 features:
   edrr_framework: true
   micro_edrr_cycles: true
@@ -56,12 +78,14 @@ edrr_settings:
     retrospect: 0.8
 ```
 
-### WSDE Multi-Agent Workflows Configuration
+## WSDE Multi-Agent Workflows Configuration
 
 Enable WSDE collaboration with default settings:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 features:
   wsde_collaboration: true
 ```
@@ -69,7 +93,9 @@ features:
 Enable WSDE collaboration with custom settings:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 features:
   wsde_collaboration: true
   wsde_peer_review: true
@@ -85,12 +111,14 @@ wsde_settings:
     primus: 0.1
 ```
 
-### UXBridge Configuration
+## UXBridge Configuration
 
 Enable WebUI using UXBridge:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 features:
   uxbridge_webui: true
 uxbridge_settings:
@@ -101,7 +129,9 @@ uxbridge_settings:
 Enable Agent API using UXBridge:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 features:
   uxbridge_agent_api: true
 uxbridge_settings:
@@ -115,7 +145,9 @@ uxbridge_settings:
 A complete configuration example with all Phase 1 features enabled:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 version: "1.0"
 structure: "single_package"
 language: "python"
@@ -142,7 +174,7 @@ features:
   uxbridge_webui: true
   uxbridge_agent_api: true
 
-memory_store_type: "chromadb"
+memory_store_type: "ChromaDB"
 offline_mode: false
 
 edrr_settings:
@@ -180,27 +212,32 @@ DevSynth validates your configuration and provides helpful error messages if the
 - `webui_port` and `api_port` must be between 1024 and 65535
 - `phase_weights` and `voting_weights` must be dictionaries with appropriate values
 
+
 If invalid values are provided, DevSynth will log a warning and use default values instead.
 
-## LLM Provider Integration Configuration
+## Provider Integration Configuration
 
-Configure LLM provider integration with retry mechanisms, fallback strategies, and circuit breaker pattern:
+Configure Provider integration with retry mechanisms, fallback strategies, and circuit breaker pattern:
 
 ### Basic Provider Configuration
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 provider_type: "openai"  # or "lm_studio"
 openai_api_key: "your-api-key"  # or use environment variable
 lm_studio_endpoint: "http://127.0.0.1:1234"  # for local LM Studio
 ```
 
-### Retry Mechanism Configuration
+## Retry Mechanism Configuration
 
-Configure retry mechanisms for LLM provider API calls:
+Configure retry mechanisms for Provider API calls:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 provider_retry_settings:
   max_retries: 3
   initial_delay: 1.0
@@ -209,35 +246,41 @@ provider_retry_settings:
   jitter: true
 ```
 
-### Fallback Strategy Configuration
+## Fallback Strategy Configuration
 
-Configure fallback strategies for LLM provider API calls:
+Configure fallback strategies for Provider API calls:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 provider_fallback_settings:
   enabled: true
   order: ["openai", "lm_studio"]  # Try OpenAI first, then LM Studio
 ```
 
-### Circuit Breaker Configuration
+## Circuit Breaker Configuration
 
-Configure circuit breaker pattern for LLM provider API calls:
+Configure circuit breaker pattern for Provider API calls:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 provider_circuit_breaker_settings:
   enabled: true
   failure_threshold: 5
   recovery_timeout: 60.0
 ```
 
-### Complete LLM Provider Configuration
+## Complete Provider Configuration
 
-A complete configuration example with all LLM provider integration features:
+A complete configuration example with all Provider integration features:
 
 ```yaml
+
 # .devsynth/devsynth.yml
+
 provider_type: "openai"
 openai_api_key: "your-api-key"
 lm_studio_endpoint: "http://127.0.0.1:1234"
@@ -264,16 +307,21 @@ provider_circuit_breaker_settings:
 You can also configure DevSynth using environment variables, which take precedence over configuration files:
 
 ```bash
+
 # Enable EDRR framework
+
 export DEVSYNTH_FEATURE_EDRR_FRAMEWORK=true
 
 # Set WSDE team size
+
 export DEVSYNTH_WSDE_TEAM_SIZE=7
 
 # Set UXBridge default interface
+
 export DEVSYNTH_UXBRIDGE_DEFAULT_INTERFACE=webui
 
-# Configure LLM provider integration
+# Configure Provider integration
+
 export DEVSYNTH_PROVIDER_TYPE=openai
 export OPENAI_API_KEY=your-api-key
 export DEVSYNTH_PROVIDER_MAX_RETRIES=3

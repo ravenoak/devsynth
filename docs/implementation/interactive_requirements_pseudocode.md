@@ -1,17 +1,19 @@
 ---
-title: "Interactive Requirements Collection Pseudocode"
-date: "2025-06-16"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-16'
+last_reviewed: '2025-06-16'
+status: draft
 tags:
-  - "implementation"
-  - "pseudocode"
-  - "uxbridge"
-status: "draft"
-author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+
+- implementation
+- pseudocode
+- uxbridge
+
+title: Interactive Requirements Collection Pseudocode
+version: 1.0.0
 ---
 
-# Interactive Requirements Collection
+# Interactive Requirements Collection Pseudocode
 
 The CLI and WebUI gather requirements using the concrete `UXBridge` interface and
 store results with `TinyDBMemoryAdapter`.
@@ -22,11 +24,10 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMem
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-
 class RequirementsCollector:
     def __init__(self, bridge: UXBridge) -> None:
         self.bridge = bridge
-        self.memory = MemoryManager(adapters={"tinydb": TinyDBMemoryAdapter()})
+        self.memory = MemoryManager(adapters={"TinyDB": TinyDBMemoryAdapter()})
 
     def gather(self) -> None:
         name = self.bridge.ask_question("Project name?")
@@ -37,7 +38,7 @@ class RequirementsCollector:
                 content={"name": name, "language": language, "features": features},
                 memory_type=MemoryType.WORKING,
             )
-            self.memory.adapters["tinydb"].store(item)
+            self.memory.adapters["TinyDB"].store(item)
             self.bridge.display_result("Requirements saved")
         else:
             self.bridge.display_result("Cancelled")

@@ -1,3 +1,15 @@
+---
+title: "UXBridge Architecture"
+date: "2025-07-07"
+version: "1.0.0"
+tags:
+  - "architecture"
+
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-07-07"
+---
+
 # UXBridge Architecture
 
 ## Overview
@@ -13,6 +25,7 @@ The UXBridge serves as an abstraction layer between the application logic and th
 3. **Enable easy extension**: New user interfaces can be added without modifying the core application logic
 4. **Facilitate testing**: Core logic can be tested independently of the UI
 
+
 ## Architecture Components
 
 ### UXBridge Abstract Base Class
@@ -24,6 +37,7 @@ The `UXBridge` abstract base class defines the interface that all UI implementat
 - Confirming choices
 - Creating and managing progress indicators
 
+
 ### ProgressIndicator Abstract Base Class
 
 The `ProgressIndicator` abstract base class defines the interface for progress tracking across different UIs. It includes methods for:
@@ -31,6 +45,7 @@ The `ProgressIndicator` abstract base class defines the interface for progress t
 - Updating progress
 - Completing progress
 - Managing subtasks
+
 
 ### Concrete Implementations
 
@@ -40,11 +55,12 @@ DevSynth includes several concrete implementations of the UXBridge:
 2. **WebUI**: Implementation for the Streamlit-based web interface
 3. **APIBridge**: Implementation for the FastAPI-based API
 
+
 Each implementation provides the same interface but renders the interactions appropriately for its target platform.
 
 ## Class Hierarchy
 
-```
+```text
 UXBridge (Abstract Base Class)
 ├── CLIUXBridge
 │   └── _CLIProgress (implements ProgressIndicator)
@@ -85,6 +101,7 @@ The CLI implementation uses the Rich library to provide colorful, formatted outp
 - Progress bars with ETA and subtask support
 - Interactive prompts for questions and confirmations
 
+
 ### WebUI
 
 The WebUI implementation uses Streamlit to render the user interface in a web browser. It includes:
@@ -94,6 +111,7 @@ The WebUI implementation uses Streamlit to render the user interface in a web br
 - Checkboxes for confirmations
 - Progress bars with subtask support
 
+
 ### APIBridge
 
 The API implementation captures messages and provides a way to pre-supply answers for questions. It includes:
@@ -102,6 +120,7 @@ The API implementation captures messages and provides a way to pre-supply answer
 - Pre-defined answers for non-interactive usage
 - Progress tracking that captures updates as messages
 
+
 ## Extending UXBridge
 
 To create a new UXBridge implementation:
@@ -109,6 +128,7 @@ To create a new UXBridge implementation:
 1. Create a new class that inherits from `UXBridge`
 2. Implement all required methods
 3. Create a nested class that inherits from `ProgressIndicator` for progress tracking
+
 
 ### Example: Minimal Implementation
 
@@ -221,6 +241,7 @@ When implementing or extending UXBridge:
 4. **Write tests**: Create unit tests that verify your implementation works correctly
 5. **Document your code**: Add docstrings and comments to explain your implementation
 
+
 ## Testing UXBridge Implementations
 
 DevSynth includes several test suites for verifying UXBridge implementations:
@@ -229,6 +250,7 @@ DevSynth includes several test suites for verifying UXBridge implementations:
 2. **Integration tests**: Test the UXBridge with actual application logic
 3. **Behavior tests**: Test user interactions using BDD scenarios
 4. **Parity tests**: Ensure different implementations produce the same results for the same inputs
+
 
 When creating a new UXBridge implementation, run these tests to ensure compatibility.
 

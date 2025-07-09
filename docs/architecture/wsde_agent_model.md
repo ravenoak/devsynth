@@ -1,22 +1,22 @@
 ---
-title: "WSDE Agent Model: Worker Self-Directed Enterprise"
-date: "2025-06-01"
-version: "1.0.0"
+author: DevSynth Team
+date: '2025-06-01'
+last_reviewed: '2025-06-01'
+status: active
 tags:
-  - "architecture"
-  - "wsde"
-  - "agents"
-  - "collaboration"
-status: "active"
-author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+- architecture
+- WSDE
+- agents
+- collaboration
+title: 'WSDE Agent Model: WSDE'
+version: 1.0.0
 ---
 
-# WSDE Agent Model: Worker Self-Directed Enterprise
+# WSDE Agent Model: WSDE
 
 ## Overview
 
-The Worker Self-Directed Enterprise (WSDE) model is a collaborative multi-agent framework used in DevSynth that enables autonomous agents to work together in a democratic, self-organizing manner. Inspired by real-world worker cooperatives, the WSDE model distributes authority and responsibility among specialized agents, each contributing their expertise while collectively making decisions.
+The WSDE (WSDE) model is a collaborative multi-agent framework used in DevSynth that enables autonomous agents to work together in a democratic, self-organizing manner. Inspired by real-world worker cooperatives, the WSDE model distributes authority and responsibility among specialized agents, each contributing their expertise while collectively making decisions.
 
 ```mermaid
 graph TD
@@ -164,6 +164,7 @@ When conflicts arise, the team follows this process:
 The WSDE model integrates seamlessly with the EDRR (Expand, Differentiate, Refine, Retrospect) framework:
 
 ### Expand Phase
+
 - **Architect Agent**: Proposes architectural approaches
 - **Developer Agent**: Suggests implementation strategies
 - **Tester Agent**: Identifies testing approaches
@@ -172,6 +173,7 @@ The WSDE model integrates seamlessly with the EDRR (Expand, Differentiate, Refin
 - **Coordinator Agent**: Facilitates brainstorming sessions
 
 ### Differentiate Phase
+
 - **Architect Agent**: Evaluates architectural trade-offs
 - **Developer Agent**: Assesses implementation complexity
 - **Tester Agent**: Evaluates testability of approaches
@@ -180,6 +182,7 @@ The WSDE model integrates seamlessly with the EDRR (Expand, Differentiate, Refin
 - **Coordinator Agent**: Facilitates evaluation discussions
 
 ### Refine Phase
+
 - **Architect Agent**: Finalizes architecture design
 - **Developer Agent**: Implements the selected approach
 - **Tester Agent**: Develops comprehensive tests
@@ -188,6 +191,7 @@ The WSDE model integrates seamlessly with the EDRR (Expand, Differentiate, Refin
 - **Coordinator Agent**: Coordinates implementation activities
 
 ### Retrospect Phase
+
 - **Architect Agent**: Evaluates architectural decisions
 - **Developer Agent**: Reviews code quality and performance
 - **Tester Agent**: Analyzes test coverage and effectiveness
@@ -217,7 +221,7 @@ Each agent maintains:
 
 ### Example: Collaborative Code Review
 
-```
+```text
 COLLABORATIVE CODE REVIEW PROCESS:
 
 1. Developer Agent submits code for review
@@ -279,17 +283,21 @@ team = WSDETeam()
 team.add_agents([agent_a, agent_b])
 
 # Dynamically assign roles for a new task
+
 task = {"type": "documentation", "description": "Write API docs"}
 team.dynamic_role_reassignment(task)
 
 # Agents contribute solutions
+
 team.add_solution(task, {"agent": agent_a.name, "content": "Initial draft"})
 team.add_solution(task, {"agent": agent_b.name, "content": "Formatting updates"})
 
 # Build consensus on the final approach
+
 final = team.build_consensus(task)
 print(final["consensus"])
 ```
+
 The team uses `select_primus_by_expertise()` to choose a Primus for each task. This scores agents against the task context and rotates leadership so everyone eventually serves. Automated tests cover this behaviour.
 
 ## Current Limitations

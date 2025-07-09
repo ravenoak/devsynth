@@ -1,16 +1,18 @@
 ---
-title: "DevSynth Agent System Architecture"
-date: "2025-05-28"
-version: "1.1.0"
+author: DevSynth Team
+date: '2025-05-28'
+last_reviewed: '2025-05-28'
+status: published
 tags:
-  - "architecture"
-  - "agent"
-  - "langgraph"
-  - "wsde"
-  - "collaboration"
-status: "published"
-author: "DevSynth Team"
-last_reviewed: "2025-05-28"
+
+- architecture
+- agent
+- langgraph
+- WSDE
+- collaboration
+
+title: DevSynth Agent System Architecture
+version: 1.1.0
 ---
 
 # DevSynth Agent System Architecture
@@ -21,17 +23,18 @@ The DevSynth agent system leverages LangGraph to create modular, stateful, and r
 
 **Implementation Status:** Core agent orchestration is implemented, but advanced WSDE collaboration features remain in progress.
 
-The agent system is organized according to the Worker Self-Directed Enterprise (WSDE) model, which provides a non-hierarchical, collaborative framework for agent interaction. This model ensures that agents work together as peers with complementary capabilities, with leadership (Primus role) rotating based on task expertise.
+The agent system is organized according to the WSDE (WSDE) model, which provides a non-hierarchical, collaborative framework for agent interaction. This model ensures that agents work together as peers with complementary capabilities, with leadership (Primus role) rotating based on task expertise.
 
 This document outlines the foundational components of the agent system, including the WSDE model, `AgentState`, and the `base_agent_graph`.
 
 ## Core Concepts
 
 - **LangGraph**: A library for building stateful, multi-actor applications with LLMs. It allows defining agentic workflows as graphs where nodes represent actions or computations and edges represent the flow of control.
-- **WSDE Model**: Worker Self-Directed Enterprise model that provides a framework for agent collaboration with rotating leadership.
+- **WSDE Model**: WSDE model that provides a framework for agent collaboration with rotating leadership.
 - **AgentState**: A `TypedDict` that defines the structure of the data passed between nodes in a LangGraph. It maintains the current context and results of the agent's operations.
 - **Nodes**: Functions that perform specific tasks within the agent workflow (e.g., processing input, calling an LLM, parsing output).
 - **Edges**: Define the sequence of operations, connecting nodes to form a directed graph.
+
 
 ### UXBridge Interaction Layer
 
@@ -40,11 +43,16 @@ front‑end (CLI, WebUI and Agent API) implements this interface so workflow
 functions remain UI agnostic.  ``UXBridge`` defines four core methods:
 
 - ``ask_question(message, choices=None, default=None, show_default=True)`` –
+
   return a string answer.
+
 - ``confirm_choice(message, default=False)`` – return ``True`` when confirmed.
 - ``display_result(message, highlight=False)`` – output a message without
+
   returning a value.
+
 - ``create_progress(description, total=100)`` – return a progress indicator with
+
   ``update`` and ``complete`` methods.
 
 These methods provide a consistent user experience across all bridges while
@@ -76,6 +84,7 @@ class AgentState(TypedDict):
 - `intermediate_steps`: A list to store outputs from tools or intermediate reasoning steps, useful for complex agents.
 - `final_output`: The agent's final answer or result after all processing.
 - `error`: A field to capture any errors that occur during the workflow, allowing for graceful error handling.
+
 
 ## Base Agent Graph (`base_agent_graph.py`)
 
@@ -110,13 +119,17 @@ graph TD
     *   Performs basic parsing (e.g., stripping whitespace) to produce the final output.
     *   Stores the result in the `final_output` field.
 
+
 ### Graph Definition:
 
 The graph is defined using `langgraph.graph.StateGraph` and compiled:
 
 ```python
+
 # Simplified from base_agent_graph.py
+
 from langgraph.graph import StateGraph, END
+
 # ... import nodes and AgentState ...
 
 workflow = StateGraph(AgentState)
@@ -135,7 +148,7 @@ base_agent_graph = workflow.compile()
 
 ## WSDE Model Implementation
 
-The WSDE (Worker Self-Directed Enterprise) model is implemented in `domain/models/wsde.py` and provides a sophisticated framework for agent collaboration with rotating leadership, dialectical reasoning, consensus building, and knowledge integration. This model is inspired by non-hierarchical, democratic workplace structures and ensures that agents work together as peers with complementary capabilities.
+The WSDE (WSDE) model is implemented in `domain/models/WSDE.py` and provides a sophisticated framework for agent collaboration with rotating leadership, dialectical reasoning, consensus building, and knowledge integration. This model is inspired by non-hierarchical, democratic workplace structures and ensures that agents work together as peers with complementary capabilities.
 
 ### WSDE Model Diagram
 
@@ -184,6 +197,7 @@ The WSDE organization model consists of the following roles:
 - **Designer**: Plans and designs the approach to solving problems
 - **Evaluator**: Evaluates the output and provides quality assessment
 - **Primus**: The lead role that rotates among agents based on task expertise
+
 
 ### WSDETeam Class
 
@@ -239,6 +253,7 @@ The WSDE model provides sophisticated role management capabilities:
 - **Solution Proposal Control**: The system controls which agents can propose solutions based on their roles and expertise
 - **Critique Management**: The system manages which agents can provide critiques of solutions
 
+
 ### Dialectical Reasoning
 
 The WSDE model implements multiple levels of dialectical reasoning:
@@ -265,6 +280,7 @@ The WSDE model implements multiple levels of dialectical reasoning:
    - External knowledge integration for standards compliance
    - Multi-disciplinary perspectives for comprehensive analysis
 
+
 ### Consensus Building and Voting
 
 The WSDE model implements sophisticated consensus building and voting mechanisms:
@@ -279,6 +295,7 @@ The WSDE model implements sophisticated consensus building and voting mechanisms
    - **Weighted Voting**: Votes weighted by agent expertise in the relevant domain
    - **Tie-breaking**: Sophisticated mechanisms for resolving tied votes
    - **Voting History**: Tracking of voting decisions for accountability
+
 
 ### Knowledge Integration
 
@@ -299,6 +316,7 @@ The WSDE model supports integration with various knowledge sources:
    - Resolves conflicts through structured reasoning
    - Creates syntheses that address all disciplinary concerns
 
+
 ### Collaborative Workflow
 
 The WSDE model enables a sophisticated collaborative workflow where:
@@ -309,19 +327,24 @@ The WSDE model enables a sophisticated collaborative workflow where:
 4. The **Evaluator** assesses the quality and alignment with requirements
 5. The **Primus** coordinates the process and makes final decisions
 
+
 This workflow is enhanced by:
+
 - Dialectical reasoning for continuous improvement
 - Consensus building for team alignment
 - Voting mechanisms for critical decisions
 - Knowledge integration for informed decision-making
 
+
 ## Integration with Provider System
 
 The agent system is tightly integrated with the `provider_system`. The `llm_call_node` in `base_agent_graph.py` directly uses the `complete` function from the provider system. This ensures:
+
 -   Access to configured LLM providers (OpenAI, LM Studio).
 -   Automatic fallback between providers if one is unavailable.
 -   Consistent LLM interaction logic across different agents.
 -   Unified embedding support across providers. Previously, LM Studio only offered placeholder embedding behavior; the provider now exposes a working embedding API.
+
 
 ## Extensibility
 
@@ -334,8 +357,8 @@ This base agent architecture is designed for extensibility:
 -   **Tool Usage**: The `intermediate_steps` field in `AgentState` is a placeholder for integrating tools. Future agents can use LangGraph's built-in support for tool calling nodes.
 -   **Checkpointing**: LangGraph supports checkpointing, allowing the state of long-running agents to be saved and resumed. This is a planned enhancement for DevSynth.
 
-## Error Handling
 
+## Error Handling
 
 The `AgentState` includes an `error` field. Nodes in the graph can populate this field if an issue occurs. Subsequent nodes can check this field to decide whether to proceed, attempt recovery, or terminate the workflow gracefully.
 
@@ -345,10 +368,11 @@ WSDE collaboration and dialectical reasoning are only partially implemented. The
 
 ## Future Enhancements (as per Comprehensive Plan)
 
--   Development of specialized agent workflows (code generation, analysis, dialectic reasoning).
+-   Development of specialized agent workflows (code generation, analysis, Dialectical Reasoning).
 -   Implementation of state management and checkpointing for long-running operations.
 -   Integration with NetworkX for code analysis agents.
 -   Self-analysis and tuning capabilities driven by agents.
+
 
 ---
 

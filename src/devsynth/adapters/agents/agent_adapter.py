@@ -134,7 +134,7 @@ class WSDETeamCoordinator(AgentCoordinator):
 
     def create_team(self, team_id: str) -> WSDETeam:
         """Create a new WSDE team."""
-        team = WSDETeam()
+        team = WSDETeam(name=team_id)
         self.teams[team_id] = team
         self.current_team_id = team_id
         return team

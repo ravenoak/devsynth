@@ -1,31 +1,12 @@
 """
-A standalone test script to verify that pytest-bdd works without any dependencies.
+Step definitions for the simple addition feature.
 """
 
-import os
 import pytest
 from pytest_bdd import scenarios, given, when, then, parsers
 
-# Define a simple feature string
-FEATURE = """
-Feature: Simple Addition
-  As a user
-  I want to add two numbers
-  So that I can get their sum
-
-  Scenario: Add two numbers
-    Given I have the numbers 1 and 2
-    When I add them together
-    Then the result should be 3
-"""
-
-# Write the feature to a temporary file
-feature_file = os.path.join(os.path.dirname(__file__), "simple_addition.feature")
-with open(feature_file, "w") as f:
-    f.write(FEATURE)
-
 # Load the scenarios from the feature file
-scenarios(feature_file)
+scenarios('../features/examples/simple_addition.feature')
 
 @pytest.fixture
 def context():

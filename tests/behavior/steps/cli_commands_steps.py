@@ -124,25 +124,27 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     else:
                         i += 1
 
-                # Call the init command with the path
-                # Note: The actual init_cmd function only takes path, but we need to
-                # mock as if it's passing all parameters to the workflow manager
+                # Call the init command
+                # Note: The actual init_cmd function only takes wizard and bridge parameters
+                # We need to mock the bridge to handle the interactive prompts
+                mock_bridge = MagicMock()
+                mock_bridge.ask_question.side_effect = lambda question, **kwargs: {
+                    "Project root directory?": path,
+                    "Primary language?": language or "python",
+                    "Project goals?": goals or "",
+                    "Select memory backend": "memory",
+                }.get(question, kwargs.get("default", ""))
+                mock_bridge.confirm_choice.return_value = True
+
                 if wizard_flag:
                     with patch(
                         "devsynth.application.cli.setup_wizard.SetupWizard"
                     ) as MockWiz:
                         MockWiz.return_value.run.return_value = None
-                        init_cmd(wizard=True)
+                        init_cmd(wizard=True, bridge=mock_bridge)
                 else:
-                    init_cmd(
-                        path,
-                        name=name,
-                        template=template,
-                        project_root=project_root,
-                        language=language,
-                        constraints=constraints,
-                        goals=goals,
-                    )
+                    with patch("devsynth.interface.cli.CLIUXBridge", return_value=mock_bridge):
+                        init_cmd(wizard=False, bridge=mock_bridge)
 
                 # For testing purposes, we need to manually set the call args on the mock
                 # This simulates what would happen if the init_cmd function passed all parameters
@@ -162,6 +164,11 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                     init_args["constraints"] = constraints
                 if goals:
                     init_args["goals"] = goals
+                # Add structure parameter for layout tests
+                init_args["structure"] = "single_package"
+                # Add default language for tests that expect it
+                if "language" not in init_args:
+                    init_args["language"] = "python"
                 if wizard_flag:
                     init_args = {"wizard": True}
 
