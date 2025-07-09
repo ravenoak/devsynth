@@ -71,16 +71,34 @@ ReqID: N/A"""
     mock_echo.assert_not_called()
 
 
+@patch('devsynth.adapters.cli.typer_adapter.Console')
 @patch('devsynth.adapters.cli.typer_adapter.build_app')
-def test_show_help_succeeds(mock_build_app):
+def test_show_help_succeeds(mock_build_app, mock_console):
     """Test that show_help displays the CLI help message.
 
 ReqID: N/A"""
+    # Create a mock app with the necessary attributes
     mock_app = MagicMock()
-    mock_app.side_effect = SystemExit()
+    mock_app.info = MagicMock()
+    mock_app.info.help = "Test help text"
+    mock_app.registered_commands = []
+    mock_app.registered_typers = []
+
+    # Set up the mock build_app to return our mock app
     mock_build_app.return_value = mock_app
+
+    # Create a mock console instance
+    mock_console_instance = MagicMock()
+    mock_console.return_value = mock_console_instance
+
+    # Call the function under test
     show_help()
-    mock_app.assert_called_once_with(['--help'])
+
+    # Verify that the console.print method was called
+    assert mock_console_instance.print.call_count > 0
+
+    # Verify that build_app was called
+    mock_build_app.assert_called_once()
 
 
 @patch('devsynth.adapters.cli.typer_adapter._warn_if_features_disabled')

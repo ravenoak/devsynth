@@ -1,15 +1,13 @@
 ---
 author: DevSynth Team
-date: '2025-05-30'
-last_reviewed: '2025-05-30'
+date: '2025-07-08'
+last_reviewed: '2025-07-08'
 status: published
 tags:
-
 - documentation
 - glossary
 - terminology
 - reference
-
 title: DevSynth Glossary of Terms
 version: 1.0.0
 ---

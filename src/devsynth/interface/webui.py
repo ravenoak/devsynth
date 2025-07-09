@@ -77,6 +77,44 @@ class WebUI(UXBridge):
     # Type variable for the return type of the wrapped function
     T = TypeVar('T')
 
+    def get_layout_config(self) -> dict:
+        """Get layout configuration based on screen size.
+
+        Returns:
+            A dictionary with layout configuration parameters.
+        """
+        # Get screen width from session state or use default
+        screen_width = getattr(st.session_state, "screen_width", 1200)
+
+        # Define layout configurations for different screen sizes
+        if screen_width < 768:  # Mobile
+            return {
+                "columns": 1,
+                "sidebar_width": "100%",
+                "content_width": "100%",
+                "font_size": "small",
+                "padding": "0.5rem",
+                "is_mobile": True
+            }
+        elif screen_width < 992:  # Tablet
+            return {
+                "columns": 2,
+                "sidebar_width": "30%",
+                "content_width": "70%",
+                "font_size": "medium",
+                "padding": "1rem",
+                "is_mobile": False
+            }
+        else:  # Desktop
+            return {
+                "columns": 3,
+                "sidebar_width": "20%",
+                "content_width": "80%",
+                "font_size": "medium",
+                "padding": "1.5rem",
+                "is_mobile": False
+            }
+
     def _handle_command_errors(
         self, 
         func: Callable[..., T], 
@@ -98,26 +136,26 @@ class WebUI(UXBridge):
         try:
             return func(*args, **kwargs)
         except FileNotFoundError as e:
-            self.display_result(f"ERROR: File not found: {e.filename}", highlight=False)
+            self.display_result(f"ERROR: File not found: {e.filename}", highlight=False, message_type="error")
             self.display_result(f"Make sure the file exists and the path is correct.", highlight=False)
             return None
         except PermissionError as e:
-            self.display_result(f"ERROR: Permission denied: {e.filename}", highlight=False)
-            self.display_result(f"Make sure you have the necessary permissions to access this file.", highlight=False)
+            self.display_result(f"ERROR: Permission denied: {e.filename}", highlight=False, message_type="error")
+            self.display_result(f"Make sure you have the necessary permissions to access this file.", highlight=False, message_type="info")
             return None
         except ValueError as e:
-            self.display_result(f"ERROR: Invalid value: {str(e)}", highlight=False)
-            self.display_result(f"Please check your input and try again.", highlight=False)
+            self.display_result(f"ERROR: Invalid value: {str(e)}", highlight=False, message_type="error")
+            self.display_result(f"Please check your input and try again.", highlight=False, message_type="info")
             return None
         except Exception as e:
-            self.display_result(f"ERROR: {error_message}: {str(e)}", highlight=False)
+            self.display_result(f"ERROR: {error_message}: {str(e)}", highlight=False, message_type="error")
             # Get the traceback for debugging
             tb = traceback.format_exc()
             # Display a more user-friendly message
-            self.display_result("An unexpected error occurred. Here are some suggestions:", highlight=False)
-            self.display_result("1. Check your input values and try again", highlight=False)
-            self.display_result("2. Make sure all required files exist", highlight=False)
-            self.display_result("3. Check the logs for more details", highlight=False)
+            self.display_result("An unexpected error occurred. Here are some suggestions:", highlight=False, message_type="info")
+            self.display_result("1. Check your input values and try again", highlight=False, message_type="info")
+            self.display_result("2. Make sure all required files exist", highlight=False, message_type="info")
+            self.display_result("3. Check the logs for more details", highlight=False, message_type="info")
             # Add a collapsible section with the full traceback for debugging
             with st.expander("Technical Details (for debugging)"):
                 st.code(tb, language="python")
@@ -182,7 +220,25 @@ class WebUI(UXBridge):
         if highlight:
             st.info(message)
         elif message.startswith("ERROR") or message.startswith("FAILED"):
+            # Display error message
             st.error(message)
+
+            # Add suggestions and documentation links for common errors
+            error_type = self._get_error_type(message)
+            if error_type:
+                # Add suggestions
+                suggestions = self._get_error_suggestions(error_type)
+                if suggestions:
+                    st.markdown("**Suggestions:**")
+                    for suggestion in suggestions:
+                        st.markdown(f"- {suggestion}")
+
+                # Add documentation links
+                doc_links = self._get_documentation_links(error_type)
+                if doc_links:
+                    st.markdown("**Documentation:**")
+                    for title, url in doc_links.items():
+                        st.markdown(f"- [{title}]({url})")
         elif message.startswith("WARNING"):
             st.warning(message)
         elif message.startswith("SUCCESS") or "successfully" in message.lower():
@@ -198,6 +254,157 @@ class WebUI(UXBridge):
                 st.markdown(f"**{message[level+1:]}**")
         else:
             st.write(message)
+
+    def _get_error_type(self, message: str) -> str:
+        """Extract the error type from an error message.
+
+        Args:
+            message: The error message
+
+        Returns:
+            The error type, or an empty string if no type could be determined
+        """
+        if "File not found" in message:
+            return "file_not_found"
+        elif "Permission denied" in message:
+            return "permission_denied"
+        elif "Invalid parameter" in message:
+            return "invalid_parameter"
+        elif "Invalid format" in message:
+            return "invalid_format"
+        elif "Configuration error" in message:
+            return "config_error"
+        elif "Connection error" in message:
+            return "connection_error"
+        elif "API error" in message:
+            return "api_error"
+        elif "Validation error" in message:
+            return "validation_error"
+        elif "Syntax error" in message:
+            return "syntax_error"
+        elif "Import error" in message:
+            return "import_error"
+        else:
+            return ""
+
+    def _get_error_suggestions(self, error_type: str) -> list[str]:
+        """Get suggestions for fixing an error.
+
+        Args:
+            error_type: The type of error
+
+        Returns:
+            A list of suggestions
+        """
+        suggestions = {
+            "file_not_found": [
+                "Check that the file path is correct",
+                "Verify that the file exists in the specified location",
+                "If using a relative path, make sure you're in the correct directory"
+            ],
+            "permission_denied": [
+                "Check that you have the necessary permissions to access the file",
+                "Try running the command with elevated privileges",
+                "Verify that the file is not locked by another process"
+            ],
+            "invalid_parameter": [
+                "Check the command syntax and parameters",
+                "Refer to the documentation for the correct parameter format",
+                "Use the --help flag to see available options"
+            ],
+            "invalid_format": [
+                "Check that the file format is supported",
+                "Verify that the file content matches the expected format",
+                "Try using a different format option if available"
+            ],
+            "config_error": [
+                "Check your configuration file for errors",
+                "Verify that all required configuration options are set",
+                "Try resetting to default configuration with 'devsynth config --reset'"
+            ],
+            "connection_error": [
+                "Check your internet connection",
+                "Verify that the service you're trying to connect to is available",
+                "Check if a firewall is blocking the connection"
+            ],
+            "api_error": [
+                "Verify that your API key is valid",
+                "Check that you have sufficient quota for the API",
+                "Verify that the API endpoint is correct"
+            ],
+            "validation_error": [
+                "Check that your input meets all validation requirements",
+                "Verify that all required fields are provided",
+                "Check for formatting errors in your input"
+            ],
+            "syntax_error": [
+                "Check for syntax errors in your code or input",
+                "Verify that all brackets, quotes, and parentheses are properly closed",
+                "Check for typos or missing characters"
+            ],
+            "import_error": [
+                "Verify that the required package is installed",
+                "Check that the package name is spelled correctly",
+                "Try reinstalling the package"
+            ]
+        }
+
+        return suggestions.get(error_type, [])
+
+    def _get_documentation_links(self, error_type: str) -> dict[str, str]:
+        """Get documentation links for an error.
+
+        Args:
+            error_type: The type of error
+
+        Returns:
+            A dictionary mapping link titles to URLs
+        """
+        base_url = "https://devsynth.readthedocs.io/en/latest"
+        links = {
+            "file_not_found": {
+                "File Handling Guide": f"{base_url}/user_guides/file_handling.html",
+                "Common File Errors": f"{base_url}/user_guides/troubleshooting.html#file-errors"
+            },
+            "permission_denied": {
+                "Permission Issues": f"{base_url}/user_guides/troubleshooting.html#permission-issues",
+                "Security Configuration": f"{base_url}/user_guides/security_config.html"
+            },
+            "invalid_parameter": {
+                "Command Reference": f"{base_url}/user_guides/cli_reference.html",
+                "Parameter Syntax": f"{base_url}/user_guides/command_syntax.html"
+            },
+            "invalid_format": {
+                "Supported Formats": f"{base_url}/user_guides/file_formats.html",
+                "Format Conversion": f"{base_url}/user_guides/format_conversion.html"
+            },
+            "config_error": {
+                "Configuration Guide": f"{base_url}/user_guides/configuration.html",
+                "Configuration Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#configuration-issues"
+            },
+            "connection_error": {
+                "Network Configuration": f"{base_url}/user_guides/network_config.html",
+                "Connection Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#connection-issues"
+            },
+            "api_error": {
+                "API Integration Guide": f"{base_url}/user_guides/api_integration.html",
+                "API Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#api-issues"
+            },
+            "validation_error": {
+                "Input Validation": f"{base_url}/user_guides/input_validation.html",
+                "Validation Rules": f"{base_url}/user_guides/validation_rules.html"
+            },
+            "syntax_error": {
+                "Syntax Guide": f"{base_url}/user_guides/syntax_guide.html",
+                "Common Syntax Errors": f"{base_url}/user_guides/troubleshooting.html#syntax-issues"
+            },
+            "import_error": {
+                "Package Management": f"{base_url}/user_guides/package_management.html",
+                "Import Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#import-issues"
+            }
+        }
+
+        return links.get(error_type, {})
 
     class _UIProgress(ProgressIndicator):
         def __init__(self, description: str, total: int) -> None:
@@ -1062,7 +1269,102 @@ class WebUI(UXBridge):
     def run(self) -> None:
         """Run the Streamlit application."""
         st.set_page_config(page_title="DevSynth WebUI", layout="wide")
+
+        # Add JavaScript to detect screen width and store in session state
+        js_code = """
+        <script>
+        // Function to update screen width in session state
+        function updateScreenWidth() {
+            const width = window.innerWidth;
+            const data = {
+                width: width,
+                height: window.innerHeight
+            };
+
+            // Use Streamlit's setComponentValue to update session state
+            if (window.parent.streamlit) {
+                window.parent.streamlit.setComponentValue(data);
+            }
+        }
+
+        // Update on page load
+        updateScreenWidth();
+
+        // Update on window resize
+        window.addEventListener('resize', updateScreenWidth);
+        </script>
+        """
+        st.components.v1.html(js_code, height=0)
+
+        # Get screen dimensions from component value
+        if "screen_width" not in st.session_state:
+            st.session_state.screen_width = 1200
+            st.session_state.screen_height = 800
+
+        # Apply layout configuration based on screen size
+        layout_config = self.get_layout_config()
+
+        # Apply custom CSS for consistent styling
+        custom_css = f"""
+        <style>
+            .main .block-container {{
+                padding: {layout_config["padding"]};
+            }}
+            .stSidebar .sidebar-content {{
+                width: {layout_config["sidebar_width"]};
+            }}
+            .main {{
+                font-size: {layout_config["font_size"]};
+            }}
+            /* DevSynth branding colors */
+            .devsynth-primary {{
+                color: #4A90E2;
+            }}
+            .devsynth-secondary {{
+                color: #50E3C2;
+            }}
+            .devsynth-accent {{
+                color: #F5A623;
+            }}
+            .devsynth-error {{
+                color: #D0021B;
+            }}
+            .devsynth-success {{
+                color: #7ED321;
+            }}
+            .devsynth-warning {{
+                color: #F8E71C;
+            }}
+            /* Consistent form styling */
+            .stForm {{
+                background-color: #f8f9fa;
+                padding: 1rem;
+                border-radius: 5px;
+                margin-bottom: 1rem;
+            }}
+            /* Consistent button styling */
+            .stButton>button {{
+                background-color: #4A90E2;
+                color: white;
+                border-radius: 4px;
+                border: none;
+                padding: 0.5rem 1rem;
+            }}
+            .stButton>button:hover {{
+                background-color: #3A80D2;
+            }}
+        </style>
+        """
+        st.markdown(custom_css, unsafe_allow_html=True)
+
+        # Apply branding
         st.sidebar.title("DevSynth")
+        st.sidebar.markdown(
+            '<div class="devsynth-secondary" style="font-size: 0.8rem; margin-bottom: 2rem;">Intelligent Software Development</div>',
+            unsafe_allow_html=True
+        )
+
+        # Navigation with responsive layout
         nav = st.sidebar.radio(
             "Navigation",
             (

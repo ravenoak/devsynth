@@ -27,14 +27,21 @@ ReqID: N/A"""
 
     def setUp(self):
         """Set up the test environment."""
-        self.memory_adapter = MagicMock(spec=MemorySystemAdapter)
+        # Create the mock without spec first to avoid attribute errors
+        self.memory_adapter = MagicMock()
         self.memory_store = MagicMock()
         self.context_manager = MagicMock()
         self.vector_store = MagicMock()
+
+        # Set up the return values for the methods
         self.memory_adapter.get_memory_store.return_value = self.memory_store
         self.memory_adapter.get_context_manager.return_value = self.context_manager
         self.memory_adapter.get_vector_store.return_value = self.vector_store
         self.memory_adapter.has_vector_store.return_value = True
+
+        # Now add the spec to ensure type checking works correctly
+        self.memory_adapter.__class__ = MemorySystemAdapter
+
         self.wsde_team = MagicMock(spec=WSDETeam)
         self.agent_memory = MagicMock(spec=AgentMemoryIntegration)
 

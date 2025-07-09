@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
-date: '2025-06-01'
-last_reviewed: '2025-06-01'
+date: '2025-07-08'
+last_reviewed: '2025-07-08'
 status: published
 tags:
 - architecture

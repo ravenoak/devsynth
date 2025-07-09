@@ -4,17 +4,34 @@ This module provides utilities for formatting output in a consistent way
 across different interfaces (CLI, WebUI, etc.).
 """
 
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, List, Tuple
 import re
 import html
+import json
+import yaml
+import textwrap
+from enum import Enum, auto
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.style import Style
 from rich.text import Text
 from rich.markdown import Markdown
+from rich.table import Table
+from rich.box import Box, ROUNDED
+from rich.syntax import Syntax
 
 from devsynth.security import sanitize_input
+
+
+class OutputFormat(Enum):
+    """Enum for output formats."""
+    TEXT = auto()
+    JSON = auto()
+    YAML = auto()
+    MARKDOWN = auto()
+    TABLE = auto()
+    RICH = auto()  # Rich formatted output
 
 
 class OutputFormatter:
@@ -32,13 +49,39 @@ class OutputFormatter:
     INFO_PATTERN = re.compile(r"^(INFO|NOTE)[\s:]", re.IGNORECASE)
     HEADING_PATTERN = re.compile(r"^(#+)\s+(.*)")
 
-    def __init__(self, console: Optional[Console] = None) -> None:
+    # Default indentation and spacing settings
+    DEFAULT_INDENT = 2
+    DEFAULT_SPACING = 1
+    DEFAULT_LINE_WIDTH = 100
+
+    # Default table settings
+    DEFAULT_TABLE_BOX = ROUNDED
+
+    # Output format mappings
+    FORMAT_EXTENSIONS = {
+        "json": OutputFormat.JSON,
+        "yaml": OutputFormat.YAML,
+        "yml": OutputFormat.YAML,
+        "md": OutputFormat.MARKDOWN,
+        "markdown": OutputFormat.MARKDOWN,
+        "txt": OutputFormat.TEXT,
+        "text": OutputFormat.TEXT,
+        "table": OutputFormat.TABLE,
+        "rich": OutputFormat.RICH,
+    }
+
+    def __init__(self, console: Optional[Console] = None, default_format: OutputFormat = OutputFormat.RICH) -> None:
         """Initialize the output formatter.
 
         Args:
             console: Optional Rich console to use for output
+            default_format: Default output format to use
         """
         self.console = console
+        self.default_format = default_format
+        self.indent = self.DEFAULT_INDENT
+        self.spacing = self.DEFAULT_SPACING
+        self.line_width = self.DEFAULT_LINE_WIDTH
 
     def sanitize_output(self, text: str) -> str:
         """Sanitize and escape user provided text for safe display.
@@ -219,6 +262,291 @@ class OutputFormatter:
             result.append(f"{bullet} {sanitized}")
 
         return "\n".join(result)
+
+    def format_structured(self, data: Any, output_format: OutputFormat = None, title: Optional[str] = None) -> Union[str, Panel, Table, Syntax]:
+        """Format data in a structured format (JSON, YAML, etc.).
+
+        Args:
+            data: The data to format
+            output_format: The output format to use (defaults to self.default_format)
+            title: Optional title for the output
+
+        Returns:
+            The formatted data
+        """
+        if output_format is None:
+            output_format = self.default_format
+
+        # Handle different output formats
+        if output_format == OutputFormat.JSON:
+            json_str = json.dumps(data, indent=self.indent, sort_keys=True)
+            if self.console:
+                return Syntax(json_str, "json", theme="monokai", line_numbers=True)
+            return json_str
+
+        elif output_format == OutputFormat.YAML:
+            yaml_str = yaml.dump(data, indent=self.indent, sort_keys=True, default_flow_style=False)
+            if self.console:
+                return Syntax(yaml_str, "yaml", theme="monokai", line_numbers=True)
+            return yaml_str
+
+        elif output_format == OutputFormat.MARKDOWN:
+            # Convert data to markdown
+            if isinstance(data, dict):
+                return self._dict_to_markdown(data, title)
+            elif isinstance(data, list):
+                return self._list_to_markdown(data, title)
+            else:
+                return f"# {title if title else 'Data'}\n\n{str(data)}"
+
+        elif output_format == OutputFormat.TABLE:
+            # Convert data to a table
+            if isinstance(data, dict):
+                return self._dict_to_table(data, title)
+            elif isinstance(data, list) and all(isinstance(item, dict) for item in data):
+                return self._list_of_dicts_to_table(data, title)
+            else:
+                # Fall back to text format for non-tabular data
+                return self.format_structured(data, OutputFormat.TEXT, title)
+
+        elif output_format == OutputFormat.RICH:
+            # Use Rich formatting based on data type
+            if isinstance(data, dict):
+                return self._dict_to_rich(data, title)
+            elif isinstance(data, list):
+                return self._list_to_rich(data, title)
+            else:
+                return Text(str(data))
+
+        else:  # OutputFormat.TEXT
+            # Convert to plain text with consistent formatting
+            if isinstance(data, dict):
+                return self.format_table(data, title)
+            elif isinstance(data, list):
+                return self.format_list(data, title)
+            else:
+                result = []
+                if title:
+                    result.append(f"# {title}")
+                    result.append("")
+                result.append(str(data))
+                return "\n".join(result)
+
+    def _dict_to_markdown(self, data: Dict[str, Any], title: Optional[str] = None) -> str:
+        """Convert a dictionary to markdown format.
+
+        Args:
+            data: The dictionary to convert
+            title: Optional title for the markdown
+
+        Returns:
+            The markdown string
+        """
+        result = []
+
+        if title:
+            result.append(f"# {title}")
+            result.append("")
+
+        for key, value in data.items():
+            sanitized_key = self.sanitize_output(str(key))
+
+            if isinstance(value, dict):
+                result.append(f"## {sanitized_key}")
+                result.append("")
+                for sub_key, sub_value in value.items():
+                    sanitized_sub_key = self.sanitize_output(str(sub_key))
+                    sanitized_sub_value = self.sanitize_output(str(sub_value))
+                    result.append(f"- **{sanitized_sub_key}**: {sanitized_sub_value}")
+                result.append("")
+            elif isinstance(value, list):
+                result.append(f"## {sanitized_key}")
+                result.append("")
+                for item in value:
+                    sanitized_item = self.sanitize_output(str(item))
+                    result.append(f"- {sanitized_item}")
+                result.append("")
+            else:
+                sanitized_value = self.sanitize_output(str(value))
+                result.append(f"## {sanitized_key}")
+                result.append("")
+                result.append(sanitized_value)
+                result.append("")
+
+        return "\n".join(result)
+
+    def _list_to_markdown(self, data: List[Any], title: Optional[str] = None) -> str:
+        """Convert a list to markdown format.
+
+        Args:
+            data: The list to convert
+            title: Optional title for the markdown
+
+        Returns:
+            The markdown string
+        """
+        result = []
+
+        if title:
+            result.append(f"# {title}")
+            result.append("")
+
+        for item in data:
+            if isinstance(item, dict):
+                for key, value in item.items():
+                    sanitized_key = self.sanitize_output(str(key))
+                    sanitized_value = self.sanitize_output(str(value))
+                    result.append(f"- **{sanitized_key}**: {sanitized_value}")
+            else:
+                sanitized_item = self.sanitize_output(str(item))
+                result.append(f"- {sanitized_item}")
+
+        return "\n".join(result)
+
+    def _dict_to_table(self, data: Dict[str, Any], title: Optional[str] = None) -> Table:
+        """Convert a dictionary to a Rich table.
+
+        Args:
+            data: The dictionary to convert
+            title: Optional title for the table
+
+        Returns:
+            The Rich table
+        """
+        table = Table(box=self.DEFAULT_TABLE_BOX, title=title)
+        table.add_column("Key", style="cyan")
+        table.add_column("Value", style="green")
+
+        for key, value in data.items():
+            sanitized_key = self.sanitize_output(str(key))
+
+            if isinstance(value, (dict, list)):
+                # For complex values, use JSON representation
+                sanitized_value = json.dumps(value, indent=self.indent)
+            else:
+                sanitized_value = self.sanitize_output(str(value))
+
+            table.add_row(sanitized_key, sanitized_value)
+
+        return table
+
+    def _list_of_dicts_to_table(self, data: List[Dict[str, Any]], title: Optional[str] = None) -> Table:
+        """Convert a list of dictionaries to a Rich table.
+
+        Args:
+            data: The list of dictionaries to convert
+            title: Optional title for the table
+
+        Returns:
+            The Rich table
+        """
+        if not data:
+            return Table(title=title or "Empty List")
+
+        # Get all unique keys from all dictionaries
+        all_keys = set()
+        for item in data:
+            all_keys.update(item.keys())
+
+        # Create the table with columns for each key
+        table = Table(box=self.DEFAULT_TABLE_BOX, title=title)
+        for key in sorted(all_keys):
+            table.add_column(str(key), style="cyan")
+
+        # Add rows for each dictionary
+        for item in data:
+            row = []
+            for key in sorted(all_keys):
+                value = item.get(key, "")
+                if isinstance(value, (dict, list)):
+                    # For complex values, use JSON representation
+                    value_str = json.dumps(value, indent=self.indent)
+                else:
+                    value_str = self.sanitize_output(str(value))
+                row.append(value_str)
+            table.add_row(*row)
+
+        return table
+
+    def _dict_to_rich(self, data: Dict[str, Any], title: Optional[str] = None) -> Panel:
+        """Convert a dictionary to a Rich panel.
+
+        Args:
+            data: The dictionary to convert
+            title: Optional title for the panel
+
+        Returns:
+            The Rich panel
+        """
+        # Format the dictionary as a table
+        table = self._dict_to_table(data)
+
+        # Wrap the table in a panel with the title
+        return Panel(table, title=title, border_style="blue")
+
+    def _list_to_rich(self, data: List[Any], title: Optional[str] = None) -> Union[Panel, Table]:
+        """Convert a list to a Rich panel or table.
+
+        Args:
+            data: The list to convert
+            title: Optional title for the panel or table
+
+        Returns:
+            The Rich panel or table
+        """
+        # Check if this is a list of dictionaries
+        if all(isinstance(item, dict) for item in data):
+            # Format as a table
+            return self._list_of_dicts_to_table(data, title)
+        else:
+            # Format as a bulleted list
+            text = Text()
+            if data:
+                for item in data:
+                    text.append("• ", style="yellow")
+                    text.append(f"{self.sanitize_output(str(item))}\n")
+            else:
+                text.append("(empty list)")
+
+            # Wrap the text in a panel with the title
+            return Panel(text, title=title, border_style="blue")
+
+    def set_format_options(self, indent: int = None, spacing: int = None, line_width: int = None) -> None:
+        """Set formatting options.
+
+        Args:
+            indent: Number of spaces to use for indentation
+            spacing: Number of blank lines between sections
+            line_width: Maximum line width for wrapped text
+        """
+        if indent is not None:
+            self.indent = indent
+        if spacing is not None:
+            self.spacing = spacing
+        if line_width is not None:
+            self.line_width = line_width
+
+    def format_command_output(self, data: Any, format_name: str = None, title: Optional[str] = None) -> Union[str, Panel, Table, Syntax]:
+        """Format command output in the specified format.
+
+        This is a convenience method for CLI commands to format their output
+        in a consistent way based on the user's preferred format.
+
+        Args:
+            data: The data to format
+            format_name: The name of the format to use (json, yaml, table, etc.)
+            title: Optional title for the output
+
+        Returns:
+            The formatted output
+        """
+        # Determine the output format
+        output_format = self.default_format
+        if format_name:
+            output_format = self.FORMAT_EXTENSIONS.get(format_name.lower(), self.default_format)
+
+        # Format the data
+        return self.format_structured(data, output_format, title)
 
 
 # Create a singleton instance for easy access

@@ -117,9 +117,22 @@ ReqID: N/A"""
         """Test generating text when LM Studio is not available.
 
 ReqID: N/A"""
-        with patch('requests.post') as mock_post:
-            mock_post.side_effect = requests.RequestException(
-                'Connection error')
+        # Patch the TokenTracker.__init__ method to avoid using tiktoken
+        with patch('devsynth.application.utils.token_tracker.TokenTracker.__init__') as mock_init, \
+             patch('devsynth.application.utils.token_tracker.TokenTracker.count_tokens') as mock_count, \
+             patch('devsynth.application.utils.token_tracker.TokenTracker.ensure_token_limit') as mock_ensure, \
+             patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider._execute_with_resilience') as mock_execute:
+
+            # Make the __init__ method do nothing
+            mock_init.return_value = None
+
+            # Mock the token counting methods
+            mock_count.return_value = 5
+            mock_ensure.return_value = None
+
+            # Mock the _execute_with_resilience method to raise an exception
+            mock_execute.side_effect = requests.RequestException('Connection error')
+
             provider = LMStudioProvider({'auto_select_model': False})
             with pytest.raises(LMStudioConnectionError):
                 provider.generate('Hello, how are you?')
@@ -128,11 +141,25 @@ ReqID: N/A"""
         """Test generating text when LM Studio returns an invalid response.
 
 ReqID: N/A"""
-        with patch('requests.post') as mock_post:
+        # Patch the TokenTracker.__init__ method to avoid using tiktoken
+        with patch('devsynth.application.utils.token_tracker.TokenTracker.__init__') as mock_init, \
+             patch('devsynth.application.utils.token_tracker.TokenTracker.count_tokens') as mock_count, \
+             patch('devsynth.application.utils.token_tracker.TokenTracker.ensure_token_limit') as mock_ensure, \
+             patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider._execute_with_resilience') as mock_execute:
+
+            # Make the __init__ method do nothing
+            mock_init.return_value = None
+
+            # Mock the token counting methods
+            mock_count.return_value = 5
+            mock_ensure.return_value = None
+
+            # Mock the _execute_with_resilience method to return an invalid response
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.json.return_value = {'invalid': 'response'}
-            mock_post.return_value = mock_response
+            mock_execute.return_value = mock_response
+
             provider = LMStudioProvider({'auto_select_model': False})
             with pytest.raises(LMStudioModelError):
                 provider.generate('Hello, how are you?')

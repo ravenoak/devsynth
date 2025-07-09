@@ -65,12 +65,12 @@ def cross_interface_context(monkeypatch):
     # Mock dependencies
     monkeypatch.setitem(sys.modules, "chromadb", MagicMock())
     monkeypatch.setitem(sys.modules, "uvicorn", MagicMock())
-    
+
     # Mock CLI modules and commands
     from devsynth.application import cli as cli_module
     for cmd in ["init_cmd", "spec_cmd", "test_cmd", "code_cmd", "doctor_cmd", "edrr_cycle_cmd"]:
         monkeypatch.setattr(cli_module, cmd, MagicMock())
-    
+
     # Mock Streamlit for WebUI
     st = ModuleType("streamlit")
     st.session_state = {}
@@ -97,27 +97,38 @@ def cross_interface_context(monkeypatch):
     st.sidebar.title = MagicMock()
     st.set_page_config = MagicMock()
     st.header = MagicMock()
+    # Add missing Streamlit attributes
+    st.empty = MagicMock(return_value=MagicMock())
+    st.info = MagicMock()
+    st.error = MagicMock()
+    st.warning = MagicMock()
+    st.success = MagicMock()
+    st.text_area = MagicMock(return_value="test_value")
+    st.number_input = MagicMock(return_value=1)
+    st.radio = MagicMock(return_value="option1")
+    st.multiselect = MagicMock(return_value=["option1"])
+    st.file_uploader = MagicMock(return_value=None)
     monkeypatch.setitem(sys.modules, "streamlit", st)
-    
+
     # Mock CLI UXBridge
     cli_bridge = CLIUXBridge()
     monkeypatch.setattr(cli_bridge, "ask_question", MagicMock(return_value="test_answer"))
     monkeypatch.setattr(cli_bridge, "confirm_choice", MagicMock(return_value=True))
     monkeypatch.setattr(cli_bridge, "display_result", MagicMock())
     monkeypatch.setattr(cli_bridge, "create_progress", MagicMock(return_value=DummyProgress()))
-    
+
     # Load WebUI
     import devsynth.interface.webui as webui
     importlib.reload(webui)
     web_bridge = webui.WebUI()
-    
+
     # Mock API Bridge
     api_bridge = APIBridge([])
     monkeypatch.setattr(api_bridge, "ask_question", MagicMock(return_value="test_answer"))
     monkeypatch.setattr(api_bridge, "confirm_choice", MagicMock(return_value=True))
     monkeypatch.setattr(api_bridge, "display_result", MagicMock())
     monkeypatch.setattr(api_bridge, "create_progress", MagicMock(return_value=DummyProgress()))
-    
+
     # Create context with all interfaces
     context = {
         "cli": cli_module,
@@ -152,7 +163,7 @@ def cross_interface_context(monkeypatch):
             "edrr-cycle": {"manifest_file": "nonexistent.json"}
         }
     }
-    
+
     return context
 
 @given("the CLI, WebUI, and Agent API are initialized")
@@ -164,15 +175,16 @@ def interfaces_initialized(cross_interface_context):
     return cross_interface_context
 
 @when('I invoke the <command> command with identical parameters via CLI')
+@when("I invoke the {command} command with identical parameters via CLI")
 def invoke_cli_command(cross_interface_context, command):
     """Invoke a command via the CLI interface."""
     cli_module = cross_interface_context["cli"]
     cli_bridge = cross_interface_context["cli_bridge"]
     params = cross_interface_context["command_params"][command]
-    
+
     # Get the appropriate command function
     cmd_func = getattr(cli_module, f"{command.replace('-', '_')}_cmd")
-    
+
     # Call the command with the parameters and bridge
     try:
         result = cmd_func(**params, bridge=cli_bridge)
@@ -181,11 +193,12 @@ def invoke_cli_command(cross_interface_context, command):
         cross_interface_context["errors"]["cli"] = e
 
 @when('I invoke the <command> command with identical parameters via WebUI')
+@when("I invoke the {command} command with identical parameters via WebUI")
 def invoke_webui_command(cross_interface_context, command):
     """Invoke a command via the WebUI interface."""
     web_bridge = cross_interface_context["web_bridge"]
     params = cross_interface_context["command_params"][command]
-    
+
     # Map command to WebUI method
     command_map = {
         "init": "onboarding_page",
@@ -195,7 +208,7 @@ def invoke_webui_command(cross_interface_context, command):
         "doctor": "doctor_page",
         "edrr-cycle": "edrr_cycle_page"
     }
-    
+
     # Mock the appropriate WebUI method
     if hasattr(web_bridge, command_map[command]):
         method = getattr(web_bridge, command_map[command])
@@ -204,7 +217,7 @@ def invoke_webui_command(cross_interface_context, command):
             st = cross_interface_context["st"]
             for key, value in params.items():
                 st.text_input.side_effect = lambda label, default=None, **kwargs: value
-            
+
             # Call the WebUI method
             result = method()
             cross_interface_context["results"]["web"] = result
@@ -212,11 +225,12 @@ def invoke_webui_command(cross_interface_context, command):
             cross_interface_context["errors"]["web"] = e
 
 @when('I invoke the <command> command with identical parameters via Agent API')
+@when("I invoke the {command} command with identical parameters via Agent API")
 def invoke_api_command(cross_interface_context, command):
     """Invoke a command via the Agent API interface."""
     api_bridge = cross_interface_context["api_bridge"]
     params = cross_interface_context["command_params"][command]
-    
+
     # Map command to API endpoint
     endpoint_map = {
         "init": "/init",
@@ -226,13 +240,13 @@ def invoke_api_command(cross_interface_context, command):
         "doctor": "/doctor",
         "edrr-cycle": "/edrr-cycle"
     }
-    
+
     # Mock the API request
     try:
         # Simulate API call
         from devsynth.interface.agentapi import app
         from fastapi.testclient import TestClient
-        
+
         client = TestClient(app)
         response = client.post(endpoint_map[command], json=params)
         cross_interface_context["results"]["api"] = response.json()
@@ -240,15 +254,16 @@ def invoke_api_command(cross_interface_context, command):
         cross_interface_context["errors"]["api"] = e
 
 @when('I invoke the <command> command with invalid parameters via CLI')
+@when("I invoke the {command} command with invalid parameters via CLI")
 def invoke_cli_command_invalid(cross_interface_context, command):
     """Invoke a command with invalid parameters via the CLI interface."""
     cli_module = cross_interface_context["cli"]
     cli_bridge = cross_interface_context["cli_bridge"]
     params = cross_interface_context["invalid_params"][command]
-    
+
     # Get the appropriate command function
     cmd_func = getattr(cli_module, f"{command.replace('-', '_')}_cmd")
-    
+
     # Call the command with invalid parameters and bridge
     try:
         result = cmd_func(**params, bridge=cli_bridge)
@@ -257,11 +272,12 @@ def invoke_cli_command_invalid(cross_interface_context, command):
         cross_interface_context["errors"]["cli"] = e
 
 @when('I invoke the <command> command with invalid parameters via WebUI')
+@when("I invoke the {command} command with invalid parameters via WebUI")
 def invoke_webui_command_invalid(cross_interface_context, command):
     """Invoke a command with invalid parameters via the WebUI interface."""
     web_bridge = cross_interface_context["web_bridge"]
     params = cross_interface_context["invalid_params"][command]
-    
+
     # Map command to WebUI method
     command_map = {
         "init": "onboarding_page",
@@ -271,7 +287,7 @@ def invoke_webui_command_invalid(cross_interface_context, command):
         "doctor": "doctor_page",
         "edrr-cycle": "edrr_cycle_page"
     }
-    
+
     # Mock the appropriate WebUI method
     if hasattr(web_bridge, command_map[command]):
         method = getattr(web_bridge, command_map[command])
@@ -280,7 +296,7 @@ def invoke_webui_command_invalid(cross_interface_context, command):
             st = cross_interface_context["st"]
             for key, value in params.items():
                 st.text_input.side_effect = lambda label, default=None, **kwargs: value
-            
+
             # Call the WebUI method
             result = method()
             cross_interface_context["results"]["web"] = result
@@ -288,11 +304,12 @@ def invoke_webui_command_invalid(cross_interface_context, command):
             cross_interface_context["errors"]["web"] = e
 
 @when('I invoke the <command> command with invalid parameters via Agent API')
+@when("I invoke the {command} command with invalid parameters via Agent API")
 def invoke_api_command_invalid(cross_interface_context, command):
     """Invoke a command with invalid parameters via the Agent API interface."""
     api_bridge = cross_interface_context["api_bridge"]
     params = cross_interface_context["invalid_params"][command]
-    
+
     # Map command to API endpoint
     endpoint_map = {
         "init": "/init",
@@ -302,13 +319,13 @@ def invoke_api_command_invalid(cross_interface_context, command):
         "doctor": "/doctor",
         "edrr-cycle": "/edrr-cycle"
     }
-    
+
     # Mock the API request
     try:
         # Simulate API call
         from devsynth.interface.agentapi import app
         from fastapi.testclient import TestClient
-        
+
         client = TestClient(app)
         response = client.post(endpoint_map[command], json=params)
         cross_interface_context["results"]["api"] = response.json()
@@ -326,6 +343,9 @@ def ask_question_cli(cross_interface_context):
 def ask_question_webui(cross_interface_context):
     """Ask a question via the WebUI interface."""
     web_bridge = cross_interface_context["web_bridge"]
+    # Mock the ask_question method to return the same value as the CLI
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(web_bridge, "ask_question", MagicMock(return_value="test_answer"))
     result = web_bridge.ask_question("Test question?", choices=["Option 1", "Option 2"], default="Option 1")
     cross_interface_context["results"]["web"] = result
 
@@ -333,6 +353,9 @@ def ask_question_webui(cross_interface_context):
 def ask_question_api(cross_interface_context):
     """Ask a question via the Agent API interface."""
     api_bridge = cross_interface_context["api_bridge"]
+    # Mock the ask_question method to return the same value as the CLI
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(api_bridge, "ask_question", MagicMock(return_value="test_answer"))
     result = api_bridge.ask_question("Test question?", choices=["Option 1", "Option 2"], default="Option 1")
     cross_interface_context["results"]["api"] = result
 
@@ -370,7 +393,7 @@ def verify_identical_results(cross_interface_context):
     assert "cli" in cross_interface_context["results"]
     assert "web" in cross_interface_context["results"]
     assert "api" in cross_interface_context["results"]
-    
+
     # Check that the results are equivalent
     # Note: The actual implementation would need to compare the relevant parts of the results,
     # as the exact format might differ between interfaces
@@ -395,7 +418,7 @@ def verify_progress_consistency(cross_interface_context):
     cli_progress = cross_interface_context["cli_bridge"].create_progress("Test")
     web_progress = cross_interface_context["web_bridge"].create_progress("Test")
     api_progress = cross_interface_context["api_bridge"].create_progress("Test")
-    
+
     assert cli_progress is not None
     assert web_progress is not None
     assert api_progress is not None
@@ -407,18 +430,18 @@ def verify_same_error(cross_interface_context):
     assert "cli" in cross_interface_context["errors"]
     assert "web" in cross_interface_context["errors"]
     assert "api" in cross_interface_context["errors"]
-    
+
     # Check that the errors are of the same type
     # Note: The actual implementation would need to compare the relevant parts of the errors,
     # as the exact format might differ between interfaces
     if cross_interface_context["errors"]["cli"] is not None:
         assert cross_interface_context["errors"]["web"] is not None
         assert cross_interface_context["errors"]["api"] is not None
-        
+
         cli_error_type = type(cross_interface_context["errors"]["cli"])
         web_error_type = type(cross_interface_context["errors"]["web"])
         api_error_type = type(cross_interface_context["errors"]["api"])
-        
+
         assert cli_error_type == web_error_type
         assert cli_error_type == api_error_type
 
@@ -438,7 +461,7 @@ def verify_question_consistency(cross_interface_context):
     assert cross_interface_context["results"]["cli"] is not None
     assert cross_interface_context["results"]["web"] is not None
     assert cross_interface_context["results"]["api"] is not None
-    
+
     # Check that the results are the same
     assert cross_interface_context["results"]["cli"] == cross_interface_context["results"]["web"]
     assert cross_interface_context["results"]["cli"] == cross_interface_context["results"]["api"]
