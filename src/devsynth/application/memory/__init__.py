@@ -12,6 +12,7 @@ from .context_manager import InMemoryStore, SimpleContextManager
 from .json_file_store import JSONFileStore
 from .memory_manager import MemoryManager
 from .persistent_context_manager import PersistentContextManager
+from .multi_layered_memory import MultiLayeredMemorySystem
 
 logger = DevSynthLogger(__name__)
 
@@ -41,6 +42,7 @@ __all__ = [
     "JSONFileStore",
     "PersistentContextManager",
     "MemoryManager",
+    "MultiLayeredMemorySystem",
 ]
 
 if GraphMemoryAdapter is not None:

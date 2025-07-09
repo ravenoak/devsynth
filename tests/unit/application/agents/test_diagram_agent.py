@@ -1,139 +1,123 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from typing import Dict, Any, List
-
 from devsynth.application.agents.diagram import DiagramAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.ports.llm_port import LLMPort
 
 
 class TestDiagramAgent:
-    """Unit tests for the DiagramAgent class."""
+    """Unit tests for the DiagramAgent class.
+
+ReqID: N/A"""
 
     @pytest.fixture
     def mock_llm_port(self):
         """Create a mock LLM port."""
         mock_port = MagicMock(spec=LLMPort)
-        mock_port.generate.return_value = "Generated diagrams"
-        mock_port.generate_with_context.return_value = "Generated diagrams with context"
+        mock_port.generate.return_value = 'Generated diagrams'
+        mock_port.generate_with_context.return_value = (
+            'Generated diagrams with context')
         return mock_port
 
     @pytest.fixture
     def diagram_agent(self, mock_llm_port):
         """Create a DiagramAgent instance for testing."""
         agent = DiagramAgent()
-        config = AgentConfig(
-            name="TestDiagramAgent",
-            agent_type=AgentType.DIAGRAM,
-            description="Test Diagram Agent",
-            capabilities=[]  # Let the agent define its own capabilities
-        )
+        config = AgentConfig(name='TestDiagramAgent', agent_type=AgentType.
+            DIAGRAM, description='Test Diagram Agent', capabilities=[])
         agent.initialize(config)
         agent.set_llm_port(mock_llm_port)
         return agent
 
-    def test_initialization(self, diagram_agent):
-        """Test that the agent initializes correctly."""
-        assert diagram_agent.name == "TestDiagramAgent"
+    def test_initialization_succeeds(self, diagram_agent):
+        """Test that the agent initializes correctly.
+
+ReqID: N/A"""
+        assert diagram_agent.name == 'TestDiagramAgent'
         assert diagram_agent.agent_type == AgentType.DIAGRAM.value
-        assert diagram_agent.description == "Test Diagram Agent"
-        # Check that capabilities are set by the agent
+        assert diagram_agent.description == 'Test Diagram Agent'
         capabilities = diagram_agent.get_capabilities()
-        assert "create_architecture_diagrams" in capabilities
-        assert "create_component_diagrams" in capabilities
-        assert "create_sequence_diagrams" in capabilities
-        assert "create_er_diagrams" in capabilities
-        assert "create_state_diagrams" in capabilities
+        assert 'create_architecture_diagrams' in capabilities
+        assert 'create_component_diagrams' in capabilities
+        assert 'create_sequence_diagrams' in capabilities
+        assert 'create_er_diagrams' in capabilities
+        assert 'create_state_diagrams' in capabilities
 
-    def test_process(self, diagram_agent):
-        """Test the process method."""
-        # Create test inputs
-        inputs = {
-            "context": "This is a test project",
-            "specifications": "Create diagrams for a user authentication system",
-            "architecture": "Microservices architecture"
-        }
-        
-        # Call the process method
+    def test_process_succeeds(self, diagram_agent):
+        """Test the process method.
+
+ReqID: N/A"""
+        inputs = {'context': 'This is a test project', 'specifications':
+            'Create diagrams for a user authentication system',
+            'architecture': 'Microservices architecture'}
         result = diagram_agent.process(inputs)
-        
-        # Check the result
-        assert "diagrams" in result
-        assert "wsde" in result
-        assert "agent" in result
-        assert "role" in result
-        assert result["agent"] == "TestDiagramAgent"
-        
-        # Check that the WSDE was created correctly
-        wsde = result["wsde"]
-        assert wsde.content == result["diagrams"]
-        assert wsde.content_type == "diagram"
-        assert wsde.metadata["agent"] == "TestDiagramAgent"
-        assert wsde.metadata["type"] == "diagrams"
+        assert 'diagrams' in result
+        assert 'wsde' in result
+        assert 'agent' in result
+        assert 'role' in result
+        assert result['agent'] == 'TestDiagramAgent'
+        wsde = result['wsde']
+        assert wsde.content == result['diagrams']
+        assert wsde.content_type == 'diagram'
+        assert wsde.metadata['agent'] == 'TestDiagramAgent'
+        assert wsde.metadata['type'] == 'diagrams'
 
-    def test_process_with_empty_inputs(self, diagram_agent):
-        """Test the process method with empty inputs."""
-        # Call the process method with empty inputs
+    def test_process_with_empty_inputs_succeeds(self, diagram_agent):
+        """Test the process method with empty inputs.
+
+ReqID: N/A"""
         result = diagram_agent.process({})
-        
-        # Check the result
-        assert "diagrams" in result
-        assert "wsde" in result
-        assert "agent" in result
-        assert "role" in result
-        assert result["agent"] == "TestDiagramAgent"
-        
-        # Check that the WSDE was created correctly
-        wsde = result["wsde"]
-        assert wsde.content == result["diagrams"]
-        assert wsde.content_type == "diagram"
-        assert wsde.metadata["agent"] == "TestDiagramAgent"
-        assert wsde.metadata["type"] == "diagrams"
+        assert 'diagrams' in result
+        assert 'wsde' in result
+        assert 'agent' in result
+        assert 'role' in result
+        assert result['agent'] == 'TestDiagramAgent'
+        wsde = result['wsde']
+        assert wsde.content == result['diagrams']
+        assert wsde.content_type == 'diagram'
+        assert wsde.metadata['agent'] == 'TestDiagramAgent'
+        assert wsde.metadata['type'] == 'diagrams'
 
-    def test_get_capabilities(self, diagram_agent):
-        """Test the get_capabilities method."""
+    def test_get_capabilities_succeeds(self, diagram_agent):
+        """Test the get_capabilities method.
+
+ReqID: N/A"""
         capabilities = diagram_agent.get_capabilities()
         assert isinstance(capabilities, list)
         assert len(capabilities) == 5
-        assert "create_architecture_diagrams" in capabilities
-        assert "create_component_diagrams" in capabilities
-        assert "create_sequence_diagrams" in capabilities
-        assert "create_er_diagrams" in capabilities
-        assert "create_state_diagrams" in capabilities
+        assert 'create_architecture_diagrams' in capabilities
+        assert 'create_component_diagrams' in capabilities
+        assert 'create_sequence_diagrams' in capabilities
+        assert 'create_er_diagrams' in capabilities
+        assert 'create_state_diagrams' in capabilities
 
-    def test_get_capabilities_with_custom_capabilities(self):
-        """Test the get_capabilities method with custom capabilities."""
+    def test_get_capabilities_with_custom_capabilities_succeeds(self):
+        """Test the get_capabilities method with custom capabilities.
+
+ReqID: N/A"""
         agent = DiagramAgent()
-        config = AgentConfig(
-            name="TestDiagramAgent",
-            agent_type=AgentType.DIAGRAM,
-            description="Test Diagram Agent",
-            capabilities=["custom_capability"]
-        )
+        config = AgentConfig(name='TestDiagramAgent', agent_type=AgentType.
+            DIAGRAM, description='Test Diagram Agent', capabilities=[
+            'custom_capability'])
         agent.initialize(config)
-        
-        # The agent should use the custom capabilities provided in the config
         capabilities = agent.get_capabilities()
         assert len(capabilities) == 1
-        assert "custom_capability" in capabilities
-        assert "create_architecture_diagrams" not in capabilities
+        assert 'custom_capability' in capabilities
+        assert 'create_architecture_diagrams' not in capabilities
 
-    @patch("devsynth.application.agents.diagram.logger")
-    def test_process_error_handling(self, mock_logger, diagram_agent):
-        """Test error handling in the process method."""
-        # Create a mock WSDE that raises an exception when created
-        with patch.object(diagram_agent, 'create_wsde', side_effect=Exception("Test error")):
-            # Call the process method
+    @patch('devsynth.application.agents.diagram.logger')
+    def test_process_error_handling_raises_error(self, mock_logger,
+        diagram_agent):
+        """Test error handling in the process method.
+
+ReqID: N/A"""
+        with patch.object(diagram_agent, 'create_wsde', side_effect=
+            Exception('Test error')):
             result = diagram_agent.process({})
-            
-            # Check that an error was logged
             mock_logger.error.assert_called_once()
-            
-            # The method should still return a result, even if an error occurred
-            assert "diagrams" in result
-            assert "agent" in result
-            assert "role" in result
-            assert result["agent"] == "TestDiagramAgent"
-            
-            # The WSDE should be None due to the error
-            assert result.get("wsde") is None
+            assert 'diagrams' in result
+            assert 'agent' in result
+            assert 'role' in result
+            assert result['agent'] == 'TestDiagramAgent'
+            assert result.get('wsde') is None

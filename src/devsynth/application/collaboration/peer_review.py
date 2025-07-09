@@ -110,7 +110,7 @@ class PeerReview:
                     # Try to use WSDETeam's dialectical reasoning if available
                     try:
                         from devsynth.domain.models.wsde import WSDETeam
-                        temp_team = WSDETeam()
+                        temp_team = WSDETeam(name="PeerReviewTeam")
                         temp_team.add_solution(task, solution)
 
                         dialectical_result = temp_team.apply_dialectical_reasoning(task, reviewer)

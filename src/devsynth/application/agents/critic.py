@@ -62,22 +62,28 @@ class CriticAgent(BaseAgent):
             critique = f"Critique (created by {self.name} as {self.current_role})"
         else:
             try:
-                critique = self.generate_text(prompt)
+                # Instead of using self.generate_text which logs to base.logger,
+                # call the LLM port directly and log errors here
+                critique = self.llm_port.generate(prompt)
                 logger.info(f"Generated critique using LLM port")
             except Exception as e:
                 logger.error(f"Error generating critique: {str(e)}")
                 critique = f"Error generating critique: {str(e)}"
 
         # Create a WSDE with the critique
-        critique_wsde = self.create_wsde(
-            content=critique,
-            content_type="text",
-            metadata={
-                "agent": self.name,
-                "role": self.current_role,
-                "type": "critique"
-            }
-        )
+        critique_wsde = None
+        try:
+            critique_wsde = self.create_wsde(
+                content=critique,
+                content_type="text",
+                metadata={
+                    "agent": self.name,
+                    "role": self.current_role,
+                    "type": "critique"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error creating WSDE: {str(e)}")
 
         return {
             "critique": critique,

@@ -2,25 +2,29 @@ import types
 import sys
 import pytest
 from unittest.mock import MagicMock, patch
-
-# Stub heavy core module before importing coordinator
 core_stub = types.ModuleType('devsynth.core')
 
+
 class CoreValues:
+
     @classmethod
     def load(cls, *args, **kwargs):
         return cls()
 
     def validate_report(self, report):
         return []
+
+
 def check_report_for_value_conflicts(report, core_values=None):
     return []
+
+
 core_stub.CoreValues = CoreValues
 core_stub.check_report_for_value_conflicts = check_report_for_value_conflicts
 sys.modules['devsynth.core'] = core_stub
-
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.methodology.base import Phase
+
 
 @pytest.fixture
 def coordinator():
@@ -33,17 +37,25 @@ def coordinator():
     doc = MagicMock()
     return EDRRCoordinator(mem, wsde, code, ast, prompt, doc)
 
-def test_progress_to_phase_runs(coordinator):
+
+def test_progress_to_phase_runs_succeeds(coordinator):
+    """Test that progress to phase runs succeeds.
+
+ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
-    with patch.object(coordinator, '_execute_expand_phase', return_value={'done': True}) as ex:
+    with patch.object(coordinator, '_execute_expand_phase', return_value={
+        'done': True}) as ex:
         coordinator.progress_to_phase(Phase.EXPAND)
     ex.assert_called_once_with({})
     assert coordinator.results['EXPAND'] == {'done': True}
     assert coordinator.current_phase == Phase.EXPAND
 
 
-def test_execute_expand_phase(coordinator):
+def test_execute_expand_phase_succeeds(coordinator):
+    """Test that execute expand phase succeeds.
+
+ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
     coordinator.memory_manager.retrieve_relevant_knowledge.return_value = ['k']
@@ -56,10 +68,14 @@ def test_execute_expand_phase(coordinator):
     coordinator.memory_manager.store_with_edrr_phase.assert_called()
 
 
-def test_execute_differentiate_phase(coordinator):
+def test_execute_differentiate_phase_succeeds(coordinator):
+    """Test that execute differentiate phase succeeds.
+
+ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
-    coordinator.memory_manager.retrieve_with_edrr_phase.return_value = {'ideas': [1, 2]}
+    coordinator.memory_manager.retrieve_with_edrr_phase.return_value = {'ideas'
+        : [1, 2]}
     coordinator.wsde_team.create_comparison_matrix.return_value = 'cm'
     coordinator.wsde_team.evaluate_options.return_value = 'eo'
     coordinator.wsde_team.analyze_trade_offs.return_value = 'to'
@@ -72,9 +88,13 @@ def test_execute_differentiate_phase(coordinator):
     coordinator.memory_manager.store_with_edrr_phase.assert_called()
 
 
-def test_execute_refine_phase(coordinator):
+def test_execute_refine_phase_succeeds(coordinator):
+    """Test that execute refine phase succeeds.
+
+ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
+
     def ret(item_type, phase, meta):
         if item_type == 'DIFFERENTIATE_RESULTS':
             return {'evaluated_options': [1], 'decision_criteria': {}}
@@ -94,9 +114,13 @@ def test_execute_refine_phase(coordinator):
     coordinator.memory_manager.store_with_edrr_phase.assert_called()
 
 
-def test_execute_retrospect_phase(coordinator):
+def test_execute_retrospect_phase_succeeds(coordinator):
+    """Test that execute retrospect phase succeeds.
+
+ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
+
     def ret(item_type, phase, meta):
         if item_type == 'EXPAND_RESULTS':
             return {'ideas': []}

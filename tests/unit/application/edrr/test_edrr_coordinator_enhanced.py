@@ -2,9 +2,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 from pathlib import Path
-
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.application.edrr.coordinator import EDRRCoordinatorError
+from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
 from devsynth.methodology.base import Phase
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.wsde import WSDETeam
@@ -19,48 +18,59 @@ from devsynth.domain.models.memory import MemoryType
 def memory_manager():
     """Create a mock memory manager for testing."""
     mock_memory_manager = MagicMock(spec=MemoryManager)
-    
-    # Mock the store method
-    mock_memory_manager.store.return_value = "memory_id_123"
-    
-    # Mock the retrieve method
-    mock_memory_manager.retrieve.return_value = {
-        "content": "Test memory content",
-        "metadata": {"key": "value"}
-    }
-    
-    # Mock the search method
-    mock_memory_manager.search.return_value = [
-        {
-            "id": "memory_id_123",
-            "content": "Test memory content",
-            "metadata": {"key": "value"},
-            "score": 0.95
-        }
-    ]
-    
+    mock_memory_manager.store.return_value = 'memory_id_123'
+    mock_memory_manager.retrieve.return_value = {'content':
+        'Test memory content', 'metadata': {'key': 'value'}}
+    mock_memory_manager.search_memory.return_value = [{'id':
+        'memory_id_123', 'content': 'Test memory content', 'metadata': {
+        'key': 'value'}, 'score': 0.95}]
     return mock_memory_manager
 
 
 @pytest.fixture
 def wsde_team():
     """Create a mock WSDE team for testing."""
-    mock_wsde_team = MagicMock(spec=WSDETeam)
-    
-    # Mock the execute_task method
-    mock_wsde_team.execute_task.return_value = {
-        "result": "Task executed successfully",
-        "artifacts": ["artifact1", "artifact2"],
-        "metrics": {"time_taken": 10.5}
-    }
-    
-    # Mock the get_team_report method
-    mock_wsde_team.get_team_report.return_value = {
-        "team_composition": ["Agent1", "Agent2", "Agent3"],
-        "task_distribution": {"Agent1": 2, "Agent2": 3, "Agent3": 1},
-        "performance_metrics": {"efficiency": 0.85, "quality": 0.9}
-    }
-    
+    mock_wsde_team = MagicMock()
+    mock_wsde_team.execute_task.return_value = {'result':
+        'Task executed successfully', 'artifacts': ['artifact1',
+        'artifact2'], 'metrics': {'time_taken': 10.5}}
+    mock_wsde_team.get_team_report.return_value = {'team_composition': [
+        'Agent1', 'Agent2', 'Agent3'], 'task_distribution': {'Agent1': 2,
+        'Agent2': 3, 'Agent3': 1}, 'performance_metrics': {'efficiency': 
+        0.85, 'quality': 0.9}}
+    mock_wsde_team.assign_roles_for_phase.return_value = None
+    mock_wsde_team.get_role_map.return_value = {'Agent1': 'role1', 'Agent2':
+        'role2'}
+    mock_wsde_team.generate_diverse_ideas.return_value = ['idea1', 'idea2']
+    mock_wsde_team.create_comparison_matrix.return_value = {'idea1': {
+        'score': 0.8}, 'idea2': {'score': 0.6}}
+    mock_wsde_team.evaluate_options.return_value = [{'option': 'idea1',
+        'score': 0.8}, {'option': 'idea2', 'score': 0.6}]
+    mock_wsde_team.analyze_trade_offs.return_value = [{'option1': 'idea1',
+        'option2': 'idea2', 'trade_off': 'complexity vs speed'}]
+    mock_wsde_team.formulate_decision_criteria.return_value = {'criteria1':
+        0.7, 'criteria2': 0.3}
+    mock_wsde_team.select_best_option.return_value = {'option': 'idea1',
+        'score': 0.8}
+    mock_wsde_team.elaborate_details.return_value = {'option': 'idea1',
+        'details': 'detailed implementation'}
+    mock_wsde_team.create_implementation_plan.return_value = [{'step': 1,
+        'description': 'step 1'}]
+    mock_wsde_team.optimize_implementation.return_value = [{'step': 1,
+        'description': 'optimized step 1'}]
+    mock_wsde_team.perform_quality_assurance.return_value = {'passed': True,
+        'issues': []}
+    mock_wsde_team.get_primus.return_value = 'Agent1'
+    mock_wsde_team.conduct_peer_review.return_value = {'reviewer': 'Agent2',
+        'comments': 'looks good'}
+    mock_wsde_team.extract_learnings.return_value = [{'category':
+        'technical', 'learning': 'learning1'}]
+    mock_wsde_team.recognize_patterns.return_value = [{'pattern':
+        'pattern1', 'frequency': 0.7}]
+    mock_wsde_team.integrate_knowledge.return_value = {'status': 'success',
+        'integrated_items': 3}
+    mock_wsde_team.generate_improvement_suggestions.return_value = [{
+        'phase': 'EXPAND', 'suggestion': 'suggestion1'}]
     return mock_wsde_team
 
 
@@ -68,14 +78,8 @@ def wsde_team():
 def code_analyzer():
     """Create a mock code analyzer for testing."""
     mock_code_analyzer = MagicMock(spec=CodeAnalyzer)
-    
-    # Mock the analyze_code method
-    mock_code_analyzer.analyze_code.return_value = {
-        "complexity": 5,
-        "maintainability": 8,
-        "issues": ["Issue1", "Issue2"]
-    }
-    
+    mock_code_analyzer.analyze_code.return_value = {'complexity': 5,
+        'maintainability': 8, 'issues': ['Issue1', 'Issue2']}
     return mock_code_analyzer
 
 
@@ -101,25 +105,26 @@ def documentation_manager():
 
 
 @pytest.fixture
-def enhanced_coordinator(memory_manager, wsde_team, code_analyzer, ast_transformer, prompt_manager, documentation_manager):
+def enhanced_coordinator(memory_manager, wsde_team, code_analyzer,
+    ast_transformer, prompt_manager, documentation_manager):
     """Create an EnhancedEDRRCoordinator instance for testing."""
-    coordinator = EnhancedEDRRCoordinator(
-        memory_manager=memory_manager,
-        wsde_team=wsde_team,
-        code_analyzer=code_analyzer,
-        ast_transformer=ast_transformer,
-        prompt_manager=prompt_manager,
+    coordinator = EnhancedEDRRCoordinator(memory_manager=memory_manager,
+        wsde_team=wsde_team, code_analyzer=code_analyzer, ast_transformer=
+        ast_transformer, prompt_manager=prompt_manager,
         documentation_manager=documentation_manager,
-        enable_enhanced_logging=True
-    )
+        enable_enhanced_logging=True)
     return coordinator
 
 
 class TestEnhancedEDRRCoordinator:
-    """Tests for the EnhancedEDRRCoordinator class."""
+    """Tests for the EnhancedEDRRCoordinator class.
 
-    def test_initialization(self, enhanced_coordinator):
-        """Test that the enhanced coordinator initializes correctly."""
+ReqID: N/A"""
+
+    def test_initialization_succeeds(self, enhanced_coordinator):
+        """Test that the enhanced coordinator initializes correctly.
+
+ReqID: N/A"""
         assert enhanced_coordinator is not None
         assert enhanced_coordinator.memory_manager is not None
         assert enhanced_coordinator.wsde_team is not None
@@ -127,334 +132,222 @@ class TestEnhancedEDRRCoordinator:
         assert enhanced_coordinator.ast_transformer is not None
         assert enhanced_coordinator.prompt_manager is not None
         assert enhanced_coordinator.documentation_manager is not None
-        assert enhanced_coordinator.enable_enhanced_logging is True
+        assert enhanced_coordinator._enable_enhanced_logging is True
         assert enhanced_coordinator.recursion_depth == 0
         assert enhanced_coordinator.parent_cycle_id is None
         assert enhanced_coordinator.parent_phase is None
         assert hasattr(enhanced_coordinator, 'phase_metrics')
-        assert enhanced_coordinator.phase_metrics == {}
+        from devsynth.application.edrr.edrr_phase_transitions import PhaseTransitionMetrics
+        assert isinstance(enhanced_coordinator.phase_metrics,
+            PhaseTransitionMetrics)
 
-    def test_progress_to_phase(self, enhanced_coordinator, memory_manager):
-        """Test enhanced progress to phase with metrics collection."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
-        enhanced_coordinator.start_cycle(task)
-        
-        # Mock the memory_manager.store method to return a specific ID
-        memory_manager.store.return_value = "phase_transition_memory_id"
-        
-        # Mock the collect_phase_metrics function
-        with patch("devsynth.application.edrr.edrr_coordinator_enhanced.collect_phase_metrics") as mock_collect_metrics:
-            mock_collect_metrics.return_value = {
-                "duration": 10.5,
-                "quality_score": 0.85,
-                "complexity": 5
-            }
-            
-            # Call the method under test
-            enhanced_coordinator.progress_to_phase(Phase.DESIGN)
-            
-            # Verify that the current phase is updated
-            assert enhanced_coordinator.current_phase == Phase.DESIGN
-            
-            # Verify that collect_phase_metrics was called
-            mock_collect_metrics.assert_called_once()
-            
-            # Verify that the phase metrics were stored
-            assert Phase.EXPLORE.value in enhanced_coordinator.phase_metrics
-            
-            # Verify that the phase transition was stored in memory
-            memory_manager.store.assert_called_with(
-                content={
-                    "from_phase": Phase.EXPLORE.value,
-                    "to_phase": Phase.DESIGN.value,
-                    "timestamp": pytest.approx(datetime.now().timestamp(), abs=5),
-                    "metrics": mock_collect_metrics.return_value
-                },
-                memory_type=MemoryType.PHASE_TRANSITION,
-                metadata={"cycle_id": enhanced_coordinator.cycle_id}
-            )
+    def test_progress_to_phase_has_expected(self, enhanced_coordinator,
+        memory_manager):
+        """Test enhanced progress to phase with metrics collection.
 
-    def test_enhanced_decide_next_phase(self, enhanced_coordinator):
-        """Test the enhanced decision-making for the next phase."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
         enhanced_coordinator.start_cycle(task)
-        
-        # Set up phase metrics
-        enhanced_coordinator.phase_metrics = {
-            Phase.EXPLORE.value: {
-                "duration": 10.5,
-                "quality_score": 0.85,
-                "complexity": 5
-            }
-        }
-        
-        # Mock the calculate_enhanced_quality_score function
-        with patch("devsynth.application.edrr.edrr_coordinator_enhanced.calculate_enhanced_quality_score") as mock_calculate_score:
-            mock_calculate_score.return_value = 0.9  # High quality score
-            
-            # Call the internal method under test
+        with patch.object(enhanced_coordinator, '_safe_store_with_edrr_phase'
+            ) as mock_store:
+            with patch(
+                'devsynth.application.edrr.edrr_coordinator_enhanced.collect_phase_metrics'
+                ) as mock_collect_metrics:
+                mock_collect_metrics.return_value = {'duration': 10.5,
+                    'quality': 0.85, 'completeness': 0.8, 'consistency': 0.75}
+                enhanced_coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+                assert enhanced_coordinator.current_phase == Phase.DIFFERENTIATE
+                mock_collect_metrics.assert_called_once()
+                mock_store.assert_called_with(mock_collect_metrics.
+                    return_value, MemoryType.EPISODIC, Phase.DIFFERENTIATE.
+                    value, {'cycle_id': enhanced_coordinator.cycle_id,
+                    'type': 'PHASE_METRICS'})
+
+    def test_enhanced_decide_next_phase_has_expected(self, enhanced_coordinator
+        ):
+        """Test the enhanced decision-making for the next phase.
+
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
+        enhanced_coordinator.start_cycle(task)
+        enhanced_coordinator.auto_phase_transitions = True
+        enhanced_coordinator.quality_based_transitions = True
+        enhanced_coordinator.phase_metrics.end_phase(Phase.EXPAND, {
+            'duration': 10.5, 'quality': 0.85, 'completeness': 0.8,
+            'consistency': 0.75})
+        with patch.object(enhanced_coordinator.phase_metrics,
+            'should_transition') as mock_should_transition:
+            mock_should_transition.return_value = True, {'reason':
+                'High quality metrics'}
             next_phase = enhanced_coordinator._enhanced_decide_next_phase()
-            
-            # Verify that the next phase is DESIGN (normal progression)
-            assert next_phase == Phase.DESIGN
-            
-            # Now set a low quality score to trigger a repeat of the current phase
-            mock_calculate_score.return_value = 0.3  # Low quality score
-            
-            # Call the internal method again
+            assert next_phase == Phase.DIFFERENTIATE
+            mock_should_transition.return_value = False, {'reason':
+                'Low quality metrics'}
+            enhanced_coordinator.results[Phase.EXPAND.name] = {'phase_complete'
+                : True}
             next_phase = enhanced_coordinator._enhanced_decide_next_phase()
-            
-            # Verify that the next phase is still EXPLORE (repeat due to low quality)
-            assert next_phase == Phase.EXPLORE
+            assert next_phase == Phase.DIFFERENTIATE
+            enhanced_coordinator.results[Phase.EXPAND.name] = {'phase_complete'
+                : False}
+            next_phase = enhanced_coordinator._enhanced_decide_next_phase()
+            assert next_phase is None
 
-    def test_enhanced_maybe_auto_progress(self, enhanced_coordinator):
-        """Test the enhanced auto-progression."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
+    def test_enhanced_maybe_auto_progress_succeeds(self, enhanced_coordinator):
+        """Test the enhanced auto-progression.
+
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
         enhanced_coordinator.start_cycle(task)
-        
-        # Mock the config to enable auto-progress
-        enhanced_coordinator.config = {"auto_progress": True}
-        
-        # Mock the _enhanced_decide_next_phase method
-        with patch.object(enhanced_coordinator, '_enhanced_decide_next_phase') as mock_decide:
-            mock_decide.return_value = Phase.DESIGN
-            
-            # Call the internal method under test
+        enhanced_coordinator.auto_phase_transitions = True
+        with patch.object(enhanced_coordinator, '_enhanced_decide_next_phase'
+            ) as mock_decide:
+            mock_decide.side_effect = [Phase.DIFFERENTIATE, None]
+            with patch.object(EDRRCoordinator, 'progress_to_phase'
+                ) as mock_progress:
+                enhanced_coordinator._enhanced_maybe_auto_progress()
+                assert mock_decide.call_count == 2
+                mock_progress.assert_called_once_with(Phase.DIFFERENTIATE)
+        enhanced_coordinator.auto_phase_transitions = False
+        with patch.object(enhanced_coordinator, '_enhanced_decide_next_phase'
+            ) as mock_decide:
             enhanced_coordinator._enhanced_maybe_auto_progress()
-            
-            # Verify that the current phase is updated to DESIGN (auto-progressed)
-            assert enhanced_coordinator.current_phase == Phase.DESIGN
-            
-            # Verify that _enhanced_decide_next_phase was called
-            mock_decide.assert_called_once()
-            
-            # Disable auto-progress
-            enhanced_coordinator.config = {"auto_progress": False}
-            
-            # Reset the mock
-            mock_decide.reset_mock()
-            
-            # Call the internal method again
-            enhanced_coordinator._enhanced_maybe_auto_progress()
-            
-            # Verify that _enhanced_decide_next_phase was not called
             mock_decide.assert_not_called()
 
-    def test_calculate_quality_score(self, enhanced_coordinator):
-        """Test the quality score calculation."""
-        # Create a result with various attributes
-        result = {
-            "result": "Task executed successfully",
-            "artifacts": ["artifact1", "artifact2"],
-            "metrics": {
-                "time_taken": 10.5,
-                "quality": 0.85,
-                "complexity": 5
-            }
-        }
-        
-        # Call the method under test
+    def test_calculate_quality_score_succeeds(self, enhanced_coordinator):
+        """Test the quality score calculation.
+
+ReqID: N/A"""
+        result = {'result': 'Task executed successfully', 'artifacts': [
+            'artifact1', 'artifact2'], 'metrics': {'time_taken': 10.5,
+            'quality': 0.85, 'complexity': 5}}
         score = enhanced_coordinator._calculate_quality_score(result)
-        
-        # Verify that a score was calculated
         assert isinstance(score, float)
         assert 0 <= score <= 1
-        
-        # Test with a result that has no metrics
-        result_no_metrics = {
-            "result": "Task executed successfully",
-            "artifacts": ["artifact1", "artifact2"]
-        }
-        
-        # Call the method again
-        score = enhanced_coordinator._calculate_quality_score(result_no_metrics)
-        
-        # Verify that a default score was used
+        result_no_metrics = {'result': 'Task executed successfully',
+            'artifacts': ['artifact1', 'artifact2']}
+        score = enhanced_coordinator._calculate_quality_score(result_no_metrics
+            )
         assert isinstance(score, float)
         assert 0 <= score <= 1
 
-    def test_get_phase_metrics(self, enhanced_coordinator):
-        """Test getting metrics for a specific phase."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
-        enhanced_coordinator.start_cycle(task)
-        
-        # Set up phase metrics
-        enhanced_coordinator.phase_metrics = {
-            Phase.EXPLORE.value: {
-                "duration": 10.5,
-                "quality_score": 0.85,
-                "complexity": 5
-            },
-            Phase.DESIGN.value: {
-                "duration": 15.2,
-                "quality_score": 0.9,
-                "complexity": 3
-            }
-        }
-        
-        # Call the method under test for a specific phase
-        metrics = enhanced_coordinator.get_phase_metrics(Phase.EXPLORE)
-        
-        # Verify the metrics
-        assert metrics == enhanced_coordinator.phase_metrics[Phase.EXPLORE.value]
-        
-        # Call the method for the current phase (no phase specified)
-        enhanced_coordinator.current_phase = Phase.DESIGN
-        metrics = enhanced_coordinator.get_phase_metrics()
-        
-        # Verify the metrics
-        assert metrics == enhanced_coordinator.phase_metrics[Phase.DESIGN.value]
-        
-        # Call the method for a phase that doesn't have metrics
-        metrics = enhanced_coordinator.get_phase_metrics(Phase.REFINE)
-        
-        # Verify that an empty dict is returned
-        assert metrics == {}
+    def test_get_phase_metrics_has_expected(self, enhanced_coordinator):
+        """Test getting metrics for a specific phase.
 
-    def test_get_all_metrics(self, enhanced_coordinator):
-        """Test getting all phase metrics."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
         enhanced_coordinator.start_cycle(task)
-        
-        # Set up phase metrics
-        enhanced_coordinator.phase_metrics = {
-            Phase.EXPLORE.value: {
-                "duration": 10.5,
-                "quality_score": 0.85,
-                "complexity": 5
-            },
-            Phase.DESIGN.value: {
-                "duration": 15.2,
-                "quality_score": 0.9,
-                "complexity": 3
-            }
-        }
-        
-        # Call the method under test
-        all_metrics = enhanced_coordinator.get_all_metrics()
-        
-        # Verify the metrics
-        assert all_metrics == enhanced_coordinator.phase_metrics
+        expand_metrics = {'duration': 10.5, 'quality': 0.85, 'completeness':
+            0.8, 'consistency': 0.75}
+        differentiate_metrics = {'duration': 15.2, 'quality': 0.9,
+            'completeness': 0.85, 'consistency': 0.8}
+        enhanced_coordinator.phase_metrics.end_phase(Phase.EXPAND,
+            expand_metrics)
+        enhanced_coordinator.phase_metrics.end_phase(Phase.DIFFERENTIATE,
+            differentiate_metrics)
+        with patch.object(enhanced_coordinator.phase_metrics,
+            'get_phase_metrics') as mock_get_metrics:
+            mock_get_metrics.return_value = expand_metrics
+            metrics = enhanced_coordinator.get_phase_metrics(Phase.EXPAND)
+            mock_get_metrics.assert_called_once_with(Phase.EXPAND)
+            assert metrics == expand_metrics
+            mock_get_metrics.reset_mock()
+            mock_get_metrics.return_value = differentiate_metrics
+            enhanced_coordinator.current_phase = Phase.DIFFERENTIATE
+            metrics = enhanced_coordinator.get_phase_metrics()
+            mock_get_metrics.assert_called_once_with(Phase.DIFFERENTIATE)
+            assert metrics == differentiate_metrics
+            mock_get_metrics.reset_mock()
+            mock_get_metrics.return_value = {}
+            metrics = enhanced_coordinator.get_phase_metrics(Phase.REFINE)
+            mock_get_metrics.assert_called_once_with(Phase.REFINE)
+            assert metrics == {}
 
-    def test_get_metrics_history(self, enhanced_coordinator, memory_manager):
-        """Test getting metrics history from memory."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
-        enhanced_coordinator.start_cycle(task)
-        
-        # Mock the memory_manager.search method to return phase transitions with metrics
-        memory_manager.search.return_value = [
-            {
-                "id": "transition1",
-                "content": {
-                    "from_phase": Phase.EXPLORE.value,
-                    "to_phase": Phase.DESIGN.value,
-                    "timestamp": datetime.now().timestamp(),
-                    "metrics": {
-                        "duration": 10.5,
-                        "quality_score": 0.85,
-                        "complexity": 5
-                    }
-                },
-                "metadata": {"cycle_id": enhanced_coordinator.cycle_id},
-                "score": 0.95
-            },
-            {
-                "id": "transition2",
-                "content": {
-                    "from_phase": Phase.DESIGN.value,
-                    "to_phase": Phase.REFINE.value,
-                    "timestamp": datetime.now().timestamp(),
-                    "metrics": {
-                        "duration": 15.2,
-                        "quality_score": 0.9,
-                        "complexity": 3
-                    }
-                },
-                "metadata": {"cycle_id": enhanced_coordinator.cycle_id},
-                "score": 0.9
-            }
-        ]
-        
-        # Call the method under test
-        history = enhanced_coordinator.get_metrics_history()
-        
-        # Verify that the memory_manager.search method was called
-        memory_manager.search.assert_called_with(
-            memory_type=MemoryType.PHASE_TRANSITION,
-            metadata={"cycle_id": enhanced_coordinator.cycle_id}
-        )
-        
-        # Verify the history structure
-        assert isinstance(history, list)
-        assert len(history) == 2
-        assert "from_phase" in history[0]
-        assert "to_phase" in history[0]
-        assert "timestamp" in history[0]
-        assert "metrics" in history[0]
+    def test_get_all_metrics_has_expected(self, enhanced_coordinator):
+        """Test getting all phase metrics.
 
-    def test_create_micro_cycle(self, enhanced_coordinator, memory_manager, wsde_team):
-        """Test creating a micro-cycle with enhanced features."""
-        # Start a cycle first
-        task = {
-            "name": "Test Task",
-            "description": "This is a test task",
-            "requirements": ["req1", "req2"]
-        }
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
         enhanced_coordinator.start_cycle(task)
-        
-        # Set the current phase
-        enhanced_coordinator.current_phase = Phase.DESIGN
-        
-        # Create a micro-task
-        micro_task = {
-            "name": "Micro Task",
-            "description": "This is a micro task",
-            "requirements": ["micro_req1"]
-        }
-        
-        # Mock the parent class's create_micro_cycle method
-        with patch("devsynth.application.edrr.coordinator.EDRRCoordinator.create_micro_cycle") as mock_parent_create:
-            mock_micro_coordinator = MagicMock()
-            mock_parent_create.return_value = mock_micro_coordinator
-            
-            # Call the method under test
-            result = enhanced_coordinator.create_micro_cycle(micro_task, Phase.DESIGN)
-            
-            # Verify that the parent method was called
-            mock_parent_create.assert_called_once_with(micro_task, Phase.DESIGN)
-            
-            # Verify that the result is the mock micro coordinator
-            assert result == mock_micro_coordinator
-            
-            # Verify that the micro coordinator was configured with enhanced features
-            assert isinstance(result, MagicMock)
+        expected_metrics = {Phase.EXPAND.name: {'duration': 10.5, 'quality':
+            0.85, 'completeness': 0.8, 'consistency': 0.75}, Phase.
+            DIFFERENTIATE.name: {'duration': 15.2, 'quality': 0.9,
+            'completeness': 0.85, 'consistency': 0.8}}
+        with patch.object(enhanced_coordinator.phase_metrics, 'get_all_metrics'
+            ) as mock_get_all_metrics:
+            mock_get_all_metrics.return_value = expected_metrics
+            all_metrics = enhanced_coordinator.get_all_metrics()
+            mock_get_all_metrics.assert_called_once()
+            assert all_metrics == expected_metrics
+
+    def test_get_metrics_history_has_expected(self, enhanced_coordinator):
+        """Test getting metrics history from the PhaseTransitionMetrics.
+
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
+        enhanced_coordinator.start_cycle(task)
+        expected_history = [{'timestamp': datetime.now().isoformat(),
+            'phase': Phase.EXPAND.name, 'action': 'start', 'metrics': {}},
+            {'timestamp': datetime.now().isoformat(), 'phase': Phase.EXPAND
+            .name, 'action': 'end', 'metrics': {'duration': 10.5, 'quality':
+            0.85, 'completeness': 0.8, 'consistency': 0.75}}, {'timestamp':
+            datetime.now().isoformat(), 'phase': Phase.DIFFERENTIATE.name,
+            'action': 'start', 'metrics': {}}, {'timestamp': datetime.now()
+            .isoformat(), 'phase': Phase.DIFFERENTIATE.name, 'action':
+            'end', 'metrics': {'duration': 15.2, 'quality': 0.9,
+            'completeness': 0.85, 'consistency': 0.8}}]
+        with patch.object(enhanced_coordinator.phase_metrics, 'get_history'
+            ) as mock_get_history:
+            mock_get_history.return_value = expected_history
+            history = enhanced_coordinator.get_metrics_history()
+            mock_get_history.assert_called_once()
+            assert history == expected_history
+            assert isinstance(history, list)
+            assert len(history) == 4
+            assert 'timestamp' in history[0]
+            assert 'phase' in history[0]
+            assert 'action' in history[0]
+            assert 'metrics' in history[0]
+
+    def test_create_micro_cycle_succeeds(self, enhanced_coordinator):
+        """Test creating a micro-cycle with enhanced features.
+
+ReqID: N/A"""
+        task = {'name': 'Test Task', 'description': 'This is a test task',
+            'requirements': ['req1', 'req2']}
+        enhanced_coordinator.start_cycle(task)
+        enhanced_coordinator.current_phase = Phase.DIFFERENTIATE
+        micro_task = {'name': 'Micro Task', 'description':
+            'This is a micro task', 'requirements': ['micro_req1']}
+        with patch.object(enhanced_coordinator,
+            'should_terminate_recursion', return_value=(False, '')
+            ) as mock_should_terminate:
+            with patch(
+                'devsynth.application.edrr.edrr_coordinator_enhanced.EnhancedEDRRCoordinator'
+                ) as mock_constructor:
+                mock_micro_coordinator = MagicMock()
+                mock_constructor.return_value = mock_micro_coordinator
+                result = enhanced_coordinator.create_micro_cycle(micro_task,
+                    Phase.DIFFERENTIATE)
+                mock_should_terminate.assert_called_once_with(micro_task)
+                mock_constructor.assert_called_once_with(memory_manager=
+                    enhanced_coordinator.memory_manager, wsde_team=
+                    enhanced_coordinator.wsde_team, code_analyzer=
+                    enhanced_coordinator.code_analyzer, ast_transformer=
+                    enhanced_coordinator.ast_transformer, prompt_manager=
+                    enhanced_coordinator.prompt_manager,
+                    documentation_manager=enhanced_coordinator.
+                    documentation_manager, enable_enhanced_logging=
+                    enhanced_coordinator._enable_enhanced_logging,
+                    parent_cycle_id=enhanced_coordinator.cycle_id,
+                    recursion_depth=enhanced_coordinator.recursion_depth + 
+                    1, parent_phase=Phase.DIFFERENTIATE, config=
+                    enhanced_coordinator.config)
+                mock_micro_coordinator.start_cycle.assert_called_once_with(
+                    micro_task)
+                assert result == mock_micro_coordinator

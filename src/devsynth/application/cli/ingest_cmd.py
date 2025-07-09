@@ -266,7 +266,7 @@ def expand_phase(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
     analyzer = code_analyzer or CodeAnalyzer()
-    wsde_team = wsde_team or WSDETeam()
+    wsde_team = wsde_team or WSDETeam(name="IngestCmdTeam")
 
     if verbose:
         bridge.print("  Building project model...")
@@ -343,7 +343,7 @@ def differentiate_phase(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
     analyzer = code_analyzer or CodeAnalyzer()
-    wsde_team = wsde_team or WSDETeam()
+    wsde_team = wsde_team or WSDETeam(name="IngestCmdTeam")
 
     artifacts = expand_results.get("artifacts", {})
 
@@ -421,7 +421,7 @@ def refine_phase(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
     analyzer = code_analyzer or CodeAnalyzer()
-    wsde_team = wsde_team or WSDETeam()
+    wsde_team = wsde_team or WSDETeam(name="IngestCmdTeam")
 
     artifacts = differentiate_results.get("artifacts", {}) or {}
 
@@ -489,7 +489,7 @@ def retrospect_phase(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
     analyzer = code_analyzer or CodeAnalyzer()
-    wsde_team = wsde_team or WSDETeam()
+    wsde_team = wsde_team or WSDETeam(name="IngestCmdTeam")
 
     if verbose:
         bridge.print("  Generating retrospective report...")

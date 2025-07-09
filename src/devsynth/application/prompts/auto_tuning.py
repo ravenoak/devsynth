@@ -469,6 +469,9 @@ class PromptAutoTuner:
         tone_name = random.choice(list(tones.keys()))
         tone_words = tones[tone_name]
 
+        # Make a copy of the original template to ensure we can detect changes
+        original_template = template
+
         # Replace directive words with the selected tone
         replaced = False
         for word in [
@@ -501,6 +504,16 @@ class PromptAutoTuner:
                 else:
                     # Just append to the end if there's only one sentence
                     template = template + " " + tone_word
+
+        # Ensure the template has actually changed
+        if template == original_template:
+            # If the template hasn't changed, force a change by adding a tone prefix
+            prefix = random.choice([
+                "In a " + tone_name + " tone: ",
+                "Speaking " + tone_name + "ly: ",
+                "[" + tone_name.capitalize() + " tone] ",
+            ])
+            template = prefix + template
 
         return template
 

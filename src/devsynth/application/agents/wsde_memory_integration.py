@@ -103,30 +103,21 @@ class WSDEMemoryIntegration:
         Returns:
             The ID of the stored memory item
         """
-        # Create a memory item for the solution with EDRR phase in metadata
-        metadata = {
-            "agent_id": agent_id,
-            "task_id": task["id"],
-            "solution_id": solution["id"],
-            "timestamp": datetime.now().isoformat()
-        }
+        # Use the agent memory integration to store the agent solution
+        item_id = self.agent_memory.store_agent_solution(agent_id, task, solution)
 
-        # Add EDRR phase to metadata if provided
+        # If EDRR phase is provided, update the metadata of the stored item
         if edrr_phase:
-            metadata["edrr_phase"] = edrr_phase
             logger.info(f"Including EDRR phase '{edrr_phase}' in solution metadata")
+            memory_store = self.memory_adapter.get_memory_store()
 
-        # Create the memory item
-        solution_item = MemoryItem(
-            id=str(uuid.uuid4()),
-            content=json.dumps(solution),
-            memory_type=MemoryType.SOLUTION,
-            metadata=metadata
-        )
+            # Get the stored item
+            stored_item = memory_store.get_item(item_id)
 
-        # Store the solution in memory
-        memory_store = self.memory_adapter.get_memory_store()
-        item_id = memory_store.store(solution_item)
+            # Update the metadata with the EDRR phase
+            if stored_item:
+                stored_item.metadata["edrr_phase"] = edrr_phase
+                memory_store.update_item(stored_item)
 
         logger.info(f"Stored agent solution in memory with ID {item_id}")
         return item_id

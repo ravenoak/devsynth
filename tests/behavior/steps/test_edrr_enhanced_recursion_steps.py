@@ -52,7 +52,7 @@ def edrr_coordinator_initialized_with_enhanced_recursion(context):
     
     # Initialize actual dependencies
     context.memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
-    context.wsde_team = WSDETeam()
+    context.wsde_team = WSDETeam(name="TestEdrrEnhancedRecursionStepsTeam")
     context.code_analyzer = CodeAnalyzer()
     context.ast_transformer = AstTransformer()
     context.prompt_manager = PromptManager(storage_path="tests/fixtures/prompts")

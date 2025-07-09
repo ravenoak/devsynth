@@ -112,7 +112,7 @@ class SpecRequest(BaseModel):
     requirements_file: str = "requirements.md"
 
 
-class TestRequest(BaseModel):
+class TestSpecRequest(BaseModel):
     spec_file: str = "specs.md"
     output_dir: Optional[str] = None
 
@@ -349,7 +349,7 @@ def spec_endpoint(
 
 @router.post("/test", response_model=WorkflowResponse)
 def test_endpoint(
-    request: TestRequest, token: None = Depends(verify_token)
+    request: TestSpecRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Generate tests from specifications."""
     try:
@@ -450,7 +450,7 @@ __all__ = [
     "GatherRequest",
     "SynthesizeRequest",
     "SpecRequest",
-    "TestRequest",
+    "TestSpecRequest",
     "CodeRequest",
     "DoctorRequest",
     "EDRRCycleRequest",

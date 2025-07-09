@@ -4,19 +4,18 @@ Unit tests for the AST transformer.
 This module contains tests for the AstTransformer class, which provides
 utilities for transforming Python code using AST manipulation.
 """
-
 import unittest
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 
 
 class TestAstTransformer(unittest.TestCase):
-    """Test the AST transformer."""
+    """Test the AST transformer.
+
+ReqID: N/A"""
 
     def setUp(self):
         """Set up the test environment."""
         self.transformer = AstTransformer()
-
-        # Sample code for testing
         self.sample_code = """
 def calculate_sum(a, b):
     result = a + b
@@ -33,114 +32,98 @@ def main():
         print(f"Iteration {i}")
 """
 
-    def test_rename_function(self):
-        """Test renaming a function."""
-        # Create a fresh transformer for this test
+    def test_rename_function_succeeds(self):
+        """Test renaming a function.
+
+ReqID: N/A"""
         transformer = AstTransformer()
+        new_code = transformer.rename_identifier(self.sample_code,
+            'calculate_sum', 'add_numbers')
+        self.assertIn('def add_numbers(a, b):', new_code)
+        self.assertIn('total = add_numbers(x, y)', new_code)
+        self.assertNotIn('calculate_sum', new_code)
 
-        # Rename a function
-        new_code = transformer.rename_identifier(self.sample_code, "calculate_sum", "add_numbers")
-        self.assertIn("def add_numbers(a, b):", new_code)
-        self.assertIn("total = add_numbers(x, y)", new_code)
-        self.assertNotIn("calculate_sum", new_code)
+    def test_rename_variable_succeeds(self):
+        """Test renaming a variable.
 
-    def test_rename_variable(self):
-        """Test renaming a variable."""
-        # Create a fresh transformer for this test
+ReqID: N/A"""
         transformer = AstTransformer()
-
-        # Rename a variable
-        new_code = transformer.rename_identifier(self.sample_code, "result", "sum_result")
-
-        # Check for the presence of the expected strings
-        self.assertIn("sum_result = a + b", new_code)
-        self.assertIn("return sum_result", new_code)
-
-        # Check that the variable has been renamed in all occurrences
-        # We need to use a regex with word boundaries to check for the exact identifier
+        new_code = transformer.rename_identifier(self.sample_code, 'result',
+            'sum_result')
+        self.assertIn('sum_result = a + b', new_code)
+        self.assertIn('return sum_result', new_code)
         import re
-        pattern = r"\bresult\b\s*=\s*a\s*\+\s*b"
+        pattern = '\\bresult\\b\\s*=\\s*a\\s*\\+\\s*b'
         match = re.search(pattern, new_code)
-        self.assertIsNone(match, f"Found 'result = a + b' as a standalone identifier in the code: {new_code}")
+        self.assertIsNone(match,
+            f"Found 'result = a + b' as a standalone identifier in the code: {new_code}"
+            )
 
-    def test_rename_parameter(self):
-        """Test renaming a parameter."""
-        # Create a fresh transformer for this test
+    def test_rename_parameter_succeeds(self):
+        """Test renaming a parameter.
+
+ReqID: N/A"""
         transformer = AstTransformer()
+        new_code = transformer.rename_identifier(self.sample_code, 'a', 'num1')
+        self.assertIn('def calculate_sum(num1, b):', new_code)
+        self.assertIn('result = num1 + b', new_code)
+        self.assertNotIn('result = a + b', new_code)
 
-        # Rename a parameter
-        new_code = transformer.rename_identifier(self.sample_code, "a", "num1")
-        self.assertIn("def calculate_sum(num1, b):", new_code)
-        self.assertIn("result = num1 + b", new_code)
-        self.assertNotIn("result = a + b", new_code)
+    def test_extract_function_succeeds(self):
+        """Test extracting a block of code into a new function.
 
-    def test_extract_function(self):
-        """Test extracting a block of code into a new function."""
-        # Extract the print statements in the for loop
-        new_code = self.transformer.extract_function(
-            self.sample_code,
-            13,  # Line with "for i in range(3):"
-            14,  # Line with "print(f"Iteration {i}")"
-            "print_iterations",
-            ["i"]
-        )
-
-        # Check that the new function is created
-        self.assertIn("def print_iterations(i):", new_code)
+ReqID: N/A"""
+        new_code = self.transformer.extract_function(self.sample_code, 13, 
+            14, 'print_iterations', ['i'])
+        self.assertIn('def print_iterations(i):', new_code)
         self.assertIn('print(f"Iteration {i}")', new_code)
-
-        # Check that the original code is replaced with a function call
-        self.assertIn("print_iterations(i)", new_code)
-
-        # Make sure the code is still valid Python
+        self.assertIn('print_iterations(i)', new_code)
         self.assertTrue(self.transformer.validate_syntax(new_code))
 
-    def test_add_docstring(self):
-        """Test adding a docstring to a function, class, or module."""
-        # Add a docstring to a function
-        docstring = "Calculate the sum of two numbers."
-        new_code = self.transformer.add_docstring(self.sample_code, "calculate_sum", docstring)
+    def test_add_docstring_succeeds(self):
+        """Test adding a docstring to a function, class, or module.
+
+ReqID: N/A"""
+        docstring = 'Calculate the sum of two numbers.'
+        new_code = self.transformer.add_docstring(self.sample_code,
+            'calculate_sum', docstring)
         self.assertIn('def calculate_sum(a, b):', new_code)
         self.assertIn('    """Calculate the sum of two numbers."""', new_code)
-
-        # Add a docstring to the module
-        module_docstring = "Sample module for testing."
-        new_code = self.transformer.add_docstring(self.sample_code, None, module_docstring)
+        module_docstring = 'Sample module for testing.'
+        new_code = self.transformer.add_docstring(self.sample_code, None,
+            module_docstring)
         self.assertIn('"""Sample module for testing."""', new_code)
-
-        # Make sure the code is still valid Python
         self.assertTrue(self.transformer.validate_syntax(new_code))
 
-    def test_validate_syntax(self):
-        """Test validating code syntax."""
-        # Valid code
-        self.assertTrue(self.transformer.validate_syntax(self.sample_code))
+    def test_validate_syntax_is_valid(self):
+        """Test validating code syntax.
 
-        # Invalid code
-        invalid_code = """
-def broken_function(
-    print("Missing closing parenthesis"
-"""
+ReqID: N/A"""
+        self.assertTrue(self.transformer.validate_syntax(self.sample_code))
+        invalid_code = (
+            '\ndef broken_function(\n    print("Missing closing parenthesis"\n'
+            )
         self.assertFalse(self.transformer.validate_syntax(invalid_code))
 
-    def test_complex_transformations(self):
-        """Test more complex transformations."""
-        # Rename a function and add a docstring
+    def test_complex_transformations_succeeds(self):
+        """Test more complex transformations.
+
+ReqID: N/A"""
         code = self.sample_code
-        code = self.transformer.rename_identifier(code, "calculate_sum", "add_numbers")
-        code = self.transformer.add_docstring(code, "add_numbers", "Add two numbers and return the result.")
-
-        # Verify the changes
-        self.assertIn("def add_numbers(a, b):", code)
+        code = self.transformer.rename_identifier(code, 'calculate_sum',
+            'add_numbers')
+        code = self.transformer.add_docstring(code, 'add_numbers',
+            'Add two numbers and return the result.')
+        self.assertIn('def add_numbers(a, b):', code)
         self.assertIn('    """Add two numbers and return the result."""', code)
-        self.assertIn("total = add_numbers(x, y)", code)
-        self.assertNotIn("calculate_sum", code)
-
-        # Make sure the code is still valid Python
+        self.assertIn('total = add_numbers(x, y)', code)
+        self.assertNotIn('calculate_sum', code)
         self.assertTrue(self.transformer.validate_syntax(code))
 
-    def test_remove_unused_imports_and_variables(self):
-        """Test removing unused imports and variables."""
+    def test_remove_unused_imports_and_variables_succeeds(self):
+        """Test removing unused imports and variables.
+
+ReqID: N/A"""
         code = """
 import os
 import sys
@@ -154,16 +137,16 @@ def func():
         self.assertNotIn('sys', code)
         self.assertNotIn('unused_var', code)
 
-    def test_optimize_string_literals(self):
-        """Test optimizing string operations."""
-        code = """
-def greet(name):
-    greeting = "Hello, " + name + "!"
-    return greeting
-"""
+    def test_optimize_string_literals_succeeds(self):
+        """Test optimizing string operations.
+
+ReqID: N/A"""
+        code = (
+            '\ndef greet(name):\n    greeting = "Hello, " + name + "!"\n    return greeting\n'
+            )
         optimized = self.transformer.optimize_string_literals(code)
         self.assertIn('Hello, {name}!', optimized)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

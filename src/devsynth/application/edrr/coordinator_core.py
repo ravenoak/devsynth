@@ -41,11 +41,11 @@ class EDRRCoordinatorError(DevSynthError):
 class EDRRCoordinatorCore:
     """
     Core functionality for the EDRR (Expand, Differentiate, Refine, Retrospect) Coordinator.
-    
+
     This class provides the core functionality for managing EDRR cycles,
     including initialization, cycle management, and phase progression.
     """
-    
+
     def __init__(
         self,
         memory_manager: MemoryManager,
@@ -62,7 +62,7 @@ class EDRRCoordinatorCore:
     ):
         """
         Initialize the EDRR Coordinator.
-        
+
         Args:
             memory_manager: Manager for storing and retrieving memory
             wsde_team: Team of agents for executing tasks
@@ -87,10 +87,10 @@ class EDRRCoordinatorCore:
         self.recursion_depth = recursion_depth
         self.parent_phase = parent_phase
         self.config = config or {}
-        
+
         # Initialize logger
         self.logger = DevSynthLogger(__name__)
-        
+
         # Initialize cycle data
         self.cycle_id = str(uuid.uuid4())
         self.cycle_start_time = datetime.now()
@@ -101,74 +101,83 @@ class EDRRCoordinatorCore:
         self.execution_traces = []
         self.execution_history = []
         self.performance_metrics = {}
-        
+
         # Log initialization
         self.logger.info(f"Initialized EDRR Coordinator (cycle_id: {self.cycle_id})")
         if parent_cycle_id:
             self.logger.info(f"  Parent cycle: {parent_cycle_id}")
             self.logger.info(f"  Recursion depth: {recursion_depth}")
             self.logger.info(f"  Parent phase: {parent_phase.name if parent_phase else None}")
-    
+
     def start_cycle(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
         Start a new EDRR cycle with the given task.
-        
+
         Args:
             task: The task to process in this cycle
-            
+
         Returns:
             The results of the cycle
+
+        Raises:
+            EDRRCoordinatorError: If the task is None or empty
         """
+        # Validate task
+        if task is None or not task:
+            error_msg = "Task cannot be None or empty"
+            self.logger.error(error_msg)
+            raise EDRRCoordinatorError(error_msg)
+
         self.task = copy.deepcopy(task)
-        
+
         # Ensure task has an ID
         if "id" not in self.task:
             self.task["id"] = str(uuid.uuid4())
-            
+
         # Log cycle start
         self.logger.info(f"Starting EDRR cycle for task: {self.task.get('title', 'Untitled')}")
         self.logger.info(f"  Task ID: {self.task['id']}")
         self.logger.info(f"  Cycle ID: {self.cycle_id}")
-        
+
         # Store task in memory
         self.memory_manager.store(
             self.task,
             tags=["task", f"cycle:{self.cycle_id}"],
             memory_type=MemoryType.WORKING_MEMORY,
         )
-        
+
         # Progress through phases
         self.progress_to_phase(Phase.EXPAND)
-        
+
         # Generate final report
         cycle_data = self._aggregate_results()
         report = self.generate_final_report(cycle_data)
-        
+
         # Store report in memory
         self.memory_manager.store(
             report,
             tags=["report", f"cycle:{self.cycle_id}"],
-            memory_type=MemoryType.LONG_TERM_MEMORY,
+            memory_type=MemoryType.LONG_TERM,
         )
-        
+
         # Log cycle completion
         self.logger.info(f"Completed EDRR cycle for task: {self.task.get('title', 'Untitled')}")
-        
+
         return report
-    
+
     def start_cycle_from_manifest(
         self, manifest_path_or_string: Union[str, Path], is_file: bool = True
     ) -> Dict[str, Any]:
         """
         Start a new EDRR cycle from a manifest file or string.
-        
+
         Args:
             manifest_path_or_string: Path to manifest file or manifest string
             is_file: Whether manifest_path_or_string is a file path
-            
+
         Returns:
             The results of the cycle
-            
+
         Raises:
             ManifestParseError: If the manifest cannot be parsed
         """
@@ -179,7 +188,7 @@ class EDRRCoordinatorCore:
                 manifest = parser.parse_file(manifest_path_or_string)
             else:
                 manifest = parser.parse_string(manifest_path_or_string)
-                
+
             # Extract task from manifest
             task = {
                 "id": manifest.get("id", str(uuid.uuid4())),
@@ -190,67 +199,81 @@ class EDRRCoordinatorCore:
                 "acceptance_criteria": manifest.get("acceptance_criteria", []),
                 "metadata": manifest.get("metadata", {}),
             }
-            
+
             # Add manifest to task metadata
             task["metadata"]["manifest"] = manifest
-            
+
             # Start cycle with task
             return self.start_cycle(task)
-            
+
         except Exception as e:
             # Handle parsing errors
             error_msg = f"Failed to parse manifest: {str(e)}"
             self.logger.error(error_msg)
             raise ManifestParseError(error_msg) from e
-    
+
     def progress_to_phase(self, phase: Phase) -> Dict[str, Any]:
         """
         Progress to the specified phase.
-        
+
         Args:
             phase: The phase to progress to
-            
+
         Returns:
             The results of the phase execution
+
+        Raises:
+            EDRRCoordinatorError: If no cycle has been started
         """
+        # Check if a cycle has been started
+        if self.task is None:
+            error_msg = "No cycle has been started"
+            self.logger.error(error_msg)
+            raise EDRRCoordinatorError(error_msg)
         # Check if we're already in this phase
         if self.current_phase == phase:
             self.logger.info(f"Already in phase {phase.name}")
             return self.phase_results.get(phase.name, {})
-            
+
         # Check if we're skipping phases
-        if self.current_phase and phase.value > self.current_phase.value + 1:
-            # Execute intermediate phases
-            intermediate_phases = [
-                Phase(i) for i in range(self.current_phase.value + 1, phase.value)
-            ]
-            for intermediate_phase in intermediate_phases:
-                self.progress_to_phase(intermediate_phase)
-        
+        if self.current_phase:
+            # Get the ordered list of phases
+            phases = [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]
+
+            # Find the indices of the current and target phases
+            current_index = phases.index(self.current_phase)
+            target_index = phases.index(phase)
+
+            # Check if we're skipping phases
+            if target_index > current_index + 1:
+                # Execute intermediate phases
+                for i in range(current_index + 1, target_index):
+                    self.progress_to_phase(phases[i])
+
         # Update current phase
         self.current_phase = phase
-        
+
         # Log phase transition
         self.logger.info(f"Progressing to phase: {phase.name}")
-        
+
         # Execute phase
         phase_start_time = datetime.now()
         context = {"task": self.task, "cycle_id": self.cycle_id}
-        
+
         # Add previous phase results to context
         for p in Phase:
             if p.value < phase.value and p.name in self.phase_results:
                 context[p.name.lower()] = self.phase_results[p.name]
-        
+
         # Execute phase
         results = self.execute_current_phase(context)
-        
+
         # Store phase results
         self.phase_results[phase.name] = results
-        
+
         # Calculate phase duration
         phase_duration = (datetime.now() - phase_start_time).total_seconds()
-        
+
         # Update execution history
         self.execution_history.append({
             "phase": phase.name,
@@ -258,12 +281,12 @@ class EDRRCoordinatorCore:
             "end_time": datetime.now().isoformat(),
             "duration": phase_duration,
         })
-        
+
         # Update performance metrics
         if "phase_durations" not in self.performance_metrics:
             self.performance_metrics["phase_durations"] = {}
         self.performance_metrics["phase_durations"][phase.name] = phase_duration
-        
+
         # Store phase results in memory
         self.memory_manager.store_with_edrr_phase(
             results,
@@ -271,41 +294,49 @@ class EDRRCoordinatorCore:
             tags=[f"phase:{phase.name}", f"cycle:{self.cycle_id}"],
             memory_type=MemoryType.WORKING_MEMORY,
         )
-        
+
         # Check if we should automatically progress to the next phase
         self._maybe_auto_progress()
-        
+
         return results
-    
+
     def progress_to_next_phase(self) -> Optional[Dict[str, Any]]:
         """
         Progress to the next phase in the EDRR cycle.
-        
+
         Returns:
             The results of the next phase execution, or None if there is no next phase
+
+        Raises:
+            EDRRCoordinatorError: If no cycle has been started
         """
+        # Check if a cycle has been started
+        if self.task is None:
+            error_msg = "No cycle has been started"
+            self.logger.error(error_msg)
+            raise EDRRCoordinatorError(error_msg)
         # Determine next phase
         next_phase = self._decide_next_phase()
-        
+
         # Check if there is a next phase
         if next_phase is None:
             self.logger.info("No next phase available")
             return None
-            
+
         # Progress to next phase
         return self.progress_to_phase(next_phase)
-    
+
     def _decide_next_phase(self) -> Optional[Phase]:
         """
         Decide the next phase based on the current phase.
-        
+
         Returns:
             The next phase, or None if there is no next phase
         """
         # If no current phase, start with EXPAND
         if self.current_phase is None:
             return Phase.EXPAND
-            
+
         # Determine next phase based on current phase
         if self.current_phase == Phase.EXPAND:
             return Phase.DIFFERENTIATE
@@ -320,42 +351,42 @@ class EDRRCoordinatorCore:
             # Unknown phase
             self.logger.warning(f"Unknown phase: {self.current_phase}")
             return None
-    
+
     def _maybe_auto_progress(self) -> None:
         """
         Automatically progress to the next phase if auto-progress is enabled.
         """
         # Check if auto-progress is enabled
         auto_progress = self.config.get("auto_progress", False)
-        
+
         if auto_progress:
             # Get next phase
             next_phase = self._decide_next_phase()
-            
+
             # Progress to next phase if available
             if next_phase is not None:
                 self.logger.info("Auto-progressing to next phase")
                 self.progress_to_phase(next_phase)
-    
+
     def execute_current_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute the current phase.
-        
+
         Args:
             context: Context for phase execution
-            
+
         Returns:
             The results of the phase execution
         """
         # Ensure context is a dictionary
         context = context or {}
-        
+
         # Check if current phase is set
         if self.current_phase is None:
             error_msg = "No current phase set"
             self.logger.error(error_msg)
             raise EDRRCoordinatorError(error_msg)
-            
+
         # Execute phase based on current phase
         if self.current_phase == Phase.EXPAND:
             return self._execute_expand_phase(context)
@@ -370,43 +401,133 @@ class EDRRCoordinatorCore:
             error_msg = f"Unknown phase: {self.current_phase}"
             self.logger.error(error_msg)
             raise EDRRCoordinatorError(error_msg)
-    
+
     def generate_report(self) -> Dict[str, Any]:
         """
         Generate a report for the current cycle.
-        
+
         Returns:
             The generated report
+
+        Raises:
+            EDRRCoordinatorError: If no cycle has been started
         """
+        # Check if a cycle has been started
+        if self.task is None:
+            error_msg = "No cycle has been started"
+            self.logger.error(error_msg)
+            raise EDRRCoordinatorError(error_msg)
+
         # Aggregate results
         cycle_data = self._aggregate_results()
-        
+
         # Generate report
         return self.generate_final_report(cycle_data)
-    
+
     def get_execution_traces(self) -> List[Dict[str, Any]]:
         """
         Get the execution traces for the current cycle.
-        
+
         Returns:
             List of execution traces
         """
         return self.execution_traces
-    
+
     def get_execution_history(self) -> List[Dict[str, Any]]:
         """
         Get the execution history for the current cycle.
-        
+
         Returns:
             List of execution history entries
         """
         return self.execution_history
-    
+
     def get_performance_metrics(self) -> Dict[str, Any]:
         """
         Get the performance metrics for the current cycle.
-        
+
         Returns:
             Dictionary of performance metrics
         """
         return self.performance_metrics
+
+    def _execute_expand_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the EXPAND phase.
+
+        Args:
+            context: Context for phase execution
+
+        Returns:
+            The results of the phase execution
+        """
+        self.logger.info("Executing EXPAND phase")
+        # Implementation would go here
+        return {"phase": "expand", "status": "completed"}
+
+    def _execute_differentiate_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the DIFFERENTIATE phase.
+
+        Args:
+            context: Context for phase execution
+
+        Returns:
+            The results of the phase execution
+        """
+        self.logger.info("Executing DIFFERENTIATE phase")
+        # Implementation would go here
+        return {"phase": "differentiate", "status": "completed"}
+
+    def _execute_refine_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the REFINE phase.
+
+        Args:
+            context: Context for phase execution
+
+        Returns:
+            The results of the phase execution
+        """
+        self.logger.info("Executing REFINE phase")
+        # Implementation would go here
+        return {"phase": "refine", "status": "completed"}
+
+    def _execute_retrospect_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the RETROSPECT phase.
+
+        Args:
+            context: Context for phase execution
+
+        Returns:
+            The results of the phase execution
+        """
+        self.logger.info("Executing RETROSPECT phase")
+        # Implementation would go here
+        return {"phase": "retrospect", "status": "completed"}
+
+    def _aggregate_results(self) -> Dict[str, Any]:
+        """
+        Aggregate results from all phases.
+
+        Returns:
+            Aggregated results
+        """
+        self.logger.info("Aggregating results")
+        # Implementation would go here
+        return {"status": "completed", "phases": self.phase_results}
+
+    def generate_final_report(self, cycle_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate a final report for the cycle.
+
+        Args:
+            cycle_data: Data for the cycle
+
+        Returns:
+            The generated report
+        """
+        self.logger.info("Generating final report")
+        # Implementation would go here
+        return {"report": "final report", "cycle_data": cycle_data}

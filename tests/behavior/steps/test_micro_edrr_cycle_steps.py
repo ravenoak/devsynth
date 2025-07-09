@@ -72,7 +72,7 @@ def edrr_coordinator_initialized(context):
     assert context.memory_manager is not None, "Memory manager initialization failed"
 
     # Initialize WSDE team (mock)
-    context.wsde_team = WSDETeam()
+    context.wsde_team = WSDETeam(name="TestMicroEdrrCycleStepsTeam")
     assert context.wsde_team is not None, "WSDE team initialization failed"
 
     # Initialize code analyzer and AST transformer

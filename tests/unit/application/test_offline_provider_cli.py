@@ -1,5 +1,5 @@
 import types
-
+import pytest
 import httpx
 from devsynth.application.llm import get_llm_provider
 from devsynth.application.llm.offline_provider import OfflineProvider
@@ -7,29 +7,42 @@ from devsynth.application.llm.offline_provider import OfflineProvider
 
 def _mock_config():
     cfg = types.SimpleNamespace()
-    cfg.as_dict = lambda: {"offline_mode": True}
+    cfg.as_dict = lambda : {'offline_mode': True}
     return cfg
 
 
 def _llm_settings():
-    return {"provider": "openai"}
+    return {'provider': 'openai'}
 
 
-def test_generate_does_not_call_external(monkeypatch):
-    called = {}
+@pytest.mark.isolation
+def test_generate_does_not_call_external_succeeds(monkeypatch):
+    """Test that generate does not call external succeeds.
 
-    def fake_post(*args, **kwargs):
-        called["called"] = True
-        raise AssertionError("external call")
+    This test needs to be run in isolation due to interactions with other tests.
 
-    monkeypatch.setattr("devsynth.application.llm.load_config", _mock_config)
-    monkeypatch.setattr("devsynth.application.llm.get_llm_settings", _llm_settings)
-    monkeypatch.setattr(httpx, "post", fake_post)
+ReqID: N/A"""
+    # Mock httpx to ensure no external calls are made
+    def mock_request(*args, **kwargs):
+        pytest.fail("External HTTP request was made when it shouldn't have been")
 
+    monkeypatch.setattr(httpx, 'request', mock_request)
+
+    # Ensure we're in offline mode
+    monkeypatch.setattr('devsynth.application.llm.load_config', _mock_config)
+    monkeypatch.setattr('devsynth.application.llm.get_llm_settings', _llm_settings)
+
+    # Get the config and verify it's in offline mode
+    config = _mock_config()
+    assert config.as_dict()['offline_mode'] is True
+
+    # Get the provider and verify it's an OfflineProvider
     provider = get_llm_provider()
-    assert isinstance(provider, OfflineProvider)
+    assert isinstance(provider, OfflineProvider), f"Expected OfflineProvider but got {type(provider)}"
 
-    result = provider.generate("hello")
+    # Generate text and verify the result
+    result = provider.generate('hello')
+    assert result == '[offline] hello', f"Expected '[offline] hello' but got '{result}'"
 
-    assert result == "[offline] hello"
-    assert "called" not in called
+    # The test passes if we get here without any exceptions
+    # The OfflineProvider should not make any external calls

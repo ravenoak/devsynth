@@ -84,7 +84,7 @@ def devsynth_system_initialized(context):
 def wsde_team_configured(context):
     """Configure the WSDE team with agents having different expertise."""
     # Create a WSDE team
-    context.wsde_team = WSDETeam()
+    context.wsde_team = WSDETeam(name="TestWsdeEdrrIntegrationStepsTeam")
     
     # Create agents with expertise aligned with EDRR phases
     agents = {

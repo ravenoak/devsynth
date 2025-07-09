@@ -38,7 +38,7 @@ def context():
             })
 
             # Initialize other components
-            self.wsde_team = WSDETeam()
+            self.wsde_team = WSDETeam(name="TestEdrrEnhancedMemoryIntegrationStepsTeam")
             self.code_analyzer = MagicMock(spec=CodeAnalyzer)
             self.ast_transformer = MagicMock(spec=AstTransformer)
             self.prompt_manager = MagicMock(spec=PromptManager)
