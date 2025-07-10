@@ -1,14 +1,14 @@
 ---
 author: DevSynth Team
 date: '2024-06-01'
-last_reviewed: '2024-06-01'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 - getting-started
 - installation
 - basic-usage
 title: Getting Started with DevSynth
-version: 1.0.0
+version: 0.1.0
 ---
 
 # Getting Started with DevSynth

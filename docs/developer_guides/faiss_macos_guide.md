@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-07-12'
-last_reviewed: '2025-07-12'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 - development
@@ -10,7 +10,7 @@ tags:
 - faiss
 - troubleshooting
 title: FAISS Installation Guide for macOS
-version: 1.0.0
+version: 0.1.0
 ---
 
 # FAISS Installation Guide for macOS

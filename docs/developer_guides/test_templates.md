@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-05-25'
-last_reviewed: '2025-05-25'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -12,7 +12,7 @@ tags:
 - best-practices
 
 title: Test Templates in DevSynth
-version: 1.0.0
+version: 0.1.0
 ---
 
 # Test Templates in DevSynth

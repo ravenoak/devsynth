@@ -1,7 +1,7 @@
 ---
 title: "Documentation Version Management"
 date: "2025-06-01"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "policies"
   - "documentation"
@@ -10,7 +10,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+last_reviewed: "2025-07-10"
 ---
 
 # Documentation Version Management

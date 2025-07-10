@@ -1,7 +1,7 @@
 ---
 title: "Contributing to DevSynth"
 date: "2025-05-30"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "devsynth"
   - "contributing"
@@ -9,7 +9,7 @@ tags:
   - "guidelines"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-30"
+last_reviewed: "2025-07-10"
 ---
 
 # Contributing to DevSynth

@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Architecture Overview"
 date: "2025-06-16"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "architecture"
   - "design"
@@ -10,7 +10,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+last_reviewed: "2025-07-10"
 ---
 
 # DevSynth Architecture Overview

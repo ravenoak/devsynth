@@ -1,7 +1,7 @@
 ---
 title: "UXBridge Interface Extension"
 date: "2025-06-19"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "specification"
   - "ux"

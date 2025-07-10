@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-07-17'
-last_reviewed: '2025-07-17'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -11,7 +11,7 @@ tags:
 - options
 
 title: DevSynth Configuration Reference
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth Configuration Reference

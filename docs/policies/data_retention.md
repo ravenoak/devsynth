@@ -1,13 +1,13 @@
 ---
 title: "Data Retention Policy"
 date: "2025-07-07"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "policy"
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-07"
+last_reviewed: "2025-07-10"
 ---
 
 # Data Retention Policy

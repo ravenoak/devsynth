@@ -1,7 +1,7 @@
 ---
 title: "Expand, Differentiate, Refine, Retrospect: DevSynth's Universal Iterative Methodology"
 date: "2025-05-20"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "methodology"
   - "EDRR"
@@ -11,7 +11,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-20"
+last_reviewed: "2025-07-10"
 ---
 
 # Expand, Differentiate, Refine, Retrospect: DevSynth's Universal Iterative Methodology

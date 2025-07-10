@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: '2025-07-07'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -10,7 +10,7 @@ tags:
 - reference
 
 title: DevSynth CLI Command Reference
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth CLI Command Reference

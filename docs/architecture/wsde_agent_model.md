@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: '2025-06-01'
+last_reviewed: "2025-07-10"
 status: active
 tags:
 - architecture
@@ -9,7 +9,7 @@ tags:
 - agents
 - collaboration
 title: 'WSDE Agent Model: WSDE'
-version: 1.0.0
+version: 0.1.0
 ---
 
 # WSDE Agent Model: WSDE

@@ -1,7 +1,7 @@
 ---
 author: Multi-disciplinary Expert Panel
 date: '2025-05-29'
-last_reviewed: '2025-05-29'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -11,7 +11,7 @@ tags:
 - project-assessment
 
 title: 'DevSynth Project: Multi-Disciplinary Dialectical Evaluation'
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth Project: Multi-Disciplinary Dialectical Evaluation

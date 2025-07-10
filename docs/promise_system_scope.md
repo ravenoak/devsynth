@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-05-20'
-last_reviewed: '2025-05-20'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -11,7 +11,7 @@ tags:
 - architecture
 
 title: 'Promise System: Capability Declaration, Authorization, and Management'
-version: 1.0.0
+version: 0.1.0
 ---
 
 # Promise System: Capability Declaration, Authorization, and Management

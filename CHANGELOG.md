@@ -1,14 +1,14 @@
 ---
 title: "DevSynth Changelog"
 date: "2025-05-30"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "devsynth"
   - "changelog"
   - "version history"
-status: "published"
+status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-05-30"
+last_reviewed: "2025-07-10"
 ---
 
 # Changelog

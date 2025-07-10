@@ -1,7 +1,7 @@
 ---
 author: Author Name
 date: YYYY-MM-DD
-last_reviewed: YYYY-MM-DD
+last_reviewed: "2025-07-10"
 status: draft
 tags:
 

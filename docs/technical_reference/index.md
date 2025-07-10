@@ -1,14 +1,14 @@
 ---
 author: DevSynth Team
 date: '2024-06-01'
-last_reviewed: '2024-06-01'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 - technical-reference
 - api
 - documentation
 title: DevSynth Technical Reference
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth Technical Reference
