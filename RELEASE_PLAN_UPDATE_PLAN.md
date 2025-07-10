@@ -16,7 +16,7 @@ DevSynth currently maintains overlapping plan artifacts:
 
 To eliminate duplication and ensure maintainability, we will converge these artifacts into a coherent docs/roadmap and docs/specifications structure, align version metadata, and automate CI/CD checks and release publishing.
 
-## Consolidation Plan (tracked via TASK_PROGRESS.md)
+## Consolidation Plan
 
 | Step | Action |
 |------|--------|
