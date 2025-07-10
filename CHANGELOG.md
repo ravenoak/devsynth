@@ -18,6 +18,9 @@ All notable changes to the DevSynth project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+DevSynth has not yet reached an official release. Versions in the `0.1.x` range
+represent pre-release milestones leading up to the first stable release.
+
 ## [Unreleased]
 
 ### Added
@@ -36,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Improved error handling in the EDRR coordinator
 
-## [Unreleased] - 2025-05-20
+## [0.1.0] - 2025-05-20
 
 ### Added
 - Modular, hexagonal architecture
@@ -46,3 +49,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provider abstraction for LLM services
 - Comprehensive SDLC policy corpus
 - Automated documentation and testing
+
