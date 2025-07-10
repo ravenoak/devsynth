@@ -33,6 +33,6 @@ ReqID: N/A"""
             pass
     bridge = Bridge()
     gather_cmd(output_file='requirements_plan.yaml', bridge=bridge)
-    cfg_path = tmp_path / '.devsynth' / 'devsynth.yml'
+    cfg_path = tmp_path / '.devsynth' / 'project.yaml'
     data = yaml.safe_load(open(cfg_path))
     assert data.get('priority') == 'high'

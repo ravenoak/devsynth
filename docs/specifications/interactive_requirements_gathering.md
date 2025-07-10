@@ -47,7 +47,7 @@ The same structure can be saved as JSON if the file extension is `.json`.
 
 ## Storage Format
 
-Responses are written to `requirements_plan.yaml` (or `.json`) in the project root. The current project configuration (`devsynth.yml` or `pyproject.toml`) is updated with the fields:
+Responses are written to `requirements_plan.yaml` (or `.json`) in the project root. The current project configuration (`project.yaml` or `pyproject.toml`) is updated with the fields:
 
 - `goals` – original comma separated string
 - `constraints` – original comma separated string

@@ -24,7 +24,7 @@ def test_loads_from_yaml_succeeds(tmp_path: Path) ->None:
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    yaml_file = cfg_dir / 'devsynth.yml'
+    yaml_file = cfg_dir / 'project.yaml'
     yaml_file.write_text(f"version: '{ConfigModel.version}'\n")
     unified = UnifiedConfigLoader.load(tmp_path)
     assert unified.use_pyproject is False
@@ -38,7 +38,7 @@ def test_save_round_trip_yaml_succeeds(tmp_path: Path) ->None:
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    yaml_file = cfg_dir / 'devsynth.yml'
+    yaml_file = cfg_dir / 'project.yaml'
     yaml_file.write_text(f"version: '{ConfigModel.version}'\n")
     unified = UnifiedConfigLoader.load(tmp_path)
     unified.config.language = 'python'

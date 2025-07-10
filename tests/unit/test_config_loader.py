@@ -10,7 +10,7 @@ def test_load_yaml_config_succeeds(tmp_path):
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     cfg = load_config(tmp_path)
     assert cfg.language == 'python'
 
@@ -31,7 +31,7 @@ def test_autocomplete_succeeds(monkeypatch, tmp_path):
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     monkeypatch.chdir(tmp_path)
     result = config_key_autocomplete(None, 'l')
     assert 'language' in result
@@ -53,7 +53,7 @@ def test_version_mismatch_logs_warning_matches_expected(tmp_path, caplog):
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text("version: '0.0'\n")
+    (cfg_dir / 'project.yaml').write_text("version: '0.0'\n")
     caplog.set_level(logging.WARNING)
     load_config(tmp_path)
     assert any('version' in rec.message for rec in caplog.records)

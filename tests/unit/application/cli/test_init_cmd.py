@@ -37,7 +37,7 @@ ReqID: N/A"""
     printed = _run_init(tmp_path, monkeypatch)
     cfg_file = tmp_path / '.devsynth' / 'project.yaml'
     if not cfg_file.exists():
-        cfg_file = tmp_path / '.devsynth' / 'devsynth.yml'
+        cfg_file = tmp_path / '.devsynth' / 'project.yaml'
     if not cfg_file.exists():
         cfg_file = tmp_path / 'pyproject.toml'
     data = _load_config(cfg_file)

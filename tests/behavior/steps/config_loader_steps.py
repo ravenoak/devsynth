@@ -19,11 +19,11 @@ def context():
     return Context()
 
 
-@given('a project with a devsynth.yml file')
+@given('a project with a project.yaml file')
 def project_with_yaml(tmp_path, monkeypatch, context):
     dev_dir = tmp_path / '.devsynth'
     dev_dir.mkdir()
-    (dev_dir / 'devsynth.yml').write_text('language: python\n')
+    (dev_dir / 'project.yaml').write_text('language: python\n')
     # Store the path instead of changing directory
     context.root = tmp_path
     # Mock os.getcwd() to return our tmp_path
@@ -53,7 +53,7 @@ def save_default_config(context):
     context.cfg_path = save_config(cfg, path=str(context.root))
 
 
-@then('a devsynth.yml file should be created')
+@then('a project.yaml file should be created')
 def check_cfg_created(context):
     assert context.cfg_path.exists()
 

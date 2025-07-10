@@ -106,7 +106,7 @@ Primary users are individual software developers who:
 - [FR-03] The system shall validate the LM Studio connection during initialization
 - [FR-04] The system shall provide a mechanism to update configuration settings
 - [FR-05] The system shall store configuration in a user-accessible location
-- [FR-05a] The system shall load project settings from `.devsynth/devsynth.yml` or `pyproject.toml` using a unified loader
+- [FR-05a] The system shall load project settings from `.devsynth/project.yaml` or `pyproject.toml` using a unified loader
 
 
 #### 3.1.2 Project Management
@@ -210,7 +210,7 @@ Primary users are individual software developers who:
 - [FR-66] The system shall rename the `analyze` command to `inspect`
 - [FR-67] The system shall rename the `exec` command to `run-pipeline`
 - [FR-68] The system shall rename the `replay` command to `retrace`
-- [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
+- [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `project.yaml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
 - [FR-70] The system shall expose a bridge interface to enable future WebUI integration
 - [FR-71] The system shall provide a `doctor` command (alias `check`) for environment diagnostics
 - [FR-72] The system shall provide a Streamlit-based WebUI for running workflows

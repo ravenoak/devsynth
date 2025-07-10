@@ -22,7 +22,7 @@ A minimal configuration file for a Python project:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 version: "1.0"
 structure: "single_package"
@@ -51,7 +51,7 @@ Enable the EDRR framework with default settings:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 features:
   edrr_framework: true
@@ -61,7 +61,7 @@ Enable the EDRR framework with custom settings:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 features:
   edrr_framework: true
@@ -84,7 +84,7 @@ Enable WSDE collaboration with default settings:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 features:
   wsde_collaboration: true
@@ -94,7 +94,7 @@ Enable WSDE collaboration with custom settings:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 features:
   wsde_collaboration: true
@@ -117,7 +117,7 @@ Enable WebUI using UXBridge:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 features:
   uxbridge_webui: true
@@ -130,7 +130,7 @@ Enable Agent API using UXBridge:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 features:
   uxbridge_agent_api: true
@@ -146,7 +146,7 @@ A complete configuration example with all Phase 1 features enabled:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 version: "1.0"
 structure: "single_package"
@@ -223,7 +223,7 @@ Configure Provider integration with retry mechanisms, fallback strategies, and c
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 provider_type: "openai"  # or "lm_studio"
 openai_api_key: "your-api-key"  # or use environment variable
@@ -236,7 +236,7 @@ Configure retry mechanisms for Provider API calls:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 provider_retry_settings:
   max_retries: 3
@@ -252,7 +252,7 @@ Configure fallback strategies for Provider API calls:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 provider_fallback_settings:
   enabled: true
@@ -265,7 +265,7 @@ Configure circuit breaker pattern for Provider API calls:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 provider_circuit_breaker_settings:
   enabled: true
@@ -279,7 +279,7 @@ A complete configuration example with all Provider integration features:
 
 ```yaml
 
-# .devsynth/devsynth.yml
+# .devsynth/project.yaml
 
 provider_type: "openai"
 openai_api_key: "your-api-key"

@@ -170,7 +170,7 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--wizard`: Launch the guided setup wizard even outside a detected project
 
 
-This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `devsynth.yml`. Use the `--wizard` flag to start the wizard explicitly in any directory.
+This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `project.yaml`. Use the `--wizard` flag to start the wizard explicitly in any directory.
 The wizard reads configuration using the [Unified Config Loader](../implementation/config_loader_workflow.md),
 which prefers the `[tool.devsynth]` table in `pyproject.toml` when both files are present.
 During the wizard you will:
@@ -332,7 +332,7 @@ devsynth run-pipeline --target unit-tests
 Configure DevSynth settings.
 Configuration values are loaded through a unified loader that reads YAML or TOML files.
 The loader first checks `pyproject.toml` for a `[tool.devsynth]` table and falls back
-to `.devsynth/devsynth.yml` if that section is missing. See the
+to `.devsynth/project.yaml` if that section is missing. See the
 [Unified Configuration Loader specification](../specifications/unified_configuration_loader.md)
 for details.
 

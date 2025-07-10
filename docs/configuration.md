@@ -43,7 +43,7 @@ Changes are written to the appropriate configuration file so subsequent runs use
 ## Unified Configuration Loader
 
 DevSynth provides a single loader that reads project configuration from either
-`.devsynth/devsynth.yml` or the `[tool.devsynth]` section of `pyproject.toml`.
+`.devsynth/project.yaml` or the `[tool.devsynth]` section of `pyproject.toml`.
 The loader returns a `ConfigModel` dataclass with these fields:
 
 ```yaml
@@ -67,7 +67,7 @@ the [Unified Configuration Loader specification](specifications/unified_configur
 
 ## Migrating from YAML to pyproject.toml
 
-Existing projects that store settings in `.devsynth/devsynth.yml` can move
+Existing projects that store settings in `.devsynth/project.yaml` can move
 those values into the `[tool.devsynth]` table of `pyproject.toml`. When both
 files are present the loader now prefers the TOML table, so you may delete the
 YAML file once migrated. All configuration keys remain the same.

@@ -8,7 +8,7 @@ def _setup_project(project_dir: Path) ->None:
     """Create both YAML and TOML configs in the given directory."""
     dev_dir = project_dir / '.devsynth'
     dev_dir.mkdir(parents=True, exist_ok=True)
-    (dev_dir / 'devsynth.yml').write_text(f"version: '{ConfigModel.version}'\n"
+    (dev_dir / 'project.yaml').write_text(f"version: '{ConfigModel.version}'\n"
         )
     (project_dir / 'pyproject.toml').write_text(
         f"""[tool.devsynth]

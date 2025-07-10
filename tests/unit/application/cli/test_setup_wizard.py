@@ -61,7 +61,7 @@ ReqID: N/A"""
     bridge = DummyBridge(answers, confirms)
     wizard = SetupWizard(bridge)
     cfg = wizard.run()
-    cfg_file = tmp_path / '.devsynth' / 'devsynth.yml'
+    cfg_file = tmp_path / '.devsynth' / 'project.yaml'
     assert cfg_file.exists()
     assert cfg.config.goals == 'do stuff'
     assert cfg.config.memory_store_type == 'kuzu'
@@ -80,6 +80,6 @@ ReqID: N/A"""
     bridge = DummyBridge(answers, confirms)
     wizard = SetupWizard(bridge)
     wizard.run()
-    cfg_file = tmp_path / '.devsynth' / 'devsynth.yml'
+    cfg_file = tmp_path / '.devsynth' / 'project.yaml'
     assert not cfg_file.exists()
     assert 'Initialization aborted.' in bridge.messages[-1]

@@ -204,7 +204,7 @@ ReqID: N/A"""
 ReqID: N/A"""
         cfg_dir = tmp_path / '.devsynth'
         cfg_dir.mkdir()
-        cfg = cfg_dir / 'devsynth.yml'
+        cfg = cfg_dir / 'project.yaml'
         cfg.write_text('language: python\n')
 
         def fake_exec(command, args):
@@ -232,7 +232,7 @@ ReqID: N/A"""
 ReqID: N/A"""
         cfg_dir = tmp_path / '.devsynth'
         cfg_dir.mkdir()
-        cfg = cfg_dir / 'devsynth.yml'
+        cfg = cfg_dir / 'project.yaml'
         cfg.write_text('features:\n  code_generation: false\n')
         cwd = os.getcwd()
         os.chdir(tmp_path)
@@ -283,7 +283,7 @@ ReqID: N/A"""
                 cli_commands.init_cmd()
             finally:
                 os.chdir(cwd)
-        cfg_path = tmp_path / '.devsynth' / 'devsynth.yml'
+        cfg_path = tmp_path / '.devsynth' / 'project.yaml'
         assert cfg_path.exists()
         real_load = cli_commands.load_config
 
@@ -401,7 +401,7 @@ ReqID: N/A"""
 ReqID: N/A"""
         cfg_dir = tmp_path / '.devsynth'
         cfg_dir.mkdir()
-        (cfg_dir / 'devsynth.yml').write_text(
+        (cfg_dir / 'project.yaml').write_text(
             'language: python\nmodel: gpt-4\n')
         monkeypatch.chdir(tmp_path)
         result = cli_commands.config_key_autocomplete(None, 'l')

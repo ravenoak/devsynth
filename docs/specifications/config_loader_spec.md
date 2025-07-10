@@ -24,8 +24,8 @@ class DevSynthConfig:
 
 ```pseudocode
 function load_config(path):
-    if exists(path/.devsynth/devsynth.yml):
-        data = parse_yaml(path/.devsynth/devsynth.yml)
+    if exists(path/.devsynth/project.yaml):
+        data = parse_yaml(path/.devsynth/project.yaml)
     else if exists(path/pyproject.toml):
         data = parse_toml(path/pyproject.toml).tool.devsynth
     else:
@@ -38,7 +38,7 @@ function save_config(config, use_pyproject):
     if use_pyproject:
         update_toml("pyproject.toml", {tool.devsynth: config})
     else:
-        write_yaml(".devsynth/devsynth.yml", config)
+        write_yaml(".devsynth/project.yaml", config)
 ```
 
 The CLI exposes autocompletion of configuration keys:

@@ -45,8 +45,8 @@ def is_devsynth_managed_project(project_dir: str = None) -> bool:
     """
     Check if the project is managed by DevSynth.
 
-    A project is considered managed by DevSynth if it has a .devsynth/devsynth.yml
-    file or a pyproject.toml with a [tool.devsynth] section. The presence of a
+    A project is considered managed by DevSynth if it has a .devsynth/project.yaml
+    file (or the legacy .devsynth/devsynth.yml) or a pyproject.toml with a [tool.devsynth] section. The presence of a
     .devsynth/ directory is still treated as the primary marker.
 
     Args:
@@ -57,8 +57,11 @@ def is_devsynth_managed_project(project_dir: str = None) -> bool:
     """
     if project_dir is None:
         project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR") or os.getcwd()
-    yaml_path = os.path.join(project_dir, ".devsynth", "devsynth.yml")
+    yaml_path = os.path.join(project_dir, ".devsynth", "project.yaml")
     if os.path.exists(yaml_path):
+        return True
+    legacy_yaml = os.path.join(project_dir, ".devsynth", "devsynth.yml")
+    if os.path.exists(legacy_yaml):
         return True
 
     toml_path = os.path.join(project_dir, "pyproject.toml")
