@@ -1,7 +1,7 @@
 ---
 title: "DevSynth"
 date: "2025-05-20"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "devsynth"
   - "overview"
@@ -45,7 +45,7 @@ DevSynth is governed by a comprehensive set of SDLC policies and documentation a
 - **Development Protocols**: Contribution guide, code style, module ownership, secure coding, and peer review ([docs/developer_guides/contributing.md](docs/developer_guides/contributing.md), [docs/developer_guides/code_style.md](docs/developer_guides/code_style.md))
 - **Testing Strategy**: Test plan, unit/integration/property-based/regression tests, CI coverage, and testing documentation ([docs/developer_guides/testing.md](docs/developer_guides/testing.md))
 - **Deployment & Maintenance**: Infrastructure-as-code, deployment workflow, access control, observability, rollback, and maintenance plan ([docs/policies/deployment.md](docs/policies/deployment.md), [docs/policies/maintenance.md](docs/policies/maintenance.md))
-- **Repository Structure & Metadata**: Predictable directory layout, file/symbol annotations, metadata tags, a `.devsynth/project.yaml` for project configuration (in projects managed by DevSynth), and an automated knowledge base for agentic retrieval ([docs/roadmap/documentation_plan.md](docs/roadmap/documentation_plan.md), `.devsynth/project.yaml`, `src/devsynth/schemas/project_schema.json`)
+- **Repository Structure & Metadata**: Predictable directory layout, file/symbol annotations, metadata tags, a `.devsynth/project.yaml` for project configuration (in projects managed by DevSynth), and an automated knowledge base for agentic retrieval ([docs/specifications/documentation_plan.md](docs/specifications/documentation_plan.md), `.devsynth/project.yaml`, `src/devsynth/schemas/project_schema.json`)
 
 ## Documentation
 

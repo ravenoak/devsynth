@@ -12,11 +12,11 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
 
 **Goals:** Finalize architectural components (EDRR, WSDE, providers, memory), resolve tech debt, and ensure code structure and config standards.
 
-* **Audit & Gap Analysis:** Review the \[Feature Status Matrix] to identify incomplete features.  Key gaps: finalize EDRR framework (phase transitions, recursion), complete WSDE multi-agent workflows, implement full dialectical/peer-review pipelines, and fill any “documented only” stubs (e.g. Anthropic LLM provider).
+* **Audit & Gap Analysis:** Review the [Feature Status Matrix] to identify incomplete features.  Key gaps: finalize EDRR framework (phase transitions, recursion), complete WSDE multi-agent workflows, implement full dialectical/peer-review pipelines, and fill any “documented only” stubs (e.g. Anthropic LLM provider).
 
 * **UXBridge & Hexagonal Layers:** Ensure all interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction.  This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.  *(Task: write unit tests for `UXBridge.ask_question`/`display_result` to guarantee consistent behavior across CLI and future UI.)*
 
-* **Configuration & Requirements:** Confirm Python 3.11+ support (per \[README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
+* **Configuration & Requirements:** Confirm Python 3.11+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
 
 * **Pseudocode & BDD Examples:** Draft pseudocode for core routines, e.g.:
 
@@ -31,12 +31,12 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
   *Example Gherkin (feature file)*:
 
   ```gherkin
-  Feature: Project Initialization Wizard  
-    As a user, I can initialize a DevSynth project with guided prompts.  
-    Scenario: Initialize new project  
-      Given no DevSynth project exists at path "myproj"  
-      When I run `devsynth init` and answer setup questions  
-      Then a `.devsynth/project.yaml` is created with my inputs  
+  Feature: Project Initialization Wizard
+    As a user, I can initialize a DevSynth project with guided prompts.
+    Scenario: Initialize new project
+      Given no DevSynth project exists at path "myproj"
+      When I run `devsynth init` and answer setup questions
+      Then a `.devsynth/project.yaml` is created with my inputs
       And `devsynth config` shows the selected feature flags
   ```
 
@@ -65,12 +65,12 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
   * **BDD / Gherkin Tests:** For each story, write scenarios.  Example for `spec`:
 
     ```gherkin
-    Feature: Specification Generation  
-      Scenario: Generate specs from requirements  
-        Given a `requirements.md` file with user stories  
-        When I run `devsynth spec --requirements-file requirements.md`  
-        Then a `specs.md` file is created with generated specifications  
-        And the CLI outputs a success message  
+    Feature: Specification Generation
+      Scenario: Generate specs from requirements
+        Given a `requirements.md` file with user stories
+        When I run `devsynth spec --requirements-file requirements.md`
+        Then a `specs.md` file is created with generated specifications
+        And the CLI outputs a success message
     ```
 
     *(Implement step defs that invoke `spec_cmd` and verify file output.)*
@@ -89,11 +89,11 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
   * **Pseudocode** (in docs) shows the navigation logic; code tasks include wiring up each page (calling `init_cmd`, `gather_cmd`, etc.).  *BDD example:*
 
     ```gherkin
-    Feature: WebUI Navigation  
-      Scenario: Access project onboarding page  
-        When I select "Onboarding" in the sidebar  
-        Then the Onboarding UI appears  
-        And the same prompts from `devsynth init` are displayed  
+    Feature: WebUI Navigation
+      Scenario: Access project onboarding page
+        When I select "Onboarding" in the sidebar
+        Then the Onboarding UI appears
+        And the same prompts from `devsynth init` are displayed
     ```
 
     *(Step defs would simulate Streamlit UI selection and assert pages call underlying workflows.)*
@@ -120,52 +120,4 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
 * **Test Coverage:** Target ≥90% for unit tests in critical modules (especially core and UX bridges).  Add integration tests for CLI/WebUI/AgentAPI pipelines.  Cover corner cases (invalid config, missing files).  Automate coverage checks in CI.
 * **Behavior Tests:** Complete feature files for any remaining user stories (e.g. `Feature: Generate documentation`, `Feature: Web Application Generator`).  Implement step definitions in Python to drive these flows via `CLIUXBridge` or `APIBridge`.
 * **Documentation:** Ensure **all** features and workflows are documented: update **User Guide**, **Quick Start**, **CLI Reference**, and **Architecture** docs.  In particular, document new features (WebUI, API endpoints, agent workflows).  Verify docs match code via traceability matrix.  Add missing images or diagrams to docs.
-* **UX Polish:** Refine command-line messaging (colors, formatting), fix any inconsistent naming.  E.g. confirm that all commands have help text.  Ensure CLI prompts and WebUI labels are clear.  Resolve any reported issues or TODOs in UI.
-
-## Phase 5: Release Readiness & Deployment
-
-**Goals:** Final verification, packaging, and release CI.
-
-* **Functional Completeness:** Confirm that every feature on the status matrix has reached “Fully Implemented” or an acceptable level for v1.0.  Checklist items include: all CLI commands exercised, WebUI navigation complete, agent API functional, multi-agent collaboration stable, memory backends integrated, all optional providers handled.
-* **UX Polish & Consistency:** Perform usability checks.  For CLI, run user stories from quick start.  For WebUI, navigate pages end-to-end.  Ensure CLI/WebUI produce consistent outputs for same tasks.
-* **Agent Interface:** Validate API endpoints with and without authentication (bearer token).  Ensure the `/metrics` and `/health` endpoints work and are secured if needed.  Integrate Prometheus metrics.
-* **Documentation Readiness:** Finalize versioned docs (mkdocs site).  Include a “DevSynth Roadmap” and “Release Notes” summarizing this phase.  Tag documentation review to pass CI (spelling, formatting).
-* **CI/CD & Packaging:** Ensure all tests pass in CI.  Build and test the `devsynth` pip package.  Verify Docker image build and deployment scripts.  Publish to PyPI (if applicable) and update CHANGELOG.  Ensure version bump to 1.0.0.
-
-### Explicit Code-Complete Checklist
-
-1. **Functional Completeness:**
-
-   * All CLI commands implemented and tested (as per README).
-   * WebUI (Streamlit) implements key pages and workflows.
-   * Agent API supports `/init`, `/gather`, `/synthesize`, `/status`.
-   * Core features (spec, test, code generation; WSDE; EDRR) work end-to-end.
-   * Optional features (code/test/doc generation, WSDE, dialectical reasoning) toggled via config are verified.
-
-2. **UX Polish:**
-
-   * CLI messages and prompts are clear (ANSI colors, progress bars).  Example: successful spec generation shows a green message.
-   * Configuration wizard (`devsynth init`) collects user input logically.
-   * WebUI interface matches CLI workflows and is responsive. (E.g. sidebar navigation, progress indicators via `UXBridge`.
-
-3. **Agent Interface Readiness:**
-
-   * FastAPI endpoints respond correctly (health, metrics, workflow endpoints).  Health check returns `{"status":"ok"}`.
-   * Agent API security (Bearer token) is functional.
-   * API and CLI share the same logic via `UXBridge`, so agentic invocations produce same outputs as interactive use.
-
-4. **Documentation Readiness:**
-
-   * All user/developer guides cover new features (WebUI, API, new commands).  Quickstart example in README updated.
-   * Architecture and design docs reflect final implementation (including any changes).  Feature Status Matrix updated to 100% or notes for incomplete “enhancements only” (e.g. future frameworks in `webapp`).
-   * Testing and traceability matrices reviewed.
-
-5. **Packaging & CI:**
-
-   * `devsynth` package builds on Python 3.11+ and installs with extras (dev, retrieval).  Dockerfile and Compose verified.
-   * CI pipeline passes linting, tests (unit, integration, BDD) and deploys on successful tag.
-   * CHANGELOG updated and a release branch/tag created.
-
-By progressing through these phases and rigorously testing via BDD/TDD, DevSynth will achieve a stable, user-ready 1.0 release.  The plan ensures thorough coverage of UX flows, architectural solidity, and documentation.  Each bullet above corresponds to discrete tasks (e.g. writing specific Gherkin scenarios, implementing missing endpoints) that can be handed off as atomic development tickets for the AI assistant.
-
-**Sources:** Current DevSynth docs and code provide guidance on features, architecture, and status.
+* **UX Polish:** Refine command-line messaging (colors, formatting), fix any inconsistent naming.  E.g. confirm that all commands have help text.  Ensure CLI patterns are consistent.
