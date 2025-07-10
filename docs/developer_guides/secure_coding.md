@@ -1,12 +1,12 @@
 ---
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: '2025-07-07'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 - developer-guide
 title: Secure Coding Guidelines
-version: 1.0.0
+version: 0.1.0
 ---
 
 # Secure Coding Guidelines

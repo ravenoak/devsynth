@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-15'
-last_reviewed: '2025-06-15'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -10,7 +10,7 @@ tags:
 - tutorial
 
 title: Concise DevSynth Walkthrough
-version: 1.0.0
+version: 0.1.0
 ---
 
 # Concise DevSynth Walkthrough

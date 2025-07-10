@@ -1,14 +1,14 @@
 ---
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: '2025-07-07'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
 - technical-reference
 
 title: 'Methodology Integration Framework: Supporting Diverse Development Approaches'
-version: 1.0.0
+version: 0.1.0
 ---
 
 # Methodology Integration Framework: Supporting Diverse Development Approaches

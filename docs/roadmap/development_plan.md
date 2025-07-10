@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Development Plan"
 date: "2025-06-01"
-version: "2.0.0"
+version: "0.1.0"
 tags:
   - "development"
   - "planning"
@@ -17,7 +17,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+last_reviewed: "2025-07-10"
 ---
 
 # DevSynth Development Plan

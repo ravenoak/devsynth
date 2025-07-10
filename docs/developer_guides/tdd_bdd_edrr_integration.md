@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-05-25'
-last_reviewed: '2025-05-25'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -14,7 +14,7 @@ tags:
 - best-practices
 
 title: TDD/BDD Integration with EDRR Methodology
-version: 1.0.0
+version: 0.1.0
 ---
 
 # TDD/BDD Integration with EDRR Methodology

@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: '2025-06-01'
+last_reviewed: "2025-07-10"
 status: active
 tags:
 - architecture
@@ -9,7 +9,7 @@ tags:
 - methodology
 - framework
 title: 'EDRR Framework: Expand, Differentiate, Refine, Retrospect'
-version: 1.0.0
+version: 0.1.0
 ---
 
 # EDRR Framework: Expand, Differentiate, Refine, Retrospect
@@ -295,7 +295,7 @@ The EDRR Manifest is a configuration file that defines the structure and paramet
 ```yaml
 name: "Feature Implementation Cycle"
 description: "EDRR for implementing a new feature"
-version: "1.0.0"
+version: "0.1.0"
 phases:
   expand:
     instructions: "Explore multiple approaches to implementing the feature"

@@ -1,14 +1,14 @@
 ---
 title: "DevSynth Case Studies"
 date: "2025-06-14"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "case study"
   - "examples"
 
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-06-14"
+last_reviewed: "2025-07-10"
 ---
 
 # DevSynth Case Studies

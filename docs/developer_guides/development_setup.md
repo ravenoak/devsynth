@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: '2025-06-01'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 
@@ -12,7 +12,7 @@ tags:
 - getting-started
 
 title: DevSynth Development Setup and Onboarding Guide
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth Development Setup and Onboarding Guide

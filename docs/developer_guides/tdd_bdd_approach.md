@@ -1,7 +1,7 @@
 ---
 title: "Test-Driven and Behavior-Driven Development in DevSynth"
 date: "2025-05-25"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "testing"
   - "TDD"
@@ -11,7 +11,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-05-25"
+last_reviewed: "2025-07-10"
 ---
 
 # Test-Driven and Behavior-Driven Development in DevSynth

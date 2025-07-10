@@ -1,14 +1,14 @@
 ---
 author: DevSynth Team
 date: '2024-06-01'
-last_reviewed: '2025-06-15'
+last_reviewed: "2025-07-10"
 status: published
 tags:
 - getting-started
 - basic-usage
 - tutorial
 title: DevSynth Basic Usage Guide
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth Basic Usage Guide

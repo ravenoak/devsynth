@@ -8,7 +8,7 @@ tags:
 - user-guide
 
 title: DevSynth WebUI Reference
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth WebUI Reference

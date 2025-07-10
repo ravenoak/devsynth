@@ -9,7 +9,7 @@ tags:
 
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-06-16"
+last_reviewed: "2025-07-10"
 ---
 
 # Delimiting Recursion Algorithms

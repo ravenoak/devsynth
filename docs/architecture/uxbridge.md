@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: '2025-06-16'
+last_reviewed: "2025-07-10"
 status: draft
 tags:
 
@@ -11,7 +11,7 @@ tags:
 - webui
 
 title: UXBridge Abstraction
-version: 1.0.0
+version: 0.1.0
 ---
 
 # UXBridge Abstraction

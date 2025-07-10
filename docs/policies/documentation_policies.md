@@ -1,14 +1,14 @@
 ---
 title: "Documentation Policies"
 date: "2025-06-01"
-version: "1.0.0"
+version: "0.1.0"
 tags:
   - "documentation"
   - "policies"
   - "standards"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-06-01"
+last_reviewed: "2025-07-10"
 ---
 
 # Documentation Policies
