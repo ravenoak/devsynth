@@ -17,6 +17,8 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
 * **UXBridge & Hexagonal Layers:** Ensure all interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction.  This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.  *(Task: write unit tests for `UXBridge.ask_question`/`display_result` to guarantee consistent behavior across CLI and future UI.)*
 
 * **Configuration & Requirements:** Confirm Python 3.11+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
+* **Offline Mode:** Document and test the offline provider that supplies deterministic text and embeddings when `offline_mode` is enabled. Ensure CLI and WebUI fall back correctly and add unit tests for offline provider selection.
+* **Optional Vector Stores:** Provide configuration examples for alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. Include docker-compose setup for the embedded ChromaDB backend.
 
 * **Pseudocode & BDD Examples:** Draft pseudocode for core routines, e.g.:
 
@@ -121,3 +123,4 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
 * **Behavior Tests:** Complete feature files for any remaining user stories (e.g. `Feature: Generate documentation`, `Feature: Web Application Generator`).  Implement step definitions in Python to drive these flows via `CLIUXBridge` or `APIBridge`.
 * **Documentation:** Ensure **all** features and workflows are documented: update **User Guide**, **Quick Start**, **CLI Reference**, and **Architecture** docs.  In particular, document new features (WebUI, API endpoints, agent workflows).  Verify docs match code via traceability matrix.  Add missing images or diagrams to docs.
 * **UX Polish:** Refine command-line messaging (colors, formatting), fix any inconsistent naming.  E.g. confirm that all commands have help text.  Ensure CLI patterns are consistent.
+* **Alignment Metrics:** Integrate the `alignment_metrics` command and WebUI page.  Provide sample reports showing traceability between requirements, specs, tests, and code.  Include BDD scenarios for generating alignment metrics.
