@@ -18,6 +18,10 @@ last_reviewed: "2025-07-10"
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
+**Pre-release notice:** DevSynth has not yet reached an official release. All
+current versions are in the `0.1.x` range and should be considered
+experimental.
+
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
 - Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends

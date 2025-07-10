@@ -22,7 +22,10 @@ last_reviewed: "2025-07-10"
 
 # DevSynth Development Plan
 
-**Date:** 2025-06-01  
+**Note:** DevSynth is currently a pre-release project. Versions in the `0.1.x`
+range are unstable and subject to change.
+
+**Date:** 2025-06-01
 **Author:** DevSynth Team
 
 ## Executive Summary

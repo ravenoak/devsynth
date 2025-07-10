@@ -7,10 +7,13 @@ tags:
 - release-plan
 - roadmap
 title: DevSynth 1.0 Release Plan
-version: 1.0.0
+version: 0.1.0
 ---
 
 # DevSynth 1.0 Release Plan
+
+**Note:** DevSynth is still in pre-release. Current versions are in the `0.1.x`
+series while this document outlines the path toward an eventual 1.0 release.
 
 We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and completeness.  Each phase defines targeted milestones and implementation-ready tasks, emphasizing BDD/TDD practices.  We draw on the current codebase and docs to identify missing features and gaps.
 
