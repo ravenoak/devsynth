@@ -41,7 +41,7 @@ same core logic to support both the CLI and the future WebUI.
 ## Unified Configuration System
 
 The new `config_loader` module reads settings from either
-`.devsynth/devsynth.yml` or the `[tool.devsynth]` table in `pyproject.toml`.
+`.devsynth/project.yaml` or the `[tool.devsynth]` table in `pyproject.toml`.
 It exposes a single API for loading and saving configuration regardless of file
 format.
 

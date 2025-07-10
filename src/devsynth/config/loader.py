@@ -130,9 +130,9 @@ def _find_config_path(start: Path) -> Optional[Path]:
     if proj_yaml.exists():
         return proj_yaml
 
-    yaml_path = start / ".devsynth" / "devsynth.yml"
-    if yaml_path.exists():
-        return yaml_path
+    legacy_yaml = start / ".devsynth" / "devsynth.yml"
+    if legacy_yaml.exists():
+        return legacy_yaml
 
     return None
 
@@ -248,7 +248,7 @@ def save_config(
     else:
         dev_dir = root / ".devsynth"
         os.makedirs(dev_dir, exist_ok=True)
-        cfg_path = dev_dir / "devsynth.yml"
+        cfg_path = dev_dir / "project.yaml"
         with open(cfg_path, "w") as f:
             yaml.safe_dump(config.as_dict(), f)
         return cfg_path

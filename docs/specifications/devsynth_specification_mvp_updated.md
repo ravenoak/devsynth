@@ -509,9 +509,9 @@ testing.
 #### 4.1.4 Interactive Init Workflow
 
 **MVP Scope:**
-- Detect existing projects containing `pyproject.toml` or `devsynth.yml`
+- Detect existing projects containing `pyproject.toml` or `project.yaml`
 - Prompt for project root, structure type, primary language, and constraint file
-- Write configuration to `devsynth.yml` by default
+- Write configuration to `project.yaml` by default
 - Optionally embed configuration under `[tool.devsynth]` in `pyproject.toml`
 
 **Implementation Guidance:**
@@ -535,7 +535,7 @@ testing.
 
 #### 4.1.6 Unified Configuration Loader
 
-- **FR-69**: Load project configuration from YAML or TOML using a common parser. The loader merges settings from `devsynth.yml` or `[tool.devsynth]` in `pyproject.toml` into a single `DevSynthConfig` object for consistent access across commands. Parsing of `pyproject.toml` uses the `toml` library.
+- **FR-69**: Load project configuration from YAML or TOML using a common parser. The loader merges settings from `project.yaml` or `[tool.devsynth]` in `pyproject.toml` into a single `DevSynthConfig` object for consistent access across commands. Parsing of `pyproject.toml` uses the `toml` library.
 
 #### 4.1.7 CLI/WebUI Bridge Preparation
 

@@ -127,7 +127,7 @@ poetry run pytest
 ### Configuration Version Locking
 
 DevSynth locks the configuration format to a specific version. The `version` key
-in `.devsynth/devsynth.yml` (or `[tool.devsynth]` in `pyproject.toml`) must
+in `.devsynth/project.yaml` (or `[tool.devsynth]` in `pyproject.toml`) must
 match the version expected by the current DevSynth release. When `load_config`
 reads a file with a mismatched version, it logs a warning so you can regenerate
 the configuration with `devsynth init`.

@@ -35,7 +35,7 @@ You can also explore the example using the WebUI. Start it with `devsynth webui`
    cd examples/calculator
    devsynth init --path .
    ```
-   The command now launches an interactive wizard when run in an existing directory and will read any `pyproject.toml` or `devsynth.yml` it detects.
+   The command now launches an interactive wizard when run in an existing directory and will read any `pyproject.toml` or `project.yaml` it detects.
 
 2. **Generate specifications** from the requirements
 

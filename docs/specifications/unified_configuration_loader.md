@@ -12,7 +12,7 @@ author: "DevSynth Team"
 
 # Unified Configuration Loader
 
-This specification describes the goals and design of the unified configuration loader. The loader reads project settings from either the YAML file `.devsynth/devsynth.yml` or the `[tool.devsynth]` table in `pyproject.toml`. Its main goals are:
+This specification describes the goals and design of the unified configuration loader. The loader reads project settings from either the YAML file `.devsynth/project.yaml` or the `[tool.devsynth]` table in `pyproject.toml`. Its main goals are:
 
 1. Provide a single API to read and write configuration regardless of file format.
 2. Support persistent CLI preferences so commands remember previously selected options.
@@ -37,7 +37,7 @@ class DevSynthConfig(BaseModel):
 
 ## YAML and TOML Support
 
-The loader checks for `.devsynth/devsynth.yml`. If not found, it falls back to the `pyproject.toml` section. Saving can be directed to either format based on user preference, allowing teams to keep configuration alongside existing project files.
+The loader checks for `.devsynth/project.yaml`. If not found, it falls back to the `pyproject.toml` section. Saving can be directed to either format based on user preference, allowing teams to keep configuration alongside existing project files.
 
 ## CLI Autocompletion
 

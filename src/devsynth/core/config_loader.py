@@ -75,9 +75,12 @@ def _load_toml(path: Path) -> Dict[str, Any]:
 
 
 def _find_project_config(start: Path) -> Optional[Path]:
-    yaml_path = start / ".devsynth" / "devsynth.yml"
+    yaml_path = start / ".devsynth" / "project.yaml"
     if yaml_path.exists():
         return yaml_path
+    legacy_yaml = start / ".devsynth" / "devsynth.yml"
+    if legacy_yaml.exists():
+        return legacy_yaml
     toml_path = start / "devsynth.toml"
     if toml_path.exists():
         return toml_path

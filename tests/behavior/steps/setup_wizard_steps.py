@@ -110,5 +110,5 @@ def check_config(tmp_project_dir):
 
 @then("no project configuration file should exist")
 def no_config(tmp_project_dir):
-    cfg_file = Path(tmp_project_dir) / ".devsynth" / "devsynth.yml"
+    cfg_file = Path(tmp_project_dir) / ".devsynth" / "project.yaml"
     assert not cfg_file.exists()

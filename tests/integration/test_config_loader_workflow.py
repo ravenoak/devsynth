@@ -8,7 +8,7 @@ def test_load_config_merges_defaults_succeeds(tmp_path):
 ReqID: N/A"""
     dev_dir = tmp_path / '.devsynth'
     dev_dir.mkdir()
-    (dev_dir / 'devsynth.yml').write_text('language: python\n')
+    (dev_dir / 'project.yaml').write_text('language: python\n')
     cfg = load_config(tmp_path)
     assert cfg.language == 'python'
     assert cfg.directories['source'] == ['src']
@@ -21,7 +21,7 @@ def test_malformed_yaml_raises(tmp_path):
 ReqID: N/A"""
     dev_dir = tmp_path / '.devsynth'
     dev_dir.mkdir()
-    (dev_dir / 'devsynth.yml').write_text(': - bad')
+    (dev_dir / 'project.yaml').write_text(': - bad')
     with pytest.raises(ConfigurationError):
         load_config(tmp_path)
 

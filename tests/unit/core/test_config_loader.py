@@ -4,7 +4,7 @@ from devsynth.config import load_project_config
 
 
 def test_load_from_dev_synth_yaml_succeeds(tmp_path, monkeypatch):
-    """Load configuration from .devsynth/devsynth.yml.
+    """Load configuration from .devsynth/project.yaml.
 
 ReqID: N/A"""
     home = tmp_path / 'home'
@@ -12,7 +12,7 @@ ReqID: N/A"""
         '~' else os.path.expanduser(p))
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     cfg = load_config(tmp_path)
     assert cfg.language == 'python'
 
@@ -39,7 +39,7 @@ ReqID: N/A"""
         '~' else os.path.expanduser(p))
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text(
+    (cfg_dir / 'project.yaml').write_text(
         """language: python
 directories:
   source: ['src']
@@ -47,7 +47,7 @@ directories:
 """
         )
     cfg_yaml = load_config(tmp_path)
-    (cfg_dir / 'devsynth.yml').unlink()
+    (cfg_dir / 'project.yaml').unlink()
     (tmp_path / 'pyproject.toml').write_text(
         """[tool.devsynth]
 language = 'python'

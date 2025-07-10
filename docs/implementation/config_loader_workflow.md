@@ -16,7 +16,7 @@ version: 0.1.0
 # Configuration Loader Workflow
 
 DevSynth uses the implemented `UnifiedConfigLoader` to read configuration from
-either `devsynth.yml` or `pyproject.toml`.
+either `project.yaml` or `pyproject.toml`.
 
 ```python
 from devsynth.config.unified_loader import UnifiedConfigLoader

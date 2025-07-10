@@ -6,7 +6,7 @@ from pytest_bdd import given, then
 
 @given("no DevSynth configuration file in the project")
 def no_devsynth_config(tmp_project_dir):
-    cfg_yaml = os.path.join(tmp_project_dir, "devsynth.yml")
+    cfg_yaml = os.path.join(tmp_project_dir, "project.yaml")
     if os.path.exists(cfg_yaml):
         os.remove(cfg_yaml)
     legacy = os.path.join(tmp_project_dir, "manifest.yaml")
@@ -28,23 +28,23 @@ def output_mentions_missing_project_config(command_context):
     assert "No project configuration found" in output
 
 
-@given("a devsynth.yml file with invalid YAML syntax")
+@given("a project.yaml file with invalid YAML syntax")
 def devsynth_yaml_invalid(tmp_project_dir, monkeypatch):
     """Create a DevSynth config file containing malformed YAML."""
     dev_dir = os.path.join(tmp_project_dir, ".devsynth")
     os.makedirs(dev_dir, exist_ok=True)
-    with open(os.path.join(dev_dir, "devsynth.yml"), "w") as f:
+    with open(os.path.join(dev_dir, "project.yaml"), "w") as f:
         f.write("invalid: [unclosed")
     monkeypatch.chdir(tmp_project_dir)
     return tmp_project_dir
 
 
-@given("a devsynth.yml file with unsupported configuration keys")
+@given("a project.yaml file with unsupported configuration keys")
 def devsynth_yaml_unsupported_keys(tmp_project_dir, monkeypatch):
     """Create a DevSynth config file containing unknown keys."""
     dev_dir = os.path.join(tmp_project_dir, ".devsynth")
     os.makedirs(dev_dir, exist_ok=True)
-    with open(os.path.join(dev_dir, "devsynth.yml"), "w") as f:
+    with open(os.path.join(dev_dir, "project.yaml"), "w") as f:
         f.write("unsupported_option: true\n")
     monkeypatch.chdir(tmp_project_dir)
     return tmp_project_dir

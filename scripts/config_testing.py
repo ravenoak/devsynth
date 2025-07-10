@@ -197,7 +197,7 @@ class ConfigTester:
         devsynth_dir = project_dir / ".devsynth"
         
         if format == "yaml":
-            config_file = devsynth_dir / "devsynth.yml"
+            config_file = devsynth_dir / "project.yaml"
             with open(config_file, "w") as f:
                 yaml.dump(config, f, default_flow_style=False)
         else:  # json

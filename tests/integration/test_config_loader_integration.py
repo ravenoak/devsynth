@@ -9,7 +9,7 @@ ReqID: N/A"""
     project_dir = tmp_path
     dev_dir = project_dir / '.devsynth'
     dev_dir.mkdir()
-    (dev_dir / 'devsynth.yml').write_text('language: python\n')
+    (dev_dir / 'project.yaml').write_text('language: python\n')
     os.chdir(project_dir)
     cfg = load_config(project_dir)
     assert cfg.language == 'python'
@@ -34,7 +34,7 @@ ReqID: N/A"""
     project_dir = tmp_path
     dev_dir = project_dir / '.devsynth'
     dev_dir.mkdir()
-    (dev_dir / 'devsynth.yml').write_text('language: python\n')
+    (dev_dir / 'project.yaml').write_text('language: python\n')
     (project_dir / 'pyproject.toml').write_text(
         "[tool.devsynth]\nlanguage='python'\n")
     os.chdir(project_dir)

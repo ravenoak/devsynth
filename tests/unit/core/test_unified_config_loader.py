@@ -8,7 +8,7 @@ def test_unified_loader_detects_yaml_succeeds(tmp_path):
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     unified = UnifiedConfigLoader.load(tmp_path)
     assert not unified.use_pyproject
 
@@ -29,7 +29,7 @@ def test_unified_loader_prefers_pyproject_succeeds(tmp_path):
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     (tmp_path / 'pyproject.toml').write_text(
         "[tool.devsynth]\nlanguage = 'python'\n")
     unified = UnifiedConfigLoader.load(tmp_path)
@@ -57,7 +57,7 @@ def test_unified_config_exists_for_both_formats_returns_expected_result(
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     assert UnifiedConfigLoader.load(tmp_path).exists()
     (tmp_path / 'pyproject.toml').write_text(
         "[tool.devsynth]\nlanguage='python'\n")

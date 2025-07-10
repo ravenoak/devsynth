@@ -8,7 +8,7 @@ def test_load_and_save_yaml_config_succeeds(tmp_path):
 ReqID: N/A"""
     cfg = ConfigModel(project_root=str(tmp_path), features={'test_flag': True})
     path = save_config(cfg, path=str(tmp_path))
-    assert path.name == 'devsynth.yml'
+    assert path.name == 'project.yaml'
     loaded = load_config(tmp_path)
     assert loaded.features == {'test_flag': True}
     assert loaded.version == ConfigModel.version
@@ -32,7 +32,7 @@ def test_version_mismatch_warning_yaml_succeeds(tmp_path, caplog):
 ReqID: N/A"""
     dev_dir = tmp_path / '.devsynth'
     dev_dir.mkdir()
-    (dev_dir / 'devsynth.yml').write_text("version: '0.0'\n")
+    (dev_dir / 'project.yaml').write_text("version: '0.0'\n")
     caplog.set_level(logging.WARNING)
     load_config(tmp_path)
     assert any('version' in rec.message for rec in caplog.records)

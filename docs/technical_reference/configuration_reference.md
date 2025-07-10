@@ -39,7 +39,7 @@ DevSynth uses a YAML configuration file located at `~/.devsynth/config.yaml` by 
 
 For project configuration DevSynth relies on a *unified loader* that searches the
 project root for either a `[tool.devsynth]` table in `pyproject.toml` or the file
-`.devsynth/devsynth.yml`. When both are present the TOML entry takes precedence.
+`.devsynth/project.yaml`. When both are present the TOML entry takes precedence.
 Saving a configuration writes back to whichever file was originally loaded. The
 loader also checks the `version` field against the CLI's expected
 `ConfigModel.version` and logs a warning if they differ, providing a simple form

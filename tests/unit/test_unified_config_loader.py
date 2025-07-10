@@ -11,10 +11,10 @@ def test_load_from_yaml_succeeds(tmp_path: Path) ->None:
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (cfg_dir / 'project.yaml').write_text('language: python\n')
     unified = UnifiedConfigLoader.load(tmp_path)
     assert not unified.use_pyproject
-    assert unified.path == cfg_dir / 'devsynth.yml'
+    assert unified.path == cfg_dir / 'project.yaml'
     assert unified.config.language == 'python'
 
 
@@ -39,7 +39,7 @@ ReqID: N/A"""
     assert not unified.exists()
     unified.set_language('python')
     save_path = unified.save()
-    assert save_path == cfg_dir / 'devsynth.yml'
+    assert save_path == cfg_dir / 'project.yaml'
     assert unified.exists()
     unified = UnifiedConfigLoader.load(tmp_path)
     assert unified.exists()
@@ -53,7 +53,7 @@ def test_missing_files_succeeds(tmp_path: Path) ->None:
 ReqID: N/A"""
     unified = UnifiedConfigLoader.load(tmp_path)
     assert not unified.exists()
-    assert unified.path == tmp_path / '.devsynth' / 'devsynth.yml'
+    assert unified.path == tmp_path / '.devsynth' / 'project.yaml'
 
 
 def test_version_mismatch_warning_succeeds(tmp_path: Path, caplog) ->None:
@@ -62,7 +62,7 @@ def test_version_mismatch_warning_succeeds(tmp_path: Path, caplog) ->None:
 ReqID: N/A"""
     cfg_dir = tmp_path / '.devsynth'
     cfg_dir.mkdir()
-    (cfg_dir / 'devsynth.yml').write_text("version: '0.0'\n")
+    (cfg_dir / 'project.yaml').write_text("version: '0.0'\n")
     caplog.set_level(logging.WARNING)
     UnifiedConfigLoader.load(tmp_path)
     assert any('version' in rec.message for rec in caplog.records)

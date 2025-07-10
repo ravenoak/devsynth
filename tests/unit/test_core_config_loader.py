@@ -15,7 +15,7 @@ ReqID: N/A"""
     project_dir = tmp_path / 'project'
     project_cfg_dir = project_dir / '.devsynth'
     project_cfg_dir.mkdir(parents=True, exist_ok=True)
-    (project_cfg_dir / 'devsynth.yml').write_text('language: python\n')
+    (project_cfg_dir / 'project.yaml').write_text('language: python\n')
     monkeypatch.setattr(os.path, 'expanduser', lambda x: str(home) if x ==
         '~' else os.path.expanduser(x))
     monkeypatch.setenv('DEVSYNTH_LANGUAGE', 'rust')
