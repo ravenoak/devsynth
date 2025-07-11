@@ -85,6 +85,16 @@ context = [
 response = provider.generate_with_context("Tell me a joke", context)
 ```
 
+## Offline Provider
+
+When `offline_mode` is enabled in the project configuration, DevSynth selects
+the **OfflineProvider**. This provider avoids all remote API calls and either
+loads a local Hugging Face model specified via
+`offline_provider.model_path` or falls back to deterministic text generation and
+hash-based embeddings. Offline mode ensures repeatable results for testing and
+continuous integration. See the configuration guide for details on the relevant
+flags.
+
 ## Token Tracking and Optimization
 
 DevSynth includes a `TokenTracker` utility for tracking and optimizing token usage in LLM interactions.

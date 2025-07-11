@@ -249,6 +249,15 @@ DevSynth can be configured using the `config` command or by editing the configur
 | `serper_api_key` | Serper API key for web search functionality | None | Valid Serper API key |
 | `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `Kuzu` |
 
+### Offline Mode
+
+Enable `offline_mode` in your configuration to avoid all remote LLM calls.
+When this flag is `true` the CLI selects the OfflineProvider, which returns
+deterministic text and embeddings or loads a local model from
+`offline_provider.model_path`. See
+[Offline Provider details](../technical_reference/llm_integration.md#offline-provider)
+for more information.
+
 ### Environment Variables and .env Files
 
 DevSynth supports loading configuration from environment variables and `.env` files. This is especially useful for sensitive information like API keys.
