@@ -574,7 +574,7 @@ All configuration files are valid.
 If issues are detected you may see warnings like:
 
 ```text
-Warning: Python 3.11 or higher is required. Current version: 3.10
+Warning: Python 3.12 or higher is required. Current version: 3.10
 Missing environment variables: OPENAI_API_KEY
 ChromaDB support is enabled but the 'ChromaDB' package is missing.
 Configuration issues detected. Run 'devsynth init' to generate defaults.

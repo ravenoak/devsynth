@@ -132,7 +132,7 @@ This document provides comprehensive benchmarks and performance metrics for the 
 
 - **Software**:
   - OS: Ubuntu 22.04 LTS / macOS 13+ / Windows 11
-  - Python: 3.11+
+  - Python: 3.12+
   - Dependencies: As specified in pyproject.toml
   - LM Studio: Latest version (for local LLM testing)
 

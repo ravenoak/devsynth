@@ -21,7 +21,7 @@ This guide demonstrates how to combine the DevSynth CLI with direct use of the
 
 ## Environment Requirements
 
-Ensure **Python 3.11 or higher** is installed. Poetry is recommended for dependency management during development.
+Ensure **Python 3.12 or higher** is installed. Poetry is recommended for dependency management during development.
 
 You can perform the following CLI steps via the WebUI as well. Launch it with `devsynth webui` and use the pages that correspond to each command.
 

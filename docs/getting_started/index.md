@@ -23,7 +23,7 @@ This section provides essential information for getting started with DevSynth, i
 
 ## Environment Requirements
 
-DevSynth requires **Python 3.11 or higher**. For development workflows, the team recommends managing dependencies with [Poetry](https://python-poetry.org/).
+DevSynth requires **Python 3.12 or higher**. For development workflows, the team recommends managing dependencies with [Poetry](https://python-poetry.org/).
 
 ## Overview
 

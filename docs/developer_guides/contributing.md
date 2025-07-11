@@ -71,7 +71,7 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 
 ### Prerequisites
 
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Poetry (for dependency management)
 
 

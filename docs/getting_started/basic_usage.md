@@ -17,7 +17,7 @@ This guide provides essential information about the basic usage of DevSynth, inc
 
 ## Environment Requirements
 
-Ensure you are using **Python 3.11 or higher**. Poetry is recommended for managing dependencies during development.
+Ensure you are using **Python 3.12 or higher**. Poetry is recommended for managing dependencies during development.
 
 ## Overview
 

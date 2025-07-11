@@ -31,7 +31,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
 
         if sys.version_info < (3, 11):
             bridge.print(
-                f"[yellow]Warning: Python 3.11 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
+                f"[yellow]Warning: Python 3.12 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
             )
             warnings = True
 

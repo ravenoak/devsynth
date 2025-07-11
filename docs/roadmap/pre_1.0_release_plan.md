@@ -6,11 +6,11 @@ status: published
 tags:
 - release-plan
 - roadmap
-title: DevSynth 1.0 Release Plan
+title: DevSynth Pre-1.0 Release Plan
 version: 0.1.0
 ---
 
-# DevSynth 1.0 Release Plan
+# DevSynth Pre-1.0 Release Plan
 
 **Note:** DevSynth is still in pre-release. Current versions are in the `0.1.x`
 series while this document outlines the path toward an eventual 1.0 release.
@@ -25,7 +25,7 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
 
 * **UXBridge & Hexagonal Layers:** Ensure all interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction.  This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.  *(Task: write unit tests for `UXBridge.ask_question`/`display_result` to guarantee consistent behavior across CLI and future UI.)*
 
-* **Configuration & Requirements:** Confirm Python 3.11+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
+* **Configuration & Requirements:** Confirm Python 3.12+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
 * **Offline Mode:** Document and test the offline provider that supplies deterministic text and embeddings when `offline_mode` is enabled. Ensure CLI and WebUI fall back correctly and add unit tests for offline provider selection.
 * **Optional Vector Stores:** Provide configuration examples for alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. Include docker-compose setup for the embedded ChromaDB backend.
 
@@ -133,3 +133,75 @@ We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and com
 * **Documentation:** Ensure **all** features and workflows are documented: update **User Guide**, **Quick Start**, **CLI Reference**, and **Architecture** docs.  In particular, document new features (WebUI, API endpoints, agent workflows).  Verify docs match code via traceability matrix.  Add missing images or diagrams to docs.
 * **UX Polish:** Refine command-line messaging (colors, formatting), fix any inconsistent naming.  E.g. confirm that all commands have help text.  Ensure CLI patterns are consistent.
 * **Alignment Metrics:** Integrate the `alignment_metrics` command and WebUI page.  Provide sample reports showing traceability between requirements, specs, tests, and code.  Include BDD scenarios for generating alignment metrics.
+
+## Roadmap from 0.1.0 to 1.0.0
+
+### Version 0.1.0 (Initial Release)
+
+#### 0.1.0-alpha.1 (Foundation)
+- Core architecture stabilization
+- Basic CLI functionality
+- OpenAI provider integration
+- Simple memory system
+- Basic EDRR framework
+
+#### 0.1.0-alpha.2 (Enhanced Foundation)
+- Anthropic API support
+- Feature flag system
+- Improved memory system
+- Enhanced EDRR framework
+- Basic metrics collection
+
+#### 0.1.0-beta.1 (Feature Expansion)
+- Basic multi-language support (JavaScript/TypeScript)
+- Preliminary WebUI
+- DSPy-AI integration
+- Enhanced metrics and analytics
+- Improved documentation
+
+#### 0.1.0-beta.2 (Feature Completion)
+- Complete WebUI
+- Full multi-language support for tier 1 languages
+- Comprehensive metrics dashboard
+- API stabilization
+- Integration testing
+
+#### 0.1.0-rc.1 (Stabilization)
+- Bug fixes and performance optimizations
+- Documentation completion
+- Final UI polish
+- Comprehensive testing
+- Release preparation
+
+#### 0.1.0 (Stable Release)
+- Production-ready initial release
+- Complete documentation
+- Verified installation process
+- Stable API
+- Known limitations documented
+
+### Version 0.2.0 - 0.9.0 (Incremental Releases)
+- **0.2.0**: Enhanced multi-language support
+- **0.3.0**: Full AST mutations and code transformations
+- **0.4.0**: Advanced WSDE collaboration features
+- **0.5.0**: Comprehensive issue tracker integration
+- **0.6.0**: Enterprise features
+- **0.7.0**: Advanced metrics and analytics
+- **0.8.0**: Performance optimizations
+- **0.9.0**: Pre-1.0 stabilization
+
+### Version 1.0.0 (Full Release)
+
+#### 1.0.0-rc.1 (Final Verification)
+- Complete feature set verification
+- Performance benchmarking
+- Security auditing
+- Documentation review
+- Final user testing
+
+#### 1.0.0 (Stable Full Release)
+- Complete feature set as defined in the roadmap
+- Stable API with backward compatibility guarantees
+- Comprehensive documentation
+- Production-ready for all supported deployment models
+- Full test coverage

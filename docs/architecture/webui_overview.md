@@ -867,7 +867,7 @@ Running the WebUI locally is the simplest deployment option and is ideal for dev
 
 #### Requirements
 
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Poetry (for dependency management)
 - DevSynth repository
 
@@ -931,7 +931,7 @@ Containerizing the WebUI provides a consistent environment and simplifies deploy
 #### Dockerfile
 
 ```dockerfile
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -1061,7 +1061,7 @@ Deploying the WebUI to cloud platforms provides scalability, reliability, and ac
 3. Create an Elastic Beanstalk application and environment:
 
    ```bash
-   eb init -p python-3.11 devsynth-webui
+   eb init -p python-3.12 devsynth-webui
    eb create devsynth-webui-env
    ```
 

@@ -34,7 +34,7 @@ The most reliable way to install FAISS on macOS is through Conda:
 
 # Create a new conda environment
 
-conda create -n devsynth-env python=3.11
+conda create -n devsynth-env python=3.12
 conda activate devsynth-env
 
 # Install faiss-cpu from conda-forge

@@ -22,7 +22,7 @@ This guide provides step-by-step instructions for installing DevSynth in various
 
 ## Prerequisites
 
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Poetry (recommended for development)
 
 
