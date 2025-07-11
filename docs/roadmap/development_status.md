@@ -22,6 +22,14 @@ version: 0.1.0
 
 This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases.
 
+## Provider Completion Summary
+
+The provider subsystem now supports both Anthropic's API and a deterministic
+offline provider. The Anthropic provider integrates with the existing provider
+abstraction and allows streaming completions. The offline provider enables
+repeatable text and embedding generation when `offline_mode` is enabled,
+ensuring CLI and WebUI features work without network access.
+
 ## Phase 1: Foundation Stabilization
 
 This phase focuses on stabilizing the foundation of the DevSynth project by addressing critical issues, completing core features, and optimizing dependencies and security. The implementation follows a multi-disciplined best-practices approach with dialectical reasoning.
@@ -243,7 +251,7 @@ This work is planned for after the completion of Month 2.
 - Basic CLI functionality implemented
 - Interactive `init` wizard and command renames (`refactor`, `inspect`, `run-pipeline`, `retrace`) added with unified config loader and early WebUI bridge
 - Memory system with ChromaDB integration
-- Provider system with multiple backend support
+- Provider system with multiple backend support, including Anthropic and offline providers
 
 
 ### Current Status
