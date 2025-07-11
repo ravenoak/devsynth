@@ -38,12 +38,12 @@ The roadmap is organized into progressive phases that map to semantic version
 milestones. Each phase introduces key features and notes any new dependencies.
 
 | Version / Phase | Major Features | Key Dependencies |
-|-----------------|----------------|-----------------|
-| **Pre-0.1 – Current Pre-release** | CLI scaffolding, offline provider, baseline memory (TinyDB/Kuzu), early WSDE single-agent flows | Python 3.12+, TinyDB/Kuzu extras |
-| **0.1 – Foundation Stabilization** | Offline provider for deterministic generation, baseline memory system (TinyDB/Kuzu), initial WSDE team operations | Python 3.12+, Kuzu/TinyDB extras |
-| **0.2 – Repository Analysis & Memory Enhancements** | Code inventory tooling, AST-based models, **ChromaDB** backend, property‑based tests | ChromaDB, Hypothesis |
-| **0.3 – Advanced Collaboration** | Enhanced WSDE collaboration with dynamic team formation and consensus workflows | Additional LLM providers, distributed memory |
-| **0.4 – Production Readiness** | Performance tuning, security hardening, monitoring/observability, enterprise integrations | Container & deployment tooling |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| **Pre-0.1 – Current Implementation** | CLI interface and orchestration workflow, provider system (OpenAI & LM Studio) with **prototype offline provider**, baseline memory (TinyDB with ChromaDB adapter), EDRR pipeline, early WSDE single‑agent flows, code/test/doc generation, Docker-based setup, basic security & config management | Python 3.12+, TinyDB, ChromaDB, Docker |
+| **0.1 – Foundation Stabilization** | Stabilize offline mode and provider system, finalize baseline memory (Kuzu/TinyDB/ChromaDB), initial WSDE team coordination, refine CLI flows, enable baseline metrics and logging | Python 3.12+, Kuzu/TinyDB, ChromaDB |
+| **0.2 – Repository Analysis & Memory Enhancements** | Repository inventory tooling, advanced AST models, knowledge graph extensions, property‑based tests, Anthropic provider support, mature offline fallback | ChromaDB, Hypothesis, Anthropic API |
+| **0.3 – Collaboration & Web UI Integration** | Dynamic WSDE team formation with consensus workflows, Web UI bridging via UXBridge, metrics dashboard | Distributed memory, Streamlit |
+| **0.4 – Production Readiness** | Performance optimization, security hardening, deployment automation, enterprise integrations and monitoring | Container & deployment tooling |
 
 
 ## Implementation Plan for Phase 1: Foundation Stabilization
