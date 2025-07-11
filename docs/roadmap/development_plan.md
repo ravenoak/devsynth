@@ -32,6 +32,20 @@ range are unstable and subject to change.
 
 This document presents a comprehensive plan for continuing the development of DevSynth using a multi-disciplined best-practices approach with dialectical reasoning. The plan synthesizes insights from software engineering, artificial intelligence, knowledge management, cognitive science, and collaborative systems to create a cohesive strategy that balances theoretical rigor with practical execution.
 
+## Roadmap Overview
+
+The roadmap is organized into progressive phases that map to semantic version
+milestones. Each phase introduces key features and notes any new dependencies.
+
+| Version / Phase | Major Features | Key Dependencies |
+|-----------------|----------------|-----------------|
+| **Pre-0.1 – Current Pre-release** | CLI scaffolding, offline provider, baseline memory (TinyDB/Kuzu), early WSDE single-agent flows | Python 3.12+, TinyDB/Kuzu extras |
+| **0.1 – Foundation Stabilization** | Offline provider for deterministic generation, baseline memory system (TinyDB/Kuzu), initial WSDE team operations | Python 3.12+, Kuzu/TinyDB extras |
+| **0.2 – Repository Analysis & Memory Enhancements** | Code inventory tooling, AST-based models, **ChromaDB** backend, property‑based tests | ChromaDB, Hypothesis |
+| **0.3 – Advanced Collaboration** | Enhanced WSDE collaboration with dynamic team formation and consensus workflows | Additional LLM providers, distributed memory |
+| **0.4 – Production Readiness** | Performance tuning, security hardening, monitoring/observability, enterprise integrations | Container & deployment tooling |
+
+
 ## Implementation Plan for Phase 1: Foundation Stabilization
 
 ### Strategic Framework

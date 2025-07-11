@@ -64,6 +64,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Implementation Status Matrix](docs/implementation/feature_status_matrix.md)
 - [Requirements Traceability Matrix](docs/requirements_traceability.md)
 - [SDLC Policies](docs/policies/index.md)
+- [Roadmap Overview](docs/roadmap/development_plan.md#roadmap-overview)
 
 Installation instructions are covered in detail in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
 
