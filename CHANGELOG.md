@@ -35,6 +35,7 @@ represent pre-release milestones leading up to the first stable release.
 - Consolidated DevSynth analysis documents
 - Updated cross-references in documentation
 - Renamed CLI commands: `adaptive`→`refactor`, `analyze`→`inspect`, `run`→`run-pipeline`, `replay`→`retrace`
+- Synchronized feature status reports with latest implementation
 
 ### Fixed
 - Improved error handling in the EDRR coordinator

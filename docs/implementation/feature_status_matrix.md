@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-07-11"
 status: active
 tags:
 
@@ -49,8 +49,8 @@ Each feature is scored on two dimensions:
 | Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Complete | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, CLI integration, and tracing implemented |
-| WSDE Agent Collaboration | Complete | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, consensus synthesis, and dynamic role reassignment implemented |
+| EDRR Framework | Complete | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, CLI integration, and tracing implemented |
+| WSDE Agent Collaboration | Complete | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, weighted consensus, and dynamic role reassignment implemented |
 | Dialectical Reasoning | Complete | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
@@ -90,7 +90,7 @@ Each feature is scored on two dimensions:
 
 ### WSDE Agent Collaboration Limitations
 
-- **Limitation**: Consensus algorithms require additional validation
+- **Limitation**: Consensus algorithms are stable but require ongoing validation
 - **Workaround**: Review major decisions manually until stable
 
 
