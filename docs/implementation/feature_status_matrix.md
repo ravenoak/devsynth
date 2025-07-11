@@ -76,7 +76,7 @@ Each feature is scored on two dimensions:
 | **Planned/Unimplemented Features** |
 | Core Values Subsystem | Complete | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods added for value management and report validation |
 | Guided Setup Wizard | Partial | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Referenced in CLI UI Improvement Plan, not implemented |
-| Offline Fallback Mode | Partial | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Offline mode remains conceptual with partial support only |
+| Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Unit tests validate provider; CLI selects it with the `offline_mode` flag |
 | Prompt Auto-Tuning | Partial | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Planned in documentation, no modules exist |
 | Extended WebUI Pages | Partial | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages like `EDRR-cycle` and `align` not implemented |
 
