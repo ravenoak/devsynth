@@ -122,6 +122,15 @@ pip install 'devsynth[retrieval,memory,llm]'
 
 These packages enable the Kuzu, FAISS, and LMDB memory stores along with optional LLM provider helpers. ChromaDB can be enabled later, but only the embedded backend is currently supported.
 
+### Offline Mode
+
+Set `offline_mode: true` in your project configuration to run DevSynth without
+network access. When enabled the CLI automatically uses the built-in
+OfflineProvider, which generates deterministic text and embeddings or loads a
+local model defined by `offline_provider.model_path`. See
+[Offline Provider details](docs/technical_reference/llm_integration.md#offline-provider)
+for more information.
+
 ## Minimal Project Example
 
 Follow these steps to try DevSynth on a small project:
