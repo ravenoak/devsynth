@@ -19,13 +19,14 @@ This document describes the LLM integration in DevSynth, focusing on the LM Stud
 
 DevSynth supports multiple LLM providers through a flexible adapter pattern.
 
-**Implementation Status:** LM Studio and OpenAI providers are fully implemented. The Anthropic provider remains a stub.
+**Implementation Status:** OpenAI, Anthropic, LM Studio and Offline providers are implemented. When `offline_mode` is enabled the Offline provider is automatically selected.
 
-The current implementation includes:
+The current implementation includes the following providers and configuration keys:
 
-- OpenAI provider (implemented)
-- Anthropic provider (stub)
-- LM Studio provider (fully implemented)
+- **OpenAI provider** – requires `OPENAI_API_KEY`; accepts `model`, `api_base`, `temperature` and `max_tokens`. Requires internet access.
+- **Anthropic provider** – requires `ANTHROPIC_API_KEY` (or `api_key` in configuration) with optional `model`, `api_base`, `temperature`, `max_tokens` and `timeout`.
+- **LM Studio provider** – configured via `api_base`, `model`, `max_tokens`, `temperature` and `auto_select_model`. A local LM Studio server must be running.
+- **Offline provider** – uses `offline_provider.model_path` to load a local model. If unset it falls back to deterministic text generation for testing.
 
 
 The LLM integration also includes token tracking and optimization mechanisms to efficiently manage context windows and prevent token limit errors.
@@ -163,7 +164,6 @@ The LM Studio provider includes error handling for API calls, with clear error m
 
 ## Current Limitations
 
-Only the LM Studio provider is production ready. The OpenAI and Anthropic
-providers are stubs and may not support all features. Integration with other
-providers and streaming responses remains experimental. Token counting may miss
-edge cases with uncommon tokenizers.
+The core providers are functional, but streaming responses and automatic
+provider selection are still experimental. Token counting may miss edge cases
+with uncommon tokenizers.
