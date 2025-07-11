@@ -152,7 +152,7 @@ version: "1.0"
 structure: "single_package"
 language: "python"
 goals: "Create a comprehensive web application with advanced features"
-constraints: "Must be compatible with Python 3.11+"
+constraints: "Must be compatible with Python 3.12+"
 priority: "Code quality and test coverage"
 
 directories:

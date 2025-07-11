@@ -17,7 +17,7 @@ This guide walks through a small calculator example included in the `examples/` 
 
 ## Environment Requirements
 
-Ensure you are running **Python 3.11 or higher**. Poetry is recommended for dependency management.
+Ensure you are running **Python 3.12 or higher**. Poetry is recommended for dependency management.
 
 ## Location
 

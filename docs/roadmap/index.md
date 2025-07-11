@@ -24,6 +24,7 @@ This section outlines the future plans and development trajectory for the DevSyn
 - **[Development Plan](development_plan.md)**: The overall development plan for the DevSynth project.
 - **[Development Status](development_status.md)**: The current status of development efforts.
 - **[Actionable Roadmap](actionable_roadmap.md)**: Specific, actionable items on the development roadmap.
+- **[Pre-1.0 Release Plan](pre_1.0_release_plan.md)**: Milestones required for the first public release.
 - **[Post-MVP Roadmap](../specifications/post_mvp_roadmap.md)**: Details the features and enhancements planned after the Minimum Viable Product stage.
 
 ## Documentation and Testing Plans

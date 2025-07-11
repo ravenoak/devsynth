@@ -42,7 +42,7 @@ ReqID: N/A"""
         with tempfile.NamedTemporaryFile(suffix='.ini', delete=False
             ) as config_file:
             config_file.write(
-                b'\n[mypy]\npython_version = 3.11\nwarn_return_any = true\nwarn_unused_configs = true\ndisallow_untyped_defs = true\ndisallow_incomplete_defs = true\ncheck_untyped_defs = true\ndisallow_untyped_decorators = true\nno_implicit_optional = true\nstrict_optional = true\nwarn_redundant_casts = true\nwarn_unused_ignores = true\nwarn_no_return = true\nwarn_unreachable = true\n'
+                b'\n[mypy]\npython_version = 3.12\nwarn_return_any = true\nwarn_unused_configs = true\ndisallow_untyped_defs = true\ndisallow_incomplete_defs = true\ncheck_untyped_defs = true\ndisallow_untyped_decorators = true\nno_implicit_optional = true\nstrict_optional = true\nwarn_redundant_casts = true\nwarn_unused_ignores = true\nwarn_no_return = true\nwarn_unreachable = true\n'
                 )
             config_file_path = config_file.name
         result = subprocess.run(['mypy', '--config-file', config_file_path,

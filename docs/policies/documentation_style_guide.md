@@ -265,7 +265,7 @@ This guide explains how to use Feature X in DevSynth.
 Before using Feature X, ensure you have:
 
 - DevSynth version 1.2.0 or higher
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Required dependencies installed
 
 

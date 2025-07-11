@@ -69,7 +69,7 @@ Installation instructions are covered in detail in the [Installation Guide](docs
 
 ### Environment Requirements
 
-DevSynth requires **Python 3.11 or higher**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
+DevSynth requires **Python 3.12 or higher**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
 
 The initial workspace setup runs [`scripts/codex_setup.sh`](scripts/codex_setup.sh) with network access enabled. If the script fails, a file named `CODEX_ENVIRONMENT_SETUP_FAILED` will appear in the repository root. After provisioning, network access is disabled. See [AGENTS.md#environment-setup](AGENTS.md#environment-setup) for instructions on fixing and rerunning the setup offline.
 

@@ -243,7 +243,7 @@ The documentation ecosystem is remarkably comprehensive with 83+ markdown files 
 
 **Primary Technologies:**
 
-- **Python 3.11-3.12**: Appropriate for AI/ML workloads with modern language features
+- **Python 3.12**: Appropriate for AI/ML workloads with modern language features
 - **LangGraph**: Modern choice for agent orchestration and workflow management
 - **Pydantic**: Excellent for data validation and serialization
 - **Typer**: Modern, type-safe CLI framework

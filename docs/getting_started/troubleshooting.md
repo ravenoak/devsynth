@@ -18,7 +18,7 @@ This guide provides solutions to common issues you might encounter when using De
 
 ## Environment Requirements
 
-Ensure your environment is running **Python 3.11 or higher**. Managing dependencies with Poetry can help avoid version conflicts.
+Ensure your environment is running **Python 3.12 or higher**. Managing dependencies with Poetry can help avoid version conflicts.
 
 ## Table of Contents
 
@@ -37,7 +37,7 @@ Ensure your environment is running **Python 3.11 or higher**. Managing dependenc
 **Issue**: Installation fails with Python version errors.
 
 **Solution**: 
-- Ensure you have Python 3.11 or higher installed
+- Ensure you have Python 3.12 or higher installed
 - Check your Python version with `python --version`
 - Consider using a tool like pyenv to manage multiple Python versions
 
@@ -76,12 +76,12 @@ Ensure your environment is running **Python 3.11 or higher**. Managing dependenc
 ### Running `devsynth doctor`
 
 Use this command to check your environment and configuration files. It warns
-about Python versions below 3.11 and any missing API keys.
+about Python versions below 3.12 and any missing API keys.
 
 ```bash
 $ devsynth doctor
 No project configuration found. Run 'devsynth init' to create it.
-Warning: Python 3.11 or higher is required. Current version: 3.10.0
+Warning: Python 3.12 or higher is required. Current version: 3.10.0
 Missing environment variables: OPENAI_API_KEY, ANTHROPIC_API_KEY
 Configuration issues detected. Run 'devsynth init' to generate defaults.
 

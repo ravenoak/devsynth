@@ -36,7 +36,7 @@ DevSynth aims to create an autonomous software development platform that can:
 
 ### Key Technologies & Dependencies
 
-- **Python 3.11-3.12** (primary language)
+- **Python 3.12** (primary language)
 - **LangGraph** (agent orchestration)
 - **ChromaDB** (vector database)
 - **Multiple memory backends** (TinyDB, DuckDB, LMDB, FAISS, RDFLib)
@@ -273,7 +273,7 @@ The project provides comprehensive templates for:
 
 ### Core Technologies
 
-- **Language**: Python 3.11+ (appropriate for AI/ML workloads)
+- **Language**: Python 3.12+ (appropriate for AI/ML workloads)
 - **Architecture**: Hexagonal/Clean Architecture (excellent for maintainability)
 - **Agent Framework**: LangGraph (modern choice for agent orchestration)
 - **Memory**: Multi-backend approach (ChromaDB, TinyDB, DuckDB, FAISS, RDFLib)

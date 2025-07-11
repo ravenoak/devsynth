@@ -40,7 +40,7 @@ ReqID: N/A"""
         output = ''.join(str(call.args[0]) for call in mock_print.
             call_args_list)
         assert 'No project configuration found' in output
-        assert 'Python 3.11 or higher' in output
+        assert 'Python 3.12 or higher' in output
         assert 'Missing environment variables' in output
 
 

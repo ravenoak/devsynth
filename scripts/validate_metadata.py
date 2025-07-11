@@ -37,7 +37,7 @@ def parse_date(date_str: str) -> bool:
     except ValueError:
         try:
             # Attempt to parse as ISO 8601. datetime.fromisoformat is quite flexible.
-            datetime.fromisoformat(date_str.replace("Z", "+00:00")) # Python < 3.11 needs Z replaced
+            datetime.fromisoformat(date_str.replace("Z", "+00:00")) # Python < 3.12 needs Z replaced
             return True
         except ValueError:
             return False

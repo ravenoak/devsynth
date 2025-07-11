@@ -358,7 +358,7 @@ class MemoryManager:
 **Core Dependencies:**
 
 ```toml
-python = "<3.13,>=3.11"
+python = "<3.13,>=3.12"
 typer = "^0.15.4"           # CLI framework
 pydantic = "^2.5.0"         # Data validation
 langgraph = "^0.4.5"        # Agent orchestration
@@ -381,7 +381,7 @@ mypy = "^1.15.0"           # Type checking
 
 - **Version Pinning:** Appropriate use of semantic versioning
 - **Security:** Regular dependency updates needed
-- **Compatibility:** Good Python version support (3.11-3.12)
+- **Compatibility:** Good Python version support (3.12)
 
 
 **Assessment:** ✅ **EXCELLENT** - Well-managed dependencies with appropriate constraints.

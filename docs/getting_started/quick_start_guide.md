@@ -19,7 +19,7 @@ This guide provides a step-by-step tutorial to help you get started with DevSynt
 
 Before you begin, ensure you have the following installed:
 
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Poetry (for dependency management)
 
 ## Installation
@@ -378,7 +378,7 @@ Now that you've created your first DevSynth project, you can:
 
 If you encounter any issues:
 
-1. Ensure you have the correct Python version (3.11+)
+1. Ensure you have the correct Python version (3.12+)
 2. Verify that Poetry is installed correctly
 3. Check that all dependencies are installed
 4. Review the error messages for specific issues
