@@ -32,6 +32,14 @@ This roadmap transforms the comprehensive analysis findings into a practical, ph
 
 ---
 
+## Provider Completion Summary
+
+The Anthropic API provider and a deterministic offline provider are now fully
+implemented. The Anthropic integration supports streaming completions and API
+configuration, while the offline provider enables repeatable text and embeddings
+when `offline_mode` is enabled. This ensures CLI and WebUI workflows operate
+without network access.
+
 ## Phase 1: Foundation Stabilization (Q1 2025)
 
 **Objective:** Eliminate critical barriers to adoption and establish reliable foundation for development and testing.
@@ -230,6 +238,7 @@ This roadmap transforms the comprehensive analysis findings into a practical, ph
   - Create abstraction layers for LLM providers
   - Add memory store provider abstraction
   - Implement graceful degradation for missing providers
+  - Anthropic and offline providers integrated and tested
 
 
 **Deliverables:**
