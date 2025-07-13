@@ -23,7 +23,16 @@ represent pre-release milestones leading up to the first stable release.
 
 ## [Unreleased]
 
+Changes below will be included in the upcoming **0.1.0** release.
+
 ### Added
+- Modular, hexagonal architecture
+- Unified memory system with multiple backends
+- Agent system powered by LangGraph
+- Advanced code analysis using NetworkX
+- Provider abstraction for LLM services
+- Comprehensive SDLC policy corpus
+- Automated documentation and testing
 - Recursive EDRR framework implementation
 - Documentation cleansing and organization
 - Behavior-driven tests for the EDRR coordinator
@@ -41,13 +50,5 @@ represent pre-release milestones leading up to the first stable release.
 - Improved error handling in the EDRR coordinator
 
 ## [0.1.0] - 2025-05-20
-
-### Added
-- Modular, hexagonal architecture
-- Unified memory system with multiple backends
-- Agent system powered by LangGraph
-- Advanced code analysis using NetworkX
-- Provider abstraction for LLM services
-- Comprehensive SDLC policy corpus
-- Automated documentation and testing
+Released concurrently with this changelog.
 

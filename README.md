@@ -20,7 +20,7 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 
 **Pre-release notice:** DevSynth has not yet reached an official release. All
 current versions are in the `0.1.x` range and should be considered
-experimental.
+experimental. **No version has been officially released yet.**
 
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
