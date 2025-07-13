@@ -14,6 +14,7 @@ version: 0.1.0
 
 **Note:** DevSynth is still in pre-release. Current versions are in the `0.1.x`
 series while this document outlines the path toward an eventual 1.0 release.
+**No version has been officially released yet.**
 
 We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and completeness.  Each phase defines targeted milestones and implementation-ready tasks, emphasizing BDD/TDD practices.  We draw on the current codebase and docs to identify missing features and gaps.
 
@@ -145,7 +146,7 @@ workflows operate without network access.
 
 ## Roadmap from 0.1.0 to 1.0.0
 
-### Version 0.1.0 (Initial Release)
+### Version 0.1.0 (Upcoming Initial Release)
 
 #### 0.1.0-alpha.1 (Foundation)
 - Core architecture stabilization
@@ -185,7 +186,7 @@ workflows operate without network access.
 - Comprehensive testing
 - Release preparation
 
-#### 0.1.0 (Stable Release)
+#### 0.1.0 (Stable Release - Upcoming)
 - Production-ready initial release
 - Complete documentation
 - Verified installation process
