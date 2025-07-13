@@ -26,17 +26,17 @@ This section contains the official specifications for the DevSynth project, outl
 
 ## Implementation Plans
 
-- **[EDRR Framework Integration Plan](edrr_framework_integration_plan.md)**: Plan for integrating the EDRR framework into DevSynth.
+- **[EDRR Framework Integration Plan](../archived/edrr_framework_integration_plan.md)**: Plan for integrating the EDRR framework into DevSynth.
 - **[Recursive EDRR Pseudocode](recursive_edrr_pseudocode.md)**: Function signatures and recursion flow for nested cycles.
 - **[Delimiting Recursion Algorithms](delimiting_recursion_algorithms.md)**: Heuristics for ending recursive cycles.
-- **[Post-MVP Documentation Plan](post_mvp_documentation_plan.md)**: Comprehensive plan for DevSynth's post-MVP documentation structure and organization.
+- **[Documentation Plan](documentation_plan.md)**: Comprehensive plan for DevSynth's documentation structure and organization.
 - **[Testing Infrastructure](testing_infrastructure.md)**: Specification for DevSynth's testing infrastructure.
 
 ## Historical and Planning Documents
 
 - **[DevSynth Specification](devsynth_specification.md)**: The original high-level specification for DevSynth (superseded by MVP Updated version).
 - **[DevSynth Specification MVP](devsynth_specification_mvp.md)**: The initial MVP specification for DevSynth (superseded by MVP Updated version).
-- **[Post-MVP Roadmap](post_mvp_roadmap.md)**: Roadmap for development after the MVP.
+- **[Post-MVP Roadmap](../roadmap/post_mvp_roadmap.md)**: Roadmap for development after the MVP.
 - **[Executive Summary](executive_summary.md)**: Executive summary of the DevSynth project.
 - **[Specification Evaluation](specification_evaluation.md)**: Evaluation of the DevSynth specifications.
 - **[EDRR Framework Integration Summary](edrr_framework_integration_summary.md)**: Summary of the EDRR framework integration.
