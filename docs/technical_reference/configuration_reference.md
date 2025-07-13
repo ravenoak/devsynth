@@ -154,7 +154,7 @@ DevSynth uses the following environment variables for configuration:
 | `DEVSYNTH_PROVIDER_MAX_DELAY` | Maximum delay between retries in seconds | 60.0 |
 | `DEVSYNTH_PROVIDER_JITTER` | Add randomness to retry delays | true |
 | `DEVSYNTH_PROVIDER_FALLBACK_ENABLED` | Enable fallback strategy | true |
-| `DEVSYNTH_PROVIDER_FALLBACK_ORDER` | Provider fallback order (comma-separated) | openai,lm_studio |
+| `DEVSYNTH_PROVIDER_FALLBACK_ORDER` | Provider fallback order (comma-separated) | openai,lmstudio |
 | `DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED` | Enable circuit breaker pattern | true |
 | `DEVSYNTH_PROVIDER_FAILURE_THRESHOLD` | Number of failures before opening circuit | 5 |
 | `DEVSYNTH_PROVIDER_RECOVERY_TIMEOUT` | Time in seconds before attempting recovery | 60.0 |
@@ -171,7 +171,7 @@ The `provider` section configures the Provider used by DevSynth.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
-| `name` | Provider name | openai | openai, lm_studio, anthropic, abacus |
+| `name` | Provider name | openai | openai, lmstudio, anthropic, abacus |
 | `model` | Model to use | gpt-4 | Any model supported by the provider |
 | `temperature` | Randomness of responses | 0.7 | 0.0-1.0 |
 | `max_tokens` | Maximum tokens in response | 4000 | 1-32000 (provider-dependent) |
@@ -199,7 +199,7 @@ The `provider.fallback` section configures fallback strategies for Provider API 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
 | `enabled` | Enable fallback strategy | true | true, false |
-| `order` | Provider fallback order | ["openai", "lm_studio"] | Array of provider names |
+| `order` | Provider fallback order | ["openai", "lmstudio"] | Array of provider names |
 
 #### Circuit Breaker Settings
 

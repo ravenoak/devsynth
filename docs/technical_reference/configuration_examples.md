@@ -225,7 +225,7 @@ Configure Provider integration with retry mechanisms, fallback strategies, and c
 
 # .devsynth/project.yaml
 
-provider_type: "openai"  # or "lm_studio"
+provider_type: "openai"  # or "lmstudio"
 openai_api_key: "your-api-key"  # or use environment variable
 lm_studio_endpoint: "http://127.0.0.1:1234"  # for local LM Studio
 ```
@@ -256,7 +256,7 @@ Configure fallback strategies for Provider API calls:
 
 provider_fallback_settings:
   enabled: true
-  order: ["openai", "lm_studio"]  # Try OpenAI first, then LM Studio
+  order: ["openai", "lmstudio"]  # Try OpenAI first, then LM Studio
 ```
 
 ## Circuit Breaker Configuration
@@ -294,7 +294,7 @@ provider_retry_settings:
 
 provider_fallback_settings:
   enabled: true
-  order: ["openai", "lm_studio"]
+  order: ["openai", "lmstudio"]
 
 provider_circuit_breaker_settings:
   enabled: true
@@ -326,7 +326,7 @@ export DEVSYNTH_PROVIDER_TYPE=openai
 export OPENAI_API_KEY=your-api-key
 export DEVSYNTH_PROVIDER_MAX_RETRIES=3
 export DEVSYNTH_PROVIDER_FALLBACK_ENABLED=true
-export DEVSYNTH_PROVIDER_FALLBACK_ORDER=openai,lm_studio
+export DEVSYNTH_PROVIDER_FALLBACK_ORDER=openai,lmstudio
 export DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED=true
 ```
 

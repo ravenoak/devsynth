@@ -324,7 +324,7 @@ DEVSYNTH_PROVIDER=openai poetry run pytest
 
 # Use LM Studio provider
 
-DEVSYNTH_PROVIDER=lm_studio poetry run pytest
+DEVSYNTH_PROVIDER=lmstudio poetry run pytest
 ```
 
 ## Enabling Resource-Dependent Tests

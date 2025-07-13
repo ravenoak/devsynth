@@ -34,7 +34,7 @@ Requirements:
   - OPENAI_API_KEY: Your OpenAI API key (only required when using OpenAI provider)
 
 Configuration Options (via environment variables):
-- DEVSYNTH_PROVIDER: The LLM provider to use (default: "openai", options: "openai", "lm_studio")
+- DEVSYNTH_PROVIDER: The LLM provider to use (default: "openai", options: "openai", "lmstudio")
 - DEVSYNTH_THINKING_MODE: Enable thinking mode for more detailed reasoning (default: "false", options: "true", "false")
 - DEVSYNTH_TEMPERATURE: Temperature for generation (default: 0.0 for standard mode, 0.7 for thinking mode)
 
@@ -64,8 +64,9 @@ from langchain.agents import AgentExecutor, create_react_agent
 
 class Provider(str, Enum):
     """Enum for supported LLM providers."""
+
     OPENAI = "openai"
-    LM_STUDIO = "lm_studio"
+    LMSTUDIO = "lmstudio"
 
 
 def get_provider_config() -> tuple[Provider, str, Optional[str], float, bool]:
@@ -82,7 +83,11 @@ def get_provider_config() -> tuple[Provider, str, Optional[str], float, bool]:
     """
     # Get provider from environment or default to OpenAI
     provider_str = os.getenv("DEVSYNTH_PROVIDER", Provider.OPENAI.value).lower()
-    provider = Provider.LM_STUDIO if provider_str == Provider.LM_STUDIO.value else Provider.OPENAI
+    provider = (
+        Provider.LMSTUDIO
+        if provider_str == Provider.LMSTUDIO.value
+        else Provider.OPENAI
+    )
 
     # Get model based on provider and thinking mode
     thinking_mode = os.getenv("DEVSYNTH_THINKING_MODE", "false").lower() == "true"
@@ -94,13 +99,15 @@ def get_provider_config() -> tuple[Provider, str, Optional[str], float, bool]:
         else:
             model = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
         base_url = None
-    else:  # LM_STUDIO
+    else:  # LMStudio
         # For LM Studio, use the configured model
         model = os.getenv("LM_STUDIO_MODEL", "llama3-70b-8192")
         base_url = os.getenv("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234/v1")
 
     # Get temperature (higher for thinking mode)
-    temperature = float(os.getenv("DEVSYNTH_TEMPERATURE", "0.7" if thinking_mode else "0"))
+    temperature = float(
+        os.getenv("DEVSYNTH_TEMPERATURE", "0.7" if thinking_mode else "0")
+    )
 
     return provider, model, base_url, temperature, thinking_mode
 
@@ -139,7 +146,9 @@ def run_search_agent(query: str) -> str:
 
     # OpenAI API key is only required when using OpenAI provider
     if provider == Provider.OPENAI and not openai_api_key:
-        raise EnvironmentError("Missing OPENAI_API_KEY. Required when using OpenAI provider.")
+        raise EnvironmentError(
+            "Missing OPENAI_API_KEY. Required when using OpenAI provider."
+        )
 
     # Initialize tools
     search_tool = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
@@ -149,7 +158,9 @@ def run_search_agent(query: str) -> str:
 
     class WebSearchTool(BaseTool):
         name: str = "WebSearch"
-        description: str = "Use this to search for real-time information about current events, tools, definitions, or any other factual information from the web. Use this for any questions requiring up-to-date information."
+        description: str = (
+            "Use this to search for real-time information about current events, tools, definitions, or any other factual information from the web. Use this for any questions requiring up-to-date information."
+        )
 
         def _run(self, query: str) -> str:
             return search_tool.run(query)
@@ -228,41 +239,30 @@ Begin your analysis now, using the WebSearch tool to gather information.
 
     # Initialize the LLM based on provider
     if provider == Provider.OPENAI:
-        llm = ChatOpenAI(
-            temperature=temperature,
-            api_key=openai_api_key,
-            model=model
-        )
-    else:  # LM_STUDIO
+        llm = ChatOpenAI(temperature=temperature, api_key=openai_api_key, model=model)
+    else:  # LMStudio
         llm = ChatOpenAI(
             temperature=temperature,
             api_key=None,  # LM Studio doesn't require an API key for local instances
             model=model,
-            base_url=base_url
+            base_url=base_url,
         )
 
     # Create the prompt template with all required variables
     prompt = PromptTemplate(
         template=dialectical_template,
-        input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
+        input_variables=["input", "agent_scratchpad", "tools", "tool_names"],
     )
 
     # Create a ReAct agent using LangGraph instead of LangChain's initialize_agent
     # This eliminates the deprecation warning and provides more flexibility
 
     # Create a ReAct agent using LangChain's create_react_agent
-    agent = create_react_agent(
-        llm=llm,
-        tools=tools,
-        prompt=prompt
-    )
+    agent = create_react_agent(llm=llm, tools=tools, prompt=prompt)
 
     # Create the agent executor with the agent and tools
     agent_executor = AgentExecutor.from_agent_and_tools(
-        agent=agent,
-        tools=tools,
-        max_iterations=10,
-        verbose=True
+        agent=agent, tools=tools, max_iterations=10, verbose=True
     )
 
     # Run the query through the agent
@@ -296,10 +296,12 @@ def main():
         print("===BEGIN_RESULTS===\n" + result.strip() + "\n===END_RESULTS===")
     except EnvironmentError as e:
         print(
-            f"===BEGIN_RESULTS===\nConfiguration Error: {str(e)}\nPlease ensure you have a .env file in the project root with SERPER_API_KEY and OPENAI_API_KEY variables set.\n===END_RESULTS===")
+            f"===BEGIN_RESULTS===\nConfiguration Error: {str(e)}\nPlease ensure you have a .env file in the project root with SERPER_API_KEY and OPENAI_API_KEY variables set.\n===END_RESULTS==="
+        )
     except Exception as e:
         print(
-            f"===BEGIN_RESULTS===\nError: {str(e)}\nPlease try again with a more specific query or check your internet connection.\n===END_RESULTS===")
+            f"===BEGIN_RESULTS===\nError: {str(e)}\nPlease try again with a more specific query or check your internet connection.\n===END_RESULTS==="
+        )
 
 
 if __name__ == "__main__":

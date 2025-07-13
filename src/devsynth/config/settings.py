@@ -257,12 +257,14 @@ class Settings(BaseSettings):
         default=True, json_schema_extra={"env": "DEVSYNTH_PROVIDER_FALLBACK_ENABLED"}
     )
     provider_fallback_order: str = Field(
-        default="openai,lm_studio", json_schema_extra={"env": "DEVSYNTH_PROVIDER_FALLBACK_ORDER"}
+        default="openai,lmstudio",
+        json_schema_extra={"env": "DEVSYNTH_PROVIDER_FALLBACK_ORDER"},
     )
 
     # LLM provider circuit breaker settings
     provider_circuit_breaker_enabled: bool = Field(
-        default=True, json_schema_extra={"env": "DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED"}
+        default=True,
+        json_schema_extra={"env": "DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED"},
     )
     provider_failure_threshold: int = Field(
         default=5, json_schema_extra={"env": "DEVSYNTH_PROVIDER_FAILURE_THRESHOLD"}
@@ -350,28 +352,45 @@ class Settings(BaseSettings):
     def validate_security_bool(cls, v, info):
         return _parse_bool_env(v, info.field_name)
 
-    @field_validator("kuzu_embedded", "provider_jitter", "provider_fallback_enabled", "provider_circuit_breaker_enabled", mode="before")
+    @field_validator(
+        "kuzu_embedded",
+        "provider_jitter",
+        "provider_fallback_enabled",
+        "provider_circuit_breaker_enabled",
+        mode="before",
+    )
     def validate_bool_settings(cls, v, info):
         return _parse_bool_env(v, info.field_name)
 
     @field_validator("provider_max_retries", "provider_failure_threshold", mode="after")
     def validate_positive_int(cls, v, info):
         if v is not None and v < 0:
-            logger.warning(f"{info.field_name} must be a non-negative integer, got {v}. Using default value.")
+            logger.warning(
+                f"{info.field_name} must be a non-negative integer, got {v}. Using default value."
+            )
             return getattr(cls, info.field_name).default
         return v
 
-    @field_validator("provider_initial_delay", "provider_max_delay", "provider_recovery_timeout", mode="after")
+    @field_validator(
+        "provider_initial_delay",
+        "provider_max_delay",
+        "provider_recovery_timeout",
+        mode="after",
+    )
     def validate_positive_float(cls, v, info):
         if v is not None and v <= 0:
-            logger.warning(f"{info.field_name} must be a positive number, got {v}. Using default value.")
+            logger.warning(
+                f"{info.field_name} must be a positive number, got {v}. Using default value."
+            )
             return getattr(cls, info.field_name).default
         return v
 
     @field_validator("provider_exponential_base", mode="after")
     def validate_exponential_base(cls, v, info):
         if v is not None and v <= 1.0:
-            logger.warning(f"{info.field_name} must be greater than 1.0, got {v}. Using default value.")
+            logger.warning(
+                f"{info.field_name} must be greater than 1.0, got {v}. Using default value."
+            )
             return getattr(cls, info.field_name).default
         return v
 
@@ -379,12 +398,16 @@ class Settings(BaseSettings):
     def validate_fallback_order(cls, v, info):
         if v is not None:
             providers = v.split(",")
-            valid_providers = ["openai", "lm_studio"]
+            valid_providers = ["openai", "lmstudio"]
             for provider in providers:
                 if provider.strip().lower() not in valid_providers:
-                    logger.warning(f"Invalid provider in fallback order: {provider}. Valid providers are: {valid_providers}")
+                    logger.warning(
+                        f"Invalid provider in fallback order: {provider}. Valid providers are: {valid_providers}"
+                    )
             if not providers:
-                logger.warning(f"{info.field_name} must not be empty. Using default value.")
+                logger.warning(
+                    f"{info.field_name} must not be empty. Using default value."
+                )
                 return getattr(cls, info.field_name).default
         return v
 
