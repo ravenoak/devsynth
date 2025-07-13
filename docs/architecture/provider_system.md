@@ -328,7 +328,7 @@ class FallbackProvider(BaseProvider):
         config = get_provider_config()
         self.fallback_config = config.get("fallback", {
             "enabled": True,
-            "order": ["openai", "lm_studio"],
+            "order": ["openai", "lmstudio"],
         })
         self.circuit_breaker_config = config.get("circuit_breaker", {
             "enabled": True,
@@ -363,14 +363,14 @@ class FallbackProvider(BaseProvider):
                             )
                     else:
                         logger.info("OpenAI API key missing; skipping OpenAI provider")
-                elif provider_type.lower() == ProviderType.LM_STUDIO.value:
+                elif provider_type.lower() == ProviderType.LMSTUDIO.value:
                     try:
                         providers.append(
-                            ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+                            ProviderFactory.create_provider(ProviderType.LMSTUDIO.value)
                         )
                         # Create circuit breaker for this provider
                         if self.circuit_breaker_config["enabled"]:
-                            self.circuit_breakers[ProviderType.LM_STUDIO.value] = CircuitBreaker(
+                            self.circuit_breakers[ProviderType.LMSTUDIO.value] = CircuitBreaker(
                                 failure_threshold=self.circuit_breaker_config["failure_threshold"],
                                 recovery_timeout=self.circuit_breaker_config["recovery_timeout"]
                             )
@@ -609,7 +609,7 @@ class ProviderFactory:
                     logger.warning(
                         "OpenAI API key not found; falling back to LM Studio if available"
                     )
-                    return ProviderFactory.create_provider(ProviderType.LM_STUDIO.value)
+                    return ProviderFactory.create_provider(ProviderType.LMSTUDIO.value)
                 logger.info("Using OpenAI provider")
                 return OpenAIProvider(
                     api_key=config["openai"]["api_key"],
@@ -617,11 +617,11 @@ class ProviderFactory:
                     base_url=config["openai"]["base_url"],
                     tls_config=tls_conf,
                 )
-            elif provider_type.lower() == ProviderType.LM_STUDIO.value:
+            elif provider_type.lower() == ProviderType.LMSTUDIO.value:
                 logger.info("Using LM Studio provider")
                 return LMStudioProvider(
-                    endpoint=config["lm_studio"]["endpoint"],
-                    model=config["lm_studio"]["model"],
+                    endpoint=config["lmstudio"]["endpoint"],
+                    model=config["lmstudio"]["model"],
                     tls_config=tls_conf,
                 )
             else:
@@ -724,7 +724,7 @@ async def acomplete(
 
 # Default Provider Selection
 
-DEVSYNTH_PROVIDER=openai  # Main provider (openai, lm_studio)
+DEVSYNTH_PROVIDER=openai  # Main provider (openai, lmstudio)
 
 # OpenAI Configuration
 
@@ -748,7 +748,7 @@ PROVIDER_JITTER=true
 # Fallback Configuration (Optional)
 
 PROVIDER_FALLBACK_ENABLED=true
-PROVIDER_FALLBACK_ORDER=openai,lm_studio
+PROVIDER_FALLBACK_ORDER=openai,lmstudio
 
 # Circuit Breaker Configuration (Optional)
 
@@ -823,7 +823,7 @@ provider_jitter = True
 # Fallback configuration
 
 provider_fallback_enabled = True
-provider_fallback_order = "openai,lm_studio"
+provider_fallback_order = "openai,lmstudio"
 
 # Circuit breaker configuration
 

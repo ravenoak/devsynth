@@ -37,7 +37,7 @@ DevSynth uses Large Language Models (LLMs) for various tasks. The following opti
 
 | Option | Description | Default Value | Possible Values |
 |--------|-------------|---------------|----------------|
-| `llm.provider` | The Provider to use | `openai` | `openai`, `lm_studio`, `anthropic`, `abacus`, `offline` |
+| `llm.provider` | The Provider to use | `openai` | `openai`, `lmstudio`, `anthropic`, `abacus`, `offline` |
 | `llm.model` | The LLM model to use | `gpt-3.5-turbo` | Any model supported by the selected provider |
 | `llm.temperature` | Creativity level (higher = more creative) | `0.7` | 0.0 - 1.0 |
 | `llm.max_tokens` | Maximum tokens for responses | `2000` | Any positive integer |
