@@ -16,7 +16,7 @@ RUN apt-get update && \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Environment configuration
-ENV POETRY_VERSION=1.8.2 \
+ENV POETRY_VERSION=2.1.3 \
     POETRY_HOME="/opt/poetry" \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     POETRY_NO_INTERACTION=1 \
@@ -37,11 +37,7 @@ WORKDIR /workspace
 
 # Install Python dependencies
 COPY pyproject.toml poetry.lock* ./
-RUN poetry install --with dev --all-extras --no-root
-
-# Copy source and tests
-COPY src ./src
-COPY tests ./tests
+RUN poetry install --all-groups --extras "dev chromadb retrieval dsp memory llm docs minimal" --no-root
 
 # Use non-root user for subsequent commands
 USER dev
@@ -50,4 +46,4 @@ USER dev
 ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Default command
-CMD ["poetry", "run", "pytest", "-q"]
+#CMD ["poetry", "run", "pytest", "-q"]

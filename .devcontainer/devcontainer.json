@@ -1,6 +1,7 @@
 {
   "name": "DevSynth",
   "dockerFile": "Dockerfile",
+  "context": "..",
   "remoteUser": "dev",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
@@ -24,7 +25,4 @@
   },
   "postCreateCommand": "poetry run pytest -q",
   "forwardPorts": [8000],
-  "mounts": [
-    "source=${localWorkspaceFolder}/.git,target=/workspace/.git,type=bind,consistency=delegated"
-  ]
 }
