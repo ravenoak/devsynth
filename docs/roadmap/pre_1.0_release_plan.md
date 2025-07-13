@@ -141,6 +141,7 @@ workflows operate without network access.
 * **Documentation:** Ensure **all** features and workflows are documented: update **User Guide**, **Quick Start**, **CLI Reference**, and **Architecture** docs.  In particular, document new features (WebUI, API endpoints, agent workflows).  Verify docs match code via traceability matrix.  Add missing images or diagrams to docs.
 * **UX Polish:** Refine command-line messaging (colors, formatting), fix any inconsistent naming.  E.g. confirm that all commands have help text.  Ensure CLI patterns are consistent.
 * **Alignment Metrics:** Integrate the `alignment_metrics` command and WebUI page.  Provide sample reports showing traceability between requirements, specs, tests, and code.  Include BDD scenarios for generating alignment metrics.
+* **Test Metrics:** Integrate the `test_metrics` command to analyze test-first development patterns and coverage.
 
 ## Roadmap from 0.1.0 to 1.0.0
 
@@ -166,12 +167,14 @@ workflows operate without network access.
 - Preliminary WebUI
 - DSPy-AI integration
 - Enhanced metrics and analytics
+- `alignment_metrics` command for requirements/specs/test coverage
 - Improved documentation
 
 #### 0.1.0-beta.2 (Feature Completion)
 - Complete WebUI
 - Full multi-language support for tier 1 languages
 - Comprehensive metrics dashboard
+- `test_metrics` command for validating test-first workflows
 - API stabilization
 - Integration testing
 
