@@ -44,6 +44,8 @@ pyyaml = "^6.0"
 pendulum = "^3.1.0"
 tqdm = "^4.67.1"
 mcp = {version = "^1.10.1", extras = ["cli"]}
+lmstudio = "^1.4.1"
+polars = "^1.31.0"
 
 [tool.poetry.group.dev.dependencies]
 responses = ">=0.25.7"
@@ -62,6 +64,8 @@ faker = "^37.4.0"
 ipywidgets = "^8.1.7"
 trio = "^0.30.0"
 pytest-asyncio = "^1.0.0"
+httpx = ">=0.28.1"
+uvicorn = "^0.35.0"
 
 [tool.poetry.group.docs]
 optional = true
@@ -161,7 +165,7 @@ warn_unreachable = true
 
 [tool.black]
 line-length = 88
-target-version = ["py311"]
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"

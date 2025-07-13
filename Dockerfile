@@ -81,7 +81,8 @@ CMD ["poetry", "run", "pytest", "-q"]
 FROM base AS production
 
 # Install only production dependencies
-RUN poetry install --without dev --extras "minimal memory" --no-root
+#RUN poetry install --without dev --extras "minimal memory" --no-root
+RUN poetry install --all-groups --extras "dev chromadb retrieval dsp memory llm docs minimal" --no-root
 
 # Copy only source code (no tests)
 COPY src ./src
