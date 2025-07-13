@@ -2,7 +2,7 @@
 author: DevSynth Team
 date: '2025-07-07'
 last_reviewed: "2025-07-10"
-status: draft
+status: published
 tags:
   - roadmap
   - architecture
@@ -18,13 +18,13 @@ This document maps the relationships between major DevSynth features. Understand
 
 ## Key Dependencies
 
-- **Provider System Architecture** &rarr; enables all concrete LLM providers.
+- **[Provider System Architecture](../architecture/provider_system.md)** &rarr; enables all concrete LLM providers.
   - Offline provider depends on the provider system for deterministic text and embeddings.
   - LM Studio provider builds on the provider system for local model access.
   - Anthropic provider integrates through the provider system for cloud-based completions.
-- **Memory System** &rarr; underpins the EDRR workflow and WSDE collaboration.
-- **EDRR Workflow** &rarr; orchestrates tasks and is required for WSDE multi‑agent coordination.
-- **UXBridge Interface** &rarr; supplies a common UI layer used by both the CLI and WebUI.
+- **[Memory System](../architecture/memory_system.md)** &rarr; underpins the [EDRR Workflow](../architecture/edrr_framework.md) and WSDE collaboration.
+- **[EDRR Workflow](../architecture/edrr_framework.md)** &rarr; orchestrates tasks and is required for [WSDE Collaboration](../architecture/agent_system.md).
+- **[UXBridge Interface](../architecture/uxbridge_architecture.md)** &rarr; supplies a common UI layer used by both the CLI and WebUI.
 
 ## Diagram
 
