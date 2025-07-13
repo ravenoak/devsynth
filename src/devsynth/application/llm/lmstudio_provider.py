@@ -5,8 +5,8 @@ This provider connects to a local LM Studio server running on localhost.
 """
 
 import os
-import json
-import requests
+from urllib.parse import urlparse
+import lmstudio
 from typing import Any, Dict, List, Optional, Tuple
 from ..utils.token_tracker import TokenTracker, TokenLimitExceededError
 from ...domain.interfaces.llm import LLMProvider
@@ -70,6 +70,9 @@ class LMStudioProvider(BaseLLMProvider):
         self.api_base = self.config.get("api_base")
         self.max_tokens = self.config.get("max_tokens")
         self.temperature = self.config.get("temperature")
+        parsed = urlparse(self.api_base)
+        self.api_host = parsed.netloc or parsed.path.split("/")[0]
+        lmstudio.sync_api.configure_default_client(self.api_host)
         self.max_retries = self.config.get("max_retries", 3)
         self.circuit_breaker = CircuitBreaker(
             failure_threshold=self.config.get("failure_threshold", 3),
@@ -119,22 +122,13 @@ class LMStudioProvider(BaseLLMProvider):
             LMStudioConnectionError: If there's an issue connecting to LM Studio
         """
         try:
-            url = f"{self.api_base}/models"
-            response = self._execute_with_resilience(
-                requests.get,
-                url,
-                headers={"Content-Type": "application/json"}
-            )
-
-            if response.status_code != 200:
-                error_msg = f"LM Studio API error: {response.status_code} - {response.text}"
-                logger.error(error_msg)
-                raise LMStudioConnectionError(error_msg)
-
-            response_data = response.json()
-            logger.info(f"Found {len(response_data['data'])} models from LM Studio")
-            return response_data["data"]
-        except requests.RequestException as e:
+            models = lmstudio.sync_api.list_downloaded_models("llm")
+            logger.info(f"Found {len(models)} models from LM Studio")
+            return [
+                {"id": m.model_key, "name": m.display_name}
+                for m in models
+            ]
+        except Exception as e:  # noqa: BLE001
             error_msg = f"Failed to connect to LM Studio: {str(e)}"
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
@@ -183,49 +177,28 @@ class LMStudioProvider(BaseLLMProvider):
         # Ensure the prompt doesn't exceed token limits
         self.token_tracker.ensure_token_limit(prompt, self.max_tokens)
 
-        # Prepare the API call
-        url = f"{self.api_base}/chat/completions"
-
-        # Merge default parameters with provided parameters
         params = {
             "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
+            "maxTokens": self.max_tokens,
         }
         if parameters:
             params.update(parameters)
 
-        # Prepare the request payload
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            **params
-        }
-
         try:
-            response = self._execute_with_resilience(
-                requests.post,
-                url,
-                headers={"Content-Type": "application/json"},
-                data=json.dumps(payload)
+            result = self._execute_with_resilience(
+                lmstudio.llm(self.model).complete,
+                prompt,
+                config=params,
             )
-
-            # Check for errors
-            if response.status_code != 200:
-                error_msg = f"LM Studio API error: {response.status_code} - {response.text}"
-                logger.error(error_msg)
-                raise LMStudioConnectionError(error_msg)
-
-            # Parse the response
-            response_data = response.json()
-            return response_data["choices"][0]["message"]["content"]
-        except requests.RequestException as e:
+            if hasattr(result, "content"):
+                return result.content
+            raise LMStudioModelError("Invalid response from LM Studio")
+        except LMStudioModelError:
+            raise
+        except Exception as e:  # noqa: BLE001
             error_msg = f"Failed to connect to LM Studio: {str(e)}"
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
-        except (KeyError, IndexError, ValueError) as e:
-            error_msg = f"Invalid response from LM Studio: {str(e)}"
-            logger.error(error_msg)
-            raise LMStudioModelError(error_msg)
 
     def generate_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> str:
         """Generate text from a prompt with conversation context using LM Studio.
@@ -252,49 +225,28 @@ class LMStudioProvider(BaseLLMProvider):
         if token_count > self.max_tokens:
             messages = self.token_tracker.prune_conversation(messages, self.max_tokens)
 
-        # Prepare the API call
-        url = f"{self.api_base}/chat/completions"
-
-        # Merge default parameters with provided parameters
         params = {
             "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
+            "maxTokens": self.max_tokens,
         }
         if parameters:
             params.update(parameters)
 
-        # Prepare the request payload
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            **params
-        }
-
         try:
-            response = self._execute_with_resilience(
-                requests.post,
-                url,
-                headers={"Content-Type": "application/json"},
-                data=json.dumps(payload)
+            result = self._execute_with_resilience(
+                lmstudio.llm(self.model).respond,
+                {"messages": messages},
+                config=params,
             )
-
-            # Check for errors
-            if response.status_code != 200:
-                error_msg = f"LM Studio API error: {response.status_code} - {response.text}"
-                logger.error(error_msg)
-                raise LMStudioConnectionError(error_msg)
-
-            # Parse the response
-            response_data = response.json()
-            return response_data["choices"][0]["message"]["content"]
-        except requests.RequestException as e:
+            if hasattr(result, "content"):
+                return result.content
+            raise LMStudioModelError("Invalid response from LM Studio")
+        except LMStudioModelError:
+            raise
+        except Exception as e:  # noqa: BLE001
             error_msg = f"Failed to connect to LM Studio: {str(e)}"
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
-        except (KeyError, IndexError, ValueError) as e:
-            error_msg = f"Invalid response from LM Studio: {str(e)}"
-            logger.error(error_msg)
-            raise LMStudioModelError(error_msg)
 
     def get_embedding(self, text: str) -> List[float]:
         """Get an embedding vector for the given text using LM Studio.
@@ -309,37 +261,15 @@ class LMStudioProvider(BaseLLMProvider):
             LMStudioConnectionError: If there's an issue connecting to LM Studio
             LMStudioModelError: If there's an issue with the model or response
         """
-        # Prepare the API call
-        url = f"{self.api_base}/embeddings"
-
-        # Prepare the request payload
-        payload = {
-            "model": self.model,
-            "input": text
-        }
-
         try:
-            response = self._execute_with_resilience(
-                requests.post,
-                url,
-                headers={"Content-Type": "application/json"},
-                data=json.dumps(payload)
+            result = self._execute_with_resilience(
+                lmstudio.embedding_model(self.model).embed,
+                text,
             )
-
-            # Check for errors
-            if response.status_code != 200:
-                error_msg = f"LM Studio API error: {response.status_code} - {response.text}"
-                logger.error(error_msg)
-                raise LMStudioConnectionError(error_msg)
-
-            # Parse the response
-            response_data = response.json()
-            return response_data["data"][0]["embedding"]
-        except requests.RequestException as e:
+            if isinstance(result, list) and result:
+                return result if isinstance(result[0], float) else result[0]
+            raise LMStudioModelError("Invalid embedding response")
+        except Exception as e:  # noqa: BLE001
             error_msg = f"Failed to connect to LM Studio: {str(e)}"
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
-        except (KeyError, IndexError, ValueError) as e:
-            error_msg = f"Invalid response from LM Studio: {str(e)}"
-            logger.error(error_msg)
-            raise LMStudioModelError(error_msg)

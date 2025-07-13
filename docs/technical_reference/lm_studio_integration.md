@@ -138,6 +138,10 @@ The LM Studio integration is implemented in the following files:
 - `src/devsynth/application/cli/commands.py`: CLI commands for configuring LLM providers
 - `tests/integration/test_lmstudio_provider.py`: Integration tests for the LM Studio provider
 
+The provider uses the official `lmstudio` Python SDK for all API interactions.  
+`lmstudio.sync_api` is configured with the API host from settings and then used
+to create chat completions and embeddings without relying on raw HTTP requests.
+
 The implementation includes the following features:
 
 - Auto-selection of models from LM Studio

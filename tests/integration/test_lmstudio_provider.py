@@ -1,8 +1,6 @@
 import os
-import json
 import pytest
 import tempfile
-import requests
 from unittest.mock import patch, MagicMock
 from devsynth.application.llm.lmstudio_provider import LMStudioProvider, LMStudioConnectionError, LMStudioModelError
 lmstudio_available = pytest.mark.requires_resource('lmstudio')
@@ -59,11 +57,8 @@ ReqID: N/A"""
         """Test listing available models when the API call fails.
 
 ReqID: N/A"""
-        with patch('requests.get') as mock_get:
-            mock_response = MagicMock()
-            mock_response.status_code = 500
-            mock_response.text = 'Internal server error'
-            mock_get.return_value = mock_response
+        with patch('devsynth.application.llm.lmstudio_provider.lmstudio.sync_api.list_downloaded_models') as mock_list:
+            mock_list.side_effect = Exception('Internal server error')
             provider = LMStudioProvider({'auto_select_model': False})
             with pytest.raises(LMStudioConnectionError):
                 provider.list_available_models()
@@ -87,8 +82,8 @@ ReqID: N/A"""
         with patch(
             'devsynth.application.llm.lmstudio_provider.get_llm_settings'
             ) as mock_settings, patch(
-            'devsynth.application.llm.lmstudio_provider.requests.post'
-            ) as mock_post, patch(
+            'devsynth.application.llm.lmstudio_provider.lmstudio.llm'
+            ) as mock_llm, patch(
             'devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models'
             ) as mock_list:
             mock_settings.return_value = {'api_base':
@@ -97,21 +92,14 @@ ReqID: N/A"""
                 False}
             mock_list.return_value = [{'id': 'test_model', 'name':
                 'Test Model'}]
-            mock_response = MagicMock()
-            mock_response.status_code = 200
-            mock_response.json.return_value = {'choices': [{'message': {
-                'content':
-                'This is a test response from the mocked LM Studio API'}}]}
-            mock_post.return_value = mock_response
+            mock_model = MagicMock()
+            mock_model.complete.return_value = MagicMock(content='This is a test response from the mocked LM Studio API')
+            mock_llm.return_value = mock_model
             provider = LMStudioProvider()
             response = provider.generate('Hello, how are you?')
             assert isinstance(response, str)
             assert response == 'This is a test response from the mocked LM Studio API'
-            mock_post.assert_called_once()
-            call_args = mock_post.call_args
-            assert call_args[0][0
-                ] == 'http://localhost:1234/v1/chat/completions'
-            assert 'Hello, how are you?' in call_args[1]['data']
+            mock_model.complete.assert_called_once()
 
     def test_generate_with_connection_error_succeeds(self):
         """Test generating text when LM Studio is not available.
@@ -121,6 +109,7 @@ ReqID: N/A"""
         with patch('devsynth.application.utils.token_tracker.TokenTracker.__init__') as mock_init, \
              patch('devsynth.application.utils.token_tracker.TokenTracker.count_tokens') as mock_count, \
              patch('devsynth.application.utils.token_tracker.TokenTracker.ensure_token_limit') as mock_ensure, \
+             patch('devsynth.application.llm.lmstudio_provider.lmstudio.llm') as mock_llm, \
              patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider._execute_with_resilience') as mock_execute:
 
             # Make the __init__ method do nothing
@@ -130,8 +119,9 @@ ReqID: N/A"""
             mock_count.return_value = 5
             mock_ensure.return_value = None
 
-            # Mock the _execute_with_resilience method to raise an exception
-            mock_execute.side_effect = requests.RequestException('Connection error')
+            # Mock the lmstudio client and _execute_with_resilience
+            mock_llm.return_value.complete = MagicMock()
+            mock_execute.side_effect = Exception('Connection error')
 
             provider = LMStudioProvider({'auto_select_model': False})
             with pytest.raises(LMStudioConnectionError):
@@ -145,6 +135,7 @@ ReqID: N/A"""
         with patch('devsynth.application.utils.token_tracker.TokenTracker.__init__') as mock_init, \
              patch('devsynth.application.utils.token_tracker.TokenTracker.count_tokens') as mock_count, \
              patch('devsynth.application.utils.token_tracker.TokenTracker.ensure_token_limit') as mock_ensure, \
+             patch('devsynth.application.llm.lmstudio_provider.lmstudio.llm') as mock_llm, \
              patch('devsynth.application.llm.lmstudio_provider.LMStudioProvider._execute_with_resilience') as mock_execute:
 
             # Make the __init__ method do nothing
@@ -154,11 +145,9 @@ ReqID: N/A"""
             mock_count.return_value = 5
             mock_ensure.return_value = None
 
-            # Mock the _execute_with_resilience method to return an invalid response
-            mock_response = MagicMock()
-            mock_response.status_code = 200
-            mock_response.json.return_value = {'invalid': 'response'}
-            mock_execute.return_value = mock_response
+            # Mock the lmstudio client and _execute_with_resilience
+            mock_llm.return_value.complete = MagicMock()
+            mock_execute.return_value = MagicMock(spec=[])
 
             provider = LMStudioProvider({'auto_select_model': False})
             with pytest.raises(LMStudioModelError):
@@ -172,8 +161,8 @@ ReqID: N/A"""
         with patch(
             'devsynth.application.llm.lmstudio_provider.get_llm_settings'
             ) as mock_settings, patch(
-            'devsynth.application.llm.lmstudio_provider.requests.post'
-            ) as mock_post, patch(
+            'devsynth.application.llm.lmstudio_provider.lmstudio.llm'
+            ) as mock_llm, patch(
             'devsynth.application.llm.lmstudio_provider.LMStudioProvider.list_available_models'
             ) as mock_list:
             mock_settings.return_value = {'api_base':
@@ -182,13 +171,9 @@ ReqID: N/A"""
                 False}
             mock_list.return_value = [{'id': 'test_model', 'name':
                 'Test Model'}]
-            mock_response = MagicMock()
-            mock_response.status_code = 200
-            mock_response.json.return_value = {'choices': [{'message': {
-                'content':
-                'This is a test response with context from the mocked LM Studio API'
-                }}]}
-            mock_post.return_value = mock_response
+            mock_model = MagicMock()
+            mock_model.respond.return_value = MagicMock(content='This is a test response with context from the mocked LM Studio API')
+            mock_llm.return_value = mock_model
             provider = LMStudioProvider()
             context = [{'role': 'system', 'content':
                 'You are a helpful assistant.'}, {'role': 'user', 'content':
@@ -198,14 +183,7 @@ ReqID: N/A"""
                 'Tell me more about yourself.', context)
             assert isinstance(response, str)
             assert response == 'This is a test response with context from the mocked LM Studio API'
-            mock_post.assert_called_once()
-            call_args = mock_post.call_args
-            assert call_args[0][0
-                ] == 'http://localhost:1234/v1/chat/completions'
-            data = json.loads(call_args[1]['data'])
-            assert len(data['messages']) == 4
-            assert data['messages'][-1]['content'
-                ] == 'Tell me more about yourself.'
+            mock_model.respond.assert_called_once()
 
 
 if __name__ == '__main__':
