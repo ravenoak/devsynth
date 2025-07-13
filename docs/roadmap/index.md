@@ -27,6 +27,7 @@ This section outlines the future plans and development trajectory for the DevSyn
 - **[Actionable Roadmap](actionable_roadmap.md)**: Specific, actionable items on the development roadmap.
 - **[Pre-1.0 Release Plan](pre_1.0_release_plan.md)**: Milestones required for the first public release.
 - **[Post-MVP Roadmap](post_mvp_roadmap.md)**: Details the features and enhancements planned after the Minimum Viable Product stage.
+- **[Feature Dependency Graph](feature_dependency_graph.md)**: Visual overview of dependencies between core features.
 
 ## Documentation and Testing Plans
 
