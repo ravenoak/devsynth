@@ -114,13 +114,13 @@ The provider system has several implementations:
    - Base class for LLM providers
    - Defines common functionality
 
-2. **OpenAIProvider** (`application/llm/providers.py`):
-   - Implementation for OpenAI's API
-   - Currently contains placeholder implementations
+2. **OpenAIProvider** (`application/llm/openai_provider.py`):
+   - Implementation for OpenAI's API with streaming support
+   - Covered by unit and integration tests
 
 3. **AnthropicProvider** (`application/llm/providers.py`):
-   - Implementation for Anthropic's API
-   - Currently contains placeholder implementations
+   - Implementation for Anthropic's API with streaming support
+   - Covered by unit and integration tests
 
 4. **LMStudioProvider** (`application/llm/lmstudio_provider.py`):
    - Implementation for LM Studio
@@ -171,7 +171,7 @@ The agent system has several implementations:
 
 ### 4.2 Areas for Improvement
 
-1. **Incomplete Implementations**: Several areas previously contained placeholder implementations. Recent updates replaced the EDRR result summarization helpers with real logic, but a few modules still require completion.
+1. **Incomplete Implementations**: Recent updates replaced the EDRR result summarization helpers with real logic, but a few modules still require completion.
 2. **Limited Test Coverage**: Some areas of the codebase have limited test coverage.
 3. **Inconsistent Error Handling**: Error handling is inconsistent across different components.
 4. **Limited Logging**: Logging is limited and inconsistent across different components.
