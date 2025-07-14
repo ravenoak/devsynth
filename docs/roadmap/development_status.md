@@ -20,7 +20,7 @@ version: 0.1.0
 **Note:** DevSynth is in a pre-release state. Current versions are numbered
 `0.1.x` and do not represent a stable release.
 
-This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases.
+This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases. Major milestones are tracked in the [Release Plan](release_plan.md).
 
 ## Provider Completion Summary
 

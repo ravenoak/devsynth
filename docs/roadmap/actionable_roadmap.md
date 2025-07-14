@@ -38,6 +38,7 @@ implemented. The Anthropic integration supports streaming completions and API
 configuration, while the offline provider enables repeatable text and embeddings
 when `offline_mode` is enabled. This ensures CLI and WebUI workflows operate
 without network access.
+Configuration examples are provided for optional vector stores such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**.
 
 ## Phase 1: Foundation Stabilization (Q1 2025)
 

@@ -20,5 +20,7 @@ Phase 1 focused on **Foundation Stabilization**. Key accomplishments include:
 - Validated the WSDE model with gap analysis and prepared integration plans.
 - Established a secure multi-stage Docker build and local development environment.
 - Implemented environment-specific configuration validation and deployment documentation.
+- Integrated the Anthropic provider with streaming completions.
+- Added a deterministic offline provider enabling repeatable text and embeddings.
 
 With these objectives achieved, the project established a solid baseline for subsequent phases.
