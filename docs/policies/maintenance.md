@@ -15,7 +15,7 @@ This policy defines best practices for ongoing support, updates, and knowledge c
 
 ## Key Practices
 
-- Maintain a maintenance plan in `docs/maintenance_plan.md` (release/versioning, update schedule, deprecated features).
+- Maintain a maintenance plan (release/versioning, update schedule, deprecated features).
 - Use issue tracking and triage conventions; assign/label issues to avoid duplicate work.
 - Require documentation updates with all code/feature changes.
 - Maintain a changelog (`CHANGELOG.md`) and follow semantic versioning.
@@ -25,7 +25,7 @@ This policy defines best practices for ongoing support, updates, and knowledge c
 
 ## Artifacts
 
-- Maintenance Plan: `docs/maintenance_plan.md`
+- Maintenance Plan
 - Changelog: `CHANGELOG.md`
 - Issue Templates: `.github/ISSUE_TEMPLATE/`
 - Dependency Files: `requirements.txt`, `pyproject.toml`
