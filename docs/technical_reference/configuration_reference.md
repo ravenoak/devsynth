@@ -25,7 +25,7 @@ This document provides a comprehensive reference for configuring DevSynth. It co
 - [Configuration Categories](#configuration-categories)
   - [Provider Configuration](#provider-configuration)
   - [Memory Configuration](#memory-configuration)
-  - [Project Configuration](#project-configuration)
+  - [.devsynth/project.yaml](#project-configuration)
   - [Logging Configuration](#logging-configuration)
   - [Agent Configuration](#agent-configuration)
   - [EDRR Configuration](#EDRR-configuration)
@@ -71,7 +71,7 @@ memory:
   persistence: true
   embedding_model: text-embedding-3-small
 
-# Project Configuration
+# `.devsynth/project.yaml`
 
 project:
   default_path: ~/projects
@@ -224,7 +224,7 @@ The `memory` section configures DevSynth's memory system.
 | `persistence` | Enable memory persistence | true | true, false |
 | `embedding_model` | Model for generating embeddings | text-embedding-3-small | Any embedding model name |
 
-### Project Configuration
+### `.devsynth/project.yaml`
 
 The `project` section configures project-related settings.
 

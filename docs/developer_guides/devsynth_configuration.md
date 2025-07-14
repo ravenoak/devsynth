@@ -20,7 +20,7 @@ This document provides a comprehensive overview of the DevSynth configuration an
 DevSynth uses a hierarchical configuration system with both global and project-level settings:
 
 1. **Global Configuration**: Stored in `~/.devsynth/config/global_config.yaml`
-2. **Project Configuration**: Stored in `.devsynth/project.yaml` for projects managed by DevSynth
+2. **`.devsynth/project.yaml`**: Configuration file for projects managed by DevSynth
 
 
 The configuration system follows a precedence order:
@@ -33,7 +33,7 @@ The configuration system follows a precedence order:
 
 Note: The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. If a project is not managed by DevSynth, it will not have a `.devsynth/` directory or a project configuration file.
 
-### Project Configuration File
+### `.devsynth/project.yaml` File
 
 The `.devsynth/project.yaml` file is the configuration file for projects managed by DevSynth. It describes the shape and attributes of the project in a minimal but functional, featureful, and human-friendly way. This file is created automatically when you run `devsynth init` in a directory, which also creates the `.devsynth/` directory.
 

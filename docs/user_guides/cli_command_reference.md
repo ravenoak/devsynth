@@ -630,7 +630,7 @@ devsynth inspect-config --output-file config_analysis.md
 
 ## validate-manifest
 
-Validate the Project Configuration.
+Validate `.devsynth/project.yaml`.
 
 **Usage:**
 
@@ -641,14 +641,14 @@ devsynth validate-manifest [OPTIONS]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--manifest-file TEXT` | Path to the manifest file (default: .devsynth/Project Configuration) |
+| `--manifest-file TEXT` | Path to the manifest file (default: `.devsynth/project.yaml`) |
 | `--fix` | Attempt to fix issues automatically (default: False) |
 
 **Examples:**
 
 ```bash
 
-# Validate the Project Configuration
+# Validate `.devsynth/project.yaml`
 
 devsynth validate-manifest
 

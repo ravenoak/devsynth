@@ -327,7 +327,7 @@ API keys use their standard environment variable names:
 | `OPENAI_API_KEY` | `openai_api_key` |
 | `SERPER_API_KEY` | `serper_api_key` |
 
-### Project Configuration
+### `.devsynth/project.yaml`
 
 | Key | Description | Default Value | Possible Values |
 |-----|-------------|---------------|----------------|

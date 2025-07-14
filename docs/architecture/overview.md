@@ -100,7 +100,7 @@ graph LR
 
 DevSynth maintains continuous alignment between code, tests, and documentation through:
 
-- **Project Configuration (`.devsynth/project.yaml`)**: A YAML file in the `.devsynth` directory, defined by `src/devsynth/schemas/project_schema.json`, that allows users to specify their project's structure, components, and layout (e.g., monorepo, multi-language). This configuration file is the primary input for the ingestion and adaptation process.
+- **`.devsynth/project.yaml`**: A YAML file in the `.devsynth` directory, defined by `src/devsynth/schemas/project_schema.json`, that allows users to specify their project's structure, components, and layout (e.g., monorepo, multi-language). This configuration file is the primary input for the ingestion and adaptation process.
 - **Requirements Traceability Matrix** ([requirements_traceability.md](../requirements_traceability.md)): Maps requirements to design, code, and tests for bidirectional traceability.
 - **Documentation Policies** ([documentation_policies.md](../policies/documentation_policies.md)): Guides ongoing documentation quality, consistency, and maintenance.
 - **SDLC Policy Corpus** ([policies/README.md](../policies/README.md)): Comprehensive SDLC, security, ethics, and testing policies for both human and agentic contributors.
