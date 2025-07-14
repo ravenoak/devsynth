@@ -16,7 +16,7 @@ _This index lists all documentation files, their status, and release phase. It i
 
 | File Path | Title | Status | Release Phase |
 |-----------|-------|--------|---------------|
-| docs/roadmap/pre_1.0_release_plan.md | DevSynth Pre-1.0 Release Plan | published | pre-release |
+| docs/roadmap/release_plan.md | DevSynth Release Plan | published | roadmap |
 | docs/roadmap/post_mvp_roadmap.md | DevSynth Post-MVP Development Roadmap | published | post-mvp |
 | docs/specifications/metrics_system.md | DevSynth Metrics and Analytics System | published | v1 |
 | docs/specifications/documentation_plan.md | DevSynth Documentation Plan | published | consolidation |
