@@ -30,7 +30,7 @@ An autonomous software entity powered by LLMs that performs specific tasks withi
 
 ### ChromaDB
 
-A vector database used in DevSynth's memory system for storing and retrieving embeddings. ChromaDB enables semantic search capabilities. Support is currently disabled.
+A vector database used in DevSynth's memory system for storing and retrieving embeddings. ChromaDB enables semantic search capabilities and is available with an embedded backend. Full external-server support is experimental and may require additional setup.
 
 ## D
 
