@@ -433,7 +433,7 @@ The EDRR framework is integrated with the DevSynth CLI through the `EDRR-cycle` 
 
 # Run from a manifest file
 
-devsynth EDRR-cycle --manifest Project Configuration
+devsynth EDRR-cycle --manifest .devsynth/project.yaml
 
 # Run from a prompt
 

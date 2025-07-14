@@ -85,9 +85,9 @@ DevSynth provides built-in support for several common development approaches:
 
 ## Configuring Your Preferred Methodology
 
-### Configuration in `Project Configuration`
+### Configuration in `.devsynth/project.yaml`
 
-The project's methodology preferences are specified in the `Project Configuration` file:
+The project's methodology preferences are specified in the `.devsynth/project.yaml` file:
 
 ```yaml
 methodologyConfiguration:
@@ -198,7 +198,7 @@ Register your custom adapter in your project configuration:
 
 ```yaml
 
-# In Project Configuration
+# In .devsynth/project.yaml
 
 methodologyConfiguration:
   type: "custom"
@@ -214,7 +214,7 @@ Each methodology adapter includes built-in integration capabilities with common 
 
 ```yaml
 
-# In Project Configuration
+# In .devsynth/project.yaml
 
 methodologyConfiguration:
   type: "sprint"

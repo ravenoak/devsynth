@@ -76,7 +76,7 @@ A component that implements the MemoryStore interface to provide specific storag
 
 The subsystem responsible for storing, retrieving, and managing information in DevSynth. It supports multiple backends and provides a unified interface for semantic search and structured data storage.
 
-### Project Configuration
+### `.devsynth/project.yaml`
 
 A YAML file (`.devsynth/project.yaml`) that defines a project's structure, components, and configuration. It's used by DevSynth to understand and adapt to diverse project structures. Previously known as `manifest.yaml` and sometimes referred to as `devsynth.yaml` in older documentation.
 

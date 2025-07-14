@@ -463,10 +463,10 @@ testing.
 - Integration with additional tools (pre-commit, etc.)
 - Advanced dependency specification
 
-#### 4.1.2 Project Configuration
+#### 4.1.2 `.devsynth/project.yaml`
 
 **MVP Scope:**
-- Basic configuration file (.Project Configuration)
+- Basic configuration file (`.devsynth/project.yaml`)
 - LM Studio endpoint configuration
 - Project metadata storage
 - Simple user preferences
@@ -1856,8 +1856,8 @@ Mutation testing will be deferred to a future version.
 ### 14.2 Configuration
 
 **MVP Requirements:**
-- User-level configuration (~/.Project Configuration)
-- Project-level configuration (.Project Configuration)
+- User-level configuration (~/.devsynth/project.yaml)
+- Project-level configuration (`.devsynth/project.yaml`)
 - Environment variable overrides
 - LM Studio endpoint configuration
 

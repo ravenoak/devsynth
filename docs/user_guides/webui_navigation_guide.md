@@ -425,7 +425,7 @@ The Diagnostics page provides tools for checking the health of your project and 
 **Features**:
 
 - Run the doctor command to check for issues
-- Validate Project Configuration and metadata
+- Validate `.devsynth/project.yaml` and metadata
 - Run test metrics
 - Generate documentation
 

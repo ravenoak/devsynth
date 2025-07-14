@@ -66,7 +66,7 @@ The Differentiate phase compares the discovered artifacts against declared proje
 
 **Process:**
 
-1. **Manifest Validation**: Compare discovered artifacts against the project `Project Configuration`
+1. **Manifest Validation**: Compare discovered artifacts against `.devsynth/project.yaml`
 2. **Structure Analysis**: Validate project structure against declared patterns (monorepo, standard layouts, etc.)
 3. **Consistency Checking**: Identify inconsistencies between different artifact types (e.g., documented features without tests)
 4. **Gap Analysis**: Detect missing artifacts, coverage gaps, or undocumented components
@@ -75,7 +75,7 @@ The Differentiate phase compares the discovered artifacts against declared proje
 
 **Examples:**
 
-- Validate that all components defined in `Project Configuration` exist in the codebase
+- Validate that all components defined in `.devsynth/project.yaml` exist in the codebase
 - Check that the actual directory structure matches the declared project type
 - Cross-reference requirements with implementations and tests
 - Identify undocumented public APIs
@@ -246,7 +246,7 @@ The "Expand, Differentiate, Refine, Retrospect" process is implemented through:
 
 2. **Ingestion Pipeline**: Implemented in `src/devsynth/application/ingestion.py`
    - Utilizes the Memory and Context System for efficient storage and retrieval
-   - Processes the project according to the structure defined in `Project Configuration`
+   - Processes the project according to the structure defined in `.devsynth/project.yaml`
    - Adapts to different project layouts (monorepos, multi-language, etc.)
 
 3. **Progress Feedback**: The process provides clear feedback during execution
@@ -260,9 +260,9 @@ The "Expand, Differentiate, Refine, Retrospect" process is implemented through:
    - Visual graph representation of project components and relationships
 
 
-## Configuring Project Structure in `Project Configuration`
+## Configuring Project Structure in `.devsynth/project.yaml`
 
-The `Project Configuration` file serves as the authoritative declaration of project structure and organization. It allows users to define how DevSynth should interpret their specific project layout.
+The `.devsynth/project.yaml` file serves as the authoritative declaration of project structure and organization. It allows users to define how DevSynth should interpret their specific project layout.
 
 ### Example Configuration for Different Project Types
 

@@ -23,7 +23,7 @@ DevSynth uses a hierarchical configuration system with multiple levels of preced
 
 1. **Command-line arguments**: Highest precedence, overrides all other settings
 2. **Environment variables**: Prefixed with `DEVSYNTH_`
-3. **Project-level configuration**: Stored in `.devsynth/project.yaml` (formerly `Project Configuration` or `Project Configuration`)
+3. **Project-level configuration**: Stored in `.devsynth/project.yaml`
 4. **Global configuration**: Stored in `~/.devsynth/config/global_config.yaml`
 5. **Default values**: Hardcoded in the application
 
@@ -32,7 +32,7 @@ DevSynth uses a hierarchical configuration system with multiple levels of preced
 
 #### Project-Level Configuration: `.devsynth/project.yaml`
 
-The `.devsynth/project.yaml` file (formerly `Project Configuration` or `Project Configuration`) is the primary configuration file for a project. It is created by the `devsynth init` command and contains:
+The `.devsynth/project.yaml` file is the primary configuration file for a project. It is created by the `devsynth init` command and contains:
 
 - Project metadata (name, version, last updated)
 - Project structure information (type, primary language, directories)
@@ -142,7 +142,7 @@ Project-level storage locations are specific to each project and are stored in t
 
 - **Configuration**: `.devsynth/`
   - Contains project-specific configuration files
-  - Includes the `.devsynth/project.yaml` file (formerly `Project Configuration` or `Project Configuration`)
+  - Includes the `.devsynth/project.yaml` file
 
 - **Cache**: `.devsynth/cache/`
   - Stores project-specific cached data

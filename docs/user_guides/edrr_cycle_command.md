@@ -58,7 +58,7 @@ The Enhanced EDRR Coordinator provides several improvements over the standard ED
 ### Running from a Manifest File
 
 ```bash
-devsynth EDRR-cycle --manifest Project Configuration
+devsynth EDRR-cycle --manifest .devsynth/project.yaml
 ```
 
 This command starts an EDRR using the task definition in the manifest file.

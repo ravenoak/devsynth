@@ -22,7 +22,7 @@ This document provides a comprehensive reference for all configuration options a
 
 - [LLM Configuration](#llm-configuration)
 - [Environment Variables](#environment-variables)
-- [Project Configuration](#project-configuration)
+- [.devsynth/project.yaml](#project-configuration)
 - [Development Configuration](#development-configuration)
 - [Memory Configuration](#memory-configuration)
 - [UXBridge Configuration](#uxbridge-configuration)
@@ -114,7 +114,7 @@ DEVSYNTH_KUZU_DB_PATH=~/.devsynth/memory/Kuzu.db
 DEVSYNTH_LOG_LEVEL=INFO
 ```
 
-## Project Configuration
+## `.devsynth/project.yaml`
 
 These options control project-specific settings.
 
@@ -133,7 +133,7 @@ These options control project-specific settings.
 | `project.src_dir` | Directory for source code | `src` | Any valid directory path |
 | `project.docs_dir` | Directory for documentation | `docs` | Any valid directory path |
 
-### Example Project Configuration
+### Example `.devsynth/project.yaml`
 
 ```yaml
 project:

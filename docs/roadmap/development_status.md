@@ -350,13 +350,13 @@ This work is planned for after the completion of Month 2.
 
 1. **Directory Organization**:
    - Reorganized repository structure for clarity
-   - Removed the symlink `Project Configuration` in the root directory
+   - Removed the symlink `.devsynth/project.yaml` in the root directory
    - Ensured no `.devsynth/` directory is created for projects not managed by DevSynth
    - Updated code to use `.devsynth/project.yaml` as the project configuration file
 
 2. **Manifest File Enhancement**:
    - Updated manifest schema and documentation
-   - Changed the manifest location from `Project Configuration` in the root directory to `.devsynth/project.yaml`
+   - Changed the manifest location from the root directory to `.devsynth/project.yaml`
    - Updated the `load_manifest` function to handle the case when the project is not managed by DevSynth
    - Updated the `validate_manifest` function to skip validation for projects not managed by DevSynth
    - Updated the `ingest_cmd` function to handle the case when the project is not managed by DevSynth

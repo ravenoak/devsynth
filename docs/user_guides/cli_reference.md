@@ -638,7 +638,7 @@ memory:
   graph_store: RDFLib
   path: ~/.devsynth/memory
 
-# Project Configuration
+# `.devsynth/project.yaml`
 
 project:
   default_path: ~/projects

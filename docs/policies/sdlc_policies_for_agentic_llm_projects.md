@@ -42,7 +42,7 @@ Agentic LLM projects present unique challenges and opportunities that traditiona
 - **Predictable Directory Layout**: Consistent, logical organization of code, tests, and documentation
 - **File and Symbol Annotations**: Clear comments and docstrings that explain purpose and usage
 - **Metadata Tags**: Standardized headers in documentation files with title, date, version, tags, status, and last review date
-- **Project Configuration**: A `.devsynth/project.yaml` file that describes the shape and attributes of the project
+- **`.devsynth/project.yaml`**: File that describes the shape and attributes of the project
 
 
 ### 2. Requirements Documentation
