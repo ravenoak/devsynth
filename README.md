@@ -28,6 +28,7 @@ experimental. **No version has been officially released yet.**
 - Agent system powered by LangGraph for orchestrated workflows
 - Advanced code analysis using NetworkX
 - Provider abstraction for OpenAI, LM Studio, and more
+- Anthropic API integration with streaming support
 - Comprehensive SDLC policy corpus for agentic and human contributors
 - Automated documentation, testing, and CI/CD pipelines
 - Interactive `init` wizard for onboarding existing projects
