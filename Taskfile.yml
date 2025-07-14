@@ -115,6 +115,7 @@ tasks:
       - rm -rf coverage.xml
       - rm -rf site
       - find . -type d -name __pycache__ -exec rm -rf {} +
+      - find . -name '*\,cover' -delete
 
   # Development workflow tasks
   dev:
