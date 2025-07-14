@@ -35,4 +35,4 @@ from .steps.webui_integration_steps import (
 )
 
 # Load scenarios from the feature file
-scenarios("./features/webui_integration.feature")
+scenarios("webui_integration.feature")
