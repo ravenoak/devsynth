@@ -1,7 +1,0 @@
-> """EDRR (Expand, Differentiate, Refine, Retrospect) application module."""
-  
-! from .coordinator import EDRRCoordinator
-  
-! __all__ = [
-!     "EDRRCoordinator",
-! ]
