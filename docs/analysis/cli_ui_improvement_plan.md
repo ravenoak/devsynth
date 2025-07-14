@@ -30,17 +30,18 @@ This document summarizes the current operating modes of the DevSynth tool and ou
 ## Areas Needing Improvement
 
 1. CLI output lacks rich progress feedback.
-2. The guided setup wizard described in documentation is missing.
+2. The guided setup wizard is implemented but needs refinement.
 3. Error messages provide little recovery guidance.
 4. Collaboration features need further polish.
 5. No GUI or dashboard for monitoring EDRR cycles or sprint progress.
+6. Offline mode works but offers only basic functionality.
 
 
 ## Action Items
 
-1. **Implement Guided Setup Wizard**
-   - Interactive configuration flow triggered by `devsynth init`.
-   - Prompts for selecting memory backend, offline mode, and optional features.
+1. **Enhance Guided Setup Wizard**
+   - Streamline the interactive flow triggered by `devsynth init`.
+   - Provide inline help and improved defaults for memory backend, offline mode, and optional features.
 2. **Enhance CLI Feedback**
    - Rich progress indicators for long-running commands.
    - Clear success/failure reporting with next steps.
@@ -50,14 +51,14 @@ This document summarizes the current operating modes of the DevSynth tool and ou
 4. **Add Optional GUI/Web Dashboard**
    - Simple interface for EDRR status and sprint metrics.
    - CLI remains primary; GUI provides at-a-glance information.
-5. **Support Offline/Minimal Modes**
- - Local LLM fallback when internet is unavailable.
- - Document limitations of offline mode.
-    - Offline mode disables remote LLM calls, so advanced model features such
+5. **Enhance Offline/Minimal Modes**
+ - Improve local LLM fallback performance when internet is unavailable.
+ - Expand documentation of offline limitations and best practices.
+    - Offline mode still disables remote LLM calls, so advanced model features such
 
-      as streaming completions or external search integrations are not
-      available. The built-in provider offers deterministic but lower quality
-      responses suitable for testing and repeatable pipelines.
+      as streaming completions or external search integrations remain unavailable.
+      The built-in provider offers deterministic but lower quality responses
+      suitable for testing and repeatable pipelines.
 
 6. **Expose EDRR Metrics**
    - Commands like `devsynth metrics` and `devsynth report` to surface history.
