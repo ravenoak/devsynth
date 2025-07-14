@@ -55,7 +55,7 @@ Each feature is scored on two dimensions:
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
 | Memory System | Complete | src/devsynth/application/memory | 5 | 4 | None | | Complete with ChromaDB integration and vector store provider factory |
-| Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio and OpenAI providers implemented; Anthropic and Local providers unsupported |
+| Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Offline/Local providers fully supported |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
 | Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
