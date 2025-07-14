@@ -34,5 +34,7 @@ from .steps.webui_integration_steps import (
     check_interface_consistency
 )
 
-# Load scenarios from the feature file
-scenarios("./features/webui_integration.feature")
+# Load scenarios from the feature file. The `bdd_features_base_dir` option in
+# pytest.ini sets `tests/behavior/features` as the base directory for feature
+# files, so we only need to specify the filename here.
+scenarios("webui_integration.feature")
