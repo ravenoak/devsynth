@@ -196,6 +196,65 @@ The post-MVP vision for DevSynth is to create a self-improving development tool 
 3. Implement project management integrations
 4. Ensure seamless workflow integration
 
+### Phase 6: DSPy-AI Integration
+
+**Objective**: Leverage the experimental DSPy-AI framework for advanced prompt programming and reasoning.
+
+#### Features:
+
+1. **DSPy Agent Support**
+   - Wrap DevSynth agents with DSPy program definitions
+   - Provide prompt chaining and gating flows using DSPy
+   - Fallback to standard behavior when DSPy is unavailable
+
+2. **Advanced Workflows**
+   - Pre-built DSPy modules for code generation and refactoring
+   - Hooks to incorporate DSPy reasoning into EDRR phases
+
+#### Dependencies
+
+- `dspy-ai >=2.6.27` (optional Poetry extra)
+- Compatible with existing LangGraph and LangChain packages
+
+#### Implementation Strategy:
+
+1. Add a DSPy adapter for the EDRR pipeline
+2. Prototype DSPy-based self-analysis and planning modules
+3. Document installation via Poetry extras
+4. Ensure workflows operate when DSPy is not installed
+
+**Release Target**: Experimental support in **0.6.x**, finalized by **0.8.0**.
+
+### Phase 7: Promise Theory Reliability Enhancements
+
+**Objective**: Apply Promise Theory to monitor agent commitments and improve reliability.
+
+#### Features:
+
+1. **Promise Tracking**
+   - Agents issue promises for key actions
+   - Promise states (pending, fulfilled, broken) logged in memory
+
+2. **Reliability Metrics**
+   - Collect fulfillment rates and latencies
+   - Alert or retry when promises are broken
+
+3. **Recovery Mechanisms**
+   - Coordinate retries and fallbacks using promises
+
+#### Dependencies
+
+- Extensions to the existing Promise System for metrics
+- Optional monitoring stack such as Prometheus and Grafana
+
+#### Implementation Strategy:
+
+1. Add reliability hooks to the Promise Manager
+2. Implement metrics collection and dashboards
+3. Use promise states to trigger retry logic
+
+**Release Target**: Introduce metrics in **0.7.x**, stabilize by **0.9.0**.
+
 ## 4. Feature Details
 
 ### 4.1 Self-Analysis System
