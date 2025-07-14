@@ -24,10 +24,9 @@ This roadmap transforms the comprehensive analysis findings into a practical, ph
 
 ### Strategic Phases
 
-1. **Foundation Stabilization** (Q1 2025): Address critical adoption barriers
-2. **Production Readiness** (Q2 2025): Enable real-world deployment and operation
-3. **Market Validation** (Q3-Q4 2025): Scale adoption and validate market fit
-4. **Innovation Leadership** (Q1-Q2 2026): Advanced capabilities and market leadership
+The high-level phases are consolidated in the
+[Release Plan](release_plan.md). Refer to that document for up-to-date
+milestones and timelines.
 
 
 ---

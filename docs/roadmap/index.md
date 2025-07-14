@@ -25,7 +25,7 @@ This section outlines the future plans and development trajectory for the DevSyn
 - **[Roadmap Overview](development_plan.md#roadmap-overview)**: Concise summary of planned phases.
 - **[Development Status](development_status.md)**: The current status of development efforts.
 - **[Actionable Roadmap](actionable_roadmap.md)**: Specific, actionable items on the development roadmap.
-- **[Pre-1.0 Release Plan](pre_1.0_release_plan.md)**: Milestones required for the first public release.
+- **[Release Plan](release_plan.md)**: Milestones required for the first public release.
 - **[Post-MVP Roadmap](post_mvp_roadmap.md)**: Details the features and enhancements planned after the Minimum Viable Product stage.
 - **[Release Automation Workflow](release_automation.md)**: Describes the CI pipeline for tagging and publishing releases.
 

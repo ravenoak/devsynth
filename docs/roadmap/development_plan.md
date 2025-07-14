@@ -34,16 +34,7 @@ This document presents a comprehensive plan for continuing the development of De
 
 ## Roadmap Overview
 
-The roadmap is organized into progressive phases that map to semantic version
-milestones. Each phase introduces key features and notes any new dependencies.
-
-| Version / Phase | Major Features | Key Dependencies |
-|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
-| **Pre-0.1 – Current Implementation** | CLI interface and orchestration workflow, provider system (OpenAI, LM Studio, offline, Anthropic), baseline memory (TinyDB with ChromaDB adapter), EDRR pipeline, early WSDE single‑agent flows, code/test/doc generation, Docker-based setup, basic security & config management | Python 3.12+, TinyDB, ChromaDB, Docker |
-| **0.1 – Foundation Stabilization** | Stabilize provider system with offline and Anthropic options, finalize baseline memory (Kuzu/TinyDB/ChromaDB), initial WSDE team coordination, refine CLI flows, enable baseline metrics and logging | Python 3.12+, Kuzu/TinyDB, ChromaDB |
-| **0.2 – Repository Analysis & Memory Enhancements** | Repository inventory tooling, advanced AST models, knowledge graph extensions, property‑based tests, mature offline fallback | ChromaDB, Hypothesis |
-| **0.3 – Collaboration & Web UI Integration** | Dynamic WSDE team formation with consensus workflows, Web UI bridging via UXBridge, metrics dashboard | Distributed memory, Streamlit |
-| **0.4 – Production Readiness** | Performance optimization, security hardening, deployment automation, enterprise integrations and monitoring | Container & deployment tooling |
+The project roadmap is broken into progressive phases. A consolidated list of phases and version milestones is available in the [Release Plan](release_plan.md).
 
 
 ## Implementation Plan for Phase 1: Foundation Stabilization
