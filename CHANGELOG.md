@@ -37,6 +37,7 @@ version has been published yet.
 - Behavior-driven tests for the EDRR coordinator
 - Basic security utilities for authentication, authorization, and input sanitization
 - Doctor command for configuration validation
+- Anthropic API support and deterministic offline provider implementation
 
 ### Changed
 - Moved development documents to appropriate locations in the docs/ directory
