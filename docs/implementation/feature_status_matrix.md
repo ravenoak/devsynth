@@ -55,7 +55,7 @@ Each feature is scored on two dimensions:
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
 | Memory System | Complete | src/devsynth/application/memory | 5 | 4 | None | | Complete with ChromaDB integration and vector store provider factory |
-| Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Offline/Local providers fully supported |
+| Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
 | Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
@@ -73,11 +73,12 @@ Each feature is scored on two dimensions:
 | Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows |
 | Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
 | Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
+| Metrics Commands | Complete | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, test_metrics_cmd.py | 3 | 2 | None | | `alignment_metrics` and `test_metrics` commands available |
 | **Planned/Unimplemented Features** |
 | Core Values Subsystem | Complete | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods added for value management and report validation |
-| Guided Setup Wizard | Partial | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Referenced in CLI UI Improvement Plan, not implemented |
+| Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |
 | Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Unit tests validate provider; CLI selects it with the `offline_mode` flag |
-| Prompt Auto-Tuning | Partial | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Planned in documentation, no modules exist |
+| Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
 | Extended WebUI Pages | Partial | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages like `EDRR-cycle` and `align` not implemented |
 
 ## Current Limitations and Workarounds
