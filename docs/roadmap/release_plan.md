@@ -13,6 +13,7 @@ last_reviewed: "2025-07-10"
 # DevSynth Release Plan
 
 This document consolidates the various roadmap drafts into a single authoritative plan. It outlines the major phases leading to a stable 1.0 release and summarizes key version milestones.
+DevSynth is still pre-0.1.0 and no official release has been published yet. Version references in this plan are provisional and will follow our [Semantic Versioning Guidelines](../policies/semantic_versioning.md).
 
 ## Phased Roadmap
 
