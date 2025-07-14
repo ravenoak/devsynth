@@ -80,6 +80,7 @@ Each feature is scored on two dimensions:
 | Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Unit tests validate provider; CLI selects it with the `offline_mode` flag |
 | Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
 | Extended WebUI Pages | Partial | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages like `EDRR-cycle` and `align` not implemented |
+| Multi-Language Code Generation | Missing | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Planned for initial support across Python and JavaScript |
 
 ## Current Limitations and Workarounds
 
@@ -188,3 +189,17 @@ See `docs/policies/consistency_checklist.md` lines 91-106 for TODO items.
 
 
 Implementation tasks are tracked in `docs/architecture/cli_webui_mapping.md` lines 40-76.
+
+### Multi-Language Code Generation
+
+**Expected Modules**
+
+- `src/devsynth/application/agents/multi_language_code.py`
+- `tests/unit/application/agents/test_multi_language_code.py`
+
+
+**Planned Timeline**
+
+- Q4 2025: initial support for Python and JavaScript
+- Q1 2026: additional languages and configuration options
+
