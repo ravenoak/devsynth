@@ -4,3 +4,8 @@ devsynth.log
 __pycache__/
 .coverage
 CODEX_ENVIRONMENT_SETUP_FAILED
+*.cover
+*,cover
+coverage.xml
+coverage_html/
+htmlcov/
