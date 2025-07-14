@@ -32,7 +32,7 @@ This document summarizes the current operating modes of the DevSynth tool and ou
 1. CLI output lacks rich progress feedback.
 2. The guided setup wizard described in documentation is missing.
 3. Error messages provide little recovery guidance.
-4. Offline mode and collaboration features remain largely unimplemented.
+4. Collaboration features need further polish.
 5. No GUI or dashboard for monitoring EDRR cycles or sprint progress.
 
 
