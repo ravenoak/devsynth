@@ -1,9 +1,0 @@
-> """
-> Application layer for code analysis.
-  
-> This package provides functionality for analyzing code and project structure.
-> """
-  
-! from .project_state_analyzer import ProjectStateAnalyzer
-  
-! __all__ = ['ProjectStateAnalyzer']
