@@ -12,7 +12,9 @@ last_reviewed: "2025-07-10"
 ---
 
 # Phase 5 Completion Summary
-This document is archived for historical reference.
+This document is archived for historical reference. It marks the final
+phase of the **DevSynth Repository Harmonization Plan** and should not be
+confused with the separate "Phase 5" in the Post-MVP roadmap.
 
 Phase 5 centered on **Verification and Validation**. Major outcomes:
 

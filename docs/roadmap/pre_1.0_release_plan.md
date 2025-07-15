@@ -18,6 +18,9 @@ series while this document outlines the path toward an eventual 1.0 release.
 
 We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and completeness.  Each phase defines targeted milestones and implementation-ready tasks, emphasizing BDD/TDD practices.  We draw on the current codebase and docs to identify missing features and gaps.
 
+For current implementation status, see the
+[Feature Status Matrix](../implementation/feature_status_matrix.md).
+
 ## Provider Completion Summary
 
 DevSynth now includes a fully implemented Anthropic provider along with a
@@ -37,6 +40,10 @@ workflows operate without network access.
 * **Configuration & Requirements:** Confirm Python 3.12+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
 * **Offline Mode (Completed):** The offline provider supplies deterministic text and embeddings when `offline_mode` is enabled. CLI and WebUI fallbacks are verified with unit tests for provider selection.
 * **Optional Vector Stores:** Provide configuration examples for alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. Include docker-compose setup for the embedded ChromaDB backend.
+
+With these items complete, Phase 1 is considered largely finished. Remaining
+work focuses on finalizing the WSDE peer review workflow and fixing the
+outstanding test failures noted in the development status reports.
 
 * **Pseudocode & BDD Examples:** Draft pseudocode for core routines, e.g.:
 
