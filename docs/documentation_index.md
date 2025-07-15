@@ -49,8 +49,8 @@ _This index lists all documentation files, their status, and release phase. It i
 | docs/implementation/* | Implementation examples and pseudocode | draft | implementation |
 | docs/policies/* | SDLC and project policies | published | governance |
 | docs/roadmap/FINAL_SUMMARY.md | DevSynth Repository Harmonization Final Summary | published | roadmap |
-| docs/roadmap/PHASE_1_COMPLETION_SUMMARY.md | Phase 1 Completion Summary | published | roadmap |
-| docs/roadmap/PHASE_5_COMPLETION_SUMMARY.md | Phase 5 Completion Summary | published | roadmap |
+| docs/archived/PHASE_1_COMPLETION_SUMMARY.md | Phase 1 Completion Summary | published | roadmap |
+| docs/archived/PHASE_5_COMPLETION_SUMMARY.md | Phase 5 Completion Summary | published | roadmap |
 | docs/roadmap/actionable_roadmap.md | DevSynth Actionable Implementation Roadmap | published | roadmap |
 | docs/roadmap/development_plan.md | DevSynth Development Plan | published | roadmap |
 | docs/roadmap/development_status.md | DevSynth Development Status | active | roadmap |
