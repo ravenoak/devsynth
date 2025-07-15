@@ -2724,15 +2724,15 @@ langgraph-checkpoint = ">=2.1.0"
 
 [[package]]
 name = "langgraph-sdk"
-version = "0.1.72"
+version = "0.1.73"
 description = "SDK for interacting with LangGraph API"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "extra == \"minimal\""
 files = [
-    {file = "langgraph_sdk-0.1.72-py3-none-any.whl", hash = "sha256:925d3fcc7a26361db04f9c4beb3ec05bc36361b2a836d181ff2ab145071ec3ce"},
-    {file = "langgraph_sdk-0.1.72.tar.gz", hash = "sha256:396d8195881830700e2d54a0a9ee273e8b1173428e667502ef9c182a3cec7ab7"},
+    {file = "langgraph_sdk-0.1.73-py3-none-any.whl", hash = "sha256:a60ac33f70688ad07051edff1d5ed8089c8f0de1f69dc900be46e095ca20eed8"},
+    {file = "langgraph_sdk-0.1.73.tar.gz", hash = "sha256:6e6dcdf66bcf8710739899616856527a72a605ce15beb76fbac7f4ce0e2ad080"},
 ]
 
 [package.dependencies]
