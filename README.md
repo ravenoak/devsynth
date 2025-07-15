@@ -18,10 +18,7 @@ last_reviewed: "2025-07-10"
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
-**Pre-release notice:** DevSynth has not yet reached an official release. All
-current versions are in the `0.1.x` range and should be considered
-experimental. **No version has been officially released yet.**
-
+**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. All versions should be considered experimental. Release milestones are tracked in [docs/roadmap/ROADMAP.md](docs/roadmap/ROADMAP.md).
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
 - Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends
@@ -65,7 +62,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Implementation Status Matrix](docs/implementation/feature_status_matrix.md)
 - [Requirements Traceability Matrix](docs/requirements_traceability.md)
 - [SDLC Policies](docs/policies/index.md)
-- [Roadmap Overview](docs/roadmap/development_plan.md#roadmap-overview)
+- [Project Roadmap](docs/roadmap/ROADMAP.md)
 
 Installation instructions are covered in detail in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
 
