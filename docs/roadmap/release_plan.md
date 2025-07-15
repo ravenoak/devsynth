@@ -26,23 +26,30 @@ DevSynth is still pre-0.1.0 and no official release has been published yet. Vers
    - Polish CLI UX and integrate the initial Web UI.
    - Perform repository analysis and improve code organization.
    - Expand automated testing and CI/CD.
+   - Introduce multi-language code generation starting in **0.2.x**. See [Post-MVP Roadmap](post_mvp_roadmap.md#phase-4-advanced-code-generation-and-refactoring) for details.
+   - Provide AST mutation tooling for automated refactoring and testing in **0.3.x** (refer to [Post-MVP Roadmap](post_mvp_roadmap.md#phase-3-self-improvement-capabilities)).
 
 3. **Collaboration & Validation** (0.4.x–0.6.x – Q3–Q4 2025)
    - Enhance multi-agent collaboration features.
    - Validate workflows with real-world projects and community feedback.
    - Iterate on metrics, analytics, and documentation quality.
+   - Integrate the experimental DSPy-AI framework in **0.6.x**. More information is available in [Post-MVP Roadmap](post_mvp_roadmap.md#phase-6-dspy-ai-integration).
 
 4. **Full Release & Innovation** (0.7.x–1.0.0 – 2026)
    - Harden security and performance for production deployments.
    - Complete Web UI and API features.
    - Finalize documentation and publish the 1.0 release.
    - Plan post-1.0 innovations and enterprise capabilities.
+   - Apply Promise-Theory reliability enhancements beginning in **0.7.x** with stabilization by **0.9.0** (see [Post-MVP Roadmap](post_mvp_roadmap.md#phase-7-promise-theory-reliability-enhancements)).
 
 ### Version Milestones
 
 - **0.1.0-alpha.1**, **0.1.0-beta.1**, **0.1.0-rc.1**: Foundation stabilization and feature completion.
 - **0.2.0–0.6.0**: Incremental releases adding collaboration, Web UI, and testing improvements.
-- **0.7.0–0.9.0**: Optimization and preparation for the 1.0 release.
+- **0.2.x**: Multi-language code generation support.
+- **0.3.x**: AST mutation tooling for refactoring.
+- **0.6.x**: Experimental DSPy-AI integration (finalize by **0.8.0**).
+- **0.7.x–0.9.0**: Optimization, Promise-Theory reliability work, and preparation for the 1.0 release.
 - **1.0.0**: Stable release with comprehensive documentation and production readiness.
 
 This plan supersedes the individual phase tables previously scattered across multiple documents. All future roadmap updates should occur here.
