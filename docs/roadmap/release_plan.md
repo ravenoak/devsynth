@@ -13,7 +13,7 @@ last_reviewed: "2025-07-10"
 # DevSynth Release Plan
 
 This document consolidates the various roadmap drafts into a single authoritative plan. It outlines the major phases leading to a stable 1.0 release and summarizes key version milestones.
-DevSynth is still pre-0.1.0 and no official release has been published yet. Version references in this plan are provisional and will follow our [Semantic Versioning Policy](../policies/semantic_versioning.md).
+DevSynth is still pre-0.1.0 and no official release has been published yet. Version references in this plan are provisional and will use the MAJOR.MINOR.PATCH-STABILITY notation defined in our [Semantic Versioning Policy](../policies/semantic_versioning.md).
 
 ## Phased Roadmap
 
@@ -40,7 +40,7 @@ DevSynth is still pre-0.1.0 and no official release has been published yet. Vers
 
 ### Version Milestones
 
-- **0.1.0-alpha / beta / rc**: Foundation stabilization and feature completion.
+- **0.1.0-alpha.1**, **0.1.0-beta.1**, **0.1.0-rc.1**: Foundation stabilization and feature completion.
 - **0.2.0–0.6.0**: Incremental releases adding collaboration, Web UI, and testing improvements.
 - **0.7.0–0.9.0**: Optimization and preparation for the 1.0 release.
 - **1.0.0**: Stable release with comprehensive documentation and production readiness.
