@@ -287,7 +287,7 @@ This work is planned for after the completion of Month 2.
 1. **Documentation Consolidation**:
    - Consolidated overlapping summary documents into development_status.md (this file)
    - Archived redundant files to docs/archived/harmonization directory:
-    - [PHASE_1_COMPLETION_SUMMARY](PHASE_1_COMPLETION_SUMMARY.md)
+    - [PHASE_1_COMPLETION_SUMMARY](../archived/PHASE_1_COMPLETION_SUMMARY.md)
      - IMPLEMENTATION_STATUS.md
      - IMPLEMENTATION_PLAN.md
      - IMPLEMENTATION_ENHANCEMENT_PLAN.md
@@ -404,7 +404,7 @@ This work is planned for after the completion of Month 2.
    - Complete bidirectional traceability between requirements, code, and tests
 
 6. **Final Report**:
-   - Created [PHASE_5_COMPLETION_SUMMARY](PHASE_5_COMPLETION_SUMMARY.md) to document the completion of Phase 5
+   - Created [PHASE_5_COMPLETION_SUMMARY](../archived/PHASE_5_COMPLETION_SUMMARY.md) to document the completion of Phase 5
    - Documented key achievements and lessons learned
    - Provided recommendations for future maintenance
 7. **Metrics Commands Implemented**:

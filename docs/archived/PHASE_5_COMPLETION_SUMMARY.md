@@ -12,6 +12,7 @@ last_reviewed: "2025-07-10"
 ---
 
 # Phase 5 Completion Summary
+This document is archived for historical reference.
 
 Phase 5 centered on **Verification and Validation**. Major outcomes:
 

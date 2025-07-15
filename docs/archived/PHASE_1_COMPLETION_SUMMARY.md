@@ -12,6 +12,7 @@ last_reviewed: "2025-07-10"
 ---
 
 # Phase 1 Completion Summary
+This document is archived for historical reference.
 
 Phase 1 focused on **Foundation Stabilization**. Key accomplishments include:
 
