@@ -30,7 +30,7 @@ workflows operate without network access.
 
 **Goals:** Finalize architectural components (EDRR, WSDE, providers, memory), resolve tech debt, and ensure code structure and config standards.
 
-* **Audit & Gap Analysis:** Review the [Feature Status Matrix] to identify incomplete features.  Key gaps originally included the Anthropic LLM provider and offline mode; both are now implemented. Remaining items focus on finalizing the EDRR framework and completing WSDE multi-agent workflows.
+* **Audit & Gap Analysis:** The Anthropic provider and offline mode are complete. Remaining gaps center on finalizing the EDRR framework and completing WSDE multi-agent workflows.
 
 * **UXBridge & Hexagonal Layers:** Ensure all interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction.  This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.  *(Task: write unit tests for `UXBridge.ask_question`/`display_result` to guarantee consistent behavior across CLI and future UI.)*
 
