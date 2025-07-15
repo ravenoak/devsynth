@@ -22,18 +22,20 @@ DevSynth follows the [Semantic Versioning](https://semver.org/) scheme to commun
 
 ## Pre-release Identifiers
 
-Pre-release versions append an identifier after a hyphen (e.g., `1.2.0-alpha`, `2.0.0-rc.1`) to denote milestones that precede a final release.
+Pre-release versions append an identifier after a hyphen (e.g., `1.2.0-alpha`,
+`2.0.0-rc.1`) to denote milestones that precede a final release.
 
 ## MAJOR.MINOR.PATCH-STABILITY
 
 DevSynth uses an extended scheme that appends a stability label after the patch
-component. The general form is `MAJOR.MINOR.PATCH-STABILITY`.
+component. The full version string is `MAJOR.MINOR.PATCH-STABILITY`.
 
 - **STABILITY** indicates the maturity of the release. Typical values are
   `alpha`, `beta`, and `rc` followed by a dot and an incrementing number.
-- Final releases omit the stability label entirely.
+  - Final releases omit the stability label entirely.
 
 ### Examples
 
 - `0.1.0-alpha.1` – first alpha iteration of version `0.1.0`.
-- `0.1.0-beta.2` – second beta iteration of version `0.1.0`.
+- `0.1.0-beta.1` – first beta iteration of version `0.1.0`.
+- `0.1.0-rc.1` – first release candidate of version `0.1.0`.
