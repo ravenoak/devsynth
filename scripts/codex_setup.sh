@@ -5,9 +5,12 @@ set -exo pipefail
 # without manual intervention in the offline environment.
 poetry install \
   --with dev \
+  --with docs \
+  --extras docs \
   --extras minimal \
   --extras memory \
   --extras llm \
+  --extras dev \
   --no-interaction
 
 # Verify key packages are present
