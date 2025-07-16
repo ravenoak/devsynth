@@ -227,7 +227,7 @@ This work is planned for after the completion of Month 2.
 - Core domain models and interfaces defined
 - Basic CLI functionality implemented
 - Interactive `init` wizard and command renames (`refactor`, `inspect`, `run-pipeline`, `retrace`) added with unified config loader and early WebUI bridge
-- Memory system with ChromaDB integration
+- Memory system with experimental ChromaDB integration (not fully functional—see [Feature Status Matrix](../implementation/feature_status_matrix.md))
 - Provider system with multiple backend support, including Anthropic and offline providers
 
 
