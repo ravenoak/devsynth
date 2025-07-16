@@ -25,6 +25,8 @@ last_reviewed: "2025-07-10"
 **Note:** DevSynth is currently a pre-release project. Versions in the `0.1.x`
 range are unstable and subject to change.
 
+For the authoritative roadmap, see the [Release Plan](release_plan.md).
+
 **Date:** 2025-06-01
 **Author:** DevSynth Team
 

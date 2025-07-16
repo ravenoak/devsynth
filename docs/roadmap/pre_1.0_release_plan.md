@@ -16,6 +16,8 @@ version: 0.1.0
 series while this document outlines the path toward an eventual 1.0 release.
 **No version has been officially released yet.**
 
+For the authoritative roadmap, see the [Release Plan](release_plan.md).
+
 We propose a multi-phase plan to finalize DevSynth’s UX, architecture, and completeness.  Each phase defines targeted milestones and implementation-ready tasks, emphasizing BDD/TDD practices.  We draw on the current codebase and docs to identify missing features and gaps.
 
 For current implementation status, see the
