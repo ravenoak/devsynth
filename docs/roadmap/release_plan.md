@@ -48,7 +48,7 @@ DevSynth remains in a pre-release stage. No official release has been published 
    - Plan post-1.0 innovations and enterprise capabilities.
    - Apply Promise-Theory reliability enhancements beginning in **0.7.x** with stabilization by **0.9.0** (see [Post-MVP Roadmap](post_mvp_roadmap.md#phase-7-promise-theory-reliability-enhancements)).
 
--### Version Milestones
+### Version Milestones
 
 - **0.1.0-alpha.1**: Core architecture in place with Anthropic and offline
   providers, baseline CLI commands, and initial EDRR/WSDE integration.
