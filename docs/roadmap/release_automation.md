@@ -13,6 +13,8 @@ version: 0.1.0
 
 # DevSynth Release Automation Workflow
 
+**Note:** DevSynth is currently in a pre-release stage. Release automation steps may change until the project reaches 1.0.
+
 This document outlines the intended continuous integration workflow for tagging and publishing DevSynth releases. It consolidates the steps described in the archived **RELEASE_PLAN_UPDATE_PLAN** document and reflects the current repository layout.
 
 ## Overview

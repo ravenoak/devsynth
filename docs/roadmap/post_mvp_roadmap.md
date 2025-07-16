@@ -12,6 +12,8 @@ last_reviewed: "2025-07-10"
 
 # DevSynth Post-MVP Development Roadmap
 
+**Note:** DevSynth is currently in a pre-release stage. Plans described here may change before version 1.0.
+
 ## 1. Introduction
 
 This document outlines the roadmap for DevSynth development beyond the Minimum Viable Product (MVP). It focuses on features that would enhance DevSynth's capabilities, allow it to operate on its own codebase, and enable continuous self-improvement. The roadmap is organized into phases, with each phase building upon the previous one to create a more powerful and versatile development tool.

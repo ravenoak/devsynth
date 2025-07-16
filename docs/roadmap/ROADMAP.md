@@ -7,6 +7,8 @@ author: DevSynth Team
 
 # DevSynth Roadmap
 
+**Note:** DevSynth is currently in a pre-release stage. Refer to the [Release Plan](release_plan.md) for canonical milestones.
+
 This document provides a simplified overview of upcoming release milestones. For full details, see the [Release Plan](release_plan.md).
 
 - **Pre-0.1.0** – Internal iterations and prototype development. No package is published yet.

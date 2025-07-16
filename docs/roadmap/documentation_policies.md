@@ -11,6 +11,8 @@ version: 0.1.0
 
 # Documentation Policies
 
+**Note:** DevSynth is currently in a pre-release stage. Documentation guidelines may evolve before the 1.0 release.
+
 This document outlines the policies for maintaining high-quality documentation in the DevSynth project.
 
 ## Review Process

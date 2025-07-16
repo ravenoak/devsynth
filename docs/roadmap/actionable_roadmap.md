@@ -13,6 +13,8 @@ version: 0.1.0
 
 # DevSynth Actionable Implementation Roadmap
 
+**Note:** DevSynth is currently in a pre-release stage. The [Release Plan](release_plan.md) is the canonical source for roadmap updates.
+
 **Analysis Date:** May 29, 2025
 **Repository:** https://github.com/ravenoak/devsynth.git
 **Roadmap Timeline:** 24 months with quarterly milestones
