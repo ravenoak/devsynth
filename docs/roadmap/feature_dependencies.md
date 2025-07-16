@@ -12,7 +12,7 @@ version: 0.1.0
 
 # Feature Dependencies
 
-This document summarizes how major DevSynth features depend on one another. Understanding these relationships helps plan releases in a logical order.
+This document summarizes how major DevSynth features depend on one another. Understanding these relationships helps plan releases in a logical order. For each feature's implementation status, consult the [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 | Feature | Depends On | Notes |
 |---------|------------|-------|

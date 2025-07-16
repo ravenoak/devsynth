@@ -13,7 +13,7 @@ version: 0.1.0
 
 **Note:** DevSynth is currently in a pre-release stage. Documentation guidelines may evolve before the 1.0 release.
 
-This document outlines the policies for maintaining high-quality documentation in the DevSynth project.
+This document outlines the policies for maintaining high-quality documentation in the DevSynth project. For a snapshot of implementation progress, see the [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 ## Review Process
 

@@ -17,7 +17,8 @@ version: 0.1.0
 documents progress toward a future stable version while current builds remain in
 the `0.1.x` pre-release series.
 
-This section outlines the future plans and development trajectory for the DevSynth project.
+This section outlines the future plans and development trajectory for the DevSynth project. For
+current implementation progress, see the [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 ## Development Plans
 

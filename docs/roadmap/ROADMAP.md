@@ -9,7 +9,9 @@ author: DevSynth Team
 
 **Note:** DevSynth is currently in a pre-release stage. Refer to the [Release Plan](release_plan.md) for canonical milestones.
 
-This document provides a simplified overview of upcoming release milestones. For full details, see the [Release Plan](release_plan.md).
+This document provides a simplified overview of upcoming release milestones. For
+full details, see the [Release Plan](release_plan.md). Current feature progress
+is summarized in the [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 - **Pre-0.1.0** – Internal iterations and prototype development. No package is published yet.
 - **0.1.x** – Early previews focusing on stabilization and the Worker Self-Directed Enterprise model.
