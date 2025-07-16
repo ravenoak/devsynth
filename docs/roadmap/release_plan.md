@@ -24,10 +24,10 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
    - Anthropic and deterministic offline providers are fully implemented.
    - Address adoption barriers and ensure offline capabilities.
    - Establish baseline testing and documentation.
-   - Phase 1 is largely complete; remaining items include the WSDE peer review
-     workflow and resolving outstanding test failures. See the
+   - Phase 1 is largely complete; remaining tasks include finalizing the WSDE
+     peer review workflow and resolving outstanding test failures. See the
      [Feature Status Matrix](../implementation/feature_status_matrix.md) for
-     detailed progress.
+     detailed progress on collaboration features.
 
 2. **Production Readiness** (0.2.x–0.3.x – Q2 2025)
    - Polish CLI UX and integrate the initial Web UI.

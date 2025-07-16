@@ -15,7 +15,7 @@ version: 0.1.0
 
 **Note:** DevSynth is currently in a pre-release stage. Release automation steps may change until the project reaches 1.0.
 
-This document outlines the intended continuous integration workflow for tagging and publishing DevSynth releases. It consolidates the steps described in the archived **RELEASE_PLAN_UPDATE_PLAN** document and reflects the current repository layout.
+This document outlines the intended continuous integration workflow for tagging and publishing DevSynth releases. It consolidates the steps described in the archived **RELEASE_PLAN_UPDATE_PLAN** document and reflects the current repository layout. For deployment-related feature status, see the [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 ## Overview
 
