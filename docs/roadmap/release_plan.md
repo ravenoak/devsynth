@@ -15,6 +15,7 @@ last_reviewed: "2025-07-10"
 This document consolidates the various roadmap drafts into a single authoritative plan. **It is the canonical source for all roadmap updates.** It outlines the major phases leading to a stable 1.0 release and summarizes key version milestones.
 
 DevSynth remains in a pre-release stage. No official release has been published yet and versions in this plan are provisional. They follow the MAJOR.MINOR.PATCH-STABILITY notation defined in our [Semantic Versioning+ policy](../policies/semantic_versioning.md).
+Dependencies among major features are summarized in [Feature Dependencies](feature_dependencies.md) to clarify how releases build on each other.
 
 ## Phased Roadmap
 
