@@ -54,7 +54,7 @@ Each feature is scored on two dimensions:
 | Dialectical Reasoning | Complete | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
-| Memory System | Complete | src/devsynth/application/memory | 5 | 4 | None | | Complete with ChromaDB integration and vector store provider factory |
+| Memory System | Partial | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter currently a stub; vector store provider factory present. Full ChromaDB client support planned but not implemented |
 | Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
