@@ -35,17 +35,15 @@ workflows operate without network access.
 
 **Goals:** Finalize architectural components (EDRR, WSDE, providers, memory), resolve tech debt, and ensure code structure and config standards.
 
-* **Audit & Gap Analysis:** The Anthropic provider and offline mode are complete. Remaining gaps center on finalizing the EDRR framework and completing WSDE multi-agent workflows.
+* **Audit & Gap Analysis:** Per the [Feature Status Matrix](../implementation/feature_status_matrix.md), the Anthropic provider, offline mode, and WSDE peer review are implemented. Remaining gaps focus on finalizing EDRR tooling and memory store integration.
 
 * **UXBridge & Hexagonal Layers:** Ensure all interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction.  This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.  *(Task: write unit tests for `UXBridge.ask_question`/`display_result` to guarantee consistent behavior across CLI and future UI.)*
 
 * **Configuration & Requirements:** Confirm Python 3.12+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
-* **Offline Mode (Completed):** The offline provider supplies deterministic text and embeddings when `offline_mode` is enabled. CLI and WebUI fallbacks are verified with unit tests for provider selection.
+* **Offline Mode (Implemented):** The offline provider supplies deterministic text and embeddings when `offline_mode` is enabled. CLI and WebUI fallbacks are verified with unit tests for provider selection. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for status details.
 * **Optional Vector Stores:** Provide configuration examples for alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. Include docker-compose setup for the embedded ChromaDB backend.
 
-With these items complete, Phase 1 is considered largely finished. Remaining
-work focuses on finalizing the WSDE peer review workflow and fixing the
-outstanding test failures noted in the development status reports.
+With these items and the WSDE peer review implementation confirmed in the [Feature Status Matrix](../implementation/feature_status_matrix.md), Phase 1 is nearly finished. Remaining work involves integrating the ChromaDB adapter and resolving the outstanding test failures noted in the development status reports.
 
 * **Pseudocode & BDD Examples:** Draft pseudocode for core routines, e.g.:
 
