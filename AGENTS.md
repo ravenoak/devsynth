@@ -28,8 +28,9 @@ manually to make it succeed. To fix your environment:
 2. Run `bash scripts/codex_setup.sh` (without network access) until it completes
    without errors.
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
+4. Execute `poetry run pytest` to verify the environment.
 
-Development and test commands may fail until the setup script completes successfully and the marker file is removed.
+Development and test commands may fail until the setup script completes successfully, the marker file is removed, and the tests pass.
 
 ## Project Structure
 
