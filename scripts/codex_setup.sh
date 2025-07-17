@@ -1,16 +1,13 @@
 set -exo pipefail
 
-# Install the minimal runtime and development packages needed for tests.
-# Optional extras enable memory and LLM providers so pytest can run
-# without manual intervention in the offline environment.
+# Use the Python 3.12 interpreter for the Poetry environment
+poetry env use "$(command -v python3.12)"
+
+# Install all optional extras along with the dev and docs dependency groups.
+# This ensures memory and LLM providers are available for the test suite.
 poetry install \
-  --with dev \
-  --with docs \
-  --extras docs \
-  --extras minimal \
-  --extras memory \
-  --extras llm \
-  --extras dev \
+  --with dev,docs \
+  --all-extras \
   --no-interaction
 
 # Verify key packages are present
