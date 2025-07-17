@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 import os
+import pytest
+pytest.importorskip("lmstudio")
+pytestmark = pytest.mark.requires_resource("lmstudio")
 from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 import requests
 from devsynth.application.utils.token_tracker import TokenTracker, TokenLimitExceededError
