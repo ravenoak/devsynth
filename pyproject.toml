@@ -118,6 +118,7 @@ minimal = [
 retrieval = ["kuzu", "faiss-cpu"]
 dsp = ["dspy-ai"]
 chromadb = ["chromadb"]
+lmstudio = ["lmstudio"]
 memory = ["tinydb", "duckdb", "lmdb", "kuzu", "faiss-cpu", "chromadb"]
 llm = ["tiktoken", "httpx", "dspy-ai"]
 dev = [

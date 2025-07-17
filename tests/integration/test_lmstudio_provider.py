@@ -2,7 +2,12 @@ import os
 import pytest
 import tempfile
 from unittest.mock import patch, MagicMock
-from devsynth.application.llm.lmstudio_provider import LMStudioProvider, LMStudioConnectionError, LMStudioModelError
+pytest.importorskip("lmstudio")
+from devsynth.application.llm.lmstudio_provider import (
+    LMStudioProvider,
+    LMStudioConnectionError,
+    LMStudioModelError,
+)
 lmstudio_available = pytest.mark.requires_resource('lmstudio')
 
 
