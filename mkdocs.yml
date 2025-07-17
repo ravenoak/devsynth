@@ -103,7 +103,7 @@ nav:
     - Development Plan: roadmap/development_plan.md
     - Development Status: roadmap/development_status.md
     - Documentation Policies: roadmap/documentation_policies.md
-    - Testing Infrastructure: roadmap/testing_infrastructure.md
+    - Testing Infrastructure: specifications/testing_infrastructure.md
   - Changelog: CHANGELOG.md
 
 markdown_extensions:
