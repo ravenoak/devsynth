@@ -55,8 +55,8 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
   providers, baseline CLI commands, and initial EDRR/WSDE integration.
 - **0.1.0-beta.1**: WSDE peer review workflow completed, Web UI preview
   available, and major tests passing.
-- **0.1.0-rc.1**: Documentation freeze and full test suite passing in
-  preparation for 1.0 release.
+- **0.1.0-rc.1**: Documentation freeze and full test suite passing as the
+  release candidate for version 0.1.0.
 - **0.2.0–0.6.0**: Incremental releases adding collaboration, Web UI, and testing improvements.
 - **0.2.x**: Multi-language code generation support.
 - **0.3.x**: AST mutation tooling for refactoring.
