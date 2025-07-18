@@ -101,8 +101,12 @@ class ConsensusBuildingMixin:
                 "timestamp": datetime.now().isoformat()
             }
         else:
-            # If no conflicts, use majority opinion
-            majority_opinion = self._identify_majority_opinion(agent_opinions)
+            # If no conflicts, use weighted majority opinion with tie breaking
+            task_text = task.get("description", "") + " " + task.get("title", "")
+            keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
+            majority_opinion = self._identify_weighted_majority_opinion(
+                agent_opinions, keywords
+            )
 
             consensus_result = {
                 "task_id": task["id"],
@@ -439,6 +443,45 @@ class ConsensusBuildingMixin:
         majority_opinion = max(opinion_counts.items(), key=lambda x: x[1])[0]
 
         return majority_opinion
+
+    def _identify_weighted_majority_opinion(
+        self, agent_opinions: Dict[str, Dict[str, Any]], keywords: set
+    ) -> str:
+        """Identify the majority opinion using expertise-based weighting.
+
+        Args:
+            agent_opinions: Mapping of agent names to opinion data
+            keywords: Keywords extracted from the task context
+
+        Returns:
+            The opinion with the highest weighted support
+        """
+        # Build expertise weights for all agents
+        weights = {
+            agent.name: self._calculate_expertise_weight(agent, keywords)
+            for agent in self.agents
+        }
+
+        # Sum weighted support for each opinion
+        weighted_counts: Dict[str, float] = {}
+        for agent_name, data in agent_opinions.items():
+            opinion = data["opinion"]
+            weight = weights.get(agent_name, 1.0)
+            weighted_counts[opinion] = weighted_counts.get(opinion, 0.0) + weight
+
+        # Determine winning opinion
+        max_weight = max(weighted_counts.values()) if weighted_counts else 0
+        top_opinions = [op for op, val in weighted_counts.items() if val == max_weight]
+
+        if len(top_opinions) > 1:
+            primus = getattr(self, "get_primus", lambda: None)()
+            if primus and primus.name in agent_opinions:
+                primus_choice = agent_opinions[primus.name]["opinion"]
+                if primus_choice in top_opinions:
+                    return primus_choice
+            return top_opinions[0]
+
+        return top_opinions[0] if top_opinions else ""
 
     def _calculate_expertise_weight(self, agent: Any, keywords: set) -> float:
         """

@@ -40,6 +40,10 @@ class TaskManagementMixin:
         # Log the task processing
         self.logger.info(f"Processing task {task['id']}: {task.get('title', 'Untitled')}")
 
+        # Dynamically reassign roles for this task based on expertise
+        if hasattr(self, "dynamic_role_reassignment"):
+            self.dynamic_role_reassignment(task)
+
         # Check if task has subtasks defined
         if "subtasks" in task and task["subtasks"]:
             subtasks = task["subtasks"]
