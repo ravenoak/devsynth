@@ -7,7 +7,6 @@ within the EDRR framework to analyze and transform code during the development p
 """
 import os
 import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.domain.models.wsde import WSDETeam
@@ -70,17 +69,16 @@ class CodeAnalysisAgent(UnifiedAgent):
 
 
 @pytest.fixture
-def code_analysis_coordinator():
+def code_analysis_coordinator(tmp_path_factory):
     """Create an EDRR coordinator with code analysis components."""
     memory_manager = MemoryManager()
     code_analyzer = CodeAnalyzer()
     ast_transformer = AstTransformer()
     with pytest.MonkeyPatch.context() as mp:
-        with pytest.TempPathFactory.getbasetemp().joinpath('test_project'
-            ).open('w') as f:
-            f.write('# Test project')
-        project_path = str(pytest.TempPathFactory.getbasetemp().joinpath(
-            'test_project'))
+        temp_dir = tmp_path_factory.getbasetemp()
+        project_file = temp_dir.joinpath('test_project')
+        project_file.write_text('# Test project')
+        project_path = str(project_file)
         mp.setenv('DEVSYNTH_PROJECT_DIR', project_path)
         project_analyzer = ProjectStateAnalyzer(project_path)
         self_analyzer = SelfAnalyzer(project_path)

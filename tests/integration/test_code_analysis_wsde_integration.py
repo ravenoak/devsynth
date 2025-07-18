@@ -7,7 +7,6 @@ within the WSDE framework to analyze and transform code during the development p
 """
 import os
 import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.memory.memory_manager import MemoryManager
@@ -97,17 +96,16 @@ class CodeAnalysisAgent(UnifiedAgent):
 
 
 @pytest.fixture
-def wsde_team_with_code_analysis():
+def wsde_team_with_code_analysis(tmp_path_factory):
     """Create a WSDE team with code analysis components."""
     memory_manager = MemoryManager()
     code_analyzer = CodeAnalyzer()
     ast_transformer = AstTransformer()
     with pytest.MonkeyPatch.context() as mp:
-        with pytest.TempPathFactory.getbasetemp().joinpath('test_project'
-            ).open('w') as f:
-            f.write('# Test project')
-        project_path = str(pytest.TempPathFactory.getbasetemp().joinpath(
-            'test_project'))
+        temp_dir = tmp_path_factory.getbasetemp()
+        project_file = temp_dir.joinpath('test_project')
+        project_file.write_text('# Test project')
+        project_path = str(project_file)
         mp.setenv('DEVSYNTH_PROJECT_DIR', project_path)
         project_analyzer = ProjectStateAnalyzer(project_path)
         self_analyzer = SelfAnalyzer(project_path)
