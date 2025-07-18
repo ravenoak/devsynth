@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from devsynth.domain.models.memory import MemoryType, MemoryItem
+from devsynth.domain.models.memory import MemoryType, MemoryItem, MemoryItemType
 
 
 class TestMemoryModels:
@@ -44,3 +44,16 @@ ReqID: N/A"""
         assert memory_item.memory_type == MemoryType.LONG_TERM
         assert memory_item.metadata == custom_metadata
         assert memory_item.created_at == custom_time
+
+    def test_memory_type_aliases(self):
+        """Ensure enum aliases reference the same member."""
+
+        # WORKING_MEMORY should refer to the same enum member as WORKING
+        assert MemoryType.WORKING_MEMORY is MemoryType.WORKING
+
+    def test_memory_item_type_alias(self):
+        """Ensure MemoryItemType is an alias of MemoryType."""
+
+        assert MemoryItemType is MemoryType
+        # Spot check a member via the alias
+        assert MemoryItemType.SHORT_TERM is MemoryType.SHORT_TERM
