@@ -49,37 +49,37 @@ Each feature is scored on two dimensions:
 | Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Complete | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, CLI integration, and tracing implemented |
-| WSDE Agent Collaboration | Complete | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, weighted consensus, and dynamic role reassignment validated by integration tests |
-| Dialectical Reasoning | Complete | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
+| EDRR Framework | Partial | src/devsynth/application/edrr | 5 | 4 | Agent Orchestration | | Core modules present but integration tests failing |
+| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Collaboration logic exists but end-to-end tests failing |
+| Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Initial hooks implemented, reasoning flow incomplete |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
-| Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
+| Peer Review Mechanism | Partial | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
 | Memory System | Partial | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter with full client support available |
 | Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
-| LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
-| Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
-| Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
-| Methodology Integration Framework | Complete | src/devsynth/methodology | 3 | 3 | None | | Sprint adapter implemented, others planned |
-| Sprint-EDRR Integration | Complete | src/devsynth/methodology/sprint.py | 3 | 3 | Methodology Integration Framework | | Basic mapping of sprint ceremonies to EDRR phases |
+| LM Studio Integration | Partial | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
+| Code Analysis | Partial | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor present, integration tests failing |
+| Knowledge Graph Utilities | Partial | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
+| Methodology Integration Framework | Partial | src/devsynth/methodology | 3 | 3 | None | | Sprint adapter implemented, additional adapters pending |
+| Sprint-EDRR Integration | Partial | src/devsynth/methodology/sprint.py | 3 | 3 | Methodology Integration Framework | | Basic mapping present, advanced flows missing |
 | **User-Facing Features** |
-| CLI Interface | Complete | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested |
-| Project Initialization | Complete | src/devsynth/application/orchestration/workflow.py, src/devsynth/application/agents/unified_agent.py | 5 | 2 | None | | Complete with configuration options |
-| Code Generation | Complete | src/devsynth/application/agents/code.py | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
-| Test Generation | Complete | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
-| Documentation Generation | Complete | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
+| CLI Interface | Partial | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | Basic commands implemented; UX bridge tests failing |
+| Project Initialization | Partial | src/devsynth/application/orchestration/workflow.py, src/devsynth/application/agents/unified_agent.py | 5 | 2 | None | | Initial workflow present, advanced options incomplete |
+| Code Generation | Partial | src/devsynth/application/agents/code.py | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
+| Test Generation | Partial | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
+| Documentation Generation | Partial | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
 | **Infrastructure Components** |
-| Docker Containerization | Complete | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
+| Docker Containerization | Partial | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided, production hardening pending |
 | Configuration Management | Complete | src/devsynth/config, config/ | 4 | 3 | None | | Environment-specific templates available |
-| Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows |
-| Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
-| Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
+| Deployment Automation | Partial | docker-compose.yml, deployment | 3 | 3 | Docker | | Basic Docker Compose workflows |
+| Security Framework | Partial | src/devsynth/security | 4 | 4 | None | | Environment validation in place, advanced policies incomplete |
+| Dependency Management | Partial | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
 | Metrics Commands | Complete | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, test_metrics_cmd.py | 3 | 2 | None | | `alignment_metrics` and `test_metrics` commands available |
 | **Planned/Unimplemented Features** |
-| Core Values Subsystem | Complete | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods added for value management and report validation |
-| Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |
+| Core Values Subsystem | Partial | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods exist, integration with policies pending |
+| Guided Setup Wizard | Partial | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests, WebUI integration pending |
 | Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Unit tests validate provider; CLI selects it with the `offline_mode` flag |
-| Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
-| Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented |
+| Prompt Auto-Tuning | Partial | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Initial utilities present, integration hooks incomplete |
+| Extended WebUI Pages | Partial | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages implemented, error handling tests failing |
 | Multi-Language Code Generation | Partial | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Supports Python and JavaScript generation |
 
 ## Current Limitations and Workarounds
