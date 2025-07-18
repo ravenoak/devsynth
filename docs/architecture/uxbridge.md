@@ -2,7 +2,7 @@
 author: DevSynth Team
 date: '2025-06-16'
 last_reviewed: "2025-07-10"
-status: draft
+status: published
 tags:
 
 - architecture
@@ -96,6 +96,14 @@ function some_command(args, bridge=bridge):
 - **CLI Implementation:** `src/devsynth/interface/cli.py`
 - **Bridge Definition:** `src/devsynth/interface/ux_bridge.py`
 - **Workflow Functions:** `src/devsynth/core/workflows.py`
+
+Additional documentation that explains how the bridge integrates with the user
+interfaces can be found in:
+
+- **[CLI to WebUI Command Mapping](cli_webui_mapping.md)** – shows how each CLI
+  command corresponds to a WebUI page using the `UXBridge` layer.
+- **[WebUI Architecture Overview](webui_overview.md)** – details how the
+  Streamlit interface implements `UXBridge` for feature parity with the CLI.
 
 
 The UXBridge ensures these components remain loosely coupled, enabling a smooth
