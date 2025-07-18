@@ -1,7 +1,7 @@
 set -exo pipefail
 
-# Use the Python 3.12 interpreter for the Poetry environment
-poetry env use "$(command -v python3.12)"
+# Use Python 3.12 if available, otherwise fall back to Python 3.11
+poetry env use "$(command -v python3.12 || command -v python3.11)"
 
 # Install all optional extras along with the dev and docs dependency groups.
 # This ensures memory and LLM providers are available for the test suite.
