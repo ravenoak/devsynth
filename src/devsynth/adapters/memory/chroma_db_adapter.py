@@ -27,24 +27,37 @@ logger = DevSynthLogger(__name__)
 class ChromaDBAdapter(VectorStore):
     """ChromaDB implementation of the VectorStore interface."""
 
-    def __init__(self, persist_directory: str, collection_name: str = "devsynth_vectors"):
+    def __init__(
+        self,
+        persist_directory: str,
+        collection_name: str = "devsynth_vectors",
+        *,
+        host: Optional[str] = None,
+        port: int = 8000,
+    ):
         """
         Initialize the ChromaDB adapter.
 
         Args:
             persist_directory: Directory where ChromaDB will store its data
             collection_name: Name of the ChromaDB collection to use
+            host: Optional remote ChromaDB host
+            port: Port for the remote ChromaDB server
         """
         self.persist_directory = persist_directory
         self.collection_name = collection_name
 
-        # Ensure the directory exists
         os.makedirs(persist_directory, exist_ok=True)
 
-        # Initialize ChromaDB client
         try:
-            self.client = chromadb.PersistentClient(path=persist_directory)
-            logger.info(f"Initialized ChromaDB client with persist directory: {persist_directory}")
+            if host:
+                logger.info("Connecting to remote ChromaDB host %s:%s", host, port)
+                self.client = chromadb.HttpClient(host=host, port=port)
+            else:
+                self.client = chromadb.PersistentClient(path=persist_directory)
+                logger.info(
+                    f"Initialized ChromaDB client with persist directory: {persist_directory}"
+                )
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB client: {e}")
             raise MemoryStoreError(f"Failed to initialize ChromaDB client: {e}")

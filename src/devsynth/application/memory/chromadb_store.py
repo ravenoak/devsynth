@@ -54,16 +54,30 @@ class ChromaDBStore(MemoryStore):
     - Optimized embedding storage for similar content
     """
 
-    def __init__(self, file_path: str):
+    def __init__(
+        self,
+        file_path: str,
+        *,
+        host: Optional[str] = None,
+        port: int = 8000,
+        collection_name: str | None = None,
+        versions_collection_name: str | None = None,
+    ):
         """
         Initialize the ChromaDB store.
 
         Args:
             file_path: Path to the directory where ChromaDB will store its data
+            host: Optional remote host for an existing ChromaDB server
+            port: Port for the remote ChromaDB server (default: 8000)
+            collection_name: Name of the primary collection
+            versions_collection_name: Name of the versions collection
         """
         self.file_path = file_path
-        self.collection_name = "devsynth_memory"
-        self.versions_collection_name = "devsynth_memory_versions"
+        self.collection_name = collection_name or "devsynth_memory"
+        self.versions_collection_name = (
+            versions_collection_name or "devsynth_memory_versions"
+        )
         self._token_usage = 0
         self._cache = {}  # Simple in-memory cache
         self._embedding_optimization_enabled = True
@@ -75,16 +89,23 @@ class ChromaDBStore(MemoryStore):
             "yes",
         )
 
-        # Only create directories if not in a test environment with file operations disabled
-        if not no_file_logging:
-            # Ensure the directory exists
-            os.makedirs(file_path, exist_ok=True)
-            # Initialize real ChromaDB client
-            self.client = chromadb.PersistentClient(path=file_path)
+        if host:
+            # Connect to a remote ChromaDB server
+            logger.info(
+                "Connecting to remote ChromaDB host %s:%s", host, port
+            )
+            self.client = chromadb.HttpClient(host=host, port=port)
         else:
-            # In test environments, use an in-memory client to avoid file system operations
-            logger.info("Using in-memory ChromaDB client for test environment")
-            self.client = chromadb.EphemeralClient()
+            # Only create directories if not in a test environment with file operations disabled
+            if not no_file_logging:
+                os.makedirs(file_path, exist_ok=True)
+                self.client = chromadb.PersistentClient(path=file_path)
+            else:
+                # In test environments, use an in-memory client to avoid file system operations
+                logger.info(
+                    "Using in-memory ChromaDB client for test environment"
+                )
+                self.client = chromadb.EphemeralClient()
 
         # Get or create the main collection
         self._use_fallback = False

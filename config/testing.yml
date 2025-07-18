@@ -11,8 +11,11 @@ memory:
   default_store: kuzu
   stores:
     chromadb:
+      enabled: true
       persist_directory: /tmp/devsynth-test/chromadb  # Ephemeral storage for tests
       collection_name: devsynth-test
+      host: null
+      port: 8000
     kuzu:
       persist_directory: /tmp/devsynth-test/kuzu
 

@@ -209,6 +209,12 @@ class Settings(BaseSettings):
     chromadb_distance_func: str = Field(
         default="cosine", json_schema_extra={"env": "DEVSYNTH_CHROMADB_DISTANCE_FUNC"}
     )
+    chromadb_host: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_CHROMADB_HOST"}
+    )
+    chromadb_port: int = Field(
+        default=8000, json_schema_extra={"env": "DEVSYNTH_CHROMADB_PORT"}
+    )
 
     enable_chromadb: bool = Field(
         default=False,

@@ -12,8 +12,11 @@ memory:
   default_store: kuzu
   stores:
     chromadb:
+      enabled: true
       persist_directory: /data/devsynth-staging/chromadb
       collection_name: devsynth-staging
+      host: null
+      port: 8000
     kuzu:
       persist_directory: /data/devsynth-staging/kuzu
     faiss:

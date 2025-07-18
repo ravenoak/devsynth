@@ -67,6 +67,8 @@ CONFIG_SCHEMA = {
                                 "collection_name": {"type": "string"},
                                 "distance_function": {"type": "string"},
                                 "persist_directory": {"type": "string"},
+                                "host": {"type": ["string", "null"]},
+                                "port": {"type": "integer"},
                             },
                         },
                         "kuzu": {
