@@ -117,6 +117,7 @@ class EDRRCoordinator:
 
         # Register EDRR templates with the prompt manager
         from .templates import register_edrr_templates
+
         register_edrr_templates(prompt_manager)
         self.config = config or _DEFAULT_CONFIG
         edrr_cfg = self.config.get("edrr", {})
@@ -221,7 +222,9 @@ class EDRRCoordinator:
                     item_type, edrr_phase, metadata
                 )
             else:
-                logger.warning("Memory manager does not support retrieve_with_edrr_phase")
+                logger.warning(
+                    "Memory manager does not support retrieve_with_edrr_phase"
+                )
                 return {}
         except Exception as e:
             logger.error(f"Failed to retrieve memory item with EDRR phase: {e}")
@@ -241,6 +244,35 @@ class EDRRCoordinator:
         self.results = {}
         self.manifest = None
         self._cycle_start_time = datetime.now()
+
+        # Load historical data for adaptive phase transitions
+        if not hasattr(self, "_historical_data"):
+            self._historical_data = []
+        if hasattr(self.memory_manager, "search"):
+            try:
+                self._historical_data = [
+                    item.get("content", item)
+                    for item in self.memory_manager.search(
+                        None, "HISTORICAL_CYCLE_DATA", None, None
+                    )
+                ]
+            except Exception:
+                self._historical_data = []
+        self._adjusted_criteria = {}
+
+        # Pre-calculate duration adjustment factors based on task complexity
+        complexity = self.task.get("complexity_score")
+        if complexity is not None:
+            factor = 1.0 + float(complexity) / 10.0
+            for phase in [
+                Phase.EXPAND,
+                Phase.DIFFERENTIATE,
+                Phase.REFINE,
+                Phase.RETROSPECT,
+            ]:
+                self.performance_metrics.setdefault(phase.name, {})[
+                    "duration_adjustment_factor"
+                ] = factor
 
         if self._enable_enhanced_logging:
             self._execution_traces = {
@@ -262,15 +294,12 @@ class EDRRCoordinator:
 
         # Initial role assignment before the first phase using dynamic roles
         self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
-        role_metadata = {
-            "cycle_id": self.cycle_id,
-            "type": "ROLE_ASSIGNMENT"
-        }
+        role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
         self._safe_store_with_edrr_phase(
             self.wsde_team.get_role_map(),
             MemoryType.TEAM_STATE,
             Phase.EXPAND.value,
-            role_metadata
+            role_metadata,
         )
 
         # Enter the Expand phase
@@ -321,6 +350,33 @@ class EDRRCoordinator:
             self.results = {}
             self._cycle_start_time = datetime.now()
 
+            if not hasattr(self, "_historical_data"):
+                self._historical_data = []
+            if hasattr(self.memory_manager, "search"):
+                try:
+                    self._historical_data = [
+                        item.get("content", item)
+                        for item in self.memory_manager.search(
+                            None, "HISTORICAL_CYCLE_DATA", None, None
+                        )
+                    ]
+                except Exception:
+                    self._historical_data = []
+            self._adjusted_criteria = {}
+
+            complexity = self.task.get("complexity_score")
+            if complexity is not None:
+                factor = 1.0 + float(complexity) / 10.0
+                for phase in [
+                    Phase.EXPAND,
+                    Phase.DIFFERENTIATE,
+                    Phase.REFINE,
+                    Phase.RETROSPECT,
+                ]:
+                    self.performance_metrics.setdefault(phase.name, {})[
+                        "duration_adjustment_factor"
+                    ] = factor
+
             if self._enable_enhanced_logging:
                 self._execution_traces = {
                     "cycle_id": self.cycle_id,
@@ -344,10 +400,7 @@ class EDRRCoordinator:
                 ],
             }
             self._safe_store_with_edrr_phase(
-                self.task,
-                MemoryType.TASK_HISTORY,
-                Phase.EXPAND.value,
-                metadata
+                self.task, MemoryType.TASK_HISTORY, Phase.EXPAND.value, metadata
             )
 
             manifest_metadata = {
@@ -358,23 +411,17 @@ class EDRRCoordinator:
                 ),
             }
             self._safe_store_with_edrr_phase(
-                self.manifest,
-                MemoryType.CONTEXT,
-                Phase.EXPAND.value,
-                manifest_metadata
+                self.manifest, MemoryType.CONTEXT, Phase.EXPAND.value, manifest_metadata
             )
 
             # Initial role assignment before the first phase using dynamic roles
             self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
-            role_metadata = {
-                "cycle_id": self.cycle_id,
-                "type": "ROLE_ASSIGNMENT"
-            }
+            role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
             self._safe_store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
                 MemoryType.TEAM_STATE,
                 Phase.EXPAND.value,
-                role_metadata
+                role_metadata,
             )
 
             # Enter the Expand phase
@@ -419,24 +466,41 @@ class EDRRCoordinator:
             if previous_phase is not None:
                 self.wsde_team.rotate_primus()
 
+            # Preserve context from the previous phase
+            if previous_phase and previous_phase.name in self.results:
+                self._preserved_context = getattr(self, "_preserved_context", {})
+                self._preserved_context[previous_phase.name] = copy.deepcopy(
+                    self.results[previous_phase.name]
+                )
+
             # Dynamic role assignment for the new phase
             self.wsde_team.assign_roles_for_phase(phase, self.task)
-            role_metadata = {
-                "cycle_id": self.cycle_id,
-                "type": "ROLE_ASSIGNMENT"
-            }
+            role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
             self._safe_store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
                 MemoryType.TEAM_STATE,
                 phase.value,
-                role_metadata
+                role_metadata,
             )
 
             # Store the phase transition in memory
             phase_metadata = {
                 "cycle_id": self.cycle_id,
-                "type": "PHASE_TRANSITION"
+                "type": "PHASE_TRANSITION",
             }
+            # Include quality metrics if available
+            if previous_phase and previous_phase.name in self.results:
+                prev_results = self.results[previous_phase.name]
+                if "quality_score" in prev_results:
+                    phase_metadata["quality_metrics"] = {
+                        "quality_score": prev_results["quality_score"],
+                    }
+            if self._historical_data:
+                phase_metadata["historical_data_references"] = [
+                    {"cycle_id": d.get("cycle_id")}
+                    for d in self._historical_data
+                    if isinstance(d, dict) and d.get("cycle_id")
+                ]
             self._safe_store_with_edrr_phase(
                 {
                     "from": previous_phase.value if previous_phase else None,
@@ -444,7 +508,7 @@ class EDRRCoordinator:
                 },
                 MemoryType.EPISODIC,
                 phase.value,
-                phase_metadata
+                phase_metadata,
             )
 
             # Update the current phase
@@ -474,16 +538,23 @@ class EDRRCoordinator:
 
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
-            self.performance_metrics[phase.name] = {
-                "duration": duration,
-                "memory_usage": len(str(results)),
-                "component_calls": {
+            perf = self.performance_metrics.setdefault(phase.name, {})
+            perf["duration"] = duration
+            perf["memory_usage"] = len(str(results))
+            perf.setdefault(
+                "component_calls",
+                {
                     "wsde_team": 1,
                     "code_analyzer": 1,
                     "prompt_manager": 1,
                     "documentation_manager": 1,
                 },
-            }
+            )
+            if "duration_adjustment_factor" in perf:
+                perf["original_duration"] = duration
+                perf["adjusted_duration"] = (
+                    duration * perf["duration_adjustment_factor"]
+                )
 
             if self._enable_enhanced_logging:
                 self._execution_history.append(
@@ -494,6 +565,12 @@ class EDRRCoordinator:
                         "details": {"duration": duration},
                     }
                 )
+
+            # Attach preserved context to results for reference
+            if hasattr(self, "_preserved_context"):
+                results["context"] = {
+                    "previous_phases": copy.deepcopy(self._preserved_context)
+                }
 
             # Save results
             self.results[phase.name] = results
@@ -561,6 +638,25 @@ class EDRRCoordinator:
         next_phase = phase_order[idx + 1]
 
         phase_results = self.results.get(self.current_phase.name, {})
+        # Respect quality thresholds before transitioning
+        thresholds = (
+            self.config.get("edrr", {})
+            .get("phase_transitions", {})
+            .get("quality_thresholds", {})
+        )
+        q_threshold = thresholds.get(self.current_phase.value.lower())
+        if (
+            q_threshold is not None
+            and phase_results.get("quality_score", 1.0) < q_threshold
+        ):
+            phase_results.setdefault("quality_issues", []).append(
+                {
+                    "threshold": q_threshold,
+                    "score": phase_results.get("quality_score", 0.0),
+                }
+            )
+            phase_results["additional_processing"] = True
+            return None
         if phase_results.get("phase_complete", False) is True:
             return next_phase
 
@@ -732,13 +828,23 @@ class EDRRCoordinator:
         thresholds = recursion_cfg.get("thresholds", {})
 
         # Extract thresholds with defaults
-        granularity_threshold = thresholds.get("granularity", self.DEFAULT_GRANULARITY_THRESHOLD)
-        cost_benefit_ratio = thresholds.get("cost_benefit", self.DEFAULT_COST_BENEFIT_RATIO)
+        granularity_threshold = thresholds.get(
+            "granularity", self.DEFAULT_GRANULARITY_THRESHOLD
+        )
+        cost_benefit_ratio = thresholds.get(
+            "cost_benefit", self.DEFAULT_COST_BENEFIT_RATIO
+        )
         quality_threshold = thresholds.get("quality", self.DEFAULT_QUALITY_THRESHOLD)
         resource_limit = thresholds.get("resource", self.DEFAULT_RESOURCE_LIMIT)
-        complexity_threshold = thresholds.get("complexity", self.DEFAULT_COMPLEXITY_THRESHOLD)
-        convergence_threshold = thresholds.get("convergence", self.DEFAULT_CONVERGENCE_THRESHOLD)
-        diminishing_returns = thresholds.get("diminishing_returns", self.DEFAULT_DIMINISHING_RETURNS_THRESHOLD)
+        complexity_threshold = thresholds.get(
+            "complexity", self.DEFAULT_COMPLEXITY_THRESHOLD
+        )
+        convergence_threshold = thresholds.get(
+            "convergence", self.DEFAULT_CONVERGENCE_THRESHOLD
+        )
+        diminishing_returns = thresholds.get(
+            "diminishing_returns", self.DEFAULT_DIMINISHING_RETURNS_THRESHOLD
+        )
 
         # Initialize termination factors dictionary to track all potential termination reasons
         termination_factors = {}
@@ -760,7 +866,11 @@ class EDRRCoordinator:
                 termination_factors["granularity"] = {
                     "score": granularity_score,
                     "threshold": granularity_threshold,
-                    "severity": "high" if granularity_score < granularity_threshold * 0.5 else "medium"
+                    "severity": (
+                        "high"
+                        if granularity_score < granularity_threshold * 0.5
+                        else "medium"
+                    ),
                 }
 
                 # For backward compatibility with tests
@@ -768,16 +878,16 @@ class EDRRCoordinator:
                     return True, "granularity threshold"
 
         elif "description" in task and (
-            task.get("description", "").startswith("Very small") or 
-            task.get("description", "").startswith("Very granular") or
-            task.get("description", "") == "Too granular"
+            task.get("description", "").startswith("Very small")
+            or task.get("description", "").startswith("Very granular")
+            or task.get("description", "") == "Too granular"
         ):
             # For BDD tests that use descriptive task names without explicit scores
             termination_factors["granularity"] = {
                 "score": 0.1,  # Inferred low score
                 "threshold": granularity_threshold,
                 "severity": "high",
-                "inferred": True
+                "inferred": True,
             }
             return True, "granularity threshold"
 
@@ -785,28 +895,34 @@ class EDRRCoordinator:
         if "cost_score" in task and "benefit_score" in task:
             cost_score = task["cost_score"]
             benefit_score = task["benefit_score"]
-            cost_benefit_value = cost_score / benefit_score if benefit_score > 0 else float("inf")
+            cost_benefit_value = (
+                cost_score / benefit_score if benefit_score > 0 else float("inf")
+            )
             if cost_benefit_value > cost_benefit_ratio:
                 termination_factors["cost_benefit"] = {
                     "score": cost_benefit_value,
                     "threshold": cost_benefit_ratio,
-                    "severity": "high" if cost_benefit_value > cost_benefit_ratio * 2 else "medium"
+                    "severity": (
+                        "high"
+                        if cost_benefit_value > cost_benefit_ratio * 2
+                        else "medium"
+                    ),
                 }
 
                 # For backward compatibility with tests
                 return True, "cost-benefit analysis"
 
         elif "description" in task and (
-            task.get("description", "").startswith("High cost") or 
-            task.get("description", "").startswith("High-cost") or
-            "high-cost low-benefit" in task.get("description", "").lower()
+            task.get("description", "").startswith("High cost")
+            or task.get("description", "").startswith("High-cost")
+            or "high-cost low-benefit" in task.get("description", "").lower()
         ):
             # For BDD tests that use descriptive task names without explicit scores
             termination_factors["cost_benefit"] = {
                 "score": cost_benefit_ratio * 1.5,  # Inferred high ratio
                 "threshold": cost_benefit_ratio,
                 "severity": "medium",
-                "inferred": True
+                "inferred": True,
             }
             return True, "cost-benefit analysis"
 
@@ -817,22 +933,24 @@ class EDRRCoordinator:
                 termination_factors["quality"] = {
                     "score": quality_score,
                     "threshold": quality_threshold,
-                    "severity": "high" if quality_score > quality_threshold * 1.2 else "medium"
+                    "severity": (
+                        "high" if quality_score > quality_threshold * 1.2 else "medium"
+                    ),
                 }
 
                 # For backward compatibility with tests
                 return True, "quality threshold"
 
         elif "description" in task and (
-            task.get("description", "").startswith("High quality") or
-            "already meets quality" in task.get("description", "").lower()
+            task.get("description", "").startswith("High quality")
+            or "already meets quality" in task.get("description", "").lower()
         ):
             # For BDD tests that use descriptive task names without explicit scores
             termination_factors["quality"] = {
                 "score": quality_threshold * 1.1,  # Inferred high score
                 "threshold": quality_threshold,
                 "severity": "medium",
-                "inferred": True
+                "inferred": True,
             }
             return True, "quality threshold"
 
@@ -843,22 +961,24 @@ class EDRRCoordinator:
                 termination_factors["resource"] = {
                     "score": resource_usage,
                     "threshold": resource_limit,
-                    "severity": "high" if resource_usage > resource_limit * 1.2 else "medium"
+                    "severity": (
+                        "high" if resource_usage > resource_limit * 1.2 else "medium"
+                    ),
                 }
 
                 # For backward compatibility with tests
                 return True, "resource limit"
 
         elif "description" in task and (
-            task.get("description", "").startswith("Resource intensive") or
-            "resource-intensive" in task.get("description", "").lower()
+            task.get("description", "").startswith("Resource intensive")
+            or "resource-intensive" in task.get("description", "").lower()
         ):
             # For BDD tests that use descriptive task names without explicit scores
             termination_factors["resource"] = {
                 "score": resource_limit * 1.1,  # Inferred high usage
                 "threshold": resource_limit,
                 "severity": "medium",
-                "inferred": True
+                "inferred": True,
             }
             return True, "resource limit"
 
@@ -869,7 +989,11 @@ class EDRRCoordinator:
                 termination_factors["complexity"] = {
                     "score": complexity_score,
                     "threshold": complexity_threshold,
-                    "severity": "high" if complexity_score > complexity_threshold * 1.2 else "medium"
+                    "severity": (
+                        "high"
+                        if complexity_score > complexity_threshold * 1.2
+                        else "medium"
+                    ),
                 }
 
                 # For backward compatibility with tests
@@ -882,11 +1006,14 @@ class EDRRCoordinator:
                 termination_factors["convergence"] = {
                     "score": convergence_score,
                     "threshold": convergence_threshold,
-                    "severity": "medium"
+                    "severity": "medium",
                 }
 
                 # For backward compatibility with tests
-                if "convergence_score" in task and task.get("convergence_score", 0) >= 0.95:
+                if (
+                    "convergence_score" in task
+                    and task.get("convergence_score", 0) >= 0.95
+                ):
                     return True, "convergence threshold"
 
         # Check diminishing returns
@@ -896,11 +1023,18 @@ class EDRRCoordinator:
                 termination_factors["diminishing_returns"] = {
                     "score": improvement_rate,
                     "threshold": diminishing_returns,
-                    "severity": "medium" if improvement_rate < diminishing_returns * 0.5 else "low"
+                    "severity": (
+                        "medium"
+                        if improvement_rate < diminishing_returns * 0.5
+                        else "low"
+                    ),
                 }
 
                 # For backward compatibility with tests
-                if "improvement_rate" in task and task.get("improvement_rate", 1.0) <= 0.15:
+                if (
+                    "improvement_rate" in task
+                    and task.get("improvement_rate", 1.0) <= 0.15
+                ):
                     return True, "diminishing returns"
 
         # Check parent phase compatibility
@@ -910,27 +1044,29 @@ class EDRRCoordinator:
                 termination_factors["parent_phase"] = {
                     "phase": self.parent_phase.name,
                     "depth": self.recursion_depth,
-                    "severity": "medium"
+                    "severity": "medium",
                 }
 
                 # For backward compatibility with tests
                 return True, "parent phase compatibility"
 
         # Check historical effectiveness based on memory
-        if self.memory_manager and hasattr(self.memory_manager, "retrieve_historical_patterns"):
+        if self.memory_manager and hasattr(
+            self.memory_manager, "retrieve_historical_patterns"
+        ):
             patterns = self.memory_manager.retrieve_historical_patterns()
             task_type = task.get("type", "")
 
             # Look for patterns indicating recursion ineffectiveness for similar tasks
             for pattern in patterns:
                 if (
-                    pattern.get("task_type") == task_type and
-                    pattern.get("recursion_effectiveness", 1.0) < 0.4
+                    pattern.get("task_type") == task_type
+                    and pattern.get("recursion_effectiveness", 1.0) < 0.4
                 ):
                     termination_factors["historical"] = {
                         "task_type": task_type,
                         "effectiveness": pattern.get("recursion_effectiveness", 1.0),
-                        "severity": "medium"
+                        "severity": "medium",
                     }
 
                     # For backward compatibility with tests
@@ -944,14 +1080,14 @@ class EDRRCoordinator:
             termination_factors["max_depth"] = {
                 "depth": self.recursion_depth,
                 "max_depth": self.max_recursion_depth,
-                "severity": "high"
+                "severity": "high",
             }
         # Check if approaching maximum recursion depth (within 80%)
         elif self.recursion_depth >= int(self.max_recursion_depth * 0.8):
             termination_factors["approaching_max_depth"] = {
                 "depth": self.recursion_depth,
                 "max_depth": self.max_recursion_depth,
-                "severity": "low"
+                "severity": "low",
             }
 
         # Check time-based termination
@@ -959,7 +1095,11 @@ class EDRRCoordinator:
             from datetime import datetime
 
             # Get maximum duration from config with default of 1 hour
-            max_duration = self.config.get("edrr", {}).get("recursion", {}).get("max_duration", 3600)
+            max_duration = (
+                self.config.get("edrr", {})
+                .get("recursion", {})
+                .get("max_duration", 3600)
+            )
 
             # Calculate elapsed time
             elapsed_seconds = (datetime.now() - self._cycle_start_time).total_seconds()
@@ -969,41 +1109,57 @@ class EDRRCoordinator:
                 termination_factors["time_limit"] = {
                     "elapsed": elapsed_seconds,
                     "max_duration": max_duration,
-                    "severity": "high"
+                    "severity": "high",
                 }
             # Check if approaching time limit (within 90%)
             elif elapsed_seconds > max_duration * 0.9:
                 termination_factors["approaching_time_limit"] = {
                     "elapsed": elapsed_seconds,
                     "max_duration": max_duration,
-                    "severity": "medium"
+                    "severity": "medium",
                 }
 
         # Check memory usage
         if "memory_usage" in task:
             memory_usage = task["memory_usage"]
-            memory_limit = self.config.get("edrr", {}).get("recursion", {}).get("memory_limit", self.DEFAULT_MEMORY_USAGE_LIMIT)
+            memory_limit = (
+                self.config.get("edrr", {})
+                .get("recursion", {})
+                .get("memory_limit", self.DEFAULT_MEMORY_USAGE_LIMIT)
+            )
 
             if memory_usage > memory_limit:
                 termination_factors["memory_limit"] = {
                     "usage": memory_usage,
                     "limit": memory_limit,
-                    "severity": "high"
+                    "severity": "high",
                 }
             # Check if approaching memory limit (within 90%)
             elif memory_usage > memory_limit * 0.9:
                 termination_factors["approaching_memory_limit"] = {
                     "usage": memory_usage,
                     "limit": memory_limit,
-                    "severity": "medium"
+                    "severity": "medium",
                 }
 
         # Evaluate termination factors
         if termination_factors:
             # Count high, medium, and low severity factors
-            high_severity = sum(1 for factor in termination_factors.values() if factor.get("severity") == "high")
-            medium_severity = sum(1 for factor in termination_factors.values() if factor.get("severity") == "medium")
-            low_severity = sum(1 for factor in termination_factors.values() if factor.get("severity") == "low")
+            high_severity = sum(
+                1
+                for factor in termination_factors.values()
+                if factor.get("severity") == "high"
+            )
+            medium_severity = sum(
+                1
+                for factor in termination_factors.values()
+                if factor.get("severity") == "medium"
+            )
+            low_severity = sum(
+                1
+                for factor in termination_factors.values()
+                if factor.get("severity") == "low"
+            )
 
             # Determine if we should terminate based on severity counts
             should_terminate = False
@@ -1011,23 +1167,45 @@ class EDRRCoordinator:
 
             # Any high severity factor is enough to terminate
             if high_severity > 0:
-                high_factors = [name for name, factor in termination_factors.items() if factor.get("severity") == "high"]
+                high_factors = [
+                    name
+                    for name, factor in termination_factors.items()
+                    if factor.get("severity") == "high"
+                ]
                 reason = f"high severity factors: {', '.join(high_factors)}"
                 should_terminate = True
             # At least two medium severity factors
             elif medium_severity >= 2:
-                medium_factors = [name for name, factor in termination_factors.items() if factor.get("severity") == "medium"]
-                reason = f"multiple medium severity factors: {', '.join(medium_factors)}"
+                medium_factors = [
+                    name
+                    for name, factor in termination_factors.items()
+                    if factor.get("severity") == "medium"
+                ]
+                reason = (
+                    f"multiple medium severity factors: {', '.join(medium_factors)}"
+                )
                 should_terminate = True
             # One medium and at least two low severity factors
             elif medium_severity >= 1 and low_severity >= 2:
-                medium_factors = [name for name, factor in termination_factors.items() if factor.get("severity") == "medium"]
-                low_factors = [name for name, factor in termination_factors.items() if factor.get("severity") == "low"]
+                medium_factors = [
+                    name
+                    for name, factor in termination_factors.items()
+                    if factor.get("severity") == "medium"
+                ]
+                low_factors = [
+                    name
+                    for name, factor in termination_factors.items()
+                    if factor.get("severity") == "low"
+                ]
                 reason = f"medium severity factors: {', '.join(medium_factors)}, low severity factors: {', '.join(low_factors)}"
                 should_terminate = True
             # At least three low severity factors
             elif low_severity >= 3:
-                low_factors = [name for name, factor in termination_factors.items() if factor.get("severity") == "low"]
+                low_factors = [
+                    name
+                    for name, factor in termination_factors.items()
+                    if factor.get("severity") == "low"
+                ]
                 reason = f"multiple low severity factors: {', '.join(low_factors)}"
                 should_terminate = True
 
@@ -1102,7 +1280,9 @@ class EDRRCoordinator:
                     similarity_threshold=0.6,
                 )
             else:
-                logger.debug("Memory manager does not support retrieve_relevant_knowledge")
+                logger.debug(
+                    "Memory manager does not support retrieve_relevant_knowledge"
+                )
                 relevant_knowledge = []
         except Exception as e:
             logger.error(f"Failed to retrieve relevant knowledge: {e}")
@@ -1939,11 +2119,11 @@ class EDRRCoordinator:
         ]:
             if phase.name in self.results:
                 aggregated[phase.value] = self._process_phase_results(
-                    self.results[phase.name], 
+                    self.results[phase.name],
                     phase,
                     merge_similar,
                     prioritize_by_quality,
-                    handle_conflicts
+                    handle_conflicts,
                 )
 
         # Aggregate results from child cycles
@@ -1963,10 +2143,7 @@ class EDRRCoordinator:
             for phase_name, cycles in phase_groups.items():
                 # Extract and merge results from all cycles in this phase
                 merged_results = self._merge_cycle_results(
-                    cycles, 
-                    merge_similar,
-                    prioritize_by_quality,
-                    handle_conflicts
+                    cycles, merge_similar, prioritize_by_quality, handle_conflicts
                 )
 
                 # Add to child results
@@ -1993,16 +2170,16 @@ class EDRRCoordinator:
         # Update performance metrics
         self.performance_metrics["TOTAL"] = {
             "duration": total_duration,
-            "recursion_metrics": recursion_metrics
+            "recursion_metrics": recursion_metrics,
         }
 
     def _process_phase_results(
-        self, 
-        phase_results: Dict[str, Any], 
+        self,
+        phase_results: Dict[str, Any],
         phase: Phase,
         merge_similar: bool = True,
         prioritize_by_quality: bool = True,
-        handle_conflicts: bool = True
+        handle_conflicts: bool = True,
     ) -> Dict[str, Any]:
         """
         Process results from a specific phase, applying advanced aggregation techniques.
@@ -2028,11 +2205,11 @@ class EDRRCoordinator:
                 if isinstance(result, dict) and "micro_cycle_results" in result:
                     # Recursively process nested micro-cycle results
                     micro_results[cycle_id] = self._process_phase_results(
-                        result, 
+                        result,
                         phase,
                         merge_similar,
                         prioritize_by_quality,
-                        handle_conflicts
+                        handle_conflicts,
                     )
 
             # Apply merging of similar results
@@ -2043,7 +2220,11 @@ class EDRRCoordinator:
                 similarity_groups = {}
                 for cycle_id, result in micro_results.items():
                     # Skip results that are just error messages
-                    if isinstance(result, dict) and "error" in result and len(result) == 1:
+                    if (
+                        isinstance(result, dict)
+                        and "error" in result
+                        and len(result) == 1
+                    ):
                         merged_results[cycle_id] = result
                         continue
 
@@ -2065,7 +2246,9 @@ class EDRRCoordinator:
                         # Multiple similar results, merge them
                         merged_result = self._merge_similar_results(group)
                         # Include source cycle IDs in the merged result for traceability
-                        merged_result["merged_from"] = [cycle_id for cycle_id, _ in group]
+                        merged_result["merged_from"] = [
+                            cycle_id for cycle_id, _ in group
+                        ]
                         group_id = f"merged_{similarity_key[:8]}"
                         merged_results[group_id] = merged_result
 
@@ -2079,15 +2262,19 @@ class EDRRCoordinator:
                 for cycle_id, result in micro_results.items():
                     if isinstance(result, dict):
                         # Extract quality score from result or calculate it
-                        quality_score = result.get("quality_score", self._calculate_quality_score(result))
+                        quality_score = result.get(
+                            "quality_score", self._calculate_quality_score(result)
+                        )
                         quality_scores[cycle_id] = quality_score
 
                 # Sort results by quality score
-                sorted_results = dict(sorted(
-                    micro_results.items(),
-                    key=lambda item: quality_scores.get(item[0], 0),
-                    reverse=True
-                ))
+                sorted_results = dict(
+                    sorted(
+                        micro_results.items(),
+                        key=lambda item: quality_scores.get(item[0], 0),
+                        reverse=True,
+                    )
+                )
 
                 processed_results["micro_cycle_results"] = sorted_results
 
@@ -2109,18 +2296,24 @@ class EDRRCoordinator:
                     resolution_explanations = {}
 
                     for conflict_key, conflicting_results in conflict_groups.items():
-                        resolved, explanation = self._resolve_conflict(conflicting_results)
+                        resolved, explanation = self._resolve_conflict(
+                            conflicting_results
+                        )
                         resolved_conflicts[conflict_key] = resolved
                         resolution_explanations[conflict_key] = explanation
 
                     processed_results["resolved_conflicts"] = resolved_conflicts
-                    processed_results["resolution_explanations"] = resolution_explanations
+                    processed_results["resolution_explanations"] = (
+                        resolution_explanations
+                    )
 
                     # Update the micro_cycle_results with resolved conflicts
                     for conflict_key, resolved in resolved_conflicts.items():
                         if isinstance(resolved, dict) and "result" in resolved:
                             resolution_id = f"resolved_{conflict_key[:8]}"
-                            processed_results["micro_cycle_results"][resolution_id] = resolved["result"]
+                            processed_results["micro_cycle_results"][resolution_id] = (
+                                resolved["result"]
+                            )
 
             # Ensure all micro-cycle results are properly incorporated
             all_results = []
@@ -2138,11 +2331,11 @@ class EDRRCoordinator:
         return processed_results
 
     def _merge_cycle_results(
-        self, 
+        self,
         cycles: List["EDRRCoordinator"],
         merge_similar: bool = True,
         prioritize_by_quality: bool = True,
-        handle_conflicts: bool = True
+        handle_conflicts: bool = True,
     ) -> Dict[str, Any]:
         """
         Merge results from multiple cycles.
@@ -2179,7 +2372,9 @@ class EDRRCoordinator:
                 common_phases.update(result.keys())
 
         # If there are common phases, merge the results for each phase
-        if common_phases and all(isinstance(all_results[cycle_id], dict) for cycle_id in all_results):
+        if common_phases and all(
+            isinstance(all_results[cycle_id], dict) for cycle_id in all_results
+        ):
             merged_phase_results = {}
 
             for phase in common_phases:
@@ -2274,15 +2469,19 @@ class EDRRCoordinator:
             for cycle_id, result in all_results.items():
                 if isinstance(result, dict):
                     # Extract quality score from result or calculate it
-                    quality_score = result.get("quality_score", self._calculate_quality_score(result))
+                    quality_score = result.get(
+                        "quality_score", self._calculate_quality_score(result)
+                    )
                     quality_scores[cycle_id] = quality_score
 
             # Sort results by quality score
-            sorted_results = dict(sorted(
-                all_results.items(),
-                key=lambda item: quality_scores.get(item[0], 0),
-                reverse=True
-            ))
+            sorted_results = dict(
+                sorted(
+                    all_results.items(),
+                    key=lambda item: quality_scores.get(item[0], 0),
+                    reverse=True,
+                )
+            )
 
             all_results = sorted_results
 
@@ -2317,7 +2516,12 @@ class EDRRCoordinator:
             key_parts = []
 
             # For test_process_phase_results_merge_similar, we need to handle the specific test case
-            if "type" in result and "description" in result and result["type"] == "analysis" and result["description"] == "Analysis of code":
+            if (
+                "type" in result
+                and "description" in result
+                and result["type"] == "analysis"
+                and result["description"] == "Analysis of code"
+            ):
                 return "analysis_of_code"
 
             # Add keys
@@ -2393,7 +2597,9 @@ class EDRRCoordinator:
 
         return merged
 
-    def _merge_dicts(self, dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
+    def _merge_dicts(
+        self, dict1: Dict[str, Any], dict2: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Merge two dictionaries recursively.
 
@@ -2464,9 +2670,9 @@ class EDRRCoordinator:
             # Check if they have the same values for some important keys
             for important_key in ["id", "type", "description", "name"]:
                 if (
-                    important_key in item1 and 
-                    important_key in item2 and 
-                    item1[important_key] != item2[important_key]
+                    important_key in item1
+                    and important_key in item2
+                    and item1[important_key] != item2[important_key]
                 ):
                     return False
 
@@ -2502,7 +2708,13 @@ class EDRRCoordinator:
             score += 0.05
 
         # 2. Presence of important keys
-        important_keys = ["description", "approach", "implementation", "analysis", "solution"]
+        important_keys = [
+            "description",
+            "approach",
+            "implementation",
+            "analysis",
+            "solution",
+        ]
         for key in important_keys:
             if key in result and result[key]:
                 score += 0.05
@@ -2521,7 +2733,9 @@ class EDRRCoordinator:
         # Ensure the score is between 0 and 1
         return max(0.0, min(1.0, score))
 
-    def _identify_conflicts(self, results: Dict[str, Any]) -> Dict[str, List[Tuple[str, Any]]]:
+    def _identify_conflicts(
+        self, results: Dict[str, Any]
+    ) -> Dict[str, List[Tuple[str, Any]]]:
         """
         Identify conflicts between results.
 
@@ -2542,7 +2756,12 @@ class EDRRCoordinator:
                 continue
 
             # Check for potential conflict areas
-            for conflict_area in ["approach", "solution", "implementation", "recommendation"]:
+            for conflict_area in [
+                "approach",
+                "solution",
+                "implementation",
+                "recommendation",
+            ]:
                 if conflict_area in result:
                     if conflict_area not in conflict_areas:
                         conflict_areas[conflict_area] = []
@@ -2585,7 +2804,9 @@ class EDRRCoordinator:
 
         return conflicts
 
-    def _resolve_conflict(self, conflicting_results: List[Tuple[str, List[Tuple[str, Any]]]]) -> Tuple[Dict[str, Any], str]:
+    def _resolve_conflict(
+        self, conflicting_results: List[Tuple[str, List[Tuple[str, Any]]]]
+    ) -> Tuple[Dict[str, Any], str]:
         """
         Resolve conflicts between results.
 
@@ -2604,12 +2825,16 @@ class EDRRCoordinator:
         all_approaches = []
         for approach_key, results in conflicting_results:
             for cycle_id, result in results:
-                all_approaches.append({
-                    "approach_key": approach_key,
-                    "cycle_id": cycle_id,
-                    "result": result,
-                    "quality_score": result.get("quality_score", self._calculate_quality_score(result))
-                })
+                all_approaches.append(
+                    {
+                        "approach_key": approach_key,
+                        "cycle_id": cycle_id,
+                        "result": result,
+                        "quality_score": result.get(
+                            "quality_score", self._calculate_quality_score(result)
+                        ),
+                    }
+                )
 
         # Sort by quality score
         all_approaches.sort(key=lambda x: x["quality_score"], reverse=True)
@@ -2629,8 +2854,12 @@ class EDRRCoordinator:
 
             # Simple heuristic: if both results have different keys, they might be complementary
             if isinstance(primary_result, dict) and isinstance(secondary_result, dict):
-                unique_keys_primary = set(primary_result.keys()) - set(secondary_result.keys())
-                unique_keys_secondary = set(secondary_result.keys()) - set(primary_result.keys())
+                unique_keys_primary = set(primary_result.keys()) - set(
+                    secondary_result.keys()
+                )
+                unique_keys_secondary = set(secondary_result.keys()) - set(
+                    primary_result.keys()
+                )
 
                 # If both have unique keys, they might be complementary
                 if unique_keys_primary and unique_keys_secondary:
@@ -2642,25 +2871,30 @@ class EDRRCoordinator:
                         merged_result[key] = secondary_result[key]
 
                     # For common keys, use the value from the higher quality result
-                    common_keys = set(primary_result.keys()) & set(secondary_result.keys())
+                    common_keys = set(primary_result.keys()) & set(
+                        secondary_result.keys()
+                    )
                     for key in common_keys:
                         # Skip metadata keys
                         if key in ["cycle_id", "quality_score", "source_cycle_ids"]:
                             continue
 
                         # If both values are dictionaries, recursively merge them
-                        if (isinstance(primary_result[key], dict) and 
-                            isinstance(secondary_result[key], dict)):
+                        if isinstance(primary_result[key], dict) and isinstance(
+                            secondary_result[key], dict
+                        ):
                             merged_result[key] = {
                                 **secondary_result[key],
-                                **primary_result[key]  # Primary overrides secondary
+                                **primary_result[key],  # Primary overrides secondary
                             }
                         # If both values are lists, combine them
-                        elif (isinstance(primary_result[key], list) and 
-                              isinstance(secondary_result[key], list)):
+                        elif isinstance(primary_result[key], list) and isinstance(
+                            secondary_result[key], list
+                        ):
                             # Combine lists, removing duplicates
                             combined = primary_result[key] + [
-                                item for item in secondary_result[key] 
+                                item
+                                for item in secondary_result[key]
                                 if item not in primary_result[key]
                             ]
                             merged_result[key] = combined
@@ -2683,15 +2917,15 @@ class EDRRCoordinator:
                 "primary_approach": {
                     "approach_key": primary["approach_key"],
                     "cycle_id": primary["cycle_id"],
-                    "quality_score": primary["quality_score"]
+                    "quality_score": primary["quality_score"],
                 },
                 "secondary_approach": {
                     "approach_key": all_approaches[1]["approach_key"],
                     "cycle_id": all_approaches[1]["cycle_id"],
-                    "quality_score": all_approaches[1]["quality_score"]
+                    "quality_score": all_approaches[1]["quality_score"],
                 },
                 "resolution_method": resolution_method,
-                "resolution_notes": resolution_notes
+                "resolution_notes": resolution_notes,
             }
 
             explanation = (
@@ -2714,18 +2948,18 @@ class EDRRCoordinator:
                 "primary_approach": {
                     "approach_key": primary["approach_key"],
                     "cycle_id": primary["cycle_id"],
-                    "quality_score": primary["quality_score"]
+                    "quality_score": primary["quality_score"],
                 },
                 "alternative_approaches": [
                     {
                         "approach_key": approach["approach_key"],
                         "cycle_id": approach["cycle_id"],
-                        "quality_score": approach["quality_score"]
+                        "quality_score": approach["quality_score"],
                     }
                     for approach in all_approaches[1:]
                 ],
                 "resolution_method": resolution_method,
-                "resolution_notes": resolution_notes
+                "resolution_notes": resolution_notes,
             }
 
             explanation = (
@@ -2741,7 +2975,9 @@ class EDRRCoordinator:
                     explanation += f"  {i}. Approach from cycle {approach['cycle_id']} (score: {approach['quality_score']:.2f})\n"
 
                 # Explain why the primary was chosen
-                score_diff = primary['quality_score'] - all_approaches[1]['quality_score']
+                score_diff = (
+                    primary["quality_score"] - all_approaches[1]["quality_score"]
+                )
                 explanation += f"\nThe primary approach was selected because it had a higher quality score (difference: +{score_diff:.2f})."
 
         return resolved, explanation
@@ -2759,7 +2995,7 @@ class EDRRCoordinator:
             "cycles_by_depth": {},
             "effectiveness_score": 0.0,
             "improvement_rate": 0.0,
-            "convergence_rate": 0.0
+            "convergence_rate": 0.0,
         }
 
         # Count cycles by depth
@@ -2786,26 +3022,32 @@ class EDRRCoordinator:
                     improvement_scores.append(cycle_results["quality_score"])
                 elif isinstance(cycle_results, dict):
                     # Calculate a quality score
-                    improvement_scores.append(self._calculate_quality_score(cycle_results))
+                    improvement_scores.append(
+                        self._calculate_quality_score(cycle_results)
+                    )
 
             if improvement_scores:
                 # Calculate improvement rate as the average quality score
-                metrics["improvement_rate"] = sum(improvement_scores) / len(improvement_scores)
+                metrics["improvement_rate"] = sum(improvement_scores) / len(
+                    improvement_scores
+                )
 
                 # Calculate convergence rate as the standard deviation of quality scores
                 if len(improvement_scores) > 1:
                     mean = metrics["improvement_rate"]
-                    variance = sum((score - mean) ** 2 for score in improvement_scores) / len(improvement_scores)
-                    std_dev = variance ** 0.5
+                    variance = sum(
+                        (score - mean) ** 2 for score in improvement_scores
+                    ) / len(improvement_scores)
+                    std_dev = variance**0.5
 
                     # Convergence rate is higher when standard deviation is lower
                     metrics["convergence_rate"] = max(0.0, 1.0 - std_dev)
 
                 # Calculate overall effectiveness score
                 metrics["effectiveness_score"] = (
-                    0.5 * metrics["improvement_rate"] + 
-                    0.3 * metrics["convergence_rate"] + 
-                    0.2 * (1.0 if metrics["total_cycles"] > 1 else 0.0)
+                    0.5 * metrics["improvement_rate"]
+                    + 0.3 * metrics["convergence_rate"]
+                    + 0.2 * (1.0 if metrics["total_cycles"] > 1 else 0.0)
                 )
 
         return metrics
