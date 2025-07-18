@@ -61,7 +61,7 @@ graph TD
 **Implementation Status**
 
 - `MemoryManager`, `QueryRouter`, `SyncManager`, `TinyDBMemoryAdapter`, `ChromaDBStore`,
-  `JSONFileStore`, `GraphMemoryAdapter`, and `VectorMemoryAdapter` are fully implemented.
+  `JSONFileStore`, `GraphMemoryAdapter`, and `VectorMemoryAdapter` are partially implemented.
 - `RDFLibStore` is partially implemented with limited query optimization.
 
 ## Implementation Details
