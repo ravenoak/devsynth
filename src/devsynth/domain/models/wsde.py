@@ -9,7 +9,7 @@ more specialized modules to maintain backward compatibility.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Callable, Tuple
+from typing import Any, Dict, List, Optional, Callable, Tuple, Iterable
 from datetime import datetime
 from uuid import uuid4
 import re
@@ -115,17 +115,26 @@ class WSDETeam(BaseWSDETeam):
     - Decisions are made through consensus rather than hierarchy
     - Traditional roles (Worker, Supervisor, Designer, Evaluator) are assigned
       flexibly based on the current context and agent expertise
+
+    The team may be instantiated with an iterable of agents which will be added
+    immediately.
     """
 
-    def __init__(self, name: str, description: Optional[str] = None):
+    def __init__(
+        self,
+        name: str = "WSDETeam",
+        description: Optional[str] = None,
+        agents: Optional[Iterable[Any]] = None,
+    ):
         """
         Initialize a new WSDE Team.
 
         Args:
             name: The name of the team
             description: Optional description of the team's purpose
+            agents: Optional iterable of agents to populate the team
         """
-        super().__init__(name, description)
+        super().__init__(name, description, agents=agents)
         self.primus_index = 0  # Index of the current Primus agent
         self.solutions = {}  # Solutions by task ID
         self.external_knowledge = {}  # External knowledge sources

@@ -47,7 +47,7 @@ ReqID: N/A"""
     @pytest.fixture
     def wsde_team(self, mock_agents):
         """Create a WSDE team with mock agents."""
-        team = WSDETeam(agents=mock_agents)
+        team = WSDETeam(name="TestEDRRIntegrationTeam", agents=mock_agents)
         return team
 
     def test_phase_specific_role_assignment_has_expected(self, wsde_team,
