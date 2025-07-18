@@ -8,7 +8,7 @@ ensuring backward compatibility.
 This is intended to eventually replace the monolithic wsde.py module.
 """
 
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional, Callable, Iterable
 from datetime import datetime
 import re
 from uuid import uuid4
@@ -223,9 +223,17 @@ WSDETeam.add_solution = add_solution
 # Add primus_index attribute to WSDETeam.__init__
 original_init = WSDETeam.__init__
 
-def new_init(self, name: str, description: Optional[str] = None):
-    original_init(self, name, description)
+
+def new_init(
+    self,
+    name: str,
+    description: Optional[str] = None,
+    agents: Optional[Iterable[Any]] = None,
+):
+    """Initialize WSDETeam with optional agents and primus index."""
+    original_init(self, name, description, agents=agents)
     self.primus_index = 0
+
 
 WSDETeam.__init__ = new_init
 
