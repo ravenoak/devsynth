@@ -50,7 +50,7 @@ Each feature is scored on two dimensions:
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
 | EDRR Framework | Complete | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, CLI integration, and tracing implemented |
-| WSDE Agent Collaboration | Complete | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, weighted consensus, and dynamic role reassignment implemented |
+| WSDE Agent Collaboration | Complete | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, weighted consensus, and dynamic role reassignment validated by integration tests |
 | Dialectical Reasoning | Complete | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
