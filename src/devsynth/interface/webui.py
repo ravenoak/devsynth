@@ -75,7 +75,7 @@ class WebUI(UXBridge):
     # Helper methods
     # ------------------------------------------------------------------
     # Type variable for the return type of the wrapped function
-    T = TypeVar('T')
+    T = TypeVar("T")
 
     def get_layout_config(self) -> dict:
         """Get layout configuration based on screen size.
@@ -94,7 +94,7 @@ class WebUI(UXBridge):
                 "content_width": "100%",
                 "font_size": "small",
                 "padding": "0.5rem",
-                "is_mobile": True
+                "is_mobile": True,
             }
         elif screen_width < 992:  # Tablet
             return {
@@ -103,7 +103,7 @@ class WebUI(UXBridge):
                 "content_width": "70%",
                 "font_size": "medium",
                 "padding": "1rem",
-                "is_mobile": False
+                "is_mobile": False,
             }
         else:  # Desktop
             return {
@@ -112,15 +112,15 @@ class WebUI(UXBridge):
                 "content_width": "80%",
                 "font_size": "medium",
                 "padding": "1.5rem",
-                "is_mobile": False
+                "is_mobile": False,
             }
 
     def _handle_command_errors(
-        self, 
-        func: Callable[..., T], 
-        error_message: str = "An error occurred", 
-        *args: Any, 
-        **kwargs: Any
+        self,
+        func: Callable[..., T],
+        error_message: str = "An error occurred",
+        *args: Any,
+        **kwargs: Any,
     ) -> Optional[T]:
         """Execute a command with error handling.
 
@@ -136,26 +136,66 @@ class WebUI(UXBridge):
         try:
             return func(*args, **kwargs)
         except FileNotFoundError as e:
-            self.display_result(f"ERROR: File not found: {e.filename}", highlight=False, message_type="error")
-            self.display_result(f"Make sure the file exists and the path is correct.", highlight=False)
+            self.display_result(
+                f"ERROR: File not found: {e.filename}",
+                highlight=False,
+                message_type="error",
+            )
+            self.display_result(
+                f"Make sure the file exists and the path is correct.", highlight=False
+            )
             return None
         except PermissionError as e:
-            self.display_result(f"ERROR: Permission denied: {e.filename}", highlight=False, message_type="error")
-            self.display_result(f"Make sure you have the necessary permissions to access this file.", highlight=False, message_type="info")
+            self.display_result(
+                f"ERROR: Permission denied: {e.filename}",
+                highlight=False,
+                message_type="error",
+            )
+            self.display_result(
+                f"Make sure you have the necessary permissions to access this file.",
+                highlight=False,
+                message_type="info",
+            )
             return None
         except ValueError as e:
-            self.display_result(f"ERROR: Invalid value: {str(e)}", highlight=False, message_type="error")
-            self.display_result(f"Please check your input and try again.", highlight=False, message_type="info")
+            self.display_result(
+                f"ERROR: Invalid value: {str(e)}", highlight=False, message_type="error"
+            )
+            self.display_result(
+                f"Please check your input and try again.",
+                highlight=False,
+                message_type="info",
+            )
             return None
         except Exception as e:
-            self.display_result(f"ERROR: {error_message}: {str(e)}", highlight=False, message_type="error")
+            self.display_result(
+                f"ERROR: {error_message}: {str(e)}",
+                highlight=False,
+                message_type="error",
+            )
             # Get the traceback for debugging
             tb = traceback.format_exc()
             # Display a more user-friendly message
-            self.display_result("An unexpected error occurred. Here are some suggestions:", highlight=False, message_type="info")
-            self.display_result("1. Check your input values and try again", highlight=False, message_type="info")
-            self.display_result("2. Make sure all required files exist", highlight=False, message_type="info")
-            self.display_result("3. Check the logs for more details", highlight=False, message_type="info")
+            self.display_result(
+                "An unexpected error occurred. Here are some suggestions:",
+                highlight=False,
+                message_type="info",
+            )
+            self.display_result(
+                "1. Check your input values and try again",
+                highlight=False,
+                message_type="info",
+            )
+            self.display_result(
+                "2. Make sure all required files exist",
+                highlight=False,
+                message_type="info",
+            )
+            self.display_result(
+                "3. Check the logs for more details",
+                highlight=False,
+                message_type="info",
+            )
             # Add a collapsible section with the full traceback for debugging
             with st.expander("Technical Details (for debugging)"):
                 st.code(tb, language="python")
@@ -197,21 +237,21 @@ class WebUI(UXBridge):
             # [bold] -> **
             # [italic] -> *
             # [red] -> <span style="color:red">
-            message = (message
-                .replace("[bold]", "**")
+            message = (
+                message.replace("[bold]", "**")
                 .replace("[/bold]", "**")
                 .replace("[italic]", "*")
                 .replace("[/italic]", "*")
                 .replace("[green]", '<span style="color:green">')
-                .replace("[/green]", '</span>')
+                .replace("[/green]", "</span>")
                 .replace("[red]", '<span style="color:red">')
-                .replace("[/red]", '</span>')
+                .replace("[/red]", "</span>")
                 .replace("[blue]", '<span style="color:blue">')
-                .replace("[/blue]", '</span>')
+                .replace("[/blue]", "</span>")
                 .replace("[yellow]", '<span style="color:orange">')
-                .replace("[/yellow]", '</span>')
+                .replace("[/yellow]", "</span>")
                 .replace("[cyan]", '<span style="color:cyan">')
-                .replace("[/cyan]", '</span>')
+                .replace("[/cyan]", "</span>")
             )
             st.markdown(message, unsafe_allow_html=True)
             return
@@ -300,53 +340,53 @@ class WebUI(UXBridge):
             "file_not_found": [
                 "Check that the file path is correct",
                 "Verify that the file exists in the specified location",
-                "If using a relative path, make sure you're in the correct directory"
+                "If using a relative path, make sure you're in the correct directory",
             ],
             "permission_denied": [
                 "Check that you have the necessary permissions to access the file",
                 "Try running the command with elevated privileges",
-                "Verify that the file is not locked by another process"
+                "Verify that the file is not locked by another process",
             ],
             "invalid_parameter": [
                 "Check the command syntax and parameters",
                 "Refer to the documentation for the correct parameter format",
-                "Use the --help flag to see available options"
+                "Use the --help flag to see available options",
             ],
             "invalid_format": [
                 "Check that the file format is supported",
                 "Verify that the file content matches the expected format",
-                "Try using a different format option if available"
+                "Try using a different format option if available",
             ],
             "config_error": [
                 "Check your configuration file for errors",
                 "Verify that all required configuration options are set",
-                "Try resetting to default configuration with 'devsynth config --reset'"
+                "Try resetting to default configuration with 'devsynth config --reset'",
             ],
             "connection_error": [
                 "Check your internet connection",
                 "Verify that the service you're trying to connect to is available",
-                "Check if a firewall is blocking the connection"
+                "Check if a firewall is blocking the connection",
             ],
             "api_error": [
                 "Verify that your API key is valid",
                 "Check that you have sufficient quota for the API",
-                "Verify that the API endpoint is correct"
+                "Verify that the API endpoint is correct",
             ],
             "validation_error": [
                 "Check that your input meets all validation requirements",
                 "Verify that all required fields are provided",
-                "Check for formatting errors in your input"
+                "Check for formatting errors in your input",
             ],
             "syntax_error": [
                 "Check for syntax errors in your code or input",
                 "Verify that all brackets, quotes, and parentheses are properly closed",
-                "Check for typos or missing characters"
+                "Check for typos or missing characters",
             ],
             "import_error": [
                 "Verify that the required package is installed",
                 "Check that the package name is spelled correctly",
-                "Try reinstalling the package"
-            ]
+                "Try reinstalling the package",
+            ],
         }
 
         return suggestions.get(error_type, [])
@@ -364,44 +404,44 @@ class WebUI(UXBridge):
         links = {
             "file_not_found": {
                 "File Handling Guide": f"{base_url}/user_guides/file_handling.html",
-                "Common File Errors": f"{base_url}/user_guides/troubleshooting.html#file-errors"
+                "Common File Errors": f"{base_url}/user_guides/troubleshooting.html#file-errors",
             },
             "permission_denied": {
                 "Permission Issues": f"{base_url}/user_guides/troubleshooting.html#permission-issues",
-                "Security Configuration": f"{base_url}/user_guides/security_config.html"
+                "Security Configuration": f"{base_url}/user_guides/security_config.html",
             },
             "invalid_parameter": {
                 "Command Reference": f"{base_url}/user_guides/cli_reference.html",
-                "Parameter Syntax": f"{base_url}/user_guides/command_syntax.html"
+                "Parameter Syntax": f"{base_url}/user_guides/command_syntax.html",
             },
             "invalid_format": {
                 "Supported Formats": f"{base_url}/user_guides/file_formats.html",
-                "Format Conversion": f"{base_url}/user_guides/format_conversion.html"
+                "Format Conversion": f"{base_url}/user_guides/format_conversion.html",
             },
             "config_error": {
                 "Configuration Guide": f"{base_url}/user_guides/configuration.html",
-                "Configuration Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#configuration-issues"
+                "Configuration Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#configuration-issues",
             },
             "connection_error": {
                 "Network Configuration": f"{base_url}/user_guides/network_config.html",
-                "Connection Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#connection-issues"
+                "Connection Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#connection-issues",
             },
             "api_error": {
                 "API Integration Guide": f"{base_url}/user_guides/api_integration.html",
-                "API Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#api-issues"
+                "API Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#api-issues",
             },
             "validation_error": {
                 "Input Validation": f"{base_url}/user_guides/input_validation.html",
-                "Validation Rules": f"{base_url}/user_guides/validation_rules.html"
+                "Validation Rules": f"{base_url}/user_guides/validation_rules.html",
             },
             "syntax_error": {
                 "Syntax Guide": f"{base_url}/user_guides/syntax_guide.html",
-                "Common Syntax Errors": f"{base_url}/user_guides/troubleshooting.html#syntax-issues"
+                "Common Syntax Errors": f"{base_url}/user_guides/troubleshooting.html#syntax-issues",
             },
             "import_error": {
                 "Package Management": f"{base_url}/user_guides/package_management.html",
-                "Import Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#import-issues"
-            }
+                "Import Troubleshooting": f"{base_url}/user_guides/troubleshooting.html#import-issues",
+            },
         }
 
         return links.get(error_type, {})
@@ -432,7 +472,11 @@ class WebUI(UXBridge):
             eta_text = ""
             if self._current > 0 and progress_pct < 1.0:
                 # Use the last 5 updates to calculate rate
-                recent_updates = self._update_times[-5:] if len(self._update_times) > 5 else self._update_times
+                recent_updates = (
+                    self._update_times[-5:]
+                    if len(self._update_times) > 5
+                    else self._update_times
+                )
                 if len(recent_updates) > 1:
                     # Calculate progress rate (units per second)
                     first_time, first_progress = recent_updates[0]
@@ -504,7 +548,7 @@ class WebUI(UXBridge):
             self._subtasks[task_id] = {
                 "description": sanitize_output(description),
                 "total": total,
-                "current": 0
+                "current": 0,
             }
 
             # Create containers for subtask display
@@ -513,7 +557,7 @@ class WebUI(UXBridge):
                 bar_container = st.empty()
                 self._subtask_containers[task_id] = {
                     "status": status_container,
-                    "bar": bar_container
+                    "bar": bar_container,
                 }
 
             # Update subtask display
@@ -538,7 +582,9 @@ class WebUI(UXBridge):
             # Update progress bar
             containers["bar"].progress(progress_pct)
 
-        def update_subtask(self, task_id: str, advance: float = 1, description: Optional[str] = None) -> None:
+        def update_subtask(
+            self, task_id: str, advance: float = 1, description: Optional[str] = None
+        ) -> None:
             """Update a subtask's progress.
 
             Args:
@@ -626,7 +672,7 @@ class WebUI(UXBridge):
                                 spec_cmd,
                                 "Failed to generate specifications",
                                 requirements_file=req_file,
-                                bridge=self
+                                bridge=self,
                             )
         st.divider()
         with st.expander("Inspect Requirements", expanded=True):
@@ -649,7 +695,7 @@ class WebUI(UXBridge):
                                 "Failed to inspect requirements",
                                 input_file=input_file,
                                 interactive=False,
-                                bridge=self
+                                bridge=self,
                             )
         st.divider()
         with st.expander("Specification Editor", expanded=True):
@@ -689,7 +735,7 @@ class WebUI(UXBridge):
                             spec_cmd,
                             "Failed to regenerate specifications",
                             requirements_file=spec_path,
-                            bridge=self
+                            bridge=self,
                         )
                     st.session_state.spec_content = content
                     st.markdown(content)
@@ -795,13 +841,13 @@ class WebUI(UXBridge):
                     # Validate that the path exists
                     if not Path(path).exists():
                         st.error(f"Path '{path}' not found")
-                        st.info("Make sure the directory or file exists and the path is correct")
+                        st.info(
+                            "Make sure the directory or file exists and the path is correct"
+                        )
                     else:
                         with st.spinner("Inspecting code..."):
                             self._handle_command_errors(
-                                inspect_code_cmd,
-                                "Failed to inspect code",
-                                path=path
+                                inspect_code_cmd, "Failed to inspect code", path=path
                             )
 
     def synthesis_page(self) -> None:
@@ -826,7 +872,7 @@ class WebUI(UXBridge):
                                 test_cmd,
                                 "Failed to generate tests",
                                 spec_file=spec_file,
-                                bridge=self
+                                bridge=self,
                             )
 
         st.divider()
@@ -834,17 +880,13 @@ class WebUI(UXBridge):
             if st.button("Generate Code"):
                 with st.spinner("Generating code..."):
                     self._handle_command_errors(
-                        code_cmd,
-                        "Failed to generate code",
-                        bridge=self
+                        code_cmd, "Failed to generate code", bridge=self
                     )
 
             if st.button("Run Pipeline"):
                 with st.spinner("Running pipeline..."):
                     self._handle_command_errors(
-                        run_pipeline_cmd,
-                        "Failed to run pipeline",
-                        bridge=self
+                        run_pipeline_cmd, "Failed to run pipeline", bridge=self
                     )
 
     def config_page(self) -> None:
@@ -871,7 +913,9 @@ class WebUI(UXBridge):
                         st.success("Offline mode setting saved successfully")
                     except Exception as e:
                         st.error(f"Error saving configuration: {str(e)}")
-                        st.info("Make sure you have write permissions to the configuration file")
+                        st.info(
+                            "Make sure you have write permissions to the configuration file"
+                        )
 
             with st.expander("Update Settings", expanded=True):
                 with st.form("config"):
@@ -890,28 +934,26 @@ class WebUI(UXBridge):
                                 "Failed to update configuration",
                                 key=key,
                                 value=value or None,
-                                bridge=self
+                                bridge=self,
                             )
 
             if st.button("View All Config"):
                 with st.spinner("Loading configuration..."):
                     self._handle_command_errors(
-                        config_cmd,
-                        "Failed to load configuration",
-                        bridge=self
+                        config_cmd, "Failed to load configuration", bridge=self
                     )
 
         except Exception as e:
             st.error(f"Error loading configuration: {str(e)}")
-            st.info("Make sure your project is properly initialized with a valid configuration file")
+            st.info(
+                "Make sure your project is properly initialized with a valid configuration file"
+            )
 
             # Provide a button to initialize the project
             if st.button("Initialize Project"):
                 with st.spinner("Initializing project..."):
                     self._handle_command_errors(
-                        init_cmd,
-                        "Failed to initialize project",
-                        bridge=self
+                        init_cmd, "Failed to initialize project", bridge=self
                     )
 
     def edrr_cycle_page(self) -> None:
@@ -935,7 +977,8 @@ class WebUI(UXBridge):
 
                 # Provide guidance on creating a manifest
                 with st.expander("How to create a manifest file"):
-                    st.markdown("""
+                    st.markdown(
+                        """
                     A manifest file is a YAML file that defines the structure of your project.
                     It includes information about requirements, specifications, and code organization.
 
@@ -949,7 +992,8 @@ class WebUI(UXBridge):
                     specifications:
                       path: specs.md
                     ```
-                    """)
+                    """
+                    )
             else:
                 with st.spinner("Running EDRR cycle..."):
                     import sys
@@ -967,7 +1011,7 @@ class WebUI(UXBridge):
                             module.edrr_cycle_cmd,
                             "Failed to run EDRR cycle",
                             manifest=manifest,
-                            auto=auto
+                            auto=auto,
                         )
                     finally:
                         module.bridge = original
@@ -1227,9 +1271,7 @@ class WebUI(UXBridge):
         with st.spinner("Validating configuration..."):
             import sys
 
-            doc_module = sys.modules.get(
-                "devsynth.application.cli.commands.doctor_cmd"
-            )
+            doc_module = sys.modules.get("devsynth.application.cli.commands.doctor_cmd")
             if doc_module is None:  # pragma: no cover - defensive fallback
                 import devsynth.application.cli.commands.doctor_cmd as doc_module
 
@@ -1361,66 +1403,34 @@ class WebUI(UXBridge):
         st.sidebar.title("DevSynth")
         st.sidebar.markdown(
             '<div class="devsynth-secondary" style="font-size: 0.8rem; margin-bottom: 2rem;">Intelligent Software Development</div>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         # Navigation with responsive layout
-        nav = st.sidebar.radio(
-            "Navigation",
-            (
-                "Onboarding",
-                "Requirements",
-                "Analysis",
-                "Synthesis",
-                "EDRR Cycle",
-                "Alignment",
-                "Alignment Metrics",
-                "Inspect Config",
-                "Validate Manifest",
-                "Validate Metadata",
-                "Test Metrics",
-                "Generate Docs",
-                "Ingest",
-                "API Spec",
-                "Config",
-                "Doctor",
-                "Diagnostics",
-            ),
-        )
-        if nav == "Onboarding":
-            self.onboarding_page()
-        elif nav == "Requirements":
-            self.requirements_page()
-        elif nav == "Analysis":
-            self.analysis_page()
-        elif nav == "Synthesis":
-            self.synthesis_page()
-        elif nav == "EDRR Cycle":
-            self.edrr_cycle_page()
-        elif nav == "Alignment":
-            self.alignment_page()
-        elif nav == "Alignment Metrics":
-            self.alignment_metrics_page()
-        elif nav == "Inspect Config":
-            self.inspect_config_page()
-        elif nav == "Validate Manifest":
-            self.validate_manifest_page()
-        elif nav == "Validate Metadata":
-            self.validate_metadata_page()
-        elif nav == "Test Metrics":
-            self.test_metrics_page()
-        elif nav == "Generate Docs":
-            self.docs_generation_page()
-        elif nav == "Ingest":
-            self.ingestion_page()
-        elif nav == "API Spec":
-            self.apispec_page()
-        elif nav == "Config":
-            self.config_page()
-        elif nav == "Doctor":
-            self.doctor_page()
-        elif nav == "Diagnostics":
-            self.diagnostics_page()
+        nav_items = {
+            "Onboarding": self.onboarding_page,
+            "Requirements": self.requirements_page,
+            "Analysis": self.analysis_page,
+            "Synthesis": self.synthesis_page,
+            "EDRR Cycle": self.edrr_cycle_page,
+            "Alignment": self.alignment_page,
+            "Alignment Metrics": self.alignment_metrics_page,
+            "Inspect Config": self.inspect_config_page,
+            "Validate Manifest": self.validate_manifest_page,
+            "Validate Metadata": self.validate_metadata_page,
+            "Test Metrics": self.test_metrics_page,
+            "Generate Docs": self.docs_generation_page,
+            "Ingest": self.ingestion_page,
+            "API Spec": self.apispec_page,
+            "Config": self.config_page,
+            "Doctor": self.doctor_page,
+            "Diagnostics": self.diagnostics_page,
+        }
+
+        nav = st.sidebar.radio("Navigation", list(nav_items))
+        page_func = nav_items.get(nav)
+        if page_func:
+            page_func()
 
 
 def run() -> None:

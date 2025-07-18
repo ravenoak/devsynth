@@ -12,7 +12,9 @@ def edit_spec_file(tmp_path, webui_context):
     webui_context["st"].sidebar.radio.return_value = "Requirements"
     webui_context["st"].text_input.return_value = str(spec_path)
     webui_context["st"].text_area.return_value = "new spec"
-    webui_context["st"].button.side_effect = [False, True, False, False]
+    # Click the "Save Spec" button in the first column
+    col1, _ = webui_context["st"].columns.return_value
+    col1.button.side_effect = [True]
     webui_context["ui"].run()
     webui_context["spec_path"] = spec_path
 

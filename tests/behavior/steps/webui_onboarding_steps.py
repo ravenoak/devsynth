@@ -24,6 +24,7 @@ class DummyForm:
 @pytest.fixture
 def webui_context(monkeypatch):
     st = ModuleType("streamlit")
+
     class SS(dict):
         pass
 
@@ -33,6 +34,7 @@ def webui_context(monkeypatch):
     st.sidebar = ModuleType("sidebar")
     st.sidebar.radio = MagicMock(return_value="Onboarding")
     st.sidebar.title = MagicMock()
+    st.sidebar.markdown = MagicMock()
     st.set_page_config = MagicMock()
     st.header = MagicMock()
     st.expander = lambda *_a, **_k: DummyForm(True)
@@ -43,12 +45,28 @@ def webui_context(monkeypatch):
     st.selectbox = MagicMock(return_value="choice")
     st.checkbox = MagicMock(return_value=True)
     st.button = MagicMock(return_value=True)
+    st.number_input = MagicMock(return_value=1)
     st.spinner = DummyForm
     st.divider = MagicMock()
-    st.columns = MagicMock(return_value=(MagicMock(button=lambda *a, **k: False), MagicMock(button=lambda *a, **k: False)))
+    st.columns = MagicMock(
+        return_value=(
+            MagicMock(button=lambda *a, **k: False),
+            MagicMock(button=lambda *a, **k: False),
+        )
+    )
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
+
+    class _CompV1:
+        @staticmethod
+        def html(_html, **_kwargs):
+            return None
+
+    class _Components:
+        v1 = _CompV1()
+
+    st.components = _Components()
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     cli_stub = ModuleType("devsynth.application.cli")
@@ -71,7 +89,13 @@ def webui_context(monkeypatch):
     )
 
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
+    from pathlib import Path
+
+    monkeypatch.setattr(webui.WebUI, "_requirements_wizard", lambda self: None)
+    monkeypatch.setattr(webui.WebUI, "_gather_wizard", lambda self: None)
+    monkeypatch.setattr(Path, "exists", lambda _self: True)
     ctx = {
         "st": st,
         "cli": cli_stub,
@@ -79,6 +103,7 @@ def webui_context(monkeypatch):
         "ui": webui.WebUI(),
     }
     return ctx
+
 
 scenarios("../features/webui_onboarding_flow.feature")
 
@@ -88,7 +113,7 @@ def _init(webui_context):
     return webui_context
 
 
-@when("I navigate to \"Onboarding\"")
+@when('I navigate to "Onboarding"')
 def nav_onboarding(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Onboarding"
     webui_context["ui"].run()
@@ -101,7 +126,7 @@ def submit_onboarding(webui_context):
     webui_context["ui"].run()
 
 
-@then("the \"Project Onboarding\" header is shown")
+@then('the "Project Onboarding" header is shown')
 def header_onboarding(webui_context):
     webui_context["st"].header.assert_any_call("Project Onboarding")
 

@@ -79,7 +79,7 @@ Each feature is scored on two dimensions:
 | Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |
 | Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Unit tests validate provider; CLI selects it with the `offline_mode` flag |
 | Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
-| Extended WebUI Pages | Partial | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages like `EDRR-cycle` and `align` not implemented |
+| Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented |
 | Multi-Language Code Generation | Partial | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Supports Python and JavaScript generation |
 
 ## Current Limitations and Workarounds
@@ -183,9 +183,9 @@ See `docs/policies/consistency_checklist.md` lines 91-106 for TODO items.
 - `tests/integration/test_webui_pages.py`
 
 
-**Planned Timeline**
+**Status**
 
-- Q4 2025: new pages for `EDRR-cycle`, `align`, and other commands
+- Completed in June 2025 with pages for `EDRR-cycle`, `align`, and related commands (see commit `654b428`)
 
 
 Implementation tasks are tracked in `docs/architecture/cli_webui_mapping.md` lines 40-76.

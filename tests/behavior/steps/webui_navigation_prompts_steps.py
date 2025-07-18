@@ -23,7 +23,7 @@ def submit_form(webui_context):
     webui_context["ui"].run()
 
 
-@then('the "{header}" header is shown')
+@then(parsers.parse('the "{header}" header is shown'))
 def header_shown(header, webui_context):
     webui_context["st"].header.assert_any_call(header)
 
