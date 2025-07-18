@@ -49,23 +49,23 @@ Each feature is scored on two dimensions:
 | Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Complete | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, CLI integration, and tracing implemented |
-| WSDE Agent Collaboration | Complete | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, weighted consensus, and dynamic role reassignment validated by integration tests |
-| Dialectical Reasoning | Complete | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
+| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, CLI integration, and tracing implemented |
+| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Voting, weighted consensus, and dynamic role reassignment validated by integration tests |
+| Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
-| Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
+| Peer Review Mechanism | Partial | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Initial review cycle implemented, full workflow pending |
 | Memory System | Partial | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter with full client support available |
 | Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
 | Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
-| Methodology Integration Framework | Complete | src/devsynth/methodology | 3 | 3 | None | | Sprint adapter implemented, others planned |
-| Sprint-EDRR Integration | Complete | src/devsynth/methodology/sprint.py | 3 | 3 | Methodology Integration Framework | | Basic mapping of sprint ceremonies to EDRR phases |
+| Methodology Integration Framework | Partial | src/devsynth/methodology | 3 | 3 | None | | Sprint adapter implemented, others planned |
+| Sprint-EDRR Integration | Partial | src/devsynth/methodology/sprint.py | 3 | 3 | Methodology Integration Framework | | Basic mapping of sprint ceremonies to EDRR phases |
 | **User-Facing Features** |
-| CLI Interface | Complete | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested |
+| CLI Interface | Partial | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested |
 | Project Initialization | Complete | src/devsynth/application/orchestration/workflow.py, src/devsynth/application/agents/unified_agent.py | 5 | 2 | None | | Complete with configuration options |
 | Code Generation | Complete | src/devsynth/application/agents/code.py | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
-| Test Generation | Complete | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
+| Test Generation | Partial | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
 | Documentation Generation | Complete | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
 | **Infrastructure Components** |
 | Docker Containerization | Complete | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
