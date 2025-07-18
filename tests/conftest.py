@@ -7,6 +7,7 @@ and don't pollute the developer's environment, file system, or depend on externa
 
 import os
 import sys
+import logging
 import pytest
 import tempfile
 import shutil
@@ -383,6 +384,16 @@ def reset_global_state():
 
     # Reset to original state
     import devsynth.logging_setup
+
+    # Terminate any LM Studio websocket threads started during the test
+    try:  # pragma: no cover - only runs if lmstudio is installed
+        import lmstudio.sync_api as _ls_sync
+
+        _ls_sync._reset_default_client()
+    except Exception:
+        pass
+
+    logging.shutdown()
 
     devsynth.logging_setup._logging_configured = orig_logging_configured
     devsynth.logging_setup._configured_log_dir = orig_log_dir
