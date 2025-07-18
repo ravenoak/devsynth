@@ -128,6 +128,10 @@ def parity_env(monkeypatch):
     st.sidebar.title = MagicMock()
     st.set_page_config = MagicMock()
     st.header = MagicMock()
+    st.error = MagicMock()
+    st.success = MagicMock()
+    st.warning = MagicMock()
+    st.info = MagicMock()
     st.expander = lambda *_a, **_k: DummyForm(True)
     st.form = lambda *_a, **_k: DummyForm(True)
     st.form_submit_button = MagicMock(return_value=True)
@@ -136,6 +140,7 @@ def parity_env(monkeypatch):
     st.selectbox = MagicMock(return_value='choice')
     st.checkbox = MagicMock(return_value=True)
     st.button = MagicMock(return_value=True)
+    st.number_input = MagicMock(return_value=1)
     st.spinner = DummyForm
     st.divider = MagicMock()
     st.columns = MagicMock(return_value=(MagicMock(button=lambda *a, **k: 
@@ -146,6 +151,8 @@ def parity_env(monkeypatch):
     monkeypatch.setitem(sys.modules, 'streamlit', st)
     import devsynth.interface.webui as webui
     importlib.reload(webui)
+    from pathlib import Path
+    monkeypatch.setattr(Path, "exists", lambda _self: True)
     monkeypatch.setattr(webui.WebUI, '_requirements_wizard', lambda self: None)
     monkeypatch.setattr(webui.WebUI, '_gather_wizard', lambda self: None)
     return {'cli': cli_stub, 'doctor_mod': doctor_mod, 'webui': webui, 'st': st
