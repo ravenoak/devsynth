@@ -5,6 +5,7 @@ from devsynth.application.code_analysis.ast_workflow_integration import AstWorkf
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.methodology.base import Phase
 
 
 class MockMemoryStore:
@@ -79,8 +80,14 @@ class Calculator:
         options = [{'name': 'no_docs', 'description': '', 'code':
             code_no_docs}, {'name': 'with_docs', 'description': '', 'code':
             code_with_docs}]
-        selected = self.integration.differentiate_implementation_quality(
-            options, 'task')
+        with patch.object(self.memory_manager, 'store_with_edrr_phase') as store:
+            store.return_value = 'id1'
+            selected = self.integration.differentiate_implementation_quality(
+                options, 'task')
+            store.assert_called()
+            kwargs = store.call_args.kwargs
+            assert kwargs['memory_type'] == MemoryType.CODE_ANALYSIS
+            assert kwargs['edrr_phase'] == Phase.DIFFERENTIATE.value
         self.assertEqual(selected['name'], 'with_docs')
         metrics = selected['metrics']
         for key in ['complexity', 'readability', 'maintainability']:

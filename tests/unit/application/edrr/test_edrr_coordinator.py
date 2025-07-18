@@ -6,6 +6,7 @@ from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinat
 from devsynth.methodology.base import Phase
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.memory import MemoryType
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.prompts.prompt_manager import PromptManager
@@ -145,6 +146,10 @@ ReqID: N/A"""
         assert code_analyzer.analyze_project_structure.call_count == 1
         assert memory_manager.store_with_edrr_phase.call_count >= 1
         assert f'EXPAND_{coordinator.cycle_id}' in coordinator._execution_traces
+        stored = memory_manager.stored_items[MemoryType.SOLUTION]
+        assert stored['phase'] == 'EXPAND'
+        assert stored['metadata']['cycle_id'] == 'test-cycle-id'
+        assert stored['item'] == results
 
     def test_differentiate_phase_execution_has_expected(self, coordinator,
         memory_manager, wsde_team):
@@ -168,6 +173,10 @@ ReqID: N/A"""
         assert wsde_team.formulate_decision_criteria.call_count == 1
         assert memory_manager.store_with_edrr_phase.call_count >= 1
         assert f'DIFFERENTIATE_{coordinator.cycle_id}' in coordinator._execution_traces
+        stored = memory_manager.stored_items[MemoryType.SOLUTION]
+        assert stored['phase'] == 'DIFFERENTIATE'
+        assert stored['metadata']['cycle_id'] == 'test-cycle-id'
+        assert stored['item'] == results
 
     def test_refine_phase_execution_has_expected(self, coordinator,
         memory_manager, wsde_team):
@@ -195,6 +204,10 @@ ReqID: N/A"""
         assert wsde_team.perform_quality_assurance.call_count == 1
         assert memory_manager.store_with_edrr_phase.call_count >= 1
         assert f'REFINE_{coordinator.cycle_id}' in coordinator._execution_traces
+        stored = memory_manager.stored_items[MemoryType.SOLUTION]
+        assert stored['phase'] == 'REFINE'
+        assert stored['metadata']['cycle_id'] == 'test-cycle-id'
+        assert stored['item'] == results
 
     def test_retrospect_phase_execution_has_expected(self, coordinator,
         memory_manager, wsde_team):
@@ -226,6 +239,10 @@ ReqID: N/A"""
         assert wsde_team.generate_improvement_suggestions.call_count == 1
         assert memory_manager.store_with_edrr_phase.call_count >= 2
         assert f'RETROSPECT_{coordinator.cycle_id}' in coordinator._execution_traces
+        stored = memory_manager.stored_items["RETROSPECT_RESULTS"]
+        assert stored['phase'] == 'RETROSPECT'
+        assert stored['metadata']['cycle_id'] == 'test-cycle-id'
+        assert stored['item'] == results
 
     def test_generate_final_report_succeeds(self, coordinator):
         """Test generating the final report.
