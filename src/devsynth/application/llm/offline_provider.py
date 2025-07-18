@@ -8,13 +8,41 @@ from typing import Any, Dict, List
 from ...domain.interfaces.llm import LLMProvider
 from ...logging_setup import DevSynthLogger
 
-try:  # pragma: no cover - optional heavy deps
-    import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-except Exception:  # pragma: no cover - fallback when deps missing
-    torch = None  # type: ignore
-    AutoModelForCausalLM = None  # type: ignore
-    AutoTokenizer = None  # type: ignore
+# These optional dependencies can be expensive to import.  Delay loading them
+# until an instance actually requires a model.
+torch = None  # type: ignore
+AutoModelForCausalLM = None  # type: ignore
+AutoTokenizer = None  # type: ignore
+
+
+def _load_transformer_deps() -> None:
+    """Import heavy transformer dependencies lazily."""
+
+    global torch, AutoModelForCausalLM, AutoTokenizer
+
+    # Avoid re-importing if any dependency has already been provided (e.g. via
+    # test monkeypatching). Only attempt an import when all are ``None``.
+    if (
+        torch is not None
+        or AutoModelForCausalLM is not None
+        or AutoTokenizer is not None
+    ):
+        return
+
+    try:  # pragma: no cover - optional heavy deps
+        import torch as _torch
+        from transformers import (
+            AutoModelForCausalLM as _AutoModelForCausalLM,
+            AutoTokenizer as _AutoTokenizer,
+        )
+
+        torch = _torch  # type: ignore
+        AutoModelForCausalLM = _AutoModelForCausalLM  # type: ignore
+        AutoTokenizer = _AutoTokenizer  # type: ignore
+    except Exception:  # pragma: no cover - fallback when deps missing
+        torch = None  # type: ignore
+        AutoModelForCausalLM = None  # type: ignore
+        AutoTokenizer = None  # type: ignore
 
 
 class OfflineProvider(LLMProvider):
@@ -32,6 +60,9 @@ class OfflineProvider(LLMProvider):
         # Initialize logger
         self.logger = DevSynthLogger("offline_provider")
 
+        if self.model_path:
+            _load_transformer_deps()
+
         if self.model_path and AutoTokenizer and AutoModelForCausalLM:
             try:
                 self.logger.info(f"Loading model from {self.model_path}")
@@ -39,7 +70,9 @@ class OfflineProvider(LLMProvider):
                 self.model = AutoModelForCausalLM.from_pretrained(self.model_path)
                 self.logger.info(f"Successfully loaded model from {self.model_path}")
             except Exception as e:
-                self.logger.error(f"Failed to load model from {self.model_path}: {str(e)}")
+                self.logger.error(
+                    f"Failed to load model from {self.model_path}: {str(e)}"
+                )
                 self.model = None
                 self.tokenizer = None
 

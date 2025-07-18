@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 import os
 
+
 def _ensure_dev_synth_importable() -> None:
     """Ensure ``devsynth`` can be imported from ``src`` or is installed."""
 
@@ -24,6 +25,7 @@ def _ensure_dev_synth_importable() -> None:
 
     try:  # pragma: no cover - quick check
         import devsynth  # noqa: F401
+
         return
     except Exception:
         pass
@@ -36,6 +38,15 @@ def _ensure_dev_synth_importable() -> None:
 
 _ensure_dev_synth_importable()
 
-# Disable optional backends by default so tests don't try to import
-# heavy dependencies unless explicitly enabled.
+# Apply lightweight mocks for optional heavy dependencies (e.g. SymPy) so
+# test collection does not spend time importing them.
+try:  # pragma: no cover - best effort
+    from .lightweight_imports import apply_lightweight_imports
+
+    apply_lightweight_imports()
+except Exception:
+    pass
+
+# Disable optional backends by default so tests don't try to import heavy
+# dependencies unless explicitly enabled.
 os.environ.setdefault("ENABLE_CHROMADB", "0")
