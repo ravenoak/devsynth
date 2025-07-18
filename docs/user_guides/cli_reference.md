@@ -286,6 +286,7 @@ devsynth refactor [--test-dir DIR] [--spec-file FILE] [--output-dir DIR]
 - `--test-dir`, `-t`: Directory containing test files (default: tests/)
 - `--spec-file`, `-s`: Path to specification file (default: specifications.md)
 - `--output-dir`, `-o`: Directory to output code files (default: src/)
+- `--language`, `-l`: Target language for generated code (python or javascript)
 
 
 **Examples:**
@@ -299,6 +300,10 @@ devsynth refactor
 # Generate code from a specific specification file
 
 devsynth refactor --spec-file custom_specs.md --output-dir custom_src/
+
+# Generate JavaScript code
+
+devsynth refactor --language javascript
 ```
 
 ## run-pipeline

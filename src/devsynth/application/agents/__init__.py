@@ -8,6 +8,7 @@ from .planner import PlannerAgent
 from .specification import SpecificationAgent
 from .test import TestAgent
 from .code import CodeAgent
+from .multi_language_code import MultiLanguageCodeAgent
 from .validation import ValidationAgent
 from .refactor import RefactorAgent
 from .documentation import DocumentationAgent
@@ -28,6 +29,7 @@ __all__ = [
     'SpecificationAgent',
     'TestAgent',
     'CodeAgent',
+    'MultiLanguageCodeAgent',
     'ValidationAgent',
     'RefactorAgent',
     'DocumentationAgent',
