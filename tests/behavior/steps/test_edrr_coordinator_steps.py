@@ -545,15 +545,15 @@ def start_edrr_cycle_from_manifest(context):
 @then('the coordinator should parse the manifest successfully')
 def verify_manifest_parsed(context):
     """Verify the manifest was parsed successfully."""
-    assert context.edrr_coordinator._manifest_parser is not None
-    assert context.edrr_coordinator._manifest_parser.get_manifest_id(
+    assert context.edrr_coordinator.manifest_parser is not None
+    assert context.edrr_coordinator.manifest_parser.get_manifest_id(
         ) == 'test-manifest-001'
 
 
 @then('the coordinator should use the phase instructions from the manifest')
 def verify_phase_instructions_used(context):
     """Verify the phase instructions from the manifest are used."""
-    expand_instructions = (context.edrr_coordinator._manifest_parser.
+    expand_instructions = (context.edrr_coordinator.manifest_parser.
         get_phase_instructions(Phase.EXPAND))
     assert expand_instructions == 'Brainstorm approaches for the task'
 
@@ -561,7 +561,7 @@ def verify_phase_instructions_used(context):
 @then('the coordinator should use the phase templates from the manifest')
 def verify_phase_templates_used(context):
     """Verify the phase templates from the manifest are used."""
-    expand_templates = (context.edrr_coordinator._manifest_parser.
+    expand_templates = (context.edrr_coordinator.manifest_parser.
         get_phase_templates(Phase.EXPAND))
     assert 'expand_template_1' in expand_templates
     assert 'expand_template_2' in expand_templates
@@ -570,19 +570,19 @@ def verify_phase_templates_used(context):
 @then('the coordinator should track phase dependencies')
 def verify_phase_dependencies_tracked(context):
     """Verify the phase dependencies are tracked."""
-    assert context.edrr_coordinator._manifest_parser.check_phase_dependencies(
+    assert context.edrr_coordinator.manifest_parser.check_phase_dependencies(
         Phase.DIFFERENTIATE) == False
-    context.edrr_coordinator._manifest_parser.complete_phase(Phase.EXPAND)
-    assert context.edrr_coordinator._manifest_parser.check_phase_dependencies(
+    context.edrr_coordinator.manifest_parser.complete_phase(Phase.EXPAND)
+    assert context.edrr_coordinator.manifest_parser.check_phase_dependencies(
         Phase.DIFFERENTIATE) == True
 
 
 @then('the coordinator should monitor execution progress')
 def verify_execution_progress_monitored(context):
     """Verify the execution progress is monitored."""
-    trace = context.edrr_coordinator._manifest_parser.get_execution_trace()
+    trace = context.edrr_coordinator.manifest_parser.get_execution_trace()
     assert 'start_time' in trace
-    assert context.edrr_coordinator._manifest_parser.get_phase_status(Phase
+    assert context.edrr_coordinator.manifest_parser.get_phase_status(Phase
         .EXPAND) is not None
 
 

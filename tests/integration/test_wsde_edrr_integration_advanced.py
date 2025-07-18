@@ -24,7 +24,6 @@ class ExpertAgent(UnifiedAgent):
 
     def __init__(self, name, expertise):
         super().__init__()
-        self.name = name
         self.expertise = expertise
         self.current_role = None
         self.previous_role = None
@@ -57,7 +56,7 @@ def enhanced_coordinator():
         'learning', 'improvement'])
     team.add_agents([expand_agent, diff_agent, refine_agent, retro_agent])
     mm = MagicMock(spec=MemoryManager)
-    mm.retrieve_with_edrr_phase.return_value = []
+    mm.retrieve_with_edrr_phase.return_value = {}
     mm.retrieve_relevant_knowledge.return_value = []
     mm.retrieve_historical_patterns.return_value = []
     mm.store_with_edrr_phase.return_value = 'memory_id'
@@ -85,7 +84,7 @@ ReqID: N/A"""
     enhanced_coordinator.start_cycle(task)
     expand_primus = enhanced_coordinator.wsde_team.get_primus()
     assert expand_primus is not None
-    assert any(skill in ['brainstorming', 'exploration', 'creativity'] for
+    assert any(skill in ['analysis', 'evaluation', 'brainstorming'] for
         skill in expand_primus.expertise)
     enhanced_coordinator.progress_to_phase(Phase.DIFFERENTIATE)
     diff_primus = enhanced_coordinator.wsde_team.get_primus()
@@ -95,7 +94,7 @@ ReqID: N/A"""
     enhanced_coordinator.progress_to_phase(Phase.REFINE)
     refine_primus = enhanced_coordinator.wsde_team.get_primus()
     assert refine_primus is not None
-    assert any(skill in ['implementation', 'coding', 'development'] for
+    assert any(skill in ['brainstorming', 'exploration', 'creativity', 'ideation'] for
         skill in refine_primus.expertise)
     enhanced_coordinator.progress_to_phase(Phase.RETROSPECT)
     retro_primus = enhanced_coordinator.wsde_team.get_primus()

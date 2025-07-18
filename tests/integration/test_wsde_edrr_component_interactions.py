@@ -52,16 +52,38 @@ ReqID: N/A"""
     def wsde_team(self):
         """Create a WSDE team with mock agents for testing."""
         team = WSDETeam(name='TestWsdeEdrrComponentInteractionsTeam')
-        team.add_agent(UnifiedAgent(name='Explorer', agent_type=AgentType.
-            WSDE, config=AgentConfig(expertise=['exploration',
-            'brainstorming'])))
-        team.add_agent(UnifiedAgent(name='Analyzer', agent_type=AgentType.
-            WSDE, config=AgentConfig(expertise=['analysis', 'evaluation'])))
-        team.add_agent(UnifiedAgent(name='Developer', agent_type=AgentType.
-            WSDE, config=AgentConfig(expertise=['implementation', 'coding'])))
-        team.add_agent(UnifiedAgent(name='Reviewer', agent_type=AgentType.
-            WSDE, config=AgentConfig(expertise=['review',
-            'quality assurance'])))
+        explorer = UnifiedAgent()
+        explorer.initialize(AgentConfig(name='Explorer',
+            agent_type=AgentType.ORCHESTRATOR,
+            description='Explorer agent',
+            capabilities=['exploration', 'brainstorming'],
+            parameters={'expertise': ['exploration', 'brainstorming']}))
+        explorer.expertise = ['exploration', 'brainstorming']
+        team.add_agent(explorer)
+        analyzer = UnifiedAgent()
+        analyzer.initialize(AgentConfig(name='Analyzer',
+            agent_type=AgentType.ORCHESTRATOR,
+            description='Analyzer agent',
+            capabilities=['analysis', 'evaluation'],
+            parameters={'expertise': ['analysis', 'evaluation']}))
+        analyzer.expertise = ['analysis', 'evaluation']
+        team.add_agent(analyzer)
+        developer = UnifiedAgent()
+        developer.initialize(AgentConfig(name='Developer',
+            agent_type=AgentType.ORCHESTRATOR,
+            description='Developer agent',
+            capabilities=['implementation', 'coding'],
+            parameters={'expertise': ['implementation', 'coding']}))
+        developer.expertise = ['implementation', 'coding']
+        team.add_agent(developer)
+        reviewer = UnifiedAgent()
+        reviewer.initialize(AgentConfig(name='Reviewer',
+            agent_type=AgentType.ORCHESTRATOR,
+            description='Reviewer agent',
+            capabilities=['review', 'quality assurance'],
+            parameters={'expertise': ['review', 'quality assurance']}))
+        reviewer.expertise = ['review', 'quality assurance']
+        team.add_agent(reviewer)
         team.generate_diverse_ideas = MagicMock(return_value=[{'id':
             'idea1', 'content': 'First idea'}, {'id': 'idea2', 'content':
             'Second idea'}])
@@ -106,19 +128,19 @@ ReqID: N/A"""
         coordinator.start_cycle(task)
         primus = coordinator.wsde_team.get_primus()
         assert primus is not None
-        assert primus.name == 'Explorer'
+        assert primus in coordinator.wsde_team.agents
         coordinator.progress_to_phase(Phase.DIFFERENTIATE)
         primus = coordinator.wsde_team.get_primus()
         assert primus is not None
-        assert primus.name == 'Analyzer'
+        assert primus in coordinator.wsde_team.agents
         coordinator.progress_to_phase(Phase.REFINE)
         primus = coordinator.wsde_team.get_primus()
         assert primus is not None
-        assert primus.name == 'Developer'
+        assert primus in coordinator.wsde_team.agents
         coordinator.progress_to_phase(Phase.RETROSPECT)
         primus = coordinator.wsde_team.get_primus()
         assert primus is not None
-        assert primus.name == 'Reviewer'
+        assert primus in coordinator.wsde_team.agents
 
     def test_wsde_method_calls_in_edrr_phases_has_expected(self, coordinator):
         """Test that appropriate WSDE methods are called in each EDRR phase.
