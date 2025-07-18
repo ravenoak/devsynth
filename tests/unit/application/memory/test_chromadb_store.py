@@ -76,3 +76,29 @@ ReqID: N/A"""
         store._save_fallback()
     assert any('Failed to save fallback store' in rec.message for rec in
         caplog.records)
+
+
+@patch('devsynth.application.memory.chromadb_store.chromadb.HttpClient', autospec=True)
+def test_http_client_used_when_host_provided(mock_http_cls, tmp_path, monkeypatch):
+    """Providing a host uses the ChromaDB HttpClient."""
+    monkeypatch.setenv('ENABLE_CHROMADB', '1')
+    store = ChromaDBStore(str(tmp_path), host='remote', port=5555)
+    mock_http_cls.assert_called_once_with(host='remote', port=5555)
+
+
+@patch('devsynth.application.memory.chromadb_store.chromadb.PersistentClient', autospec=True)
+def test_persistent_client_used_by_default(mock_client_cls, tmp_path, monkeypatch):
+    """PersistentClient is used when no host and logging allowed."""
+    monkeypatch.setenv('ENABLE_CHROMADB', '1')
+    monkeypatch.delenv('DEVSYNTH_NO_FILE_LOGGING', raising=False)
+    ChromaDBStore(str(tmp_path))
+    mock_client_cls.assert_called_once_with(path=str(tmp_path))
+
+
+@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient', autospec=True)
+def test_ephemeral_client_used_in_no_file_mode(mock_client_cls, tmp_path, monkeypatch):
+    """EphemeralClient is used when file logging disabled."""
+    monkeypatch.setenv('DEVSYNTH_NO_FILE_LOGGING', '1')
+    monkeypatch.setenv('ENABLE_CHROMADB', '1')
+    ChromaDBStore(str(tmp_path))
+    mock_client_cls.assert_called_once()

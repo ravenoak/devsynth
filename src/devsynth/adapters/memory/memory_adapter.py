@@ -72,6 +72,12 @@ class MemorySystemAdapter:
         self.chromadb_collection_name = self.config.get(
             "chromadb_collection_name", settings.chromadb_collection_name
         )
+        self.chromadb_host = self.config.get(
+            "chromadb_host", getattr(settings, "chromadb_host", None)
+        )
+        self.chromadb_port = self.config.get(
+            "chromadb_port", getattr(settings, "chromadb_port", 8000)
+        )
         self.enable_chromadb = self.config.get(
             "enable_chromadb", getattr(settings, "enable_chromadb", False)
         )
@@ -153,7 +159,12 @@ class MemorySystemAdapter:
                     self.context_manager = SimpleContextManager()
                     self.vector_store = None
                 else:
-                    self.memory_store = ChromaDBStore(self.memory_path)
+                    self.memory_store = ChromaDBStore(
+                        self.memory_path,
+                        host=self.chromadb_host,
+                        port=self.chromadb_port,
+                        collection_name=self.chromadb_collection_name,
+                    )
                     self.context_manager = PersistentContextManager(
                         self.memory_path,
                         max_context_size=self.max_context_size,
@@ -163,6 +174,8 @@ class MemorySystemAdapter:
                         self.vector_store = ChromaDBAdapter(
                             persist_directory=self.memory_path,
                             collection_name=self.chromadb_collection_name,
+                            host=self.chromadb_host,
+                            port=self.chromadb_port,
                         )
                     else:
                         self.vector_store = None

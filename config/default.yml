@@ -22,6 +22,8 @@ memory:
       collection_name: devsynth
       distance_function: cosine
       persist_directory: ./.devsynth/chromadb
+      host: null
+      port: 8000
     kuzu:
       persist_directory: ./.devsynth/kuzu
     faiss:
