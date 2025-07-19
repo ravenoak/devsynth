@@ -5,6 +5,7 @@
 logging:
   level: INFO  # More verbose than production, less than development
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  dir: /var/log/devsynth
   file: /var/log/devsynth/staging-app.log
 
 # Memory system configuration

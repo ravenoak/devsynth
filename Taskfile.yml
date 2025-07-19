@@ -148,3 +148,24 @@ tasks:
     desc: Run the CLI application
     cmds:
       - poetry run devsynth {{.CLI_ARGS}}
+
+  # Docker container tasks
+  docker:build:
+    desc: Build Docker images
+    cmds:
+      - docker compose build
+
+  docker:up:
+    desc: Start containers in the background
+    cmds:
+      - docker compose up -d
+
+  docker:down:
+    desc: Stop containers
+    cmds:
+      - docker compose down
+
+  docker:logs:
+    desc: Follow container logs
+    cmds:
+      - docker compose logs -f

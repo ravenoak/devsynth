@@ -9,11 +9,13 @@ services:
     volumes:
       - .:/opt/pysetup
       - ~/.devsynth:/home/devsynth/.devsynth
+      - ./logs:/var/log/devsynth
     ports:
       - "8000:8000"
     environment:
       - DEVSYNTH_ENV=development
       - DEVSYNTH_LOG_LEVEL=DEBUG
+      - DEVSYNTH_LOG_DIR=/var/log/devsynth
       - DEVSYNTH_LLM_PROVIDER=openai
     networks:
       - devsynth-network
