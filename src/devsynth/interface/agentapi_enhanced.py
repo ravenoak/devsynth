@@ -160,22 +160,22 @@ class InitRequest(BaseModel):
     path: str = Field(
         default=".",
         description="Path where the project will be initialized",
-        example="./my-project"
+        example="./my-project",
     )
     project_root: Optional[str] = Field(
         default=None,
         description="Root directory of the project (if different from path)",
-        example="src"
+        example="src",
     )
     language: Optional[str] = Field(
         default=None,
         description="Primary programming language for the project",
-        example="python"
+        example="python",
     )
     goals: Optional[str] = Field(
         default=None,
         description="High-level goals or description of the project",
-        example="A CLI tool for managing tasks"
+        example="A CLI tool for managing tasks",
     )
 
 
@@ -184,16 +184,16 @@ class GatherRequest(BaseModel):
 
     goals: str = Field(
         description="High-level goals or objectives for the project",
-        example="Create a web application for tracking expenses"
+        example="Create a web application for tracking expenses",
     )
     constraints: str = Field(
         description="Constraints or limitations for the project",
-        example="Must work on mobile devices and support offline mode"
+        example="Must work on mobile devices and support offline mode",
     )
     priority: str = Field(
         default="medium",
         description="Priority level for the requirements (low, medium, high)",
-        example="high"
+        example="high",
     )
 
 
@@ -203,7 +203,7 @@ class SynthesizeRequest(BaseModel):
     target: Optional[str] = Field(
         default=None,
         description="Target component to synthesize (e.g., 'unit', 'integration')",
-        example="unit"
+        example="unit",
     )
 
 
@@ -213,7 +213,7 @@ class SpecRequest(BaseModel):
     requirements_file: str = Field(
         default="requirements.md",
         description="Path to the requirements file",
-        example="docs/requirements.md"
+        example="docs/requirements.md",
     )
 
 
@@ -223,13 +223,16 @@ class TestRequest(BaseModel):
     spec_file: str = Field(
         default="specs.md",
         description="Path to the specifications file",
-        example="docs/specs.md"
+        example="docs/specs.md",
     )
     output_dir: Optional[str] = Field(
         default=None,
         description="Directory where the tests will be generated",
-        example="tests"
+        example="tests",
     )
+
+    # Prevent pytest from collecting this Pydantic model as a test class
+    __test__ = False
 
 
 class CodeRequest(BaseModel):
@@ -238,7 +241,7 @@ class CodeRequest(BaseModel):
     output_dir: Optional[str] = Field(
         default=None,
         description="Directory where the code will be generated",
-        example="src"
+        example="src",
     )
 
 
@@ -246,14 +249,10 @@ class DoctorRequest(BaseModel):
     """Request model for running diagnostics on a project."""
 
     path: str = Field(
-        default=".",
-        description="Path to the project directory",
-        example="./my-project"
+        default=".", description="Path to the project directory", example="./my-project"
     )
     fix: bool = Field(
-        default=False,
-        description="Whether to automatically fix issues",
-        example=True
+        default=False, description="Whether to automatically fix issues", example=True
     )
 
 
@@ -262,17 +261,17 @@ class EDRRCycleRequest(BaseModel):
 
     prompt: str = Field(
         description="Prompt for the EDRR cycle",
-        example="Improve the error handling in the API endpoints"
+        example="Improve the error handling in the API endpoints",
     )
     context: Optional[str] = Field(
         default=None,
         description="Additional context for the EDRR cycle",
-        example="Focus on providing more informative error messages"
+        example="Focus on providing more informative error messages",
     )
     max_iterations: int = Field(
         default=3,
         description="Maximum number of iterations for the EDRR cycle",
-        example=5
+        example=5,
     )
 
 
@@ -281,7 +280,7 @@ class WorkflowResponse(BaseModel):
 
     messages: List[str] = Field(
         description="Messages generated during the workflow execution",
-        example=["Initializing project...", "Project initialized successfully"]
+        example=["Initializing project...", "Project initialized successfully"],
     )
 
 
@@ -290,17 +289,20 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(
         description="Error message",
-        example="Failed to initialize project: File not found"
+        example="Failed to initialize project: File not found",
     )
     details: Optional[str] = Field(
         default=None,
         description="Additional details about the error",
-        example="The specified path does not exist"
+        example="The specified path does not exist",
     )
     suggestions: Optional[List[str]] = Field(
         default=None,
         description="Suggestions for resolving the error",
-        example=["Create the directory before initializing", "Check the path and try again"]
+        example=[
+            "Create the directory before initializing",
+            "Check the path and try again",
+        ],
     )
 
 
@@ -332,7 +334,7 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
         logger.warning(f"Rate limit exceeded for client {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Rate limit exceeded. Try again in {window} seconds."
+            detail=f"Rate limit exceeded. Try again in {window} seconds.",
         )
 
     # Add the current timestamp
@@ -349,12 +351,10 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
     },
     tags=["Project Management"],
     summary="Initialize a project",
-    description="Initialize or onboard a project with the specified parameters."
+    description="Initialize or onboard a project with the specified parameters.",
 )
 async def init_endpoint(
-    request: Request,
-    init_request: InitRequest,
-    token: None = Depends(verify_token)
+    request: Request, init_request: InitRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Initialize or onboard a project.
 
@@ -388,9 +388,9 @@ async def init_endpoint(
                     "error": f"Path not found: {init_request.path}",
                     "suggestions": [
                         "Create the directory before initializing",
-                        "Check the path and try again"
-                    ]
-                }
+                        "Check the path and try again",
+                    ],
+                },
             )
 
         init_cmd(
@@ -416,9 +416,9 @@ async def init_endpoint(
                     "error": f"File not found: {str(e)}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
@@ -427,9 +427,9 @@ async def init_endpoint(
                     "error": f"Permission denied: {str(e)}",
                     "suggestions": [
                         "Check file permissions",
-                        "Run the command with appropriate permissions"
-                    ]
-                }
+                        "Run the command with appropriate permissions",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -439,9 +439,9 @@ async def init_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -455,12 +455,10 @@ async def init_endpoint(
     },
     tags=["Project Management"],
     summary="Gather project requirements",
-    description="Gather project goals and constraints via the interactive wizard."
+    description="Gather project goals and constraints via the interactive wizard.",
 )
 async def gather_endpoint(
-    request: Request,
-    gather_request: GatherRequest,
-    token: None = Depends(verify_token)
+    request: Request, gather_request: GatherRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Gather project requirements.
 
@@ -484,10 +482,16 @@ async def gather_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["gather"] = API_METRICS["endpoint_counts"].get("gather", 0) + 1
+    API_METRICS["endpoint_counts"]["gather"] = (
+        API_METRICS["endpoint_counts"].get("gather", 0) + 1
+    )
 
     try:
-        answers = [gather_request.goals, gather_request.constraints, gather_request.priority]
+        answers = [
+            gather_request.goals,
+            gather_request.constraints,
+            gather_request.priority,
+        ]
         bridge = APIBridge(answers)
         from devsynth.application.cli import gather_cmd
 
@@ -500,8 +504,8 @@ async def gather_endpoint(
                     "error": f"Invalid priority: {gather_request.priority}",
                     "suggestions": [
                         "Use 'low', 'medium', or 'high' for priority",
-                    ]
-                }
+                    ],
+                },
             )
 
         gather_cmd(bridge=bridge)
@@ -530,9 +534,9 @@ async def gather_endpoint(
                     "error": f"Invalid input: {str(e)}",
                     "suggestions": [
                         "Check the input values",
-                        "Ensure all required fields are provided"
-                    ]
-                }
+                        "Ensure all required fields are provided",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -542,9 +546,9 @@ async def gather_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -558,12 +562,12 @@ async def gather_endpoint(
     },
     tags=["Project Management"],
     summary="Synthesize code",
-    description="Execute the synthesis pipeline to generate code."
+    description="Execute the synthesis pipeline to generate code.",
 )
 async def synthesize_endpoint(
     request: Request,
     synthesize_request: SynthesizeRequest,
-    token: None = Depends(verify_token)
+    token: None = Depends(verify_token),
 ) -> WorkflowResponse:
     """Synthesize code from requirements.
 
@@ -586,14 +590,20 @@ async def synthesize_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["synthesize"] = API_METRICS["endpoint_counts"].get("synthesize", 0) + 1
+    API_METRICS["endpoint_counts"]["synthesize"] = (
+        API_METRICS["endpoint_counts"].get("synthesize", 0) + 1
+    )
 
     try:
         bridge = APIBridge()
         from devsynth.application.cli import run_pipeline_cmd
 
         # Validate target if provided
-        if synthesize_request.target and synthesize_request.target not in ["unit", "integration", "behavior"]:
+        if synthesize_request.target and synthesize_request.target not in [
+            "unit",
+            "integration",
+            "behavior",
+        ]:
             logger.error(f"Invalid target: {synthesize_request.target}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -601,9 +611,9 @@ async def synthesize_endpoint(
                     "error": f"Invalid target: {synthesize_request.target}",
                     "suggestions": [
                         "Use 'unit', 'integration', or 'behavior' for target",
-                        "Omit target to run all tests"
-                    ]
-                }
+                        "Omit target to run all tests",
+                    ],
+                },
             )
 
         run_pipeline_cmd(target=synthesize_request.target, bridge=bridge)
@@ -632,9 +642,9 @@ async def synthesize_endpoint(
                     "error": f"File not found: {str(e)}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -644,9 +654,9 @@ async def synthesize_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -660,12 +670,10 @@ async def synthesize_endpoint(
     },
     tags=["Project Management"],
     summary="Generate specifications",
-    description="Generate specifications from requirements."
+    description="Generate specifications from requirements.",
 )
 async def spec_endpoint(
-    request: Request,
-    spec_request: SpecRequest,
-    token: None = Depends(verify_token)
+    request: Request, spec_request: SpecRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Generate specifications from requirements.
 
@@ -688,7 +696,9 @@ async def spec_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["spec"] = API_METRICS["endpoint_counts"].get("spec", 0) + 1
+    API_METRICS["endpoint_counts"]["spec"] = (
+        API_METRICS["endpoint_counts"].get("spec", 0) + 1
+    )
 
     try:
         bridge = APIBridge()
@@ -696,16 +706,18 @@ async def spec_endpoint(
 
         # Check if the requirements file exists
         if not os.path.exists(spec_request.requirements_file):
-            logger.error(f"Requirements file not found: {spec_request.requirements_file}")
+            logger.error(
+                f"Requirements file not found: {spec_request.requirements_file}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={
                     "error": f"Requirements file not found: {spec_request.requirements_file}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
 
         spec_cmd(requirements_file=spec_request.requirements_file, bridge=bridge)
@@ -734,9 +746,9 @@ async def spec_endpoint(
                     "error": f"File not found: {str(e)}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
@@ -745,9 +757,9 @@ async def spec_endpoint(
                     "error": f"Permission denied: {str(e)}",
                     "suggestions": [
                         "Check file permissions",
-                        "Run the command with appropriate permissions"
-                    ]
-                }
+                        "Run the command with appropriate permissions",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -757,9 +769,9 @@ async def spec_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -773,12 +785,10 @@ async def spec_endpoint(
     },
     tags=["Project Management"],
     summary="Generate tests",
-    description="Generate tests from specifications."
+    description="Generate tests from specifications.",
 )
 async def test_endpoint(
-    request: Request,
-    test_request: TestRequest,
-    token: None = Depends(verify_token)
+    request: Request, test_request: TestRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Generate tests from specifications.
 
@@ -801,7 +811,9 @@ async def test_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["test"] = API_METRICS["endpoint_counts"].get("test", 0) + 1
+    API_METRICS["endpoint_counts"]["test"] = (
+        API_METRICS["endpoint_counts"].get("test", 0) + 1
+    )
 
     try:
         bridge = APIBridge()
@@ -816,9 +828,9 @@ async def test_endpoint(
                     "error": f"Spec file not found: {test_request.spec_file}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
 
         # Check if the output directory exists if provided
@@ -830,12 +842,16 @@ async def test_endpoint(
                     "error": f"Output directory not found: {test_request.output_dir}",
                     "suggestions": [
                         "Create the directory before generating tests",
-                        "Provide the correct directory path"
-                    ]
-                }
+                        "Provide the correct directory path",
+                    ],
+                },
             )
 
-        test_cmd(spec_file=test_request.spec_file, output_dir=test_request.output_dir, bridge=bridge)
+        test_cmd(
+            spec_file=test_request.spec_file,
+            output_dir=test_request.output_dir,
+            bridge=bridge,
+        )
         LATEST_MESSAGES[:] = bridge.messages
 
         # Update latency metrics
@@ -861,9 +877,9 @@ async def test_endpoint(
                     "error": f"File not found: {str(e)}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
@@ -872,9 +888,9 @@ async def test_endpoint(
                     "error": f"Permission denied: {str(e)}",
                     "suggestions": [
                         "Check file permissions",
-                        "Run the command with appropriate permissions"
-                    ]
-                }
+                        "Run the command with appropriate permissions",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -884,9 +900,9 @@ async def test_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -900,12 +916,10 @@ async def test_endpoint(
     },
     tags=["Project Management"],
     summary="Generate code",
-    description="Generate code from tests."
+    description="Generate code from tests.",
 )
 async def code_endpoint(
-    request: Request,
-    code_request: CodeRequest,
-    token: None = Depends(verify_token)
+    request: Request, code_request: CodeRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Generate code from tests.
 
@@ -928,7 +942,9 @@ async def code_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["code"] = API_METRICS["endpoint_counts"].get("code", 0) + 1
+    API_METRICS["endpoint_counts"]["code"] = (
+        API_METRICS["endpoint_counts"].get("code", 0) + 1
+    )
 
     try:
         bridge = APIBridge()
@@ -943,9 +959,9 @@ async def code_endpoint(
                     "error": f"Output directory not found: {code_request.output_dir}",
                     "suggestions": [
                         "Create the directory before generating code",
-                        "Provide the correct directory path"
-                    ]
-                }
+                        "Provide the correct directory path",
+                    ],
+                },
             )
 
         code_cmd(output_dir=code_request.output_dir, bridge=bridge)
@@ -974,9 +990,9 @@ async def code_endpoint(
                     "error": f"File not found: {str(e)}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
@@ -985,9 +1001,9 @@ async def code_endpoint(
                     "error": f"Permission denied: {str(e)}",
                     "suggestions": [
                         "Check file permissions",
-                        "Run the command with appropriate permissions"
-                    ]
-                }
+                        "Run the command with appropriate permissions",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -997,9 +1013,9 @@ async def code_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -1013,12 +1029,10 @@ async def code_endpoint(
     },
     tags=["Project Management"],
     summary="Run diagnostics",
-    description="Run diagnostics on a project."
+    description="Run diagnostics on a project.",
 )
 async def doctor_endpoint(
-    request: Request,
-    doctor_request: DoctorRequest,
-    token: None = Depends(verify_token)
+    request: Request, doctor_request: DoctorRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Run diagnostics on a project.
 
@@ -1041,7 +1055,9 @@ async def doctor_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["doctor"] = API_METRICS["endpoint_counts"].get("doctor", 0) + 1
+    API_METRICS["endpoint_counts"]["doctor"] = (
+        API_METRICS["endpoint_counts"].get("doctor", 0) + 1
+    )
 
     try:
         bridge = APIBridge()
@@ -1056,9 +1072,9 @@ async def doctor_endpoint(
                     "error": f"Path not found: {doctor_request.path}",
                     "suggestions": [
                         "Check that the directory exists",
-                        "Provide the correct directory path"
-                    ]
-                }
+                        "Provide the correct directory path",
+                    ],
+                },
             )
 
         doctor_cmd(path=doctor_request.path, fix=doctor_request.fix, bridge=bridge)
@@ -1087,9 +1103,9 @@ async def doctor_endpoint(
                     "error": f"File not found: {str(e)}",
                     "suggestions": [
                         "Check that the file exists",
-                        "Provide the correct file path"
-                    ]
-                }
+                        "Provide the correct file path",
+                    ],
+                },
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
@@ -1098,9 +1114,9 @@ async def doctor_endpoint(
                     "error": f"Permission denied: {str(e)}",
                     "suggestions": [
                         "Check file permissions",
-                        "Run the command with appropriate permissions"
-                    ]
-                }
+                        "Run the command with appropriate permissions",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -1110,9 +1126,9 @@ async def doctor_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -1126,12 +1142,12 @@ async def doctor_endpoint(
     },
     tags=["Project Management"],
     summary="Run EDRR cycle",
-    description="Run an EDRR cycle with the specified prompt."
+    description="Run an EDRR cycle with the specified prompt.",
 )
 async def edrr_cycle_endpoint(
     request: Request,
     edrr_cycle_request: EDRRCycleRequest,
-    token: None = Depends(verify_token)
+    token: None = Depends(verify_token),
 ) -> WorkflowResponse:
     """Run an EDRR cycle.
 
@@ -1154,14 +1170,19 @@ async def edrr_cycle_endpoint(
     # Track metrics
     start_time = time.time()
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["edrr-cycle"] = API_METRICS["endpoint_counts"].get("edrr-cycle", 0) + 1
+    API_METRICS["endpoint_counts"]["edrr-cycle"] = (
+        API_METRICS["endpoint_counts"].get("edrr-cycle", 0) + 1
+    )
 
     try:
         bridge = APIBridge()
         from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
 
         # Validate max_iterations
-        if edrr_cycle_request.max_iterations < 1 or edrr_cycle_request.max_iterations > 10:
+        if (
+            edrr_cycle_request.max_iterations < 1
+            or edrr_cycle_request.max_iterations > 10
+        ):
             logger.error(f"Invalid max_iterations: {edrr_cycle_request.max_iterations}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -1169,8 +1190,8 @@ async def edrr_cycle_endpoint(
                     "error": f"Invalid max_iterations: {edrr_cycle_request.max_iterations}",
                     "suggestions": [
                         "Use a value between 1 and 10 for max_iterations",
-                    ]
-                }
+                    ],
+                },
             )
 
         edrr_cycle_cmd(
@@ -1204,9 +1225,9 @@ async def edrr_cycle_endpoint(
                     "error": f"Invalid input: {str(e)}",
                     "suggestions": [
                         "Check the input values",
-                        "Ensure all required fields are provided"
-                    ]
-                }
+                        "Ensure all required fields are provided",
+                    ],
+                },
             )
         else:
             raise HTTPException(
@@ -1216,9 +1237,9 @@ async def edrr_cycle_endpoint(
                     "details": str(e),
                     "suggestions": [
                         "Check the logs for more information",
-                        "Try again with different parameters"
-                    ]
-                }
+                        "Try again with different parameters",
+                    ],
+                },
             )
 
 
@@ -1231,11 +1252,10 @@ async def edrr_cycle_endpoint(
     },
     tags=["Monitoring"],
     summary="Check API health",
-    description="Check if the API is healthy and responding to requests."
+    description="Check if the API is healthy and responding to requests.",
 )
 async def health_endpoint(
-    request: Request,
-    token: None = Depends(verify_token)
+    request: Request, token: None = Depends(verify_token)
 ) -> JSONResponse:
     """Check if the API is healthy.
 
@@ -1256,7 +1276,9 @@ async def health_endpoint(
 
     # Track metrics
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["health"] = API_METRICS["endpoint_counts"].get("health", 0) + 1
+    API_METRICS["endpoint_counts"]["health"] = (
+        API_METRICS["endpoint_counts"].get("health", 0) + 1
+    )
 
     return JSONResponse(content={"status": "ok"})
 
@@ -1270,11 +1292,10 @@ async def health_endpoint(
     },
     tags=["Monitoring"],
     summary="Get API metrics",
-    description="Get metrics about API usage and performance."
+    description="Get metrics about API usage and performance.",
 )
 async def metrics_endpoint(
-    request: Request,
-    token: None = Depends(verify_token)
+    request: Request, token: None = Depends(verify_token)
 ) -> PlainTextResponse:
     """Get API metrics.
 
@@ -1295,7 +1316,9 @@ async def metrics_endpoint(
 
     # Track metrics
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["metrics"] = API_METRICS["endpoint_counts"].get("metrics", 0) + 1
+    API_METRICS["endpoint_counts"]["metrics"] = (
+        API_METRICS["endpoint_counts"].get("metrics", 0) + 1
+    )
 
     # Calculate uptime
     uptime = time.time() - API_METRICS["start_time"]
@@ -1324,15 +1347,23 @@ async def metrics_endpoint(
     for endpoint, latencies in API_METRICS["endpoint_latency"].items():
         if latencies:
             avg_latency = sum(latencies) / len(latencies)
-            metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}')
+            metrics.append(
+                f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}'
+            )
             if len(latencies) >= 2:
                 latencies.sort()
                 p50 = latencies[len(latencies) // 2]
                 p95 = latencies[int(len(latencies) * 0.95)]
                 p99 = latencies[int(len(latencies) * 0.99)]
-                metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}')
-                metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.95"}} {p95}')
-                metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}')
+                metrics.append(
+                    f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}'
+                )
+                metrics.append(
+                    f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.95"}} {p95}'
+                )
+                metrics.append(
+                    f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}'
+                )
 
     return PlainTextResponse(content="\n".join(metrics))
 
@@ -1346,11 +1377,10 @@ async def metrics_endpoint(
     },
     tags=["Workflow"],
     summary="Get workflow status",
-    description="Get the status of the most recent workflow execution."
+    description="Get the status of the most recent workflow execution.",
 )
 async def status_endpoint(
-    request: Request,
-    token: None = Depends(verify_token)
+    request: Request, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Get the status of the most recent workflow execution.
 
@@ -1381,19 +1411,15 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
 # Add exception handlers for common errors
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Handle HTTP exceptions and return a structured error response."""
     if isinstance(exc.detail, dict):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content=exc.detail
-        )
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.detail}
-    )
+        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -1406,10 +1432,11 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
             "details": str(exc),
             "suggestions": [
                 "Check the logs for more information",
-                "Contact support if the issue persists"
-            ]
-        }
+                "Contact support if the issue persists",
+            ],
+        },
     )
+
 
 # Include the router in the app
 app.include_router(router)
