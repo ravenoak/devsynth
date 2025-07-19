@@ -1,18 +1,29 @@
-import os
 import json
+import os
 import uuid
-import pytest
-import numpy as np
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
-from rdflib import URIRef, Literal, Namespace
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+import pytest
+from rdflib import Literal, Namespace, URIRef
+
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+
 try:
-    from devsynth.application.memory.rdflib_store import RDFLibStore
     from devsynth.application.memory.context_manager import InMemoryStore
+    from devsynth.application.memory.knowledge_graph_utils import (
+        MEMORY,
+        create_relationship,
+        delete_relationship,
+        find_items_by_relationship,
+        find_related_items,
+        get_item_relationships,
+        get_subgraph,
+        query_graph_pattern,
+    )
     from devsynth.application.memory.memory_manager import MemoryManager
-    from devsynth.application.memory.knowledge_graph_utils import MEMORY
-    from devsynth.application.memory.knowledge_graph_utils import find_related_items, find_items_by_relationship, get_item_relationships, create_relationship, delete_relationship, query_graph_pattern, get_subgraph
+    from devsynth.application.memory.rdflib_store import RDFLibStore
 except Exception as exc:
     pytest.skip(f'Memory utilities unavailable: {exc}', allow_module_level=True
         )
@@ -133,14 +144,14 @@ ReqID: N/A"""
 ReqID: N/A"""
         results = query_graph_pattern(store,
             """
-            ?item a <http://devsynth.org/ontology/memory#MemoryItem> .
+            ?item a <https://github.com/ravenoak/devsynth/ontology/memory#MemoryItem> .
         """
             )
         assert len(results) > 0
         results = query_graph_pattern(store,
             """
-            ?item a <http://devsynth.org/ontology/memory#MemoryItem> .
-            ?item <http://devsynth.org/ontology/memory#memoryType> ?type .
+            ?item a <https://github.com/ravenoak/devsynth/ontology/memory#MemoryItem> .
+            ?item <https://github.com/ravenoak/devsynth/ontology/memory#memoryType> ?type .
             FILTER(?type = "code_analysis")
         """
             )
@@ -149,7 +160,7 @@ ReqID: N/A"""
             'test_relationship')
         results = query_graph_pattern(store,
             """
-            ?source <http://devsynth.org/ontology/memory#test_relationship> ?target .
+            ?source <https://github.com/ravenoak/devsynth/ontology/memory#test_relationship> ?target .
         """
             )
         assert len(results) == 1

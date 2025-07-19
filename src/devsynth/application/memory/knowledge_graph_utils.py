@@ -5,23 +5,25 @@ This module provides common utility functions for querying and manipulating
 the knowledge graph stored in RDFLibStore.
 """
 
-from typing import Dict, List, Any, Optional, Tuple, Union
-import rdflib
-from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
-from rdflib.namespace import FOAF, DC
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from ...domain.interfaces.memory import MemoryStore, VectorStore
-from .rdflib_store import RDFLibStore
-from devsynth.logging_setup import DevSynthLogger
+import rdflib
+from rdflib import RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import DC, FOAF
+
 from devsynth.exceptions import MemoryStoreError
+from devsynth.logging_setup import DevSynthLogger
+
+from ...domain.interfaces.memory import MemoryStore, VectorStore
+from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from .rdflib_store import RDFLibStore
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 # Define namespaces for the RDF graph
-DEVSYNTH = Namespace("http://devsynth.org/ontology#")
-MEMORY = Namespace("http://devsynth.org/ontology/memory#")
+DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
+MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
 
 def find_related_items(store: RDFLibStore, item_id: str) -> List[MemoryItem]:
     """
@@ -76,9 +78,9 @@ def find_related_items(store: RDFLibStore, item_id: str) -> List[MemoryItem]:
 
     except Exception as e:
         logger.error(f"Error finding related items: {e}")
-        raise MemoryStoreError("Error finding related items", 
-                              store_type="rdflib", 
-                              operation="find_related_items", 
+        raise MemoryStoreError("Error finding related items",
+                              store_type="rdflib",
+                              operation="find_related_items",
                               original_error=e)
 
 def find_items_by_relationship(store: RDFLibStore, relationship: str) -> List[List[MemoryItem]]:
@@ -130,9 +132,9 @@ def find_items_by_relationship(store: RDFLibStore, relationship: str) -> List[Li
 
     except Exception as e:
         logger.error(f"Error finding items by relationship: {e}")
-        raise MemoryStoreError("Error finding items by relationship", 
-                              store_type="rdflib", 
-                              operation="find_items_by_relationship", 
+        raise MemoryStoreError("Error finding items by relationship",
+                              store_type="rdflib",
+                              operation="find_items_by_relationship",
                               original_error=e)
 
 def get_item_relationships(store: RDFLibStore, item_id: str) -> List[Dict[str, Any]]:
@@ -212,9 +214,9 @@ def get_item_relationships(store: RDFLibStore, item_id: str) -> List[Dict[str, A
 
     except Exception as e:
         logger.error(f"Error getting item relationships: {e}")
-        raise MemoryStoreError("Error getting item relationships", 
-                              store_type="rdflib", 
-                              operation="get_item_relationships", 
+        raise MemoryStoreError("Error getting item relationships",
+                              store_type="rdflib",
+                              operation="get_item_relationships",
                               original_error=e)
 
 def create_relationship(store: RDFLibStore, source_id: str, target_id: str, relationship: str) -> None:
@@ -246,9 +248,9 @@ def create_relationship(store: RDFLibStore, source_id: str, target_id: str, rela
 
     except Exception as e:
         logger.error(f"Error creating relationship: {e}")
-        raise MemoryStoreError("Error creating relationship", 
-                              store_type="rdflib", 
-                              operation="create_relationship", 
+        raise MemoryStoreError("Error creating relationship",
+                              store_type="rdflib",
+                              operation="create_relationship",
                               original_error=e)
 
 def delete_relationship(store: RDFLibStore, source_id: str, target_id: str, relationship: str) -> None:
@@ -280,9 +282,9 @@ def delete_relationship(store: RDFLibStore, source_id: str, target_id: str, rela
 
     except Exception as e:
         logger.error(f"Error deleting relationship: {e}")
-        raise MemoryStoreError("Error deleting relationship", 
-                              store_type="rdflib", 
-                              operation="delete_relationship", 
+        raise MemoryStoreError("Error deleting relationship",
+                              store_type="rdflib",
+                              operation="delete_relationship",
                               original_error=e)
 
 def query_graph_pattern(store: RDFLibStore, pattern: str) -> List[Dict[str, Any]]:
@@ -327,9 +329,9 @@ def query_graph_pattern(store: RDFLibStore, pattern: str) -> List[Dict[str, Any]
 
     except Exception as e:
         logger.error(f"Error querying graph pattern: {e}")
-        raise MemoryStoreError("Error querying graph pattern", 
-                              store_type="rdflib", 
-                              operation="query_graph_pattern", 
+        raise MemoryStoreError("Error querying graph pattern",
+                              store_type="rdflib",
+                              operation="query_graph_pattern",
                               original_error=e)
 
 def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> Dict[str, Any]:
@@ -457,7 +459,7 @@ def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> Dict[str
 
     except Exception as e:
         logger.error(f"Error getting subgraph: {e}")
-        raise MemoryStoreError("Error getting subgraph", 
-                              store_type="rdflib", 
-                              operation="get_subgraph", 
+        raise MemoryStoreError("Error getting subgraph",
+                              store_type="rdflib",
+                              operation="get_subgraph",
                               original_error=e)
