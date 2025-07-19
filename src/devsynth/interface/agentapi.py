@@ -400,6 +400,7 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
 
 
 class InitRequest(BaseModel):
+    __test__ = False
     path: str = "."
     project_root: Optional[str] = None
     language: Optional[str] = None
@@ -407,16 +408,19 @@ class InitRequest(BaseModel):
 
 
 class GatherRequest(BaseModel):
+    __test__ = False
     goals: str
     constraints: str
     priority: str = "medium"
 
 
 class SynthesizeRequest(BaseModel):
+    __test__ = False
     target: Optional[str] = None
 
 
 class SpecRequest(BaseModel):
+    __test__ = False
     requirements_file: str = "requirements.md"
 
 
@@ -429,21 +433,25 @@ class TestSpecRequest(BaseModel):
 
 
 class CodeRequest(BaseModel):
+    __test__ = False
     output_dir: Optional[str] = None
 
 
 class DoctorRequest(BaseModel):
+    __test__ = False
     path: str = "."
     fix: bool = False
 
 
 class EDRRCycleRequest(BaseModel):
+    __test__ = False
     prompt: str
     context: Optional[str] = None
     max_iterations: int = 3
 
 
 class WorkflowResponse(BaseModel):
+    __test__ = False
     messages: List[str]
 
 
