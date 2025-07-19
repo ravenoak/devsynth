@@ -187,10 +187,9 @@ class MemorySystemAdapter:
                 expiration_days=self.context_expiration_days,
             )
             if self.vector_store_enabled:
-                self.vector_store = KuzuAdapter(
-                    persist_directory=self.memory_path,
-                    collection_name=self.chromadb_collection_name,
-                )
+                # Reuse the vector store created by ``KuzuMemoryStore`` so
+                # memory and vector operations share the same backend.
+                self.vector_store = self.memory_store.vector
             else:
                 self.vector_store = None
         elif self.storage_type == "tinydb":
