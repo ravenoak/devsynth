@@ -57,7 +57,9 @@ class AgentMemoryIntegration:
 
         logger.info("Agent memory integration initialized")
 
-    def store_agent_solution(self, agent_id: str, task: Dict[str, Any], solution: Dict[str, Any]) -> str:
+    def store_agent_solution(
+        self, agent_id: str, task: Dict[str, Any], solution: Dict[str, Any]
+    ) -> str:
         """
         Store an agent solution in memory.
 
@@ -78,8 +80,8 @@ class AgentMemoryIntegration:
                 "agent_id": agent_id,
                 "task_id": task["id"],
                 "solution_id": solution["id"],
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         )
 
         # Store the solution in memory
@@ -100,32 +102,48 @@ class AgentMemoryIntegration:
         """
         # Get all solutions
         all_items = []
-        for item in self.memory_store.items.values() if hasattr(self.memory_store, 'items') else []:
-            if item.memory_type == MemoryType.SOLUTION and item.metadata.get("task_id") == task_id:
+        for item in (
+            self.memory_store.items.values()
+            if hasattr(self.memory_store, "items")
+            else []
+        ):
+            if (
+                item.memory_type == MemoryType.SOLUTION
+                and item.metadata.get("task_id") == task_id
+            ):
                 all_items.append(item)
 
         # If the direct access approach didn't work, try using search
-        if not all_items and hasattr(self.memory_store, 'search'):
+        if not all_items and hasattr(self.memory_store, "search"):
             # First try with the memory type as enum
-            solutions = self.memory_store.search({
-                "memory_type": MemoryType.SOLUTION
-            })
+            solutions = self.memory_store.search({"memory_type": MemoryType.SOLUTION})
 
             # Filter by task_id in Python
-            all_items = [item for item in solutions if item.metadata.get("task_id") == task_id]
+            all_items = [
+                item for item in solutions if item.metadata.get("task_id") == task_id
+            ]
 
             # If that didn't work, try with memory type as string
             if not all_items:
-                solutions = self.memory_store.search({
-                    "memory_type": MemoryType.SOLUTION.value
-                })
-                all_items = [item for item in solutions if item.metadata.get("task_id") == task_id]
+                solutions = self.memory_store.search(
+                    {"memory_type": MemoryType.SOLUTION.value}
+                )
+                all_items = [
+                    item
+                    for item in solutions
+                    if item.metadata.get("task_id") == task_id
+                ]
 
         logger.info(f"Retrieved {len(all_items)} agent solutions for task {task_id}")
         return all_items
 
-    def store_dialectical_reasoning(self, task_id: str, thesis: Dict[str, Any], 
-                                   antithesis: Dict[str, Any], synthesis: Dict[str, Any]) -> str:
+    def store_dialectical_reasoning(
+        self,
+        task_id: str,
+        thesis: Dict[str, Any],
+        antithesis: Dict[str, Any],
+        synthesis: Dict[str, Any],
+    ) -> str:
         """
         Store dialectical reasoning in memory.
 
@@ -142,7 +160,7 @@ class AgentMemoryIntegration:
         reasoning_content = {
             "thesis": thesis,
             "antithesis": antithesis,
-            "synthesis": synthesis
+            "synthesis": synthesis,
         }
 
         reasoning_item = MemoryItem(
@@ -154,8 +172,8 @@ class AgentMemoryIntegration:
                 "thesis_id": thesis["id"],
                 "antithesis_id": antithesis["id"],
                 "synthesis_id": synthesis["id"],
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         )
 
         # Store the dialectical reasoning in memory
@@ -175,10 +193,12 @@ class AgentMemoryIntegration:
             A memory item containing dialectical reasoning for the task, or None if not found
         """
         # Search for dialectical reasoning with the given task ID
-        reasoning_items = self.memory_store.search({
-            "memory_type": MemoryType.DIALECTICAL_REASONING,
-            "metadata.task_id": task_id
-        })
+        reasoning_items = self.memory_store.search(
+            {
+                "memory_type": MemoryType.DIALECTICAL_REASONING,
+                "metadata.task_id": task_id,
+            }
+        )
 
         if reasoning_items:
             logger.info(f"Retrieved dialectical reasoning for task {task_id}")
@@ -270,7 +290,9 @@ class AgentMemoryIntegration:
         )
 
         item_id = self.memory_store.store(item)
-        logger.info("Stored memory item %s for agent %s", item_id, metadata["agent_name"])
+        logger.info(
+            "Stored memory item %s for agent %s", item_id, metadata["agent_name"]
+        )
         return item_id
 
     def retrieve_memory(self, item_id: str) -> Optional[MemoryItem]:
@@ -281,7 +303,9 @@ class AgentMemoryIntegration:
             logger.info("Memory item %s not found", item_id)
             return None
 
-        if item.metadata.get("private") and item.metadata.get("agent_name") != getattr(self.wsde_team, "name", ""):
+        if item.metadata.get("private") and item.metadata.get("agent_name") != getattr(
+            self.wsde_team, "name", ""
+        ):
             return None
 
         return item
@@ -293,7 +317,14 @@ class AgentMemoryIntegration:
         """
 
         if hasattr(self.memory_store, "search"):
-            items = self.memory_store.search({})
+            try:
+                items = self.memory_store.search(query)
+            except Exception:  # pragma: no cover - defensive fallback
+                logger.warning("Adapter search failed; falling back to full scan")
+                items = self.memory_store.search({})
+            else:
+                if not items and query:
+                    items = self.memory_store.search({})
         elif hasattr(self.memory_store, "get_all"):
             items = self.memory_store.get_all()
         else:
@@ -315,7 +346,9 @@ class AgentMemoryIntegration:
                         match = False
                         break
             if match:
-                if not item.metadata.get("private") or item.metadata.get("agent_name") == getattr(self.wsde_team, "name", ""):
+                if not item.metadata.get("private") or item.metadata.get(
+                    "agent_name"
+                ) == getattr(self.wsde_team, "name", ""):
                     results.append(item)
 
         return results
@@ -369,9 +402,7 @@ class AgentMemoryIntegration:
 
         return self.store_memory(content, memory_type, metadata)
 
-    def retrieve_memory_with_context(
-        self, context: Dict[str, Any]
-    ) -> List[MemoryItem]:
+    def retrieve_memory_with_context(self, context: Dict[str, Any]) -> List[MemoryItem]:
         """Retrieve memory items matching a given ``context``."""
 
         query = {"metadata.context": context}
