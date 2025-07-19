@@ -3,7 +3,26 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 from devsynth.api import app
-from devsynth.interface.agentapi import init_endpoint, gather_endpoint, synthesize_endpoint, spec_endpoint, test_endpoint, code_endpoint, doctor_endpoint, edrr_cycle_endpoint, status_endpoint, InitRequest, GatherRequest, SynthesizeRequest, SpecRequest, TestSpecRequest, CodeRequest, DoctorRequest, EDRRCycleRequest, LATEST_MESSAGES
+from devsynth.interface.agentapi import (
+    init_endpoint,
+    gather_endpoint,
+    synthesize_endpoint,
+    spec_endpoint,
+    test_endpoint,
+    code_endpoint,
+    doctor_endpoint,
+    edrr_cycle_endpoint,
+    status_endpoint,
+    InitRequest,
+    GatherRequest,
+    SynthesizeRequest,
+    SpecRequest,
+    TestSpecRequest as APITestSpecRequest,
+    CodeRequest,
+    DoctorRequest,
+    EDRRCycleRequest,
+    LATEST_MESSAGES,
+)
 
 
 @pytest.fixture
@@ -93,7 +112,7 @@ ReqID: N/A"""
     assert excinfo.value.status_code == 500
     assert 'Failed to generate spec' in excinfo.value.detail
     mock_cli_commands['test_cmd'].side_effect = Exception('Test error')
-    request = TestSpecRequest(spec_file='specs.md', output_dir=None)
+    request = APITestSpecRequest(spec_file='specs.md', output_dir=None)
     with pytest.raises(HTTPException) as excinfo:
         test_endpoint(request, token=None)
     assert excinfo.value.status_code == 500
@@ -198,7 +217,7 @@ ReqID: N/A"""
         spec_endpoint(request, token=None)
     assert excinfo.value.status_code == 400
     assert 'requirements_file is required' in excinfo.value.detail
-    request = TestSpecRequest(spec_file=None, output_dir=None)
+    request = APITestSpecRequest(spec_file=None, output_dir=None)
     with pytest.raises(HTTPException) as excinfo:
         test_endpoint(request, token=None)
     assert excinfo.value.status_code == 400
@@ -235,7 +254,7 @@ ReqID: N/A"""
         spec_endpoint(request, token=None)
     assert excinfo.value.status_code == 400
     assert 'requirements_file cannot be empty' in excinfo.value.detail
-    request = TestSpecRequest(spec_file='', output_dir=None)
+    request = APITestSpecRequest(spec_file='', output_dir=None)
     with pytest.raises(HTTPException) as excinfo:
         test_endpoint(request, token=None)
     assert excinfo.value.status_code == 400
