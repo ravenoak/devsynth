@@ -1,6 +1,8 @@
 import types
 from devsynth.application.llm import get_llm_provider
-from devsynth.application.llm.offline_provider import OfflineProvider
+# Import the provider from the same module used by ``get_llm_provider`` to
+# avoid type mismatches if ``offline_provider`` is reloaded in other tests.
+from devsynth.application.llm.providers import OfflineProvider
 from devsynth.application.llm.openai_provider import OpenAIProvider
 
 
