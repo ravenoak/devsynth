@@ -113,12 +113,12 @@ For more on Docker deployment, see the [Deployment Guide](docs/deployment/deploy
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
 
 ```bash
-poetry install --extras retrieval --extras memory --extras llm
+poetry install --extras retrieval --extras memory --extras llm --extras api --extras webui
 # or install from PyPI
-pip install 'devsynth[retrieval,memory,llm]'
+pip install 'devsynth[retrieval,memory,llm,api,webui]'
 ```
 
-These packages enable the Kuzu, FAISS, and LMDB memory stores along with optional LLM provider helpers. ChromaDB can be enabled later, but only the embedded backend is currently supported.
+These extras enable the Kuzu, FAISS, and LMDB memory stores, optional LLM providers, the FastAPI server with Prometheus metrics, and the Streamlit WebUI. ChromaDB can be enabled later, but only the embedded backend is currently supported.
 
 ### Offline Mode
 
@@ -192,12 +192,13 @@ poetry install --extras retrieval
 pip install 'devsynth[retrieval]'
 ```
 
-For a smaller core install you can instead run:
+For a minimal install without optional extras:
 
 ```bash
-poetry install --with dev --extras retrieval
-poetry sync --all-extras --all-groups
+poetry install --without dev --without docs
 ```
+
+You can later enable specific features with `poetry install --extras retrieval --extras api`.
 
 After installation, execute the tests with:
 ```bash
