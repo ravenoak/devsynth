@@ -351,10 +351,12 @@ This work is planned for after the completion of Month 2.
 ### Completed Tasks
 
 1. **Test Verification**:
-   - Ran all tests to verify functionality
+   - Ran the full test suite to verify functionality
    - Identified and fixed several import errors and missing modules
    - Added missing exception classes to support tests
-   - Most tests now run successfully, with only a few failures related to specific functionality that needs further attention
+   - Numerous tests are still failing, primarily around the Web UI
+     requirements wizard and Kuzu memory integration. Investigation is
+     ongoing and fixes are planned for the next sprint.
 
 2. **Code Fixes**:
    - Added missing `EDRRCoordinatorError` class to exceptions.py
@@ -389,6 +391,14 @@ This work is planned for after the completion of Month 2.
    - Added `alignment_metrics` and `test_metrics` CLI commands
    - Commands generate alignment and test-first development reports
 
+### Remaining Test Failures
+
+Despite the improvements above, several unit and integration tests continue to
+fail. Most failures occur in the Web UI requirements wizard and the Kuzu-backed
+memory system. Planned fixes include refining the wizard navigation logic and
+adjusting initialization steps for the Kuzu vector store. Progress will be
+tracked in upcoming sprint reports.
+
 
 ## Maintenance Strategy
 
@@ -414,5 +424,7 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - ~~Finalize unit tests for the `MemoryType` enum and resolve any remaining failures.~~
 - ~~Verify that the EDRR coordinator and AST code analysis features fully match their BDD scenarios.~~
 - ~~Complete WSDE agent collaboration capabilities.~~
+- Investigate failing Web UI and Kuzu-related tests; implement fixes for the
+  requirements wizard and memory initialization logic.
 
 For updated scheduling, see the consolidated [ROADMAP](ROADMAP.md).
