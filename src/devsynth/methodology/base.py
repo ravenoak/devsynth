@@ -17,6 +17,13 @@ class Phase(Enum):
     REFINE = "refine"
     RETROSPECT = "retrospect"
 
+    # Additional phases used by specialized workflows. These are aliases that
+    # map to intermediate steps outside of the core EDRR cycle but are useful
+    # for tests and extension points.
+    ANALYSIS = "analysis"
+    IMPLEMENTATION = "implementation"
+    REFINEMENT = "refinement"
+
 
 class BaseMethodologyAdapter(ABC):
     """Base class for methodology adapters.

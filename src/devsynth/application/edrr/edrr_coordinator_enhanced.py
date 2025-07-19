@@ -11,10 +11,14 @@ from pathlib import Path
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
 from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
 from devsynth.application.edrr.edrr_phase_transitions import (
-    PhaseTransitionMetrics, calculate_enhanced_quality_score, collect_phase_metrics
+    PhaseTransitionMetrics,
+    calculate_enhanced_quality_score,
+    collect_phase_metrics,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
@@ -84,8 +88,12 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         # Enhanced configuration
         self.config = config or {}
         self.auto_phase_transitions = self.config.get("auto_phase_transitions", True)
-        self.quality_based_transitions = self.config.get("quality_based_transitions", True)
-        self.phase_transition_timeout = self.config.get("phase_transition_timeout", 3600)  # 1 hour default
+        self.quality_based_transitions = self.config.get(
+            "quality_based_transitions", True
+        )
+        self.phase_transition_timeout = self.config.get(
+            "phase_transition_timeout", 3600
+        )  # 1 hour default
 
     def progress_to_phase(self, phase: Phase) -> None:
         """
@@ -112,15 +120,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             self.phase_metrics.end_phase(phase, metrics)
 
             # Store the metrics in memory
-            metrics_metadata = {
-                "cycle_id": self.cycle_id,
-                "type": "PHASE_METRICS"
-            }
+            metrics_metadata = {"cycle_id": self.cycle_id, "type": "PHASE_METRICS"}
             self._safe_store_with_edrr_phase(
-                metrics,
-                MemoryType.EPISODIC,
-                phase.value,
-                metrics_metadata
+                metrics, MemoryType.EPISODIC, phase.value, metrics_metadata
             )
 
             # Log the metrics
@@ -161,17 +163,25 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         # Check if the phase is explicitly marked as complete
         phase_results = self.results.get(self.current_phase.name, {})
         if phase_results.get("phase_complete", False) is True:
-            logger.info(f"Phase {self.current_phase.name} explicitly marked as complete")
+            logger.info(
+                f"Phase {self.current_phase.name} explicitly marked as complete"
+            )
             return next_phase
 
         # Check quality-based transition if enabled
         if self.quality_based_transitions:
-            should_transition, reasons = self.phase_metrics.should_transition(self.current_phase)
+            should_transition, reasons = self.phase_metrics.should_transition(
+                self.current_phase
+            )
             if should_transition:
-                logger.info(f"Quality metrics indicate phase {self.current_phase.name} should transition: {reasons}")
+                logger.info(
+                    f"Quality metrics indicate phase {self.current_phase.name} should transition: {reasons}"
+                )
                 return next_phase
             else:
-                logger.debug(f"Quality metrics indicate phase {self.current_phase.name} should not transition: {reasons}")
+                logger.debug(
+                    f"Quality metrics indicate phase {self.current_phase.name} should not transition: {reasons}"
+                )
 
         # Check timeout-based transition
         start_time = self._phase_start_times.get(self.current_phase)
@@ -180,7 +190,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             and (datetime.now() - start_time).total_seconds()
             >= self.phase_transition_timeout
         ):
-            logger.info(f"Phase {self.current_phase.name} timed out after {self.phase_transition_timeout} seconds")
+            logger.info(
+                f"Phase {self.current_phase.name} timed out after {self.phase_transition_timeout} seconds"
+            )
             return next_phase
 
         return None
@@ -198,8 +210,10 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             return
 
         # Guard against re-entering during active transition
-        if getattr(self, '_in_auto_progress', False):
-            logger.warning("Prevented re-entry into auto-progress during active transition")
+        if getattr(self, "_in_auto_progress", False):
+            logger.warning(
+                "Prevented re-entry into auto-progress during active transition"
+            )
             return
 
         try:
@@ -212,14 +226,18 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
             while iteration_count < max_iterations:
                 iteration_count += 1
-                logger.debug(f"Auto-progress iteration {iteration_count}/{max_iterations}")
+                logger.debug(
+                    f"Auto-progress iteration {iteration_count}/{max_iterations}"
+                )
 
                 next_phase = self._enhanced_decide_next_phase()
                 if not next_phase:
                     logger.debug("No next phase determined, stopping auto-progress")
                     break
 
-                logger.info(f"Auto-progressing from {self.current_phase.name} to {next_phase.name} (iteration {iteration_count})")
+                logger.info(
+                    f"Auto-progressing from {self.current_phase.name} to {next_phase.name} (iteration {iteration_count})"
+                )
 
                 # Call parent's progress_to_phase to avoid recursive call to _enhanced_maybe_auto_progress
                 super().progress_to_phase(next_phase)
@@ -230,7 +248,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
                 self.phase_metrics.end_phase(next_phase, metrics)
 
             if iteration_count >= max_iterations:
-                logger.warning(f"Reached maximum auto-progress iterations ({max_iterations}), stopping to prevent potential infinite loop")
+                logger.warning(
+                    f"Reached maximum auto-progress iterations ({max_iterations}), stopping to prevent potential infinite loop"
+                )
         finally:
             # Always clear the guard flag
             self._in_auto_progress = False
@@ -283,7 +303,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         """
         return self.phase_metrics.get_history()
 
-    def create_micro_cycle(self, task: Dict[str, Any], parent_phase: Phase) -> "EnhancedEDRRCoordinator":
+    def create_micro_cycle(
+        self, task: Dict[str, Any], parent_phase: Phase
+    ) -> "EnhancedEDRRCoordinator":
         """
         Create a micro-EDRR cycle within the current phase.
 
@@ -334,3 +356,54 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
         # Return the micro cycle
         return micro_cycle
+
+    def _get_llm_response(self, prompt: str, system_prompt: str | None = None) -> str:
+        """Return an LLM completion for ``prompt`` using the provider system."""
+        from devsynth.adapters.provider_system import complete
+
+        try:
+            return complete(prompt=prompt, system_prompt=system_prompt)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("LLM request failed: %s", exc)
+            return ""
+
+    def execute_single_agent_task(
+        self,
+        task: Dict[str, Any],
+        agent_name: str,
+        phase: Phase,
+        llm_prompt: str | None = None,
+    ) -> Dict[str, Any]:
+        """Execute ``task`` with a specific agent and store results."""
+
+        agent = self.wsde_team.get_agent(agent_name)
+        if agent is None:
+            raise EDRRCoordinatorError(f"Agent {agent_name} not found")
+
+        if llm_prompt:
+            llm_response = self._get_llm_response(llm_prompt)
+            self._safe_store_with_edrr_phase(
+                llm_response,
+                MemoryType.CONTEXT,
+                phase.value,
+                {
+                    "cycle_id": self.cycle_id,
+                    "agent": agent_name,
+                    "type": "LLM_RESPONSE",
+                },
+            )
+
+        result = agent.process(task)
+
+        quality_score = self._calculate_quality_score(result)
+        if isinstance(result, dict):
+            result["quality_score"] = quality_score
+
+        self._safe_store_with_edrr_phase(
+            result,
+            MemoryType.EPISODIC,
+            phase.value,
+            {"cycle_id": self.cycle_id, "agent": agent_name, "type": "TASK_RESULT"},
+        )
+
+        return result
