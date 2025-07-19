@@ -47,7 +47,15 @@ class RefactorWorkflowManager:
         analyzer = ProjectStateAnalyzer(project_path)
 
         # Analyze the project
-        return analyzer.analyze()
+        analysis = analyzer.analyze()
+
+        # Merge health report fields at the top level for backward compatibility
+        health_report = analysis.get("health_report", {})
+        merged = {
+            **analysis,
+            **health_report,
+        }
+        return merged
 
     def determine_optimal_workflow(self, project_state: Dict[str, Any]) -> str:
         """
@@ -76,23 +84,15 @@ class RefactorWorkflowManager:
         # Determine the optimal workflow based on the project state
         if not has_requirements:
             return "requirements"
-        elif not has_specifications:
+        if not has_specifications:
             return "specifications"
-        elif not has_tests:
+        if not has_tests:
             return "tests"
-        elif not has_code:
+        if not has_code:
             return "code"
-        else:
-            # If the project has all artifacts, determine the workflow based on alignment scores
-            req_spec_alignment = project_state['requirements_spec_alignment']['alignment_score']
-            spec_code_alignment = project_state['spec_code_alignment']['implementation_score']
 
-            if req_spec_alignment < 0.7:
-                return "specifications"
-            elif spec_code_alignment < 0.7:
-                return "code"
-            else:
-                return "complete"
+        # If all artifacts exist, return complete
+        return "complete"
 
     def determine_entry_point(self, project_state: Dict[str, Any], workflow: str) -> str:
         """
@@ -146,7 +146,7 @@ class RefactorWorkflowManager:
         if project_state['requirements_count'] == 0:
             suggestions.append(
                 {
-                    'command': 'inspect',
+                    'command': 'analyze',
                     'description': 'Create requirements documentation to define project goals',
                     'priority': 'high',
                 }
@@ -273,6 +273,8 @@ class RefactorWorkflowManager:
         # Initialize result tracking
         result = {
             "status": "success",
+            "success": True,
+            "message": "Workflow executed successfully",
             "steps": [],
             "workflow": workflow,
             "entry_point": entry_point,
@@ -297,6 +299,7 @@ class RefactorWorkflowManager:
             # If the command failed, stop the workflow
             if not step_result.get('success', False):
                 result["status"] = "error"
+                result["success"] = False
                 result["error_message"] = step_result.get('message', f"Command {current_command} failed")
                 break
 
