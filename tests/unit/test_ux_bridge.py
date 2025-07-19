@@ -2,6 +2,7 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 from devsynth.interface.cli import CLIUXBridge
+from rich.panel import Panel
 
 
 def test_cli_bridge_methods_succeeds():
@@ -18,7 +19,10 @@ ReqID: N/A"""
         conf.assert_called_once()
     with patch('rich.console.Console.print') as pr:
         bridge.display_result('done', highlight=True)
-        pr.assert_called_once_with('done', highlight=True)
+        assert pr.call_count == 1
+        printed_obj = pr.call_args[0][0]
+        assert isinstance(printed_obj, Panel)
+        assert pr.call_args.kwargs.get('style') == 'highlight'
 
 
 def test_webui_bridge_methods_succeeds(monkeypatch):
@@ -32,16 +36,6 @@ ReqID: N/A"""
     st.write = MagicMock()
     st.markdown = MagicMock()
     monkeypatch.setitem(sys.modules, 'streamlit', st)
-    cli_stub = ModuleType('devsynth.application.cli')
-    for name in ['init_cmd', 'spec_cmd', 'test_cmd', 'code_cmd',
-        'run_pipeline_cmd', 'config_cmd', 'inspect_cmd']:
-        setattr(cli_stub, name, MagicMock())
-    monkeypatch.setitem(sys.modules, 'devsynth.application.cli', cli_stub)
-    analyze_stub = ModuleType(
-        'devsynth.application.cli.commands.inspect_code_cmd')
-    analyze_stub.inspect_code_cmd = MagicMock()
-    monkeypatch.setitem(sys.modules,
-        'devsynth.application.cli.commands.inspect_code_cmd', analyze_stub)
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
