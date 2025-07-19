@@ -21,7 +21,7 @@ The DevSynth memory system is designed for extensibility, resilience, and semant
 
 ### Key Features
 
-- **Multiple ChromaDB Implementations**: 
+- **Multiple ChromaDB Implementations**:
   - ChromaDBStore: Comprehensive implementation with caching, versioning, and optimized embeddings
   - ChromaDBMemoryStore: Implementation with provider system integration and retry mechanisms
 - **Multiple TinyDB Implementations**:
@@ -295,7 +295,7 @@ The `ChromaDBStore` implementation provides comprehensive vector storage with ad
 class ChromaDBStore(MemoryPort):
     """ChromaDB implementation of the memory port."""
 
-    def __init__(self, 
+    def __init__(self,
                  collection_name: str = "devsynth_memory",
                  embedding_provider: EmbeddingProvider = None,
                  persistence_directory: str = "./chroma_db",
@@ -557,7 +557,7 @@ class RDFLibStore(MemoryPort):
 
     async def store(self, key: str, content: Any, metadata: Dict[str, Any] = None) -> str:
         """Store content as RDF triples."""
-        subject = URIRef(f"http://devsynth.ai/memory/{key}")
+        subject = URIRef(f"https://github.com/ravenoak/devsynth/ontology/memory/{key}")
 
         # Add content triple
         self.graph.add((subject, RDFS.label, Literal(str(content))))
@@ -565,7 +565,7 @@ class RDFLibStore(MemoryPort):
         # Add metadata triples
         if metadata:
             for meta_key, meta_value in metadata.items():
-                predicate = URIRef(f"http://devsynth.ai/ontology/{meta_key}")
+                predicate = URIRef(f"https://github.com/ravenoak/devsynth/ontology/{meta_key}")
                 self.graph.add((subject, predicate, Literal(str(meta_value))))
 
         # Persist changes to file
@@ -660,8 +660,8 @@ await kg_memory.store(
 results = await kg_memory.search_with_sparql("""
     SELECT ?subject ?target ?type
     WHERE {
-        ?subject <http://devsynth.ai/ontology/relationship_type> ?type .
-        ?subject <http://devsynth.ai/ontology/target> ?target .
+        ?subject <https://github.com/ravenoak/devsynth/ontology/relationship_type> ?type .
+        ?subject <https://github.com/ravenoak/devsynth/ontology/target> ?target .
     }
 """)
 ```
@@ -881,9 +881,9 @@ component = "auth"
 dependencies = await kg_memory.search_with_sparql(f"""
     SELECT ?target ?relation
     WHERE {{
-        ?subject <http://devsynth.ai/ontology/source> "{component}" .
-        ?subject <http://devsynth.ai/ontology/target> ?target .
-        ?subject <http://devsynth.ai/ontology/relation> ?relation .
+        ?subject <https://github.com/ravenoak/devsynth/ontology/source> "{component}" .
+        ?subject <https://github.com/ravenoak/devsynth/ontology/target> ?target .
+        ?subject <https://github.com/ravenoak/devsynth/ontology/relation> ?relation .
     }}
 """)
 ```
