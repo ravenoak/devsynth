@@ -37,17 +37,21 @@ This document identifies and tracks technical debt in the DevSynth project. Tech
 
 ### 2. WSDE Message Passing Protocol
 
-**Description**: The message passing protocol between agents has been specified and has Gherkin scenarios, but lacks implementation.
+**Description**: The message passing protocol is now implemented in
+`application/collaboration/message_protocol.py`. Agents can exchange structured
+messages with JSON persistence and optional memory integration. The current
+implementation covers basic message types and storage but lacks advanced
+features such as priority queues and robust history queries.
 
-**Impact**: Agents cannot effectively communicate in a structured way, limiting multi-agent collaboration.
+**Impact**: Multi-agent collaboration works, though efficiency and rich history
+capabilities are still limited.
 
-**Remediation Steps**:
+**Remaining Improvements**:
 
-1. Implement the message protocol data structures
-2. Develop the message passing infrastructure
-3. Implement message priority handling
-4. Add message history tracking and persistence
-5. Integrate with the memory system for message storage
+1. Enhance message priority handling
+2. Improve history tracking and search features
+3. Expand persistence options and error handling
+4. Tighten integration with the memory system for long-term storage
 
 
 **Priority**: High
@@ -123,6 +127,13 @@ All imports and documentation have been updated accordingly.
 
 **Estimated Effort**: 1-2 days
 
+## Test Failures and Planned Fixes
+
+Recent test runs reveal failures primarily in the Web UI requirements wizard and
+the Kuzu-backed memory system. Planned fixes include refining navigation logic
+in the wizard and adjusting initialization for the Kuzu vector store to ensure
+consistent behavior across environments.
+
 ## Monitoring and Resolution
 
 Technical debt items should be reviewed regularly during sprint planning and prioritized based on their impact and alignment with project goals. Items should be added to this document as they are identified and removed once they are resolved.
@@ -131,4 +142,4 @@ The technical debt backlog should be reviewed at least once per quarter to ensur
 
 ## Last Updated
 
-May 31, 2025
+July 20, 2025
