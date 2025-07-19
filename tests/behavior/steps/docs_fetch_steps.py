@@ -1,20 +1,26 @@
 """Steps for the docs fetch feature."""
 
+import pytest
 from pytest_bdd import scenarios, given, when, then
 
 scenarios("../features/docs_fetch.feature")
 
 
+@pytest.fixture
+def docs_context():
+    return {"executed": False}
+
+
 @given("the docs_fetch feature context")
-def given_context():
-    pass
+def given_context(docs_context):
+    return docs_context
 
 
 @when("we execute the docs_fetch workflow")
-def when_execute():
-    pass
+def when_execute(docs_context):
+    docs_context["executed"] = True
 
 
 @then("the docs_fetch workflow completes")
-def then_complete():
-    pass
+def then_complete(docs_context):
+    assert docs_context.get("executed") is True

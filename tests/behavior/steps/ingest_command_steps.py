@@ -1,4 +1,5 @@
 import os
+import sys
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import patch, MagicMock
@@ -54,8 +55,7 @@ def invalid_manifest_file(context, manifest_file, tmp_path):
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
-    # This is a placeholder step since we're running tests within the DevSynth codebase
-    pass
+    assert "devsynth" in sys.modules
 
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(context, command, mock_ingest_cmd, monkeypatch):
