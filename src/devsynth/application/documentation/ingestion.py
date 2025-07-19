@@ -3,6 +3,7 @@ Documentation Ingestion Module
 
 This module provides components for ingesting and processing documentation from various sources.
 """
+
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
 import os
@@ -18,9 +19,12 @@ from devsynth.exceptions import DevSynthError
 
 logger = DevSynthLogger(__name__)
 
+
 class DocumentationIngestionError(DevSynthError):
     """Error raised when documentation ingestion fails."""
+
     pass
+
 
 class DocumentationIngestionManager:
     """
@@ -44,11 +48,13 @@ class DocumentationIngestionManager:
             ".json": self._process_json,
             ".py": self._process_python,
             ".html": self._process_html,
-            ".rst": self._process_rst
+            ".rst": self._process_rst,
         }
         logger.info("Documentation Ingestion Manager initialized")
 
-    def ingest_file(self, file_path: Union[str, Path], metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+    def ingest_file(
+        self, file_path: Union[str, Path], metadata: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """
         Ingest documentation from a file.
 
@@ -75,7 +81,7 @@ class DocumentationIngestionManager:
                 raise DocumentationIngestionError(f"Unsupported file type: {file_ext}")
 
             # Read the file content
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Process the file based on its type
@@ -87,19 +93,18 @@ class DocumentationIngestionManager:
                 metadata = {}
 
             # Add file metadata
-            metadata.update({
-                "source": str(file_path),
-                "file_type": file_ext,
-                "file_name": file_path.name,
-                "ingestion_time": datetime.now().isoformat(),
-                "file_size": os.path.getsize(file_path)
-            })
+            metadata.update(
+                {
+                    "source": str(file_path),
+                    "file_type": file_ext,
+                    "file_name": file_path.name,
+                    "ingestion_time": datetime.now().isoformat(),
+                    "file_size": os.path.getsize(file_path),
+                }
+            )
 
             # Create the documentation item
-            doc_item = {
-                "content": processed_content,
-                "metadata": metadata
-            }
+            doc_item = {"content": processed_content, "metadata": metadata}
 
             # Store in memory if a memory manager is provided
             if self.memory_manager:
@@ -110,10 +115,17 @@ class DocumentationIngestionManager:
             return doc_item
         except Exception as e:
             logger.error(f"Failed to ingest documentation from file: {e}")
-            raise DocumentationIngestionError(f"Failed to ingest documentation from file: {e}")
+            raise DocumentationIngestionError(
+                f"Failed to ingest documentation from file: {e}"
+            )
 
-    def ingest_directory(self, dir_path: Union[str, Path], recursive: bool = True, 
-                         file_types: List[str] = None, metadata: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def ingest_directory(
+        self,
+        dir_path: Union[str, Path],
+        recursive: bool = True,
+        file_types: List[str] = None,
+        metadata: Dict[str, Any] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Ingest documentation from all supported files in a directory.
 
@@ -151,7 +163,10 @@ class DocumentationIngestionManager:
                             files.append(file_path)
             else:
                 for file_path in dir_path.iterdir():
-                    if file_path.is_file() and file_path.suffix.lower() in supported_types:
+                    if (
+                        file_path.is_file()
+                        and file_path.suffix.lower() in supported_types
+                    ):
                         files.append(file_path)
 
             # Ingest each file
@@ -168,11 +183,15 @@ class DocumentationIngestionManager:
                 except Exception as e:
                     logger.warning(f"Failed to ingest file {file_path}: {e}")
 
-            logger.info(f"Ingested {len(results)} documentation files from directory: {dir_path}")
+            logger.info(
+                f"Ingested {len(results)} documentation files from directory: {dir_path}"
+            )
             return results
         except Exception as e:
             logger.error(f"Failed to ingest documentation from directory: {e}")
-            raise DocumentationIngestionError(f"Failed to ingest documentation from directory: {e}")
+            raise DocumentationIngestionError(
+                f"Failed to ingest documentation from directory: {e}"
+            )
 
     def ingest_url(self, url: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """
@@ -195,18 +214,18 @@ class DocumentationIngestionManager:
             content = response.text
 
             # Determine the content type
-            content_type = response.headers.get('Content-Type', '')
+            content_type = response.headers.get("Content-Type", "")
 
             # Process the content based on its type
-            if 'text/html' in content_type:
+            if "text/html" in content_type:
                 processed_content = self._process_html(content)
-            elif 'text/markdown' in content_type or url.endswith('.md'):
+            elif "text/markdown" in content_type or url.endswith(".md"):
                 processed_content = self._process_markdown(content)
-            elif 'application/json' in content_type or url.endswith('.json'):
+            elif "application/json" in content_type or url.endswith(".json"):
                 processed_content = self._process_json(content)
-            elif 'text/x-rst' in content_type or url.endswith('.rst'):
+            elif "text/x-rst" in content_type or url.endswith(".rst"):
                 processed_content = self._process_rst(content)
-            elif 'text/plain' in content_type:
+            elif "text/plain" in content_type:
                 processed_content = self._process_text(content)
             else:
                 # Default to text processing
@@ -217,18 +236,17 @@ class DocumentationIngestionManager:
                 metadata = {}
 
             # Add URL metadata
-            metadata.update({
-                "source": url,
-                "content_type": content_type,
-                "ingestion_time": datetime.now().isoformat(),
-                "content_length": len(content)
-            })
+            metadata.update(
+                {
+                    "source": url,
+                    "content_type": content_type,
+                    "ingestion_time": datetime.now().isoformat(),
+                    "content_length": len(content),
+                }
+            )
 
             # Create the documentation item
-            doc_item = {
-                "content": processed_content,
-                "metadata": metadata
-            }
+            doc_item = {"content": processed_content, "metadata": metadata}
 
             # Store in memory if a memory manager is provided
             if self.memory_manager:
@@ -239,7 +257,9 @@ class DocumentationIngestionManager:
             return doc_item
         except Exception as e:
             logger.error(f"Failed to ingest documentation from URL: {e}")
-            raise DocumentationIngestionError(f"Failed to ingest documentation from URL: {e}")
+            raise DocumentationIngestionError(
+                f"Failed to ingest documentation from URL: {e}"
+            )
 
     def _process_markdown(self, content: str) -> str:
         """
@@ -255,25 +275,25 @@ class DocumentationIngestionManager:
         # This is a basic implementation; a more sophisticated one would use a Markdown parser
 
         # Remove headers
-        content = re.sub(r'#{1,6}\s+', '', content)
+        content = re.sub(r"#{1,6}\s+", "", content)
 
         # Remove emphasis
-        content = re.sub(r'\*\*(.*?)\*\*', r'\1', content)  # Bold
-        content = re.sub(r'\*(.*?)\*', r'\1', content)      # Italic
-        content = re.sub(r'__(.*?)__', r'\1', content)      # Bold
-        content = re.sub(r'_(.*?)_', r'\1', content)        # Italic
+        content = re.sub(r"\*\*(.*?)\*\*", r"\1", content)  # Bold
+        content = re.sub(r"\*(.*?)\*", r"\1", content)  # Italic
+        content = re.sub(r"__(.*?)__", r"\1", content)  # Bold
+        content = re.sub(r"_(.*?)_", r"\1", content)  # Italic
 
         # Remove links
-        content = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', content)
+        content = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", content)
 
         # Remove images
-        content = re.sub(r'!\[(.*?)\]\(.*?\)', r'\1', content)
+        content = re.sub(r"!\[(.*?)\]\(.*?\)", r"\1", content)
 
         # Remove code blocks
-        content = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+        content = re.sub(r"```.*?```", "", content, flags=re.DOTALL)
 
         # Remove inline code
-        content = re.sub(r'`(.*?)`', r'\1', content)
+        content = re.sub(r"`(.*?)`", r"\1", content)
 
         return content.strip()
 
@@ -324,10 +344,10 @@ class DocumentationIngestionManager:
         """
         # Extract docstrings and comments
         docstrings = re.findall(r'"""(.*?)"""', content, re.DOTALL)
-        comments = re.findall(r'#\s*(.*?)$', content, re.MULTILINE)
+        comments = re.findall(r"#\s*(.*?)$", content, re.MULTILINE)
 
         # Combine docstrings and comments
-        extracted_text = '\n'.join(docstrings) + '\n' + '\n'.join(comments)
+        extracted_text = "\n".join(docstrings) + "\n" + "\n".join(comments)
 
         # If no docstrings or comments, return the original content
         if not extracted_text.strip():
@@ -347,10 +367,10 @@ class DocumentationIngestionManager:
         """
         # Remove HTML tags for simplicity
         # This is a basic implementation; a more sophisticated one would use an HTML parser
-        content = re.sub(r'<[^>]*>', '', content)
+        content = re.sub(r"<[^>]*>", "", content)
 
         # Remove extra whitespace
-        content = re.sub(r'\s+', ' ', content)
+        content = re.sub(r"\s+", " ", content)
 
         return content.strip()
 
@@ -368,13 +388,13 @@ class DocumentationIngestionManager:
         # This is a basic implementation; a more sophisticated one would use an RST parser
 
         # Remove section headers
-        content = re.sub(r'[=\-`:\'"~^_*+#<>]{3,}\n', '', content)
+        content = re.sub(r'[=\-`:\'"~^_*+#<>]{3,}\n', "", content)
 
         # Remove directives
-        content = re.sub(r'\.\. \w+::\s*\n(?:\s+.*\n)*', '', content)
+        content = re.sub(r"\.\. \w+::\s*\n(?:\s+.*\n)*", "", content)
 
         # Remove roles
-        content = re.sub(r':\w+:`(.*?)`', r'\1', content)
+        content = re.sub(r":\w+:`(.*?)`", r"\1", content)
 
         return content.strip()
 
@@ -390,7 +410,9 @@ class DocumentationIngestionManager:
             The ID of the stored documentation
         """
         if not self.memory_manager:
-            raise DocumentationIngestionError("No memory manager provided for storing documentation")
+            raise DocumentationIngestionError(
+                "No memory manager provided for storing documentation"
+            )
 
         # Create a unique ID based on content and source
         source = metadata.get("source", "unknown")
@@ -398,11 +420,13 @@ class DocumentationIngestionManager:
         doc_id = f"doc_{source}_{content_hash}"
 
         # Create a memory item
+        # Use the DOCUMENTATION memory type so other components can query
+        # ingested documentation explicitly.
         memory_item = MemoryItem(
             id=doc_id,
             content=content,
-            memory_type=MemoryType.KNOWLEDGE_GRAPH,
-            metadata=metadata
+            memory_type=MemoryType.DOCUMENTATION,
+            metadata=metadata,
         )
 
         # Store the memory item

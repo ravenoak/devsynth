@@ -7,6 +7,7 @@ items with EDRR phases.
 """
 
 from typing import Dict, List, Any, Optional, Union
+from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 from ...domain.models.memory import (
     MemoryItem,
     MemoryType,
@@ -44,7 +45,9 @@ class MemoryManager:
                      or a single adapter that will be used as the default
         """
         if adapters is None:
-            self.adapters = {}
+            # Provide a simple default adapter so unit tests and basic usage work
+            # without explicit configuration.
+            self.adapters = {"tinydb": TinyDBMemoryAdapter()}
         elif isinstance(adapters, dict):
             self.adapters = adapters
         else:
