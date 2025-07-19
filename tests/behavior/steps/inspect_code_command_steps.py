@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import patch, MagicMock
@@ -54,8 +55,7 @@ if __name__ == "__main__":
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
-    # This is a placeholder step since we're running tests within the DevSynth codebase
-    pass
+    assert "devsynth" in sys.modules
 
 @given('I have a project with source code')
 def project_with_source_code(context, sample_project):
