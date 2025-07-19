@@ -50,6 +50,12 @@ tasks:
     cmds:
       - poetry run pytest {{.PYTEST_COV_ARGS}} {{.PYTEST_ARGS}}
 
+  # Performance benchmarking tasks
+  bench:
+    desc: Run performance benchmarks
+    cmds:
+      - poetry run pytest tests/performance --benchmark-only
+
   # Documentation tasks
   docs:serve:
     desc: Serve documentation locally

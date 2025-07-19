@@ -157,6 +157,16 @@ This document provides comprehensive benchmarks and performance metrics for the 
 7. **Analysis**: Compare results against baselines and requirements
 8. **Reporting**: Document findings and recommendations
 
+### Running Benchmarks
+
+Performance benchmarks live in `tests/performance`. Execute them with the Taskfile:
+
+```bash
+task bench
+```
+
+This runs `pytest --benchmark-only` and stores results in `.benchmarks`.
+
 
 ## Current Performance Characteristics
 
