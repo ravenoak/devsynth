@@ -24,6 +24,7 @@ ReqID: N/A"""
         self.memory_adapter.get_vector_store.return_value = self.vector_store
         self.memory_adapter.has_vector_store.return_value = True
         self.wsde_team = MagicMock(spec=WSDETeam)
+        self.wsde_team.name = "TestAgent"
         self.agent_memory = AgentMemoryIntegration(memory_adapter=self.
             memory_adapter, wsde_team=self.wsde_team)
 
@@ -164,3 +165,93 @@ ReqID: N/A"""
         results = self.agent_memory.search_similar_solutions(query)
         self.vector_store.similarity_search.assert_not_called()
         self.assertEqual(results, [])
+
+    def test_store_memory_succeeds(self):
+        """Test storing generic memory."""
+
+        content = {"a": 1}
+        metadata = {"extra": True}
+        memory_type = MemoryType.KNOWLEDGE
+
+        self.agent_memory.store_memory(content, memory_type, metadata)
+        self.memory_store.store.assert_called_once()
+        stored_item = self.memory_store.store.call_args[0][0]
+        self.assertEqual(stored_item.content, content)
+        self.assertEqual(stored_item.memory_type, memory_type)
+        self.assertEqual(stored_item.metadata["extra"], True)
+        self.assertEqual(stored_item.metadata["agent_name"], "TestAgent")
+
+    def test_retrieve_memory_succeeds(self):
+        """Test retrieving a memory item."""
+
+        item = MemoryItem(
+            id="item1",
+            content="data",
+            memory_type=MemoryType.KNOWLEDGE,
+            metadata={"agent_name": "TestAgent"},
+        )
+        self.memory_store.retrieve.return_value = item
+
+        result = self.agent_memory.retrieve_memory("item1")
+        self.memory_store.retrieve.assert_called_once_with("item1")
+        self.assertEqual(result, item)
+
+    def test_search_memory_succeeds(self):
+        """Test searching memory."""
+
+        query = {"field": "value"}
+        items = [
+            MemoryItem(id="1", content={"field": "value"}, memory_type=MemoryType.KNOWLEDGE)
+        ]
+        self.memory_store.search.return_value = items
+
+        result = self.agent_memory.search_memory(query)
+        self.memory_store.search.assert_called_once_with({})
+        self.assertEqual(result, items)
+
+    def test_update_memory_succeeds(self):
+        """Test updating a memory item."""
+
+        existing = MemoryItem(
+            id="1",
+            content="old",
+            memory_type=MemoryType.KNOWLEDGE,
+            metadata={"agent_name": "TestAgent"},
+        )
+        self.memory_store.retrieve.return_value = existing
+
+        self.agent_memory.update_memory("1", "new", {"extra": 2})
+        self.memory_store.retrieve.assert_called_once_with("1")
+        self.memory_store.store.assert_called_once()
+        updated_item = self.memory_store.store.call_args[0][0]
+        self.assertEqual(updated_item.content, "new")
+        self.assertEqual(updated_item.metadata["extra"], 2)
+        self.assertEqual(updated_item.metadata["agent_name"], "TestAgent")
+
+    def test_delete_memory_succeeds(self):
+        """Test deleting memory."""
+
+        self.memory_store.delete.return_value = True
+        result = self.agent_memory.delete_memory("1")
+        self.memory_store.delete.assert_called_once_with("1")
+        self.assertTrue(result)
+
+    def test_store_memory_with_context_succeeds(self):
+        """Test storing memory with context."""
+
+        context = {"task": "t"}
+        self.agent_memory.store_memory_with_context("c", MemoryType.KNOWLEDGE, {}, context)
+        self.memory_store.store.assert_called_once()
+        item = self.memory_store.store.call_args[0][0]
+        self.assertEqual(item.metadata["context"], context)
+        self.assertEqual(item.metadata["agent_name"], "TestAgent")
+
+    def test_retrieve_memory_with_context_succeeds(self):
+        """Test retrieving memory by context."""
+
+        context = {"task": "t"}
+        items = [MemoryItem(id="1", content="c", memory_type=MemoryType.KNOWLEDGE)]
+        self.memory_store.search.return_value = items
+        result = self.agent_memory.retrieve_memory_with_context(context)
+        self.memory_store.search.assert_called_once_with({"metadata.context": context})
+        self.assertEqual(result, items)

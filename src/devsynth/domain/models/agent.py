@@ -35,21 +35,25 @@ class AgentType(Enum):
     DOCUMENTATION = "documentation"
     DIAGRAM = "diagram"
     CRITIC = "critic"
+    WSDE = "wsde"
 
 
 @dataclass
 class AgentConfig:
     """Configuration for an agent."""
 
-    name: str
-    agent_type: AgentType
-    description: str
-    capabilities: List[str]
-    parameters: Dict[str, Any] = None
+    name: str = "UnnamedAgent"
+    agent_type: AgentType = AgentType.EXPERT
+    description: str = ""
+    capabilities: List[str] | None = None
+    expertise: List[str] | None = None
+    parameters: Dict[str, Any] | None = None
 
     def __post_init__(self):
         if self.parameters is None:
             self.parameters = {}
+        if self.capabilities is None:
+            self.capabilities = []
 
 
 # Define MVP capabilities

@@ -27,7 +27,7 @@ class AgentMemoryIntegration:
     from the memory system, including solutions, dialectical reasoning, and context.
     """
 
-    def __init__(self, memory_adapter: MemorySystemAdapter, wsde_team: WSDETeam):
+    def __init__(self, memory_adapter: Any, wsde_team: WSDETeam):
         """
         Initialize the agent memory integration.
 
@@ -37,9 +37,23 @@ class AgentMemoryIntegration:
         """
         self.memory_adapter = memory_adapter
         self.wsde_team = wsde_team
-        self.memory_store = memory_adapter.get_memory_store()
-        self.context_manager = memory_adapter.get_context_manager()
-        self.vector_store = memory_adapter.get_vector_store() if memory_adapter.has_vector_store() else None
+
+        if hasattr(memory_adapter, "get_memory_store"):
+            self.memory_store = memory_adapter.get_memory_store()
+            self.context_manager = memory_adapter.get_context_manager()
+            self.vector_store = (
+                memory_adapter.get_vector_store()
+                if memory_adapter.has_vector_store()
+                else None
+            )
+        elif hasattr(memory_adapter, "adapters"):
+            self.memory_store = next(iter(memory_adapter.adapters.values()))
+            self.context_manager = getattr(memory_adapter, "context_manager", None)
+            self.vector_store = getattr(memory_adapter, "vector_store", None)
+        else:
+            self.memory_store = memory_adapter
+            self.context_manager = getattr(memory_adapter, "context_manager", None)
+            self.vector_store = getattr(memory_adapter, "vector_store", None)
 
         logger.info("Agent memory integration initialized")
 
@@ -222,3 +236,143 @@ class AgentMemoryIntegration:
 
         logger.info(f"Found {len(similar_vectors)} similar solutions for query")
         return similar_vectors
+
+    def store_memory(
+        self,
+        content: Any,
+        memory_type: MemoryType,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Store an arbitrary piece of memory for this agent.
+
+        The provided ``metadata`` is augmented with the current agent name
+        before delegating to the configured ``MemorySystemAdapter``.
+
+        Args:
+            content: The content to store.
+            memory_type: The type of memory item.
+            metadata: Optional metadata for the item.
+
+        Returns:
+            The ID of the stored item.
+        """
+
+        if metadata is None:
+            metadata = {}
+
+        metadata["agent_name"] = getattr(self.wsde_team, "name", "unknown")
+
+        item = MemoryItem(
+            id=str(uuid.uuid4()),
+            content=content,
+            memory_type=memory_type,
+            metadata=metadata,
+        )
+
+        item_id = self.memory_store.store(item)
+        logger.info("Stored memory item %s for agent %s", item_id, metadata["agent_name"])
+        return item_id
+
+    def retrieve_memory(self, item_id: str) -> Optional[MemoryItem]:
+        """Retrieve a memory item by ``item_id``."""
+
+        item = self.memory_store.retrieve(item_id)
+        if item is None:
+            logger.info("Memory item %s not found", item_id)
+            return None
+
+        if item.metadata.get("private") and item.metadata.get("agent_name") != getattr(self.wsde_team, "name", ""):
+            return None
+
+        return item
+
+    def search_memory(self, query: Dict[str, Any]) -> List[MemoryItem]:
+        """Search memory items using ``query``.
+
+        The ``query`` dictionary is passed directly to the underlying store.
+        """
+
+        if hasattr(self.memory_store, "search"):
+            items = self.memory_store.search({})
+        elif hasattr(self.memory_store, "get_all"):
+            items = self.memory_store.get_all()
+        else:
+            return []
+
+        results: List[MemoryItem] = []
+        for item in items:
+            match = True
+            for key, value in query.items():
+                if key in item.metadata:
+                    if item.metadata.get(key) != value:
+                        match = False
+                        break
+                else:
+                    content_val = None
+                    if isinstance(item.content, dict):
+                        content_val = item.content.get(key)
+                    if content_val != value:
+                        match = False
+                        break
+            if match:
+                if not item.metadata.get("private") or item.metadata.get("agent_name") == getattr(self.wsde_team, "name", ""):
+                    results.append(item)
+
+        return results
+
+    def update_memory(
+        self,
+        item_id: str,
+        content: Any,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Update an existing memory item."""
+
+        item = self.memory_store.retrieve(item_id)
+        if not item:
+            logger.warning("Attempted to update missing memory item %s", item_id)
+            return
+
+        if metadata is None:
+            metadata = {}
+
+        metadata["agent_name"] = item.metadata.get(
+            "agent_name", getattr(self.wsde_team, "name", "unknown")
+        )
+
+        item.content = content
+        item.metadata.update(metadata)
+
+        self.memory_store.store(item)
+        logger.info("Updated memory item %s", item_id)
+
+    def delete_memory(self, item_id: str) -> bool:
+        """Delete a memory item."""
+
+        result = self.memory_store.delete(item_id)
+        logger.info("Deleted memory item %s: %s", item_id, result)
+        return result
+
+    def store_memory_with_context(
+        self,
+        content: Any,
+        memory_type: MemoryType,
+        metadata: Optional[Dict[str, Any]] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Store a memory item associated with additional ``context``."""
+
+        if metadata is None:
+            metadata = {}
+        if context is not None:
+            metadata["context"] = context
+
+        return self.store_memory(content, memory_type, metadata)
+
+    def retrieve_memory_with_context(
+        self, context: Dict[str, Any]
+    ) -> List[MemoryItem]:
+        """Retrieve memory items matching a given ``context``."""
+
+        query = {"metadata.context": context}
+        return self.memory_store.search(query)

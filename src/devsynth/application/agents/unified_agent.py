@@ -15,6 +15,7 @@ import os
 from typing import Any, Dict, List
 from .base import BaseAgent
 from ..prompts.auto_tuning import BasicPromptTuner
+from ...domain.models.agent import AgentConfig, AgentType
 
 # Define MVP capabilities
 MVP_CAPABILITIES = [
@@ -35,9 +36,29 @@ class UnifiedAgent(BaseAgent):
     into a single agent for the MVP. It preserves extension points for future multi-agent capabilities.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        name: str | None = None,
+        agent_type: AgentType = AgentType.ORCHESTRATOR,
+        config: AgentConfig | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__()
         self.prompt_tuner = BasicPromptTuner()
+
+        if config is None:
+            config = AgentConfig(
+                name=name or self.__class__.__name__,
+                agent_type=agent_type,
+                description="",
+                capabilities=[],
+            )
+        else:
+            if name is not None:
+                config.name = name
+            config.agent_type = agent_type
+
+        self.initialize(config)
 
     def record_prompt_feedback(
         self, success: bool | None = None, feedback_score: float | None = None
