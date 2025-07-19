@@ -9,7 +9,10 @@ ARG USER_UID=1000
 ENV PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    POETRY_HOME=/opt/poetry \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    POETRY_NO_INTERACTION=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -36,11 +39,16 @@ WORKDIR /workspace
 # Copy dependency files first for caching
 COPY pyproject.toml poetry.lock* ./
 
+# Builder stage to install dependencies
+FROM base AS builder
+WORKDIR /workspace
+COPY pyproject.toml poetry.lock* ./
+RUN poetry install --with dev,docs --all-extras --no-root
+
 # Development stage with all dependencies and dev tools
 FROM base AS development
-
-# Install all dependencies including development dependencies
-RUN poetry install --with dev --all-extras --no-root
+COPY --from=builder /workspace/.venv /workspace/.venv
+ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Copy source and tests
 COPY src ./src
@@ -54,35 +62,20 @@ RUN chown -R ${USERNAME}:${USERNAME} /workspace
 
 USER ${USERNAME}
 
-ENV PATH="/workspace/.venv/bin:$PATH"
-
 CMD ["poetry", "run", "pytest", "-q"]
 
 # Testing stage with minimal dependencies needed for testing
-FROM base AS testing
+FROM development AS testing
 
-# Install dependencies needed for testing
-RUN poetry install --with dev --extras "minimal memory retrieval" --no-root
-
-# Copy source and tests
-COPY src ./src
-COPY tests ./tests
-
-# Ensure user owns workspace
-RUN chown -R ${USERNAME}:${USERNAME} /workspace
-
-USER ${USERNAME}
-
-ENV PATH="/workspace/.venv/bin:$PATH"
+# Install additional packages required for running the test suite
+RUN poetry install --with dev --no-root
 
 CMD ["poetry", "run", "pytest", "-q"]
 
 # Production stage with minimal dependencies
 FROM base AS production
-
-# Install only production dependencies
-#RUN poetry install --without dev --extras "minimal memory" --no-root
-RUN poetry install --all-groups --extras "dev chromadb retrieval dsp memory llm docs minimal" --no-root
+COPY --from=builder /workspace/.venv /workspace/.venv
+ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Copy only source code (no tests)
 COPY src ./src
@@ -91,7 +84,5 @@ COPY src ./src
 RUN chown -R ${USERNAME}:${USERNAME} /workspace
 
 USER ${USERNAME}
-
-ENV PATH="/workspace/.venv/bin:$PATH"
 
 CMD ["poetry", "run", "uvicorn", "devsynth.api:app", "--host", "0.0.0.0", "--port", "8000"]

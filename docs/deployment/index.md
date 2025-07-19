@@ -20,3 +20,4 @@ This section provides documentation on deploying DevSynth in various environment
 For more information on deployment-related topics, see:
 
 - **[Configuration](../user_guides/configuration.md)**: Information on configuring DevSynth for different environments.
+- **[Monitoring and Logging](monitoring.md)**: Set up Prometheus and collect logs.
