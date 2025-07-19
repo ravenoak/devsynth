@@ -67,6 +67,7 @@ Each feature is scored on two dimensions:
 | Code Generation | Complete | src/devsynth/application/agents/code.py | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
 | Test Generation | Partial | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
 | Documentation Generation | Complete | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
+| Documentation Ingestion | Complete | src/devsynth/application/documentation/ingestion.py | 3 | 3 | Memory System | | Project configuration controls offline ingestion |
 | **Infrastructure Components** |
 | Docker Containerization | Complete | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
 | Configuration Management | Complete | src/devsynth/config, config/ | 4 | 3 | None | | Environment-specific templates available |

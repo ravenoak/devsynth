@@ -419,9 +419,10 @@ class DocumentationIngestionManager:
         content_hash = hashlib.md5(content.encode()).hexdigest()
         doc_id = f"doc_{source}_{content_hash}"
 
-        # Create a memory item
-        # Use the DOCUMENTATION memory type so other components can query
-        # ingested documentation explicitly.
+        # Record the documentation type in metadata for easier querying.
+        metadata.setdefault("type", MemoryType.DOCUMENTATION)
+
+        # Create a memory item using the DOCUMENTATION memory type.
         memory_item = MemoryItem(
             id=doc_id,
             content=content,
@@ -434,3 +435,63 @@ class DocumentationIngestionManager:
 
         logger.info(f"Stored documentation in memory with ID: {stored_id}")
         return stored_id
+
+    def search_documentation(
+        self,
+        query: str,
+        limit: int = 10,
+        metadata_filter: Optional[Dict[str, Any]] = None,
+    ) -> List[Any]:
+        """Search ingested documentation using the memory manager."""
+
+        if not self.memory_manager:
+            raise DocumentationIngestionError(
+                "No memory manager provided for searching documentation"
+            )
+
+        results = self.memory_manager.search_memory(
+            query=query,
+            memory_type=MemoryType.DOCUMENTATION,
+            metadata_filter=metadata_filter,
+            limit=limit,
+        )
+
+        if not results:
+            # Fallback to simple metadata search if no vector adapter
+            query_filter = {"type": MemoryType.DOCUMENTATION}
+            if metadata_filter:
+                query_filter.update(metadata_filter)
+            results = self.memory_manager.query_by_metadata(query_filter)
+
+        return results
+
+    def semantic_search(self, query: str, limit: int = 10) -> List[Any]:
+        """Alias for :meth:`search_documentation` for compatibility."""
+
+        return self.search_documentation(query, limit=limit)
+
+    def ingest_from_project_config(
+        self,
+        project_root: Union[str, Path] | None = None,
+        manifest_path: Union[str, Path] | None = None,
+    ) -> List[Dict[str, Any]]:
+        """Ingest documentation based on ``.devsynth/project.yaml``."""
+
+        from devsynth.config import load_project_config
+
+        root = Path(project_root or os.getcwd())
+
+        if manifest_path:
+            config = load_project_config(Path(manifest_path).parent)
+        else:
+            config = load_project_config(root)
+
+        docs_dirs = config.config.directories.get("docs", ["docs"])
+        results: List[Dict[str, Any]] = []
+
+        for rel in docs_dirs:
+            doc_dir = root / rel
+            if doc_dir.exists():
+                results.extend(self.ingest_directory(doc_dir))
+
+        return results

@@ -109,7 +109,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'markdown'
 
@@ -123,7 +123,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'text'
 
@@ -137,7 +137,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'json'
 
@@ -151,7 +151,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'python'
 
@@ -165,7 +165,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'html'
 
@@ -179,7 +179,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'rst'
 
@@ -202,7 +202,7 @@ ReqID: N/A"""
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
-        assert stored_item.memory_type == MemoryType.KNOWLEDGE_GRAPH
+        assert stored_item.memory_type == MemoryType.DOCUMENTATION
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'markdown'
         assert 'source' in stored_item.metadata
