@@ -1,8 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Header
+import uuid
 from fastapi.responses import Response
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
-from devsynth.logging_setup import DevSynthLogger, configure_logging
+from devsynth.logging_setup import (
+    DevSynthLogger,
+    configure_logging,
+    set_request_context,
+    clear_request_context,
+)
 from devsynth.config.settings import get_settings
 
 configure_logging()
@@ -22,6 +28,17 @@ def verify_token(authorization: str | None = Header(None)) -> None:
 REQUEST_COUNT = Counter("request_count", "Total HTTP requests", ["endpoint"])
 
 app = FastAPI(title="DevSynth API")
+
+
+@app.middleware("http")
+async def add_request_id(request, call_next):
+    """Attach a correlation ID to each request and log context."""
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    set_request_context(request_id=request_id)
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    clear_request_context()
+    return response
 
 
 @app.middleware("http")

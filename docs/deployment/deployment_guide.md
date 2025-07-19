@@ -52,6 +52,22 @@ docker compose up -d
 docker compose ps
 ```
 
+Logs are written to the `./logs` directory by default when running via
+Docker Compose. Ensure this directory exists so containers can write log files.
+
+### Using Go-Task
+
+The `Taskfile.yml` provides shortcuts for common container commands. After
+installing [`go-task`](https://taskfile.dev), you can build and start the
+environment with:
+
+```bash
+task docker:build
+task docker:up
+```
+
+Stop the stack with `task docker:down` and view logs using `task docker:logs`.
+
 ## Deployment Environments
 
 DevSynth supports multiple deployment environments, each with its own configuration:

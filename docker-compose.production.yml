@@ -9,8 +9,10 @@ services:
     environment:
       - DEVSYNTH_ENV=production
       - DEVSYNTH_LOG_LEVEL=INFO
+      - DEVSYNTH_LOG_DIR=/var/log/devsynth
     volumes:
       - devsynth-data:/data/devsynth
+      - ./logs:/var/log/devsynth
     ports:
       - "8000:8000"
     networks:
@@ -29,8 +31,10 @@ services:
     command: devsynth
     environment:
       - DEVSYNTH_ENV=production
+      - DEVSYNTH_LOG_DIR=/var/log/devsynth
     volumes:
       - devsynth-data:/data/devsynth
+      - ./logs:/var/log/devsynth
     networks:
       - devsynth-network
     profiles:
