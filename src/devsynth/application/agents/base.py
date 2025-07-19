@@ -1,4 +1,3 @@
-
 """
 Base agent class for the DevSynth system.
 """
@@ -16,12 +15,15 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+
 class BaseAgent(Agent, ABC):
     """Base class for all agents in the DevSynth system."""
 
     def __init__(self):
         self.config = None
-        self.current_role = None  # Current WSDE role (Worker, Supervisor, Designer, Evaluator, Primus)
+        self.current_role = (
+            None  # Current WSDE role (Worker, Supervisor, Designer, Evaluator, Primus)
+        )
         self.llm_port = None
 
     def initialize(self, config: AgentConfig) -> None:
@@ -44,7 +46,12 @@ class BaseAgent(Agent, ABC):
             logger.error(f"Error generating text: {str(e)}")
             return f"Error generating text: {str(e)}"
 
-    def generate_text_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> str:
+    def generate_text_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        parameters: Dict[str, Any] = None,
+    ) -> str:
         """Generate text with conversation context using the LLM port."""
         if self.llm_port is None:
             logger.warning("LLM port not set. Using placeholder text.")
@@ -74,6 +81,14 @@ class BaseAgent(Agent, ABC):
             return self.config.name
         return self.__class__.__name__
 
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the agent name, updating :class:`AgentConfig` if necessary."""
+        if self.config:
+            self.config.name = value
+        else:  # pragma: no cover - defensive
+            self.config = AgentConfig(name=value)
+
     @property
     def agent_type(self) -> str:
         """Get the type of this agent."""
@@ -88,15 +103,15 @@ class BaseAgent(Agent, ABC):
             return self.config.description
         return "Base agent"
 
-    def create_wsde(self, content: str, content_type: str = "text", metadata: Dict[str, Any] = None) -> WSDE:
+    def create_wsde(
+        self, content: str, content_type: str = "text", metadata: Dict[str, Any] = None
+    ) -> WSDE:
         """Create a new WSDE with the given content."""
-        return WSDE(
-            content=content,
-            content_type=content_type,
-            metadata=metadata or {}
-        )
+        return WSDE(content=content, content_type=content_type, metadata=metadata or {})
 
-    def update_wsde(self, wsde: WSDE, content: str = None, metadata: Dict[str, Any] = None) -> WSDE:
+    def update_wsde(
+        self, wsde: WSDE, content: str = None, metadata: Dict[str, Any] = None
+    ) -> WSDE:
         """Update an existing WSDE."""
         if content is not None:
             wsde.content = content

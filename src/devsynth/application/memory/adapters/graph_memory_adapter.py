@@ -5,14 +5,17 @@ This module provides a memory adapter that handles relationships between memory 
 using a graph-based approach with RDFLib. It integrates with RDFLibStore for enhanced
 functionality and improved integration between different memory stores.
 """
+
 import os
 import uuid
 import json
 from typing import Dict, List, Any, Optional, Set, Union
+
 try:
     import rdflib
     from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
     from rdflib.namespace import FOAF, DC
+
     try:
         Namespace("test")
     except Exception:
@@ -22,8 +25,10 @@ except Exception:
     Graph = Literal = URIRef = object  # type: ignore
     RDF = RDFS = XSD = object  # type: ignore
     FOAF = DC = object  # type: ignore
+
     def Namespace(uri: str):  # type: ignore
         return uri
+
 
 from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....domain.interfaces.memory import MemoryStore, VectorStore
@@ -36,6 +41,7 @@ logger = DevSynthLogger(__name__)
 # Define custom namespaces
 DEVSYNTH = Namespace("http://devsynth.ai/ontology/")
 MEMORY = Namespace("http://devsynth.ai/memory/")
+
 
 class GraphMemoryAdapter(MemoryStore):
     """
@@ -106,7 +112,9 @@ class GraphMemoryAdapter(MemoryStore):
         """Save the RDF graph to disk if a base path is provided."""
         if self.use_rdflib_store and self.rdflib_store:
             # Ensure the RDFLibStore uses the same graph file
-            self.rdflib_store.graph_file = getattr(self, "graph_file", os.path.join(self.base_path, "graph_memory.ttl"))
+            self.rdflib_store.graph_file = getattr(
+                self, "graph_file", os.path.join(self.base_path, "graph_memory.ttl")
+            )
             logger.debug("Using RDFLibStore to save the graph")
             self.rdflib_store._save_graph()
             return
@@ -151,12 +159,18 @@ class GraphMemoryAdapter(MemoryStore):
                 logger.debug(f"Serialized complex content to JSON for item {item.id}")
             except (TypeError, ValueError) as e:
                 # If serialization fails, store as string and log a warning
-                logger.warning(f"Failed to serialize content to JSON for item {item.id}: {e}")
+                logger.warning(
+                    f"Failed to serialize content to JSON for item {item.id}: {e}"
+                )
                 self.graph.add((item_uri, DEVSYNTH.content, Literal(str(item.content))))
                 self.graph.add((item_uri, DEVSYNTH.content_type, Literal("string")))
 
         # Handle memory_type which could be an enum or a string
-        memory_type_value = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
+        memory_type_value = (
+            item.memory_type.value
+            if hasattr(item.memory_type, "value")
+            else str(item.memory_type)
+        )
         self.graph.add((item_uri, DEVSYNTH.memory_type, Literal(memory_type_value)))
 
         # Add metadata
@@ -172,10 +186,14 @@ class GraphMemoryAdapter(MemoryStore):
                     self.graph.add((item_uri, DEVSYNTH[key], Literal(json_value)))
                     # Add a flag to indicate this is a JSON-serialized value
                     self.graph.add((item_uri, DEVSYNTH[f"{key}_type"], Literal("json")))
-                    logger.debug(f"Serialized complex metadata value for key {key} to JSON for item {item.id}")
+                    logger.debug(
+                        f"Serialized complex metadata value for key {key} to JSON for item {item.id}"
+                    )
                 except (TypeError, ValueError) as e:
                     # If serialization fails, skip this metadata
-                    logger.warning(f"Failed to serialize metadata value for key {key} to JSON for item {item.id}: {e}")
+                    logger.warning(
+                        f"Failed to serialize metadata value for key {key} to JSON for item {item.id}: {e}"
+                    )
 
         return item_uri
 
@@ -201,7 +219,9 @@ class GraphMemoryAdapter(MemoryStore):
 
         # Get content type
         content_type = self.graph.value(item_uri, DEVSYNTH.content_type)
-        content_type = str(content_type) if content_type else "simple"  # Default to simple for backward compatibility
+        content_type = (
+            str(content_type) if content_type else "simple"
+        )  # Default to simple for backward compatibility
 
         # Process content based on its type
         if content_type == "json":
@@ -211,7 +231,9 @@ class GraphMemoryAdapter(MemoryStore):
                 logger.debug(f"Deserialized JSON content for item {item_id}")
             except json.JSONDecodeError as e:
                 # If deserialization fails, use the string content
-                logger.warning(f"Failed to deserialize JSON content for item {item_id}: {e}")
+                logger.warning(
+                    f"Failed to deserialize JSON content for item {item_id}: {e}"
+                )
                 content = content_str
         else:
             # For simple or string types, use the content as is
@@ -224,11 +246,17 @@ class GraphMemoryAdapter(MemoryStore):
         # First pass: collect all metadata and their types
         for s, p, o in self.graph.triples((item_uri, None, None)):
             # Skip non-metadata properties
-            if p in [RDF.type, DEVSYNTH.id, DEVSYNTH.content, DEVSYNTH.memory_type, DEVSYNTH.content_type]:
+            if p in [
+                RDF.type,
+                DEVSYNTH.id,
+                DEVSYNTH.content,
+                DEVSYNTH.memory_type,
+                DEVSYNTH.content_type,
+            ]:
                 continue
 
             # Extract the property name from the URI
-            prop_name = p.split('/')[-1]
+            prop_name = p.split("/")[-1]
 
             # Check if this is a type indicator
             if prop_name.endswith("_type"):
@@ -243,10 +271,14 @@ class GraphMemoryAdapter(MemoryStore):
                 try:
                     # Deserialize JSON metadata
                     metadata[key] = json.loads(value)
-                    logger.debug(f"Deserialized JSON metadata for key {key} in item {item_id}")
+                    logger.debug(
+                        f"Deserialized JSON metadata for key {key} in item {item_id}"
+                    )
                 except json.JSONDecodeError as e:
                     # If deserialization fails, keep the string value
-                    logger.warning(f"Failed to deserialize JSON metadata for key {key} in item {item_id}: {e}")
+                    logger.warning(
+                        f"Failed to deserialize JSON metadata for key {key} in item {item_id}: {e}"
+                    )
 
         # Remove type indicators from metadata
         for key in list(metadata.keys()):
@@ -255,10 +287,7 @@ class GraphMemoryAdapter(MemoryStore):
 
         # Create and return the memory item
         return MemoryItem(
-            id=item_id,
-            content=content,
-            memory_type=memory_type,
-            metadata=metadata
+            id=item_id, content=content, memory_type=memory_type, metadata=metadata
         )
 
     def store(self, item: MemoryItem) -> str:
@@ -275,6 +304,10 @@ class GraphMemoryAdapter(MemoryStore):
             # Generate an ID if not provided
             if not item.id:
                 item.id = f"graph_{uuid.uuid4()}"
+
+            existing_uri = URIRef(f"{MEMORY}{item.id}")
+            if (existing_uri, RDF.type, DEVSYNTH.MemoryItem) in self.graph:
+                self.graph.remove((existing_uri, None, None))
 
             # Convert the item to triples and add to the graph
             item_uri = self._memory_item_to_triples(item)
@@ -317,9 +350,13 @@ class GraphMemoryAdapter(MemoryStore):
             item = self._triples_to_memory_item(item_uri)
 
             if item:
-                logger.info(f"Retrieved memory item with ID {item_id} from Graph Memory Adapter")
+                logger.info(
+                    f"Retrieved memory item with ID {item_id} from Graph Memory Adapter"
+                )
             else:
-                logger.warning(f"Memory item with ID {item_id} not found in Graph Memory Adapter")
+                logger.warning(
+                    f"Memory item with ID {item_id} not found in Graph Memory Adapter"
+                )
 
             return item
         except Exception as e:
@@ -352,25 +389,39 @@ class GraphMemoryAdapter(MemoryStore):
             # Check each item against the query
             for item in all_items:
                 match = True
-                memory_type_value = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
-                logger.debug(f"Checking item with ID: {item.id}, memory_type: {memory_type_value}, metadata: {item.metadata}")
+                memory_type_value = (
+                    item.memory_type.value
+                    if hasattr(item.memory_type, "value")
+                    else str(item.memory_type)
+                )
+                logger.debug(
+                    f"Checking item with ID: {item.id}, memory_type: {memory_type_value}, metadata: {item.metadata}"
+                )
 
                 for key, value in query.items():
                     if key == "type":
                         # Check if the memory_type matches the value
                         # Convert both memory_type and value to string for comparison
-                        value_str = value.value if hasattr(value, 'value') else str(value)
+                        value_str = (
+                            value.value if hasattr(value, "value") else str(value)
+                        )
                         if memory_type_value != value_str:
                             # Also check if the type is in metadata
                             if key in item.metadata and item.metadata[key] == value_str:
-                                logger.debug(f"Item {item.id} matches type in metadata: {item.metadata[key]} == {value_str}")
+                                logger.debug(
+                                    f"Item {item.id} matches type in metadata: {item.metadata[key]} == {value_str}"
+                                )
                             else:
-                                logger.debug(f"Item {item.id} doesn't match type: {memory_type_value} != {value_str}")
+                                logger.debug(
+                                    f"Item {item.id} doesn't match type: {memory_type_value} != {value_str}"
+                                )
                                 match = False
                                 break
                     elif key in item.metadata:
                         if item.metadata[key] != value:
-                            logger.debug(f"Item {item.id} doesn't match metadata {key}: {item.metadata[key]} != {value}")
+                            logger.debug(
+                                f"Item {item.id} doesn't match metadata {key}: {item.metadata[key]} != {value}"
+                            )
                             match = False
                             break
                     else:
@@ -382,7 +433,9 @@ class GraphMemoryAdapter(MemoryStore):
                     logger.debug(f"Item {item.id} matches the query")
                     results.append(item)
 
-            logger.info(f"Found {len(results)} matching memory items in Graph Memory Adapter")
+            logger.info(
+                f"Found {len(results)} matching memory items in Graph Memory Adapter"
+            )
             return results
         except Exception as e:
             logger.error(f"Failed to search memory items: {e}")
@@ -404,7 +457,9 @@ class GraphMemoryAdapter(MemoryStore):
 
             # Check if the item exists
             if (item_uri, RDF.type, DEVSYNTH.MemoryItem) not in self.graph:
-                logger.warning(f"Memory item with ID {item_id} not found in Graph Memory Adapter")
+                logger.warning(
+                    f"Memory item with ID {item_id} not found in Graph Memory Adapter"
+                )
                 return False
 
             # Get related items
@@ -421,7 +476,9 @@ class GraphMemoryAdapter(MemoryStore):
             # Save the graph
             self._save_graph()
 
-            logger.info(f"Deleted memory item with ID {item_id} from Graph Memory Adapter")
+            logger.info(
+                f"Deleted memory item with ID {item_id} from Graph Memory Adapter"
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to delete memory item: {e}")
@@ -443,7 +500,9 @@ class GraphMemoryAdapter(MemoryStore):
 
             # Check if the item exists
             if (item_uri, RDF.type, DEVSYNTH.MemoryItem) not in self.graph:
-                logger.warning(f"Memory item with ID {item_id} not found in Graph Memory Adapter")
+                logger.warning(
+                    f"Memory item with ID {item_id} not found in Graph Memory Adapter"
+                )
                 return []
 
             # Get related items
@@ -455,7 +514,9 @@ class GraphMemoryAdapter(MemoryStore):
                 if item:
                     related_items.append(item)
 
-            logger.info(f"Found {len(related_items)} items related to {item_id} in Graph Memory Adapter")
+            logger.info(
+                f"Found {len(related_items)} items related to {item_id} in Graph Memory Adapter"
+            )
             return related_items
         except Exception as e:
             logger.error(f"Failed to query related items: {e}")
@@ -490,15 +551,19 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to get all relationships: {e}")
             raise MemoryStoreError(f"Failed to get all relationships: {e}")
 
-    def add_memory_volatility(self, decay_rate: float = 0.1, threshold: float = 0.5, 
-                              advanced_controls: bool = False) -> None:
+    def add_memory_volatility(
+        self,
+        decay_rate: float = 0.1,
+        threshold: float = 0.5,
+        advanced_controls: bool = False,
+    ) -> None:
         """
         Add memory volatility controls to the graph.
 
         This method adds a 'confidence' property to all memory items and
         implements a decay mechanism where confidence decreases over time.
 
-        When using RDFLibStore integration with advanced_controls enabled, 
+        When using RDFLibStore integration with advanced_controls enabled,
         this method implements more sophisticated volatility controls including
         time-based decay, access frequency adjustments, and relationship-based
         confidence boosting.
@@ -529,13 +594,20 @@ class GraphMemoryAdapter(MemoryStore):
                         FILTER NOT EXISTS { ?item devsynth:confidence ?conf }
                         BIND(NOW() as ?now)
                     }
-                """ % (decay_rate, threshold)
+                """ % (
+                    decay_rate,
+                    threshold,
+                )
 
                 self.graph.update(sparql_update)
-                logger.info(f"Added advanced memory volatility controls with decay rate {decay_rate} and threshold {threshold}")
+                logger.info(
+                    f"Added advanced memory volatility controls with decay rate {decay_rate} and threshold {threshold}"
+                )
             else:
                 # Use basic RDFLib approach
-                for s, p, o in self.graph.triples((None, RDF.type, DEVSYNTH.MemoryItem)):
+                for s, p, o in self.graph.triples(
+                    (None, RDF.type, DEVSYNTH.MemoryItem)
+                ):
                     # Check if confidence already exists
                     if (s, DEVSYNTH.confidence, None) not in self.graph:
                         # Add initial confidence of 1.0
@@ -543,12 +615,16 @@ class GraphMemoryAdapter(MemoryStore):
 
                         # Add decay rate and threshold
                         self.graph.add((s, DEVSYNTH.decayRate, Literal(decay_rate)))
-                        self.graph.add((s, DEVSYNTH.confidenceThreshold, Literal(threshold)))
+                        self.graph.add(
+                            (s, DEVSYNTH.confidenceThreshold, Literal(threshold))
+                        )
 
             # Save the graph
             self._save_graph()
 
-            logger.info(f"Added memory volatility controls with decay rate {decay_rate} and threshold {threshold}")
+            logger.info(
+                f"Added memory volatility controls with decay rate {decay_rate} and threshold {threshold}"
+            )
         except Exception as e:
             logger.error(f"Failed to add memory volatility controls: {e}")
             raise MemoryStoreError(f"Failed to add memory volatility controls: {e}")
@@ -618,11 +694,12 @@ class GraphMemoryAdapter(MemoryStore):
                     if last_access:
                         # Calculate days since last access
                         from datetime import datetime
+
                         now = datetime.now()
                         # Convert last_access to a naive datetime by removing timezone info
-                        last_access_str = str(last_access).replace('Z', '')
-                        if '+' in last_access_str:
-                            last_access_str = last_access_str.split('+')[0]
+                        last_access_str = str(last_access).replace("Z", "")
+                        if "+" in last_access_str:
+                            last_access_str = last_access_str.split("+")[0]
                         last_access_date = datetime.fromisoformat(last_access_str)
                         days_since_access = (now - last_access_date).days
                         # Increase decay for items not accessed recently
@@ -632,11 +709,15 @@ class GraphMemoryAdapter(MemoryStore):
                     access_factor = max(0.5, 1.0 - (access_count / 100.0))
 
                     # Calculate relationship factor
-                    relationship_count = len(list(self.graph.triples((item_uri, DEVSYNTH.relatedTo, None))))
+                    relationship_count = len(
+                        list(self.graph.triples((item_uri, DEVSYNTH.relatedTo, None)))
+                    )
                     relationship_factor = max(0.5, 1.0 - (relationship_count / 20.0))
 
                     # Apply combined decay
-                    combined_decay_rate = decay_rate * time_factor * access_factor * relationship_factor
+                    combined_decay_rate = (
+                        decay_rate * time_factor * access_factor * relationship_factor
+                    )
                     new_confidence = max(0.0, confidence - combined_decay_rate)
 
                     # Update confidence with SPARQL
@@ -657,7 +738,9 @@ class GraphMemoryAdapter(MemoryStore):
                     if new_confidence < threshold:
                         volatile_items.append(item_id)
 
-                logger.info(f"Applied advanced memory decay, {len(volatile_items)} items are now volatile")
+                logger.info(
+                    f"Applied advanced memory decay, {len(volatile_items)} items are now volatile"
+                )
             else:
                 # Use basic RDFLib approach
                 for s, p, o in self.graph.triples((None, DEVSYNTH.confidence, None)):
@@ -665,8 +748,14 @@ class GraphMemoryAdapter(MemoryStore):
                     confidence = float(o)
 
                     # Get decay rate and threshold
-                    decay_rate = float(self.graph.value(s, DEVSYNTH.decayRate, default=Literal(0.1)))
-                    threshold = float(self.graph.value(s, DEVSYNTH.confidenceThreshold, default=Literal(0.5)))
+                    decay_rate = float(
+                        self.graph.value(s, DEVSYNTH.decayRate, default=Literal(0.1))
+                    )
+                    threshold = float(
+                        self.graph.value(
+                            s, DEVSYNTH.confidenceThreshold, default=Literal(0.5)
+                        )
+                    )
 
                     # Apply decay
                     new_confidence = max(0.0, confidence - decay_rate)
@@ -684,14 +773,21 @@ class GraphMemoryAdapter(MemoryStore):
             # Save the graph
             self._save_graph()
 
-            logger.info(f"Applied memory decay, {len(volatile_items)} items are now volatile")
+            logger.info(
+                f"Applied memory decay, {len(volatile_items)} items are now volatile"
+            )
             return volatile_items
         except Exception as e:
             logger.error(f"Failed to apply memory decay: {e}")
             raise MemoryStoreError(f"Failed to apply memory decay: {e}")
 
-    def store_with_edrr_phase(self, content: Any, memory_type: Union[str, MemoryType], edrr_phase: str, 
-                             metadata: Dict[str, Any] = None) -> str:
+    def store_with_edrr_phase(
+        self,
+        content: Any,
+        memory_type: Union[str, MemoryType],
+        edrr_phase: str,
+        metadata: Dict[str, Any] = None,
+    ) -> str:
         """
         Store a memory item with an EDRR phase.
 
@@ -718,17 +814,16 @@ class GraphMemoryAdapter(MemoryStore):
                 memory_type_enum = MemoryType(memory_type)
             except ValueError:
                 # If the string doesn't match any enum value, use a default
-                logger.warning(f"Unknown memory type: {memory_type}, using CODE as default")
+                logger.warning(
+                    f"Unknown memory type: {memory_type}, using CODE as default"
+                )
                 memory_type_enum = MemoryType.CODE
         else:
             memory_type_enum = memory_type
 
         # Create the memory item
         memory_item = MemoryItem(
-            id="",
-            content=content,
-            memory_type=memory_type_enum,
-            metadata=metadata_copy
+            id="", content=content, memory_type=memory_type_enum, metadata=metadata_copy
         )
 
         # Store the memory item
@@ -765,7 +860,11 @@ class GraphMemoryAdapter(MemoryStore):
             matching_items = []
             for item in all_items:
                 # Convert memory_type to string for comparison
-                item_memory_type = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
+                item_memory_type = (
+                    item.memory_type.value
+                    if hasattr(item.memory_type, "value")
+                    else str(item.memory_type)
+                )
 
                 # Check if the item has the correct memory type
                 if item_memory_type != item_type and str(item.memory_type) != item_type:
@@ -785,21 +884,30 @@ class GraphMemoryAdapter(MemoryStore):
 
                 if match:
                     matching_items.append(item)
-                    logger.debug(f"Found matching item: {item.id}, Type: {item.memory_type}, Metadata: {item.metadata}")
+                    logger.debug(
+                        f"Found matching item: {item.id}, Type: {item.memory_type}, Metadata: {item.metadata}"
+                    )
 
             if matching_items:
                 # Return the content of the first matching item
-                logger.info(f"Retrieved item with type {item_type}, EDRR phase {edrr_phase}, and metadata {metadata}")
+                logger.info(
+                    f"Retrieved item with type {item_type}, EDRR phase {edrr_phase}, and metadata {metadata}"
+                )
                 return matching_items[0].content
 
-            logger.debug(f"No items found with type {item_type} and EDRR phase {edrr_phase}")
+            logger.debug(
+                f"No items found with type {item_type} and EDRR phase {edrr_phase}"
+            )
             return {}
         except Exception as e:
             logger.error(f"Failed to retrieve item with EDRR phase: {e}")
             return {}
 
-    def integrate_with_store(self, other_store: Union[MemoryStore, VectorStore], 
-                           sync_mode: str = "bidirectional") -> None:
+    def integrate_with_store(
+        self,
+        other_store: Union[MemoryStore, VectorStore],
+        sync_mode: str = "bidirectional",
+    ) -> None:
         """
         Integrate this graph memory adapter with another memory store.
 
@@ -818,10 +926,16 @@ class GraphMemoryAdapter(MemoryStore):
             MemoryStoreError: If integration fails
         """
         try:
-            logger.info(f"Integrating with {type(other_store).__name__} in {sync_mode} mode")
+            logger.info(
+                f"Integrating with {type(other_store).__name__} in {sync_mode} mode"
+            )
 
             # Use duck typing to check if other_store has MemoryStore-like methods
-            has_memory_store_methods = hasattr(other_store, 'store') and hasattr(other_store, 'retrieve') and hasattr(other_store, 'search')
+            has_memory_store_methods = (
+                hasattr(other_store, "store")
+                and hasattr(other_store, "retrieve")
+                and hasattr(other_store, "search")
+            )
 
             if has_memory_store_methods:
                 # Handle import mode (or bidirectional)
@@ -843,7 +957,9 @@ class GraphMemoryAdapter(MemoryStore):
                         if not existing_item:
                             # Store the item
                             self.store(item)
-                            logger.debug(f"Imported item {item.id} from {type(other_store).__name__}")
+                            logger.debug(
+                                f"Imported item {item.id} from {type(other_store).__name__}"
+                            )
 
                 # Handle export mode (or bidirectional)
                 if sync_mode in ["export", "bidirectional"]:
@@ -857,10 +973,12 @@ class GraphMemoryAdapter(MemoryStore):
                         if not existing_item:
                             # Store the item in other store
                             other_store.store(item)
-                            logger.debug(f"Exported item {item.id} to {type(other_store).__name__}")
+                            logger.debug(
+                                f"Exported item {item.id} to {type(other_store).__name__}"
+                            )
 
             # Use duck typing to check if other_store has VectorStore-like methods
-            has_vector_store_methods = hasattr(other_store, 'get_collection_stats')
+            has_vector_store_methods = hasattr(other_store, "get_collection_stats")
 
             # Check if this adapter is using RDFLibStore
             if has_vector_store_methods and self.use_rdflib_store and self.rdflib_store:
@@ -872,18 +990,26 @@ class GraphMemoryAdapter(MemoryStore):
                         if stats.get("num_vectors", 0) > 0:
                             # This is a simplified approach. In a real implementation,
                             # you would need a way to retrieve all vectors from the other store.
-                            logger.info(f"Vector integration with {type(other_store).__name__} would require custom implementation")
+                            logger.info(
+                                f"Vector integration with {type(other_store).__name__} would require custom implementation"
+                            )
 
                 # Handle export mode (or bidirectional)
-                if sync_mode in ["export", "bidirectional"] and hasattr(self.rdflib_store, "get_collection_stats"):
+                if sync_mode in ["export", "bidirectional"] and hasattr(
+                    self.rdflib_store, "get_collection_stats"
+                ):
                     # Get all vectors from this store
                     stats = self.rdflib_store.get_collection_stats()
                     if stats.get("num_vectors", 0) > 0:
                         # This is a simplified approach. In a real implementation,
                         # you would need a way to retrieve all vectors from this store.
-                        logger.info(f"Vector export to {type(other_store).__name__} would require custom implementation")
+                        logger.info(
+                            f"Vector export to {type(other_store).__name__} would require custom implementation"
+                        )
 
             logger.info(f"Integration with {type(other_store).__name__} completed")
         except Exception as e:
             logger.error(f"Failed to integrate with {type(other_store).__name__}: {e}")
-            raise MemoryStoreError(f"Failed to integrate with {type(other_store).__name__}: {e}")
+            raise MemoryStoreError(
+                f"Failed to integrate with {type(other_store).__name__}: {e}"
+            )
