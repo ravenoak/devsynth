@@ -287,6 +287,10 @@ team.add_agents([agent_a, agent_b])
 task = {"type": "documentation", "description": "Write API docs"}
 team.dynamic_role_reassignment(task)
 
+# Optionally attach shared resources
+team.set_knowledge_graph(my_knowledge_graph)
+team.set_standards(my_standards)
+
 # Agents contribute solutions
 
 team.add_solution(task, {"agent": agent_a.name, "content": "Initial draft"})
