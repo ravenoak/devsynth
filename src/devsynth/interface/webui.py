@@ -1265,6 +1265,105 @@ class WebUI(UXBridge):
                 finally:
                     module.bridge = original
 
+    def refactor_page(self) -> None:
+        """Suggest refactor workflows based on project state."""
+        st.header("Refactor Suggestions")
+        with st.form("refactor"):
+            path = st.text_input("Project Path", ".")
+            submitted = st.form_submit_button("Run Refactor")
+        if submitted:
+            with st.spinner("Running refactor analysis..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.cli_commands")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.cli_commands as module
+
+                original = getattr(module, "bridge", None)
+                module.bridge = self
+                try:
+                    module.refactor_cmd(path=path or None, bridge=self)
+                finally:
+                    module.bridge = original
+
+    def webapp_page(self) -> None:
+        """Generate a starter web application."""
+        st.header("Web App Helper")
+        with st.form("webapp"):
+            framework = st.text_input("Framework", "flask")
+            name = st.text_input("Name", "webapp")
+            path = st.text_input("Path", ".")
+            submitted = st.form_submit_button("Generate Web App")
+        if submitted:
+            with st.spinner("Generating web app..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.cli_commands")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.cli_commands as module
+
+                original = getattr(module, "bridge", None)
+                module.bridge = self
+                try:
+                    module.webapp_cmd(
+                        framework=framework,
+                        name=name,
+                        path=path,
+                        bridge=self,
+                    )
+                finally:
+                    module.bridge = original
+
+    def serve_page(self) -> None:
+        """Run the DevSynth API server."""
+        st.header("Serve API")
+        with st.form("serve"):
+            host = st.text_input("Host", "0.0.0.0")
+            port = st.number_input("Port", value=8000)
+            submitted = st.form_submit_button("Start Server")
+        if submitted:
+            with st.spinner("Starting server..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.cli_commands")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.cli_commands as module
+
+                original = getattr(module, "bridge", None)
+                module.bridge = self
+                try:
+                    module.serve_cmd(host=host, port=int(port), bridge=self)
+                finally:
+                    module.bridge = original
+
+    def dbschema_page(self) -> None:
+        """Generate a database schema."""
+        st.header("Database Schema")
+        with st.form("dbschema"):
+            db_type = st.text_input("Database Type", "sqlite")
+            name = st.text_input("Name", "database")
+            path = st.text_input("Path", ".")
+            submitted = st.form_submit_button("Generate Schema")
+        if submitted:
+            with st.spinner("Generating schema..."):
+                import sys
+
+                module = sys.modules.get("devsynth.application.cli.cli_commands")
+                if module is None:  # pragma: no cover - defensive fallback
+                    import devsynth.application.cli.cli_commands as module
+
+                original = getattr(module, "bridge", None)
+                module.bridge = self
+                try:
+                    module.dbschema_cmd(
+                        db_type=db_type,
+                        name=name,
+                        path=path,
+                        bridge=self,
+                    )
+                finally:
+                    module.bridge = original
+
     def doctor_page(self) -> None:
         """Render the doctor diagnostics page."""
         st.header("Doctor")
@@ -1422,6 +1521,10 @@ class WebUI(UXBridge):
             "Generate Docs": self.docs_generation_page,
             "Ingest": self.ingestion_page,
             "API Spec": self.apispec_page,
+            "Refactor": self.refactor_page,
+            "Web App": self.webapp_page,
+            "Serve": self.serve_page,
+            "DB Schema": self.dbschema_page,
             "Config": self.config_page,
             "Doctor": self.doctor_page,
             "Diagnostics": self.diagnostics_page,
