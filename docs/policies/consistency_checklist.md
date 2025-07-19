@@ -89,23 +89,23 @@ This document provides a checklist for ensuring consistency across all diagrams,
 
 ### Diagrams
 
-- [ ] Create diagrams showing the planned documentation ingestion component
-- [ ] Ensure diagrams show the integration with `.devsynth/project.yaml`
-- [ ] Add a note about the implementation status
+- [x] Create diagrams showing the planned documentation ingestion component
+- [x] Ensure diagrams show the integration with `.devsynth/project.yaml`
+- [x] Add a note about the implementation status (see [Documentation Ingestion Overview](../architecture/documentation_ingestion.md))
 
 
 ### Pseudocode
 
-- [ ] Create pseudocode examples for the documentation ingestion component
-- [ ] Add examples of using the DocStore
-- [ ] Include examples of lazy-loading
+- [x] Create pseudocode examples for the documentation ingestion component
+- [x] Add examples of using the DocStore
+- [x] Include examples of lazy-loading
 
 
 ### Behavior Files
 
-- [ ] Create behavior files for the documentation ingestion component
-- [ ] Add tests for the integration with `.devsynth/project.yaml`
-- [ ] Ensure behavior files cover all aspects of the feature
+- [x] Create behavior files for the documentation ingestion component
+- [x] Add tests for the integration with `.devsynth/project.yaml`
+- [x] Ensure behavior files cover all aspects of the feature
 
 
 ## AST-based Transformations

@@ -28,6 +28,7 @@ This section provides detailed information about the architecture of DevSynth, i
 
 - **[Agent System](agent_system.md)**: Information about the agent-based system architecture.
 - **[Memory System](memory_system.md)**: Documentation on the memory system used for storing and retrieving information.
+- **[Documentation Ingestion](documentation_ingestion.md)**: Offline ingestion of local project documentation.
 - **[Provider System](provider_system.md)**: Details on the provider system for integrating external services.
 
 ## Methodologies and Frameworks
