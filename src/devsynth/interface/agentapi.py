@@ -79,7 +79,9 @@ class APIBridge(UXBridge):
             return bool(self._answers.pop(0))
         return default
 
-    def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str = None
+    ) -> None:
         """Capture workflow output for the API response.
 
         Args:
@@ -101,7 +103,11 @@ class APIBridge(UXBridge):
             self._messages.append(self._description)
 
         def update(
-            self, *, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None
+            self,
+            *,
+            advance: float = 1,
+            description: Optional[str] = None,
+            status: Optional[str] = None,
         ) -> None:
             if description:
                 self._description = sanitize_output(description)
@@ -137,7 +143,9 @@ class APIBridge(UXBridge):
             self._status = "Complete"
             self._messages.append(f"{self._description} complete")
 
-        def add_subtask(self, description: str, total: int = 100, status: str = "Starting...") -> str:
+        def add_subtask(
+            self, description: str, total: int = 100, status: str = "Starting..."
+        ) -> str:
             """Add a subtask to the progress indicator.
 
             Args:
@@ -153,12 +161,20 @@ class APIBridge(UXBridge):
                 "description": sanitize_output(description),
                 "total": total,
                 "current": 0,
-                "status": status
+                "status": status,
             }
-            self._messages.append(f"  ↳ {self._subtasks[task_id]['description']} - {status}")
+            self._messages.append(
+                f"  ↳ {self._subtasks[task_id]['description']} - {status}"
+            )
             return task_id
 
-        def update_subtask(self, task_id: str, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+        def update_subtask(
+            self,
+            task_id: str,
+            advance: float = 1,
+            description: Optional[str] = None,
+            status: Optional[str] = None,
+        ) -> None:
             """Update a subtask's progress.
 
             Args:
@@ -214,9 +230,17 @@ class APIBridge(UXBridge):
 
             self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
             self._subtasks[task_id]["status"] = "Complete"
-            self._messages.append(f"  ↳ {self._subtasks[task_id]['description']} complete")
+            self._messages.append(
+                f"  ↳ {self._subtasks[task_id]['description']} complete"
+            )
 
-        def add_nested_subtask(self, parent_id: str, description: str, total: int = 100, status: str = "Starting...") -> str:
+        def add_nested_subtask(
+            self,
+            parent_id: str,
+            description: str,
+            total: int = 100,
+            status: str = "Starting...",
+        ) -> str:
             """Add a nested subtask to a subtask.
 
             Args:
@@ -240,12 +264,21 @@ class APIBridge(UXBridge):
                 "description": sanitize_output(description),
                 "total": total,
                 "current": 0,
-                "status": status
+                "status": status,
             }
-            self._messages.append(f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} - {status}")
+            self._messages.append(
+                f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} - {status}"
+            )
             return task_id
 
-        def update_nested_subtask(self, parent_id: str, task_id: str, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+        def update_nested_subtask(
+            self,
+            parent_id: str,
+            task_id: str,
+            advance: float = 1,
+            description: Optional[str] = None,
+            status: Optional[str] = None,
+        ) -> None:
             """Update a nested subtask's progress.
 
             Args:
@@ -255,15 +288,22 @@ class APIBridge(UXBridge):
                 description: New description for the nested subtask
                 status: Status message to display
             """
-            if parent_id not in self._nested_subtasks or task_id not in self._nested_subtasks[parent_id]:
+            if (
+                parent_id not in self._nested_subtasks
+                or task_id not in self._nested_subtasks[parent_id]
+            ):
                 return
 
             if description:
-                self._nested_subtasks[parent_id][task_id]["description"] = sanitize_output(description)
+                self._nested_subtasks[parent_id][task_id]["description"] = (
+                    sanitize_output(description)
+                )
 
             # Handle status
             if status:
-                self._nested_subtasks[parent_id][task_id]["status"] = sanitize_output(status)
+                self._nested_subtasks[parent_id][task_id]["status"] = sanitize_output(
+                    status
+                )
             else:
                 # If no status is provided, use a default based on progress
                 current = self._nested_subtasks[parent_id][task_id]["current"]
@@ -271,13 +311,21 @@ class APIBridge(UXBridge):
                 if current >= total:
                     self._nested_subtasks[parent_id][task_id]["status"] = "Complete"
                 elif current >= 0.99 * total:
-                    self._nested_subtasks[parent_id][task_id]["status"] = "Finalizing..."
+                    self._nested_subtasks[parent_id][task_id][
+                        "status"
+                    ] = "Finalizing..."
                 elif current >= 0.75 * total:
-                    self._nested_subtasks[parent_id][task_id]["status"] = "Almost done..."
+                    self._nested_subtasks[parent_id][task_id][
+                        "status"
+                    ] = "Almost done..."
                 elif current >= 0.5 * total:
-                    self._nested_subtasks[parent_id][task_id]["status"] = "Halfway there..."
+                    self._nested_subtasks[parent_id][task_id][
+                        "status"
+                    ] = "Halfway there..."
                 elif current >= 0.25 * total:
-                    self._nested_subtasks[parent_id][task_id]["status"] = "Processing..."
+                    self._nested_subtasks[parent_id][task_id][
+                        "status"
+                    ] = "Processing..."
                 else:
                     self._nested_subtasks[parent_id][task_id]["status"] = "Starting..."
 
@@ -293,12 +341,19 @@ class APIBridge(UXBridge):
                 parent_id: ID of the parent subtask
                 task_id: ID of the nested subtask to complete
             """
-            if parent_id not in self._nested_subtasks or task_id not in self._nested_subtasks[parent_id]:
+            if (
+                parent_id not in self._nested_subtasks
+                or task_id not in self._nested_subtasks[parent_id]
+            ):
                 return
 
-            self._nested_subtasks[parent_id][task_id]["current"] = self._nested_subtasks[parent_id][task_id]["total"]
+            self._nested_subtasks[parent_id][task_id]["current"] = (
+                self._nested_subtasks[parent_id][task_id]["total"]
+            )
             self._nested_subtasks[parent_id][task_id]["status"] = "Complete"
-            self._messages.append(f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} complete")
+            self._messages.append(
+                f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} complete"
+            )
 
     def create_progress(
         self, description: str, *, total: int = 100
@@ -337,7 +392,7 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
         logger.warning(f"Rate limit exceeded for client {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Rate limit exceeded. Try again in {window} seconds."
+            detail=f"Rate limit exceeded. Try again in {window} seconds.",
         )
 
     # Add the current timestamp
@@ -368,6 +423,9 @@ class SpecRequest(BaseModel):
 class TestSpecRequest(BaseModel):
     spec_file: str = "specs.md"
     output_dir: Optional[str] = None
+
+    # Prevent pytest from collecting this model as a test class
+    __test__ = False
 
 
 class CodeRequest(BaseModel):
@@ -504,7 +562,10 @@ class AgentAPI:
             self.bridge.messages.clear()
 
         edrr_cycle_cmd(
-            prompt=prompt, context=context, max_iterations=max_iterations, bridge=self.bridge
+            prompt=prompt,
+            context=context,
+            max_iterations=max_iterations,
+            bridge=self.bridge,
         )
         return self._collect_messages()
 
@@ -609,7 +670,9 @@ def test_endpoint(
         bridge = APIBridge()
         from devsynth.application.cli import test_cmd
 
-        test_cmd(spec_file=request.spec_file, output_dir=request.output_dir, bridge=bridge)
+        test_cmd(
+            spec_file=request.spec_file, output_dir=request.output_dir, bridge=bridge
+        )
         LATEST_MESSAGES[:] = bridge.messages
         return WorkflowResponse(messages=bridge.messages)
     except Exception as e:
@@ -700,11 +763,10 @@ def status_endpoint(token: None = Depends(verify_token)) -> WorkflowResponse:
     },
     tags=["Monitoring"],
     summary="Check API health",
-    description="Check if the API is healthy and responding to requests."
+    description="Check if the API is healthy and responding to requests.",
 )
 def health_endpoint(
-    request: Request,
-    token: None = Depends(verify_token)
+    request: Request, token: None = Depends(verify_token)
 ) -> JSONResponse:
     """Check if the API is healthy.
 
@@ -725,7 +787,9 @@ def health_endpoint(
 
     # Track metrics
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["health"] = API_METRICS["endpoint_counts"].get("health", 0) + 1
+    API_METRICS["endpoint_counts"]["health"] = (
+        API_METRICS["endpoint_counts"].get("health", 0) + 1
+    )
 
     return JSONResponse(content={"status": "ok"})
 
@@ -739,11 +803,10 @@ def health_endpoint(
     },
     tags=["Monitoring"],
     summary="Get API metrics",
-    description="Get metrics about API usage and performance."
+    description="Get metrics about API usage and performance.",
 )
 def metrics_endpoint(
-    request: Request,
-    token: None = Depends(verify_token)
+    request: Request, token: None = Depends(verify_token)
 ) -> PlainTextResponse:
     """Get API metrics.
 
@@ -764,7 +827,9 @@ def metrics_endpoint(
 
     # Track metrics
     API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["metrics"] = API_METRICS["endpoint_counts"].get("metrics", 0) + 1
+    API_METRICS["endpoint_counts"]["metrics"] = (
+        API_METRICS["endpoint_counts"].get("metrics", 0) + 1
+    )
 
     # Calculate uptime
     uptime = time.time() - API_METRICS["start_time"]
@@ -793,15 +858,23 @@ def metrics_endpoint(
     for endpoint, latencies in API_METRICS["endpoint_latency"].items():
         if latencies:
             avg_latency = sum(latencies) / len(latencies)
-            metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}')
+            metrics.append(
+                f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}'
+            )
             if len(latencies) >= 2:
                 latencies.sort()
                 p50 = latencies[len(latencies) // 2]
                 p95 = latencies[int(len(latencies) * 0.95)]
                 p99 = latencies[int(len(latencies) * 0.99)]
-                metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}')
-                metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.95"}} {p95}')
-                metrics.append(f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}')
+                metrics.append(
+                    f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}'
+                )
+                metrics.append(
+                    f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.95"}} {p95}'
+                )
+                metrics.append(
+                    f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}'
+                )
 
     return PlainTextResponse(content="\n".join(metrics))
 
@@ -811,22 +884,14 @@ def metrics_endpoint(
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Handle HTTP exceptions and return a structured error response."""
     if isinstance(exc.detail, dict):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content=exc.detail
-        )
+        return JSONResponse(status_code=exc.status_code, content=exc.detail)
 
     # Maintain compatibility with original format for unauthorized errors
     if exc.status_code == status.HTTP_401_UNAUTHORIZED and exc.detail == "Unauthorized":
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail}
-        )
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.detail}
-    )
+    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -840,9 +905,9 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
             "details": str(exc),
             "suggestions": [
                 "Check the logs for more information",
-                "Contact support if the issue persists"
-            ]
-        }
+                "Contact support if the issue persists",
+            ],
+        },
     )
 
 
