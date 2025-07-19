@@ -32,6 +32,16 @@ This guide provides step-by-step instructions for installing DevSynth in various
 poetry add devsynth
 ```
 
+### Minimal install
+
+For a lightweight setup with only the core runtime:
+
+```bash
+poetry install --without dev --without docs
+```
+
+Extras may be added later using `poetry install --extras llm --extras api`.
+
 ### Install with pipx *(end-user install)*
 
 ```bash
