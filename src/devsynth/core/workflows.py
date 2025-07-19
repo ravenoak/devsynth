@@ -5,14 +5,20 @@ from pathlib import Path
 import json
 import yaml
 
-from devsynth.application.orchestration.workflow import workflow_manager
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.config import get_project_config, save_config
 
 
+def _get_workflow_manager():
+    """Return the global ``WorkflowManager`` instance lazily."""
+    from devsynth.application.orchestration.workflow import workflow_manager
+
+    return workflow_manager
+
+
 def execute_command(command: str, args: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a workflow command through the application workflow manager."""
-    return workflow_manager.execute_command(command, args)
+    return _get_workflow_manager().execute_command(command, args)
 
 
 def filter_args(args: Dict[str, Any]) -> Dict[str, Any]:

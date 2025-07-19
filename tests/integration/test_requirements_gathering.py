@@ -1,5 +1,6 @@
 import os
 import yaml
+from unittest.mock import patch
 from devsynth.application.cli.cli_commands import init_cmd, gather_cmd
 
 
@@ -9,7 +10,7 @@ def test_gather_updates_config_succeeds(tmp_path):
 ReqID: N/A"""
     os.chdir(tmp_path)
     with patch('devsynth.application.cli.cli_commands.bridge.ask_question',
-        side_effect=[str(tmp_path), 'python', '']), patch(
+        side_effect=[str(tmp_path), 'python', '', 'memory']), patch(
         'devsynth.application.cli.cli_commands.bridge.confirm_choice',
         return_value=True):
         init_cmd()
@@ -26,7 +27,13 @@ ReqID: N/A"""
             self.i += 1
             return val
 
+        def prompt(self, *a, **k):
+            return self.ask_question(*a, **k)
+
         def confirm_choice(self, *a, **k):
+            return True
+
+        def confirm(self, *a, **k):
             return True
 
         def display_result(self, *a, **k):

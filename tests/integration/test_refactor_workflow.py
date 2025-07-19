@@ -10,6 +10,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
+from unittest.mock import patch
 from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 from devsynth.application.cli.cli_commands import init_cmd
 
@@ -33,7 +34,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         with patch('devsynth.application.cli.cli_commands.bridge.ask_question',
-            side_effect=[temp_project_dir, 'python', '']), patch(
+            side_effect=[temp_project_dir, 'python', '', 'memory']), patch(
             'devsynth.application.cli.cli_commands.bridge.confirm_choice',
             return_value=True):
             init_cmd()
@@ -75,7 +76,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         with patch('devsynth.application.cli.cli_commands.bridge.ask_question',
-            side_effect=[temp_project_dir, 'python', '']), patch(
+            side_effect=[temp_project_dir, 'python', '', 'memory']), patch(
             'devsynth.application.cli.cli_commands.bridge.confirm_choice',
             return_value=True):
             init_cmd()
@@ -168,7 +169,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         with patch('devsynth.application.cli.cli_commands.bridge.ask_question',
-            side_effect=[temp_project_dir, 'python', '']), patch(
+            side_effect=[temp_project_dir, 'python', '', 'memory']), patch(
             'devsynth.application.cli.cli_commands.bridge.confirm_choice',
             return_value=True):
             init_cmd()
@@ -204,7 +205,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         with patch('devsynth.application.cli.cli_commands.bridge.ask_question',
-            side_effect=[temp_project_dir, 'python', '']), patch(
+            side_effect=[temp_project_dir, 'python', '', 'memory']), patch(
             'devsynth.application.cli.cli_commands.bridge.confirm_choice',
             return_value=True):
             init_cmd()
@@ -239,7 +240,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         with patch('devsynth.application.cli.cli_commands.bridge.ask_question',
-            side_effect=[temp_project_dir, 'python', '']), patch(
+            side_effect=[temp_project_dir, 'python', '', 'memory']), patch(
             'devsynth.application.cli.cli_commands.bridge.confirm_choice',
             return_value=True):
             init_cmd()
