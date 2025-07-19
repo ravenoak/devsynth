@@ -3,7 +3,26 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 from devsynth.api import app
-from devsynth.interface.agentapi import init_endpoint, gather_endpoint, synthesize_endpoint, spec_endpoint, test_endpoint, code_endpoint, doctor_endpoint, edrr_cycle_endpoint, status_endpoint, InitRequest, GatherRequest, SynthesizeRequest, SpecRequest, TestSpecRequest, CodeRequest, DoctorRequest, EDRRCycleRequest, LATEST_MESSAGES
+from devsynth.interface.agentapi import (
+    init_endpoint,
+    gather_endpoint,
+    synthesize_endpoint,
+    spec_endpoint,
+    test_endpoint,
+    code_endpoint,
+    doctor_endpoint,
+    edrr_cycle_endpoint,
+    status_endpoint,
+    InitRequest,
+    GatherRequest,
+    SynthesizeRequest,
+    SpecRequest,
+    TestSpecRequest as APITestSpecRequest,
+    CodeRequest,
+    DoctorRequest,
+    EDRRCycleRequest,
+    LATEST_MESSAGES,
+)
 
 
 @pytest.fixture
