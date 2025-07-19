@@ -10,6 +10,8 @@ services:
       - .:/opt/pysetup
       - ~/.devsynth:/home/devsynth/.devsynth
       - ./logs:/var/log/devsynth
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     environment:
@@ -36,10 +38,17 @@ services:
     volumes:
       - .:/opt/pysetup
     command: /bin/bash -c "tail -f /dev/null"
+    env_file:
+      - .env
     networks:
       - devsynth-network
     profiles:
       - tools
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
 
   # Test runner
   test-runner:
@@ -50,10 +59,28 @@ services:
       - .:/opt/pysetup
     environment:
       - DEVSYNTH_ENV=testing
+    env_file:
+      - .env
     networks:
       - devsynth-network
     profiles:
       - test
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - devsynth-network
+    profiles:
+      - monitoring
 
 
 networks:
