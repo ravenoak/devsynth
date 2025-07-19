@@ -22,6 +22,7 @@ ReqID: N/A"""
         assert pr.call_count == 1
         printed_obj = pr.call_args[0][0]
         assert isinstance(printed_obj, Panel)
+        assert printed_obj.renderable == 'done'
         assert pr.call_args.kwargs.get('style') == 'highlight'
 
 
