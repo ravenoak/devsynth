@@ -129,7 +129,7 @@ def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, monkeypa
     stub_streamlit.button.return_value = True
     m = mock_open()
     with patch("builtins.open", m):
-        WebUI()._requirements_wizard()
+        result = WebUI()._requirements_wizard()
     m.assert_called_once_with("requirements_wizard.json", "w", encoding="utf-8")
     handle = m()
     expected_data = {
@@ -140,12 +140,14 @@ def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, monkeypa
         "constraints": ["constraint1", "constraint2"],
     }
     handle.write.assert_called_once_with(json.dumps(expected_data, indent=2))
+    assert result == expected_data
     webui_instance = WebUI()
     webui_instance.display_result = MagicMock()
     with patch("builtins.open", m):
-        webui_instance._requirements_wizard()
+        result = webui_instance._requirements_wizard()
     webui_instance.display_result.assert_called_once()
     assert "[green]" in webui_instance.display_result.call_args[0][0]
+    assert result == expected_data
 
 
 def test_requirements_wizard_different_steps_succeeds(stub_streamlit):
