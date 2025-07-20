@@ -160,11 +160,14 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--path`, `-p`: Path to initialize the project (default: current directory)
 - `--template`, `-t`: Template to use for initialization (default: basic)
 - `--project-root`: Root directory of an existing project to onboard
-- `--language`: Primary language of the project (default: python)
+- `--language`: Primary language of the project (default: python). Supported
+  values: `python`, `javascript`, `typescript`, `go`, `rust`, `haskell`, `julia`,
+  or `polyglot` for multi-language projects.
 - `--source-dirs`: Comma separated list of source directories (default: src)
 - `--test-dirs`: Comma separated list of test directories (default: tests)
 - `--docs-dirs`: Comma separated list of documentation directories (default: docs)
-- `--extra-languages`: Additional languages used in the project
+- `--extra-languages`: Additional languages used in the project (comma-separated)
+  using the same language names as `--language`.
 - `--goals`: High-level goals or constraints for the project
 - `--constraints`: Path to a constraint configuration file
 - `--wizard`: Launch the guided setup wizard even outside a detected project
@@ -205,13 +208,13 @@ devsynth init --path ./my-project --template web-app
 
 # Onboard an existing project using custom language
 
-devsynth init --project-root ./existing --language javascript
+devsynth init --project-root ./existing --language typescript
 
 # Provide directories and project goals via flags
 
 devsynth init --project-root . --language python \
   --source-dirs src --test-dirs tests --docs-dirs docs \
-  --extra-languages javascript --goals "demo"
+  --extra-languages javascript,go --goals "demo"
 
 # Start the guided wizard directly
 
@@ -286,7 +289,9 @@ devsynth refactor [--test-dir DIR] [--spec-file FILE] [--output-dir DIR]
 - `--test-dir`, `-t`: Directory containing test files (default: tests/)
 - `--spec-file`, `-s`: Path to specification file (default: specifications.md)
 - `--output-dir`, `-o`: Directory to output code files (default: src/)
-- `--language`, `-l`: Target language for generated code (python or javascript)
+- `--language`, `-l`: Target language for generated code. Supported values are
+  `python`, `javascript`, `typescript`, `go`, `rust`, `haskell`, `julia`, or
+  `polyglot`.
 
 
 **Examples:**
@@ -301,9 +306,9 @@ devsynth refactor
 
 devsynth refactor --spec-file custom_specs.md --output-dir custom_src/
 
-# Generate JavaScript code
+# Generate TypeScript code
 
-devsynth refactor --language javascript
+devsynth refactor --language typescript
 ```
 
 ## run-pipeline
