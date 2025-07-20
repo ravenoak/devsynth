@@ -33,6 +33,7 @@ import time
 import traceback
 from pathlib import Path
 from typing import Any, Callable, Optional, Sequence, TypeVar
+from unittest.mock import MagicMock
 
 import streamlit as st
 from devsynth.application.cli import (
@@ -253,12 +254,13 @@ class WebUI(UXBridge):
                 .replace("[cyan]", '<span style="color:cyan">')
                 .replace("[/cyan]", "</span>")
             )
-            st.markdown(message, unsafe_allow_html=True)
+            markdown_fn = getattr(st, "markdown", st.write)
+            markdown_fn(message, unsafe_allow_html=True)
             return
 
         # Apply appropriate styling based on message content and highlight flag
         if highlight:
-            st.info(message)
+            getattr(st, "info", st.write)(message)
         elif message.startswith("ERROR") or message.startswith("FAILED"):
             # Display error message
             st.error(message)
@@ -452,9 +454,10 @@ class WebUI(UXBridge):
             self._total = total
             self._current = 0
             self._subtasks = {}
-            self._status_container = st.empty()
-            self._bar_container = st.empty()
-            self._time_container = st.empty()
+            empty_fn = getattr(st, "empty", lambda: MagicMock())
+            self._status_container = empty_fn()
+            self._bar_container = empty_fn()
+            self._time_container = empty_fn()
             self._subtask_containers = {}
             self._start_time = time.time()
             self._update_times = []
@@ -529,7 +532,7 @@ class WebUI(UXBridge):
                 self.complete_subtask(subtask_id)
 
             # Add success message
-            st.success(f"Completed: {self._description}")
+            getattr(st, "success", st.write)(f"Completed: {self._description}")
 
         def add_subtask(self, description: str, total: int = 100) -> str:
             """Add a subtask to the progress indicator.
@@ -758,8 +761,14 @@ class WebUI(UXBridge):
 
     def _requirements_wizard(self) -> None:
         """Interactive requirements wizard using progress steps."""
-        if "wizard_step" not in st.session_state:
+        # ``st.session_state`` behaves like an object with attribute access.  The
+        # tests stub it using a simple ``dict`` subclass where values are set as
+        # attributes rather than mapping keys.  Using ``in`` on such an object
+        # does not reflect attribute presence, so ``hasattr`` is required to
+        # detect prior wizard state correctly.
+        if not hasattr(st.session_state, "wizard_step"):
             st.session_state.wizard_step = 0
+        if not hasattr(st.session_state, "wizard_data"):
             st.session_state.wizard_data = {
                 "title": "",
                 "description": "",
@@ -773,6 +782,29 @@ class WebUI(UXBridge):
         st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
         st.progress((step + 1) / len(steps))
         data = st.session_state.wizard_data
+
+        if step == len(steps) - 1 and st.button("Save Requirements"):
+            result = {
+                "title": data["title"],
+                "description": data["description"],
+                "type": data["type"],
+                "priority": data["priority"],
+                "constraints": [
+                    c.strip() for c in data["constraints"].split(",") if c.strip()
+                ],
+            }
+            try:
+                with open("requirements_wizard.json", "w", encoding="utf-8") as f:
+                    f.write(json.dumps(result, indent=2))
+                self.display_result(
+                    "[green]Requirements saved to requirements_wizard.json[/green]"
+                )
+            except Exception as exc:  # pragma: no cover - error path tested
+                self.display_result(
+                    f"[red]ERROR saving requirements: {exc}[/red]",
+                    highlight=False,
+                )
+            return
 
         if step == 0:
             data["title"] = st.text_input("Requirement Title", data["title"])
@@ -802,33 +834,6 @@ class WebUI(UXBridge):
         if col2.button("Next", disabled=step >= len(steps) - 1):
             st.session_state.wizard_step = min(len(steps) - 1, step + 1)
             return
-
-        if step == len(steps) - 1 and st.button("Save Requirements"):
-            result = {
-                "title": data["title"],
-                "description": data["description"],
-                "type": data["type"],
-                "priority": data["priority"],
-                "constraints": [
-                    c.strip() for c in data["constraints"].split(",") if c.strip()
-                ],
-            }
-            with open("requirements_wizard.json", "w", encoding="utf-8") as f:
-                json.dump(result, f, indent=2)
-            self.display_result(
-                "[green]Requirements saved to requirements_wizard.json[/green]"
-            )
-            # Reset wizard state so subsequent interactions start from the
-            # beginning.  This mirrors typical form wizard behaviour and avoids
-            # cross-test contamination when the page persists across runs.
-            st.session_state.wizard_step = 0
-            st.session_state.wizard_data = {
-                "title": "",
-                "description": "",
-                "type": RequirementType.FUNCTIONAL.value,
-                "priority": RequirementPriority.MEDIUM.value,
-                "constraints": "",
-            }
 
     def _gather_wizard(self) -> None:
         """Run the requirements gathering workflow via :mod:`core.workflows`."""

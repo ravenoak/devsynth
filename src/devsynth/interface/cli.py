@@ -4,7 +4,13 @@ from typing import Optional, Sequence, Dict, Any, Union
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TimeRemainingColumn,
+)
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
 from rich.theme import Theme
@@ -25,120 +31,110 @@ logger = DevSynthLogger(__name__)
 
 
 # Define a custom theme for consistent styling
-DEVSYNTH_THEME = Theme({
-    # Basic message types
-    "info": "cyan",
-    "success": "green",
-    "warning": "yellow",
-    "error": "bold red",
-
-    # Headings and structure
-    "heading": "bold blue",
-    "subheading": "bold cyan",
-    "section": "bold magenta",
-    "subsection": "magenta",
-
-    # Interactive elements
-    "prompt": "bold yellow",
-    "input": "bold white",
-    "command": "bold green",
-    "option": "italic green",
-    "flag": "cyan",
-
-    # Data and code
-    "key": "bold cyan",
-    "value": "white",
-    "path": "italic yellow",
-    "file": "italic cyan",
-    "directory": "italic blue",
-    "code": "bold cyan on black",
-    "code_comment": "dim italic white",
-    "code_keyword": "bold magenta",
-    "code_string": "green",
-
-    # Status indicators
-    "progress": "bold blue",
-    "complete": "bold green",
-    "pending": "bold yellow",
-    "failed": "bold red",
-
-    # Documentation
-    "doc_link": "underline cyan",
-    "doc_section": "bold blue",
-    "doc_example": "dim white",
-
-    # Highlights and emphasis
-    "highlight": "bold white on blue",
-    "important": "bold red",
-    "note": "italic cyan",
-    "tip": "italic green",
-
-    # Specific command outputs
-    "metric_good": "green",
-    "metric_warning": "yellow",
-    "metric_bad": "red",
-    "diff_added": "green",
-    "diff_removed": "red",
-    "diff_changed": "yellow",
-})
+DEVSYNTH_THEME = Theme(
+    {
+        # Basic message types
+        "info": "cyan",
+        "success": "green",
+        "warning": "yellow",
+        "error": "bold red",
+        # Headings and structure
+        "heading": "bold blue",
+        "subheading": "bold cyan",
+        "section": "bold magenta",
+        "subsection": "magenta",
+        # Interactive elements
+        "prompt": "bold yellow",
+        "input": "bold white",
+        "command": "bold green",
+        "option": "italic green",
+        "flag": "cyan",
+        # Data and code
+        "key": "bold cyan",
+        "value": "white",
+        "path": "italic yellow",
+        "file": "italic cyan",
+        "directory": "italic blue",
+        "code": "bold cyan on black",
+        "code_comment": "dim italic white",
+        "code_keyword": "bold magenta",
+        "code_string": "green",
+        # Status indicators
+        "progress": "bold blue",
+        "complete": "bold green",
+        "pending": "bold yellow",
+        "failed": "bold red",
+        # Documentation
+        "doc_link": "underline cyan",
+        "doc_section": "bold blue",
+        "doc_example": "dim white",
+        # Highlights and emphasis
+        "highlight": "bold white on blue",
+        "important": "bold red",
+        "note": "italic cyan",
+        "tip": "italic green",
+        # Specific command outputs
+        "metric_good": "green",
+        "metric_warning": "yellow",
+        "metric_bad": "red",
+        "diff_added": "green",
+        "diff_removed": "red",
+        "diff_changed": "yellow",
+    }
+)
 
 # Define a colorblind-friendly theme
-COLORBLIND_THEME = Theme({
-    # Basic message types - using blue/orange/black contrast which works for most color vision deficiencies
-    "info": "bright_blue",
-    "success": "bright_blue",
-    "warning": "#FF9900",  # Orange
-    "error": "bold white on #FF9900",  # Bold white on orange
-
-    # Headings and structure
-    "heading": "bold bright_blue",
-    "subheading": "bright_blue",
-    "section": "bold white",
-    "subsection": "white",
-
-    # Interactive elements
-    "prompt": "bold #FF9900",  # Bold orange
-    "input": "bold white",
-    "command": "bold bright_blue",
-    "option": "italic bright_blue",
-    "flag": "bright_blue",
-
-    # Data and code
-    "key": "bold bright_blue",
-    "value": "white",
-    "path": "italic #FF9900",  # Italic orange
-    "file": "italic bright_blue",
-    "directory": "italic white",
-    "code": "bold bright_blue on black",
-    "code_comment": "dim italic white",
-    "code_keyword": "bold white",
-    "code_string": "bright_blue",
-
-    # Status indicators
-    "progress": "bold bright_blue",
-    "complete": "bold bright_blue",
-    "pending": "bold #FF9900",  # Bold orange
-    "failed": "bold white on #FF9900",  # Bold white on orange
-
-    # Documentation
-    "doc_link": "underline bright_blue",
-    "doc_section": "bold bright_blue",
-    "doc_example": "dim white",
-
-    # Highlights and emphasis
-    "highlight": "bold black on bright_blue",
-    "important": "bold white on #FF9900",  # Bold white on orange
-    "note": "italic bright_blue",
-    "tip": "italic bright_blue",
-
-    # Specific command outputs
-    "metric_good": "bright_blue",
-    "metric_warning": "#FF9900",  # Orange
-    "metric_bad": "white on #FF9900",  # White on orange
-    "diff_added": "bright_blue",
-    "diff_removed": "#FF9900",  # Orange
-    "diff_changed": "white",
-})
+COLORBLIND_THEME = Theme(
+    {
+        # Basic message types - using blue/orange/black contrast which works for most color vision deficiencies
+        "info": "bright_blue",
+        "success": "bright_blue",
+        "warning": "#FF9900",  # Orange
+        "error": "bold white on #FF9900",  # Bold white on orange
+        # Headings and structure
+        "heading": "bold bright_blue",
+        "subheading": "bright_blue",
+        "section": "bold white",
+        "subsection": "white",
+        # Interactive elements
+        "prompt": "bold #FF9900",  # Bold orange
+        "input": "bold white",
+        "command": "bold bright_blue",
+        "option": "italic bright_blue",
+        "flag": "bright_blue",
+        # Data and code
+        "key": "bold bright_blue",
+        "value": "white",
+        "path": "italic #FF9900",  # Italic orange
+        "file": "italic bright_blue",
+        "directory": "italic white",
+        "code": "bold bright_blue on black",
+        "code_comment": "dim italic white",
+        "code_keyword": "bold white",
+        "code_string": "bright_blue",
+        # Status indicators
+        "progress": "bold bright_blue",
+        "complete": "bold bright_blue",
+        "pending": "bold #FF9900",  # Bold orange
+        "failed": "bold white on #FF9900",  # Bold white on orange
+        # Documentation
+        "doc_link": "underline bright_blue",
+        "doc_section": "bold bright_blue",
+        "doc_example": "dim white",
+        # Highlights and emphasis
+        "highlight": "bold black on bright_blue",
+        "important": "bold white on #FF9900",  # Bold white on orange
+        "note": "italic bright_blue",
+        "tip": "italic bright_blue",
+        # Specific command outputs
+        "metric_good": "bright_blue",
+        "metric_warning": "#FF9900",  # Orange
+        "metric_bad": "white on #FF9900",  # White on orange
+        "diff_added": "bright_blue",
+        "diff_removed": "#FF9900",  # Orange
+        "diff_changed": "white",
+    }
+)
 
 
 class CLIProgressIndicator(ProgressIndicator):
@@ -171,7 +167,13 @@ class CLIProgressIndicator(ProgressIndicator):
         self._last_update_time = {}
         self._start_time = {}
 
-    def update(self, *, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+    def update(
+        self,
+        *,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         """Update the progress indicator.
 
         Args:
@@ -214,7 +216,9 @@ class CLIProgressIndicator(ProgressIndicator):
             else:
                 status_msg = "Starting..."
 
-        self._progress.update(self._task, advance=advance, description=desc, status=status_msg)
+        self._progress.update(
+            self._task, advance=advance, description=desc, status=status_msg
+        )
 
     def complete(self) -> None:
         """Mark the task as complete and stop the progress indicator."""
@@ -231,7 +235,9 @@ class CLIProgressIndicator(ProgressIndicator):
         self._progress.update(self._task, completed=True, status="Complete")
         self._progress.stop()
 
-    def add_subtask(self, description: str, total: int = 100, status: str = "Starting...") -> str:
+    def add_subtask(
+        self, description: str, total: int = 100, status: str = "Starting..."
+    ) -> str:
         """Add a subtask to the progress indicator.
 
         Args:
@@ -256,7 +262,13 @@ class CLIProgressIndicator(ProgressIndicator):
         self._start_time[task_id] = self._progress.get_time()
         return task_id
 
-    def update_subtask(self, task_id: str, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+    def update_subtask(
+        self,
+        task_id: str,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         """Update a subtask's progress.
 
         Args:
@@ -304,7 +316,9 @@ class CLIProgressIndicator(ProgressIndicator):
             else:
                 status_msg = "In progress..."
 
-        self._progress.update(task_id, advance=advance, description=formatted_desc, status=status_msg)
+        self._progress.update(
+            task_id, advance=advance, description=formatted_desc, status=status_msg
+        )
         self._last_update_time[task_id] = self._progress.get_time()
 
     def complete_subtask(self, task_id: str) -> None:
@@ -331,7 +345,13 @@ class CLIProgressIndicator(ProgressIndicator):
         if task_id in self._nested_subtasks:
             del self._nested_subtasks[task_id]
 
-    def add_nested_subtask(self, parent_id: str, description: str, total: int = 100, status: str = "Starting...") -> str:
+    def add_nested_subtask(
+        self,
+        parent_id: str,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
         """Add a nested subtask to a subtask.
 
         Args:
@@ -362,7 +382,14 @@ class CLIProgressIndicator(ProgressIndicator):
         self._start_time[task_id] = self._progress.get_time()
         return task_id
 
-    def update_nested_subtask(self, parent_id: str, task_id: str, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+    def update_nested_subtask(
+        self,
+        parent_id: str,
+        task_id: str,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         """Update a nested subtask's progress.
 
         Args:
@@ -411,7 +438,9 @@ class CLIProgressIndicator(ProgressIndicator):
             else:
                 status_msg = "In progress..."
 
-        self._progress.update(task_id, advance=advance, description=formatted_desc, status=status_msg)
+        self._progress.update(
+            task_id, advance=advance, description=formatted_desc, status=status_msg
+        )
         self._last_update_time[task_id] = self._progress.get_time()
 
     def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
@@ -424,7 +453,10 @@ class CLIProgressIndicator(ProgressIndicator):
         self._progress.update(task_id, completed=True, status="Complete")
 
         # Remove from tracking dictionaries
-        if parent_id in self._nested_subtasks and task_id in self._nested_subtasks[parent_id]:
+        if (
+            parent_id in self._nested_subtasks
+            and task_id in self._nested_subtasks[parent_id]
+        ):
             del self._nested_subtasks[parent_id][task_id]
         if task_id in self._last_update_time:
             del self._last_update_time[task_id]
@@ -493,7 +525,9 @@ class CLIUXBridge(UXBridge):
         logger.debug(f"User confirmed: {answer}")
         return answer
 
-    def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str = None
+    ) -> None:
         """Display a formatted message to the user.
 
         This method uses the OutputFormatter to format and display the message
@@ -521,7 +555,10 @@ class CLIUXBridge(UXBridge):
                 message_type = "error"
             elif message.startswith(("Warning:", "WARNING:")):
                 message_type = "warning"
-            elif message.startswith(("Success:", "SUCCESS:", "Completed:", "COMPLETED:")) or "successfully" in message.lower():
+            elif (
+                message.startswith(("Success:", "SUCCESS:", "Completed:", "COMPLETED:"))
+                or "successfully" in message.lower()
+            ):
                 message_type = "success"
             elif message.startswith(("Info:", "INFO:", "Note:", "NOTE:")):
                 message_type = "info"
@@ -572,7 +609,9 @@ class CLIUXBridge(UXBridge):
         if highlight:
             # If highlight is requested, use the highlight style regardless of message type
             style = "highlight"
-        elif message_type in self.console.theme.styles:
+        elif (
+            hasattr(self.console, "theme") and message_type in self.console.theme.styles
+        ):
             # Use the style from the theme if available
             style = message_type
         else:
@@ -585,7 +624,9 @@ class CLIUXBridge(UXBridge):
             self.console.print(message)
         else:
             # Format the message based on its type
-            formatted = self.formatter.format_message(message, message_type=message_type, highlight=highlight)
+            formatted = self.formatter.format_message(
+                message, message_type=message_type, highlight=highlight
+            )
 
             if isinstance(formatted, Panel):
                 self.console.print(formatted, style=style)

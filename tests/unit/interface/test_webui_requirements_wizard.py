@@ -8,44 +8,55 @@ from pathlib import Path
 @pytest.fixture
 def stub_streamlit(monkeypatch):
     """Create a stub streamlit module for testing."""
-    st = ModuleType('streamlit')
-
+    st = ModuleType("streamlit")
 
     class SS(dict):
         pass
+
     st.session_state = SS()
     st.session_state.wizard_step = 0
-    st.session_state.wizard_data = {'title': '', 'description': '', 'type':
-        'functional', 'priority': 'medium', 'constraints': ''}
+    st.session_state.wizard_data = {
+        "title": "",
+        "description": "",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": "",
+    }
     st.write = MagicMock()
     st.progress = MagicMock()
-    st.text_input = MagicMock(return_value='Test Requirement')
-    st.text_area = MagicMock(return_value='Test Description')
-    st.selectbox = MagicMock(return_value='functional')
+    st.text_input = MagicMock(return_value="Test Requirement")
+    st.text_area = MagicMock(return_value="Test Description")
+    st.selectbox = MagicMock(return_value="functional")
     st.button = MagicMock(return_value=False)
-    st.columns = MagicMock(return_value=(MagicMock(button=MagicMock(
-        return_value=False)), MagicMock(button=MagicMock(return_value=False))))
-    monkeypatch.setitem(sys.modules, 'streamlit', st)
+    st.columns = MagicMock(
+        return_value=(
+            MagicMock(button=MagicMock(return_value=False)),
+            MagicMock(button=MagicMock(return_value=False)),
+        )
+    )
+    monkeypatch.setitem(sys.modules, "streamlit", st)
     return st
 
 
 def test_requirements_wizard_initial_state_succeeds(stub_streamlit):
     """Test that the requirements wizard initializes with the correct state.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
-    stub_streamlit.session_state.pop('wizard_step', None)
-    stub_streamlit.session_state.pop('wizard_data', None)
+
+    stub_streamlit.session_state.pop("wizard_step", None)
+    stub_streamlit.session_state.pop("wizard_data", None)
     WebUI()._requirements_wizard()
     assert stub_streamlit.session_state.wizard_step == 0
-    assert 'title' in stub_streamlit.session_state.wizard_data
-    assert 'description' in stub_streamlit.session_state.wizard_data
-    assert 'type' in stub_streamlit.session_state.wizard_data
-    assert 'priority' in stub_streamlit.session_state.wizard_data
-    assert 'constraints' in stub_streamlit.session_state.wizard_data
+    assert "title" in stub_streamlit.session_state.wizard_data
+    assert "description" in stub_streamlit.session_state.wizard_data
+    assert "type" in stub_streamlit.session_state.wizard_data
+    assert "priority" in stub_streamlit.session_state.wizard_data
+    assert "constraints" in stub_streamlit.session_state.wizard_data
     stub_streamlit.write.assert_called()
     stub_streamlit.progress.assert_called_once()
 
@@ -53,11 +64,13 @@ ReqID: N/A"""
 def test_requirements_wizard_step_navigation_succeeds(stub_streamlit):
     """Test navigation between steps in the requirements wizard.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
+
     col1_mock = MagicMock()
     col2_mock = MagicMock()
     stub_streamlit.columns.return_value = col1_mock, col2_mock
@@ -73,47 +86,78 @@ ReqID: N/A"""
     assert stub_streamlit.session_state.wizard_step == 0
 
 
-def test_requirements_wizard_save_requirements_succeeds(stub_streamlit,
-    monkeypatch):
+def test_requirements_wizard_preserves_existing_state(stub_streamlit):
+    """Wizard should not reset state if values already exist."""
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    stub_streamlit.session_state.wizard_step = 3
+    stub_streamlit.session_state.wizard_data = {
+        "title": "Existing",
+        "description": "desc",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": "",
+    }
+    WebUI()._requirements_wizard()
+    assert stub_streamlit.session_state.wizard_step == 3
+    assert stub_streamlit.session_state.wizard_data["title"] == "Existing"
+
+
+def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, monkeypatch):
     """Test saving requirements from the wizard.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     import json
+
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
+
     stub_streamlit.session_state.wizard_step = 4
-    stub_streamlit.session_state.wizard_data = {'title': 'Test Requirement',
-        'description': 'Test Description', 'type': 'functional', 'priority':
-        'medium', 'constraints': 'constraint1, constraint2'}
+    stub_streamlit.session_state.wizard_data = {
+        "title": "Test Requirement",
+        "description": "Test Description",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": "constraint1, constraint2",
+    }
     stub_streamlit.button.return_value = True
     m = mock_open()
-    with patch('builtins.open', m):
+    with patch("builtins.open", m):
         WebUI()._requirements_wizard()
-    m.assert_called_once_with('requirements_wizard.json', 'w', encoding='utf-8'
-        )
+    m.assert_called_once_with("requirements_wizard.json", "w", encoding="utf-8")
     handle = m()
-    expected_data = {'title': 'Test Requirement', 'description':
-        'Test Description', 'type': 'functional', 'priority': 'medium',
-        'constraints': ['constraint1', 'constraint2']}
+    expected_data = {
+        "title": "Test Requirement",
+        "description": "Test Description",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": ["constraint1", "constraint2"],
+    }
     handle.write.assert_called_once_with(json.dumps(expected_data, indent=2))
     webui_instance = WebUI()
     webui_instance.display_result = MagicMock()
-    with patch('builtins.open', m):
+    with patch("builtins.open", m):
         webui_instance._requirements_wizard()
     webui_instance.display_result.assert_called_once()
-    assert '[green]' in webui_instance.display_result.call_args[0][0]
+    assert "[green]" in webui_instance.display_result.call_args[0][0]
 
 
 def test_requirements_wizard_different_steps_succeeds(stub_streamlit):
     """Test that different UI elements are shown at different steps.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
+
     stub_streamlit.session_state.wizard_step = 0
     WebUI()._requirements_wizard()
     stub_streamlit.text_input.assert_called()
@@ -131,23 +175,28 @@ ReqID: N/A"""
     stub_streamlit.text_area.assert_called()
 
 
-def test_requirements_wizard_error_handling_raises_error(stub_streamlit,
-    monkeypatch):
+def test_requirements_wizard_error_handling_raises_error(stub_streamlit, monkeypatch):
     """Test error handling when saving requirements.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
+
     stub_streamlit.session_state.wizard_step = 4
-    stub_streamlit.session_state.wizard_data = {'title': 'Test Requirement',
-        'description': 'Test Description', 'type': 'functional', 'priority':
-        'medium', 'constraints': 'constraint1, constraint2'}
+    stub_streamlit.session_state.wizard_data = {
+        "title": "Test Requirement",
+        "description": "Test Description",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": "constraint1, constraint2",
+    }
     stub_streamlit.button.return_value = True
     webui_instance = WebUI()
     webui_instance.display_result = MagicMock()
-    with patch('builtins.open', side_effect=IOError('Test error')):
+    with patch("builtins.open", side_effect=IOError("Test error")):
         webui_instance._requirements_wizard()
     webui_instance.display_result.assert_called_once()
-    assert 'ERROR' in webui_instance.display_result.call_args[0][0]
+    assert "ERROR" in webui_instance.display_result.call_args[0][0]
