@@ -169,6 +169,8 @@ The repository includes runnable examples that walk through common workflows:
 - [Test Example](examples/test_example) – create tests from specs
 - [Code Example](examples/code_example) – produce code that passes the tests
 - [EDRR Cycle Example](examples/edrr_cycle_example) – run the Expand–Differentiate–Refine–Retrospect workflow
+- [End-to-End CLI Example](examples/e2e_cli_example) – complete workflow using the CLI
+- [End-to-End WebUI Example](examples/e2e_webui_example) – complete workflow using the WebUI
 
 ## Running Tests
 
