@@ -40,13 +40,17 @@ For a lightweight setup with only the core runtime:
 poetry install --without dev --without docs
 ```
 
-Extras may be added later using `poetry install --extras llm --extras api`.
+Extras may be added later using `poetry install --extras llm --extras api --extras offline`.
 
 ### Install with pipx *(end-user install)*
 
 ```bash
 pipx install devsynth
 ```
+### Fallback Modes
+
+Without the `offline` extra, DevSynth uses a lightweight built-in provider that returns deterministic responses. Install with `poetry install --extras offline` to enable local models via `torch` and `transformers`.
+
 
 ## Install from Source (recommended for development)
 

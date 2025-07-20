@@ -25,11 +25,11 @@ Some features rely on additional packages. These dependencies are grouped using 
 
 - **`retrieval`** – Provides vector store backends such as ChromaDB and FAISS.
 - **`memory`** – Installs Kuzu, LMDB, FAISS, NumPy, and related memory backends.
-- **`llm`** – Optional helpers for provider integrations and offline LLM support via `torch` and `transformers`.
+- **`llm`** – Helpers for remote provider integrations.
+- **`offline`** – Optional extras for local LLM inference via `torch` and `transformers`.
 - **`api`** – Enables the FastAPI server and Prometheus metrics.
 - **`webui`** – Installs the Streamlit-based WebUI.
 - **`lmstudio`** – Adds the LM Studio provider integration.
-- **`dsp`** – Experimental [DSPy](https://github.com/stanford-oval/dspy) integration.
 - **`dev`** and **`docs`** – Development and documentation tooling.
 
 
