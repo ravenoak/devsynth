@@ -818,6 +818,17 @@ class WebUI(UXBridge):
             self.display_result(
                 "[green]Requirements saved to requirements_wizard.json[/green]"
             )
+            # Reset wizard state so subsequent interactions start from the
+            # beginning.  This mirrors typical form wizard behaviour and avoids
+            # cross-test contamination when the page persists across runs.
+            st.session_state.wizard_step = 0
+            st.session_state.wizard_data = {
+                "title": "",
+                "description": "",
+                "type": RequirementType.FUNCTIONAL.value,
+                "priority": RequirementPriority.MEDIUM.value,
+                "constraints": "",
+            }
 
     def _gather_wizard(self) -> None:
         """Run the requirements gathering workflow via :mod:`core.workflows`."""
