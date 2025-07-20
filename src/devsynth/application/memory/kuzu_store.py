@@ -34,6 +34,11 @@ class KuzuStore(MemoryStore):
 
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
+        # Ensure the backing directory exists even when using the in-memory
+        # fallback.  This mirrors the behaviour of other memory stores which
+        # create their storage path during initialisation and allows tests
+        # relying on the directory to be present to pass.
+        os.makedirs(file_path, exist_ok=True)
         self.db_path = os.path.join(file_path, "kuzu.db")
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
@@ -58,7 +63,9 @@ class KuzuStore(MemoryStore):
                     "CREATE TABLE IF NOT EXISTS versions(id STRING, version INT, item STRING);"
                 )
             except Exception as e:  # pragma: no cover - fallback to memory
-                logger.warning(f"Failed to initialise KuzuDB: {e}. Falling back to in-memory store")
+                logger.warning(
+                    f"Failed to initialise KuzuDB: {e}. Falling back to in-memory store"
+                )
                 self._use_fallback = True
 
         if self._use_fallback:
@@ -86,7 +93,11 @@ class KuzuStore(MemoryStore):
     def _deserialise(self, raw: str) -> MemoryItem:
         data = json.loads(raw)
         mem_type = MemoryType(data["memory_type"]) if data.get("memory_type") else None
-        created = datetime.fromisoformat(data["created_at"]) if data.get("created_at") else None
+        created = (
+            datetime.fromisoformat(data["created_at"])
+            if data.get("created_at")
+            else None
+        )
         return MemoryItem(
             id=data["id"],
             content=data["content"],
@@ -111,7 +122,9 @@ class KuzuStore(MemoryStore):
         if self._use_fallback:
             self._store[item.id] = item
         else:  # pragma: no cover - requires kuzu
-            self.conn.execute("MERGE INTO memory(id,item) VALUES (?, ?)", [item.id, serialised])
+            self.conn.execute(
+                "MERGE INTO memory(id,item) VALUES (?, ?)", [item.id, serialised]
+            )
             self.conn.execute(
                 "MERGE INTO versions(id,version,item) VALUES (?, ?, ?)",
                 [item.id, version, serialised],
@@ -124,7 +137,9 @@ class KuzuStore(MemoryStore):
         if self._use_fallback:
             return self._store.get(item_id)
         try:  # pragma: no cover - requires kuzu
-            res = self.conn.execute("MATCH (n:memory) WHERE n.id=? RETURN n.item", [item_id])
+            res = self.conn.execute(
+                "MATCH (n:memory) WHERE n.id=? RETURN n.item", [item_id]
+            )
             if res and res.hasNext():
                 raw = res.getNext()[0]
                 return self._deserialise(raw)
@@ -160,12 +175,16 @@ class KuzuStore(MemoryStore):
 
     def get_history(self, item_id: str) -> List[Dict[str, Any]]:
         history = []
-        for item in self.get_versions(item_id) + ([self.retrieve(item_id)] if self.retrieve(item_id) else []):
+        for item in self.get_versions(item_id) + (
+            [self.retrieve(item_id)] if self.retrieve(item_id) else []
+        ):
             if item:
                 history.append(
                     {
                         "version": item.metadata.get("version"),
-                        "timestamp": item.created_at.isoformat() if item.created_at else "",
+                        "timestamp": (
+                            item.created_at.isoformat() if item.created_at else ""
+                        ),
                         "content_summary": str(item.content)[:100],
                         "metadata": item.metadata,
                     }
@@ -174,7 +193,10 @@ class KuzuStore(MemoryStore):
         return history
 
     def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
-        items = [self.retrieve(i) for i in (self._store.keys() if self._use_fallback else self._all_ids())]
+        items = [
+            self.retrieve(i)
+            for i in (self._store.keys() if self._use_fallback else self._all_ids())
+        ]
         results = []
         for item in items:
             if not item:
