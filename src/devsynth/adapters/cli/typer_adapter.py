@@ -525,10 +525,10 @@ def show_help() -> None:
         command_table.add_row(command.name, command.help or "")
 
     # Add rows for each subcommand group
-    for typer_instance in app.registered_typers:
+    for group in app.registered_groups:
         command_table.add_row(
-            f"{typer_instance.name} [subcommands]",
-            typer_instance.typer_instance.info.help or ""
+            f"{group.name} [subcommands]",
+            (group.help or group.typer_instance.info.help or "")
         )
 
     console.print(command_table)

@@ -82,7 +82,7 @@ ReqID: N/A"""
     mock_app.info = MagicMock()
     mock_app.info.help = "Test help text"
     mock_app.registered_commands = []
-    mock_app.registered_typers = []
+    mock_app.registered_groups = []
 
     # Set up the mock build_app to return our mock app
     mock_build_app.return_value = mock_app
