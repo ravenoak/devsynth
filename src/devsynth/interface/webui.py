@@ -455,8 +455,9 @@ class WebUI(UXBridge):
             self._current = 0
             self._subtasks = {}
             empty_fn = getattr(st, "empty", lambda: MagicMock())
+            progress_fn = getattr(st, "progress", lambda *_, **__: MagicMock())
             self._status_container = empty_fn()
-            self._bar_container = empty_fn()
+            self._bar_container = progress_fn(0.0)
             self._time_container = empty_fn()
             self._subtask_containers = {}
             self._start_time = time.time()
@@ -554,14 +555,13 @@ class WebUI(UXBridge):
                 "current": 0,
             }
 
-            # Create containers for subtask display
-            with st.container():
-                status_container = st.empty()
-                bar_container = st.empty()
-                self._subtask_containers[task_id] = {
-                    "status": status_container,
-                    "bar": bar_container,
-                }
+            # Create container and store progress bar
+            with st.container() as container:
+                progress_bar = container.progress(0.0)
+            self._subtask_containers[task_id] = {
+                "container": container,
+                "bar": progress_bar,
+            }
 
             # Update subtask display
             self._update_subtask_display(task_id)
@@ -579,8 +579,10 @@ class WebUI(UXBridge):
             progress_pct = min(1.0, subtask["current"] / subtask["total"])
 
             # Update status text with indentation, description and percentage
-            status_text = f"&nbsp;&nbsp;&nbsp;↳ {subtask['description']} - {int(progress_pct * 100)}%"
-            containers["status"].markdown(status_text)
+            status_text = (
+                f"&nbsp;&nbsp;&nbsp;&nbsp;**{subtask['description']}** - {int(progress_pct * 100)}%"
+            )
+            containers["container"].markdown(status_text)
 
             # Update progress bar
             containers["bar"].progress(progress_pct)
@@ -620,6 +622,12 @@ class WebUI(UXBridge):
 
             # Update subtask display
             self._update_subtask_display(task_id)
+            subtask = self._subtasks[task_id]
+            containers = self._subtask_containers.get(task_id)
+            if containers:
+                containers["container"].success(
+                    f"Completed: {subtask['description']}"
+                )
 
     def create_progress(
         self, description: str, *, total: int = 100
