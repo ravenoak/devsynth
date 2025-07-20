@@ -27,3 +27,6 @@ For more information on the implementation and roadmap based on these analyses, 
 
 - **[Development Plan](../roadmap/development_plan.md)**: The development plan derived from these analyses.
 - **[Development Status](../roadmap/development_status.md)**: The current status of development.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

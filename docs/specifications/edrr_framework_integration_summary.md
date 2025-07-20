@@ -138,3 +138,6 @@ The integration emphasizes a balanced approach to human oversight where:
 The integration of the expanded EDRR Framework understanding, inspired by advanced recursive software development methodologies, represents a significant enhancement to DevSynth's capabilities. By implementing the recursive, fractal nature of the EDRR framework, DevSynth has gained increased adaptability and self-optimization capabilities, positioning it as a more powerful tool for software development.
 
 The multi-disciplined best-practices approach with dialectical reasoning ensured that the implementation is thorough, balanced, and effective. The integration maintains a focus on practical implementation while embracing the innovative concepts of the Recursive EDRR Framework.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

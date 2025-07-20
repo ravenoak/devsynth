@@ -19,3 +19,6 @@ This short reference outlines the most common DevSynth commands. Recent releases
 
 
 Use `devsynth --help` for the full list of available commands and options.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

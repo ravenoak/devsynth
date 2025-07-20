@@ -110,3 +110,6 @@ graph LR
     WebUI --> Bridge
     Bridge --> Workflows[Core Workflows]
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -103,3 +103,6 @@ For more detailed information about DevSynth's capabilities and advanced usage s
 - [Quick Start Guide](quick_start_guide.md) - A step-by-step tutorial for getting started with DevSynth
 - [Installation Guide](installation.md) - Detailed installation instructions
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

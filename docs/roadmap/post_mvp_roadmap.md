@@ -380,3 +380,6 @@ Comprehensive documentation ensures accessibility for all stakeholders.
 
 These additions outline how DevSynth will evolve after its MVP release. By implementing collaboration, self-improvement, and integration features alongside rigorous testing and documentation, the project can continually enhance its capabilities and serve a broad range of development workflows.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

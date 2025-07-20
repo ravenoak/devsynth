@@ -1123,3 +1123,6 @@ def custom_command(
 This API reference provides detailed information about the internal APIs and extension interfaces of DevSynth. By understanding these interfaces, you can extend DevSynth with custom functionality to meet your specific needs.
 
 For more information about the architecture and design principles, refer to the [Architecture Documentation](architecture_documentation.md).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

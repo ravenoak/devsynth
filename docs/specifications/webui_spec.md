@@ -43,3 +43,6 @@ interfaces and keeps workflow logic in a single location.
 - Improve layout and styling.
 - Provide real-time log streaming to the browser.
 - Support multi-user collaboration.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

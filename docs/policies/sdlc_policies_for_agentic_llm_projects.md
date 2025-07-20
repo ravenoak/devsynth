@@ -118,3 +118,6 @@ Effective SDLC policies and repository artifacts are essential for successful ag
 ---
 
 _For specific implementation details, refer to the individual policy documents in the `docs/policies/` directory._
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -25,3 +25,6 @@ Phase 1 focused on **Foundation Stabilization**. Key accomplishments include:
 - Added a deterministic offline provider enabling repeatable text and embeddings.
 
 With these objectives achieved, the project established a solid baseline for subsequent phases.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

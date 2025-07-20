@@ -210,3 +210,6 @@ When reporting issues, please include:
 - [Basic Usage Guide](basic_usage.md) - Introduction to basic DevSynth usage
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
 - [Configuration Guide](../user_guides/configuration.md) - Guide to configuring DevSynth
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

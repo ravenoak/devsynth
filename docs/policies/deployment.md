@@ -46,3 +46,6 @@ docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.mon
 
 - See [Testing Policy](testing.md) for release testing.
 - See [Maintenance Policy](maintenance.md) for post-release support.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

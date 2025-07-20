@@ -309,3 +309,6 @@ When adding new tests:
 
 
 By following these guidelines, we ensure that DevSynth's test suite remains reliable, fast, and maintainable.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

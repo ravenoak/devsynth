@@ -450,3 +450,6 @@ When writing tests for DevSynth, follow these best practices:
 ## Conclusion
 
 DevSynth's testing strategy combines unit tests, integration tests, and behavior tests to ensure the quality and reliability of the codebase. By following this strategy and the best practices outlined in this document, developers can contribute high-quality, well-tested code to the DevSynth project.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

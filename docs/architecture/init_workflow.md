@@ -56,3 +56,6 @@ sequenceDiagram
 
 This wizard shares the same prompts across interfaces thanks to the
 `UXBridge` abstraction.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -134,3 +134,6 @@ When writing new BDD tests for agents:
 6. **Document test fixtures** to explain their purpose and configuration
 
 7. **Run tests regularly** to catch regressions early
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

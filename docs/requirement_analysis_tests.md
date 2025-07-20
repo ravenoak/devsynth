@@ -82,3 +82,6 @@ The interactive flow expands requirement analysis beyond the original CLI. New b
 - `agent_http_api.feature` outlines how external clients interact with the agent HTTP API.
 - Scenarios verify endpoints for launching workflows, retrieving status, and capturing results.
 - These tests also utilize `UXBridge` mocks so the API behaves consistently with interactive sessions.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

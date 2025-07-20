@@ -742,3 +742,6 @@ devsynth memory --restore memory_backup.json
 ---
 
 For more information, see the [User Guide](user_guide.md), [Configuration Guide](../technical_reference/configuration_reference.md), and the [Architecture Overview](../architecture/overview.md).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

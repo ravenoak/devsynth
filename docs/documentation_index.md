@@ -65,3 +65,6 @@ _This index lists all documentation files, their status, and release phase. It i
 | docs/testing/* | Behavior feature files index | draft | testing |
 | docs/user_guides/* | User guides and CLI references | published | usage |
 > **Note:** Update this table to include any new documentation files. Automate via an indexing script for accuracy.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

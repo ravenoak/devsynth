@@ -152,3 +152,6 @@ With these items and the WSDE peer review implementation confirmed in the [Featu
 * **Test Metrics:** Integrate the `test_metrics` command to analyze test-first development patterns and coverage.
 
 See [Release Plan](release_plan.md) for the consolidated roadmap and version milestones.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

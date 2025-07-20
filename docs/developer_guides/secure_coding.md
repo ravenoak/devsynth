@@ -345,3 +345,6 @@ DevSynth contributors should maintain a strong security mindset:
 - [OWASP Python Security Project](https://owasp.org/www-project-python-security/)
 - [Python Security Best Practices](https://snyk.io/blog/python-security-best-practices-cheat-sheet/)
 - [NIST Secure Software Development Framework](https://csrc.nist.gov/Projects/ssdf)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

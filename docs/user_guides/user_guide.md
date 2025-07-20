@@ -655,3 +655,6 @@ If you encounter issues not covered in this guide:
 This user guide provides comprehensive information about using DevSynth effectively. By following the guidelines and best practices outlined here, you can maximize the benefits of AI-assisted software development with DevSynth.
 
 For more detailed information about the architecture and internal workings of DevSynth, refer to the [Architecture Documentation](architecture_documentation.md).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

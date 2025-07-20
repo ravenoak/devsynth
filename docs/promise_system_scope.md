@@ -315,3 +315,6 @@ for file in files_to_analyze:
 The Promise System provides DevSynth with a robust framework for capability declaration, authorization, and fulfillment tracking. By formalizing the ways in which agents declare their intentions and capabilities, the system enhances transparency, security, and accountability. The integration with DevSynth's EDRR methodology ensures that the Promise System evolves alongside the project it's analyzing, adapting to changing structures and requirements.
 
 As DevSynth continues to mature, the Promise System will become increasingly central to its operation, enabling sophisticated multi-agent collaborations while maintaining clear boundaries and authorization controls.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

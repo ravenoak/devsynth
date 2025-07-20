@@ -27,3 +27,6 @@ This directory contains policies and best practices for each phase of the Softwa
 
 Refer to these policies before starting work in any SDLC phase. For a summary, see the [Documentation Home](../index.md) and [Contributing Guide](../developer_guides/contributing.md).
 
+## Implementation Status
+These policies are **fully implemented** and serve as mandatory guidelines for
+all contributors.

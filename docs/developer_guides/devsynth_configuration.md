@@ -161,3 +161,6 @@ save_global_config(cfg)
 3. **Environment Variables**: Use environment variables for sensitive information like API keys instead of storing them in configuration files.
 4. **Regular Updates**: Periodically run `devsynth inspect-config` to keep your project configuration file in sync with the actual project structure.
 5. **Project Marker**: Remember that the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. Do not create this directory manually; use `devsynth init` to establish a project as managed by DevSynth.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

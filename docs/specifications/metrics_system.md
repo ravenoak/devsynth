@@ -39,3 +39,6 @@ Refactor existing components to register and emit metrics via the central regist
 | 4 | Integrate time-series storage and advanced analytics (trend analysis, predictions) |
 
 By consolidating metrics in a unified system, DevSynth will provide comprehensive performance, efficacy, efficiency, and resource consumption insights to both technical and non-technical users.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

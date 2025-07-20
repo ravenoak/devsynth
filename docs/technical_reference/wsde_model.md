@@ -316,3 +316,6 @@ result = team.apply_multi_disciplinary_dialectical_reasoning(
 ## Conclusion
 
 The WSDE model provides a powerful framework for non-hierarchical, context-driven agent collaboration. By leveraging the collective intelligence of diverse agents and incorporating dialectical reasoning, it enables more robust and adaptive problem-solving.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

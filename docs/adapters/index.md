@@ -25,3 +25,6 @@ For more information on the adapter pattern and how it's used in DevSynth, see:
 
 - **[Hexagonal Architecture](../architecture/hexagonal_architecture.md)**: Details on the hexagonal (Hexagonal Architecture) architecture used in DevSynth.
 - **[Provider System](../architecture/provider_system.md)**: Details on the provider system for integrating external services.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

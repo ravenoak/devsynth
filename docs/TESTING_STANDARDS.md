@@ -267,3 +267,6 @@ def then_retrieve_item_by_id(context):
 - All tests should pass before merging code
 - Coverage reports should be generated automatically
 - Test results should be visualized in the CI pipeline
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

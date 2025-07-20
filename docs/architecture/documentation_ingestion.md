@@ -45,3 +45,6 @@ results = manager.search_documentation("API usage")
 
 The manager lazily loads files from each configured directory only when the
 `ingest_from_project_config` method is executed.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

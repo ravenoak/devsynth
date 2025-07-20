@@ -403,3 +403,6 @@ pytest --cov=src/devsynth --cov-report=term-missing
 
 pytest --cov=src/devsynth --cov-report=html
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

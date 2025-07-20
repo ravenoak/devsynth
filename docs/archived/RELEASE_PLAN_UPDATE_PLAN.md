@@ -45,3 +45,6 @@ To eliminate duplication and ensure maintainability, we will converge these arti
 - Archive retired plan files under `docs/archived/` for historical reference.
 
 By executing this plan, DevSynth will have a streamlined, maintainable, and automated release-and-documentation ecosystem that prevents drift, reduces duplication, and ensures clarity for all contributors.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

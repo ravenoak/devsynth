@@ -35,3 +35,6 @@ This policy defines best practices for implementation, code quality, collaborati
 
 - See [Design Policy](design.md) for architecture and interface contracts.
 - See [Testing Policy](testing.md) for test requirements.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -48,3 +48,6 @@ def webui_button_clicked():
     # delegate to CLI workflow via UXBridge
     spec_cmd(requirements_file="req.md", bridge=self)
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

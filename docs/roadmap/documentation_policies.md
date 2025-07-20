@@ -52,3 +52,6 @@ This document outlines the policies for maintaining high-quality documentation i
 
 - Train new contributors on documentation best practices
 - Reference this policy in [CONTRIBUTING.md](../../CONTRIBUTING.md)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

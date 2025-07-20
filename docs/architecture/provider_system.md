@@ -1259,3 +1259,6 @@ The provider system now includes:
 - **Streaming Support**: Cross-provider streaming support is under development
 - **Additional Providers**: Integration with more LLM providers is planned
 - **Advanced Caching**: More sophisticated caching strategies are being implemented
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

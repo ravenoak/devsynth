@@ -48,3 +48,6 @@ This shared implementation works across the command-line interface and the futur
 
 The `UXBridge` abstraction is still conceptual. A concrete interface layer and
 end-to-end tests have not yet been created, and WebUI support is incomplete.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

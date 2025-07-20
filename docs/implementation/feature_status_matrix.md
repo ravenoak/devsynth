@@ -75,6 +75,9 @@ Each feature is scored on two dimensions:
 | Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
 | Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
 | Metrics Commands | Complete | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, test_metrics_cmd.py | 3 | 2 | None | | `alignment_metrics` and `test_metrics` commands available |
+| Retry Mechanism | Partial | src/devsynth/fallback.py | 3 | 2 | Providers | | Exponential backoff implemented; conditional retries and metrics planned |
+| SDLC Security Policy | Partial | docs/policies/security.md | 3 | 2 | Security Framework | | Configuration flags exist, automated audits planned |
+| Documentation Policies | Complete | docs/policies/documentation_policies.md | 2 | 1 | None | | Policies implemented across documentation |
 | **Planned/Unimplemented Features** |
 | Core Values Subsystem | Complete | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods added for value management and report validation |
 | Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |

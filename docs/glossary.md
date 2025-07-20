@@ -118,3 +118,6 @@ A multi-agent collaboration framework in DevSynth that includes role management,
 ---
 
 This glossary will be updated as new terms are introduced or existing terms are refined. If you encounter a term that's not defined here, please submit a request for its addition.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

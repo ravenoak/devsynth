@@ -621,3 +621,6 @@ previous_results = coordinator.memory_manager.retrieve_with_edrr_phase(
 ## Conclusion
 
 The EDRR framework provides a structured approach to problem-solving and development in DevSynth. By integrating with the WSDE model and leveraging quality-based phase transitions, it enables more effective and efficient problem-solving.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

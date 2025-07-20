@@ -68,3 +68,6 @@ If you're new to DevSynth's architecture, we recommend starting with the [Overvi
 - [CLI Overhaul Pseudocode](../specifications/cli_overhaul_pseudocode.md) - Design reference for the updated initialization command
 - [WebUI Reference](../user_guides/webui_reference.md) - How to use the Streamlit interface
 - [Agent API Reference](../user_guides/api_reference.md) - Programmatic endpoints for automating DevSynth
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

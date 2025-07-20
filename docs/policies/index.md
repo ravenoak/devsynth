@@ -126,3 +126,6 @@ LLM agents and AI systems contributing to DevSynth should:
 ---
 
 _Last updated: June 1, 2025_
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

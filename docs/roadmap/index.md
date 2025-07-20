@@ -64,3 +64,6 @@ If you're interested in DevSynth's future direction, we recommend starting with 
 
 The roadmap provides a unified view of DevSynth's ongoing plans and future vision. By following these documents, contributors can understand project priorities and track progress toward upcoming releases.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -69,3 +69,6 @@ If you're new to DevSynth development, we recommend starting with the [Onboardin
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
 - [Technical Reference](../technical_reference/index.md) - Technical reference documentation
 - [User Guides](../user_guides/index.md) - Guides for users of DevSynth
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

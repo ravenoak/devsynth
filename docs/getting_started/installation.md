@@ -79,3 +79,6 @@ poetry install --all-extras --with dev,docs
 ```
 
 For more details, see the [Quick Start Guide](../getting_started/quick_start_guide.md).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

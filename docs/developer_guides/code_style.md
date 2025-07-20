@@ -83,3 +83,6 @@ This document outlines the coding standards and style guidelines for the DevSynt
 
 This guide is a living document. If you have suggestions for improvements or clarifications, please discuss them with the team or open an issue/PR.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

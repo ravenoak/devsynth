@@ -452,3 +452,6 @@ Planned improvements to the EDRR implementation:
 ## 8. Conclusion
 
 The EDRR provides a structured framework for iterative development in DevSynth, enabling systematic exploration, evaluation, improvement, and learning. By integrating with the WSDE model and hybrid memory system, it supports collaborative, knowledge-driven software development.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

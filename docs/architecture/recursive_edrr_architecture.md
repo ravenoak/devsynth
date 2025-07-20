@@ -33,3 +33,6 @@ See the [Recursive EDRR Pseudocode](../specifications/recursive_edrr_pseudocode.
 - [EDRR Specification](../specifications/edrr_cycle_specification.md)
 - [Recursive EDRR Pseudocode](../specifications/recursive_edrr_pseudocode.md)
 - [Delimiting Recursion Algorithms](../specifications/delimiting_recursion_algorithms.md)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

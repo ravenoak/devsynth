@@ -391,3 +391,6 @@ For more detailed information, refer to the [User Guide](../user_guides/user_gui
 - [Basic Usage Guide](basic_usage.md) - Introduction to basic DevSynth usage
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -165,3 +165,6 @@ This context refers to the advanced scenario where a functional version of DevSy
 ## Conclusion
 
 Understanding these three distinct contexts is crucial for effective work with DevSynth. By maintaining clear boundaries between developing DevSynth, using DevSynth, and applying DevSynth to itself, we can avoid confusion and ensure that each context follows appropriate practices and workflows.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

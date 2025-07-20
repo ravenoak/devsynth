@@ -58,3 +58,6 @@ The script exports the current dependencies, then invokes
 All dependency versions are pinned in `pyproject.toml` to ensure
 reproducible builds. After modifying dependencies, commit the updated
 `poetry.lock` file.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

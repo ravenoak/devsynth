@@ -34,3 +34,6 @@ This policy defines best practices for security, ethics, access control, and rep
 - See [Requirements Policy](requirements.md) for traceability.
 - See [Development Policy](development.md) for code/metadata conventions.
 - See [Maintenance Policy](maintenance.md) for documentation updates.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

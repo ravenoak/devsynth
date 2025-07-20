@@ -28,3 +28,6 @@ This document defines the unified documentation strategy for DevSynth, consolida
 3. Update YAML headers in legacy files.
 4. Refer release phases in front-matter for roadmap and specs.
 5. Integrate index validation in CI (`validate_documentation.yml`).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

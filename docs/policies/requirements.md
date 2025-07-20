@@ -31,3 +31,6 @@ This policy defines best practices for requirements gathering, documentation, an
 
 - See [Design Policy](design.md) for how requirements inform architecture.
 - See [Development Policy](development.md) for traceability practices.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

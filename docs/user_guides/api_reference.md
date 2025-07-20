@@ -40,3 +40,6 @@ resp = requests.post(
 )
 print(resp.json())
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

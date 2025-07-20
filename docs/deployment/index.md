@@ -21,3 +21,6 @@ For more information on deployment-related topics, see:
 
 - **[Configuration](../user_guides/configuration.md)**: Information on configuring DevSynth for different environments.
 - **[Monitoring and Logging](monitoring.md)**: Set up Prometheus and collect logs.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -34,3 +34,6 @@ For more information on the implementation roadmap and specifications, see:
 - **[Development Status](../roadmap/development_status.md)**: The current status of development.
 - **[EDRR Framework](../architecture/edrr_framework.md)**: Documentation on the EDRR framework architecture.
 - **[EDRR Specification](../specifications/edrr_cycle_specification.md)**: Detailed specifications for the EDRR.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

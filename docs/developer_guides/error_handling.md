@@ -235,3 +235,6 @@ Structured JSON error response:
 
 - [Nielsen Norman Group: Error Message Guidelines](https://www.nngroup.com/articles/error-message-guidelines/)
 - [Microsoft Style Guide: Error Messages](https://docs.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/error-messages)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

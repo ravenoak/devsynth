@@ -228,3 +228,6 @@ def invoke_command_all_interfaces(cross_interface_context, command):
 - [UXBridge Interface Documentation](../technical_reference/api_reference/uxbridge.md)
 - [Pytest-BDD Documentation](https://pytest-bdd.readthedocs.io/)
 - [Streamlit Testing Guide](https://docs.streamlit.io/library/advanced-features/testing)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

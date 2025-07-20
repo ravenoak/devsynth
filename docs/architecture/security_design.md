@@ -22,3 +22,6 @@ Current focus areas include:
 
 
 Detailed threat models and mitigation strategies are forthcoming.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

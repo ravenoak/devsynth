@@ -68,3 +68,6 @@ This plan supersedes the individual phase tables previously scattered across mul
 
 For a detailed breakdown of feature implementation progress, see the
 [Feature Status Matrix](../implementation/feature_status_matrix.md).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

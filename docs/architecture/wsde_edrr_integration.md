@@ -670,3 +670,6 @@ config = {
 ## Conclusion
 
 The integration between the WSDE model and the EDRR framework provides a powerful approach to problem-solving in DevSynth. By combining the non-hierarchical, context-driven collaboration of the WSDE model with the structured phases of the EDRR framework, DevSynth enables more effective and efficient problem-solving.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

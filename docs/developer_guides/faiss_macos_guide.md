@@ -156,3 +156,6 @@ The DevSynth Dockerfile has been updated to handle macOS-specific issues with FA
 - [FAISS GitHub Repository](https://github.com/facebookresearch/faiss)
 - [Conda-Forge FAISS Package](https://anaconda.org/conda-forge/faiss)
 - [OpenMP on macOS](https://mac.r-project.org/openmp/)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

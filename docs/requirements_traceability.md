@@ -93,3 +93,6 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-84 | Agent API endpoints `/init`, `/gather`, `/synthesize`, `/status` using UXBridge | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#48-user-interface-extensions) | src/devsynth/interface/agentapi.py | tests/integration/test_agentapi_routes.py, tests/behavior/test_agentapi.py | Implemented |
 
 _Last updated: July 19, 2025
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

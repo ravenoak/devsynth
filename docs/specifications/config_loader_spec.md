@@ -56,3 +56,6 @@ configuration, the :class:`UnifiedAgent` will adjust LLM generation
 parameters such as `temperature` using the `BasicPromptTuner`. Feedback
 recorded through the agent's `record_prompt_feedback` method gradually
 raises or lowers the sampling temperature to refine future prompts.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

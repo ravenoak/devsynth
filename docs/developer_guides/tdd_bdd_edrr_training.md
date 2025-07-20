@@ -416,3 +416,6 @@ For personalized guidance, use the DevSynth learning path generator to create a 
 - [Growing Object-Oriented Software, Guided by Tests](https://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627) by Steve Freeman and Nat Pryce
 - [Pytest Documentation](https://docs.pytest.org/)
 - [Cucumber Documentation](https://cucumber.io/docs/)
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -325,3 +325,6 @@ By contributing to DevSynth, you agree that your contributions will be licensed 
 If you have any questions about contributing, please open an issue or reach out to the maintainers.
 
 Thank you for contributing to DevSynth!
+## Implementation Status
+
+This feature is **planned** and not yet implemented.
