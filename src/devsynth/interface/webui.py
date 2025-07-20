@@ -792,27 +792,30 @@ class WebUI(UXBridge):
         data = st.session_state.wizard_data
 
         if step == len(steps) - 1 and st.button("Save Requirements"):
-            result = {
-                "title": data["title"],
-                "description": data["description"],
-                "type": data["type"],
-                "priority": data["priority"],
-                "constraints": [
-                    c.strip() for c in data["constraints"].split(",") if c.strip()
-                ],
-            }
             try:
+                result = {
+                    "title": data["title"],
+                    "description": data["description"],
+                    "type": data["type"],
+                    "priority": data["priority"],
+                    "constraints": [
+                        c.strip()
+                        for c in data["constraints"].split(",")
+                        if c.strip()
+                    ],
+                }
                 with open("requirements_wizard.json", "w", encoding="utf-8") as f:
                     f.write(json.dumps(result, indent=2))
                 self.display_result(
                     "[green]Requirements saved to requirements_wizard.json[/green]"
                 )
+                return result
             except Exception as exc:  # pragma: no cover - error path tested
                 self.display_result(
                     f"[red]ERROR saving requirements: {exc}[/red]",
                     highlight=False,
                 )
-            return
+                return None
 
         if step == 0:
             data["title"] = st.text_input("Requirement Title", data["title"])
