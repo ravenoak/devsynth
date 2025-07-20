@@ -122,6 +122,7 @@ memory = ["tinydb", "duckdb", "lmdb", "kuzu", "faiss-cpu", "chromadb", "numpy"]
 llm = ["tiktoken", "httpx", "dspy-ai", "torch", "transformers"]
 api = ["fastapi", "prometheus-client"]
 webui = ["streamlit"]
+tests = ["fastapi", "httpx", "tinydb", "duckdb", "lmdb", "astor"]
 dev = [
     "responses",
     "pytest",
