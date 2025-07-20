@@ -24,13 +24,11 @@ from .cli_commands import (
     webapp_cmd,
     webui_cmd,
     dbschema_cmd,
+    doctor_cmd,
     check_cmd,
     refactor_cmd,
     serve_cmd,
 )
-
-# Doctor command now lives in the commands package
-from .commands.doctor_cmd import doctor_cmd
 
 # Import commands from the commands directory
 from .commands.inspect_code_cmd import inspect_code_cmd

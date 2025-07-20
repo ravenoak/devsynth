@@ -4,6 +4,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.core.config_loader import load_config, _find_project_config
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
+from typing import Optional
 import importlib.util
 import os
 import sys
@@ -13,16 +14,26 @@ bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 
-def doctor_cmd(config_dir: str = "config") -> None:
+def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None) -> None:
     """Validate environment configuration files and provide hints.
 
-    Example:
-        `devsynth doctor --config-dir ./config`
+    Parameters
+    ----------
+    config_dir:
+        Directory containing environment configuration files.
+    bridge:
+        Optional :class:`UXBridge` instance used for output. If not
+        provided, the module default CLI bridge is used.
+
+    Example
+    -------
+    ``devsynth doctor --config-dir ./config``
     """
+    ux_bridge = bridge if bridge is not None else globals()["bridge"]
     try:
         config = load_config()
         if _find_project_config(Path.cwd()) is None:
-            bridge.print(
+            ux_bridge.print(
                 "[yellow]No project configuration found. Run 'devsynth init' to create it.[/yellow]"
             )
 
@@ -30,7 +41,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
         critical_missing = False
 
         if sys.version_info < (3, 11):
-            bridge.print(
+            ux_bridge.print(
                 f"[yellow]Warning: Python 3.12 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
             )
             warnings = True
@@ -39,7 +50,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
             key for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY") if not os.getenv(key)
         ]
         if missing_keys:
-            bridge.print(
+            ux_bridge.print(
                 f"[yellow]Missing environment variables: {', '.join(missing_keys)}[/yellow]"
             )
             warnings = True
@@ -55,7 +66,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
                 getattr(config, "features", {}).get(feat)
                 and importlib.util.find_spec(pkg) is None
             ):
-                bridge.print(
+                ux_bridge.print(
                     f"[yellow]Feature '{feat}' requires the '{pkg}' package which is not installed.[/yellow]"
                 )
                 warnings = True
@@ -76,14 +87,14 @@ def doctor_cmd(config_dir: str = "config") -> None:
             else:
                 spec = importlib.util.find_spec(pkg)
             if spec is None:
-                bridge.print(
+                ux_bridge.print(
                     f"[yellow]{store_type.capitalize()} support is enabled but the '{pkg}' package is missing.[/yellow]"
                 )
                 warnings = True
                 critical_missing = True
 
         if importlib.util.find_spec("uvicorn") is None:
-            bridge.print(
+            ux_bridge.print(
                 "[yellow]The 'uvicorn' package is required for the API server but is not installed.[/yellow]"
             )
             warnings = True
@@ -102,7 +113,7 @@ def doctor_cmd(config_dir: str = "config") -> None:
         for env in envs:
             cfg_path = Path(config_dir) / f"{env}.yml"
             if not cfg_path.exists():
-                bridge.print(
+                ux_bridge.print(
                     f"[yellow]Warning: configuration file not found: {cfg_path}[/yellow]"
                 )
                 warnings = True
@@ -114,22 +125,22 @@ def doctor_cmd(config_dir: str = "config") -> None:
             schema_errors = module.validate_config(data, module.CONFIG_SCHEMA)
             env_errors = module.validate_environment_variables(data)
             for err in schema_errors + env_errors:
-                bridge.print(f"[yellow]{env}: {err}[/yellow]")
+                ux_bridge.print(f"[yellow]{env}: {err}[/yellow]")
                 warnings = True
 
         consistency_errors = module.check_config_consistency(configs)
         for err in consistency_errors:
-            bridge.print(f"[yellow]{err}[/yellow]")
+            ux_bridge.print(f"[yellow]{err}[/yellow]")
             warnings = True
 
         if warnings:
-            bridge.print(
+            ux_bridge.print(
                 "[yellow]Configuration issues detected. Run 'devsynth init' to generate defaults.[/yellow]"
             )
         else:
-            bridge.print("[green]All configuration files are valid.[/green]")
+            ux_bridge.print("[green]All configuration files are valid.[/green]")
 
         if critical_missing:
             raise SystemExit(1)
     except Exception as err:  # pragma: no cover - defensive
-        bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        ux_bridge.print(f"[red]Error:[/red] {err}", highlight=False)

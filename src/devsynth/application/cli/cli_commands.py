@@ -33,7 +33,7 @@ from devsynth.config import (
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.config.loader import ConfigModel, save_config, _find_config_path
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
-from .commands.doctor_cmd import doctor_cmd
+from .commands.doctor_cmd import doctor_cmd as _doctor_impl
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -1683,6 +1683,12 @@ def dbschema_cmd(
                 border_style="red",
             )
         )
+
+
+def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None) -> None:
+    """Validate environment configuration files."""
+
+    _doctor_impl(config_dir=config_dir, bridge=_resolve_bridge(bridge))
 
 
 def check_cmd(config_dir: str = "config") -> None:
