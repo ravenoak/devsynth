@@ -21,7 +21,7 @@ def _mock_streamlit():
     st.empty = MagicMock(return_value=MagicMock())
     st.progress = MagicMock(return_value=MagicMock())
     st.container = MagicMock()
-    st.container.return_value.__enter__ = MagicMock(return_value=None)
+    st.container.return_value.__enter__ = MagicMock(return_value=MagicMock())
     st.container.return_value.__exit__ = MagicMock(return_value=None)
     return st
 
