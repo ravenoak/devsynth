@@ -46,3 +46,6 @@ If you're new to DevSynth, we recommend starting with the [Getting Started](../g
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
 - [Provider System](../architecture/provider_system.md) - Details on the Provider system used in DevSynth
 - [CLI ↔ WebUI Mapping](../architecture/cli_webui_mapping.md) - Equivalent WebUI actions for CLI commands
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

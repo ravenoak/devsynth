@@ -105,3 +105,6 @@ if st.button("Start Wizard"):
 ```
 
 The CLI and WebUI share the same workflow implementation through `UXBridge` ensuring consistent behavior across interfaces.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

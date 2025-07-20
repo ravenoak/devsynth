@@ -50,3 +50,6 @@ _complete_devsynth_config_keys() {
 }
 complete -F _complete_devsynth_config_keys devsynth
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -193,3 +193,6 @@ This pattern is implemented in the `settings.py` file, which provides validators
 ## Conclusion
 
 The DevSynth configuration and storage system provides a flexible and robust way to manage settings and data across multiple projects. By understanding where resources live and how they are accessed, users and developers can effectively work with DevSynth in various contexts.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

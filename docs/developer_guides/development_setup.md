@@ -312,3 +312,6 @@ mkdocs serve
 ---
 
 *This document is a living guide and will be updated as the project evolves.*
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -22,3 +22,6 @@ This document summarizes how major DevSynth features depend on one another. Unde
 | DSPy integration | Providers, Memory backends, Multi-language support | DSPy relies on consistent provider interfaces and memory persistence. Planned for later releases once multi-language features are in place. |
 
 These dependencies influence the sequence of upcoming releases. Providers and memory backends are addressed in early versions, followed by multi-language features and eventually DSPy integration.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

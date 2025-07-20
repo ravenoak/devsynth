@@ -172,3 +172,6 @@ function handle_request(path, body):
         pass  # messages already collected in bridge
     return {"messages": bridge.messages}
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

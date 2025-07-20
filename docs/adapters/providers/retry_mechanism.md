@@ -76,3 +76,7 @@ The retry mechanism logs each retry attempt with increasing severity levels. Aft
 - Add support for conditional retries based on exception types
 - Implement circuit breaker pattern for persistent failures
 - Add metrics collection for retry attempts and success rates
+## Implementation Status
+This feature is **partially implemented**. The core retry decorator works but
+conditional retry logic, circuit breaker integration, and metrics collection are
+still planned.

@@ -301,3 +301,6 @@ By combining these perspectives, DevSynth ensures that the system is correct at 
 Test-Driven and Behavior-Driven Development are essential methodologies in DevSynth's development process. By following these approaches, we ensure that our code is correct, maintainable, and aligned with user needs. The combination of unit tests, integration tests, and behavior tests provides a comprehensive testing strategy that covers all aspects of the system.
 
 By applying dialectical reasoning to our testing approach, we consider multiple perspectives and ensure that our system is robust and well-designed at all levels of abstraction.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -38,3 +38,6 @@ DevSynth uses a hexagonal architecture to separate core business logic from exte
 
 
 See [Architecture Overview](overview.md) and [Agent System](agent_system.md) for more details.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

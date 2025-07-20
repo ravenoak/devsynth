@@ -76,3 +76,6 @@ invoke the same shared functions.
 Terminology across the CLI and WebUI is kept consistent. For example, the
 interactive workflow started by `gather` is called the *Requirements Plan
 Wizard* in both interfaces.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

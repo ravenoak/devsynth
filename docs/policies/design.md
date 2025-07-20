@@ -33,3 +33,6 @@ This policy defines best practices for system architecture, design documentation
 
 - See [Requirements Policy](requirements.md) for traceability.
 - See [Development Policy](development.md) for implementation standards.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

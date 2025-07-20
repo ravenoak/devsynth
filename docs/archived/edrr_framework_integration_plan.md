@@ -15,3 +15,6 @@ last_reviewed: "2025-07-10"
 
 This document has been archived and its contents were merged into the consolidated documentation and roadmap ecosystem.
 Refer to `docs/specifications/edrr_framework.md` for the integrated EDRR framework specification.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

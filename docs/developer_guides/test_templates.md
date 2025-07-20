@@ -142,3 +142,6 @@ For more details on testing approaches, see the [TDD/BDD Approach Documentation]
 The organization of test templates in DevSynth follows best practices for separation of concerns while maintaining discoverability and usability. By placing templates in a dedicated directory, we ensure that they are not accidentally run as tests while still making them easily accessible to developers.
 
 The test-first approach, combined with clear templates and guidelines, helps ensure consistent, high-quality tests throughout the project.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

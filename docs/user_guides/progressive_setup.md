@@ -106,3 +106,6 @@ You may also use the WebUI for these steps by running `devsynth webui` and navig
 
 Start with a minimal installation and gradually enable advanced reasoning and verification features as your project matures. Configuration values live in `.devsynth/project.yaml` and can be toggled via `devsynth config`. CLI switches such as `--property-testing` and `--smt-checks` allow you to control these features when running commands.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

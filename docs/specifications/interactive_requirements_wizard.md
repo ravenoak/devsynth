@@ -53,3 +53,6 @@ named `requirements_wizard.json`.
 - On completion the responses are written to `requirements_wizard.json` and
 
   merged into the current project configuration.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

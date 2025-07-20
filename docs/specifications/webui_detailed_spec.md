@@ -70,3 +70,6 @@ sequenceDiagram
 - Live log streaming to the browser.
 - Custom theming options.
 - Multi‑project dashboard view.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

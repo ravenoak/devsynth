@@ -815,3 +815,6 @@ paths:
 ## Conclusion
 
 This reference covers all the DevSynth CLI commands and their options. For more detailed information about specific features or workflows, refer to the DevSynth documentation or use the `--help` option with any command.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -36,3 +36,6 @@ If you're new to DevSynth, we recommend starting with the [Quick Start Guide](qu
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
 - [Developer Guide](../developer_guides/index.md) - Information for developers contributing to DevSynth
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

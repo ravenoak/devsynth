@@ -114,3 +114,6 @@ function init_workflow(bridge: UXBridge):
 
 These snippets outline the major modules and how the CLI interacts with them
 through `UXBridge`.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

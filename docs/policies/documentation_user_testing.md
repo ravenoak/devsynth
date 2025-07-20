@@ -239,3 +239,6 @@ Documentation testing will follow this schedule:
 
 
 ---
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -48,3 +48,6 @@ Each route delegates to the coordinator so API clients can trigger full EDRR cyc
 
 This API is illustrative only. The service routes are not yet implemented and
 authentication, error handling, and streaming responses remain to be designed.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

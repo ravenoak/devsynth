@@ -92,3 +92,6 @@ If the tests pass, your generated code is working. If you encounter issues, see 
 ---
 
 For a complete walkthrough with more context, consult the [Quick Start Guide](quick_start_guide.md).
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

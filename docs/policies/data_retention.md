@@ -20,3 +20,6 @@ DevSynth retains data only as long as necessary for active tasks and auditing.
 
 
 Users may request early deletion of their data via the project maintainers.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

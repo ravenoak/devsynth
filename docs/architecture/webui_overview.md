@@ -1215,3 +1215,6 @@ Planned enhancements for the WebUI include:
 4. **Mobile Support**: Enhance mobile responsiveness for tablet and phone use
 5. **Offline Mode**: Support offline operation with local LLM providers
 6. **Integration with Version Control**: Direct integration with Git repositories
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

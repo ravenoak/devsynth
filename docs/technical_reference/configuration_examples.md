@@ -337,3 +337,6 @@ export DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED=true
 3. **Customize Settings**: Adjust settings based on your project's specific requirements
 4. **Version Control**: Keep your configuration file in version control to track changes
 5. **Documentation**: Document any custom configuration settings in your project's README
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

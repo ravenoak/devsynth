@@ -103,3 +103,6 @@ The coordinator checks `should_terminate_recursion` before spawning a micro
 cycle. If recursion proceeds, the child coordinator inherits the parent's
 dependencies and increments `recursion_depth`. Results from the micro cycle are
 stored under the parent's phase data so the overall cycle reflects nested work.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

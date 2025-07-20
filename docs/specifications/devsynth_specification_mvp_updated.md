@@ -1909,3 +1909,6 @@ Mutation testing will be deferred to a future version.
 - Uninstallation succeeds with a single command
 - No orphaned files or configurations remain
 - User data is preserved or removed as requested
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

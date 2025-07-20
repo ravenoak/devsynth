@@ -59,3 +59,6 @@ Extras can be enabled later with `poetry install --extras llm --extras api` or `
 
 Run `python scripts/dependency_safety_check.py` to scan for vulnerabilities. CI also executes this script to detect breaking updates whenever the dependency files change.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

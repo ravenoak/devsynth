@@ -62,3 +62,6 @@ both textual and graphical UIs and allow tests to mock the interface easily.
   user.
 - The same workflow code runs identically regardless of the active interface.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

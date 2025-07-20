@@ -95,3 +95,6 @@ resources:
     context_length: 4096
 ```
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

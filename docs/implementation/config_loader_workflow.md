@@ -50,3 +50,6 @@ The loader merges values from the chosen file into a common configuration object
 
 This workflow is a conceptual outline. The unified parser has not been fully
 implemented, and integration tests for various project layouts are missing.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

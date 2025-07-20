@@ -18,3 +18,6 @@ is summarized in the [Feature Status Matrix](../implementation/feature_status_ma
 - **0.2.0** – Expanded agent capabilities, improved memory backends, and API enhancements.
 - **1.0.0** – First stable release with documentation, test coverage, and deployment automation.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

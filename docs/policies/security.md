@@ -59,3 +59,6 @@ The primary threats considered include:
 Mitigations include encryption at rest, optional TLS for all network
 communication, bearer token authentication for API and agent actions,
 and routine dependency and static analysis checks in CI.
+## Implementation Status
+Security configuration flags and basic encryption utilities are implemented.
+Automated audits and advanced monitoring are **planned**.

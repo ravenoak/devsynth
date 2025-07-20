@@ -69,3 +69,6 @@ metadata is ignored when determining upgrade paths, but helps trace artifacts.
 
 With Semantic Versioning+ in place, version strings like `0.3.0-beta.2+exp.sha`
 communicate both the development phase and the specific build artifact.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

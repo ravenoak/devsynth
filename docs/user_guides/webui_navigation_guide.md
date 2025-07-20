@@ -506,3 +506,6 @@ For more detailed information about specific features, refer to the DevSynth doc
 ```bash
 devsynth help
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

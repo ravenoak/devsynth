@@ -53,3 +53,6 @@ If you're new to DevSynth's technical details, we recommend starting with the [A
 - [Architecture](../architecture/index.md) - Overview of DevSynth's architecture
 - [Developer Guides](../developer_guides/index.md) - Information for developers contributing to DevSynth
 - [Specifications](../specifications/index.md) - Detailed specifications for DevSynth components
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

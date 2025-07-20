@@ -33,3 +33,6 @@ The `examples/full_workflow` project demonstrates the complete DevSynth process:
 
 
 Future examples should include clear instructions about required extras and test execution so users can reproduce the workflow without issues.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -134,3 +134,6 @@ devsynth EDRR-cycle --help
 - `devsynth spec`: Generate specifications from requirements
 - `devsynth test`: Generate tests from specifications
 - `devsynth code`: Generate code from tests
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

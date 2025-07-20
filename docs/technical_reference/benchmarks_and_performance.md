@@ -255,3 +255,6 @@ This runs `pytest --benchmark-only` and stores results in `.benchmarks`.
 The DevSynth system demonstrates good performance characteristics across various components and scenarios. The most significant performance factors are LLM response time and memory system efficiency. By following the optimization recommendations and ensuring adequate hardware resources, users can achieve optimal performance for their specific use cases.
 
 Performance testing and optimization is an ongoing process. This document will be updated regularly as new benchmarks are conducted and optimization techniques are developed.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

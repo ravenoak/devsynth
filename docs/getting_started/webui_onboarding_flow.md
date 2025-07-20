@@ -23,3 +23,6 @@ With version 1.0 the WebUI also includes **EDRR** and **Alignment** pages
 for advanced workflows. These options appear in the sidebar after launching
 `devsynth webui`.
 
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

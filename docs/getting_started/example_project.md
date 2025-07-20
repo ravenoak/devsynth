@@ -66,3 +66,6 @@ The repository contains the resulting `specs.md`, tests in `tests/`, and code in
 ## Continuous Integration Example
 
 The `.github/workflows/example_project.yml` file provides a minimal CI setup that runs the same DevSynth commands on every push or pull request affecting the example. Use it as a starting point for your own projects.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

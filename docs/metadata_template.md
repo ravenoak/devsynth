@@ -57,3 +57,6 @@ This document serves as a template and guide for the front-matter metadata to be
 ## Usage:
 
 Copy the `---` delimited block at the top of this template into the beginning of your Markdown file and fill in the appropriate values. The `scripts/validate_metadata.py` script will be used in CI to ensure all documents adhere to this schema.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

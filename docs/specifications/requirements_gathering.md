@@ -57,3 +57,6 @@ def gather_requirements_via_bridge(bridge, output="requirements_plan.yaml"):
 
 The CLI exposes this via `devsynth requirements gather` while the WebUI
 presents a button that runs the same function through its bridge.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

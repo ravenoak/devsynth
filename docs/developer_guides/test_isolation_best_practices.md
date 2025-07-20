@@ -186,3 +186,6 @@ If you make changes to the test isolation system, ensure these tests still pass.
 ## Conclusion
 
 By following these best practices, we can ensure that tests are properly isolated and don't pollute the developer's environment or interfere with each other. This leads to more reliable tests and a better development experience.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

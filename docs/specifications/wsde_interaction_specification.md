@@ -533,3 +533,6 @@ Planned improvements to the WSDE multi-agent interaction system:
 ## 10. Conclusion
 
 The WSDE multi-agent interaction specification provides a comprehensive framework for organizing and coordinating AI agents in collaborative software development. By defining clear roles, interaction patterns, and coordination mechanisms, it enables effective teamwork among specialized agents, leading to higher quality outputs and more robust solutions.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

@@ -302,3 +302,6 @@ If you encounter error XYZ, try...
 - **1.0.1** (2025-06-15): Added troubleshooting section
 
 ```
+## Implementation Status
+
+This feature is **planned** and not yet implemented.

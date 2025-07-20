@@ -153,3 +153,6 @@ Regardless of implementation, all bridges guarantee a few key invariants:
 - **Safe CLI input** – the CLI bridge validates user responses with
 
   `validate_safe_input` so unsafe content is rejected early.
+## Implementation Status
+
+This feature is **planned** and not yet implemented.
