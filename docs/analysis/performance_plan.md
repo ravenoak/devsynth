@@ -1,0 +1,35 @@
+---
+author: DevSynth Team
+date: '2025-07-20'
+last_reviewed: '2025-07-20'
+status: draft
+tags:
+  - analysis
+  - performance
+
+title: DevSynth Performance Benchmark Plan
+version: 0.1.0
+---
+
+# DevSynth Performance Benchmark Plan
+
+This document outlines the expected performance targets for core components of the DevSynth system. Benchmarks are implemented using **pytest-benchmark** under `tests/performance/`.
+
+## Benchmark Targets
+
+| Component | Test | Expected Time |
+|-----------|------|---------------|
+| Memory Manager | Storing 100 items | < 50 ms |
+| Memory Manager | Query by type (100 items) | < 5 ms |
+| OfflineProvider | `generate` call | < 20 ms |
+| OfflineProvider | `get_embedding` call | < 5 ms |
+| Workflow Manager | Simple workflow execution | < 20 ms |
+| TieredCache | Insert 1000 items | < 10 ms |
+| TieredCache | Access cached item | < 1 ms |
+
+These metrics provide a baseline for detecting performance regressions.
+
+## Methodology
+
+Benchmarks run with `pytest --benchmark-only` on a development machine with the specifications defined in [technical_reference/benchmarks_and_performance.md](../technical_reference/benchmarks_and_performance.md). Results are stored in `.benchmarks` and reviewed regularly.
+
