@@ -22,6 +22,8 @@ This section provides comprehensive guides for users of DevSynth, covering gener
   - [Workflow Guide](user_guide.md#workflow-guide): Understanding the DevSynth workflow.
   - [Best Practices](user_guide.md#best-practices): Recommendations for effective use of DevSynth.
   - [Advanced Usage](user_guide.md#advanced-usage): Advanced features and techniques.
+  - [End-to-End CLI Tutorial](e2e_cli_tutorial.md): Step-by-step CLI workflow.
+  - [End-to-End WebUI Tutorial](e2e_webui_tutorial.md): Step-by-step WebUI workflow.
 
 ## Overview
 
