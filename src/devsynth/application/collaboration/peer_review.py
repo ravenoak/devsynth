@@ -20,6 +20,7 @@ class PeerReview:
     send_message: Optional[Callable[..., Any]] = None
     acceptance_criteria: Optional[List[str]] = None
     quality_metrics: Optional[Dict[str, Any]] = None
+    team: Optional[Any] = None
 
     reviews: Dict[Any, Dict[str, Any]] = field(default_factory=dict)
     revision: Any = None
@@ -28,12 +29,25 @@ class PeerReview:
     review_id: str = field(default_factory=lambda: str(uuid4()))
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
-    previous_review: Optional['PeerReview'] = None
+    previous_review: Optional["PeerReview"] = None
     quality_score: float = 0.0
     metrics_results: Dict[str, Any] = field(default_factory=dict)
+    consensus_result: Dict[str, Any] = field(default_factory=dict)
 
     def assign_reviews(self) -> None:
         """Notify reviewers of the review request."""
+
+        if self.team and hasattr(self.team, "select_primus_by_expertise"):
+            task_context = {
+                "type": "peer_review",
+                "description": getattr(self.work_product, "description", ""),
+            }
+            try:
+                self.team.select_primus_by_expertise(task_context)
+                if hasattr(self.team, "rotate_roles"):
+                    self.team.rotate_roles()
+            except Exception:
+                pass
 
         if self.send_message:
             for reviewer in self.reviewers:
@@ -61,6 +75,13 @@ class PeerReview:
 
         self.updated_at = datetime.now()
 
+        task_context = {"id": self.review_id, "type": "peer_review"}
+        if self.team and hasattr(self.team, "rotate_roles"):
+            try:
+                self.team.rotate_roles()
+            except Exception:
+                pass
+
         for reviewer in self.reviewers:
             if hasattr(reviewer, "process"):
                 process_input = {
@@ -76,18 +97,26 @@ class PeerReview:
 
                 # Check if this is a critic agent that should perform dialectical analysis
                 is_critic = False
-                if hasattr(reviewer, "config") and hasattr(reviewer.config, "agent_type"):
+                if hasattr(reviewer, "config") and hasattr(
+                    reviewer.config, "agent_type"
+                ):
                     is_critic = reviewer.config.agent_type.name == "CRITIC"
                 elif hasattr(reviewer, "expertise") and reviewer.expertise:
-                    is_critic = any(exp.lower() in ["critic", "dialectical", "critique"] 
-                                   for exp in reviewer.expertise)
+                    is_critic = any(
+                        exp.lower() in ["critic", "dialectical", "critique"]
+                        for exp in reviewer.expertise
+                    )
 
                 # If this is a critic, prepare for dialectical analysis
                 if is_critic:
                     process_input["task"] = "perform_dialectical_critique"
                     process_input["critique_aspects"] = [
-                        "security", "performance", "maintainability", 
-                        "readability", "error_handling", "input_validation"
+                        "security",
+                        "performance",
+                        "maintainability",
+                        "readability",
+                        "error_handling",
+                        "input_validation",
                     ]
                     process_input["format"] = "structured"
 
@@ -110,40 +139,70 @@ class PeerReview:
                     # Try to use WSDETeam's dialectical reasoning if available
                     try:
                         from devsynth.domain.models.wsde import WSDETeam
+
                         temp_team = WSDETeam(name="PeerReviewTeam")
                         temp_team.add_solution(task, solution)
 
-                        dialectical_result = temp_team.apply_dialectical_reasoning(task, reviewer)
+                        dialectical_result = temp_team.apply_dialectical_reasoning(
+                            task, reviewer
+                        )
 
                         # Add dialectical analysis to the result
-                        if "thesis" in dialectical_result and "antithesis" in dialectical_result and "synthesis" in dialectical_result:
-                            result["thesis"] = dialectical_result["thesis"].get("content", "The solution provides basic functionality.")
-                            result["antithesis"] = dialectical_result["antithesis"].get("critique", ["The solution could be improved."])
-                            result["synthesis"] = dialectical_result["synthesis"].get("improved_solution", "Improved implementation recommended.")
+                        if (
+                            "thesis" in dialectical_result
+                            and "antithesis" in dialectical_result
+                            and "synthesis" in dialectical_result
+                        ):
+                            result["thesis"] = dialectical_result["thesis"].get(
+                                "content", "The solution provides basic functionality."
+                            )
+                            result["antithesis"] = dialectical_result["antithesis"].get(
+                                "critique", ["The solution could be improved."]
+                            )
+                            result["synthesis"] = dialectical_result["synthesis"].get(
+                                "improved_solution",
+                                "Improved implementation recommended.",
+                            )
 
                             # Add dialectical analysis as a structured object
                             result["dialectical_analysis"] = {
                                 "thesis": {
-                                    "content": dialectical_result["thesis"].get("content", ""),
-                                    "strengths": ["Provides basic functionality"]
+                                    "content": dialectical_result["thesis"].get(
+                                        "content", ""
+                                    ),
+                                    "strengths": ["Provides basic functionality"],
                                 },
                                 "antithesis": {
-                                    "critique": dialectical_result["antithesis"].get("critique", []),
-                                    "challenges": dialectical_result["antithesis"].get("challenges", [])
+                                    "critique": dialectical_result["antithesis"].get(
+                                        "critique", []
+                                    ),
+                                    "challenges": dialectical_result["antithesis"].get(
+                                        "challenges", []
+                                    ),
                                 },
                                 "synthesis": {
-                                    "improvements": dialectical_result["synthesis"].get("improvements", []),
-                                    "improved_solution": dialectical_result["synthesis"].get("improved_solution", "")
-                                }
+                                    "improvements": dialectical_result["synthesis"].get(
+                                        "improvements", []
+                                    ),
+                                    "improved_solution": dialectical_result[
+                                        "synthesis"
+                                    ].get("improved_solution", ""),
+                                },
                             }
                     except (ImportError, Exception) as e:
                         # If WSDETeam is not available or fails, create a simple dialectical analysis
                         if "thesis" not in result:
-                            result["thesis"] = "The solution provides basic functionality."
+                            result["thesis"] = (
+                                "The solution provides basic functionality."
+                            )
                         if "antithesis" not in result:
-                            result["antithesis"] = "The solution could be improved in several ways."
+                            result["antithesis"] = (
+                                "The solution could be improved in several ways."
+                            )
                         if "synthesis" not in result:
-                            result["synthesis"] = "An improved implementation would address the identified issues."
+                            result["synthesis"] = (
+                                "An improved implementation would address the identified issues."
+                            )
             else:
                 result = {"feedback": "ok"}
 
@@ -163,8 +222,24 @@ class PeerReview:
 
             self.reviews[reviewer] = result
 
+            if self.team and hasattr(self.team, "add_solution"):
+                try:
+                    sol = {
+                        "agent": getattr(reviewer, "name", str(reviewer)),
+                        "content": result.get("feedback", ""),
+                    }
+                    self.team.add_solution(task_context, sol)
+                except Exception:
+                    pass
+
         # Calculate quality score if metrics are available
         self._calculate_quality_score()
+
+        if self.team and hasattr(self.team, "build_consensus"):
+            try:
+                self.consensus_result = self.team.build_consensus(task_context)
+            except Exception:
+                self.consensus_result = {}
 
         return self.reviews
 
@@ -227,7 +302,9 @@ class PeerReview:
             # Determine final pass/fail for each criterion (majority vote)
             final_criteria = {}
             for criterion, results in criteria_results.items():
-                final_criteria[criterion] = sum(1 for r in results if r) > len(results) / 2
+                final_criteria[criterion] = (
+                    sum(1 for r in results if r) > len(results) / 2
+                )
 
             result["criteria_results"] = final_criteria
             result["all_criteria_passed"] = all(final_criteria.values())
@@ -253,6 +330,9 @@ class PeerReview:
         if dialectical_analysis and "dialectical_analysis" not in result:
             result["dialectical_analysis"] = dialectical_analysis
 
+        if self.consensus_result:
+            result["consensus"] = self.consensus_result
+
         return result
 
     def request_revision(self) -> None:
@@ -261,7 +341,7 @@ class PeerReview:
         self.updated_at = datetime.now()
         self.status = "revision_requested"
 
-    def submit_revision(self, revision: Any) -> 'PeerReview':
+    def submit_revision(self, revision: Any) -> "PeerReview":
         """
         Submit a revised work product for further review.
 
@@ -281,7 +361,8 @@ class PeerReview:
             send_message=self.send_message,
             acceptance_criteria=self.acceptance_criteria,
             quality_metrics=self.quality_metrics,
-            previous_review=self
+            team=self.team,
+            previous_review=self,
         )
 
         return new_review
@@ -305,7 +386,11 @@ class PeerReview:
 
         # Check quality score against a threshold
         quality_threshold = 0.7  # Configurable threshold
-        if hasattr(self, 'quality_score') and self.quality_score < quality_threshold and approved:
+        if (
+            hasattr(self, "quality_score")
+            and self.quality_score < quality_threshold
+            and approved
+        ):
             # If quality score is low but no revision was requested yet,
             # suggest revision instead of rejection
             if self.status != "revision_requested" and not self.revision:
@@ -330,14 +415,18 @@ class PeerReview:
         # Add reasons for rejection if applicable
         if self.status == "rejected" and self.acceptance_criteria:
             criteria_results = feedback.get("criteria_results", {})
-            reasons = [f"{criterion}: Failed" for criterion, passed in criteria_results.items() if not passed]
+            reasons = [
+                f"{criterion}: Failed"
+                for criterion, passed in criteria_results.items()
+                if not passed
+            ]
             result["reasons"] = reasons
 
         # Include revision history
         if self.revision_history:
             result["revisions"] = {
                 "count": len(self.revision_history),
-                "history": self.revision_history
+                "history": self.revision_history,
             }
 
         # Include previous review reference
@@ -348,11 +437,13 @@ class PeerReview:
             revision_chain = []
             current_review = self
             while current_review.previous_review:
-                revision_chain.append({
-                    "review_id": current_review.previous_review.review_id,
-                    "status": current_review.previous_review.status,
-                    "quality_score": current_review.previous_review.quality_score
-                })
+                revision_chain.append(
+                    {
+                        "review_id": current_review.previous_review.review_id,
+                        "status": current_review.previous_review.status,
+                        "quality_score": current_review.previous_review.quality_score,
+                    }
+                )
                 current_review = current_review.previous_review
 
             if revision_chain:
@@ -361,6 +452,9 @@ class PeerReview:
         # Add dialectical analysis if available in the feedback
         if isinstance(feedback, dict) and "dialectical_analysis" in feedback:
             result["dialectical_analysis"] = feedback["dialectical_analysis"]
+
+        if self.consensus_result:
+            result["consensus"] = self.consensus_result
 
         return result
 
@@ -376,6 +470,7 @@ class PeerReviewWorkflow:
     acceptance_criteria: Optional[List[str]] = None
     quality_metrics: Optional[Dict[str, Any]] = None
     max_revision_cycles: int = 3
+    team: Optional[Any] = None
 
     def run(self) -> Dict[str, Any]:
         """
@@ -391,6 +486,7 @@ class PeerReviewWorkflow:
             send_message=self.send_message,
             acceptance_criteria=self.acceptance_criteria,
             quality_metrics=self.quality_metrics,
+            team=self.team,
         )
 
         review.assign_reviews()
@@ -405,7 +501,9 @@ class PeerReviewWorkflow:
         current_review = review
 
         # Continue revision cycles until criteria pass or max cycles reached
-        while (not all_criteria_passed or quality_score < 0.7) and revision_count < self.max_revision_cycles:
+        while (
+            not all_criteria_passed or quality_score < 0.7
+        ) and revision_count < self.max_revision_cycles:
             current_review.request_revision()
 
             # In a real implementation, this would involve getting the revised work product
@@ -413,7 +511,7 @@ class PeerReviewWorkflow:
             revised_work = {
                 "original": current_review.work_product,
                 "revision": f"Revision {revision_count + 1}",
-                "improvements": "Addressed reviewer feedback"
+                "improvements": "Addressed reviewer feedback",
             }
 
             # Create a new review for the revision
@@ -437,7 +535,7 @@ class PeerReviewWorkflow:
             "revision_cycles": revision_count,
             "max_revision_cycles": self.max_revision_cycles,
             "final_quality_score": quality_score,
-            "all_criteria_passed": all_criteria_passed
+            "all_criteria_passed": all_criteria_passed,
         }
 
         return result
@@ -451,6 +549,7 @@ def run_peer_review(
     acceptance_criteria: Optional[List[str]] = None,
     quality_metrics: Optional[Dict[str, Any]] = None,
     max_revision_cycles: int = 3,
+    team: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
     Convenience function to execute a full peer review with quality metrics.
@@ -463,6 +562,7 @@ def run_peer_review(
         acceptance_criteria: Optional list of criteria the work must meet
         quality_metrics: Optional dictionary of quality metrics to evaluate
         max_revision_cycles: Maximum number of revision cycles allowed
+        team: Optional WSDETeam for consensus building and role management
 
     Returns:
         Dict containing the final review results
@@ -475,5 +575,6 @@ def run_peer_review(
         acceptance_criteria=acceptance_criteria,
         quality_metrics=quality_metrics,
         max_revision_cycles=max_revision_cycles,
+        team=team,
     )
     return workflow.run()
