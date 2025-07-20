@@ -277,7 +277,7 @@ description = "Read/rewrite/write Python ASTs"
 optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
 groups = ["main"]
-markers = "extra == \"minimal\""
+markers = "extra == \"minimal\" or extra == \"tests\""
 files = [
     {file = "astor-0.8.1-py2.py3-none-any.whl", hash = "sha256:070a54e890cefb5b3739d19f30f5a5ec840ffc9c50ffa7d23cc9fc1a38ebbfc5"},
     {file = "astor-0.8.1.tar.gz", hash = "sha256:6a6effda93f4e1ce9f618779b2dd1d9d84f1e32812c23a29b3fff6fd7f63fa5e"},
@@ -1244,7 +1244,7 @@ description = "DuckDB in-process database"
 optional = true
 python-versions = ">=3.7.0"
 groups = ["main"]
-markers = "extra == \"minimal\" or extra == \"memory\""
+markers = "extra == \"minimal\" or extra == \"memory\" or extra == \"tests\""
 files = [
     {file = "duckdb-1.3.2-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:14676651b86f827ea10bf965eec698b18e3519fdc6266d4ca849f5af7a8c315e"},
     {file = "duckdb-1.3.2-cp310-cp310-macosx_12_0_universal2.whl", hash = "sha256:e584f25892450757919639b148c2410402b17105bd404017a57fa9eec9c98919"},
@@ -1403,7 +1403,7 @@ description = "FastAPI framework, high performance, easy to learn, fast to code,
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"api\""
+markers = "extra == \"api\" or extra == \"tests\""
 files = [
     {file = "fastapi-0.115.14-py3-none-any.whl", hash = "sha256:6c0c8bf9420bd58f565e585036d971872472b4f7d3f6c73b698e10cffdefb3ca"},
     {file = "fastapi-0.115.14.tar.gz", hash = "sha256:b1de15cdc1c499a4da47914db35d0e4ef8f1ce62b624e94e0e5824421df99739"},
@@ -2831,7 +2831,7 @@ description = "Universal Python binding for the LMDB 'Lightning' Database"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"minimal\" or extra == \"memory\""
+markers = "extra == \"minimal\" or extra == \"memory\" or extra == \"tests\""
 files = [
     {file = "lmdb-1.7.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b0a0272678543113f7bfe0e859417b4b7f4b8f394bc2436e805b4bc2e114415b"},
     {file = "lmdb-1.7.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:7a51b8d293a1beaeb52d400137d543bdfa27bbe344a0c853e161179bb45ab58e"},
@@ -6588,7 +6588,7 @@ description = "The little ASGI library that shines."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"api\""
+markers = "extra == \"api\" or extra == \"tests\""
 files = [
     {file = "starlette-0.46.2-py3-none-any.whl", hash = "sha256:595633ce89f8ffa71a015caed34a5b2dc1c0cdb3f0f1fbd1e69339cf2abeec35"},
     {file = "starlette-0.46.2.tar.gz", hash = "sha256:7f7361f34eed179294600af672f565727419830b54b7b084efe44bb82d2fccd5"},
@@ -8029,9 +8029,10 @@ lmstudio = ["lmstudio"]
 memory = ["chromadb", "duckdb", "faiss-cpu", "kuzu", "lmdb", "numpy", "tinydb"]
 minimal = ["astor", "duckdb", "httpx", "langgraph", "lmdb", "networkx", "pydantic", "pydantic-settings", "pyyaml", "rdflib", "requests", "rich", "tiktoken", "tinydb", "toml", "typer"]
 retrieval = ["faiss-cpu", "kuzu"]
+tests = ["astor", "duckdb", "fastapi", "httpx", "lmdb", "tinydb"]
 webui = ["streamlit"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.12"
-content-hash = "aa453bda87d3f2fd2a0f3dfb32a2d983eeb4888d2e4889e29762e1fde002c2c1"
+content-hash = "d522c19998f2b853ad510704dc317fffd86ec7a674fc3d4569d45e6a3888740a"

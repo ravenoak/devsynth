@@ -252,15 +252,14 @@ The test environment relies on [`scripts/codex_setup.sh`](../scripts/codex_setup
 Before running tests, you **must** install DevSynth with the development extras:
 
 ```bash
-poetry install --all-extras --with dev,docs
+poetry install --with dev,docs --all-extras
 poetry shell
 ```
 
-For a minimal install you can use:
+For a lightweight setup that skips GPU/LLM libraries use:
 
 ```bash
-poetry install --with dev,docs --extras retrieval
-poetry sync --all-extras --all-groups
+poetry install --with dev --extras tests
 ```
 
 Optional backends such as **ChromaDB**, **FAISS**, or **LMDB** require extra packages:
