@@ -13,7 +13,10 @@ import json
 import uuid
 from typing import Any, Dict, List, Optional
 
-import numpy as np
+try:  # pragma: no cover - optional dependency
+    import numpy as np
+except Exception:  # pragma: no cover - optional dependency
+    np = None
 
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
@@ -86,11 +89,21 @@ class KuzuAdapter(VectorStore):
     def similarity_search(
         self, query_embedding: List[float], top_k: int = 5
     ) -> List[MemoryVector]:
+        """Return vectors most similar to the query embedding."""
         results = []
-        q = np.array(query_embedding, dtype=float)
-        for vec in self._store.values():
-            dist = float(np.linalg.norm(q - np.array(vec.embedding, dtype=float)))
-            results.append((dist, vec))
+        if np is not None:
+            q = np.array(query_embedding, dtype=float)
+            for vec in self._store.values():
+                dist = float(np.linalg.norm(q - np.array(vec.embedding, dtype=float)))
+                results.append((dist, vec))
+        else:  # pragma: no cover - extremely rare fallback
+
+            def _distance(a: List[float], b: List[float]) -> float:
+                return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
+
+            for vec in self._store.values():
+                dist = _distance(query_embedding, vec.embedding)
+                results.append((dist, vec))
         results.sort(key=lambda x: x[0])
         return [v for _, v in results[:top_k]]
 

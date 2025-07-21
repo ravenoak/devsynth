@@ -36,34 +36,93 @@ from typing import Any, Callable, Optional, Sequence, TypeVar
 from unittest.mock import MagicMock
 
 import streamlit as st
-from devsynth.application.cli import (
-    code_cmd,
-    config_cmd,
-    init_cmd,
-    inspect_cmd,
-    run_pipeline_cmd,
-    spec_cmd,
-    test_cmd,
-)
-from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
-from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
-from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
-from devsynth.application.cli.commands.align_cmd import align_cmd
-from devsynth.application.cli.commands.alignment_metrics_cmd import (
-    alignment_metrics_cmd,
-)
-from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
-from devsynth.application.cli.commands.validate_manifest_cmd import (
-    validate_manifest_cmd,
-)
-from devsynth.application.cli.commands.validate_metadata_cmd import (
-    validate_metadata_cmd,
-)
-from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
-from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
-from devsynth.application.cli.ingest_cmd import ingest_cmd
-from devsynth.application.cli.apispec import apispec_cmd
-from devsynth.application.cli.setup_wizard import SetupWizard
+
+# ``webui`` is imported in several unit tests with a partially mocked
+# :mod:`devsynth.application.cli` module. Direct imports would raise
+# :class:`ImportError` when the expected attributes are missing. To make the
+# module resilient to such scenarios we attempt the import defensively and
+# fall back to ``None`` for any unavailable command.
+try:  # pragma: no cover - optional dependency handling
+    import importlib
+
+    _cli_mod = importlib.import_module("devsynth.application.cli")  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    _cli_mod = None
+
+if _cli_mod:
+    code_cmd = getattr(_cli_mod, "code_cmd", None)
+    config_cmd = getattr(_cli_mod, "config_cmd", None)
+    init_cmd = getattr(_cli_mod, "init_cmd", None)
+    inspect_cmd = getattr(_cli_mod, "inspect_cmd", None)
+    run_pipeline_cmd = getattr(_cli_mod, "run_pipeline_cmd", None)
+    spec_cmd = getattr(_cli_mod, "spec_cmd", None)
+    test_cmd = getattr(_cli_mod, "test_cmd", None)
+else:  # pragma: no cover - optional dependency
+    code_cmd = None
+    config_cmd = None
+    init_cmd = None
+    inspect_cmd = None
+    run_pipeline_cmd = None
+    spec_cmd = None
+    test_cmd = None
+try:  # pragma: no cover - optional dependency handling
+    from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
+except Exception:  # pragma: no cover - optional dependency
+    inspect_code_cmd = None
+try:
+    from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
+except Exception:  # pragma: no cover - optional dependency
+    doctor_cmd = None
+try:
+    from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
+except Exception:  # pragma: no cover - optional dependency
+    edrr_cycle_cmd = None
+try:
+    from devsynth.application.cli.commands.align_cmd import align_cmd
+except Exception:  # pragma: no cover - optional dependency
+    align_cmd = None
+try:
+    from devsynth.application.cli.commands.alignment_metrics_cmd import (
+        alignment_metrics_cmd,
+    )
+except Exception:  # pragma: no cover - optional dependency
+    alignment_metrics_cmd = None
+try:
+    from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
+except Exception:  # pragma: no cover - optional dependency
+    inspect_config_cmd = None
+try:
+    from devsynth.application.cli.commands.validate_manifest_cmd import (
+        validate_manifest_cmd,
+    )
+except Exception:  # pragma: no cover - optional dependency
+    validate_manifest_cmd = None
+try:
+    from devsynth.application.cli.commands.validate_metadata_cmd import (
+        validate_metadata_cmd,
+    )
+except Exception:  # pragma: no cover - optional dependency
+    validate_metadata_cmd = None
+try:
+    from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
+except Exception:  # pragma: no cover - optional dependency
+    test_metrics_cmd = None
+try:
+    from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
+except Exception:  # pragma: no cover - optional dependency
+    generate_docs_cmd = None
+try:
+    from devsynth.application.cli.ingest_cmd import ingest_cmd
+except Exception:  # pragma: no cover - optional dependency
+    ingest_cmd = None
+try:
+    from devsynth.application.cli.apispec import apispec_cmd
+except Exception:  # pragma: no cover - optional dependency
+    apispec_cmd = None
+try:
+    from devsynth.application.cli.setup_wizard import SetupWizard
+except Exception:  # pragma: no cover - optional dependency
+    SetupWizard = None
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
@@ -684,7 +743,8 @@ class WebUI(UXBridge):
                                 requirements_file=req_file,
                                 bridge=self,
                             )
-        st.divider()
+        if hasattr(st, "divider"):
+            st.divider()
         with st.expander("Inspect Requirements", expanded=True):
             with st.form("inspect"):
                 input_file = st.text_input("Inspect File", "requirements.md")
@@ -707,7 +767,8 @@ class WebUI(UXBridge):
                                 interactive=False,
                                 bridge=self,
                             )
-        st.divider()
+        if hasattr(st, "divider"):
+            st.divider()
         with st.expander("Specification Editor", expanded=True):
             spec_path = st.text_input("Specification File", "specs.md")
             # Add validation for the spec path
@@ -761,9 +822,11 @@ class WebUI(UXBridge):
                     st.markdown(content)
                 except Exception as e:
                     st.error(f"Error saving specification: {str(e)}")
-        st.divider()
+        if hasattr(st, "divider"):
+            st.divider()
         self._requirements_wizard()
-        st.divider()
+        if hasattr(st, "divider"):
+            st.divider()
         self._gather_wizard()
 
     def _requirements_wizard(self) -> None:
@@ -899,7 +962,8 @@ class WebUI(UXBridge):
                                 bridge=self,
                             )
 
-        st.divider()
+        if hasattr(st, "divider"):
+            st.divider()
         with st.expander("Execute Code Generation", expanded=True):
             if st.button("Generate Code"):
                 with st.spinner("Generating code..."):

@@ -49,3 +49,22 @@ def test_persistence_between_instances_succeeds():
     retrieved = adapter2.retrieve_vector("v1")
     shutil.rmtree(temp_dir)
     assert retrieved is not None
+
+
+def test_similarity_search_without_numpy_succeeds(monkeypatch, tmp_path):
+    """Fallback distance calculation should work without NumPy."""
+    import importlib
+    import devsynth.adapters.memory.kuzu_adapter as kuzu_adapter
+
+    monkeypatch.setattr(kuzu_adapter, "np", None)
+    importlib.reload(kuzu_adapter)
+
+    adapter = kuzu_adapter.KuzuAdapter(str(tmp_path))
+    vectors = [
+        MemoryVector(id=f"v{i}", content="x", embedding=[float(i)] * 3)
+        for i in range(3)
+    ]
+    for v in vectors:
+        adapter.store_vector(v)
+    res = adapter.similarity_search([0.0, 0.0, 0.0], top_k=1)
+    assert res[0].id == "v0"
