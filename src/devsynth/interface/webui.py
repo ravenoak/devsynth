@@ -85,7 +85,10 @@ class WebUI(UXBridge):
             A dictionary with layout configuration parameters.
         """
         # Get screen width from session state or use default
-        screen_width = getattr(st.session_state, "screen_width", 1200)
+        session_state = getattr(st, "session_state", None)
+        screen_width = (
+            getattr(session_state, "screen_width", 1200) if session_state else 1200
+        )
 
         # Define layout configurations for different screen sizes
         if screen_width < 768:  # Mobile
@@ -579,9 +582,7 @@ class WebUI(UXBridge):
             progress_pct = min(1.0, subtask["current"] / subtask["total"])
 
             # Update status text with indentation, description and percentage
-            status_text = (
-                f"&nbsp;&nbsp;&nbsp;&nbsp;**{subtask['description']}** - {int(progress_pct * 100)}%"
-            )
+            status_text = f"&nbsp;&nbsp;&nbsp;&nbsp;**{subtask['description']}** - {int(progress_pct * 100)}%"
             containers["container"].markdown(status_text)
 
             # Update progress bar
@@ -625,9 +626,7 @@ class WebUI(UXBridge):
             subtask = self._subtasks[task_id]
             containers = self._subtask_containers.get(task_id)
             if containers:
-                containers["container"].success(
-                    f"Completed: {subtask['description']}"
-                )
+                containers["container"].success(f"Completed: {subtask['description']}")
 
     def create_progress(
         self, description: str, *, total: int = 100
@@ -799,9 +798,7 @@ class WebUI(UXBridge):
                     "type": data["type"],
                     "priority": data["priority"],
                     "constraints": [
-                        c.strip()
-                        for c in data["constraints"].split(",")
-                        if c.strip()
+                        c.strip() for c in data["constraints"].split(",") if c.strip()
                     ],
                 }
                 with open("requirements_wizard.json", "w", encoding="utf-8") as f:
@@ -1436,7 +1433,14 @@ class WebUI(UXBridge):
     # ------------------------------------------------------------------
     def run(self) -> None:
         """Run the Streamlit application."""
-        st.set_page_config(page_title="DevSynth WebUI", layout="wide")
+        try:
+            st.set_page_config(page_title="DevSynth WebUI", layout="wide")
+        except Exception as exc:  # noqa: BLE001
+            try:
+                self.display_result(f"ERROR: {exc}")
+            except Exception:
+                raise exc
+            return
 
         # Add JavaScript to detect screen width and store in session state
         js_code = """
@@ -1462,12 +1466,25 @@ class WebUI(UXBridge):
         window.addEventListener('resize', updateScreenWidth);
         </script>
         """
-        st.components.v1.html(js_code, height=0)
+        components = getattr(st, "components", None)
+        html_fn = None
+        if components and hasattr(components, "v1"):
+            html_fn = getattr(components.v1, "html", None)
+        if callable(html_fn):
+            try:
+                html_fn(js_code, height=0)
+            except Exception as exc:  # noqa: BLE001
+                try:
+                    self.display_result(f"ERROR: {exc}")
+                except Exception:
+                    raise exc
+                return
 
         # Get screen dimensions from component value
-        if "screen_width" not in st.session_state:
-            st.session_state.screen_width = 1200
-            st.session_state.screen_height = 800
+        if getattr(st, "session_state", None) is not None:
+            if "screen_width" not in st.session_state:
+                st.session_state.screen_width = 1200
+                st.session_state.screen_height = 800
 
         # Apply layout configuration based on screen size
         layout_config = self.get_layout_config()
@@ -1523,14 +1540,17 @@ class WebUI(UXBridge):
             }}
         </style>
         """
-        st.markdown(custom_css, unsafe_allow_html=True)
+        markdown_fn = getattr(st, "markdown", lambda *a, **k: None)
+        markdown_fn(custom_css, unsafe_allow_html=True)
 
         # Apply branding
-        st.sidebar.title("DevSynth")
-        st.sidebar.markdown(
-            '<div class="devsynth-secondary" style="font-size: 0.8rem; margin-bottom: 2rem;">Intelligent Software Development</div>',
-            unsafe_allow_html=True,
-        )
+        if getattr(st.sidebar, "title", None):
+            st.sidebar.title("DevSynth")
+        if getattr(st.sidebar, "markdown", None):
+            st.sidebar.markdown(
+                '<div class="devsynth-secondary" style="font-size: 0.8rem; margin-bottom: 2rem;">Intelligent Software Development</div>',
+                unsafe_allow_html=True,
+            )
 
         # Navigation with responsive layout
         nav_items = {
@@ -1557,10 +1577,27 @@ class WebUI(UXBridge):
             "Diagnostics": self.diagnostics_page,
         }
 
-        nav = st.sidebar.radio("Navigation", list(nav_items))
+        try:
+            nav = st.sidebar.radio("Navigation", list(nav_items))
+        except Exception as exc:  # noqa: BLE001
+            try:
+                self.display_result(f"ERROR: {exc}")
+            except Exception:
+                raise exc
+            return
+
         page_func = nav_items.get(nav)
-        if page_func:
+        if page_func is None:
+            self.display_result("ERROR: Invalid navigation option")
+            return
+
+        try:
             page_func()
+        except Exception as exc:  # noqa: BLE001
+            try:
+                self.display_result(f"ERROR: {exc}")
+            except Exception:
+                raise exc
 
 
 def run() -> None:
