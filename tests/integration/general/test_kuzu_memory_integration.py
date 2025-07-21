@@ -47,3 +47,13 @@ def test_kuzu_memory_vector_integration_succeeds(temp_dir):
     results = adapter.vector_store.similarity_search([0.1, 0.2, 0.3], top_k=1)
     assert results
     assert results[0].id == item_id
+
+
+def test_create_for_testing_with_kuzu(temp_dir):
+    adapter = MemorySystemAdapter.create_for_testing(
+        storage_type="kuzu", memory_path=temp_dir
+    )
+    assert adapter.storage_type == "kuzu"
+    assert adapter.memory_store is not None
+    assert adapter.context_manager is not None
+    assert adapter.vector_store is not None
