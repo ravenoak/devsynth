@@ -509,3 +509,52 @@ def test_provider_with_empty_inputs_has_expected():
         provider = LMStudioProvider()
         result = provider.complete("")
         assert result == "Empty prompt response"
+
+
+def test_provider_factory_injected_config_selects_provider():
+    """ProviderFactory should respect injected configuration."""
+    custom_config = {
+        "default_provider": "openai",
+        "openai": {"api_key": "x", "model": "gpt-4", "base_url": "http://api"},
+        "lmstudio": {"endpoint": "http://lm", "model": "default"},
+        "retry": {
+            "max_retries": 1,
+            "initial_delay": 0,
+            "exponential_base": 2,
+            "max_delay": 1,
+            "jitter": False,
+        },
+    }
+    provider = ProviderFactory.create_provider("openai", config=custom_config)
+    assert isinstance(provider, OpenAIProvider)
+    provider = ProviderFactory.create_provider("lmstudio", config=custom_config)
+    assert isinstance(provider, LMStudioProvider)
+    provider = ProviderFactory.create_provider(config=custom_config)
+    assert isinstance(provider, OpenAIProvider)
+
+
+def test_fallback_provider_respects_order(monkeypatch):
+    """FallbackProvider should instantiate providers based on order."""
+    created: list[str] = []
+
+    class FakeFactory:
+        @staticmethod
+        def create_provider(provider_type: str, **kwargs):
+            created.append(provider_type)
+            return MagicMock(spec=BaseProvider)
+
+    config = {
+        "fallback": {"enabled": True, "order": ["openai", "lmstudio"]},
+        "circuit_breaker": {"enabled": False},
+        "retry": {
+            "max_retries": 1,
+            "initial_delay": 0,
+            "exponential_base": 2,
+            "max_delay": 1,
+            "jitter": False,
+        },
+    }
+
+    fallback = FallbackProvider(config=config, provider_factory=FakeFactory)
+    assert created == ["openai", "lmstudio"]
+    assert len(fallback.providers) == 2
