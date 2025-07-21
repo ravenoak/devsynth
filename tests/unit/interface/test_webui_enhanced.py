@@ -23,6 +23,11 @@ def _mock_streamlit():
     st.container = MagicMock()
     st.container.return_value.__enter__ = MagicMock(return_value=MagicMock())
     st.container.return_value.__exit__ = MagicMock(return_value=None)
+    st.set_page_config = MagicMock()
+    st.components = ModuleType('components')
+    st.components.v1 = ModuleType('v1')
+    st.components.v1.html = MagicMock()
+    st.session_state = {}
     return st
 
 
