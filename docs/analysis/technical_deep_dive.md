@@ -534,5 +534,5 @@ The platform is well-positioned for successful deployment with minor improvement
 ## Implementation Status
 
 Most recommendations have been applied, but security and performance improvements
-remain **partially implemented**. See [issue #102](https://github.com/ravenoak/devsynth/issues/102)
+remain **partially implemented**. See [issue 102](../../issues/102.md)
 for the outstanding work.

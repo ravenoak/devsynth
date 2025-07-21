@@ -113,4 +113,4 @@ graph LR
 ## Implementation Status
 
 This improvement plan is **planned** and partially implemented. Remaining tasks
-are tracked in [issue #102](https://github.com/ravenoak/devsynth/issues/102).
+are tracked in [issue 102](../../issues/102.md).

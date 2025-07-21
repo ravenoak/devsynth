@@ -1090,4 +1090,4 @@ The roadmap balances ambitious goals with practical implementation steps, ensuri
 ## Implementation Status
 
 Execution of this roadmap is **in progress**. Key deliverables are tracked in
-[issue #102](https://github.com/ravenoak/devsynth/issues/102) and related issues.
+[issue 102](../../issues/102.md) and related issues.
