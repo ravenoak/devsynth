@@ -16,6 +16,7 @@ This document tracks high-level progress on the DevSynth roadmap. Refer to
 - Test coverage analysis and additional tests.
 - Maintenance strategy: documentation review process, CI/CD integration,
   traceability enforcement, and BDD-first development.
+- Resolve failing WebUI and EDRR tests.
 - Implement maintenance strategy.
 - Continue feature development according to the roadmap.
 

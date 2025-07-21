@@ -399,6 +399,15 @@ memory system. Planned fixes include refining the wizard navigation logic and
 adjusting initialization steps for the Kuzu vector store. Progress will be
 tracked in upcoming sprint reports.
 
+### Test Failure Summary
+
+The latest run shows **261 failing tests** out of over 1900 total. The bulk of
+failures stem from the WebUI requirements wizard and related onboarding pages
+(see issue #102). Several BDD scenarios for the EDRR coordinator also fail due
+to missing step definitions (see issue #104). Refer to the
+[Feature Status Matrix](../implementation/feature_status_matrix.md) for a list
+of features marked **partial** that correspond to these failing tests.
+
 
 ## Maintenance Strategy
 
