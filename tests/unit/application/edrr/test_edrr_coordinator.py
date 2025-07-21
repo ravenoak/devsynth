@@ -296,6 +296,7 @@ ReqID: N/A"""
 ReqID: N/A"""
         coordinator.task = {'description': 'Test Task'}
         coordinator.cycle_id = 'test-cycle-id'
+        coordinator._historical_data = []
         with patch.object(coordinator, '_execute_expand_phase'):
             coordinator.progress_to_phase(Phase.EXPAND)
             assert coordinator.current_phase == Phase.EXPAND
@@ -479,3 +480,15 @@ ReqID: N/A"""
         with pytest.raises(EDRRCoordinatorError):
             coordinator.create_micro_cycle(micro_task, Phase.EXPAND)
         assert not coordinator.child_cycles
+
+    def test_safe_retrieve_always_returns_dict_for_list(self, coordinator):
+        """_safe_retrieve_with_edrr_phase converts list results to a dict."""
+        coordinator.memory_manager.retrieve_with_edrr_phase.side_effect = None
+        coordinator.memory_manager.retrieve_with_edrr_phase.return_value = [1, 2]
+        result = coordinator._safe_retrieve_with_edrr_phase(
+            MemoryType.SOLUTION.value,
+            Phase.EXPAND.value,
+            {"cycle_id": "cid"},
+        )
+        assert isinstance(result, dict)
+        assert result == {"items": [1, 2]}
