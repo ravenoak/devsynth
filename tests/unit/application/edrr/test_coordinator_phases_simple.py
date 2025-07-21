@@ -44,6 +44,7 @@ def test_progress_to_phase_runs_succeeds(coordinator):
 ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
+    coordinator._historical_data = []
     with patch.object(coordinator, '_execute_expand_phase', return_value={
         'done': True}) as ex:
         coordinator.progress_to_phase(Phase.EXPAND)

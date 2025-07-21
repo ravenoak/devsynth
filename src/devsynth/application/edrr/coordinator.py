@@ -218,9 +218,20 @@ class EDRRCoordinator:
 
         try:
             if hasattr(self.memory_manager, "retrieve_with_edrr_phase"):
-                return self.memory_manager.retrieve_with_edrr_phase(
+                result = self.memory_manager.retrieve_with_edrr_phase(
                     item_type, edrr_phase, metadata
                 )
+                if isinstance(result, list):
+                    return {"items": result}
+                if isinstance(result, dict):
+                    return result
+                if result is None:
+                    return {}
+                logger.warning(
+                    "Unexpected result type %s from retrieve_with_edrr_phase",
+                    type(result),
+                )
+                return {"items": [result]}
             else:
                 logger.warning(
                     "Memory manager does not support retrieve_with_edrr_phase"
