@@ -3,11 +3,11 @@ set -exo pipefail
 # Use Python 3.12 if available, otherwise fall back to Python 3.11
 poetry env use "$(command -v python3.12 || command -v python3.11)"
 
-# Install dependencies. Use --minimal to avoid heavy extras.
+# Install dependencies. Use --minimal to skip docs but still include all extras.
 if [[ "$1" == "--minimal" ]]; then
   poetry install \
     --with dev \
-    --extras tests \
+    --all-extras \
     --no-interaction
 else
   # Install all optional extras along with the dev and docs dependency groups.
