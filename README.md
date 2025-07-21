@@ -214,6 +214,15 @@ After installation, execute the tests with:
 poetry run pytest
 ```
 
+You can also use the helper script `scripts/run_all_tests.py` to run the entire
+suite or specific groups of tests and optionally generate an HTML report:
+
+```bash
+./scripts/run_all_tests.py         # run all tests
+./scripts/run_all_tests.py --unit  # run only unit tests
+./scripts/run_all_tests.py --report  # generate HTML report under test_reports/
+```
+
 See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
 
 ## Documentation Structure
