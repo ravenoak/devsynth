@@ -992,6 +992,15 @@ class GraphMemoryAdapter(MemoryStore):
                 other_store, "retrieve_vector"
             )
 
+            if has_vector_store_methods and hasattr(
+                other_store, "get_collection_stats"
+            ):
+                try:
+                    stats = other_store.get_collection_stats()
+                    logger.info(f"Vector store stats before integration: {stats}")
+                except Exception as e:  # pragma: no cover - logging
+                    logger.warning(f"Failed to retrieve vector store stats: {e}")
+
             if has_vector_store_methods and self.use_rdflib_store and self.rdflib_store:
                 # Import vectors from the other store
                 if sync_mode in ["import", "bidirectional"]:
