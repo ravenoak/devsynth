@@ -59,7 +59,7 @@ class EnhancedHelpFormatter(click.HelpFormatter):
         super().__init__(*args, **kwargs)
         self.console = Console(theme=DEVSYNTH_THEME)
 
-    def write_usage(self, prog, args='', prefix='Usage: '):
+    def write_usage(self, prog, args="", prefix="Usage: "):
         """Write the usage line with enhanced formatting."""
         usage_text = f"{prefix}{prog} {args}"
 
@@ -103,12 +103,14 @@ class EnhancedHelpFormatter(click.HelpFormatter):
 class CommandHelp:
     """Container for enhanced command help information."""
 
-    def __init__(self, 
-                 summary: str, 
-                 description: str = None, 
-                 examples: List[Dict[str, str]] = None,
-                 notes: List[str] = None,
-                 options: Dict[str, str] = None):
+    def __init__(
+        self,
+        summary: str,
+        description: str = None,
+        examples: List[Dict[str, str]] = None,
+        notes: List[str] = None,
+        options: Dict[str, str] = None,
+    ):
         """Initialize the command help.
 
         Args:
@@ -139,7 +141,7 @@ class CommandHelp:
             parts.append("\nExamples:")
             for example in self.examples:
                 parts.append(f"  $ {example['command']}")
-                if 'description' in example:
+                if "description" in example:
                     parts.append(f"      {example['description']}")
 
         if self.notes:
@@ -169,36 +171,33 @@ def build_app() -> typer.Typer:
         examples=[
             {
                 "command": "devsynth init",
-                "description": "Initialize a new project in the current directory"
+                "description": "Initialize a new project in the current directory",
             },
             {
                 "command": "devsynth spec --requirements-file requirements.md",
-                "description": "Generate specifications from requirements"
+                "description": "Generate specifications from requirements",
             },
             {
                 "command": "devsynth test --spec-file specs.md",
-                "description": "Generate tests from specifications"
+                "description": "Generate tests from specifications",
             },
-            {
-                "command": "devsynth code",
-                "description": "Generate code from tests"
-            },
+            {"command": "devsynth code", "description": "Generate code from tests"},
             {
                 "command": "devsynth run-pipeline --target unit-tests",
-                "description": "Execute the generated code"
-            }
+                "description": "Execute the generated code",
+            },
         ],
         notes=[
             "Only the embedded ChromaDB backend is currently supported.",
             "Use 'devsynth <command> --help' for more information on a specific command.",
-            "Configuration can be managed with 'devsynth config' commands."
-        ]
+            "Configuration can be managed with 'devsynth config' commands.",
+        ],
     )
 
     # Create the Typer app with enhanced help
     app = typer.Typer(
         help=main_help.format(),
-        context_settings={"help_option_names": ["--help", "-h"]}
+        context_settings={"help_option_names": ["--help", "-h"]},
     )
 
     # Mount the requirements sub-app
@@ -218,21 +217,19 @@ def build_app() -> typer.Typer:
         examples=[
             {
                 "command": "devsynth init",
-                "description": "Initialize a project with default settings in the current directory"
+                "description": "Initialize a project with default settings in the current directory",
             },
             {
                 "command": "devsynth init --wizard",
-                "description": "Start the interactive setup wizard for guided project initialization"
-            }
+                "description": "Start the interactive setup wizard for guided project initialization",
+            },
         ],
         notes=[
             "If a project is already initialized in the current directory, the command will notify you.",
             "The wizard mode provides a step-by-step guide to configure your project.",
-            "Configuration includes project language, goals, memory backend, and feature flags."
+            "Configuration includes project language, goals, memory backend, and feature flags.",
         ],
-        options={
-            "--wizard": "Enable interactive setup wizard mode"
-        }
+        options={"--wizard": "Enable interactive setup wizard mode"},
     )
     app.command(
         name="init",
@@ -250,22 +247,22 @@ def build_app() -> typer.Typer:
         examples=[
             {
                 "command": "devsynth spec",
-                "description": "Generate specifications from the default requirements.md file"
+                "description": "Generate specifications from the default requirements.md file",
             },
             {
                 "command": "devsynth spec --requirements-file custom_requirements.md",
-                "description": "Generate specifications from a custom requirements file"
-            }
+                "description": "Generate specifications from a custom requirements file",
+            },
         ],
         notes=[
             "The requirements file should be in Markdown format.",
             "The generated specifications will be saved to specs.md by default.",
             "The command will analyze the requirements for completeness and clarity.",
-            "You can review and edit the generated specifications before proceeding to the next step."
+            "You can review and edit the generated specifications before proceeding to the next step.",
         ],
         options={
             "--requirements-file": "Path to the requirements file (default: requirements.md)"
-        }
+        },
     )
     app.command(
         name="spec",
@@ -284,22 +281,20 @@ def build_app() -> typer.Typer:
         examples=[
             {
                 "command": "devsynth test",
-                "description": "Generate tests from the default specs.md file"
+                "description": "Generate tests from the default specs.md file",
             },
             {
                 "command": "devsynth test --spec-file custom_specs.md",
-                "description": "Generate tests from a custom specifications file"
-            }
+                "description": "Generate tests from a custom specifications file",
+            },
         ],
         notes=[
             "The specifications file should be in Markdown format.",
             "The generated tests will be saved to the appropriate test directories.",
             "The command will generate unit tests, integration tests, and behavior tests as appropriate.",
-            "You can review and edit the generated tests before proceeding to the next step."
+            "You can review and edit the generated tests before proceeding to the next step.",
         ],
-        options={
-            "--spec-file": "Path to the specifications file (default: specs.md)"
-        }
+        options={"--spec-file": "Path to the specifications file (default: specs.md)"},
     )
     app.command(
         name="test",
@@ -318,20 +313,17 @@ def build_app() -> typer.Typer:
         examples=[
             {
                 "command": "devsynth code",
-                "description": "Generate code from the existing test files"
+                "description": "Generate code from the existing test files",
             }
         ],
         notes=[
             "The command will analyze all test files in the project.",
             "The generated code will be saved to the appropriate source directories.",
             "The command uses the EDRR methodology to iteratively improve the code.",
-            "You can review and edit the generated code before running the tests."
-        ]
+            "You can review and edit the generated code before running the tests.",
+        ],
     )
-    app.command(
-        name="code", 
-        help=code_help.format()
-    )(code_cmd)
+    app.command(name="code", help=code_help.format())(code_cmd)
     # Run-pipeline command
     run_pipeline_help = CommandHelp(
         summary="Execute the generated code and run tests",
@@ -344,30 +336,30 @@ def build_app() -> typer.Typer:
         examples=[
             {
                 "command": "devsynth run-pipeline",
-                "description": "Run all tests in the project"
+                "description": "Run all tests in the project",
             },
             {
                 "command": "devsynth run-pipeline --target unit-tests",
-                "description": "Run only unit tests"
+                "description": "Run only unit tests",
             },
             {
                 "command": "devsynth run-pipeline --target integration-tests",
-                "description": "Run only integration tests"
+                "description": "Run only integration tests",
             },
             {
                 "command": "devsynth run-pipeline --target behavior-tests",
-                "description": "Run only behavior tests"
-            }
+                "description": "Run only behavior tests",
+            },
         ],
         notes=[
             "The command will automatically build the project before running tests.",
             "Test results will be displayed in the console and saved to a report file.",
             "Failed tests will be highlighted with detailed error information.",
-            "You can use the test results to identify issues and improve the code."
+            "You can use the test results to identify issues and improve the code.",
         ],
         options={
             "--target": "Type of tests to run (unit-tests, integration-tests, behavior-tests, or all)"
-        }
+        },
     )
     app.command(
         name="run-pipeline",
@@ -503,10 +495,7 @@ def show_help() -> None:
 
     # Create a panel with the help text
     main_panel = Panel(
-        Markdown(help_text),
-        title="DevSynth CLI",
-        subtitle="v1.0",
-        border_style="cyan"
+        Markdown(help_text), title="DevSynth CLI", subtitle="v1.0", border_style="cyan"
     )
     console.print(main_panel)
 
@@ -515,7 +504,7 @@ def show_help() -> None:
         title="Available Commands",
         box=ROUNDED,
         show_header=True,
-        header_style="bold cyan"
+        header_style="bold cyan",
     )
     command_table.add_column("Command", style="green")
     command_table.add_column("Description", style="white")
@@ -525,16 +514,35 @@ def show_help() -> None:
         command_table.add_row(command.name, command.help or "")
 
     # Add rows for each subcommand group
-    for group in app.registered_groups:
+    groups = []
+    if hasattr(app, "registered_groups"):
+        groups = app.registered_groups
+    elif hasattr(app, "registered_typers"):
+        # Older Typer versions store tuples of (typer_instance, name)
+        for typer_instance, name in app.registered_typers:
+            groups.append(
+                type(
+                    "_GroupInfo",
+                    (),
+                    {
+                        "name": name,
+                        "typer_instance": typer_instance,
+                        "help": getattr(typer_instance.info, "help", ""),
+                    },
+                )()
+            )
+    for group in groups:
         command_table.add_row(
             f"{group.name} [subcommands]",
-            (group.help or group.typer_instance.info.help or "")
+            (getattr(group, "help", None) or group.typer_instance.info.help or ""),
         )
 
     console.print(command_table)
 
     # Add a note about getting more help
-    console.print("\n[bold blue]For more information on a specific command:[/bold blue]")
+    console.print(
+        "\n[bold blue]For more information on a specific command:[/bold blue]"
+    )
     console.print("  [green]devsynth [COMMAND] --help[/green]")
 
     # Provide a simple marker line for tests to assert
