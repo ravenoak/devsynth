@@ -157,6 +157,8 @@ class ProviderFactory:
         Raises:
             ProviderError: If provider creation fails
         """
+        # Reload provider configuration to respect updated environment variables
+        get_provider_config.cache_clear()
         config = config or get_provider_config()
         tls_settings = get_settings()
         tls_conf = tls_config or _create_tls_config(tls_settings)
@@ -164,8 +166,14 @@ class ProviderFactory:
         if provider_type is None:
             provider_type = config["default_provider"]
 
+        # Allow ProviderType enum values as well as strings
+        if isinstance(provider_type, ProviderType):
+            provider_type_value = provider_type.value
+        else:
+            provider_type_value = str(provider_type)
+
         try:
-            if provider_type.lower() == ProviderType.OPENAI.value:
+            if provider_type_value.lower() == ProviderType.OPENAI.value:
                 if not config["openai"]["api_key"]:
                     logger.warning(
                         "OpenAI API key not found; falling back to LM Studio if available"
@@ -179,7 +187,7 @@ class ProviderFactory:
                     tls_config=tls_conf,
                     retry_config=retry_config or config.get("retry"),
                 )
-            elif provider_type.lower() == ProviderType.LMSTUDIO.value:
+            elif provider_type_value.lower() == ProviderType.LMSTUDIO.value:
                 logger.info("Using LM Studio provider")
                 return LMStudioProvider(
                     endpoint=config["lmstudio"]["endpoint"],
@@ -248,6 +256,8 @@ class BaseProvider:
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate a completion from the LLM.
@@ -265,6 +275,16 @@ class BaseProvider:
             NotImplementedError: Must be implemented by subclasses
         """
         raise NotImplementedError("Subclasses must implement complete()")
+
+    def complete_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Generate a completion given a chat ``context``."""
+        raise NotImplementedError("Subclasses must implement complete_with_context()")
 
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
@@ -287,6 +307,8 @@ class BaseProvider:
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Asynchronous version of :meth:`complete`."""
         raise NotImplementedError("Subclasses must implement acomplete()")
@@ -349,6 +371,8 @@ class OpenAIProvider(BaseProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate a completion using OpenAI API.
@@ -367,13 +391,30 @@ class OpenAIProvider(BaseProvider):
         """
 
         # Define the actual API call function
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
+            frequency_penalty = parameters.get("frequency_penalty")
+            presence_penalty = parameters.get("presence_penalty")
+
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
         def _api_call():
             url = f"{self.base_url}/chat/completions"
 
-            messages = []
-            if system_prompt:
-                messages.append({"role": "system", "content": system_prompt})
-            messages.append({"role": "user", "content": prompt})
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
 
             payload = {
                 "model": self.model,
@@ -381,6 +422,13 @@ class OpenAIProvider(BaseProvider):
                 "temperature": temperature,
                 "max_tokens": max_tokens,
             }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens"}
+                }
+                payload.update(extra)
 
             response = requests.post(
                 url,
@@ -521,6 +569,26 @@ class OpenAIProvider(BaseProvider):
         except httpx.HTTPError as e:
             logger.error(f"OpenAI API error: {e}")
             raise ProviderError(f"OpenAI API error: {e}")
+
+    def complete_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Generate a completion using provided chat ``context`` messages."""
+        messages = list(context) + [{"role": "user", "content": prompt}]
+
+        system_msg = None
+        if messages and messages[0].get("role") == "system":
+            system_msg = messages.pop(0)["content"]
+
+        return self.complete(
+            prompt,
+            system_prompt=system_msg,
+            parameters={**(parameters or {}), "messages": messages},
+        )
 
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
@@ -708,6 +776,8 @@ class LMStudioProvider(BaseProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate a completion using LM Studio API.
@@ -726,19 +796,41 @@ class LMStudioProvider(BaseProvider):
         """
 
         # Define the actual API call function
-        def _api_call():
-            url = f"{self.endpoint}/v1/chat/completions"
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
 
-            messages = []
-            if system_prompt:
-                messages.append({"role": "system", "content": system_prompt})
-            messages.append({"role": "user", "content": prompt})
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
+        def _api_call():
+            url = f"{self.endpoint}/v1/completions"
+
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
 
             payload = {
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
             }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens", "messages"}
+                }
+                payload.update(extra)
 
             response = requests.post(
                 url,
@@ -750,11 +842,13 @@ class LMStudioProvider(BaseProvider):
             response_data = response.json()
 
             if "choices" in response_data and len(response_data["choices"]) > 0:
-                return response_data["choices"][0]["message"]["content"]
-            else:
-                raise ProviderError(
-                    f"Invalid LM Studio response format: {response_data}"
-                )
+                choice = response_data["choices"][0]
+                if isinstance(choice, dict):
+                    if "message" in choice and "content" in choice["message"]:
+                        return choice["message"]["content"]
+                    if "text" in choice:
+                        return choice["text"]
+            raise ProviderError(f"Invalid LM Studio response format: {response_data}")
 
         # Use retry with exponential backoff
         try:
@@ -781,19 +875,41 @@ class LMStudioProvider(BaseProvider):
         """Asynchronously generate a completion using LM Studio."""
 
         # Define the actual API call function
-        async def _api_call():
-            url = f"{self.endpoint}/v1/chat/completions"
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
 
-            messages = []
-            if system_prompt:
-                messages.append({"role": "system", "content": system_prompt})
-            messages.append({"role": "user", "content": prompt})
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
+        async def _api_call():
+            url = f"{self.endpoint}/v1/completions"
+
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
 
             payload = {
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
             }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens", "messages"}
+                }
+                payload.update(extra)
 
             async with httpx.AsyncClient(
                 **self.tls_config.as_requests_kwargs()
@@ -803,7 +919,12 @@ class LMStudioProvider(BaseProvider):
                 data = response.json()
 
             if "choices" in data and len(data["choices"]) > 0:
-                return data["choices"][0]["message"]["content"]
+                choice = data["choices"][0]
+                if isinstance(choice, dict):
+                    if "message" in choice and "content" in choice["message"]:
+                        return choice["message"]["content"]
+                    if "text" in choice:
+                        return choice["text"]
             raise ProviderError(f"Invalid LM Studio response format: {data}")
 
         # Use retry with exponential backoff
@@ -857,6 +978,26 @@ class LMStudioProvider(BaseProvider):
         except httpx.HTTPError as e:
             logger.error(f"LM Studio API error: {e}")
             raise ProviderError(f"LM Studio API error: {e}")
+
+    def complete_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Generate a completion using chat ``context``."""
+        messages = list(context) + [{"role": "user", "content": prompt}]
+
+        system_msg = None
+        if messages and messages[0].get("role") == "system":
+            system_msg = messages.pop(0)["content"]
+
+        return self.complete(
+            prompt,
+            system_prompt=system_msg,
+            parameters={**(parameters or {}), "messages": messages},
+        )
 
     def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """
@@ -1107,6 +1248,8 @@ class FallbackProvider(BaseProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Try providers sequentially until one succeeds."""
         last_error = None
@@ -1126,6 +1269,7 @@ class FallbackProvider(BaseProvider):
                     system_prompt=system_prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    parameters=parameters,
                 )
             except Exception as exc:
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {exc}")
@@ -1141,6 +1285,8 @@ class FallbackProvider(BaseProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Asynchronously try providers until one succeeds."""
         last_error = None
@@ -1160,6 +1306,7 @@ class FallbackProvider(BaseProvider):
                     system_prompt=system_prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    parameters=parameters,
                 )
             except Exception as exc:
                 logger.warning(f"Provider {provider.__class__.__name__} failed: {exc}")
@@ -1218,7 +1365,7 @@ class FallbackProvider(BaseProvider):
 
 # Simplified API for common usage
 def get_provider(
-    provider_type: Optional[str] = None, fallback: bool = True
+    provider_type: Optional[str] = None, fallback: bool = False
 ) -> BaseProvider:
     """
     Get a provider instance, optionally with fallback capability.
@@ -1243,6 +1390,8 @@ def complete(
     max_tokens: int = 2000,
     provider_type: Optional[str] = None,
     fallback: bool = True,
+    *,
+    parameters: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate a completion using the configured provider.
@@ -1265,6 +1414,7 @@ def complete(
         system_prompt=system_prompt,
         temperature=temperature,
         max_tokens=max_tokens,
+        parameters=parameters,
     )
 
 

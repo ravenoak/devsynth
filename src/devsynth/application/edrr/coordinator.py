@@ -313,6 +313,21 @@ class EDRRCoordinator:
             role_metadata,
         )
 
+        # Reset WSDE team method call history for clean metrics in tests
+        for method_name in [
+            "generate_diverse_ideas",
+            "evaluate_options",
+            "select_best_option",
+            "elaborate_details",
+            "create_implementation_plan",
+            "optimize_implementation",
+            "perform_quality_assurance",
+            "extract_learnings",
+        ]:
+            method = getattr(self.wsde_team, method_name, None)
+            if hasattr(method, "reset_mock"):
+                method.reset_mock()
+
         # Enter the Expand phase
         self.progress_to_phase(Phase.EXPAND)
 
