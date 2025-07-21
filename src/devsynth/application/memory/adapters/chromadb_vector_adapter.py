@@ -191,3 +191,23 @@ class ChromaDBVectorAdapter(VectorStore):
             "persist_directory": self.persist_directory,
             "embedding_dimensions": dimension,
         }
+
+    def get_all_vectors(self) -> List[MemoryVector]:
+        """Return all vectors stored in the adapter."""
+        if self.vectors:
+            return list(self.vectors.values())
+
+        result = self.collection.get(include=["embeddings", "metadatas", "documents"])
+        vectors: List[MemoryVector] = []
+        for i, vid in enumerate(result.get("ids", [])):
+            vectors.append(
+                MemoryVector(
+                    id=vid,
+                    content=result.get("documents", [[None]])[0][i],
+                    embedding=result.get("embeddings", [[None]])[0][i],
+                    metadata=result.get("metadatas", [[{}]])[0][i],
+                )
+            )
+        for vec in vectors:
+            self.vectors[vec.id] = vec
+        return vectors
