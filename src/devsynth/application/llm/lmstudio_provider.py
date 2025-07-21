@@ -1,4 +1,3 @@
-
 """
 LM Studio Provider implementation for DevSynth.
 This provider connects to a local LM Studio server running on localhost.
@@ -6,7 +5,13 @@ This provider connects to a local LM Studio server running on localhost.
 
 import os
 from urllib.parse import urlparse
-import lmstudio
+
+try:  # pragma: no cover - optional dependency
+    import lmstudio
+except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
+    raise ImportError(
+        "LMStudioProvider requires the 'lmstudio' package. Install it with 'pip install lmstudio' or use the 'lmstudio' extra."
+    ) from e
 from typing import Any, Dict, List, Optional, Tuple
 from ..utils.token_tracker import TokenTracker, TokenLimitExceededError
 from ...domain.interfaces.llm import LLMProvider
@@ -19,13 +24,18 @@ from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+
 class LMStudioConnectionError(DevSynthError):
     """Exception raised when there's an issue connecting to LM Studio."""
+
     pass
+
 
 class LMStudioModelError(DevSynthError):
     """Exception raised when there's an issue with LM Studio models."""
+
     pass
+
 
 class BaseLLMProvider:
     """Base class for LLM providers."""
@@ -37,13 +47,19 @@ class BaseLLMProvider:
         """Generate text from a prompt."""
         raise NotImplementedError("Subclasses must implement this method")
 
-    def generate_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> str:
+    def generate_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        parameters: Dict[str, Any] = None,
+    ) -> str:
         """Generate text from a prompt with conversation context."""
         raise NotImplementedError("Subclasses must implement this method")
 
     def get_embedding(self, text: str) -> List[float]:
         """Get an embedding vector for the given text."""
         raise NotImplementedError("Subclasses must implement this method")
+
 
 class LMStudioProvider(BaseLLMProvider):
     """LM Studio LLM provider implementation."""
@@ -95,10 +111,14 @@ class LMStudioProvider(BaseLLMProvider):
                     logger.info(f"Auto-selected model: {self.model}")
                 else:
                     self.model = "local_model"
-                    logger.warning("No models available from LM Studio. Using default: local_model")
+                    logger.warning(
+                        "No models available from LM Studio. Using default: local_model"
+                    )
             except LMStudioConnectionError as e:
                 self.model = "local_model"
-                logger.warning(f"Could not connect to LM Studio: {str(e)}. Using default: local_model")
+                logger.warning(
+                    f"Could not connect to LM Studio: {str(e)}. Using default: local_model"
+                )
         else:
             self.model = "local_model"
             logger.info("Using default model: local_model")
@@ -124,10 +144,7 @@ class LMStudioProvider(BaseLLMProvider):
         try:
             models = lmstudio.sync_api.list_downloaded_models("llm")
             logger.info(f"Found {len(models)} models from LM Studio")
-            return [
-                {"id": m.model_key, "name": m.display_name}
-                for m in models
-            ]
+            return [{"id": m.model_key, "name": m.display_name} for m in models]
         except Exception as e:  # noqa: BLE001
             error_msg = f"Failed to connect to LM Studio: {str(e)}"
             logger.error(error_msg)
@@ -200,7 +217,12 @@ class LMStudioProvider(BaseLLMProvider):
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
 
-    def generate_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> str:
+    def generate_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        parameters: Dict[str, Any] = None,
+    ) -> str:
         """Generate text from a prompt with conversation context using LM Studio.
 
         Args:
