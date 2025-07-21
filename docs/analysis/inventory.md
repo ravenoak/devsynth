@@ -313,5 +313,5 @@ The comprehensive SDLC artifact coverage and sophisticated agent-based architect
 ## Implementation Status
 
 The documented components are **partially implemented**. Further validation and
-testing tasks are tracked in issues [#103](https://github.com/ravenoak/devsynth/issues/103)
-and [#104](https://github.com/ravenoak/devsynth/issues/104).
+testing tasks are tracked in [issue 103](../../issues/103.md)
+and [issue 104](../../issues/104.md).

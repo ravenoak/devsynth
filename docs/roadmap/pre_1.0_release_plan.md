@@ -155,4 +155,4 @@ See [Release Plan](release_plan.md) for the consolidated roadmap and version mil
 ## Implementation Status
 
 This pre-1.0 plan is **in progress**. Outstanding tasks are tracked in
-[issue #102](https://github.com/ravenoak/devsynth/issues/102).
+[issue 102](../../issues/102.md).

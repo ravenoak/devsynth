@@ -475,5 +475,4 @@ Success depends on disciplined execution of the phased implementation strategy, 
 ## Implementation Status
 
 These recommendations are **partially implemented**. Outstanding actions are
-documented in [issue #104](https://github.com/ravenoak/devsynth/issues/104) and
-related tracking issues.
+documented in [issue 104](../../issues/104.md) and related tracking issues.

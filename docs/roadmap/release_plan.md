@@ -71,4 +71,4 @@ For a detailed breakdown of feature implementation progress, see the
 ## Implementation Status
 
 Execution of this release plan is **in progress** with milestones tracked in
-[issue #104](https://github.com/ravenoak/devsynth/issues/104).
+[issue 104](../../issues/104.md).

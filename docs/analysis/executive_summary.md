@@ -287,5 +287,4 @@ The combination of architectural excellence, innovative AI frameworks, and compr
 ## Implementation Status
 
 The DevSynth project is **partially implemented**. Key gaps identified in this
-summary are tracked in issues [#102](https://github.com/ravenoak/devsynth/issues/102)
-through [#104](https://github.com/ravenoak/devsynth/issues/104).
+summary are tracked in [issues 102–104](../../issues/).
