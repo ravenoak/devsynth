@@ -126,6 +126,16 @@ class GraphMemoryAdapter(MemoryStore):
                 logger.error(f"Failed to save RDF graph: {e}")
                 raise MemoryStoreError(f"Failed to save RDF graph: {e}")
 
+    def get_all_vectors(self) -> List[MemoryVector]:
+        """Return all vectors from the underlying RDFLibStore if available."""
+        if (
+            self.use_rdflib_store
+            and self.rdflib_store
+            and hasattr(self.rdflib_store, "get_all_vectors")
+        ):
+            return self.rdflib_store.get_all_vectors()
+        return []
+
     def _memory_item_to_triples(self, item: MemoryItem) -> URIRef:
         """
         Convert a memory item to RDF triples and add them to the graph.
@@ -977,35 +987,41 @@ class GraphMemoryAdapter(MemoryStore):
                                 f"Exported item {item.id} to {type(other_store).__name__}"
                             )
 
-            # Use duck typing to check if other_store has VectorStore-like methods
-            has_vector_store_methods = hasattr(other_store, "get_collection_stats")
+            # Use duck typing to check if other_store behaves like a VectorStore
+            has_vector_store_methods = hasattr(other_store, "store_vector") and hasattr(
+                other_store, "retrieve_vector"
+            )
 
-            # Check if this adapter is using RDFLibStore
             if has_vector_store_methods and self.use_rdflib_store and self.rdflib_store:
-                # Handle import mode (or bidirectional)
+                # Import vectors from the other store
                 if sync_mode in ["import", "bidirectional"]:
-                    # Get collection stats to determine if vectors exist
-                    if hasattr(other_store, "get_collection_stats"):
-                        stats = other_store.get_collection_stats()
-                        if stats.get("num_vectors", 0) > 0:
-                            # This is a simplified approach. In a real implementation,
-                            # you would need a way to retrieve all vectors from the other store.
-                            logger.info(
-                                f"Vector integration with {type(other_store).__name__} would require custom implementation"
+                    vectors: List[MemoryVector] = []
+                    if hasattr(other_store, "get_all_vectors"):
+                        vectors = other_store.get_all_vectors()
+                    elif hasattr(other_store, "vectors"):
+                        vectors = list(other_store.vectors.values())
+
+                    for vec in vectors:
+                        if not self.rdflib_store.retrieve_vector(vec.id):
+                            self.rdflib_store.store_vector(vec)
+                            logger.debug(
+                                f"Imported vector {vec.id} from {type(other_store).__name__}"
                             )
 
-                # Handle export mode (or bidirectional)
-                if sync_mode in ["export", "bidirectional"] and hasattr(
-                    self.rdflib_store, "get_collection_stats"
-                ):
-                    # Get all vectors from this store
-                    stats = self.rdflib_store.get_collection_stats()
-                    if stats.get("num_vectors", 0) > 0:
-                        # This is a simplified approach. In a real implementation,
-                        # you would need a way to retrieve all vectors from this store.
-                        logger.info(
-                            f"Vector export to {type(other_store).__name__} would require custom implementation"
-                        )
+                # Export vectors to the other store
+                if sync_mode in ["export", "bidirectional"]:
+                    local_vectors = (
+                        self.rdflib_store.get_all_vectors()
+                        if hasattr(self.rdflib_store, "get_all_vectors")
+                        else []
+                    )
+                    for vec in local_vectors:
+                        existing = other_store.retrieve_vector(vec.id)
+                        if not existing:
+                            other_store.store_vector(vec)
+                            logger.debug(
+                                f"Exported vector {vec.id} to {type(other_store).__name__}"
+                            )
 
             logger.info(f"Integration with {type(other_store).__name__} completed")
         except Exception as e:

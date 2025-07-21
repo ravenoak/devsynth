@@ -777,3 +777,23 @@ class RDFLibStore(MemoryStore, VectorStore):
                 operation="get_collection_stats",
                 original_error=e,
             )
+
+    def get_all_vectors(self) -> List[MemoryVector]:
+        """Return all vectors stored in the graph."""
+        vectors: List[MemoryVector] = []
+        try:
+            sparql_query = """
+                SELECT ?vector
+                WHERE {
+                    ?vector a <https://github.com/ravenoak/devsynth/ontology/memory#MemoryVector> .
+                }
+            """
+            results = self.graph.query(sparql_query)
+            for row in results:
+                vector_uri = row[0]
+                vector = self._triples_to_memory_vector(vector_uri)
+                if vector:
+                    vectors.append(vector)
+        except Exception as e:  # pragma: no cover - safe fallback
+            logger.error(f"Failed to retrieve vectors: {e}")
+        return vectors
