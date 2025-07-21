@@ -303,6 +303,9 @@ def global_test_isolation(monkeypatch, tmp_path):
     os.environ.clear()
     os.environ.update(original_env)
 
+    # Undo any monkeypatches from the test before running cleanup logic
+    monkeypatch.undo()
+
     # Clean up any stray files in real directories
     # Instead of relying on file modification times, we'll use a more reliable approach
     # by checking for specific directories that should never be created during tests
