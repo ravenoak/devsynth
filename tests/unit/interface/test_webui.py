@@ -2,7 +2,7 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock
 import pytest
-from tests.unit.interface.streamlit_mocks import make_streamlit_mock
+from tests.unit.interface.test_streamlit_mocks import make_streamlit_mock
 
 
 @pytest.fixture(autouse=True)

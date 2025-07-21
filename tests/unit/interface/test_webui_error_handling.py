@@ -2,7 +2,7 @@ import sys
 from unittest.mock import MagicMock, patch
 import pytest
 from pathlib import Path
-from tests.unit.interface.streamlit_mocks import make_streamlit_mock
+from tests.unit.interface.test_streamlit_mocks import make_streamlit_mock
 
 
 @pytest.fixture
