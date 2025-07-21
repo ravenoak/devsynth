@@ -1,6 +1,8 @@
 # AGENTS.md
 
-> Special note: the environment that ChatGPT Codex operates in executes `scripts/codex_setup.sh` as the setup script **while network access is enabled**. If the script fails for any reason, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be created. After provisioning finishes, network access is disabled.
+> Special note: the environment that ChatGPT Codex operates in executes `scripts/codex_setup.sh` **while network access is enabled**. Network access is dropped once setup is complete and the environment is handed off to the agent. If the script fails for any reason, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be created.
+
+Because network access is only available during the setup phase, rerunning the script offline may not succeed if it still needs to fetch packages. Any changes you make to `scripts/codex_setup.sh` will only be fully applied when the next environment setup is triggered.
 
 ## Introduction
 
@@ -18,10 +20,9 @@ The automated Codex environment runs the setup script as:
 scripts/codex_setup.sh || touch CODEX_ENVIRONMENT_SETUP_FAILED
 ```
 
-If `scripts/codex_setup.sh` fails, a file named `CODEX_ENVIRONMENT_SETUP_FAILED`
-will appear in the repository root. After the initial provisioning, network
-access is disabled, so you may need to adjust the script or install packages
-manually to make it succeed. To fix your environment:
+The script is executed **before** network access is disabled. If it fails, a
+file named `CODEX_ENVIRONMENT_SETUP_FAILED` will appear in the repository root.
+Fix the script and rerun it offline to finish provisioning:
 
 1. Review and update `scripts/codex_setup.sh` so it succeeds in your
    environment. You may need to install packages manually or modify the script.
@@ -30,7 +31,9 @@ manually to make it succeed. To fix your environment:
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
 4. Execute `poetry run pytest` to verify the environment.
 
-Development and test commands may fail until the setup script completes successfully, the marker file is removed, and the tests pass.
+Development and test commands may fail until the setup script completes
+successfully, the marker file is removed, and the tests pass.
+
 
 ## Project Structure
 
@@ -85,6 +88,8 @@ Refer to `docs/architecture/agent_system.md` and `docs/architecture/wsde_agent_m
 - **Running Tests:**
   - `poetry run pytest tests/`
   - See `docs/developer_guides/hermetic_testing.md` for isolation practices.
+  - Running the full suite requires the `minimal`, `retrieval`, `memory`, `llm`,
+    `api`, `webui`, and `lmstudio` extras.
 
 ## Pull Request (PR) Guidelines
 

@@ -184,6 +184,13 @@ poetry install --with dev
 poetry sync --all-extras --all-groups
 ```
 
+Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, and `lmstudio`:
+
+```bash
+poetry install --extras minimal --extras retrieval --extras memory \
+  --extras llm --extras api --extras webui --extras lmstudio
+```
+
 Use pip only for installing from PyPI, not for local development.
 
 Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** can be enabled later, but only the embedded backend is currently supported. Install these packages if you plan to use them:
