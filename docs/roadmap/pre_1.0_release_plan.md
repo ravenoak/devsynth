@@ -154,4 +154,5 @@ With these items and the WSDE peer review implementation confirmed in the [Featu
 See [Release Plan](release_plan.md) for the consolidated roadmap and version milestones.
 ## Implementation Status
 
-This feature is **implemented**.
+This pre-1.0 plan is **in progress**. Outstanding tasks are tracked in
+[issue #102](https://github.com/ravenoak/devsynth/issues/102).

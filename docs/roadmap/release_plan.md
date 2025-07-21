@@ -70,4 +70,5 @@ For a detailed breakdown of feature implementation progress, see the
 [Feature Status Matrix](../implementation/feature_status_matrix.md).
 ## Implementation Status
 
-This feature is **implemented**.
+Execution of this release plan is **in progress** with milestones tracked in
+[issue #104](https://github.com/ravenoak/devsynth/issues/104).
