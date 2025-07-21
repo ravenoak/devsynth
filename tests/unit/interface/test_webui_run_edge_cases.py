@@ -7,12 +7,33 @@ import pytest
 @pytest.fixture
 def stub_streamlit(monkeypatch):
     """Create a stub streamlit module for testing."""
-    st = ModuleType('streamlit')
+    st = ModuleType("streamlit")
     st.set_page_config = MagicMock()
     st.sidebar = MagicMock()
     st.sidebar.title = MagicMock()
-    st.sidebar.radio = MagicMock(return_value='Onboarding')
-    monkeypatch.setitem(sys.modules, 'streamlit', st)
+    st.sidebar.radio = MagicMock(return_value="Onboarding")
+
+    class SessionState(dict):
+        """Dictionary with attribute access to mimic ``st.session_state``."""
+
+        def __getattr__(self, name):
+            try:
+                return self[name]
+            except KeyError as exc:  # pragma: no cover - defensive
+                raise AttributeError(name) from exc
+
+        def __setattr__(self, name, value):
+            self[name] = value
+
+    st.session_state = SessionState()
+
+    components = ModuleType("components")
+    v1 = ModuleType("components.v1")
+    v1.html = MagicMock()
+    components.v1 = v1
+    st.components = components
+
+    monkeypatch.setitem(sys.modules, "streamlit", st)
     return st
 
 
