@@ -28,7 +28,6 @@ def stub_streamlit(monkeypatch):
 
     st.session_state = SS()
     st.session_state.wizard_step = 0
-    st.session_state.wizard_data = {}
     st.header = MagicMock()
     st.expander = lambda *_a, **_k: DummyForm(True)
     st.form = lambda *_a, **_k: DummyForm(True)
@@ -38,6 +37,10 @@ def stub_streamlit(monkeypatch):
     st.selectbox = MagicMock(return_value="choice")
     st.checkbox = MagicMock(return_value=True)
     st.button = MagicMock(return_value=False)
+    st.error = MagicMock()
+    st.info = MagicMock()
+    st.success = MagicMock()
+    st.warning = MagicMock()
     st.spinner = DummyForm
     st.divider = MagicMock()
     st.columns = MagicMock(
@@ -49,13 +52,16 @@ def stub_streamlit(monkeypatch):
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
+    st.subheader = MagicMock()
     st.set_page_config = MagicMock()
     st.sidebar = MagicMock()
     st.sidebar.title = MagicMock()
+    st.sidebar.markdown = MagicMock()
     st.sidebar.radio = MagicMock(return_value="Onboarding")
     st.number_input = MagicMock(return_value=30)
     st.toggle = MagicMock(return_value=False)
     monkeypatch.setitem(sys.modules, "streamlit", st)
+    monkeypatch.setattr("pathlib.Path.exists", lambda self: True)
     cli_stub = ModuleType("devsynth.application.cli")
     for name in [
         "init_cmd",
