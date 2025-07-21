@@ -136,6 +136,7 @@ def code_analysis_coordinator(tmp_path_factory):
             None,
         )
         prompt_manager = PromptManager()
+        # Pass memory_manager to ensure documentation persistence
         doc_manager = DocumentationManager(memory_manager)
         coordinator = EnhancedEDRRCoordinator(
             memory_manager=memory_manager,
