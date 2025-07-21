@@ -36,4 +36,4 @@ This policy defines best practices for ongoing support, updates, and knowledge c
 - See [Development Policy](development.md) for code quality and documentation.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

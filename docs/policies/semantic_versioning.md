@@ -71,4 +71,4 @@ With Semantic Versioning+ in place, version strings like `0.3.0-beta.2+exp.sha`
 communicate both the development phase and the specific build artifact.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

@@ -112,4 +112,4 @@ graph LR
 ```
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

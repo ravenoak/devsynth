@@ -304,4 +304,4 @@ If you encounter error XYZ, try...
 ```
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.
