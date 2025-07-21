@@ -285,6 +285,25 @@ poetry run pytest -q
 poetry run pytest
 ```
 
+### Using `run_all_tests.py`
+
+The `scripts/run_all_tests.py` helper script wraps `pytest` and can execute the
+entire suite or selected groups of tests. It also supports generating HTML
+reports with `pytest-html`.
+
+```bash
+# Run the full suite
+./scripts/run_all_tests.py
+
+# Run only unit tests
+./scripts/run_all_tests.py --unit
+
+# Produce an HTML report in `test_reports/`
+./scripts/run_all_tests.py --report
+```
+
+Combine options (for example, integration tests with a report) as needed.
+
 ### Running Specific Test Types
 
 ```bash
