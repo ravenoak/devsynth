@@ -55,7 +55,7 @@ def _run_wizard(output: Path, bridge: DummyBridge) -> None:
         wizard.bridge.display_result("Cancelled")
 
 
-scenarios("../features/requirements_wizard.feature")
+scenarios("../features/general/requirements_wizard.feature")
 
 
 @given("the DevSynth CLI is installed")
@@ -65,7 +65,7 @@ def cli_installed():
 
 @when("I run the requirements wizard")
 def run_requirements_wizard(tmp_project_dir, monkeypatch):
-    monkeypatch.setitem(Path, "home", lambda: Path(tmp_project_dir))
+    monkeypatch.setattr(Path, "home", lambda: Path(tmp_project_dir))
     answers = ["My Project", "python", "feature1,feature2"]
     confirms = [True]
     bridge = DummyBridge(answers, confirms)
@@ -75,7 +75,7 @@ def run_requirements_wizard(tmp_project_dir, monkeypatch):
 
 @when("I cancel the requirements wizard")
 def cancel_requirements_wizard(tmp_project_dir, monkeypatch):
-    monkeypatch.setitem(Path, "home", lambda: Path(tmp_project_dir))
+    monkeypatch.setattr(Path, "home", lambda: Path(tmp_project_dir))
     answers = ["My Project", "python", "feature1,feature2"]
     confirms = [False]
     bridge = DummyBridge(answers, confirms)

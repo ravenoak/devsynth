@@ -8,7 +8,7 @@ from pytest_bdd import given, when, then, scenarios
 
 from devsynth.interface.webui import WebUI
 
-scenarios("../features/requirements_wizard_navigation.feature")
+scenarios("../features/general/requirements_wizard_navigation.feature")
 
 
 class DummyForm:
@@ -28,8 +28,10 @@ class DummyForm:
 @pytest.fixture
 def wizard_context(monkeypatch):
     st = ModuleType("streamlit")
+
     class SS(dict):
         pass
+
     st.session_state = SS()
     st.session_state.wizard_step = 0
     st.session_state.wizard_data = {}
@@ -48,13 +50,19 @@ def wizard_context(monkeypatch):
     st.button = MagicMock(side_effect=[False, True, False])
     st.spinner = DummyForm
     st.divider = MagicMock()
-    st.columns = MagicMock(return_value=(MagicMock(button=lambda *a, **k: False), MagicMock(button=lambda *a, **k: False)))
+    st.columns = MagicMock(
+        return_value=(
+            MagicMock(button=lambda *a, **k: False),
+            MagicMock(button=lambda *a, **k: False),
+        )
+    )
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
 
     ctx = {"st": st, "ui": webui.WebUI()}

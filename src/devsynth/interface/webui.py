@@ -847,11 +847,22 @@ class WebUI(UXBridge):
                 "constraints": "",
             }
 
+        data = st.session_state.wizard_data
+        defaults = {
+            "title": "",
+            "description": "",
+            "type": RequirementType.FUNCTIONAL.value,
+            "priority": RequirementPriority.MEDIUM.value,
+            "constraints": "",
+        }
+        for key, val in defaults.items():
+            if key not in data:
+                data[key] = val
+
         steps = ["Title", "Description", "Type", "Priority", "Constraints"]
         step = st.session_state.wizard_step
         st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
         st.progress((step + 1) / len(steps))
-        data = st.session_state.wizard_data
 
         if step == len(steps) - 1 and st.button("Save Requirements"):
             try:
