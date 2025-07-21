@@ -1,58 +1,14 @@
 import sys
-from types import ModuleType
 from unittest.mock import MagicMock, patch
 import pytest
 from pathlib import Path
+from tests.unit.interface.streamlit_mocks import make_streamlit_mock
 
 
 @pytest.fixture
 def stub_streamlit(monkeypatch):
-    """Create a stub streamlit module for testing."""
-    st = ModuleType('streamlit')
-
-
-    class SS(dict):
-        pass
-    st.session_state = SS()
-    st.header = MagicMock()
-    st.expander = MagicMock()
-    st.expander.return_value.__enter__ = MagicMock(return_value=None)
-    st.expander.return_value.__exit__ = MagicMock(return_value=None)
-    st.form = MagicMock()
-    st.form.return_value.__enter__ = MagicMock(return_value=None)
-    st.form.return_value.__exit__ = MagicMock(return_value=None)
-    st.form_submit_button = MagicMock(return_value=True)
-    st.text_input = MagicMock(return_value='test')
-    st.button = MagicMock(return_value=False)
-    st.spinner = MagicMock()
-    st.spinner.return_value.__enter__ = MagicMock(return_value=None)
-    st.spinner.return_value.__exit__ = MagicMock(return_value=None)
-
-    # Add missing methods that are used in the WebUI implementation
-    st.error = MagicMock()
-    st.info = MagicMock()
-    st.success = MagicMock()
-    st.write = MagicMock()
-    st.progress = MagicMock()
-    st.text_area = MagicMock(return_value='test')
-    st.columns = MagicMock(return_value=[MagicMock(), MagicMock()])
-    st.divider = MagicMock()
-    st.markdown = MagicMock()
-    st.toggle = MagicMock(return_value=False)
-    st.selectbox = MagicMock(return_value='test')
-    st.radio = MagicMock(return_value='test')
-    st.checkbox = MagicMock(return_value=False)
-    st.sidebar = MagicMock()
-    st.sidebar.button = MagicMock(return_value=False)
-    st.sidebar.selectbox = MagicMock(return_value='test')
-    st.sidebar.radio = MagicMock(return_value='test')
-    st.sidebar.checkbox = MagicMock(return_value=False)
-    st.sidebar.text_input = MagicMock(return_value='test')
-    st.sidebar.text_area = MagicMock(return_value='test')
-    st.sidebar.expander = MagicMock()
-    st.sidebar.expander.return_value.__enter__ = MagicMock(return_value=None)
-    st.sidebar.expander.return_value.__exit__ = MagicMock(return_value=None)
-
+    """Provide a shared Streamlit mock for WebUI tests."""
+    st = make_streamlit_mock()
     monkeypatch.setitem(sys.modules, 'streamlit', st)
     return st
 

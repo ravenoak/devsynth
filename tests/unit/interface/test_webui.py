@@ -2,64 +2,12 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock
 import pytest
-
-
-class DummyForm:
-
-    def __init__(self, submitted: bool = True):
-        self.submitted = submitted
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
-
-    def form_submit_button(self, *_args, **_kwargs):
-        return self.submitted
+from tests.unit.interface.streamlit_mocks import make_streamlit_mock
 
 
 @pytest.fixture(autouse=True)
 def stub_streamlit(monkeypatch):
-    st = ModuleType("streamlit")
-
-    class SS(dict):
-        pass
-
-    st.session_state = SS()
-    st.session_state.wizard_step = 0
-    st.header = MagicMock()
-    st.expander = lambda *_a, **_k: DummyForm(True)
-    st.form = lambda *_a, **_k: DummyForm(True)
-    st.form_submit_button = MagicMock(return_value=True)
-    st.text_input = MagicMock(return_value="text")
-    st.text_area = MagicMock(return_value="desc")
-    st.selectbox = MagicMock(return_value="choice")
-    st.checkbox = MagicMock(return_value=True)
-    st.button = MagicMock(return_value=False)
-    st.error = MagicMock()
-    st.info = MagicMock()
-    st.success = MagicMock()
-    st.warning = MagicMock()
-    st.spinner = DummyForm
-    st.divider = MagicMock()
-    st.columns = MagicMock(
-        return_value=(
-            MagicMock(button=lambda *a, **k: False),
-            MagicMock(button=lambda *a, **k: False),
-        )
-    )
-    st.progress = MagicMock()
-    st.write = MagicMock()
-    st.markdown = MagicMock()
-    st.subheader = MagicMock()
-    st.set_page_config = MagicMock()
-    st.sidebar = MagicMock()
-    st.sidebar.title = MagicMock()
-    st.sidebar.markdown = MagicMock()
-    st.sidebar.radio = MagicMock(return_value="Onboarding")
-    st.number_input = MagicMock(return_value=30)
-    st.toggle = MagicMock(return_value=False)
+    st = make_streamlit_mock()
     monkeypatch.setitem(sys.modules, "streamlit", st)
     monkeypatch.setattr("pathlib.Path.exists", lambda self: True)
     cli_stub = ModuleType("devsynth.application.cli")
