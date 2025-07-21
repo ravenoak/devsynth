@@ -107,6 +107,7 @@ class CodeAnalysisAgent(UnifiedAgent):
 def code_analysis_coordinator(tmp_path_factory):
     """Create an EDRR coordinator with code analysis components."""
     memory_manager = MemoryManager()
+    memory_manager.store = MagicMock(return_value="memid")
     code_analyzer = CodeAnalyzer()
     ast_transformer = AstTransformer()
     with pytest.MonkeyPatch.context() as mp:
@@ -130,11 +131,17 @@ def code_analysis_coordinator(tmp_path_factory):
         )
         wsde_team = WSDETeam(name="TestCodeAnalysisEdrrIntegrationTeam")
         wsde_team.add_agent(code_analysis_agent)
+        wsde_team.get_agent = lambda n: next(
+            (a for a in wsde_team.agents if getattr(a.config, "name", "") == n),
+            None,
+        )
         prompt_manager = PromptManager()
-        doc_manager = DocumentationManager()
+        doc_manager = DocumentationManager(memory_manager)
         coordinator = EnhancedEDRRCoordinator(
-            wsde_team=wsde_team,
             memory_manager=memory_manager,
+            wsde_team=wsde_team,
+            code_analyzer=code_analyzer,
+            ast_transformer=ast_transformer,
             prompt_manager=prompt_manager,
             documentation_manager=doc_manager,
         )
@@ -189,7 +196,7 @@ def main():
     total = calculate_sum(x, y)
     print(f"The sum is {total}")
         """,
-        "transformations": ["remove_unused_imports", "remove_unused_variables"],
+        "transformations": ["unused_imports", "unused_variables"],
     }
     with patch(
         "devsynth.application.edrr.edrr_coordinator_enhanced.EnhancedEDRRCoordinator._get_llm_response"
@@ -200,8 +207,8 @@ def main():
         )
         assert "transformed" in result
         transformed = result["transformed"]
-        assert "import re" not in transformed.transformed_code
-        assert "z = 15" not in transformed.transformed_code
+        assert "import re" not in transformed.get_transformed_code()
+        assert "z = 15" not in transformed.get_transformed_code()
 
 
 def test_code_refinement_in_edrr_workflow_succeeds(code_analysis_coordinator):

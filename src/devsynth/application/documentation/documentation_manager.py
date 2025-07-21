@@ -11,8 +11,12 @@ import json
 import re
 from datetime import datetime
 
-from devsynth.application.documentation.documentation_fetcher import DocumentationFetcher
-from devsynth.application.documentation.documentation_repository import DocumentationRepository
+from devsynth.application.documentation.documentation_fetcher import (
+    DocumentationFetcher,
+)
+from devsynth.application.documentation.documentation_repository import (
+    DocumentationRepository,
+)
 from devsynth.application.documentation.version_monitor import VersionMonitor
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.logging_setup import DevSynthLogger
@@ -29,15 +33,26 @@ class DocumentationManager:
     coordinating between the fetcher, repository, and version monitor.
     """
 
-    def __init__(self, memory_manager: MemoryManager, storage_path: Optional[str] = None):
+    def __init__(
+        self,
+        memory_manager: MemoryManager | None = None,
+        storage_path: Optional[str] = None,
+    ):
         """
         Initialize the documentation manager.
 
         Args:
-            memory_manager: The memory manager to use for storage
+            memory_manager: Optional memory manager to use for storage. If
+                ``None`` a default :class:`~devsynth.application.memory.memory_manager.MemoryManager`
+                will be created.
             storage_path: Path to store documentation (defaults to .devsynth/documentation)
         """
-        self.storage_path = storage_path or os.path.join(os.getcwd(), ".devsynth", "documentation")
+        self.storage_path = storage_path or os.path.join(
+            os.getcwd(), ".devsynth", "documentation"
+        )
+
+        if memory_manager is None:
+            memory_manager = MemoryManager()
 
         # Create the storage directory if it doesn't exist
         os.makedirs(self.storage_path, exist_ok=True)
@@ -47,7 +62,9 @@ class DocumentationManager:
         self.repository = DocumentationRepository(memory_manager, self.storage_path)
         self.version_monitor = VersionMonitor(self.storage_path)
 
-        logger.info(f"Documentation manager initialized with storage path: {self.storage_path}")
+        logger.info(
+            f"Documentation manager initialized with storage path: {self.storage_path}"
+        )
 
     def fetch_documentation(
         self, library: str, version: str, force: bool = False, offline: bool = False
@@ -73,7 +90,7 @@ class DocumentationManager:
                 "library": library,
                 "version": version,
                 "source": "cache",
-                "metadata": self.repository.get_documentation(library, version)
+                "metadata": self.repository.get_documentation(library, version),
             }
 
         # If offline and no cached documentation is available raise an error
@@ -100,12 +117,16 @@ class DocumentationManager:
             "version": version,
             "source": "fetched",
             "chunk_count": len(chunks),
-            "doc_id": doc_id
+            "doc_id": doc_id,
         }
 
-    def query_documentation(self, query: str, libraries: Optional[List[str]] = None,
-                           version_constraints: Optional[Dict[str, str]] = None,
-                           limit: int = 10) -> List[Dict[str, Any]]:
+    def query_documentation(
+        self,
+        query: str,
+        libraries: Optional[List[str]] = None,
+        version_constraints: Optional[Dict[str, str]] = None,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
         """
         Query documentation using semantic search.
 
@@ -118,7 +139,9 @@ class DocumentationManager:
         Returns:
             A list of documentation chunks matching the query
         """
-        return self.repository.query_documentation(query, libraries, version_constraints, limit)
+        return self.repository.query_documentation(
+            query, libraries, version_constraints, limit
+        )
 
     def list_libraries(self) -> List[Dict[str, Any]]:
         """
@@ -148,32 +171,46 @@ class DocumentationManager:
             # Check for new versions
             try:
                 available_versions = self.fetcher.get_available_versions(library_name)
-                new_versions = [v for v in available_versions if v not in current_versions]
+                new_versions = [
+                    v for v in available_versions if v not in current_versions
+                ]
 
                 if new_versions:
                     # Find the latest version we have
                     latest_current = max(current_versions, key=self._version_key)
 
                     # Find newer versions
-                    newer_versions = [v for v in new_versions if self._version_key(v) > self._version_key(latest_current)]
+                    newer_versions = [
+                        v
+                        for v in new_versions
+                        if self._version_key(v) > self._version_key(latest_current)
+                    ]
 
                     if newer_versions:
                         # Mark current versions as outdated
                         for version in current_versions:
                             self.repository.mark_outdated(library_name, version)
 
-                        updates.append({
-                            "library": library_name,
-                            "current_version": latest_current,
-                            "available_versions": newer_versions,
-                            "latest_available": max(newer_versions, key=self._version_key)
-                        })
+                        updates.append(
+                            {
+                                "library": library_name,
+                                "current_version": latest_current,
+                                "available_versions": newer_versions,
+                                "latest_available": max(
+                                    newer_versions, key=self._version_key
+                                ),
+                            }
+                        )
             except Exception as e:
-                logger.warning(f"Error checking for updates to {library_name}: {str(e)}")
+                logger.warning(
+                    f"Error checking for updates to {library_name}: {str(e)}"
+                )
 
         return updates
 
-    def update_documentation(self, library: str, from_version: str, to_version: str) -> Dict[str, Any]:
+    def update_documentation(
+        self, library: str, from_version: str, to_version: str
+    ) -> Dict[str, Any]:
         """
         Update documentation from one version to another.
 
@@ -203,7 +240,7 @@ class DocumentationManager:
             "from_version": from_version,
             "to_version": to_version,
             "status": "updated",
-            "result": result
+            "result": result,
         }
 
     def get_documentation_status(self, library: str, version: str) -> Dict[str, Any]:
@@ -227,7 +264,11 @@ class DocumentationManager:
         # Check if there are newer versions available
         try:
             available_versions = self.fetcher.get_available_versions(library)
-            newer_versions = [v for v in available_versions if self._version_key(v) > self._version_key(version)]
+            newer_versions = [
+                v
+                for v in available_versions
+                if self._version_key(v) > self._version_key(version)
+            ]
 
             return {
                 "library": library,
@@ -236,7 +277,11 @@ class DocumentationManager:
                 "stored_at": metadata.get("stored_at"),
                 "chunk_count": metadata.get("chunk_count", 0),
                 "has_newer_versions": len(newer_versions) > 0,
-                "latest_available": max(available_versions, key=self._version_key) if available_versions else None
+                "latest_available": (
+                    max(available_versions, key=self._version_key)
+                    if available_versions
+                    else None
+                ),
             }
         except Exception as e:
             logger.warning(f"Error checking for newer versions of {library}: {str(e)}")
@@ -249,7 +294,7 @@ class DocumentationManager:
                 "chunk_count": metadata.get("chunk_count", 0),
                 "has_newer_versions": False,
                 "latest_available": None,
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_function_documentation(self, function_name: str) -> List[Dict[str, Any]]:
@@ -263,7 +308,7 @@ class DocumentationManager:
             A list of documentation chunks for the function, with additional metadata
         """
         # Extract the library name from the function name
-        library = function_name.split('.')[0]
+        library = function_name.split(".")[0]
 
         # Query for function documentation
         query = f"function:{function_name}"
@@ -278,7 +323,9 @@ class DocumentationManager:
             if "examples" not in result:
                 result["examples"] = []
 
-        logger.info(f"Retrieved {len(results)} documentation chunks for function {function_name}")
+        logger.info(
+            f"Retrieved {len(results)} documentation chunks for function {function_name}"
+        )
         return results
 
     def get_class_documentation(self, class_name: str) -> List[Dict[str, Any]]:
@@ -292,7 +339,7 @@ class DocumentationManager:
             A list of documentation chunks for the class, with additional metadata
         """
         # Extract the library name from the class name
-        library = class_name.split('.')[0]
+        library = class_name.split(".")[0]
 
         # Query for class documentation
         query = f"class:{class_name}"
@@ -307,7 +354,9 @@ class DocumentationManager:
             if "inheritance" not in result:
                 result["inheritance"] = []
 
-        logger.info(f"Retrieved {len(results)} documentation chunks for class {class_name}")
+        logger.info(
+            f"Retrieved {len(results)} documentation chunks for class {class_name}"
+        )
         return results
 
     def get_usage_examples(self, item_name: str) -> List[Dict[str, Any]]:
@@ -321,7 +370,7 @@ class DocumentationManager:
             A list of example code snippets with explanations
         """
         # Extract the library name from the item name
-        library = item_name.split('.')[0]
+        library = item_name.split(".")[0]
 
         # Query for examples
         query = f"example:{item_name}"
@@ -338,7 +387,9 @@ class DocumentationManager:
         logger.info(f"Retrieved {len(results)} examples for {item_name}")
         return results
 
-    def get_api_compatibility(self, function_name: str, versions: List[str]) -> Dict[str, Any]:
+    def get_api_compatibility(
+        self, function_name: str, versions: List[str]
+    ) -> Dict[str, Any]:
         """
         Get compatibility information for a function across multiple versions.
 
@@ -350,34 +401,34 @@ class DocumentationManager:
             A dictionary with compatibility information
         """
         # Extract the library name from the function name
-        library = function_name.split('.')[0]
+        library = function_name.split(".")[0]
 
         # Get documentation for each version
         version_info = []
         for version in versions:
             try:
                 doc = self.repository.get_documentation(library, version)
-                version_info.append({
-                    "version": version,
-                    "parameters": doc.get("parameters", []),
-                    "changes": doc.get("changes", []),
-                    "deprecated": doc.get("deprecated", [])
-                })
+                version_info.append(
+                    {
+                        "version": version,
+                        "parameters": doc.get("parameters", []),
+                        "changes": doc.get("changes", []),
+                        "deprecated": doc.get("deprecated", []),
+                    }
+                )
             except Exception as e:
-                logger.warning(f"Error getting documentation for {library} {version}: {str(e)}")
-                version_info.append({
-                    "version": version,
-                    "error": str(e)
-                })
+                logger.warning(
+                    f"Error getting documentation for {library} {version}: {str(e)}"
+                )
+                version_info.append({"version": version, "error": str(e)})
 
         # Sort by version
         version_info.sort(key=lambda v: self._version_key(v["version"]))
 
-        logger.info(f"Retrieved compatibility information for {function_name} across {len(versions)} versions")
-        return {
-            "function": function_name,
-            "versions": version_info
-        }
+        logger.info(
+            f"Retrieved compatibility information for {function_name} across {len(versions)} versions"
+        )
+        return {"function": function_name, "versions": version_info}
 
     def get_related_functions(self, function_name: str) -> Dict[str, Any]:
         """
@@ -390,7 +441,7 @@ class DocumentationManager:
             A dictionary with related function information
         """
         # Extract the library name from the function name
-        library = function_name.split('.')[0]
+        library = function_name.split(".")[0]
 
         # Query for function documentation
         query = f"function:{function_name}"
@@ -405,25 +456,30 @@ class DocumentationManager:
             for rel_func in related:
                 try:
                     doc = self.repository.get_documentation(library, None, rel_func)
-                    related_functions.append({
-                        "name": rel_func,
-                        "description": doc.get("description", ""),
-                        "relationship": doc.get("relationship", "Related function")
-                    })
+                    related_functions.append(
+                        {
+                            "name": rel_func,
+                            "description": doc.get("description", ""),
+                            "relationship": doc.get("relationship", "Related function"),
+                        }
+                    )
                 except Exception as e:
-                    logger.warning(f"Error getting documentation for related function {rel_func}: {str(e)}")
-                    related_functions.append({
-                        "name": rel_func,
-                        "description": "No description available",
-                        "relationship": "Related function",
-                        "error": str(e)
-                    })
+                    logger.warning(
+                        f"Error getting documentation for related function {rel_func}: {str(e)}"
+                    )
+                    related_functions.append(
+                        {
+                            "name": rel_func,
+                            "description": "No description available",
+                            "relationship": "Related function",
+                            "error": str(e),
+                        }
+                    )
 
-        logger.info(f"Retrieved {len(related_functions)} related functions for {function_name}")
-        return {
-            "function": function_name,
-            "related_functions": related_functions
-        }
+        logger.info(
+            f"Retrieved {len(related_functions)} related functions for {function_name}"
+        )
+        return {"function": function_name, "related_functions": related_functions}
 
     def get_usage_patterns(self, function_name: str) -> Dict[str, Any]:
         """
@@ -436,7 +492,7 @@ class DocumentationManager:
             A dictionary with usage pattern information
         """
         # Extract the library name from the function name
-        library = function_name.split('.')[0]
+        library = function_name.split(".")[0]
 
         # Query for function documentation
         query = f"function:{function_name}"
@@ -448,7 +504,7 @@ class DocumentationManager:
                 "function": function_name,
                 "usage_patterns": [],
                 "best_practices": [],
-                "common_params": {}
+                "common_params": {},
             }
 
         # Extract usage patterns, best practices, and common parameters
@@ -456,19 +512,21 @@ class DocumentationManager:
         best_practices = results[0].get("best_practices", [])
         common_params = results[0].get("common_params", {})
 
-        logger.info(f"Retrieved {len(usage_patterns)} usage patterns for {function_name}")
+        logger.info(
+            f"Retrieved {len(usage_patterns)} usage patterns for {function_name}"
+        )
         return {
             "function": function_name,
             "usage_patterns": usage_patterns,
             "best_practices": best_practices,
-            "common_params": common_params
+            "common_params": common_params,
         }
 
     def _version_key(self, version: str) -> Tuple:
         """Convert a version string to a tuple for sorting."""
         # Convert each part to an integer if possible, otherwise use string
         parts = []
-        for part in version.split('.'):
+        for part in version.split("."):
             try:
                 parts.append(int(part))
             except ValueError:
