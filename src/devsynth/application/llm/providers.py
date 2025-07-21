@@ -204,7 +204,11 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
 
 
 # Import providers at the end to avoid circular imports
-from .lmstudio_provider import LMStudioProvider
+try:  # pragma: no cover - optional dependency
+    from .lmstudio_provider import LMStudioProvider
+except ImportError as exc:  # pragma: no cover - fallback path
+    LMStudioProvider = None
+    logger.warning("LMStudioProvider not available: %s", exc)
 from .openai_provider import OpenAIProvider
 from .local_provider import LocalProvider
 from .offline_provider import OfflineProvider
@@ -214,7 +218,8 @@ factory = SimpleLLMProviderFactory()
 
 # Register providers
 factory.register_provider_type("anthropic", AnthropicProvider)
-factory.register_provider_type("lmstudio", LMStudioProvider)
+if LMStudioProvider is not None:
+    factory.register_provider_type("lmstudio", LMStudioProvider)
 factory.register_provider_type("openai", OpenAIProvider)
 factory.register_provider_type("local", LocalProvider)
 factory.register_provider_type("offline", OfflineProvider)

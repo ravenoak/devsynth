@@ -11,7 +11,13 @@ import json
 import uuid
 import tiktoken
 import numpy as np
-import duckdb
+
+try:  # pragma: no cover - optional dependency
+    import duckdb
+except ImportError as e:  # pragma: no cover - if duckdb is missing tests skip
+    raise ImportError(
+        "DuckDBStore requires the 'duckdb' package. Install it with 'pip install duckdb' or use the dev extras."
+    ) from e
 from typing import Dict, List, Any, Optional, Union, Tuple
 from datetime import datetime
 
@@ -19,14 +25,15 @@ from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import (
-    DevSynthError, 
-    MemoryError, 
-    MemoryStoreError, 
-    MemoryItemNotFoundError
+    DevSynthError,
+    MemoryError,
+    MemoryStoreError,
+    MemoryItemNotFoundError,
 )
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
 
 class DuckDBStore(MemoryStore, VectorStore):
     """
@@ -37,7 +44,12 @@ class DuckDBStore(MemoryStore, VectorStore):
     faster vector similarity search.
     """
 
-    def __init__(self, base_path: str, enable_hnsw: bool = False, hnsw_config: Optional[Dict[str, int]] = None):
+    def __init__(
+        self,
+        base_path: str,
+        enable_hnsw: bool = False,
+        hnsw_config: Optional[Dict[str, int]] = None,
+    ):
         """
         Initialize a DuckDBStore.
 
@@ -57,11 +69,7 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         # Set default HNSW configuration if not provided
         if hnsw_config is None:
-            self.hnsw_config = {
-                "M": 12,
-                "efConstruction": 100,
-                "efSearch": 50
-            }
+            self.hnsw_config = {"M": 12, "efConstruction": 100, "efSearch": 50}
         else:
             self.hnsw_config = hnsw_config
 
@@ -75,7 +83,9 @@ class DuckDBStore(MemoryStore, VectorStore):
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
         except Exception as e:
-            logger.warning(f"Failed to initialize tokenizer: {e}. Token counting will be approximate.")
+            logger.warning(
+                f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
+            )
             self.tokenizer = None
 
         # Initialize database schema
@@ -89,11 +99,14 @@ class DuckDBStore(MemoryStore, VectorStore):
                 self.conn.execute("INSTALL vector; LOAD vector;")
                 self.vector_extension_available = True
             except Exception as e:
-                logger.warning(f"Failed to load vector extension: {e}. Vector similarity search will be limited.")
+                logger.warning(
+                    f"Failed to load vector extension: {e}. Vector similarity search will be limited."
+                )
                 self.vector_extension_available = False
 
             # Create memory_items table if it doesn't exist
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS memory_items (
                     id VARCHAR PRIMARY KEY,
                     content VARCHAR,
@@ -101,11 +114,13 @@ class DuckDBStore(MemoryStore, VectorStore):
                     metadata VARCHAR,  -- JSON string
                     created_at VARCHAR
                 );
-            """)
+            """
+            )
 
             # Create memory_vectors table if it doesn't exist
             if self.vector_extension_available:
-                self.conn.execute("""
+                self.conn.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS memory_vectors (
                         id VARCHAR PRIMARY KEY,
                         content VARCHAR,
@@ -113,10 +128,12 @@ class DuckDBStore(MemoryStore, VectorStore):
                         metadata VARCHAR,  -- JSON string
                         created_at VARCHAR
                     );
-                """)
+                """
+                )
             else:
                 # Fallback for testing without vector extension
-                self.conn.execute("""
+                self.conn.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS memory_vectors (
                         id VARCHAR PRIMARY KEY,
                         content VARCHAR,
@@ -124,31 +141,44 @@ class DuckDBStore(MemoryStore, VectorStore):
                         metadata VARCHAR,  -- JSON string
                         created_at VARCHAR
                     );
-                """)
+                """
+                )
 
             # Configure HNSW parameters if enabled and vector extension is available
             if self.enable_hnsw and self.vector_extension_available:
                 try:
                     # Enable experimental persistence for HNSW indexes
-                    self.conn.execute("SET hnsw_enable_experimental_persistence = true;")
+                    self.conn.execute(
+                        "SET hnsw_enable_experimental_persistence = true;"
+                    )
 
                     # Set HNSW parameters
                     self.conn.execute(f"SET hnsw_M = {self.hnsw_config['M']};")
-                    self.conn.execute(f"SET hnsw_efConstruction = {self.hnsw_config['efConstruction']};")
-                    self.conn.execute(f"SET hnsw_efSearch = {self.hnsw_config['efSearch']};")
+                    self.conn.execute(
+                        f"SET hnsw_efConstruction = {self.hnsw_config['efConstruction']};"
+                    )
+                    self.conn.execute(
+                        f"SET hnsw_efSearch = {self.hnsw_config['efSearch']};"
+                    )
 
-                    logger.info(f"HNSW indexing enabled with parameters: {self.hnsw_config}")
+                    logger.info(
+                        f"HNSW indexing enabled with parameters: {self.hnsw_config}"
+                    )
                 except Exception as e:
-                    logger.warning(f"Failed to configure HNSW parameters: {e}. HNSW indexing will be disabled.")
+                    logger.warning(
+                        f"Failed to configure HNSW parameters: {e}. HNSW indexing will be disabled."
+                    )
                     self.enable_hnsw = False
 
             logger.info("DuckDB schema initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize DuckDB schema: {e}")
-            raise MemoryStoreError("Failed to initialize DuckDB schema", 
-                                  store_type="duckdb", 
-                                  operation="initialize_schema", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Failed to initialize DuckDB schema",
+                store_type="duckdb",
+                operation="initialize_schema",
+                original_error=e,
+            )
 
     def _count_tokens(self, text: str) -> int:
         """
@@ -217,19 +247,26 @@ class DuckDBStore(MemoryStore, VectorStore):
             metadata_json = self._serialize_metadata(item.metadata)
 
             # Convert created_at to ISO format string
-            created_at_str = item.created_at.isoformat() if item.created_at else datetime.now().isoformat()
+            created_at_str = (
+                item.created_at.isoformat()
+                if item.created_at
+                else datetime.now().isoformat()
+            )
 
             # Store in DuckDB
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 INSERT OR REPLACE INTO memory_items (id, content, memory_type, metadata, created_at)
                 VALUES (?, ?, ?, ?, ?)
-            """, (
-                item.id,
-                item.content,
-                item.memory_type.value if item.memory_type else None,
-                metadata_json,
-                created_at_str
-            ))
+            """,
+                (
+                    item.id,
+                    item.content,
+                    item.memory_type.value if item.memory_type else None,
+                    metadata_json,
+                    created_at_str,
+                ),
+            )
 
             # Update token count
             token_count = self._count_tokens(str(item))
@@ -240,10 +277,12 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         except Exception as e:
             logger.error(f"Failed to store item in DuckDB: {e}")
-            raise MemoryStoreError("Failed to store item", 
-                                  store_type="duckdb", 
-                                  operation="store", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Failed to store item",
+                store_type="duckdb",
+                operation="store",
+                original_error=e,
+            )
 
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
         """
@@ -260,11 +299,14 @@ class DuckDBStore(MemoryStore, VectorStore):
         """
         try:
             # Query DuckDB for the item
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT id, content, memory_type, metadata, created_at
                 FROM memory_items
                 WHERE id = ?
-            """, (item_id,)).fetchone()
+            """,
+                (item_id,),
+            ).fetchone()
 
             # Check if the item was found
             if not result:
@@ -286,7 +328,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 content=result[1],
                 memory_type=memory_type,
                 metadata=metadata,
-                created_at=created_at
+                created_at=created_at,
             )
 
             # Update token count
@@ -298,10 +340,12 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         except Exception as e:
             logger.error(f"Error retrieving item from DuckDB: {e}")
-            raise MemoryStoreError("Error retrieving item", 
-                                  store_type="duckdb", 
-                                  operation="retrieve", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error retrieving item",
+                store_type="duckdb",
+                operation="retrieve",
+                original_error=e,
+            )
 
     def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
         """
@@ -364,7 +408,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                     content=result[1],
                     memory_type=memory_type,
                     metadata=metadata,
-                    created_at=created_at
+                    created_at=created_at,
                 )
 
                 items.append(item)
@@ -379,10 +423,12 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         except Exception as e:
             logger.error(f"Error searching items in DuckDB: {e}")
-            raise MemoryStoreError("Error searching items", 
-                                  store_type="duckdb", 
-                                  operation="search", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error searching items",
+                store_type="duckdb",
+                operation="search",
+                original_error=e,
+            )
 
     def delete(self, item_id: str) -> bool:
         """
@@ -399,28 +445,36 @@ class DuckDBStore(MemoryStore, VectorStore):
         """
         try:
             # Check if the item exists
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT id FROM memory_items WHERE id = ?
-            """, (item_id,)).fetchone()
+            """,
+                (item_id,),
+            ).fetchone()
 
             if not result:
                 logger.warning(f"Item with ID {item_id} not found for deletion")
                 return False
 
             # Delete the item
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 DELETE FROM memory_items WHERE id = ?
-            """, (item_id,))
+            """,
+                (item_id,),
+            )
 
             logger.info(f"Deleted item with ID {item_id} from DuckDB")
             return True
 
         except Exception as e:
             logger.error(f"Error deleting item from DuckDB: {e}")
-            raise MemoryStoreError("Error deleting item", 
-                                  store_type="duckdb", 
-                                  operation="delete", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error deleting item",
+                store_type="duckdb",
+                operation="delete",
+                original_error=e,
+            )
 
     def get_token_usage(self) -> int:
         """
@@ -453,7 +507,11 @@ class DuckDBStore(MemoryStore, VectorStore):
             metadata_json = self._serialize_metadata(vector.metadata)
 
             # Convert created_at to ISO format string
-            created_at_str = vector.created_at.isoformat() if vector.created_at else datetime.now().isoformat()
+            created_at_str = (
+                vector.created_at.isoformat()
+                if vector.created_at
+                else datetime.now().isoformat()
+            )
 
             # Convert embedding to a list if it's a numpy array
             embedding = vector.embedding
@@ -462,44 +520,54 @@ class DuckDBStore(MemoryStore, VectorStore):
 
             # Store in DuckDB
             if self.vector_extension_available:
-                self.conn.execute("""
+                self.conn.execute(
+                    """
                     INSERT OR REPLACE INTO memory_vectors (id, content, embedding, metadata, created_at)
                     VALUES (?, ?, ?, ?, ?)
-                """, (
-                    vector.id,
-                    vector.content,
-                    embedding,
-                    metadata_json,
-                    created_at_str
-                ))
+                """,
+                    (
+                        vector.id,
+                        vector.content,
+                        embedding,
+                        metadata_json,
+                        created_at_str,
+                    ),
+                )
             else:
                 # Fallback for testing without vector extension
-                self.conn.execute("""
+                self.conn.execute(
+                    """
                     INSERT OR REPLACE INTO memory_vectors (id, content, embedding, metadata, created_at)
                     VALUES (?, ?, ?, ?, ?)
-                """, (
-                    vector.id,
-                    vector.content,
-                    json.dumps(embedding),  # Store as JSON string for testing
-                    metadata_json,
-                    created_at_str
-                ))
+                """,
+                    (
+                        vector.id,
+                        vector.content,
+                        json.dumps(embedding),  # Store as JSON string for testing
+                        metadata_json,
+                        created_at_str,
+                    ),
+                )
 
             # Create HNSW index if enabled, vector extension is available, and index not already created
             if self.enable_hnsw and self.vector_extension_available:
                 try:
                     # Check if index already exists
-                    result = self.conn.execute("""
+                    result = self.conn.execute(
+                        """
                         SELECT * FROM duckdb_indexes()
                         WHERE index_type = 'hnsw'
-                    """).fetchall()
+                    """
+                    ).fetchall()
 
                     if len(result) == 0:
                         # Create HNSW index on the embedding column
-                        self.conn.execute("""
+                        self.conn.execute(
+                            """
                             CREATE INDEX IF NOT EXISTS memory_vectors_hnsw_idx 
                             ON memory_vectors USING HNSW(embedding);
-                        """)
+                        """
+                        )
                         logger.info("Created HNSW index on memory_vectors table")
                 except Exception as e:
                     logger.warning(f"Failed to create HNSW index: {e}")
@@ -509,10 +577,12 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         except Exception as e:
             logger.error(f"Failed to store vector in DuckDB: {e}")
-            raise MemoryStoreError("Failed to store vector", 
-                                  store_type="duckdb", 
-                                  operation="store_vector", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Failed to store vector",
+                store_type="duckdb",
+                operation="store_vector",
+                original_error=e,
+            )
 
     def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
         """
@@ -529,11 +599,14 @@ class DuckDBStore(MemoryStore, VectorStore):
         """
         try:
             # Query DuckDB for the vector
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT id, content, embedding, metadata, created_at
                 FROM memory_vectors
                 WHERE id = ?
-            """, (vector_id,)).fetchone()
+            """,
+                (vector_id,),
+            ).fetchone()
 
             # Check if the vector was found
             if not result:
@@ -557,7 +630,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 content=result[1],
                 embedding=embedding,
                 metadata=metadata,
-                created_at=created_at
+                created_at=created_at,
             )
 
             logger.info(f"Retrieved vector with ID {vector_id} from DuckDB")
@@ -565,12 +638,16 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         except Exception as e:
             logger.error(f"Error retrieving vector from DuckDB: {e}")
-            raise MemoryStoreError("Error retrieving vector", 
-                                  store_type="duckdb", 
-                                  operation="retrieve_vector", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error retrieving vector",
+                store_type="duckdb",
+                operation="retrieve_vector",
+                original_error=e,
+            )
 
-    def similarity_search(self, query_embedding: List[float], top_k: int = 5) -> List[MemoryVector]:
+    def similarity_search(
+        self, query_embedding: List[float], top_k: int = 5
+    ) -> List[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -592,13 +669,16 @@ class DuckDBStore(MemoryStore, VectorStore):
             # Use DuckDB's vector similarity search if vector extension is available
             if self.vector_extension_available:
                 # If HNSW is enabled, the index will be used automatically
-                results = self.conn.execute("""
+                results = self.conn.execute(
+                    """
                     SELECT id, content, embedding, metadata, created_at,
                            vector_distance(embedding, ?) as distance
                     FROM memory_vectors
                     ORDER BY distance ASC
                     LIMIT ?
-                """, (query_embedding, top_k)).fetchall()
+                """,
+                    (query_embedding, top_k),
+                ).fetchall()
 
                 # Convert results to MemoryVectors
                 vectors = []
@@ -607,7 +687,9 @@ class DuckDBStore(MemoryStore, VectorStore):
                     metadata = self._deserialize_metadata(result[3])
 
                     # Convert created_at string to datetime
-                    created_at = datetime.fromisoformat(result[4]) if result[4] else None
+                    created_at = (
+                        datetime.fromisoformat(result[4]) if result[4] else None
+                    )
 
                     # Create a MemoryVector
                     vector = MemoryVector(
@@ -615,20 +697,24 @@ class DuckDBStore(MemoryStore, VectorStore):
                         content=result[1],
                         embedding=result[2],
                         metadata=metadata,
-                        created_at=created_at
+                        created_at=created_at,
                     )
 
                     vectors.append(vector)
 
                 search_type = "HNSW index" if self.enable_hnsw else "linear scan"
-                logger.info(f"Found {len(vectors)} similar vectors in DuckDB using {search_type}")
+                logger.info(
+                    f"Found {len(vectors)} similar vectors in DuckDB using {search_type}"
+                )
             else:
                 # Fallback for testing without vector extension
                 # Get all vectors and compute distances in Python
-                results = self.conn.execute("""
+                results = self.conn.execute(
+                    """
                     SELECT id, content, embedding, metadata, created_at
                     FROM memory_vectors
-                """).fetchall()
+                """
+                ).fetchall()
 
                 # Compute distances and sort
                 vectors_with_distances = []
@@ -637,13 +723,18 @@ class DuckDBStore(MemoryStore, VectorStore):
                     metadata = self._deserialize_metadata(result[3])
 
                     # Convert created_at string to datetime
-                    created_at = datetime.fromisoformat(result[4]) if result[4] else None
+                    created_at = (
+                        datetime.fromisoformat(result[4]) if result[4] else None
+                    )
 
                     # Parse embedding from JSON string
                     embedding = json.loads(result[2])
 
                     # Compute Euclidean distance
-                    distance = sum((a - b) ** 2 for a, b in zip(embedding, query_embedding)) ** 0.5
+                    distance = (
+                        sum((a - b) ** 2 for a, b in zip(embedding, query_embedding))
+                        ** 0.5
+                    )
 
                     # Create a MemoryVector
                     vector = MemoryVector(
@@ -651,7 +742,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                         content=result[1],
                         embedding=embedding,
                         metadata=metadata,
-                        created_at=created_at
+                        created_at=created_at,
                     )
 
                     vectors_with_distances.append((vector, distance))
@@ -660,16 +751,20 @@ class DuckDBStore(MemoryStore, VectorStore):
                 vectors_with_distances.sort(key=lambda x: x[1])
                 vectors = [v for v, _ in vectors_with_distances[:top_k]]
 
-                logger.info(f"Found {len(vectors)} similar vectors in DuckDB using Python fallback (vector extension not available)")
+                logger.info(
+                    f"Found {len(vectors)} similar vectors in DuckDB using Python fallback (vector extension not available)"
+                )
 
             return vectors
 
         except Exception as e:
             logger.error(f"Error performing similarity search in DuckDB: {e}")
-            raise MemoryStoreError("Error performing similarity search", 
-                                  store_type="duckdb", 
-                                  operation="similarity_search", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error performing similarity search",
+                store_type="duckdb",
+                operation="similarity_search",
+                original_error=e,
+            )
 
     def delete_vector(self, vector_id: str) -> bool:
         """
@@ -686,28 +781,36 @@ class DuckDBStore(MemoryStore, VectorStore):
         """
         try:
             # Check if the vector exists
-            result = self.conn.execute("""
+            result = self.conn.execute(
+                """
                 SELECT id FROM memory_vectors WHERE id = ?
-            """, (vector_id,)).fetchone()
+            """,
+                (vector_id,),
+            ).fetchone()
 
             if not result:
                 logger.warning(f"Vector with ID {vector_id} not found for deletion")
                 return False
 
             # Delete the vector
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 DELETE FROM memory_vectors WHERE id = ?
-            """, (vector_id,))
+            """,
+                (vector_id,),
+            )
 
             logger.info(f"Deleted vector with ID {vector_id} from DuckDB")
             return True
 
         except Exception as e:
             logger.error(f"Error deleting vector from DuckDB: {e}")
-            raise MemoryStoreError("Error deleting vector", 
-                                  store_type="duckdb", 
-                                  operation="delete_vector", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error deleting vector",
+                store_type="duckdb",
+                operation="delete_vector",
+                original_error=e,
+            )
 
     def get_collection_stats(self) -> Dict[str, Any]:
         """
@@ -721,16 +824,20 @@ class DuckDBStore(MemoryStore, VectorStore):
         """
         try:
             # Get the number of vectors
-            num_vectors = self.conn.execute("""
+            num_vectors = self.conn.execute(
+                """
                 SELECT COUNT(*) FROM memory_vectors
-            """).fetchone()[0]
+            """
+            ).fetchone()[0]
 
             # Get the embedding dimension (from the first vector if available)
             embedding_dimension = 0
             if num_vectors > 0:
-                first_vector = self.conn.execute("""
+                first_vector = self.conn.execute(
+                    """
                     SELECT embedding FROM memory_vectors LIMIT 1
-                """).fetchone()
+                """
+                ).fetchone()
 
                 if first_vector and first_vector[0]:
                     if self.vector_extension_available:
@@ -744,10 +851,12 @@ class DuckDBStore(MemoryStore, VectorStore):
             hnsw_index_exists = False
             if self.enable_hnsw and self.vector_extension_available:
                 try:
-                    result = self.conn.execute("""
+                    result = self.conn.execute(
+                        """
                         SELECT * FROM duckdb_indexes()
                         WHERE index_type = 'hnsw'
-                    """).fetchall()
+                    """
+                    ).fetchall()
                     hnsw_index_exists = len(result) > 0
                 except Exception:
                     hnsw_index_exists = False
@@ -758,7 +867,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 "database_file": self.db_file,
                 "vector_extension_available": self.vector_extension_available,
                 "hnsw_enabled": self.enable_hnsw,
-                "hnsw_index_exists": hnsw_index_exists
+                "hnsw_index_exists": hnsw_index_exists,
             }
 
             # Add HNSW configuration if enabled
@@ -770,7 +879,9 @@ class DuckDBStore(MemoryStore, VectorStore):
 
         except Exception as e:
             logger.error(f"Error getting collection statistics from DuckDB: {e}")
-            raise MemoryStoreError("Error getting collection statistics", 
-                                  store_type="duckdb", 
-                                  operation="get_collection_stats", 
-                                  original_error=e)
+            raise MemoryStoreError(
+                "Error getting collection statistics",
+                store_type="duckdb",
+                operation="get_collection_stats",
+                original_error=e,
+            )
