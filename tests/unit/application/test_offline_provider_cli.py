@@ -1,8 +1,7 @@
 import types
+import importlib
 import pytest
 import httpx
-from devsynth.application.llm import get_llm_provider
-from devsynth.application.llm.offline_provider import OfflineProvider
 
 
 def _mock_config():
@@ -22,23 +21,30 @@ def test_generate_does_not_call_external_succeeds(monkeypatch):
     This test needs to be run in isolation due to interactions with other tests.
 
 ReqID: N/A"""
+    # Patch configuration helpers before importing modules that read them
+    monkeypatch.setattr('devsynth.core.config_loader.load_config', _mock_config)
+    monkeypatch.setattr('devsynth.config.get_llm_settings', _llm_settings)
+
+    # Import and reload modules to ensure patches are used
+    llm = importlib.import_module('devsynth.application.llm')
+    providers = importlib.import_module('devsynth.application.llm.providers')
+    importlib.reload(providers)
+    importlib.reload(llm)
+    OfflineProvider = importlib.import_module(
+        'devsynth.application.llm.offline_provider'
+    ).OfflineProvider
+
     # Mock httpx to ensure no external calls are made
     def mock_request(*args, **kwargs):
         pytest.fail("External HTTP request was made when it shouldn't have been")
 
     monkeypatch.setattr(httpx, 'request', mock_request)
 
-    # Ensure we're in offline mode
-    monkeypatch.setattr('devsynth.application.llm.load_config', _mock_config)
-    monkeypatch.setattr('devsynth.application.llm.get_llm_settings', _llm_settings)
-
-    # Get the config and verify it's in offline mode
-    config = _mock_config()
-    assert config.as_dict()['offline_mode'] is True
-
     # Get the provider and verify it's an OfflineProvider
-    provider = get_llm_provider()
-    assert isinstance(provider, OfflineProvider), f"Expected OfflineProvider but got {type(provider)}"
+    provider = llm.get_llm_provider()
+    assert isinstance(provider, OfflineProvider), (
+        f"Expected OfflineProvider but got {type(provider)}"
+    )
 
     # Generate text and verify the result
     result = provider.generate('hello')
