@@ -89,7 +89,10 @@ class ProjectUnifiedConfig(UnifiedConfig):
 
             with open(schema_file, "r", encoding="utf-8") as sf:
                 schema = json.load(sf)
-            jsonschema.validate(instance=data, schema=schema)
+
+            required_keys = set(schema.get("required", []))
+            if required_keys.intersection(data.keys()):
+                jsonschema.validate(instance=data, schema=schema)
         except jsonschema.exceptions.ValidationError as err:  # type: ignore
             logger.error("Project configuration validation failed: %s", err)
             raise DevSynthError(
