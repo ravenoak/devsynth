@@ -44,4 +44,5 @@ The same workflow also ensures the documentation build succeeds before publicati
 By following this process, DevSynth maintains a consistent release mechanism that automatically publishes packages and documentation whenever a signed tag is pushed.
 ## Implementation Status
 
-This feature is **implemented**.
+Release automation is **planned**. The workflow remains disabled until the tasks
+in [issue #103](https://github.com/ravenoak/devsynth/issues/103) are complete.

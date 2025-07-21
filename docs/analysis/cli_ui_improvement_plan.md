@@ -112,4 +112,5 @@ graph LR
 ```
 ## Implementation Status
 
-This feature is **implemented**.
+This improvement plan is **planned** and partially implemented. Remaining tasks
+are tracked in [issue #102](https://github.com/ravenoak/devsynth/issues/102).
