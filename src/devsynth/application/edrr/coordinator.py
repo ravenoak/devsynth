@@ -151,6 +151,8 @@ class EDRRCoordinator:
         self.results = {}
         self.cycle_id = None
         self.manifest = None
+        # Loaded from memory when starting a cycle
+        self._historical_data: List[dict] = []
 
         logger.info(
             f"EDRR coordinator initialized (recursion depth: {recursion_depth})"
@@ -257,8 +259,6 @@ class EDRRCoordinator:
         self._cycle_start_time = datetime.now()
 
         # Load historical data for adaptive phase transitions
-        if not hasattr(self, "_historical_data"):
-            self._historical_data = []
         if hasattr(self.memory_manager, "search"):
             try:
                 self._historical_data = [
@@ -360,9 +360,6 @@ class EDRRCoordinator:
             self.cycle_id = str(uuid.uuid4())
             self.results = {}
             self._cycle_start_time = datetime.now()
-
-            if not hasattr(self, "_historical_data"):
-                self._historical_data = []
             if hasattr(self.memory_manager, "search"):
                 try:
                     self._historical_data = [
