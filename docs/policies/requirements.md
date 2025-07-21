@@ -33,4 +33,4 @@ This policy defines best practices for requirements gathering, documentation, an
 - See [Development Policy](development.md) for traceability practices.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

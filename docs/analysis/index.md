@@ -30,4 +30,4 @@ For more information on the implementation and roadmap based on these analyses, 
 - **[Development Status](../roadmap/development_status.md)**: The current status of development.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

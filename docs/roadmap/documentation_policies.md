@@ -54,4 +54,4 @@ This document outlines the policies for maintaining high-quality documentation i
 - Reference this policy in [CONTRIBUTING.md](../../CONTRIBUTING.md)
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

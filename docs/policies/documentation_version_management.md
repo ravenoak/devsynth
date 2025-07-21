@@ -179,4 +179,4 @@ Additional configuration is in `.github/workflows/documentation_versioning.yml` 
 ---
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

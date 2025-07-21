@@ -48,4 +48,4 @@ docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.mon
 - See [Maintenance Policy](maintenance.md) for post-release support.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

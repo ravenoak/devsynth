@@ -35,4 +35,4 @@ This policy defines best practices for system architecture, design documentation
 - See [Development Policy](development.md) for implementation standards.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

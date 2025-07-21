@@ -36,4 +36,4 @@ This policy defines best practices for security, ethics, access control, and rep
 - See [Maintenance Policy](maintenance.md) for documentation updates.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

@@ -66,4 +66,4 @@ The roadmap provides a unified view of DevSynth's ongoing plans and future visio
 
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

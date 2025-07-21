@@ -20,4 +20,4 @@ is summarized in the [Feature Status Matrix](../implementation/feature_status_ma
 
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.

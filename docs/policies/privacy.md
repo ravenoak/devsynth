@@ -22,4 +22,4 @@ DevSynth collects the minimal data necessary to operate. Personal data is proces
 See [data retention](data_retention.md) for how long data is stored.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **implemented**.
