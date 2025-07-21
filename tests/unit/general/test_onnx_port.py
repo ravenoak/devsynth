@@ -1,5 +1,5 @@
 from devsynth.ports.onnx_port import OnnxPort
-from tests.unit.fakes.fake_onnx_runtime import FakeOnnxRuntime
+from tests.unit.fakes.test_fake_onnx_runtime import FakeOnnxRuntime
 
 
 def test_onnx_port_load_and_run_succeeds():

@@ -14,7 +14,7 @@ ReqID: N/A"""
 ReqID: N/A"""
 
 
-        class TestResult(CodeAnalysisResult):
+        class FakeResult(CodeAnalysisResult):
             """Tests for the Result component.
 
 ReqID: N/A"""
@@ -38,7 +38,7 @@ ReqID: N/A"""
 
             def get_metrics(self) ->Dict[str, Any]:
                 return self.metrics
-        result = TestResult()
+        result = FakeResult()
         self.assertIsInstance(result, CodeAnalysisResult)
         self.assertEqual(result.get_file_analysis('test.py'), None)
         self.assertEqual(result.get_symbol_references('TestClass'), [])
@@ -51,7 +51,7 @@ ReqID: N/A"""
 ReqID: N/A"""
 
 
-        class TestFileResult(FileAnalysisResult):
+        class FakeFileResult(FileAnalysisResult):
             """Tests for the FileResult component.
 
 ReqID: N/A"""
@@ -81,7 +81,7 @@ ReqID: N/A"""
 
             def get_metrics(self) ->Dict[str, Any]:
                 return self.metrics
-        file_result = TestFileResult()
+        file_result = FakeFileResult()
         self.assertIsInstance(file_result, FileAnalysisResult)
         self.assertEqual(file_result.get_imports(), [])
         self.assertEqual(file_result.get_classes(), [])

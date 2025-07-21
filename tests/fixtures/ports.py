@@ -8,7 +8,7 @@ from devsynth.ports.memory_port import MemoryPort
 from devsynth.domain.interfaces.memory import MemoryStore, ContextManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.ports.onnx_port import OnnxPort
-from tests.unit.fakes.fake_onnx_runtime import FakeOnnxRuntime
+from tests.unit.fakes.test_fake_onnx_runtime import FakeOnnxRuntime
 
 
 class _InMemoryStore(MemoryStore):
