@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock
 from devsynth.domain.models.wsde import WSDETeam
 import pytest
-pytest.skip('WSDE role mapping tests skipped', allow_module_level=True)
+import os
+if os.environ.get('DEVSYNTH_RUN_WSDE_TESTS') != '1':
+    pytest.skip('WSDE role mapping tests require DEVSYNTH_RUN_WSDE_TESTS=1', allow_module_level=True)
 
 
 def test_assign_roles_with_explicit_mapping_succeeds():

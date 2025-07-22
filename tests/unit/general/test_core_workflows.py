@@ -1,7 +1,6 @@
 import json
 import pytest
 from unittest.mock import patch
-pytest.skip('Core workflow wrapper tests skipped', allow_module_level=True)
 from devsynth.core import workflows
 
 
@@ -19,11 +18,11 @@ ReqID: N/A"""
     'requirements_file': 'req.md'}), (workflows.generate_tests, 'test', {
     'spec_file': 'spec.md'}, {'spec_file': 'spec.md'}), (workflows.
     generate_code, 'code', {}, {}), (workflows.run_pipeline, 'run-pipeline',
-    {'target': 'build', 'report': None}, {'target': 'build', 'report': None
-    }), (workflows.update_config, 'config', {'key': 'model', 'value':
-    'gpt-4'}, {'key': 'model', 'value': 'gpt-4'}), (workflows.update_config,
-    'config', {'key': 'model', 'value': None, 'list_models': True}, {'key':
-    'model', 'value': None, 'list_models': True}), (workflows.
+    {'target': 'build', 'report': None}, {'target': 'build'}), (workflows.
+    update_config, 'config', {'key': 'model', 'value': 'gpt-4'}, {'key':
+    'model', 'value': 'gpt-4'}), (workflows.update_config, 'config', {'key':
+    'model', 'value': None, 'list_models': True}, {'key': 'model',
+    'list_models': True}), (workflows.
     inspect_requirements, 'inspect', {'input': 'requirements.txt',
     'interactive': False}, {'input': 'requirements.txt', 'interactive': 
     False})])
@@ -32,8 +31,7 @@ def test_wrappers_call_execute_command_succeeds(func, command, kwargs, expected
     """Test that wrappers call execute command succeeds.
 
 ReqID: N/A"""
-    with patch('devsynth.core.workflows.workflow_manager.execute_command'
-        ) as mock:
+    with patch('devsynth.core.workflows.execute_command') as mock:
         mock.return_value = {'success': True}
         result = func(**kwargs)
         mock.assert_called_once_with(command, expected)
