@@ -13,7 +13,7 @@ from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 
 # Import the feature file
-scenarios('../features/consensus_building.feature')
+scenarios('../features/general/consensus_building.feature')
 
 # Define a fixture for the context
 @pytest.fixture

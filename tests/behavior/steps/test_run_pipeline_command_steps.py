@@ -4,7 +4,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import patch, MagicMock
 
 # Import the scenarios from the feature file
-scenarios('../features/run_pipeline_command.feature')
+scenarios('../features/general/run_pipeline_command.feature')
 
 # Fixtures for test isolation
 @pytest.fixture

@@ -6,7 +6,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.documentation.documentation_manager import DocumentationManager
 
 # Import the feature file
-scenarios('../features/documentation_utility_functions.feature')
+scenarios('../features/general/documentation_utility_functions.feature')
 
 # Define a fixture for the context
 @pytest.fixture

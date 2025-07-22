@@ -2,7 +2,7 @@
 
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/project_ingestion.feature")
+scenarios("../features/general/project_ingestion.feature")
 
 
 @given("the project_ingestion feature context")

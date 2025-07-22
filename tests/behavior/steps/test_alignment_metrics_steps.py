@@ -4,7 +4,7 @@ from pytest_bdd import scenarios, given, then
 
 from .cli_commands_steps import run_command  # noqa: F401
 
-scenarios("../features/alignment_metrics_command.feature")
+scenarios("../features/general/alignment_metrics_command.feature")
 
 
 @given("alignment metrics calculation fails")

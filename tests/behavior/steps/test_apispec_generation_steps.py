@@ -19,7 +19,7 @@ def apispec_context(monkeypatch):
     return {"cmd": mock_cmd}
 
 
-scenarios("../features/apispec_generation.feature")
+scenarios("../features/general/apispec_generation.feature")
 
 
 @given("the apispec_generation feature context")

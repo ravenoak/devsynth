@@ -17,7 +17,7 @@ def chroma_context(monkeypatch, tmp_path):
     return {"cls": mock_cls, "store": mock_store, "path": tmp_path}
 
 
-scenarios("../features/chromadb_integration.feature")
+scenarios("../features/general/chromadb_integration.feature")
 
 
 @given("the chromadb_integration feature context")

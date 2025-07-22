@@ -2,7 +2,7 @@
 
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/validate_manifest.feature")
+scenarios("../features/general/validate_manifest.feature")
 
 
 @given("the validate_manifest feature context")

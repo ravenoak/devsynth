@@ -8,7 +8,7 @@ import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/wsde_memory_integration.feature')
+scenarios('../features/general/wsde_memory_integration.feature')
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde import WSDETeam

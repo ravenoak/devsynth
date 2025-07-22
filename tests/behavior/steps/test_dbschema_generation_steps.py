@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/dbschema_generation.feature")
+scenarios("../features/general/dbschema_generation.feature")
 
 
 @pytest.fixture

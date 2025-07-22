@@ -9,7 +9,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock
 
 # Import the feature file
-scenarios('../features/wsde_agent_model.feature')
+scenarios('../features/general/wsde_agent_model.feature')
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde import WSDETeam

@@ -17,7 +17,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 )
 from devsynth.application.memory.json_file_store import JSONFileStore
 
-scenarios("../features/hybrid_memory_query_patterns.feature")
+scenarios("../features/general/hybrid_memory_query_patterns.feature")
 
 
 @pytest.fixture

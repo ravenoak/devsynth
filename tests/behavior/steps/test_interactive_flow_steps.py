@@ -36,8 +36,8 @@ class DummyBridge(UXBridge):
         pass
 
 
-scenarios("../features/interactive_flow_cli.feature")
-scenarios("../features/interactive_flow_webui.feature")
+scenarios("../features/general/interactive_flow_cli.feature")
+scenarios("../features/general/interactive_flow_webui.feature")
 
 
 @given("the DevSynth CLI is installed")

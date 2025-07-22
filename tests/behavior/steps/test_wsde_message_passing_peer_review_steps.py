@@ -7,7 +7,7 @@ pytest.skip(
 from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock
 
-scenarios("../features/wsde_message_passing_peer_review.feature")
+scenarios("../features/general/wsde_message_passing_peer_review.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent

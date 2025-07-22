@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 # Import the scenarios from the feature file
-scenarios('../features/wsde_edrr_integration.feature')
+scenarios('../features/general/wsde_edrr_integration.feature')
 
 # Import the necessary components
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator

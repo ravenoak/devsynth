@@ -15,7 +15,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMem
 from devsynth.application.memory.adapters.chromadb_vector_adapter import ChromaDBVectorAdapter
 
 # Register scenarios
-scenarios('../features/advanced_graph_memory_features.feature')
+scenarios('../features/general/advanced_graph_memory_features.feature')
 
 @pytest.fixture
 def context():

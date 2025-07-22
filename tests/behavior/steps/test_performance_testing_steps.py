@@ -6,7 +6,7 @@ import os
 import tempfile
 import shutil
 from pathlib import Path
-scenarios('../features/performance_testing.feature')
+scenarios('../features/general/performance_testing.feature')
 
 
 @pytest.fixture

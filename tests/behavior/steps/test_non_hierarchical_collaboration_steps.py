@@ -19,7 +19,7 @@ from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 
 # Import the feature file
-scenarios("../features/non_hierarchical_collaboration.feature")
+scenarios("../features/general/non_hierarchical_collaboration.feature")
 
 
 # Define a fixture for the context

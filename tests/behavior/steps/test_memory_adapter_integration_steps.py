@@ -19,7 +19,8 @@ except ImportError:
 feature_file_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "features",
-    "memory_adapter_integration.feature"
+    "general",
+    "memory_adapter_integration.feature",
 )
 scenarios(feature_file_path)
 

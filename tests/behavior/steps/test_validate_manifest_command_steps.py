@@ -4,7 +4,7 @@ from pytest_bdd import scenarios, then
 
 from .cli_commands_steps import run_command  # noqa: F401
 
-scenarios("../features/validate_manifest_command.feature")
+scenarios("../features/general/validate_manifest_command.feature")
 
 
 @then("the output should indicate the project configuration is valid")

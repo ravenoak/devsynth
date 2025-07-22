@@ -10,7 +10,7 @@ import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/memory_context_system.feature')
+scenarios('../features/general/memory_context_system.feature')
 
 # Import the modules needed for the steps
 from devsynth.domain.models.memory import MemoryItem, MemoryType

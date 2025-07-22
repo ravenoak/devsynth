@@ -3,7 +3,7 @@ from __future__ import annotations
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
 import pytest
-scenarios('../features/edrr_coordinator.feature')
+scenarios('../features/general/edrr_coordinator.feature')
 import os
 import json
 import tempfile

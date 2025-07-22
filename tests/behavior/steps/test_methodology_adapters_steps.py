@@ -7,7 +7,7 @@ from devsynth.methodology.sprint import SprintAdapter
 from devsynth.methodology.adhoc import AdHocAdapter
 
 # Import the feature file
-scenarios('../features/methodology_adapters.feature')
+scenarios('../features/general/methodology_adapters.feature')
 
 # Define a fixture for the context
 @pytest.fixture

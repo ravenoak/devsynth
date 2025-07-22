@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import time
 from datetime import datetime, timedelta
 
-scenarios("../features/edrr_enhanced_phase_transitions.feature")
+scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
 from devsynth.methodology.base import Phase
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.wsde import WSDETeam

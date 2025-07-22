@@ -2,7 +2,7 @@ from pytest_bdd import scenarios, then
 
 from .webui_steps import *  # noqa: F401,F403
 
-scenarios("../features/webui_doctor.feature")
+scenarios("../features/general/webui_doctor.feature")
 
 
 @then("the doctor command should be executed")

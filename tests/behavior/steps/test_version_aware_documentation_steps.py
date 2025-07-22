@@ -15,7 +15,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.application.memory.memory_manager import MemoryManager
 
 # Import the feature file
-scenarios('../features/version_aware_documentation.feature')
+scenarios('../features/general/version_aware_documentation.feature')
 
 # Define a fixture for the context
 @pytest.fixture

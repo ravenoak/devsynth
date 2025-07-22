@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, when, then, scenarios, parsers
 
-scenarios("../features/webui.feature")
+scenarios("../features/general/webui.feature")
 
 
 class DummyForm:

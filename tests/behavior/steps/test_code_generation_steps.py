@@ -10,7 +10,7 @@ from pytest_bdd import scenarios, given, when, then, parsers
 from .cli_commands_steps import run_command
 from .test_generation_steps import have_analyzed_project
 
-scenarios("../features/code_generation.feature")
+scenarios("../features/general/code_generation.feature")
 
 
 @pytest.fixture

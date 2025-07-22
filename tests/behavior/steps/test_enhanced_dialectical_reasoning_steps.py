@@ -10,7 +10,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock, patch
 
 # Import the feature file
-scenarios("../features/enhanced_dialectical_reasoning.feature")
+scenarios("../features/general/enhanced_dialectical_reasoning.feature")
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde import WSDETeam

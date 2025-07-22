@@ -9,7 +9,7 @@ import uuid
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/ast_code_analysis.feature')
+scenarios('../features/general/ast_code_analysis.feature')
 
 # Import the modules needed for the steps
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer

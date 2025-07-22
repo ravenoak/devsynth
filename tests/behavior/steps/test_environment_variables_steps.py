@@ -9,7 +9,7 @@ from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
 
 # Import the feature file
-scenarios('../environment_variables.feature')
+scenarios('../features/general/environment_variables.feature')
 
 @given(parsers.parse('I have a .env file with the following content:\n{content}'))
 def create_env_file(content, monkeypatch):

@@ -6,7 +6,7 @@ import importlib
 import pytest
 from pytest_bdd import given, when, then, scenarios
 
-scenarios("../features/api_stub_usage.feature")
+scenarios("../features/general/api_stub_usage.feature")
 
 
 @pytest.fixture

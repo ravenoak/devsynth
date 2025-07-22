@@ -5,7 +5,7 @@ from pytest_bdd import scenarios
 import pytest
 
 # Import the scenarios from the feature file
-scenarios('../features/edrr_enhanced_memory_integration.feature')
+scenarios('../features/general/edrr_enhanced_memory_integration.feature')
 
 # Import the necessary components
 from unittest.mock import MagicMock, patch

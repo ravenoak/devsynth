@@ -5,7 +5,7 @@ from pytest_bdd import scenarios, given, then
 
 from .cli_commands_steps import run_command  # noqa: F401
 
-scenarios("../features/validate_metadata_command.feature")
+scenarios("../features/general/validate_metadata_command.feature")
 
 
 @given("a documentation file with valid metadata")

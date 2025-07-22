@@ -2,7 +2,7 @@
 
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/langgraph_adapter.feature")
+scenarios("../features/general/langgraph_adapter.feature")
 
 
 @given("the langgraph_adapter feature context")

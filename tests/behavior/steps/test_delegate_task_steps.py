@@ -11,7 +11,7 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 from devsynth.domain.models.wsde import WSDETeam
 
-scenarios("../features/delegate_task.feature")
+scenarios("../features/general/delegate_task.feature")
 
 
 class SimpleTeam(WSDETeam):

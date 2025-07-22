@@ -7,7 +7,7 @@ from pytest_bdd import given, when, then, scenarios, parsers
 import streamlit as st
 
 # Register the feature scenarios to ensure step discovery
-scenarios("../features/webui_integration.feature")
+scenarios("../features/general/webui_integration.feature")
 
 
 # Mock the WebUI and related components
