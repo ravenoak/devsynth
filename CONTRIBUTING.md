@@ -47,6 +47,9 @@ poetry shell
 
 # Install pre-commit hooks
 pre-commit install
+
+# Run all hooks on the current codebase
+pre-commit run --all-files
 ```
 
 ## Testing
