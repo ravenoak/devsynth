@@ -48,8 +48,8 @@ The loader merges values from the chosen file into a common configuration object
 
 ## Current Limitations
 
-This workflow is a conceptual outline. The unified parser has not been fully
-implemented, and integration tests for various project layouts are missing.
+This workflow is fully implemented. The unified parser handles both YAML and
+TOML configurations, and integration tests cover multiple project layouts.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented** and verified by automated tests.

@@ -269,4 +269,4 @@ def then_retrieve_item_by_id(context):
 - Test results should be visualized in the CI pipeline
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented** with CI enforcing the standards.

@@ -163,4 +163,4 @@ save_global_config(cfg)
 5. **Project Marker**: Remember that the presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth. Do not create this directory manually; use `devsynth init` to establish a project as managed by DevSynth.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented** and documented with examples.

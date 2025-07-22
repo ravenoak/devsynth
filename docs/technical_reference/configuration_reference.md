@@ -336,4 +336,4 @@ config.reset()
 For more information on using these configuration options, see the [CLI Reference](../user_guides/cli_reference.md) and [User Guide](../user_guides/user_guide.md).
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This reference is **implemented** and updated alongside the CLI.
