@@ -74,6 +74,9 @@ cd devsynth
 
 poetry install
 
+# Install every optional feature and group if you plan to run the full test suite
+poetry install --all-extras --all-groups
+
 # Activate the virtual environment
 
 poetry shell
@@ -213,6 +216,14 @@ For more details, see the [Contributing Guide](contributing.md).
 ## Running Tests
 
 DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
+To run the entire test suite, ensure all optional features are installed:
+
+```bash
+poetry install --all-extras --all-groups
+```
+
+Some ingestion and WSDE tests are skipped unless you set `DEVSYNTH_RUN_INGEST_TESTS=1`
+or `DEVSYNTH_RUN_WSDE_TESTS=1` when invoking `pytest`.
 
 ### Running Unit Tests
 

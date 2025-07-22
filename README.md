@@ -145,6 +145,8 @@ devsynth code
 
 # Install development dependencies
 poetry install --with dev
+# Install every optional feature and group (required for the full test suite)
+poetry install --all-extras --all-groups
 
 # Run the tests or execute the app
 poetry run pytest
@@ -178,8 +180,6 @@ Before running the test suite manually, you **must** install DevSynth with its d
 
 ```bash
 poetry install --with dev
-# or install everything
-poetry sync --all-extras --all-groups
 ```
 
 Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, and `lmstudio`:
@@ -188,6 +188,15 @@ Running the **full** test suite additionally requires the optional extras `minim
 poetry install --extras minimal --extras retrieval --extras memory \
   --extras llm --extras api --extras webui --extras lmstudio
 ```
+Alternatively, install them all at once:
+
+```bash
+poetry install --all-extras --all-groups
+```
+
+Ingestion and WSDE integration tests are skipped unless you set
+`DEVSYNTH_RUN_INGEST_TESTS=1` or `DEVSYNTH_RUN_WSDE_TESTS=1` before running
+`pytest`.
 
 Use pip only for installing from PyPI, not for local development.
 
