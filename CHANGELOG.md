@@ -53,4 +53,7 @@ version has been published yet.
 ### Changed
 - Updated documentation to reflect implementation of WebUI, CLI overhaul,
   hybrid memory architecture, and basic metrics system.
+### Fixed
+- Optional tiktoken dependency no longer breaks Kuzu memory initialization
+- Added missing step definitions for enhanced memory scenarios
 

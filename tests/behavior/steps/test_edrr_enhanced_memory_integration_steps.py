@@ -5,7 +5,7 @@ from pytest_bdd import scenarios
 import pytest
 
 # Import the scenarios from the feature file
-scenarios('../features/general/edrr_enhanced_memory_integration.feature')
+scenarios("../features/general/edrr_enhanced_memory_integration.feature")
 
 # Import the necessary components
 from unittest.mock import MagicMock, patch
@@ -13,29 +13,40 @@ from unittest.mock import MagicMock, patch
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
-from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import EnhancedGraphMemoryAdapter
-from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
+    EnhancedGraphMemoryAdapter,
+)
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.prompts.prompt_manager import PromptManager
-from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
 from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
 def context():
     """Create a test context with necessary components."""
+
     class Context:
         def __init__(self):
             # Initialize memory components
-            self.graph_memory_adapter = EnhancedGraphMemoryAdapter(base_path="./test_memory", use_rdflib_store=True)
+            self.graph_memory_adapter = EnhancedGraphMemoryAdapter(
+                base_path="./test_memory", use_rdflib_store=True
+            )
             self.tinydb_memory_adapter = TinyDBMemoryAdapter()
-            self.memory_manager = MemoryManager(adapters={
-                "graph": self.graph_memory_adapter,
-                "tinydb": self.tinydb_memory_adapter
-            })
+            self.memory_manager = MemoryManager(
+                adapters={
+                    "graph": self.graph_memory_adapter,
+                    "tinydb": self.tinydb_memory_adapter,
+                }
+            )
 
             # Initialize other components
             self.wsde_team = WSDETeam(name="TestEdrrEnhancedMemoryIntegrationStepsTeam")
@@ -58,7 +69,7 @@ def context():
             self.test_task = {
                 "description": "Test task",
                 "language": "python",
-                "complexity": "medium"
+                "complexity": "medium",
             }
 
             # Storage for test results
@@ -83,7 +94,9 @@ def step_edrr_coordinator_with_enhanced_memory(context):
     # The coordinator is already initialized in the context fixture
     # Verify that the memory manager has graph capabilities
     assert "graph" in context.memory_manager.adapters
-    assert isinstance(context.memory_manager.adapters["graph"], EnhancedGraphMemoryAdapter)
+    assert isinstance(
+        context.memory_manager.adapters["graph"], EnhancedGraphMemoryAdapter
+    )
 
 
 @given("the memory system is available with graph capabilities")
@@ -132,13 +145,15 @@ def step_coordinator_in_differentiate_phase(context):
 def step_coordinator_retrieves_information(context):
     """Simulate the coordinator retrieving information from memory."""
     # Mock the memory manager's retrieve_with_edrr_phase method
-    with patch.object(context.memory_manager, 'retrieve_with_edrr_phase') as mock_retrieve:
+    with patch.object(
+        context.memory_manager, "retrieve_with_edrr_phase"
+    ) as mock_retrieve:
         # Set the return value to a dictionary instead of a list
         mock_retrieve.return_value = {"content": "Test content", "relevance": 0.9}
         context.retrieved_items = context.coordinator._safe_retrieve_with_edrr_phase(
-            MemoryType.KNOWLEDGE.value, 
-            Phase.DIFFERENTIATE.value, 
-            {"task_id": context.coordinator.cycle_id}
+            MemoryType.KNOWLEDGE.value,
+            Phase.DIFFERENTIATE.value,
+            {"task_id": context.coordinator.cycle_id},
         )
         print(f"Type of context.retrieved_items: {type(context.retrieved_items)}")
         print(f"Value of context.retrieved_items: {context.retrieved_items}")
@@ -206,7 +221,7 @@ def step_coordinator_completed_cycle(context):
         {"result": "Test result", "domain": "test_domain"},
         MemoryType.KNOWLEDGE,
         Phase.RETROSPECT.value,
-        {"cycle_id": context.coordinator.cycle_id, "domain": "test_domain"}
+        {"cycle_id": context.coordinator.cycle_id, "domain": "test_domain"},
     )
 
     # Save the cycle ID for later reference
@@ -302,14 +317,14 @@ def step_coordinator_stores_retrieves_information(context):
         {"concept": "Test concept", "related_to": ["concept1", "concept2"]},
         MemoryType.KNOWLEDGE,
         Phase.EXPAND.value,
-        {"cycle_id": context.coordinator.cycle_id}
+        {"cycle_id": context.coordinator.cycle_id},
     )
 
     # Retrieve the information
     context.retrieved_items = context.memory_manager.retrieve_with_edrr_phase(
         MemoryType.KNOWLEDGE.value,
         Phase.EXPAND.value,
-        {"cycle_id": context.coordinator.cycle_id}
+        {"cycle_id": context.coordinator.cycle_id},
     )
 
 
@@ -337,7 +352,9 @@ def step_graph_supports_transitive_inference(context):
     assert len(context.retrieved_items) > 0
 
 
-@then("the coordinator should be able to traverse the graph to find related information")
+@then(
+    "the coordinator should be able to traverse the graph to find related information"
+)
 def step_coordinator_traverses_graph(context):
     """Verify that the coordinator can traverse the graph to find related information."""
     # This will be implemented in the actual functionality
@@ -350,17 +367,20 @@ def step_graph_evolves_with_new_information(context):
     """Verify that the knowledge graph evolves and refines with new information."""
     # Store additional information
     context.memory_manager.store_with_edrr_phase(
-        {"concept": "Updated concept", "related_to": ["concept1", "concept2", "concept3"]},
+        {
+            "concept": "Updated concept",
+            "related_to": ["concept1", "concept2", "concept3"],
+        },
         MemoryType.KNOWLEDGE,
         Phase.EXPAND.value,
-        {"cycle_id": context.coordinator.cycle_id}
+        {"cycle_id": context.coordinator.cycle_id},
     )
 
     # Retrieve the updated information
     updated_items = context.memory_manager.retrieve_with_edrr_phase(
         MemoryType.KNOWLEDGE.value,
         Phase.EXPAND.value,
-        {"cycle_id": context.coordinator.cycle_id}
+        {"cycle_id": context.coordinator.cycle_id},
     )
 
     # Verify that the graph has evolved
@@ -373,6 +393,42 @@ def step_coordinator_uses_graph_reasoning(context):
     # This will be implemented in the actual functionality
     # For now, we'll just check that the information was stored and retrieved
     assert len(context.retrieved_items) > 0
+
+
+@given("the EDRR coordinator processes different types of information")
+def step_coordinator_processes_different_types(context):
+    """Store multiple modalities of information for later retrieval."""
+    context.coordinator.start_cycle(context.test_task)
+    context.multi_modal_data = {
+        "code": "def example(): pass",
+        "text": "Example documentation",
+        "diagram": "<svg></svg>",
+    }
+    for modality, content in context.multi_modal_data.items():
+        context.memory_manager.store_with_edrr_phase(
+            content,
+            MemoryType.KNOWLEDGE,
+            Phase.EXPAND.value,
+            {"cycle_id": context.coordinator.cycle_id, "modality": modality},
+        )
+
+
+@given("the EDRR coordinator evolves knowledge over time")
+def step_coordinator_evolves_over_time(context):
+    """Simulate storing multiple versions of knowledge items."""
+    context.coordinator.start_cycle(context.test_task)
+    first_id = context.memory_manager.store_with_edrr_phase(
+        {"note": "v1"},
+        MemoryType.KNOWLEDGE,
+        Phase.EXPAND.value,
+        {"cycle_id": context.coordinator.cycle_id},
+    )
+    context.memory_manager.store_with_edrr_phase(
+        {"note": "v2"},
+        MemoryType.KNOWLEDGE,
+        Phase.RETROSPECT.value,
+        {"cycle_id": context.coordinator.cycle_id, "previous_version": first_id},
+    )
 
 
 # Additional scenarios (Multi-modal memory and Memory with temporal awareness) would be implemented similarly
