@@ -41,4 +41,5 @@ Refactor existing components to register and emit metrics via the central regist
 By consolidating metrics in a unified system, DevSynth will provide comprehensive performance, efficacy, efficiency, and resource consumption insights to both technical and non-technical users.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+Basic metrics tracking utilities are implemented. Advanced analytics remain a
+work in progress.
