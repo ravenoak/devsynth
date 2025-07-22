@@ -70,8 +70,6 @@ Installation instructions are covered in detail in the [Installation Guide](docs
 
 DevSynth requires **Python 3.12 or higher**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
 
-The initial workspace setup runs [`scripts/codex_setup.sh`](scripts/codex_setup.sh) with network access enabled. If the script fails, a file named `CODEX_ENVIRONMENT_SETUP_FAILED` will appear in the repository root. After provisioning, network access is disabled. See [AGENTS.md#environment-setup](AGENTS.md#environment-setup) for instructions on fixing and rerunning the setup offline. Once the script completes successfully and the marker file is removed, run `poetry run pytest` to verify your environment.
-
 ## Installation
 
 You can install DevSynth in a few different ways:
@@ -174,7 +172,7 @@ The repository includes runnable examples that walk through common workflows:
 
 ## Running Tests
 
-Run `scripts/codex_setup.sh` first to provision the environment. Once it finishes without errors, execute the test suite with `poetry run pytest`.
+Run `poetry run pytest` to execute the test suite.
 
 Before running the test suite manually, you **must** install DevSynth with its development extras:
 
