@@ -81,10 +81,10 @@ Each feature is scored on two dimensions:
 | **Planned/Unimplemented Features** |
 | Core Values Subsystem | Complete | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods added for value management and report validation |
 | Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |
-| Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Unit tests validate provider; CLI selects it with the `offline_mode` flag. Provider selection test currently failing (see [issue 103](../../issues/103.md)) |
+| Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Deterministic local provider selected when `offline_mode` is enabled. Verified by unit tests. |
 | Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
 | Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented. Several WebUI tests failing around the gather wizard (see [issue 102](../../issues/102.md)) |
-| Multi-Language Code Generation | Partial | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Supports Python and JavaScript generation |
+| Multi-Language Code Generation | Complete | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Supports Python, JavaScript, Go, Rust, Haskell and more |
 
 ## Current Limitations and Workarounds
 

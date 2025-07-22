@@ -49,22 +49,11 @@ try:  # pragma: no cover - optional dependency handling
 except Exception:  # pragma: no cover - optional dependency
     _cli_mod = None
 
-if _cli_mod:
-    code_cmd = getattr(_cli_mod, "code_cmd", None)
-    config_cmd = getattr(_cli_mod, "config_cmd", None)
-    init_cmd = getattr(_cli_mod, "init_cmd", None)
-    inspect_cmd = getattr(_cli_mod, "inspect_cmd", None)
-    run_pipeline_cmd = getattr(_cli_mod, "run_pipeline_cmd", None)
-    spec_cmd = getattr(_cli_mod, "spec_cmd", None)
-    test_cmd = getattr(_cli_mod, "test_cmd", None)
-else:  # pragma: no cover - optional dependency
-    code_cmd = None
-    config_cmd = None
-    init_cmd = None
-    inspect_cmd = None
-    run_pipeline_cmd = None
-    spec_cmd = None
-    test_cmd = None
+
+def _cli(name: str):
+    """Return a CLI command by name if available."""
+
+    return getattr(_cli_mod, name, None) if _cli_mod else None
 try:  # pragma: no cover - optional dependency handling
     from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 except Exception:  # pragma: no cover - optional dependency
@@ -708,13 +697,15 @@ class WebUI(UXBridge):
                 submitted = st.form_submit_button("Initialize")
                 if submitted:
                     with st.spinner("Initializing project..."):
-                        init_cmd(
-                            path=path,
-                            project_root=project_root,
-                            language=language,
-                            goals=goals or None,
-                            bridge=self,
-                        )
+                        cmd = _cli("init_cmd")
+                        if cmd:
+                            cmd(
+                                path=path,
+                                project_root=project_root,
+                                language=language,
+                                goals=goals or None,
+                                bridge=self,
+                            )
             if st.button("Guided Setup", key="guided_setup"):
                 with st.spinner("Starting guided setup..."):
                     SetupWizard(self).run()
@@ -737,12 +728,14 @@ class WebUI(UXBridge):
                         st.info("Make sure the file exists and the path is correct")
                     else:
                         with st.spinner("Generating specifications..."):
-                            self._handle_command_errors(
-                                spec_cmd,
-                                "Failed to generate specifications",
-                                requirements_file=req_file,
-                                bridge=self,
-                            )
+                            cmd = _cli("spec_cmd")
+                            if cmd:
+                                self._handle_command_errors(
+                                    cmd,
+                                    "Failed to generate specifications",
+                                    requirements_file=req_file,
+                                    bridge=self,
+                                )
         if hasattr(st, "divider"):
             st.divider()
         with st.expander("Inspect Requirements", expanded=True):
@@ -760,13 +753,15 @@ class WebUI(UXBridge):
                         st.info("Make sure the file exists and the path is correct")
                     else:
                         with st.spinner("Inspecting requirements..."):
-                            self._handle_command_errors(
-                                inspect_cmd,
-                                "Failed to inspect requirements",
-                                input_file=input_file,
-                                interactive=False,
-                                bridge=self,
-                            )
+                            cmd = _cli("inspect_cmd")
+                            if cmd:
+                                self._handle_command_errors(
+                                    cmd,
+                                    "Failed to inspect requirements",
+                                    input_file=input_file,
+                                    interactive=False,
+                                    bridge=self,
+                                )
         if hasattr(st, "divider"):
             st.divider()
         with st.expander("Specification Editor", expanded=True):
@@ -802,12 +797,14 @@ class WebUI(UXBridge):
                     st.success(f"Saved specification to {spec_path}")
 
                     with st.spinner("Regenerating specifications..."):
-                        self._handle_command_errors(
-                            spec_cmd,
-                            "Failed to regenerate specifications",
-                            requirements_file=spec_path,
-                            bridge=self,
-                        )
+                        cmd = _cli("spec_cmd")
+                        if cmd:
+                            self._handle_command_errors(
+                                cmd,
+                                "Failed to regenerate specifications",
+                                requirements_file=spec_path,
+                                bridge=self,
+                            )
                     st.session_state.spec_content = content
                     st.markdown(content)
                 except Exception as e:
@@ -944,9 +941,13 @@ class WebUI(UXBridge):
                         )
                     else:
                         with st.spinner("Inspecting code..."):
-                            self._handle_command_errors(
-                                inspect_code_cmd, "Failed to inspect code", path=path
-                            )
+                            cmd = inspect_code_cmd
+                            if cmd:
+                                self._handle_command_errors(
+                                    cmd,
+                                    "Failed to inspect code",
+                                    path=path,
+                                )
 
     def synthesis_page(self) -> None:
         """Render the synthesis execution page."""
@@ -966,27 +967,37 @@ class WebUI(UXBridge):
                         st.info("Make sure the file exists and the path is correct")
                     else:
                         with st.spinner("Generating tests..."):
-                            self._handle_command_errors(
-                                test_cmd,
-                                "Failed to generate tests",
-                                spec_file=spec_file,
-                                bridge=self,
-                            )
+                            cmd = _cli("test_cmd")
+                            if cmd:
+                                self._handle_command_errors(
+                                    cmd,
+                                    "Failed to generate tests",
+                                    spec_file=spec_file,
+                                    bridge=self,
+                                )
 
         if hasattr(st, "divider"):
             st.divider()
         with st.expander("Execute Code Generation", expanded=True):
             if st.button("Generate Code"):
                 with st.spinner("Generating code..."):
-                    self._handle_command_errors(
-                        code_cmd, "Failed to generate code", bridge=self
-                    )
+                    cmd = _cli("code_cmd")
+                    if cmd:
+                        self._handle_command_errors(
+                            cmd,
+                            "Failed to generate code",
+                            bridge=self,
+                        )
 
             if st.button("Run Pipeline"):
                 with st.spinner("Running pipeline..."):
-                    self._handle_command_errors(
-                        run_pipeline_cmd, "Failed to run pipeline", bridge=self
-                    )
+                    cmd = _cli("run_pipeline_cmd")
+                    if cmd:
+                        self._handle_command_errors(
+                            cmd,
+                            "Failed to run pipeline",
+                            bridge=self,
+                        )
 
     def config_page(self) -> None:
         """Render the configuration editing page."""
@@ -1028,19 +1039,25 @@ class WebUI(UXBridge):
                     submitted = st.form_submit_button("Update")
                     if submitted and key:
                         with st.spinner("Updating configuration..."):
-                            self._handle_command_errors(
-                                config_cmd,
-                                "Failed to update configuration",
-                                key=key,
-                                value=value or None,
-                                bridge=self,
-                            )
+                            cmd = _cli("config_cmd")
+                            if cmd:
+                                self._handle_command_errors(
+                                    cmd,
+                                    "Failed to update configuration",
+                                    key=key,
+                                    value=value or None,
+                                    bridge=self,
+                                )
 
             if st.button("View All Config"):
                 with st.spinner("Loading configuration..."):
-                    self._handle_command_errors(
-                        config_cmd, "Failed to load configuration", bridge=self
-                    )
+                    cmd = _cli("config_cmd")
+                    if cmd:
+                        self._handle_command_errors(
+                            cmd,
+                            "Failed to load configuration",
+                            bridge=self,
+                        )
 
         except Exception as e:
             st.error(f"Error loading configuration: {str(e)}")
@@ -1051,9 +1068,13 @@ class WebUI(UXBridge):
             # Provide a button to initialize the project
             if st.button("Initialize Project"):
                 with st.spinner("Initializing project..."):
-                    self._handle_command_errors(
-                        init_cmd, "Failed to initialize project", bridge=self
-                    )
+                    cmd = _cli("init_cmd")
+                    if cmd:
+                        self._handle_command_errors(
+                            cmd,
+                            "Failed to initialize project",
+                            bridge=self,
+                        )
 
     def edrr_cycle_page(self) -> None:
         """Run an Expand-Differentiate-Refine-Retrospect cycle."""
