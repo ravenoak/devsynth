@@ -114,6 +114,18 @@ Each feature is scored on two dimensions:
 4. Develop detailed implementation plans for high-priority features
 
 
+## Release Milestones and Coverage Goals
+
+DevSynth releases follow the [Release Plan](../roadmap/release_plan.md). Each milestone has an associated target for automated test coverage:
+
+| Milestone | Coverage Target | Notes |
+|-----------|-----------------|-------|
+| `0.1.0-alpha.1` | ~50% | Core architecture validated |
+| `0.1.0-beta.1` | ≥75% | Peer review workflow and Web UI preview |
+| `0.1.0-rc.1` | ≥90% | Documentation freeze and full suite passing |
+
+Coverage goals align with the [Testing Standards](../developer_guides/TESTING_STANDARDS.md). Advancing to the next milestone requires meeting the stated coverage threshold.
+
 ## Implementation Plans for Missing Features
 
 ### Core Values Subsystem
