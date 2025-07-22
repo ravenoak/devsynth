@@ -102,7 +102,7 @@ def run_init_wizard():
 
 ## Unified CLI and WebUI
 
-The CLI and the planned WebUI share the same workflow logic via the `UXBridge` abstraction.
+The CLI and the WebUI share the same workflow logic via the `UXBridge` abstraction.
 
 ```mermaid
 graph LR
@@ -112,5 +112,5 @@ graph LR
 ```
 ## Implementation Status
 
-This improvement plan is **planned** and partially implemented. Remaining tasks
-are tracked in [issue 102](../../issues/102.md).
+This improvement plan is **implemented**. Ongoing enhancements are tracked in
+[issue 102](../../issues/102.md).

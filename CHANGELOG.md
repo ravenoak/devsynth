@@ -50,5 +50,7 @@ version has been published yet.
 - Improved error handling in the EDRR coordinator
 
 ## [Unreleased]
-No changes yet.
+### Changed
+- Updated documentation to reflect implementation of WebUI, CLI overhaul,
+  hybrid memory architecture, and basic metrics system.
 
