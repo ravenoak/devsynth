@@ -154,7 +154,9 @@ class CodeTransformationProvider(ABC):
     """Interface for code transformation providers."""
 
     @abstractmethod
-    def transform_code(self, code: str, transformations: List[str] = None) -> TransformationResult:
+    def transform_code(
+        self, code: str, transformations: List[str] = None
+    ) -> TransformationResult:
         """Transform the given code using the specified transformations.
 
         Args:
@@ -167,7 +169,9 @@ class CodeTransformationProvider(ABC):
         pass
 
     @abstractmethod
-    def transform_file(self, file_path: str, transformations: List[str] = None) -> TransformationResult:
+    def transform_file(
+        self, file_path: str, transformations: List[str] = None
+    ) -> TransformationResult:
         """Transform the code in the given file using the specified transformations.
 
         Args:
@@ -180,8 +184,9 @@ class CodeTransformationProvider(ABC):
         pass
 
     @abstractmethod
-    def transform_directory(self, dir_path: str, recursive: bool = True, 
-                           transformations: List[str] = None) -> Dict[str, TransformationResult]:
+    def transform_directory(
+        self, dir_path: str, recursive: bool = True, transformations: List[str] = None
+    ) -> Dict[str, TransformationResult]:
         """Transform all Python files in the given directory using the specified transformations.
 
         Args:
@@ -211,7 +216,9 @@ class CodeAnalysisProvider(ABC):
         pass
 
     @abstractmethod
-    def analyze_directory(self, dir_path: str, recursive: bool = True) -> CodeAnalysisResult:
+    def analyze_directory(
+        self, dir_path: str, recursive: bool = True
+    ) -> CodeAnalysisResult:
         """Analyze a directory of files.
 
         Args:
@@ -224,7 +231,9 @@ class CodeAnalysisProvider(ABC):
         pass
 
     @abstractmethod
-    def analyze_code(self, code: str, file_name: str = "<string>") -> FileAnalysisResult:
+    def analyze_code(
+        self, code: str, file_name: str = "<string>"
+    ) -> FileAnalysisResult:
         """Analyze a string of code.
 
         Args:
@@ -235,3 +244,136 @@ class CodeAnalysisProvider(ABC):
             A FileAnalysisResult containing the analysis of the code.
         """
         pass
+
+
+class SimpleFileAnalysis(FileAnalysisResult):
+    """Basic implementation of :class:`FileAnalysisResult`."""
+
+    def __init__(
+        self,
+        imports: Optional[List[Dict[str, Any]]] = None,
+        classes: Optional[List[Dict[str, Any]]] = None,
+        functions: Optional[List[Dict[str, Any]]] = None,
+        variables: Optional[List[Dict[str, Any]]] = None,
+        docstring: str = "",
+        metrics: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        self._imports = imports or []
+        self._classes = classes or []
+        self._functions = functions or []
+        self._variables = variables or []
+        self._docstring = docstring
+        self._metrics = metrics or {}
+
+    def get_imports(self) -> List[Dict[str, Any]]:
+        return self._imports
+
+    def get_classes(self) -> List[Dict[str, Any]]:
+        return self._classes
+
+    def get_functions(self) -> List[Dict[str, Any]]:
+        return self._functions
+
+    def get_variables(self) -> List[Dict[str, Any]]:
+        return self._variables
+
+    def get_docstring(self) -> str:
+        return self._docstring
+
+    def get_metrics(self) -> Dict[str, Any]:
+        return self._metrics
+
+
+class SimpleCodeAnalysis(CodeAnalysisResult):
+    """Basic implementation of :class:`CodeAnalysisResult`."""
+
+    def __init__(
+        self,
+        files: Optional[Dict[str, FileAnalysisResult]] = None,
+        symbols: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+        dependencies: Optional[Dict[str, List[str]]] = None,
+        metrics: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        self._files = files or {}
+        self._symbols = symbols or {}
+        self._dependencies = dependencies or {}
+        self._metrics = metrics or {}
+
+    def get_file_analysis(self, file_path: str) -> Optional[FileAnalysisResult]:
+        return self._files.get(file_path)
+
+    def get_symbol_references(self, symbol_name: str) -> List[Dict[str, Any]]:
+        return self._symbols.get(symbol_name, [])
+
+    def get_dependencies(self, module_name: str) -> List[str]:
+        return self._dependencies.get(module_name, [])
+
+    def get_metrics(self) -> Dict[str, Any]:
+        return self._metrics
+
+
+class SimpleTransformation(TransformationResult):
+    """Basic implementation of :class:`TransformationResult`."""
+
+    def __init__(
+        self,
+        original_code: str,
+        transformed_code: str,
+        changes: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
+        self._original_code = original_code
+        self._transformed_code = transformed_code
+        self._changes = changes or []
+
+    def get_original_code(self) -> str:
+        return self._original_code
+
+    def get_transformed_code(self) -> str:
+        return self._transformed_code
+
+    def get_changes(self) -> List[Dict[str, Any]]:
+        return self._changes
+
+
+class NoopCodeTransformationProvider(CodeTransformationProvider):
+    """Trivial code transformation provider that returns the input unchanged."""
+
+    def transform_code(
+        self, code: str, transformations: List[str] | None = None
+    ) -> TransformationResult:
+        return SimpleTransformation(code, code, [])
+
+    def transform_file(
+        self, file_path: str, transformations: List[str] | None = None
+    ) -> TransformationResult:
+        with open(file_path, "r", encoding="utf-8") as f:
+            code = f.read()
+        return self.transform_code(code, transformations)
+
+    def transform_directory(
+        self,
+        dir_path: str,
+        recursive: bool = True,
+        transformations: List[str] | None = None,
+    ) -> Dict[str, TransformationResult]:
+        return {}
+
+
+class NoopCodeAnalyzer(CodeAnalysisProvider):
+    """Minimal :class:`CodeAnalysisProvider` that performs no real analysis."""
+
+    def analyze_file(self, file_path: str) -> FileAnalysisResult:
+        with open(file_path, "r", encoding="utf-8") as f:
+            code = f.read()
+        return self.analyze_code(code, file_path)
+
+    def analyze_directory(
+        self, dir_path: str, recursive: bool = True
+    ) -> CodeAnalysisResult:
+        return SimpleCodeAnalysis()
+
+    def analyze_code(
+        self, code: str, file_name: str = "<string>"
+    ) -> FileAnalysisResult:
+        metrics = {"lines_of_code": len(code.splitlines())}
+        return SimpleFileAnalysis(docstring="", metrics=metrics)
