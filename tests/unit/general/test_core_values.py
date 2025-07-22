@@ -1,7 +1,7 @@
 import importlib.util
 from pathlib import Path
 spec = importlib.util.spec_from_file_location('devsynth.core.values', Path(
-    __file__).resolve().parents[2] / 'src' / 'devsynth' / 'core' / 'values.py')
+    __file__).resolve().parents[3] / 'src' / 'devsynth' / 'core' / 'values.py')
 values_mod = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 import sys

@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import MagicMock, patch
-pytest.skip('Multi-agent workflow tests unstable', allow_module_level=True)
 from devsynth.adapters.agents.agent_adapter import AgentAdapter
 from devsynth.application.agents.unified_agent import UnifiedAgent
 
@@ -12,6 +11,7 @@ ReqID: N/A"""
 
     def setup_method(self):
         self.adapter = AgentAdapter()
+        self.adapter.multi_agent_enabled = True
         self.team = self.adapter.create_team('team1')
         self.adapter.set_current_team('team1')
         self.agent1 = MagicMock(spec=UnifiedAgent)

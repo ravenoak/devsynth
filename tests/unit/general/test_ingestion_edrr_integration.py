@@ -1,8 +1,9 @@
 import yaml
 from unittest.mock import MagicMock
 import pytest
-pytest.skip('Ingestion integration tests are currently incompatible',
-    allow_module_level=True)
+import os
+if os.environ.get('DEVSYNTH_RUN_INGEST_TESTS') != '1':
+    pytest.skip('Ingestion integration tests require DEVSYNTH_RUN_INGEST_TESTS=1', allow_module_level=True)
 from devsynth.application.ingestion import Ingestion
 from devsynth.methodology.base import Phase
 

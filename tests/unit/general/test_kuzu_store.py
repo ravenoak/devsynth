@@ -5,7 +5,7 @@ import importlib.util
 from pathlib import Path
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 spec = importlib.util.spec_from_file_location('kuzu_store', Path(__file__).
-    resolve().parents[2] / 'src/devsynth/application/memory/kuzu_store.py')
+    resolve().parents[3] / 'src/devsynth/application/memory/kuzu_store.py')
 kuzu_store = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(kuzu_store)
 KuzuStore = kuzu_store.KuzuStore

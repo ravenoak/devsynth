@@ -435,6 +435,9 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - ~~Complete WSDE agent collaboration capabilities.~~
 - Investigate failing Web UI and Kuzu-related tests; implement fixes for the
   requirements wizard and memory initialization logic.
+- Some CLI and ingestion workflows still require interactive prompts. Related
+  unit tests are conditionally skipped unless the environment variable
+  flags `DEVSYNTH_RUN_INGEST_TESTS` or `DEVSYNTH_RUN_WSDE_TESTS` are enabled.
 
 For updated scheduling, see the consolidated [ROADMAP](ROADMAP.md).
 ## Implementation Status

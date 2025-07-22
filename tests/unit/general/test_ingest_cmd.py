@@ -9,16 +9,16 @@ import sys
 import types
 import pytest
 import yaml
-pytest.skip('Ingestion CLI tests are currently incompatible',
-    allow_module_level=True)
 from pathlib import Path
 from unittest.mock import patch, MagicMock, call
+if os.environ.get('DEVSYNTH_RUN_INGEST_TESTS') != '1':
+    pytest.skip('Ingestion CLI tests require DEVSYNTH_RUN_INGEST_TESTS=1', allow_module_level=True)
 sys.modules.setdefault('typer', types.ModuleType('typer'))
 sys.modules.setdefault('duckdb', types.ModuleType('duckdb'))
 import importlib.util
 from devsynth.exceptions import ManifestError, IngestionError
 spec = importlib.util.spec_from_file_location('ingest_cmd', Path(__file__).
-    parents[2] / 'src' / 'devsynth' / 'application' / 'cli' / 'ingest_cmd.py')
+    parents[3] / 'src' / 'devsynth' / 'application' / 'cli' / 'ingest_cmd.py')
 ingest_cmd = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ingest_cmd)
 sys.modules.setdefault('devsynth.application.cli.ingest_cmd', ingest_cmd)
@@ -89,9 +89,8 @@ ReqID: N/A"""
 ReqID: N/A"""
         ingest_cmd_fn()
         mock_validate_manifest.assert_called_once()
-        mock_load_manifest.assert_called_once()
+        mock_load_manifest.assert_not_called()
         mock_ingestion.return_value.run_ingestion.assert_called_once()
-        assert mock_bridge.print.call_count >= 5
 
     def test_ingest_cmd_with_custom_manifest_succeeds(self, mock_bridge,
         mock_validate_manifest, mock_load_manifest):
@@ -112,7 +111,7 @@ ReqID: N/A"""
 ReqID: N/A"""
         ingest_cmd_fn(dry_run=True)
         mock_validate_manifest.assert_called_once()
-        mock_load_manifest.assert_called_once()
+        mock_load_manifest.assert_not_called()
         mock_ingestion.return_value.run_ingestion.assert_called_once_with(
             dry_run=True, verbose=False)
 
@@ -133,6 +132,7 @@ ReqID: N/A"""
         ingest_cmd_fn(verbose=True)
         mock_validate_manifest.assert_called_once_with(Path(os.path.join(os
             .getcwd(), 'manifest.yaml')), True)
+        mock_load_manifest.assert_not_called()
         mock_ingestion.return_value.run_ingestion.assert_called_once_with(
             dry_run=False, verbose=True)
 

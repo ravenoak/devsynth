@@ -1,9 +1,11 @@
 import os
 import subprocess
 import tempfile
+import shutil
 import pytest
 from pathlib import Path
-pytest.skip('Mypy type-check tests skipped in CI', allow_module_level=True)
+if shutil.which('mypy') is None:
+    pytest.skip('mypy is not installed', allow_module_level=True)
 
 
 def test_ingestion_type_hints_raises_error():

@@ -3,7 +3,6 @@ import os
 import yaml
 from devsynth.config.unified_loader import UnifiedConfigLoader
 import pytest
-pytest.skip('CLI command tests skipped', allow_module_level=True)
 from devsynth.application.cli import cli_commands
 from devsynth.application.cli.cli_commands import code_cmd, config_cmd, init_cmd, run_pipeline_cmd, spec_cmd, test_cmd, inspect_cmd, refactor_cmd
 ORIG_CHECK_SERVICES = cli_commands._check_services
