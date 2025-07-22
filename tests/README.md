@@ -247,6 +247,8 @@ poetry run pytest
 
 ### Environment Setup
 
+Refer to [../docs/developer_guides/development_setup.md](../docs/developer_guides/development_setup.md) for instructions on configuring your environment.
+
 Before running tests, you **must** install DevSynth with the development extras:
 
 ```bash

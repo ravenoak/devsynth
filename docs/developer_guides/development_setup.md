@@ -59,6 +59,8 @@ Before setting up the development environment, ensure you have the following ins
 
 ## Development Environment Setup
 
+Follow the steps below to configure a working development environment. This process installs dependencies and sets up local tooling without relying on any automated setup scripts.
+
 ### 1. Clone the Repository
 
 ```bash
