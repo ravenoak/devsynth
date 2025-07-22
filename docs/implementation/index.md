@@ -36,4 +36,4 @@ For more information on the implementation roadmap and specifications, see:
 - **[EDRR Specification](../specifications/edrr_cycle_specification.md)**: Detailed specifications for the EDRR.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

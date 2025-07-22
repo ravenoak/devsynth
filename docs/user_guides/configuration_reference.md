@@ -415,4 +415,4 @@ This means that command-line arguments override environment variables, which ove
 This reference covers all the configuration options available in DevSynth. For more detailed information about specific features or workflows, refer to the DevSynth documentation or use the `--help` option with any command.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

@@ -155,4 +155,4 @@ Regardless of implementation, all bridges guarantee a few key invariants:
   `validate_safe_input` so unsafe content is rejected early.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

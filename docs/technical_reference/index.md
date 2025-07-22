@@ -55,4 +55,4 @@ If you're new to DevSynth's technical details, we recommend starting with the [A
 - [Specifications](../specifications/index.md) - Detailed specifications for DevSynth components
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

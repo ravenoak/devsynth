@@ -317,4 +317,4 @@ The Promise System provides DevSynth with a robust framework for capability decl
 As DevSynth continues to mature, the Promise System will become increasingly central to its operation, enabling sophisticated multi-agent collaborations while maintaining clear boundaries and authorization controls.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

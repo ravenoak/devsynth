@@ -71,4 +71,4 @@ User -> Streamlit Widget -> UXBridge -> Workflow -> UXBridge -> Streamlit
 This design keeps the presentation layer thin while core logic remains reusable across CLI and WebUI interfaces.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

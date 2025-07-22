@@ -47,4 +47,4 @@ The manager lazily loads files from each configured directory only when the
 `ingest_from_project_config` method is executed.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

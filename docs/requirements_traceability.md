@@ -95,4 +95,4 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 _Last updated: July 19, 2025
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

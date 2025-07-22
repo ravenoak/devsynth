@@ -59,4 +59,4 @@ The CLI exposes this via `devsynth requirements gather` while the WebUI
 presents a button that runs the same function through its bridge.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

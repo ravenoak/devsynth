@@ -50,4 +50,4 @@ The `UXBridge` abstraction is still conceptual. A concrete interface layer and
 end-to-end tests have not yet been created, and WebUI support is incomplete.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

@@ -85,4 +85,4 @@ This guide is a living document. If you have suggestions for improvements or cla
 
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

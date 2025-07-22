@@ -1911,4 +1911,4 @@ Mutation testing will be deferred to a future version.
 - User data is preserved or removed as requested
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

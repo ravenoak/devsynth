@@ -38,4 +38,4 @@ If you're new to DevSynth, we recommend starting with the [Quick Start Guide](qu
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

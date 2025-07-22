@@ -347,4 +347,4 @@ DevSynth contributors should maintain a strong security mindset:
 - [NIST Secure Software Development Framework](https://csrc.nist.gov/Projects/ssdf)
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

@@ -418,4 +418,4 @@ For personalized guidance, use the DevSynth learning path generator to create a 
 - [Cucumber Documentation](https://cucumber.io/docs/)
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

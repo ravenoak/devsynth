@@ -67,4 +67,4 @@ _This index lists all documentation files, their status, and release phase. It i
 > **Note:** Update this table to include any new documentation files. Automate via an indexing script for accuracy.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

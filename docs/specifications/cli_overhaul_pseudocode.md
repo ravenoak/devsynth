@@ -73,4 +73,4 @@ class UXBridge:
 ```
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

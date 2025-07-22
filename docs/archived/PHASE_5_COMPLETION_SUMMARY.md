@@ -26,4 +26,4 @@ Phase 5 centered on **Verification and Validation**. Major outcomes:
 - Produced this phase summary to capture lessons learned and recommendations for ongoing maintenance.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

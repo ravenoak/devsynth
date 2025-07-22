@@ -71,4 +71,4 @@ If you're new to DevSynth development, we recommend starting with the [Onboardin
 - [User Guides](../user_guides/index.md) - Guides for users of DevSynth
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

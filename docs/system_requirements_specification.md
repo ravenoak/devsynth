@@ -444,4 +444,4 @@ Primary users are individual software developers who:
 | Token | The basic unit of text processed by language models, roughly 3/4 the number of words |
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

@@ -27,4 +27,4 @@ For more information on the adapter pattern and how it's used in DevSynth, see:
 - **[Provider System](../architecture/provider_system.md)**: Details on the provider system for integrating external services.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

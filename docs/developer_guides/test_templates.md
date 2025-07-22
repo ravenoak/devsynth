@@ -144,4 +144,4 @@ The organization of test templates in DevSynth follows best practices for separa
 The test-first approach, combined with clear templates and guidelines, helps ensure consistent, high-quality tests throughout the project.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

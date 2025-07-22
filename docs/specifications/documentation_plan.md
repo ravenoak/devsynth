@@ -30,4 +30,4 @@ This document defines the unified documentation strategy for DevSynth, consolida
 5. Integrate index validation in CI (`validate_documentation.yml`).
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

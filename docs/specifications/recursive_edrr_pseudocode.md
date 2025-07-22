@@ -105,4 +105,4 @@ dependencies and increments `recursion_depth`. Results from the micro cycle are
 stored under the parent's phase data so the overall cycle reflects nested work.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

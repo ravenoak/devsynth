@@ -17,4 +17,4 @@ This document has been archived and its contents were merged into the consolidat
 Refer to `docs/specifications/edrr_framework.md` for the integrated EDRR framework specification.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.
