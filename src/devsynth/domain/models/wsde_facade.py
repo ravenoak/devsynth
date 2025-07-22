@@ -53,12 +53,16 @@ from devsynth.domain.models.wsde_dialectical import (
     _resolve_content_improvement_conflict,
     _check_code_standards_compliance,
     _check_content_standards_compliance,
+    _generate_detailed_synthesis_reasoning,
+)
+from devsynth.domain.models.wsde_security_checks import (
     _check_pep8_compliance,
     _check_security_best_practices,
     _balance_security_and_performance,
     _balance_security_and_usability,
     _balance_performance_and_maintainability,
-    _generate_detailed_synthesis_reasoning,
+)
+from devsynth.domain.models.wsde_code_improvements import (
     _improve_credentials,
     _improve_error_handling,
     _improve_input_validation,
