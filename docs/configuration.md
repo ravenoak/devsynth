@@ -97,4 +97,4 @@ resources:
 
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented** and validated by unit tests.

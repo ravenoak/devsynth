@@ -91,8 +91,11 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-82 | WebUI provides equivalent forms for requirements gathering | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#48-user-interface-extensions) | src/devsynth/interface/webui.py | tests/behavior/features/interactive_requirements.feature | Implemented |
 | FR-83 | Step-wise wizard via UXBridge collects goals, constraints and priority | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#48-user-interface-extensions) | src/devsynth/application/requirements/interactions.py, src/devsynth/application/cli/requirements_commands.py, src/devsynth/interface/webui.py | tests/behavior/features/requirements_gathering.feature | Implemented |
 | FR-84 | Agent API endpoints `/init`, `/gather`, `/synthesize`, `/status` using UXBridge | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#48-user-interface-extensions) | src/devsynth/interface/agentapi.py | tests/integration/test_agentapi_routes.py, tests/behavior/test_agentapi.py | Implemented |
+| FR-85 | Offline fallback provider for LLM operations | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#offline-fallback-modes) | src/devsynth/application/llm/offline_provider.py | tests/unit/application/llm/test_offline_provider.py | Implemented |
+| FR-86 | Guided setup wizard accessible via WebUI | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#interactive-init-workflow) | src/devsynth/interface/webui_setup.py, src/devsynth/application/cli/setup_wizard.py | tests/unit/interface/test_webui_setup.py, tests/unit/application/cli/test_setup_wizard.py | Implemented |
+| FR-87 | Core values conflict detection | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/core/values.py | tests/unit/core/test_core_values.py | Implemented |
 
 _Last updated: July 19, 2025
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+All documented requirements are implemented or planned as noted above.
