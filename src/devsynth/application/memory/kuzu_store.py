@@ -18,7 +18,10 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover - optional dependency
     kuzu = None
 
-import tiktoken
+try:  # pragma: no cover - optional dependency
+    import tiktoken
+except Exception:  # pragma: no cover - optional dependency
+    tiktoken = None
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.fallback import retry_with_exponential_backoff
