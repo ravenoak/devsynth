@@ -29,6 +29,8 @@ This section provides detailed technical information about DevSynth, including A
 ## Utilities and Tools
 
 - **[Knowledge Graph Utilities](knowledge_graph_utilities.md)**: Technical reference for the knowledge graph utilities in DevSynth.
+- **[Resilience Utilities](resilience_utilities.md)**: Best practices for retry,
+  circuit breaker and bulkhead helpers.
 
 ## Overview
 
