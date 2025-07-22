@@ -137,9 +137,9 @@ def _find_config_path(start: Path) -> Optional[Path]:
     return None
 
 
-def load_config(path: Optional[Path] = None) -> ConfigModel:
+def load_config(path: Optional[str | Path] = None) -> ConfigModel:
     """Load configuration from YAML or TOML."""
-    root = path or Path(os.getcwd())
+    root = Path(path) if path is not None else Path(os.getcwd())
     cfg_path = _find_config_path(root)
 
     defaults = ConfigModel(project_root=str(root))

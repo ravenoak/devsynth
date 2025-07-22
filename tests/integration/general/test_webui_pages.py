@@ -3,7 +3,10 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock
 import pytest
-from tests.integration.test_webui_setup import _setup_streamlit
+try:  # Compatibility with older test layout
+    from tests.integration.test_webui_setup import _setup_streamlit
+except ModuleNotFoundError:  # pragma: no cover - fallback path
+    from tests.integration.general.test_webui_setup import _setup_streamlit
 
 
 @pytest.fixture

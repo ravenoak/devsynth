@@ -39,6 +39,7 @@ def mock_streamlit(monkeypatch):
     st.expander.return_value.__enter__ = MagicMock(return_value=MagicMock())
     st.expander.return_value.__exit__ = MagicMock(return_value=None)
     st.spinner = MagicMock()
+    monkeypatch.setattr('pathlib.Path.exists', lambda self: True)
     monkeypatch.setitem(sys.modules, 'streamlit', st)
     return st
 
@@ -47,8 +48,10 @@ def mock_streamlit(monkeypatch):
 def mock_spec_cmd(monkeypatch):
     """Fixture to mock spec_cmd for testing."""
     spec_cmd = MagicMock()
+    inspect_cmd = MagicMock()
     cli_module = ModuleType('devsynth.application.cli')
     cli_module.spec_cmd = spec_cmd
+    cli_module.inspect_cmd = inspect_cmd
     monkeypatch.setitem(sys.modules, 'devsynth.application.cli', cli_module)
     return spec_cmd
 
@@ -59,17 +62,22 @@ def mock_requirement_types(monkeypatch):
     req_module = ModuleType('devsynth.domain.models.requirement')
 
 
+    class _Enum:
+        def __init__(self, value):
+            self.value = value
+
     class MockRequirementType:
-        FUNCTIONAL = 'functional'
-        NON_FUNCTIONAL = 'non_functional'
-        CONSTRAINT = 'constraint'
+        FUNCTIONAL = _Enum("functional")
+        NON_FUNCTIONAL = _Enum("non_functional")
+        CONSTRAINT = _Enum("constraint")
 
 
     class MockRequirementPriority:
-        MUST_HAVE = 'must_have'
-        SHOULD_HAVE = 'should_have'
-        COULD_HAVE = 'could_have'
-        WONT_HAVE = 'wont_have'
+        MUST_HAVE = _Enum("must_have")
+        SHOULD_HAVE = _Enum("should_have")
+        COULD_HAVE = _Enum("could_have")
+        WONT_HAVE = _Enum("wont_have")
+        MEDIUM = _Enum("medium")
     req_module.RequirementType = MockRequirementType
     req_module.RequirementPriority = MockRequirementPriority
     monkeypatch.setitem(sys.modules, 'devsynth.domain.models.requirement',
