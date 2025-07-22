@@ -12,7 +12,7 @@ from devsynth.application.documentation.documentation_ingestion_manager import D
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 
-scenarios("../features/project_documentation_ingestion.feature")
+scenarios("../features/general/project_documentation_ingestion.feature")
 
 
 @pytest.fixture

@@ -17,7 +17,7 @@ def adapter_context(monkeypatch):
     return {"cls": mock_cls, "instance": mock_coord}
 
 
-scenarios("../features/agent_adapter.feature")
+scenarios("../features/general/agent_adapter.feature")
 
 
 @given("the agent_adapter feature context")

@@ -105,7 +105,7 @@ def webui_context(monkeypatch):
     return ctx
 
 
-scenarios("../features/webui_onboarding_flow.feature")
+scenarios("../features/general/webui_onboarding_flow.feature")
 
 
 @given("the WebUI is initialized")

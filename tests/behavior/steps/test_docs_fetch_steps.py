@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/docs_fetch.feature")
+scenarios("../features/general/docs_fetch.feature")
 
 
 @pytest.fixture

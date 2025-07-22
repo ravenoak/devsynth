@@ -9,7 +9,7 @@ from typing import Dict
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
-scenarios("../features/edrr_cycle.feature")
+scenarios("../features/general/edrr_cycle.feature")
 
 
 @pytest.fixture

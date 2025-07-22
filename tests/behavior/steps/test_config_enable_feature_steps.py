@@ -8,7 +8,7 @@ from pytest_bdd import given, scenarios, when, then
 from devsynth.config.loader import ConfigModel, save_config, load_config
 from .cli_commands_steps import run_command
 
-scenarios("../features/config_enable_feature.feature")
+scenarios("../features/general/config_enable_feature.feature")
 
 
 @given('a project configuration without the "code_generation" feature enabled')

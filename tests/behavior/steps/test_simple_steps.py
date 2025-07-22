@@ -10,7 +10,7 @@ from pytest_bdd import scenarios
 import pytest
 
 # Import the scenarios from the feature file
-scenarios('../features/edrr_cycle.feature')
+scenarios('../features/general/edrr_cycle.feature')
 
 @pytest.fixture
 def context() -> Dict[str, object]:

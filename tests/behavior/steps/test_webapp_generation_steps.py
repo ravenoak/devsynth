@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/webapp_generation.feature")
+scenarios("../features/general/webapp_generation.feature")
 
 
 @pytest.fixture

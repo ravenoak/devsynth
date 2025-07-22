@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/retry_mechanism.feature")
+scenarios("../features/general/retry_mechanism.feature")
 
 
 @pytest.fixture

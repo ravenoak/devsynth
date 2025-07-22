@@ -21,7 +21,7 @@ from io import StringIO
 from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
 
 # Register the scenarios
-scenarios("../features/test_metrics.feature")
+scenarios("../features/general/test_metrics.feature")
 
 
 # Define fixtures and step definitions

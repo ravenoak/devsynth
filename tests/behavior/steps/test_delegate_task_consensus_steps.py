@@ -7,7 +7,7 @@ from pytest_bdd import scenarios, given, when, then
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.domain.interfaces.agent import Agent
 
-scenarios("../features/delegate_task_consensus.feature")
+scenarios("../features/general/delegate_task_consensus.feature")
 
 
 @pytest.fixture

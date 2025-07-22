@@ -6,7 +6,7 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.domain.models.memory import MemoryItem
 
 # Import the feature file
-scenarios('../features/multi_disciplinary_dialectical_reasoning.feature')
+scenarios('../features/general/multi_disciplinary_dialectical_reasoning.feature')
 
 # Define a fixture for the context
 @pytest.fixture

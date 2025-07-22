@@ -2,7 +2,7 @@ from pytest_bdd import given, when, then, scenarios, parsers
 
 from .webui_steps import webui_context
 
-scenarios("../features/webui_navigation_prompts.feature")
+scenarios("../features/general/webui_navigation_prompts.feature")
 
 
 @given("the WebUI is initialized")

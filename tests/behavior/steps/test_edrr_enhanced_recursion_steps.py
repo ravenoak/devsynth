@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timedelta
 
 # Import the scenarios from the feature file
-scenarios('../features/edrr_enhanced_recursion.feature')
+scenarios('../features/general/edrr_enhanced_recursion.feature')
 
 # Import the necessary components
 from devsynth.methodology.base import Phase

@@ -12,7 +12,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from typing import Dict, List, Any, Optional
 
 # Import the feature file
-scenarios('../features/memory_manager.feature')
+scenarios('../features/general/memory_manager.feature')
 
 # Import the modules needed for the steps
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector

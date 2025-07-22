@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/workflow_execution.feature")
+scenarios("../features/general/workflow_execution.feature")
 
 
 @pytest.fixture

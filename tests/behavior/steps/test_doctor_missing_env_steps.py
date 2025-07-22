@@ -2,7 +2,7 @@
 
 from pytest_bdd import scenarios, given, then
 
-scenarios("../features/doctor_missing_env.feature")
+scenarios("../features/general/doctor_missing_env.feature")
 
 
 @given("essential environment variables are missing")

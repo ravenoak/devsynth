@@ -16,7 +16,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 
 # Register scenarios
-scenarios('../features/documentation_ingestion.feature')
+scenarios('../features/general/documentation_ingestion.feature')
 
 @pytest.fixture
 def context():

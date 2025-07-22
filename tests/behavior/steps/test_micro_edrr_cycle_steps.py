@@ -5,7 +5,7 @@ from pytest_bdd import scenarios
 import pytest
 
 # Import the scenarios from the feature file
-scenarios('../features/micro_edrr_cycle.feature')
+scenarios('../features/general/micro_edrr_cycle.feature')
 
 # Import the necessary components
 import os

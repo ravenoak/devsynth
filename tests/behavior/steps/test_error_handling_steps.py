@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/error_handling.feature")
+scenarios("../features/general/error_handling.feature")
 
 
 @pytest.fixture

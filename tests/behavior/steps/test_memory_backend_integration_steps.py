@@ -18,7 +18,7 @@ if not chromadb_enabled:
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/memory_backend_integration.feature')
+scenarios('../features/general/memory_backend_integration.feature')
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde import WSDETeam

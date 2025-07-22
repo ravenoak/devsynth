@@ -2,7 +2,7 @@ from pytest_bdd import scenarios, then, when
 
 from .webui_steps import webui_context
 
-scenarios("../features/webui_spec_editor.feature")
+scenarios("../features/general/webui_spec_editor.feature")
 
 
 @when("I edit a specification file")

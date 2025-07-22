@@ -15,7 +15,7 @@ from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
 # Register the scenarios
-scenarios("../features/analyze_commands.feature")
+scenarios("../features/general/analyze_commands.feature")
 
 
 # Define fixtures and step definitions

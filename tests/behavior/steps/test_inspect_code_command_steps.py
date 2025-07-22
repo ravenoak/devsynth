@@ -6,7 +6,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import patch, MagicMock
 
 # Import the scenarios from the feature file
-scenarios('../features/inspect_code_command.feature')
+scenarios('../features/general/inspect_code_command.feature')
 
 # Fixtures for test isolation
 @pytest.fixture

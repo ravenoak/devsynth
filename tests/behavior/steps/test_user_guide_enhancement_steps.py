@@ -6,7 +6,7 @@ import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/user_guide_enhancement.feature')
+scenarios('../features/general/user_guide_enhancement.feature')
 
 # Define a fixture for the context
 @pytest.fixture

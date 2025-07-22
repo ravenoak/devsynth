@@ -18,7 +18,7 @@ def docs_context(monkeypatch):
     importlib.reload(docs_module)
     return {"cmd": mock_cmd}
 
-scenarios("../features/generate_docs.feature")
+scenarios("../features/general/generate_docs.feature")
 
 
 @given("the generate_docs feature context")

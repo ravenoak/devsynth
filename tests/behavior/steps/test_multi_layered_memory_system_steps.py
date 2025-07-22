@@ -12,7 +12,7 @@ import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/multi_layered_memory_system.feature')
+scenarios('../features/general/multi_layered_memory_system.feature')
 
 # Import the modules needed for the steps
 from devsynth.domain.models.memory import MemoryItem, MemoryType

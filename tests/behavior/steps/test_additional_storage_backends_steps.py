@@ -25,7 +25,7 @@ pytestmark = [
 ]
 
 # Register the scenarios from the feature file
-scenarios('../features/additional_storage_backends.feature')
+scenarios('../features/general/additional_storage_backends.feature')
 
 
 @pytest.fixture

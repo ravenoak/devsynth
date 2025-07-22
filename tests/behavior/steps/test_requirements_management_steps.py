@@ -2,7 +2,7 @@
 
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/requirements_management.feature")
+scenarios("../features/general/requirements_management.feature")
 
 
 @given("the requirements_management feature context")

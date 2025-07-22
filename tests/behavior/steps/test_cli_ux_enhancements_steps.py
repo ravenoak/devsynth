@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.progress import Progress
 
 # The scenarios function is called in the test file, so we don't need to call it here
-# scenarios("../features/cli_ux_enhancements.feature")
+# scenarios("../features/general/cli_ux_enhancements.feature")
 
 # Mock the CLI bridge and related components
 @pytest.fixture

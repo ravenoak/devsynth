@@ -8,7 +8,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from typing import Dict, Any, List
 
 # Import the feature file
-scenarios("../features/training_materials.feature")
+scenarios("../features/general/training_materials.feature")
 
 
 # Define a fixture for the context

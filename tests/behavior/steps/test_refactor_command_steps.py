@@ -4,7 +4,7 @@ from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import patch, MagicMock
 
 # Import the scenarios from the feature file
-scenarios('../features/refactor_command.feature')
+scenarios('../features/general/refactor_command.feature')
 
 # Fixtures for test isolation
 @pytest.fixture

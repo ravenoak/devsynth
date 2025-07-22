@@ -10,7 +10,7 @@ from devsynth.application.promises.broker import PromiseBroker, UnauthorizedAcce
 from devsynth.application.promises.agent import PromiseAgent
 
 # Import the feature file
-scenarios('../features/promise_system.feature')
+scenarios('../features/general/promise_system.feature')
 
 # Define a fixture for the context
 @pytest.fixture

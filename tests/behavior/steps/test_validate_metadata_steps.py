@@ -2,7 +2,7 @@
 
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/validate_metadata.feature")
+scenarios("../features/general/validate_metadata.feature")
 
 
 @given("the validate_metadata feature context")

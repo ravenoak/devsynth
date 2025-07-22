@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 from pytest_bdd import scenarios, given, when, then, parsers
 
 # Register scenarios from the feature file
-scenarios("../features/test_generation.feature")
+scenarios("../features/general/test_generation.feature")
 
 
 @given("I have a DevSynth project with analyzed requirements")

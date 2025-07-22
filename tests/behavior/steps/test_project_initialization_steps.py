@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/project_initialization.feature")
+scenarios("../features/general/project_initialization.feature")
 
 
 @pytest.fixture

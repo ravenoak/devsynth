@@ -17,7 +17,7 @@ from devsynth.methodology.base import Phase
 
 
 # Import the feature file
-scenarios = pytest.importorskip("pytest_bdd").scenarios("features/self_analyzer.feature")
+scenarios = pytest.importorskip("pytest_bdd").scenarios("../features/general/self_analyzer.feature")
 
 
 @pytest.fixture

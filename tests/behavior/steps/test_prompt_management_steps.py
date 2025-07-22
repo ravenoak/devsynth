@@ -9,7 +9,7 @@ import random
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/prompt_management.feature')
+scenarios('../features/general/prompt_management.feature')
 
 # Import the modules needed for the steps
 from devsynth.application.prompts.prompt_manager import PromptManager

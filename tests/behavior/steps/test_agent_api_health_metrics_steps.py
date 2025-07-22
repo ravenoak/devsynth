@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pytest_bdd import given, when, then, scenarios, parsers
 
-scenarios("../features/agent_api_health_metrics.feature")
+scenarios("../features/general/agent_api_health_metrics.feature")
 
 
 @pytest.fixture

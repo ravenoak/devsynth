@@ -5,7 +5,7 @@ from pytest_bdd import scenarios
 import pytest
 
 # Import the scenarios from the feature file
-scenarios('../features/recursive_edrr_coordinator.feature')
+scenarios('../features/general/recursive_edrr_coordinator.feature')
 
 # Import the necessary components
 

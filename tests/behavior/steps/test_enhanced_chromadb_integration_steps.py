@@ -3,7 +3,7 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/enhanced_chromadb_integration.feature")
+scenarios("../features/general/enhanced_chromadb_integration.feature")
 
 
 @pytest.fixture
