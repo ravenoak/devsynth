@@ -68,9 +68,11 @@ Each feature is scored on two dimensions:
 | Test Generation | Partial | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending |
 | Documentation Generation | Complete | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
 | Documentation Ingestion | Complete | src/devsynth/application/documentation/ingestion.py | 3 | 3 | Memory System | | Project configuration controls offline ingestion |
+| Requirements Gathering | Complete | src/devsynth/application/cli/requirements_commands.py, src/devsynth/interface/webui.py | 5 | 2 | CLI Interface | | Wizard persists goals, constraints and priority |
 | **Infrastructure Components** |
 | Docker Containerization | Complete | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
 | Configuration Management | Complete | src/devsynth/config, config/ | 4 | 3 | None | | Environment-specific templates available |
+| Unified Configuration Loader | Complete | src/devsynth/config/loader.py | 3 | 2 | Configuration Management | | Supports YAML and TOML with autocompletion |
 | Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows |
 | Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
 | Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |

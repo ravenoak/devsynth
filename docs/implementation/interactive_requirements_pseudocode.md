@@ -48,9 +48,8 @@ This approach keeps prompts consistent across interfaces while persisting answer
 
 ## Current Limitations
 
-The interactive requirements collection flow is not implemented yet. Error
-handling, persistent storage of answers, and real-time validation remain future
-work.
+The interactive requirements collection flow is implemented. It includes error
+handling, persistent storage of answers, and real-time validation.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented** and exercised by unit and behavior tests.

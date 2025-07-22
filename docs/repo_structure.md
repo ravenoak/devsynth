@@ -168,4 +168,4 @@ New contributors should:
 _Last updated: July 8, 2025_
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This reference is **implemented** and reflects the current repository layout.
