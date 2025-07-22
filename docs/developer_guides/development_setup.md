@@ -59,8 +59,6 @@ Before setting up the development environment, ensure you have the following ins
 
 ## Development Environment Setup
 
-The workspace automatically runs [`scripts/codex_setup.sh`](../../scripts/codex_setup.sh) with network access enabled during provisioning. If the script fails, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will appear in the project root. Network access is disabled afterward. Follow the steps in [AGENTS.md#environment-setup](../../AGENTS.md#environment-setup) to repair the environment and remove the marker offline.
-
 ### 1. Clone the Repository
 
 ```bash
