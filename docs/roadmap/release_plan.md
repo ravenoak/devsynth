@@ -68,7 +68,27 @@ This plan supersedes the individual phase tables previously scattered across mul
 
 For a detailed breakdown of feature implementation progress, see the
 [Feature Status Matrix](../implementation/feature_status_matrix.md).
+
 ## Implementation Status
 
 Execution of this release plan is **in progress** with milestones tracked in
 [issue 104](../../issues/104.md).
+
+### Current Test Summary
+
+Recent CI reports show **261 failing tests** out of over **1900** total, meaning
+roughly **1600+** tests currently pass. Most failures originate from the WebUI
+requirements wizard and the Kuzu-based memory integration. See the
+[development status](development_status.md#test-failure-summary) document for
+details.
+
+### Path to `0.1.0-beta.1`
+
+To publish `0.1.0-beta.1`, the project must:
+
+- Resolve the outstanding WebUI and EDRR coordinator test failures.
+- Finish the WSDE peer review workflow and solidify memory initialization.
+- Address remaining partial features listed in the
+  [Feature Status Matrix](../implementation/feature_status_matrix.md) such as
+  Methodology Integration and the Retry Mechanism.
+- Continue documentation cleanup and polish the Web UI preview.
