@@ -393,4 +393,4 @@ For more detailed information, refer to the [User Guide](../user_guides/user_gui
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

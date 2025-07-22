@@ -25,4 +25,4 @@ DevSynth exposes Prometheus metrics on `/metrics` and structured logs via the st
 Container logs are written to the `./logs` directory mounted by `docker-compose.yml`. Review these files or use `docker compose logs` to stream logs.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

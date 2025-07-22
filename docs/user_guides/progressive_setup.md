@@ -108,4 +108,4 @@ Start with a minimal installation and gradually enable advanced reasoning and ve
 
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

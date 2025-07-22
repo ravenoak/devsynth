@@ -23,4 +23,4 @@ For more information on deployment-related topics, see:
 - **[Monitoring and Logging](monitoring.md)**: Set up Prometheus and collect logs.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

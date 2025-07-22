@@ -657,4 +657,4 @@ This user guide provides comprehensive information about using DevSynth effectiv
 For more detailed information about the architecture and internal workings of DevSynth, refer to the [Architecture Documentation](architecture_documentation.md).
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

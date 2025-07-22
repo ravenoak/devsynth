@@ -230,4 +230,4 @@ def invoke_command_all_interfaces(cross_interface_context, command):
 - [Streamlit Testing Guide](https://docs.streamlit.io/library/advanced-features/testing)
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

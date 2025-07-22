@@ -303,4 +303,4 @@ Test-Driven and Behavior-Driven Development are essential methodologies in DevSy
 By applying dialectical reasoning to our testing approach, we consider multiple perspectives and ensure that our system is robust and well-designed at all levels of abstraction.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

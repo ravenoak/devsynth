@@ -259,4 +259,4 @@ When creating a new UXBridge implementation, run these tests to ensure compatibi
 The UXBridge architecture is a powerful abstraction that enables DevSynth to provide a consistent user experience across different interfaces. By understanding this architecture, you can extend DevSynth with new user interfaces or enhance existing ones while maintaining compatibility with the core application logic.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

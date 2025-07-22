@@ -327,4 +327,4 @@ If you have any questions about contributing, please open an issue or reach out 
 Thank you for contributing to DevSynth!
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

@@ -64,4 +64,4 @@ both textual and graphical UIs and allow tests to mock the interface easily.
 
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

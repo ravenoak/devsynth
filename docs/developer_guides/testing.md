@@ -406,4 +406,4 @@ Test coverage is tracked and reported in CI runs.
 _Last updated: May 17, 2025_
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

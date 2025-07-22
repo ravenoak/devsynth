@@ -50,4 +50,4 @@ If you're new to DevSynth, we recommend starting with the [Getting Started](../g
 - [CLI ↔ WebUI Mapping](../architecture/cli_webui_mapping.md) - Equivalent WebUI actions for CLI commands
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

@@ -52,4 +52,4 @@ This workflow is a conceptual outline. The unified parser has not been fully
 implemented, and integration tests for various project layouts are missing.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

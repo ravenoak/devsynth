@@ -212,4 +212,4 @@ When reporting issues, please include:
 - [Configuration Guide](../user_guides/configuration.md) - Guide to configuring DevSynth
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

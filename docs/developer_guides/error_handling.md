@@ -237,4 +237,4 @@ Structured JSON error response:
 - [Microsoft Style Guide: Error Messages](https://docs.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/error-messages)
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.

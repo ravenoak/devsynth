@@ -361,4 +361,4 @@ docker compose up -d
 This deployment guide covers the basics of deploying DevSynth in various environments. For advanced deployment scenarios, including Kubernetes deployment, high availability configurations, and enterprise integrations, refer to the Advanced Deployment Guide.
 ## Implementation Status
 
-This feature is **planned** and not yet implemented.
+This feature is **in progress** and not yet implemented.
