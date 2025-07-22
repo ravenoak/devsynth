@@ -20,60 +20,116 @@ from devsynth.exceptions import DevSynthError
 # Import from specialized modules
 from devsynth.domain.models.wsde_base import WSDE, WSDETeam
 from devsynth.domain.models.wsde_roles import (
-    assign_roles, assign_roles_for_phase, dynamic_role_reassignment,
-    _validate_role_mapping, _auto_assign_roles, get_role_map,
-    _calculate_expertise_score, _calculate_phase_expertise_score,
-    select_primus_by_expertise, rotate_roles, _assign_roles_for_edrr_phase
+    assign_roles,
+    assign_roles_for_phase,
+    dynamic_role_reassignment,
+    _validate_role_mapping,
+    _auto_assign_roles,
+    get_role_map,
+    _calculate_expertise_score,
+    _calculate_phase_expertise_score,
+    select_primus_by_expertise,
+    rotate_roles,
+    _assign_roles_for_edrr_phase,
 )
 from devsynth.domain.models.wsde_voting import (
-    vote_on_critical_decision, _apply_majority_voting, _handle_tied_vote,
-    _apply_weighted_voting, _record_voting_history, consensus_vote, build_consensus
+    vote_on_critical_decision,
+    _apply_majority_voting,
+    _handle_tied_vote,
+    _apply_weighted_voting,
+    _record_voting_history,
+    consensus_vote,
+    build_consensus,
 )
 from devsynth.domain.models.wsde_dialectical import (
-    apply_dialectical_reasoning, _generate_antithesis, _generate_synthesis,
-    _categorize_critiques_by_domain, _identify_domain_conflicts, _prioritize_critiques,
-    _calculate_priority_score, _resolve_code_improvement_conflict,
-    _resolve_content_improvement_conflict, _check_code_standards_compliance,
-    _check_content_standards_compliance, _check_pep8_compliance,
-    _check_security_best_practices, _balance_security_and_performance,
-    _balance_security_and_usability, _balance_performance_and_maintainability,
-    _generate_detailed_synthesis_reasoning, _improve_credentials,
-    _improve_error_handling, _improve_input_validation, _improve_security,
-    _improve_performance, _improve_readability, _improve_clarity,
-    _improve_with_examples, _improve_structure
+    apply_dialectical_reasoning,
+    _generate_antithesis,
+    _generate_synthesis,
+    _categorize_critiques_by_domain,
+    _identify_domain_conflicts,
+    _prioritize_critiques,
+    _calculate_priority_score,
+    _resolve_code_improvement_conflict,
+    _resolve_content_improvement_conflict,
+    _check_code_standards_compliance,
+    _check_content_standards_compliance,
+    _check_pep8_compliance,
+    _check_security_best_practices,
+    _balance_security_and_performance,
+    _balance_security_and_usability,
+    _balance_performance_and_maintainability,
+    _generate_detailed_synthesis_reasoning,
+    _improve_credentials,
+    _improve_error_handling,
+    _improve_input_validation,
+    _improve_security,
+    _improve_performance,
+    _improve_readability,
+    _improve_clarity,
+    _improve_with_examples,
+    _improve_structure,
 )
 from devsynth.domain.models.wsde_knowledge import (
-    apply_dialectical_reasoning_with_knowledge_graph, _get_task_id,
-    _generate_antithesis_with_knowledge_graph, _generate_synthesis_with_knowledge_graph,
-    _generate_evaluation_with_knowledge_graph, apply_enhanced_dialectical_reasoning_with_knowledge,
-    _identify_relevant_knowledge, _generate_enhanced_antithesis_with_knowledge,
-    _generate_enhanced_synthesis_with_standards, _generate_evaluation_with_compliance
+    apply_dialectical_reasoning_with_knowledge_graph,
+    _get_task_id,
+    _generate_antithesis_with_knowledge_graph,
+    _generate_synthesis_with_knowledge_graph,
+    _generate_evaluation_with_knowledge_graph,
+    apply_enhanced_dialectical_reasoning_with_knowledge,
+    _identify_relevant_knowledge,
+    _generate_enhanced_antithesis_with_knowledge,
+    _generate_enhanced_synthesis_with_standards,
+    _generate_evaluation_with_compliance,
 )
 from devsynth.domain.models.wsde_multidisciplinary import (
-    apply_multi_disciplinary_dialectical_reasoning, _gather_disciplinary_perspectives,
-    _determine_agent_discipline, _solution_addresses_item, _identify_perspective_conflicts,
-    _generate_multi_disciplinary_synthesis, _generate_multi_disciplinary_evaluation
+    apply_multi_disciplinary_dialectical_reasoning,
+    _gather_disciplinary_perspectives,
+    _determine_agent_discipline,
+    _solution_addresses_item,
+    _identify_perspective_conflicts,
+    _generate_multi_disciplinary_synthesis,
+    _generate_multi_disciplinary_evaluation,
 )
 from devsynth.domain.models.wsde_enhanced_dialectical import (
-    apply_enhanced_dialectical_reasoning, apply_enhanced_dialectical_reasoning_multi,
-    _identify_thesis, _generate_enhanced_antithesis, _generate_enhanced_synthesis,
-    _generate_evaluation
+    apply_enhanced_dialectical_reasoning,
+    apply_enhanced_dialectical_reasoning_multi,
+    _identify_thesis,
+    _generate_enhanced_antithesis,
+    _generate_enhanced_synthesis,
+    _generate_evaluation,
 )
 from devsynth.domain.models.wsde_solution_analysis import (
-    _analyze_solution, _generate_comparative_analysis, _generate_multi_solution_synthesis,
-    _generate_comparative_evaluation
+    _analyze_solution,
+    _generate_comparative_analysis,
+    _generate_multi_solution_synthesis,
+    _generate_comparative_evaluation,
 )
 from devsynth.domain.models.wsde_decision_making import (
-    generate_diverse_ideas, _calculate_idea_similarity, create_comparison_matrix,
-    evaluate_options, analyze_trade_offs, formulate_decision_criteria,
-    select_best_option, elaborate_details, create_implementation_plan,
-    _topological_sort_steps, optimize_implementation, _optimize_for_performance,
-    _optimize_for_maintainability, _optimize_for_security, perform_quality_assurance,
-    _check_completeness, _check_consistency, _check_testability, _check_security
+    generate_diverse_ideas,
+    _calculate_idea_similarity,
+    create_comparison_matrix,
+    evaluate_options,
+    analyze_trade_offs,
+    formulate_decision_criteria,
+    select_best_option,
+    elaborate_details,
+    create_implementation_plan,
+    _topological_sort_steps,
+    optimize_implementation,
+    _optimize_for_performance,
+    _optimize_for_maintainability,
+    _optimize_for_security,
+    perform_quality_assurance,
+    _check_completeness,
+    _check_consistency,
+    _check_testability,
+    _check_security,
 )
 from devsynth.domain.models.wsde_context_driven_leadership import (
-    enhanced_calculate_expertise_score, enhanced_calculate_phase_expertise_score,
-    enhanced_select_primus_by_expertise, dynamic_role_reassignment_enhanced
+    enhanced_calculate_expertise_score,
+    enhanced_calculate_phase_expertise_score,
+    enhanced_select_primus_by_expertise,
+    dynamic_role_reassignment_enhanced,
 )
 
 logger = DevSynthLogger(__name__)
@@ -94,7 +150,9 @@ WSDETeam._assign_roles_for_edrr_phase = _assign_roles_for_edrr_phase
 
 # Enhanced Context-Driven Leadership methods
 WSDETeam.enhanced_calculate_expertise_score = enhanced_calculate_expertise_score
-WSDETeam.enhanced_calculate_phase_expertise_score = enhanced_calculate_phase_expertise_score
+WSDETeam.enhanced_calculate_phase_expertise_score = (
+    enhanced_calculate_phase_expertise_score
+)
 WSDETeam.enhanced_select_primus_by_expertise = enhanced_select_primus_by_expertise
 WSDETeam.dynamic_role_reassignment_enhanced = dynamic_role_reassignment_enhanced
 
@@ -123,7 +181,9 @@ WSDETeam._check_pep8_compliance = _check_pep8_compliance
 WSDETeam._check_security_best_practices = _check_security_best_practices
 WSDETeam._balance_security_and_performance = _balance_security_and_performance
 WSDETeam._balance_security_and_usability = _balance_security_and_usability
-WSDETeam._balance_performance_and_maintainability = _balance_performance_and_maintainability
+WSDETeam._balance_performance_and_maintainability = (
+    _balance_performance_and_maintainability
+)
 WSDETeam._generate_detailed_synthesis_reasoning = _generate_detailed_synthesis_reasoning
 WSDETeam._improve_credentials = _improve_credentials
 WSDETeam._improve_error_handling = _improve_error_handling
@@ -136,29 +196,49 @@ WSDETeam._improve_with_examples = _improve_with_examples
 WSDETeam._improve_structure = _improve_structure
 
 # Knowledge integration
-WSDETeam.apply_dialectical_reasoning_with_knowledge_graph = apply_dialectical_reasoning_with_knowledge_graph
+WSDETeam.apply_dialectical_reasoning_with_knowledge_graph = (
+    apply_dialectical_reasoning_with_knowledge_graph
+)
 WSDETeam._get_task_id = _get_task_id
-WSDETeam._generate_antithesis_with_knowledge_graph = _generate_antithesis_with_knowledge_graph
-WSDETeam._generate_synthesis_with_knowledge_graph = _generate_synthesis_with_knowledge_graph
-WSDETeam._generate_evaluation_with_knowledge_graph = _generate_evaluation_with_knowledge_graph
-WSDETeam.apply_enhanced_dialectical_reasoning_with_knowledge = apply_enhanced_dialectical_reasoning_with_knowledge
+WSDETeam._generate_antithesis_with_knowledge_graph = (
+    _generate_antithesis_with_knowledge_graph
+)
+WSDETeam._generate_synthesis_with_knowledge_graph = (
+    _generate_synthesis_with_knowledge_graph
+)
+WSDETeam._generate_evaluation_with_knowledge_graph = (
+    _generate_evaluation_with_knowledge_graph
+)
+WSDETeam.apply_enhanced_dialectical_reasoning_with_knowledge = (
+    apply_enhanced_dialectical_reasoning_with_knowledge
+)
 WSDETeam._identify_relevant_knowledge = _identify_relevant_knowledge
-WSDETeam._generate_enhanced_antithesis_with_knowledge = _generate_enhanced_antithesis_with_knowledge
-WSDETeam._generate_enhanced_synthesis_with_standards = _generate_enhanced_synthesis_with_standards
+WSDETeam._generate_enhanced_antithesis_with_knowledge = (
+    _generate_enhanced_antithesis_with_knowledge
+)
+WSDETeam._generate_enhanced_synthesis_with_standards = (
+    _generate_enhanced_synthesis_with_standards
+)
 WSDETeam._generate_evaluation_with_compliance = _generate_evaluation_with_compliance
 
 # Multi-disciplinary reasoning
-WSDETeam.apply_multi_disciplinary_dialectical_reasoning = apply_multi_disciplinary_dialectical_reasoning
+WSDETeam.apply_multi_disciplinary_dialectical_reasoning = (
+    apply_multi_disciplinary_dialectical_reasoning
+)
 WSDETeam._gather_disciplinary_perspectives = _gather_disciplinary_perspectives
 WSDETeam._determine_agent_discipline = _determine_agent_discipline
 WSDETeam._solution_addresses_item = _solution_addresses_item
 WSDETeam._identify_perspective_conflicts = _identify_perspective_conflicts
 WSDETeam._generate_multi_disciplinary_synthesis = _generate_multi_disciplinary_synthesis
-WSDETeam._generate_multi_disciplinary_evaluation = _generate_multi_disciplinary_evaluation
+WSDETeam._generate_multi_disciplinary_evaluation = (
+    _generate_multi_disciplinary_evaluation
+)
 
 # Enhanced dialectical reasoning
 WSDETeam.apply_enhanced_dialectical_reasoning = apply_enhanced_dialectical_reasoning
-WSDETeam.apply_enhanced_dialectical_reasoning_multi = apply_enhanced_dialectical_reasoning_multi
+WSDETeam.apply_enhanced_dialectical_reasoning_multi = (
+    apply_enhanced_dialectical_reasoning_multi
+)
 WSDETeam._identify_thesis = _identify_thesis
 WSDETeam._generate_enhanced_antithesis = _generate_enhanced_antithesis
 WSDETeam._generate_enhanced_synthesis = _generate_enhanced_synthesis
@@ -191,6 +271,7 @@ WSDETeam._check_consistency = _check_consistency
 WSDETeam._check_testability = _check_testability
 WSDETeam._check_security = _check_security
 
+
 # Add missing methods
 def add_solution(self, task: Dict[str, Any], solution: Dict[str, Any]):
     """
@@ -204,7 +285,7 @@ def add_solution(self, task: Dict[str, Any], solution: Dict[str, Any]):
         The added solution
     """
     # Initialize solutions if not already present
-    if not hasattr(self, 'solutions') or self.solutions is None:
+    if not hasattr(self, "solutions") or self.solutions is None:
         self.solutions = []
 
     # Add the solution
@@ -216,6 +297,7 @@ def add_solution(self, task: Dict[str, Any], solution: Dict[str, Any]):
         hook(task, self.solutions)
 
     return solution
+
 
 # Add the missing method to the WSDETeam class
 WSDETeam.add_solution = add_solution
@@ -239,6 +321,7 @@ WSDETeam.__init__ = new_init
 
 # Override rotate_primus method to update primus_index
 original_rotate_primus = WSDETeam.rotate_primus
+
 
 def new_rotate_primus(self):
     """
@@ -270,7 +353,9 @@ def new_rotate_primus(self):
     self.logger.info(f"Rotated primus role to {self.roles['primus'].name}")
     return self.roles["primus"]
 
+
 WSDETeam.rotate_primus = new_rotate_primus
+
 
 # Override get_primus method to return agent at primus_index
 def new_get_primus(self):
@@ -284,14 +369,63 @@ def new_get_primus(self):
         return None
     return self.agents[self.primus_index]
 
+
 WSDETeam.get_primus = new_get_primus
 
-# Override apply_dialectical_reasoning_with_knowledge_graph method to handle solutions in team.solutions
-original_apply_dialectical_reasoning_with_knowledge_graph = WSDETeam.apply_dialectical_reasoning_with_knowledge_graph
+# ------------------------------------------------------------------
+# Peer review methods
+# ------------------------------------------------------------------
 
-def new_apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, Any], 
-                                                      critic_agent: Any, 
-                                                      wsde_memory_integration: Any):
+
+def request_peer_review(
+    self: WSDETeam, work_product: Any, author: Any, reviewer_agents: List[Any]
+) -> Any:
+    """Create and track a peer review cycle."""
+
+    try:
+        from devsynth.application.collaboration.peer_review import PeerReview
+    except Exception:
+        return None
+
+    review = PeerReview(
+        work_product=work_product,
+        author=author,
+        reviewers=reviewer_agents,
+        send_message=self.send_message,
+    )
+    review.assign_reviews()
+    if not hasattr(self, "peer_reviews"):
+        self.peer_reviews = []
+    self.peer_reviews.append(review)
+    return review
+
+
+def conduct_peer_review(
+    self: WSDETeam, work_product: Any, author: Any, reviewer_agents: List[Any]
+) -> Dict[str, Any]:
+    """Run a full peer review cycle and return aggregated feedback."""
+
+    review = request_peer_review(self, work_product, author, reviewer_agents)
+    if review is None:
+        return {"review": None, "feedback": {}}
+    review.collect_reviews()
+    feedback = review.aggregate_feedback()
+    review.status = "completed"
+    return {"review": review, "feedback": feedback}
+
+
+WSDETeam.request_peer_review = request_peer_review
+WSDETeam.conduct_peer_review = conduct_peer_review
+
+# Override apply_dialectical_reasoning_with_knowledge_graph method to handle solutions in team.solutions
+original_apply_dialectical_reasoning_with_knowledge_graph = (
+    WSDETeam.apply_dialectical_reasoning_with_knowledge_graph
+)
+
+
+def new_apply_dialectical_reasoning_with_knowledge_graph(
+    self, task: Dict[str, Any], critic_agent: Any, wsde_memory_integration: Any
+):
     """
     Apply dialectical reasoning with knowledge graph integration.
 
@@ -316,13 +450,23 @@ def new_apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, A
     # Check if solution is in team.solutions
     if not solution:
         task_id = task.get("id")
-        if task_id and hasattr(self, 'solutions') and isinstance(self.solutions, dict) and task_id in self.solutions:
+        if (
+            task_id
+            and hasattr(self, "solutions")
+            and isinstance(self.solutions, dict)
+            and task_id in self.solutions
+        ):
             # Get the first solution for this task
             if self.solutions[task_id]:
                 solution = self.solutions[task_id][0]
 
     # If we're using a list for solutions (as per the updated add_solution method)
-    if not solution and hasattr(self, 'solutions') and isinstance(self.solutions, list) and self.solutions:
+    if (
+        not solution
+        and hasattr(self, "solutions")
+        and isinstance(self.solutions, list)
+        and self.solutions
+    ):
         solution = self.solutions[0]
 
     # If no solution is found, return the original error
@@ -341,34 +485,34 @@ def new_apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, A
     knowledge_graph_insights = {
         "relevant_concepts": relevant_concepts,
         "concept_relationships": concept_relationships,
-        "task_relevant_knowledge": []
+        "task_relevant_knowledge": [],
     }
 
     # Generate antithesis
     antithesis = {
         "id": str(uuid4()),
         "timestamp": datetime.now(),
-        "agent": critic_agent.name if hasattr(critic_agent, 'name') else "critic",
+        "agent": critic_agent.name if hasattr(critic_agent, "name") else "critic",
         "critiques": [
             "The solution lacks comprehensive error handling",
             "The approach could be more efficient",
-            "The solution doesn't consider all edge cases"
+            "The solution doesn't consider all edge cases",
         ],
         "critique_categories": {
             "security": [
                 "Hardcoded credentials are a security risk",
-                "No input validation"
+                "No input validation",
             ]
         },
         "alternative_approaches": [
             "Consider using a more secure authentication method",
-            "Implement proper password hashing"
+            "Implement proper password hashing",
         ],
         "improvement_suggestions": [
             "Add proper error handling",
             "Implement secure password storage",
-            "Add input validation"
-        ]
+            "Add input validation",
+        ],
     }
 
     # Generate synthesis
@@ -377,40 +521,33 @@ def new_apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, A
         "timestamp": datetime.now(),
         "integrated_critiques": [
             "The solution lacks comprehensive error handling",
-            "Hardcoded credentials are a security risk"
+            "Hardcoded credentials are a security risk",
         ],
-        "rejected_critiques": [
-            "The approach could be more efficient"
-        ],
+        "rejected_critiques": ["The approach could be more efficient"],
         "addressed_critiques": [
             "Added proper error handling",
-            "Implemented secure password storage"
+            "Implemented secure password storage",
         ],
         "improvements": [
             "Added try/except blocks for error handling",
             "Replaced hardcoded credentials with environment variables",
-            "Added input validation"
+            "Added input validation",
         ],
         "reasoning": "Improved security and error handling based on critiques",
         "content": solution.get("content"),
-        "code": solution.get("code")
+        "code": solution.get("code"),
     }
 
     # Generate evaluation
     evaluation = {
         "id": str(uuid4()),
         "timestamp": datetime.now(),
-        "strengths": [
-            "Improved error handling",
-            "Better security practices"
-        ],
-        "weaknesses": [
-            "Could still improve efficiency"
-        ],
+        "strengths": ["Improved error handling", "Better security practices"],
+        "weaknesses": ["Could still improve efficiency"],
         "knowledge_alignment": "The solution now aligns better with security best practices",
         "alignment_score": 0.8,
         "alignment_level": "high",
-        "overall_assessment": "Good improvement over the original solution"
+        "overall_assessment": "Good improvement over the original solution",
     }
 
     # Create result
@@ -423,7 +560,7 @@ def new_apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, A
         "synthesis": synthesis,
         "evaluation": evaluation,
         "knowledge_graph_insights": knowledge_graph_insights,
-        "method": "dialectical_reasoning_with_knowledge_graph"
+        "method": "dialectical_reasoning_with_knowledge_graph",
     }
 
     # Invoke dialectical hooks if any
@@ -432,10 +569,14 @@ def new_apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, A
 
     return result
 
-WSDETeam.apply_dialectical_reasoning_with_knowledge_graph = new_apply_dialectical_reasoning_with_knowledge_graph
+
+WSDETeam.apply_dialectical_reasoning_with_knowledge_graph = (
+    new_apply_dialectical_reasoning_with_knowledge_graph
+)
 
 # Override assign_roles method to set current_role attribute
 original_assign_roles = WSDETeam.assign_roles
+
 
 def new_assign_roles(self, role_mapping: Optional[Dict[str, Any]] = None):
     """
@@ -461,7 +602,9 @@ def new_assign_roles(self, role_mapping: Optional[Dict[str, Any]] = None):
             role_mapping["primus"] = self.agents[self.primus_index]
 
         # Auto-assign other roles
-        available_agents = [agent for agent in self.agents if agent not in role_mapping.values()]
+        available_agents = [
+            agent for agent in self.agents if agent not in role_mapping.values()
+        ]
         available_roles = ["worker", "supervisor", "designer", "evaluator"]
 
         for i, role in enumerate(available_roles):
@@ -478,7 +621,9 @@ def new_assign_roles(self, role_mapping: Optional[Dict[str, Any]] = None):
 
     return roles
 
+
 WSDETeam.assign_roles = new_assign_roles
+
 
 # Add get_agent_by_role method
 def get_agent_by_role(self, role: str):
@@ -492,68 +637,120 @@ def get_agent_by_role(self, role: str):
         The agent with the specified role or None if not assigned
     """
     for agent in self.agents:
-        if hasattr(agent, 'current_role') and agent.current_role == role:
+        if hasattr(agent, "current_role") and agent.current_role == role:
             return agent
     return None
+
 
 WSDETeam.get_agent_by_role = get_agent_by_role
 
 # Re-export all symbols for backward compatibility
 __all__ = [
     # Classes
-    'WSDE', 'WSDETeam',
-
+    "WSDE",
+    "WSDETeam",
     # Role management
-    'assign_roles', 'assign_roles_for_phase', 'dynamic_role_reassignment',
-    '_validate_role_mapping', '_auto_assign_roles', 'get_role_map',
-    '_calculate_expertise_score', '_calculate_phase_expertise_score',
-    'select_primus_by_expertise', 'rotate_roles', '_assign_roles_for_edrr_phase',
-    'enhanced_calculate_expertise_score', 'enhanced_calculate_phase_expertise_score',
-    'enhanced_select_primus_by_expertise', 'dynamic_role_reassignment_enhanced',
-
+    "assign_roles",
+    "assign_roles_for_phase",
+    "dynamic_role_reassignment",
+    "_validate_role_mapping",
+    "_auto_assign_roles",
+    "get_role_map",
+    "_calculate_expertise_score",
+    "_calculate_phase_expertise_score",
+    "select_primus_by_expertise",
+    "rotate_roles",
+    "_assign_roles_for_edrr_phase",
+    "enhanced_calculate_expertise_score",
+    "enhanced_calculate_phase_expertise_score",
+    "enhanced_select_primus_by_expertise",
+    "dynamic_role_reassignment_enhanced",
     # Voting
-    'vote_on_critical_decision', '_apply_majority_voting', '_handle_tied_vote',
-    '_apply_weighted_voting', '_record_voting_history', 'consensus_vote', 'build_consensus',
-
+    "vote_on_critical_decision",
+    "_apply_majority_voting",
+    "_handle_tied_vote",
+    "_apply_weighted_voting",
+    "_record_voting_history",
+    "consensus_vote",
+    "build_consensus",
     # Dialectical reasoning
-    'apply_dialectical_reasoning', '_generate_antithesis', '_generate_synthesis',
-    '_categorize_critiques_by_domain', '_identify_domain_conflicts', '_prioritize_critiques',
-    '_calculate_priority_score', '_resolve_code_improvement_conflict',
-    '_resolve_content_improvement_conflict', '_check_code_standards_compliance',
-    '_check_content_standards_compliance', '_check_pep8_compliance',
-    '_check_security_best_practices', '_balance_security_and_performance',
-    '_balance_security_and_usability', '_balance_performance_and_maintainability',
-    '_generate_detailed_synthesis_reasoning', '_improve_credentials',
-    '_improve_error_handling', '_improve_input_validation', '_improve_security',
-    '_improve_performance', '_improve_readability', '_improve_clarity',
-    '_improve_with_examples', '_improve_structure',
-
+    "apply_dialectical_reasoning",
+    "_generate_antithesis",
+    "_generate_synthesis",
+    "_categorize_critiques_by_domain",
+    "_identify_domain_conflicts",
+    "_prioritize_critiques",
+    "_calculate_priority_score",
+    "_resolve_code_improvement_conflict",
+    "_resolve_content_improvement_conflict",
+    "_check_code_standards_compliance",
+    "_check_content_standards_compliance",
+    "_check_pep8_compliance",
+    "_check_security_best_practices",
+    "_balance_security_and_performance",
+    "_balance_security_and_usability",
+    "_balance_performance_and_maintainability",
+    "_generate_detailed_synthesis_reasoning",
+    "_improve_credentials",
+    "_improve_error_handling",
+    "_improve_input_validation",
+    "_improve_security",
+    "_improve_performance",
+    "_improve_readability",
+    "_improve_clarity",
+    "_improve_with_examples",
+    "_improve_structure",
     # Knowledge integration
-    'apply_dialectical_reasoning_with_knowledge_graph', '_get_task_id',
-    '_generate_antithesis_with_knowledge_graph', '_generate_synthesis_with_knowledge_graph',
-    '_generate_evaluation_with_knowledge_graph', 'apply_enhanced_dialectical_reasoning_with_knowledge',
-    '_identify_relevant_knowledge', '_generate_enhanced_antithesis_with_knowledge',
-    '_generate_enhanced_synthesis_with_standards', '_generate_evaluation_with_compliance',
-
+    "apply_dialectical_reasoning_with_knowledge_graph",
+    "_get_task_id",
+    "_generate_antithesis_with_knowledge_graph",
+    "_generate_synthesis_with_knowledge_graph",
+    "_generate_evaluation_with_knowledge_graph",
+    "apply_enhanced_dialectical_reasoning_with_knowledge",
+    "_identify_relevant_knowledge",
+    "_generate_enhanced_antithesis_with_knowledge",
+    "_generate_enhanced_synthesis_with_standards",
+    "_generate_evaluation_with_compliance",
     # Multi-disciplinary reasoning
-    'apply_multi_disciplinary_dialectical_reasoning', '_gather_disciplinary_perspectives',
-    '_determine_agent_discipline', '_solution_addresses_item', '_identify_perspective_conflicts',
-    '_generate_multi_disciplinary_synthesis', '_generate_multi_disciplinary_evaluation',
-
+    "apply_multi_disciplinary_dialectical_reasoning",
+    "_gather_disciplinary_perspectives",
+    "_determine_agent_discipline",
+    "_solution_addresses_item",
+    "_identify_perspective_conflicts",
+    "_generate_multi_disciplinary_synthesis",
+    "_generate_multi_disciplinary_evaluation",
     # Enhanced dialectical reasoning
-    'apply_enhanced_dialectical_reasoning', 'apply_enhanced_dialectical_reasoning_multi',
-    '_identify_thesis', '_generate_enhanced_antithesis', '_generate_enhanced_synthesis',
-    '_generate_evaluation',
-
+    "apply_enhanced_dialectical_reasoning",
+    "apply_enhanced_dialectical_reasoning_multi",
+    "_identify_thesis",
+    "_generate_enhanced_antithesis",
+    "_generate_enhanced_synthesis",
+    "_generate_evaluation",
     # Solution analysis
-    '_analyze_solution', '_generate_comparative_analysis', '_generate_multi_solution_synthesis',
-    '_generate_comparative_evaluation',
-
+    "_analyze_solution",
+    "_generate_comparative_analysis",
+    "_generate_multi_solution_synthesis",
+    "_generate_comparative_evaluation",
     # Decision making
-    'generate_diverse_ideas', '_calculate_idea_similarity', 'create_comparison_matrix',
-    'evaluate_options', 'analyze_trade_offs', 'formulate_decision_criteria',
-    'select_best_option', 'elaborate_details', 'create_implementation_plan',
-    '_topological_sort_steps', 'optimize_implementation', '_optimize_for_performance',
-    '_optimize_for_maintainability', '_optimize_for_security', 'perform_quality_assurance',
-    '_check_completeness', '_check_consistency', '_check_testability', '_check_security'
+    "generate_diverse_ideas",
+    "_calculate_idea_similarity",
+    "create_comparison_matrix",
+    "evaluate_options",
+    "analyze_trade_offs",
+    "formulate_decision_criteria",
+    "select_best_option",
+    "elaborate_details",
+    "create_implementation_plan",
+    "_topological_sort_steps",
+    "optimize_implementation",
+    "_optimize_for_performance",
+    "_optimize_for_maintainability",
+    "_optimize_for_security",
+    "perform_quality_assurance",
+    "_check_completeness",
+    "_check_consistency",
+    "_check_testability",
+    "_check_security",
+    "request_peer_review",
+    "conduct_peer_review",
 ]
