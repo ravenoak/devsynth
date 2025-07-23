@@ -475,3 +475,114 @@ ReqID: N/A"""
         output = tmp_path / 'requirements_plan.yaml'
         gather_cmd(output_file=str(output), bridge=bridge)
         assert output.exists()
+
+    def test_init_cmd_wizard_runs_wizard(self):
+        """Wizard mode should invoke SetupWizard.run."""
+
+        with patch('devsynth.application.cli.cli_commands.SetupWizard') as wiz:
+            init_cmd(wizard=True)
+            wiz.assert_called_once()
+            wiz.return_value.run.assert_called_once()
+
+    def test_spec_cmd_invalid_file(self, mock_workflow_manager, mock_bridge):
+        """Invalid requirements file should not trigger generation."""
+
+        with patch('devsynth.application.cli.cli_commands._validate_file_path',
+                    return_value='bad'), patch.object(cli_commands.bridge,
+                    'confirm_choice', return_value=False):
+            spec_cmd('missing.md')
+        mock_workflow_manager.assert_not_called()
+
+    def test_test_cmd_invalid_file(self, mock_workflow_manager, mock_bridge):
+        """Invalid spec file should not trigger generation."""
+
+        with patch('devsynth.application.cli.cli_commands._validate_file_path',
+                    return_value='bad'), patch.object(cli_commands.bridge,
+                    'confirm_choice', return_value=False):
+            test_cmd('missing.md')
+        mock_workflow_manager.assert_not_called()
+
+    def test_code_cmd_no_tests(self, mock_workflow_manager, tmp_path, monkeypatch):
+        """code_cmd exits when no tests are present."""
+
+        monkeypatch.chdir(tmp_path)
+        with patch.object(cli_commands.bridge, 'confirm_choice', return_value=False):
+            code_cmd()
+        mock_workflow_manager.assert_not_called()
+
+    def test_run_pipeline_cmd_invalid_target(self, mock_workflow_manager, mock_bridge):
+        """run_pipeline_cmd warns on invalid target and aborts when declined."""
+
+        with patch.object(cli_commands.bridge, 'confirm_choice', return_value=False):
+            run_pipeline_cmd('bogus')
+        mock_workflow_manager.assert_not_called()
+
+    def test_config_cmd_invalid_key(self, mock_bridge):
+        """config_cmd should report errors from workflow."""
+
+        with patch('devsynth.core.workflows.execute_command',
+                    return_value={'success': False, 'message': 'bad'}), \
+             patch('devsynth.application.cli.cli_commands._handle_error') as herr:
+            config_cmd('bad', 'value')
+            herr.assert_called_once()
+
+    def test_gather_cmd_error_propagates(self):
+        """Errors from gather_requirements propagate to caller."""
+
+        with patch('devsynth.application.cli.cli_commands.gather_requirements',
+                    side_effect=FileNotFoundError('boom')):
+            with pytest.raises(FileNotFoundError):
+                gather_cmd(output_file='x')
+
+    def test_refactor_cmd_error(self, mock_bridge):
+        """refactor_cmd should display error when workflow fails."""
+
+        with patch('devsynth.application.cli.orchestration.refactor_workflow.refactor_workflow_manager.execute_refactor_workflow',
+                    return_value={'success': False, 'message': 'fail'}):
+            refactor_cmd(path='proj')
+        mock_bridge.display_result.assert_any_call('[red]Error:[/red] fail')
+
+    def test_inspect_cmd_failure(self, mock_bridge):
+        """inspect_cmd should show error message when workflow fails."""
+
+        with patch('devsynth.core.workflows.inspect_requirements',
+                    return_value={'success': False, 'message': 'bad'}):
+            inspect_cmd('req.md')
+        mock_bridge.display_result.assert_any_call('[red]Error:[/red] bad', highlight=False)
+
+    def test_webapp_cmd_invalid_framework(self, tmp_path):
+        """Unknown framework triggers warning and prompt."""
+
+        with patch.object(cli_commands.bridge, 'prompt', return_value='flask'), \
+             patch.object(cli_commands.bridge, 'confirm', return_value=True), \
+             patch.object(cli_commands.bridge, 'create_progress',
+                          return_value=MagicMock(__enter__=lambda s: s,
+                                               __exit__=lambda s, *a: None,
+                                               update=lambda *a, **k: None,
+                                               complete=lambda *a, **k: None)), \
+             patch('os.makedirs'), patch('os.path.exists', return_value=False):
+            webapp_cmd(framework='bad', name='app', path=str(tmp_path))
+
+    def test_serve_cmd_passes_options(self, monkeypatch):
+        """serve_cmd forwards host and port to uvicorn."""
+
+        monkeypatch.setattr(cli_commands, 'configure_logging', lambda: None)
+        with patch('uvicorn.run') as run:
+            serve_cmd(host='1.2.3.4', port=1234)
+            run.assert_called_once()
+            args, kwargs = run.call_args
+            assert kwargs['host'] == '1.2.3.4'
+            assert kwargs['port'] == 1234
+
+    def test_dbschema_cmd_invalid_type(self, tmp_path):
+        """Unknown db type should prompt selection."""
+
+        with patch.object(cli_commands.bridge, 'prompt', return_value='sqlite'), \
+             patch.object(cli_commands.bridge, 'confirm', return_value=True), \
+             patch.object(cli_commands.bridge, 'create_progress',
+                          return_value=MagicMock(__enter__=lambda s: s,
+                                               __exit__=lambda s, *a: None,
+                                               update=lambda *a, **k: None,
+                                               complete=lambda *a, **k: None)), \
+             patch('os.makedirs'), patch('os.path.exists', return_value=False):
+            dbschema_cmd(db_type='foo', name='schema', path=str(tmp_path))

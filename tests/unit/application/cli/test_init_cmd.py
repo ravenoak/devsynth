@@ -3,6 +3,7 @@ from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.application.cli.cli_commands import init_cmd
 from devsynth.interface.cli import CLIUXBridge
 import pytest
+from unittest.mock import patch
 
 
 def _run_init(tmp_path, monkeypatch, *, use_pyproject=False):
@@ -56,6 +57,15 @@ ReqID: N/A"""
     _run_init(tmp_path, monkeypatch)
     printed = _run_init(tmp_path, monkeypatch)
     assert any('Project already initialized' in msg for msg in printed)
+
+
+def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
+    """--wizard flag should run the SetupWizard."""
+
+    with patch('devsynth.application.cli.setup_wizard.SetupWizard') as wiz:
+        init_cmd(wizard=True)
+        wiz.assert_called_once()
+        wiz.return_value.run.assert_called_once()
 
 
 def test_cli_help_lists_renamed_commands_succeeds(capsys, monkeypatch):

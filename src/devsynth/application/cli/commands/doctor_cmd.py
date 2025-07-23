@@ -31,7 +31,9 @@ def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None)
     """
     ux_bridge = bridge if bridge is not None else globals()["bridge"]
     try:
+        from devsynth.application.cli.cli_commands import _check_services
         config = load_config()
+        _check_services(ux_bridge)
         if _find_project_config(Path.cwd()) is None:
             ux_bridge.print(
                 "[yellow]No project configuration found. Run 'devsynth init' to create it.[/yellow]"
