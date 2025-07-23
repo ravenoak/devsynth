@@ -7,7 +7,7 @@ from devsynth.fallback import retry_with_exponential_backoff
 def test_should_retry_prevents_retry():
     """Retry decorator should not retry when ``should_retry`` returns False.
 
-    ReqID: N/A"""
+    ReqID: FR-89"""
     mock_func = Mock(side_effect=ValueError("boom"))
     mock_func.__name__ = "mock_func"
 
@@ -22,7 +22,9 @@ def test_should_retry_prevents_retry():
 
 
 def test_should_retry_allows_retry_until_success():
-    """Retry decorator retries when ``should_retry`` returns True."""
+    """Retry decorator retries when ``should_retry`` returns True.
+
+    ReqID: FR-89"""
     mock_func = Mock(side_effect=[ValueError("err"), ValueError("err"), "ok"])
     mock_func.__name__ = "mock_func"
 

@@ -354,7 +354,7 @@ def test_openai_provider_complete_error_raises_error(mock_post):
 def test_openai_provider_complete_retry_has_expected(mock_post):
     """Test retry mechanism in the complete method of OpenAIProvider.
 
-    ReqID: N/A"""
+    ReqID: FR-89"""
     with patch(
         "devsynth.adapters.provider_system.retry_with_exponential_backoff"
     ) as mock_retry:

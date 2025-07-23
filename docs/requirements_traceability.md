@@ -94,8 +94,10 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-85 | Offline fallback provider for LLM operations | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#offline-fallback-modes) | src/devsynth/application/llm/offline_provider.py | tests/unit/application/llm/test_offline_provider.py | Implemented |
 | FR-86 | Guided setup wizard accessible via WebUI | [DevSynth Technical Specification](specifications/devsynth_specification_mvp_updated.md#interactive-init-workflow) | src/devsynth/interface/webui_setup.py, src/devsynth/application/cli/setup_wizard.py | tests/unit/interface/test_webui_setup.py, tests/unit/application/cli/test_setup_wizard.py | Implemented |
 | FR-87 | Core values conflict detection | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/core/values.py | tests/unit/core/test_core_values.py | Implemented |
+| FR-88 | Methodology adapter system for customizing development workflows | [Methodology Integration Framework](technical_reference/methodology_integration_framework.md) | src/devsynth/methodology/adhoc.py, src/devsynth/methodology/sprint.py | tests/unit/methodology/test_adhoc_adapter.py, tests/unit/methodology/test_sprint_adapter.py | Implemented |
+| FR-89 | Conditional retry logic for provider API calls | [Retry Mechanism with Exponential Backoff](adapters/providers/retry_mechanism.md) | src/devsynth/fallback.py, src/devsynth/adapters/provider_system.py, src/devsynth/application/llm/openai_provider.py, src/devsynth/application/llm/lmstudio_provider.py | tests/unit/fallback/test_retry_conditions.py, tests/unit/adapters/test_provider_system.py | Implemented |
 
-_Last updated: July 19, 2025
+_Last updated: July 23, 2025
 ## Implementation Status
 
 All documented requirements are implemented or planned as noted above.
