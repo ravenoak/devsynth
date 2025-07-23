@@ -3,7 +3,7 @@ import os
 import pytest
 from pytest_bdd import scenario
 from .steps.test_retry_steps import *
-feature_file = os.path.join(os.path.dirname(__file__), 'features',
+feature_file = os.path.join(os.path.dirname(__file__), 'features', 'general',
     'retry_mechanism.feature')
 
 

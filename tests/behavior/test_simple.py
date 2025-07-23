@@ -7,7 +7,7 @@ import pytest
 from pytest_bdd import scenarios, given, when, then
 
 # Get the absolute path to the feature file
-feature_file = os.path.join(os.path.dirname(__file__), "features", "edrr_cycle.feature")
+feature_file = os.path.join(os.path.dirname(__file__), "features", "general", "edrr_cycle.feature")
 
 # Load the scenarios from the feature file
 scenarios(feature_file)
