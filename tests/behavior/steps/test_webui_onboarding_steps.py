@@ -57,6 +57,7 @@ def webui_context(monkeypatch):
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
+    st.error = MagicMock()
 
     class _CompV1:
         @staticmethod
@@ -96,6 +97,9 @@ def webui_context(monkeypatch):
     monkeypatch.setattr(webui.WebUI, "_requirements_wizard", lambda self: None)
     monkeypatch.setattr(webui.WebUI, "_gather_wizard", lambda self: None)
     monkeypatch.setattr(Path, "exists", lambda _self: True)
+    monkeypatch.setattr(
+        webui, "SetupWizard", lambda *_a, **_k: MagicMock(run=MagicMock())
+    )
     ctx = {
         "st": st,
         "cli": cli_stub,
