@@ -123,10 +123,21 @@ class LMStudioProvider(BaseLLMProvider):
             self.model = "local_model"
             logger.info("Using default model: local_model")
 
+    def _should_retry(self, exc: Exception) -> bool:
+        """Return ``True`` if the exception should trigger a retry."""
+        status = getattr(exc, "status_code", None)
+        if status is not None and 400 <= int(status) < 500 and int(status) != 429:
+            return False
+        if isinstance(exc, LMStudioModelError):
+            return False
+        return True
+
     def _execute_with_resilience(self, func, *args, **kwargs):
         """Execute a function with retry and circuit breaker protection."""
 
-        @retry_with_exponential_backoff(max_retries=self.max_retries)
+        @retry_with_exponential_backoff(
+            max_retries=self.max_retries, should_retry=self._should_retry
+        )
         def _wrapped():
             return self.circuit_breaker.call(func, *args, **kwargs)
 

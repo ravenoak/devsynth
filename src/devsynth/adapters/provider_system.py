@@ -12,7 +12,7 @@ import os
 import time
 from enum import Enum
 from functools import lru_cache, wraps
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import httpx
 import requests
@@ -231,7 +231,12 @@ class BaseProvider:
         )
         self.retry_config = config
 
-    def get_retry_decorator(self, retryable_exceptions=(Exception,)):
+    def get_retry_decorator(
+        self,
+        retryable_exceptions: Tuple[Exception, ...] = (Exception,),
+        *,
+        should_retry: Optional[Callable[[Exception], bool]] = None,
+    ):
         """
         Get a retry decorator configured with the provider's retry settings.
 
@@ -248,6 +253,7 @@ class BaseProvider:
             max_delay=self.retry_config["max_delay"],
             jitter=self.retry_config["jitter"],
             retryable_exceptions=retryable_exceptions,
+            should_retry=should_retry,
         )
 
     def complete(
@@ -355,6 +361,15 @@ class OpenAIProvider(BaseProvider):
         if retry_config is not None:
             self.retry_config = retry_config
 
+    def _should_retry(self, exc: Exception) -> bool:
+        """Return ``True`` if the exception should trigger a retry."""
+        status = getattr(exc.response, "status_code", None)
+        if status is None:
+            status = getattr(exc, "status_code", None)
+        if status is not None and 400 <= int(status) < 500 and int(status) != 429:
+            return False
+        return True
+
     def _get_retry_config(self):
         """Get the retry configuration for OpenAI API calls."""
         return {
@@ -453,6 +468,7 @@ class OpenAIProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
         except requests.exceptions.RequestException as e:
@@ -507,6 +523,7 @@ class OpenAIProvider(BaseProvider):
                     exponential_base=retry_config["exponential_base"],
                     max_delay=retry_config["max_delay"],
                     jitter=retry_config["jitter"],
+                    should_retry=self._should_retry,
                     retryable_exceptions=(httpx.HTTPError,),
                 )
 
@@ -643,6 +660,7 @@ class OpenAIProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
         except requests.exceptions.RequestException as e:
@@ -859,6 +877,7 @@ class LMStudioProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
         except requests.exceptions.RequestException as e:
@@ -1048,6 +1067,7 @@ class LMStudioProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
         except requests.exceptions.RequestException as e:
