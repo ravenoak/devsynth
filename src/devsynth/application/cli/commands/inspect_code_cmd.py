@@ -17,10 +17,14 @@ from devsynth.application.code_analysis.project_state_analyzer import (
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-bridge: UXBridge = CLIUXBridge()
+cli_bridge: UXBridge = CLIUXBridge()
 
 
-def inspect_code_cmd(path: Optional[str] = None) -> None:
+def inspect_code_cmd(
+    path: Optional[str] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
+) -> None:
     """Inspect a codebase to understand its architecture and quality.
 
     Example:
@@ -28,7 +32,9 @@ def inspect_code_cmd(path: Optional[str] = None) -> None:
 
     Args:
         path: Path to the codebase to inspect (default: current directory)
+        bridge: Optional UXBridge for user feedback
     """
+    bridge = bridge or cli_bridge
     console = Console()
 
     try:

@@ -13,3 +13,18 @@ Feature: WebUI Navigation and Prompts
     When I navigate to "Onboarding"
     And I submit the onboarding form
     Then the init command should be executed
+
+  Scenario: Navigate to Analysis page
+    Given the WebUI is initialized
+    When I navigate to "Analysis"
+    Then the "Code Analysis" header is shown
+
+  Scenario: Navigate to Synthesis page
+    Given the WebUI is initialized
+    When I navigate to "Synthesis"
+    Then the "Synthesis Execution" header is shown
+
+  Scenario: Navigate to Config page
+    Given the WebUI is initialized
+    When I navigate to "Config"
+    Then the "Configuration Editing" header is shown
