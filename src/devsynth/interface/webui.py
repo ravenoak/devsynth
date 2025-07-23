@@ -54,6 +54,8 @@ def _cli(name: str):
     """Return a CLI command by name if available."""
 
     return getattr(_cli_mod, name, None) if _cli_mod else None
+
+
 try:  # pragma: no cover - optional dependency handling
     from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 except Exception:  # pragma: no cover - optional dependency
@@ -916,10 +918,25 @@ class WebUI(UXBridge):
 
     def _gather_wizard(self) -> None:
         """Run the requirements gathering workflow via :mod:`core.workflows`."""
-        if st.button("Start Requirements Plan Wizard", key="g_start"):
-            from devsynth.core.workflows import gather_requirements
+        if st.button(
+            "Start Requirements Plan Wizard",
+            key="Start Requirements Plan Wizard",
+        ):
+            try:
+                from devsynth.core.workflows import gather_requirements
+            except Exception as exc:  # pragma: no cover - defensive
+                self.display_result(
+                    f"[red]ERROR importing gather_requirements: {exc}[/red]"
+                )
+                return
 
-            gather_requirements(self)
+            try:
+                with st.spinner("Collecting requirements ..."):
+                    gather_requirements(self)
+            except Exception as exc:  # pragma: no cover - defensive
+                self.display_result(
+                    f"[red]ERROR running gather_requirements: {exc}[/red]"
+                )
 
     def analysis_page(self) -> None:
         """Render the code analysis page."""
