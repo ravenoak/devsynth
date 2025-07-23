@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Optional, Sequence, Dict, Any
 
 from .ux_bridge import UXBridge, ProgressIndicator, sanitize_output
+from .shared_bridge import SharedBridgeMixin
 from .output_formatter import OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
 
@@ -21,7 +22,13 @@ class WebUIProgressIndicator(ProgressIndicator):
         self._subtasks: Dict[str, Dict[str, Any]] = {}
         self._update_times = []
 
-    def update(self, *, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+    def update(
+        self,
+        *,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         """Update the progress indicator.
 
         Args:
@@ -91,11 +98,13 @@ class WebUIProgressIndicator(ProgressIndicator):
             "description": desc,
             "total": total,
             "current": 0,
-            "completed": False
+            "completed": False,
         }
         return task_id
 
-    def update_subtask(self, task_id: str, advance: float = 1, description: Optional[str] = None) -> None:
+    def update_subtask(
+        self, task_id: str, advance: float = 1, description: Optional[str] = None
+    ) -> None:
         """Update a subtask's progress.
 
         Args:
@@ -134,7 +143,13 @@ class WebUIProgressIndicator(ProgressIndicator):
         self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
         self._subtasks[task_id]["completed"] = True
 
-    def add_nested_subtask(self, parent_id: str, description: str, total: int = 100, status: str = "Starting...") -> str:
+    def add_nested_subtask(
+        self,
+        parent_id: str,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
         """Add a nested subtask to a subtask.
 
         Args:
@@ -161,17 +176,26 @@ class WebUIProgressIndicator(ProgressIndicator):
         if "nested_subtasks" not in self._subtasks[parent_id]:
             self._subtasks[parent_id]["nested_subtasks"] = {}
 
-        task_id = f"nested_{parent_id}_{len(self._subtasks[parent_id]['nested_subtasks'])}"
+        task_id = (
+            f"nested_{parent_id}_{len(self._subtasks[parent_id]['nested_subtasks'])}"
+        )
         self._subtasks[parent_id]["nested_subtasks"][task_id] = {
             "description": desc,
             "total": total,
             "current": 0,
             "status": status,
-            "completed": False
+            "completed": False,
         }
         return task_id
 
-    def update_nested_subtask(self, parent_id: str, task_id: str, advance: float = 1, description: Optional[str] = None, status: Optional[str] = None) -> None:
+    def update_nested_subtask(
+        self,
+        parent_id: str,
+        task_id: str,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         """Update a nested subtask's progress.
 
         Args:
@@ -181,14 +205,20 @@ class WebUIProgressIndicator(ProgressIndicator):
             description: New description for the nested subtask
             status: Status message to display
         """
-        if parent_id not in self._subtasks or "nested_subtasks" not in self._subtasks[parent_id] or task_id not in self._subtasks[parent_id]["nested_subtasks"]:
+        if (
+            parent_id not in self._subtasks
+            or "nested_subtasks" not in self._subtasks[parent_id]
+            or task_id not in self._subtasks[parent_id]["nested_subtasks"]
+        ):
             return
 
         # Handle description safely, converting to string if needed
         if description is not None:
             try:
                 desc_str = str(description)
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["description"] = sanitize_output(desc_str)
+                self._subtasks[parent_id]["nested_subtasks"][task_id]["description"] = (
+                    sanitize_output(desc_str)
+                )
             except Exception:
                 # Fallback for objects that can't be safely converted to string
                 pass
@@ -197,26 +227,42 @@ class WebUIProgressIndicator(ProgressIndicator):
         if status is not None:
             try:
                 status_str = str(status)
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = sanitize_output(status_str)
+                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = (
+                    sanitize_output(status_str)
+                )
             except Exception:
                 # Fallback for objects that can't be safely converted to string
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "In progress..."
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "In progress..."
         else:
             # If no status is provided, use a default based on progress
             current = self._subtasks[parent_id]["nested_subtasks"][task_id]["current"]
             total = self._subtasks[parent_id]["nested_subtasks"][task_id]["total"]
             if current >= total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Complete"
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "Complete"
             elif current >= 0.99 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Finalizing..."
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "Finalizing..."
             elif current >= 0.75 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Almost done..."
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "Almost done..."
             elif current >= 0.5 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Halfway there..."
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "Halfway there..."
             elif current >= 0.25 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Processing..."
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "Processing..."
             else:
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Starting..."
+                self._subtasks[parent_id]["nested_subtasks"][task_id][
+                    "status"
+                ] = "Starting..."
 
         self._subtasks[parent_id]["nested_subtasks"][task_id]["current"] += advance
 
@@ -227,15 +273,21 @@ class WebUIProgressIndicator(ProgressIndicator):
             parent_id: ID of the parent subtask
             task_id: ID of the nested subtask to complete
         """
-        if parent_id not in self._subtasks or "nested_subtasks" not in self._subtasks[parent_id] or task_id not in self._subtasks[parent_id]["nested_subtasks"]:
+        if (
+            parent_id not in self._subtasks
+            or "nested_subtasks" not in self._subtasks[parent_id]
+            or task_id not in self._subtasks[parent_id]["nested_subtasks"]
+        ):
             return
 
-        self._subtasks[parent_id]["nested_subtasks"][task_id]["current"] = self._subtasks[parent_id]["nested_subtasks"][task_id]["total"]
+        self._subtasks[parent_id]["nested_subtasks"][task_id]["current"] = (
+            self._subtasks[parent_id]["nested_subtasks"][task_id]["total"]
+        )
         self._subtasks[parent_id]["nested_subtasks"][task_id]["completed"] = True
         self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Complete"
 
 
-class WebUIBridge(UXBridge):
+class WebUIBridge(SharedBridgeMixin, UXBridge):
     """Bridge for WebUI interactions implementing the :class:`UXBridge` API.
 
     This implementation provides a consistent interface with CLIUXBridge
@@ -244,7 +296,7 @@ class WebUIBridge(UXBridge):
 
     def __init__(self) -> None:
         self.messages: List[str] = []
-        self.formatter = OutputFormatter()
+        super().__init__()
 
     def ask_question(
         self,
@@ -291,7 +343,9 @@ class WebUIBridge(UXBridge):
         logger.debug(f"WebUI user confirmed: {answer}")
         return answer
 
-    def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str = None
+    ) -> None:
         """Display a message to the user.
 
         This implementation formats the message using the OutputFormatter
@@ -312,9 +366,10 @@ class WebUIBridge(UXBridge):
         else:
             logger.debug(f"WebUI displaying message: {message}")
 
-        formatted = self.formatter.format_message(message, message_type=message_type, highlight=highlight)
-        sanitized = sanitize_output(str(formatted))
-        self.messages.append(sanitized)
+        formatted = self._format_for_output(
+            message, highlight=highlight, message_type=message_type
+        )
+        self.messages.append(formatted)
 
     def create_progress(
         self, description: str, *, total: int = 100

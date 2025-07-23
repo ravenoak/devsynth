@@ -11,7 +11,8 @@ from unittest.mock import patch, MagicMock, ANY
 from io import StringIO
 
 # Import the CLI modules
-from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
+from typer.testing import CliRunner
+from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.cli_commands import (
     init_cmd,
     run_pipeline_cmd,
@@ -57,411 +58,36 @@ def valid_devsynth_project(tmp_project_dir):
 
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(command, monkeypatch, mock_workflow_manager, command_context):
-    """
-    Run a DevSynth CLI command.
-    """
-    # Split the command into arguments and remove the "devsynth" part if present
+    """Execute a CLI command using Typer's CliRunner."""
     args = command.split()
     if args[0] == "devsynth":
-        args = args[1:]  # Remove the "devsynth" part
+        args = args[1:]
 
-    # Store the command in the context
     command_context["command"] = command
 
-    # Create a StringIO object to capture stdout
-    captured_output = StringIO()
+    runner = CliRunner()
 
-    # Configure logging to use the captured output
-    logging.basicConfig(stream=captured_output, level=logging.INFO)
+    monkeypatch.setattr(
+        "devsynth.interface.cli.CLIUXBridge.ask_question",
+        lambda self, _msg, **kw: kw.get("default", ""),
+    )
+    monkeypatch.setattr(
+        "devsynth.interface.cli.CLIUXBridge.confirm_choice",
+        lambda self, _msg, **kw: kw.get("default", True),
+    )
+    monkeypatch.setattr(
+        "devsynth.application.cli.setup_wizard.SetupWizard.run",
+        lambda self: None,
+        raising=False,
+    )
 
-    # Directly call the appropriate command function based on the first argument
-    with patch("sys.stdout", new=captured_output):
-        try:
-            if not args:
-                # No arguments, show help
-                show_help()
-            elif args[0] == "help":
-                # Help command
-                show_help()
-            elif args[0] == "init":
-                # Parse the arguments
-                path = "."  # Default path
-                name = None
-                template = None
-                project_root = None
-                language = None
-                constraints = None
-                goals = None
-                wizard_flag = False
+    with patch("uvicorn.run") as mock_run:
+        result = runner.invoke(build_app(), args)
+        if "serve" in args:
+            command_context["uvicorn_call"] = mock_run.call_args
 
-                # Parse all arguments
-                i = 1
-                while i < len(args):
-                    if args[i] == "--path" and i + 1 < len(args):
-                        path = args[i + 1]
-                        i += 2
-                    elif args[i] == "--name" and i + 1 < len(args):
-                        name = args[i + 1]
-                        i += 2
-                    elif args[i] == "--template" and i + 1 < len(args):
-                        template = args[i + 1]
-                        i += 2
-                    elif args[i] == "--project-root" and i + 1 < len(args):
-                        project_root = args[i + 1]
-                        i += 2
-                    elif args[i] == "--language" and i + 1 < len(args):
-                        language = args[i + 1]
-                        i += 2
-                    elif args[i] == "--constraints" and i + 1 < len(args):
-                        constraints = args[i + 1]
-                        i += 2
-                    elif args[i] == "--goals" and i + 1 < len(args):
-                        goals = args[i + 1]
-                        i += 2
-                    elif args[i] == "--wizard":
-                        wizard_flag = True
-                        i += 1
-                    else:
-                        i += 1
-
-                # Call the init command
-                # Note: The actual init_cmd function only takes wizard and bridge parameters
-                # We need to mock the bridge to handle the interactive prompts
-                mock_bridge = MagicMock()
-                mock_bridge.ask_question.side_effect = lambda question, **kwargs: {
-                    "Project root directory?": path,
-                    "Primary language?": language or "python",
-                    "Project goals?": goals or "",
-                    "Select memory backend": "memory",
-                }.get(question, kwargs.get("default", ""))
-                mock_bridge.confirm_choice.return_value = True
-
-                if wizard_flag:
-                    with patch(
-                        "devsynth.application.cli.setup_wizard.SetupWizard"
-                    ) as MockWiz:
-                        MockWiz.return_value.run.return_value = None
-                        init_cmd(wizard=True, bridge=mock_bridge)
-                else:
-                    with patch("devsynth.interface.cli.CLIUXBridge", return_value=mock_bridge):
-                        init_cmd(wizard=False, bridge=mock_bridge)
-
-                # For testing purposes, we need to manually set the call args on the mock
-                # This simulates what would happen if the init_cmd function passed all parameters
-                mock_workflow_manager.execute_command.reset_mock()
-
-                # Prepare the arguments for the mock
-                init_args = {"path": path}
-                if name:
-                    init_args["name"] = name
-                if template:
-                    init_args["template"] = template
-                if project_root:
-                    init_args["project_root"] = project_root
-                if language:
-                    init_args["language"] = language
-                if constraints:
-                    init_args["constraints"] = constraints
-                if goals:
-                    init_args["goals"] = goals
-                # Add structure parameter for layout tests
-                init_args["structure"] = "single_package"
-                # Add default language for tests that expect it
-                if "language" not in init_args:
-                    init_args["language"] = "python"
-                if wizard_flag:
-                    init_args = {"wizard": True}
-
-                # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("init", init_args)
-
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "init", init_args
-                )
-            elif args[0] == "inspect":
-                # Parse the arguments
-                input_file = None
-                interactive = False
-
-                # Parse all arguments
-                i = 1
-                while i < len(args):
-                    if args[i] == "--input" and i + 1 < len(args):
-                        input_file = args[i + 1]
-                        i += 2
-                    elif args[i] == "--interactive":
-                        interactive = True
-                        i += 1
-                    else:
-                        i += 1
-
-                # Call the inspect command
-                from devsynth.application.cli.cli_commands import inspect_cmd
-
-                inspect_cmd(input_file, interactive)
-
-                # For testing purposes, we need to manually set the call args on the mock
-                mock_workflow_manager.execute_command.reset_mock()
-
-                # Prepare the arguments for the mock
-                analyze_args = {}
-                if input_file:
-                    analyze_args["input"] = input_file
-                if interactive:
-                    analyze_args["interactive"] = True
-
-                # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("inspect", analyze_args)
-
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "inspect", analyze_args
-                )
-            elif args[0] == "inspect":
-                # Parse the requirements file argument
-                req_file = "requirements.md"  # Default file
-                if len(args) > 2 and args[1] == "--requirements-file":
-                    req_file = args[2]
-                inspect_cmd(req_file)
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "inspect", {"requirements_file": req_file}
-                )
-            elif args[0] == "run-pipeline":
-                # Parse the spec file or target argument
-                target = None
-                if len(args) > 2 and args[1] in ["--spec-file", "--target"]:
-                    target = args[2]
-                run_pipeline_cmd(target)
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "run-pipeline", {"target": target}
-                )
-            elif args[0] == "refactor":
-                refactor_cmd()
-                mock_workflow_manager.execute_command.assert_called_with("refactor", {})
-            elif args[0] == "run-pipeline":
-                # Parse the target argument
-                target = None  # Default target
-                if len(args) > 2 and args[1] == "--target":
-                    target = args[2]
-                run_pipeline_cmd(target)
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "run-pipeline", {"target": target}
-                )
-            elif args[0] == "config":
-                # Parse the key and value arguments
-                key = None
-                value = None
-                for i in range(1, len(args) - 1, 2):
-                    if args[i] == "--key":
-                        key = args[i + 1]
-                    elif args[i] == "--value":
-                        value = args[i + 1]
-                config_cmd(key, value)
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "config", {"key": key, "value": value}
-                )
-            elif args[0] == "inspect-code":
-                # Parse the path argument
-                path = None
-                if len(args) > 2 and args[1] == "--path":
-                    path = args[2]
-
-                # Call the inspect-code command
-                inspect_code_cmd(path)
-
-                # For testing purposes, we need to manually set the call args on the mock
-                mock_workflow_manager.execute_command.reset_mock()
-
-                # Prepare the arguments for the mock
-                analyze_code_args = {"path": path}
-
-                # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("inspect-code", analyze_code_args)
-
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "inspect-code", analyze_code_args
-                )
-            elif args[0] == "edrr-cycle":
-                manifest = args[1] if len(args) > 1 else None
-                edrr_cycle_cmd(manifest)
-
-                mock_workflow_manager.execute_command.reset_mock()
-                mock_workflow_manager.execute_command(
-                    "edrr-cycle", {"manifest": manifest}
-                )
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "edrr-cycle", {"manifest": manifest}
-                )
-            elif args[0] == "inspect-config":
-                # Parse the arguments
-                path = None
-                update = False
-                prune = False
-
-                # Parse all arguments
-                i = 1
-                while i < len(args):
-                    if args[i] == "--path" and i + 1 < len(args):
-                        path = args[i + 1]
-                        i += 2
-                    elif args[i] == "--update":
-                        update = True
-                        i += 1
-                    elif args[i] == "--prune":
-                        prune = True
-                        i += 1
-                    else:
-                        i += 1
-
-                # Call the inspect-config command
-                inspect_config_cmd(path, update, prune)
-
-                # For testing purposes, we need to manually set the call args on the mock
-                mock_workflow_manager.execute_command.reset_mock()
-
-                # Prepare the arguments for the mock
-                inspect_config_args = {"path": path, "update": update, "prune": prune}
-
-                # Manually set the call args on the mock
-                mock_workflow_manager.execute_command(
-                    "inspect-config", inspect_config_args
-                )
-
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "inspect-config", inspect_config_args
-                )
-            elif args[0] == "alignment-metrics":
-                path = "."
-                metrics_file = ".devsynth/alignment_metrics.json"
-                output_file = None
-                i = 1
-                while i < len(args):
-                    if args[i] == "--path" and i + 1 < len(args):
-                        path = args[i + 1]
-                        i += 2
-                    elif args[i] == "--metrics-file" and i + 1 < len(args):
-                        metrics_file = args[i + 1]
-                        i += 2
-                    elif args[i] == "--output" and i + 1 < len(args):
-                        output_file = args[i + 1]
-                        i += 2
-                    else:
-                        i += 1
-
-                alignment_metrics_cmd(path, metrics_file, output_file)
-                mock_workflow_manager.execute_command.reset_mock()
-                metrics_args = {
-                    "path": path,
-                    "metrics_file": metrics_file,
-                    "output": output_file,
-                }
-                mock_workflow_manager.execute_command("alignment-metrics", metrics_args)
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "alignment-metrics", metrics_args
-                )
-            elif args[0] == "validate-manifest":
-                manifest = None
-                schema = None
-                i = 1
-                while i < len(args):
-                    if args[i] == "--config" and i + 1 < len(args):
-                        manifest = args[i + 1]
-                        i += 2
-                    elif args[i] == "--schema" and i + 1 < len(args):
-                        schema = args[i + 1]
-                        i += 2
-                    else:
-                        i += 1
-
-                validate_manifest_cmd(manifest, schema)
-                mock_workflow_manager.execute_command.reset_mock()
-                validate_args = {"manifest_path": manifest, "schema_path": schema}
-                mock_workflow_manager.execute_command(
-                    "validate-manifest", validate_args
-                )
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "validate-manifest", validate_args
-                )
-            elif args[0] == "validate-metadata":
-                directory = None
-                file = None
-                verbose = False
-                i = 1
-                while i < len(args):
-                    if args[i] == "--directory" and i + 1 < len(args):
-                        directory = args[i + 1]
-                        i += 2
-                    elif args[i] == "--file" and i + 1 < len(args):
-                        file = args[i + 1]
-                        i += 2
-                    elif args[i] == "--verbose":
-                        verbose = True
-                        i += 1
-                    else:
-                        i += 1
-
-                validate_metadata_cmd(directory, file, verbose)
-                mock_workflow_manager.execute_command.reset_mock()
-                metadata_args = {
-                    "directory": directory,
-                    "file": file,
-                    "verbose": verbose,
-                }
-                mock_workflow_manager.execute_command(
-                    "validate-metadata", metadata_args
-                )
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "validate-metadata", metadata_args
-                )
-            elif args[0] == "serve":
-                host = "0.0.0.0"
-                port = 8000
-                i = 1
-                while i < len(args):
-                    if args[i] == "--host" and i + 1 < len(args):
-                        host = args[i + 1]
-                        i += 2
-                    elif args[i] == "--port" and i + 1 < len(args):
-                        port = int(args[i + 1])
-                        i += 2
-                    else:
-                        i += 1
-
-                with patch("uvicorn.run") as mock_run:
-                    serve_cmd(host=host, port=port)
-                    command_context["uvicorn_call"] = mock_run.call_args
-            elif args[0] == "doctor":
-                config_dir = None
-                if len(args) > 2 and args[1] in ["--config-dir", "-c"]:
-                    config_dir = args[2]
-
-                from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
-
-                doctor_cmd(config_dir or "config")
-            else:
-                # Invalid command, show help
-                show_help()
-        except Exception as e:
-            # If there's an error, show help
-            captured_output.write(f"Error: {str(e)}\n")
-            show_help()
-
-    # Get the captured output
-    output = captured_output.getvalue()
-
-    # Clear handlers to avoid interference across steps
-    logging.getLogger().handlers.clear()
-
-    # Store the output in the context
-    command_context["output"] = output
-
-    return output
+    command_context["output"] = result.output
+    command_context["exit_code"] = result.exit_code
 
 
 @then("the system should display the help information")
