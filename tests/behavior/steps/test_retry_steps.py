@@ -1,4 +1,3 @@
-
 from pytest_bdd import given, when, then, parsers
 from unittest.mock import Mock, patch
 import pytest
@@ -7,15 +6,20 @@ import pytest
 # Update the import path if needed
 from devsynth.fallback import retry_with_exponential_backoff
 
+
 @pytest.fixture
 def context():
     return {}
 
+
 @given("a function that fails 2 times and then succeeds")
 def step_function_fails_then_succeeds(context):
-    mock = Mock(side_effect=[ValueError("Test error"), ValueError("Test error"), "success"])
+    mock = Mock(
+        side_effect=[ValueError("Test error"), ValueError("Test error"), "success"]
+    )
     mock.__name__ = "mock_function"
     context["mock_function"] = mock
+
 
 @given("a function that always fails")
 def step_function_always_fails(context):
@@ -23,22 +27,37 @@ def step_function_always_fails(context):
     mock.__name__ = "mock_function"
     context["mock_function"] = mock
 
+
 @given("a function that raises different types of exceptions")
 def step_function_raises_different_exceptions(context):
-    mock = Mock(side_effect=[
-        ValueError("Test error"),  # Should be retried
-        TypeError("Type error"),   # Should not be retried
-        ValueError("Test error"),  # Should be retried
-        "success"
-    ])
+    mock = Mock(
+        side_effect=[
+            ValueError("Test error"),  # Should be retried
+            TypeError("Type error"),  # Should not be retried
+            ValueError("Test error"),  # Should be retried
+            "success",
+        ]
+    )
     mock.__name__ = "mock_function"
     context["mock_function"] = mock
 
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d} and initial_delay={initial_delay:f}"))
-def step_apply_retry_decorator(context, max_retries, initial_delay):
-    context["decorated_function"] = retry_with_exponential_backoff(max_retries=max_retries, initial_delay=initial_delay)(context["mock_function"])
 
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and jitter={jitter}"))
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d} and initial_delay={initial_delay:f}"
+    )
+)
+def step_apply_retry_decorator(context, max_retries, initial_delay):
+    context["decorated_function"] = retry_with_exponential_backoff(
+        max_retries=max_retries, initial_delay=initial_delay
+    )(context["mock_function"])
+
+
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and jitter={jitter}"
+    )
+)
 def step_apply_retry_decorator_with_jitter(context, max_retries, initial_delay, jitter):
     # Convert string "True"/"False" to boolean
     jitter_bool = jitter.lower() == "true"
@@ -51,13 +70,18 @@ def step_apply_retry_decorator_with_jitter(context, max_retries, initial_delay, 
     context["sleep_mock"] = context["sleep_patch"].start()
 
     context["decorated_function"] = retry_with_exponential_backoff(
-        max_retries=max_retries, 
-        initial_delay=initial_delay, 
-        max_delay=10.0, 
-        jitter=jitter_bool
+        max_retries=max_retries,
+        initial_delay=initial_delay,
+        max_delay=10.0,
+        jitter=jitter_bool,
     )(context["mock_function"])
 
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and a callback function"))
+
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and a callback function"
+    )
+)
 def step_apply_retry_decorator_with_callback(context, max_retries, initial_delay):
     # Create a mock callback function
     context["callback_mock"] = Mock()
@@ -67,13 +91,20 @@ def step_apply_retry_decorator_with_callback(context, max_retries, initial_delay
     context["sleep_mock"] = context["sleep_patch"].start()
 
     context["decorated_function"] = retry_with_exponential_backoff(
-        max_retries=max_retries, 
-        initial_delay=initial_delay, 
-        on_retry=context["callback_mock"]
+        max_retries=max_retries,
+        initial_delay=initial_delay,
+        on_retry=context["callback_mock"],
     )(context["mock_function"])
 
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and retryable_exceptions={exceptions}"))
-def step_apply_retry_decorator_with_exceptions(context, max_retries, initial_delay, exceptions):
+
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and retryable_exceptions={exceptions}"
+    )
+)
+def step_apply_retry_decorator_with_exceptions(
+    context, max_retries, initial_delay, exceptions
+):
     # Parse the exceptions string to get the actual exception types
     # For now, we only support ValueError
     if "ValueError" in exceptions:
@@ -86,10 +117,11 @@ def step_apply_retry_decorator_with_exceptions(context, max_retries, initial_del
     context["sleep_mock"] = context["sleep_patch"].start()
 
     context["decorated_function"] = retry_with_exponential_backoff(
-        max_retries=max_retries, 
-        initial_delay=initial_delay, 
-        retryable_exceptions=retryable_exceptions
+        max_retries=max_retries,
+        initial_delay=initial_delay,
+        retryable_exceptions=retryable_exceptions,
     )(context["mock_function"])
+
 
 @when("I call the decorated function")
 def step_call_decorated_function(context):
@@ -103,24 +135,29 @@ def step_call_decorated_function(context):
     if "sleep_patch" in context:
         context["sleep_patch"].stop()
 
+
 @then(parsers.parse("the function should be called {call_count:d} times"))
 def step_check_call_count(context, call_count):
     assert context["mock_function"].call_count == call_count
+
 
 @then("the final result should be successful")
 def step_check_successful_result(context):
     assert context["exception"] is None
     assert context["result"] == "success"
 
+
 @then("the function should raise an exception")
 def step_check_exception(context):
     assert context["exception"] is not None
     assert isinstance(context["exception"], ValueError)
 
+
 @then("the function should raise a TypeError")
 def step_check_type_error(context):
     assert context["exception"] is not None
     assert isinstance(context["exception"], TypeError)
+
 
 @then("the delays between retries should follow exponential backoff with jitter")
 def step_check_exponential_backoff_with_jitter(context):
@@ -129,13 +166,14 @@ def step_check_exponential_backoff_with_jitter(context):
     # Check that the delays are different (due to jitter)
     assert len(sleep_times) == 3  # max_retries
 
-    # The implementation uses a different formula than we expected
-    # It uses delay * exponential_base * (0.5 + random.random())
-    # So for initial_delay=1.0 and exponential_base=2.0, the ranges are different
-    # Due to randomness, we need to be more flexible with our assertions
-    assert 1.0 <= sleep_times[0] <= 3.0  # initial_delay * exponential_base * (0.5 + random.random())
-    assert 1.5 <= sleep_times[1] <= 7.0  # previous_delay * exponential_base * (0.5 + random.random())
-    assert 1.5 <= sleep_times[2] <= 12.0  # previous_delay * exponential_base * (0.5 + random.random())
+    # The implementation multiplies the previous delay by ``exponential_base``
+    # and ``0.5 + random.random()``. We simply verify that delays stay within the
+    # allowed range and are not constant.
+    assert 1.0 <= sleep_times[0] <= 3.0
+    assert 1.0 <= sleep_times[1] <= 9.0
+    assert 1.0 <= sleep_times[2] <= 12.0
+    assert len(set(sleep_times)) > 1  # jitter introduces variation
+
 
 @then("the delays between retries should follow deterministic exponential backoff")
 def step_check_deterministic_exponential_backoff(context):
@@ -147,14 +185,22 @@ def step_check_deterministic_exponential_backoff(context):
     assert sleep_times[1] == 4.0  # previous_delay * exponential_base
     assert sleep_times[2] == 8.0  # previous_delay * exponential_base
 
+
 @then("the callback function should be called 3 times")
 def step_check_callback_called(context):
     assert context["callback_mock"].call_count == 3
+
 
 @then("the callback function should receive the correct arguments")
 def step_check_callback_arguments(context):
     # Check that the callback was called with the correct arguments
     # The callback should be called with (exception, retry_number, delay)
-    assert isinstance(context["callback_mock"].call_args_list[0][0][0], ValueError)  # First arg is exception
-    assert context["callback_mock"].call_args_list[0][0][1] == 1  # Second arg is retry number
-    assert isinstance(context["callback_mock"].call_args_list[0][0][2], float)  # Third arg is delay
+    assert isinstance(
+        context["callback_mock"].call_args_list[0][0][0], ValueError
+    )  # First arg is exception
+    assert (
+        context["callback_mock"].call_args_list[0][0][1] == 1
+    )  # Second arg is retry number
+    assert isinstance(
+        context["callback_mock"].call_args_list[0][0][2], float
+    )  # Third arg is delay
