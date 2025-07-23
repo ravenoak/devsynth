@@ -401,8 +401,7 @@ tracked in upcoming sprint reports.
 
 ### Test Failure Summary
 
-The latest run shows **261 failing tests** out of over 1900 total. The bulk of
-failures stem from the WebUI requirements wizard and related onboarding pages
+The latest run shows **106 failing tests** and **462 errors** out of 997 total. Many failures stem from missing step modules and WebUI wizard issues
 (see issue 102). Several BDD scenarios for the EDRR coordinator also fail due
 to missing step definitions (see [issue 104](../../issues/104.md)). Refer to the
 [Feature Status Matrix](../implementation/feature_status_matrix.md) for a list
