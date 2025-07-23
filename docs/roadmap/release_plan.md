@@ -76,8 +76,7 @@ Execution of this release plan is **in progress** with milestones tracked in
 
 ### Current Test Summary
 
-Recent CI reports show **261 failing tests** out of over **1900** total, meaning
-roughly **1600+** tests currently pass. Most failures originate from the WebUI
+Recent CI reports show **106 failing tests** and **462 errors** out of **997** total, with **347** passing and **82** skipped. Most failures originate from the WebUI
 requirements wizard and the Kuzu-based memory integration. See the
 [development status](development_status.md#test-failure-summary) document for
 details.
