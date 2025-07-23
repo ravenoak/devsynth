@@ -346,7 +346,7 @@ API keys use their standard environment variable names:
 
 ### Memory Configuration
 
-DevSynth supports multiple memory store types for storing and retrieving memory items. ChromaDB can be enabled later, but only the embedded backend is currently supported. Kuzu is the recommended persistent backend.
+DevSynth supports multiple memory store types for storing and retrieving memory items. Available backends include **ChromaDB**, **Kuzu**, **FAISS**, **LMDB**, and in-memory or file-based stores. The embedded ChromaDB backend ships with the retrieval extras and Kuzu remains the recommended persistent option.
 
 #### In-Memory Store
 

@@ -120,7 +120,7 @@ poetry install --extras retrieval --extras memory --extras llm --extras api --ex
 pip install 'devsynth[retrieval,memory,llm,api,webui]'
 ```
 
-These extras enable the Kuzu, FAISS, and LMDB memory stores, optional LLM providers, the FastAPI server with Prometheus metrics, and the Streamlit WebUI. ChromaDB can be enabled later, but only the embedded backend is currently supported.
+These extras enable optional vector stores such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with Prometheus metrics, and the Streamlit WebUI. ChromaDB runs in embedded mode by default.
 
 ### Offline Mode
 
@@ -206,7 +206,7 @@ Ingestion and WSDE integration tests are skipped unless you set
 
 Use pip only for installing from PyPI, not for local development.
 
-Some tests and features rely on optional backends like **Kuzu**, **FAISS**, and **LMDB**. Support for **ChromaDB** can be enabled later, but only the embedded backend is currently supported. Install these packages if you plan to use them:
+Some tests and features rely on optional vector store backends such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:
 
 ```bash
 poetry install --extras retrieval
