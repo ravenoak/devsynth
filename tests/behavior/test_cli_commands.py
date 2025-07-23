@@ -9,13 +9,13 @@ from .steps.edrr_cycle_steps import *
 from .steps.delegate_task_steps import *
 from .steps.doctor_command_steps import *
 cli_available = pytest.mark.requires_resource('cli')
-FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'features',
+FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'features', 'general',
     'cli_commands.feature')
-EDRR_FEATURE = os.path.join(os.path.dirname(__file__), 'features',
+EDRR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'general',
     'edrr_cycle.feature')
-DELEGATE_FEATURE = os.path.join(os.path.dirname(__file__), 'features',
+DELEGATE_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'general',
     'delegate_task.feature')
-DOCTOR_FEATURE = os.path.join(os.path.dirname(__file__), 'features',
+DOCTOR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'general',
     'doctor_command.feature')
 
 
