@@ -2,7 +2,9 @@
 from textwrap import dedent
 from types import SimpleNamespace
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+from types import ModuleType
+import sys
 import importlib.util
 import pytest
 spec = importlib.util.spec_from_file_location('doctor_cmd', Path(__file__).
@@ -248,3 +250,21 @@ ReqID: N/A"""
     with patch('devsynth.application.cli.cli_commands.doctor_cmd') as mock_doc:
         check_cmd('config')
         mock_doc.assert_called_once_with('config')
+
+
+def test_doctor_cmd_invokes_service_check(monkeypatch):
+    """doctor_cmd should invoke _check_services."""
+
+    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
+    monkeypatch.setenv('OPENAI_API_KEY', '1')
+    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
+    cfg = SimpleNamespace()
+    cfg.exists = lambda: True
+    stub = ModuleType('devsynth.application.cli.cli_commands')
+    chk = MagicMock(return_value=True)
+    stub._check_services = chk
+    monkeypatch.setitem(sys.modules, 'devsynth.application.cli.cli_commands', stub)
+    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), \
+         patch.object(doctor_cmd.bridge, 'print'):
+        doctor_cmd.doctor_cmd('config')
+        chk.assert_called_once_with(doctor_cmd.bridge)
