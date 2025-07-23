@@ -384,6 +384,7 @@ def test_openai_provider_complete_retry_has_expected(mock_post):
             for call in mock_retry.call_args_list
             if call[1].get("retryable_exceptions")
             == (requests.exceptions.RequestException,)
+            and call[1].get("should_retry") is provider._should_retry
         ]
         assert len(retry_calls_with_correct_params) >= 1
 

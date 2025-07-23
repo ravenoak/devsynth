@@ -1,4 +1,3 @@
-
 """
 OpenAI Provider implementation for DevSynth.
 This provider connects to the OpenAI API for model inference.
@@ -21,13 +20,18 @@ from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+
 class OpenAIConnectionError(DevSynthError):
     """Exception raised when there's an issue connecting to OpenAI."""
+
     pass
+
 
 class OpenAIModelError(DevSynthError):
     """Exception raised when there's an issue with OpenAI models."""
+
     pass
+
 
 class OpenAIProvider(StreamingLLMProvider):
     """OpenAI LLM provider implementation."""
@@ -92,10 +96,19 @@ class OpenAIProvider(StreamingLLMProvider):
         self.client = OpenAI(**client_kwargs)
         self.async_client = AsyncOpenAI(**client_kwargs)
 
+    def _should_retry(self, exc: Exception) -> bool:
+        """Return ``True`` if the exception should trigger a retry."""
+        status = getattr(exc, "status_code", None)
+        if status is not None and 400 <= int(status) < 500 and int(status) != 429:
+            return False
+        return True
+
     def _execute_with_resilience(self, func, *args, **kwargs):
         """Execute a function with retry and circuit breaker protection."""
 
-        @retry_with_exponential_backoff(max_retries=self.max_retries)
+        @retry_with_exponential_backoff(
+            max_retries=self.max_retries, should_retry=self._should_retry
+        )
         def _wrapped():
             return self.circuit_breaker.call(func, *args, **kwargs)
 
@@ -143,7 +156,12 @@ class OpenAIProvider(StreamingLLMProvider):
             logger.error(error_msg)
             raise OpenAIConnectionError(error_msg)
 
-    def generate_with_context(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> str:
+    def generate_with_context(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        parameters: Dict[str, Any] = None,
+    ) -> str:
         """Generate text from a prompt with conversation context using OpenAI.
 
         Args:
@@ -189,7 +207,9 @@ class OpenAIProvider(StreamingLLMProvider):
             logger.error(error_msg)
             raise OpenAIConnectionError(error_msg)
 
-    async def generate_stream(self, prompt: str, parameters: Dict[str, Any] = None) -> AsyncGenerator[str, None]:
+    async def generate_stream(
+        self, prompt: str, parameters: Dict[str, Any] = None
+    ) -> AsyncGenerator[str, None]:
         """Generate text from a prompt using OpenAI with streaming.
 
         Args:
@@ -220,15 +240,18 @@ class OpenAIProvider(StreamingLLMProvider):
 
         # Define a function to create the stream with retry and circuit breaker protection
         async def create_stream_with_resilience():
-            @retry_with_exponential_backoff(max_retries=self.max_retries)
+            @retry_with_exponential_backoff(
+                max_retries=self.max_retries, should_retry=self._should_retry
+            )
             def _wrapped():
                 return self.circuit_breaker.call(
                     self.async_client.chat.completions.create,
                     model=self.model,
                     messages=messages,
                     stream=True,
-                    **params
+                    **params,
                 )
+
             return await _wrapped()
 
         # Make the API call with resilience
@@ -244,7 +267,12 @@ class OpenAIProvider(StreamingLLMProvider):
             logger.error(error_msg)
             raise OpenAIConnectionError(error_msg)
 
-    async def generate_with_context_stream(self, prompt: str, context: List[Dict[str, str]], parameters: Dict[str, Any] = None) -> AsyncGenerator[str, None]:
+    async def generate_with_context_stream(
+        self,
+        prompt: str,
+        context: List[Dict[str, str]],
+        parameters: Dict[str, Any] = None,
+    ) -> AsyncGenerator[str, None]:
         """Generate text from a prompt with conversation context using OpenAI with streaming.
 
         Args:
@@ -279,15 +307,18 @@ class OpenAIProvider(StreamingLLMProvider):
 
         # Define a function to create the stream with retry and circuit breaker protection
         async def create_stream_with_resilience():
-            @retry_with_exponential_backoff(max_retries=self.max_retries)
+            @retry_with_exponential_backoff(
+                max_retries=self.max_retries, should_retry=self._should_retry
+            )
             def _wrapped():
                 return self.circuit_breaker.call(
                     self.async_client.chat.completions.create,
                     model=self.model,
                     messages=messages,
                     stream=True,
-                    **params
+                    **params,
                 )
+
             return await _wrapped()
 
         # Make the API call with resilience

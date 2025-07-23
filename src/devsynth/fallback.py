@@ -32,6 +32,7 @@ def retry_with_exponential_backoff(
     max_delay: float = 60.0,
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
+    should_retry: Optional[Callable[[Exception], bool]] = None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -52,6 +53,9 @@ def retry_with_exponential_backoff(
         Tuple of exceptions that should trigger a retry (default: (Exception,))
     on_retry : Optional[Callable[[Exception, int, float], None]]
         Optional callback function to call on each retry attempt
+    should_retry : Optional[Callable[[Exception], bool]]
+        Optional function that determines if a caught exception should trigger
+        another retry. If it returns ``False`` the exception is re-raised.
 
     Returns
     -------
@@ -71,6 +75,14 @@ def retry_with_exponential_backoff(
                 try:
                     return func(*args, **kwargs)
                 except retryable_exceptions as e:
+                    if should_retry and not should_retry(e):
+                        logger.warning(
+                            f"Not retrying {func.__name__} due to should_retry policy",
+                            error=e,
+                            function=func.__name__,
+                        )
+                        raise
+
                     num_retries += 1
                     if num_retries > max_retries:
                         logger.error(
