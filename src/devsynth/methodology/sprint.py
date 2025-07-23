@@ -99,24 +99,17 @@ class SprintAdapter(BaseMethodologyAdapter):
         if self.sprint_start_time is None:
             return False
 
-        # Calculate the allocated end time for this phase
-        phase_allocation_pct = self.phase_allocations[current_phase] / 100
-        sprint_duration_seconds = (
-            self.sprint_duration * 7 * 24 * 60 * 60
-        )  # Convert weeks to seconds
-        phase_duration_seconds = sprint_duration_seconds * phase_allocation_pct
-
         phase_start_time = context.get("phase_start_time")
         if not phase_start_time:
             return False
 
-        expected_phase_end_time = phase_start_time + datetime.timedelta(
-            seconds=phase_duration_seconds
+        expected_phase_end_time = self._calculate_phase_end_time(
+            current_phase, phase_start_time
         )
 
         # Check if we've exceeded the time allocation
-        now = datetime.datetime.now()
-        if now > expected_phase_end_time:
+        if self._is_phase_time_exceeded(current_phase, phase_start_time):
+            now = datetime.datetime.now()
             # Check if the phase has completed required activities
             required_activities = self._get_required_activities(current_phase)
             completed_activities = results.get("completed_activities", [])
@@ -362,6 +355,27 @@ class SprintAdapter(BaseMethodologyAdapter):
         base_schema["properties"].update(sprint_schema["properties"])
 
         return base_schema
+
+    def _calculate_phase_duration_seconds(self, phase: Phase) -> float:
+        """Calculate the allotted duration for a phase in seconds."""
+        sprint_seconds = self.sprint_duration * 7 * 24 * 60 * 60
+        allocation_pct = self.phase_allocations[phase] / 100
+        return sprint_seconds * allocation_pct
+
+    def _calculate_phase_end_time(
+        self, phase: Phase, start_time: datetime.datetime
+    ) -> datetime.datetime:
+        """Return the expected end time for a phase."""
+        duration = self._calculate_phase_duration_seconds(phase)
+        return start_time + datetime.timedelta(seconds=duration)
+
+    def _is_phase_time_exceeded(
+        self, phase: Phase, start_time: datetime.datetime
+    ) -> bool:
+        """Check if a phase has exceeded its allocated time."""
+        return datetime.datetime.now() > self._calculate_phase_end_time(
+            phase, start_time
+        )
 
     def _get_required_activities(self, phase: Phase) -> List[str]:
         """Get required activities for a phase.
