@@ -15,6 +15,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, c
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
+from .metrics import inc_retry
 
 # Type variables for generic functions
 T = TypeVar("T")
@@ -33,6 +34,7 @@ def retry_with_exponential_backoff(
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
     should_retry: Optional[Callable[[Exception], bool]] = None,
+    track_metrics: bool = True,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -73,7 +75,10 @@ def retry_with_exponential_backoff(
             # Loop until max retries reached
             while True:
                 try:
-                    return func(*args, **kwargs)
+                    result = func(*args, **kwargs)
+                    if track_metrics and num_retries:
+                        inc_retry("success")
+                    return result
                 except retryable_exceptions as e:
                     if should_retry and not should_retry(e):
                         logger.warning(
@@ -91,6 +96,8 @@ def retry_with_exponential_backoff(
                             function=func.__name__,
                             max_retries=max_retries,
                         )
+                        if track_metrics:
+                            inc_retry("failure")
                         raise
 
                     # Calculate delay with jitter if enabled
@@ -111,6 +118,8 @@ def retry_with_exponential_backoff(
                         max_retries=max_retries,
                         delay=delay,
                     )
+                    if track_metrics:
+                        inc_retry("attempt")
 
                     # Call on_retry callback if provided
                     if on_retry:
