@@ -84,6 +84,9 @@ To execute the entire suite run:
 poetry run pytest
 ```
 
+Running `pytest` directly may fail because required plugins (for example
+`pytest-bdd`) are installed only in the Poetry virtual environment.
+
 ## Conditional Test Execution
 
 The test framework includes a mechanism for conditionally skipping tests based on resource availability. This is useful for tests that depend on external resources like LM Studio or other services that might not always be available.
@@ -176,6 +179,7 @@ export OPENAI_API_KEY=sk-your-key
 
 poetry run pytest
 ```
+Running plain `pytest` may fail because required plugins are installed only in the Poetry-managed environment.
 
 ### Environment Variables for Tests
 
@@ -244,6 +248,7 @@ To run all tests:
 ```bash
 poetry run pytest
 ```
+Invoking plain `pytest` outside of the Poetry environment may fail because some required plugins are installed only in that virtual environment.
 
 ### Environment Setup
 
