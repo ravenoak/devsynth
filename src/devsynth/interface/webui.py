@@ -964,6 +964,7 @@ class WebUI(UXBridge):
                                     cmd,
                                     "Failed to inspect code",
                                     path=path,
+                                    bridge=self,
                                 )
 
     def synthesis_page(self) -> None:

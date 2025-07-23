@@ -96,6 +96,7 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(
         sys.modules, "devsynth.application.cli.commands.inspect_code_cmd", analyze_stub
     )
+    cli_stub.inspect_code_cmd = analyze_stub.inspect_code_cmd
 
     doctor_stub = ModuleType("devsynth.application.cli.commands.doctor_cmd")
     doctor_stub.doctor_cmd = MagicMock()

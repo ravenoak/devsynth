@@ -74,6 +74,13 @@ def submit_alignment(webui_context):
     webui_context["ui"].run()
 
 
+@when("I submit the analysis form")
+def submit_analysis(webui_context):
+    webui_context["st"].sidebar.radio.return_value = "Analysis"
+    webui_context["st"].form_submit_button.return_value = True
+    webui_context["ui"].run()
+
+
 @then("the spec command should be executed")
 def check_spec(webui_context):
     assert webui_context["cli"].spec_cmd.called
@@ -107,3 +114,8 @@ def check_edrr_cycle(webui_context):
 @then("the align command should be executed")
 def check_align(webui_context):
     assert webui_context["cli"].align_cmd.called
+
+
+@then("the inspect_code command should be executed")
+def check_inspect_code(webui_context):
+    assert webui_context["cli"].inspect_code_cmd.called

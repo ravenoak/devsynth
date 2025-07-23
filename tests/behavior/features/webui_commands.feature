@@ -20,6 +20,11 @@ Feature: WebUI Command Execution
     And I submit the inspect form
     Then the inspect command should be executed
 
+  Scenario: Inspect code from the analysis page
+    When I navigate to "Analysis"
+    And I submit the analysis form
+    Then the inspect_code command should be executed
+
   Scenario: Generate tests from the synthesis page
     When I navigate to "Synthesis"
     And I submit the test form
