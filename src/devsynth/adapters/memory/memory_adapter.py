@@ -69,6 +69,9 @@ class MemorySystemAdapter:
         self.vector_store_enabled = self.config.get(
             "vector_store_enabled", settings.vector_store_enabled
         )
+        self.provider_type = self.config.get(
+            "provider_type", getattr(settings, "provider_type", None)
+        )
         self.chromadb_collection_name = self.config.get(
             "chromadb_collection_name", settings.chromadb_collection_name
         )
@@ -180,7 +183,10 @@ class MemorySystemAdapter:
                     else:
                         self.vector_store = None
         elif self.storage_type == "kuzu":
-            self.memory_store = KuzuMemoryStore(self.memory_path)
+            self.memory_store = KuzuMemoryStore(
+                self.memory_path,
+                provider_type=self.provider_type,
+            )
             self.context_manager = PersistentContextManager(
                 self.memory_path,
                 max_context_size=self.max_context_size,
