@@ -176,7 +176,9 @@ The repository includes runnable examples that walk through common workflows:
 
 ## Running Tests
 
-Run `poetry run pytest` to execute the test suite.
+Run `poetry run pytest` to execute the test suite. Invoking plain `pytest`
+outside of Poetry may fail because required plugins are installed only in the
+Poetry virtual environment.
 
 Before running the test suite manually, you **must** install DevSynth with its development extras:
 
@@ -198,7 +200,7 @@ poetry install --all-extras --all-groups
 
 Ingestion and WSDE integration tests are skipped unless you set
 `DEVSYNTH_RUN_INGEST_TESTS=1` or `DEVSYNTH_RUN_WSDE_TESTS=1` before running
-`pytest`.
+`poetry run pytest`.
 
 Use pip only for installing from PyPI, not for local development.
 

@@ -126,6 +126,8 @@ Ensure your setup is working correctly by running the tests:
 ```bash
 poetry run pytest
 ```
+Running plain `pytest` outside of Poetry may fail because required plugins are installed only in the Poetry-managed virtual environment.
+
 
 ### Configuration Version Locking
 
@@ -218,14 +220,17 @@ For more details, see the [Contributing Guide](contributing.md).
 ## Running Tests
 
 DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
-To run the entire test suite, ensure all optional features are installed:
+Always invoke the test runner with `poetry run pytest` so that plugins from the
+Poetry environment are available. To run the entire test suite, ensure all
+optional features are installed:
 
 ```bash
 poetry install --all-extras --all-groups
 ```
 
-Some ingestion and WSDE tests are skipped unless you set `DEVSYNTH_RUN_INGEST_TESTS=1`
-or `DEVSYNTH_RUN_WSDE_TESTS=1` when invoking `pytest`.
+Some ingestion and WSDE tests are skipped unless you set
+`DEVSYNTH_RUN_INGEST_TESTS=1` or `DEVSYNTH_RUN_WSDE_TESTS=1` when invoking
+`poetry run pytest`.
 
 ### Running Unit Tests
 
