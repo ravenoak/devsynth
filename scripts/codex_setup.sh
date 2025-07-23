@@ -23,7 +23,7 @@ poetry run python - <<'EOF'
 import sys
 import pkg_resources
 
-required = ["typer", "pytest"]
+required = ["typer", "pytest", "pytest-bdd"]
 missing = [pkg for pkg in required if pkg not in {d.key for d in pkg_resources.working_set}]
 if missing:
     sys.exit(f"Missing packages: {', '.join(missing)}")

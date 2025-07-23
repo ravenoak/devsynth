@@ -24,12 +24,20 @@ The script is executed **before** network access is disabled. If it fails, a
 file named `CODEX_ENVIRONMENT_SETUP_FAILED` will appear in the repository root.
 Fix the script and rerun it offline to finish provisioning:
 
-1. Review and update `scripts/codex_setup.sh` so it succeeds in your
-   environment. You may need to install packages manually or modify the script.
+1. Review and update `scripts/codex_setup.sh` so it installs all project
+   dependencies with `poetry install --with dev,docs --all-extras` (or the
+   `--minimal` variant) and verifies key packages such as `pytest-bdd` are
+   available.
 2. Run `bash scripts/codex_setup.sh` (without network access) until it completes
-   without errors.
+   without errors, then confirm with `poetry run pip list` that packages like
+   `pytest-bdd` appear.
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
 4. Execute `poetry run pytest` to verify the environment.
+
+Changes to the setup script only take effect the next time Codex provisions an
+environment. OpenAI disables network access during execution, so `scripts/codex_setup.sh`
+runs first with network access to install dependencies before the sandbox is
+handed to the agent.
 
 Development and test commands may fail until the setup script completes
 successfully, the marker file is removed, and the tests pass.
