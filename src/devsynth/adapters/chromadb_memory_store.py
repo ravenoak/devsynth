@@ -150,16 +150,25 @@ class ChromaDBMemoryStore(MemoryStore):
 
         while retry_count < max_retries:
             try:
-                with chromadb_client_context(persist_directory, instance_id=self.instance_id) as client:
-                    self.client = client
-                    self.logger.info(f"ChromaDB client initialized with persist directory: {persist_directory}, instance_id: {self.instance_id}")
+                # Use ephemeral client when file operations are disabled in tests
+                if os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in {"1", "true", "yes"}:
+                    self.client = chromadb.EphemeralClient()
+                else:
+                    self.client = chromadb.PersistentClient(path=persist_directory)
 
-                    # Create or get collection with error handling
-                    self.collection = client.get_or_create_collection(collection_name)
-                    self.logger.info(f"ChromaDB collection initialized: {collection_name}")
+                client_id = f"client_{self.persist_directory}"
+                _chromadb_clients[client_id] = self.client
 
-                    # If we get here, initialization was successful
-                    break
+                self.logger.info(
+                    f"ChromaDB client initialized with persist directory: {persist_directory}, instance_id: {self.instance_id}"
+                )
+
+                # Create or get collection with error handling
+                self.collection = self.client.get_or_create_collection(collection_name)
+                self.logger.info(f"ChromaDB collection initialized: {collection_name}")
+
+                # If we get here, initialization was successful
+                break
             except Exception as e:
                 last_exception = e
                 retry_count += 1
@@ -169,8 +178,12 @@ class ChromaDBMemoryStore(MemoryStore):
                     # Wait before retrying
                     time.sleep(retry_delay)
                 else:
-                    self.logger.error(f"Failed to initialize ChromaDB after {max_retries} attempts: {e}")
-                    raise RuntimeError(f"Failed to initialize ChromaDB after {max_retries} attempts: {e}") from last_exception
+                    self.logger.error(
+                        f"Failed to initialize ChromaDB after {max_retries} attempts: {e}"
+                    )
+                    raise RuntimeError(
+                        f"Failed to initialize ChromaDB after {max_retries} attempts: {e}"
+                    ) from last_exception
 
         # Use provider system for embeddings if specified, otherwise fallback to default
         self.use_provider_system = use_provider_system

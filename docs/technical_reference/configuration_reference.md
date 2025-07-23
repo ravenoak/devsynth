@@ -217,7 +217,7 @@ The `memory` section configures DevSynth's memory system.
 
 | Key | Description | Default | Valid Values |
 |-----|-------------|---------|--------------|
-| `vector_store` | Vector storage backend | ChromaDB | ChromaDB, faiss, in_memory |
+| `vector_store` | Vector storage backend | ChromaDB | ChromaDB, Kuzu, FAISS, LMDB, in_memory |
 | `document_store` | Document storage backend | TinyDB | TinyDB, json, in_memory |
 | `graph_store` | Graph storage backend | RDFLib | RDFLib, in_memory |
 | `path` | Path to memory storage | ~/.devsynth/memory | Any valid directory path |
