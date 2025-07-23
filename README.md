@@ -35,6 +35,8 @@ DevSynth is an agentic software engineering platform that leverages LLMs, advanc
 - CLI/WebUI bridge groundwork for future web interface
 - **Worker Self-Directed Enterprise (WSDE) Model**: Sophisticated multi-agent collaboration framework with role management, dialectical reasoning, consensus building, and knowledge integration capabilities
 - Dialectical reasoning hooks automatically analyze new solutions added to a WSDE team
+- AST-based code transformations via `AstTransformer`
+- Prompt auto-tuning for optimized LLM prompts
 - **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and a fully integrated "Expand, Differentiate, Refine, Retrospect" (EDRR) framework. The `EDRRCoordinator` orchestrates this process across all system components. See [EDRR Assessment](docs/implementation/edrr_assessment.md) for details. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
 
 ## SDLC Policies and Documentation Framework
@@ -255,7 +257,7 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 
 ## Repository Structure
 - `.devsynth/project.yaml` – Configuration file describing the shape and attributes of projects managed by DevSynth. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
-- `docs/manifest_schema.json` – The JSON schema for `.devsynth/project.yaml`.
+- `src/devsynth/schemas/project_schema.json` – The JSON schema for `.devsynth/project.yaml`.
 - `src/` – Source code (modular, hexagonal architecture)
 - `tests/` – Unit, integration, and behavior-driven tests
 - `docs/` – User, developer, architecture, and policy documentation
@@ -289,4 +291,4 @@ DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-_Last updated: May 30, 2025_
+_Last updated: July 23, 2025

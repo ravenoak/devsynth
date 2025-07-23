@@ -31,6 +31,8 @@ This section provides detailed technical information about DevSynth, including A
 - **[Knowledge Graph Utilities](knowledge_graph_utilities.md)**: Technical reference for the knowledge graph utilities in DevSynth.
 - **[Resilience Utilities](resilience_utilities.md)**: Best practices for retry,
   circuit breaker and bulkhead helpers.
+- **[AST Transformer Overview](ast_transformer.md)**: Diagram and pseudocode for the code transformation utilities.
+- **[Prompt Auto-Tuning Framework](prompt_auto_tuning.md)**: Details on automated prompt optimization.
 
 ## Overview
 
