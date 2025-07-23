@@ -22,6 +22,7 @@ from devsynth.interface.ux_bridge import (
     ProgressIndicator,
     sanitize_output,
 )
+from devsynth.interface.shared_bridge import SharedBridgeMixin
 from devsynth.interface.output_formatter import OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.security import validate_safe_input
@@ -464,7 +465,7 @@ class CLIProgressIndicator(ProgressIndicator):
             del self._start_time[task_id]
 
 
-class CLIUXBridge(UXBridge):
+class CLIUXBridge(SharedBridgeMixin, UXBridge):
     """Bridge for command line interactions.
 
     This implementation uses Rich for formatted output and Typer-compatible
@@ -481,8 +482,8 @@ class CLIUXBridge(UXBridge):
         # Use the appropriate theme based on colorblind_mode
         theme = COLORBLIND_THEME if colorblind_mode else DEVSYNTH_THEME
         self.console = Console(theme=theme)
-        self.formatter = OutputFormatter(self.console)
         self.colorblind_mode = colorblind_mode
+        super().__init__()
 
     def set_colorblind_mode(self, enabled: bool = True) -> None:
         """Enable or disable colorblind-friendly mode.
@@ -526,20 +527,9 @@ class CLIUXBridge(UXBridge):
         return answer
 
     def display_result(
-        self, message: str, *, highlight: bool = False, message_type: str = None
+        self, message: str, *, highlight: bool = False, message_type: str | None = None
     ) -> None:
-        """Display a formatted message to the user.
-
-        This method uses the OutputFormatter to format and display the message
-        with appropriate styling based on the message content, message type, and highlight flag.
-
-        Args:
-            message: The message to display
-            highlight: Whether to highlight the message
-            message_type: Optional type of message (info, success, warning, error, etc.)
-                          If not provided, it will be detected from the message content
-        """
-        # Log the message with appropriate level based on message_type
+        """Format and display a message to the user."""
         if message_type == "error":
             logger.error(f"Displaying error: {message}")
         elif message_type == "warning":
@@ -548,92 +538,19 @@ class CLIUXBridge(UXBridge):
             logger.info(f"Displaying success: {message}")
         else:
             logger.debug(f"Displaying message: {message}")
-        # Detect message type if not provided
-        if message_type is None:
-            # Check for common patterns in the message
-            if message.startswith(("Error:", "ERROR:", "Failed:", "FAILED:")):
-                message_type = "error"
-            elif message.startswith(("Warning:", "WARNING:")):
-                message_type = "warning"
-            elif (
-                message.startswith(("Success:", "SUCCESS:", "Completed:", "COMPLETED:"))
-                or "successfully" in message.lower()
-            ):
-                message_type = "success"
-            elif message.startswith(("Info:", "INFO:", "Note:", "NOTE:")):
-                message_type = "info"
-            elif message.startswith(("Tip:", "TIP:")):
-                message_type = "tip"
-            elif message.startswith(("Important:", "IMPORTANT:")):
-                message_type = "important"
-            elif message.startswith("#"):
-                # Markdown-style heading
-                heading_level = len(message.split()[0])
-                if heading_level == 1:
-                    message_type = "heading"
-                elif heading_level == 2:
-                    message_type = "subheading"
-                elif heading_level == 3:
-                    message_type = "section"
-                else:
-                    message_type = "subsection"
-            elif message.startswith(">"):
-                # Markdown-style blockquote
-                message_type = "note"
-            elif message.startswith("- [ ]") or message.startswith("* [ ]"):
-                # Markdown-style task list (incomplete)
-                message_type = "pending"
-            elif message.startswith("- [x]") or message.startswith("* [x]"):
-                # Markdown-style task list (complete)
-                message_type = "complete"
-            elif message.startswith(("- ", "* ")):
-                # Markdown-style list
-                message_type = "value"
-            elif ": " in message and not message.startswith(" "):
-                # Key-value pair
-                message_type = "key"
-            elif message.startswith(("$ ", "> ")):
-                # Command example
-                message_type = "command"
-            elif message.startswith(("http://", "https://", "www.")):
-                # URL
-                message_type = "doc_link"
-            elif message.startswith(("./", "../", "/")):
-                # File path
-                message_type = "path"
-            else:
-                # Default to normal text
-                message_type = "normal"
 
-        # Format and display the message using the OutputFormatter
-        if highlight:
-            # If highlight is requested, use the highlight style regardless of message type
-            style = "highlight"
-        elif (
-            hasattr(self.console, "theme") and message_type in self.console.theme.styles
-        ):
-            # Use the style from the theme if available
-            style = message_type
-        else:
-            # Default to no specific style
-            style = None
+        styled = self._format_for_output(
+            message, highlight=highlight, message_type=message_type
+        )
 
-        # Check if the message already contains Rich markup
-        if isinstance(message, str) and "[" in message and "]" in message:
-            # Handle Rich markup
+        style = "highlight" if highlight else None
+        if hasattr(self.console, "theme") and message_type in self.console.theme.styles:
+            style = message_type if not highlight else style
+
+        if "[" in message and "]" in message:
             self.console.print(message)
         else:
-            # Format the message based on its type
-            formatted = self.formatter.format_message(
-                message, message_type=message_type, highlight=highlight
-            )
-
-            if isinstance(formatted, Panel):
-                self.console.print(formatted, style=style)
-            elif isinstance(formatted, Text):
-                self.console.print(formatted)
-            else:
-                self.console.print(formatted, style=style)
+            self.console.print(styled, style=style)
 
     def create_progress(
         self, description: str, *, total: int = 100
