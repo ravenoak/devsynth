@@ -58,12 +58,31 @@ def ingest_cmd(
         validate_only: If True, only validates the manifest without performing ingestion.
     """
     try:
-        # Determine the manifest path
+        # Allow environment variables to provide default values when arguments
+        # are not supplied. CLI flags still override these settings.
+        if manifest_path is None:
+            manifest_path = os.environ.get("DEVSYNTH_MANIFEST_PATH")
         if manifest_path is None:
             # Use manifest.yaml as the default path for tests
             manifest_path = Path(os.path.join(os.getcwd(), "manifest.yaml"))
         else:
             manifest_path = Path(manifest_path)
+
+        if not dry_run:
+            dry_run = (
+                os.environ.get("DEVSYNTH_INGEST_DRY_RUN", "0").lower()
+                in {"1", "true", "yes"}
+            )
+        if not verbose:
+            verbose = (
+                os.environ.get("DEVSYNTH_INGEST_VERBOSE", "0").lower()
+                in {"1", "true", "yes"}
+            )
+        if not validate_only:
+            validate_only = (
+                os.environ.get("DEVSYNTH_INGEST_VALIDATE_ONLY", "0").lower()
+                in {"1", "true", "yes"}
+            )
 
         if verbose:
             bridge.print(f"[bold]DevSynth Ingestion[/bold]")

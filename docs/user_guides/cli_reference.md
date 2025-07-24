@@ -624,6 +624,10 @@ DevSynth uses the following environment variables:
 | `SERPER_API_KEY` | Serper API key for web searches | None |
 | `DEVSYNTH_CONFIG_PATH` | Path to configuration file | ~/.devsynth/config.yaml |
 | `DEVSYNTH_MEMORY_PATH` | Path to memory storage | ~/.devsynth/memory |
+| `DEVSYNTH_MANIFEST_PATH` | Default manifest path for `devsynth ingest` | None |
+| `DEVSYNTH_INGEST_DRY_RUN` | Set to `1` to enable `--dry-run` by default | 0 |
+| `DEVSYNTH_INGEST_VERBOSE` | Set to `1` to enable verbose ingestion output | 0 |
+| `DEVSYNTH_INGEST_VALIDATE_ONLY` | Set to `1` to run only manifest validation | 0 |
 
 ## Configuration File
 
