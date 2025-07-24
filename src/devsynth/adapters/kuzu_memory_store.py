@@ -1,4 +1,5 @@
 """Adapter for ``KuzuStore`` integrating provider embeddings."""
+
 from __future__ import annotations
 
 import os
@@ -59,7 +60,12 @@ class KuzuMemoryStore(MemoryStore):
     def store(self, item: MemoryItem) -> str:
         embedding = self._get_embedding(str(item.content))
         self.vector.store_vector(
-            MemoryVector(id=item.id, content=item.content, embedding=embedding, metadata=item.metadata)
+            MemoryVector(
+                id=item.id,
+                content=item.content,
+                embedding=embedding,
+                metadata=item.metadata,
+            )
         )
         return self._store.store(item)
 

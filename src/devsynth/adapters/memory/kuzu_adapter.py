@@ -21,6 +21,7 @@ except Exception:  # pragma: no cover - optional dependency
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.config.settings import ensure_path_exists
 
 logger = DevSynthLogger(__name__)
 
@@ -33,7 +34,7 @@ class KuzuAdapter(VectorStore):
     ) -> None:
         self.persist_directory = persist_directory
         self.collection_name = collection_name
-        os.makedirs(persist_directory, exist_ok=True)
+        ensure_path_exists(persist_directory)
         self._data_file = os.path.join(persist_directory, f"{collection_name}.json")
         self._store: Dict[str, MemoryVector] = {}
         self._load()
