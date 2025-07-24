@@ -295,6 +295,18 @@ To see which tests would be skipped due to missing resources:
 poetry run pytest --collect-only -v
 ```
 
+### Using `run_all_tests.py`
+
+The helper script `scripts/run_all_tests.py` wraps `pytest` and expects all
+required plugins to be installed via Poetry. Invoke it from the Poetry
+environment to run the full suite or selected groups:
+
+```bash
+poetry run python scripts/run_all_tests.py           # run all tests
+poetry run python scripts/run_all_tests.py --unit    # run only unit tests
+poetry run python scripts/run_all_tests.py --report  # generate HTML report under test_reports/
+```
+
 ## Referencing Requirements in Tests
 
 All tests should include the requirement ID they verify in the test's docstring. This links the test back to the relevant entry in `docs/requirements_traceability.md`.
