@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import tempfile
+import shutil
 from typing import Any, Dict, Optional
 
 from devsynth.domain.interfaces.memory import MemoryStore
@@ -30,6 +32,7 @@ class KuzuMemoryStore(MemoryStore):
         provider_type: Optional[str] = None,
         collection_name: str = "devsynth_artifacts",
     ) -> None:
+        self._temp_dir: Optional[str] = None
         self.persist_directory = persist_directory or os.path.join(
             os.getcwd(), ".devsynth", "kuzu_store"
         )
@@ -78,3 +81,31 @@ class KuzuMemoryStore(MemoryStore):
     def delete(self, item_id: str) -> bool:
         self.vector.delete_vector(item_id)
         return self._store.delete(item_id)
+
+    # ------------------------------------------------------------------
+    @classmethod
+    def create_ephemeral(
+        cls,
+        use_provider_system: bool = True,
+        provider_type: Optional[str] = None,
+        collection_name: str = "devsynth_artifacts",
+    ) -> "KuzuMemoryStore":
+        """Create an ephemeral ``KuzuMemoryStore`` for tests."""
+        temp_dir = tempfile.mkdtemp(prefix="kuzu_")
+        store = cls(
+            persist_directory=temp_dir,
+            use_provider_system=use_provider_system,
+            provider_type=provider_type,
+            collection_name=collection_name,
+        )
+        store._temp_dir = temp_dir
+        return store
+
+    def cleanup(self) -> None:
+        """Remove any temporary directory created by :meth:`create_ephemeral`."""
+        temp_dir = getattr(self, "_temp_dir", None)
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Failed to clean up temporary Kuzu directory: %s", exc)

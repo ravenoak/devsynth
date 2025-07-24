@@ -50,3 +50,8 @@ except Exception:
 # Disable optional backends by default so tests don't try to import heavy
 # dependencies unless explicitly enabled.
 os.environ.setdefault("ENABLE_CHROMADB", "0")
+
+pytest_plugins = [
+    "tests.fixtures.ports",
+    "tests.fixtures.kuzu",
+]

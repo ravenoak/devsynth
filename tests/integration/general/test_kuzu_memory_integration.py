@@ -1,7 +1,5 @@
 import sys
 import types
-import tempfile
-import shutil
 from unittest.mock import patch
 
 import pytest
@@ -13,13 +11,10 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 sys.modules.setdefault("kuzu", types.ModuleType("kuzu"))
 
 
+
 @pytest.fixture
-def temp_dir():
-    path = tempfile.mkdtemp()
-    try:
-        yield path
-    finally:
-        shutil.rmtree(path)
+def kuzu_store(ephemeral_kuzu_store):
+    return ephemeral_kuzu_store
 
 
 @pytest.fixture(autouse=True)
@@ -30,10 +25,10 @@ def mock_embed():
         yield
 
 
-def test_kuzu_memory_vector_integration_succeeds(temp_dir):
+def test_kuzu_memory_vector_integration_succeeds(kuzu_store):
     config = {
         "memory_store_type": "kuzu",
-        "memory_file_path": temp_dir,
+        "memory_file_path": kuzu_store.persist_directory,
         "vector_store_enabled": True,
     }
     adapter = MemorySystemAdapter(config=config)
@@ -49,9 +44,9 @@ def test_kuzu_memory_vector_integration_succeeds(temp_dir):
     assert results[0].id == item_id
 
 
-def test_create_for_testing_with_kuzu(temp_dir):
+def test_create_for_testing_with_kuzu(kuzu_store):
     adapter = MemorySystemAdapter.create_for_testing(
-        storage_type="kuzu", memory_path=temp_dir
+        storage_type="kuzu", memory_path=kuzu_store.persist_directory
     )
     assert adapter.storage_type == "kuzu"
     assert adapter.memory_store is not None
