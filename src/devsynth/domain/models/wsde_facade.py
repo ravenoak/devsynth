@@ -41,6 +41,9 @@ from devsynth.domain.models.wsde_voting import (
     consensus_vote,
     build_consensus,
 )
+from devsynth.application.collaboration.wsde_team_consensus import (
+    ConsensusBuildingMixin,
+)
 from devsynth.domain.models.wsde_dialectical import (
     apply_dialectical_reasoning,
     _generate_antithesis,
@@ -168,6 +171,8 @@ WSDETeam._apply_weighted_voting = _apply_weighted_voting
 WSDETeam._record_voting_history = _record_voting_history
 WSDETeam.consensus_vote = consensus_vote
 WSDETeam.build_consensus = build_consensus
+WSDETeam.summarize_voting_result = ConsensusBuildingMixin.summarize_voting_result
+WSDETeam.summarize_consensus_result = ConsensusBuildingMixin.summarize_consensus_result
 
 # Dialectical reasoning
 WSDETeam.apply_dialectical_reasoning = apply_dialectical_reasoning
