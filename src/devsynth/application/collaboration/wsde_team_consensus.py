@@ -812,3 +812,64 @@ class ConsensusBuildingMixin:
         has_implementation = "implementation_details" in decision and decision["implementation_details"]
 
         return (has_synthesis or has_majority_opinion) and has_implementation
+
+    def summarize_voting_result(self, voting_result: Dict[str, Any]) -> str:
+        """Create a short human readable summary of a voting result."""
+
+        if not voting_result:
+            return "No voting result available."
+
+        status = voting_result.get("status")
+        if status == "failed":
+            return voting_result.get("reason", "Voting failed")
+
+        result = voting_result.get("result")
+
+        # Handle tied vote summaries
+        if isinstance(result, dict) and result.get("tied"):
+            tied_options = ", ".join(result.get("tied_options", []))
+            summary = f"Vote resulted in a tie between {tied_options}."
+            tie_resolution = voting_result.get("tie_resolution")
+            if tie_resolution and tie_resolution.get("winner"):
+                summary += f" Tie resolved in favour of {tie_resolution['winner']}."
+            return summary
+
+        # Normal voting outcome
+        winner = None
+        if isinstance(result, dict):
+            winner = result.get("winner")
+        elif result:
+            winner = result
+        if not winner and isinstance(voting_result.get("selected_option"), dict):
+            winner = voting_result["selected_option"].get("id")
+
+        if winner:
+            vote_counts = voting_result.get("vote_counts", {})
+            count = vote_counts.get(winner, 0)
+            return f"Option '{winner}' selected with {count} votes."
+
+        return "Voting completed."
+
+    def summarize_consensus_result(self, consensus_result: Dict[str, Any]) -> str:
+        """Generate a concise summary from a consensus result."""
+
+        if not consensus_result:
+            return "No consensus result available."
+
+        method = consensus_result.get("method", "consensus")
+
+        if "synthesis" in consensus_result:
+            text = consensus_result["synthesis"].get("text", "").strip()
+            if text:
+                summary = f"Synthesis consensus reached: {text}"
+            else:
+                summary = "Synthesis consensus reached."
+        elif "majority_opinion" in consensus_result:
+            summary = f"Majority opinion chosen: {consensus_result['majority_opinion']}"
+        else:
+            summary = f"Consensus result: {consensus_result.get('result', '')}"
+
+        if method:
+            summary += f" (method: {method})"
+
+        return summary
