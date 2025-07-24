@@ -59,7 +59,7 @@ Each feature is scored on two dimensions:
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
 | Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
-| Methodology Integration Framework | Partial | src/devsynth/methodology | 3 | 3 | None | | Sprint adapter implemented, others planned |
+| Methodology Integration Framework | Complete | src/devsynth/methodology | 4 | 4 | None | | Sprint, Kanban, Milestone and AdHoc adapters implemented |
 | Sprint-EDRR Integration | Partial | src/devsynth/methodology/sprint.py | 3 | 3 | Methodology Integration Framework | | Basic mapping of sprint ceremonies to EDRR phases |
 | **User-Facing Features** |
 | CLI Interface | Partial | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested |

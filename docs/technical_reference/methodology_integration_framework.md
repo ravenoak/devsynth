@@ -57,6 +57,7 @@ DevSynth provides built-in support for several common development approaches:
 - WIP limits for each phase
 - Pull-based advancement
 - Integration with Kanban boards and visualization tools
+- Detailed in [Kanban-EDRR Integration](./kanban_edrr_integration.md)
 
 
 #### 3. Milestone-Based Adapter
@@ -65,6 +66,7 @@ DevSynth provides built-in support for several common development approaches:
 - Formal approval gates between phases
 - Documentation generation for compliance
 - Support for regulated environments
+- Detailed in [Milestone-EDRR Integration](./milestone_edrr_integration.md)
 
 
 #### 4. Ad-Hoc Processing Adapter

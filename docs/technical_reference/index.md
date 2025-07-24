@@ -25,6 +25,8 @@ This section provides detailed technical information about DevSynth, including A
 - **[EDRR Methodology](expand_differentiate_refine_retrospect.md)**: Detailed technical reference for the EDRR methodology.
 - **[Methodology Integration Framework](methodology_integration_framework.md)**: Technical details about the framework for integrating different methodologies.
 - **[Sprint EDRR Integration](sprint_edrr_integration.md)**: Technical reference for integrating EDRR with sprint methodologies.
+- **[Kanban EDRR Integration](kanban_edrr_integration.md)**: Using EDRR in a continuous Kanban flow.
+- **[Milestone EDRR Integration](milestone_edrr_integration.md)**: Applying EDRR with milestone approval gates.
 
 ## Utilities and Tools
 
