@@ -145,6 +145,19 @@ ReqID: N/A"""
         mock_ingestion.return_value.run_ingestion.assert_called_once_with(
             dry_run=False, verbose=True)
 
+    def test_ingest_cmd_env_vars_used(self, mock_bridge, mock_validate_manifest,
+        mock_load_manifest, mock_ingestion, monkeypatch):
+        """Test ingest_cmd reads defaults from environment variables."""
+        monkeypatch.setenv('DEVSYNTH_MANIFEST_PATH', 'env_manifest.yaml')
+        monkeypatch.setenv('DEVSYNTH_INGEST_DRY_RUN', '1')
+        monkeypatch.setenv('DEVSYNTH_INGEST_VERBOSE', '1')
+        ingest_cmd_fn()
+        mock_validate_manifest.assert_called_once_with(
+            Path('env_manifest.yaml'), True, bridge=mock_bridge)
+        mock_load_manifest.assert_not_called()
+        mock_ingestion.return_value.run_ingestion.assert_called_once_with(
+            dry_run=True, verbose=True)
+
     def test_ingest_cmd_manifest_error_raises_error(self, mock_bridge,
         mock_validate_manifest):
         """Test ingest_cmd with a ManifestError.
