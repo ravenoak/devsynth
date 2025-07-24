@@ -48,11 +48,19 @@ class TestAgent(BaseAgent):
         tests = f"Tests (created by {self.name} as {self.current_role})"
 
         # Create a WSDE with the tests
-        test_wsde = self.create_wsde(
-            content=tests,
-            content_type="text",
-            metadata={"agent": self.name, "role": self.current_role, "type": "tests"},
-        )
+        test_wsde = None
+        try:
+            test_wsde = self.create_wsde(
+                content=tests,
+                content_type="text",
+                metadata={
+                    "agent": self.name,
+                    "role": self.current_role,
+                    "type": "tests",
+                },
+            )
+        except Exception as e:
+            logger.error(f"Error creating WSDE: {str(e)}")
 
         return {
             "tests": tests,

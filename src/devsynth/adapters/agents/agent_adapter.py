@@ -30,17 +30,17 @@ try:
 except Exception:
     _DEFAULT_CONFIG = {}
 
-# Import legacy agent classes (commented out for MVP but retained for future reference)
-# from ...application.agents.base import BaseAgent
-# from ...application.agents.planner import PlannerAgent
-# from ...application.agents.specification import SpecificationAgent
-# from ...application.agents.test import TestAgent
-# from ...application.agents.code import CodeAgent
-# from ...application.agents.validation import ValidationAgent
-# from ...application.agents.refactor import RefactorAgent
-# from ...application.agents.documentation import DocumentationAgent
-# from ...application.agents.diagram import DiagramAgent
-# from ...application.agents.critic import CriticAgent
+# Import specialized agent classes
+from ...application.agents.base import BaseAgent
+from ...application.agents.planner import PlannerAgent
+from ...application.agents.specification import SpecificationAgent
+from ...application.agents.test import TestAgent
+from ...application.agents.code import CodeAgent
+from ...application.agents.validation import ValidationAgent
+from ...application.agents.refactor import RefactorAgent
+from ...application.agents.documentation import DocumentationAgent
+from ...application.agents.diagram import DiagramAgent
+from ...application.agents.critic import CriticAgent
 
 
 class SimplifiedAgentFactory(AgentFactory):
@@ -55,22 +55,20 @@ class SimplifiedAgentFactory(AgentFactory):
         # For MVP, we only use the UnifiedAgent
         self.agent_types = {
             AgentType.ORCHESTRATOR.value: UnifiedAgent,
+            AgentType.PLANNER.value: PlannerAgent,
+            AgentType.TEST.value: TestAgent,
+            AgentType.CODE.value: CodeAgent,
         }
         self.llm_port = llm_port
 
-        # Extension point: This dictionary can be expanded in future versions
-        # to support multiple specialized agents
+        # Extension point: Additional specialized agents can be registered here
         self.future_agent_types = {
-            # Commented out for MVP but retained for future reference
-            # AgentType.PLANNER.value: PlannerAgent,
-            # AgentType.SPECIFICATION.value: SpecificationAgent,
-            # AgentType.TEST.value: TestAgent,
-            # AgentType.CODE.value: CodeAgent,
-            # AgentType.VALIDATION.value: ValidationAgent,
-            # AgentType.REFACTOR.value: RefactorAgent,
-            # AgentType.DOCUMENTATION.value: DocumentationAgent,
-            # AgentType.DIAGRAM.value: DiagramAgent,
-            # AgentType.CRITIC.value: CriticAgent,
+            AgentType.SPECIFICATION.value: SpecificationAgent,
+            AgentType.VALIDATION.value: ValidationAgent,
+            AgentType.REFACTOR.value: RefactorAgent,
+            AgentType.DOCUMENTATION.value: DocumentationAgent,
+            AgentType.DIAGRAM.value: DiagramAgent,
+            AgentType.CRITIC.value: CriticAgent,
         }
 
     def create_agent(self, agent_type: str, config: Dict[str, Any] = None) -> Agent:
@@ -80,11 +78,13 @@ class SimplifiedAgentFactory(AgentFactory):
         For MVP, this always returns a UnifiedAgent regardless of the requested type,
         ensuring backward compatibility with existing code.
         """
-        # For MVP, always use the UnifiedAgent
-        agent_class = UnifiedAgent
+        # Select the appropriate agent class based on the requested type
+        agent_class = self.agent_types.get(agent_type, UnifiedAgent)
 
-        # Extension point: In future versions, this can be expanded to use
-        # different agent classes based on the agent_type
+        # Allow future/experimental agent types to be registered separately
+        if agent_type not in self.agent_types:
+            agent_class = self.future_agent_types.get(agent_type, UnifiedAgent)
+
         agent = agent_class()
 
         if config:
