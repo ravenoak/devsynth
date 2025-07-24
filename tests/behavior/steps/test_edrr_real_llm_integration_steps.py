@@ -2,7 +2,9 @@ import os
 import pytest
 import tempfile
 from pathlib import Path
-from pytest_bdd import given, when, then, parsers
+from pytest_bdd import given, when, then, parsers, scenarios
+
+scenarios("../features/general/edrr_real_llm_integration.feature")
 
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
