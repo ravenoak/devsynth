@@ -1,9 +1,9 @@
 import yaml
 from unittest.mock import MagicMock
 import pytest
-import os
-if os.environ.get('DEVSYNTH_RUN_INGEST_TESTS') != '1':
-    pytest.skip('Ingestion integration tests require DEVSYNTH_RUN_INGEST_TESTS=1', allow_module_level=True)
+# These tests previously required the DEVSYNTH_RUN_INGEST_TESTS environment
+# variable to be set.  They now run unconditionally under the isolated test
+# environment provided by ``global_test_isolation`` in ``tests/conftest.py``.
 from devsynth.application.ingestion import Ingestion
 from devsynth.methodology.base import Phase
 
@@ -28,7 +28,10 @@ ReqID: N/A"""
     ingestion.run_ingestion()
     mock_coordinator.start_cycle_from_manifest.assert_called_once_with(manifest
         , is_file=True)
-    expected_calls = [((Phase.EXPAND,),), ((Phase.DIFFERENTIATE,),), ((
-        Phase.REFINE,),), ((Phase.RETROSPECT,),)]
-    assert [c.args for c in mock_coordinator.progress_to_phase.call_args_list
-        ] == expected_calls
+    expected_calls = [
+        (Phase.EXPAND,),
+        (Phase.DIFFERENTIATE,),
+        (Phase.REFINE,),
+        (Phase.RETROSPECT,),
+    ]
+    assert [c.args for c in mock_coordinator.progress_to_phase.call_args_list] == expected_calls

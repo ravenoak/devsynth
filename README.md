@@ -200,9 +200,9 @@ Alternatively, install them all at once:
 poetry install --all-extras --all-groups
 ```
 
-Ingestion and WSDE integration tests are skipped unless you set
-`DEVSYNTH_RUN_INGEST_TESTS=1` or `DEVSYNTH_RUN_WSDE_TESTS=1` before running
-`poetry run pytest`.
+The test suite runs entirely in isolated temporary directories.  Ingestion and
+WSDE tests no longer require special environment variables and are executed by
+default when running `poetry run pytest`.
 
 Use pip only for installing from PyPI, not for local development.
 
