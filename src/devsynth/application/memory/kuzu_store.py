@@ -28,6 +28,7 @@ from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
+from devsynth.config.settings import ensure_path_exists
 
 logger = DevSynthLogger(__name__)
 
@@ -41,7 +42,7 @@ class KuzuStore(MemoryStore):
         # fallback.  This mirrors the behaviour of other memory stores which
         # create their storage path during initialisation and allows tests
         # relying on the directory to be present to pass.
-        os.makedirs(file_path, exist_ok=True)
+        ensure_path_exists(file_path)
         self.db_path = os.path.join(file_path, "kuzu.db")
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
@@ -56,7 +57,7 @@ class KuzuStore(MemoryStore):
         self._use_fallback = kuzu is None
         if not self._use_fallback:
             try:
-                os.makedirs(file_path, exist_ok=True)
+                ensure_path_exists(file_path)
                 self.db = kuzu.Database(self.db_path)
                 self.conn = kuzu.Connection(self.db)
                 self.conn.execute(
