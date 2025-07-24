@@ -3,7 +3,9 @@
 from pathlib import Path
 from pytest_bdd import scenarios, given, then
 
-from .cli_commands_steps import run_command  # noqa: F401
+# Reuse generic CLI step implementations to share common steps.
+from .cli_commands_steps import *  # noqa: F401,F403
+from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
 scenarios("../features/general/validate_metadata_command.feature")
 
