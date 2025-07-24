@@ -86,6 +86,8 @@ def retry_with_exponential_backoff(
                             error=e,
                             function=func.__name__,
                         )
+                        if track_metrics:
+                            inc_retry("abort")
                         raise
 
                     num_retries += 1
