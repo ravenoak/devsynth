@@ -1,7 +1,13 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Header
 import uuid
 from fastapi.responses import Response
-from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import (
+    Counter,
+    Histogram,
+    generate_latest,
+    CONTENT_TYPE_LATEST,
+)
+import time
 
 from devsynth.logging_setup import (
     DevSynthLogger,
@@ -26,6 +32,11 @@ def verify_token(authorization: str | None = Header(None)) -> None:
 
 
 REQUEST_COUNT = Counter("request_count", "Total HTTP requests", ["endpoint"])
+REQUEST_LATENCY = Histogram(
+    "request_latency_seconds",
+    "HTTP request latency",
+    ["endpoint"],
+)
 
 app = FastAPI(title="DevSynth API")
 
@@ -46,6 +57,15 @@ async def count_requests(request, call_next):
     RESPONSE = await call_next(request)
     REQUEST_COUNT.labels(endpoint=request.url.path).inc()
     return RESPONSE
+
+
+@app.middleware("http")
+async def record_latency(request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+    REQUEST_LATENCY.labels(endpoint=request.url.path).observe(duration)
+    return response
 
 
 @app.get("/health")

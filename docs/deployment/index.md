@@ -20,7 +20,9 @@ This section provides documentation on deploying DevSynth in various environment
 For more information on deployment-related topics, see:
 
 - **[Configuration](../user_guides/configuration.md)**: Information on configuring DevSynth for different environments.
-- **[Monitoring and Logging](monitoring.md)**: Set up Prometheus and collect logs.
+- **[Monitoring and Logging](monitoring.md)**: Set up Prometheus, Alertmanager and collect logs.
+- **[Operations Runbook](runbooks/operations_runbook.md)**: Day-to-day operational tasks.
+- **[Incident Response](runbooks/incident_response.md)**: Steps to handle outages and failures.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **active** and regularly reviewed.

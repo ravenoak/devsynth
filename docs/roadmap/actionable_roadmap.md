@@ -425,19 +425,19 @@ Configuration examples are provided for optional vector stores such as **ChromaD
 
 **Tasks:**
 
-- [ ] **Kubernetes Deployment**
+ - [x] **Kubernetes Deployment**
   - Create Kubernetes manifests for all services
   - Implement auto-scaling and resource management
   - Add persistent volume management for data storage
   - Create namespace and resource isolation
 
-- [ ] **CI/CD Pipeline Enhancement**
+ - [x] **CI/CD Pipeline Enhancement**
   - Implement automated testing in CI pipeline
   - Add automated security scanning and compliance checks
   - Create automated deployment to staging and production
   - Implement blue-green deployment strategy
 
-- [ ] **Infrastructure as Code**
+ - [x] **Infrastructure as Code**
   - Create Terraform configurations for cloud resources
   - Implement environment provisioning automation
   - Add infrastructure monitoring and cost optimization
@@ -466,7 +466,7 @@ Configuration examples are provided for optional vector stores such as **ChromaD
 
 **Tasks:**
 
-- [ ] **Operational Runbooks**
+ - [x] **Operational Runbooks**
   - Create incident response procedures and playbooks
   - Implement troubleshooting guides and FAQs
   - Add maintenance and update procedures
