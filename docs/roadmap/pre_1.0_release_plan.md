@@ -41,7 +41,7 @@ workflows operate without network access.
 
 * **Configuration & Requirements:** Confirm Python 3.12+ support (per [README]) and update `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.  Document any constraints (e.g. optional vector DBs).
 * **Offline Mode (Implemented):** The offline provider supplies deterministic text and embeddings when `offline_mode` is enabled. CLI and WebUI fallbacks are verified with unit tests for provider selection. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for status details.
-* **Optional Vector Stores:** Provide configuration examples for alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. Include docker-compose setup for the embedded ChromaDB backend.
+* **Optional Vector Stores:** Provide configuration examples for alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. The configuration loader now recognizes `memory_backend: chromadb` and `docker-compose.yml` ships with a sample `chromadb` service.
 
 With these items and the WSDE peer review implementation confirmed in the [Feature Status Matrix](../implementation/feature_status_matrix.md), Phase 1 is nearly finished. Remaining work involves integrating the ChromaDB adapter and resolving the outstanding test failures noted in the development status reports.
 

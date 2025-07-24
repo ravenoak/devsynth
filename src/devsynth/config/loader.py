@@ -167,6 +167,11 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
                     config_key=str(cfg_path)
                 ) from exc
 
+        # Support legacy ``memory_backend`` key used in older docs
+        backend = parsed.pop("memory_backend", None)
+        if backend and "memory_store_type" not in parsed:
+            parsed["memory_store_type"] = str(backend).lower()
+
         data.update(parsed)
 
     # Validate configuration before creating the model
