@@ -10,7 +10,7 @@ tags:
 
 # Monitoring and Logging
 
-DevSynth exposes Prometheus metrics on `/metrics` and structured logs via the standard logging configuration. When using Docker Compose the `prometheus` service collects metrics from the `devsynth` container.
+DevSynth exposes Prometheus metrics on `/metrics` and structured logs via the standard logging configuration. When using Docker Compose or Kubernetes the `prometheus` service collects metrics from the `devsynth` container. Alertmanager can be enabled to receive alerts on failed health checks or high latency.
 
 ## Enabling Prometheus
 
@@ -20,9 +20,13 @@ DevSynth exposes Prometheus metrics on `/metrics` and structured logs via the st
    ```
 2. Open `http://localhost:9090` to query metrics.
 
+### Alerting
+
+The provided Kubernetes manifests deploy Prometheus with Alertmanager. Customize alert rules in `prometheus-configmap.yaml` and configure Alertmanager receivers for email or chat notifications.
+
 ## Logs
 
-Container logs are written to the `./logs` directory mounted by `docker-compose.yml`. Review these files or use `docker compose logs` to stream logs.
+Container logs are written to the `./logs` directory mounted by `docker-compose.yml` or retrieved with `kubectl logs` when running in Kubernetes.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+Monitoring and alerting are **active** and continuously monitored.
