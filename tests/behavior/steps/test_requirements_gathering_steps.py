@@ -60,6 +60,11 @@ def run_wizard(tmp_project_dir, monkeypatch):
     gather_cmd(output_file=output, bridge=bridge)
 
 
+@given("the WebUI is initialized")
+def given_webui_initialized(webui_context):
+    return webui_context
+
+
 @when("I run the requirements gathering wizard in the WebUI")
 def run_webui_wizard(tmp_project_dir, webui_context):
     webui_context["st"].sidebar.radio.return_value = "Requirements"
@@ -68,6 +73,10 @@ def run_webui_wizard(tmp_project_dir, webui_context):
         "Constraint A,Constraint B",
     ]
     webui_context["st"].selectbox.return_value = "high"
+    with open(
+        os.path.join(tmp_project_dir, "pyproject.toml"), "w", encoding="utf-8"
+    ) as f:
+        f.write("[tool.devsynth]\n")
     output = os.path.join(tmp_project_dir, "requirements_plan.yaml")
     os.chdir(tmp_project_dir)
     from devsynth.application.requirements.interactions import gather_requirements
