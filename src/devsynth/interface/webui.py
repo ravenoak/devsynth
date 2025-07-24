@@ -835,16 +835,19 @@ class WebUI(UXBridge):
         # attributes rather than mapping keys.  Using ``in`` on such an object
         # does not reflect attribute presence, so ``hasattr`` is required to
         # detect prior wizard state correctly.
-        if not hasattr(st.session_state, "wizard_step"):
+        steps = ["Title", "Description", "Type", "Priority", "Constraints"]
+        if not hasattr(st.session_state, "wizard_step") or not isinstance(
+            getattr(st.session_state, "wizard_step"), int
+        ):
             st.session_state.wizard_step = 0
-        if not hasattr(st.session_state, "wizard_data"):
-            st.session_state.wizard_data = {
-                "title": "",
-                "description": "",
-                "type": RequirementType.FUNCTIONAL.value,
-                "priority": RequirementPriority.MEDIUM.value,
-                "constraints": "",
-            }
+        st.session_state.wizard_step = max(
+            0, min(len(steps) - 1, st.session_state.wizard_step)
+        )
+
+        if not hasattr(st.session_state, "wizard_data") or not isinstance(
+            st.session_state.wizard_data, dict
+        ):
+            st.session_state.wizard_data = {}
 
         data = st.session_state.wizard_data
         defaults = {
@@ -858,7 +861,6 @@ class WebUI(UXBridge):
             if key not in data:
                 data[key] = val
 
-        steps = ["Title", "Description", "Type", "Priority", "Constraints"]
         step = st.session_state.wizard_step
         st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
         st.progress((step + 1) / len(steps))
@@ -879,6 +881,8 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[green]Requirements saved to requirements_wizard.json[/green]"
                 )
+                st.session_state.wizard_step = 0
+                st.session_state.wizard_data = defaults.copy()
                 return result
             except Exception as exc:  # pragma: no cover - error path tested
                 self.display_result(
@@ -921,13 +925,15 @@ class WebUI(UXBridge):
         if st.button(
             "Start Requirements Plan Wizard",
             key="Start Requirements Plan Wizard",
-        ):
+        ) and not getattr(st.session_state, "gather_running", False):
+            st.session_state.gather_running = True
             try:
                 from devsynth.core.workflows import gather_requirements
             except Exception as exc:  # pragma: no cover - defensive
                 self.display_result(
                     f"[red]ERROR importing gather_requirements: {exc}[/red]"
                 )
+                st.session_state.gather_running = False
                 return
 
             try:
@@ -937,6 +943,8 @@ class WebUI(UXBridge):
                 self.display_result(
                     f"[red]ERROR running gather_requirements: {exc}[/red]"
                 )
+            finally:
+                st.session_state.gather_running = False
 
     def analysis_page(self) -> None:
         """Render the code analysis page."""
