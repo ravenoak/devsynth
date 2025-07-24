@@ -71,6 +71,20 @@ services:
       timeout: 10s
       retries: 3
 
+  # Optional ChromaDB service for persistent vector storage
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - chromadb-data:/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+    ports:
+      - "8001:8000"
+    networks:
+      - devsynth-network
+    profiles:
+      - memory
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -86,3 +100,6 @@ services:
 networks:
   devsynth-network:
     name: devsynth-network
+volumes:
+  chromadb-data:
+    name: devsynth-chromadb-data

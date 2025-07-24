@@ -102,3 +102,40 @@ def test_ephemeral_client_used_in_no_file_mode(mock_client_cls, tmp_path, monkey
     monkeypatch.setenv('ENABLE_CHROMADB', '1')
     ChromaDBStore(str(tmp_path))
     mock_client_cls.assert_called_once()
+
+
+def _create_store(tmp_path, monkeypatch):
+    monkeypatch.setenv('DEVSYNTH_NO_FILE_LOGGING', '1')
+    monkeypatch.setenv('ENABLE_CHROMADB', '1')
+    store = ChromaDBStore(str(tmp_path))
+    store._use_fallback = True
+    store._save_fallback = lambda: None
+    return store
+
+
+def test_store_retrieve_delete_succeeds(tmp_path, monkeypatch):
+    """Basic store lifecycle succeeds with the Ephemeral client."""
+    store = _create_store(tmp_path, monkeypatch)
+    item = MemoryItem(id='item1', content='hello', memory_type=None, metadata={}, created_at=datetime.now())
+    item_id = store.store(item)
+    assert item_id
+    got = store.retrieve(item_id)
+    assert got and got.content == 'hello'
+    assert store.delete(item_id) is True
+    store._cache.pop(item_id, None)
+    assert store.retrieve(item_id) is None
+
+
+def test_search_by_metadata_succeeds(tmp_path, monkeypatch):
+    """Exact-match search returns expected items."""
+    store = _create_store(tmp_path, monkeypatch)
+    items = [
+        MemoryItem(id=str(i), content=f'item{i}', memory_type=None, metadata={'tag': 'a' if i % 2 == 0 else 'b'}, created_at=datetime.now())
+        for i in range(3)
+    ]
+    for itm in items:
+        store.store(itm)
+    store._cache = {}
+    results = store.search({'metadata.tag': 'a'})
+    assert {r.id for r in results} == {'0', '2'}
+
