@@ -71,18 +71,19 @@ cd devsynth
 ### 2. Install Dependencies
 
 ```bash
+# Install all dependencies, including development tooling and optional extras
+poetry install --with dev --all-extras
 
-# Install all dependencies including development dependencies
-
-poetry install
-
-# Install every optional feature and group if you plan to run the full test suite
+# (Optional) Install all dependency groups individually
 poetry install --all-extras --all-groups
 
 # Activate the virtual environment
-
 poetry shell
 ```
+
+> **Note**: In Codex environments the `scripts/codex_setup.sh` script runs
+> automatically during provisioning. You should not invoke this script manually
+> outside of the Codex setup process.
 
 ## 3. Set Up Environment Variables
 
@@ -221,8 +222,15 @@ For more details, see the [Contributing Guide](contributing.md).
 
 DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
 Always invoke the test runner with `poetry run pytest` so that plugins from the
-Poetry environment are available. To run the entire test suite, ensure all
-optional features are installed:
+Poetry environment are available. The easiest way to guarantee all test plugins
+are present is to install DevSynth with the development dependencies and every
+optional extra:
+
+```bash
+poetry install --with dev --all-extras
+```
+
+If you prefer to enable groups individually, run:
 
 ```bash
 poetry install --all-extras --all-groups
@@ -231,6 +239,18 @@ poetry install --all-extras --all-groups
 The unit tests run in a hermetic environment managed by the test suite.  All
 ingestion and WSDE tests run by default without needing to set additional
 environment variables.
+
+### Troubleshooting Missing Extras
+
+If `poetry run pytest` fails with `ModuleNotFoundError` for packages such as
+`pytest_bdd`, verify that all extras were installed:
+
+```bash
+poetry install --with dev --all-extras
+```
+
+Running this command ensures that the test suite has access to every optional
+dependency.
 
 ### Running Unit Tests
 
