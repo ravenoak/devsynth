@@ -11,8 +11,11 @@ import pytest
 import yaml
 from pathlib import Path
 from unittest.mock import patch, MagicMock, call
-if os.environ.get('DEVSYNTH_RUN_INGEST_TESTS') != '1':
-    pytest.skip('Ingestion CLI tests require DEVSYNTH_RUN_INGEST_TESTS=1', allow_module_level=True)
+
+# These tests previously honoured the ``DEVSYNTH_RUN_INGEST_TESTS`` environment
+# variable to opt in to running the ingestion CLI.  The test harness now
+# provides a fully isolated environment so the additional guard is no longer
+# necessary and the tests run by default.
 sys.modules.setdefault('typer', types.ModuleType('typer'))
 sys.modules.setdefault('duckdb', types.ModuleType('duckdb'))
 import importlib.util
@@ -25,7 +28,10 @@ sys.modules.setdefault('devsynth.application.cli.ingest_cmd', ingest_cmd)
 cli_pkg = sys.modules.setdefault('devsynth.application.cli', types.
     ModuleType('cli'))
 setattr(cli_pkg, 'ingest_cmd', ingest_cmd)
-ingest_cmd_fn = ingest_cmd.ingest_cmd
+
+# Helper to invoke ingest_cmd using the currently patched bridge fixture.
+def ingest_cmd_fn(*args, **kwargs):
+    return ingest_cmd.ingest_cmd(*args, **kwargs, bridge=ingest_cmd.bridge)
 validate_manifest = ingest_cmd.validate_manifest
 load_manifest = ingest_cmd.load_manifest
 expand_phase = ingest_cmd.expand_phase
@@ -130,8 +136,11 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         ingest_cmd_fn(verbose=True)
-        mock_validate_manifest.assert_called_once_with(Path(os.path.join(os
-            .getcwd(), 'manifest.yaml')), True)
+        mock_validate_manifest.assert_called_once_with(
+            Path(os.path.join(os.getcwd(), 'manifest.yaml')),
+            True,
+            bridge=mock_bridge,
+        )
         mock_load_manifest.assert_not_called()
         mock_ingestion.return_value.run_ingestion.assert_called_once_with(
             dry_run=False, verbose=True)
@@ -192,7 +201,7 @@ ReqID: N/A"""
         mock_validate_manifest_script = MagicMock(return_value=True)
         with patch.dict('sys.modules', {'validate_manifest': MagicMock(
             validate_manifest=mock_validate_manifest_script)}):
-            validate_manifest(mock_manifest_path, verbose=True)
+            validate_manifest(mock_manifest_path, verbose=True, bridge=mock_bridge)
             mock_sys.path.append.assert_called_once_with('scripts_dir')
             mock_validate_manifest_script.assert_called_once_with(
                 mock_manifest_path, mock_schema_path, mock_parent)
@@ -206,7 +215,7 @@ ReqID: N/A"""
         mock_manifest_path = MagicMock()
         mock_manifest_path.exists.return_value = False
         with pytest.raises(ManifestError) as excinfo:
-            validate_manifest(mock_manifest_path)
+            validate_manifest(mock_manifest_path, bridge=mock_bridge)
         assert 'Manifest file not found' in str(excinfo.value)
 
     @patch('devsynth.application.cli.ingest_cmd.sys')
@@ -233,7 +242,7 @@ ReqID: N/A"""
         with patch.dict('sys.modules', {'validate_manifest':
             mock_validate_module}):
             with pytest.raises(ManifestError) as excinfo:
-                validate_manifest(mock_manifest_path)
+                validate_manifest(mock_manifest_path, bridge=mock_bridge)
             mock_sys.path.append.assert_called_once_with('scripts_dir')
             assert 'Manifest schema file not found' in str(excinfo.value)
 
@@ -261,7 +270,7 @@ ReqID: N/A"""
         with patch.dict('sys.modules', {'validate_manifest':
             mock_validate_module}):
             with pytest.raises(ManifestError) as excinfo:
-                validate_manifest(mock_manifest_path)
+                validate_manifest(mock_manifest_path, bridge=mock_bridge)
             mock_sys.path.append.assert_called_once_with('scripts_dir')
             mock_validate_module.validate_manifest.assert_called_once_with(
                 mock_manifest_path, mock_schema_path, mock_parent)

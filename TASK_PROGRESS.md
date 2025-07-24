@@ -13,6 +13,7 @@ This document tracks high-level progress on the DevSynth roadmap. Refer to
 - Investigate failing Web UI and Kuzu-related tests; implement fixes for the
   requirements wizard and memory initialization logic.
 - Some CLI and ingestion workflows still require interactive prompts. Related
-  unit tests are conditionally skipped unless the environment variable
-  flags `DEVSYNTH_RUN_INGEST_TESTS` or `DEVSYNTH_RUN_WSDE_TESTS` are enabled.
+  unit tests previously required the `DEVSYNTH_RUN_INGEST_TESTS` or
+  `DEVSYNTH_RUN_WSDE_TESTS` flags. These tests now run by default in the
+  isolated test environment.
 

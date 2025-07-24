@@ -228,9 +228,9 @@ optional features are installed:
 poetry install --all-extras --all-groups
 ```
 
-Some ingestion and WSDE tests are skipped unless you set
-`DEVSYNTH_RUN_INGEST_TESTS=1` or `DEVSYNTH_RUN_WSDE_TESTS=1` when invoking
-`poetry run pytest`.
+The unit tests run in a hermetic environment managed by the test suite.  All
+ingestion and WSDE tests run by default without needing to set additional
+environment variables.
 
 ### Running Unit Tests
 

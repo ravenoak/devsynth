@@ -435,8 +435,9 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - Investigate failing Web UI and Kuzu-related tests; implement fixes for the
   requirements wizard and memory initialization logic.
 - Some CLI and ingestion workflows still require interactive prompts. Related
-  unit tests are conditionally skipped unless the environment variable
-  flags `DEVSYNTH_RUN_INGEST_TESTS` or `DEVSYNTH_RUN_WSDE_TESTS` are enabled.
+  all related unit tests now run unconditionally in the hermetic test
+  environment and no longer depend on the `DEVSYNTH_RUN_INGEST_TESTS` or
+  `DEVSYNTH_RUN_WSDE_TESTS` flags.
 
 For updated scheduling, see the consolidated [ROADMAP](ROADMAP.md).
 ## Implementation Status
