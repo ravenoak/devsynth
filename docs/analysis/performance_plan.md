@@ -33,3 +33,17 @@ These metrics provide a baseline for detecting performance regressions.
 
 Benchmarks run with `pytest --benchmark-only` on a development machine with the specifications defined in [technical_reference/benchmarks_and_performance.md](../technical_reference/benchmarks_and_performance.md). Results are stored in `.benchmarks` and reviewed regularly.
 
+## Service Level Agreements
+
+The baseline benchmark run produced the following timings, all within the defined thresholds:
+
+| Component | Benchmark Result (ms) | SLA Threshold |
+|-----------|----------------------|---------------|
+| Memory Manager - store 100 items | 0.97 | < 50 |
+| Memory Manager - query 100 items | 0.04 | < 5 |
+| OfflineProvider.generate | 0.00023 | < 20 |
+| OfflineProvider.get_embedding | 0.004 | < 5 |
+| Workflow Manager execution | 0.02 | < 20 |
+| TieredCache put 1000 items | 1.24 | < 10 |
+| TieredCache get cached item | 0.0012 | < 1 |
+
