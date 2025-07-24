@@ -44,6 +44,14 @@ def _resolve_bridge(b: Optional[UXBridge]) -> UXBridge:
     return b if b is not None else bridge
 
 
+def _env_flag(name: str) -> Optional[bool]:
+    """Return boolean value for ``name`` if set, otherwise ``None``."""
+    val = os.environ.get(name)
+    if val is None:
+        return None
+    return val.lower() in {"1", "true", "yes"}
+
+
 console = Console()
 config_app = typer.Typer(help="Manage configuration settings")
 
@@ -92,7 +100,9 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     return True
 
 
-def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]) -> None:
+def _handle_error(
+    bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
+) -> None:
     """Handle errors consistently across all commands.
 
     Args:
@@ -132,7 +142,9 @@ def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
         error_msg = str(error)
 
         # Create a panel with the error details
-        bridge.display_result(f"[bold red]Error:[/bold red] {error_msg}", highlight=False)
+        bridge.display_result(
+            f"[bold red]Error:[/bold red] {error_msg}", highlight=False
+        )
 
         # Find relevant solutions based on error message
         solutions = []
@@ -150,36 +162,47 @@ def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
 
         # Display solutions if found
         if solutions:
-            bridge.display_result("[bold yellow]Suggested solutions:[/bold yellow]", highlight=False)
+            bridge.display_result(
+                "[bold yellow]Suggested solutions:[/bold yellow]", highlight=False
+            )
             for i, solution in enumerate(solutions, 1):
-                bridge.display_result(f"  [yellow]{i}.[/yellow] {solution}", highlight=False)
+                bridge.display_result(
+                    f"  [yellow]{i}.[/yellow] {solution}", highlight=False
+                )
 
         # Display documentation links if found
         if relevant_docs:
-            bridge.display_result("[bold cyan]Relevant documentation:[/bold cyan]", highlight=False)
+            bridge.display_result(
+                "[bold cyan]Relevant documentation:[/bold cyan]", highlight=False
+            )
             for doc in relevant_docs:
                 bridge.display_result(f"  • {doc}", highlight=False)
 
         # Always provide a general help tip
         bridge.display_result(
             "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
-            highlight=False
+            highlight=False,
         )
 
     elif isinstance(error, dict):
         # Handle result dict with error message
-        message = error.get('message', 'Unknown error')
-        code = error.get('code', '')
-        details = error.get('details', '')
+        message = error.get("message", "Unknown error")
+        code = error.get("code", "")
+        details = error.get("details", "")
 
         # Log the error
         logger.error(f"Command error: {message} (Code: {code})")
 
         # Display a structured error message
-        bridge.display_result(f"[bold red]Error {code if code else ''}:[/bold red] {message}", highlight=False)
+        bridge.display_result(
+            f"[bold red]Error {code if code else ''}:[/bold red] {message}",
+            highlight=False,
+        )
 
         if details:
-            bridge.display_result(f"[yellow]Details:[/yellow] {details}", highlight=False)
+            bridge.display_result(
+                f"[yellow]Details:[/yellow] {details}", highlight=False
+            )
 
         # Find relevant solutions based on error message
         solutions = []
@@ -187,30 +210,40 @@ def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
 
         # Check for known error patterns
         for pattern, solution in error_solutions.items():
-            if pattern.lower() in message.lower() or (details and pattern.lower() in details.lower()):
+            if pattern.lower() in message.lower() or (
+                details and pattern.lower() in details.lower()
+            ):
                 solutions.append(solution)
 
         # Add documentation links based on error type
         for keyword, link in doc_links.items():
-            if keyword.lower() in message.lower() or (details and keyword.lower() in details.lower()):
+            if keyword.lower() in message.lower() or (
+                details and keyword.lower() in details.lower()
+            ):
                 relevant_docs.append(link)
 
         # Display solutions if found
         if solutions:
-            bridge.display_result("[bold yellow]Suggested solutions:[/bold yellow]", highlight=False)
+            bridge.display_result(
+                "[bold yellow]Suggested solutions:[/bold yellow]", highlight=False
+            )
             for i, solution in enumerate(solutions, 1):
-                bridge.display_result(f"  [yellow]{i}.[/yellow] {solution}", highlight=False)
+                bridge.display_result(
+                    f"  [yellow]{i}.[/yellow] {solution}", highlight=False
+                )
 
         # Display documentation links if found
         if relevant_docs:
-            bridge.display_result("[bold cyan]Relevant documentation:[/bold cyan]", highlight=False)
+            bridge.display_result(
+                "[bold cyan]Relevant documentation:[/bold cyan]", highlight=False
+            )
             for doc in relevant_docs:
                 bridge.display_result(f"  • {doc}", highlight=False)
 
         # Always provide a general help tip
         bridge.display_result(
             "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
-            highlight=False
+            highlight=False,
         )
     else:
         # Handle string error message
@@ -235,20 +268,26 @@ def _handle_error(bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
 
         # Display solutions if found
         if solutions:
-            bridge.display_result("[bold yellow]Suggested solutions:[/bold yellow]", highlight=False)
+            bridge.display_result(
+                "[bold yellow]Suggested solutions:[/bold yellow]", highlight=False
+            )
             for i, solution in enumerate(solutions, 1):
-                bridge.display_result(f"  [yellow]{i}.[/yellow] {solution}", highlight=False)
+                bridge.display_result(
+                    f"  [yellow]{i}.[/yellow] {solution}", highlight=False
+                )
 
         # Display documentation links if found
         if relevant_docs:
-            bridge.display_result("[bold cyan]Relevant documentation:[/bold cyan]", highlight=False)
+            bridge.display_result(
+                "[bold cyan]Relevant documentation:[/bold cyan]", highlight=False
+            )
             for doc in relevant_docs:
                 bridge.display_result(f"  • {doc}", highlight=False)
 
         # Always provide a general help tip
         bridge.display_result(
             "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
-            highlight=False
+            highlight=False,
         )
 
 
@@ -277,7 +316,18 @@ def config_key_autocomplete(ctx: typer.Context, incomplete: str):
     return loader_autocomplete(ctx, incomplete)
 
 
-def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None:
+def init_cmd(
+    wizard: bool = False,
+    *,
+    root: Optional[str] = None,
+    language: Optional[str] = None,
+    goals: Optional[str] = None,
+    memory_backend: Optional[str] = None,
+    offline_mode: Optional[bool] = None,
+    features: Optional[Dict[str, bool]] = None,
+    auto_confirm: Optional[bool] = None,
+    bridge: Optional[UXBridge] = None,
+) -> None:
     """Initialize a new project.
 
     This command sets up a new DevSynth project with the specified configuration.
@@ -300,6 +350,9 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
     """
 
     bridge = _resolve_bridge(bridge)
+    auto_confirm = (
+        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+    )
     try:
         if wizard:
             from .setup_wizard import SetupWizard
@@ -312,30 +365,57 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
             bridge.display_result("[yellow]Project already initialized[/yellow]")
             return
 
-        # Get project information
-        root = bridge.ask_question("Project root directory?", default=str(Path.cwd()))
+        root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
+        if root is None:
+            root = bridge.ask_question(
+                "Project root directory?", default=str(Path.cwd())
+            )
 
         # Validate root directory
         root_path = Path(root)
         if not root_path.exists():
-            if bridge.confirm_choice(f"Directory '{root}' does not exist. Create it?", default=True):
+            if auto_confirm or bridge.confirm_choice(
+                f"Directory '{root}' does not exist. Create it?", default=True
+            ):
                 root_path.mkdir(parents=True, exist_ok=True)
             else:
                 bridge.display_result("[yellow]Initialization cancelled[/yellow]")
                 return
 
-        language = bridge.ask_question("Primary language?", default="python")
-        goals = bridge.ask_question("Project goals?", default="")
+        language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
+        if language is None:
+            language = bridge.ask_question("Primary language?", default="python")
 
-        memory_backend = bridge.ask_question(
-            "Select memory backend",
-            choices=["memory", "file", "kuzu", "chromadb"],
-            default="memory",
+        goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS")
+        if goals is None:
+            goals = bridge.ask_question("Project goals?", default="")
+
+        memory_backend = memory_backend or os.environ.get(
+            "DEVSYNTH_INIT_MEMORY_BACKEND"
         )
-        offline_mode = bridge.confirm_choice("Enable offline mode?", default=False)
+        if memory_backend is None:
+            memory_backend = bridge.ask_question(
+                "Select memory backend",
+                choices=["memory", "file", "kuzu", "chromadb"],
+                default="memory",
+            )
+
+        if offline_mode is None:
+            env_offline = _env_flag("DEVSYNTH_INIT_OFFLINE_MODE")
+            if env_offline is not None:
+                offline_mode = env_offline
+            else:
+                offline_mode = bridge.confirm_choice(
+                    "Enable offline mode?", default=False
+                )
 
         # Configure features
-        features = config.features or {}
+        if features is None:
+            env_feats = os.environ.get("DEVSYNTH_INIT_FEATURES")
+            if env_feats:
+                features = {f.strip(): True for f in env_feats.split(";") if f.strip()}
+            else:
+                features = config.features or {}
         for feat in [
             "wsde_collaboration",
             "dialectical_reasoning",
@@ -344,13 +424,23 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
             "documentation_generation",
             "experimental_features",
         ]:
-            features[feat] = bridge.confirm_choice(
-                f"Enable {feat.replace('_', ' ')}?",
-                default=features.get(feat, False),
-            )
+            if feat in features:
+                features[feat] = bool(features[feat])
+            elif auto_confirm:
+                features[feat] = True
+            else:
+                features[feat] = bridge.confirm_choice(
+                    f"Enable {feat.replace('_', ' ')}?",
+                    default=features.get(feat, False),
+                )
 
         # Confirm and save
-        if not bridge.confirm_choice("Proceed with initialization?", default=True):
+        proceed = auto_confirm if auto_confirm is not None else None
+        if proceed is None:
+            proceed = bridge.confirm_choice(
+                "Proceed with initialization?", default=True
+            )
+        if not proceed:
             bridge.display_result("[yellow]Initialization cancelled[/yellow]")
             return
 
@@ -366,7 +456,9 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
                 ConfigModel(**config.as_dict()),
                 use_pyproject=(Path("pyproject.toml").exists()),
             )
-            bridge.display_result("[green]Initialization complete[/green]", highlight=True)
+            bridge.display_result(
+                "[green]Initialization complete[/green]", highlight=True
+            )
         except Exception as save_err:
             _handle_error(bridge, save_err)
     except Exception as err:  # pragma: no cover - defensive
@@ -374,7 +466,10 @@ def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None
 
 
 def spec_cmd(
-    requirements_file: str = "requirements.md", *, bridge: Optional[UXBridge] = None
+    requirements_file: str = "requirements.md",
+    *,
+    auto_confirm: Optional[bool] = None,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Generate specifications from a requirements file.
 
@@ -397,6 +492,9 @@ def spec_cmd(
         ```
     """
     bridge = _resolve_bridge(bridge)
+    auto_confirm = (
+        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+    )
     try:
         # Check required services
         if not _check_services(bridge):
@@ -406,9 +504,13 @@ def spec_cmd(
         error = _validate_file_path(requirements_file)
         if error:
             bridge.display_result(f"[yellow]{error}[/yellow]")
-            if bridge.confirm_choice(f"Create empty '{requirements_file}' file?", default=False):
+            if auto_confirm or bridge.confirm_choice(
+                f"Create empty '{requirements_file}' file?", default=False
+            ):
                 Path(requirements_file).touch()
-                bridge.display_result(f"[green]Created empty file: {requirements_file}[/green]")
+                bridge.display_result(
+                    f"[green]Created empty file: {requirements_file}[/green]"
+                )
             else:
                 return
 
@@ -422,16 +524,19 @@ def spec_cmd(
             bridge.display_result(
                 f"[green]Specifications generated from {requirements_file}.[/green]"
             )
-            bridge.display_result(
-                f"[blue]Output saved to: {output_file}[/blue]"
-            )
+            bridge.display_result(f"[blue]Output saved to: {output_file}[/blue]")
         else:
             _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
         _handle_error(bridge, err)
 
 
-def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) -> None:
+def test_cmd(
+    spec_file: str = "specs.md",
+    *,
+    auto_confirm: Optional[bool] = None,
+    bridge: Optional[UXBridge] = None,
+) -> None:
     """Generate tests based on specifications.
 
     This command analyzes a specifications file and generates test cases
@@ -453,6 +558,9 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) 
         ```
     """
     bridge = _resolve_bridge(bridge)
+    auto_confirm = (
+        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+    )
     try:
         # Check required services
         if not _check_services(bridge):
@@ -462,9 +570,10 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) 
         error = _validate_file_path(spec_file)
         if error:
             bridge.display_result(f"[yellow]{error}[/yellow]")
-            if bridge.confirm_choice(f"Run 'devsynth spec' to generate {spec_file}?", default=True):
-                # Call spec_cmd to generate the specifications file
-                spec_cmd(bridge=bridge)
+            if auto_confirm or bridge.confirm_choice(
+                f"Run 'devsynth spec' to generate {spec_file}?", default=True
+            ):
+                spec_cmd(bridge=bridge, auto_confirm=auto_confirm)
             else:
                 return
 
@@ -476,14 +585,18 @@ def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) 
         if result.get("success"):
             output_dir = result.get("output_dir", "tests")
             bridge.display_result(f"[green]Tests generated from {spec_file}.[/green]")
-            bridge.display_result(f"[blue]Tests saved to directory: {output_dir}[/blue]")
+            bridge.display_result(
+                f"[blue]Tests saved to directory: {output_dir}[/blue]"
+            )
         else:
             _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
         _handle_error(bridge, err)
 
 
-def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def code_cmd(
+    *, auto_confirm: Optional[bool] = None, bridge: Optional[UXBridge] = None
+) -> None:
     """Generate implementation code from tests.
 
     This command analyzes the test files and generates implementation code
@@ -499,6 +612,9 @@ def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
         ```
     """
     bridge = _resolve_bridge(bridge)
+    auto_confirm = (
+        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+    )
     try:
         # Check required services
         if not _check_services(bridge):
@@ -507,15 +623,20 @@ def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
         # Check if tests directory exists
         tests_dir = Path("tests")
         if not tests_dir.exists() or not any(tests_dir.iterdir()):
-            bridge.display_result("[yellow]No tests found in 'tests' directory.[/yellow]")
-            if bridge.confirm_choice("Run 'devsynth test' to generate tests?", default=True):
-                # Call test_cmd to generate the tests
-                test_cmd(bridge=bridge)
+            bridge.display_result(
+                "[yellow]No tests found in 'tests' directory.[/yellow]"
+            )
+            if auto_confirm or bridge.confirm_choice(
+                "Run 'devsynth test' to generate tests?", default=True
+            ):
+                test_cmd(bridge=bridge, auto_confirm=auto_confirm)
             else:
                 return
 
         # Generate code
-        bridge.display_result("[blue]Generating implementation code from tests...[/blue]")
+        bridge.display_result(
+            "[blue]Generating implementation code from tests...[/blue]"
+        )
         result = generate_code()
 
         # Handle result
@@ -533,6 +654,7 @@ def run_pipeline_cmd(
     target: Optional[str] = None,
     report: Optional[Dict[str, Any]] = None,
     *,
+    auto_confirm: Optional[bool] = None,
     bridge: Optional[UXBridge] = None,
 ) -> None:
     """Run the generated code or a specific target.
@@ -557,6 +679,9 @@ def run_pipeline_cmd(
         ```
     """
     bridge = _resolve_bridge(bridge)
+    auto_confirm = (
+        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+    )
     try:
         # Check required services
         if not _check_services(bridge):
@@ -568,11 +693,18 @@ def run_pipeline_cmd(
             bridge.display_result(
                 f"[yellow]Warning: '{target}' is not a standard target. Valid targets are: {', '.join(valid_targets)}[/yellow]"
             )
-            if not bridge.confirm_choice(f"Continue with target '{target}'?", default=True):
+            if not (
+                auto_confirm
+                or bridge.confirm_choice(
+                    f"Continue with target '{target}'?", default=True
+                )
+            ):
                 return
 
         # Execute command
-        bridge.display_result(f"[blue]Running {'target: ' + target if target else 'default pipeline'}...[/blue]")
+        bridge.display_result(
+            f"[blue]Running {'target: ' + target if target else 'default pipeline'}...[/blue]"
+        )
         result = workflows.execute_command(
             "run-pipeline", {"target": target, "report": report}
         )
@@ -580,7 +712,9 @@ def run_pipeline_cmd(
         # Handle result
         if result.get("success"):
             if target:
-                bridge.display_result(f"[green]Successfully executed target: {target}[/green]")
+                bridge.display_result(
+                    f"[green]Successfully executed target: {target}[/green]"
+                )
             else:
                 bridge.display_result(f"[green]Pipeline execution complete.[/green]")
 
@@ -1685,7 +1819,9 @@ def dbschema_cmd(
         )
 
 
-def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None) -> None:
+def doctor_cmd(
+    config_dir: str = "config", *, bridge: Optional[UXBridge] = None
+) -> None:
     """Validate environment configuration files."""
 
     _doctor_impl(config_dir=config_dir, bridge=_resolve_bridge(bridge))
