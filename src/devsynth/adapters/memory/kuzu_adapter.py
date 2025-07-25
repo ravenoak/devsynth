@@ -32,10 +32,12 @@ class KuzuAdapter(VectorStore):
     def __init__(
         self, persist_directory: str, collection_name: str = "devsynth_vectors"
     ) -> None:
-        self.persist_directory = persist_directory
+        self.persist_directory = os.path.expanduser(persist_directory)
         self.collection_name = collection_name
-        ensure_path_exists(persist_directory)
-        self._data_file = os.path.join(persist_directory, f"{collection_name}.json")
+        ensure_path_exists(self.persist_directory)
+        self._data_file = os.path.join(
+            self.persist_directory, f"{collection_name}.json"
+        )
         self._store: Dict[str, MemoryVector] = {}
         self._load()
 
@@ -49,6 +51,7 @@ class KuzuAdapter(VectorStore):
                 raw = json.load(f)
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to load persisted vectors: %s", exc)
+            self._store = {}
             return
 
         for item in raw:
@@ -61,7 +64,8 @@ class KuzuAdapter(VectorStore):
     def _persist(self) -> None:
         """Persist the vector store to disk."""
         try:
-            with open(self._data_file, "w", encoding="utf-8") as f:
+            temp_file = f"{self._data_file}.tmp"
+            with open(temp_file, "w", encoding="utf-8") as f:
                 json.dump(
                     [
                         {
@@ -74,6 +78,7 @@ class KuzuAdapter(VectorStore):
                     ],
                     f,
                 )
+            os.replace(temp_file, self._data_file)
         except Exception as exc:  # pragma: no cover - defensive
             logger.error("Failed to persist vectors: %s", exc)
 
@@ -95,7 +100,13 @@ class KuzuAdapter(VectorStore):
         if np is not None:
             q = np.array(query_embedding, dtype=float)
             for vec in self._store.values():
-                dist = float(np.linalg.norm(q - np.array(vec.embedding, dtype=float)))
+                try:
+                    dist = float(
+                        np.linalg.norm(q - np.array(vec.embedding, dtype=float))
+                    )
+                except ValueError:
+                    # Skip vectors with mismatched dimensions
+                    continue
                 results.append((dist, vec))
         else:  # pragma: no cover - extremely rare fallback
 
@@ -103,6 +114,8 @@ class KuzuAdapter(VectorStore):
                 return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
 
             for vec in self._store.values():
+                if len(vec.embedding) != len(query_embedding):
+                    continue
                 dist = _distance(query_embedding, vec.embedding)
                 results.append((dist, vec))
         results.sort(key=lambda x: x[0])
