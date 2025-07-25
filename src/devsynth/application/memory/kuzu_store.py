@@ -22,7 +22,6 @@ if __spec__ is not None:
     __spec__.name = canonical_name
 
 
-
 try:  # pragma: no cover - optional dependency
     import tiktoken
 except Exception:  # pragma: no cover - optional dependency
@@ -42,11 +41,16 @@ class KuzuStore(MemoryStore):
     """Lightweight ``MemoryStore`` backed by KuzuDB."""
 
     def __init__(self, file_path: str) -> None:
+        # ``ensure_path_exists`` handles path redirection and optional
+        # directory creation based on the test environment.  Use the returned
+        # path so tests that set ``DEVSYNTH_PROJECT_DIR`` are respected and
+        # avoid manual ``os.makedirs`` which would ignore the
+        # ``DEVSYNTH_NO_FILE_LOGGING`` setting.
         self.file_path = file_path
-        # Ensure the backing directory exists even when using the in-memory
-        # fallback.  This mirrors the behaviour of other memory stores which
-        # create their storage path during initialisation and allows tests
-        # relying on the directory to be present to pass.
+        # Ensure the backing directory exists even when running under the test
+        # isolation fixtures. ``ensure_path_exists`` handles optional path
+        # redirection but may be patched not to create the directory, so we
+        # explicitly call ``os.makedirs`` as well.
         ensure_path_exists(file_path)
         os.makedirs(file_path, exist_ok=True)
         self.db_path = os.path.join(file_path, "kuzu.db")
