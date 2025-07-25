@@ -1277,9 +1277,7 @@ class EDRRCoordinator:
         if context is None:
             context = {}
 
-        logger.info(
-            f"Executing Expand phase (recursion depth: {self.recursion_depth})"
-        )
+        logger.info(f"Executing Expand phase (recursion depth: {self.recursion_depth})")
 
         results: Dict[str, Any] = {}
 
@@ -1341,6 +1339,7 @@ class EDRRCoordinator:
                 )
 
             self._execution_traces[f"EXPAND_{self.cycle_id}"] = trace_data
+            self._execution_traces["phases"][Phase.EXPAND.name] = trace_data
 
         logger.info(
             f"Expand phase completed with {len(brainstorm)} ideas generated (recursion depth: {self.recursion_depth})"
@@ -1371,17 +1370,20 @@ class EDRRCoordinator:
         results: Dict[str, Any] = {}
 
         diff_prompt = self.prompt_manager.render_prompt(
-            "differentiate_phase", {"task_description": self.task.get("description", "")}
+            "differentiate_phase",
+            {"task_description": self.task.get("description", "")},
         )
         if diff_prompt:
             results["prompt"] = diff_prompt
 
         # Get ideas from the Expand phase
-        expand_results = self.results.get(Phase.EXPAND.name) or self._safe_retrieve_with_edrr_phase(
+        expand_results = self.results.get(
+            Phase.EXPAND.name
+        ) or self._safe_retrieve_with_edrr_phase(
             MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
         )
         ideas = expand_results.get("ideas") or expand_results.get("wsde_brainstorm", [])
-        
+
         # Implement comparative analysis frameworks
         comparison_matrix = self.wsde_team.create_comparison_matrix(
             ideas,
@@ -1427,7 +1429,9 @@ class EDRRCoordinator:
         )
         results["decision_criteria"] = decision_criteria
 
-        selected = self.wsde_team.select_best_option(evaluated_options, decision_criteria)
+        selected = self.wsde_team.select_best_option(
+            evaluated_options, decision_criteria
+        )
         evaluation = {"selected_approach": selected}
 
         if self.task.get("code"):
@@ -1476,6 +1480,7 @@ class EDRRCoordinator:
                 )
 
             self._execution_traces[f"DIFFERENTIATE_{self.cycle_id}"] = trace_data
+            self._execution_traces["phases"][Phase.DIFFERENTIATE.name] = trace_data
 
         logger.info(
             f"Differentiate phase completed with {len(evaluated_options)} options evaluated (recursion depth: {self.recursion_depth})"
@@ -1508,7 +1513,9 @@ class EDRRCoordinator:
             results["prompt"] = refine_prompt
 
         # Get evaluated options from the Differentiate phase
-        differentiate_results = self.results.get(Phase.DIFFERENTIATE.name) or self._safe_retrieve_with_edrr_phase(
+        differentiate_results = self.results.get(
+            Phase.DIFFERENTIATE.name
+        ) or self._safe_retrieve_with_edrr_phase(
             MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
         )
         evaluated_options = differentiate_results.get("evaluated_options", [])
@@ -1541,7 +1548,9 @@ class EDRRCoordinator:
                 include_testing_strategy=True,
             )
         except TypeError:
-            implementation_plan = self.wsde_team.create_implementation_plan(detailed_plan)
+            implementation_plan = self.wsde_team.create_implementation_plan(
+                detailed_plan
+            )
         results["implementation_plan"] = implementation_plan
 
         # Optimization algorithms
@@ -1552,7 +1561,9 @@ class EDRRCoordinator:
                 code_analyzer=self.code_analyzer,
             )
         except TypeError:
-            optimized_plan = self.wsde_team.optimize_implementation(implementation_plan, [])
+            optimized_plan = self.wsde_team.optimize_implementation(
+                implementation_plan, []
+            )
         results["optimized_plan"] = optimized_plan
 
         # Quality assurance checks
@@ -1624,6 +1635,7 @@ class EDRRCoordinator:
                 )
 
             self._execution_traces[f"REFINE_{self.cycle_id}"] = trace_data
+            self._execution_traces["phases"][Phase.REFINE.name] = trace_data
 
         results["implementation"] = {
             "code": optimized_plan.get("plan", implementation_plan)
@@ -1666,13 +1678,19 @@ class EDRRCoordinator:
             results["prompt"] = retro_prompt
 
         # Collect results from all previous phases
-        expand_results = self.results.get(Phase.EXPAND.name) or self._safe_retrieve_with_edrr_phase(
+        expand_results = self.results.get(
+            Phase.EXPAND.name
+        ) or self._safe_retrieve_with_edrr_phase(
             MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
         )
-        differentiate_results = self.results.get(Phase.DIFFERENTIATE.name) or self._safe_retrieve_with_edrr_phase(
+        differentiate_results = self.results.get(
+            Phase.DIFFERENTIATE.name
+        ) or self._safe_retrieve_with_edrr_phase(
             MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
         )
-        refine_results = self.results.get(Phase.REFINE.name) or self._safe_retrieve_with_edrr_phase(
+        refine_results = self.results.get(
+            Phase.REFINE.name
+        ) or self._safe_retrieve_with_edrr_phase(
             MemoryType.SOLUTION.value, "REFINE", {"cycle_id": self.cycle_id}
         )
 
@@ -1716,7 +1734,9 @@ class EDRRCoordinator:
 
         evaluation = {"quality": "good", "issues": [], "suggestions": []}
         if refine_results.get("optimized_plan"):
-            evaluation["code_quality"] = {"lines": len(str(refine_results["optimized_plan"]))}
+            evaluation["code_quality"] = {
+                "lines": len(str(refine_results["optimized_plan"]))
+            }
         results["evaluation"] = evaluation
         results["is_valid"] = True
         results["completed"] = True
@@ -1800,6 +1820,7 @@ class EDRRCoordinator:
                 )
 
             self._execution_traces[f"RETROSPECT_{self.cycle_id}"] = trace_data
+            self._execution_traces["phases"][Phase.RETROSPECT.name] = trace_data
 
         logger.info(
             f"Retrospect phase completed with learnings extracted and final report generated (recursion depth: {self.recursion_depth})"
