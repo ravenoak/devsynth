@@ -4,9 +4,11 @@ Step Definitions for Memory Backend Integration BDD Tests
 This file implements the step definitions for the memory backend integration
 feature file, testing all available memory backends with the WSDE model.
 """
+
 import pytest
 import time
 import os
+import logging
 
 chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
     "0",
@@ -18,11 +20,13 @@ if not chromadb_enabled:
 from pytest_bdd import given, when, then, parsers, scenarios
 
 # Import the feature file
-scenarios('../features/general/memory_backend_integration.feature')
+scenarios("../features/general/memory_backend_integration.feature")
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
+
+logger = logging.getLogger(__name__)
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
@@ -39,6 +43,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 @pytest.fixture
 def context():
     """Fixture to provide a context object for sharing state between steps."""
+
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()
@@ -60,14 +65,22 @@ def context():
             self.memory_backends = {}
             self.performance_metrics = {}
             self.all_backends = [
-                "memory", "file", "tinydb", "chromadb", 
-                "duckdb", "faiss", "json", "lmdb", "rdflib"
+                "memory",
+                "file",
+                "tinydb",
+                "chromadb",
+                "duckdb",
+                "faiss",
+                "json",
+                "lmdb",
+                "rdflib",
             ]
 
     return Context()
 
 
 # Background steps
+
 
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
@@ -95,17 +108,20 @@ def wsde_model_enabled(context):
 
 # Scenario Outline: Store and retrieve WSDE artifacts in different memory backends
 
+
 @given(parsers.parse('the memory system is configured with a "{backend_type}" backend'))
 def memory_system_configured_with_backend(context, backend_type):
     """Configure the memory system with the specified backend type."""
     # Create a memory system adapter with the specified backend
     try:
-        context.memory_adapter = MemorySystemAdapter.create_for_testing(storage_type=backend_type)
+        context.memory_adapter = MemorySystemAdapter.create_for_testing(
+            storage_type=backend_type
+        )
 
         # Create a memory manager that uses the memory store from the adapter
-        context.memory_manager = MemoryManager({
-            'default': context.memory_adapter.get_memory_store()
-        })
+        context.memory_manager = MemoryManager(
+            {"default": context.memory_adapter.get_memory_store()}
+        )
 
         # Store the backend type for later reference
         context.current_backend_type = backend_type
@@ -123,7 +139,7 @@ def store_team_state_in_backend(context):
     context.original_team_state = {
         "team_id": context.current_team_id,
         "agents": [agent.config.name for agent in team.agents],
-        "primus_index": team.primus_index
+        "primus_index": team.primus_index,
     }
 
     # Create a memory item for the team state
@@ -133,8 +149,8 @@ def store_team_state_in_backend(context):
         content=context.original_team_state,
         metadata={
             "team_id": context.current_team_id,
-            "backend": context.current_backend_type
-        }
+            "backend": context.current_backend_type,
+        },
     )
 
     # Store the memory item
@@ -147,7 +163,7 @@ def store_solution_in_backend(context):
     # Create a task
     task = {
         "type": "backend_test",
-        "description": f"Test {context.current_backend_type} backend"
+        "description": f"Test {context.current_backend_type} backend",
     }
     context.tasks[f"{context.current_backend_type}_task"] = task
 
@@ -155,7 +171,7 @@ def store_solution_in_backend(context):
     context.original_solution = {
         "agent": "code_agent",
         "content": f"def test_{context.current_backend_type}():\n    return '{context.current_backend_type} works!'",
-        "description": f"Test solution for {context.current_backend_type} backend"
+        "description": f"Test solution for {context.current_backend_type} backend",
     }
 
     # Create a memory item for the solution
@@ -166,8 +182,8 @@ def store_solution_in_backend(context):
         metadata={
             "task_id": str(hash(frozenset(task.items()))),
             "agent": context.original_solution["agent"],
-            "backend": context.current_backend_type
-        }
+            "backend": context.current_backend_type,
+        },
     )
 
     # Store the memory item
@@ -181,16 +197,16 @@ def store_dialectical_result_in_backend(context):
     context.original_dialectical_result = {
         "thesis": {
             "content": f"Initial solution for {context.current_backend_type} backend",
-            "agent": "code_agent"
+            "agent": "code_agent",
         },
         "antithesis": {
             "content": f"Critique of solution for {context.current_backend_type} backend",
-            "agent": "critic_agent"
+            "agent": "critic_agent",
         },
         "synthesis": {
             "content": f"Improved solution for {context.current_backend_type} backend",
-            "agent": "orchestrator_agent"
-        }
+            "agent": "orchestrator_agent",
+        },
     }
 
     # Create a memory item for the dialectical result
@@ -199,9 +215,15 @@ def store_dialectical_result_in_backend(context):
         memory_type=MemoryType.DIALECTICAL_REASONING,
         content=context.original_dialectical_result,
         metadata={
-            "task_id": str(hash(frozenset(context.tasks[f"{context.current_backend_type}_task"].items()))),
-            "backend": context.current_backend_type
-        }
+            "task_id": str(
+                hash(
+                    frozenset(
+                        context.tasks[f"{context.current_backend_type}_task"].items()
+                    )
+                )
+            ),
+            "backend": context.current_backend_type,
+        },
     )
 
     # Store the memory item
@@ -240,11 +262,15 @@ def retrieve_solution_from_backend(context):
     context.retrieved_solution = solution_item.content
 
 
-@then("I should be able to retrieve the dialectical reasoning result from the memory backend")
+@then(
+    "I should be able to retrieve the dialectical reasoning result from the memory backend"
+)
 def retrieve_dialectical_result_from_backend(context):
     """Retrieve the dialectical reasoning result from the memory backend."""
     # Query for dialectical reasoning memory items
-    query_result = context.memory_manager.query_by_type(MemoryType.DIALECTICAL_REASONING)
+    query_result = context.memory_manager.query_by_type(
+        MemoryType.DIALECTICAL_REASONING
+    )
 
     # Verify that we got at least one result
     assert len(query_result) > 0
@@ -262,26 +288,47 @@ def verify_artifacts_match_originals(context):
     # Verify team state
     assert context.retrieved_team_state is not None
     assert context.original_team_state is not None
-    assert context.retrieved_team_state["team_id"] == context.original_team_state["team_id"]
-    assert set(context.retrieved_team_state["agents"]) == set(context.original_team_state["agents"])
-    assert context.retrieved_team_state["primus_index"] == context.original_team_state["primus_index"]
+    assert (
+        context.retrieved_team_state["team_id"]
+        == context.original_team_state["team_id"]
+    )
+    assert set(context.retrieved_team_state["agents"]) == set(
+        context.original_team_state["agents"]
+    )
+    assert (
+        context.retrieved_team_state["primus_index"]
+        == context.original_team_state["primus_index"]
+    )
 
     # Verify solution
     assert context.retrieved_solution is not None
     assert context.original_solution is not None
     assert context.retrieved_solution["agent"] == context.original_solution["agent"]
     assert context.retrieved_solution["content"] == context.original_solution["content"]
-    assert context.retrieved_solution["description"] == context.original_solution["description"]
+    assert (
+        context.retrieved_solution["description"]
+        == context.original_solution["description"]
+    )
 
     # Verify dialectical result
     assert context.retrieved_dialectical_result is not None
     assert context.original_dialectical_result is not None
-    assert context.retrieved_dialectical_result["thesis"]["content"] == context.original_dialectical_result["thesis"]["content"]
-    assert context.retrieved_dialectical_result["antithesis"]["content"] == context.original_dialectical_result["antithesis"]["content"]
-    assert context.retrieved_dialectical_result["synthesis"]["content"] == context.original_dialectical_result["synthesis"]["content"]
+    assert (
+        context.retrieved_dialectical_result["thesis"]["content"]
+        == context.original_dialectical_result["thesis"]["content"]
+    )
+    assert (
+        context.retrieved_dialectical_result["antithesis"]["content"]
+        == context.original_dialectical_result["antithesis"]["content"]
+    )
+    assert (
+        context.retrieved_dialectical_result["synthesis"]["content"]
+        == context.original_dialectical_result["synthesis"]["content"]
+    )
 
 
 # Scenario: Cross-backend relationships between WSDE artifacts
+
 
 @given("the memory system is configured with multiple backends")
 def memory_system_with_multiple_backends(context):
@@ -291,7 +338,9 @@ def memory_system_with_multiple_backends(context):
         # Try to create adapters for file, tinydb, and chromadb
         file_adapter = MemorySystemAdapter.create_for_testing(storage_type="file")
         tinydb_adapter = MemorySystemAdapter.create_for_testing(storage_type="tinydb")
-        chromadb_adapter = MemorySystemAdapter.create_for_testing(storage_type="chromadb")
+        chromadb_adapter = MemorySystemAdapter.create_for_testing(
+            storage_type="chromadb"
+        )
 
         # Store the memory stores from the adapters
         context.memory_backends["file"] = file_adapter.get_memory_store()
@@ -300,9 +349,7 @@ def memory_system_with_multiple_backends(context):
 
         # Create memory managers for each backend
         context.memory_managers = {
-            backend_name: MemoryManager({
-                'default': memory_store
-            })
+            backend_name: MemoryManager({"default": memory_store})
             for backend_name, memory_store in context.memory_backends.items()
         }
     except Exception as e:
@@ -319,7 +366,7 @@ def store_team_state_in_named_backend(context, backend_name):
     team_state = {
         "team_id": context.current_team_id,
         "agents": [agent.config.name for agent in team.agents],
-        "primus_index": team.primus_index
+        "primus_index": team.primus_index,
     }
 
     # Store the original team state for later comparison
@@ -330,10 +377,7 @@ def store_team_state_in_named_backend(context, backend_name):
         id=f"team_state_{backend_name}",
         memory_type=MemoryType.TEAM_STATE,
         content=team_state,
-        metadata={
-            "team_id": context.current_team_id,
-            "backend": backend_name
-        }
+        metadata={"team_id": context.current_team_id, "backend": backend_name},
     )
 
     # Store the memory item in the specified backend
@@ -346,7 +390,7 @@ def store_solution_in_named_backend(context, backend_name):
     # Create a task
     task = {
         "type": "cross_backend_test",
-        "description": "Test cross-backend relationships"
+        "description": "Test cross-backend relationships",
     }
     context.tasks["cross_backend_task"] = task
 
@@ -354,7 +398,7 @@ def store_solution_in_named_backend(context, backend_name):
     solution = {
         "agent": "code_agent",
         "content": f"def test_cross_backend():\n    return '{backend_name} works!'",
-        "description": f"Test solution for cross-backend test in {backend_name}"
+        "description": f"Test solution for cross-backend test in {backend_name}",
     }
 
     # Store the original solution for later comparison
@@ -368,31 +412,35 @@ def store_solution_in_named_backend(context, backend_name):
         metadata={
             "task_id": str(hash(frozenset(task.items()))),
             "agent": solution["agent"],
-            "backend": backend_name
-        }
+            "backend": backend_name,
+        },
     )
 
     # Store the memory item in the specified backend
     context.memory_managers[backend_name].store_item(memory_item)
 
 
-@when(parsers.parse('I store a dialectical reasoning result in the "{backend_name}" backend'))
+@when(
+    parsers.parse(
+        'I store a dialectical reasoning result in the "{backend_name}" backend'
+    )
+)
 def store_dialectical_result_in_named_backend(context, backend_name):
     """Store a dialectical reasoning result in the specified backend."""
     # Create a dialectical reasoning result
     dialectical_result = {
         "thesis": {
             "content": f"Initial solution for cross-backend test in {backend_name}",
-            "agent": "code_agent"
+            "agent": "code_agent",
         },
         "antithesis": {
             "content": f"Critique of solution for cross-backend test in {backend_name}",
-            "agent": "critic_agent"
+            "agent": "critic_agent",
         },
         "synthesis": {
             "content": f"Improved solution for cross-backend test in {backend_name}",
-            "agent": "orchestrator_agent"
-        }
+            "agent": "orchestrator_agent",
+        },
     }
 
     # Store the original dialectical result for later comparison
@@ -404,9 +452,11 @@ def store_dialectical_result_in_named_backend(context, backend_name):
         memory_type=MemoryType.DIALECTICAL_REASONING,
         content=dialectical_result,
         metadata={
-            "task_id": str(hash(frozenset(context.tasks["cross_backend_task"].items()))),
-            "backend": backend_name
-        }
+            "task_id": str(
+                hash(frozenset(context.tasks["cross_backend_task"].items()))
+            ),
+            "backend": backend_name,
+        },
     )
 
     # Store the memory item in the specified backend
@@ -426,12 +476,9 @@ def create_relationships_between_artifacts(context):
             "source_id": "team_state_file",
             "target_type": MemoryType.SOLUTION,
             "target_id": "solution_tinydb",
-            "relationship_type": "created_by"
+            "relationship_type": "created_by",
         },
-        metadata={
-            "source_backend": "file",
-            "target_backend": "tinydb"
-        }
+        metadata={"source_backend": "file", "target_backend": "tinydb"},
     )
 
     # Solution (tinydb) -> Dialectical result (chromadb)
@@ -443,12 +490,9 @@ def create_relationships_between_artifacts(context):
             "source_id": "solution_tinydb",
             "target_type": MemoryType.DIALECTICAL_REASONING,
             "target_id": "dialectical_chromadb",
-            "relationship_type": "evaluated_by"
+            "relationship_type": "evaluated_by",
         },
-        metadata={
-            "source_backend": "tinydb",
-            "target_backend": "chromadb"
-        }
+        metadata={"source_backend": "tinydb", "target_backend": "chromadb"},
     )
 
     # Store the relationships in a common backend (file)
@@ -460,26 +504,36 @@ def create_relationships_between_artifacts(context):
 def retrieve_all_artifacts_from_backends(context):
     """Retrieve all artifacts from their respective backends."""
     # Retrieve team state from file backend
-    file_query_result = context.memory_managers["file"].query_by_type(MemoryType.TEAM_STATE)
+    file_query_result = context.memory_managers["file"].query_by_type(
+        MemoryType.TEAM_STATE
+    )
     assert len(file_query_result) > 0
     context.retrieved_team_state = file_query_result[0].content
 
     # Retrieve solution from tinydb backend
-    tinydb_query_result = context.memory_managers["tinydb"].query_by_type(MemoryType.SOLUTION)
+    tinydb_query_result = context.memory_managers["tinydb"].query_by_type(
+        MemoryType.SOLUTION
+    )
     assert len(tinydb_query_result) > 0
     context.retrieved_solution = tinydb_query_result[0].content
 
     # Retrieve dialectical result from chromadb backend
-    chromadb_query_result = context.memory_managers["chromadb"].query_by_type(MemoryType.DIALECTICAL_REASONING)
+    chromadb_query_result = context.memory_managers["chromadb"].query_by_type(
+        MemoryType.DIALECTICAL_REASONING
+    )
     assert len(chromadb_query_result) > 0
     context.retrieved_dialectical_result = chromadb_query_result[0].content
 
 
-@then("I should be able to traverse relationships between artifacts in different backends")
+@then(
+    "I should be able to traverse relationships between artifacts in different backends"
+)
 def traverse_relationships_between_artifacts(context):
     """Traverse relationships between artifacts in different backends."""
     # Query for relationships in the file backend
-    relationship_query_result = context.memory_managers["file"].query_by_type(MemoryType.RELATIONSHIP)
+    relationship_query_result = context.memory_managers["file"].query_by_type(
+        MemoryType.RELATIONSHIP
+    )
 
     # Verify that we got at least two results (our two relationships)
     assert len(relationship_query_result) >= 2
@@ -511,11 +565,15 @@ def traverse_relationships_between_artifacts(context):
     assert solution_to_dialectical["target_id"] == "dialectical_chromadb"
 
 
-@then("the relationship metadata should correctly identify the source and target backends")
+@then(
+    "the relationship metadata should correctly identify the source and target backends"
+)
 def verify_relationship_metadata(context):
     """Verify that relationship metadata correctly identifies source and target backends."""
     # Query for relationships in the file backend
-    relationship_query_result = context.memory_managers["file"].query_by_type(MemoryType.RELATIONSHIP)
+    relationship_query_result = context.memory_managers["file"].query_by_type(
+        MemoryType.RELATIONSHIP
+    )
 
     # Find the team_to_solution relationship
     team_to_solution = None
@@ -542,6 +600,7 @@ def verify_relationship_metadata(context):
 
 # Scenario: Memory backend performance comparison
 
+
 @given("the memory system is configured with all available backends")
 def memory_system_with_all_backends(context):
     """Configure the memory system with all available backends."""
@@ -550,11 +609,11 @@ def memory_system_with_all_backends(context):
         try:
             adapter = MemorySystemAdapter.create_for_testing(storage_type=backend_type)
             context.memory_backends[backend_type] = adapter.get_memory_store()
-            context.memory_managers[backend_type] = MemoryManager({
-                'default': adapter.get_memory_store()
-            })
+            context.memory_managers[backend_type] = MemoryManager(
+                {"default": adapter.get_memory_store()}
+            )
         except Exception as e:
-            print(f"Backend {backend_type} not available: {str(e)}")
+            logger.warning("Backend %s not available: %s", backend_type, str(e))
 
     # Skip the test if we couldn't create at least 3 backends
     if len(context.memory_backends) < 3:
@@ -575,14 +634,8 @@ def benchmark_storing_items(context):
             item = MemoryItem(
                 id=f"benchmark_store_{backend_name}_{i}",
                 memory_type=MemoryType.WORKING,
-                content={
-                    "index": i,
-                    "value": f"Test value {i} for {backend_name}"
-                },
-                metadata={
-                    "backend": backend_name,
-                    "test_type": "store_benchmark"
-                }
+                content={"index": i, "value": f"Test value {i} for {backend_name}"},
+                metadata={"backend": backend_name, "test_type": "store_benchmark"},
             )
             items.append(item)
 
@@ -614,7 +667,9 @@ def benchmark_retrieving_by_type(context):
         # Store the performance metric
         if "retrieve_by_type" not in context.performance_metrics:
             context.performance_metrics["retrieve_by_type"] = {}
-        context.performance_metrics["retrieve_by_type"][backend_name] = end_time - start_time
+        context.performance_metrics["retrieve_by_type"][backend_name] = (
+            end_time - start_time
+        )
 
 
 @when("I perform a benchmark retrieving items by metadata from each backend")
@@ -633,7 +688,9 @@ def benchmark_retrieving_by_metadata(context):
         # Store the performance metric
         if "retrieve_by_metadata" not in context.performance_metrics:
             context.performance_metrics["retrieve_by_metadata"] = {}
-        context.performance_metrics["retrieve_by_metadata"][backend_name] = end_time - start_time
+        context.performance_metrics["retrieve_by_metadata"][backend_name] = (
+            end_time - start_time
+        )
 
 
 @then("I should get performance metrics for each backend")
@@ -664,15 +721,26 @@ def compare_backend_performance(context):
         fastest_backend = min(metrics.items(), key=lambda x: x[1])
         slowest_backend = max(metrics.items(), key=lambda x: x[1])
 
-        print(f"\n{operation.upper()} PERFORMANCE:")
-        print(f"Fastest: {fastest_backend[0]} ({fastest_backend[1]:.6f} seconds)")
-        print(f"Slowest: {slowest_backend[0]} ({slowest_backend[1]:.6f} seconds)")
-        print(f"Difference: {slowest_backend[1] / fastest_backend[1]:.2f}x slower")
+        logger.info("%s PERFORMANCE:", operation.upper())
+        logger.info(
+            "Fastest: %s (%.6f seconds)",
+            fastest_backend[0],
+            fastest_backend[1],
+        )
+        logger.info(
+            "Slowest: %s (%.6f seconds)",
+            slowest_backend[0],
+            slowest_backend[1],
+        )
+        logger.info(
+            "Difference: %.2fx slower",
+            slowest_backend[1] / fastest_backend[1],
+        )
 
-        # Print all metrics
-        print("\nAll metrics:")
+        # Log all metrics
+        logger.info("All metrics:")
         for backend, time_taken in sorted(metrics.items(), key=lambda x: x[1]):
-            print(f"{backend}: {time_taken:.6f} seconds")
+            logger.info("%s: %.6f seconds", backend, time_taken)
 
     # The test passes as long as we can compare the metrics
     assert True
