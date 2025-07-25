@@ -40,4 +40,12 @@ progress for these milestones is available in the
 
 ## Implementation Status
 
-This feature is **implemented**.
+The roadmap is actively maintained. After the feature audit
+approximately **60%** of the planned functionality is available.
+Major milestones remain in progress as documented in the
+[Feature Status Matrix](../implementation/feature_status_matrix.md).
+
+## Current Limitations
+
+- Release dates are tentative and depend on resolving failing tests.
+- Deployment automation requires further work.
