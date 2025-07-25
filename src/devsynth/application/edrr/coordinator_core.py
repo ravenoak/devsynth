@@ -35,6 +35,7 @@ from devsynth.methodology.base import Phase
 
 class EDRRCoordinatorError(DevSynthError):
     """Exception raised for errors in the EDRR Coordinator."""
+
     pass
 
 
@@ -97,7 +98,12 @@ class EDRRCoordinatorCore:
         self.current_phase = None
         self.task = None
         self.phase_results = {}
-        self.micro_cycles = []
+        self.child_cycles: List["EDRRCoordinatorCore"] = []
+        self.max_recursion_depth = (
+            self.config.get("edrr", {})
+            .get("recursion", {})
+            .get("max_recursion_depth", 3)
+        )
         self.execution_traces = []
         self.execution_history = []
         self.performance_metrics = {}
@@ -107,7 +113,9 @@ class EDRRCoordinatorCore:
         if parent_cycle_id:
             self.logger.info(f"  Parent cycle: {parent_cycle_id}")
             self.logger.info(f"  Recursion depth: {recursion_depth}")
-            self.logger.info(f"  Parent phase: {parent_phase.name if parent_phase else None}")
+            self.logger.info(
+                f"  Parent phase: {parent_phase.name if parent_phase else None}"
+            )
 
     def start_cycle(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -135,7 +143,9 @@ class EDRRCoordinatorCore:
             self.task["id"] = str(uuid.uuid4())
 
         # Log cycle start
-        self.logger.info(f"Starting EDRR cycle for task: {self.task.get('title', 'Untitled')}")
+        self.logger.info(
+            f"Starting EDRR cycle for task: {self.task.get('title', 'Untitled')}"
+        )
         self.logger.info(f"  Task ID: {self.task['id']}")
         self.logger.info(f"  Cycle ID: {self.cycle_id}")
 
@@ -161,7 +171,9 @@ class EDRRCoordinatorCore:
         )
 
         # Log cycle completion
-        self.logger.info(f"Completed EDRR cycle for task: {self.task.get('title', 'Untitled')}")
+        self.logger.info(
+            f"Completed EDRR cycle for task: {self.task.get('title', 'Untitled')}"
+        )
 
         return report
 
@@ -275,12 +287,14 @@ class EDRRCoordinatorCore:
         phase_duration = (datetime.now() - phase_start_time).total_seconds()
 
         # Update execution history
-        self.execution_history.append({
-            "phase": phase.name,
-            "start_time": phase_start_time.isoformat(),
-            "end_time": datetime.now().isoformat(),
-            "duration": phase_duration,
-        })
+        self.execution_history.append(
+            {
+                "phase": phase.name,
+                "start_time": phase_start_time.isoformat(),
+                "end_time": datetime.now().isoformat(),
+                "duration": phase_duration,
+            }
+        )
 
         # Update performance metrics
         if "phase_durations" not in self.performance_metrics:
@@ -356,17 +370,63 @@ class EDRRCoordinatorCore:
         """
         Automatically progress to the next phase if auto-progress is enabled.
         """
-        # Check if auto-progress is enabled
         auto_progress = self.config.get("auto_progress", False)
 
-        if auto_progress:
-            # Get next phase
-            next_phase = self._decide_next_phase()
+        if not auto_progress:
+            return
 
-            # Progress to next phase if available
-            if next_phase is not None:
-                self.logger.info("Auto-progressing to next phase")
-                self.progress_to_phase(next_phase)
+        while True:
+            next_phase = self._decide_next_phase()
+            if next_phase is None:
+                break
+            self.logger.info("Auto-progressing to next phase")
+            self.progress_to_phase(next_phase)
+            if next_phase == Phase.RETROSPECT:
+                break
+
+    def create_micro_cycle(
+        self, task: Dict[str, Any], parent_phase: Phase
+    ) -> "EDRRCoordinatorCore":
+        """Create a nested EDRRCoordinatorCore for recursion."""
+        if self.recursion_depth >= self.max_recursion_depth:
+            raise EDRRCoordinatorError("Maximum recursion depth exceeded")
+
+        terminate, reason = self.should_terminate_recursion(task)
+        if terminate:
+            raise EDRRCoordinatorError(f"Recursion terminated due to {reason}")
+
+        micro_cycle = EDRRCoordinatorCore(
+            memory_manager=self.memory_manager,
+            wsde_team=self.wsde_team,
+            code_analyzer=self.code_analyzer,
+            ast_transformer=self.ast_transformer,
+            prompt_manager=self.prompt_manager,
+            documentation_manager=self.documentation_manager,
+            enable_enhanced_logging=self.enable_enhanced_logging,
+            parent_cycle_id=self.cycle_id,
+            recursion_depth=self.recursion_depth + 1,
+            parent_phase=parent_phase,
+            config=self.config,
+        )
+
+        micro_cycle.start_cycle(task)
+        self.child_cycles.append(micro_cycle)
+        return micro_cycle
+
+    def should_terminate_recursion(self, task: Dict[str, Any]) -> Tuple[bool, str]:
+        """Simple heuristics to decide if recursion should stop."""
+        thresholds = (
+            self.config.get("edrr", {}).get("recursion", {}).get("thresholds", {})
+        )
+        granularity = thresholds.get("granularity", 0.2)
+
+        if task.get("human_override") == "terminate":
+            return True, "human override"
+
+        if task.get("granularity_score", 1.0) < granularity:
+            return True, "granularity threshold"
+
+        return False, ""
 
     def execute_current_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
