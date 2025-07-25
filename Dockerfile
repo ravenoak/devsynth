@@ -77,6 +77,8 @@ FROM base AS production
 COPY --from=builder /workspace/.venv /workspace/.venv
 ENV PATH="/workspace/.venv/bin:$PATH"
 
+EXPOSE 8000
+
 # Copy only source code (no tests)
 COPY src ./src
 

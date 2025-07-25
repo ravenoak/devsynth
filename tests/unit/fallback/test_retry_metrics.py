@@ -33,6 +33,7 @@ def test_retry_metrics_failure():
     assert metrics.get("attempt") == 1
     assert metrics.get("failure") == 1
 
+
 def test_retry_metrics_abort_when_not_retryable():
     reset_metrics()
     mock_func = Mock(side_effect=ValueError("err"))
@@ -47,3 +48,19 @@ def test_retry_metrics_abort_when_not_retryable():
         decorated()
     metrics = get_retry_metrics()
     assert metrics.get("abort") == 1
+
+
+def test_retry_metrics_invalid_result():
+    reset_metrics()
+    mock_func = Mock(side_effect=["bad", "good"])
+    mock_func.__name__ = "mock_func"
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_on_result=lambda r: r == "bad",
+        track_metrics=True,
+    )(mock_func)
+    result = decorated()
+    metrics = get_retry_metrics()
+    assert result == "good"
+    assert metrics.get("invalid") == 1

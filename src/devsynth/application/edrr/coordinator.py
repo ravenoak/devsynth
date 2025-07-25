@@ -132,6 +132,8 @@ class EDRRCoordinator:
         self._execution_traces = {} if enable_enhanced_logging else None
         self._execution_history = [] if enable_enhanced_logging else None
         self.performance_metrics: Dict[str, Any] = {}
+        self.manual_next_phase: Optional[Phase] = None
+        self._preserved_context: Dict[str, Any] = {}
 
         self._phase_start_times: Dict[Phase, datetime] = {}
 
@@ -157,6 +159,11 @@ class EDRRCoordinator:
         logger.info(
             f"EDRR coordinator initialized (recursion depth: {recursion_depth})"
         )
+
+    def set_manual_phase_override(self, phase: Optional[Phase]) -> None:
+        """Manually override the next phase transition."""
+
+        self.manual_next_phase = phase
 
     def _safe_store_with_edrr_phase(
         self,
@@ -242,6 +249,20 @@ class EDRRCoordinator:
         except Exception as e:
             logger.error(f"Failed to retrieve memory item with EDRR phase: {e}")
             return {}
+
+    def _persist_context_snapshot(self, phase: Phase) -> None:
+        """Persist preserved context for a phase."""
+
+        if not self._preserved_context:
+            return
+
+        metadata = {"cycle_id": self.cycle_id, "type": "CONTEXT_SNAPSHOT"}
+        self._safe_store_with_edrr_phase(
+            copy.deepcopy(self._preserved_context),
+            MemoryType.CONTEXT,
+            phase.value,
+            metadata,
+        )
 
     def start_cycle(self, task: Dict[str, Any]) -> None:
         """Start a new EDRR cycle with the given task.
@@ -495,6 +516,11 @@ class EDRRCoordinator:
                 self._preserved_context[previous_phase.name] = copy.deepcopy(
                     self.results[previous_phase.name]
                 )
+                stored_ctx = self._safe_retrieve_with_edrr_phase(
+                    "CONTEXT_SNAPSHOT", previous_phase.value
+                )
+                if isinstance(stored_ctx, dict):
+                    self._preserved_context.update(stored_ctx)
 
             # Dynamic role assignment for the new phase
             self.wsde_team.assign_roles_for_phase(phase, self.task)
@@ -608,6 +634,9 @@ class EDRRCoordinator:
                 f"Progressed to and completed {phase.value} phase for task: {self.task.get('description', 'Unknown')}"
             )
 
+            # Persist context for future phases
+            self._persist_context_snapshot(phase)
+
             # Automatically transition to next phase if enabled
             self._maybe_auto_progress()
         except ManifestParseError as e:
@@ -645,6 +674,11 @@ class EDRRCoordinator:
 
     def _decide_next_phase(self) -> Optional[Phase]:
         """Determine if the coordinator should automatically move to the next phase."""
+        if self.manual_next_phase is not None:
+            phase = self.manual_next_phase
+            self.manual_next_phase = None
+            return phase
+
         if not self.auto_phase_transitions:
             return None
 
