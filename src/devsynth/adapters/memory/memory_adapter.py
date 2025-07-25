@@ -199,7 +199,11 @@ class MemorySystemAdapter:
             else:
                 self.vector_store = None
         elif self.storage_type == "tinydb":
-            self.memory_store = TinyDBStore(self.memory_path)
+            self.memory_store = TinyDBStore(
+                self.memory_path,
+                encryption_enabled=self.encryption_at_rest,
+                encryption_key=self.encryption_key,
+            )
             self.context_manager = PersistentContextManager(
                 self.memory_path,
                 max_context_size=self.max_context_size,

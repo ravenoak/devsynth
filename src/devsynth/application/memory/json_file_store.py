@@ -27,6 +27,8 @@ from devsynth.exceptions import (
 from devsynth.fallback import retry_with_exponential_backoff, with_fallback
 from devsynth.security.encryption import encrypt_bytes, decrypt_bytes
 
+from devsynth.security.audit import audit_event
+
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
@@ -394,6 +396,11 @@ class JSONFileStore(MemoryStore):
             )
             self.items[item.id] = item
             self._save_items()
+            audit_event(
+                "store_memory",
+                store="JSONFileStore",
+                item_id=item.id,
+            )
 
             # Update token count (rough estimate)
             self.token_count += len(str(item)) // 4
@@ -432,9 +439,21 @@ class JSONFileStore(MemoryStore):
                 logger.debug(f"Retrieved memory item", item_id=item_id)
                 # Update token count (rough estimate)
                 self.token_count += len(str(item)) // 4
+                audit_event(
+                    "retrieve_memory",
+                    store="JSONFileStore",
+                    item_id=item_id,
+                    found=True,
+                )
                 return item
             else:
                 logger.debug(f"Memory item not found", item_id=item_id)
+                audit_event(
+                    "retrieve_memory",
+                    store="JSONFileStore",
+                    item_id=item_id,
+                    found=False,
+                )
                 return None
         except Exception as e:
             logger.error(
@@ -528,9 +547,21 @@ class JSONFileStore(MemoryStore):
                 logger.debug(f"Deleting memory item", item_id=item_id)
                 del self.items[item_id]
                 self._save_items()
+                audit_event(
+                    "delete_memory",
+                    store="JSONFileStore",
+                    item_id=item_id,
+                    deleted=True,
+                )
                 return True
             else:
                 logger.debug(f"Memory item not found for deletion", item_id=item_id)
+                audit_event(
+                    "delete_memory",
+                    store="JSONFileStore",
+                    item_id=item_id,
+                    deleted=False,
+                )
                 return False
         except Exception as e:
             logger.error(

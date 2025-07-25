@@ -10,6 +10,7 @@ from .validation import (
     validate_choice,
 )
 from .tls import TLSConfig
+from .audit import audit_event
 
 __all__ = [
     "hash_password",
@@ -21,6 +22,7 @@ __all__ = [
     "generate_key",
     "encrypt_bytes",
     "decrypt_bytes",
+    "audit_event",
     "validate_non_empty",
     "validate_int_range",
     "validate_choice",

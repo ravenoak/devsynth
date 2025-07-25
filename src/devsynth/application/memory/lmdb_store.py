@@ -9,6 +9,7 @@ import os
 import json
 import uuid
 import tiktoken
+
 try:
     import lmdb
 except ImportError as e:  # pragma: no cover - optional dependency
@@ -32,6 +33,7 @@ from devsynth.security.encryption import encrypt_bytes, decrypt_bytes
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+from devsynth.security.audit import audit_event
 
 
 class LMDBStore(MemoryStore):
@@ -272,6 +274,12 @@ class LMDBStore(MemoryStore):
             token_count = self._count_tokens(str(item))
             self.token_count += token_count
 
+            audit_event(
+                "store_memory",
+                store="LMDBStore",
+                item_id=item_id,
+            )
+
             logger.info(f"Stored item with ID {item_id} in LMDB")
             return item_id
 
@@ -322,11 +330,24 @@ class LMDBStore(MemoryStore):
 
             if not item:
                 logger.warning(f"Item with ID {item_id} not found in LMDB")
+                audit_event(
+                    "retrieve_memory",
+                    store="LMDBStore",
+                    item_id=item_id,
+                    found=False,
+                )
                 return None
 
             # Update token count
             token_count = self._count_tokens(str(item))
             self.token_count += token_count
+
+            audit_event(
+                "retrieve_memory",
+                store="LMDBStore",
+                item_id=item_id,
+                found=True,
+            )
 
             logger.info(f"Retrieved item with ID {item_id} from LMDB")
             return item
@@ -446,6 +467,12 @@ class LMDBStore(MemoryStore):
                 item = self.retrieve_in_transaction(txn, item_id)
                 if not item:
                     logger.warning(f"Item with ID {item_id} not found for deletion")
+                    audit_event(
+                        "delete_memory",
+                        store="LMDBStore",
+                        item_id=item_id,
+                        deleted=False,
+                    )
                     return False
 
                 # Delete metadata entries
@@ -473,6 +500,12 @@ class LMDBStore(MemoryStore):
                 txn.delete(item_id.encode("utf-8"), db=self.items_db)
 
             logger.info(f"Deleted item with ID {item_id} from LMDB")
+            audit_event(
+                "delete_memory",
+                store="LMDBStore",
+                item_id=item_id,
+                deleted=True,
+            )
             return True
 
         except Exception as e:
