@@ -785,6 +785,7 @@ class EDRRCoordinator:
             parent_cycle_id=self.cycle_id,
             recursion_depth=self.recursion_depth + 1,
             parent_phase=parent_phase,
+            config=self.config,
         )
 
         # When the micro cycle aggregates its results, refresh the parent's
