@@ -36,9 +36,12 @@ graph TD
 
 **Implementation Status**
 
-- The `EDRRCoordinator` fully orchestrates all phases with manifest parser integration.
-- Integration with `MemoryManager` and `WSDETeam` is complete, while `AstTransformer`
-  and advanced documentation features remain in progress.
+- The `EDRRCoordinator` orchestrates phase transitions with manifest parser
+  integration, but several coordination behaviors and step definitions are still
+  incomplete. See [issue 104](../../issues/104.md) for outstanding tasks.
+- Integration with `MemoryManager` and `WSDETeam` is functional but requires
+  additional testing. `AstTransformer` and advanced documentation features remain
+  in progress.
 
 ## Recursive EDRR Architecture
 

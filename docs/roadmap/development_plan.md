@@ -499,10 +499,13 @@ The following tasks have been completed:
 #### Technical Milestones
 
 1. **Feature Implementation Completion**
-   - All critical features have complete implementation
-   - Documentation accurately reflects implementation status
-   - Core frameworks (EDRR, WSDE) fully functional
-   - End-to-end workflows validated
+   - Core features are in place, but several remain only partially implemented.
+     Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md)
+     for the latest completion levels.
+   - Documentation should accurately reflect implementation status and highlight
+     ongoing work.
+   - EDRR and WSDE frameworks are operational but still missing functionality.
+   - End-to-end workflows require additional validation.
 
 2. **Deployment Infrastructure**
    - Docker deployment working on major platforms
