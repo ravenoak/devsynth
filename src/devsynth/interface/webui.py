@@ -836,20 +836,12 @@ class WebUI(UXBridge):
         # does not reflect attribute presence, so ``hasattr`` is required to
         # detect prior wizard state correctly.
         steps = ["Title", "Description", "Type", "Priority", "Constraints"]
-        if not hasattr(st.session_state, "wizard_step") or not isinstance(
-            getattr(st.session_state, "wizard_step"), int
-        ):
+        if not isinstance(getattr(st.session_state, "wizard_step", None), int):
             st.session_state.wizard_step = 0
         st.session_state.wizard_step = max(
             0, min(len(steps) - 1, st.session_state.wizard_step)
         )
 
-        if not hasattr(st.session_state, "wizard_data") or not isinstance(
-            st.session_state.wizard_data, dict
-        ):
-            st.session_state.wizard_data = {}
-
-        data = st.session_state.wizard_data
         defaults = {
             "title": "",
             "description": "",
@@ -857,9 +849,9 @@ class WebUI(UXBridge):
             "priority": RequirementPriority.MEDIUM.value,
             "constraints": "",
         }
+        data = st.session_state.get("wizard_data", {}).copy()
         for key, val in defaults.items():
-            if key not in data:
-                data[key] = val
+            data.setdefault(key, val)
 
         step = st.session_state.wizard_step
         st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
@@ -915,10 +907,11 @@ class WebUI(UXBridge):
         col1, col2 = st.columns(2)
         if col1.button("Back", disabled=step == 0):
             st.session_state.wizard_step = max(0, step - 1)
-            return
-        if col2.button("Next", disabled=step >= len(steps) - 1):
+        elif col2.button("Next", disabled=step >= len(steps) - 1):
             st.session_state.wizard_step = min(len(steps) - 1, step + 1)
-            return
+
+        st.session_state.wizard_data = data
+        return
 
     def _gather_wizard(self) -> None:
         """Run the requirements gathering workflow via :mod:`core.workflows`."""

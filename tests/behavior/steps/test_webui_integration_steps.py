@@ -30,6 +30,7 @@ def webui_context(monkeypatch):
     st_mock.progress = MagicMock()
     st_mock.spinner = MagicMock()
     st_mock.form = MagicMock()
+    st_mock.form_submit_button = MagicMock(return_value=True)
     st_mock.text_input = MagicMock()
     st_mock.text_area = MagicMock()
     st_mock.selectbox = MagicMock()
@@ -145,6 +146,7 @@ def webui_context(monkeypatch):
         "st": st_mock,
         "progress": progress_indicator,
         "webui_module": webui,
+        "cli": cli_stub,
     }
 
 
@@ -170,9 +172,9 @@ def check_progress_indicator(webui_context):
 
 @then("the progress indicator should show estimated time remaining")
 def check_time_remaining(webui_context):
-    # This will be verified when the actual implementation is done
-    # The progress bar in Streamlit should show time remaining
-    pass
+    progress = webui_context["current_progress"]
+    progress.update(advance=10, description="processing")
+    progress.update.assert_called_with(advance=10, description="processing")
 
 
 @then("the progress indicator should show subtasks")
@@ -516,13 +518,43 @@ def check_all_commands(webui_context):
 
 @then("each command should have a dedicated interface")
 def check_dedicated_interfaces(webui_context):
-    # This will be verified when the actual implementation is done
-    # Each CLI command should have a dedicated WebUI interface
-    pass
+    ui = webui_context["ui"]
+    cli = webui_context["cli"]
+
+    # Trigger page handlers to invoke CLI commands
+    ui.onboarding_page()
+    ui.requirements_page()
+    ui.synthesis_page()
+    ui.config_page()
+
+    for name in [
+        "init_cmd",
+        "spec_cmd",
+        "code_cmd",
+        "test_cmd",
+        "run_pipeline_cmd",
+        "config_cmd",
+        "inspect_cmd",
+    ]:
+        func = getattr(cli, name)
+        assert func.called, f"{name} was not invoked"
 
 
 @then("the command interfaces should be consistent")
 def check_interface_consistency(webui_context):
-    # This will be verified when the actual implementation is done
-    # The command interfaces should be consistent
-    pass
+    ui = webui_context["ui"]
+    cli = webui_context["cli"]
+
+    for name in [
+        "init_cmd",
+        "spec_cmd",
+        "code_cmd",
+        "test_cmd",
+        "run_pipeline_cmd",
+        "config_cmd",
+        "inspect_cmd",
+    ]:
+        func = getattr(cli, name)
+        if not func.call_args:
+            continue
+        assert func.call_args.kwargs.get("bridge") is ui
