@@ -10,13 +10,18 @@ from __future__ import annotations
 
 import json
 import os
+import sys
+import importlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-try:  # pragma: no cover - optional dependency
-    import kuzu  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    kuzu = None
+if __spec__ is not None:
+    canonical_name = "devsynth.application.memory.kuzu_store"
+    module_obj = sys.modules.setdefault(__name__, sys.modules.get(__name__))
+    sys.modules[canonical_name] = module_obj
+    __spec__.name = canonical_name
+
+
 
 try:  # pragma: no cover - optional dependency
     import tiktoken
@@ -43,6 +48,7 @@ class KuzuStore(MemoryStore):
         # create their storage path during initialisation and allows tests
         # relying on the directory to be present to pass.
         ensure_path_exists(file_path)
+        os.makedirs(file_path, exist_ok=True)
         self.db_path = os.path.join(file_path, "kuzu.db")
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
@@ -54,12 +60,21 @@ class KuzuStore(MemoryStore):
         except Exception:  # pragma: no cover - optional
             self.tokenizer = None
 
-        self._use_fallback = kuzu is None
+        kuzu_mod = None
+        if "kuzu" in sys.modules and sys.modules["kuzu"] is not None:
+            kuzu_mod = sys.modules["kuzu"]
+        else:  # pragma: no cover - optional dependency
+            try:
+                kuzu_mod = importlib.import_module("kuzu")
+            except Exception:
+                kuzu_mod = None
+
+        self._use_fallback = kuzu_mod is None
         if not self._use_fallback:
             try:
                 ensure_path_exists(file_path)
-                self.db = kuzu.Database(self.db_path)
-                self.conn = kuzu.Connection(self.db)
+                self.db = kuzu_mod.Database(self.db_path)
+                self.conn = kuzu_mod.Connection(self.db)
                 self.conn.execute(
                     "CREATE TABLE IF NOT EXISTS memory(id STRING PRIMARY KEY, item STRING);"
                 )

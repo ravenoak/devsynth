@@ -47,6 +47,9 @@ class KuzuMemoryStore(MemoryStore):
         else:
             self.embedder = lambda x: [0.0] * 5
 
+        if self._store._use_fallback:
+            logger.info("Kuzu unavailable; using in-memory fallback store")
+
     def _get_embedding(self, text: str):
         if self.use_provider_system:
             try:
