@@ -843,6 +843,11 @@ class WebUI(UXBridge):
         step_val = getattr(st.session_state, "wizard_step", None)
         if not isinstance(step_val, int) and isinstance(st.session_state, dict):
             step_val = st.session_state.get("wizard_step")
+        # ``wizard_step`` may be stored as a string when persisted between
+        # sessions.  Convert any digit-like value to ``int`` rather than
+        # resetting to zero which would break navigation.
+        if isinstance(step_val, str) and step_val.isdigit():
+            step_val = int(step_val)
         if not isinstance(step_val, int):
             step_val = 0
         st.session_state.wizard_step = max(0, min(len(steps) - 1, step_val))
