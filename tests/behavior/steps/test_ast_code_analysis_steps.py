@@ -4,17 +4,23 @@ Step Definitions for AST-Based Code Analysis and Transformation BDD Tests
 This module implements the step definitions for the AST-based code analysis and transformation
 feature file, testing the integration between AST-based code analysis and the EDRR workflow.
 """
+
 import pytest
 import uuid
+import logging
 from pytest_bdd import given, when, then, parsers, scenarios
 
+logger = logging.getLogger(__name__)
+
 # Import the feature file
-scenarios('../features/general/ast_code_analysis.feature')
+scenarios("../features/general/ast_code_analysis.feature")
 
 # Import the modules needed for the steps
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.code_analysis.ast_workflow_integration import AstWorkflowIntegration
+from devsynth.application.code_analysis.ast_workflow_integration import (
+    AstWorkflowIntegration,
+)
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType, MemoryItem
 from devsynth.methodology.base import Phase as EDRRPhase
@@ -23,6 +29,7 @@ from devsynth.methodology.base import Phase as EDRRPhase
 @pytest.fixture
 def context():
     """Fixture to provide a context object for sharing state between steps."""
+
     class MockMemoryStore:
         def __init__(self):
             self.items = {}
@@ -43,9 +50,9 @@ def context():
         def __init__(self):
             self.code_analyzer = CodeAnalyzer()
             self.ast_transformer = AstTransformer()
-            self.memory_manager = MemoryManager({
-                'default': MockMemoryStore()  # Mock memory store for testing
-            })
+            self.memory_manager = MemoryManager(
+                {"default": MockMemoryStore()}  # Mock memory store for testing
+            )
             self.ast_workflow_integration = AstWorkflowIntegration(self.memory_manager)
             self.code = ""
             self.ast = None
@@ -61,6 +68,7 @@ def context():
 
 
 # Background steps
+
 
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
@@ -78,6 +86,7 @@ def ast_code_analysis_module_configured(context):
 
 
 # Scenario: Parse Python code into AST
+
 
 @when("I provide Python code to the analyzer")
 def provide_code_to_analyzer(context):
@@ -103,6 +112,7 @@ def parse_code_into_ast(context):
     """Parse the code into an AST representation."""
     # Use the ast module to parse the code
     import ast
+
     context.ast = ast.parse(context.code)
 
     # Verify that the AST is not None
@@ -116,11 +126,15 @@ def ast_represents_code_structure(context):
     import ast
 
     # Check for function definition
-    function_nodes = [node for node in ast.walk(context.ast) if isinstance(node, ast.FunctionDef)]
+    function_nodes = [
+        node for node in ast.walk(context.ast) if isinstance(node, ast.FunctionDef)
+    ]
     assert any(node.name == "hello" for node in function_nodes)
 
     # Check for class definition
-    class_nodes = [node for node in ast.walk(context.ast) if isinstance(node, ast.ClassDef)]
+    class_nodes = [
+        node for node in ast.walk(context.ast) if isinstance(node, ast.ClassDef)
+    ]
     assert any(node.name == "Person" for node in class_nodes)
 
 
@@ -142,6 +156,7 @@ def access_code_elements_through_ast(context):
 
 
 # Scenario: Extract code structure information
+
 
 @given("I have Python code with classes, functions, and variables")
 def have_code_with_classes_functions_variables(context):
@@ -197,7 +212,9 @@ def representation_includes_classes_with_methods(context):
     # Verify that the analysis result includes the Calculator class with its methods
     classes = context.analysis_result.get_classes()
 
-    calculator_class = next((cls for cls in classes if cls["name"] == "Calculator"), None)
+    calculator_class = next(
+        (cls for cls in classes if cls["name"] == "Calculator"), None
+    )
     assert calculator_class is not None
     assert "add" in calculator_class["methods"]
     assert "get_history" in calculator_class["methods"]
@@ -209,7 +226,9 @@ def representation_includes_functions_with_parameters(context):
     # Verify that the analysis result includes the calculate_sum function with its parameters
     functions = context.analysis_result.get_functions()
 
-    calculate_sum_func = next((func for func in functions if func["name"] == "calculate_sum"), None)
+    calculate_sum_func = next(
+        (func for func in functions if func["name"] == "calculate_sum"), None
+    )
     assert calculate_sum_func is not None
     assert "a" in calculate_sum_func["params"]
     assert "b" in calculate_sum_func["params"]
@@ -222,7 +241,9 @@ def representation_includes_variables_with_types(context):
     variables = context.analysis_result.get_variables()
 
     max_value_var = next((var for var in variables if var["name"] == "MAX_VALUE"), None)
-    default_name_var = next((var for var in variables if var["name"] == "default_name"), None)
+    default_name_var = next(
+        (var for var in variables if var["name"] == "default_name"), None
+    )
 
     assert max_value_var is not None
     assert default_name_var is not None
@@ -231,6 +252,7 @@ def representation_includes_variables_with_types(context):
 
 
 # Scenario: Perform AST-based code transformations
+
 
 @given("I have Python code that needs refactoring")
 def have_code_that_needs_refactoring(context):
@@ -259,16 +281,14 @@ def request_ast_based_transformation(context):
     try:
         # Add docstring to the calculate_sum function
         transformed_code = context.ast_transformer.add_docstring(
-            context.code,
-            "calculate_sum",
-            "Calculate the sum of two numbers."
+            context.code, "calculate_sum", "Calculate the sum of two numbers."
         )
 
         # Add docstring to the Calculator class
         transformed_code = context.ast_transformer.add_docstring(
             transformed_code,
             "Calculator",
-            "A simple calculator class that keeps history of operations."
+            "A simple calculator class that keeps history of operations.",
         )
 
         # Store the transformed code
@@ -312,6 +332,7 @@ def transformed_code_maintains_functionality(context):
 
 
 # Scenario: Extract function definitions
+
 
 @given("I have Python code with multiple function definitions")
 def have_code_with_multiple_function_definitions(context):
@@ -390,8 +411,8 @@ def extracted_information_stored_in_memory(context):
         memory_type=MemoryType.CODE_ANALYSIS,
         metadata={
             "code_hash": hash(context.code),
-            "analysis_type": "function_extraction"
-        }
+            "analysis_type": "function_extraction",
+        },
     )
     # Store the memory item
     item_id = context.memory_manager.store_item(memory_item)
@@ -402,6 +423,7 @@ def extracted_information_stored_in_memory(context):
 
 
 # Scenario: Rename identifiers
+
 
 @given("I have Python code with identifiers that need renaming")
 def have_code_with_identifiers_to_rename(context):
@@ -430,16 +452,12 @@ def request_to_rename_identifier(context):
     try:
         # Rename the calc_sum function to calculate_sum
         transformed_code = context.ast_transformer.rename_identifier(
-            context.code,
-            "calc_sum",
-            "calculate_sum"
+            context.code, "calc_sum", "calculate_sum"
         )
 
         # Rename the Calc class to Calculator
         transformed_code = context.ast_transformer.rename_identifier(
-            transformed_code,
-            "Calc",
-            "Calculator"
+            transformed_code, "Calc", "Calculator"
         )
 
         # Store the transformed code
@@ -454,8 +472,8 @@ def system_identifies_all_occurrences(context):
     # Verify that the transformation result is not None
     assert context.transformation_result is not None
 
-    # Print the transformation result for debugging
-    print(f"Transformation result:\n{context.transformation_result}")
+    # Log the transformation result for debugging
+    logger.debug("Transformation result:\n%s", context.transformation_result)
 
     # Verify that the transformation result contains the new identifiers
     assert "calculate_sum" in context.transformation_result
@@ -495,6 +513,7 @@ def resulting_code_is_valid_python(context):
 
 # Scenario: Integrate with EDRR workflow
 
+
 @given("the EDRR workflow is configured")
 def edrr_workflow_configured(context):
     """Configure the EDRR workflow."""
@@ -529,29 +548,38 @@ class Calculator:
 """
 
 
-@then("the system should use AST analysis in the Expand phase to explore implementation options")
+@then(
+    "the system should use AST analysis in the Expand phase to explore implementation options"
+)
 def system_uses_ast_analysis_in_expand_phase(context):
     """Verify that the system uses AST analysis in the Expand phase to explore implementation options."""
     # Use the AST workflow integration to explore implementation options
-    context.implementation_options = context.ast_workflow_integration.expand_implementation_options(
-        context.code,
-        context.task_id
+    context.implementation_options = (
+        context.ast_workflow_integration.expand_implementation_options(
+            context.code, context.task_id
+        )
     )
 
     # Verify that implementation options were generated
     assert len(context.implementation_options) > 0
 
     # Verify that the options include the current implementation
-    assert any(option["name"] == "current_implementation" for option in context.implementation_options)
+    assert any(
+        option["name"] == "current_implementation"
+        for option in context.implementation_options
+    )
 
 
-@then("the system should use AST analysis in the Differentiate phase to evaluate code quality")
+@then(
+    "the system should use AST analysis in the Differentiate phase to evaluate code quality"
+)
 def system_uses_ast_analysis_in_differentiate_phase(context):
     """Verify that the system uses AST analysis in the Differentiate phase to evaluate code quality."""
     # Use the AST workflow integration to evaluate implementation quality
-    context.selected_option = context.ast_workflow_integration.differentiate_implementation_quality(
-        context.implementation_options,
-        context.task_id
+    context.selected_option = (
+        context.ast_workflow_integration.differentiate_implementation_quality(
+            context.implementation_options, context.task_id
+        )
     )
 
     # Verify that an option was selected
@@ -564,13 +592,14 @@ def system_uses_ast_analysis_in_differentiate_phase(context):
     assert "maintainability" in context.selected_option["metrics"]
 
 
-@then("the system should use AST transformations in the Refine phase to improve the code")
+@then(
+    "the system should use AST transformations in the Refine phase to improve the code"
+)
 def system_uses_ast_transformations_in_refine_phase(context):
     """Verify that the system uses AST transformations in the Refine phase to improve the code."""
     # Use the AST workflow integration to refine the implementation
     context.refined_code = context.ast_workflow_integration.refine_implementation(
-        context.code,
-        context.task_id
+        context.code, context.task_id
     )
 
     # Verify that the code was refined
@@ -582,13 +611,16 @@ def system_uses_ast_transformations_in_refine_phase(context):
     assert True
 
 
-@then("the system should use AST analysis in the Retrospect phase to verify code quality")
+@then(
+    "the system should use AST analysis in the Retrospect phase to verify code quality"
+)
 def system_uses_ast_analysis_in_retrospect_phase(context):
     """Verify that the system uses AST analysis in the Retrospect phase to verify code quality."""
     # Use the AST workflow integration to perform a retrospective
-    context.retrospective_result = context.ast_workflow_integration.retrospect_code_quality(
-        context.refined_code,
-        context.task_id
+    context.retrospective_result = (
+        context.ast_workflow_integration.retrospect_code_quality(
+            context.refined_code, context.task_id
+        )
     )
 
     # Verify that a retrospective was performed
@@ -604,7 +636,9 @@ def system_uses_ast_analysis_in_retrospect_phase(context):
     assert "recommendations" in context.retrospective_result
 
 
-@then("the memory system should store AST analysis results with appropriate EDRR phase tags")
+@then(
+    "the memory system should store AST analysis results with appropriate EDRR phase tags"
+)
 def memory_system_stores_results_with_edrr_tags(context):
     """Verify that the memory system stores AST analysis results with appropriate EDRR phase tags."""
     # In a real implementation, we would query the memory system for items with EDRR phase tags
@@ -624,6 +658,7 @@ def memory_system_stores_results_with_edrr_tags(context):
 
 
 # Scenario: Remove unused imports
+
 
 @given("I have Python code with unused imports")
 def have_code_with_unused_imports(context):
@@ -707,7 +742,9 @@ def resulting_code_is_valid_python_without_unused_imports(context):
     original_result = execute_code(context.code, "generate_random_number")
 
     # Test the transformed code
-    transformed_result = execute_code(context.transformation_result, "generate_random_number")
+    transformed_result = execute_code(
+        context.transformation_result, "generate_random_number"
+    )
 
     # Verify that both functions return a number between 1 and 100
     assert 1 <= original_result <= 100
@@ -715,6 +752,7 @@ def resulting_code_is_valid_python_without_unused_imports(context):
 
 
 # Scenario: Remove redundant assignments
+
 
 @given("I have Python code with redundant assignments")
 def have_code_with_redundant_assignments(context):
@@ -750,7 +788,9 @@ def request_to_remove_redundant_assignments(context):
     # Use the AST transformer to remove redundant assignments
     try:
         # Remove redundant assignments
-        transformed_code = context.ast_transformer.remove_redundant_assignments(context.code)
+        transformed_code = context.ast_transformer.remove_redundant_assignments(
+            context.code
+        )
 
         # Store the transformed code
         context.transformation_result = transformed_code
@@ -808,23 +848,30 @@ def resulting_code_is_valid_python_with_same_functionality(context):
     # Test the transformed code
     try:
         # First try with the transformed name (snake_case)
-        transformed_result = execute_code(context.transformation_result, "process_data", [])
+        transformed_result = execute_code(
+            context.transformation_result, "process_data", []
+        )
     except KeyError:
         # If that fails, try with the original name
-        transformed_result = execute_code(context.transformation_result, "processData", [])
+        transformed_result = execute_code(
+            context.transformation_result, "processData", []
+        )
 
     # Verify that both functions return the same result
     assert original_result == transformed_result
 
     # Test the calculate_total function
     original_total = execute_code(context.code, "calculate_total", [1, 2, 3])
-    transformed_total = execute_code(context.transformation_result, "calculate_total", [1, 2, 3])
+    transformed_total = execute_code(
+        context.transformation_result, "calculate_total", [1, 2, 3]
+    )
 
     # Verify that both functions return the same result
     assert original_total == transformed_total == 6
 
 
 # Scenario: Remove unused variables
+
 
 @given("I have Python code with unused variables")
 def have_code_with_unused_variables(context):
@@ -919,20 +966,25 @@ def resulting_code_is_valid_python_without_unused_variables(context):
     original_result = execute_code(context.code, "process_data", [1, 2, 3])
 
     # Test the transformed code
-    transformed_result = execute_code(context.transformation_result, "process_data", [1, 2, 3])
+    transformed_result = execute_code(
+        context.transformation_result, "process_data", [1, 2, 3]
+    )
 
     # Verify that both functions return the same result
     assert original_result == transformed_result == 6
 
     # Test the calculate_average function
     original_avg = execute_code(context.code, "calculate_average", [1, 2, 3])
-    transformed_avg = execute_code(context.transformation_result, "calculate_average", [1, 2, 3])
+    transformed_avg = execute_code(
+        context.transformation_result, "calculate_average", [1, 2, 3]
+    )
 
     # Verify that both functions return the same result
     assert original_avg == transformed_avg == 2.0
 
 
 # Scenario: Optimize string literals
+
 
 @given("I have Python code with string literals that can be optimized")
 def have_code_with_string_literals_to_optimize(context):
@@ -966,7 +1018,9 @@ def request_to_optimize_string_literals(context):
     # Use the AST transformer to optimize string literals
     try:
         # Optimize string literals
-        transformed_code = context.ast_transformer.optimize_string_literals(context.code)
+        transformed_code = context.ast_transformer.optimize_string_literals(
+            context.code
+        )
 
         # Store the transformed code
         context.transformation_result = transformed_code
@@ -990,20 +1044,34 @@ def optimize_string_literals_in_code(context):
     # Verify that the inefficient string operations are replaced with more efficient ones
 
     # Check for f-strings or format method instead of concatenation
-    assert "\"Hello, \" + name + \"! Welcome to our application.\"" not in context.transformation_result
-    assert ("f\"Hello, {name}! Welcome to our application.\"" in context.transformation_result or 
-            "\"Hello, {}! Welcome to our application.\".format(name)" in context.transformation_result)
+    assert (
+        '"Hello, " + name + "! Welcome to our application."'
+        not in context.transformation_result
+    )
+    assert (
+        'f"Hello, {name}! Welcome to our application."' in context.transformation_result
+        or '"Hello, {}! Welcome to our application.".format(name)'
+        in context.transformation_result
+    )
 
     # Check for f-strings or format method in address formatting
-    assert "street + \", \" + city + \", \" + state + \" \" + zip_code" not in context.transformation_result
-    assert ("f\"{street}, {city}, {state} {zip_code}\"" in context.transformation_result or 
-            "\"{}, {}, {} {}\".format(street, city, state, zip_code)" in context.transformation_result)
+    assert (
+        'street + ", " + city + ", " + state + " " + zip_code'
+        not in context.transformation_result
+    )
+    assert (
+        'f"{street}, {city}, {state} {zip_code}"' in context.transformation_result
+        or '"{}, {}, {} {}".format(street, city, state, zip_code)'
+        in context.transformation_result
+    )
 
     # Check for more efficient string building in report generation
     assert "report = report + " not in context.transformation_result
-    assert ("report += " in context.transformation_result or 
-            "\"\\n\".join" in context.transformation_result or 
-            "append" in context.transformation_result)
+    assert (
+        "report += " in context.transformation_result
+        or '"\\n".join' in context.transformation_result
+        or "append" in context.transformation_result
+    )
 
 
 @then("the resulting code should be valid Python with optimized string literals")
@@ -1030,20 +1098,36 @@ def resulting_code_is_valid_python_with_optimized_string_literals(context):
 
     # Test the get_greeting function
     original_greeting = execute_code(context.code, "get_greeting", "John")
-    transformed_greeting = execute_code(context.transformation_result, "get_greeting", "John")
+    transformed_greeting = execute_code(
+        context.transformation_result, "get_greeting", "John"
+    )
 
     # Verify that both functions return the same result
-    assert original_greeting == transformed_greeting == "Hello, John! Welcome to our application."
+    assert (
+        original_greeting
+        == transformed_greeting
+        == "Hello, John! Welcome to our application."
+    )
 
     # Test the format_address function
-    original_address = execute_code(context.code, "format_address", "123 Main St", "Anytown", "CA", "12345")
-    transformed_address = execute_code(context.transformation_result, "format_address", "123 Main St", "Anytown", "CA", "12345")
+    original_address = execute_code(
+        context.code, "format_address", "123 Main St", "Anytown", "CA", "12345"
+    )
+    transformed_address = execute_code(
+        context.transformation_result,
+        "format_address",
+        "123 Main St",
+        "Anytown",
+        "CA",
+        "12345",
+    )
 
     # Verify that both functions return the same result
     assert original_address == transformed_address == "123 Main St, Anytown, CA 12345"
 
 
 # Scenario: Improve code style
+
 
 @given("I have Python code with style issues")
 def have_code_with_style_issues(context):
@@ -1152,16 +1236,21 @@ def resulting_code_follows_style_guidelines(context):
 
     # The function name might have changed in the transformed code
     try:
-        transformed_result = execute_code(context.transformation_result, "badly_formatted_function", 5, 10)
+        transformed_result = execute_code(
+            context.transformation_result, "badly_formatted_function", 5, 10
+        )
     except KeyError:
         # If the function name wasn't changed, try the original name
-        transformed_result = execute_code(context.transformation_result, "badlyFormattedFunction", 5, 10)
+        transformed_result = execute_code(
+            context.transformation_result, "badlyFormattedFunction", 5, 10
+        )
 
     # Verify that both functions return the same result
     assert original_result == transformed_result == 15
 
 
 # Scenario: Apply multiple transformations
+
 
 @given("I have Python code that needs multiple transformations")
 def have_code_that_needs_multiple_transformations(context):
@@ -1199,21 +1288,21 @@ def request_to_apply_multiple_transformations(context, table=None):
     """Request to apply multiple AST transformations."""
     # If table is not provided, create a mock table with default values
     if table is None:
+
         class MockRow:
             def __init__(self, transformation_type):
-                self.data = {
-                    'transformation_type': transformation_type
-                }
+                self.data = {"transformation_type": transformation_type}
+
             def __getitem__(self, key):
                 return self.data[key]
 
         class MockTable:
             def __init__(self):
                 self.rows = [
-                    MockRow('remove_unused_imports'),
-                    MockRow('remove_unused_variables'),
-                    MockRow('optimize_string_literals'),
-                    MockRow('improve_code_style')
+                    MockRow("remove_unused_imports"),
+                    MockRow("remove_unused_variables"),
+                    MockRow("optimize_string_literals"),
+                    MockRow("improve_code_style"),
                 ]
 
         table = MockTable()
@@ -1224,28 +1313,38 @@ def request_to_apply_multiple_transformations(context, table=None):
 
     # Apply each transformation in sequence
     for row in table.rows:
-        transformation_type = row['transformation_type']
+        transformation_type = row["transformation_type"]
 
         try:
             # Apply the transformation
-            if transformation_type == 'remove_unused_imports':
-                transformed_code = context.ast_transformer.remove_unused_imports(transformed_code)
-            elif transformation_type == 'remove_unused_variables':
-                transformed_code = context.ast_transformer.remove_unused_variables(transformed_code)
-            elif transformation_type == 'optimize_string_literals':
-                transformed_code = context.ast_transformer.optimize_string_literals(transformed_code)
-            elif transformation_type == 'improve_code_style':
-                transformed_code = context.ast_transformer.improve_code_style(transformed_code)
+            if transformation_type == "remove_unused_imports":
+                transformed_code = context.ast_transformer.remove_unused_imports(
+                    transformed_code
+                )
+            elif transformation_type == "remove_unused_variables":
+                transformed_code = context.ast_transformer.remove_unused_variables(
+                    transformed_code
+                )
+            elif transformation_type == "optimize_string_literals":
+                transformed_code = context.ast_transformer.optimize_string_literals(
+                    transformed_code
+                )
+            elif transformation_type == "improve_code_style":
+                transformed_code = context.ast_transformer.improve_code_style(
+                    transformed_code
+                )
             else:
                 pytest.fail(f"Unknown transformation type: {transformation_type}")
         except Exception as e:
-            pytest.fail(f"AST transformation failed for {transformation_type}: {str(e)}")
+            pytest.fail(
+                f"AST transformation failed for {transformation_type}: {str(e)}"
+            )
 
     # Store the transformed code
     context.transformation_result = transformed_code
 
     # Store the transformation types for later verification
-    context.transformation_types = [row['transformation_type'] for row in table.rows]
+    context.transformation_types = [row["transformation_type"] for row in table.rows]
 
 
 @then("the system should apply all transformations in the correct order")

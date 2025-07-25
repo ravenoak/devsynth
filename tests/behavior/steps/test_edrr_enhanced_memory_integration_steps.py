@@ -3,12 +3,15 @@
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
 import pytest
+import logging
 
 # Import the scenarios from the feature file
 scenarios("../features/general/edrr_enhanced_memory_integration.feature")
 
 # Import the necessary components
 from unittest.mock import MagicMock, patch
+
+logger = logging.getLogger(__name__)
 
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
@@ -78,9 +81,9 @@ def context():
 
         def __getattr__(self, name):
             """Handle attribute access for debugging."""
-            print(f"Accessing attribute: {name}")
+            logger.debug("Accessing attribute: %s", name)
             if name not in self.__dict__:
-                print(f"Attribute {name} not found")
+                logger.debug("Attribute %s not found", name)
                 return None
             return self.__dict__[name]
 
@@ -155,8 +158,14 @@ def step_coordinator_retrieves_information(context):
             Phase.DIFFERENTIATE.value,
             {"task_id": context.coordinator.cycle_id},
         )
-        print(f"Type of context.retrieved_items: {type(context.retrieved_items)}")
-        print(f"Value of context.retrieved_items: {context.retrieved_items}")
+        logger.debug(
+            "Type of context.retrieved_items: %s",
+            type(context.retrieved_items),
+        )
+        logger.debug(
+            "Value of context.retrieved_items: %s",
+            context.retrieved_items,
+        )
 
 
 @then("the retrieval should be context-aware based on the current phase")
