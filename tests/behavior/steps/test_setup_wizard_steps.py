@@ -46,27 +46,18 @@ def run_setup_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(os.sys.modules, "uvicorn", MagicMock())
     from devsynth.application.cli.setup_wizard import SetupWizard
 
-    answers = [
-        str(tmp_project_dir),
-        "single_package",
-        "python",
-        "",
-        "demo goals",
-        "kuzu",
-    ]
-    confirms = [
-        True,  # offline mode
-        True,  # wsde_collaboration
-        False,  # dialectical_reasoning
-        False,  # code_generation
-        False,  # test_generation
-        False,  # documentation_generation
-        False,  # experimental_features
-        True,  # proceed
-    ]
-    bridge = DummyBridge(answers, confirms)
-    wizard = SetupWizard(bridge)
-    wizard.run()
+    wizard = SetupWizard(DummyBridge([], []))
+    wizard.run(
+        root=str(tmp_project_dir),
+        structure="single_package",
+        language="python",
+        constraints="",
+        goals="demo goals",
+        memory_backend="kuzu",
+        offline_mode=True,
+        features={"wsde_collaboration": True},
+        auto_confirm=True,
+    )
 
 
 @when("I cancel the setup wizard")
@@ -75,27 +66,25 @@ def cancel_setup_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(os.sys.modules, "uvicorn", MagicMock())
     from devsynth.application.cli.setup_wizard import SetupWizard
 
-    answers = [
-        str(tmp_project_dir),
-        "single_package",
-        "python",
-        "",
-        "",
-        "memory",
-    ]
-    confirms = [
-        False,  # offline mode
-        False,  # wsde_collaboration
-        False,  # dialectical_reasoning
-        False,  # code_generation
-        False,  # test_generation
-        False,  # documentation_generation
-        False,  # experimental_features
-        False,  # proceed
-    ]
-    bridge = DummyBridge(answers, confirms)
-    wizard = SetupWizard(bridge)
-    wizard.run()
+    wizard = SetupWizard(DummyBridge([], [False]))
+    wizard.run(
+        root=str(tmp_project_dir),
+        structure="single_package",
+        language="python",
+        constraints="",
+        goals="",
+        memory_backend="memory",
+        offline_mode=False,
+        features={
+            "wsde_collaboration": False,
+            "dialectical_reasoning": False,
+            "code_generation": False,
+            "test_generation": False,
+            "documentation_generation": False,
+            "experimental_features": False,
+        },
+        auto_confirm=False,
+    )
 
 
 @then("a project configuration file should include the selected options")
