@@ -1,6 +1,7 @@
 ---
 title: "Requirements Gathering Workflow"
 date: "2025-07-20"
+last_reviewed: "2025-07-20"
 version: "0.1.0"
 tags:
   - "specification"
@@ -19,6 +20,7 @@ interfaces.
 
 ## Sequence Diagram
 
+<!-- Diagram: Requirements collection sequence -->
 ```mermaid
 sequenceDiagram
     participant User

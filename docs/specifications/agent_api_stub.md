@@ -1,6 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-19'
+last_reviewed: '2025-07-20'
 status: draft
 tags:
 
@@ -143,6 +144,7 @@ Example response:
 
 ## Sequence Diagram
 
+<!-- Diagram: API initialization sequence -->
 ```mermaid
 sequenceDiagram
     participant Client

@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-07-15"
+last_reviewed: "2025-07-20"
 status: active
 tags:
 
@@ -443,4 +443,5 @@ For updated scheduling, see the consolidated [ROADMAP](ROADMAP.md).
 ## Implementation Status
 
 Development is **in progress** with outstanding tasks tracked in
-[issue 102](../../issues/102.md) and related issues.
+[issue 102](../../issues/102.md) and related issues. Repository harmonization is
+complete and efforts are shifting toward the `0.1.0-beta.1` milestone.

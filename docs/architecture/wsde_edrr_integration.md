@@ -598,6 +598,8 @@ def _retrieve_relevant_knowledge(self, task: str, solution: Dict[str, Any]) -> L
 
 The following diagram illustrates the data flow between components in the WSDE-EDRR integration:
 
+<!-- Diagram: WSDE and EDRR data flow -->
+
 ```mermaid
 sequenceDiagram
     participant CLI as DevSynth CLI

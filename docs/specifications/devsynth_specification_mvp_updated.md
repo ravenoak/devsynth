@@ -424,6 +424,7 @@ DevSynth exposes a common `UXBridge` abstraction so that multiple user
 interfaces can share the same workflows. The CLI, WebUI and Agent API all
 communicate with the orchestration layer through this bridge.
 
+<!-- Diagram: Unified interface through UXBridge -->
 ```mermaid
 flowchart TD
     CLI("CLI") --> Bridge

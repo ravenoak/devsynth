@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-07-20"
 status: published
 tags:
 - roadmap
@@ -30,6 +30,7 @@ current implementation progress, see the [Feature Status Matrix](../implementati
 - **[ROADMAP](ROADMAP.md)**: Consolidated list of release milestones.
 - **[Post-MVP Roadmap](post_mvp_roadmap.md)**: Details the features and enhancements planned after the Minimum Viable Product stage.
 - **[Release Automation Workflow](release_automation.md)**: Describes the CI pipeline for tagging and publishing releases.
+- **[Maintenance Policy](../policies/maintenance.md)**: Defines the maintenance strategy and review process.
 
 ## Documentation and Testing Plans
 

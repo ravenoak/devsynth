@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-07-20"
 status: published
 tags:
 - policy
@@ -22,6 +22,20 @@ This policy defines best practices for ongoing support, updates, and knowledge c
 - Schedule regular refactoring and technical debt management.
 - Document dependency update procedures and test requirements.
 - Provide handoff/retirement procedures for agents/components.
+
+## Maintenance Strategy
+
+The DevSynth maintenance strategy ensures documentation, code, and tests remain
+in sync as development progresses:
+
+1. **Documentation Review Process**: Establish a regular review cycle for all
+   documentation to keep diagrams and metadata consistent.
+2. **CI/CD Integration**: Include automated documentation validation in the
+   continuous integration pipeline.
+3. **Traceability Enforcement**: Require updates to the requirements
+   traceability matrix whenever changes are introduced.
+4. **BDD-First Development**: Update feature files before implementing new
+   functionality to maintain behavioural alignment.
 
 ## Artifacts
 

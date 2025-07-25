@@ -1,5 +1,10 @@
 ---
 title: DevSynth Roadmap
+date: '2025-07-07'
+last_reviewed: '2025-07-20'
+tags:
+  - roadmap
+  - milestones
 version: 0.1.0
 status: published
 author: DevSynth Team

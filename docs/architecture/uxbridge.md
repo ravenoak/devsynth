@@ -33,6 +33,7 @@ invoke workflow functions through this common layer, allowing the same code in
 - Provide a single point where alternative UIs (e.g., a WebUI) can plug in
 
 
+<!-- Diagram: Interfaces connected through UXBridge -->
 ```mermaid
 graph LR
     CLI[CLI Modules] --> Bridge[UXBridge]
@@ -70,6 +71,7 @@ analysis, synthesis, and configuration. By adhering to the `UXBridge`
 interface, the WebUI can provide richer interactivity while leveraging the same
 logic already used by the CLI.
 
+<!-- Diagram: Streamlit pages using UXBridge -->
 ```mermaid
 graph LR
     ST[Streamlit Pages] --> Bridge[UXBridge]
