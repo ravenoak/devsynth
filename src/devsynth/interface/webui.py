@@ -841,6 +841,8 @@ class WebUI(UXBridge):
         st.session_state.wizard_step = max(
             0, min(len(steps) - 1, st.session_state.wizard_step)
         )
+        if hasattr(st.session_state, "__setitem__"):
+            st.session_state["wizard_step"] = st.session_state.wizard_step
 
         defaults = {
             "title": "",
@@ -875,6 +877,9 @@ class WebUI(UXBridge):
                 )
                 st.session_state.wizard_step = 0
                 st.session_state.wizard_data = defaults.copy()
+                if hasattr(st.session_state, "__setitem__"):
+                    st.session_state["wizard_step"] = st.session_state.wizard_step
+                    st.session_state["wizard_data"] = st.session_state.wizard_data
                 return result
             except Exception as exc:  # pragma: no cover - error path tested
                 self.display_result(
@@ -911,6 +916,9 @@ class WebUI(UXBridge):
             st.session_state.wizard_step = min(len(steps) - 1, step + 1)
 
         st.session_state.wizard_data = data
+        if hasattr(st.session_state, "__setitem__"):
+            st.session_state["wizard_step"] = st.session_state.wizard_step
+            st.session_state["wizard_data"] = st.session_state.wizard_data
         return
 
     def _gather_wizard(self) -> None:
@@ -920,6 +928,8 @@ class WebUI(UXBridge):
             key="Start Requirements Plan Wizard",
         ) and not getattr(st.session_state, "gather_running", False):
             st.session_state.gather_running = True
+            if hasattr(st.session_state, "__setitem__"):
+                st.session_state["gather_running"] = True
             try:
                 from devsynth.core.workflows import gather_requirements
             except Exception as exc:  # pragma: no cover - defensive
@@ -927,6 +937,8 @@ class WebUI(UXBridge):
                     f"[red]ERROR importing gather_requirements: {exc}[/red]"
                 )
                 st.session_state.gather_running = False
+                if hasattr(st.session_state, "__setitem__"):
+                    st.session_state["gather_running"] = False
                 return
 
             try:
@@ -938,6 +950,8 @@ class WebUI(UXBridge):
                 )
             finally:
                 st.session_state.gather_running = False
+                if hasattr(st.session_state, "__setitem__"):
+                    st.session_state["gather_running"] = False
 
     def analysis_page(self) -> None:
         """Render the code analysis page."""
