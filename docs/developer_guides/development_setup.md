@@ -71,11 +71,11 @@ cd devsynth
 ### 2. Install Dependencies
 
 ```bash
-# Install all dependencies, including development tooling and optional extras
-poetry install --with dev --all-extras
+# Install development dependencies with the minimal runtime extras
+poetry install --with dev --extras minimal
 
-# (Optional) Install all dependency groups individually
-poetry install --all-extras --all-groups
+# Enable GPU support if needed
+# poetry install --extras gpu
 
 # Activate the virtual environment
 poetry shell
