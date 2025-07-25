@@ -264,8 +264,7 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 
 ## Running Tests
 
-Before executing tests, install DevSynth with its development extras so that all
-test dependencies are available:
+Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Run `bash scripts/codex_setup.sh` first if the environment has not been provisioned.
 
 ```bash
 poetry install --with dev,docs
@@ -278,6 +277,7 @@ poetry run pytest -q
 # pip commands are for installing from PyPI only
 
 ```
+Always run tests with `poetry run pytest`. If `pytest` reports missing packages, re-run `bash scripts/codex_setup.sh` or `poetry install` to restore them.
 
 ## Running All Tests
 
