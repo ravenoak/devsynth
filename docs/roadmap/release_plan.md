@@ -53,8 +53,9 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
 
 - **0.1.0-alpha.1**: Core architecture in place with Anthropic and offline
   providers, baseline CLI commands, and initial EDRR/WSDE integration.
-- **0.1.0-beta.1**: WSDE peer review workflow completed, Web UI preview
-  available, and major tests passing.
+- **0.1.0-beta.1**: WSDE peer review workflow targeted for completion
+  (see [issue 104](../../issues/104.md)), Web UI preview available, and major
+  tests passing.
 - **0.1.0-rc.1**: Documentation freeze and full test suite passing as the
   release candidate for version 0.1.0.
 - **0.2.0–0.6.0**: Incremental releases adding collaboration, Web UI, and testing improvements.

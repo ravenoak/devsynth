@@ -31,7 +31,10 @@ graph TD
 
 **Implementation Status**
 
-- Dynamic role rotation and consensus voting are fully implemented.
+- Dynamic role rotation works in basic scenarios, but the consensus voting logic
+  is still under active development. Outstanding tasks to finalize the voting
+  algorithms and integrate with EDRR cycles are tracked in
+  [issue 104](../../issues/104.md).
 - Dialectical reasoning hooks and advanced knowledge integration are in progress.
 
 ## Core Principles

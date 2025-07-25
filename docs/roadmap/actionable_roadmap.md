@@ -302,9 +302,11 @@ Configuration examples are provided for optional vector stores such as **ChromaD
 
 **Technical Milestones:**
 
- - [x] All critical features have complete implementation
-- [x] Docker deployment working on major platforms
-- [x] EDRR and WSDE frameworks fully functional
+ - [x] Core feature set established
+ - [x] Docker deployment working on major platforms
+ - [ ] EDRR and WSDE frameworks partially functional (see
+   [Feature Status Matrix](../implementation/feature_status_matrix.md) and
+   [issue 104](../../issues/104.md))
  - [x] UXBridge abstraction implemented to support future WebUI
  - [x] Dependency count reduced by 30% with improved security
 - [x] Basic security measures implemented and tested
