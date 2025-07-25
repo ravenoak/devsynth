@@ -178,9 +178,11 @@ The repository includes runnable examples that walk through common workflows:
 
 ## Running Tests
 
-Run `poetry run pytest` to execute the test suite. Invoking plain `pytest`
-outside of Poetry may fail because required plugins are installed only in the
-Poetry virtual environment.
+Always execute tests with `poetry run pytest`. Invoking plain `pytest`
+may fail because required plugins are installed only in the Poetry
+virtual environment. If you have not provisioned the environment yet,
+run `bash scripts/codex_setup.sh` to install all dependencies before
+running the tests.
 
 Before running the test suite manually, you **must** install DevSynth with its development extras:
 
@@ -226,6 +228,8 @@ After installation, execute the tests with:
 ```bash
 poetry run pytest
 ```
+If `pytest` reports missing packages, re-run `bash scripts/codex_setup.sh`
+or `poetry install` to ensure all dependencies are installed.
 
 You can also use the helper script `scripts/run_all_tests.py` to run the entire
 suite or specific groups of tests and optionally generate an HTML report:
