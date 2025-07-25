@@ -34,6 +34,7 @@ def retry_with_exponential_backoff(
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
     should_retry: Optional[Callable[[Exception], bool]] = None,
+    retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
@@ -76,9 +77,36 @@ def retry_with_exponential_backoff(
             while True:
                 try:
                     result = func(*args, **kwargs)
+                    if retry_on_result and retry_on_result(result):
+                        raise ValueError("retry_on_result triggered")
                     if track_metrics and num_retries:
                         inc_retry("success")
                     return result
+                except ValueError as e:
+                    if str(e) == "retry_on_result triggered":
+                        num_retries += 1
+                        if num_retries > max_retries:
+                            if track_metrics:
+                                inc_retry("failure")
+                            raise
+                        if track_metrics:
+                            inc_retry("invalid")
+                        if jitter:
+                            delay = min(
+                                max_delay,
+                                delay * exponential_base * (0.5 + random.random()),
+                            )
+                        else:
+                            delay = min(max_delay, delay * exponential_base)
+                        logger.warning(
+                            f"Retrying due to invalid result {num_retries}/{max_retries} after {delay:.2f}s",
+                            function=func.__name__,
+                            retry_attempt=num_retries,
+                            delay=delay,
+                        )
+                        time.sleep(delay)
+                        continue
+                    raise
                 except retryable_exceptions as e:
                     if should_retry and not should_retry(e):
                         logger.warning(

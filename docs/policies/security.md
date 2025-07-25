@@ -64,3 +64,7 @@ Security configuration flags and basic encryption utilities are implemented.
 Automated audits and basic monitoring are provided via `scripts/security_audit.py`.
 Memory stores support encryption at rest and emit audit logs for store, retrieve,
 and delete operations.
+Runtime checks in [`src/devsynth/config/settings.py`](../../src/devsynth/config/settings.py)
+validate encryption parameters on startup. The JSON file store implements
+AES-based encryption in [`src/devsynth/application/memory/json_file_store.py`](../../src/devsynth/application/memory/json_file_store.py)
+using helpers from [`src/devsynth/security/encryption.py`](../../src/devsynth/security/encryption.py).

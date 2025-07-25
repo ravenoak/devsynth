@@ -36,3 +36,19 @@ def test_should_retry_allows_retry_until_success():
 
     assert result == "ok"
     assert mock_func.call_count == 3
+
+
+def test_retry_on_result_triggers_retry():
+    mock_func = Mock(side_effect=["bad", "good"])
+    mock_func.__name__ = "mock_func"
+
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_on_result=lambda r: r == "bad",
+    )(mock_func)
+
+    result = decorated()
+
+    assert result == "good"
+    assert mock_func.call_count == 2
