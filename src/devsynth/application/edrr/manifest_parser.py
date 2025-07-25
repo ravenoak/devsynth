@@ -117,7 +117,10 @@ class ManifestParser:
         """
         try:
             file_path = Path(file_path)
-            with open(file_path, 'r') as f:
+            if ".." in file_path.parts:
+                raise ManifestParseError("Invalid manifest path")
+            file_path = file_path.expanduser().resolve()
+            with open(file_path, 'r', encoding='utf-8') as f:
                 manifest = json.load(f)
 
             # Validate the manifest
@@ -128,7 +131,7 @@ class ManifestParser:
 
             logger.info(f"Parsed EDRR manifest from file: {file_path}")
             return manifest
-        except (json.JSONDecodeError, FileNotFoundError) as e:
+        except (json.JSONDecodeError, FileNotFoundError, ManifestParseError) as e:
             logger.error(f"Failed to parse EDRR manifest from file: {e}")
             raise ManifestParseError(f"Failed to parse EDRR manifest from file: {e}")
 

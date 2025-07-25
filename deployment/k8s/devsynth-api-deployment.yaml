@@ -16,6 +16,11 @@ spec:
       containers:
         - name: devsynth-api
           image: ghcr.io/example/devsynth:latest
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 8000
           env:
