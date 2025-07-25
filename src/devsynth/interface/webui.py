@@ -836,11 +836,16 @@ class WebUI(UXBridge):
         # does not reflect attribute presence, so ``hasattr`` is required to
         # detect prior wizard state correctly.
         steps = ["Title", "Description", "Type", "Priority", "Constraints"]
-        if not isinstance(getattr(st.session_state, "wizard_step", None), int):
-            st.session_state.wizard_step = 0
-        st.session_state.wizard_step = max(
-            0, min(len(steps) - 1, st.session_state.wizard_step)
-        )
+        # ``streamlit.session_state`` may be patched in tests as a ``dict``
+        # subclass where attributes are set directly rather than as mapping
+        # keys.  Support both styles when retrieving the current wizard step
+        # and data.
+        step_val = getattr(st.session_state, "wizard_step", None)
+        if not isinstance(step_val, int) and isinstance(st.session_state, dict):
+            step_val = st.session_state.get("wizard_step")
+        if not isinstance(step_val, int):
+            step_val = 0
+        st.session_state.wizard_step = max(0, min(len(steps) - 1, step_val))
         if hasattr(st.session_state, "__setitem__"):
             st.session_state["wizard_step"] = st.session_state.wizard_step
 
@@ -851,7 +856,10 @@ class WebUI(UXBridge):
             "priority": RequirementPriority.MEDIUM.value,
             "constraints": "",
         }
-        data = st.session_state.get("wizard_data", {}).copy()
+        raw_data = getattr(st.session_state, "wizard_data", None)
+        if raw_data is None and isinstance(st.session_state, dict):
+            raw_data = st.session_state.get("wizard_data", {})
+        data = raw_data.copy() if isinstance(raw_data, dict) else {}
         for key, val in defaults.items():
             data.setdefault(key, val)
 
@@ -875,8 +883,6 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[green]Requirements saved to requirements_wizard.json[/green]"
                 )
-                st.session_state.wizard_step = 0
-                st.session_state.wizard_data = defaults.copy()
                 if hasattr(st.session_state, "__setitem__"):
                     st.session_state["wizard_step"] = st.session_state.wizard_step
                     st.session_state["wizard_data"] = st.session_state.wizard_data
