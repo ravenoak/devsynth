@@ -26,7 +26,8 @@ Some features rely on additional packages. These dependencies are grouped using 
 - **`retrieval`** – Provides vector store backends such as ChromaDB and FAISS.
 - **`memory`** – Installs Kuzu, LMDB, FAISS, NumPy, and related memory backends.
 - **`llm`** – Helpers for remote provider integrations.
-- **`offline`** – Optional extras for local LLM inference via `torch` and `transformers`.
+- **`offline`** – Enables deterministic offline mode. Combine with `gpu` to load local models.
+- **`gpu`** – Installs `torch` and NVIDIA libraries for hardware acceleration.
 - **`api`** – Enables the FastAPI server and Prometheus metrics.
 - **`webui`** – Installs the Streamlit-based WebUI.
 - **`lmstudio`** – Adds the LM Studio provider integration.
@@ -45,6 +46,12 @@ Install only the core runtime without optional extras:
 
 ```bash
 poetry install --without dev --without docs
+```
+
+For contributing to DevSynth a lightweight setup is often sufficient:
+
+```bash
+poetry install --with dev --extras minimal
 ```
 
 From PyPI you can simply run:

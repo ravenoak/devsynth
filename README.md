@@ -116,6 +116,8 @@ Certain features use additional backends that are not installed by default. Inst
 
 ```bash
 poetry install --extras retrieval --extras memory --extras llm --extras api --extras webui
+# Install GPU support if you plan to run local models
+# poetry install --extras gpu
 # or install from PyPI
 pip install 'devsynth[retrieval,memory,llm,api,webui]'
 ```
@@ -127,7 +129,8 @@ These extras enable optional vector stores such as **ChromaDB**, **Kuzu**, **FAI
 Set `offline_mode: true` in your project configuration to run DevSynth without
 network access. When enabled the CLI automatically uses the built-in
 OfflineProvider, which generates deterministic text and embeddings or loads a
-local model defined by `offline_provider.model_path`. See
+local model defined by `offline_provider.model_path`. Install the `gpu` extra to
+enable hardware acceleration. See
 [Offline Provider details](docs/technical_reference/llm_integration.md#offline-provider)
 for more information.
 
@@ -148,7 +151,9 @@ devsynth test
 devsynth code
 
 # Install development dependencies
-poetry install --with dev
+poetry install --with dev --extras minimal
+# Enable GPU support if desired
+# poetry install --extras gpu
 # Install every optional feature and group (required for the full test suite)
 poetry install --all-extras --all-groups
 
@@ -187,7 +192,11 @@ running the tests.
 Before running the test suite manually, you **must** install DevSynth with its development extras:
 
 ```bash
-poetry install --with dev
+# Minimal setup for contributors
+poetry install --with dev --extras minimal
+
+# Enable GPU support if needed
+# poetry install --extras gpu
 ```
 
 Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, and `lmstudio`:

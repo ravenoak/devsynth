@@ -41,6 +41,8 @@ poetry install --without dev --without docs
 ```
 
 Extras may be added later using `poetry install --extras llm --extras api --extras offline`.
+Install the optional `gpu` extra for hardware-accelerated models:
+`poetry install --extras gpu`.
 
 ### Install with pipx *(end-user install)*
 
@@ -49,7 +51,7 @@ pipx install devsynth
 ```
 ### Fallback Modes
 
-Without the `offline` extra, DevSynth uses a lightweight built-in provider that returns deterministic responses. Install with `poetry install --extras offline` to enable local models via `torch` and `transformers`.
+Without the `offline` extra, DevSynth uses a lightweight built-in provider that returns deterministic responses. Install with `poetry install --extras offline` and optionally `--extras gpu` to enable local models via `transformers` and `torch`.
 
 
 ## Install from Source (recommended for development)

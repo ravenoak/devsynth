@@ -80,7 +80,11 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 1. Install dependencies using Poetry:
 
    ```bash
-   poetry install
+   # Recommended minimal install for contributors
+   poetry install --with dev --extras minimal
+
+   # Enable GPU features if required
+   # poetry install --extras gpu
    ```
 
 2. Activate the Poetry virtual environment:
