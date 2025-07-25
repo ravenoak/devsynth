@@ -1,6 +1,7 @@
 ---
 title: "WebUI Detailed Specification"
 date: "2025-06-18"
+last_reviewed: "2025-07-20"
 version: "0.2.0"
 tags:
   - "specification"
@@ -35,6 +36,7 @@ This document details the features, constraints and interaction flow for the Str
 - Collapsible sections for optional details to keep the layout tidy.
 - Interaction through the `UXBridge` ensures parity with CLI commands.
 
+<!-- Diagram: WebUI page selection flow -->
 ```mermaid
 flowchart TD
     Sidebar -->|select page| Page
@@ -50,6 +52,7 @@ flowchart TD
 
 ## Interaction Flow
 
+<!-- Diagram: WebUI interaction sequence -->
 ```mermaid
 sequenceDiagram
     participant User

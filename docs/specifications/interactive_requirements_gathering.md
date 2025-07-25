@@ -1,6 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-07-01'
+last_reviewed: '2025-07-20'
 status: draft
 tags:
 
@@ -56,6 +57,7 @@ Responses are written to `requirements_plan.yaml` (or `.json`) in the project ro
 
 ## User Flow
 
+<!-- Diagram: Wizard flowchart -->
 ```mermaid
 flowchart TD
     Start --> Goals
@@ -65,6 +67,7 @@ flowchart TD
     Confirm --> Save
 ```
 
+<!-- Diagram: Wizard interaction sequence -->
 ```mermaid
 sequenceDiagram
     participant User
