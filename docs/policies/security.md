@@ -61,4 +61,6 @@ communication, bearer token authentication for API and agent actions,
 and routine dependency and static analysis checks in CI.
 ## Implementation Status
 Security configuration flags and basic encryption utilities are implemented.
-Automated audits and advanced monitoring are **planned**.
+Automated audits and basic monitoring are provided via `scripts/security_audit.py`.
+Memory stores support encryption at rest and emit audit logs for store, retrieve,
+and delete operations.
