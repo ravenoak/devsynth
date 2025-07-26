@@ -227,6 +227,8 @@ def global_test_isolation(monkeypatch, tmp_path):
     """
     # Save original environment
     original_env = dict(os.environ)
+    # Save loaded modules so tests can modify sys.modules safely
+    original_modules = dict(sys.modules)
 
     # Save original working directory
     original_cwd = os.getcwd()
@@ -302,6 +304,9 @@ def global_test_isolation(monkeypatch, tmp_path):
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
+    # Restore original modules
+    sys.modules.clear()
+    sys.modules.update(original_modules)
 
     # Undo any monkeypatches from the test before running cleanup logic
     monkeypatch.undo()
