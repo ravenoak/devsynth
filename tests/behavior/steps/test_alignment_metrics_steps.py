@@ -2,7 +2,13 @@
 
 from pytest_bdd import scenarios, given, then
 
-from .cli_commands_steps import run_command  # noqa: F401
+from .cli_commands_steps import (  # noqa: F401
+    run_command,
+    devsynth_cli_installed,
+    valid_devsynth_project,
+    check_workflow_success,
+)
+from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
 scenarios("../features/general/alignment_metrics_command.feature")
 
@@ -13,10 +19,12 @@ def metrics_fail(monkeypatch):
     def _raise(*_args, **_kwargs):
         raise Exception("metrics failure")
 
-    monkeypatch.setattr(
-        "devsynth.application.cli.commands.alignment_metrics_cmd.calculate_alignment_coverage",
-        _raise,
+    import importlib
+
+    mod = importlib.import_module(
+        "devsynth.application.cli.commands.alignment_metrics_cmd"
     )
+    monkeypatch.setattr(mod, "calculate_alignment_coverage", _raise)
 
 
 @then("the system should display alignment metrics")
