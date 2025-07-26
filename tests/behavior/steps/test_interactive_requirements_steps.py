@@ -7,7 +7,7 @@ import pytest
 from pytest_bdd import scenarios, given, when, then
 
 
-scenarios("../features/general/interactive_requirements.feature")
+scenarios("../features/interactive_requirements.feature")
 
 
 @given("the DevSynth CLI is installed")
