@@ -49,9 +49,10 @@ def mock_workflow_manager():
 
     # Patch the workflow_manager in the commands module
     with patch(
-        "devsynth.application.orchestration.workflow.workflow_manager", mock_manager
+        "devsynth.application.orchestration.workflow.workflow_manager",
+        mock_manager,
     ):
-        with patch("devsynth.core.workflows.workflow_manager", mock_manager):
+        with patch("devsynth.core.workflow_manager", mock_manager):
             yield mock_manager
 
 
