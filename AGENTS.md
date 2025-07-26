@@ -33,6 +33,8 @@ Fix the script and rerun it offline to finish provisioning:
    `poetry run pip list | grep pytest-bdd`.
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
 4. Execute `poetry run pytest` to verify the environment.
+5. If the tests fail, rerun the setup script and repeat until
+   `poetry run pytest` succeeds.
 
 Changes to the setup script only take effect the next time Codex provisions an
 environment. OpenAI disables network access during execution, so `scripts/codex_setup.sh`

@@ -27,5 +27,8 @@ if missing:
     sys.exit("Missing packages: " + ", ".join(missing))
 EOF
 
+# Double-check that pytest-bdd can be imported
+poetry run python -c "import pytest_bdd"
+
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
