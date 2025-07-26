@@ -401,11 +401,7 @@ tracked in upcoming sprint reports.
 
 ### Test Failure Summary
 
-The latest run shows **106 failing tests** and **462 errors** out of 997 total. Many failures stem from missing step modules and WebUI wizard issues
-(see issue 102). Several BDD scenarios for the EDRR coordinator also fail due
-to missing step definitions (see [issue 104](../../issues/104.md)). Refer to the
-[Feature Status Matrix](../implementation/feature_status_matrix.md) for a list
-of features marked **partial** that correspond to these failing tests.
+The latest run collected **2547** tests but aborted during collection with **1 error** (ModuleNotFoundError for `chromadb_store`). **15** tests were skipped. WebUI wizard failures appear resolved, but memory integration tests still need work. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for remaining partial features.
 
 
 ## Maintenance Strategy

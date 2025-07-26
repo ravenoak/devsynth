@@ -27,16 +27,10 @@ is summarized in the [Feature Status Matrix](../implementation/feature_status_ma
 
 ## Current Release Status
 
-DevSynth is preparing the **0.1.0-alpha.1** milestone which finalizes the core architecture,
-adds offline provider support, and delivers baseline CLI commands. This release targets
-initial test coverage around **50%**.
+DevSynth has completed the **0.1.0-alpha.1** milestone which finalized the core architecture, added offline provider support, and delivered baseline CLI commands with around **50%** coverage.
 
-The **0.1.0-beta.1** release will introduce the peer review workflow and a Web UI preview
-while pushing coverage to **≥75%**. The subsequent **0.1.0-rc.1** milestone represents a
-documentation freeze with the full test suite passing and coverage **≥90%** in accordance with
-our [Testing Standards](../developer_guides/TESTING_STANDARDS.md). Detailed implementation
-progress for these milestones is available in the
-[Feature Status Matrix](../implementation/feature_status_matrix.md).
+The project is now preparing the **0.1.0-beta.1** release, introducing the peer review workflow and a Web UI preview while pushing coverage to **≥75%**. The subsequent **0.1.0-rc.1** milestone represents a documentation freeze with the full test suite passing and coverage **≥90%** in accordance with our [Testing Standards](../developer_guides/TESTING_STANDARDS.md). Detailed implementation progress for these milestones is available in the [Feature Status Matrix](../implementation/feature_status_matrix.md).
+
 
 ## Implementation Status
 
