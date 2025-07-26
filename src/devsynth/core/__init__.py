@@ -17,6 +17,7 @@ from .workflows import (
     inspect_requirements,
     run_pipeline,
     update_config,
+    workflow_manager,
 )
 
 __all__ = [
@@ -33,6 +34,7 @@ __all__ = [
     "update_config",
     "inspect_requirements",
     "execute_command",
+    "workflow_manager",
     "CoreValues",
     "check_report_for_value_conflicts",
     "find_value_conflicts",

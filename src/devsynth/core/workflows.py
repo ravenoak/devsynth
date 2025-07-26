@@ -16,6 +16,10 @@ def _get_workflow_manager():
     return workflow_manager
 
 
+# Expose the singleton so it can be imported directly from this module
+workflow_manager = _get_workflow_manager()
+
+
 def execute_command(command: str, args: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a workflow command through the application workflow manager."""
     return _get_workflow_manager().execute_command(command, args)
@@ -46,7 +50,9 @@ def generate_code() -> Dict[str, Any]:
     return execute_command("code", {})
 
 
-def run_pipeline(target: str | None = None, report: Dict[str, Any] | None = None) -> Dict[str, Any]:
+def run_pipeline(
+    target: str | None = None, report: Dict[str, Any] | None = None
+) -> Dict[str, Any]:
     """Execute the generated code or a specific target.
 
     Parameters
