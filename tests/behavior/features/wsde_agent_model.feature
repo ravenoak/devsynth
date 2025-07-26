@@ -42,3 +42,7 @@ Feature: WSDE Agent Model Refinement
     And the Critic should identify thesis and antithesis
     And the team should work toward a synthesis
     And the final solution should reflect the dialectical process
+  Scenario: Summarize voting results from the team
+    Given a voting result with a clear winner
+    When the team summarizes the voting result
+    Then the summary should mention the winning option

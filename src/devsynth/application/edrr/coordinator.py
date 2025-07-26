@@ -3137,3 +3137,101 @@ class EDRRCoordinator:
                 )
 
         return metrics
+
+    def _get_timestamp(self) -> str:
+        """Return current timestamp in ISO format."""
+        return datetime.now().isoformat()
+
+    def _create_micro_cycle_task(self, phase: Phase, iteration: int) -> Dict[str, Any]:
+        """Create a simple micro-cycle task structure."""
+        return {
+            "id": f"{self.cycle_id}_micro_{iteration}",
+            "description": f"Micro cycle {phase.value} iteration {iteration}",
+            "phase": phase.value,
+        }
+
+    def _aggregate_micro_cycle_results(
+        self, phase: Phase, iteration: int, results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Aggregate micro-cycle results. Currently returns results unchanged."""
+        return results
+
+    def _execute_micro_cycle(self, phase: Phase, iteration: int) -> Dict[str, Any]:
+        """Execute a single micro-cycle using the WSDE team."""
+        task = self._create_micro_cycle_task(phase, iteration)
+        wsde_results = self.wsde_team.process(task)
+        if hasattr(self.wsde_team, "apply_enhanced_dialectical_reasoning"):
+            try:
+                wsde_results = self.wsde_team.apply_enhanced_dialectical_reasoning(
+                    task, wsde_results
+                )
+            except Exception:
+                pass
+        return self._aggregate_micro_cycle_results(phase, iteration, wsde_results)
+
+    def _assess_result_quality(self, results: Dict[str, Any]) -> float:
+        """Simple heuristic quality score for results."""
+        if not results:
+            return 0.0
+        if isinstance(results, dict) and "quality_score" in results:
+            try:
+                return float(results["quality_score"])
+            except Exception:
+                pass
+        return min(1.0, len(str(results)) / 1000)
+
+    def _assess_phase_quality(self, phase: Phase | None = None) -> Dict[str, Any]:
+        """Assess stored results for a phase."""
+        phase = phase or self.current_phase
+        if phase is None:
+            return {"quality": 0.0, "can_progress": False, "metrics": {}}
+        results = self.results.get(phase.name, {})
+        quality = self._assess_result_quality(results)
+        threshold = 0.7
+        return {
+            "quality": quality,
+            "can_progress": quality >= threshold,
+            "metrics": {"quality_score": quality},
+        }
+
+    def _check_convergence(self, current: Any, previous: Any) -> bool:
+        """Check if two result sets have converged."""
+        return str(current) == str(previous)
+
+    def _should_continue_micro_cycles(
+        self, phase: Phase, iteration: int, results: Dict[str, Any]
+    ) -> bool:
+        """Determine whether additional micro-cycles are required."""
+        cfg = self.config.get("edrr", {}).get("micro_cycles", {})
+        max_it = cfg.get("max_iterations", 1)
+        if iteration >= max_it:
+            return False
+        quality = self._assess_result_quality(results)
+        threshold = cfg.get("quality_threshold", 0.7)
+        return quality < threshold
+
+    def _execute_phase(
+        self, phase: Phase, context: Dict[str, Any] | None = None
+    ) -> Dict[str, Any]:
+        """Execute a phase dispatcher used by error recovery."""
+        context = context or {}
+        executors = {
+            Phase.EXPAND: self._execute_expand_phase,
+            Phase.DIFFERENTIATE: self._execute_differentiate_phase,
+            Phase.REFINE: self._execute_refine_phase,
+            Phase.RETROSPECT: self._execute_retrospect_phase,
+        }
+        executor = executors.get(phase)
+        if not executor:
+            raise EDRRCoordinatorError(f"No executor for phase {phase}")
+        return executor(context)
+
+    def _attempt_recovery(self, error: Exception, phase: Phase) -> Dict[str, Any]:
+        """Attempt a simple recovery strategy after errors."""
+        logger.warning("Attempting recovery from %s in phase %s", error, phase)
+        try:
+            self._execute_phase(phase)
+            return {"recovered": True}
+        except Exception as exc:
+            logger.error("Recovery failed: %s", exc)
+            return {"recovered": False, "reason": str(exc)}

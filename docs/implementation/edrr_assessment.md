@@ -139,7 +139,7 @@ is stable and ready for production use. See the
 ## Current Limitations
 
 The EDRR framework now includes recursion handling and automatic phase
-transitions in the coordinator. Advanced optimization algorithms and rich
+transitions in the coordinator. Micro-cycle utilities and error recovery hooks are now implemented. Advanced optimization algorithms and rich
 monitoring tools are still in development. Visualization dashboards and detailed
 metrics remain on the roadmap along with improved manual override workflows.
 
