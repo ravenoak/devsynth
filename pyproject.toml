@@ -78,6 +78,7 @@ httpx = "0.28.1"
 uvicorn = "0.35.0"
 pytest-html = "^4.1.1"
 bandit = "^1.8.6"
+safety = "^3.2.3"
 
 [tool.poetry.group.docs]
 optional = true
