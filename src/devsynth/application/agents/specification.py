@@ -44,9 +44,8 @@ class SpecificationAgent(BaseAgent):
         6. Integration points
         """
         
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        specifications = f"Specifications (created by {self.name} as {self.current_role})"
+        # Generate the specifications using the LLM port
+        specifications = self.generate_text(prompt)
         
         # Create a WSDE with the specifications
         spec_wsde = self.create_wsde(

@@ -45,10 +45,12 @@ class TestTestAgent:
             "specifications": "Do something",
         }
         result = test_agent.process(inputs)
+        test_agent.llm_port.generate.assert_called_once()
         assert "tests" in result
         assert "wsde" in result
         assert result["agent"] == "TestTestAgent"
         wsde = result["wsde"]
+        assert result["tests"] == "Generated tests"
         assert wsde.content == result["tests"]
         assert wsde.content_type == "text"
         assert wsde.metadata["agent"] == "TestTestAgent"

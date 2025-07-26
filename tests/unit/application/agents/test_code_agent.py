@@ -52,12 +52,14 @@ ReqID: N/A"""
             'Implement a function that adds two numbers', 'tests':
             'def test_add(): assert add(1, 2) == 3'}
         result = code_agent.process(inputs)
+        code_agent.llm_port.generate.assert_called_once()
         assert 'code' in result
         assert 'wsde' in result
         assert 'agent' in result
         assert 'role' in result
         assert result['agent'] == 'TestCodeAgent'
         wsde = result['wsde']
+        assert result['code'] == 'Generated code'
         assert wsde.content == result['code']
         assert wsde.content_type == 'code'
         assert wsde.metadata['agent'] == 'TestCodeAgent'
@@ -68,6 +70,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         result = code_agent.process({})
+        code_agent.llm_port.generate.assert_called()
         assert 'code' in result
         assert 'wsde' in result
         assert 'agent' in result
