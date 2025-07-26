@@ -44,6 +44,12 @@ class TokenTracker:
             except KeyError:
                 # Fall back to cl100k_base encoding if model not found
                 self._encoding = tiktoken.get_encoding("cl100k_base")
+            except Exception as e:  # pragma: no cover - network issues
+                logger.warning(
+                    f"Failed to load tiktoken encoding for model '{model}': {e}. "
+                    "Falling back to approximate token counting"
+                )
+                self._encoding = None
 
     def count_tokens(self, text: str) -> int:
         """Count the number of tokens in a text.
