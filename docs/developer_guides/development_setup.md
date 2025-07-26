@@ -81,9 +81,8 @@ poetry install --with dev --extras minimal
 poetry shell
 ```
 
-> **Note**: In Codex environments the `scripts/codex_setup.sh` script runs
-> automatically during provisioning. You should not invoke this script manually
-> outside of the Codex setup process.
+These commands install all required packages and activate the Poetry-managed
+virtual environment. Once complete, proceed to configure environment variables.
 
 ## 3. Set Up Environment Variables
 
