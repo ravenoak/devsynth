@@ -734,6 +734,26 @@ def wizard_cmd(
         "requirements_wizard.json",
         help="File to store collected requirements",
     ),
+    title: str | None = typer.Option(
+        None,
+        help="Requirement title",
+    ),
+    description: str | None = typer.Option(
+        None,
+        help="Requirement description",
+    ),
+    req_type: str | None = typer.Option(
+        None,
+        help="Requirement type",
+    ),
+    priority: str | None = typer.Option(
+        None,
+        help="Requirement priority",
+    ),
+    constraints: str | None = typer.Option(
+        None,
+        help="Constraints (comma separated)",
+    ),
     *,
     bridge: UXBridge = CLIUXBridge(),
 ) -> None:
@@ -742,6 +762,12 @@ def wizard_cmd(
     Users can move backward by typing ``back`` when prompted.
     The collected data is written to ``output_file`` in JSON format.
     """
+
+    title = title or os.environ.get("DEVSYNTH_REQ_TITLE")
+    description = description or os.environ.get("DEVSYNTH_REQ_DESCRIPTION")
+    req_type = req_type or os.environ.get("DEVSYNTH_REQ_TYPE")
+    priority = priority or os.environ.get("DEVSYNTH_REQ_PRIORITY")
+    constraints = constraints or os.environ.get("DEVSYNTH_REQ_CONSTRAINTS")
 
     steps = [
         (
@@ -777,15 +803,29 @@ def wizard_cmd(
     ]
 
     responses: dict[str, str] = {}
+    if title is not None:
+        responses["title"] = title
+    if description is not None:
+        responses["description"] = description
+    if req_type is not None:
+        responses["type"] = req_type
+    if priority is not None:
+        responses["priority"] = priority
+    if constraints is not None:
+        responses["constraints"] = constraints
+
     index = 0
     while index < len(steps):
         key, message, choices, default = steps[index]
-        prefix = f"Step {index + 1}/{len(steps)}: "
-        reply = bridge.ask_question(
-            prefix + message + " (type 'back' to go back)",
-            choices=choices,
-            default=default,
-        )
+        if key in responses:
+            reply = responses[key]
+        else:
+            prefix = f"Step {index + 1}/{len(steps)}: "
+            reply = bridge.ask_question(
+                prefix + message + " (type 'back' to go back)",
+                choices=choices,
+                default=default,
+            )
         if reply.lower() == "back":
             if index > 0:
                 index -= 1
