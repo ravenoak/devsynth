@@ -20,7 +20,11 @@ class QueryRouter:
         self.memory_manager = memory_manager
 
     def direct_query(self, query: str, store: str) -> List[Any]:
-        """Query a single store directly."""
+        """Query a single store directly.
+
+        The returned items include a ``source_store`` field in their metadata so
+        that callers can trace where each result originated.
+        """
         store = store.lower()
         adapter = self.memory_manager.adapters.get(store)
         if not adapter:
@@ -28,26 +32,43 @@ class QueryRouter:
             return []
 
         if store == "vector":
-            return self.memory_manager.search_memory(query)
+            results = self.memory_manager.search_memory(query)
+            for item in results:
+                item.metadata.setdefault("source_store", store)
+            return results
 
         if store == "graph" and not hasattr(adapter, "search"):
             # Use specialized graph query if available
-            return self.memory_manager.query_related_items(query)
+            results = self.memory_manager.query_related_items(query)
+            for item in results:
+                item.metadata.setdefault("source_store", store)
+            return results
 
         if hasattr(adapter, "search"):
             if isinstance(query, str):
-                return adapter.search({"content": query})
-            return adapter.search(query)
+                results = adapter.search({"content": query})
+            else:
+                results = adapter.search(query)
+            for item in results:
+                if hasattr(item, "metadata"):
+                    item.metadata.setdefault("source_store", store)
+                elif isinstance(item, dict):
+                    item["source_store"] = store
+            return results
 
         logger.warning("Adapter %s does not support direct queries", store)
         return []
 
     def cross_store_query(self, query: str) -> Dict[str, List[Any]]:
         """Query all configured stores and return grouped results."""
-        results: Dict[str, List[Any]] = {}
-        for name in self.memory_manager.adapters:
-            results[name] = self.direct_query(query, name)
-        return results
+        grouped = self.memory_manager.sync_manager.cross_store_query(query)
+        for store, items in grouped.items():
+            for item in items:
+                if hasattr(item, "metadata"):
+                    item.metadata.setdefault("source_store", store)
+                elif isinstance(item, dict):
+                    item["source_store"] = store
+        return grouped
 
     def cascading_query(
         self, query: str, order: Optional[List[str]] = None
@@ -60,9 +81,46 @@ class QueryRouter:
                 results.extend(self.direct_query(query, name))
         return results
 
-    def federated_query(self, query: str) -> Dict[str, List[Any]]:
-        """Perform a federated query across all stores."""
-        return self.cross_store_query(query)
+    def federated_query(self, query: str) -> List[Any]:
+        """Perform a federated query across all stores.
+
+        This method aggregates results from all stores, removes duplicates by
+        ID, and ranks them by simple cosine similarity against the query
+        embedding.
+        """
+        grouped = self.cross_store_query(query)
+        aggregated: List[Any] = []
+        seen: set[str] = set()
+        for items in grouped.values():
+            for item in items:
+                item_id = getattr(item, "id", id(item))
+                if item_id not in seen:
+                    seen.add(item_id)
+                    aggregated.append(item)
+
+        query_emb = self.memory_manager._embed_text(query)
+
+        def _embed(obj: Any) -> List[float]:
+            if hasattr(obj, "embedding"):
+                return obj.embedding
+            content = getattr(obj, "content", "")
+            return self.memory_manager._embed_text(str(content))
+
+        def _similarity(a: List[float], b: List[float]) -> float:
+            import math
+
+            dot = sum(x * y for x, y in zip(a, b))
+            norm_a = math.sqrt(sum(x * x for x in a))
+            norm_b = math.sqrt(sum(x * x for x in b))
+            if norm_a == 0 or norm_b == 0:
+                return 0.0
+            return dot / (norm_a * norm_b)
+
+        aggregated.sort(
+            key=lambda item: _similarity(query_emb, _embed(item)), reverse=True
+        )
+
+        return aggregated
 
     def context_aware_query(
         self, query: str, context: Dict[str, Any], store: Optional[str] = None
