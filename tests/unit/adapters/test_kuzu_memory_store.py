@@ -1,6 +1,4 @@
 """Tests for :class:`KuzuMemoryStore`."""
-import tempfile
-import shutil
 import importlib.util
 from pathlib import Path
 import sys
@@ -24,18 +22,14 @@ spec_adapter.loader.exec_module(kuzu_memory_store)
 KuzuMemoryStore = kuzu_memory_store.KuzuMemoryStore
 
 
-def test_store_and_search_succeeds():
+def test_store_and_search_succeeds(tmp_path):
     """Test that store and search succeeds.
 
 ReqID: N/A"""
-    temp_dir = tempfile.mkdtemp()
-    store = KuzuMemoryStore(persist_directory=temp_dir, use_provider_system
-        =True)
+    store = KuzuMemoryStore(persist_directory=str(tmp_path), use_provider_system=True)
     with patch.object(store, '_get_embedding', return_value=[0.1, 0.2, 0.3]):
-        item = MemoryItem(id='t1', content='hello world', memory_type=
-            MemoryType.WORKING)
+        item = MemoryItem(id='t1', content='hello world', memory_type=MemoryType.WORKING)
         store.store(item)
         results = store.search({'query': 'hello', 'top_k': 1})
-    shutil.rmtree(temp_dir)
     assert len(results) == 1
     assert results[0].id == 't1'
