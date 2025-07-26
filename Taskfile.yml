@@ -175,3 +175,8 @@ tasks:
     desc: Follow container logs
     cmds:
       - docker compose logs -f
+
+  security:audit:
+    desc: Run security audit checks
+    cmds:
+      - poetry run python scripts/security_audit.py --skip-static
