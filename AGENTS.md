@@ -29,8 +29,8 @@ Fix the script and rerun it offline to finish provisioning:
    `--minimal` variant) and verifies key packages such as `pytest-bdd` are
    available.
 2. Run `bash scripts/codex_setup.sh` (without network access) until it completes
-   without errors, then confirm with `poetry run pip list` that packages like
-   `pytest-bdd` appear.
+   without errors. After it finishes, verify the installation by running
+   `poetry run pip list | grep pytest-bdd`.
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
 4. Execute `poetry run pytest` to verify the environment.
 
