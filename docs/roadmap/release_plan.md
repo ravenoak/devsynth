@@ -71,20 +71,11 @@ For a detailed breakdown of feature implementation progress, see the
 [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 ## Implementation Status
-
-Execution of this release plan is **in progress** with milestones tracked in
-[issue 104](../../issues/104.md). The repository harmonization effort has concluded,
-and preparations for the `0.1.0-beta.1` release are underway.
+Execution of this release plan is **in progress** with milestones tracked in [issue 104](../../issues/104.md). The repository harmonization effort has concluded, the **0.1.0-alpha.1** milestone is complete, and preparations for `0.1.0-beta.1` are underway.
 
 ### Current Test Summary
 
-Recent CI reports show **106 failing tests** and **462 errors** out of **997** total, with **347** passing and **82** skipped. Most failures originate from the WebUI
-requirements wizard and the Kuzu-based memory integration. See the
-[development status](development_status.md#test-failure-summary) document for
-details.
-
-### Path to `0.1.0-beta.1`
-
+Recent CI reports collected **2547** tests but aborted during collection with **1 error** (ModuleNotFoundError for `chromadb_store`). **15** tests were skipped. See the [development status](development_status.md#test-failure-summary) document for details.
 To publish `0.1.0-beta.1`, the project must:
 
 - Resolve the outstanding WebUI and EDRR coordinator test failures.

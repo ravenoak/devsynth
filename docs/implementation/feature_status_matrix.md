@@ -49,12 +49,12 @@ Each feature is scored on two dimensions:
 | Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration exist, but behavior tests still fail due to missing step modules and incomplete coordination logic. Outstanding work is tracked in [issue 104](../../issues/104.md). |
-| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting is only partially functional and requires further validation with the EDRR cycle. Outstanding tasks are tracked in [issue 104](../../issues/104.md). |
+| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration are stable. Behavior step modules are now implemented, though some coordination tests still fail. Remaining tasks are tracked in [issue 104](../../issues/104.md).  |
+| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting validated by integration tests with dynamic role reassignment. Coordination with the EDRR cycle is still under review (see [issue 104](../../issues/104.md)).  |
 | Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Workflow implemented with revision cycles and integration tests |
-| Memory System | Partial | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter with full client support available |
+| Memory System | Partial | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter with full client support available, and a new sync manager coordinates LMDB, FAISS, and Kuzu stores |
 | Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
@@ -85,7 +85,7 @@ Each feature is scored on two dimensions:
 | Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |
 | Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Deterministic local provider selected when `offline_mode` is enabled. Verified by unit tests. |
 | Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
-| Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented. WebUI tests now run but many remain failing around the gather wizard (see [issue 102](../../issues/102.md)) |
+| Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented. Wizard navigation fixes applied; gather wizard tests still intermittently fail (see [issue 102](../../issues/102.md)) |
 | Multi-Language Code Generation | Complete | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Supports Python, JavaScript, Go, Rust, Haskell and more |
 
 ## Current Limitations and Workarounds
