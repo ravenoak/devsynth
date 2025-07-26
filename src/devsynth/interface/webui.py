@@ -29,6 +29,7 @@ UX guidance for clarity and responsiveness.
 from __future__ import annotations
 
 import json
+import os
 import time
 import traceback
 from pathlib import Path
@@ -861,11 +862,15 @@ class WebUI(UXBridge):
             st.session_state["wizard_step"] = st.session_state.wizard_step
 
         defaults = {
-            "title": "",
-            "description": "",
-            "type": RequirementType.FUNCTIONAL.value,
-            "priority": RequirementPriority.MEDIUM.value,
-            "constraints": "",
+            "title": os.environ.get("DEVSYNTH_REQ_TITLE", ""),
+            "description": os.environ.get("DEVSYNTH_REQ_DESCRIPTION", ""),
+            "type": os.environ.get(
+                "DEVSYNTH_REQ_TYPE", RequirementType.FUNCTIONAL.value
+            ),
+            "priority": os.environ.get(
+                "DEVSYNTH_REQ_PRIORITY", RequirementPriority.MEDIUM.value
+            ),
+            "constraints": os.environ.get("DEVSYNTH_REQ_CONSTRAINTS", ""),
         }
         raw_data = getattr(st.session_state, "wizard_data", None)
         if raw_data is None and isinstance(st.session_state, dict):

@@ -5,6 +5,7 @@ CLI commands for requirements management.
 import logging
 import uuid
 import json
+import os
 from typing import List, Optional
 
 import typer
@@ -762,6 +763,17 @@ def wizard_cmd(
     Users can move backward by typing ``back`` when prompted.
     The collected data is written to ``output_file`` in JSON format.
     """
+
+    if isinstance(title, typer.models.OptionInfo):
+        title = None
+    if isinstance(description, typer.models.OptionInfo):
+        description = None
+    if isinstance(req_type, typer.models.OptionInfo):
+        req_type = None
+    if isinstance(priority, typer.models.OptionInfo):
+        priority = None
+    if isinstance(constraints, typer.models.OptionInfo):
+        constraints = None
 
     title = title or os.environ.get("DEVSYNTH_REQ_TITLE")
     description = description or os.environ.get("DEVSYNTH_REQ_DESCRIPTION")
