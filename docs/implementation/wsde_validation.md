@@ -103,7 +103,7 @@ The WSDE model is a collaborative agent system with peer-based interactions that
 
 While the WSDE model is progressing, several components remain only partially implemented.
 Dynamic role assignments and consensus algorithms require additional testing and tuning.
-Collaborative memory features are functional but lack sophisticated indexing and synthesis.
+Collaborative memory features are functional but lack sophisticated indexing and synthesis. Consensus summaries and voting result utilities are now available.
 Dialectical reasoning support is still experimental. Refer to the
 [Feature Status Matrix](feature_status_matrix.md) for detailed progress tracking.
 

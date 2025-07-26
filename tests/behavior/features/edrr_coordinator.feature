@@ -71,3 +71,15 @@ Feature: EDRR Coordinator
     And the execution traces should include comprehensive metadata
     And I should be able to retrieve the full execution history
     And I should be able to analyze performance metrics for each phase
+
+  Scenario: Micro cycle creation within the Expand phase
+    Given the EDRR coordinator is initialized with recursion support
+    And the memory system is available
+    And the WSDE team is available
+    And the AST analyzer is available
+    And the prompt manager is available
+    And the documentation manager is available
+    When I start the EDRR cycle with a task to "implement a complex feature"
+    And I create a micro cycle for "brainstorm approaches" in phase "Expand"
+    Then the micro cycle should have recursion depth 1
+    And the parent cycle should include the micro cycle
