@@ -841,8 +841,14 @@ class WebUI(UXBridge):
         # keys.  Support both styles when retrieving the current wizard step
         # and data.
         step_val = getattr(st.session_state, "wizard_step", None)
-        if not isinstance(step_val, int) and isinstance(st.session_state, dict):
-            step_val = st.session_state.get("wizard_step")
+        if not isinstance(step_val, int):
+            if isinstance(st.session_state, dict):
+                step_val = st.session_state.get("wizard_step", step_val)
+            if step_val is None:
+                try:  # fall back to mapping access if attribute missing
+                    step_val = st.session_state["wizard_step"]
+                except Exception:  # pragma: no cover - defensive
+                    step_val = 0
         # ``wizard_step`` may be stored as a string when persisted between
         # sessions.  Convert any digit-like value to ``int`` rather than
         # resetting to zero which would break navigation.
