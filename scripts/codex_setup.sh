@@ -8,13 +8,7 @@ poetry env use "$(command -v python3.12 || command -v python3.11)"
 # fast. Add the `offline` extra manually if GPU features are needed.
 poetry install \
   --with dev,docs \
-  --extras minimal \
-  --extras retrieval \
-  --extras memory \
-  --extras llm \
-  --extras api \
-  --extras webui \
-  --extras lmstudio \
+  --all-extras \
   --no-interaction
 
 # Verify key packages are present
