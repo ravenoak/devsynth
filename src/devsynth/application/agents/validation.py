@@ -42,9 +42,11 @@ class ValidationAgent(BaseAgent):
         Provide a detailed validation report.
         """
         
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        validation_report = f"Validation Report (created by {self.name} as {self.current_role})"
+        # Generate the validation report using the LLM port
+        validation_report = self.generate_text(prompt)
+
+        # Determine if the code is valid based on the report
+        is_valid = "fail" not in validation_report.lower()
         
         # Create a WSDE with the validation report
         validation_wsde = self.create_wsde(
@@ -62,7 +64,7 @@ class ValidationAgent(BaseAgent):
             "wsde": validation_wsde,
             "agent": self.name,
             "role": self.current_role,
-            "is_valid": True  # Placeholder
+            "is_valid": is_valid,
         }
     
     def get_capabilities(self) -> List[str]:

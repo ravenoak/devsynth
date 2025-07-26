@@ -51,12 +51,14 @@ ReqID: N/A"""
         inputs = {'context': 'This is a test project', 'requirements':
             'Create a user authentication system'}
         result = planner_agent.process(inputs)
+        planner_agent.llm_port.generate.assert_called_once()
         assert 'plan' in result
         assert 'wsde' in result
         assert 'agent' in result
         assert 'role' in result
         assert result['agent'] == 'TestPlannerAgent'
         wsde = result['wsde']
+        assert result['plan'] == 'Generated development plan'
         assert wsde.content == result['plan']
         assert wsde.content_type == 'text'
         assert wsde.metadata['agent'] == 'TestPlannerAgent'
@@ -67,6 +69,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         result = planner_agent.process({})
+        planner_agent.llm_port.generate.assert_called()
         assert 'plan' in result
         assert 'wsde' in result
         assert 'agent' in result

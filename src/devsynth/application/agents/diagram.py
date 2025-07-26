@@ -45,9 +45,8 @@ class DiagramAgent(BaseAgent):
         Use mermaid or PlantUML syntax for the diagrams.
         """
 
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        diagrams = f"Diagrams (created by {self.name} as {self.current_role})"
+        # Generate the diagrams using the LLM port
+        diagrams = self.generate_text(prompt)
 
         # Create a WSDE with the diagrams
         diagram_wsde = None

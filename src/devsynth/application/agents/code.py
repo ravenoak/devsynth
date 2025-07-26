@@ -38,9 +38,8 @@ class CodeAgent(BaseAgent):
         Implement code that passes the tests and meets the specifications.
         """
 
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        code = f"Code (created by {self.name} as {self.current_role})"
+        # Generate the code using the LLM port
+        code = self.generate_text(prompt)
 
         # Create a WSDE with the code
         code_wsde = None

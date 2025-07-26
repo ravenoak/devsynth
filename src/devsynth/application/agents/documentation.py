@@ -44,9 +44,8 @@ class DocumentationAgent(BaseAgent):
         6. Troubleshooting
         """
 
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        documentation = f"Documentation (created by {self.name} as {self.current_role})"
+        # Generate the documentation using the LLM port
+        documentation = self.generate_text(prompt)
 
         # Create a WSDE with the documentation
         doc_wsde = None

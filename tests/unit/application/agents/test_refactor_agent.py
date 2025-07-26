@@ -53,6 +53,8 @@ ReqID: N/A"""
             'def add(a, b): return a + b', 'validation_report':
             'The code is functional but could be improved'}
         result = refactor_agent.process(inputs)
+        assert refactor_agent.llm_port.generate.call_count == 2
+        assert result['refactored_code'] == 'Generated refactored code'
         assert 'refactored_code' in result
         assert 'explanation' in result
         assert 'code_wsde' in result
@@ -76,6 +78,8 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         result = refactor_agent.process({})
+        assert refactor_agent.llm_port.generate.call_count >= 2
+        assert result['refactored_code'] == 'Generated refactored code'
         assert 'refactored_code' in result
         assert 'explanation' in result
         assert 'code_wsde' in result

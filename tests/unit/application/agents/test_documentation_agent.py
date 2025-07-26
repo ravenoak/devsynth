@@ -53,12 +53,14 @@ ReqID: N/A"""
             'Create documentation for a user authentication system', 'code':
             'def authenticate(username, password): return True'}
         result = documentation_agent.process(inputs)
+        documentation_agent.llm_port.generate.assert_called_once()
         assert 'documentation' in result
         assert 'wsde' in result
         assert 'agent' in result
         assert 'role' in result
         assert result['agent'] == 'TestDocumentationAgent'
         wsde = result['wsde']
+        assert result['documentation'] == 'Generated documentation'
         assert wsde.content == result['documentation']
         assert wsde.content_type == 'text'
         assert wsde.metadata['agent'] == 'TestDocumentationAgent'
@@ -69,6 +71,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         result = documentation_agent.process({})
+        documentation_agent.llm_port.generate.assert_called()
         assert 'documentation' in result
         assert 'wsde' in result
         assert 'agent' in result

@@ -52,12 +52,14 @@ ReqID: N/A"""
             'Create diagrams for a user authentication system',
             'architecture': 'Microservices architecture'}
         result = diagram_agent.process(inputs)
+        diagram_agent.llm_port.generate.assert_called_once()
         assert 'diagrams' in result
         assert 'wsde' in result
         assert 'agent' in result
         assert 'role' in result
         assert result['agent'] == 'TestDiagramAgent'
         wsde = result['wsde']
+        assert result['diagrams'] == 'Generated diagrams'
         assert wsde.content == result['diagrams']
         assert wsde.content_type == 'diagram'
         assert wsde.metadata['agent'] == 'TestDiagramAgent'
@@ -68,6 +70,7 @@ ReqID: N/A"""
 
 ReqID: N/A"""
         result = diagram_agent.process({})
+        diagram_agent.llm_port.generate.assert_called()
         assert 'diagrams' in result
         assert 'wsde' in result
         assert 'agent' in result

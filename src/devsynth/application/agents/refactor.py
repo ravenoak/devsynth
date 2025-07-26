@@ -45,10 +45,11 @@ class RefactorAgent(BaseAgent):
         Provide a detailed explanation of the changes made.
         """
 
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        refactored_code = f"Refactored Code (created by {self.name} as {self.current_role})"
-        refactor_explanation = f"Refactor Explanation (created by {self.name} as {self.current_role})"
+        # Generate the refactored code and explanation using the LLM port
+        refactored_code = self.generate_text(prompt)
+        refactor_explanation = self.generate_text(
+            f"{prompt}\nProvide an explanation of the refactoring decisions."
+        )
 
         # Create WSDEs with the refactored code and explanation
         code_wsde = None

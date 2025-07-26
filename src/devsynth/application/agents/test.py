@@ -43,9 +43,8 @@ class TestAgent(BaseAgent):
         5. Security tests
         """
 
-        # In a real implementation, this would call the LLM through a port
-        # For now, we'll just return a placeholder
-        tests = f"Tests (created by {self.name} as {self.current_role})"
+        # Generate the tests using the LLM port
+        tests = self.generate_text(prompt)
 
         # Create a WSDE with the tests
         test_wsde = None
