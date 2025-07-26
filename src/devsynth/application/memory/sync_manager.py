@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
+import asyncio
+from contextlib import contextmanager
+from copy import deepcopy
+from datetime import datetime
 
 from ...logging_setup import DevSynthLogger
 from ...domain.models.memory import MemoryItem
@@ -17,10 +21,20 @@ logger = DevSynthLogger(__name__)
 class SyncManager:
     """Synchronize memory items between different stores."""
 
-    def __init__(self, memory_manager: MemoryManager, cache_size: int = 50) -> None:
+    def __init__(
+        self,
+        memory_manager: MemoryManager,
+        cache_size: int = 50,
+        *,
+        async_mode: bool = False,
+    ) -> None:
         self.memory_manager = memory_manager
         self._queue: List[tuple[str, MemoryItem]] = []
         self.cache: TieredCache[Dict[str, List[Any]]] = TieredCache(max_size=cache_size)
+        self.conflict_log: List[Dict[str, Any]] = []
+        self.stats: Dict[str, int] = {"synchronized": 0, "conflicts": 0}
+        self._async_tasks: List[asyncio.Task] = []
+        self.async_mode = async_mode
 
     def _get_all_items(self, adapter: Any) -> List[MemoryItem]:
         if hasattr(adapter, "get_all_items"):
@@ -28,6 +42,64 @@ class SyncManager:
         if hasattr(adapter, "search"):
             return adapter.search({})
         return []
+
+    # ------------------------------------------------------------------
+    def _detect_conflict(self, existing: MemoryItem, incoming: MemoryItem) -> bool:
+        """Return ``True`` if the two items conflict."""
+
+        return (
+            existing.content != incoming.content
+            or existing.metadata != incoming.metadata
+        )
+
+    def _resolve_conflict(
+        self, existing: MemoryItem, incoming: MemoryItem
+    ) -> MemoryItem:
+        """Resolve a conflict by choosing the newest item."""
+
+        winner = incoming if incoming.created_at >= existing.created_at else existing
+        self.conflict_log.append(
+            {
+                "id": existing.id,
+                "existing": existing,
+                "incoming": incoming,
+                "chosen": winner,
+                "timestamp": datetime.now(),
+            }
+        )
+        self.stats["conflicts"] += 1
+        return winner
+
+    def _copy_item(self, item: MemoryItem) -> MemoryItem:
+        return deepcopy(item)
+
+    # ------------------------------------------------------------------
+    @contextmanager
+    def transaction(self, stores: List[str]):
+        """Context manager for multi-store transactions."""
+
+        snapshots: Dict[str, List[MemoryItem]] = {}
+        for name in stores:
+            adapter = self.memory_manager.adapters.get(name)
+            if adapter:
+                snapshots[name] = [
+                    self._copy_item(i) for i in self._get_all_items(adapter)
+                ]
+        try:
+            yield
+        except Exception as exc:  # pragma: no cover - defensive
+            for name, items in snapshots.items():
+                adapter = self.memory_manager.adapters.get(name)
+                if not adapter:
+                    continue
+                if hasattr(adapter, "delete"):
+                    for itm in self._get_all_items(adapter):
+                        adapter.delete(itm.id)
+                for itm in items:
+                    if hasattr(adapter, "store"):
+                        adapter.store(itm)
+            logger.error("Transaction rolled back due to error: %s", exc)
+            raise
 
     def synchronize(
         self, source: str, target: str, bidirectional: bool = False
@@ -41,9 +113,18 @@ class SyncManager:
 
         count = 0
         for item in self._get_all_items(source_adapter):
+            to_store = item
+            existing = None
+            if hasattr(target_adapter, "retrieve"):
+                existing = target_adapter.retrieve(item.id)
+            if existing and self._detect_conflict(existing, item):
+                to_store = self._resolve_conflict(existing, item)
             if hasattr(target_adapter, "store"):
-                target_adapter.store(item)
+                target_adapter.store(to_store)
                 count += 1
+                self.stats["synchronized"] += 1
+            if existing and to_store is existing and hasattr(source_adapter, "store"):
+                source_adapter.store(existing)
         result = {f"{source}_to_{target}": count}
 
         if bidirectional:
@@ -59,19 +140,51 @@ class SyncManager:
         if hasattr(adapter, "store"):
             adapter.store(item)
         for name, other in self.memory_manager.adapters.items():
-            if name != store and hasattr(other, "store"):
-                other.store(item)
+            if name == store or not hasattr(other, "store"):
+                continue
+            existing = None
+            if hasattr(other, "retrieve"):
+                existing = other.retrieve(item.id)
+            to_store = item
+            if existing and self._detect_conflict(existing, item):
+                to_store = self._resolve_conflict(existing, item)
+            other.store(to_store)
+            if existing and to_store is existing and hasattr(adapter, "store"):
+                adapter.store(existing)
+        self.stats["synchronized"] += 1
         return True
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
         """Queue an update for asynchronous propagation."""
         self._queue.append((store, item))
+        if self.async_mode:
+            self.schedule_flush()
 
     def flush_queue(self) -> None:
         """Propagate all queued updates."""
         for store, item in self._queue:
             self.update_item(store, item)
         self._queue = []
+
+    async def flush_queue_async(self) -> None:
+        """Asynchronously propagate queued updates."""
+        for store, item in self._queue:
+            self.update_item(store, item)
+            await asyncio.sleep(0)
+        self._queue = []
+
+    def schedule_flush(self, delay: float = 0.1) -> None:
+        async def _delayed():
+            await asyncio.sleep(delay)
+            await self.flush_queue_async()
+
+        task = asyncio.create_task(_delayed())
+        self._async_tasks.append(task)
+
+    async def wait_for_async(self) -> None:
+        if self._async_tasks:
+            await asyncio.gather(*self._async_tasks)
+            self._async_tasks = []
 
     def cross_store_query(
         self, query: str, stores: Optional[List[str]] | None = None
@@ -108,3 +221,9 @@ class SyncManager:
         """Return number of cached queries."""
 
         return self.cache.size()
+
+    # ------------------------------------------------------------------
+    def get_sync_stats(self) -> Dict[str, int]:
+        """Return statistics about synchronization operations."""
+
+        return dict(self.stats)
