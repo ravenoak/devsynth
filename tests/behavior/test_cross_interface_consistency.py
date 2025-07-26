@@ -13,6 +13,9 @@ import importlib
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
+# Import step definitions implemented for FR-67
+from .steps.cross_interface_consistency_steps import *  # noqa: F401,F403
+
 # Get the absolute path to the feature file
 feature_file = os.path.join(os.path.dirname(__file__), "features", "general", "cross_interface_consistency.feature")
 
