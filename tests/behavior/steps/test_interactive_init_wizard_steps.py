@@ -68,7 +68,9 @@ def run_wizard(tmp_project_dir, monkeypatch):
         True,  # proceed
     ]
     bridge = DummyBridge(answers, confirms)
-    init_cmd(bridge=bridge)
+    # Pass an empty features dict so the wizard prompts for each feature
+    # allowing our ``DummyBridge`` confirmations to be used.
+    init_cmd(bridge=bridge, features={})
 
 
 @then("a project configuration file should include the selected options")

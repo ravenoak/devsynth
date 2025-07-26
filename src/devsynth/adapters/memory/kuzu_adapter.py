@@ -34,7 +34,11 @@ class KuzuAdapter(VectorStore):
     ) -> None:
         self.persist_directory = os.path.expanduser(persist_directory)
         self.collection_name = collection_name
+        # Ensure the directory exists even when ``ensure_path_exists`` is
+        # patched to no-op during tests.  ``os.makedirs`` is safe to call on an
+        # existing path and avoids failures when persisting vectors.
         ensure_path_exists(self.persist_directory)
+        os.makedirs(self.persist_directory, exist_ok=True)
         self._data_file = os.path.join(
             self.persist_directory, f"{collection_name}.json"
         )
