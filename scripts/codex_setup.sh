@@ -1,5 +1,8 @@
 set -exo pipefail
 
+# NOTE: This script provisions the Codex testing environment only. It is not
+# intended for regular development setup.
+
 # Use Python 3.12 if available, otherwise fall back to Python 3.11
 poetry env use "$(command -v python3.12 || command -v python3.11)"
 
@@ -29,6 +32,9 @@ EOF
 
 # Double-check that pytest-bdd can be imported
 poetry run python -c "import pytest_bdd"
+
+# Ensure pytest-bdd is installed in the environment
+poetry run pip show pytest-bdd >/dev/null
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
