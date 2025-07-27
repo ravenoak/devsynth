@@ -602,7 +602,7 @@ class RDFLibStore(MemoryPort):
 ### Setting Up ChromaDB Memory Store
 
 ```python
-from devsynth.adapters.memory.chromadb_store import ChromaDBStore
+from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.adapters.providers.openai_provider import OpenAIProvider
 
 # Configure with OpenAI embeddings
