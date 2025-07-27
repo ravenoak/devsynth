@@ -131,6 +131,11 @@ class KuzuAdapter(VectorStore):
             self._persist()
         return existed
 
+    def get_all_vectors(self) -> List[MemoryVector]:
+        """Return all stored vectors."""
+
+        return list(self._store.values())
+
     def get_collection_stats(self) -> Dict[str, Any]:
         dim = 0
         if self._store:

@@ -276,3 +276,19 @@ class KuzuStore(MemoryStore):
 
     def get_embedding_storage_efficiency(self) -> float:
         return 0.85
+
+    def get_all_items(self) -> List[MemoryItem]:
+        """Return all stored :class:`MemoryItem` objects."""
+
+        if self._use_fallback:
+            return list(self._store.values())
+
+        items: List[MemoryItem] = []
+        try:  # pragma: no cover - requires kuzu
+            for item_id in self._all_ids():
+                itm = self._retrieve_from_db(item_id)
+                if itm:
+                    items.append(itm)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Failed to fetch all items from Kuzu: %s", exc)
+        return items

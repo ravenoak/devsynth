@@ -43,6 +43,11 @@ class SyncManager:
             return adapter.search({})
         return []
 
+    def _get_all_vectors(self, adapter: Any) -> List[Any]:
+        if hasattr(adapter, "get_all_vectors"):
+            return adapter.get_all_vectors()
+        return []
+
     # ------------------------------------------------------------------
     def _detect_conflict(self, existing: MemoryItem, incoming: MemoryItem) -> bool:
         """Return ``True`` if the two items conflict."""
@@ -125,6 +130,15 @@ class SyncManager:
                 self.stats["synchronized"] += 1
             if existing and to_store is existing and hasattr(source_adapter, "store"):
                 source_adapter.store(existing)
+
+        for vector in self._get_all_vectors(source_adapter):
+            existing_vec = None
+            if hasattr(target_adapter, "retrieve_vector"):
+                existing_vec = target_adapter.retrieve_vector(vector.id)
+            if existing_vec is None and hasattr(target_adapter, "store_vector"):
+                target_adapter.store_vector(vector)
+                count += 1
+                self.stats["synchronized"] += 1
         result = {f"{source}_to_{target}": count}
 
         if bidirectional:
