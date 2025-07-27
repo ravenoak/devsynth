@@ -84,3 +84,7 @@ To publish `0.1.0-beta.1`, the project must:
   [Feature Status Matrix](../implementation/feature_status_matrix.md) such as
   Methodology Integration and the Retry Mechanism.
 - Continue documentation cleanup and polish the Web UI preview.
+
+Current builds run with `features.wsde_collaboration` enabled but
+`features.dialectical_reasoning` disabled. Collaborative and dialectical
+reasoning features are still experimental and may fail in complex projects.

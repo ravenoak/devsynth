@@ -675,3 +675,13 @@ The integration between the WSDE model and the EDRR framework provides a powerfu
 ## Implementation Status
 
 This feature is **in progress** and not yet implemented.
+
+## Current Limitations
+
+- WSDE collaboration is enabled via feature flags but lacks extensive
+  end-to-end validation.
+- Dialectical reasoning hooks are experimental and disabled by default.
+- Integration tests for combined EDRR and WSDE workflows are incomplete.
+
+Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md)
+for detailed progress tracking.

@@ -44,10 +44,10 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-36 | Context pruning strategies | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/context_manager.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
 | FR-37 | Context information persistence | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/json_file_store.py | tests/behavior/test_chromadb_integration.py | Implemented |
 | FR-38 | Token count tracking for context | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/utils/token_tracker.py | tests/unit/general/test_token_tracker.py | Implemented |
-| FR-40 | EDRR (Expand, Differentiate, Refine, Retrospect) framework | [EDRR Specification](specifications/edrr_cycle_specification.md) | src/devsynth/application/EDRR/coordinator.py | tests/behavior/features/edrr_coordinator.feature | Implemented |
-| FR-41 | WSDE (WSDE) model | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Implemented |
-| FR-42 | Role management in multi-agent collaboration | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Implemented |
-| FR-43 | Dialectical reasoning in agent collaboration | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Implemented |
+| FR-40 | EDRR (Expand, Differentiate, Refine, Retrospect) framework | [EDRR Specification](specifications/edrr_cycle_specification.md) | src/devsynth/application/EDRR/coordinator.py | tests/behavior/features/edrr_coordinator.feature | Partially Implemented |
+| FR-41 | WSDE (WSDE) model | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Partially Implemented |
+| FR-42 | Role management in multi-agent collaboration | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Partially Implemented |
+| FR-43 | Dialectical reasoning in agent collaboration | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Partially Implemented |
 | FR-44 | TinyDB memory adapter | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/tinydb_adapter.py | tests/unit/application/memory/test_tinydb_store.py | Implemented |
 | FR-45 | RDFLib knowledge graph store | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/rdflib_store.py | tests/behavior/features/advanced_graph_memory_features.feature | Implemented |
 | FR-46 | Graph memory adapter | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/graph_adapter.py | tests/unit/application/memory/test_graph_memory_adapter.py | Implemented |
@@ -97,7 +97,9 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-88 | Methodology adapter system for customizing development workflows | [Methodology Integration Framework](technical_reference/methodology_integration_framework.md) | src/devsynth/methodology/adhoc.py, src/devsynth/methodology/sprint.py | tests/unit/methodology/test_adhoc_adapter.py, tests/unit/methodology/test_sprint_adapter.py | Implemented |
 | FR-89 | Conditional retry logic for provider API calls | [Retry Mechanism with Exponential Backoff](adapters/providers/retry_mechanism.md) | src/devsynth/fallback.py, src/devsynth/adapters/provider_system.py, src/devsynth/application/llm/openai_provider.py, src/devsynth/application/llm/lmstudio_provider.py | tests/unit/fallback/test_retry_conditions.py, tests/unit/adapters/test_provider_system.py | Implemented |
 
-_Last updated: July 23, 2025
+_Last updated: July 23, 2025_
 ## Implementation Status
 
-All documented requirements are implemented or planned as noted above.
+Several requirements remain **partially implemented**. Consult the status column
+above and the [Feature Status Matrix](implementation/feature_status_matrix.md)
+for work still in progress.
