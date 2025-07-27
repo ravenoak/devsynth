@@ -846,15 +846,19 @@ class WebUI(UXBridge):
             if isinstance(st.session_state, dict):
                 step_val = st.session_state.get("wizard_step", step_val)
             if step_val is None:
-                try:  # fall back to mapping access if attribute missing
+                try:  # fall back to mapping style access
                     step_val = st.session_state["wizard_step"]
                 except Exception:  # pragma: no cover - defensive
                     step_val = 0
-        # ``wizard_step`` may be stored as a string when persisted between
-        # sessions.  Convert any digit-like value to ``int`` rather than
-        # resetting to zero which would break navigation.
-        if isinstance(step_val, str) and step_val.isdigit():
-            step_val = int(step_val)
+        if isinstance(step_val, str):
+            text = step_val.strip()
+            if text.isdigit() or (text.startswith("-") and text[1:].isdigit()):
+                step_val = int(text)
+            else:  # pragma: no cover - defensive
+                try:
+                    step_val = int(float(text))
+                except Exception:
+                    step_val = 0
         if not isinstance(step_val, int):
             step_val = 0
         st.session_state.wizard_step = max(0, min(len(steps) - 1, step_val))

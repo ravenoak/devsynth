@@ -56,14 +56,15 @@ class KuzuStore(MemoryStore):
         # path so tests that set ``DEVSYNTH_PROJECT_DIR`` are respected and
         # avoid manual ``os.makedirs`` which would ignore the
         # ``DEVSYNTH_NO_FILE_LOGGING`` setting.
-        self.file_path = file_path
-        # Ensure the backing directory exists even when running under the test
-        # isolation fixtures. ``ensure_path_exists`` handles optional path
-        # redirection but may be patched not to create the directory, so we
-        # explicitly call ``os.makedirs`` as well.
-        ensure_path_exists(file_path)
-        os.makedirs(file_path, exist_ok=True)
-        self.db_path = os.path.join(file_path, "kuzu.db")
+        # ``ensure_path_exists`` may redirect the path when running under the
+        # test isolation fixtures.  Use the returned path so the database is
+        # created in the correct location rather than the original argument
+        # which may be outside the temporary test directory.
+        self.file_path = ensure_path_exists(file_path)
+        # Explicitly create the directory even when ``ensure_path_exists`` is
+        # patched not to, ensuring the database can always be opened.
+        os.makedirs(self.file_path, exist_ok=True)
+        self.db_path = os.path.join(self.file_path, "kuzu.db")
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
         self._token_usage = 0
