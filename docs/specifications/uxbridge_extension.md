@@ -65,4 +65,4 @@ both textual and graphical UIs and allow tests to mock the interface easily.
 
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented**. See `src/devsynth/interface/ux_bridge.py` for the reference implementation.

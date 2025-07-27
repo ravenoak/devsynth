@@ -17,7 +17,7 @@ version: 1.1.0
 
 ## Overview
 
-The DevSynth provider system enables seamless integration with multiple LLM providers (OpenAI, LM Studio) through a unified interface. It supports automatic fallback, configuration via environment variables, and selection based on task requirements.
+The DevSynth provider system enables seamless integration with multiple LLM providers (OpenAI, Anthropic, LM Studio, Local and Offline models) through a unified interface. It supports automatic fallback, configuration via environment variables, and selection based on task requirements.
 
 ## Key Features
 
@@ -41,18 +41,22 @@ graph TD
     C -->|Creates| D[Fallback Provider]
     D -->|Tries| E[OpenAI Provider]
     D -->|Tries| F[LM Studio Provider]
-    D -->|Tries| G[Local Provider]
-    D -->|Tries| H[Custom Provider]
-    E --> I["OpenAI API (GPT-4, Claude)"]
-    F --> J[LM Studio API]
-    G --> K["Local Models (LLama, Mistral)"]
-    H --> L[Custom API Integration]
+    D -->|Tries| G[Anthropic Provider]
+    D -->|Tries| H[Local Provider]
+    D -->|Tries| I[Offline Provider]
+    D -->|Tries| J[Custom Provider]
+    E --> K["OpenAI API"]
+    F --> L[LM Studio API]
+    G --> M["Anthropic API"]
+    H --> N["Local Models"]
+    I --> O["Deterministic Offline"]
+    J --> P[Custom API Integration]
 
-    M[Token Counter] -->|Used by| E & F & G & H
-    N[Prompt Templates] -->|Used by| E & F & G & H
-    O[Response Parser] -->|Used by| E & F & G & H
-    P[Cache Manager] -->|Used by| E & F & G & H
-    Q[Telemetry Collector] -->|Monitors| E & F & G & H
+    M1[Token Counter] -->|Used by| E & F & G & H & I & J
+    N1[Prompt Templates] -->|Used by| E & F & G & H & I & J
+    O1[Response Parser] -->|Used by| E & F & G & H & I & J
+    P1[Cache Manager] -->|Used by| E & F & G & H & I & J
+    Q1[Telemetry Collector] -->|Monitors| E & F & G & H & I & J
 
     C -->|Configures| R[Environment Config]
     C -->|Uses| S[Provider Registry]
@@ -63,6 +67,9 @@ graph TD
 - **BaseProvider**: Abstract base class defining the provider interface with common functionality
 - **OpenAIProvider**: Implementation for OpenAI API with comprehensive retry mechanisms
 - **LMStudioProvider**: Implementation for LM Studio local API with full feature parity
+- **AnthropicProvider**: Implementation for Anthropic's API
+- **LocalProvider**: Interface for running local LLM models
+- **OfflineProvider**: Deterministic provider used when network access is disabled
 - **FallbackProvider**: Meta-provider that tries multiple providers in sequence with circuit breaker pattern
 - **ProviderFactory**: Factory for creating appropriate provider instances based on configuration
 - **CircuitBreaker**: Utility class for preventing cascading failures when a provider is experiencing issues

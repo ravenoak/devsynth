@@ -105,8 +105,8 @@ The following deliverables were produced during Month 1:
 
 3. **Documentation**:
    - Deployment Guide (`/docs/deployment/deployment_guide.md`)
-   - Updated Development Plan (`/docs/roadmap/development_plan.md`)
-   - Updated Development Status (`/docs/roadmap/development_status.md`)
+  - Updated Development Plan (`/docs/roadmap/development_plan.md`)
+  - See [development_status.md](../roadmap/development_status.md) for the latest implementation progress
 
 
 ## Metrics and Success Criteria
