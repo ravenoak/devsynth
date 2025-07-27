@@ -1,15 +1,16 @@
 import sys
 import types
+import os
 from unittest.mock import patch
 
 import pytest
 
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 # Provide a dummy kuzu module if the dependency is not installed
 sys.modules.setdefault("kuzu", types.ModuleType("kuzu"))
-
 
 
 @pytest.fixture
@@ -19,8 +20,14 @@ def kuzu_store(ephemeral_kuzu_store):
 
 @pytest.fixture(autouse=True)
 def mock_embed():
-    with patch(
-        "devsynth.adapters.kuzu_memory_store.embed", return_value=[[0.1, 0.2, 0.3]]
+    with (
+        patch(
+            "devsynth.adapters.kuzu_memory_store.embed", return_value=[[0.1, 0.2, 0.3]]
+        ),
+        patch(
+            "devsynth.adapters.kuzu_memory_store.embedding_functions.DefaultEmbeddingFunction",
+            lambda: (lambda x: [0.0] * 5),
+        ),
     ):
         yield
 
@@ -52,3 +59,18 @@ def test_create_for_testing_with_kuzu(kuzu_store):
     assert adapter.memory_store is not None
     assert adapter.context_manager is not None
     assert adapter.vector_store is not None
+
+
+def test_ephemeral_store_cleanup():
+    store = KuzuMemoryStore.create_ephemeral()
+    path = store.persist_directory
+    assert os.path.exists(path)
+    store.cleanup()
+    assert not os.path.exists(path)
+
+
+def test_provider_fallback_on_empty_embedding(tmp_path):
+    with patch("devsynth.adapters.kuzu_memory_store.embed", return_value=[[]]):
+        store = KuzuMemoryStore(str(tmp_path))
+        emb = store._get_embedding("hello")
+        assert emb == store.embedder("hello")

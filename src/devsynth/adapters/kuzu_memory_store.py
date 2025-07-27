@@ -54,8 +54,17 @@ class KuzuMemoryStore(MemoryStore):
         if self.use_provider_system:
             try:
                 result = embed(text, provider_type=self.provider_type, fallback=True)
-                if isinstance(result, list):
-                    return result[0]
+                if isinstance(result, list) and result:
+                    first = result[0]
+                    if first:
+                        return first
+                    logger.warning(
+                        "Provider embedding returned empty result; falling back"
+                    )
+                else:
+                    logger.warning(
+                        "Provider embedding returned invalid data; falling back"
+                    )
             except ProviderError:
                 logger.warning("Provider embedding failed; falling back to default")
         return self.embedder(text)
@@ -118,6 +127,8 @@ class KuzuMemoryStore(MemoryStore):
                 shutil.rmtree(temp_dir)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("Failed to clean up temporary Kuzu directory: %s", exc)
+        if temp_dir:
+            self._temp_dir = None
 
     def get_all_items(self) -> List[MemoryItem]:
         """Return all stored items."""
