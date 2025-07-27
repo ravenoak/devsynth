@@ -9,15 +9,6 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.memory.json_file_store import JSONFileStore
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.application.memory.duckdb_store import DuckDBStore
-
-try:
-    from devsynth.application.memory.lmdb_store import LMDBStore
-except ImportError:
-    LMDBStore = None
-try:
-    from devsynth.application.memory.faiss_store import FAISSStore
-except ImportError:
-    FAISSStore = None
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.application.memory.rdflib_store import RDFLibStore
@@ -119,6 +110,9 @@ class TestMemorySystemAdapter:
             "context_expiration_days": 1,
             "vector_store_enabled": False,
         }
+        pytest.importorskip("lmdb")
+        from devsynth.application.memory.lmdb_store import LMDBStore
+
         adapter = MemorySystemAdapter(config=config)
         assert adapter.storage_type == "lmdb"
         assert adapter.memory_path == temp_dir
@@ -151,6 +145,9 @@ class TestMemorySystemAdapter:
         """Test initialization with FAISS storage.
 
         ReqID: N/A"""
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         config = {
             "memory_store_type": "faiss",
             "memory_file_path": temp_dir,
@@ -171,8 +168,9 @@ class TestMemorySystemAdapter:
         """Test vector store operations with FAISS.
 
         ReqID: N/A"""
-        if FAISSStore is None:
-            pytest.skip("FAISS is not available")
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         pytest.skip("Skipping FAISS test due to known issues with FAISS library")
         try:
             config = {
@@ -209,8 +207,9 @@ class TestMemorySystemAdapter:
         """Test integration between memory store and vector store.
 
         ReqID: N/A"""
-        if FAISSStore is None:
-            pytest.skip("FAISS is not available")
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         pytest.skip(
             "Skipping FAISS integration test due to known issues with FAISS library"
         )

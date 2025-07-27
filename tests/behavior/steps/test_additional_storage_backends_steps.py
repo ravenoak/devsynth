@@ -3,6 +3,7 @@ Step definitions for Additional Storage Backends feature.
 
 This file implements step definitions for testing TinyDB, DuckDB, LMDB, and FAISS storage backends.
 """
+
 import os
 import pytest
 import numpy as np
@@ -14,18 +15,19 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.lmdb_store import LMDBStore
-from devsynth.application.memory.faiss_store import FAISSStore
 from devsynth.ports.memory_port import MemoryPort
 
 pytestmark = [
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),
     # Skip all FAISS-related tests to avoid fatal Python errors
-    pytest.mark.skip(reason="Skipping FAISS tests due to known issues with FAISS library"),
+    pytest.mark.skip(
+        reason="Skipping FAISS tests due to known issues with FAISS library"
+    ),
 ]
 
 # Register the scenarios from the feature file
-scenarios('../features/general/additional_storage_backends.feature')
+scenarios("../features/general/additional_storage_backends.feature")
 
 
 @pytest.fixture
@@ -60,6 +62,9 @@ def lmdb_store(temp_store_path):
 @pytest.fixture
 def faiss_store(temp_store_path):
     """Create a FAISS store instance for testing."""
+    pytest.importorskip("faiss")
+    from devsynth.application.memory.faiss_store import FAISSStore
+
     store = FAISSStore(base_path=temp_store_path)
     return store
 
@@ -67,7 +72,7 @@ def faiss_store(temp_store_path):
 @pytest.fixture
 def memory_store(request, temp_store_path):
     """Create a memory store based on the specified type."""
-    store_type = request.param if hasattr(request, 'param') else "memory"
+    store_type = request.param if hasattr(request, "param") else "memory"
 
     if store_type == "tinydb":
         return TinyDBStore(base_path=temp_store_path)
@@ -76,6 +81,9 @@ def memory_store(request, temp_store_path):
     elif store_type == "lmdb":
         return LMDBStore(base_path=temp_store_path)
     elif store_type == "faiss":
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         return FAISSStore(base_path=temp_store_path)
     else:
         pytest.fail(f"Unsupported store type: {store_type}")
@@ -90,7 +98,7 @@ def memory_port(memory_store):
     return port
 
 
-@given('the DevSynth CLI is installed')
+@given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI can be imported."""
     try:
@@ -104,10 +112,15 @@ def devsynth_cli_installed():
 def configure_memory_store_type(store_type):
     """Configure the memory store type."""
     # This step is handled by the memory_store fixture
-    assert store_type in ["tinydb", "duckdb", "lmdb", "faiss"], f"Unsupported store type: {store_type}"
+    assert store_type in [
+        "tinydb",
+        "duckdb",
+        "lmdb",
+        "faiss",
+    ], f"Unsupported store type: {store_type}"
 
 
-@then(parsers.parse('a {store_type} memory store should be initialized'))
+@then(parsers.parse("a {store_type} memory store should be initialized"))
 def check_store_initialized(store_type, request):
     """Verify that the specified memory store is initialized."""
     if store_type == "TinyDB":
@@ -120,6 +133,9 @@ def check_store_initialized(store_type, request):
         store = request.getfixturevalue("lmdb_store")
         assert isinstance(store, LMDBStore)
     elif store_type == "FAISS":
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         store = request.getfixturevalue("faiss_store")
         assert isinstance(store, FAISSStore)
     else:
@@ -130,7 +146,12 @@ def check_store_initialized(store_type, request):
 def given_memory_store_type(store_type, request):
     """Configure the memory store type."""
     # This step is handled by the memory_store fixture
-    assert store_type in ["tinydb", "duckdb", "lmdb", "faiss"], f"Unsupported store type: {store_type}"
+    assert store_type in [
+        "tinydb",
+        "duckdb",
+        "lmdb",
+        "faiss",
+    ], f"Unsupported store type: {store_type}"
 
     # Dynamically get the appropriate store fixture
     if store_type == "tinydb":
@@ -143,22 +164,25 @@ def given_memory_store_type(store_type, request):
         store = request.getfixturevalue("lmdb_store")
         assert isinstance(store, LMDBStore)
     elif store_type == "faiss":
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         store = request.getfixturevalue("faiss_store")
         assert isinstance(store, FAISSStore)
 
 
-@when('I store an item in the memory store')
+@when("I store an item in the memory store")
 def store_item_in_memory(memory_port):
     """Store an item in the memory store."""
     # Store a test item in memory
     memory_port.store_memory(
         content="This is a test item for storage backends",
         memory_type=MemoryType.WORKING,
-        metadata={"test_id": "test-item-1"}
+        metadata={"test_id": "test-item-1"},
     )
 
 
-@then('I should be able to retrieve the item by its ID')
+@then("I should be able to retrieve the item by its ID")
 def retrieve_item_by_id(memory_port):
     """Verify that an item can be retrieved by its ID."""
     # First search for the item to get its ID
@@ -176,26 +200,44 @@ def retrieve_item_by_id(memory_port):
     assert "test item" in retrieved_item.content.lower()
 
 
-@given('I have stored multiple items with different content')
+@given("I have stored multiple items with different content")
 def store_multiple_items(memory_port):
     """Store multiple items with different content."""
     items = [
-        ("Document about Python programming language", MemoryType.WORKING, {"test_id": "python"}),
-        ("Article about JavaScript frameworks", MemoryType.WORKING, {"test_id": "javascript"}),
-        ("Tutorial on machine learning algorithms", MemoryType.WORKING, {"test_id": "ml"}),
-        ("Guide to natural language processing", MemoryType.WORKING, {"test_id": "nlp"}),
-        ("Introduction to database systems", MemoryType.WORKING, {"test_id": "database"})
+        (
+            "Document about Python programming language",
+            MemoryType.WORKING,
+            {"test_id": "python"},
+        ),
+        (
+            "Article about JavaScript frameworks",
+            MemoryType.WORKING,
+            {"test_id": "javascript"},
+        ),
+        (
+            "Tutorial on machine learning algorithms",
+            MemoryType.WORKING,
+            {"test_id": "ml"},
+        ),
+        (
+            "Guide to natural language processing",
+            MemoryType.WORKING,
+            {"test_id": "nlp"},
+        ),
+        (
+            "Introduction to database systems",
+            MemoryType.WORKING,
+            {"test_id": "database"},
+        ),
     ]
 
     for content, memory_type, metadata in items:
         memory_port.store_memory(
-            content=content,
-            memory_type=memory_type,
-            metadata=metadata
+            content=content, memory_type=memory_type, metadata=metadata
         )
 
 
-@when('I search for items with specific criteria')
+@when("I search for items with specific criteria")
 def search_items_with_criteria(memory_port):
     """Search for items with specific criteria."""
     # Store the search results in the context for later assertion
@@ -203,11 +245,13 @@ def search_items_with_criteria(memory_port):
     memory_port.context_manager.add_to_context.return_value = results
 
 
-@then('I should receive items matching the criteria')
+@then("I should receive items matching the criteria")
 def check_search_results(memory_port):
     """Verify that items match the search criteria."""
     # Retrieve the search results from the context
-    memory_port.context_manager.get_from_context.return_value = memory_port.search_memory({"content": "programming"})
+    memory_port.context_manager.get_from_context.return_value = (
+        memory_port.search_memory({"content": "programming"})
+    )
     results = memory_port.context_manager.get_from_context.return_value
 
     # Verify that we have results
@@ -223,17 +267,17 @@ def check_search_results(memory_port):
     assert python_found, "Expected Python document in search results"
 
 
-@given('I have stored items in the memory store')
+@given("I have stored items in the memory store")
 def stored_items_in_memory(memory_port):
     """Store items in the memory store for persistence testing."""
     memory_port.store_memory(
         content="This is a persistent test item",
         memory_type=MemoryType.WORKING,
-        metadata={"test_id": "persistent-item"}
+        metadata={"test_id": "persistent-item"},
     )
 
 
-@when('I restart the application')
+@when("I restart the application")
 def restart_application(request, temp_store_path):
     """Simulate restarting the application by recreating the memory store."""
     # Get the current store type
@@ -247,6 +291,9 @@ def restart_application(request, temp_store_path):
     elif store_type == "lmdb":
         new_store = LMDBStore(base_path=temp_store_path)
     elif store_type == "faiss":
+        pytest.importorskip("faiss")
+        from devsynth.application.memory.faiss_store import FAISSStore
+
         new_store = FAISSStore(base_path=temp_store_path)
     else:
         pytest.fail(f"Unsupported store type: {store_type}")
@@ -255,7 +302,7 @@ def restart_application(request, temp_store_path):
     request.config.cache.set("new_store", new_store)
 
 
-@then('the previously stored items should still be available')
+@then("the previously stored items should still be available")
 def check_item_persistence(request, memory_port):
     """Verify that items are still available after restart."""
     # Get the new store from the cache
@@ -280,14 +327,17 @@ def check_item_persistence(request, memory_port):
     assert persistent_found, "Expected persistent item to be available after restart"
 
 
-@given('vector store is enabled')
+@given("vector store is enabled")
 def vector_store_enabled(request):
     """Ensure that vector store is enabled for DuckDB or FAISS stores."""
     store_type = request.node.get_closest_marker("store_type").args[0]
-    assert store_type in ["duckdb", "faiss"], f"Vector store not supported for {store_type}"
+    assert store_type in [
+        "duckdb",
+        "faiss",
+    ], f"Vector store not supported for {store_type}"
 
 
-@when('I store a vector in the vector store')
+@when("I store a vector in the vector store")
 def store_vector_in_store(request):
     """Store a vector in the vector store."""
     # Get the current store type
@@ -305,7 +355,7 @@ def store_vector_in_store(request):
     vector = MemoryVector(
         content="Test vector content",
         embedding=np.random.rand(5).tolist(),  # 5-dimensional random vector
-        metadata={"test_id": "test-vector-1"}
+        metadata={"test_id": "test-vector-1"},
     )
 
     # Store the vector
@@ -315,7 +365,7 @@ def store_vector_in_store(request):
     request.config.cache.set("vector_id", vector_id)
 
 
-@then('I should be able to retrieve the vector by its ID')
+@then("I should be able to retrieve the vector by its ID")
 def retrieve_vector_by_id(request):
     """Verify that a vector can be retrieved by its ID."""
     # Get the current store type
@@ -341,7 +391,7 @@ def retrieve_vector_by_id(request):
     assert "test vector content" in vector.content.lower()
 
 
-@given('I have stored multiple vectors with different embeddings')
+@given("I have stored multiple vectors with different embeddings")
 def store_multiple_vectors(request):
     """Store multiple vectors with different embeddings."""
     # Get the current store type
@@ -357,18 +407,32 @@ def store_multiple_vectors(request):
 
     # Create and store multiple vectors
     vectors = [
-        ("Document about Python", np.array([0.1, 0.2, 0.3, 0.4, 0.5]), {"test_id": "python-vec"}),
-        ("Article about JavaScript", np.array([0.2, 0.3, 0.4, 0.5, 0.6]), {"test_id": "js-vec"}),
-        ("Tutorial on machine learning", np.array([0.3, 0.4, 0.5, 0.6, 0.7]), {"test_id": "ml-vec"}),
+        (
+            "Document about Python",
+            np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
+            {"test_id": "python-vec"},
+        ),
+        (
+            "Article about JavaScript",
+            np.array([0.2, 0.3, 0.4, 0.5, 0.6]),
+            {"test_id": "js-vec"},
+        ),
+        (
+            "Tutorial on machine learning",
+            np.array([0.3, 0.4, 0.5, 0.6, 0.7]),
+            {"test_id": "ml-vec"},
+        ),
         ("Guide to NLP", np.array([0.4, 0.5, 0.6, 0.7, 0.8]), {"test_id": "nlp-vec"}),
-        ("Introduction to databases", np.array([0.5, 0.6, 0.7, 0.8, 0.9]), {"test_id": "db-vec"})
+        (
+            "Introduction to databases",
+            np.array([0.5, 0.6, 0.7, 0.8, 0.9]),
+            {"test_id": "db-vec"},
+        ),
     ]
 
     for content, embedding, metadata in vectors:
         vector = MemoryVector(
-            content=content,
-            embedding=embedding.tolist(),
-            metadata=metadata
+            content=content, embedding=embedding.tolist(), metadata=metadata
         )
         store.store_vector(vector)
 
@@ -376,7 +440,7 @@ def store_multiple_vectors(request):
     request.config.cache.set("query_vector", [0.1, 0.2, 0.3, 0.4, 0.5])
 
 
-@when('I perform a similarity search with a query embedding')
+@when("I perform a similarity search with a query embedding")
 def perform_similarity_search(request):
     """Perform a similarity search with a query embedding."""
     # Get the current store type
@@ -401,7 +465,7 @@ def perform_similarity_search(request):
     request.config.cache.set("search_results", [v.id for v in results])
 
 
-@then('I should receive vectors ranked by similarity')
+@then("I should receive vectors ranked by similarity")
 def check_similarity_search_results(request):
     """Verify that vectors are ranked by similarity."""
     # Get the search results
@@ -412,7 +476,7 @@ def check_similarity_search_results(request):
     assert len(result_ids) > 0, "No similarity search results found"
 
 
-@given('I have stored vectors in the vector store')
+@given("I have stored vectors in the vector store")
 def stored_vectors_in_store(request):
     """Store vectors in the vector store for persistence testing."""
     # Get the current store type
@@ -430,7 +494,7 @@ def stored_vectors_in_store(request):
     vector = MemoryVector(
         content="This is a persistent test vector",
         embedding=np.random.rand(5).tolist(),
-        metadata={"test_id": "persistent-vector"}
+        metadata={"test_id": "persistent-vector"},
     )
 
     vector_id = store.store_vector(vector)
@@ -439,7 +503,7 @@ def stored_vectors_in_store(request):
     request.config.cache.set("persistent_vector_id", vector_id)
 
 
-@then('the previously stored vectors should still be available')
+@then("the previously stored vectors should still be available")
 def check_vector_persistence(request):
     """Verify that vectors are still available after restart."""
     # Get the current store type
@@ -465,7 +529,7 @@ def check_vector_persistence(request):
     assert "persistent test vector" in vector.content.lower()
 
 
-@given('I have stored multiple vectors in the vector store')
+@given("I have stored multiple vectors in the vector store")
 def stored_multiple_vectors(request):
     """Store multiple vectors in the vector store for collection statistics."""
     # Get the current store type
@@ -484,12 +548,12 @@ def stored_multiple_vectors(request):
         vector = MemoryVector(
             content=f"Test vector {i}",
             embedding=np.random.rand(5).tolist(),
-            metadata={"test_id": f"stats-vector-{i}"}
+            metadata={"test_id": f"stats-vector-{i}"},
         )
         store.store_vector(vector)
 
 
-@when('I request collection statistics')
+@when("I request collection statistics")
 def request_collection_stats(request):
     """Request collection statistics from the vector store."""
     # Get the current store type
@@ -510,7 +574,7 @@ def request_collection_stats(request):
     request.config.cache.set("collection_stats", stats)
 
 
-@then('I should receive information about the vector collection')
+@then("I should receive information about the vector collection")
 def check_collection_stats(request):
     """Verify that collection statistics are returned."""
     # Get the collection stats
@@ -519,14 +583,16 @@ def check_collection_stats(request):
 
     # Verify that we have stats
     assert "num_vectors" in stats, "num_vectors not found in collection stats"
-    assert "embedding_dimension" in stats, "embedding_dimension not found in collection stats"
+    assert (
+        "embedding_dimension" in stats
+    ), "embedding_dimension not found in collection stats"
 
     # Verify that the stats are reasonable
     assert stats["num_vectors"] >= 5, "Expected at least 5 vectors in collection"
     assert stats["embedding_dimension"] == 5, "Expected embedding dimension to be 5"
 
 
-@when('I begin a transaction')
+@when("I begin a transaction")
 def begin_transaction(request):
     """Begin a transaction in the LMDB store."""
     # This step is only applicable to LMDB
@@ -543,7 +609,7 @@ def begin_transaction(request):
     request.config.cache.set("transaction", txn)
 
 
-@when('I store multiple items within the transaction')
+@when("I store multiple items within the transaction")
 def store_items_in_transaction(request):
     """Store multiple items within the transaction."""
     # Get the transaction
@@ -559,7 +625,7 @@ def store_items_in_transaction(request):
         item = MemoryItem(
             content=f"Transaction item {i}",
             memory_type=MemoryType.WORKING,
-            metadata={"test_id": f"txn-item-{i}"}
+            metadata={"test_id": f"txn-item-{i}"},
         )
         store.store_in_transaction(txn, item)
         items.append(item.id)
@@ -568,7 +634,7 @@ def store_items_in_transaction(request):
     request.config.cache.set("transaction_items", items)
 
 
-@when('I commit the transaction')
+@when("I commit the transaction")
 def commit_transaction(request):
     """Commit the transaction."""
     # Get the transaction
@@ -579,7 +645,7 @@ def commit_transaction(request):
     txn.commit()
 
 
-@then('all items should be stored atomically')
+@then("all items should be stored atomically")
 def check_transaction_items(request):
     """Verify that all items were stored atomically."""
     # Get the item IDs
@@ -593,10 +659,12 @@ def check_transaction_items(request):
     for item_id in item_ids:
         item = store.retrieve(item_id)
         assert item is not None, f"Item {item_id} not found after transaction commit"
-        assert "transaction item" in item.content.lower(), f"Unexpected content for item {item_id}"
+        assert (
+            "transaction item" in item.content.lower()
+        ), f"Unexpected content for item {item_id}"
 
 
-@when('I modify the item within the transaction')
+@when("I modify the item within the transaction")
 def modify_item_in_transaction(request):
     """Modify an item within the transaction."""
     # Get the transaction
@@ -615,14 +683,14 @@ def modify_item_in_transaction(request):
         id=item.id,
         content="Modified content",
         memory_type=item.memory_type,
-        metadata=item.metadata
+        metadata=item.metadata,
     )
 
     # Store the modified item
     store.store_in_transaction(txn, modified_item)
 
 
-@when('I abort the transaction')
+@when("I abort the transaction")
 def abort_transaction(request):
     """Abort the transaction."""
     # Get the transaction
@@ -633,7 +701,7 @@ def abort_transaction(request):
     txn.abort()
 
 
-@then('the item should remain unchanged')
+@then("the item should remain unchanged")
 def check_item_unchanged(request):
     """Verify that the item remains unchanged after transaction abort."""
     # Get the LMDB store
@@ -644,5 +712,7 @@ def check_item_unchanged(request):
     assert item is not None, "Item not found after transaction abort"
 
     # Verify that the item is unchanged
-    assert item.content != "Modified content", "Item was modified despite transaction abort"
+    assert (
+        item.content != "Modified content"
+    ), "Item was modified despite transaction abort"
     assert "test item" in item.content.lower(), "Item content was changed unexpectedly"
