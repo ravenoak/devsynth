@@ -200,16 +200,26 @@ poetry install --with dev --extras minimal
 # poetry install --extras gpu
 ```
 
-Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, and `lmstudio`:
+Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb`:
 
 ```bash
 poetry install --extras minimal --extras retrieval --extras memory \
-  --extras llm --extras api --extras webui --extras lmstudio
+  --extras llm --extras api --extras webui --extras lmstudio \
+  --extras chromadb
 ```
 Alternatively, install them all at once:
 
 ```bash
 poetry install --all-extras --all-groups
+```
+
+The Codex environment runs a similar command automatically:
+
+```bash
+poetry install \
+  --with dev,docs \
+  --all-extras \
+  --no-interaction
 ```
 
 The test suite runs entirely in isolated temporary directories.  Ingestion and
