@@ -6,6 +6,7 @@ pytest.skip("Placeholder feature not implemented", allow_module_level=True)
 
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
+from .test_edrr_coordinator_steps import *  # noqa: F401,F403
 import pytest
 import logging
 
