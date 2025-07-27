@@ -41,3 +41,15 @@ def then_complete(adapter_context):
     """Ensure the coordinator was invoked correctly."""
     adapter_context["cls"].assert_called_once()
     adapter_context["instance"].create_team.assert_called_with("demo_team")
+
+
+@given("nothing")
+def given_nothing():
+    """Placeholder step."""
+    pass
+
+
+@then("nothing happens")
+def nothing_happens():
+    """Placeholder assertion for the minimal scenario."""
+    pass

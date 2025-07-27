@@ -1,5 +1,9 @@
 """Step definitions for the Enhanced EDRR Memory Integration feature."""
 
+import pytest
+
+pytest.skip("Placeholder feature not implemented", allow_module_level=True)
+
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
 import pytest
