@@ -19,7 +19,7 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
 
 ## Phased Roadmap
 
-1. **Foundation Stabilization** (0.1.x – Q1 2025)
+1. **Foundation Stabilization** (0.1.x – Q1–Q3 2025)
    - Finalize core architecture (EDRR, WSDE, providers, memory).
    - Anthropic and deterministic offline providers are fully implemented.
    - Address adoption barriers and ensure offline capabilities.
@@ -29,20 +29,20 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
      [Feature Status Matrix](../implementation/feature_status_matrix.md) for
      detailed progress on collaboration features.
 
-2. **Production Readiness** (0.2.x–0.3.x – Q2 2025)
+2. **Production Readiness** (0.2.x–0.3.x – Q4 2025)
    - Polish CLI UX and integrate the initial Web UI.
    - Perform repository analysis and improve code organization.
    - Expand automated testing and CI/CD.
    - Introduce multi-language code generation starting in **0.2.x**. See [Post-MVP Roadmap](post_mvp_roadmap.md#phase-4-advanced-code-generation-and-refactoring) for details.
    - Provide AST mutation tooling for automated refactoring and testing in **0.3.x** (refer to [Post-MVP Roadmap](post_mvp_roadmap.md#phase-3-self-improvement-capabilities)).
 
-3. **Collaboration & Validation** (0.4.x–0.6.x – Q3–Q4 2025)
+3. **Collaboration & Validation** (0.4.x–0.6.x – Q1–Q3 2026)
    - Enhance multi-agent collaboration features.
    - Validate workflows with real-world projects and community feedback.
    - Iterate on metrics, analytics, and documentation quality.
    - Integrate the experimental DSPy-AI framework in **0.6.x**. More information is available in [Post-MVP Roadmap](post_mvp_roadmap.md#phase-6-dspy-ai-integration).
 
-4. **Full Release & Innovation** (0.7.x–1.0.0 – 2026)
+4. **Full Release & Innovation** (0.7.x–1.0.0 – Q4 2026)
    - Harden security and performance for production deployments.
    - Complete Web UI and API features.
    - Finalize documentation and publish the 1.0 release.
@@ -75,7 +75,11 @@ Execution of this release plan is **in progress** with milestones tracked in [is
 
 ### Current Test Summary
 
-Recent CI reports collected **2547** tests but aborted during collection with **1 error** (ModuleNotFoundError for `chromadb_store`). **15** tests were skipped. See the [development status](development_status.md#test-failure-summary) document for details.
+Recent CI reports collected thousands of tests. The latest run reported **355** failures,
+**543** passing tests, **88** skipped, and **1 error** due to `chromadb_store`
+missing during collection. See the
+[development status](development_status.md#test-failure-summary) document for
+details.
 To publish `0.1.0-beta.1`, the project must:
 
 - Resolve the outstanding WebUI and EDRR coordinator test failures.
@@ -88,3 +92,5 @@ To publish `0.1.0-beta.1`, the project must:
 Current builds run with `features.wsde_collaboration` enabled but
 `features.dialectical_reasoning` disabled. Collaborative and dialectical
 reasoning features are still experimental and may fail in complex projects.
+Because of these unresolved issues, milestone dates have been extended as
+reflected in the roadmap above.
