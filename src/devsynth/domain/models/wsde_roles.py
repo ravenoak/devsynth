@@ -343,6 +343,19 @@ def dynamic_role_reassignment(self: WSDETeam, task: Dict[str, Any]):
         self.primus_index = self.agents.index(best_agent)
         setattr(best_agent, "has_been_primus", True)
 
+    # Determine the EDRR phase for role assignment
+    phase_value = task.get("phase", "expand")
+    if isinstance(phase_value, Phase):
+        phase = phase_value
+    else:
+        try:
+            phase = Phase(phase_value)
+        except Exception:
+            phase = Phase.EXPAND
+
+    # Assign roles for the detected phase
+    self.assign_roles_for_phase(phase, task)
+
     return self.roles
 
 

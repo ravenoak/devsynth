@@ -834,7 +834,17 @@ class WSDETeam(BaseWSDETeam):
             return {}
 
         self.select_primus_by_expertise(task)
-        self.assign_roles()
+
+        phase_value = task.get("phase", "expand")
+        if isinstance(phase_value, Phase):
+            phase = phase_value
+        else:
+            try:
+                phase = Phase(phase_value)
+            except Exception:
+                phase = Phase.EXPAND
+
+        self.assign_roles_for_phase(phase, task)
         return self.role_assignments
 
     def _validate_role_mapping(self, mapping: Dict[str, Any]) -> None:
