@@ -61,6 +61,7 @@ COPY templates ./templates
 RUN chown -R ${USERNAME}:${USERNAME} /workspace
 
 USER ${USERNAME}
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["poetry", "run", "pytest", "-q"]
 
@@ -86,5 +87,6 @@ COPY src ./src
 RUN chown -R ${USERNAME}:${USERNAME} /workspace
 
 USER ${USERNAME}
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["poetry", "run", "uvicorn", "devsynth.api:app", "--host", "0.0.0.0", "--port", "8000"]

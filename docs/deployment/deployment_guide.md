@@ -68,6 +68,21 @@ task docker:up
 
 Stop the stack with `task docker:down` and view logs using `task docker:logs`.
 
+### Startup Scripts
+
+Helper scripts in `scripts/deployment` automate common tasks:
+
+```bash
+# Start the stack with monitoring enabled
+scripts/deployment/start_stack.sh
+
+# Check container health
+scripts/deployment/check_health.sh
+
+# Stop services
+scripts/deployment/stop_stack.sh
+```
+
 ## Deployment Environments
 
 DevSynth supports multiple deployment environments, each with its own configuration:
@@ -200,6 +215,10 @@ docker compose top
 
 Prometheus scrapes metrics from `http://localhost:8000/metrics` and Grafana is
 available at `http://localhost:3000` (default credentials admin/admin).
+The API exposes metrics via `prometheus-client`, so visiting
+`http://localhost:8000/metrics` returns Prometheus-formatted data. Point your
+Prometheus server at this endpoint or open `http://localhost:9090` to query
+metrics.
 
 ## Troubleshooting
 
@@ -219,6 +238,7 @@ available at `http://localhost:3000` (default credentials admin/admin).
    - Check container logs: `docker compose logs devsynth`
    - Verify environment variables are set
    - Check disk space and permissions
+   - Run `scripts/deployment/check_health.sh` to verify services respond
 
 
 ### Logs
