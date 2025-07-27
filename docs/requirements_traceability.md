@@ -97,9 +97,15 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-88 | Methodology adapter system for customizing development workflows | [Methodology Integration Framework](technical_reference/methodology_integration_framework.md) | src/devsynth/methodology/adhoc.py, src/devsynth/methodology/sprint.py | tests/unit/methodology/test_adhoc_adapter.py, tests/unit/methodology/test_sprint_adapter.py | Implemented |
 | FR-89 | Conditional retry logic for provider API calls | [Retry Mechanism with Exponential Backoff](adapters/providers/retry_mechanism.md) | src/devsynth/fallback.py, src/devsynth/adapters/provider_system.py, src/devsynth/application/llm/openai_provider.py, src/devsynth/application/llm/lmstudio_provider.py | tests/unit/fallback/test_retry_conditions.py, tests/unit/adapters/test_provider_system.py | Implemented |
 
-_Last updated: July 23, 2025_
+_Last updated: July 27, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column
 above and the [Feature Status Matrix](implementation/feature_status_matrix.md)
-for work still in progress.
+for work still in progress. Outstanding areas include memory store
+synchronization (FR-59, FR-60), the EDRR and WSDE collaboration features
+(FR-40–FR-43), and support for alternative vector stores (FR-48). Current test
+runs report over **350** failing integration tests, primarily around memory
+initialization and multi-agent workflows. See
+[development_status](../roadmap/development_status.md#test-failure-summary) for
+details.
