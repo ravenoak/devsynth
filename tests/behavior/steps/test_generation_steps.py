@@ -23,17 +23,17 @@ def have_analyzed_project(tmp_project_dir, command_context):
 def run_generate_tests(test_type, command_context):
     """Invoke the test generation command using the CLI function."""
     from devsynth.application.cli import cli_commands
-    from devsynth.application.orchestration import workflow as wf
+    from devsynth.core import workflows
 
     spec_file = command_context.get("spec_file")
     captured_output = StringIO()
     dummy_bridge = MagicMock()
     with patch.object(cli_commands, "bridge", dummy_bridge):
-        with patch.object(wf, "workflow_manager", MagicMock()) as mock_mgr:
-            mock_mgr.execute_command.return_value = {"success": True}
+        with patch.object(workflows, "execute_command") as mock_exec:
+            mock_exec.return_value = {"success": True}
             with patch("sys.stdout", new=captured_output):
                 cli_commands.test_cmd(spec_file=spec_file, bridge=dummy_bridge)
-            command_context["mock_manager"] = mock_mgr
+            command_context["mock_execute"] = mock_exec
     command_context["output"] = captured_output.getvalue()
     command_context["test_type"] = test_type
 
@@ -61,7 +61,7 @@ def run_generate_tests(test_type, command_context):
 def check_unit_tests(command_context):
     """Ensure unit test files were created and workflow called."""
     spec_file = command_context["spec_file"]
-    command_context["mock_manager"].execute_command.assert_any_call(
+    command_context["mock_execute"].assert_any_call(
         "test", {"spec_file": spec_file}
     )
 
@@ -88,7 +88,7 @@ def check_best_practices(command_context):
 def check_feature_files(command_context):
     """Ensure feature files were created for behavior tests."""
     spec_file = command_context["spec_file"]
-    command_context["mock_manager"].execute_command.assert_any_call(
+    command_context["mock_execute"].assert_any_call(
         "test", {"spec_file": spec_file}
     )
 
