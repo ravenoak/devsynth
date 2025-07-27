@@ -244,6 +244,8 @@ provider_retry_settings:
   exponential_base: 2.0
   max_delay: 60.0
   jitter: true
+  track_metrics: true
+  conditions: ["timeout", "rate_limit"]
 ```
 
 ## Fallback Strategy Configuration

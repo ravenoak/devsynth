@@ -258,6 +258,20 @@ class Settings(BaseSettings):
         default=True, json_schema_extra={"env": "DEVSYNTH_PROVIDER_JITTER"}
     )
 
+    # Retry metrics and conditional settings
+    provider_retry_metrics: bool = Field(
+        default=True, json_schema_extra={"env": "DEVSYNTH_PROVIDER_RETRY_METRICS"}
+    )
+    provider_retry_conditions: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_PROVIDER_RETRY_CONDITIONS"}
+    )
+
+    @field_validator("provider_retry_conditions", mode="after")
+    def _normalize_conditions(cls, v: str | None):
+        if v is None:
+            return None
+        return ",".join(part.strip() for part in str(v).split(",") if part.strip())
+
     # LLM provider fallback settings
     provider_fallback_enabled: bool = Field(
         default=True, json_schema_extra={"env": "DEVSYNTH_PROVIDER_FALLBACK_ENABLED"}
@@ -361,6 +375,7 @@ class Settings(BaseSettings):
     @field_validator(
         "kuzu_embedded",
         "provider_jitter",
+        "provider_retry_metrics",
         "provider_fallback_enabled",
         "provider_circuit_breaker_enabled",
         mode="before",

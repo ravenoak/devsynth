@@ -1,5 +1,11 @@
 import pytest
 from unittest.mock import Mock, patch
+from devsynth.adapters.provider_system import (
+    FallbackProvider,
+    BaseProvider,
+    ProviderError,
+)
+import time
 
 from devsynth.fallback import retry_with_exponential_backoff
 
@@ -78,3 +84,52 @@ def test_retry_conditions_allow_retry():
     result = decorated()
     assert result == "ok"
     assert mock_func.call_count == 2
+
+
+def test_exponential_backoff(monkeypatch):
+    delays = []
+    monkeypatch.setattr(time, "sleep", lambda d: delays.append(round(d, 2)))
+
+    mock_func = Mock(side_effect=[Exception("err1"), Exception("err2"), "ok"])
+    mock_func.__name__ = "mock_func"
+
+    decorated = retry_with_exponential_backoff(
+        max_retries=3,
+        initial_delay=0.1,
+        exponential_base=2,
+        jitter=False,
+    )(mock_func)
+
+    result = decorated()
+
+    assert result == "ok"
+    assert delays == [0.2, 0.4]
+
+
+def test_fallback_provider_order():
+    provider1 = Mock(spec=BaseProvider)
+    provider2 = Mock(spec=BaseProvider)
+    provider1.complete.side_effect = ProviderError("p1 fail")
+    provider2.complete.return_value = "ok"
+
+    fallback = FallbackProvider(
+        providers=[provider1, provider2],
+        config={
+            "fallback": {"enabled": True, "order": ["p1", "p2"]},
+            "circuit_breaker": {"enabled": False},
+            "retry": {
+                "max_retries": 0,
+                "initial_delay": 0,
+                "exponential_base": 2,
+                "max_delay": 1,
+                "jitter": False,
+                "track_metrics": False,
+            },
+        },
+    )
+
+    result = fallback.complete("prompt")
+
+    assert result == "ok"
+    provider1.complete.assert_called_once()
+    provider2.complete.assert_called_once()
