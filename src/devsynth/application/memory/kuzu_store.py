@@ -15,10 +15,20 @@ import importlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+canonical_name = "devsynth.application.memory.kuzu_store"
+# Ensure the module is registered under its canonical name even when loaded
+# via ``importlib`` with a custom spec.  Some tests reload this module using
+# ``importlib.util.spec_from_file_location`` which can leave
+# ``sys.modules[canonical_name]`` set to ``None`` if the reload fails or if the
+# spec name differs from the canonical package path.  Registering the module
+# here avoids ``ModuleNotFoundError: ... None in sys.modules`` when the test
+# framework attempts another import after such a reload.
+if sys.modules.get(canonical_name) is None:
+    sys.modules[canonical_name] = sys.modules.get(
+        __name__, sys.modules.setdefault(__name__, sys.modules[__name__])
+    )
+
 if __spec__ is not None:
-    canonical_name = "devsynth.application.memory.kuzu_store"
-    module_obj = sys.modules.setdefault(__name__, sys.modules.get(__name__))
-    sys.modules[canonical_name] = module_obj
     __spec__.name = canonical_name
 
 
