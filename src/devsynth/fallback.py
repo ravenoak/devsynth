@@ -34,6 +34,7 @@ def retry_with_exponential_backoff(
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
     should_retry: Optional[Callable[[Exception], bool]] = None,
+    retry_conditions: Optional[List[Callable[[Exception], bool]]] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
@@ -59,6 +60,10 @@ def retry_with_exponential_backoff(
     should_retry : Optional[Callable[[Exception], bool]]
         Optional function that determines if a caught exception should trigger
         another retry. If it returns ``False`` the exception is re-raised.
+    retry_conditions : Optional[List[Callable[[Exception], bool]]]
+        Additional per-exception conditions that must all evaluate to ``True``
+        for the retry to continue. If any condition returns ``False`` the
+        exception is re-raised.
 
     Returns
     -------
@@ -79,7 +84,7 @@ def retry_with_exponential_backoff(
                     result = func(*args, **kwargs)
                     if retry_on_result and retry_on_result(result):
                         raise ValueError("retry_on_result triggered")
-                    if track_metrics and num_retries:
+                    if track_metrics:
                         inc_retry("success")
                     return result
                 except ValueError as e:
@@ -111,6 +116,17 @@ def retry_with_exponential_backoff(
                     if should_retry and not should_retry(e):
                         logger.warning(
                             f"Not retrying {func.__name__} due to should_retry policy",
+                            error=e,
+                            function=func.__name__,
+                        )
+                        if track_metrics:
+                            inc_retry("abort")
+                        raise
+                    if retry_conditions and not all(
+                        cond(e) for cond in retry_conditions
+                    ):
+                        logger.warning(
+                            f"Not retrying {func.__name__} due to retry_conditions policy",
                             error=e,
                             function=func.__name__,
                         )
