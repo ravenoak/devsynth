@@ -153,6 +153,8 @@ DevSynth uses the following environment variables for configuration:
 | `DEVSYNTH_PROVIDER_EXPONENTIAL_BASE` | Base for exponential backoff | 2.0 |
 | `DEVSYNTH_PROVIDER_MAX_DELAY` | Maximum delay between retries in seconds | 60.0 |
 | `DEVSYNTH_PROVIDER_JITTER` | Add randomness to retry delays | true |
+| `DEVSYNTH_PROVIDER_RETRY_METRICS` | Enable retry metrics collection | true |
+| `DEVSYNTH_PROVIDER_RETRY_CONDITIONS` | Additional retry conditions (comma-separated) | _none_ |
 | `DEVSYNTH_PROVIDER_FALLBACK_ENABLED` | Enable fallback strategy | true |
 | `DEVSYNTH_PROVIDER_FALLBACK_ORDER` | Provider fallback order (comma-separated) | openai,lmstudio |
 | `DEVSYNTH_PROVIDER_CIRCUIT_BREAKER_ENABLED` | Enable circuit breaker pattern | true |

@@ -117,6 +117,14 @@ def get_provider_config() -> Dict[str, Any]:
             "exponential_base": getattr(settings, "provider_exponential_base", 2.0),
             "max_delay": getattr(settings, "provider_max_delay", 60.0),
             "jitter": getattr(settings, "provider_jitter", True),
+            "track_metrics": getattr(settings, "provider_retry_metrics", True),
+            "conditions": [
+                c.strip()
+                for c in (
+                    getattr(settings, "provider_retry_conditions", "") or ""
+                ).split(",")
+                if c.strip()
+            ],
         },
         "fallback": {
             "enabled": getattr(settings, "provider_fallback_enabled", True),
@@ -227,6 +235,8 @@ class BaseProvider:
                 "exponential_base": 2.0,
                 "max_delay": 60.0,
                 "jitter": True,
+                "track_metrics": True,
+                "conditions": [],
             },
         )
         self.retry_config = config
@@ -252,6 +262,8 @@ class BaseProvider:
             exponential_base=self.retry_config["exponential_base"],
             max_delay=self.retry_config["max_delay"],
             jitter=self.retry_config["jitter"],
+            retry_conditions=self.retry_config.get("conditions"),
+            track_metrics=self.retry_config.get("track_metrics", True),
             retryable_exceptions=retryable_exceptions,
             should_retry=should_retry,
         )
@@ -378,6 +390,8 @@ class OpenAIProvider(BaseProvider):
             "exponential_base": self.retry_config["exponential_base"],
             "max_delay": self.retry_config["max_delay"],
             "jitter": self.retry_config["jitter"],
+            "track_metrics": self.retry_config.get("track_metrics", True),
+            "conditions": self.retry_config.get("conditions"),
         }
 
     def complete(
@@ -468,6 +482,8 @@ class OpenAIProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
@@ -660,6 +676,8 @@ class OpenAIProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
@@ -786,6 +804,8 @@ class LMStudioProvider(BaseProvider):
             "exponential_base": self.retry_config["exponential_base"],
             "max_delay": self.retry_config["max_delay"],
             "jitter": self.retry_config["jitter"],
+            "track_metrics": self.retry_config.get("track_metrics", True),
+            "conditions": self.retry_config.get("conditions"),
         }
 
     def complete(
@@ -877,6 +897,8 @@ class LMStudioProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
             )(_api_call)()
