@@ -362,9 +362,7 @@ def update_requirement(
 
 @requirements_app.command("delete")
 def delete_requirement(
-    requirement_id: str = typer.Option(
-        ..., help="ID of the requirement to delete"
-    ),
+    requirement_id: str = typer.Option(..., help="ID of the requirement to delete"),
     reason: Optional[str] = typer.Option(
         None,
         prompt=not NON_INTERACTIVE,
@@ -867,18 +865,16 @@ def wizard_cmd(
     index = 0
     while index < len(steps):
         key, message, choices, default = steps[index]
-        if key in responses:
-            reply = responses[key]
+        default_val = responses.get(key, default)
+        if NON_INTERACTIVE:
+            reply = default_val or ""
         else:
-            if NON_INTERACTIVE:
-                reply = default or ""
-            else:
-                prefix = f"Step {index + 1}/{len(steps)}: "
-                reply = bridge.ask_question(
-                    prefix + message + " (type 'back' to go back)",
-                    choices=choices,
-                    default=default,
-                )
+            prefix = f"Step {index + 1}/{len(steps)}: "
+            reply = bridge.ask_question(
+                prefix + message + " (type 'back' to go back)",
+                choices=choices,
+                default=default_val,
+            )
         if reply.lower() == "back":
             if index > 0:
                 index -= 1
