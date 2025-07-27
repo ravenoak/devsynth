@@ -62,4 +62,4 @@ If you're new to DevSynth's specifications, we recommend starting with the [DevS
 - [Developer Guides](../developer_guides/index.md) - Information for developers contributing to DevSynth
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+Most specifications correspond to implemented modules under `src/devsynth`. Refer to each document for specific paths and implementation details.

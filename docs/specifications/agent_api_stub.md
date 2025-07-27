@@ -176,4 +176,4 @@ function handle_request(path, body):
 ```
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented**. The API routes are defined in `src/devsynth/interface/agentapi.py` and expose the CLI workflows over HTTP.

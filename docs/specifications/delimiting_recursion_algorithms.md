@@ -51,4 +51,4 @@ These heuristics are implemented in `EDRRCoordinator.should_terminate_recursion`
 and referenced in the [Recursive EDRR Pseudocode](recursive_edrr_pseudocode.md).
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented**. The heuristics are available in `src/devsynth/application/edrr/coordinator.py`.
