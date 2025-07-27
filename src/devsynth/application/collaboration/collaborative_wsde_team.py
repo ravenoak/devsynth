@@ -13,8 +13,12 @@ from datetime import datetime
 import uuid
 
 from devsynth.domain.models.wsde_facade import WSDETeam
-from devsynth.application.collaboration.wsde_team_task_management import TaskManagementMixin
-from devsynth.application.collaboration.wsde_team_consensus import ConsensusBuildingMixin
+from devsynth.application.collaboration.wsde_team_task_management import (
+    TaskManagementMixin,
+)
+from devsynth.application.collaboration.wsde_team_consensus import (
+    ConsensusBuildingMixin,
+)
 
 
 class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETeam):
@@ -75,7 +79,9 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             problem["id"] = str(uuid.uuid4())
 
         # Log the collaborative problem solving
-        self.logger.info(f"Solving problem {problem['id']} collaboratively: {problem.get('title', 'Untitled')}")
+        self.logger.info(
+            f"Solving problem {problem['id']} collaboratively: {problem.get('title', 'Untitled')}"
+        )
 
         # Process the problem as a task
         processed_task = self.process_task(problem)
@@ -93,7 +99,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             "approach": consensus.get("method", "unknown"),
             "consensus": consensus,
             "subtask_results": subtask_results,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         # If consensus was reached through synthesis, use it as the solution
@@ -112,7 +118,9 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
 
         return solution
 
-    def _update_collaboration_metrics(self, problem_id: str, solution: Dict[str, Any]) -> None:
+    def _update_collaboration_metrics(
+        self, problem_id: str, solution: Dict[str, Any]
+    ) -> None:
         """
         Update collaboration metrics for a problem.
 
@@ -128,7 +136,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
                 "consensus_method": None,
                 "conflicts_resolved": 0,
                 "subtasks_completed": 0,
-                "solution_quality": None
+                "solution_quality": None,
             }
 
         metrics = self.collaboration_metrics[problem_id]
@@ -149,7 +157,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
                 metrics["agent_contributions"][agent.name] = {
                     "opinions_provided": 0,
                     "subtasks_completed": 0,
-                    "conflicts_involved": 0
+                    "conflicts_involved": 0,
                 }
 
             # Count opinions
@@ -159,7 +167,9 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             # Count subtasks
             for result in solution.get("subtask_results", []):
                 if result.get("assigned_to") == agent.name:
-                    metrics["agent_contributions"][agent.name]["subtasks_completed"] += 1
+                    metrics["agent_contributions"][agent.name][
+                        "subtasks_completed"
+                    ] += 1
 
         # Update solution quality (simplified)
         if "synthesis" in consensus:
@@ -256,7 +266,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             "options": [option1, option2],
             "tied": True,
             "tied_options": [option1, option2],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         return voting_result
@@ -272,7 +282,9 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         """
         # Ensure agent exists
         if agent not in self.agents and agent.name not in [a.name for a in self.agents]:
-            self.logger.warning(f"Agent {agent.name if hasattr(agent, 'name') else agent} not found in team")
+            self.logger.warning(
+                f"Agent {agent.name if hasattr(agent, 'name') else agent} not found in team"
+            )
             return
 
         # Get agent name
@@ -284,10 +296,28 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             recipients=["system"],
             message_type="option_opinion",
             subject=f"Opinion on {option_id}",
-            content={
-                "option_id": option_id,
-                "opinion": opinion
-            }
+            content={"option_id": option_id, "opinion": opinion},
         )
 
         self.logger.debug(f"Set agent {agent_name} opinion on {option_id} to {opinion}")
+
+    def vote_with_role_reassignment(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Vote on a critical decision after dynamically reassigning roles."""
+        if "id" not in task:
+            task["id"] = str(uuid.uuid4())
+        # Reassign roles to ensure primus matches task context
+        if hasattr(self, "dynamic_role_reassignment"):
+            try:
+                self.dynamic_role_reassignment(task)
+            except Exception:
+                pass
+        primus = self.get_primus()
+        result = self.vote_on_critical_decision(task)
+        self.role_history.append(
+            {
+                "task_id": task["id"],
+                "primus": primus.name if primus else None,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+        return result

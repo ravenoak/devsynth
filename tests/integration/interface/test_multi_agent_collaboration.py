@@ -3,6 +3,9 @@ from devsynth.interface.agentapi import APIBridge
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import sanitize_output
 from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.collaboration.collaborative_wsde_team import (
+    CollaborativeWSDETeam,
+)
 
 
 class DummyProgress:
@@ -108,3 +111,55 @@ def test_cli_and_api_bridges_multi_agent_consistent(monkeypatch):
     api_msgs = collaborative_vote_workflow(api_bridge)
 
     assert cli_msgs == api_msgs
+
+
+class SimpleAgent:
+    def __init__(self, name, expertise=None):
+        self.name = name
+        self.expertise = expertise or []
+        self.current_role = None
+        self.config = types.SimpleNamespace(name=name, parameters={})
+
+    def process(self, task):
+        return {}
+
+
+def test_vote_with_role_reassignment_succeeds():
+    team = CollaborativeWSDETeam(name="VoteTestTeam")
+    agents = [
+        SimpleAgent("a1", ["security"]),
+        SimpleAgent("a2", ["testing"]),
+        SimpleAgent("a3", ["security"]),
+    ]
+    team.add_agents(agents)
+
+    task = {
+        "id": "decision1",
+        "type": "critical_decision",
+        "is_critical": True,
+        "domain": "security",
+        "options": ["A", "B"],
+    }
+
+    result = team.vote_with_role_reassignment(task)
+    assert result["status"] == "completed"
+    assert result["result"] in task["options"]
+    assert team.role_history[-1]["task_id"] == task["id"]
+    assert team.get_primus().name in {"a1", "a3"}
+
+
+def test_dynamic_role_reassignment_changes_primus():
+    team = CollaborativeWSDETeam(name="RoleChangeTeam")
+    agents = [
+        SimpleAgent("a1", ["security"]),
+        SimpleAgent("a2", ["testing"]),
+        SimpleAgent("a3", ["security"]),
+    ]
+    team.add_agents(agents)
+
+    team.dynamic_role_reassignment({"domain": "security"})
+    first = team.get_primus().name
+    team.dynamic_role_reassignment({"domain": "testing"})
+    second = team.get_primus().name
+
+    assert first != second

@@ -34,7 +34,9 @@ def assign_roles(self: WSDETeam, role_mapping: Optional[Dict[str, Any]] = None):
         self._auto_assign_roles()
 
     # Log the role assignments
-    role_assignments = {role: agent.name if agent else None for role, agent in self.roles.items()}
+    role_assignments = {
+        role: agent.name if agent else None for role, agent in self.roles.items()
+    }
     self.logger.info(f"Role assignments for team {self.name}: {role_assignments}")
 
     return self.roles
@@ -76,31 +78,70 @@ def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: Dict[str, A
         self.roles[role] = None
 
     if not self.agents:
-        self.logger.warning(f"Cannot assign roles for phase {phase.name}: no agents in team")
+        self.logger.warning(
+            f"Cannot assign roles for phase {phase.name}: no agents in team"
+        )
         return self.roles
 
     # Define phase-specific expertise keywords
     phase_expertise = {
         "expand": [
-            "exploration", "brainstorming", "divergent thinking", "idea generation",
-            "research", "information gathering", "discovery", "exploration",
-            "creativity", "innovation", "possibilities", "alternatives"
+            "exploration",
+            "brainstorming",
+            "divergent thinking",
+            "idea generation",
+            "research",
+            "information gathering",
+            "discovery",
+            "exploration",
+            "creativity",
+            "innovation",
+            "possibilities",
+            "alternatives",
         ],
         "differentiate": [
-            "analysis", "comparison", "categorization", "classification",
-            "distinction", "differentiation", "evaluation", "assessment",
-            "critical thinking", "discernment", "judgment", "discrimination"
+            "analysis",
+            "comparison",
+            "categorization",
+            "classification",
+            "distinction",
+            "differentiation",
+            "evaluation",
+            "assessment",
+            "critical thinking",
+            "discernment",
+            "judgment",
+            "discrimination",
         ],
         "refine": [
-            "refinement", "improvement", "enhancement", "optimization",
-            "polishing", "editing", "revision", "iteration", "detail-oriented",
-            "precision", "accuracy", "quality control", "fine-tuning"
+            "refinement",
+            "improvement",
+            "enhancement",
+            "optimization",
+            "polishing",
+            "editing",
+            "revision",
+            "iteration",
+            "detail-oriented",
+            "precision",
+            "accuracy",
+            "quality control",
+            "fine-tuning",
         ],
         "reflect": [
-            "reflection", "retrospective", "review", "evaluation",
-            "assessment", "learning", "insight", "understanding",
-            "metacognition", "self-awareness", "introspection", "contemplation"
-        ]
+            "reflection",
+            "retrospective",
+            "review",
+            "evaluation",
+            "assessment",
+            "learning",
+            "insight",
+            "understanding",
+            "metacognition",
+            "self-awareness",
+            "introspection",
+            "contemplation",
+        ],
     }
 
     # Get the phase name in lowercase
@@ -112,13 +153,13 @@ def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: Dict[str, A
     # Calculate expertise scores for each agent based on the phase
     expertise_scores = {}
     for agent in self.agents:
-        expertise_scores[agent.name] = self._calculate_phase_expertise_score(agent, task, keywords)
+        expertise_scores[agent.name] = self._calculate_phase_expertise_score(
+            agent, task, keywords
+        )
 
     # Sort agents by expertise score (descending)
     sorted_agents = sorted(
-        self.agents,
-        key=lambda a: expertise_scores[a.name],
-        reverse=True
+        self.agents, key=lambda a: expertise_scores[a.name], reverse=True
     )
 
     # Assign roles based on expertise scores and phase requirements
@@ -159,7 +200,9 @@ def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: Dict[str, A
             self.roles["worker"] = sorted_agents[min(4, len(sorted_agents) - 1)]
 
     # Log the role assignments
-    role_assignments = {role: agent.name if agent else None for role, agent in self.roles.items()}
+    role_assignments = {
+        role: agent.name if agent else None for role, agent in self.roles.items()
+    }
     self.logger.info(f"Role assignments for phase {phase.name}: {role_assignments}")
 
     return self.roles
@@ -178,7 +221,9 @@ def _validate_role_mapping(self: WSDETeam, mapping: Dict[str, Any]):
     valid_roles = set(self.roles.keys())
     for role, agent in mapping.items():
         if role not in valid_roles:
-            raise ValueError(f"Invalid role: {role}. Valid roles are: {', '.join(valid_roles)}")
+            raise ValueError(
+                f"Invalid role: {role}. Valid roles are: {', '.join(valid_roles)}"
+            )
         if agent is not None and agent not in self.agents:
             raise ValueError(f"Agent {agent.name} is not a member of this team")
 
@@ -200,11 +245,16 @@ def _auto_assign_roles(self: WSDETeam):
 
     # Define expertise areas for each role
     role_expertise = {
-        "primus": ["leadership", "coordination", "decision-making", "strategic thinking"],
+        "primus": [
+            "leadership",
+            "coordination",
+            "decision-making",
+            "strategic thinking",
+        ],
         "worker": ["implementation", "coding", "development", "execution"],
         "supervisor": ["oversight", "quality control", "review", "monitoring"],
         "designer": ["design", "architecture", "planning", "creativity"],
-        "evaluator": ["testing", "evaluation", "assessment", "analysis"]
+        "evaluator": ["testing", "evaluation", "assessment", "analysis"],
     }
 
     # Function to calculate expertise score for an agent
@@ -213,7 +263,7 @@ def _auto_assign_roles(self: WSDETeam):
         for role, keywords in role_expertise.items():
             score = 0
             # Check agent's expertise against role keywords
-            if hasattr(agent, 'expertise') and isinstance(agent.expertise, list):
+            if hasattr(agent, "expertise") and isinstance(agent.expertise, list):
                 for keyword in keywords:
                     if any(keyword.lower() in exp.lower() for exp in agent.expertise):
                         score += 1
@@ -228,9 +278,7 @@ def _auto_assign_roles(self: WSDETeam):
 
     # First, assign the primus role to the agent with highest primus expertise
     primus_candidates = sorted(
-        self.agents,
-        key=lambda a: agent_expertise[a]["primus"],
-        reverse=True
+        self.agents, key=lambda a: agent_expertise[a]["primus"], reverse=True
     )
     if primus_candidates:
         self.roles["primus"] = primus_candidates[0]
@@ -241,14 +289,16 @@ def _auto_assign_roles(self: WSDETeam):
         candidates = sorted(
             [a for a in self.agents if a not in assigned_agents],
             key=lambda a: agent_expertise[a][role],
-            reverse=True
+            reverse=True,
         )
         if candidates:
             self.roles[role] = candidates[0]
             assigned_agents.add(candidates[0])
 
     # Log the role assignments
-    role_assignments = {role: agent.name if agent else None for role, agent in self.roles.items()}
+    role_assignments = {
+        role: agent.name if agent else None for role, agent in self.roles.items()
+    }
     self.logger.info(f"Auto-assigned roles for team {self.name}: {role_assignments}")
 
 
@@ -260,7 +310,9 @@ def get_role_map(self: WSDETeam):
         Dictionary mapping agent names to role names
     """
     # First create a mapping of roles to agent names (original behavior)
-    role_to_agent = {role: agent.name if agent else None for role, agent in self.roles.items()}
+    role_to_agent = {
+        role: agent.name if agent else None for role, agent in self.roles.items()
+    }
 
     # Then invert the mapping to get agent names to roles
     agent_to_role = {}
@@ -284,7 +336,13 @@ def dynamic_role_reassignment(self: WSDETeam, task: Dict[str, Any]):
     Returns:
         Dictionary mapping role names to assigned agents
     """
-    self.select_primus_by_expertise(task)
+    best_agent = self.select_primus_by_expertise(task)
+
+    # Update primus_index to keep get_primus in sync with new role
+    if best_agent in self.agents:
+        self.primus_index = self.agents.index(best_agent)
+        setattr(best_agent, "has_been_primus", True)
+
     return self.roles
 
 
@@ -299,26 +357,26 @@ def _calculate_expertise_score(self: WSDETeam, agent: Any, task: Dict[str, Any])
     Returns:
         Expertise score (higher is better)
     """
-    if not hasattr(agent, 'expertise') or not agent.expertise:
+    if not hasattr(agent, "expertise") or not agent.expertise:
         return 0
 
     # Extract keywords from the task
     task_keywords = []
 
     # Extract from task description
-    if 'description' in task and task['description']:
-        task_keywords.extend(task['description'].lower().split())
+    if "description" in task and task["description"]:
+        task_keywords.extend(task["description"].lower().split())
 
     # Extract from task requirements
-    if 'requirements' in task and task['requirements']:
-        if isinstance(task['requirements'], list):
-            for req in task['requirements']:
+    if "requirements" in task and task["requirements"]:
+        if isinstance(task["requirements"], list):
+            for req in task["requirements"]:
                 if isinstance(req, str):
                     task_keywords.extend(req.lower().split())
-                elif isinstance(req, dict) and 'description' in req:
-                    task_keywords.extend(req['description'].lower().split())
-        elif isinstance(task['requirements'], str):
-            task_keywords.extend(task['requirements'].lower().split())
+                elif isinstance(req, dict) and "description" in req:
+                    task_keywords.extend(req["description"].lower().split())
+        elif isinstance(task["requirements"], str):
+            task_keywords.extend(task["requirements"].lower().split())
 
     # Calculate score based on keyword matches
     score = 0
@@ -331,7 +389,9 @@ def _calculate_expertise_score(self: WSDETeam, agent: Any, task: Dict[str, Any])
     return score
 
 
-def _calculate_phase_expertise_score(self: WSDETeam, agent: Any, task: Dict[str, Any], phase_keywords: List[str]):
+def _calculate_phase_expertise_score(
+    self: WSDETeam, agent: Any, task: Dict[str, Any], phase_keywords: List[str]
+):
     """
     Calculate an expertise score for an agent based on a task and phase keywords.
 
@@ -343,26 +403,26 @@ def _calculate_phase_expertise_score(self: WSDETeam, agent: Any, task: Dict[str,
     Returns:
         Expertise score (higher is better)
     """
-    if not hasattr(agent, 'expertise') or not agent.expertise:
+    if not hasattr(agent, "expertise") or not agent.expertise:
         return 0
 
     # Extract keywords from the task
     task_keywords = []
 
     # Extract from task description
-    if 'description' in task and task['description']:
-        task_keywords.extend(task['description'].lower().split())
+    if "description" in task and task["description"]:
+        task_keywords.extend(task["description"].lower().split())
 
     # Extract from task requirements
-    if 'requirements' in task and task['requirements']:
-        if isinstance(task['requirements'], list):
-            for req in task['requirements']:
+    if "requirements" in task and task["requirements"]:
+        if isinstance(task["requirements"], list):
+            for req in task["requirements"]:
                 if isinstance(req, str):
                     task_keywords.extend(req.lower().split())
-                elif isinstance(req, dict) and 'description' in req:
-                    task_keywords.extend(req['description'].lower().split())
-        elif isinstance(task['requirements'], str):
-            task_keywords.extend(task['requirements'].lower().split())
+                elif isinstance(req, dict) and "description" in req:
+                    task_keywords.extend(req["description"].lower().split())
+        elif isinstance(task["requirements"], str):
+            task_keywords.extend(task["requirements"].lower().split())
 
     # Calculate score based on keyword matches
     base_score = 0
@@ -414,12 +474,14 @@ def select_primus_by_expertise(self: WSDETeam, task: Dict[str, Any]):
     _flatten("", task, flattened_task)
 
     # Extract all string values for keyword analysis
-    task_text = " ".join(str(v) for v in flattened_task.values() if isinstance(v, (str, int, float)))
+    task_text = " ".join(
+        str(v) for v in flattened_task.values() if isinstance(v, (str, int, float))
+    )
 
     # Calculate expertise scores for each agent
     expertise_scores = {}
     for agent in self.agents:
-        if hasattr(agent, 'expertise'):
+        if hasattr(agent, "expertise"):
             score = 0
             for expertise in agent.expertise:
                 if expertise.lower() in task_text.lower():
@@ -433,7 +495,9 @@ def select_primus_by_expertise(self: WSDETeam, task: Dict[str, Any]):
 
     # Assign the selected agent as primus
     self.roles["primus"] = best_agent
-    self.logger.info(f"Selected {best_agent.name} as primus based on expertise for task")
+    self.logger.info(
+        f"Selected {best_agent.name} as primus based on expertise for task"
+    )
 
     return best_agent
 
@@ -453,7 +517,9 @@ def rotate_roles(self: WSDETeam):
         return self.roles
 
     # Get current role assignments
-    current_roles = {role: agent for role, agent in self.roles.items() if agent is not None}
+    current_roles = {
+        role: agent for role, agent in self.roles.items() if agent is not None
+    }
 
     # If no roles are assigned, assign them first
     if not current_roles:
@@ -462,7 +528,9 @@ def rotate_roles(self: WSDETeam):
 
     # Create a list of agents in role order
     role_order = ["primus", "worker", "supervisor", "designer", "evaluator"]
-    agents_in_order = [self.roles[role] for role in role_order if self.roles[role] is not None]
+    agents_in_order = [
+        self.roles[role] for role in role_order if self.roles[role] is not None
+    ]
 
     # Add any agents not currently assigned a role
     unassigned_agents = [agent for agent in self.agents if agent not in agents_in_order]
@@ -478,7 +546,9 @@ def rotate_roles(self: WSDETeam):
                 self.roles[role] = rotated_agents[i]
 
     # Log the role rotation
-    role_assignments = {role: agent.name if agent else None for role, agent in self.roles.items()}
+    role_assignments = {
+        role: agent.name if agent else None for role, agent in self.roles.items()
+    }
     self.logger.info(f"Rotated roles for team {self.name}: {role_assignments}")
 
     return self.roles
