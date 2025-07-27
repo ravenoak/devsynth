@@ -1160,7 +1160,7 @@ The provider system integrates with the memory system for RAG applications:
 
 ```python
 from devsynth.adapters.providers.factory import ProviderFactory
-from devsynth.adapters.memory.chromadb_store import ChromaDBStore
+from devsynth.application.memory.chromadb_store import ChromaDBStore
 
 # Initialize memory and provider
 
