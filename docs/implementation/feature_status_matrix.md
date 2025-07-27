@@ -54,7 +54,7 @@ Each feature is scored on two dimensions:
 | Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented. Tracked in [issue 105](../../issues/105.md) |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Workflow implemented with revision cycles and integration tests |
-| Memory System | Partial | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter with full client support available, and a new sync manager coordinates LMDB, FAISS, and Kuzu stores. Tracked in [issue 106](../../issues/106.md) |
+| Memory System | Complete | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter hardened and a transactional SyncManager now coordinates LMDB, FAISS, and Kuzu stores. Tracked in [issue 106](../../issues/106.md) |
 | Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
@@ -106,6 +106,11 @@ Each feature is scored on two dimensions:
 
 - **Limitation**: Complex code structures may not generate correctly
 - **Workaround**: Break down complex requirements into smaller, more manageable pieces
+
+### Memory System Limitations
+
+- **Limitation**: Adapters without native transactions use in-memory snapshots for rollback
+- **Workaround**: Prefer LMDB when strict durability is required
 
 
 ## Next Steps

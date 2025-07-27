@@ -81,18 +81,37 @@ class SyncManager:
     # ------------------------------------------------------------------
     @contextmanager
     def transaction(self, stores: List[str]):
-        """Context manager for multi-store transactions."""
+        """Context manager for multi-store transactions.
+
+        This manager attempts to use native transaction support on each
+        adapter if available and falls back to snapshot/restore semantics
+        otherwise.  All changes are rolled back if an exception occurs.
+        """
 
         snapshots: Dict[str, List[MemoryItem]] = {}
+        contexts: Dict[str, Any] = {}
+        txns: Dict[str, Any] = {}
+
         for name in stores:
             adapter = self.memory_manager.adapters.get(name)
-            if adapter:
+            if not adapter:
+                continue
+            if hasattr(adapter, "begin_transaction"):
+                ctx = adapter.begin_transaction()
+                txns[name] = ctx.__enter__()
+                contexts[name] = ctx
+            else:
                 snapshots[name] = [
                     self._copy_item(i) for i in self._get_all_items(adapter)
                 ]
+
         try:
-            yield
+            yield txns
+            for ctx in contexts.values():
+                ctx.__exit__(None, None, None)
         except Exception as exc:  # pragma: no cover - defensive
+            for ctx in contexts.values():
+                ctx.__exit__(type(exc), exc, exc.__traceback__)
             for name, items in snapshots.items():
                 adapter = self.memory_manager.adapters.get(name)
                 if not adapter:
