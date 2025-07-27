@@ -264,11 +264,17 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 
 ## Running Tests
 
-Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Environment provisioning is handled automatically in Codex environments. For manual setups run `poetry install`.
+Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Running the **full** suite requires the `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb` extras. Environment provisioning is handled automatically in Codex environments. For manual setups run `poetry install`.
 
 ```bash
 poetry install --with dev,docs
 poetry sync --all-extras --all-groups
+
+# The Codex environment runs a similar command automatically
+poetry install \
+  --with dev,docs \
+  --all-extras \
+  --no-interaction
 
 # Verify that pytest can start without import errors
 
