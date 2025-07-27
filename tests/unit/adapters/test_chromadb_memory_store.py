@@ -317,3 +317,23 @@ class TestChromaDBMemoryStore:
         with pytest.raises(RuntimeError) as excinfo:
             memory_store.retrieve(item_id)
         assert "Item delete-test-item not found" in str(excinfo.value)
+
+    def test_get_all_items_returns_items(self, memory_store, mock_chromadb_client):
+        """Test that get_all_items returns stored items."""
+
+        _, mock_collection = mock_chromadb_client
+        now = datetime.now().isoformat()
+        mock_collection.get.return_value = {
+            "ids": ["a", "b"],
+            "documents": ["A", "B"],
+            "metadatas": [
+                {"memory_type": "working", "created_at": now},
+                {"memory_type": "working", "created_at": now},
+            ],
+        }
+
+        items = memory_store.get_all_items()
+
+        mock_collection.get.assert_called_once_with(include=["documents", "metadatas"])
+        assert len(items) == 2
+        assert {itm.id for itm in items} == {"a", "b"}
