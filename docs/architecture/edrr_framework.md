@@ -371,6 +371,21 @@ management to produce a comprehensive final report after each cycle. Feature
 flags can still disable collaborative reasoning features, but the core EDRR
 orchestration operates end-to-end.
 
+## Current Limitations
+
+While end-to-end cycles execute successfully, several pieces remain only
+partially implemented:
+
+- Phase monitoring and debugging tools are minimal.
+- Micro-cycle helpers lack advanced recovery hooks.
+- WSDE collaboration is enabled by default but still requires additional
+  validation with real projects.
+- Dialectical reasoning hooks are experimental and disabled via
+  `features.dialectical_reasoning`.
+
+See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for
+the most up-to-date progress on these items.
+
 ## Related Documents
 
 - [EDRR Specification](../specifications/edrr_cycle_specification.md)
