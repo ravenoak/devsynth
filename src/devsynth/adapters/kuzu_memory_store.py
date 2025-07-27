@@ -118,3 +118,8 @@ class KuzuMemoryStore(MemoryStore):
                 shutil.rmtree(temp_dir)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("Failed to clean up temporary Kuzu directory: %s", exc)
+
+    def get_all_items(self) -> List[MemoryItem]:
+        """Return all stored items."""
+
+        return self._store.get_all_items()

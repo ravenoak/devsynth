@@ -520,3 +520,21 @@ class LMDBStore(MemoryStore):
             The estimated token usage
         """
         return self.token_count
+
+    def get_all_items(self) -> List[MemoryItem]:
+        """Return all stored :class:`MemoryItem` objects."""
+
+        items: List[MemoryItem] = []
+        try:
+            with self.begin_transaction(write=False) as txn:
+                cursor = txn.cursor(db=self.items_db)
+                if cursor.first():
+                    while True:
+                        data = self._decrypt(cursor.value())
+                        item = self._deserialize_memory_item(data)
+                        items.append(item)
+                        if not cursor.next():
+                            break
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Failed to fetch all items: %s", exc)
+        return items

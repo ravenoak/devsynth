@@ -187,17 +187,56 @@ class MemorySystemAdapter:
                 self.memory_path,
                 provider_type=self.provider_type,
             )
-            self.context_manager = PersistentContextManager(
-                self.memory_path,
-                max_context_size=self.max_context_size,
-                expiration_days=self.context_expiration_days,
-            )
-            if self.vector_store_enabled:
-                # Reuse the vector store created by ``KuzuMemoryStore`` so
-                # memory and vector operations share the same backend.
-                self.vector_store = self.memory_store.vector
+            if (
+                getattr(self.memory_store._store, "_use_fallback", False)
+                and self.enable_chromadb
+            ):
+                logger.info("Kuzu unavailable; falling back to ChromaDB")
+                try:
+                    from ...application.memory.chromadb_store import ChromaDBStore
+                    from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
+
+                    self.memory_store = ChromaDBStore(
+                        self.memory_path,
+                        host=self.chromadb_host,
+                        port=self.chromadb_port,
+                        collection_name=self.chromadb_collection_name,
+                    )
+                    self.context_manager = PersistentContextManager(
+                        self.memory_path,
+                        max_context_size=self.max_context_size,
+                        expiration_days=self.context_expiration_days,
+                    )
+                    if self.vector_store_enabled:
+                        self.vector_store = ChromaDBAdapter(
+                            persist_directory=self.memory_path,
+                            collection_name=self.chromadb_collection_name,
+                            host=self.chromadb_host,
+                            port=self.chromadb_port,
+                        )
+                    else:
+                        self.vector_store = None
+                except Exception as exc:  # pragma: no cover - defensive
+                    logger.warning("ChromaDB fallback failed: %s", exc)
+                    self.context_manager = PersistentContextManager(
+                        self.memory_path,
+                        max_context_size=self.max_context_size,
+                        expiration_days=self.context_expiration_days,
+                    )
+                    if self.vector_store_enabled:
+                        self.vector_store = self.memory_store.vector
+                    else:
+                        self.vector_store = None
             else:
-                self.vector_store = None
+                self.context_manager = PersistentContextManager(
+                    self.memory_path,
+                    max_context_size=self.max_context_size,
+                    expiration_days=self.context_expiration_days,
+                )
+                if self.vector_store_enabled:
+                    self.vector_store = self.memory_store.vector
+                else:
+                    self.vector_store = None
         elif self.storage_type == "tinydb":
             self.memory_store = TinyDBStore(
                 self.memory_path,
