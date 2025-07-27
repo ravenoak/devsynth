@@ -5,6 +5,10 @@ Domain interfaces for requirements management.
 from typing import Dict, List, Optional
 from uuid import UUID
 
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
+
 from devsynth.domain.models.requirement import (
     ChatMessage,
     ChatSession,
@@ -179,16 +183,16 @@ class NotificationInterface:
     """Base notification service."""
 
     def notify_change_proposed(self, change: RequirementChange) -> None:
-        print(f"Change proposed: {change.id}")
+        logger.info(f"Change proposed: {change.id}")
 
     def notify_change_approved(self, change: RequirementChange) -> None:
-        print(f"Change approved: {change.id}")
+        logger.info(f"Change approved: {change.id}")
 
     def notify_change_rejected(self, change: RequirementChange) -> None:
-        print(f"Change rejected: {change.id}")
+        logger.warning(f"Change rejected: {change.id}")
 
     def notify_impact_assessment_completed(self, assessment: ImpactAssessment) -> None:
-        print(f"Impact assessment completed: {assessment.id}")
+        logger.info(f"Impact assessment completed: {assessment.id}")
 
 
 class InMemoryRequirementRepository(RequirementRepositoryInterface):
