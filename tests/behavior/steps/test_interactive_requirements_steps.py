@@ -27,6 +27,7 @@ def run_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_REQ_TYPE", "functional")
     monkeypatch.setenv("DEVSYNTH_REQ_PRIORITY", "medium")
     monkeypatch.setenv("DEVSYNTH_REQ_CONSTRAINTS", "")
+    monkeypatch.setenv("DEVSYNTH_NONINTERACTIVE", "1")
     wizard_cmd(output_file=output)
 
 

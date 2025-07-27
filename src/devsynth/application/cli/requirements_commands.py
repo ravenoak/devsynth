@@ -40,6 +40,15 @@ from devsynth.adapters.requirements.memory_repository import (
 )
 from devsynth.ports.llm_port import LLMPort
 
+# When running automated tests, DEVSYNTH_NONINTERACTIVE may be set to disable
+# any interactive prompts.  Commands should fall back to sensible defaults or
+# environment variables in this mode.
+NON_INTERACTIVE = os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+
 
 # Create a Typer app for requirements management
 requirements_app = typer.Typer(help="Requirements management commands")
@@ -163,9 +172,15 @@ def show_requirement(requirement_id: str):
 
 @requirements_app.command("create")
 def create_requirement(
-    title: str = typer.Option(..., prompt=True, help="Title of the requirement"),
-    description: str = typer.Option(
-        ..., prompt=True, help="Description of the requirement"
+    title: Optional[str] = typer.Option(
+        None,
+        prompt=not NON_INTERACTIVE,
+        help="Title of the requirement",
+    ),
+    description: Optional[str] = typer.Option(
+        None,
+        prompt=not NON_INTERACTIVE,
+        help="Description of the requirement",
     ),
     status: str = typer.Option(
         RequirementStatus.DRAFT.value, help="Status of the requirement"
@@ -174,7 +189,9 @@ def create_requirement(
         RequirementPriority.MEDIUM.value, help="Priority of the requirement"
     ),
     type_: str = typer.Option(
-        RequirementType.FUNCTIONAL.value, "--type", help="Type of the requirement"
+        RequirementType.FUNCTIONAL.value,
+        "--type",
+        help="Type of the requirement",
     ),
     user_id: str = typer.Option(
         "admin", help="ID of the user creating the requirement"
@@ -191,6 +208,9 @@ def create_requirement(
         type_: Type of the requirement.
         user_id: ID of the user creating the requirement.
     """
+    title = title or os.environ.get("DEVSYNTH_REQ_TITLE", "Untitled")
+    description = description or os.environ.get("DEVSYNTH_REQ_DESCRIPTION", "")
+
     # Validate status
     try:
         status_enum = RequirementStatus(status)
@@ -247,7 +267,11 @@ def update_requirement(
     type_: Optional[str] = typer.Option(
         None, "--type", help="New type of the requirement"
     ),
-    reason: str = typer.Option(..., prompt=True, help="Reason for the update"),
+    reason: Optional[str] = typer.Option(
+        None,
+        prompt=not NON_INTERACTIVE,
+        help="Reason for the update",
+    ),
     user_id: str = typer.Option(
         "admin", help="ID of the user updating the requirement"
     ),
@@ -276,6 +300,8 @@ def update_requirement(
     if not requirement:
         bridge.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
         return
+
+    reason = reason or os.environ.get("DEVSYNTH_REQ_REASON", "update")
 
     # Prepare updates
     updates = {}
@@ -336,8 +362,14 @@ def update_requirement(
 
 @requirements_app.command("delete")
 def delete_requirement(
-    requirement_id: str = typer.Option(..., help="ID of the requirement to delete"),
-    reason: str = typer.Option(..., prompt=True, help="Reason for the deletion"),
+    requirement_id: str = typer.Option(
+        ..., help="ID of the requirement to delete"
+    ),
+    reason: Optional[str] = typer.Option(
+        None,
+        prompt=not NON_INTERACTIVE,
+        help="Reason for the deletion",
+    ),
     user_id: str = typer.Option(
         "admin", help="ID of the user deleting the requirement"
     ),
@@ -361,6 +393,8 @@ def delete_requirement(
     if not requirement:
         bridge.print(f"[red]Requirement with ID {requirement_id} not found.[/red]")
         return
+
+    reason = reason or os.environ.get("DEVSYNTH_REQ_DEL_REASON", "delete")
 
     # Delete the requirement
     deleted = requirement_service.delete_requirement(req_id, user_id, reason)
@@ -459,8 +493,10 @@ def approve_change(
 @requirements_app.command("reject-change")
 def reject_change(
     change_id: str = typer.Option(..., help="ID of the change to reject"),
-    comment: str = typer.Option(
-        ..., prompt=True, help="Comment explaining the rejection"
+    comment: Optional[str] = typer.Option(
+        None,
+        prompt=not NON_INTERACTIVE,
+        help="Comment explaining the rejection",
     ),
     user_id: str = typer.Option("admin", help="ID of the user rejecting the change"),
 ):
@@ -483,6 +519,8 @@ def reject_change(
     if not change:
         bridge.print(f"[red]Change with ID {change_id} not found.[/red]")
         return
+
+    comment = comment or os.environ.get("DEVSYNTH_CHANGE_COMMENT", "rejected")
 
     # Reject the change
     rejected_change = requirement_service.reject_change(chg_id, user_id, comment)
@@ -832,12 +870,15 @@ def wizard_cmd(
         if key in responses:
             reply = responses[key]
         else:
-            prefix = f"Step {index + 1}/{len(steps)}: "
-            reply = bridge.ask_question(
-                prefix + message + " (type 'back' to go back)",
-                choices=choices,
-                default=default,
-            )
+            if NON_INTERACTIVE:
+                reply = default or ""
+            else:
+                prefix = f"Step {index + 1}/{len(steps)}: "
+                reply = bridge.ask_question(
+                    prefix + message + " (type 'back' to go back)",
+                    choices=choices,
+                    default=default,
+                )
         if reply.lower() == "back":
             if index > 0:
                 index -= 1
