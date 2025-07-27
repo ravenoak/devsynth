@@ -3,6 +3,7 @@
 from __future__ import annotations
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
+from .test_edrr_coordinator_steps import *  # noqa: F401,F403
 import pytest
 from unittest.mock import MagicMock, patch
 import time
