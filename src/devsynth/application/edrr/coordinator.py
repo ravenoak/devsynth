@@ -2133,9 +2133,20 @@ class EDRRCoordinator:
         try:
             results = executor(context)
             self.results[self.current_phase.name] = results
-            return results
+
+            # Run additional micro-cycles until quality thresholds are met
+            results = self._run_micro_cycles(self.current_phase, results)
+            self.results[self.current_phase.name] = results
+            return results.get("aggregated_results", results)
         except Exception as e:
             logger.error(f"Error executing phase {self.current_phase.value}: {str(e)}")
+            recovery = self._attempt_recovery(e, self.current_phase)
+            if recovery.get("recovered"):
+                phase_key = self.current_phase.name
+                self.results.setdefault(phase_key, {}).setdefault(
+                    "recovery_info", recovery
+                )
+                return self.results[phase_key]
             raise EDRRCoordinatorError(
                 f"Failed to execute phase {self.current_phase.value}: {e}"
             )
@@ -3153,8 +3164,21 @@ class EDRRCoordinator:
     def _aggregate_micro_cycle_results(
         self, phase: Phase, iteration: int, results: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Aggregate micro-cycle results. Currently returns results unchanged."""
-        return results
+        """Aggregate micro-cycle results and store them for analysis."""
+        phase_key = phase.name
+        phase_data = self.results.setdefault(phase_key, {})
+        phase_data.setdefault("micro_cycle_iterations", [])
+        phase_data["micro_cycle_iterations"].append(
+            {
+                "iteration": iteration,
+                "results": copy.deepcopy(results),
+            }
+        )
+
+        aggregated = copy.deepcopy(results)
+
+        phase_data["aggregated_results"] = aggregated
+        return copy.deepcopy(phase_data)
 
     def _execute_micro_cycle(self, phase: Phase, iteration: int) -> Dict[str, Any]:
         """Execute a single micro-cycle using the WSDE team."""
@@ -3167,7 +3191,7 @@ class EDRRCoordinator:
                 )
             except Exception:
                 pass
-        return self._aggregate_micro_cycle_results(phase, iteration, wsde_results)
+        return wsde_results
 
     def _assess_result_quality(self, results: Dict[str, Any]) -> float:
         """Simple heuristic quality score for results."""
@@ -3235,3 +3259,19 @@ class EDRRCoordinator:
         except Exception as exc:
             logger.error("Recovery failed: %s", exc)
             return {"recovered": False, "reason": str(exc)}
+
+    def _run_micro_cycles(
+        self, phase: Phase, base_results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Run iterative micro-cycles for a phase until quality thresholds are met."""
+        results = base_results
+        iteration = 0
+        while self._should_continue_micro_cycles(
+            phase, iteration, results.get("aggregated_results", results)
+        ):
+            iteration += 1
+            micro_results = self._execute_micro_cycle(phase, iteration)
+            results = self._aggregate_micro_cycle_results(
+                phase, iteration, micro_results
+            )
+        return results
