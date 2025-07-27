@@ -177,6 +177,19 @@ def test_requirements_wizard_different_steps_succeeds(stub_streamlit):
     stub_streamlit.text_area.assert_called()
 
 
+def test_requirements_wizard_string_step_succeeds(stub_streamlit):
+    """Wizard should handle string step values."""
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    stub_streamlit.session_state.wizard_step = "2"
+    WebUI()._requirements_wizard()
+    assert stub_streamlit.session_state.wizard_step == 2
+
+
 def test_requirements_wizard_error_handling_raises_error(stub_streamlit, monkeypatch):
     """Test error handling when saving requirements.
 
