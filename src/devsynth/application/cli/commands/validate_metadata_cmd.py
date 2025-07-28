@@ -25,7 +25,11 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def validate_metadata_cmd(
-    directory: Optional[str] = None, file: Optional[str] = None, verbose: bool = False
+    directory: Optional[str] = None,
+    file: Optional[str] = None,
+    verbose: bool = False,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Validate metadata in Markdown files.
 
@@ -38,6 +42,7 @@ def validate_metadata_cmd(
         verbose: Whether to show detailed validation results
     """
     console = Console()
+    bridge = bridge or globals()["bridge"]
 
     try:
         # Show a welcome message for the validate-metadata command

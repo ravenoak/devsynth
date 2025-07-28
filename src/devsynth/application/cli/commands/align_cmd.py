@@ -185,7 +185,12 @@ def check_terminology_consistency(files: List[str]) -> List[Dict]:
     return issues
 
 
-def check_alignment(path: str = ".", verbose: bool = False) -> List[Dict]:
+def check_alignment(
+    path: str = ".",
+    verbose: bool = False,
+    *,
+    bridge: UXBridge = bridge,
+) -> List[Dict]:
     """Check alignment between SDLC artifacts."""
     logger.info(f"Checking alignment in {path}")
 
@@ -208,7 +213,7 @@ def check_alignment(path: str = ".", verbose: bool = False) -> List[Dict]:
     return issues
 
 
-def display_issues(issues: List[Dict]):
+def display_issues(issues: List[Dict], *, bridge: UXBridge = bridge) -> None:
     """Display alignment issues in a table."""
     if not issues:
         bridge.print("[green]No alignment issues found![/green]")
@@ -241,7 +246,13 @@ def display_issues(issues: List[Dict]):
     bridge.print(table)
 
 
-def align_cmd(path: str = ".", verbose: bool = False, output: Optional[str] = None):
+def align_cmd(
+    path: str = ".",
+    verbose: bool = False,
+    output: Optional[str] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
+) -> bool:
     """Check alignment between SDLC artifacts.
 
     Example:
@@ -252,14 +263,15 @@ def align_cmd(path: str = ".", verbose: bool = False, output: Optional[str] = No
         verbose: Whether to show verbose output
         output: Path to output file for alignment report
     """
+    ux_bridge = bridge or globals()["bridge"]
     try:
-        bridge.print("[bold]Checking alignment between SDLC artifacts...[/bold]")
+        ux_bridge.print("[bold]Checking alignment between SDLC artifacts...[/bold]")
 
         # Check alignment
-        issues = check_alignment(path, verbose)
+        issues = check_alignment(path, verbose, bridge=ux_bridge)
 
         # Display issues
-        display_issues(issues)
+        display_issues(issues, bridge=ux_bridge)
 
         # Output to file if specified
         if output:
@@ -273,15 +285,15 @@ def align_cmd(path: str = ".", verbose: bool = False, output: Optional[str] = No
                         f.write(f"File: {issue['file']}\n\n")
                         f.write(f"Message: {issue['message']}\n\n")
 
-                bridge.print(f"[green]Alignment report saved to {output}[/green]")
+                ux_bridge.print(f"[green]Alignment report saved to {output}[/green]")
             except Exception as e:
                 logger.error(f"Error writing to output file: {e}")
-                bridge.print(f"[red]Error writing to output file: {e}[/red]")
+                ux_bridge.print(f"[red]Error writing to output file: {e}[/red]")
 
         # Return success or failure
         return len(issues) == 0
 
     except Exception as e:
         logger.error(f"Error checking alignment: {e}")
-        bridge.print(f"[red]Error checking alignment: {e}[/red]")
+        ux_bridge.print(f"[red]Error checking alignment: {e}[/red]")
         return False

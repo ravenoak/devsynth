@@ -23,7 +23,10 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def validate_manifest_cmd(
-    manifest_path: Optional[str] = None, schema_path: Optional[str] = None
+    manifest_path: Optional[str] = None,
+    schema_path: Optional[str] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Validate the project configuration file against its schema.
 
@@ -35,6 +38,7 @@ def validate_manifest_cmd(
         schema_path: Path to the project schema JSON file (default: src/devsynth/schemas/project_schema.json)
     """
     console = Console()
+    bridge = bridge or globals()["bridge"]
 
     try:
         # Show a welcome message for the validate-manifest command

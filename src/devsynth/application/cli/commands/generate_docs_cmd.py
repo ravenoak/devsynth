@@ -21,7 +21,10 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def generate_docs_cmd(
-    path: Optional[str] = None, output_dir: Optional[str] = None
+    path: Optional[str] = None,
+    output_dir: Optional[str] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Generate API reference documentation for a project.
 
@@ -36,6 +39,7 @@ def generate_docs_cmd(
         output_dir: Directory where the documentation should be generated (default: docs/api_reference)
     """
     console = Console()
+    bridge = bridge or globals()["bridge"]
 
     try:
         # Show a welcome message for the generate-docs command
