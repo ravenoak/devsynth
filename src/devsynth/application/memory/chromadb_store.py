@@ -22,7 +22,12 @@ except ImportError as e:  # pragma: no cover - optional dependency
         "ChromaDBStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
     ) from e
 
-import tiktoken
+try:
+    import tiktoken
+except ImportError as e:  # pragma: no cover - optional dependency
+    raise ImportError(
+        "ChromaDBStore requires the 'tiktoken' package. Install it with 'pip install tiktoken' or use the dev extras."
+    ) from e
 
 from devsynth.exceptions import (
     DevSynthError,

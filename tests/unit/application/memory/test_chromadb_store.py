@@ -5,6 +5,7 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 import pytest
 pytest.importorskip('chromadb')
+pytest.importorskip('tiktoken')
 if os.environ.get('ENABLE_CHROMADB', 'false').lower() in {'0', 'false', 'no'}:
     pytest.skip('ChromaDB feature not enabled', allow_module_level=True)
 from devsynth.application.memory.chromadb_store import ChromaDBStore
