@@ -222,6 +222,15 @@ poetry install \
   --no-interaction
 ```
 
+To recreate the Codex provisioning steps locally, run the helper script:
+
+```bash
+bash scripts/codex_setup.sh
+```
+If the setup fails, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be created.
+Delete the file after resolving the issue and rerun the script until it
+completes successfully.
+
 The test suite runs entirely in isolated temporary directories.  Ingestion and
 WSDE tests no longer require special environment variables and are executed by
 default when running `poetry run pytest`.

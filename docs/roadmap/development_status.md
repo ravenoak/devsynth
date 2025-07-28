@@ -399,6 +399,8 @@ The completion of Phase 1 produced several key artifacts:
 7. **Metrics Commands Implemented**:
    - Added `alignment_metrics` and `test_metrics` CLI commands
    - Commands generate alignment and test-first development reports
+   - Latest coverage reports show approximately **15%** line coverage across the
+     codebase.
 
 ### Remaining Test Failures
 
@@ -410,7 +412,7 @@ tracked in upcoming sprint reports.
 
 ### Test Failure Summary
 
-The latest run collected **2547** tests but aborted during collection with **1 error** (ModuleNotFoundError for `chromadb_store`). **15** tests were skipped. WebUI wizard failures appear resolved, but memory integration tests still need work. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for remaining partial features.
+The latest run executed **949** tests: **529** passed, **332** failed, and **88** were skipped. Test collection triggered **1** error. WebUI wizard failures appear resolved, but memory integration tests still need work. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for remaining partial features.
 
 
 ## Maintenance Strategy
