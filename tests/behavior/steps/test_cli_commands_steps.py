@@ -268,6 +268,7 @@ def check_success_message(command_context):
         "executed",
         "updated",
         "complete",
+        "enabled",
     ]
 
     # Check if any of the success indicators are in the output
