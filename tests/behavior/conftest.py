@@ -23,6 +23,10 @@ from devsynth.adapters.provider_system import (
     embed,
     ProviderType,
 )
+import typer
+import typer.main
+import click
+from devsynth.interface.ux_bridge import UXBridge
 
 
 @pytest.fixture
@@ -117,6 +121,26 @@ def patch_env_and_cleanup(tmp_project_dir):
         path = os.path.join(old_cwd, artifact)
         if os.path.exists(path):
             shutil.rmtree(path, ignore_errors=True)
+
+
+@pytest.fixture(autouse=True)
+def patch_typer_types(monkeypatch):
+    """Allow Typer to handle custom parameter types used in the CLI."""
+    orig = typer.main.get_click_type
+
+    def patched_get_click_type(*, annotation, parameter_info):
+        if annotation in {UXBridge, typer.models.Context}:
+            return click.STRING
+        origin = getattr(annotation, "__origin__", None)
+        if (
+            origin in {UXBridge, typer.models.Context}
+            or annotation is dict
+            or origin is dict
+        ):
+            return click.STRING
+        return orig(annotation=annotation, parameter_info=parameter_info)
+
+    monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
 @pytest.fixture
