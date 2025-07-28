@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Optional, Sequence, Dict, Any
+import time
 
 from .ux_bridge import UXBridge, ProgressIndicator, sanitize_output
 from .shared_bridge import SharedBridgeMixin
@@ -69,7 +70,7 @@ class WebUIProgressIndicator(ProgressIndicator):
                 self._status = "Starting..."
 
         self._current += advance
-        self._update_times.append((0, self._current))  # Use 0 as a placeholder for time
+        self._update_times.append((time.time(), self._current))
 
     def complete(self) -> None:
         """Mark the progress indicator as complete."""
