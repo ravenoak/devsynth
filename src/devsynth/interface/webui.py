@@ -1738,14 +1738,25 @@ class WebUI(UXBridge):
             "Diagnostics": self.diagnostics_page,
         }
 
+        nav_list = list(nav_items)
+        # Persist navigation selection across reruns via session_state
+        stored_nav = getattr(st.session_state, "nav", nav_list[0])
         try:
-            nav = st.sidebar.radio("Navigation", list(nav_items))
+            index = nav_list.index(stored_nav)
+        except ValueError:  # pragma: no cover - defensive
+            index = 0
+        try:
+            nav = st.sidebar.radio("Navigation", nav_list, index=index)
         except Exception as exc:  # noqa: BLE001
             try:
                 self.display_result(f"ERROR: {exc}")
             except Exception:
                 raise exc
             return
+        # Store the selection for next run
+        st.session_state.nav = nav
+        if hasattr(st.session_state, "__setitem__"):
+            st.session_state["nav"] = nav
 
         page_func = nav_items.get(nav)
         if page_func is None:
