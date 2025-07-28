@@ -37,7 +37,12 @@ class KuzuMemoryStore(MemoryStore):
         self.persist_directory = persist_directory or os.path.join(
             os.getcwd(), ".devsynth", "kuzu_store"
         )
-        settings_module.ensure_path_exists(self.persist_directory)
+        # ``ensure_path_exists`` may redirect the path when running under the
+        # test isolation fixtures.  Capture the returned value so both the
+        # ``KuzuStore`` and ``KuzuAdapter`` use the same final directory.
+        self.persist_directory = settings_module.ensure_path_exists(
+            self.persist_directory
+        )
         self._store = KuzuStore(self.persist_directory)
         self.vector = KuzuAdapter(self.persist_directory, collection_name)
         self.use_provider_system = use_provider_system
