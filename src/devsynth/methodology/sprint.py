@@ -60,6 +60,7 @@ class SprintAdapter(BaseMethodologyAdapter):
             "actual_scope": [],
             "quality_metrics": {},
             "velocity": [],
+            "retrospective_reviews": [],
         }
 
     def should_start_cycle(self) -> bool:
@@ -188,6 +189,12 @@ class SprintAdapter(BaseMethodologyAdapter):
                 "duration_days": self.sprint_duration * 7,
             }
         )
+
+        req_analysis = results.get("expand", {}).get("requirements_analysis")
+        if req_analysis:
+            self._align_with_requirements(req_analysis)
+
+        self._review_retrospective(results.get("retrospect", {}))
 
         # Generate retrospective report
         self._generate_retrospective_report(results)
@@ -445,3 +452,29 @@ class SprintAdapter(BaseMethodologyAdapter):
             "Insights generated: %d",
             len(results.get("retrospect", {}).get("insights", [])),
         )
+
+    def _align_with_requirements(self, requirement_results: Dict[str, Any]) -> None:
+        """Align sprint planning with requirement analysis results."""
+        if not requirement_results:
+            return
+        planned = requirement_results.get("recommended_scope") or []
+        objectives = requirement_results.get("objectives") or []
+        success = requirement_results.get("success_criteria") or []
+        self.sprint_plan = {
+            "planned_scope": planned,
+            "objectives": objectives,
+            "success_criteria": success,
+        }
+        self.metrics["planned_scope"].append(planned)
+
+    def _review_retrospective(self, retrospective: Dict[str, Any]) -> None:
+        """Automate review of sprint retrospectives."""
+        if not retrospective:
+            return
+        summary = {
+            "positives": retrospective.get("positives", []),
+            "improvements": retrospective.get("improvements", []),
+            "action_items": retrospective.get("action_items", []),
+            "sprint": self.current_sprint_number,
+        }
+        self.metrics["retrospective_reviews"].append(summary)

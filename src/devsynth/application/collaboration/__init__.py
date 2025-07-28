@@ -6,6 +6,6 @@ logger = DevSynthLogger(__name__)
 
 """Collaboration module for agent coordination and team-based workflows."""
 
-from .wsde_team_extended import CollaborativeWSDETeam
+from .collaborative_wsde_team import CollaborativeWSDETeam
 
 __all__ = ["CollaborativeWSDETeam"]

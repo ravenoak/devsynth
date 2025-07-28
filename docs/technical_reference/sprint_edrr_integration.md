@@ -47,6 +47,7 @@ The Retrospect phase's "Iteration Planning" step serves the same function as spr
 - Enhance the `Ingestion.retrospect_phase()` method to generate a formal iteration plan
 - Create a `SprintPlan` data structure to store objectives, metrics, and priorities
 - Implement a planning review step requiring stakeholder approval before proceeding to the next Expand phase
+- Align sprint planning with results from requirement analysis
 
 
 ### 2.2 Daily Stand-ups → Phase Progression Tracking
@@ -101,6 +102,7 @@ The Retrospect phase naturally aligns with sprint retrospectives:
 - Implement tracking of retrospective insights across iterations
 - Create a mechanism for process improvement suggestions
 - Develop metrics for measuring improvement over time
+- Automate evaluation of retrospective data in the EDRR review process
 
 
 ## 3. Time-Boxing EDRR Cycles
