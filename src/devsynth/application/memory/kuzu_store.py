@@ -42,7 +42,9 @@ from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
-from devsynth.config.settings import ensure_path_exists
+
+# Import the settings module so tests can monkeypatch ``ensure_path_exists``
+from devsynth.config import settings as settings_module
 
 logger = DevSynthLogger(__name__)
 
@@ -60,7 +62,7 @@ class KuzuStore(MemoryStore):
         # test isolation fixtures.  Use the returned path so the database is
         # created in the correct location rather than the original argument
         # which may be outside the temporary test directory.
-        self.file_path = ensure_path_exists(file_path)
+        self.file_path = settings_module.ensure_path_exists(file_path)
         # Explicitly create the directory even when ``ensure_path_exists`` is
         # patched not to, ensuring the database can always be opened.
         os.makedirs(self.file_path, exist_ok=True)
@@ -87,7 +89,7 @@ class KuzuStore(MemoryStore):
         self._use_fallback = kuzu_mod is None
         if not self._use_fallback:
             try:
-                ensure_path_exists(file_path)
+                settings_module.ensure_path_exists(file_path)
                 self.db = kuzu_mod.Database(self.db_path)
                 self.conn = kuzu_mod.Connection(self.db)
                 self.conn.execute(

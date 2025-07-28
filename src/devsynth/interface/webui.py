@@ -36,6 +36,8 @@ from pathlib import Path
 from typing import Any, Callable, Optional, Sequence, TypeVar
 from unittest.mock import MagicMock
 
+from devsynth.interface.webui_bridge import WebUIBridge
+
 import streamlit as st
 
 # ``webui`` is imported in several unit tests with a partially mocked
@@ -937,9 +939,13 @@ class WebUI(UXBridge):
 
         col1, col2 = st.columns(2)
         if col1.button("Back", disabled=step == 0):
-            st.session_state.wizard_step = max(0, step - 1)
+            st.session_state.wizard_step = WebUIBridge.adjust_wizard_step(
+                step, direction="back", total=len(steps)
+            )
         elif col2.button("Next", disabled=step >= len(steps) - 1):
-            st.session_state.wizard_step = min(len(steps) - 1, step + 1)
+            st.session_state.wizard_step = WebUIBridge.adjust_wizard_step(
+                step, direction="next", total=len(steps)
+            )
 
         st.session_state.wizard_data = data
         if hasattr(st.session_state, "__setitem__"):
