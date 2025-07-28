@@ -19,6 +19,7 @@ from devsynth.exceptions import DevSynthError
 
 # Import from specialized modules
 from devsynth.domain.models.wsde_base import WSDE, WSDETeam
+from devsynth.domain.models.wsde import WSDETeam as LegacyWSDETeam
 from devsynth.domain.models.wsde_roles import (
     assign_roles,
     assign_roles_for_phase,
@@ -26,10 +27,6 @@ from devsynth.domain.models.wsde_roles import (
     _validate_role_mapping,
     _auto_assign_roles,
     get_role_map,
-    _calculate_expertise_score,
-    _calculate_phase_expertise_score,
-    select_primus_by_expertise,
-    rotate_roles,
     _assign_roles_for_edrr_phase,
 )
 from devsynth.domain.models.wsde_voting import (
@@ -149,10 +146,8 @@ WSDETeam.dynamic_role_reassignment = dynamic_role_reassignment
 WSDETeam._validate_role_mapping = _validate_role_mapping
 WSDETeam._auto_assign_roles = _auto_assign_roles
 WSDETeam.get_role_map = get_role_map
-WSDETeam._calculate_expertise_score = _calculate_expertise_score
-WSDETeam._calculate_phase_expertise_score = _calculate_phase_expertise_score
-WSDETeam.select_primus_by_expertise = select_primus_by_expertise
-WSDETeam.rotate_roles = rotate_roles
+WSDETeam._calculate_expertise_score = LegacyWSDETeam._calculate_expertise_score
+WSDETeam._calculate_phase_expertise_score = LegacyWSDETeam._calculate_phase_expertise_score
 WSDETeam._assign_roles_for_edrr_phase = _assign_roles_for_edrr_phase
 
 # Enhanced Context-Driven Leadership methods
@@ -328,58 +323,11 @@ def new_init(
 
 WSDETeam.__init__ = new_init
 
-# Override rotate_primus method to update primus_index
-original_rotate_primus = WSDETeam.rotate_primus
-
-
-def new_rotate_primus(self):
-    """
-    Rotate the primus role to the next agent in the team.
-
-    Returns:
-        The new primus agent or None if no agents are available
-    """
-    if not self.agents:
-        self.logger.warning("Cannot rotate primus: no agents in team")
-        return None
-
-    # Get the current primus agent
-    old_primus = None
-    if self.primus_index < len(self.agents):
-        old_primus = self.agents[self.primus_index]
-
-    # Update primus_index
-    self.primus_index = (self.primus_index + 1) % len(self.agents)
-
-    # Update roles dictionary
-    self.roles["primus"] = self.agents[self.primus_index]
-
-    # Update agent's current_role
-    for i, agent in enumerate(self.agents):
-        if i == self.primus_index:
-            agent.current_role = "Primus"
-
-    self.logger.info(f"Rotated primus role to {self.roles['primus'].name}")
-    return self.roles["primus"]
-
-
-WSDETeam.rotate_primus = new_rotate_primus
-
-
-# Override get_primus method to return agent at primus_index
-def new_get_primus(self):
-    """
-    Get the current primus agent.
-
-    Returns:
-        The current primus agent or None if not assigned
-    """
-    if not self.agents or self.primus_index >= len(self.agents):
-        return None
-    return self.agents[self.primus_index]
-
-
-WSDETeam.get_primus = new_get_primus
+# Use legacy implementations for Primus rotation and retrieval
+WSDETeam.rotate_primus = LegacyWSDETeam.rotate_primus
+WSDETeam.get_primus = LegacyWSDETeam.get_primus
+WSDETeam.rotate_roles = LegacyWSDETeam.rotate_roles
+WSDETeam.select_primus_by_expertise = LegacyWSDETeam.select_primus_by_expertise
 
 # ------------------------------------------------------------------
 # Peer review methods

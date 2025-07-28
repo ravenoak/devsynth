@@ -2621,8 +2621,8 @@ class EDRRCoordinator:
             ):
                 return "analysis_of_code"
 
-            # Add keys
-            key_parts.append(",".join(sorted(result.keys())))
+            # Add keys (convert to string to avoid comparison errors)
+            key_parts.append(",".join(sorted(str(k) for k in result.keys())))
 
             # Add some key values if present
             for important_key in ["type", "description", "category", "approach"]:
