@@ -3,6 +3,14 @@
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
+# Ensure the CLI installation step is registered for the feature background
+from .cli_commands_steps import (  # noqa: F401
+    devsynth_cli_installed,
+    valid_devsynth_project,
+    run_command,
+    check_workflow_success,
+)
+
 scenarios("../features/general/error_handling.feature")
 
 
