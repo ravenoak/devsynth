@@ -13,6 +13,8 @@ from devsynth.application.cli.cli_commands import (
     test_cmd,
     inspect_cmd,
     refactor_cmd,
+    webapp_cmd,
+    dbschema_cmd,
 )
 
 ORIG_CHECK_SERVICES = cli_commands._check_services
@@ -659,11 +661,9 @@ class TestCLICommands:
         )
 
     def test_webapp_cmd_invalid_framework(self, tmp_path):
-        """Unknown framework triggers warning and prompt."""
+        """Unknown framework raises an error."""
 
         with (
-            patch.object(cli_commands.bridge, "prompt", return_value="flask"),
-            patch.object(cli_commands.bridge, "confirm", return_value=True),
             patch.object(
                 cli_commands.bridge,
                 "create_progress",
@@ -674,10 +674,16 @@ class TestCLICommands:
                     complete=lambda *a, **k: None,
                 ),
             ),
+            patch.object(cli_commands.bridge, "print"),
+            patch.object(cli_commands.bridge, "display_result") as disp,
             patch("os.makedirs"),
             patch("os.path.exists", return_value=False),
         ):
             webapp_cmd(framework="bad", name="app", path=str(tmp_path))
+            disp.assert_any_call(
+                "[red]✗ Error:[/red] Unsupported framework 'bad'. Supported: flask, fastapi, django, express",
+                highlight=False,
+            )
 
     def test_serve_cmd_passes_options(self, monkeypatch):
         """serve_cmd forwards host and port to uvicorn."""
@@ -691,11 +697,9 @@ class TestCLICommands:
             assert kwargs["port"] == 1234
 
     def test_dbschema_cmd_invalid_type(self, tmp_path):
-        """Unknown db type should prompt selection."""
+        """Unknown db type raises an error."""
 
         with (
-            patch.object(cli_commands.bridge, "prompt", return_value="sqlite"),
-            patch.object(cli_commands.bridge, "confirm", return_value=True),
             patch.object(
                 cli_commands.bridge,
                 "create_progress",
@@ -706,7 +710,13 @@ class TestCLICommands:
                     complete=lambda *a, **k: None,
                 ),
             ),
+            patch.object(cli_commands.bridge, "print"),
+            patch.object(cli_commands.bridge, "display_result") as disp,
             patch("os.makedirs"),
             patch("os.path.exists", return_value=False),
         ):
             dbschema_cmd(db_type="foo", name="schema", path=str(tmp_path))
+            disp.assert_any_call(
+                "[red]\u2717 Error:[/red] Unsupported database type 'foo'. Supported: sqlite, mysql, postgresql, mongodb",
+                highlight=False,
+            )

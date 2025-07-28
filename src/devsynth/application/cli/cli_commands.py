@@ -968,6 +968,7 @@ def webapp_cmd(
     framework: str = "flask",
     name: str = "webapp",
     path: str = ".",
+    force: bool = False,
     *,
     bridge: UXBridge = bridge,
 ) -> None:
@@ -977,7 +978,6 @@ def webapp_cmd(
         `devsynth webapp --framework flask --name myapp --path ./apps`
     """
     try:
-        from rich.prompt import Prompt, Confirm
         from rich.markdown import Markdown
         from rich.panel import Panel
         from rich.table import Table
@@ -997,63 +997,23 @@ def webapp_cmd(
         supported_frameworks = ["flask", "fastapi", "django", "express"]
 
         if framework not in supported_frameworks:
-            bridge.display_result(
-                f"[yellow]Warning: '{framework}' is not a recognized framework.[/yellow]"
+            raise ValueError(
+                f"Unsupported framework '{framework}'. Supported: {', '.join(supported_frameworks)}"
             )
-            bridge.display_result(
-                f"[yellow]Supported frameworks: {', '.join(supported_frameworks)}[/yellow]"
-            )
-
-            # Ask user to select a framework
-            framework_table = Table(title="Supported Frameworks")
-            framework_table.add_column("Framework", style="cyan")
-            framework_table.add_column("Description")
-            framework_table.add_column("Language", style="green")
-
-            framework_table.add_row(
-                "flask", "Lightweight WSGI web application framework", "Python"
-            )
-            framework_table.add_row(
-                "fastapi", "Modern, fast web framework for building APIs", "Python"
-            )
-            framework_table.add_row(
-                "django", "High-level web framework with batteries included", "Python"
-            )
-            framework_table.add_row(
-                "express", "Fast, unopinionated, minimalist web framework", "JavaScript"
-            )
-
-            bridge.print(framework_table)
-
-            framework = bridge.prompt(
-                "[blue]Select a framework[/blue]",
-                choices=supported_frameworks,
-                default="flask",
-            )
-
-        # Get project name if not provided
-        if name == "webapp":
-            name = bridge.prompt("[blue]Project name[/blue]", default="webapp")
 
         # Sanitize project name
         name = name.replace(" ", "_").lower()
-
-        # Get project path if not provided
-        if path == ".":
-            path = bridge.prompt("[blue]Project path[/blue]", default=".")
 
         # Create full project path
         project_path = os.path.join(path, name)
 
         # Check if directory already exists
         if os.path.exists(project_path):
-            if not bridge.confirm(
-                f"[yellow]Directory {project_path} already exists. Overwrite?[/yellow]"
-            ):
-                bridge.display_result("[yellow]Operation cancelled.[/yellow]")
+            if not force:
+                bridge.display_result(
+                    f"[yellow]Directory {project_path} already exists. Use --force to overwrite.[/yellow]"
+                )
                 return
-
-            # Remove existing directory
             shutil.rmtree(project_path)
 
         # Create project directory
@@ -1314,21 +1274,16 @@ def dbschema_cmd(
     db_type: str = "sqlite",
     name: str = "database",
     path: str = ".",
+    force: bool = False,
     *,
     bridge: UXBridge = bridge,
 ) -> None:
-    """Generate a database schema for the specified database type.
-
-    Example:
-        `devsynth dbschema --db-type sqlite --name blog --path ./schema`
-    """
+    """Generate a database schema for the specified database type."""
     try:
-        from rich.prompt import Prompt, Confirm
         from rich.markdown import Markdown
         from rich.panel import Panel
         from rich.table import Table
 
-        # Show a welcome message for the dbschema command
         bridge.print(
             Panel(
                 f"[bold blue]DevSynth Database Schema Generator[/bold blue]\n\n"
@@ -1338,351 +1293,185 @@ def dbschema_cmd(
             )
         )
 
-        # Validate and normalize the database type
         db_type = db_type.lower()
         supported_db_types = ["sqlite", "mysql", "postgresql", "mongodb"]
-
         if db_type not in supported_db_types:
-            bridge.display_result(
-                f"[yellow]Warning: '{db_type}' is not a recognized database type.[/yellow]"
-            )
-            bridge.display_result(
-                f"[yellow]Supported database types: {', '.join(supported_db_types)}[/yellow]"
+            raise ValueError(
+                f"Unsupported database type '{db_type}'. Supported: {', '.join(supported_db_types)}"
             )
 
-            # Ask user to select a database type
-            db_table = Table(title="Supported Database Types")
-            db_table.add_column("Database", style="cyan")
-            db_table.add_column("Description")
-            db_table.add_column("Type", style="green")
-
-            db_table.add_row("sqlite", "Lightweight disk-based database", "SQL")
-            db_table.add_row("mysql", "Popular open-source relational database", "SQL")
-            db_table.add_row(
-                "postgresql", "Advanced open-source relational database", "SQL"
-            )
-            db_table.add_row("mongodb", "NoSQL document database", "NoSQL")
-
-            bridge.print(db_table)
-
-            db_type = bridge.prompt(
-                "[blue]Select a database type[/blue]",
-                choices=supported_db_types,
-                default="sqlite",
-            )
-
-        # Get schema name if not provided
-        if name == "database":
-            name = bridge.prompt("[blue]Schema name[/blue]", default="database")
-
-        # Sanitize schema name
         name = name.replace(" ", "_").lower()
-
-        # Get schema path if not provided
-        if path == ".":
-            path = bridge.prompt("[blue]Schema path[/blue]", default=".")
-
-        # Create full schema path
         schema_path = os.path.join(path, f"{name}_schema")
 
-        # Check if directory already exists
         if os.path.exists(schema_path):
-            if not bridge.confirm(
-                f"[yellow]Directory {schema_path} already exists. Overwrite?[/yellow]"
-            ):
-                bridge.display_result("[yellow]Operation cancelled.[/yellow]")
+            if not force:
+                bridge.display_result(
+                    f"[yellow]Directory {schema_path} already exists. Use --force to overwrite.[/yellow]"
+                )
                 return
-
-            # Remove existing directory
             shutil.rmtree(schema_path)
 
-        # Create schema directory
         os.makedirs(schema_path, exist_ok=True)
 
-        # Get entity information
-        bridge.display_result("\n[bold]Entity Information[/bold]")
-        bridge.display_result(
-            "Let's define the entities (tables/collections) for your database schema."
-        )
+        if db_type in ["sqlite", "mysql", "postgresql"]:
+            entities = [
+                {
+                    "name": "users",
+                    "fields": [
+                        {
+                            "name": "id",
+                            "type": "integer",
+                            "constraints": ["PRIMARY KEY"],
+                        },
+                        {
+                            "name": "username",
+                            "type": "text",
+                            "constraints": ["NOT NULL", "UNIQUE"],
+                        },
+                        {
+                            "name": "email",
+                            "type": "text",
+                            "constraints": ["NOT NULL", "UNIQUE"],
+                        },
+                        {
+                            "name": "password",
+                            "type": "text",
+                            "constraints": ["NOT NULL"],
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "datetime",
+                            "constraints": ["NOT NULL"],
+                        },
+                    ],
+                },
+                {
+                    "name": "posts",
+                    "fields": [
+                        {
+                            "name": "id",
+                            "type": "integer",
+                            "constraints": ["PRIMARY KEY"],
+                        },
+                        {
+                            "name": "user_id",
+                            "type": "integer",
+                            "constraints": ["NOT NULL"],
+                        },
+                        {"name": "title", "type": "text", "constraints": ["NOT NULL"]},
+                        {
+                            "name": "content",
+                            "type": "text",
+                            "constraints": ["NOT NULL"],
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "datetime",
+                            "constraints": ["NOT NULL"],
+                        },
+                    ],
+                },
+            ]
+        else:
+            entities = [
+                {
+                    "name": "users",
+                    "fields": [
+                        {"name": "_id", "type": "objectId", "constraints": []},
+                        {
+                            "name": "username",
+                            "type": "string",
+                            "constraints": ["required: true", "unique: true"],
+                        },
+                        {
+                            "name": "email",
+                            "type": "string",
+                            "constraints": ["required: true", "unique: true"],
+                        },
+                        {
+                            "name": "password",
+                            "type": "string",
+                            "constraints": ["required: true"],
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "date",
+                            "constraints": ["required: true"],
+                        },
+                    ],
+                },
+                {
+                    "name": "posts",
+                    "fields": [
+                        {"name": "_id", "type": "objectId", "constraints": []},
+                        {
+                            "name": "user_id",
+                            "type": "objectId",
+                            "constraints": ["required: true"],
+                        },
+                        {
+                            "name": "title",
+                            "type": "string",
+                            "constraints": ["required: true"],
+                        },
+                        {
+                            "name": "content",
+                            "type": "string",
+                            "constraints": ["required: true"],
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "date",
+                            "constraints": ["required: true"],
+                        },
+                    ],
+                },
+            ]
 
-        entities = []
-        while True:
-            entity_name = bridge.prompt(
-                "[blue]Entity name[/blue] (or press Enter to finish)"
-            )
-            if not entity_name:
-                break
-
-            # Sanitize entity name
-            entity_name = entity_name.replace(" ", "_").lower()
-
-            # Get entity fields
-            bridge.display_result(f"\n[bold]Fields for {entity_name}[/bold]")
-            fields = []
-            while True:
-                field_name = bridge.prompt(
-                    "[blue]Field name[/blue] (or press Enter to finish)"
-                )
-                if not field_name:
-                    break
-
-                # Sanitize field name
-                field_name = field_name.replace(" ", "_").lower()
-
-                # Get field type
-                if db_type in ["sqlite", "mysql", "postgresql"]:
-                    field_type_choices = [
-                        "integer",
-                        "text",
-                        "boolean",
-                        "float",
-                        "date",
-                        "datetime",
-                        "blob",
-                    ]
-                else:  # MongoDB
-                    field_type_choices = [
-                        "string",
-                        "number",
-                        "boolean",
-                        "date",
-                        "objectId",
-                        "array",
-                        "object",
-                    ]
-
-                field_type = bridge.prompt(
-                    "[blue]Field type[/blue]",
-                    choices=field_type_choices,
-                    default=field_type_choices[0],
-                )
-
-                # Get field constraints
-                constraints = []
-                if db_type in ["sqlite", "mysql", "postgresql"]:
-                    if bridge.confirm(
-                        "[blue]Is this field a primary key?[/blue]", default=False
-                    ):
-                        constraints.append("PRIMARY KEY")
-                    if bridge.confirm(
-                        "[blue]Is this field required (NOT NULL)?[/blue]", default=False
-                    ):
-                        constraints.append("NOT NULL")
-                    if bridge.confirm(
-                        "[blue]Should this field be unique?[/blue]", default=False
-                    ):
-                        constraints.append("UNIQUE")
-                else:  # MongoDB
-                    if bridge.confirm(
-                        "[blue]Is this field required?[/blue]", default=False
-                    ):
-                        constraints.append("required: true")
-                    if bridge.confirm(
-                        "[blue]Should this field be unique?[/blue]", default=False
-                    ):
-                        constraints.append("unique: true")
-
-                fields.append(
-                    {"name": field_name, "type": field_type, "constraints": constraints}
-                )
-
-            if fields:
-                entities.append({"name": entity_name, "fields": fields})
-            else:
-                bridge.display_result(
-                    "[yellow]Warning: Entity has no fields and will be skipped.[/yellow]"
-                )
-
-        if not entities:
-            bridge.display_result(
-                "[yellow]Warning: No entities defined. Creating a sample schema instead.[/yellow]"
-            )
-
-            # Create sample entities
-            if db_type in ["sqlite", "mysql", "postgresql"]:
-                entities = [
-                    {
-                        "name": "users",
-                        "fields": [
-                            {
-                                "name": "id",
-                                "type": "integer",
-                                "constraints": ["PRIMARY KEY"],
-                            },
-                            {
-                                "name": "username",
-                                "type": "text",
-                                "constraints": ["NOT NULL", "UNIQUE"],
-                            },
-                            {
-                                "name": "email",
-                                "type": "text",
-                                "constraints": ["NOT NULL", "UNIQUE"],
-                            },
-                            {
-                                "name": "password",
-                                "type": "text",
-                                "constraints": ["NOT NULL"],
-                            },
-                            {
-                                "name": "created_at",
-                                "type": "datetime",
-                                "constraints": ["NOT NULL"],
-                            },
-                        ],
-                    },
-                    {
-                        "name": "posts",
-                        "fields": [
-                            {
-                                "name": "id",
-                                "type": "integer",
-                                "constraints": ["PRIMARY KEY"],
-                            },
-                            {
-                                "name": "user_id",
-                                "type": "integer",
-                                "constraints": ["NOT NULL"],
-                            },
-                            {
-                                "name": "title",
-                                "type": "text",
-                                "constraints": ["NOT NULL"],
-                            },
-                            {
-                                "name": "content",
-                                "type": "text",
-                                "constraints": ["NOT NULL"],
-                            },
-                            {
-                                "name": "created_at",
-                                "type": "datetime",
-                                "constraints": ["NOT NULL"],
-                            },
-                        ],
-                    },
-                ]
-            else:  # MongoDB
-                entities = [
-                    {
-                        "name": "users",
-                        "fields": [
-                            {"name": "_id", "type": "objectId", "constraints": []},
-                            {
-                                "name": "username",
-                                "type": "string",
-                                "constraints": ["required: true", "unique: true"],
-                            },
-                            {
-                                "name": "email",
-                                "type": "string",
-                                "constraints": ["required: true", "unique: true"],
-                            },
-                            {
-                                "name": "password",
-                                "type": "string",
-                                "constraints": ["required: true"],
-                            },
-                            {
-                                "name": "created_at",
-                                "type": "date",
-                                "constraints": ["required: true"],
-                            },
-                        ],
-                    },
-                    {
-                        "name": "posts",
-                        "fields": [
-                            {"name": "_id", "type": "objectId", "constraints": []},
-                            {
-                                "name": "user_id",
-                                "type": "objectId",
-                                "constraints": ["required: true"],
-                            },
-                            {
-                                "name": "title",
-                                "type": "string",
-                                "constraints": ["required: true"],
-                            },
-                            {
-                                "name": "content",
-                                "type": "string",
-                                "constraints": ["required: true"],
-                            },
-                            {
-                                "name": "created_at",
-                                "type": "date",
-                                "constraints": ["required: true"],
-                            },
-                        ],
-                    },
-                ]
-
-        # Show progress during generation
         with bridge.create_progress(
             f"Generating {db_type} schema...", total=100
         ) as progress:
-
-            # Generate schema based on database type
             if db_type == "sqlite":
-                # Create SQLite schema file
                 schema_file = os.path.join(schema_path, f"{name}_schema.sql")
                 with open(schema_file, "w") as f:
                     f.write(f"-- SQLite schema for {name}\n\n")
-
                     for entity in entities:
                         f.write(f"CREATE TABLE {entity['name']} (\n")
-
                         field_definitions = []
                         for field in entity["fields"]:
                             field_def = f"    {field['name']} {field['type'].upper()}"
                             if field["constraints"]:
                                 field_def += f" {' '.join(field['constraints'])}"
                             field_definitions.append(field_def)
-
                         f.write(",\n".join(field_definitions))
                         f.write("\n);\n\n")
-
                 progress.update(advance=100)
-
             elif db_type == "mysql":
-                # Create MySQL schema file
                 schema_file = os.path.join(schema_path, f"{name}_schema.sql")
                 with open(schema_file, "w") as f:
                     f.write(f"-- MySQL schema for {name}\n\n")
-
                     f.write(f"CREATE DATABASE IF NOT EXISTS {name};\n")
                     f.write(f"USE {name};\n\n")
-
                     for entity in entities:
                         f.write(f"CREATE TABLE {entity['name']} (\n")
-
                         field_definitions = []
                         for field in entity["fields"]:
                             field_def = f"    {field['name']} {field['type'].upper()}"
                             if field["constraints"]:
                                 field_def += f" {' '.join(field['constraints'])}"
                             field_definitions.append(field_def)
-
                         f.write(",\n".join(field_definitions))
                         f.write("\n);\n\n")
-
                 progress.update(advance=100)
-
             elif db_type == "postgresql":
-                # Create PostgreSQL schema file
                 schema_file = os.path.join(schema_path, f"{name}_schema.sql")
                 with open(schema_file, "w") as f:
                     f.write(f"-- PostgreSQL schema for {name}\n\n")
-
                     f.write(f"CREATE SCHEMA IF NOT EXISTS {name};\n\n")
-
                     for entity in entities:
                         f.write(f"CREATE TABLE {name}.{entity['name']} (\n")
-
                         field_definitions = []
                         for field in entity["fields"]:
-                            # Map types to PostgreSQL types
                             pg_type = field["type"].upper()
                             if pg_type == "INTEGER":
                                 pg_type = (
@@ -1692,37 +1481,26 @@ def dbschema_cmd(
                                 )
                             elif pg_type == "TEXT":
                                 pg_type = "VARCHAR(255)"
-
                             field_def = f"    {field['name']} {pg_type}"
                             if field["constraints"]:
                                 field_def += f" {' '.join(field['constraints'])}"
                             field_definitions.append(field_def)
-
                         f.write(",\n".join(field_definitions))
                         f.write("\n);\n\n")
-
                 progress.update(advance=100)
-
-            elif db_type == "mongodb":
-                # Create MongoDB schema file (using Mongoose schema format)
+            else:
                 schema_file = os.path.join(schema_path, f"{name}_schema.js")
                 with open(schema_file, "w") as f:
                     f.write(f"// MongoDB schema for {name} using Mongoose\n\n")
-
                     f.write("const mongoose = require('mongoose');\n")
                     f.write("const Schema = mongoose.Schema;\n\n")
-
                     for entity in entities:
                         f.write(f"// {entity['name']} schema\n")
                         f.write(f"const {entity['name']}Schema = new Schema({{\n")
-
                         field_definitions = []
                         for field in entity["fields"]:
-                            # Skip _id field as MongoDB adds it automatically
                             if field["name"] == "_id":
                                 continue
-
-                            # Map types to Mongoose types
                             mongoose_type = field["type"]
                             if mongoose_type == "string":
                                 mongoose_type = "String"
@@ -1738,7 +1516,6 @@ def dbschema_cmd(
                                 mongoose_type = "[]"
                             elif mongoose_type == "object":
                                 mongoose_type = "{}"
-
                             if field["constraints"]:
                                 field_def = f"    {field['name']}: {{\n"
                                 field_def += f"        type: {mongoose_type},\n"
@@ -1747,35 +1524,26 @@ def dbschema_cmd(
                                 field_def += "    }"
                             else:
                                 field_def = f"    {field['name']}: {mongoose_type}"
-
                             field_definitions.append(field_def)
-
                         f.write(",\n".join(field_definitions))
                         f.write("\n}, { timestamps: true });\n\n")
-
                         f.write(
                             f"const {entity['name'].capitalize()} = mongoose.model('{entity['name'].capitalize()}', {entity['name']}Schema);\n\n"
                         )
-
                     f.write("module.exports = {\n")
                     exports = [
                         f"    {entity['name'].capitalize()}" for entity in entities
                     ]
                     f.write(",\n".join(exports))
                     f.write("\n};\n")
-
                 progress.update(advance=100)
-
-            # Mark task as complete
             progress.complete()
 
         bridge.display_result(
-            f"[green]✓ Database schema generated successfully at: {schema_path}[/green]"
+            f"[green]\u2713 Database schema generated successfully at: {schema_path}[/green]"
         )
 
-        # Show next steps based on the database type
         bridge.display_result("\n[bold blue]Next Steps:[/bold blue]")
-
         if db_type == "sqlite":
             bridge.display_result("1. Use the schema to create your SQLite database:")
             bridge.display_result(
@@ -1802,12 +1570,11 @@ def dbschema_cmd(
             )
 
     except Exception as err:
-        bridge.display_result(f"[red]✗ Error:[/red] {str(err)}", highlight=False)
+        bridge.display_result(f"[red]\u2717 Error:[/red] {str(err)}", highlight=False)
         bridge.display_result(
             "[red]An unexpected error occurred during database schema generation.[/red]"
         )
 
-        # Show detailed error information
         import traceback
 
         bridge.print(
