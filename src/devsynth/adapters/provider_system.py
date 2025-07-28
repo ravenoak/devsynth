@@ -796,6 +796,15 @@ class LMStudioProvider(BaseProvider):
         if retry_config is not None:
             self.retry_config = retry_config
 
+    def _should_retry(self, exc: Exception) -> bool:
+        """Return ``True`` if the exception should trigger a retry."""
+        status = getattr(exc.response, "status_code", None)
+        if status is None:
+            status = getattr(exc, "status_code", None)
+        if status is not None and 400 <= int(status) < 500 and int(status) != 429:
+            return False
+        return True
+
     def _get_retry_config(self):
         """Get the retry configuration for LM Studio API calls."""
         return {
@@ -847,7 +856,7 @@ class LMStudioProvider(BaseProvider):
                 raise ProviderError("top_p must be between 0 and 1")
 
         def _api_call():
-            url = f"{self.endpoint}/v1/completions"
+            url = f"{self.endpoint}/v1/chat/completions"
 
             if parameters and "messages" in parameters:
                 messages = list(parameters["messages"])
@@ -929,7 +938,7 @@ class LMStudioProvider(BaseProvider):
                 raise ProviderError("top_p must be between 0 and 1")
 
         async def _api_call():
-            url = f"{self.endpoint}/v1/completions"
+            url = f"{self.endpoint}/v1/chat/completions"
 
             if parameters and "messages" in parameters:
                 messages = list(parameters["messages"])

@@ -308,6 +308,16 @@ class PromptManager:
 
     def _load_templates(self) -> None:
         """Load templates from the storage path."""
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+
+        if no_file_logging:
+            logger.debug("DEVSYNTH_NO_FILE_LOGGING set; skipping template load")
+            return
+
         template_files = Path(self.storage_path).glob("*.json")
         for file_path in template_files:
             try:
@@ -323,6 +333,20 @@ class PromptManager:
 
     def _save_template(self, template: PromptTemplate) -> None:
         """Save a template to the storage path."""
+        # Skip file writes when file logging is disabled for tests
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+
+        if no_file_logging:
+            logger.debug(
+                "DEVSYNTH_NO_FILE_LOGGING set; not persisting template %s to disk",
+                template.name,
+            )
+            return
+
         file_path = os.path.join(self.storage_path, f"{template.name}.json")
         try:
             with open(file_path, "w") as f:
