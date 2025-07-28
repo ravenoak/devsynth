@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 import asyncio
+from threading import Lock
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
@@ -30,6 +31,7 @@ class SyncManager:
     ) -> None:
         self.memory_manager = memory_manager
         self._queue: List[tuple[str, MemoryItem]] = []
+        self._queue_lock = Lock()
         self.cache: TieredCache[Dict[str, List[Any]]] = TieredCache(max_size=cache_size)
         self.conflict_log: List[Dict[str, Any]] = []
         self.stats: Dict[str, int] = {"synchronized": 0, "conflicts": 0}
@@ -189,22 +191,33 @@ class SyncManager:
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
         """Queue an update for asynchronous propagation."""
-        self._queue.append((store, item))
+        with self._queue_lock:
+            self._queue.append((store, item))
         if self.async_mode:
             self.schedule_flush()
 
     def flush_queue(self) -> None:
         """Propagate all queued updates."""
-        for store, item in self._queue:
+        while True:
+            with self._queue_lock:
+                if not self._queue:
+                    break
+                store, item = self._queue.pop(0)
             self.update_item(store, item)
-        self._queue = []
+        with self._queue_lock:
+            self._queue = []
 
     async def flush_queue_async(self) -> None:
         """Asynchronously propagate queued updates."""
-        for store, item in self._queue:
+        while True:
+            with self._queue_lock:
+                if not self._queue:
+                    break
+                store, item = self._queue.pop(0)
             self.update_item(store, item)
             await asyncio.sleep(0)
-        self._queue = []
+        with self._queue_lock:
+            self._queue = []
 
     def schedule_flush(self, delay: float = 0.1) -> None:
         async def _delayed():

@@ -2,6 +2,8 @@ import importlib.util
 import pathlib
 import sys
 import types
+import asyncio
+from datetime import datetime, timedelta
 import pytest
 
 SRC_ROOT = pathlib.Path(__file__).resolve().parents[3] / "src"
@@ -83,3 +85,64 @@ class TestSyncManagerCrossStoreQuery:
         manager.sync_manager.clear_cache()
         refreshed = manager.sync_manager.cross_store_query("apple")
         assert len(refreshed["tinydb"]) == 2
+
+
+class TestSyncManagerConcurrentUpdates:
+    """Tests for concurrent update scenarios."""
+
+    @pytest.fixture
+    def manager(self):
+        adapters = {"a": InMemoryStore(), "b": InMemoryStore()}
+        manager = MemoryManager(adapters=adapters)
+        manager.sync_manager = memory_manager_module.SyncManager(
+            manager, async_mode=True
+        )
+        return manager
+
+    @pytest.mark.asyncio
+    async def test_queue_updates_from_multiple_tasks_succeeds(self, manager):
+        items = [
+            MemoryItem(id=str(i), content=str(i), memory_type=MemoryType.CODE)
+            for i in range(5)
+        ]
+
+        async def worker(itm):
+            manager.sync_manager.queue_update("a", itm)
+
+        await asyncio.gather(*(worker(it) for it in items))
+        await manager.sync_manager.wait_for_async()
+
+        for it in items:
+            assert manager.adapters["b"].retrieve(it.id) is not None
+        assert manager.sync_manager.stats["synchronized"] == len(items)
+
+    @pytest.mark.asyncio
+    async def test_conflict_resolution_with_concurrent_updates(self, manager):
+        base_time = datetime.now()
+        original = MemoryItem(
+            id="x", content="orig", memory_type=MemoryType.CODE, created_at=base_time
+        )
+        manager.adapters["a"].store(original)
+
+        newer = MemoryItem(
+            id="x",
+            content="newer",
+            memory_type=MemoryType.CODE,
+            created_at=base_time + timedelta(seconds=1),
+        )
+        newest = MemoryItem(
+            id="x",
+            content="newest",
+            memory_type=MemoryType.CODE,
+            created_at=base_time + timedelta(seconds=2),
+        )
+
+        async def worker(itm):
+            manager.sync_manager.queue_update("a", itm)
+
+        await asyncio.gather(worker(newer), worker(newest))
+        await manager.sync_manager.wait_for_async()
+
+        result = manager.adapters["b"].retrieve("x")
+        assert result.content == "newest"
+        assert manager.sync_manager.conflict_log
