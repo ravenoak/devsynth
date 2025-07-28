@@ -113,6 +113,18 @@ def retry_with_exponential_backoff(
                         continue
                     raise
                 except retryable_exceptions as e:
+                    if (
+                        isinstance(e, DevSynthError)
+                        and getattr(e, "error_code", None) == "CIRCUIT_OPEN"
+                    ):
+                        logger.warning(
+                            f"Circuit open - aborting retries for {func.__name__}",
+                            error=e,
+                            function=func.__name__,
+                        )
+                        if track_metrics:
+                            inc_retry("abort")
+                        raise
                     if should_retry and not should_retry(e):
                         logger.warning(
                             f"Not retrying {func.__name__} due to should_retry policy",
