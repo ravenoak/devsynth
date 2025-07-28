@@ -14,6 +14,8 @@ import sys
 import importlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from contextlib import contextmanager
+from copy import deepcopy
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -52,7 +54,7 @@ logger = DevSynthLogger(__name__)
 class KuzuStore(MemoryStore):
     """Lightweight ``MemoryStore`` backed by KuzuDB."""
 
-    def __init__(self, file_path: str) -> None:
+    def __init__(self, file_path: str | None = None, use_embedded: bool | None = None) -> None:
         # ``ensure_path_exists`` handles path redirection and optional
         # directory creation based on the test environment.  Use the returned
         # path so tests that set ``DEVSYNTH_PROJECT_DIR`` are respected and
@@ -62,7 +64,11 @@ class KuzuStore(MemoryStore):
         # test isolation fixtures.  Use the returned path so the database is
         # created in the correct location rather than the original argument
         # which may be outside the temporary test directory.
-        self.file_path = settings_module.ensure_path_exists(file_path)
+        self.file_path = settings_module.ensure_path_exists(
+            file_path
+            or settings_module.kuzu_db_path
+            or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
+        )
         # Explicitly create the directory even when ``ensure_path_exists`` is
         # patched not to, ensuring the database can always be opened.
         os.makedirs(self.file_path, exist_ok=True)
@@ -70,12 +76,17 @@ class KuzuStore(MemoryStore):
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
         self._token_usage = 0
+        self._transaction_stack: List[Dict[str, MemoryItem]] = []
 
         # tokenizer for token usage
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except Exception:  # pragma: no cover - optional
             self.tokenizer = None
+
+        self.use_embedded = (
+            settings_module.kuzu_embedded if use_embedded is None else use_embedded
+        )
 
         kuzu_mod = None
         if "kuzu" in sys.modules and sys.modules["kuzu"] is not None:
@@ -86,10 +97,10 @@ class KuzuStore(MemoryStore):
             except Exception:
                 kuzu_mod = None
 
-        self._use_fallback = kuzu_mod is None
+        self._use_fallback = kuzu_mod is None or not self.use_embedded
         if not self._use_fallback:
             try:
-                settings_module.ensure_path_exists(file_path)
+                settings_module.ensure_path_exists(self.file_path)
                 self.db = kuzu_mod.Database(self.db_path)
                 self.conn = kuzu_mod.Connection(self.db)
                 self.conn.execute(
@@ -141,6 +152,38 @@ class KuzuStore(MemoryStore):
             metadata=data.get("metadata", {}),
             created_at=created,
         )
+
+    # transactional support ---------------------------------------------------
+    @contextmanager
+    def transaction(self):
+        """Provide a simple transaction context with rollback."""
+        snapshot = None
+        if self._use_fallback:
+            snapshot = deepcopy(self._store)
+        else:  # pragma: no cover - requires kuzu
+            try:
+                self.conn.execute("BEGIN TRANSACTION")
+            except Exception:
+                pass
+        self._transaction_stack.append(snapshot)
+        try:
+            yield
+            self._transaction_stack.pop()
+            if not self._use_fallback:
+                try:
+                    self.conn.execute("COMMIT")
+                except Exception:
+                    pass
+        except Exception:
+            snap = self._transaction_stack.pop()
+            if self._use_fallback and snap is not None:
+                self._store = snap
+            else:  # pragma: no cover - requires kuzu
+                try:
+                    self.conn.execute("ROLLBACK")
+                except Exception:
+                    pass
+            raise
 
     # core operations ----------------------------------------------------------------
     @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
@@ -305,3 +348,40 @@ class KuzuStore(MemoryStore):
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to fetch all items from Kuzu: %s", exc)
         return items
+
+    # memory volatility -------------------------------------------------------
+    def add_memory_volatility(self, decay_rate: float = 0.1, threshold: float = 0.5) -> None:
+        """Enable simple volatility controls on stored items."""
+        for item in self.get_all_items():
+            item.metadata.setdefault("confidence", 1.0)
+            item.metadata["decay_rate"] = decay_rate
+            item.metadata["threshold"] = threshold
+            if self._use_fallback:
+                self._store[item.id] = item
+            else:  # pragma: no cover - requires kuzu
+                self.conn.execute(
+                    "MERGE INTO memory(id,item) VALUES (?, ?)",
+                    [item.id, self._serialise(item)],
+                )
+        self._cache.clear()
+
+    def apply_memory_decay(self) -> List[str]:
+        """Apply decay and return items below threshold."""
+        volatile: List[str] = []
+        for item in self.get_all_items():
+            conf = float(item.metadata.get("confidence", 1.0))
+            decay = float(item.metadata.get("decay_rate", 0.1))
+            threshold = float(item.metadata.get("threshold", 0.5))
+            conf = max(0.0, conf - decay)
+            item.metadata["confidence"] = conf
+            if conf < threshold:
+                volatile.append(item.id)
+            if self._use_fallback:
+                self._store[item.id] = item
+            else:  # pragma: no cover - requires kuzu
+                self.conn.execute(
+                    "MERGE INTO memory(id,item) VALUES (?, ?)",
+                    [item.id, self._serialise(item)],
+                )
+        self._cache.clear()
+        return volatile

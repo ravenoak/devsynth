@@ -4,6 +4,7 @@ Integration tests for GraphMemoryAdapter and EDRRCoordinator.
 import os
 import tempfile
 import pytest
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 from devsynth.methodology.base import Phase
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
@@ -21,6 +22,10 @@ ReqID: N/A"""
         """Create a temporary directory for testing."""
         with tempfile.TemporaryDirectory() as temp_dir:
             yield temp_dir
+
+    @pytest.fixture(autouse=True)
+    def _kuzu_config(self, temporary_kuzu_config):
+        yield
 
     @pytest.fixture
     def graph_adapter(self, temp_dir):
@@ -192,3 +197,12 @@ ReqID: N/A"""
         assert 'differentiate-item' in relationships
         assert 'refine-item' in relationships
         assert 'retrospect-item' in relationships
+
+    def test_transaction_rollback_reverts_changes(self, graph_adapter):
+        """Ensure transaction rollback restores previous state."""
+        item = MemoryItem(id="tx-item", content="ok", memory_type=MemoryType.CODE)
+        with pytest.raises(RuntimeError):
+            with graph_adapter.transaction():
+                graph_adapter.store(item)
+                raise RuntimeError("fail")
+        assert graph_adapter.retrieve("tx-item") is None

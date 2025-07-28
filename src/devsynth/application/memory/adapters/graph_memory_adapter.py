@@ -10,6 +10,8 @@ import os
 import uuid
 import json
 from typing import Dict, List, Any, Optional, Set, Union
+from contextlib import contextmanager
+from copy import deepcopy
 
 try:
     import rdflib
@@ -68,6 +70,7 @@ class GraphMemoryAdapter(MemoryStore):
         """
         self.base_path = base_path
         self.use_rdflib_store = use_rdflib_store
+        self._transaction_stack: List[str] = []
 
         if use_rdflib_store and base_path:
             # Use RDFLibStore for enhanced functionality
@@ -125,6 +128,22 @@ class GraphMemoryAdapter(MemoryStore):
             except Exception as e:
                 logger.error(f"Failed to save RDF graph: {e}")
                 raise MemoryStoreError(f"Failed to save RDF graph: {e}")
+
+    # transactional support -------------------------------------------------
+    @contextmanager
+    def transaction(self):
+        """Provide a rollback context for graph updates."""
+        snapshot = self.graph.serialize(format="turtle")
+        self._transaction_stack.append(snapshot)
+        try:
+            yield
+            self._transaction_stack.pop()
+        except Exception:
+            data = self._transaction_stack.pop()
+            self.graph = Graph()
+            self.graph.parse(data=data, format="turtle")
+            self._save_graph()
+            raise
 
     def get_all_vectors(self) -> List[MemoryVector]:
         """Return all vectors from the underlying RDFLibStore if available."""
