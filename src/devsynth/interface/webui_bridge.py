@@ -298,6 +298,35 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         self.messages: List[str] = []
         super().__init__()
 
+    # ------------------------------------------------------------------
+    # Wizard utilities
+    # ------------------------------------------------------------------
+    @staticmethod
+    def adjust_wizard_step(current: int, *, direction: str, total: int) -> int:
+        """Return the next wizard step given a direction.
+
+        Parameters
+        ----------
+        current:
+            Current step index.
+        direction:
+            Either ``"next"`` or ``"back"``.
+        total:
+            Total number of steps.
+
+        Returns
+        -------
+        int
+            Clamped step index.
+        """
+        if direction == "next":
+            candidate = current + 1
+        elif direction == "back":
+            candidate = current - 1
+        else:
+            candidate = current
+        return max(0, min(total - 1, candidate))
+
     def ask_question(
         self,
         message: str,

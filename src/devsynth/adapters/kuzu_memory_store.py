@@ -13,7 +13,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.adapters.provider_system import embed, ProviderError
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.application.memory.kuzu_store import KuzuStore
-from devsynth.config.settings import ensure_path_exists
+from devsynth.config import settings as settings_module
 
 try:  # pragma: no cover - optional dependency
     from chromadb.utils import embedding_functions
@@ -37,7 +37,7 @@ class KuzuMemoryStore(MemoryStore):
         self.persist_directory = persist_directory or os.path.join(
             os.getcwd(), ".devsynth", "kuzu_store"
         )
-        ensure_path_exists(self.persist_directory)
+        settings_module.ensure_path_exists(self.persist_directory)
         self._store = KuzuStore(self.persist_directory)
         self.vector = KuzuAdapter(self.persist_directory, collection_name)
         self.use_provider_system = use_provider_system

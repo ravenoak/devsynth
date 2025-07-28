@@ -552,3 +552,13 @@ def test_run_method_renders_pages_succeeds(monkeypatch, stub_streamlit):
     stub_streamlit.sidebar.radio = MagicMock(return_value="Requirements")
     webui_instance.run()
     webui_instance.requirements_page.assert_called_once()
+
+
+def test_wizard_navigation_helper_clamps_steps():
+    """``WebUIBridge.adjust_wizard_step`` clamps step boundaries."""
+
+    from devsynth.interface.webui_bridge import WebUIBridge
+
+    assert WebUIBridge.adjust_wizard_step(0, direction="back", total=5) == 0
+    assert WebUIBridge.adjust_wizard_step(4, direction="next", total=5) == 4
+    assert WebUIBridge.adjust_wizard_step(2, direction="next", total=5) == 3

@@ -21,7 +21,9 @@ except Exception:  # pragma: no cover - optional dependency
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.config.settings import ensure_path_exists
+
+# Import settings module so ``ensure_path_exists`` can be monkeypatched
+from devsynth.config import settings as settings_module
 
 logger = DevSynthLogger(__name__)
 
@@ -37,7 +39,7 @@ class KuzuAdapter(VectorStore):
         # Ensure the directory exists even when ``ensure_path_exists`` is
         # patched to no-op during tests.  ``os.makedirs`` is safe to call on an
         # existing path and avoids failures when persisting vectors.
-        ensure_path_exists(self.persist_directory)
+        settings_module.ensure_path_exists(self.persist_directory)
         os.makedirs(self.persist_directory, exist_ok=True)
         self._data_file = os.path.join(
             self.persist_directory, f"{collection_name}.json"
