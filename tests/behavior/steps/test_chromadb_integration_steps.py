@@ -5,6 +5,14 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
+# Register CLI installation step used in feature backgrounds
+from .cli_commands_steps import (  # noqa: F401
+    devsynth_cli_installed,
+    valid_devsynth_project,
+    run_command,
+    check_workflow_success,
+)
+
 
 @pytest.fixture
 def chroma_context(monkeypatch, tmp_path):

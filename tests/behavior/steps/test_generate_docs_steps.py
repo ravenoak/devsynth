@@ -5,6 +5,14 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import scenarios, given, when, then
 
+# Register the CLI installed step so feature backgrounds load correctly
+from .cli_commands_steps import (  # noqa: F401
+    devsynth_cli_installed,
+    valid_devsynth_project,
+    run_command,
+    check_workflow_success,
+)
+
 import importlib
 
 
