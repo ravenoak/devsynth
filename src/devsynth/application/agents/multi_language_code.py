@@ -59,7 +59,7 @@ class MultiLanguageCodeAgent(BaseAgent):
                     code = self.generate_text(prompt)
                 except Exception as e:  # pragma: no cover - defensive
                     logger.error(f"Error generating text: {str(e)}")
-                    code = self.SUPPORTED_LANGUAGES[lang]
+                    code = f"# Error generating {lang} code: {str(e)}"
 
                 wsde = None
                 try:
@@ -106,12 +106,11 @@ class MultiLanguageCodeAgent(BaseAgent):
         {inputs.get('tests', '')}
         """
 
-        # In a real implementation this would query the LLM. Use placeholder text for now.
         try:
             code = self.generate_text(prompt)
         except Exception as e:  # pragma: no cover - defensive
             logger.error(f"Error generating text: {str(e)}")
-            code = self.SUPPORTED_LANGUAGES[language]
+            code = f"# Error generating {language} code: {str(e)}"
 
         # Create WSDE for the generated code
         code_wsde = None

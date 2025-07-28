@@ -78,3 +78,19 @@ class TestMultiLanguageCodeAgent:
             result = agent.process({"language": "python"})
             mock_logger.error.assert_called_once()
             assert result["wsde"] is None
+
+    def test_process_calls_llm_generate(self, agent, mock_llm_port):
+        agent.process({"language": "python"})
+        mock_llm_port.generate.assert_called_once()
+
+    def test_process_without_llm_returns_placeholder(self):
+        agent = MultiLanguageCodeAgent()
+        config = AgentConfig(
+            name="MultiLangAgent",
+            agent_type=AgentType.CODE,
+            description="Test multi language agent",
+            capabilities=[],
+        )
+        agent.initialize(config)
+        result = agent.process({"language": "python"})
+        assert "Placeholder text for prompt" in result["code"]
