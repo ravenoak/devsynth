@@ -15,7 +15,14 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, c
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
-from .metrics import inc_retry, inc_retry_count
+from .metrics import (
+    inc_retry,
+    inc_retry_count,
+    inc_retry_error,
+    get_retry_metrics,
+    get_retry_count_metrics,
+    get_retry_error_metrics,
+)
 
 # Type variables for generic functions
 T = TypeVar("T")
@@ -37,6 +44,7 @@ def retry_with_exponential_backoff(
     retry_conditions: Optional[List[Callable[[Exception], bool]]] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
+    error_retry_map: Optional[Dict[type, bool]] = None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -64,6 +72,10 @@ def retry_with_exponential_backoff(
         Additional per-exception conditions that must all evaluate to ``True``
         for the retry to continue. If any condition returns ``False`` the
         exception is re-raised.
+    error_retry_map : Optional[Dict[type, bool]]
+        Mapping of exception types to a boolean indicating if they should be
+        retried regardless of ``retryable_exceptions``. ``False`` aborts the
+        retry loop when that error is encountered.
 
     Returns
     -------
@@ -87,15 +99,17 @@ def retry_with_exponential_backoff(
                     if track_metrics:
                         inc_retry("success")
                     return result
-                except ValueError as e:
-                    if str(e) == "retry_on_result triggered":
+                except Exception as e:
+                    if isinstance(e, ValueError) and str(e) == "retry_on_result triggered":
                         num_retries += 1
                         if num_retries > max_retries:
                             if track_metrics:
                                 inc_retry("failure")
+                                inc_retry_error("InvalidResult")
                             raise
                         if track_metrics:
                             inc_retry("invalid")
+                            inc_retry_error("InvalidResult")
                         if jitter:
                             delay = min(
                                 max_delay,
@@ -111,8 +125,12 @@ def retry_with_exponential_backoff(
                         )
                         time.sleep(delay)
                         continue
-                    raise
-                except retryable_exceptions as e:
+
+                    if not isinstance(e, retryable_exceptions):
+                        if track_metrics:
+                            inc_retry("abort")
+                            inc_retry_error(e.__class__.__name__)
+                        raise
                     if (
                         isinstance(e, DevSynthError)
                         and getattr(e, "error_code", None) == "CIRCUIT_OPEN"
@@ -124,6 +142,7 @@ def retry_with_exponential_backoff(
                         )
                         if track_metrics:
                             inc_retry("abort")
+                            inc_retry_error(e.__class__.__name__)
                         raise
                     if should_retry and not should_retry(e):
                         logger.warning(
@@ -133,6 +152,7 @@ def retry_with_exponential_backoff(
                         )
                         if track_metrics:
                             inc_retry("abort")
+                            inc_retry_error(e.__class__.__name__)
                         raise
                     if retry_conditions and not all(
                         cond(e) for cond in retry_conditions
@@ -144,6 +164,17 @@ def retry_with_exponential_backoff(
                         )
                         if track_metrics:
                             inc_retry("abort")
+                            inc_retry_error(e.__class__.__name__)
+                        raise
+                    if error_retry_map is not None and error_retry_map.get(type(e)) is False:
+                        logger.warning(
+                            f"Not retrying {func.__name__} due to error_retry_map policy",
+                            error=e,
+                            function=func.__name__,
+                        )
+                        if track_metrics:
+                            inc_retry("abort")
+                            inc_retry_error(e.__class__.__name__)
                         raise
 
                     num_retries += 1
@@ -156,6 +187,7 @@ def retry_with_exponential_backoff(
                         )
                         if track_metrics:
                             inc_retry("failure")
+                            inc_retry_error(e.__class__.__name__)
                         raise
 
                     # Calculate delay with jitter if enabled
@@ -179,6 +211,7 @@ def retry_with_exponential_backoff(
                     if track_metrics:
                         inc_retry("attempt")
                         inc_retry_count(func.__name__)
+                        inc_retry_error(e.__class__.__name__)
 
                     # Call on_retry callback if provided
                     if on_retry:
