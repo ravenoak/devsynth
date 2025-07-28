@@ -3,6 +3,7 @@
 from typing import Dict, Iterable
 
 from devsynth.exceptions import AuthorizationError
+from .validation import parse_bool_env
 
 
 def is_authorized(
@@ -18,6 +19,9 @@ def is_authorized(
     Returns:
         True if authorized, False otherwise.
     """
+    if not parse_bool_env("DEVSYNTH_AUTHORIZATION_ENABLED", True):
+        return True
+
     for role in user_roles:
         allowed = acl.get(role, [])
         if action in allowed or "*" in allowed:

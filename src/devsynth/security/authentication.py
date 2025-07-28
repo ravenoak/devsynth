@@ -5,6 +5,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from devsynth.exceptions import AuthenticationError
+from .validation import parse_bool_env
 
 # Argon2 password hasher instance
 _password_hasher = PasswordHasher()
@@ -37,6 +38,10 @@ def authenticate(username: str, password: str, credentials: Dict[str, str]) -> b
     Raises:
         AuthenticationError: If the username is unknown or the password is invalid.
     """
+    # Allow bypassing authentication if explicitly disabled via env var
+    if not parse_bool_env("DEVSYNTH_AUTHENTICATION_ENABLED", True):
+        return True
+
     if username not in credentials:
         raise AuthenticationError("Unknown username", details={"username": username})
 

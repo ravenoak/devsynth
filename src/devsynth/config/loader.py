@@ -111,6 +111,54 @@ class ConfigModel:
 # Module level logger
 logger = DevSynthLogger(__name__)
 
+# Valid feature flags recognized by the configuration loader
+_VALID_FEATURE_FLAGS = {
+    "wsde_collaboration",
+    "dialectical_reasoning",
+    "code_generation",
+    "test_generation",
+    "documentation_generation",
+    "experimental_features",
+    "edrr_framework",
+    "micro_edrr_cycles",
+    "recursive_edrr",
+    "wsde_peer_review",
+    "wsde_consensus_voting",
+    "uxbridge_webui",
+    "uxbridge_agent_api",
+}
+
+
+def _validate_feature_flags(data: Dict[str, Any]) -> None:
+    """Validate and normalize feature flag values in-place."""
+    features = data.get("features")
+    if not isinstance(features, dict):
+        logger.warning("features section must be a mapping; using defaults")
+        data["features"] = ConfigModel().features
+        return
+
+    for key in list(features.keys()):
+        if key not in _VALID_FEATURE_FLAGS:
+            logger.warning("Unknown feature flag: %s", key)
+            features.pop(key)
+            continue
+
+        value = features[key]
+        if isinstance(value, bool):
+            continue
+        str_val = str(value).strip().lower()
+        if str_val in {"1", "true", "yes"}:
+            features[key] = True
+        elif str_val in {"0", "false", "no"}:
+            features[key] = False
+        else:
+            logger.warning(
+                "Invalid value for feature flag %s: %r; defaulting to False",
+                key,
+                value,
+            )
+            features[key] = False
+
 
 def _find_config_path(start: Path) -> Optional[Path]:
     """Return the configuration file path if one exists."""
@@ -173,6 +221,9 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
             parsed["memory_store_type"] = str(backend).lower()
 
         data.update(parsed)
+
+    # Validate and normalize feature flags before creating the model
+    _validate_feature_flags(data)
 
     # Validate configuration before creating the model
     try:
