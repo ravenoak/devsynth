@@ -15,7 +15,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, c
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
-from .metrics import inc_retry
+from .metrics import inc_retry, inc_retry_count
 
 # Type variables for generic functions
 T = TypeVar("T")
@@ -178,6 +178,7 @@ def retry_with_exponential_backoff(
                     )
                     if track_metrics:
                         inc_retry("attempt")
+                        inc_retry_count(func.__name__)
 
                     # Call on_retry callback if provided
                     if on_retry:

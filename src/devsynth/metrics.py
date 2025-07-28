@@ -7,6 +7,8 @@ from typing import Dict
 _memory_metrics: Counter = Counter()
 _provider_metrics: Counter = Counter()
 _retry_metrics: Counter = Counter()
+# Per-function retry count metrics
+_retry_count_metrics: Counter = Counter()
 
 
 def inc_memory(op: str) -> None:
@@ -24,6 +26,11 @@ def inc_retry(op: str) -> None:
     _retry_metrics[op] += 1
 
 
+def inc_retry_count(func_name: str) -> None:
+    """Increment retry count for a specific function."""
+    _retry_count_metrics[func_name] += 1
+
+
 def get_memory_metrics() -> Dict[str, int]:
     """Return memory operation counters."""
     return dict(_memory_metrics)
@@ -39,8 +46,14 @@ def get_retry_metrics() -> Dict[str, int]:
     return dict(_retry_metrics)
 
 
+def get_retry_count_metrics() -> Dict[str, int]:
+    """Return retry counts per function."""
+    return dict(_retry_count_metrics)
+
+
 def reset_metrics() -> None:
     """Reset all metrics counters."""
     _memory_metrics.clear()
     _provider_metrics.clear()
     _retry_metrics.clear()
+    _retry_count_metrics.clear()
