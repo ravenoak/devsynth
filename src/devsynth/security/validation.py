@@ -52,3 +52,29 @@ def validate_choice(value: Any, field: str, choices: Iterable[Any]) -> Any:
             constraints={"choices": list(choices)},
         )
     return value
+
+
+def parse_bool_env(var: str, default: bool = False) -> bool:
+    """Parse a boolean environment variable securely.
+
+    Args:
+        var: Environment variable name.
+        default: Value to return if the variable is not set.
+
+    Returns:
+        The parsed boolean value.
+
+    Raises:
+        ValidationError: If the variable is set to an invalid value.
+    """
+    import os
+
+    value = os.environ.get(var)
+    if value is None:
+        return default
+    val = str(value).strip().lower()
+    if val in {"1", "true", "yes"}:
+        return True
+    if val in {"0", "false", "no"}:
+        return False
+    raise ValidationError("Invalid boolean", field=var, value=value)

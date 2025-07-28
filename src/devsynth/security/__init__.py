@@ -8,6 +8,7 @@ from .validation import (
     validate_non_empty,
     validate_int_range,
     validate_choice,
+    parse_bool_env,
 )
 from .tls import TLSConfig
 from .audit import audit_event
@@ -26,5 +27,6 @@ __all__ = [
     "validate_non_empty",
     "validate_int_range",
     "validate_choice",
+    "parse_bool_env",
     "TLSConfig",
 ]
