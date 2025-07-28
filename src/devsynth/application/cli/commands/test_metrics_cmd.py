@@ -20,7 +20,12 @@ logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
 
-def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
+def test_metrics_cmd(
+    days: int = 30,
+    output_file: Optional[str] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
+) -> None:
     """Analyze test-first development metrics.
 
     Example:
@@ -31,6 +36,7 @@ def test_metrics_cmd(days: int = 30, output_file: Optional[str] = None) -> None:
         output_file: Path to output file for metrics report (default: None, prints to console)
     """
     console = Console()
+    bridge = bridge or globals()["bridge"]
 
     try:
         # Show a welcome message for the test-metrics command

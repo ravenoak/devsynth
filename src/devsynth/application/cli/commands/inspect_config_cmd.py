@@ -21,7 +21,11 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def inspect_config_cmd(
-    path: Optional[str] = None, update: bool = False, prune: bool = False
+    path: Optional[str] = None,
+    update: bool = False,
+    prune: bool = False,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Inspect and manage the project configuration file.
 
@@ -37,6 +41,7 @@ def inspect_config_cmd(
         prune: Whether to remove entries from the configuration file that no longer exist in the project
     """
     console = Console()
+    bridge = bridge or globals()["bridge"]
 
     try:
         # Show a welcome message for the inspect-config command

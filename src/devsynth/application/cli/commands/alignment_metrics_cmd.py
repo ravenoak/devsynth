@@ -218,7 +218,12 @@ def save_metrics(metrics: Dict, metrics_file: str, historical_metrics: List[Dict
         logger.error(f"Error saving metrics: {e}")
 
 
-def display_metrics(metrics: Dict, historical_metrics: List[Dict]):
+def display_metrics(
+    metrics: Dict,
+    historical_metrics: List[Dict],
+    *,
+    bridge: UXBridge = bridge,
+) -> None:
     """Display alignment metrics."""
     bridge.print("\n[bold]Alignment Metrics[/bold]\n")
 
@@ -298,8 +303,12 @@ def display_metrics(metrics: Dict, historical_metrics: List[Dict]):
 
 
 def generate_metrics_report(
-    metrics: Dict, historical_metrics: List[Dict], output_file: str
-):
+    metrics: Dict,
+    historical_metrics: List[Dict],
+    output_file: str,
+    *,
+    bridge: UXBridge = bridge,
+) -> None:
     """Generate a metrics report in Markdown format."""
     try:
         with open(output_file, "w", encoding="utf-8") as f:
@@ -375,7 +384,9 @@ def alignment_metrics_cmd(
     path: str = ".",
     metrics_file: str = ".devsynth/alignment_metrics.json",
     output: Optional[str] = None,
-) -> None:
+    *,
+    bridge: Optional[UXBridge] = None,
+) -> bool:
     """Collect and report on alignment metrics.
 
     Example:
@@ -386,8 +397,9 @@ def alignment_metrics_cmd(
         metrics_file: Path to the metrics file
         output: Path to output file for metrics report
     """
+    ux_bridge = bridge or globals()["bridge"]
     try:
-        bridge.print("[bold]Collecting alignment metrics...[/bold]")
+        ux_bridge.print("[bold]Collecting alignment metrics...[/bold]")
 
         # Ensure metrics directory exists
         os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
@@ -399,7 +411,7 @@ def alignment_metrics_cmd(
         existing_files = [f for f in files if os.path.isfile(f)]
 
         # Calculate metrics
-        with bridge.create_progress("Calculating metrics...", total=2) as progress:
+        with ux_bridge.create_progress("Calculating metrics...", total=2) as progress:
             coverage_metrics = calculate_alignment_coverage(existing_files)
             progress.update(advance=1, description="Calculating issues metrics...")
             issues_metrics = calculate_alignment_issues(existing_files)
@@ -415,15 +427,17 @@ def alignment_metrics_cmd(
         save_metrics(metrics, metrics_file, historical_metrics)
 
         # Display metrics
-        display_metrics(metrics, historical_metrics)
+        display_metrics(metrics, historical_metrics, bridge=ux_bridge)
 
         # Generate report if output file specified
         if output:
-            generate_metrics_report(metrics, historical_metrics, output)
+            generate_metrics_report(
+                metrics, historical_metrics, output, bridge=ux_bridge
+            )
 
         return True
 
     except Exception as e:
         logger.error(f"Error collecting alignment metrics: {e}")
-        bridge.print(f"[red]Error collecting alignment metrics: {e}[/red]")
+        ux_bridge.print(f"[red]Error collecting alignment metrics: {e}[/red]")
         return False
