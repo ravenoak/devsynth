@@ -34,8 +34,10 @@ class KuzuMemoryStore(MemoryStore):
         collection_name: str = "devsynth_artifacts",
     ) -> None:
         self._temp_dir: Optional[str] = None
-        self.persist_directory = persist_directory or os.path.join(
-            os.getcwd(), ".devsynth", "kuzu_store"
+        self.persist_directory = (
+            persist_directory
+            or settings_module.kuzu_db_path
+            or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
         )
         # ``ensure_path_exists`` may redirect the path when running under the
         # test isolation fixtures.  Capture the returned value so both the
@@ -43,7 +45,7 @@ class KuzuMemoryStore(MemoryStore):
         self.persist_directory = settings_module.ensure_path_exists(
             self.persist_directory
         )
-        self._store = KuzuStore(self.persist_directory)
+        self._store = KuzuStore(self.persist_directory, use_embedded=None)
         self.vector = KuzuAdapter(self.persist_directory, collection_name)
         self.use_provider_system = use_provider_system
         self.provider_type = provider_type
