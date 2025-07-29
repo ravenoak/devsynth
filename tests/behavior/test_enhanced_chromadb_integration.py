@@ -18,4 +18,4 @@ def test_enhanced_chromadb_scenarios_succeeds():
     """Test that enhanced chromadb scenarios succeeds.
 
 ReqID: N/A"""
-    scenarios('features/enhanced_chromadb_integration.feature')
+    scenarios('enhanced_chromadb_integration.feature')

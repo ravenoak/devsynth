@@ -16,6 +16,7 @@ logging:
 # Memory system configuration
 memory:
   default_store: kuzu
+  memory_file_path: ./.devsynth/memory
   stores:
     chromadb:
       enabled: true
@@ -26,6 +27,7 @@ memory:
       port: 8000
     kuzu:
       persist_directory: ./.devsynth/kuzu
+      embedded: true
     faiss:
       enabled: false
       index_file: ./.devsynth/faiss/index.bin
