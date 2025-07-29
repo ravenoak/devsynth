@@ -14,6 +14,17 @@ poetry install \
   --all-extras \
   --no-interaction
 
+# Prefetch the cl100k_base encoding for tiktoken
+poetry run python - <<'EOF'
+import sys
+try:
+    import tiktoken
+    tiktoken.get_encoding("cl100k_base")
+except Exception as exc:
+    print(f"[warning] failed to prefetch tiktoken encoding: {exc}", file=sys.stderr)
+    sys.exit(1)
+EOF
+
 # Verify key packages are present
 poetry run python - <<'EOF'
 import importlib

@@ -230,6 +230,9 @@ bash scripts/codex_setup.sh
 If the setup fails, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be created.
 Delete the file after resolving the issue and rerun the script until it
 completes successfully.
+The script also prefetches the `cl100k_base` encoding via `tiktoken` so
+language models work offline. A warning is printed and the script exits with
+an error if this prefetch step fails.
 
 The test suite runs entirely in isolated temporary directories.  Ingestion and
 WSDE tests no longer require special environment variables and are executed by
