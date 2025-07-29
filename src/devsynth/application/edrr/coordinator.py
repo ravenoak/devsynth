@@ -45,9 +45,21 @@ except Exception:
 
 
 class EDRRCoordinatorError(DevSynthError):
-    """Error raised when the EDRR coordinator encounters an error."""
+    """Exception raised for errors in the :class:`EDRRCoordinator`."""
 
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        phase: Optional[Phase] = None,
+        error_code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Create an error instance with optional phase context."""
+        details = details or {}
+        if phase is not None:
+            details.setdefault("phase", getattr(phase, "value", str(phase)))
+        super().__init__(message, error_code=error_code, details=details)
 
 
 class EDRRCoordinator:
@@ -3189,8 +3201,19 @@ class EDRRCoordinator:
                 wsde_results = self.wsde_team.apply_enhanced_dialectical_reasoning(
                     task, wsde_results
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning(
+                    "Dialectical reasoning hook failed in micro-cycle %s: %s",
+                    iteration,
+                    exc,
+                )
+                self.performance_metrics.setdefault("dialectical_failures", []).append(
+                    {
+                        "iteration": iteration,
+                        "phase": phase.name,
+                        "error": str(exc),
+                    }
+                )
         return wsde_results
 
     def _assess_result_quality(self, results: Dict[str, Any]) -> float:
@@ -3200,8 +3223,10 @@ class EDRRCoordinator:
         if isinstance(results, dict) and "quality_score" in results:
             try:
                 return float(results["quality_score"])
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning(
+                    "Invalid quality_score %s: %s", results.get("quality_score"), exc
+                )
         return min(1.0, len(str(results)) / 1000)
 
     def _assess_phase_quality(self, phase: Phase | None = None) -> Dict[str, Any]:
