@@ -30,7 +30,7 @@ poetry run python - <<'EOF'
 import importlib
 import sys
 
-required = ["pytest", "pytest_bdd", "pydantic", "yaml", "typer"]
+required = ["pytest", "pytest_bdd", "pydantic", "yaml", "typer", "tiktoken"]
 missing = []
 for pkg in required:
     try:
