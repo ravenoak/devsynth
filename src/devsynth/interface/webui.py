@@ -61,8 +61,20 @@ except Exception:  # pragma: no cover
 
 
 def _cli(name: str):
-    """Return a CLI command by name if available."""
+    """Return a CLI command by name if available.
 
+    The helper first checks for a module level variable with the given
+    name. This allows unit tests to patch commands like ``init_cmd`` or
+    ``spec_cmd`` directly on ``devsynth.interface.webui`` without also
+    modifying the underlying ``devsynth.application.cli`` module.  If no
+    such attribute exists it falls back to resolving the command from the
+    CLI module itself.
+    """
+
+    if name in globals():
+        cmd = globals()[name]
+        if cmd is not None:
+            return cmd
     return getattr(_cli_mod, name, None) if _cli_mod else None
 
 
