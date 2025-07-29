@@ -2,6 +2,11 @@
 
 This directory contains step definitions for BDD tests that verify the consistency of behavior across different interfaces (CLI, WebUI, Agent API) in the DevSynth project.
 
+All Python modules in this directory are imported automatically when the
+``tests.behavior.steps`` package is loaded.  This ensures that pytest-bdd can
+discover every step definition without having to import the modules manually in
+each test file.
+
 ## Key Files
 
 - `cross_interface_consistency_extended_steps.py`: Comprehensive step definitions for testing cross-interface consistency
