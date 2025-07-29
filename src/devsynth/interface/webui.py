@@ -53,6 +53,13 @@ except Exception:  # pragma: no cover - optional dependency
     _cli_mod = None
 
 
+try:
+    from devsynth.application.cli.cli_commands import init_cmd, spec_cmd
+except Exception:  # pragma: no cover
+    init_cmd = None
+    spec_cmd = None
+
+
 def _cli(name: str):
     """Return a CLI command by name if available."""
 
