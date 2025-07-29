@@ -96,8 +96,11 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-87 | Core values conflict detection | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/core/values.py | tests/unit/core/test_core_values.py | Implemented |
 | FR-88 | Methodology adapter system for customizing development workflows | [Methodology Integration Framework](technical_reference/methodology_integration_framework.md) | src/devsynth/methodology/adhoc.py, src/devsynth/methodology/sprint.py | tests/unit/methodology/test_adhoc_adapter.py, tests/unit/methodology/test_sprint_adapter.py | Implemented |
 | FR-89 | Conditional retry logic for provider API calls | [Retry Mechanism with Exponential Backoff](adapters/providers/retry_mechanism.md) | src/devsynth/fallback.py, src/devsynth/adapters/provider_system.py, src/devsynth/application/llm/openai_provider.py, src/devsynth/application/llm/lmstudio_provider.py | tests/unit/fallback/test_retry_conditions.py, tests/unit/adapters/test_provider_system.py | Implemented |
+| FR-90 | Metrics commands for alignment and test reporting | [Metrics System Specification](specifications/metrics_system.md) | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, src/devsynth/application/cli/commands/test_metrics_cmd.py | tests/unit/application/cli/test_metrics_commands.py, tests/behavior/features/alignment_metrics_command.feature, tests/behavior/features/test_metrics.feature | Implemented |
+| FR-91 | Knowledge graph utility functions for advanced memory queries | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/knowledge_graph_utils.py | tests/unit/application/memory/test_knowledge_graph_utils.py | Implemented |
+| FR-92 | Multi-language code generation agent | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/agents/multi_language_code.py | tests/unit/application/agents/test_multi_language_code.py | Implemented |
 
-_Last updated: July 27, 2025_
+_Last updated: July 29, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column
