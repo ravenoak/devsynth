@@ -75,6 +75,62 @@ def webui_context(monkeypatch):
     st.markdown = MagicMock()
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
+    # Stub optional dependencies used during WebUI import
+    modules = [
+        "langgraph",
+        "langgraph.checkpoint",
+        "langgraph.checkpoint.base",
+        "langgraph.graph",
+        "langchain",
+        "langchain_openai",
+        "langchain_community",
+        "tiktoken",
+        "tinydb",
+        "tinydb.storages",
+        "tinydb.middlewares",
+        "duckdb",
+        "lmdb",
+        "faiss",
+        "httpx",
+        "lmstudio",
+        "openai",
+        "openai.types",
+        "openai.types.chat",
+        "torch",
+        "transformers",
+        "astor",
+    ]
+
+    for name in modules:
+        module = ModuleType(name)
+        if name == "langgraph.checkpoint.base":
+            module.BaseCheckpointSaver = object
+            module.empty_checkpoint = object()
+        if name == "langgraph.graph":
+            module.END = None
+            module.StateGraph = object
+        if name == "tinydb":
+            module.TinyDB = object
+            module.Query = object
+        if name == "tinydb.storages":
+            module.JSONStorage = object
+            module.MemoryStorage = object
+        if name == "tinydb.middlewares":
+            module.CachingMiddleware = object
+        if name == "openai":
+            module.OpenAI = object
+            module.AsyncOpenAI = object
+        if name == "openai.types.chat":
+            module.ChatCompletion = object
+            module.ChatCompletionChunk = object
+        if name == "transformers":
+            module.AutoModelForCausalLM = object
+            module.AutoTokenizer = object
+        if name == "httpx":
+            module.RequestError = Exception
+            module.HTTPStatusError = Exception
+        monkeypatch.setitem(sys.modules, name, module)
+
     cli_stub = ModuleType("devsynth.application.cli")
     for name in [
         "init_cmd",

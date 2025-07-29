@@ -8,8 +8,66 @@ import pytest
 import tempfile
 import shutil
 from unittest.mock import MagicMock, patch
+from types import ModuleType
 
 from devsynth.config.settings import ensure_path_exists
+
+# Stub optional heavy dependencies so test collection succeeds without them
+_stub_modules = [
+    "langgraph",
+    "langgraph.checkpoint",
+    "langgraph.checkpoint.base",
+    "langgraph.graph",
+    "langchain",
+    "langchain_openai",
+    "langchain_community",
+    "tiktoken",
+    "tinydb",
+    "tinydb.storages",
+    "tinydb.middlewares",
+    "duckdb",
+    "lmdb",
+    "faiss",
+    "httpx",
+    "lmstudio",
+    "openai",
+    "openai.types",
+    "openai.types.chat",
+    "torch",
+    "transformers",
+    "astor",
+]
+
+for _name in _stub_modules:
+    if _name not in sys.modules:
+        _mod = ModuleType(_name)
+        if _name == "langgraph.checkpoint.base":
+            _mod.BaseCheckpointSaver = object
+            _mod.empty_checkpoint = object()
+        if _name == "langgraph.graph":
+            _mod.END = None
+            _mod.StateGraph = object
+        if _name == "tinydb":
+            _mod.TinyDB = object
+            _mod.Query = object
+        if _name == "tinydb.storages":
+            _mod.JSONStorage = object
+            _mod.MemoryStorage = object
+        if _name == "tinydb.middlewares":
+            _mod.CachingMiddleware = object
+        if _name == "openai":
+            _mod.OpenAI = object
+            _mod.AsyncOpenAI = object
+        if _name == "openai.types.chat":
+            _mod.ChatCompletion = object
+            _mod.ChatCompletionChunk = object
+        if _name == "transformers":
+            _mod.AutoModelForCausalLM = object
+            _mod.AutoTokenizer = object
+        if _name == "httpx":
+            _mod.RequestError = Exception
+            _mod.HTTPStatusError = Exception
+        sys.modules[_name] = _mod
 
 # Add the src directory to the Python path if needed
 sys.path.insert(

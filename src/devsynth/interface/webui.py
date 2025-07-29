@@ -724,12 +724,13 @@ class WebUI(UXBridge):
                         cmd = _cli("init_cmd")
                         if cmd:
                             cmd(
-                                path=path,
-                                project_root=project_root,
+                                root=project_root or path,
                                 language=language,
                                 goals=goals or None,
+                                memory_backend="kuzu",
                                 bridge=self,
                             )
+                        st.session_state.nav = "Requirements"
             if st.button("Guided Setup", key="guided_setup"):
                 with st.spinner("Starting guided setup..."):
                     SetupWizard(self).run()
