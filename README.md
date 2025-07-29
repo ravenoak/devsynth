@@ -211,28 +211,12 @@ Alternatively, install them all at once:
 
 ```bash
 poetry install --all-extras --all-groups
-```
 
-The Codex environment runs a similar command automatically:
-
-```bash
-poetry install \
-  --with dev,docs \
-  --all-extras \
-  --no-interaction
-```
-
-To recreate the Codex provisioning steps locally, run the helper script:
+To set up a complete development environment run:
 
 ```bash
-bash scripts/codex_setup.sh
+poetry install --with dev,docs --all-extras
 ```
-If the setup fails, a `CODEX_ENVIRONMENT_SETUP_FAILED` file will be created.
-Delete the file after resolving the issue and rerun the script until it
-completes successfully.
-The script also prefetches the `cl100k_base` encoding via `tiktoken` so
-language models work offline. A warning is printed and the script exits with
-an error if this prefetch step fails.
 
 The test suite runs entirely in isolated temporary directories.  Ingestion and
 WSDE tests no longer require special environment variables and are executed by
