@@ -120,13 +120,7 @@ Each feature is scored on two dimensions:
 3. Prioritize incomplete features based on user impact and implementation complexity
 4. Develop detailed implementation plans for high-priority features
 
-Current partial implementations include the EDRR framework, WSDE agent
-collaboration, memory synchronization utilities, deployment automation,
-the retry mechanism, and the SDLC security policy. Recent CI runs report
-**332** failing tests and **529** passing tests with **88** skipped. Test
-collection triggered **1** error. Memory integration and WSDE workflows
-still cause most failures. Resolving these issues remains a prerequisite for
-`0.1.0-beta.1`.
+Current partial implementations include the EDRR framework, WSDE agent collaboration, memory synchronization utilities, deployment automation, the retry mechanism, and the SDLC security policy. Recent CI runs report **348** failing tests and **921** passing tests with **100** skipped. Test collection triggered **3** errors. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of failures, blocking `0.1.0-beta.1`.
 
 
 ## Release Milestones and Coverage Goals

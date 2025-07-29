@@ -24,10 +24,7 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
    - Anthropic and deterministic offline providers are fully implemented.
    - Address adoption barriers and ensure offline capabilities.
    - Establish baseline testing and documentation.
-   - Phase 1 is largely complete; remaining tasks include finalizing the WSDE
-     peer review workflow and resolving outstanding test failures. See the
-     [Feature Status Matrix](../implementation/feature_status_matrix.md) for
-     detailed progress on collaboration features.
+   - Phase 1 is largely complete; remaining tasks include finalizing the WSDE peer review workflow, stabilizing cross-store memory integration, and resolving outstanding test failures. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for detailed progress on collaboration features.
 
 2. **Production Readiness** (0.2.x–0.3.x – Q4 2025)
    - Polish CLI UX and integrate the initial Web UI.
@@ -75,15 +72,11 @@ Execution of this release plan is **in progress** with milestones tracked in [is
 
 ### Current Test Summary
 
-Recent CI reports collected thousands of tests. The latest run reported **355** failures,
-**543** passing tests, **88** skipped, and **1 error** due to `chromadb_store`
-missing during collection. See the
-[development status](development_status.md#test-failure-summary) document for
-details.
+Recent CI reports collected thousands of tests. The latest run reported **348** failures, **921** passing tests, **100** skipped, and **3** errors due to `chromadb_store` missing during collection. See the [development status](development_status.md#test-failure-summary) document for details.
 To publish `0.1.0-beta.1`, the project must:
 
 - Resolve the outstanding WebUI and EDRR coordinator test failures.
-- Finish the WSDE peer review workflow and solidify memory initialization.
+- Complete WSDE collaboration integration with the memory system and finalize the peer review workflow.
 - Address remaining partial features listed in the
   [Feature Status Matrix](../implementation/feature_status_matrix.md) such as
   Methodology Integration and the Retry Mechanism.

@@ -405,14 +405,11 @@ The completion of Phase 1 produced several key artifacts:
 ### Remaining Test Failures
 
 Despite the improvements above, several unit and integration tests continue to
-fail. Most failures occur in the Web UI requirements wizard and the Kuzu-backed
-memory system. Planned fixes include refining the wizard navigation logic and
-adjusting initialization steps for the Kuzu vector store. Progress will be
-tracked in upcoming sprint reports.
+Most failures occur in the Web UI requirements wizard and the Kuzu-backed memory system. WSDE collaboration and memory synchronization remain incomplete, contributing to test instability. Planned fixes include refining the wizard navigation logic and adjusting initialization steps for the Kuzu vector store. Progress will be tracked in upcoming sprint reports.
 
 ### Test Failure Summary
 
-The latest run executed **949** tests: **529** passed, **332** failed, and **88** were skipped. Test collection triggered **1** error. WebUI wizard failures appear resolved, but memory integration tests still need work. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for remaining partial features.
+The latest run executed **1369** tests: **921** passed, **348** failed, and **100** were skipped. Test collection triggered **3** errors. WebUI wizard failures appear resolved, but memory integration tests still need work. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for remaining partial features.
 
 
 ## Maintenance Strategy
@@ -439,12 +436,9 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - ~~Finalize unit tests for the `MemoryType` enum and resolve any remaining failures.~~
 - ~~Verify that the EDRR coordinator and AST code analysis features fully match their BDD scenarios.~~
 - ~~Complete WSDE agent collaboration capabilities.~~
-- Investigate failing Web UI and Kuzu-related tests; implement fixes for the
-  requirements wizard and memory initialization logic.
-- Some CLI and ingestion workflows still require interactive prompts. Related
-  all related unit tests now run unconditionally in the hermetic test
-  environment and no longer depend on the `DEVSYNTH_RUN_INGEST_TESTS` or
-  `DEVSYNTH_RUN_WSDE_TESTS` flags.
+- Investigate failing Web UI and Kuzu-related tests; implement fixes for the requirements wizard and memory initialization logic.
+- Complete WSDE collaboration integration with the memory system; finalize peer review workflow and cross-store synchronization.
+- Some CLI and ingestion workflows still require interactive prompts. Related unit tests now run unconditionally in the hermetic test environment and no longer depend on the `DEVSYNTH_RUN_INGEST_TESTS` or `DEVSYNTH_RUN_WSDE_TESTS` flags.
 
 For updated scheduling, see the consolidated [ROADMAP](ROADMAP.md).
 ## Implementation Status
