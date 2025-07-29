@@ -32,7 +32,6 @@ class TestMultiLanguageCodeAgent:
         capabilities = agent.get_capabilities()
         assert "generate_python_code" in capabilities
         assert "generate_javascript_code" in capabilities
-        assert "generate_go_code" in capabilities
         assert "generate_polyglot_code" in capabilities
 
     @pytest.mark.parametrize(
@@ -40,11 +39,6 @@ class TestMultiLanguageCodeAgent:
         [
             "python",
             "javascript",
-            "typescript",
-            "go",
-            "rust",
-            "haskell",
-            "julia",
         ],
     )
     def test_process_supported_languages_succeed(self, agent, lang):

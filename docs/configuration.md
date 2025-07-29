@@ -65,6 +65,24 @@ parsed configuration. CLI commands also expose autocompletion of configuration
 keys via `config_key_autocomplete`. For additional implementation details see
 the [Unified Configuration Loader specification](specifications/unified_configuration_loader.md).
 
+## Language Selection
+
+The `language` key in your project configuration determines which primary
+programming language DevSynth uses when creating files. The
+`MultiLanguageCodeAgent` also reads this value when generating templates.
+Supported values currently include `python` and `javascript`.
+
+Example:
+
+```yaml
+language: javascript
+features:
+  code_generation: true
+```
+
+Setting `language: javascript` instructs the agent to produce JavaScript code by
+default. When `language` is omitted, Python is used.
+
 ## Migrating from YAML to pyproject.toml
 
 Existing projects that store settings in `.devsynth/project.yaml` can move
