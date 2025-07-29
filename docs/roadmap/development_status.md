@@ -409,7 +409,7 @@ Most failures occur in the Web UI requirements wizard and the Kuzu-backed memory
 
 ### Test Failure Summary
 
-The latest run executed **1369** tests: **921** passed, **348** failed, and **100** were skipped. Test collection triggered **3** errors. WebUI wizard failures appear resolved, but memory integration tests still need work. Refer to the [Feature Status Matrix](../implementation/feature_status_matrix.md) for remaining partial features.
+The latest run executed **1,031** tests: **584** passed, **355** failed, and **89** were skipped. Test collection triggered **3** errors. WSDE collaboration and memory integration tests continue to fail and will be tracked in upcoming sprint reports.
 
 
 ## Maintenance Strategy

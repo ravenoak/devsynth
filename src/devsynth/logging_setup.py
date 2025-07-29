@@ -367,27 +367,33 @@ class DevSynthLogger:
 
     def debug(self, msg: str, *args, **kwargs) -> None:
         """Log a debug message."""
-        self.logger.debug(msg, *args, extra=kwargs if kwargs else None)
+        exc = kwargs.pop("exc_info", None)
+        self.logger.debug(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
 
     def info(self, msg: str, *args, **kwargs) -> None:
         """Log an info message."""
-        self.logger.info(msg, *args, extra=kwargs if kwargs else None)
+        exc = kwargs.pop("exc_info", None)
+        self.logger.info(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
 
     def warning(self, msg: str, *args, **kwargs) -> None:
         """Log a warning message."""
-        self.logger.warning(msg, *args, extra=kwargs if kwargs else None)
+        exc = kwargs.pop("exc_info", None)
+        self.logger.warning(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
 
     def error(self, msg: str, *args, **kwargs) -> None:
         """Log an error message."""
-        self.logger.error(msg, *args, extra=kwargs if kwargs else None)
+        exc = kwargs.pop("exc_info", None)
+        self.logger.error(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
 
     def critical(self, msg: str, *args, **kwargs) -> None:
         """Log a critical message."""
-        self.logger.critical(msg, *args, extra=kwargs if kwargs else None)
+        exc = kwargs.pop("exc_info", None)
+        self.logger.critical(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
 
     def exception(self, msg: str, *args, **kwargs) -> None:
         """Log an exception message with traceback."""
-        self.logger.exception(msg, *args, extra=kwargs if kwargs else None)
+        exc = kwargs.pop("exc_info", None)
+        self.logger.exception(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
 
 
 # Don't configure logging on import - this is now explicit

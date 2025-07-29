@@ -30,16 +30,15 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
-# Eagerly import all step modules so pytest-bdd registers their definitions
+# Eagerly importing every step module caused issues during test collection when
+# some modules executed ``pytest_bdd.scenarios`` at import time.  This resulted
+# in ``IndexError: list index out of range`` because pytest's configuration
+# stack was not yet initialized.  To avoid these side effects we no longer
+# automatically import all step modules.  Test files explicitly import the
+# modules they depend on which keeps collection reliable without forcing all
+# modules to be executed here.
+
 _STEP_DIR = Path(__file__).parent
-for module_path in _STEP_DIR.glob("*.py"):
-    if module_path.stem in {"__init__"} or module_path.stem.startswith("__"):
-        continue
-    name = module_path.stem
-    try:
-        importlib.import_module(f".{name}", __name__)
-    except ModuleNotFoundError:
-        importlib.import_module(f".test_{name}", __name__)
 
 
 def __getattr__(name: str) -> ModuleType:
