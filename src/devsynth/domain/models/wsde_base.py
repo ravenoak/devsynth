@@ -149,7 +149,8 @@ class WSDETeam:
             agent: The agent to add to the team
         """
         self.agents.append(agent)
-        self.logger.info(f"Added agent {agent.name} to team {self.name}")
+        agent_name = getattr(agent, "name", getattr(agent, "id", "unknown"))
+        self.logger.info(f"Added agent {agent_name} to team {self.name}")
 
     def add_agents(self, agents: List[Any]):
         """
@@ -225,7 +226,11 @@ class WSDETeam:
             content: The content of the message
             metadata: Optional metadata for the message
         """
-        recipients = [agent.name for agent in self.agents if agent.name != sender]
+        recipients = [
+            getattr(agent, "name", getattr(agent, "id", "unknown"))
+            for agent in self.agents
+            if getattr(agent, "name", getattr(agent, "id", None)) != sender
+        ]
         message = self.send_message(
             sender=sender,
             recipients=recipients,
@@ -281,21 +286,28 @@ class WSDETeam:
         Returns:
             Dictionary containing the review request details
         """
+        author_name = getattr(author, "name", getattr(author, "id", "unknown"))
+        reviewer_names = [
+            getattr(agent, "name", getattr(agent, "id", "unknown"))
+            for agent in reviewer_agents
+        ]
+
         review_request = {
             "id": str(uuid4()),
             "timestamp": datetime.now(),
             "work_product": work_product,
-            "author": author.name,
-            "reviewers": [agent.name for agent in reviewer_agents],
+            "author": author_name,
+            "reviewers": reviewer_names,
             "status": "requested",
             "reviews": [],
         }
 
         # Send messages to reviewers
         for reviewer in reviewer_agents:
+            reviewer_name = getattr(reviewer, "name", getattr(reviewer, "id", "unknown"))
             self.send_message(
-                sender=author.name,
-                recipients=[reviewer.name],
+                sender=author_name,
+                recipients=[reviewer_name],
                 message_type="review_request",
                 subject=f"Review request for {work_product.get('title', 'work product')}",
                 content=work_product,
@@ -303,7 +315,7 @@ class WSDETeam:
             )
 
         self.logger.info(
-            f"Peer review requested by {author.name} for {len(reviewer_agents)} reviewers"
+            f"Peer review requested by {author_name} for {len(reviewer_agents)} reviewers"
         )
         return review_request
 
@@ -324,8 +336,9 @@ class WSDETeam:
         review_request = self.request_peer_review(work_product, author, reviewer_agents)
         # In a real implementation, this would wait for reviews to be submitted
         # For now, we'll just return the review request
+        author_name = getattr(author, "name", getattr(author, "id", "unknown"))
         self.logger.info(
-            f"Peer review process initiated for work product from {author.name}"
+            f"Peer review process initiated for work product from {author_name}"
         )
         return review_request
 
@@ -342,14 +355,17 @@ class WSDETeam:
 
         current_primus_index = -1
         if self.roles["primus"] is not None:
+            current_name = getattr(self.roles["primus"], "name", getattr(self.roles["primus"], "id", None))
             for i, agent in enumerate(self.agents):
-                if agent.name == self.roles["primus"].name:
+                agent_name = getattr(agent, "name", getattr(agent, "id", None))
+                if agent_name == current_name:
                     current_primus_index = i
                     break
 
         next_primus_index = (current_primus_index + 1) % len(self.agents)
         self.roles["primus"] = self.agents[next_primus_index]
-        self.logger.info(f"Rotated primus role to {self.roles['primus'].name}")
+        primus_name = getattr(self.roles["primus"], "name", getattr(self.roles["primus"], "id", "unknown"))
+        self.logger.info(f"Rotated primus role to {primus_name}")
         return self.roles["primus"]
 
     def get_primus(self):
