@@ -84,8 +84,15 @@ class KuzuStore(MemoryStore):
         except Exception:  # pragma: no cover - optional
             self.tokenizer = None
 
+        # ``settings_module`` refers to ``devsynth.config.settings`` which
+        # exposes a `_settings` instance.  The module itself does not define a
+        # ``kuzu_embedded`` attribute which previously caused attribute errors
+        # when initializing the store.  Read the value from the exported
+        # constant via ``devsynth.config`` instead of the module attribute.
         self.use_embedded = (
-            settings_module.kuzu_embedded if use_embedded is None else use_embedded
+            getattr(settings_module, "KUZU_EMBEDDED", settings_module._settings.kuzu_embedded)
+            if use_embedded is None
+            else use_embedded
         )
 
         kuzu_mod = None
