@@ -67,14 +67,15 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
     runner = CliRunner()
 
-    monkeypatch.setattr(
-        "devsynth.interface.cli.CLIUXBridge.ask_question",
-        lambda self, _msg, **kw: kw.get("default", ""),
-    )
-    monkeypatch.setattr(
-        "devsynth.interface.cli.CLIUXBridge.confirm_choice",
-        lambda self, _msg, **kw: kw.get("default", True),
-    )
+    if not os.environ.get("DEVSYNTH_NONINTERACTIVE"):
+        monkeypatch.setattr(
+            "devsynth.interface.cli.CLIUXBridge.ask_question",
+            lambda self, _msg, **kw: kw.get("default", ""),
+        )
+        monkeypatch.setattr(
+            "devsynth.interface.cli.CLIUXBridge.confirm_choice",
+            lambda self, _msg, **kw: kw.get("default", True),
+        )
     monkeypatch.setattr(
         "devsynth.application.cli.setup_wizard.SetupWizard.run",
         lambda self: None,

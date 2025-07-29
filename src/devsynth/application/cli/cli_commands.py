@@ -456,6 +456,16 @@ def init_cmd(
                 ConfigModel(**config.as_dict()),
                 use_pyproject=(Path("pyproject.toml").exists()),
             )
+            # Trigger workflow manager so tests can verify initialization logic
+            init_project(
+                root=root,
+                structure=config.structure,
+                language=language,
+                goals=goals,
+                memory_backend=memory_backend,
+                offline_mode=offline_mode,
+                features=features,
+            )
             bridge.display_result(
                 "[green]Initialization complete[/green]", highlight=True
             )

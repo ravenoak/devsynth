@@ -27,13 +27,11 @@ def check_project_directory_created(directory, mock_workflow_manager, tmp_path):
     # In our test environment, we're mocking the actual directory creation
     # But we can verify that the init command was called with the correct parameters
 
-    # Extract the name parameter from the command
-    # Get the actual call arguments
+    # Extract the root parameter from the command
     args = mock_workflow_manager.execute_command.call_args[0][1]
 
-    # Check that the command was called with the correct name
-    assert args.get("name") == directory
-    assert args.get("path") == "."
+    # Check that the command was called with the correct root
+    assert args.get("root") == directory
 
     # In a real implementation, we would check if the directory exists
     # But since we're mocking, we'll just assert that the command was called
