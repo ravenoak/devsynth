@@ -197,6 +197,11 @@ Relevant references include `docs/analysis/cli_ui_improvement_plan.md` lines 25 
 
 - Q3 2025: iterative tuning utilities and integration hooks
 
+**Status**
+
+- Completed in June 2025 with iterative tuning utilities implemented
+  (see commit `c05694e`)
+
 
 See `docs/policies/consistency_checklist.md` lines 91-106 for TODO items.
 
