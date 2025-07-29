@@ -33,18 +33,16 @@ These directories were not always properly cleaned up after tests, leading to po
 We've implemented several measures to ensure proper test isolation:
 
 1. **Environment Variable Control**: Added a `DEVSYNTH_NO_FILE_LOGGING` environment variable that, when set to `1`, prevents the creation of log directories and files.
-
-2. **Improved Logging Setup**: Modified the logging system to respect the `DEVSYNTH_NO_FILE_LOGGING` environment variable and avoid creating directories when file logging is disabled.
-
-3. **Enhanced Test Fixtures**: Updated test fixtures to:
+2. **Network Isolation**: Added a `DEVSYNTH_NO_NETWORK` environment variable to force in-memory clients and avoid external network calls during tests.
+3. **Improved Logging Setup**: Modified the logging system to respect the `DEVSYNTH_NO_FILE_LOGGING` environment variable and avoid creating directories when file logging is disabled.
+4. **Enhanced Test Fixtures**: Updated test fixtures to:
    - Set the `DEVSYNTH_NO_FILE_LOGGING` environment variable
    - Track the creation time of directories
    - Only clean up directories that were created during the test
    - Provide better error reporting when cleanup fails
 
-4. **Explicit Directory Creation**: Ensured that directories are only created when explicitly needed, not as a side effect of importing modules or initializing objects.
-
-5. **Comprehensive Cleanup**: Added cleanup code to all test fixtures to remove any stray directories that might be created during tests.
+5. **Explicit Directory Creation**: Ensured that directories are only created when explicitly needed, not as a side effect of importing modules or initializing objects.
+6. **Comprehensive Cleanup**: Added cleanup code to all test fixtures to remove any stray directories that might be created during tests.
 
 
 ## Memory Store Isolation
@@ -66,6 +64,9 @@ The `ChromaDBStore` has been updated to use an in-memory client in test environm
 
 1. In test environments with `DEVSYNTH_NO_FILE_LOGGING` set, it uses `ChromaDB.EphemeralClient()` instead of `ChromaDB.PersistentClient()`.
 2. This prevents the creation of directories and files on disk during tests.
+3. When the `DEVSYNTH_NO_NETWORK` environment variable is set, it also uses
+   `ChromaDB.EphemeralClient()` even if a remote host is configured. This
+   avoids any network access during tests.
 
 
 ### Best Practices for Memory Stores

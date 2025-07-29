@@ -94,12 +94,20 @@ class ChromaDBStore(MemoryStore):
             "yes",
         )
 
-        if host:
+        # Check if network access should be disabled
+        no_network = os.environ.get("DEVSYNTH_NO_NETWORK", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+
+        if host and not no_network:
             # Connect to a remote ChromaDB server
-            logger.info(
-                "Connecting to remote ChromaDB host %s:%s", host, port
-            )
+            logger.info("Connecting to remote ChromaDB host %s:%s", host, port)
             self.client = chromadb.HttpClient(host=host, port=port)
+        elif host and no_network:
+            logger.info("DEVSYNTH_NO_NETWORK set; using in-memory ChromaDB client")
+            self.client = chromadb.EphemeralClient()
         else:
             # Only create directories if not in a test environment with file operations disabled
             if not no_file_logging:
@@ -107,9 +115,7 @@ class ChromaDBStore(MemoryStore):
                 self.client = chromadb.PersistentClient(path=file_path)
             else:
                 # In test environments, use an in-memory client to avoid file system operations
-                logger.info(
-                    "Using in-memory ChromaDB client for test environment"
-                )
+                logger.info("Using in-memory ChromaDB client for test environment")
                 self.client = chromadb.EphemeralClient()
 
         # Get or create the main collection
