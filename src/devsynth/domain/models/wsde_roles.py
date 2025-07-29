@@ -35,7 +35,8 @@ def assign_roles(self: WSDETeam, role_mapping: Optional[Dict[str, Any]] = None):
 
     # Log the role assignments
     role_assignments = {
-        role: agent.name if agent else None for role, agent in self.roles.items()
+        role: getattr(agent, "name", getattr(agent, "id", None)) if agent else None
+        for role, agent in self.roles.items()
     }
     self.logger.info(f"Role assignments for team {self.name}: {role_assignments}")
 
