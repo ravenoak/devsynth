@@ -2,6 +2,7 @@
 
 from typing import Optional, Sequence, Dict, Any, Union
 
+import os
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import (
@@ -26,6 +27,15 @@ from devsynth.interface.shared_bridge import SharedBridgeMixin
 from devsynth.interface.output_formatter import OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.security import validate_safe_input
+
+# When running automated tests, DEVSYNTH_NONINTERACTIVE may be set to disable
+# interactive prompts. In this mode, prompts will fall back to defaults.
+def _non_interactive() -> bool:
+    return os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
 
 # Module level logger
 logger = DevSynthLogger(__name__)
@@ -508,6 +518,10 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         show_default: bool = True,
     ) -> str:
         logger.debug(f"Asking question: {message}")
+        if _non_interactive():
+            logger.debug("Non-interactive mode active; returning default answer")
+            return default or ""
+
         styled_message = Text(message, style="prompt")
         answer = Prompt.ask(
             styled_message,
@@ -521,6 +535,12 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
 
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         logger.debug(f"Asking for confirmation: {message}")
+        if _non_interactive():
+            logger.debug(
+                "Non-interactive mode active; returning default confirmation"
+            )
+            return default
+
         styled_message = Text(message, style="prompt")
         answer = Confirm.ask(styled_message, default=default)
         logger.debug(f"User confirmed: {answer}")
