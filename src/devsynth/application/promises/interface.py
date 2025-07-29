@@ -9,6 +9,9 @@ from typing import Dict, List, Optional, Set, Any, Union, Generic, TypeVar, Call
 from enum import Enum
 from dataclasses import dataclass
 import uuid
+import logging
+
+from devsynth.exceptions import PromiseStateError
 
 T = TypeVar('T')
 S = TypeVar('S')
@@ -167,6 +170,150 @@ class PromiseState(Enum):
     REJECTED = "rejected"     # Promise has failed to be fulfilled
     CANCELLED = "cancelled"   # Promise has been cancelled before fulfillment
 
+
+class BasicPromise(PromiseInterface[T], Generic[T]):
+    """Simple implementation of :class:`PromiseInterface`."""
+
+    def __init__(self) -> None:
+        self._state: PromiseState = PromiseState.PENDING
+        self._value: Optional[T] = None
+        self._reason: Optional[Exception] = None
+        self._on_fulfilled: List[Callable[[T], Any]] = []
+        self._on_rejected: List[Callable[[Exception], Any]] = []
+        self._id: str = str(uuid.uuid4())
+        self._metadata: Dict[str, Any] = {}
+        self._logger = logging.getLogger(__name__)
+
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
+    @property
+    def id(self) -> str:
+        """Return the unique identifier for this promise."""
+        return self._id
+
+    @property
+    def state(self) -> PromiseState:
+        """Return the current state of the promise."""
+        return self._state
+
+    @property
+    def is_pending(self) -> bool:
+        return self._state == PromiseState.PENDING
+
+    @property
+    def is_fulfilled(self) -> bool:
+        return self._state == PromiseState.FULFILLED
+
+    @property
+    def is_rejected(self) -> bool:
+        return self._state == PromiseState.REJECTED
+
+    @property
+    def value(self) -> T:
+        if self._state != PromiseState.FULFILLED:
+            raise PromiseStateError(
+                f"Cannot get value of promise in state {self._state}",
+                promise_id=self._id,
+            )
+        return self._value  # type: ignore
+
+    @property
+    def reason(self) -> Exception:
+        if self._state != PromiseState.REJECTED:
+            raise PromiseStateError(
+                f"Cannot get reason of promise in state {self._state}",
+                promise_id=self._id,
+            )
+        return self._reason  # type: ignore
+
+    # ------------------------------------------------------------------
+    # Metadata helpers
+    # ------------------------------------------------------------------
+    def set_metadata(self, key: str, value: Any) -> "BasicPromise[T]":
+        self._metadata[key] = value
+        return self
+
+    def get_metadata(self, key: str) -> Any:
+        return self._metadata.get(key)
+
+    # ------------------------------------------------------------------
+    # Promise chaining
+    # ------------------------------------------------------------------
+    def then(
+        self,
+        on_fulfilled: Callable[[T], S],
+        on_rejected: Optional[Callable[[Exception], S]] = None,
+    ) -> "BasicPromise[S]":
+        result_promise: BasicPromise[S] = BasicPromise()
+
+        def handle_fulfill(value: T) -> None:
+            if on_fulfilled is None:
+                result_promise.resolve(value)  # type: ignore[arg-type]
+                return
+            try:
+                result = on_fulfilled(value)
+                result_promise.resolve(result)
+            except Exception as exc:  # pragma: no cover - defensive
+                result_promise.reject(exc)
+
+        def handle_reject(reason: Exception) -> None:
+            if on_rejected is None:
+                result_promise.reject(reason)
+                return
+            try:
+                result = on_rejected(reason)
+                result_promise.resolve(result)
+            except Exception as exc:  # pragma: no cover - defensive
+                result_promise.reject(exc)
+
+        if self._state == PromiseState.FULFILLED:
+            handle_fulfill(self._value)  # type: ignore[arg-type]
+        elif self._state == PromiseState.REJECTED:
+            handle_reject(self._reason)  # type: ignore[arg-type]
+        else:
+            self._on_fulfilled.append(handle_fulfill)
+            self._on_rejected.append(handle_reject)
+
+        return result_promise
+
+    def catch(self, on_rejected: Callable[[Exception], S]) -> "BasicPromise[S]":
+        return self.then(lambda v: v, on_rejected)  # type: ignore[arg-type]
+
+    # ------------------------------------------------------------------
+    # Resolution helpers
+    # ------------------------------------------------------------------
+    def resolve(self, value: T) -> None:
+        if self._state != PromiseState.PENDING:
+            raise PromiseStateError(
+                f"Cannot resolve promise in state {self._state}",
+                promise_id=self._id,
+            )
+        self._state = PromiseState.FULFILLED
+        self._value = value
+        for cb in self._on_fulfilled:
+            try:
+                cb(value)
+            except Exception as exc:  # pragma: no cover - defensive
+                self._logger.error("Error in promise callback: %s", exc)
+        self._on_fulfilled.clear()
+        self._on_rejected.clear()
+
+    def reject(self, reason: Exception) -> None:
+        if self._state != PromiseState.PENDING:
+            raise PromiseStateError(
+                f"Cannot reject promise in state {self._state}",
+                promise_id=self._id,
+            )
+        self._state = PromiseState.REJECTED
+        self._reason = reason
+        for cb in self._on_rejected:
+            try:
+                cb(reason)
+            except Exception as exc:  # pragma: no cover - defensive
+                self._logger.error("Error in promise callback: %s", exc)
+        self._on_fulfilled.clear()
+        self._on_rejected.clear()
 
 class PromiseType(Enum):
     """Types of promises that can be made in the system."""
