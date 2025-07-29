@@ -12,18 +12,15 @@ from devsynth.exceptions import DevSynthError
 
 
 class MultiLanguageCodeAgent(BaseAgent):
-    """Agent capable of generating code in multiple languages."""
+    """Agent capable of generating code in multiple languages.
+
+    This initial implementation supports Python and JavaScript. Additional
+    languages will be added over time.
+    """
 
     SUPPORTED_LANGUAGES = {
         "python": "print('Hello from Python')\n",
         "javascript": "console.log('Hello from JavaScript');\n",
-        "typescript": "console.log('Hello from TypeScript');\n",
-        "go": (
-            'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello from Go")\n}\n'
-        ),
-        "rust": 'fn main() {\n    println!("Hello from Rust");\n}\n',
-        "haskell": 'main = putStrLn "Hello from Haskell"\n',
-        "julia": 'println("Hello from Julia")\n',
     }
 
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
