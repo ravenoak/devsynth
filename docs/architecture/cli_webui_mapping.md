@@ -78,4 +78,6 @@ interactive workflow started by `gather` is called the *Requirements Plan
 Wizard* in both interfaces.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This mapping is **implemented** for all major workflows. Several
+lesser-used commands remain planned for future releases, as noted in the
+table above.

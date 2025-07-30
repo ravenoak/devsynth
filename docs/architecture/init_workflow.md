@@ -58,4 +58,5 @@ This wizard shares the same prompts across interfaces thanks to the
 `UXBridge` abstraction.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This workflow is **implemented** and used by both the CLI and WebUI
+via the `UXBridge` layer.

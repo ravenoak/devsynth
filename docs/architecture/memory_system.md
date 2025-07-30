@@ -46,6 +46,9 @@ graph TD
     MM --> SY[SyncManager]
     MM --> TD[TinyDBMemoryAdapter]
     MM --> CH[ChromaDBStore]
+    MM --> LMDB[LMDBStore]
+    MM --> FAISS[FAISSStore]
+    MM --> KUZU[KuzuStore]
     MM --> JS[JSONFileStore]
     MM --> GR[GraphMemoryAdapter]
     MM --> RDF[RDFLibStore]
@@ -60,9 +63,11 @@ graph TD
 
 **Implementation Status**
 
-- `MemoryManager`, `QueryRouter`, `SyncManager`, `TinyDBMemoryAdapter`, `ChromaDBStore`,
-  `JSONFileStore`, `GraphMemoryAdapter`, and `VectorMemoryAdapter` are partially implemented.
-- `RDFLibStore` is partially implemented with limited query optimization.
+The memory subsystem is **fully implemented**. `MemoryManager`, `QueryRouter`,
+`SyncManager`, `TinyDBMemoryAdapter`, `ChromaDBStore`, `LMDBStore`, `FAISSStore`,
+`KuzuStore`, `JSONFileStore`, `GraphMemoryAdapter`, `VectorMemoryAdapter`, and
+`RDFLibStore` are actively used in the codebase with integration tests covering
+cross-store synchronization.
 
 ## Implementation Details
 
