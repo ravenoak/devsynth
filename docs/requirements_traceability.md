@@ -10,7 +10,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-07-31"
 ---
 
 # Requirements Traceability Matrix (RTM)
@@ -44,7 +44,7 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-36 | Context pruning strategies | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/context_manager.py | tests/behavior/test_enhanced_chromadb_integration.py | Implemented |
 | FR-37 | Context information persistence | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/adapters/memory/json_file_store.py | tests/behavior/test_chromadb_integration.py | Implemented |
 | FR-38 | Token count tracking for context | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/utils/token_tracker.py | tests/unit/general/test_token_tracker.py | Implemented |
-| FR-40 | EDRR (Expand, Differentiate, Refine, Retrospect) framework | [EDRR Specification](specifications/edrr_cycle_specification.md) | src/devsynth/application/EDRR/coordinator.py | tests/behavior/features/edrr_coordinator.feature | Partially Implemented |
+| FR-40 | EDRR (Expand, Differentiate, Refine, Retrospect) framework | [EDRR Specification](specifications/edrr_cycle_specification.md) | src/devsynth/application/edrr/coordinator.py | tests/behavior/features/edrr_coordinator.feature | Partially Implemented |
 | FR-41 | WSDE (WSDE) model | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Partially Implemented |
 | FR-42 | Role management in multi-agent collaboration | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Partially Implemented |
 | FR-43 | Dialectical reasoning in agent collaboration | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/WSDE.py | tests/behavior/features/wsde_agent_model.feature | Partially Implemented |
@@ -52,7 +52,7 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-45 | RDFLib knowledge graph store | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/rdflib_store.py | tests/behavior/features/advanced_graph_memory_features.feature | Implemented |
 | FR-46 | Graph memory adapter | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/graph_adapter.py | tests/unit/application/memory/test_graph_memory_adapter.py | Implemented |
 | FR-47 | Vector memory adapter | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/vector_adapter.py | tests/unit/adapters/memory/test_vector_store_provider_factory.py | Implemented |
-| FR-48 | Alternative vector stores (DuckDB, FAISS, LMDB) | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/adapters/vector_stores/ | tests/unit/adapters/memory/test_vector_store_provider_factory.py | Partially Implemented |
+| FR-48 | Alternative vector stores (DuckDB, FAISS, LMDB) | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/duckdb_store.py, src/devsynth/application/memory/faiss_store.py, src/devsynth/application/memory/lmdb_store.py | tests/unit/adapters/memory/test_vector_store_provider_factory.py | Partially Implemented |
 | FR-49 | Track token usage for all LLM operations | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/utils/token_tracker.py | tests/unit/general/test_token_tracker.py | Implemented |
 | FR-50 | Provide token usage reports and statistics | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/utils/token_tracker.py | tests/unit/general/test_token_tracker.py | Implemented |
 | FR-51 | Implement token optimization strategies | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/utils/token_tracker.py | tests/unit/general/test_token_tracker.py | Implemented |
@@ -100,7 +100,7 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-91 | Knowledge graph utility functions for advanced memory queries | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/knowledge_graph_utils.py | tests/unit/application/memory/test_knowledge_graph_utils.py | Implemented |
 | FR-92 | Multi-language code generation agent | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/agents/multi_language_code.py | tests/unit/application/agents/test_multi_language_code.py | Implemented |
 
-_Last updated: July 29, 2025_
+_Last updated: July 31, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column
@@ -108,7 +108,7 @@ above and the [Feature Status Matrix](implementation/feature_status_matrix.md)
 for work still in progress. Outstanding areas include memory store
 synchronization (FR-59, FR-60), the EDRR and WSDE collaboration features
 (FR-40–FR-43), and support for alternative vector stores (FR-48). Current test
-runs report over **350** failing integration tests, primarily around memory
+runs report **348** failing integration tests, primarily around memory
 initialization and multi-agent workflows. See
 [development_status](../roadmap/development_status.md#test-failure-summary) for
 details.
