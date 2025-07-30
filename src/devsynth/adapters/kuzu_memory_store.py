@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 import shutil
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryVector
@@ -141,3 +141,24 @@ class KuzuMemoryStore(MemoryStore):
         """Return all stored items."""
 
         return self._store.get_all_items()
+
+    # ------------------------------------------------------------------
+    def store_vector(self, vector: MemoryVector) -> str:
+        """Store a vector using the underlying ``KuzuAdapter``."""
+
+        return self.vector.store_vector(vector)
+
+    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+        """Retrieve a stored vector by ID."""
+
+        return self.vector.retrieve_vector(vector_id)
+
+    def delete_vector(self, vector_id: str) -> bool:
+        """Delete a vector by ID."""
+
+        return self.vector.delete_vector(vector_id)
+
+    def get_all_vectors(self) -> List[MemoryVector]:
+        """Return all stored vectors."""
+
+        return self.vector.get_all_vectors()
