@@ -720,6 +720,7 @@ class ChromaDBStore(MemoryStore):
                 existed = item_id in self._store
                 self._store.pop(item_id, None)
                 self._versions.pop(item_id, None)
+                self._cache.pop(item_id, None)
                 self._save_fallback()
                 return existed
 
@@ -727,7 +728,7 @@ class ChromaDBStore(MemoryStore):
             self.collection.delete(ids=[item_id])
 
             # Remove the item from the cache if it exists
-            if not self._use_fallback and item_id in self._cache:
+            if item_id in self._cache:
                 del self._cache[item_id]
 
             logger.info(f"Deleted item with ID {item_id} from ChromaDB")
