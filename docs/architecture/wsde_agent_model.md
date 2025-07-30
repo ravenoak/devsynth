@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-07-31"
 status: active
 tags:
 - architecture
@@ -31,11 +31,15 @@ graph TD
 
 **Implementation Status**
 
-- Dynamic role rotation works in basic scenarios, but the consensus voting logic
-  is still under active development. Outstanding tasks to finalize the voting
-  algorithms and integrate with EDRR cycles are tracked in
+- Dynamic role rotation and consensus voting are implemented in
+  `src/devsynth/domain/models/wsde_roles.py` and
+  `src/devsynth/domain/models/wsde_voting.py`. Unit tests are provided in
+  `tests/unit/domain/test_wsde_facade_roles.py` and
+  `tests/unit/domain/test_wsde_voting_logic.py`, with integration coverage in
+  `tests/integration/general/test_multi_agent_roles_and_voting.py`.
+- Integration with the EDRR cycle and enhanced dialectical reasoning hooks
+  remain in progress and are tracked in
   [issue 104](../../issues/104.md).
-- Dialectical reasoning hooks and advanced knowledge integration are in progress.
 
 ## Core Principles
 
@@ -305,7 +309,12 @@ final = team.build_consensus(task)
 print(final["consensus"])
 ```
 
-The team uses `select_primus_by_expertise()` to choose a Primus for each task. This scores agents against the task context and rotates leadership so everyone eventually serves. Automated tests cover this behaviour.
+The methods used in this example are implemented in
+`src/devsynth/domain/models/wsde.py` and tested in
+`tests/unit/domain/test_wsde_phase_role_rotation.py` and
+`tests/integration/general/test_collaborative_decision_making.py`.
+
+The team uses `select_primus_by_expertise()` to choose a Primus for each task. This logic lives in `src/devsynth/domain/models/wsde_roles.py` and is validated by `tests/unit/domain/test_wsde_primus_selection.py` and `tests/integration/general/test_delegate_task_primus_selection.py`.
 
 ## Current Limitations
 
