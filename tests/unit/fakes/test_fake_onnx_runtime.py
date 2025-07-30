@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Dict
+from typing import Any, Iterable, Dict, Union
 
 from devsynth.domain.interfaces.onnx import OnnxRuntime
 
@@ -7,7 +7,7 @@ class FakeOnnxRuntime(OnnxRuntime):
     """Simple in-memory fake for ONNX runtime."""
 
     def __init__(self) -> None:
-        self.loaded_model: str | None = None
+        self.loaded_model: Union[str, None] = None
 
     def load_model(self, model_path: str) -> None:
         self.loaded_model = model_path

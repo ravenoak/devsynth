@@ -6,7 +6,7 @@ import os
 import json
 import uuid
 import tiktoken
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 from tinydb import TinyDB, Query
 from tinydb.storages import JSONStorage, Storage, touch
@@ -69,7 +69,7 @@ class TinyDBStore(MemoryStore):
         base_path: str,
         *,
         encryption_enabled: bool = False,
-        encryption_key: str | None = None,
+        encryption_key: Union[str, None] = None,
     ):
         """
         Initialize a TinyDBStore.

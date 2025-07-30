@@ -33,9 +33,9 @@ class MemoryManager:
     def __init__(
         self,
         adapters: Union[Dict[str, Any], Any] = None,
-        query_router: QueryRouter | None = None,
-        sync_manager: SyncManager | None = None,
-        embedding_provider: Any | None = None,
+        query_router: Union[QueryRouter, None] = None,
+        sync_manager: Union[SyncManager, None] = None,
+        embedding_provider: Union[Any, None] = None,
     ):
         """
         Initialize the Memory Manager with the specified adapters.
@@ -534,7 +534,7 @@ class MemoryManager:
         self,
         query: str,
         *,
-        store: str | None = None,
+        store: Union[str, None] = None,
         strategy: str = "direct",
         context: Optional[Dict[str, Any]] = None,
     ) -> Any:

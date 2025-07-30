@@ -13,7 +13,7 @@ import os
 import sys
 import importlib
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from contextlib import contextmanager
 from copy import deepcopy
 
@@ -54,7 +54,7 @@ logger = DevSynthLogger(__name__)
 class KuzuStore(MemoryStore):
     """Lightweight ``MemoryStore`` backed by KuzuDB."""
 
-    def __init__(self, file_path: str | None = None, use_embedded: bool | None = None) -> None:
+    def __init__(self, file_path: Union[str, None] = None, use_embedded: Union[bool, None] = None) -> None:
         # ``ensure_path_exists`` handles path redirection and optional
         # directory creation based on the test environment.  Use the returned
         # path so tests that set ``DEVSYNTH_PROJECT_DIR`` are respected and

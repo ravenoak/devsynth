@@ -3,7 +3,8 @@ from devsynth.interface.agentapi import APIBridge
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import sanitize_output
 from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.collaboration.collaborative_wsde_team import (
+from devsynth.application.collaboration.collaborative_wsde_team import
+from typing import Union (
     CollaborativeWSDETeam,
 )
 
@@ -24,7 +25,7 @@ class DummyProgress:
         self.complete()
         return False
 
-    def update(self, *, advance: float = 1, description: str | None = None) -> None:
+    def update(self, *, advance: float = 1, description: Union[str, None] = None) -> None:
         if description:
             self.description = sanitize_output(description)
         self.current += advance
@@ -48,7 +49,7 @@ class VoteAgent:
         return {"vote": self.vote}
 
 
-def collaborative_vote_workflow(bridge: CLIUXBridge | APIBridge) -> list[str]:
+def collaborative_vote_workflow(bridge: Union[CLIUXBridge, APIBridge]) -> list[str]:
     """Run a minimal multi-agent voting workflow through a UX bridge."""
 
     team = WSDETeam(name="Team")

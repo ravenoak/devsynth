@@ -15,14 +15,15 @@ from devsynth.logging_setup import (
     set_request_context,
     clear_request_context,
 )
-from devsynth.config.settings import get_settings
+from devsynth.config.settings import
+from typing import Union get_settings
 
 configure_logging()
 logger = DevSynthLogger(__name__)
 settings = get_settings()
 
 
-def verify_token(authorization: str | None = Header(None)) -> None:
+def verify_token(authorization: Union[str, None] = Header(None)) -> None:
     """Verify Bearer token from Authorization header if access control enabled."""
     token = settings.access_token
     if token and authorization != f"Bearer {token}":

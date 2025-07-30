@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Peer review utilities for WSDE teams."""
 
-from typing import Any, Dict, List, Callable, Optional, Union
+from typing import Any, Dict, List, Callable, Optional, Union, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import uuid4
@@ -10,6 +10,9 @@ from uuid import uuid4
 from .message_protocol import MessageType
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
 
 
 @dataclass
@@ -36,215 +39,370 @@ class PeerReview:
     quality_score: float = 0.0
     metrics_results: Dict[str, Any] = field(default_factory=dict)
     consensus_result: Dict[str, Any] = field(default_factory=dict)
+    
+    def store_in_memory(self, immediate_sync: bool = False) -> Optional[str]:
+        """
+        Store the review in memory with optional cross-store synchronization.
+        
+        Args:
+            immediate_sync: Whether to synchronize immediately or queue for later
+            
+        Returns:
+            The ID of the stored review, or None if storage failed
+        """
+        if self.memory_manager is None:
+            logger.debug("Memory manager not available, skipping storage")
+            return None
+            
+        try:
+            # Import here to avoid circular imports
+            from .collaboration_memory_utils import store_with_retry
+            
+            # Determine the primary store to use
+            primary_store = self._get_primary_store()
+            
+            # Store with retry for better reliability
+            return store_with_retry(
+                self.memory_manager,
+                self,
+                primary_store=primary_store,
+                immediate_sync=immediate_sync,
+                max_retries=3
+            )
+        except Exception as e:
+            logger.error(f"Failed to store review {self.review_id} in memory: {str(e)}")
+            return None
+            
+    def _get_primary_store(self) -> str:
+        """
+        Determine the primary store to use for this review.
+        
+        Returns:
+            The name of the primary store
+        """
+        if self.memory_manager is None:
+            return "tinydb"  # Default fallback
+            
+        # Try to find the best store in this order: tinydb, graph, kuzu, first available
+        if "tinydb" in self.memory_manager.adapters:
+            return "tinydb"
+        elif "graph" in self.memory_manager.adapters:
+            return "graph"
+        elif "kuzu" in self.memory_manager.adapters:
+            return "kuzu"
+        elif self.memory_manager.adapters:
+            return next(iter(self.memory_manager.adapters))
+        else:
+            return "tinydb"  # Default fallback
+            
+    def _start_transaction(self) -> Tuple[bool, Any]:
+        """
+        Start a transaction for atomic operations.
+        
+        Returns:
+            A tuple of (success, transaction_id)
+        """
+        if self.memory_manager is None or not hasattr(self.memory_manager, "sync_manager"):
+            return False, None
+            
+        try:
+            transaction_id = f"peer_review_{self.review_id}_{datetime.now().timestamp()}"
+            self.memory_manager.sync_manager.begin_transaction(transaction_id)
+            return True, transaction_id
+        except Exception as e:
+            logger.error(f"Failed to start transaction: {str(e)}")
+            return False, None
+            
+    def _commit_transaction(self, transaction_id: Any) -> bool:
+        """
+        Commit a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction to commit
+            
+        Returns:
+            True if the transaction was committed successfully, False otherwise
+        """
+        if self.memory_manager is None or not hasattr(self.memory_manager, "sync_manager"):
+            return False
+            
+        try:
+            self.memory_manager.sync_manager.commit_transaction(transaction_id)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to commit transaction {transaction_id}: {str(e)}")
+            return False
+            
+    def _rollback_transaction(self, transaction_id: Any) -> bool:
+        """
+        Rollback a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction to rollback
+            
+        Returns:
+            True if the transaction was rolled back successfully, False otherwise
+        """
+        if self.memory_manager is None or not hasattr(self.memory_manager, "sync_manager"):
+            return False
+            
+        try:
+            self.memory_manager.sync_manager.rollback_transaction(transaction_id)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to rollback transaction {transaction_id}: {str(e)}")
+            return False
 
     def assign_reviews(self) -> None:
         """Notify reviewers of the review request."""
+        self.updated_at = datetime.now()
+        
+        # Start a transaction for atomic operations
+        transaction_started, transaction_id = self._start_transaction()
 
-        if self.team and hasattr(self.team, "select_primus_by_expertise"):
-            task_context = {
-                "type": "peer_review",
-                "description": getattr(self.work_product, "description", ""),
-            }
-            try:
-                self.team.select_primus_by_expertise(task_context)
-                if hasattr(self.team, "rotate_roles"):
-                    self.team.rotate_roles()
-            except Exception:
-                pass
-
-        if self.send_message:
-            for reviewer in self.reviewers:
-                content = {
-                    "work_product": self.work_product,
-                    "review_id": self.review_id,
+        try:
+            if self.team and hasattr(self.team, "select_primus_by_expertise"):
+                task_context = {
+                    "type": "peer_review",
+                    "description": getattr(self.work_product, "description", ""),
                 }
+                try:
+                    self.team.select_primus_by_expertise(task_context)
+                    if hasattr(self.team, "rotate_roles"):
+                        self.team.rotate_roles()
+                except Exception as e:
+                    logger.warning(f"Error selecting primus or rotating roles: {str(e)}")
 
-                if self.acceptance_criteria:
-                    content["acceptance_criteria"] = self.acceptance_criteria
+            if self.send_message:
+                for reviewer in self.reviewers:
+                    content = {
+                        "work_product": self.work_product,
+                        "review_id": self.review_id,
+                    }
 
-                if self.quality_metrics:
-                    content["quality_metrics"] = self.quality_metrics
+                    if self.acceptance_criteria:
+                        content["acceptance_criteria"] = self.acceptance_criteria
 
-                self.send_message(
-                    sender=getattr(self.author, "name", str(self.author)),
-                    recipients=[getattr(reviewer, "name", str(reviewer))],
-                    message_type=MessageType.REVIEW_REQUEST,
-                    subject="Peer Review Request",
-                    content=content,
-                )
+                    if self.quality_metrics:
+                        content["quality_metrics"] = self.quality_metrics
+
+                    self.send_message(
+                        sender=getattr(self.author, "name", str(self.author)),
+                        recipients=[getattr(reviewer, "name", str(reviewer))],
+                        message_type=MessageType.REVIEW_REQUEST,
+                        subject="Peer Review Request",
+                        content=content,
+                    )
+            
+            # Store the review in memory
+            self.store_in_memory(immediate_sync=transaction_started)
+            
+            # Commit the transaction if it was started
+            if transaction_started:
+                self._commit_transaction(transaction_id)
+                
+        except Exception as e:
+            logger.error(f"Error in assign_reviews: {str(e)}")
+            # Rollback the transaction if it was started
+            if transaction_started:
+                self._rollback_transaction(transaction_id)
 
     def collect_reviews(self) -> Dict[Any, Dict[str, Any]]:
         """Gather feedback from all reviewers."""
 
         self.updated_at = datetime.now()
+        
+        # Start a transaction for atomic operations
+        transaction_started, transaction_id = self._start_transaction()
 
-        task_context = {"id": self.review_id, "type": "peer_review"}
-        if self.team and hasattr(self.team, "rotate_roles"):
-            try:
-                self.team.rotate_roles()
-            except Exception:
-                pass
+        try:
+            task_context = {"id": self.review_id, "type": "peer_review"}
+            if self.team and hasattr(self.team, "rotate_roles"):
+                try:
+                    self.team.rotate_roles()
+                except Exception as e:
+                    logger.warning(f"Error rotating roles: {str(e)}")
 
-        for reviewer in self.reviewers:
-            if hasattr(reviewer, "process"):
-                process_input = {
-                    "work_product": self.work_product,
-                    "review_id": self.review_id,
-                }
-
-                if self.acceptance_criteria:
-                    process_input["acceptance_criteria"] = self.acceptance_criteria
-
-                if self.quality_metrics:
-                    process_input["quality_metrics"] = self.quality_metrics
-
-                # Check if this is a critic agent that should perform dialectical analysis
-                is_critic = False
-                if hasattr(reviewer, "config") and hasattr(
-                    reviewer.config, "agent_type"
-                ):
-                    is_critic = reviewer.config.agent_type.name == "CRITIC"
-                elif hasattr(reviewer, "expertise") and reviewer.expertise:
-                    is_critic = any(
-                        exp.lower() in ["critic", "dialectical", "critique"]
-                        for exp in reviewer.expertise
-                    )
-
-                # If this is a critic, prepare for dialectical analysis
-                if is_critic:
-                    process_input["task"] = "perform_dialectical_critique"
-                    process_input["critique_aspects"] = [
-                        "security",
-                        "performance",
-                        "maintainability",
-                        "readability",
-                        "error_handling",
-                        "input_validation",
-                    ]
-                    process_input["format"] = "structured"
-
-                result = reviewer.process(process_input)
-
-                # If this is a critic, enhance the result with dialectical analysis
-                if is_critic and "code" in self.work_product:
-                    # Create a task and solution for dialectical reasoning
-                    task = {
-                        "type": "review_task",
-                        "description": "Review the provided code or content",
+            for reviewer in self.reviewers:
+                if hasattr(reviewer, "process"):
+                    process_input = {
+                        "work_product": self.work_product,
+                        "review_id": self.review_id,
                     }
 
-                    solution = {
-                        "agent": getattr(self.author, "name", str(self.author)),
-                        "content": self.work_product.get("description", ""),
-                        "code": self.work_product.get("code", ""),
-                    }
+                    if self.acceptance_criteria:
+                        process_input["acceptance_criteria"] = self.acceptance_criteria
 
-                    # Try to use WSDETeam's dialectical reasoning if available
-                    try:
-                        from devsynth.domain.models.wsde import WSDETeam
+                    if self.quality_metrics:
+                        process_input["quality_metrics"] = self.quality_metrics
 
-                        temp_team = WSDETeam(name="PeerReviewTeam")
-                        temp_team.add_solution(task, solution)
-
-                        dialectical_result = temp_team.apply_dialectical_reasoning(
-                            task, reviewer
+                    # Check if this is a critic agent that should perform dialectical analysis
+                    is_critic = False
+                    if hasattr(reviewer, "config") and hasattr(
+                        reviewer.config, "agent_type"
+                    ):
+                        is_critic = reviewer.config.agent_type.name == "CRITIC"
+                    elif hasattr(reviewer, "expertise") and reviewer.expertise:
+                        is_critic = any(
+                            exp.lower() in ["critic", "dialectical", "critique"]
+                            for exp in reviewer.expertise
                         )
 
-                        # Add dialectical analysis to the result
-                        if (
-                            "thesis" in dialectical_result
-                            and "antithesis" in dialectical_result
-                            and "synthesis" in dialectical_result
-                        ):
-                            result["thesis"] = dialectical_result["thesis"].get(
-                                "content", "The solution provides basic functionality."
-                            )
-                            result["antithesis"] = dialectical_result["antithesis"].get(
-                                "critique", ["The solution could be improved."]
-                            )
-                            result["synthesis"] = dialectical_result["synthesis"].get(
-                                "improved_solution",
-                                "Improved implementation recommended.",
+                    # If this is a critic, prepare for dialectical analysis
+                    if is_critic:
+                        process_input["task"] = "perform_dialectical_critique"
+                        process_input["critique_aspects"] = [
+                            "security",
+                            "performance",
+                            "maintainability",
+                            "readability",
+                            "error_handling",
+                            "input_validation",
+                        ]
+                        process_input["format"] = "structured"
+
+                    try:
+                        result = reviewer.process(process_input)
+                    except Exception as e:
+                        logger.error(f"Error processing review by {reviewer}: {str(e)}")
+                        result = {"feedback": f"Error processing review: {str(e)}"}
+
+                    # If this is a critic, enhance the result with dialectical analysis
+                    if is_critic and "code" in self.work_product:
+                        # Create a task and solution for dialectical reasoning
+                        task = {
+                            "type": "review_task",
+                            "description": "Review the provided code or content",
+                        }
+
+                        solution = {
+                            "agent": getattr(self.author, "name", str(self.author)),
+                            "content": self.work_product.get("description", ""),
+                            "code": self.work_product.get("code", ""),
+                        }
+
+                        # Try to use WSDETeam's dialectical reasoning if available
+                        try:
+                            from devsynth.domain.models.wsde import WSDETeam
+
+                            temp_team = WSDETeam(name="PeerReviewTeam")
+                            temp_team.add_solution(task, solution)
+
+                            dialectical_result = temp_team.apply_dialectical_reasoning(
+                                task, reviewer
                             )
 
-                            # Add dialectical analysis as a structured object
-                            result["dialectical_analysis"] = {
-                                "thesis": {
-                                    "content": dialectical_result["thesis"].get(
-                                        "content", ""
-                                    ),
-                                    "strengths": ["Provides basic functionality"],
-                                },
-                                "antithesis": {
-                                    "critique": dialectical_result["antithesis"].get(
-                                        "critique", []
-                                    ),
-                                    "challenges": dialectical_result["antithesis"].get(
-                                        "challenges", []
-                                    ),
-                                },
-                                "synthesis": {
-                                    "improvements": dialectical_result["synthesis"].get(
-                                        "improvements", []
-                                    ),
-                                    "improved_solution": dialectical_result[
-                                        "synthesis"
-                                    ].get("improved_solution", ""),
-                                },
-                            }
-                    except (ImportError, Exception) as e:
-                        # If WSDETeam is not available or fails, create a simple dialectical analysis
-                        if "thesis" not in result:
-                            result["thesis"] = (
-                                "The solution provides basic functionality."
-                            )
-                        if "antithesis" not in result:
-                            result["antithesis"] = (
-                                "The solution could be improved in several ways."
-                            )
-                        if "synthesis" not in result:
-                            result["synthesis"] = (
-                                "An improved implementation would address the identified issues."
-                            )
-            else:
-                result = {"feedback": "ok"}
+                            # Add dialectical analysis to the result
+                            if (
+                                "thesis" in dialectical_result
+                                and "antithesis" in dialectical_result
+                                and "synthesis" in dialectical_result
+                            ):
+                                result["thesis"] = dialectical_result["thesis"].get(
+                                    "content", "The solution provides basic functionality."
+                                )
+                                result["antithesis"] = dialectical_result["antithesis"].get(
+                                    "critique", ["The solution could be improved."]
+                                )
+                                result["synthesis"] = dialectical_result["synthesis"].get(
+                                    "improved_solution",
+                                    "Improved implementation recommended.",
+                                )
 
-            # Process criteria results if provided
-            if self.acceptance_criteria and "criteria_results" not in result:
-                # Initialize default criteria results if not provided by reviewer
-                result["criteria_results"] = {
-                    criterion: True for criterion in self.acceptance_criteria
-                }
+                                # Add dialectical analysis as a structured object
+                                result["dialectical_analysis"] = {
+                                    "thesis": {
+                                        "content": dialectical_result["thesis"].get(
+                                            "content", ""
+                                        ),
+                                        "strengths": ["Provides basic functionality"],
+                                    },
+                                    "antithesis": {
+                                        "critique": dialectical_result["antithesis"].get(
+                                            "critique", []
+                                        ),
+                                        "challenges": dialectical_result["antithesis"].get(
+                                            "challenges", []
+                                        ),
+                                    },
+                                    "synthesis": {
+                                        "improvements": dialectical_result["synthesis"].get(
+                                            "improvements", []
+                                        ),
+                                        "improved_solution": dialectical_result[
+                                            "synthesis"
+                                        ].get("improved_solution", ""),
+                                    },
+                                }
+                        except (ImportError, Exception) as e:
+                            logger.warning(f"Error applying dialectical reasoning: {str(e)}")
+                            # If WSDETeam is not available or fails, create a simple dialectical analysis
+                            if "thesis" not in result:
+                                result["thesis"] = (
+                                    "The solution provides basic functionality."
+                                )
+                            if "antithesis" not in result:
+                                result["antithesis"] = (
+                                    "The solution could be improved in several ways."
+                                )
+                            if "synthesis" not in result:
+                                result["synthesis"] = (
+                                    "An improved implementation would address the identified issues."
+                                )
+                else:
+                    result = {"feedback": "ok"}
 
-            # Process quality metrics if provided
-            if self.quality_metrics and "metrics_results" not in result:
-                # Initialize default metrics results if not provided by reviewer
-                result["metrics_results"] = {
-                    metric: 1.0 for metric in self.quality_metrics
-                }
-
-            self.reviews[reviewer] = result
-
-            if self.team and hasattr(self.team, "add_solution"):
-                try:
-                    sol = {
-                        "agent": getattr(reviewer, "name", str(reviewer)),
-                        "content": result.get("feedback", ""),
+                # Process criteria results if provided
+                if self.acceptance_criteria and "criteria_results" not in result:
+                    # Initialize default criteria results if not provided by reviewer
+                    result["criteria_results"] = {
+                        criterion: True for criterion in self.acceptance_criteria
                     }
-                    self.team.add_solution(task_context, sol)
-                except Exception:
-                    pass
 
-        # Calculate quality score if metrics are available
-        self._calculate_quality_score()
+                # Process quality metrics if provided
+                if self.quality_metrics and "metrics_results" not in result:
+                    # Initialize default metrics results if not provided by reviewer
+                    result["metrics_results"] = {
+                        metric: 1.0 for metric in self.quality_metrics
+                    }
 
-        if self.team and hasattr(self.team, "build_consensus"):
-            try:
-                self.consensus_result = self.team.build_consensus(task_context)
-            except Exception:
-                self.consensus_result = {}
+                self.reviews[reviewer] = result
 
-        return self.reviews
+                if self.team and hasattr(self.team, "add_solution"):
+                    try:
+                        sol = {
+                            "agent": getattr(reviewer, "name", str(reviewer)),
+                            "content": result.get("feedback", ""),
+                        }
+                        self.team.add_solution(task_context, sol)
+                    except Exception as e:
+                        logger.warning(f"Error adding solution to team: {str(e)}")
+
+            # Calculate quality score if metrics are available
+            self._calculate_quality_score()
+
+            if self.team and hasattr(self.team, "build_consensus"):
+                try:
+                    self.consensus_result = self.team.build_consensus(task_context)
+                except Exception as e:
+                    logger.warning(f"Error building consensus: {str(e)}")
+                    self.consensus_result = {}
+            
+            # Store the updated review in memory
+            self.store_in_memory(immediate_sync=transaction_started)
+            
+            # Commit the transaction if it was started
+            if transaction_started:
+                self._commit_transaction(transaction_id)
+                
+            return self.reviews
+            
+        except Exception as e:
+            logger.error(f"Error in collect_reviews: {str(e)}")
+            # Rollback the transaction if it was started
+            if transaction_started:
+                self._rollback_transaction(transaction_id)
+            return self.reviews
 
     def _calculate_quality_score(self) -> None:
         """Calculate the overall quality score based on metrics results."""
@@ -343,6 +501,23 @@ class PeerReview:
 
         self.updated_at = datetime.now()
         self.status = "revision_requested"
+        
+        # Start a transaction for atomic operations
+        transaction_started, transaction_id = self._start_transaction()
+        
+        try:
+            # Store the updated review in memory
+            self.store_in_memory(immediate_sync=transaction_started)
+            
+            # Commit the transaction if it was started
+            if transaction_started:
+                self._commit_transaction(transaction_id)
+                
+        except Exception as e:
+            logger.error(f"Error in request_revision: {str(e)}")
+            # Rollback the transaction if it was started
+            if transaction_started:
+                self._rollback_transaction(transaction_id)
 
     def submit_revision(self, revision: Any) -> "PeerReview":
         """
@@ -355,133 +530,173 @@ class PeerReview:
         self.revision = revision
         self.revision_history.append(revision)
         self.status = "revised"
-
-        # Create a new review for the revision, linked to this one
-        new_review = PeerReview(
-            work_product=revision,
-            author=self.author,
-            reviewers=self.reviewers,
-            send_message=self.send_message,
-            acceptance_criteria=self.acceptance_criteria,
-            quality_metrics=self.quality_metrics,
-            team=self.team,
-            previous_review=self,
-        )
-
-        return new_review
+        
+        # Start a transaction for atomic operations
+        transaction_started, transaction_id = self._start_transaction()
+        
+        try:
+            # Store the updated review in memory
+            self.store_in_memory(immediate_sync=transaction_started)
+            
+            # Create a new review for the revision, linked to this one
+            new_review = PeerReview(
+                work_product=revision,
+                author=self.author,
+                reviewers=self.reviewers,
+                send_message=self.send_message,
+                acceptance_criteria=self.acceptance_criteria,
+                quality_metrics=self.quality_metrics,
+                team=self.team,
+                memory_manager=self.memory_manager,  # Pass the memory manager to the new review
+                previous_review=self,
+            )
+            
+            # Store the new review in memory
+            new_review.store_in_memory(immediate_sync=transaction_started)
+            
+            # Commit the transaction if it was started
+            if transaction_started:
+                self._commit_transaction(transaction_id)
+                
+            return new_review
+            
+        except Exception as e:
+            logger.error(f"Error in submit_revision: {str(e)}")
+            # Rollback the transaction if it was started
+            if transaction_started:
+                self._rollback_transaction(transaction_id)
+                
+            # Create a new review without memory integration as fallback
+            new_review = PeerReview(
+                work_product=revision,
+                author=self.author,
+                reviewers=self.reviewers,
+                send_message=self.send_message,
+                acceptance_criteria=self.acceptance_criteria,
+                quality_metrics=self.quality_metrics,
+                team=self.team,
+                previous_review=self,
+            )
+            
+            return new_review
 
     def finalize(self, approved: bool = True) -> Dict[str, Any]:
         """Finalize the peer review and return aggregated feedback."""
 
         self.updated_at = datetime.now()
         self.status = "approved" if approved else "rejected"
+        
+        # Start a transaction for atomic operations
+        transaction_started, transaction_id = self._start_transaction()
+        
+        try:
+            # Determine if all criteria passed (if applicable)
+            all_criteria_passed = True
+            if self.acceptance_criteria:
+                feedback = self.aggregate_feedback()
+                all_criteria_passed = feedback.get("all_criteria_passed", False)
 
-        # Determine if all criteria passed (if applicable)
-        all_criteria_passed = True
-        if self.acceptance_criteria:
-            feedback = self.aggregate_feedback()
-            all_criteria_passed = feedback.get("all_criteria_passed", False)
+                # Override approval if criteria failed
+                if not all_criteria_passed and approved:
+                    self.status = "rejected"
+                    approved = False
 
-            # Override approval if criteria failed
-            if not all_criteria_passed and approved:
-                self.status = "rejected"
-                approved = False
+            # Check quality score against a threshold
+            quality_threshold = 0.7  # Configurable threshold
+            if (
+                hasattr(self, "quality_score")
+                and self.quality_score < quality_threshold
+                and approved
+            ):
+                # If quality score is low but no revision was requested yet,
+                # suggest revision instead of rejection
+                if self.status != "revision_requested" and not self.revision:
+                    self.status = "revision_suggested"
+                # If quality is still low after revision, reject
+                elif self.revision:
+                    self.status = "rejected"
+                    approved = False
 
-        # Check quality score against a threshold
-        quality_threshold = 0.7  # Configurable threshold
-        if (
-            hasattr(self, "quality_score")
-            and self.quality_score < quality_threshold
-            and approved
-        ):
-            # If quality score is low but no revision was requested yet,
-            # suggest revision instead of rejection
-            if self.status != "revision_requested" and not self.revision:
-                self.status = "revision_suggested"
-            # If quality is still low after revision, reject
-            elif self.revision:
-                self.status = "rejected"
-                approved = False
+            feedback = self.aggregate_feedback()  # Regenerate with updated status
 
-        feedback = self.aggregate_feedback()  # Regenerate with updated status
-
-        result = {
-            "status": self.status,
-            "feedback": feedback,
-            "quality_score": self.quality_score,
-            "approved": approved,
-            "review_id": self.review_id,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-        }
-
-        # Add reasons for rejection if applicable
-        if self.status == "rejected" and self.acceptance_criteria:
-            criteria_results = feedback.get("criteria_results", {})
-            reasons = [
-                f"{criterion}: Failed"
-                for criterion, passed in criteria_results.items()
-                if not passed
-            ]
-            result["reasons"] = reasons
-
-        # Include revision history
-        if self.revision_history:
-            result["revisions"] = {
-                "count": len(self.revision_history),
-                "history": self.revision_history,
+            result = {
+                "status": self.status,
+                "feedback": feedback,
+                "quality_score": self.quality_score,
+                "approved": approved,
+                "review_id": self.review_id,
+                "created_at": self.created_at.isoformat(),
+                "updated_at": self.updated_at.isoformat(),
             }
 
-        # Include previous review reference
-        if self.previous_review:
-            result["previous_review_id"] = self.previous_review.review_id
+            # Add reasons for rejection if applicable
+            if self.status == "rejected" and self.acceptance_criteria:
+                criteria_results = feedback.get("criteria_results", {})
+                reasons = [
+                    f"{criterion}: Failed"
+                    for criterion, passed in criteria_results.items()
+                    if not passed
+                ]
+                result["reasons"] = reasons
 
-            # Include a summary of the revision chain
-            revision_chain = []
-            current_review = self
-            while current_review.previous_review:
-                revision_chain.append(
-                    {
-                        "review_id": current_review.previous_review.review_id,
-                        "status": current_review.previous_review.status,
-                        "quality_score": current_review.previous_review.quality_score,
-                    }
-                )
-                current_review = current_review.previous_review
+            # Include revision history
+            if self.revision_history:
+                result["revisions"] = {
+                    "count": len(self.revision_history),
+                    "history": self.revision_history,
+                }
 
-            if revision_chain:
-                result["revision_chain"] = revision_chain
+            # Include previous review reference
+            if self.previous_review:
+                result["previous_review_id"] = self.previous_review.review_id
 
-        # Add dialectical analysis if available in the feedback
-        if isinstance(feedback, dict) and "dialectical_analysis" in feedback:
-            result["dialectical_analysis"] = feedback["dialectical_analysis"]
+                # Include a summary of the revision chain
+                revision_chain = []
+                current_review = self
+                while current_review.previous_review:
+                    revision_chain.append(
+                        {
+                            "review_id": current_review.previous_review.review_id,
+                            "status": current_review.previous_review.status,
+                            "quality_score": current_review.previous_review.quality_score,
+                        }
+                    )
+                    current_review = current_review.previous_review
 
-        if self.consensus_result:
-            result["consensus"] = self.consensus_result
+                if revision_chain:
+                    result["revision_chain"] = revision_chain
 
-        if self.memory_manager is not None:
-            item = MemoryItem(
-                id=self.review_id,
-                content=result,
-                memory_type=MemoryType.DOCUMENTATION,
-                metadata={"type": "PEER_REVIEW_RESULT"},
-            )
-            try:
-                if "tinydb" in self.memory_manager.adapters:
-                    primary = "tinydb"
-                elif "graph" in self.memory_manager.adapters:
-                    primary = "graph"
-                elif self.memory_manager.adapters:
-                    primary = next(iter(self.memory_manager.adapters))
-                else:
-                    primary = None
+            # Add dialectical analysis if available in the feedback
+            if isinstance(feedback, dict) and "dialectical_analysis" in feedback:
+                result["dialectical_analysis"] = feedback["dialectical_analysis"]
 
-                if primary:
-                    self.memory_manager.sync_manager.update_item(primary, item)
-            except Exception:
-                pass
+            if self.consensus_result:
+                result["consensus"] = self.consensus_result
 
-        return result
+            # Store the finalized review in memory
+            self.store_in_memory(immediate_sync=transaction_started)
+            
+            # Commit the transaction if it was started
+            if transaction_started:
+                self._commit_transaction(transaction_id)
+                
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in finalize: {str(e)}")
+            # Rollback the transaction if it was started
+            if transaction_started:
+                self._rollback_transaction(transaction_id)
+                
+            # Create a minimal result as fallback
+            return {
+                "status": self.status,
+                "approved": approved,
+                "review_id": self.review_id,
+                "error": f"Error finalizing review: {str(e)}",
+                "created_at": self.created_at.isoformat(),
+                "updated_at": self.updated_at.isoformat(),
+            }
 
 
 @dataclass
@@ -496,6 +711,7 @@ class PeerReviewWorkflow:
     quality_metrics: Optional[Dict[str, Any]] = None
     max_revision_cycles: int = 3
     team: Optional[Any] = None
+    memory_manager: Optional[MemoryManager] = None
 
     def run(self) -> Dict[str, Any]:
         """
@@ -504,66 +720,107 @@ class PeerReviewWorkflow:
         Returns:
             Dict containing the final review results.
         """
-        review = PeerReview(
-            work_product=self.work_product,
-            author=self.author,
-            reviewers=self.reviewers,
-            send_message=self.send_message,
-            acceptance_criteria=self.acceptance_criteria,
-            quality_metrics=self.quality_metrics,
-            team=self.team,
-        )
+        # Start a transaction for the entire workflow if memory manager is available
+        transaction_started = False
+        transaction_id = None
+        
+        if self.memory_manager is not None and hasattr(self.memory_manager, "sync_manager"):
+            try:
+                transaction_id = f"peer_review_workflow_{datetime.now().timestamp()}"
+                self.memory_manager.sync_manager.begin_transaction(transaction_id)
+                transaction_started = True
+                logger.debug(f"Started transaction {transaction_id} for peer review workflow")
+            except Exception as e:
+                logger.error(f"Failed to start transaction for workflow: {str(e)}")
+        
+        try:
+            review = PeerReview(
+                work_product=self.work_product,
+                author=self.author,
+                reviewers=self.reviewers,
+                send_message=self.send_message,
+                acceptance_criteria=self.acceptance_criteria,
+                quality_metrics=self.quality_metrics,
+                team=self.team,
+                memory_manager=self.memory_manager,
+            )
 
-        review.assign_reviews()
-        review.collect_reviews()
+            review.assign_reviews()
+            review.collect_reviews()
 
-        # Check if revision is needed
-        feedback = review.aggregate_feedback()
-        all_criteria_passed = feedback.get("all_criteria_passed", True)
-        quality_score = feedback.get("quality_score", 0.0)
-
-        revision_count = 0
-        current_review = review
-
-        # Continue revision cycles until criteria pass or max cycles reached
-        while (
-            not all_criteria_passed or quality_score < 0.7
-        ) and revision_count < self.max_revision_cycles:
-            current_review.request_revision()
-
-            # In a real implementation, this would involve getting the revised work product
-            # from the author. For now, we'll simulate a revision by creating a copy.
-            revised_work = {
-                "original": current_review.work_product,
-                "revision": f"Revision {revision_count + 1}",
-                "improvements": "Addressed reviewer feedback",
-            }
-
-            # Create a new review for the revision
-            current_review = current_review.submit_revision(revised_work)
-            current_review.assign_reviews()
-            current_review.collect_reviews()
-
-            # Check if the revision passes
-            feedback = current_review.aggregate_feedback()
+            # Check if revision is needed
+            feedback = review.aggregate_feedback()
             all_criteria_passed = feedback.get("all_criteria_passed", True)
             quality_score = feedback.get("quality_score", 0.0)
 
-            revision_count += 1
+            revision_count = 0
+            current_review = review
 
-        # Finalize with approval based on criteria and quality
-        approved = all_criteria_passed and quality_score >= 0.7
-        result = current_review.finalize(approved=approved)
+            # Continue revision cycles until criteria pass or max cycles reached
+            while (
+                not all_criteria_passed or quality_score < 0.7
+            ) and revision_count < self.max_revision_cycles:
+                current_review.request_revision()
 
-        # Add workflow metadata
-        result["workflow"] = {
-            "revision_cycles": revision_count,
-            "max_revision_cycles": self.max_revision_cycles,
-            "final_quality_score": quality_score,
-            "all_criteria_passed": all_criteria_passed,
-        }
+                # In a real implementation, this would involve getting the revised work product
+                # from the author. For now, we'll simulate a revision by creating a copy.
+                revised_work = {
+                    "original": current_review.work_product,
+                    "revision": f"Revision {revision_count + 1}",
+                    "improvements": "Addressed reviewer feedback",
+                }
 
-        return result
+                # Create a new review for the revision
+                current_review = current_review.submit_revision(revised_work)
+                current_review.assign_reviews()
+                current_review.collect_reviews()
+
+                # Check if the revision passes
+                feedback = current_review.aggregate_feedback()
+                all_criteria_passed = feedback.get("all_criteria_passed", True)
+                quality_score = feedback.get("quality_score", 0.0)
+
+                revision_count += 1
+
+            # Finalize with approval based on criteria and quality
+            approved = all_criteria_passed and quality_score >= 0.7
+            result = current_review.finalize(approved=approved)
+
+            # Add workflow metadata
+            result["workflow"] = {
+                "revision_cycles": revision_count,
+                "max_revision_cycles": self.max_revision_cycles,
+                "final_quality_score": quality_score,
+                "all_criteria_passed": all_criteria_passed,
+            }
+            
+            # Commit the transaction if it was started
+            if transaction_started:
+                try:
+                    self.memory_manager.sync_manager.commit_transaction(transaction_id)
+                    logger.debug(f"Committed transaction {transaction_id} for peer review workflow")
+                except Exception as e:
+                    logger.error(f"Failed to commit transaction {transaction_id}: {str(e)}")
+                    # We don't rollback here since individual operations may have succeeded
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in peer review workflow: {str(e)}")
+            
+            # Rollback the transaction if it was started
+            if transaction_started:
+                try:
+                    self.memory_manager.sync_manager.rollback_transaction(transaction_id)
+                    logger.debug(f"Rolled back transaction {transaction_id} due to error")
+                except Exception as rollback_error:
+                    logger.error(f"Failed to rollback transaction {transaction_id}: {str(rollback_error)}")
+            
+            # Return error information
+            return {
+                "error": f"Error in peer review workflow: {str(e)}",
+                "workflow_status": "failed",
+            }
 
 
 def run_peer_review(
@@ -575,6 +832,7 @@ def run_peer_review(
     quality_metrics: Optional[Dict[str, Any]] = None,
     max_revision_cycles: int = 3,
     team: Optional[Any] = None,
+    memory_manager: Optional[MemoryManager] = None,
 ) -> Dict[str, Any]:
     """
     Convenience function to execute a full peer review with quality metrics.
@@ -588,18 +846,28 @@ def run_peer_review(
         quality_metrics: Optional dictionary of quality metrics to evaluate
         max_revision_cycles: Maximum number of revision cycles allowed
         team: Optional WSDETeam for consensus building and role management
+        memory_manager: Optional memory manager for persistent storage and cross-store synchronization
 
     Returns:
         Dict containing the final review results
     """
-    workflow = PeerReviewWorkflow(
-        work_product=work_product,
-        author=author,
-        reviewers=reviewers,
-        send_message=send_message,
-        acceptance_criteria=acceptance_criteria,
-        quality_metrics=quality_metrics,
-        max_revision_cycles=max_revision_cycles,
-        team=team,
-    )
-    return workflow.run()
+    try:
+        workflow = PeerReviewWorkflow(
+            work_product=work_product,
+            author=author,
+            reviewers=reviewers,
+            send_message=send_message,
+            acceptance_criteria=acceptance_criteria,
+            quality_metrics=quality_metrics,
+            max_revision_cycles=max_revision_cycles,
+            team=team,
+            memory_manager=memory_manager,
+        )
+
+        return workflow.run()
+    except Exception as e:
+        logger.error(f"Error in run_peer_review: {str(e)}")
+        return {
+            "error": f"Error in run_peer_review: {str(e)}",
+            "workflow_status": "failed",
+        }

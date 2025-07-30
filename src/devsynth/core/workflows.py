@@ -1,6 +1,6 @@
 """Wrapper functions and utilities for executing workflows."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Union
 from pathlib import Path
 import json
 import yaml
@@ -51,7 +51,7 @@ def generate_code() -> Dict[str, Any]:
 
 
 def run_pipeline(
-    target: str | None = None, report: Dict[str, Any] | None = None
+    target: Union[str, None] = None, report: Dict[str, Any] | None = None
 ) -> Dict[str, Any]:
     """Execute the generated code or a specific target.
 
@@ -70,7 +70,7 @@ def run_pipeline(
 
 
 def update_config(
-    key: str | None = None, value: str | None = None, *, list_models: bool = False
+    key: Union[str, None] = None, value: Union[str, None] = None, *, list_models: bool = False
 ) -> Dict[str, Any]:
     """View or set configuration options."""
     args = filter_args({"key": key, "value": value})
@@ -80,7 +80,7 @@ def update_config(
 
 
 def inspect_requirements(
-    input: str | None = None, *, interactive: bool = False
+    input: Union[str, None] = None, *, interactive: bool = False
 ) -> Dict[str, Any]:
     """Inspect requirements interactively or from a file."""
     return execute_command(

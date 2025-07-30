@@ -5,7 +5,7 @@ Configuration settings for the DevSynth system.
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import toml
 from pydantic import Field, field_validator
@@ -267,7 +267,7 @@ class Settings(BaseSettings):
     )
 
     @field_validator("provider_retry_conditions", mode="after")
-    def _normalize_conditions(cls, v: str | None):
+    def _normalize_conditions(cls, v: Union[str, None]):
         if v is None:
             return None
         return ",".join(part.strip() for part in str(v).split(",") if part.strip())

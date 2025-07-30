@@ -7,7 +7,7 @@ import json
 import uuid
 import shutil
 import errno
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 from contextlib import contextmanager
 from ...domain.interfaces.memory import MemoryStore
@@ -42,7 +42,7 @@ class JSONFileStore(MemoryStore):
         version_control: bool = True,
         *,
         encryption_enabled: bool = False,
-        encryption_key: str | None = None,
+        encryption_key: Union[str, None] = None,
     ):
         """
         Initialize a JSONFileStore.

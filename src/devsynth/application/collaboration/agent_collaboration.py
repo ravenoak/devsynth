@@ -179,14 +179,20 @@ class AgentCollaborationSystem:
     task delegation, and coordination mechanisms.
     """
 
-    def __init__(self):
-        """Initialize the agent collaboration system."""
+    def __init__(self, memory_manager=None):
+        """
+        Initialize the agent collaboration system.
+        
+        Args:
+            memory_manager: Optional memory manager for persistence and cross-store synchronization
+        """
         self.agents = {}  # Dictionary of agents by agent_id
         self.teams = {}  # Dictionary of teams by team_id
         self.tasks = {}  # Dictionary of tasks by task_id
         self.messages = {}  # Dictionary of messages by message_id
         self.agent_capabilities = {}  # Dictionary mapping agent_id to capabilities
         self.task_handlers = {}  # Dictionary mapping task_type to handler function
+        self.memory_manager = memory_manager  # Memory manager for persistence
 
     def register_agent(self, agent: Agent) -> str:
         """
@@ -229,11 +235,85 @@ class AgentCollaborationSystem:
         # Assign roles
         team.assign_roles()
 
-        # Store the team
+        # Store the team in memory if memory manager is available
+        if self.memory_manager:
+            try:
+                # Create a serializable representation of the team
+                team_data = {
+                    "id": team_id,
+                    "name": team.name,
+                    "agent_ids": agent_ids,
+                    "roles": {agent.id: role for agent, role in team.roles.items() if hasattr(agent, 'id')},
+                    "created_at": datetime.now().isoformat(),
+                    "updated_at": datetime.now().isoformat()
+                }
+                
+                # Create a memory item
+                from devsynth.domain.models.memory import MemoryItem, MemoryType
+                team_item = MemoryItem(
+                    id=team_id,
+                    content=team_data,
+                    memory_type=MemoryType.COLLABORATION_TEAM,
+                    metadata={"entity_type": "WSDETeam"}
+                )
+                
+                # Store in memory
+                self.memory_manager.update_item("tinydb", team_item)
+                logger.info(f"Stored team {team_id} in memory")
+            except Exception as e:
+                logger.error(f"Failed to store team {team_id} in memory: {e}")
+
+        # Store the team in in-memory dictionary
         self.teams[team_id] = team
 
         logger.info(f"Created team {team_id} with {len(team.agents)} agents")
         return team
+        
+    def _get_team(self, team_id: str) -> Optional[WSDETeam]:
+        """
+        Get a team by ID from memory or in-memory dictionary.
+        
+        Args:
+            team_id: The ID of the team to get
+            
+        Returns:
+            The team, or None if not found
+        """
+        # First check in-memory dictionary
+        if team_id in self.teams:
+            return self.teams[team_id]
+            
+        # Then check memory if memory manager is available
+        if self.memory_manager:
+            try:
+                # Import MemoryType
+                from devsynth.domain.models.memory import MemoryType
+                
+                # Retrieve from memory
+                team_item = self.memory_manager.retrieve(team_id)
+                if team_item and team_item.memory_type == MemoryType.COLLABORATION_TEAM:
+                    # Create a new team
+                    team_data = team_item.content
+                    team = WSDETeam(name=team_data.get("name", "AgentCollaborationTeam"))
+                    
+                    # Add agents to the team
+                    for agent_id in team_data.get("agent_ids", []):
+                        if agent_id in self.agents:
+                            team.add_agent(self.agents[agent_id])
+                    
+                    # Assign roles (or use stored roles if available)
+                    if not team.roles and team_data.get("roles"):
+                        # This is a simplified approach; in a real implementation,
+                        # you would need to map role names to actual role objects
+                        team.assign_roles()
+                    
+                    # Cache in in-memory dictionary
+                    self.teams[team_id] = team
+                    return team
+            except Exception as e:
+                logger.error(f"Failed to retrieve team {team_id} from memory: {e}")
+                
+        return None
 
     def register_task_handler(self, task_type: str, handler: Callable[[CollaborationTask], Dict[str, Any]]) -> None:
         """
@@ -276,15 +356,78 @@ class AgentCollaborationSystem:
             priority=priority
         )
 
+        # Store task in memory if memory manager is available
+        if self.memory_manager:
+            try:
+                from .collaboration_memory_utils import store_with_retry
+                store_with_retry(
+                    self.memory_manager, 
+                    task, 
+                    primary_store="tinydb", 
+                    immediate_sync=False
+                )
+                logger.info(f"Stored task {task.id} in memory")
+            except Exception as e:
+                logger.error(f"Failed to store task {task.id} in memory: {e}")
+
+        # Store task in in-memory dictionary
         self.tasks[task.id] = task
 
         # If this is a subtask, add it to the parent task
-        if parent_task_id and parent_task_id in self.tasks:
-            parent_task = self.tasks[parent_task_id]
-            parent_task.add_subtask(task)
+        if parent_task_id:
+            # Get parent task from memory or in-memory dictionary
+            parent_task = self._get_task(parent_task_id)
+            if parent_task:
+                parent_task.add_subtask(task)
+                
+                # Update parent task in memory if memory manager is available
+                if self.memory_manager:
+                    try:
+                        from .collaboration_memory_utils import store_with_retry
+                        store_with_retry(
+                            self.memory_manager, 
+                            parent_task, 
+                            primary_store="tinydb", 
+                            immediate_sync=True
+                        )
+                        logger.info(f"Updated parent task {parent_task_id} in memory")
+                    except Exception as e:
+                        logger.error(f"Failed to update parent task {parent_task_id} in memory: {e}")
 
         logger.info(f"Created task {task.id} of type {task_type}")
         return task
+        
+    def _get_task(self, task_id: str) -> Optional[CollaborationTask]:
+        """
+        Get a task by ID from memory or in-memory dictionary.
+        
+        Args:
+            task_id: The ID of the task to get
+            
+        Returns:
+            The task, or None if not found
+        """
+        # First check in-memory dictionary
+        if task_id in self.tasks:
+            return self.tasks[task_id]
+            
+        # Then check memory if memory manager is available
+        if self.memory_manager:
+            try:
+                from .collaboration_memory_utils import retrieve_collaboration_entity
+                task = retrieve_collaboration_entity(
+                    self.memory_manager, 
+                    task_id, 
+                    entity_type=CollaborationTask
+                )
+                if task:
+                    # Cache in in-memory dictionary
+                    self.tasks[task_id] = task
+                    return task
+            except Exception as e:
+                logger.error(f"Failed to retrieve task {task_id} from memory: {e}")
+                
+        return None
 
     def send_message(self, 
                     sender_id: str, 
@@ -313,15 +456,78 @@ class AgentCollaborationSystem:
             related_task_id=related_task_id
         )
 
+        # Store message in memory if memory manager is available
+        if self.memory_manager:
+            try:
+                from .collaboration_memory_utils import store_with_retry
+                store_with_retry(
+                    self.memory_manager, 
+                    message, 
+                    primary_store="tinydb", 
+                    immediate_sync=False
+                )
+                logger.info(f"Stored message {message.id} in memory")
+            except Exception as e:
+                logger.error(f"Failed to store message {message.id} in memory: {e}")
+
+        # Store message in in-memory dictionary
         self.messages[message.id] = message
 
         # If this message is related to a task, add it to the task
-        if related_task_id and related_task_id in self.tasks:
-            task = self.tasks[related_task_id]
-            task.add_message(message)
+        if related_task_id:
+            # Get task from memory or in-memory dictionary
+            task = self._get_task(related_task_id)
+            if task:
+                task.add_message(message)
+                
+                # Update task in memory if memory manager is available
+                if self.memory_manager:
+                    try:
+                        from .collaboration_memory_utils import store_with_retry
+                        store_with_retry(
+                            self.memory_manager, 
+                            task, 
+                            primary_store="tinydb", 
+                            immediate_sync=True
+                        )
+                        logger.info(f"Updated task {related_task_id} in memory with message {message.id}")
+                    except Exception as e:
+                        logger.error(f"Failed to update task {related_task_id} in memory: {e}")
 
         logger.info(f"Sent message {message.id} from {sender_id} to {recipient_id}")
         return message
+        
+    def _get_message(self, message_id: str) -> Optional[AgentMessage]:
+        """
+        Get a message by ID from memory or in-memory dictionary.
+        
+        Args:
+            message_id: The ID of the message to get
+            
+        Returns:
+            The message, or None if not found
+        """
+        # First check in-memory dictionary
+        if message_id in self.messages:
+            return self.messages[message_id]
+            
+        # Then check memory if memory manager is available
+        if self.memory_manager:
+            try:
+                from .collaboration_memory_utils import retrieve_collaboration_entity
+                message = retrieve_collaboration_entity(
+                    self.memory_manager, 
+                    message_id, 
+                    entity_type=AgentMessage
+                )
+                if message:
+                    # Cache in in-memory dictionary
+                    self.messages[message_id] = message
+                    return message
+            except Exception as e:
+                logger.error(f"Failed to retrieve message {message_id} from memory: {e}")
+                
+        return None
 
     def assign_task(self, task_id: str, agent_id: Optional[str] = None) -> bool:
         """
@@ -337,11 +543,11 @@ class AgentCollaborationSystem:
         Returns:
             True if the task was assigned successfully, False otherwise
         """
-        if task_id not in self.tasks:
+        # Get the task from memory or in-memory dictionary
+        task = self._get_task(task_id)
+        if not task:
             logger.error(f"Task {task_id} not found")
             return False
-
-        task = self.tasks[task_id]
 
         # If the task is already assigned, return False
         if task.status != TaskStatus.PENDING:
@@ -354,9 +560,34 @@ class AgentCollaborationSystem:
                 logger.error(f"Agent {agent_id} not found")
                 return False
 
-            task.assigned_agent_id = agent_id
-            task.status = TaskStatus.ASSIGNED
-            task.updated_at = datetime.now()
+            # Use a transaction if memory manager is available
+            if self.memory_manager:
+                try:
+                    # Begin transaction
+                    with self.memory_manager.begin_transaction(["tinydb", "graph"]):
+                        # Update task
+                        task.assigned_agent_id = agent_id
+                        task.status = TaskStatus.ASSIGNED
+                        task.updated_at = datetime.now()
+                        
+                        # Store updated task in memory
+                        from .collaboration_memory_utils import store_with_retry
+                        store_with_retry(
+                            self.memory_manager, 
+                            task, 
+                            primary_store="tinydb", 
+                            immediate_sync=True
+                        )
+                        
+                        logger.info(f"Assigned task {task_id} to agent {agent_id} (with transaction)")
+                except Exception as e:
+                    logger.error(f"Failed to assign task {task_id} to agent {agent_id}: {e}")
+                    return False
+            else:
+                # Update task in memory only
+                task.assigned_agent_id = agent_id
+                task.status = TaskStatus.ASSIGNED
+                task.updated_at = datetime.now()
 
             logger.info(f"Assigned task {task_id} to agent {agent_id}")
             return True
@@ -365,9 +596,34 @@ class AgentCollaborationSystem:
         best_agent_id = self._find_best_agent_for_task(task)
 
         if best_agent_id:
-            task.assigned_agent_id = best_agent_id
-            task.status = TaskStatus.ASSIGNED
-            task.updated_at = datetime.now()
+            # Use a transaction if memory manager is available
+            if self.memory_manager:
+                try:
+                    # Begin transaction
+                    with self.memory_manager.begin_transaction(["tinydb", "graph"]):
+                        # Update task
+                        task.assigned_agent_id = best_agent_id
+                        task.status = TaskStatus.ASSIGNED
+                        task.updated_at = datetime.now()
+                        
+                        # Store updated task in memory
+                        from .collaboration_memory_utils import store_with_retry
+                        store_with_retry(
+                            self.memory_manager, 
+                            task, 
+                            primary_store="tinydb", 
+                            immediate_sync=True
+                        )
+                        
+                        logger.info(f"Assigned task {task_id} to agent {best_agent_id} (with transaction)")
+                except Exception as e:
+                    logger.error(f"Failed to assign task {task_id} to agent {best_agent_id}: {e}")
+                    return False
+            else:
+                # Update task in memory only
+                task.assigned_agent_id = best_agent_id
+                task.status = TaskStatus.ASSIGNED
+                task.updated_at = datetime.now()
 
             logger.info(f"Assigned task {task_id} to agent {best_agent_id}")
             return True
@@ -410,11 +666,11 @@ class AgentCollaborationSystem:
         Returns:
             The result of the task execution
         """
-        if task_id not in self.tasks:
+        # Get the task from memory or in-memory dictionary
+        task = self._get_task(task_id)
+        if not task:
             logger.error(f"Task {task_id} not found")
             return {"success": False, "error": "Task not found"}
-
-        task = self.tasks[task_id]
 
         # Check if the task is assigned
         if task.status != TaskStatus.ASSIGNED:
@@ -429,8 +685,30 @@ class AgentCollaborationSystem:
 
         agent = self.agents[agent_id]
 
-        # Update task status
-        task.update_status(TaskStatus.IN_PROGRESS)
+        # Use a transaction if memory manager is available
+        if self.memory_manager:
+            try:
+                # Begin transaction
+                with self.memory_manager.begin_transaction(["tinydb", "graph"]):
+                    # Update task status to IN_PROGRESS
+                    task.update_status(TaskStatus.IN_PROGRESS)
+                    
+                    # Store updated task in memory
+                    from .collaboration_memory_utils import store_with_retry
+                    store_with_retry(
+                        self.memory_manager, 
+                        task, 
+                        primary_store="tinydb", 
+                        immediate_sync=True
+                    )
+                    
+                    logger.info(f"Updated task {task_id} status to IN_PROGRESS (with transaction)")
+            except Exception as e:
+                logger.error(f"Failed to update task {task_id} status to IN_PROGRESS: {e}")
+                return {"success": False, "error": f"Failed to update task status: {e}"}
+        else:
+            # Update task status in memory only
+            task.update_status(TaskStatus.IN_PROGRESS)
 
         try:
             # Check if there's a specific handler for this task type
@@ -446,17 +724,62 @@ class AgentCollaborationSystem:
                     "inputs": task.inputs
                 })
 
-            # Update task with result
-            task.result = result
-            task.update_status(TaskStatus.COMPLETED)
+            # Use a transaction if memory manager is available
+            if self.memory_manager:
+                try:
+                    # Begin transaction
+                    with self.memory_manager.begin_transaction(["tinydb", "graph"]):
+                        # Update task with result and status
+                        task.result = result
+                        task.update_status(TaskStatus.COMPLETED)
+                        
+                        # Store updated task in memory
+                        from .collaboration_memory_utils import store_with_retry
+                        store_with_retry(
+                            self.memory_manager, 
+                            task, 
+                            primary_store="tinydb", 
+                            immediate_sync=True
+                        )
+                        
+                        logger.info(f"Updated task {task_id} with result and status COMPLETED (with transaction)")
+                except Exception as e:
+                    logger.error(f"Failed to update task {task_id} with result: {e}")
+                    # Still return the result even if storing failed
+            else:
+                # Update task with result and status in memory only
+                task.result = result
+                task.update_status(TaskStatus.COMPLETED)
 
             logger.info(f"Executed task {task_id} with result: {result}")
             return {"success": True, "result": result}
 
         except Exception as e:
-            # Update task status to failed
-            task.result = {"error": str(e)}
-            task.update_status(TaskStatus.FAILED)
+            # Use a transaction if memory manager is available
+            if self.memory_manager:
+                try:
+                    # Begin transaction
+                    with self.memory_manager.begin_transaction(["tinydb", "graph"]):
+                        # Update task status to FAILED and store error
+                        task.result = {"error": str(e)}
+                        task.update_status(TaskStatus.FAILED)
+                        
+                        # Store updated task in memory
+                        from .collaboration_memory_utils import store_with_retry
+                        store_with_retry(
+                            self.memory_manager, 
+                            task, 
+                            primary_store="tinydb", 
+                            immediate_sync=True
+                        )
+                        
+                        logger.info(f"Updated task {task_id} status to FAILED (with transaction)")
+                except Exception as store_error:
+                    logger.error(f"Failed to update task {task_id} status to FAILED: {store_error}")
+            else:
+                # Update task status to FAILED and store error in memory only
+                task.result = {"error": str(e)}
+                task.update_status(TaskStatus.FAILED)
 
             logger.error(f"Error executing task {task_id}: {str(e)}")
             return {"success": False, "error": str(e)}

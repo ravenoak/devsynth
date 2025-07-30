@@ -65,8 +65,8 @@ class ChromaDBStore(MemoryStore):
         *,
         host: Optional[str] = None,
         port: int = 8000,
-        collection_name: str | None = None,
-        versions_collection_name: str | None = None,
+        collection_name: Union[str, None] = None,
+        versions_collection_name: Union[str, None] = None,
     ):
         """
         Initialize the ChromaDB store.

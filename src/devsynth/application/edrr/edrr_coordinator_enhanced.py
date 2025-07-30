@@ -357,7 +357,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         # Return the micro cycle
         return micro_cycle
 
-    def _get_llm_response(self, prompt: str, system_prompt: str | None = None) -> str:
+    def _get_llm_response(self, prompt: str, system_prompt: Union[str, None] = None) -> str:
         """Return an LLM completion for ``prompt`` using the provider system."""
         from devsynth.adapters.provider_system import complete
 
@@ -372,7 +372,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         task: Dict[str, Any],
         agent_name: str,
         phase: Phase,
-        llm_prompt: str | None = None,
+        llm_prompt: Union[str, None] = None,
     ) -> Dict[str, Any]:
         """Execute ``task`` with a specific agent and store results."""
 

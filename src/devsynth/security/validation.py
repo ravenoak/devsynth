@@ -1,6 +1,6 @@
 """Input validation utilities."""
 
-from typing import Any, Iterable
+from typing import Any, Iterable, Union
 
 from devsynth.exceptions import ValidationError
 
@@ -16,8 +16,8 @@ def validate_int_range(
     value: Any,
     field: str,
     *,
-    min_value: int | None = None,
-    max_value: int | None = None
+    min_value: Union[int, None] = None,
+    max_value: Union[int, None] = None
 ) -> int:
     """Validate that a value is an int within an optional range."""
     try:

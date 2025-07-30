@@ -1,7 +1,7 @@
 """Step definitions for hybrid_memory_query_patterns.feature."""
 
 import tempfile
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
@@ -26,7 +26,7 @@ def context():
         def __init__(self) -> None:
             self.temp_dir = tempfile.TemporaryDirectory()
             self.adapters: Dict[str, Any] = {}
-            self.memory_manager: MemoryManager | None = None
+            self.memory_manager: Union[MemoryManager, None] = None
             self.results: Any = None
             self.active_context: Dict[str, str] = {}
 
