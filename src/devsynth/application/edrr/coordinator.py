@@ -158,6 +158,9 @@ class EDRRCoordinator:
             "max_recursion_depth", self.DEFAULT_MAX_RECURSION_DEPTH
         )
 
+        # Micro-cycle monitoring hooks
+        self._micro_cycle_hooks: Dict[str, List] = {"start": [], "end": []}
+
         self.manifest_parser = ManifestParser()
         self._manifest_parser = None
         self.current_phase = None
@@ -176,6 +179,44 @@ class EDRRCoordinator:
         """Manually override the next phase transition."""
 
         self.manual_next_phase = phase
+
+    # ------------------------------------------------------------------
+    def register_micro_cycle_hook(self, event: str, hook: Any) -> None:
+        """Register a hook for micro-cycle monitoring."""
+
+        if event not in self._micro_cycle_hooks:
+            raise ValueError(f"Unknown hook event: {event}")
+        self._micro_cycle_hooks[event].append(hook)
+
+    def _invoke_micro_cycle_hooks(
+        self,
+        event: str,
+        phase: Phase,
+        iteration: int,
+        cycle: "EDRRCoordinator" | None = None,
+        results: Dict[str, Any] | None = None,
+        task: Dict[str, Any] | None = None,
+    ) -> None:
+        """Invoke registered micro-cycle hooks."""
+
+        hooks = self._micro_cycle_hooks.get(event, [])
+        if not hooks:
+            return
+        info = {
+            "phase": phase,
+            "iteration": iteration,
+            "cycle_id": cycle.cycle_id if cycle else self.cycle_id,
+            "timestamp": datetime.now().isoformat(),
+        }
+        if results is not None:
+            info["results"] = results
+        if task is not None:
+            info["task"] = task
+        for hook in hooks:
+            try:
+                hook(info)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Micro-cycle hook error: %s", exc)
 
     def _safe_store_with_edrr_phase(
         self,
@@ -784,6 +825,15 @@ class EDRRCoordinator:
             config=self.config,
         )
 
+        # Notify hooks that a micro-cycle is starting
+        self._invoke_micro_cycle_hooks(
+            "start",
+            parent_phase,
+            0,
+            cycle=micro_cycle,
+            task=task,
+        )
+
         # When the micro cycle aggregates its results, refresh the parent's
         # aggregated results as well so that the parent always has the latest
         # child data.
@@ -815,6 +865,15 @@ class EDRRCoordinator:
                 )
         else:
             micro_cycle.start_cycle(task)
+
+        # Notify hooks that the micro-cycle finished initial execution
+        self._invoke_micro_cycle_hooks(
+            "end",
+            parent_phase,
+            0,
+            cycle=micro_cycle,
+            results=micro_cycle.results,
+        )
 
         # Add the micro cycle to the list of child cycles
         self.child_cycles.append(micro_cycle)
@@ -3179,6 +3238,15 @@ class EDRRCoordinator:
     def _execute_micro_cycle(self, phase: Phase, iteration: int) -> Dict[str, Any]:
         """Execute a single micro-cycle using the WSDE team."""
         task = self._create_micro_cycle_task(phase, iteration)
+
+        self._invoke_micro_cycle_hooks(
+            "start",
+            phase,
+            iteration,
+            cycle=self,
+            task=task,
+        )
+
         wsde_results = self.wsde_team.process(task)
         if hasattr(self.wsde_team, "apply_enhanced_dialectical_reasoning"):
             try:
@@ -3198,6 +3266,14 @@ class EDRRCoordinator:
                         "error": str(exc),
                     }
                 )
+        self._invoke_micro_cycle_hooks(
+            "end",
+            phase,
+            iteration,
+            cycle=self,
+            results=wsde_results,
+        )
+
         return wsde_results
 
     def _assess_result_quality(self, results: Dict[str, Any]) -> float:
