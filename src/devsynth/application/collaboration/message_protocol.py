@@ -196,7 +196,17 @@ class MessageProtocol:
                 metadata=message.metadata,
             )
             try:
-                self.memory_manager.store_item(item)
+                if "tinydb" in self.memory_manager.adapters:
+                    primary = "tinydb"
+                elif "graph" in self.memory_manager.adapters:
+                    primary = "graph"
+                elif self.memory_manager.adapters:
+                    primary = next(iter(self.memory_manager.adapters))
+                else:
+                    primary = None
+
+                if primary:
+                    self.memory_manager.sync_manager.update_item(primary, item)
             except Exception:
                 pass
         return message
