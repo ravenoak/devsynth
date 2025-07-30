@@ -47,6 +47,37 @@ export DEVSYNTH_TLS_CA_FILE=/path/to/ca.pem
 export DEVSYNTH_ACCESS_TOKEN=my-secret-token
 ```
 
+## Incident Response Procedures
+
+The [Incident Response Runbook](../deployment/runbooks/incident_response.md)
+describes manual steps for investigating and mitigating production issues.
+Automated helpers are provided by `scripts/security_incident_response.py`:
+
+```bash
+# Collect logs and run a security audit
+python scripts/security_incident_response.py --collect-logs --audit --output incident_$(date +%Y%m%d)
+```
+
+This script archives the `logs/` directory and executes the existing
+`security_audit.py` checks to aid in forensics.
+
+## Vulnerability Management
+
+Routine patching keeps dependencies up to date. Use
+`scripts/vulnerability_management.py` to list outdated packages and optionally
+apply updates:
+
+```bash
+# Show outdated dependencies
+python scripts/vulnerability_management.py
+
+# Apply available updates
+python scripts/vulnerability_management.py --apply
+```
+
+These checks run in CI alongside `scripts/dependency_safety_check.py` to ensure
+the project remains free of known vulnerabilities.
+
 ## Threat Model
 
 The primary threats considered include:
@@ -68,3 +99,7 @@ Runtime checks in [`src/devsynth/config/settings.py`](../../src/devsynth/config/
 validate encryption parameters on startup. The JSON file store implements
 AES-based encryption in [`src/devsynth/application/memory/json_file_store.py`](../../src/devsynth/application/memory/json_file_store.py)
 using helpers from [`src/devsynth/security/encryption.py`](../../src/devsynth/security/encryption.py).
+Security incident response automation is provided via
+`scripts/security_incident_response.py`. Dependency updates and vulnerability
+checks are handled by `scripts/vulnerability_management.py` alongside the
+existing safety and Bandit scans.
