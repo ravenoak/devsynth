@@ -64,10 +64,12 @@ class KuzuStore(MemoryStore):
         # test isolation fixtures.  Use the returned path so the database is
         # created in the correct location rather than the original argument
         # which may be outside the temporary test directory.
-        self.file_path = settings_module.ensure_path_exists(
-            file_path
-            or settings_module.kuzu_db_path
-            or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
+        self.file_path = os.path.abspath(
+            settings_module.ensure_path_exists(
+                file_path
+                or settings_module.kuzu_db_path
+                or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
+            )
         )
         # Explicitly create the directory even when ``ensure_path_exists`` is
         # patched not to, ensuring the database can always be opened.

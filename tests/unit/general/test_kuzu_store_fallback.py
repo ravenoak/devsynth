@@ -8,13 +8,10 @@ def test_kuzu_store_falls_back_when_dependency_missing(monkeypatch, tmp_path):
     # Remove kuzu module to simulate missing dependency
     monkeypatch.setitem(sys.modules, "kuzu", None)
     # Reload module after patching
-    spec = importlib.util.spec_from_file_location(
-        "kuzu_store",
-        Path(__file__).resolve().parents[3]
-        / "src/devsynth/application/memory/kuzu_store.py",
+    kuzu_store = importlib.import_module(
+        "devsynth.application.memory.kuzu_store"
     )
-    kuzu_store = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(kuzu_store)
+    importlib.reload(kuzu_store)
     KuzuStore = kuzu_store.KuzuStore
 
     store = KuzuStore(str(tmp_path))
