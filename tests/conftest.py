@@ -30,6 +30,10 @@ def pytest_configure(config):
         "markers",
         "requires_resource(name): mark test as requiring an external resource",
     )
+    config.addinivalue_line(
+        "markers",
+        "property: mark test as a Hypothesis property-based test",
+    )
 
 
 @pytest.fixture
@@ -567,3 +571,22 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(
                     pytest.mark.skip(reason=f"Resource '{resource}' not available")
                 )
+
+    # Skip property-based tests unless enabled
+    for item in items:
+        if item.get_closest_marker("property") and not is_property_testing_enabled():
+            item.add_marker(pytest.mark.skip(reason="Property testing disabled"))
+
+
+def is_property_testing_enabled() -> bool:
+    """Return True if property-based tests should run."""
+    flag = os.environ.get("DEVSYNTH_PROPERTY_TESTING")
+    if flag is not None:
+        return flag.strip().lower() in {"1", "true", "yes"}
+    cfg_path = Path(__file__).resolve().parents[1] / "config" / "default.yml"
+    try:
+        with open(cfg_path, "r") as f:
+            data = yaml.safe_load(f) or {}
+        return bool(data.get("formalVerification", {}).get("propertyTesting", False))
+    except Exception:
+        return False

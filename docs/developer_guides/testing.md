@@ -385,6 +385,20 @@ Make sure LM Studio is running in API mode on the endpoint above and the
 `poetry run pytest` command will execute all tests, including those normally
 skipped when resources are unavailable.
 
+## Enabling Property-Based Tests
+
+Property-based tests live in `tests/property/` and use [Hypothesis](https://hypothesis.readthedocs.io/) to generate inputs.
+They are disabled by default. Enable them by setting `formalVerification.propertyTesting` in your configuration or via the
+`DEVSYNTH_PROPERTY_TESTING` environment variable:
+
+```bash
+devsynth config formalVerification.propertyTesting true
+export DEVSYNTH_PROPERTY_TESTING=true  # optional override
+poetry run pytest tests/property/
+```
+
+When the flag is `false`, tests marked with `@pytest.mark.property` are automatically skipped.
+
 ## Continuous Integration
 
 DevSynth uses GitHub Actions for continuous integration testing. The CI pipeline:
