@@ -91,11 +91,14 @@ class KuzuStore(MemoryStore):
         # ``kuzu_embedded`` attribute which previously caused attribute errors
         # when initializing the store.  Read the value from the exported
         # constant via ``devsynth.config`` instead of the module attribute.
-        self.use_embedded = (
+        raw_embedded = (
             getattr(settings_module, "KUZU_EMBEDDED", settings_module._settings.kuzu_embedded)
             if use_embedded is None
             else use_embedded
         )
+        if isinstance(raw_embedded, str):
+            raw_embedded = raw_embedded.lower() in {"1", "true", "yes"}
+        self.use_embedded = bool(raw_embedded)
 
         kuzu_mod = None
         if "kuzu" in sys.modules and sys.modules["kuzu"] is not None:

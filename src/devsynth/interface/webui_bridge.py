@@ -328,6 +328,15 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
             candidate = current
         return max(0, min(total - 1, candidate))
 
+    @staticmethod
+    def normalize_wizard_step(value: Any, *, total: int) -> int:
+        """Coerce arbitrary values to a valid wizard step index."""
+        try:
+            step = int(float(str(value).strip()))
+        except Exception:
+            step = 0
+        return max(0, min(total - 1, step))
+
     def ask_question(
         self,
         message: str,

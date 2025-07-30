@@ -864,26 +864,11 @@ class WebUI(UXBridge):
         # keys.  Support both styles when retrieving the current wizard step
         # and data.
         step_val = getattr(st.session_state, "wizard_step", None)
-        if not isinstance(step_val, int):
-            if isinstance(st.session_state, dict):
-                step_val = st.session_state.get("wizard_step", step_val)
-            if step_val is None:
-                try:  # fall back to mapping style access
-                    step_val = st.session_state["wizard_step"]
-                except Exception:  # pragma: no cover - defensive
-                    step_val = 0
-        if isinstance(step_val, str):
-            text = step_val.strip()
-            if text.isdigit() or (text.startswith("-") and text[1:].isdigit()):
-                step_val = int(text)
-            else:  # pragma: no cover - defensive
-                try:
-                    step_val = int(float(text))
-                except Exception:
-                    step_val = 0
-        if not isinstance(step_val, int):
-            step_val = 0
-        st.session_state.wizard_step = max(0, min(len(steps) - 1, step_val))
+        if not isinstance(step_val, int) and isinstance(st.session_state, dict):
+            step_val = st.session_state.get("wizard_step", step_val)
+        st.session_state.wizard_step = WebUIBridge.normalize_wizard_step(
+            step_val, total=len(steps)
+        )
         if hasattr(st.session_state, "__setitem__"):
             st.session_state["wizard_step"] = st.session_state.wizard_step
 
@@ -968,6 +953,9 @@ class WebUI(UXBridge):
             st.session_state.wizard_step = WebUIBridge.adjust_wizard_step(
                 step, direction="next", total=len(steps)
             )
+        st.session_state.wizard_step = WebUIBridge.normalize_wizard_step(
+            st.session_state.wizard_step, total=len(steps)
+        )
 
         st.session_state.wizard_data = data
         if hasattr(st.session_state, "__setitem__"):
