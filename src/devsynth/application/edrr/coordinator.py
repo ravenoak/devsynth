@@ -336,15 +336,7 @@ class EDRRCoordinator:
             self.task, MemoryType.TASK_HISTORY, "EXPAND", metadata
         )
 
-        # Initial role assignment before the first phase using dynamic roles
-        self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
-        role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
-        self._safe_store_with_edrr_phase(
-            self.wsde_team.get_role_map(),
-            MemoryType.TEAM_STATE,
-            Phase.EXPAND.value,
-            role_metadata,
-        )
+        # Initial role assignment will be handled when entering the first phase
 
         # Reset WSDE team method call history for clean metrics in tests
         for method_name in [
@@ -470,15 +462,7 @@ class EDRRCoordinator:
                 self.manifest, MemoryType.CONTEXT, Phase.EXPAND.value, manifest_metadata
             )
 
-            # Initial role assignment before the first phase using dynamic roles
-            self.wsde_team.assign_roles_for_phase(Phase.EXPAND, self.task)
-            role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
-            self._safe_store_with_edrr_phase(
-                self.wsde_team.get_role_map(),
-                MemoryType.TEAM_STATE,
-                Phase.EXPAND.value,
-                role_metadata,
-            )
+            # Initial role assignment will be handled when entering the first phase
 
             # Enter the Expand phase
             self.progress_to_phase(Phase.EXPAND)
