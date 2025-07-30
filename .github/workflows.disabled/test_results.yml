@@ -48,6 +48,11 @@ jobs:
         run: |
           mkdir -p test-results/behavior
           poetry run pytest tests/behavior/ --junitxml=test-results/behavior/results.xml
+
+      - name: Run property tests with JUnit report
+        run: |
+          mkdir -p test-results/property
+          poetry run pytest tests/property/ --junitxml=test-results/property/results.xml
           
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
