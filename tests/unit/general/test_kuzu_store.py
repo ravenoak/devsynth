@@ -1,12 +1,11 @@
 """Basic tests for :class:`KuzuStore`."""
-import importlib.util
-from pathlib import Path
+import importlib
+import os
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-spec = importlib.util.spec_from_file_location('kuzu_store', Path(__file__).
-    resolve().parents[3] / 'src/devsynth/application/memory/kuzu_store.py')
-kuzu_store = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(kuzu_store)
-KuzuStore = kuzu_store.KuzuStore
+
+KuzuStore = importlib.import_module(
+    "devsynth.application.memory.kuzu_store"
+).KuzuStore
 
 
 def test_store_retrieve_and_versions_succeeds(tmp_path):
@@ -37,3 +36,9 @@ ReqID: N/A"""
     results = store.search({'metadata.tag': 'y'})
     assert len(results) == 1
     assert results[0].id == '2'
+
+
+def test_store_path_is_absolute(tmp_path):
+    """Initialization should normalize the store path."""
+    store = KuzuStore(str(tmp_path))
+    assert os.path.isabs(store.file_path)

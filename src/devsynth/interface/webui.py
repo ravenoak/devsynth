@@ -925,6 +925,8 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[green]Requirements saved to requirements_wizard.json[/green]"
                 )
+                st.session_state.wizard_step = 0
+                st.session_state.wizard_data = {}
                 if hasattr(st.session_state, "__setitem__"):
                     st.session_state["wizard_step"] = st.session_state.wizard_step
                     st.session_state["wizard_data"] = st.session_state.wizard_data

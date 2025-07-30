@@ -143,6 +143,14 @@ def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, monkeypa
     assert result == expected_data
     webui_instance = WebUI()
     webui_instance.display_result = MagicMock()
+    stub_streamlit.session_state.wizard_step = 4
+    stub_streamlit.session_state.wizard_data = {
+        "title": "Test Requirement",
+        "description": "Test Description",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": "constraint1, constraint2",
+    }
     with patch("builtins.open", m):
         result = webui_instance._requirements_wizard()
     webui_instance.display_result.assert_called_once()
@@ -215,3 +223,27 @@ def test_requirements_wizard_error_handling_raises_error(stub_streamlit, monkeyp
         webui_instance._requirements_wizard()
     webui_instance.display_result.assert_called_once()
     assert "ERROR" in webui_instance.display_result.call_args[0][0]
+
+
+def test_requirements_wizard_resets_after_save(stub_streamlit, monkeypatch):
+    """Wizard should reset state after saving."""
+    import importlib
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    stub_streamlit.session_state.wizard_step = 4
+    stub_streamlit.session_state.wizard_data = {
+        "title": "Req",
+        "description": "Desc",
+        "type": "functional",
+        "priority": "medium",
+        "constraints": "",
+    }
+    stub_streamlit.button.return_value = True
+    m = mock_open()
+    with patch("builtins.open", m):
+        WebUI()._requirements_wizard()
+    assert stub_streamlit.session_state.wizard_step == 0
+    assert stub_streamlit.session_state.wizard_data == {}
