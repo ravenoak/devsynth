@@ -1,4 +1,3 @@
-
 """
 ChromaDB adapter for vector storage.
 """
@@ -6,6 +5,7 @@ ChromaDB adapter for vector storage.
 import os
 import json
 import uuid
+
 try:
     import chromadb
 except ImportError as e:  # pragma: no cover - optional dependency
@@ -23,6 +23,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError, MemoryStoreError, MemoryItemNotFoundError
 
 logger = DevSynthLogger(__name__)
+
 
 class ChromaDBAdapter(VectorStore):
     """ChromaDB implementation of the VectorStore interface."""
@@ -86,13 +87,17 @@ class ChromaDBAdapter(VectorStore):
             A dictionary of serialized metadata
         """
         # Convert created_at to ISO format string
-        created_at_str = vector.created_at.isoformat() if vector.created_at else datetime.now().isoformat()
+        created_at_str = (
+            vector.created_at.isoformat()
+            if vector.created_at
+            else datetime.now().isoformat()
+        )
 
         # Create a serialized representation of the content and metadata
         serialized = {
             "content": vector.content,
             "metadata": vector.metadata,
-            "created_at": created_at_str
+            "created_at": created_at_str,
         }
 
         return {"vector_data": json.dumps(serialized)}
@@ -115,7 +120,7 @@ class ChromaDBAdapter(VectorStore):
             return {
                 "content": data.get("content"),
                 "metadata": data.get("metadata", {}),
-                "created_at": data.get("created_at")
+                "created_at": data.get("created_at"),
             }
         except json.JSONDecodeError as e:
             logger.error(f"Failed to deserialize vector metadata: {e}")
@@ -144,9 +149,7 @@ class ChromaDBAdapter(VectorStore):
 
             # Store in ChromaDB
             self.collection.upsert(
-                ids=[vector.id],
-                embeddings=[vector.embedding],
-                metadatas=[metadata]
+                ids=[vector.id], embeddings=[vector.embedding], metadatas=[metadata]
             )
 
             logger.info(f"Stored vector with ID {vector.id} in ChromaDB")
@@ -170,7 +173,9 @@ class ChromaDBAdapter(VectorStore):
         """
         try:
             # Query ChromaDB for the vector
-            result = self.collection.get(ids=[vector_id], include=["embeddings", "metadatas"])
+            result = self.collection.get(
+                ids=[vector_id], include=["embeddings", "metadatas"]
+            )
 
             # Check if the vector was found
             if not result["ids"] or not result["metadatas"]:
@@ -185,14 +190,18 @@ class ChromaDBAdapter(VectorStore):
             deserialized = self._deserialize_metadata(metadata)
 
             # Create a MemoryVector
-            created_at = datetime.fromisoformat(deserialized["created_at"]) if deserialized["created_at"] else None
+            created_at = (
+                datetime.fromisoformat(deserialized["created_at"])
+                if deserialized["created_at"]
+                else None
+            )
 
             vector = MemoryVector(
                 id=vector_id,
                 content=deserialized["content"],
                 embedding=embedding,
                 metadata=deserialized["metadata"],
-                created_at=created_at
+                created_at=created_at,
             )
 
             logger.info(f"Retrieved vector with ID {vector_id} from ChromaDB")
@@ -201,7 +210,9 @@ class ChromaDBAdapter(VectorStore):
             logger.error(f"Failed to retrieve vector from ChromaDB: {e}")
             raise MemoryStoreError(f"Failed to retrieve vector from ChromaDB: {e}")
 
-    def similarity_search(self, query_embedding: List[float], top_k: int = 5) -> List[MemoryVector]:
+    def similarity_search(
+        self, query_embedding: List[float], top_k: int = 5
+    ) -> List[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -220,7 +231,7 @@ class ChromaDBAdapter(VectorStore):
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=top_k,
-                include=["embeddings", "metadatas", "distances"]
+                include=["embeddings", "metadatas", "distances"],
             )
 
             # Check if any results were found
@@ -238,14 +249,18 @@ class ChromaDBAdapter(VectorStore):
                 deserialized = self._deserialize_metadata(metadata)
 
                 # Create a MemoryVector
-                created_at = datetime.fromisoformat(deserialized["created_at"]) if deserialized["created_at"] else None
+                created_at = (
+                    datetime.fromisoformat(deserialized["created_at"])
+                    if deserialized["created_at"]
+                    else None
+                )
 
                 vector = MemoryVector(
                     id=vector_id,
                     content=deserialized["content"],
                     embedding=embedding,
                     metadata=deserialized["metadata"],
-                    created_at=created_at
+                    created_at=created_at,
                 )
 
                 vectors.append(vector)
@@ -254,7 +269,9 @@ class ChromaDBAdapter(VectorStore):
             return vectors
         except Exception as e:
             logger.error(f"Failed to perform similarity search in ChromaDB: {e}")
-            raise MemoryStoreError(f"Failed to perform similarity search in ChromaDB: {e}")
+            raise MemoryStoreError(
+                f"Failed to perform similarity search in ChromaDB: {e}"
+            )
 
     def delete_vector(self, vector_id: str) -> bool:
         """
@@ -318,11 +335,43 @@ class ChromaDBAdapter(VectorStore):
                 "collection_name": self.collection_name,
                 "num_vectors": num_vectors,
                 "embedding_dimension": embedding_dimension,
-                "persist_directory": self.persist_directory
+                "persist_directory": self.persist_directory,
             }
 
             logger.info(f"Retrieved collection statistics: {stats}")
             return stats
         except Exception as e:
             logger.error(f"Failed to get collection statistics from ChromaDB: {e}")
-            raise MemoryStoreError(f"Failed to get collection statistics from ChromaDB: {e}")
+            raise MemoryStoreError(
+                f"Failed to get collection statistics from ChromaDB: {e}"
+            )
+
+    def get_all_vectors(self) -> List[MemoryVector]:
+        """Return all stored :class:`MemoryVector` objects."""
+
+        try:
+            result = self.collection.get(include=["embeddings", "metadatas"])
+            vectors = []
+            for vid, emb, meta in zip(
+                result["ids"], result["embeddings"], result["metadatas"]
+            ):
+                deserialized = self._deserialize_metadata(meta)
+                created = (
+                    datetime.fromisoformat(deserialized["created_at"])
+                    if deserialized["created_at"]
+                    else None
+                )
+                vectors.append(
+                    MemoryVector(
+                        id=vid,
+                        content=deserialized["content"],
+                        embedding=emb,
+                        metadata=deserialized["metadata"],
+                        created_at=created,
+                    )
+                )
+            logger.info("Retrieved %s vectors from ChromaDB", len(vectors))
+            return vectors
+        except Exception as e:  # pragma: no cover - defensive
+            logger.error("Failed to get all vectors from ChromaDB: %s", e)
+            return []
