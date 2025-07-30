@@ -8,6 +8,8 @@ from datetime import datetime
 from uuid import uuid4
 
 from .message_protocol import MessageType
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 @dataclass
@@ -21,6 +23,7 @@ class PeerReview:
     acceptance_criteria: Optional[List[str]] = None
     quality_metrics: Optional[Dict[str, Any]] = None
     team: Optional[Any] = None
+    memory_manager: Optional[MemoryManager] = None
 
     reviews: Dict[Any, Dict[str, Any]] = field(default_factory=dict)
     revision: Any = None
@@ -455,6 +458,28 @@ class PeerReview:
 
         if self.consensus_result:
             result["consensus"] = self.consensus_result
+
+        if self.memory_manager is not None:
+            item = MemoryItem(
+                id=self.review_id,
+                content=result,
+                memory_type=MemoryType.DOCUMENTATION,
+                metadata={"type": "PEER_REVIEW_RESULT"},
+            )
+            try:
+                if "tinydb" in self.memory_manager.adapters:
+                    primary = "tinydb"
+                elif "graph" in self.memory_manager.adapters:
+                    primary = "graph"
+                elif self.memory_manager.adapters:
+                    primary = next(iter(self.memory_manager.adapters))
+                else:
+                    primary = None
+
+                if primary:
+                    self.memory_manager.sync_manager.update_item(primary, item)
+            except Exception:
+                pass
 
         return result
 

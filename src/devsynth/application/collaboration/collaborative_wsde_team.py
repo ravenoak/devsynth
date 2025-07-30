@@ -19,6 +19,7 @@ from devsynth.application.collaboration.wsde_team_task_management import (
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
+from devsynth.application.memory.memory_manager import MemoryManager
 
 
 class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETeam):
@@ -37,7 +38,12 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
     - Decision tracking and documentation
     """
 
-    def __init__(self, name: str, description: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        memory_manager: Optional[MemoryManager] = None,
+    ) -> None:
         """
         Initialize a new CollaborativeWSDETeam.
 
@@ -46,6 +52,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             description: Optional description of the team's purpose
         """
         super().__init__(name, description)
+        self.memory_manager = memory_manager
 
         # Initialize attributes for task management
         self.subtasks = {}
@@ -60,6 +67,14 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         self.leadership_reassessments = {}
         self.transition_metrics = {}
         self.collaboration_metrics = {}
+
+    def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        """Vote on a decision then build consensus if needed."""
+        result = self.vote_on_critical_decision(task)
+        decision = result.get("result")
+        if not decision or result.get("status") != "completed":
+            result["consensus"] = self.build_consensus(task)
+        return result
 
     def solve_collaboratively(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         """
