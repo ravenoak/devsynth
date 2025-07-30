@@ -45,7 +45,7 @@ EOF
 poetry run python -c "import pytest_bdd"
 
 # Ensure pytest-bdd is installed in the environment
-poetry run pip show pytest-bdd >/dev/null
+poetry run pip list | grep pytest-bdd >/dev/null
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
