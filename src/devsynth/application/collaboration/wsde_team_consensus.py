@@ -14,6 +14,8 @@ import uuid
 import re
 
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 class ConsensusBuildingMixin:
@@ -39,7 +41,9 @@ class ConsensusBuildingMixin:
             task["id"] = str(uuid.uuid4())
 
         # Log the consensus building
-        self.logger.info(f"Building consensus for task {task['id']}: {task.get('title', 'Untitled')}")
+        self.logger.info(
+            f"Building consensus for task {task['id']}: {task.get('title', 'Untitled')}"
+        )
 
         # Get all agents' opinions
         agent_opinions = {}
@@ -47,7 +51,7 @@ class ConsensusBuildingMixin:
             # Get messages from this agent related to the task
             messages = self.get_messages(
                 agent=agent.name,
-                filters={"metadata.task_id": task["id"], "type": "opinion"}
+                filters={"metadata.task_id": task["id"], "type": "opinion"},
             )
 
             if messages:
@@ -59,7 +63,7 @@ class ConsensusBuildingMixin:
                 agent_opinions[agent.name] = {
                     "opinion": opinion,
                     "rationale": rationale,
-                    "timestamp": latest_message["timestamp"]
+                    "timestamp": latest_message["timestamp"],
                 }
 
         # If no opinions, try to generate them
@@ -70,7 +74,7 @@ class ConsensusBuildingMixin:
             for agent in self.agents:
                 messages = self.get_messages(
                     agent=agent.name,
-                    filters={"metadata.task_id": task["id"], "type": "opinion"}
+                    filters={"metadata.task_id": task["id"], "type": "opinion"},
                 )
 
                 if messages:
@@ -81,7 +85,7 @@ class ConsensusBuildingMixin:
                     agent_opinions[agent.name] = {
                         "opinion": opinion,
                         "rationale": rationale,
-                        "timestamp": latest_message["timestamp"]
+                        "timestamp": latest_message["timestamp"],
                     }
 
         # Identify conflicts in opinions
@@ -98,7 +102,7 @@ class ConsensusBuildingMixin:
                 "conflicts_identified": len(conflicts),
                 "synthesis": synthesis,
                 "agent_opinions": agent_opinions,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
         else:
             # If no conflicts, use weighted majority opinion with tie breaking
@@ -113,7 +117,7 @@ class ConsensusBuildingMixin:
                 "method": "majority_opinion",
                 "majority_opinion": majority_opinion,
                 "agent_opinions": agent_opinions,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
         # Track the decision
@@ -143,7 +147,7 @@ class ConsensusBuildingMixin:
             # Get messages from this agent related to the task
             messages = self.get_messages(
                 agent=agent.name,
-                filters={"metadata.task_id": task["id"], "type": "opinion"}
+                filters={"metadata.task_id": task["id"], "type": "opinion"},
             )
 
             if messages:
@@ -154,7 +158,7 @@ class ConsensusBuildingMixin:
 
                 agent_opinions[agent.name] = {
                     "opinion": opinion,
-                    "rationale": rationale
+                    "rationale": rationale,
                 }
 
         # Compare opinions pairwise
@@ -178,7 +182,12 @@ class ConsensusBuildingMixin:
                         "opinion2": opinion2,
                         "rationale1": agent_opinions[agent1]["rationale"],
                         "rationale2": agent_opinions[agent2]["rationale"],
-                        "severity": "high" if self._calculate_conflict_severity(opinion1, opinion2) > 0.7 else "medium"
+                        "severity": (
+                            "high"
+                            if self._calculate_conflict_severity(opinion1, opinion2)
+                            > 0.7
+                            else "medium"
+                        ),
                     }
                     conflicts.append(conflict)
 
@@ -216,14 +225,16 @@ class ConsensusBuildingMixin:
 
         # Check for semantic similarity (simplified)
         # In a real implementation, this would use embeddings or more sophisticated NLP
-        words1 = set(re.findall(r'\b\w+\b', opinion1.lower()))
-        words2 = set(re.findall(r'\b\w+\b', opinion2.lower()))
+        words1 = set(re.findall(r"\b\w+\b", opinion1.lower()))
+        words2 = set(re.findall(r"\b\w+\b", opinion2.lower()))
 
         # If opinions share less than 30% of words, they might conflict
         if len(words1.intersection(words2)) / max(len(words1), len(words2)) < 0.3:
             # Check if they're discussing the same topic
             topic_words = {"approach", "method", "solution", "implementation", "design"}
-            if any(word in words1 for word in topic_words) and any(word in words2 for word in topic_words):
+            if any(word in words1 for word in topic_words) and any(
+                word in words2 for word in topic_words
+            ):
                 return True
 
         return False
@@ -259,15 +270,17 @@ class ConsensusBuildingMixin:
             return 0.6
 
         # Calculate word overlap as a measure of agreement
-        words1 = set(re.findall(r'\b\w+\b', opinion1.lower()))
-        words2 = set(re.findall(r'\b\w+\b', opinion2.lower()))
+        words1 = set(re.findall(r"\b\w+\b", opinion1.lower()))
+        words2 = set(re.findall(r"\b\w+\b", opinion2.lower()))
 
         overlap = len(words1.intersection(words2)) / max(len(words1), len(words2))
 
         # Convert overlap to severity (less overlap = higher severity)
         return 1.0 - overlap
 
-    def _generate_conflict_resolution_synthesis(self, task: Dict[str, Any], conflicts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _generate_conflict_resolution_synthesis(
+        self, task: Dict[str, Any], conflicts: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Generate a synthesis that resolves conflicts in agent opinions.
 
@@ -297,10 +310,12 @@ class ConsensusBuildingMixin:
         for agent in self.agents:
             # Extract keywords from task
             task_text = task.get("description", "") + " " + task.get("title", "")
-            keywords = set(re.findall(r'\b\w+\b', task_text.lower()))
+            keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
 
             # Calculate expertise weight
-            expertise_weights[agent.name] = self._calculate_expertise_weight(agent, keywords)
+            expertise_weights[agent.name] = self._calculate_expertise_weight(
+                agent, keywords
+            )
 
         # Identify key points from each opinion, weighted by expertise
         key_points = []
@@ -308,7 +323,7 @@ class ConsensusBuildingMixin:
             # Get agent's opinion
             messages = self.get_messages(
                 agent=agent.name,
-                filters={"metadata.task_id": task["id"], "type": "opinion"}
+                filters={"metadata.task_id": task["id"], "type": "opinion"},
             )
 
             if not messages:
@@ -326,12 +341,14 @@ class ConsensusBuildingMixin:
             weight = expertise_weights.get(agent.name, 1.0)
 
             for point in opinion_points + rationale_points:
-                key_points.append({
-                    "point": point,
-                    "agent": agent.name,
-                    "weight": weight,
-                    "conflict_count": len(agent_conflicts.get(agent.name, []))
-                })
+                key_points.append(
+                    {
+                        "point": point,
+                        "agent": agent.name,
+                        "weight": weight,
+                        "conflict_count": len(agent_conflicts.get(agent.name, [])),
+                    }
+                )
 
         # Sort key points by weight and conflict count (higher weight, lower conflict count first)
         key_points.sort(key=lambda p: (p["weight"], -p["conflict_count"]), reverse=True)
@@ -361,7 +378,7 @@ class ConsensusBuildingMixin:
             "key_points": synthesis_points,
             "expertise_weights": expertise_weights,
             "conflict_resolution_method": "weighted_expertise_synthesis",
-            "readability_score": self._calculate_readability_score(synthesis_text)
+            "readability_score": self._calculate_readability_score(synthesis_text),
         }
 
         return synthesis
@@ -377,7 +394,7 @@ class ConsensusBuildingMixin:
             List of key points
         """
         # Split by sentences
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
 
         # Filter out empty sentences
         sentences = [s.strip() for s in sentences if s.strip()]
@@ -386,8 +403,19 @@ class ConsensusBuildingMixin:
         key_sentences = []
         for sentence in sentences:
             # Check for indicators of key points
-            if any(indicator in sentence.lower() for indicator in 
-                  ["should", "must", "recommend", "suggest", "important", "critical", "key", "essential"]):
+            if any(
+                indicator in sentence.lower()
+                for indicator in [
+                    "should",
+                    "must",
+                    "recommend",
+                    "suggest",
+                    "important",
+                    "critical",
+                    "key",
+                    "essential",
+                ]
+            ):
                 key_sentences.append(sentence)
 
         # If no key sentences found, use all sentences
@@ -410,12 +438,12 @@ class ConsensusBuildingMixin:
         # In a real implementation, this would use more sophisticated NLP
 
         # Look for noun phrases
-        noun_phrase_match = re.search(r'the ([a-zA-Z0-9_]+)', text.lower())
+        noun_phrase_match = re.search(r"the ([a-zA-Z0-9_]+)", text.lower())
         if noun_phrase_match:
             return noun_phrase_match.group(1)
 
         # Look for words after "should" or "must"
-        modal_match = re.search(r'should|must ([a-zA-Z0-9_]+)', text.lower())
+        modal_match = re.search(r"should|must ([a-zA-Z0-9_]+)", text.lower())
         if modal_match:
             return modal_match.group(1)
 
@@ -423,7 +451,9 @@ class ConsensusBuildingMixin:
         words = text.split()
         return " ".join(words[:3])
 
-    def _identify_majority_opinion(self, agent_opinions: Dict[str, Dict[str, Any]]) -> str:
+    def _identify_majority_opinion(
+        self, agent_opinions: Dict[str, Dict[str, Any]]
+    ) -> str:
         """
         Identify the majority opinion among agents.
 
@@ -506,7 +536,7 @@ class ConsensusBuildingMixin:
         # Convert expertise to set of words
         expertise_words = set()
         for exp in expertise:
-            expertise_words.update(re.findall(r'\b\w+\b', exp.lower()))
+            expertise_words.update(re.findall(r"\b\w+\b", exp.lower()))
 
         # Calculate overlap between expertise and keywords
         if not expertise_words or not keywords:
@@ -519,7 +549,9 @@ class ConsensusBuildingMixin:
 
         return weight
 
-    def _track_decision(self, task: Dict[str, Any], consensus_result: Dict[str, Any]) -> None:
+    def _track_decision(
+        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
+    ) -> None:
         """
         Track a decision made through consensus building.
 
@@ -540,7 +572,7 @@ class ConsensusBuildingMixin:
             "agent_opinions": consensus_result["agent_opinions"],
             "timestamp": datetime.now().isoformat(),
             "implemented": False,
-            "implementation_details": None
+            "implementation_details": None,
         }
 
         # Add synthesis if available
@@ -553,6 +585,28 @@ class ConsensusBuildingMixin:
 
         # Store decision
         self.tracked_decisions[decision_id] = decision
+
+        if hasattr(self, "memory_manager") and self.memory_manager is not None:
+            item = MemoryItem(
+                id=decision_id,
+                content=decision,
+                memory_type=MemoryType.TEAM_STATE,
+                metadata={"type": "CONSENSUS_DECISION"},
+            )
+            try:
+                if "tinydb" in self.memory_manager.adapters:
+                    primary = "tinydb"
+                elif "graph" in self.memory_manager.adapters:
+                    primary = "graph"
+                elif self.memory_manager.adapters:
+                    primary = next(iter(self.memory_manager.adapters))
+                else:
+                    primary = None
+
+                if primary:
+                    self.memory_manager.sync_manager.update_item(primary, item)
+            except Exception:
+                pass
 
         # Log decision tracking
         self.logger.info(f"Tracked decision {decision_id} for task {task['id']}")
@@ -573,7 +627,7 @@ class ConsensusBuildingMixin:
                 message_type="opinion_request",
                 subject=f"Opinion Request: {task.get('title', 'Untitled')}",
                 content=task,
-                metadata={"task_id": task["id"]}
+                metadata={"task_id": task["id"]},
             )
 
             # In a real implementation, we would wait for the agent to respond
@@ -589,11 +643,8 @@ class ConsensusBuildingMixin:
                 recipients=["system"],
                 message_type="opinion",
                 subject=f"Opinion on {task.get('title', 'Untitled')}",
-                content={
-                    "opinion": opinion,
-                    "rationale": rationale
-                },
-                metadata={"task_id": task["id"]}
+                content={"opinion": opinion, "rationale": rationale},
+                metadata={"task_id": task["id"]},
             )
 
     def _calculate_readability_score(self, text: str) -> Dict[str, float]:
@@ -607,10 +658,10 @@ class ConsensusBuildingMixin:
             Dictionary of readability metrics
         """
         # Count sentences, words, and syllables
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         sentences = [s.strip() for s in sentences if s.strip()]
 
-        words = re.findall(r'\b\w+\b', text.lower())
+        words = re.findall(r"\b\w+\b", text.lower())
 
         def count_syllables(word):
             """Count the number of syllables in a word."""
@@ -618,7 +669,7 @@ class ConsensusBuildingMixin:
             word = word.lower()
 
             # Remove ending e
-            if word.endswith('e'):
+            if word.endswith("e"):
                 word = word[:-1]
 
             # Count vowel groups
@@ -648,23 +699,33 @@ class ConsensusBuildingMixin:
                 "flesch_reading_ease": 0,
                 "flesch_kincaid_grade": 0,
                 "syllables_per_word": 0,
-                "words_per_sentence": 0
+                "words_per_sentence": 0,
             }
 
         # Flesch Reading Ease
-        flesch_reading_ease = 206.835 - (1.015 * (num_words / num_sentences)) - (84.6 * (syllables / num_words))
+        flesch_reading_ease = (
+            206.835
+            - (1.015 * (num_words / num_sentences))
+            - (84.6 * (syllables / num_words))
+        )
 
         # Flesch-Kincaid Grade Level
-        flesch_kincaid_grade = (0.39 * (num_words / num_sentences)) + (11.8 * (syllables / num_words)) - 15.59
+        flesch_kincaid_grade = (
+            (0.39 * (num_words / num_sentences))
+            + (11.8 * (syllables / num_words))
+            - 15.59
+        )
 
         return {
             "flesch_reading_ease": flesch_reading_ease,
             "flesch_kincaid_grade": flesch_kincaid_grade,
             "syllables_per_word": syllables / num_words,
-            "words_per_sentence": num_words / num_sentences
+            "words_per_sentence": num_words / num_sentences,
         }
 
-    def _generate_stakeholder_explanation(self, task: Dict[str, Any], consensus_result: Dict[str, Any]) -> str:
+    def _generate_stakeholder_explanation(
+        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
+    ) -> str:
         """
         Generate an explanation of the consensus result for stakeholders.
 
@@ -742,11 +803,15 @@ class ConsensusBuildingMixin:
             return False
 
         self.tracked_decisions[decision_id]["implemented"] = True
-        self.tracked_decisions[decision_id]["implementation_timestamp"] = datetime.now().isoformat()
+        self.tracked_decisions[decision_id][
+            "implementation_timestamp"
+        ] = datetime.now().isoformat()
 
         return True
 
-    def add_decision_implementation_details(self, decision_id: str, details: Dict[str, Any]) -> bool:
+    def add_decision_implementation_details(
+        self, decision_id: str, details: Dict[str, Any]
+    ) -> bool:
         """
         Add implementation details to a tracked decision.
 
@@ -805,11 +870,17 @@ class ConsensusBuildingMixin:
         decision = self.tracked_decisions[decision_id]
 
         # Check for synthesis or majority opinion
-        has_synthesis = "synthesis" in decision and decision["synthesis"].get("text", "")
-        has_majority_opinion = "majority_opinion" in decision and decision["majority_opinion"]
+        has_synthesis = "synthesis" in decision and decision["synthesis"].get(
+            "text", ""
+        )
+        has_majority_opinion = (
+            "majority_opinion" in decision and decision["majority_opinion"]
+        )
 
         # Check for implementation details
-        has_implementation = "implementation_details" in decision and decision["implementation_details"]
+        has_implementation = (
+            "implementation_details" in decision and decision["implementation_details"]
+        )
 
         return (has_synthesis or has_majority_opinion) and has_implementation
 

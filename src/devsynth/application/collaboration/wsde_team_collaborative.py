@@ -13,6 +13,7 @@ from datetime import datetime
 import uuid
 
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.application.memory.memory_manager import MemoryManager
 
 
 class CollaborativeWSDETeam(WSDETeam):
@@ -24,7 +25,12 @@ class CollaborativeWSDETeam(WSDETeam):
     and collaborative problem-solving.
     """
 
-    def __init__(self, name: str, description: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        memory_manager: Optional[MemoryManager] = None,
+    ) -> None:
         """
         Initialize a new CollaborativeWSDETeam.
 
@@ -33,6 +39,7 @@ class CollaborativeWSDETeam(WSDETeam):
             description: Optional description of the team's purpose
         """
         super().__init__(name, description)
+        self.memory_manager = memory_manager
         self.contribution_metrics = {}
         self.role_history = []
         self.subtasks = {}
