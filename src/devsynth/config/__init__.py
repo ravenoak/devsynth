@@ -5,7 +5,7 @@ Configuration module for DevSynth.
 import os
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Union
 
 import yaml
 import toml
@@ -18,7 +18,7 @@ _PROJECT_CONFIG: ConfigModel = load_config()
 PROJECT_CONFIG = _PROJECT_CONFIG
 
 
-def get_project_config(path: Path | None = None) -> ConfigModel:
+def get_project_config(path: Union[Path, None] = None) -> ConfigModel:
     """Return the cached project configuration."""
     global _PROJECT_CONFIG
     if path is not None or _PROJECT_CONFIG is None:
@@ -62,7 +62,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
     """Configuration wrapper for project.yaml or pyproject.toml."""
 
     @classmethod
-    def load(cls, path: Path | None = None) -> "ProjectUnifiedConfig":
+    def load(cls, path: Union[Path, None] = None) -> "ProjectUnifiedConfig":
         """Load and validate a project configuration."""
         root = Path(path or os.getcwd())
         yaml_path = root / ".devsynth" / "project.yaml"
@@ -130,7 +130,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
         return self.path
 
 
-def load_project_config(path: Path | None = None) -> ProjectUnifiedConfig:
+def load_project_config(path: Union[Path, None] = None) -> ProjectUnifiedConfig:
     """Load project configuration from project.yaml or pyproject.toml."""
     return ProjectUnifiedConfig.load(path)
 

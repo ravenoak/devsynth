@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import types
-from typing import List
+from typing import List, Union
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
@@ -73,7 +73,7 @@ def context():
             self.agents: List[SimpleAgent] = []
             self.result = None
             self.task = None
-            self.critic: SimpleAgent | None = None
+            self.critic: Union[SimpleAgent, None] = None
 
     return Context()
 

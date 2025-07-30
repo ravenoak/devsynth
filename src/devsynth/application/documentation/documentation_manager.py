@@ -5,7 +5,7 @@ This module defines the DocumentationManager class for coordinating documentatio
 fetching, storage, and querying in a version-aware manner.
 """
 
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Union
 import os
 import json
 import re
@@ -35,7 +35,7 @@ class DocumentationManager:
 
     def __init__(
         self,
-        memory_manager: MemoryManager | None = None,
+        memory_manager: Union[MemoryManager, None] = None,
         storage_path: Optional[str] = None,
     ):
         """

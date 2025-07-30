@@ -30,6 +30,11 @@ class MemoryType(Enum):
     TASK_HISTORY = "task_history"
     KNOWLEDGE = "knowledge"
     ERROR_LOG = "error_log"
+    # Collaboration-specific memory types
+    COLLABORATION_TASK = "collaboration_task"
+    COLLABORATION_MESSAGE = "collaboration_message"
+    COLLABORATION_TEAM = "collaboration_team"
+    PEER_REVIEW = "peer_review"
 
 # Alias for backward compatibility and for use in tests
 MemoryItemType = MemoryType

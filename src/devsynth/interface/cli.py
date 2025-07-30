@@ -547,7 +547,7 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         return answer
 
     def display_result(
-        self, message: str, *, highlight: bool = False, message_type: str | None = None
+        self, message: str, *, highlight: bool = False, message_type: Union[str, None] = None
     ) -> None:
         """Format and display a message to the user."""
         if message_type == "error":

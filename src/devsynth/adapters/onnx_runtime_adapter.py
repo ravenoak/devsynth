@@ -1,6 +1,6 @@
 """Adapter providing an OnnxRuntime implementation using onnxruntime."""
 
-from typing import Any, Iterable, Dict
+from typing import Any, Iterable, Dict, Union
 
 import onnxruntime as ort
 
@@ -14,7 +14,7 @@ class ONNXRuntimeAdapter(OnnxRuntime):
     """Thin wrapper around ``onnxruntime.InferenceSession``."""
 
     def __init__(self) -> None:
-        self.session: ort.InferenceSession | None = None
+        self.session: Union[ort.InferenceSession, None] = None
 
     def load_model(self, model_path: str) -> None:
         logger.debug(f"Initializing ONNX runtime with model: {model_path}")

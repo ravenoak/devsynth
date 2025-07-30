@@ -16,7 +16,7 @@ except ImportError as e:  # pragma: no cover - optional dependency
     raise ImportError(
         "LMDBStore requires the 'lmdb' package. Install it with 'pip install lmdb' or use the dev extras."
     ) from e
-from typing import Dict, List, Any, Optional, ContextManager
+from typing import Dict, List, Any, Optional, ContextManager, Union
 from datetime import datetime
 from contextlib import contextmanager
 
@@ -50,7 +50,7 @@ class LMDBStore(MemoryStore):
         map_size: int = 10485760,
         *,
         encryption_enabled: bool = False,
-        encryption_key: str | None = None,
+        encryption_key: Union[str, None] = None,
     ):
         """
         Initialize a LMDBStore.

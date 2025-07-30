@@ -219,7 +219,7 @@ class BaseProvider:
     def __init__(
         self,
         *,
-        tls_config: TLSConfig | None = None,
+        tls_config: Union[TLSConfig, None] = None,
         retry_config: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
@@ -344,7 +344,7 @@ class OpenAIProvider(BaseProvider):
         api_key: str,
         model: str = "gpt-4",
         base_url: str = "https://api.openai.com/v1",
-        tls_config: TLSConfig | None = None,
+        tls_config: Union[TLSConfig, None] = None,
         retry_config: Optional[Dict[str, Any]] = None,
     ):
         """
@@ -773,7 +773,7 @@ class LMStudioProvider(BaseProvider):
         self,
         endpoint: str = "http://127.0.0.1:1234",
         model: str = "default",
-        tls_config: TLSConfig | None = None,
+        tls_config: Union[TLSConfig, None] = None,
         retry_config: Optional[Dict[str, Any]] = None,
     ):
         """

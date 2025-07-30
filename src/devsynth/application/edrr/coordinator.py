@@ -193,9 +193,9 @@ class EDRRCoordinator:
         event: str,
         phase: Phase,
         iteration: int,
-        cycle: "EDRRCoordinator" | None = None,
-        results: Dict[str, Any] | None = None,
-        task: Dict[str, Any] | None = None,
+        cycle: Union["EDRRCoordinator", None] = None,
+        results: Union[Dict[str, Any], None] = None,
+        task: Union[Dict[str, Any], None] = None,
     ) -> None:
         """Invoke registered micro-cycle hooks."""
 
@@ -3289,7 +3289,7 @@ class EDRRCoordinator:
                 )
         return min(1.0, len(str(results)) / 1000)
 
-    def _assess_phase_quality(self, phase: Phase | None = None) -> Dict[str, Any]:
+    def _assess_phase_quality(self, phase: Union[Phase, None] = None) -> Dict[str, Any]:
         """Assess stored results for a phase."""
         phase = phase or self.current_phase
         if phase is None:
@@ -3320,7 +3320,7 @@ class EDRRCoordinator:
         return quality < threshold
 
     def _execute_phase(
-        self, phase: Phase, context: Dict[str, Any] | None = None
+        self, phase: Phase, context: Union[Dict[str, Any], None] = None
     ) -> Dict[str, Any]:
         """Execute a phase dispatcher used by error recovery."""
         context = context or {}

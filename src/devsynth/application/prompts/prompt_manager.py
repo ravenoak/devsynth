@@ -5,7 +5,7 @@ This module defines the PromptManager class for managing prompt templates,
 providing a centralized system for all agents to access and use templates.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 import os
 import json
 from pathlib import Path
@@ -258,8 +258,8 @@ class PromptManager:
     def record_tuning_feedback(
         self,
         name: str,
-        success: bool | None = None,
-        feedback_score: float | None = None,
+        success: Union[bool, None] = None,
+        feedback_score: Union[float, None] = None,
     ) -> None:
         """Record feedback for the last rendered variant of a template."""
         if not self.auto_tuner:

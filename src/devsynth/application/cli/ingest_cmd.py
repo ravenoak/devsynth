@@ -12,7 +12,7 @@ import yaml
 import json
 import time
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from rich.console import Console
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
@@ -258,9 +258,9 @@ def expand_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
-    memory_manager: MemoryManager | None = None,
-    code_analyzer: CodeAnalyzer | None = None,
-    wsde_team: WSDETeam | None = None,
+    memory_manager: Union[MemoryManager, None] = None,
+    code_analyzer: Union[CodeAnalyzer, None] = None,
+    wsde_team: Union[WSDETeam, None] = None,
 ) -> Dict[str, Any]:
     """Run the Expand phase and gather project metrics.
 
@@ -350,9 +350,9 @@ def differentiate_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
-    memory_manager: MemoryManager | None = None,
-    code_analyzer: CodeAnalyzer | None = None,
-    wsde_team: WSDETeam | None = None,
+    memory_manager: Union[MemoryManager, None] = None,
+    code_analyzer: Union[CodeAnalyzer, None] = None,
+    wsde_team: Union[WSDETeam, None] = None,
 ) -> Dict[str, Any]:
     """Validate the discovered project structure against the manifest."""
 
@@ -428,9 +428,9 @@ def refine_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
-    memory_manager: MemoryManager | None = None,
-    code_analyzer: CodeAnalyzer | None = None,
-    wsde_team: WSDETeam | None = None,
+    memory_manager: Union[MemoryManager, None] = None,
+    code_analyzer: Union[CodeAnalyzer, None] = None,
+    wsde_team: Union[WSDETeam, None] = None,
 ) -> Dict[str, Any]:
     """Create relationships between artifacts and identify outdated items."""
 
@@ -496,9 +496,9 @@ def retrospect_phase(
     verbose: bool = False,
     *,
     bridge: UXBridge = bridge,
-    memory_manager: MemoryManager | None = None,
-    code_analyzer: CodeAnalyzer | None = None,
-    wsde_team: WSDETeam | None = None,
+    memory_manager: Union[MemoryManager, None] = None,
+    code_analyzer: Union[CodeAnalyzer, None] = None,
+    wsde_team: Union[WSDETeam, None] = None,
 ) -> Dict[str, Any]:
     """Summarize results and suggest improvements."""
 

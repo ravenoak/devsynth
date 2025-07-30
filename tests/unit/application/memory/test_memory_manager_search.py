@@ -24,7 +24,8 @@ vector_adapter_module = _load_module(
 )
 MemoryManager = memory_manager_module.MemoryManager
 VectorMemoryAdapter = vector_adapter_module.VectorMemoryAdapter
-from devsynth.domain.models.memory import MemoryVector, MemoryType
+from devsynth.domain.models.memory import
+from typing import Union MemoryVector, MemoryType
 
 
 @pytest.fixture(autouse=True)
@@ -48,7 +49,7 @@ class TestMemoryManagerSearch:
         self,
         manager: MemoryManager,
         text: str,
-        memory_type: MemoryType | str,
+        memory_type: Union[MemoryType, str],
         **metadata,
     ):
         embedding = manager._embed_text(text)

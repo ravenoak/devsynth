@@ -1,7 +1,8 @@
 import pytest
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.agentapi import APIBridge
-from devsynth.interface.ux_bridge import sanitize_output
+from devsynth.interface.ux_bridge import
+from typing import Union sanitize_output
 
 
 class DummyProgress:
@@ -21,7 +22,7 @@ class DummyProgress:
         self.complete()
         return False
 
-    def update(self, *, advance: float = 1, description: str | None = None) -> None:
+    def update(self, *, advance: float = 1, description: Union[str, None] = None) -> None:
         if description:
             self.description = sanitize_output(description)
         self.current += advance
@@ -31,7 +32,7 @@ class DummyProgress:
         self.messages.append(f"{self.description} complete")
 
 
-def small_workflow(bridge: CLIUXBridge | APIBridge) -> list[str]:
+def small_workflow(bridge: Union[CLIUXBridge, APIBridge]) -> list[str]:
     """Minimal workflow exercising prompt, confirm and progress."""
     name = bridge.prompt("Name?", default="demo")
     if not bridge.confirm("Proceed?", default=True):

@@ -12,7 +12,7 @@ logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 from .base import BaseAgent
 from ..prompts.auto_tuning import BasicPromptTuner
 from ...domain.models.agent import AgentConfig, AgentType
@@ -38,9 +38,9 @@ class UnifiedAgent(BaseAgent):
 
     def __init__(
         self,
-        name: str | None = None,
+        name: Union[str, None] = None,
         agent_type: AgentType = AgentType.ORCHESTRATOR,
-        config: AgentConfig | None = None,
+        config: Union[AgentConfig, None] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -61,7 +61,7 @@ class UnifiedAgent(BaseAgent):
         self.initialize(config)
 
     def record_prompt_feedback(
-        self, success: bool | None = None, feedback_score: float | None = None
+        self, success: Union[bool, None] = None, feedback_score: Union[float, None] = None
     ) -> None:
         """Record feedback used for tuning future prompts."""
         self.prompt_tuner.adjust(success, feedback_score)

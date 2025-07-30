@@ -45,13 +45,36 @@ class KuzuMemoryStore(MemoryStore):
         self.persist_directory = settings_module.ensure_path_exists(
             self.persist_directory
         )
-        self._store = KuzuStore(self.persist_directory, use_embedded=None)
-        self.vector = KuzuAdapter(self.persist_directory, collection_name)
+        
+        # Explicitly determine whether to use embedded mode
+        use_embedded = getattr(settings_module, "KUZU_EMBEDDED", 
+                              getattr(settings_module._settings, "kuzu_embedded", True))
+        if isinstance(use_embedded, str):
+            use_embedded = use_embedded.lower() in {"1", "true", "yes"}
+        
+        # Create the directory to ensure it exists
+        os.makedirs(self.persist_directory, exist_ok=True)
+        
+        try:
+            self._store = KuzuStore(self.persist_directory, use_embedded=use_embedded)
+            self.vector = KuzuAdapter(self.persist_directory, collection_name)
+        except Exception as e:
+            logger.warning(f"Error initializing Kuzu store: {e}. Using fallback.")
+            # Ensure fallback is used
+            self._store = KuzuStore(self.persist_directory, use_embedded=False)
+            self.vector = KuzuAdapter(self.persist_directory, collection_name)
+            
         self.use_provider_system = use_provider_system
         self.provider_type = provider_type
-        if embedding_functions:
-            self.embedder = embedding_functions.DefaultEmbeddingFunction()
-        else:
+        
+        # Set up embedder with better error handling
+        try:
+            if embedding_functions:
+                self.embedder = embedding_functions.DefaultEmbeddingFunction()
+            else:
+                self.embedder = lambda x: [0.0] * 5
+        except Exception as e:
+            logger.warning(f"Error initializing embedder: {e}. Using fallback.")
             self.embedder = lambda x: [0.0] * 5
 
         if self._store._use_fallback:

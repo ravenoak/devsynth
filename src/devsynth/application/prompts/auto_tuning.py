@@ -633,7 +633,7 @@ class BasicPromptTuner:
         self.step = step
 
     def adjust(
-        self, success: bool | None = None, feedback_score: float | None = None
+        self, success: Union[bool, None] = None, feedback_score: Union[float, None] = None
     ) -> None:
         """Adjust the sampling temperature based on feedback."""
         delta = 0.0
@@ -692,7 +692,7 @@ def iterative_prompt_adjustment(
     base_template: str,
     evaluate: Callable[[str], float],
     iterations: int = 3,
-    tuner: PromptAutoTuner | None = None,
+    tuner: Union[PromptAutoTuner, None] = None,
 ) -> PromptVariant:
     """Iteratively tune a prompt using ``PromptAutoTuner``.
 

@@ -6,7 +6,7 @@ import logging
 import uuid
 import json
 import os
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import typer
 from rich.console import Console
@@ -771,23 +771,23 @@ def wizard_cmd(
         "requirements_wizard.json",
         help="File to store collected requirements",
     ),
-    title: str | None = typer.Option(
+    title: Union[str, None] = typer.Option(
         None,
         help="Requirement title",
     ),
-    description: str | None = typer.Option(
+    description: Union[str, None] = typer.Option(
         None,
         help="Requirement description",
     ),
-    req_type: str | None = typer.Option(
+    req_type: Union[str, None] = typer.Option(
         None,
         help="Requirement type",
     ),
-    priority: str | None = typer.Option(
+    priority: Union[str, None] = typer.Option(
         None,
         help="Requirement priority",
     ),
-    constraints: str | None = typer.Option(
+    constraints: Union[str, None] = typer.Option(
         None,
         help="Constraints (comma separated)",
     ),

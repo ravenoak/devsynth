@@ -859,18 +859,25 @@ class WebUI(UXBridge):
         # does not reflect attribute presence, so ``hasattr`` is required to
         # detect prior wizard state correctly.
         steps = ["Title", "Description", "Type", "Priority", "Constraints"]
-        # ``streamlit.session_state`` may be patched in tests as a ``dict``
-        # subclass where attributes are set directly rather than as mapping
-        # keys.  Support both styles when retrieving the current wizard step
-        # and data.
-        step_val = getattr(st.session_state, "wizard_step", None)
-        if not isinstance(step_val, int) and isinstance(st.session_state, dict):
-            step_val = st.session_state.get("wizard_step", step_val)
-        st.session_state.wizard_step = WebUIBridge.normalize_wizard_step(
-            step_val, total=len(steps)
-        )
-        if hasattr(st.session_state, "__setitem__"):
-            st.session_state["wizard_step"] = st.session_state.wizard_step
+        
+        # Ensure consistent access to session state regardless of implementation
+        def get_session_value(key, default=None):
+            """Get a value from session state consistently."""
+            value = getattr(st.session_state, key, None)
+            if value is None and isinstance(st.session_state, dict):
+                value = st.session_state.get(key, default)
+            return value
+            
+        def set_session_value(key, value):
+            """Set a value in session state consistently."""
+            setattr(st.session_state, key, value)
+            if hasattr(st.session_state, "__setitem__"):
+                st.session_state[key] = value
+        
+        # Get current wizard step with proper normalization
+        step_val = get_session_value("wizard_step", None)
+        normalized_step = WebUIBridge.normalize_wizard_step(step_val, total=len(steps))
+        set_session_value("wizard_step", normalized_step)
 
         defaults = {
             "title": os.environ.get("DEVSYNTH_REQ_TITLE", ""),
@@ -883,14 +890,14 @@ class WebUI(UXBridge):
             ),
             "constraints": os.environ.get("DEVSYNTH_REQ_CONSTRAINTS", ""),
         }
-        raw_data = getattr(st.session_state, "wizard_data", None)
-        if raw_data is None and isinstance(st.session_state, dict):
-            raw_data = st.session_state.get("wizard_data", {})
+        
+        # Get wizard data with consistent access
+        raw_data = get_session_value("wizard_data", {})
         data = raw_data.copy() if isinstance(raw_data, dict) else {}
         for key, val in defaults.items():
             data.setdefault(key, val)
 
-        step = st.session_state.wizard_step
+        step = get_session_value("wizard_step", 0)
         st.write(f"Step {step + 1} of {len(steps)}: {steps[step]}")
         st.progress((step + 1) / len(steps))
 
@@ -910,11 +917,9 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[green]Requirements saved to requirements_wizard.json[/green]"
                 )
-                st.session_state.wizard_step = 0
-                st.session_state.wizard_data = {}
-                if hasattr(st.session_state, "__setitem__"):
-                    st.session_state["wizard_step"] = st.session_state.wizard_step
-                    st.session_state["wizard_data"] = st.session_state.wizard_data
+                # Reset wizard state
+                set_session_value("wizard_step", 0)
+                set_session_value("wizard_data", {})
                 return result
             except Exception as exc:  # pragma: no cover - error path tested
                 self.display_result(
@@ -944,23 +949,28 @@ class WebUI(UXBridge):
                 "Constraints (comma separated)", data["constraints"]
             )
 
+        # Handle navigation buttons
         col1, col2 = st.columns(2)
         if col1.button("Back", disabled=step == 0):
-            st.session_state.wizard_step = WebUIBridge.adjust_wizard_step(
+            new_step = WebUIBridge.adjust_wizard_step(
                 step, direction="back", total=len(steps)
             )
+            set_session_value("wizard_step", new_step)
         elif col2.button("Next", disabled=step >= len(steps) - 1):
-            st.session_state.wizard_step = WebUIBridge.adjust_wizard_step(
+            new_step = WebUIBridge.adjust_wizard_step(
                 step, direction="next", total=len(steps)
             )
-        st.session_state.wizard_step = WebUIBridge.normalize_wizard_step(
-            st.session_state.wizard_step, total=len(steps)
+            set_session_value("wizard_step", new_step)
+        
+        # Ensure step is normalized
+        current_step = get_session_value("wizard_step", 0)
+        normalized_step = WebUIBridge.normalize_wizard_step(
+            current_step, total=len(steps)
         )
+        set_session_value("wizard_step", normalized_step)
 
-        st.session_state.wizard_data = data
-        if hasattr(st.session_state, "__setitem__"):
-            st.session_state["wizard_step"] = st.session_state.wizard_step
-            st.session_state["wizard_data"] = st.session_state.wizard_data
+        # Update wizard data
+        set_session_value("wizard_data", data)
         return
 
     def _gather_wizard(self) -> None:

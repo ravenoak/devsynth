@@ -7,7 +7,7 @@ import os
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 
@@ -161,7 +161,7 @@ class MessageProtocol:
         self,
         sender: str,
         recipients: List[str],
-        message_type: MessageType | str,
+        message_type: Union[MessageType, str],
         subject: str,
         content: Any,
         metadata: Optional[Dict[str, Any]] = None,
