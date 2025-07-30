@@ -22,6 +22,12 @@ scripts/codex_setup.sh || touch CODEX_ENVIRONMENT_SETUP_FAILED
 
 The script is executed **before** network access is disabled. If it fails, a
 file named `CODEX_ENVIRONMENT_SETUP_FAILED` will appear in the repository root.
+Only rerun `scripts/codex_setup.sh` if `CODEX_ENVIRONMENT_SETUP_FAILED` is present.
+Example:
+
+```bash
+if [ -f CODEX_ENVIRONMENT_SETUP_FAILED ]; then bash scripts/codex_setup.sh; fi
+```
 Fix the script and rerun it offline to finish provisioning:
 
 1. Review and update `scripts/codex_setup.sh` so it installs all project
