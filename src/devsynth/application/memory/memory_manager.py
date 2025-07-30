@@ -551,6 +551,49 @@ class MemoryManager:
 
         return self.sync_manager.synchronize(source_store, target_store, bidirectional)
 
+    # ------------------------------------------------------------------
+    def cross_store_query(
+        self, query: str, stores: Optional[List[str]] | None = None
+    ) -> Dict[str, List[Any]]:
+        """Query multiple stores using the :class:`SyncManager`."""
+
+        return self.sync_manager.cross_store_query(query, stores)
+
+    def begin_transaction(self, stores: List[str]):
+        """Begin a multi-store transaction."""
+
+        return self.sync_manager.transaction(stores)
+
+    def update_item(self, store: str, item: MemoryItem) -> bool:
+        """Update an item and propagate to other stores."""
+
+        return self.sync_manager.update_item(store, item)
+
+    def queue_update(self, store: str, item: MemoryItem) -> None:
+        """Queue an update for asynchronous propagation."""
+
+        self.sync_manager.queue_update(store, item)
+
+    def flush_updates(self) -> None:
+        """Flush queued updates synchronously."""
+
+        self.sync_manager.flush_queue()
+
+    async def flush_updates_async(self) -> None:
+        """Flush queued updates asynchronously."""
+
+        await self.sync_manager.flush_queue_async()
+
+    async def wait_for_sync(self) -> None:
+        """Wait for asynchronous sync tasks to complete."""
+
+        await self.sync_manager.wait_for_async()
+
+    def get_sync_stats(self) -> Dict[str, int]:
+        """Return statistics about synchronization operations."""
+
+        return self.sync_manager.get_sync_stats()
+
     def retrieve_relevant_knowledge(
         self,
         task: Dict[str, Any],
