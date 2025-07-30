@@ -215,7 +215,13 @@ Primary users are individual software developers who:
 - [FR-71] The system shall provide a `doctor` command (alias `check`) for environment diagnostics
 - [FR-72] The system shall provide a Streamlit-based WebUI for running workflows
 - [FR-73] The system shall offer an interactive requirement-gathering workflow
-- [FR-74] The system shall expose an HTTP API for agent operations
+- [FR-74] The system shall expose an HTTP API for agent operations with the following endpoints:
+  - `POST /init`
+  - `POST /gather`
+  - `POST /synthesize`
+  - `GET /status`
+  - `GET /health`
+  - `GET /metrics`
 
 
 ### 3.10 WebUI Integration
