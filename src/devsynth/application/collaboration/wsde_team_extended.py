@@ -6,14 +6,15 @@ import uuid
 import itertools
 
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.domain.models.memory import MemoryType
 
 
 class CollaborativeWSDETeam(WSDETeam):
     """WSDETeam with convenience methods for collaboration and non-hierarchical workflows."""
 
-    def __init__(self):
+    def __init__(self, name: str = "team"):
         """Initialize the collaborative WSDE team."""
-        super().__init__()
+        super().__init__(name)
         self.collaboration_mode = "hierarchical"  # Default mode
         self.consensus_mode = "enabled"  # Default mode for consensus building
         self.role_history = []
@@ -706,7 +707,7 @@ class CollaborativeWSDETeam(WSDETeam):
             # Store the documentation
             self.decision_documentation[task_id] = consensus_result
 
-            return consensus_result
+            return self._summarize_and_store_consensus(task, consensus_result)
 
         # Process for resolving conflicts
         resolution_process = {
@@ -793,6 +794,47 @@ class CollaborativeWSDETeam(WSDETeam):
 
         # Track the decision
         self._track_decision(task, consensus_result)
+        return self._summarize_and_store_consensus(task, consensus_result)
+
+    def _summarize_and_store_consensus(self, task: Dict[str, Any], consensus_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Summarize and persist consensus results.
+
+        The summary is added under the ``summary`` key. If a memory manager is
+        available the consensus result is stored using the ``REFINE`` EDRR
+        phase and a reference ID is added under ``memory_reference``.
+
+        Args:
+            task: Task associated with the consensus.
+            consensus_result: Consensus output to summarize and store.
+
+        Returns:
+            The augmented consensus result.
+        """
+        if not consensus_result:
+            return {}
+
+        try:
+            summary = self.summarize_consensus_result(consensus_result)
+        except Exception:
+            summary = ""
+        consensus_result["summary"] = summary
+
+        memory_ref: Optional[str] = None
+        manager = getattr(self, "memory_manager", None)
+        if manager is not None:
+            try:
+                metadata = {"task_id": task.get("id"), "type": "CONSENSUS_RESULT"}
+                memory_ref = manager.store_with_edrr_phase(
+                    consensus_result,
+                    memory_type=MemoryType.TEAM_STATE,
+                    edrr_phase="REFINE",
+                    metadata=metadata,
+                )
+            except Exception:
+                memory_ref = None
+
+        if memory_ref:
+            consensus_result["memory_reference"] = memory_ref
 
         return consensus_result
 

@@ -2,6 +2,7 @@
 Dialectical reasoner for requirements management.
 """
 
+from dataclasses import asdict
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
@@ -23,6 +24,7 @@ from devsynth.ports.requirement_port import (
     RequirementRepositoryPort,
 )
 from devsynth.ports.llm_port import LLMPort
+from devsynth.domain.models.memory import MemoryType
 
 
 class DialecticalReasonerService(DialecticalReasonerPort):
@@ -38,6 +40,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         chat_repository: ChatRepositoryPort,
         notification_service: NotificationPort,
         llm_service: LLMPort,
+        memory_manager: Optional[object] = None,
     ):
         """
         Initialize the dialectical reasoner service.
@@ -56,6 +59,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         self.chat_repository = chat_repository
         self.notification_service = notification_service
         self.llm_service = llm_service
+        self.memory_manager = memory_manager
 
     def evaluate_change(self, change: RequirementChange) -> DialecticalReasoning:
         """
@@ -98,8 +102,10 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             self._generate_conclusion_and_recommendation(change, reasoning.synthesis)
         )
 
-        # Save and return the reasoning
-        return self.reasoning_repository.save_reasoning(reasoning)
+        # Save and persist the reasoning
+        saved = self.reasoning_repository.save_reasoning(reasoning)
+        self._store_reasoning_in_memory(saved)
+        return saved
 
     def process_message(
         self, session_id: UUID, message: str, user_id: str
@@ -225,6 +231,22 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         self.notification_service.notify_impact_assessment_completed(saved_assessment)
 
         return saved_assessment
+
+    def _store_reasoning_in_memory(self, reasoning: DialecticalReasoning) -> None:
+        """Persist dialectical reasoning to the memory manager if available."""
+        manager = getattr(self, "memory_manager", None)
+        if manager is None:
+            return
+        try:
+            manager.store_with_edrr_phase(
+                asdict(reasoning),
+                memory_type=MemoryType.DIALECTICAL_REASONING,
+                edrr_phase="REFINE",
+                metadata={"change_id": str(reasoning.change_id)},
+            )
+        except Exception:
+            # Memory persistence failures should not interrupt flow
+            pass
 
     def _generate_thesis(self, change: RequirementChange) -> str:
         """
