@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
-from pathlib import Path
+
+REQUIRED_ENV_VARS = ["DEVSYNTH_ACCESS_TOKEN"]
 
 
 def run_safety() -> None:
@@ -18,9 +20,18 @@ def run_bandit() -> None:
     subprocess.check_call(["bandit", "-r", "src", "-ll"])
 
 
+def check_required_env() -> None:
+    """Ensure required security environment variables are set."""
+    missing = [name for name in REQUIRED_ENV_VARS if not os.getenv(name)]
+    if missing:
+        raise RuntimeError(
+            f"Missing required environment variables: {', '.join(missing)}"
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Execute security audits and monitoring checks."
+        description="Execute security audits and monitoring checks.",
     )
     parser.add_argument(
         "--skip-static",
@@ -29,6 +40,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    check_required_env()
     run_safety()
     if not args.skip_static:
         run_bandit()

@@ -54,6 +54,18 @@ export DEVSYNTH_TLS_CA_FILE=/path/to/ca.pem
 export DEVSYNTH_ACCESS_TOKEN=my-secret-token
 ```
 
+## Automated Audit Procedures and Enforcement
+
+DevSynth automates routine security checks to prevent regressions:
+
+- `scripts/security_audit.py` performs dependency vulnerability scans, Bandit
+  static analysis, and verifies required security environment variables such as
+  `DEVSYNTH_ACCESS_TOKEN`.
+- The script exits with a non‑zero status if any check fails, which blocks CI
+  pipelines and deployment.
+- Developers should run `python scripts/security_audit.py` locally before
+  committing changes to catch issues early.
+
 ## Incident Response Procedures
 
 The [Incident Response Runbook](../deployment/runbooks/incident_response.md)
