@@ -16,7 +16,12 @@ import argparse
 import sys
 import time
 
+from utils.logging_setup import setup_logging
+
+from devsynth.exceptions import DevSynthError
 from devsynth.testing.run_tests import run_tests
+
+logger = setup_logging(__name__)
 
 
 def parse_args():
@@ -95,20 +100,20 @@ def main() -> int:
         try:
             import pytest_html  # noqa: F401
         except ImportError:
-            print(
+            logger.error(
                 "pytest-html is required for HTML reports. Please install development dependencies:"
             )
-            print("  poetry install --with dev,docs --all-extras")
+            logger.error("  poetry install --with dev,docs --all-extras")
             return 1
 
     if not args.no_parallel:
         try:
             import xdist  # noqa: F401
         except ImportError:
-            print(
+            logger.error(
                 "pytest-xdist is required for parallel test execution. Please install development dependencies:"
             )
-            print("  poetry install --with dev,docs --all-extras")
+            logger.error("  poetry install --with dev,docs --all-extras")
             return 1
 
     parallel = not args.no_parallel
@@ -120,17 +125,18 @@ def main() -> int:
     if args.slow:
         speed_categories.append("slow")
 
-    print("\n" + "=" * 80)
-    print("TEST EXECUTION PLAN")
-    print("=" * 80)
-    print(f"Targets: {', '.join(args.targets)}")
-    print(f"Speed Categories: {', '.join(speed_categories)}")
-    print(f"Parallel Execution: {'Disabled' if args.no_parallel else 'Enabled'}")
-    print(f"Test Segmentation: {'Enabled' if args.segment else 'Disabled'}")
+    separator = "=" * 80
+    logger.info("\n%s", separator)
+    logger.info("TEST EXECUTION PLAN")
+    logger.info(separator)
+    logger.info("Targets: %s", ", ".join(args.targets))
+    logger.info("Speed Categories: %s", ", ".join(speed_categories))
+    logger.info("Parallel Execution: %s", "Disabled" if args.no_parallel else "Enabled")
+    logger.info("Test Segmentation: %s", "Enabled" if args.segment else "Disabled")
     if args.segment:
-        print(f"Segment Size: {args.segment_size}")
-    print(f"Report Generation: {'Enabled' if args.report else 'Disabled'}")
-    print(f"Verbose Output: {'Enabled' if args.verbose else 'Disabled'}")
+        logger.info("Segment Size: %d", args.segment_size)
+    logger.info("Report Generation: %s", "Enabled" if args.report else "Disabled")
+    logger.info("Verbose Output: %s", "Enabled" if args.verbose else "Disabled")
 
     start_time = time.time()
     overall_success = True
@@ -152,33 +158,44 @@ def main() -> int:
     end_time = time.time()
     execution_time = end_time - start_time
 
-    print("\n" + "=" * 80)
-    print("TEST SUMMARY")
-    print("=" * 80)
+    logger.info("\n%s", separator)
+    logger.info("TEST SUMMARY")
+    logger.info(separator)
     for target, success in results.items():
         status = "PASSED" if success else "FAILED"
-        print(f"{target.upper()}: {status}")
+        logger.info("%s: %s", target.upper(), status)
 
-    print(f"\nOVERALL STATUS: {'PASSED' if overall_success else 'FAILED'}")
-    print(
-        f"EXECUTION TIME: {execution_time:.2f} seconds ({execution_time/60:.2f} minutes)"
+    logger.info("OVERALL STATUS: %s", "PASSED" if overall_success else "FAILED")
+    logger.info(
+        "EXECUTION TIME: %.2f seconds (%.2f minutes)",
+        execution_time,
+        execution_time / 60,
     )
 
     if execution_time > 60:
-        print("\nTips for faster test execution:")
+        logger.info("\nTips for faster test execution:")
         if not args.fast and not args.medium:
-            print("- Run only fast tests during development: --fast")
+            logger.info("- Run only fast tests during development: --fast")
         if not args.segment:
-            print("- Enable test segmentation: --segment")
+            logger.info("- Enable test segmentation: --segment")
         if args.targets == ["all-tests"]:
-            print(
+            logger.info(
                 "- Run only specific test types with --target (unit-tests, integration-tests, behavior-tests)"
             )
         if not parallel:
-            print("- Enable parallel execution (if disabled): remove --no-parallel")
+            logger.info(
+                "- Enable parallel execution (if disabled): remove --no-parallel"
+            )
 
     return 0 if overall_success else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except DevSynthError:
+        logger.exception("Test execution failed")
+        sys.exit(1)
+    except Exception:  # pragma: no cover - unexpected errors
+        logger.exception("Unexpected error during test execution")
+        sys.exit(1)

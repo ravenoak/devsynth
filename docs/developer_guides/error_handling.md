@@ -128,6 +128,35 @@ can set a request identifier and the current EDRR phase with `set_request_contex
 These values are automatically attached to all log records, enabling correlation
 across components.
 
+For standalone scripts, a helper at `scripts/utils/logging_setup.py` simplifies
+this process and encourages consistent exception handling:
+
+```python
+import sys
+
+from utils.logging_setup import setup_logging
+from devsynth.exceptions import DevSynthError
+
+logger = setup_logging(__name__)
+
+def main() -> None:
+    ...  # script logic
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except DevSynthError:
+        logger.exception("Script failed")
+        sys.exit(1)
+    except Exception:  # pragma: no cover - unexpected errors
+        logger.exception("Unexpected error")
+        sys.exit(1)
+```
+
+This pattern ensures logs are routed through the DevSynth logger and that
+errors are surfaced with clear, actionable messages.
+
 ## Error Handling Patterns
 
 ### Validation Errors
