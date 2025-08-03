@@ -1,7 +1,7 @@
-"""
-Defines the state for LangGraph agent workflows.
-"""
-from typing import TypedDict, Optional, List
+"""Defines the state for LangGraph agent workflows."""
+
+from typing import Any, Dict, List, Optional, TypedDict
+
 
 class AgentState(TypedDict):
     """
@@ -14,11 +14,13 @@ class AgentState(TypedDict):
         intermediate_steps: A list of intermediate steps or tool outputs (optional).
         final_output: The final formatted response from the agent.
         error: Any error message encountered during the workflow (optional).
+        available_tools: Tool metadata available to the agent (optional).
     """
+
     input_request: str
     processed_input: Optional[str]
     llm_response: Optional[str]
     intermediate_steps: Optional[List[str]]
     final_output: Optional[str]
     error: Optional[str]
-
+    available_tools: Optional[List[Dict[str, Any]]]
