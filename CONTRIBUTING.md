@@ -84,6 +84,17 @@ Good documentation is essential. Please update relevant documentation for any ch
 3. Push your changes and create a pull request
 4. Respond to review feedback
 
+## Release Process
+
+Maintainers preparing a tagged release should build distributable artifacts and
+run a quick smoke test before tagging:
+
+```bash
+task release:prep
+git tag v0.1.0-alpha.1
+git push origin v0.1.0-alpha.1
+```
+
 ## Code of Conduct
 
 We are committed to providing a friendly, safe, and welcoming environment for all contributors. Please be respectful, inclusive, and collaborative.

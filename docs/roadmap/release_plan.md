@@ -20,6 +20,17 @@ This release plan defines version milestones for DevSynth starting with the upco
 
 ## Milestones
 
+### 0.1.0-alpha.1
+
+Before publishing the first alpha tag, ensure the artifacts build and the
+project passes a quick smoke test:
+
+```bash
+task release:prep
+git tag v0.1.0-alpha.1
+git push origin v0.1.0-alpha.1
+```
+
 ### 0.1.0-beta.1
 - Refresh system architecture diagrams under `docs/architecture/`.
 - Standardize metadata headers across all project documentation.
