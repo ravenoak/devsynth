@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Sequence
+import os
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.testing.run_tests import run_tests
@@ -64,6 +65,58 @@ def get_tool_registry() -> ToolRegistry:
     return _tool_registry
 
 
+def alignment_metrics_tool(
+    path: str = ".",
+    metrics_file: str = ".devsynth/alignment_metrics.json",
+    output: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Collect alignment metrics and return them.
+
+    Args:
+        path: Path to the project directory.
+        metrics_file: File path to store historical metrics.
+        output: Optional path for a generated Markdown report.
+
+    Returns:
+        A dictionary with ``success`` and ``metrics`` keys.
+    """
+
+    logger.debug(
+        "Collecting alignment metrics for path=%s, metrics_file=%s", path, metrics_file
+    )
+
+    try:
+        from devsynth.application.cli.commands.align_cmd import get_all_files
+        from devsynth.application.cli.commands.alignment_metrics_cmd import (
+            calculate_alignment_coverage,
+            calculate_alignment_issues,
+            generate_metrics_report,
+            load_historical_metrics,
+            save_metrics,
+        )
+
+        os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
+
+        files = get_all_files(path)
+        existing_files = [f for f in files if os.path.isfile(f)]
+
+        coverage_metrics = calculate_alignment_coverage(existing_files)
+        issues_metrics = calculate_alignment_issues(existing_files)
+        metrics = {**coverage_metrics, **issues_metrics}
+
+        historical_metrics = load_historical_metrics(metrics_file)
+        save_metrics(metrics, metrics_file, historical_metrics)
+
+        if output:
+            generate_metrics_report(metrics, historical_metrics, output)
+
+        return {"success": True, "metrics": metrics}
+
+    except Exception as exc:  # pragma: no cover - defensive programming
+        logger.error("Error collecting alignment metrics: %s", exc)
+        return {"success": False, "error": str(exc)}
+
+
 def run_tests_tool(
     target: str = "unit-tests",
     speed_categories: Optional[Sequence[str]] = None,
@@ -101,6 +154,31 @@ def run_tests_tool(
         segment_size=segment_size,
     )
     return {"success": success, "output": output}
+
+
+_tool_registry.register(
+    "alignment_metrics",
+    alignment_metrics_tool,
+    description="Collect alignment coverage metrics and return them.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "path": {
+                "type": "string",
+                "description": "Project directory to analyze",
+            },
+            "metrics_file": {
+                "type": "string",
+                "description": "Path to store historical metrics",
+            },
+            "output": {
+                "type": "string",
+                "description": "Optional path for a Markdown report",
+            },
+        },
+        "required": [],
+    },
+)
 
 
 _tool_registry.register(
