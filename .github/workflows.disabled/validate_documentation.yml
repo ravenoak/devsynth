@@ -62,6 +62,7 @@ jobs:
           python scripts/run_all_tests.py
           python scripts/check_internal_links.py
           python scripts/fix_code_blocks.py --check
+          python scripts/fix_frontmatter.py --check
       - name: Summary
         run: |
           echo "Documentation validation completed successfully!"
