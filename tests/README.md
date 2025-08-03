@@ -302,9 +302,9 @@ required plugins to be installed via Poetry. Invoke it from the Poetry
 environment to run the full suite or selected groups:
 
 ```bash
-poetry run python scripts/run_all_tests.py           # run all tests
-poetry run python scripts/run_all_tests.py --unit    # run only unit tests
-poetry run python scripts/run_all_tests.py --report  # generate HTML report under test_reports/
+poetry run python scripts/run_all_tests.py                     # run all tests
+poetry run python scripts/run_all_tests.py --target unit-tests  # run only unit tests
+poetry run python scripts/run_all_tests.py --report             # generate HTML report under test_reports/
 ```
 
 ## Referencing Requirements in Tests

@@ -13,13 +13,13 @@ This script executes all unit, integration, and behavior tests and generates a c
 ./scripts/run_all_tests.py
 
 # Run only unit tests
-./scripts/run_all_tests.py --unit
+./scripts/run_all_tests.py --target unit-tests
 
 # Run only integration tests
-./scripts/run_all_tests.py --integration
+./scripts/run_all_tests.py --target integration-tests
 
 # Run only behavior tests
-./scripts/run_all_tests.py --behavior
+./scripts/run_all_tests.py --target behavior-tests
 
 # Generate HTML report
 ./scripts/run_all_tests.py --report
