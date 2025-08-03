@@ -8,6 +8,7 @@ on:
       - '.github/workflows/validate_documentation.yml'
       - 'scripts/validate_metadata.py'
       - 'scripts/verify_code_examples.py'
+      - 'scripts/verify_requirements_traceability.py'
   pull_request:
     branches: [ main, master ]
     paths:
@@ -15,6 +16,7 @@ on:
       - '.github/workflows/validate_documentation.yml'
       - 'scripts/validate_metadata.py'
       - 'scripts/verify_code_examples.py'
+      - 'scripts/verify_requirements_traceability.py'
   workflow_dispatch:
 
 jobs:
@@ -44,6 +46,8 @@ jobs:
       - name: Verify code examples in documentation
         run: |
           python scripts/verify_code_examples.py docs README.md DEVELOPMENT_PLAN.md DEVONBOARDING.md --verbose
+      - name: Verify requirements traceability
+        run: python scripts/verify_requirements_traceability.py docs/requirements_traceability.md
       - name: Check for broken links
         run: |
           echo "Checking for broken links in documentation..."
