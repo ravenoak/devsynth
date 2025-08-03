@@ -9,9 +9,10 @@ try:  # pragma: no cover - import guard
 except Exception:  # pragma: no cover - stubbed in tests
     StateGraph = None  # type: ignore
     END = None  # type: ignore
-from typing import Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from devsynth.agents.graph_state import AgentState
+from devsynth.agents.tools import get_tool_registry
 from devsynth.adapters.provider_system import (
     complete as llm_complete,
 )  # Renamed to avoid conflict
@@ -20,14 +21,35 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
+def get_available_tools() -> List[Dict[str, Any]]:
+    """Return formatted metadata for all registered tools."""
+    registry = get_tool_registry()
+    tools = []
+    for name, meta in registry.list_tools().items():
+        tools.append(
+            {
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "description": meta["description"],
+                    "parameters": meta["parameters"],
+                },
+            }
+        )
+    return tools
+
+
 def process_input_node(state: AgentState) -> AgentState:
     """Processes the initial input request."""
     logger.info(f"Processing input: {state['input_request'][:100]}...")
+    # Fetch available tools for the agent
+    tools = get_available_tools()
+    state_with_tools = {**state, "available_tools": tools}
     # Simple processing for now, can be expanded
     processed = state["input_request"].strip()
     if not processed:
-        return {**state, "error": "Input request cannot be empty."}
-    return {**state, "processed_input": processed}
+        return {**state_with_tools, "error": "Input request cannot be empty."}
+    return {**state_with_tools, "processed_input": processed}
 
 
 def llm_call_node(state: AgentState) -> AgentState:
@@ -43,10 +65,13 @@ def llm_call_node(state: AgentState) -> AgentState:
     try:
         # System prompt could be configured or passed in state
         system_prompt = "You are a helpful AI assistant."
+        tools = state.get("available_tools")
+        parameters = {"tools": tools} if tools else None
         response = llm_complete(
             prompt=input_prompt,
             system_prompt=system_prompt,
             fallback=True,  # Use fallback provider
+            parameters=parameters,
         )
         logger.info(f"LLM response received: {response[:100]}...")
         return {**state, "llm_response": response}
@@ -92,6 +117,7 @@ if callable(StateGraph) and StateGraph is not object:
     # Compile the graph
     base_agent_graph = workflow.compile()
 else:  # pragma: no cover - simple fallback used in stubbed test envs
+
     class _FallbackGraph:
         def invoke(self, state: AgentState) -> AgentState:
             state = process_input_node(state)
