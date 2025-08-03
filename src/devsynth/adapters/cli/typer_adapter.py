@@ -48,6 +48,7 @@ from devsynth.application.cli.commands.validate_metadata_cmd import (
 )
 from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
 from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
+from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
 from devsynth.application.cli.requirements_commands import requirements_app
 
 logger = DevSynthLogger(__name__)
@@ -448,6 +449,10 @@ def build_app() -> typer.Typer:
         name="generate-docs",
         help="Generate API docs. Example: devsynth generate-docs",
     )(generate_docs_cmd)
+    app.command(
+        name="security-audit",
+        help="Run security checks. Example: devsynth security-audit --skip-static",
+    )(security_audit_cmd)
     app.command(
         name="ingest",
         help="Ingest a project. Example: devsynth ingest manifest.yaml",

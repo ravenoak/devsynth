@@ -58,13 +58,13 @@ export DEVSYNTH_ACCESS_TOKEN=my-secret-token
 
 DevSynth automates routine security checks to prevent regressions:
 
-- `scripts/security_audit.py` performs dependency vulnerability scans, Bandit
-  static analysis, and verifies required security environment variables such as
-  `DEVSYNTH_ACCESS_TOKEN`.
-- The script exits with a non‑zero status if any check fails, which blocks CI
+- The `security-audit` CLI command performs dependency vulnerability scans,
+  Bandit static analysis, and verifies required security environment variables
+  such as `DEVSYNTH_ACCESS_TOKEN`.
+- The command exits with a non‑zero status if any check fails, which blocks CI
   pipelines and deployment.
-- Developers should run `python scripts/security_audit.py` locally before
-  committing changes to catch issues early.
+- Developers should run `devsynth security-audit` locally before committing
+  changes to catch issues early.
 
 ## Incident Response Procedures
 
@@ -78,7 +78,7 @@ python scripts/security_incident_response.py --collect-logs --audit --output inc
 ```
 
 This script archives the `logs/` directory and executes the existing
-`security_audit.py` checks to aid in forensics.
+`security-audit` command to aid in forensics.
 
 ## Vulnerability Management
 
@@ -111,7 +111,8 @@ communication, bearer token authentication for API and agent actions,
 and routine dependency and static analysis checks in CI.
 ## Implementation Status
 Security configuration flags and basic encryption utilities are implemented.
-Automated audits and basic monitoring are provided via `scripts/security_audit.py`.
+Automated audits and basic monitoring are provided via the
+`security-audit` command (also available as `scripts/security_audit.py`).
 Memory stores support encryption at rest and emit audit logs for store, retrieve,
 and delete operations.
 Runtime checks in [`src/devsynth/config/settings.py`](../../src/devsynth/config/settings.py)

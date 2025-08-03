@@ -770,6 +770,32 @@ devsynth generate-docs --code-dir app --output-dir api_docs
 devsynth generate-docs --format html
 ```
 
+## security-audit
+
+Run dependency and static analysis security checks.
+
+**Usage:**
+
+```bash
+devsynth security-audit [OPTIONS]
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--skip-static` | Skip running Bandit static analysis |
+
+**Examples:**
+
+```bash
+
+# Run full security audit
+devsynth security-audit
+
+# Run audit without static analysis
+devsynth security-audit --skip-static
+```
+
 ## Environment Variables
 
 DevSynth respects the following environment variables:

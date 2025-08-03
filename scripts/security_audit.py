@@ -40,10 +40,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    check_required_env()
-    run_safety()
-    if not args.skip_static:
-        run_bandit()
+    from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
+
+    security_audit_cmd(skip_static=args.skip_static)
 
 
 if __name__ == "__main__":

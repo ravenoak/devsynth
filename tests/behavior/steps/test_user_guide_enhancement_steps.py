@@ -49,7 +49,7 @@ def all_cli_commands_documented(context):
         "init", "spec", "test", "code", "run-pipeline", "config", "gather", "inspect", 
         "refactor", "webapp", "serve", "dbschema", "webui", "doctor", "edrr-cycle", 
         "align", "alignment-metrics", "inspect-config", "validate-manifest", 
-        "validate-metadata", "test-metrics", "generate-docs"
+        "validate-metadata", "test-metrics", "generate-docs", "security-audit"
     ]
 
     for command in expected_commands:
