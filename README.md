@@ -117,14 +117,14 @@ For more on Docker deployment, see the [Deployment Guide](docs/deployment/deploy
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
 
 ```bash
-poetry install --extras retrieval --extras memory --extras llm --extras api --extras webui
+poetry install --extras retrieval --extras memory --extras llm --extras api --extras webui --extras dpgui
 # Install GPU support if you plan to run local models
 # poetry install --extras gpu
 # or install from PyPI
-pip install 'devsynth[retrieval,memory,llm,api,webui]'
+pip install 'devsynth[retrieval,memory,llm,api,webui,dpgui]'
 ```
 
-These extras enable optional vector stores such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with Prometheus metrics, and the Streamlit WebUI. ChromaDB runs in embedded mode by default.
+These extras enable optional vector stores such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with Prometheus metrics, the Streamlit WebUI, and the Dear PyGui interface. ChromaDB runs in embedded mode by default.
 
 ### Offline Mode
 
@@ -201,12 +201,12 @@ poetry install --with dev --extras minimal
 # poetry install --extras gpu
 ```
 
-Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb`:
+Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, `chromadb`, and `dpgui`:
 
 ```bash
 poetry install --extras minimal --extras retrieval --extras memory \
   --extras llm --extras api --extras webui --extras lmstudio \
-  --extras chromadb
+  --extras chromadb --extras dpgui
 ```
 Alternatively, install them all at once:
 
