@@ -146,6 +146,7 @@ Refer to `docs/architecture/agent_system.md` and `docs/architecture/wsde_agent_m
 - [Black](https://black.readthedocs.io/)
 - [pytest](https://docs.pytest.org/)
 - Project documentation in `docs/`
+- [Agent Tools Guide](docs/developer_guides/agent_tools.md) - Using the tool registry and adding new tools
 - Agent architecture: `docs/architecture/agent_system.md`, `docs/architecture/wsde_agent_model.md`
 
 ## Feedback
