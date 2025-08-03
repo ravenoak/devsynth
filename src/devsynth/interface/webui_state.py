@@ -165,10 +165,19 @@ class PageState(Generic[T]):
                 logger.warning(f"Session state not available, cannot clear {self.page_name} state")
                 return
                 
-            keys_to_remove = [k for k in st.session_state.keys() 
-                             if k.startswith(f"{self.page_name}_")]
+            keys_to_remove = [
+                k for k in st.session_state.keys()
+                if k.startswith(f"{self.page_name}_")
+            ]
             for key in keys_to_remove:
-                del st.session_state[key]
+                try:
+                    del st.session_state[key]
+                except KeyError:
+                    pass
+                try:
+                    delattr(st.session_state, key)
+                except AttributeError:
+                    pass
                 
             logger.debug(f"Cleared {len(keys_to_remove)} keys for {self.page_name}")
         except Exception as e:
