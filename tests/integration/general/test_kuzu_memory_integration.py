@@ -2,6 +2,8 @@ import os
 import sys
 from unittest.mock import patch
 
+import types
+
 import pytest
 
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
@@ -10,7 +12,7 @@ from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def no_kuzu(monkeypatch):
     """Ensure tests run without the real ``kuzu`` dependency."""
     monkeypatch.delitem(sys.modules, "kuzu", raising=False)
@@ -19,7 +21,38 @@ def no_kuzu(monkeypatch):
 
 
 @pytest.fixture
-def kuzu_store():
+def fake_kuzu(monkeypatch):
+    """Provide a minimal stub of the kuzu package."""
+
+    class Database:
+        def __init__(self, path):
+            pass
+
+    class Connection:
+        def __init__(self, db):
+            pass
+
+        def execute(self, *args, **kwargs):
+            return None
+
+    fake = types.SimpleNamespace(Database=Database, Connection=Connection)
+    monkeypatch.setitem(sys.modules, "kuzu", fake)
+    monkeypatch.setattr(KuzuMemoryStore, "__abstractmethods__", frozenset())
+    monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
+    return fake
+
+
+@pytest.fixture
+def kuzu_store(no_kuzu):
+    store = KuzuMemoryStore.create_ephemeral()
+    try:
+        yield store
+    finally:
+        store.cleanup()
+
+
+@pytest.fixture
+def kuzu_store_embedded(fake_kuzu):
     store = KuzuMemoryStore.create_ephemeral()
     try:
         yield store
@@ -70,7 +103,7 @@ def test_create_for_testing_with_kuzu(kuzu_store):
     assert adapter.vector_store is not None
 
 
-def test_ephemeral_store_cleanup():
+def test_ephemeral_store_cleanup(no_kuzu):
     store = KuzuMemoryStore.create_ephemeral()
     path = store.persist_directory
     assert os.path.exists(path)
@@ -79,9 +112,13 @@ def test_ephemeral_store_cleanup():
     assert not os.path.exists(path)
 
 
-def test_provider_fallback_on_empty_embedding(tmp_path):
+def test_provider_fallback_on_empty_embedding(tmp_path, no_kuzu):
     with patch("devsynth.adapters.kuzu_memory_store.embed", return_value=[[]]):
         store = KuzuMemoryStore(str(tmp_path))
         assert store._store._use_fallback
         emb = store._get_embedding("hello")
         assert emb == store.embedder("hello")
+
+
+def test_create_ephemeral_embedded_mode(kuzu_store_embedded):
+    assert not kuzu_store_embedded._store._use_fallback
