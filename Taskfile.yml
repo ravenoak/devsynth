@@ -71,7 +71,7 @@ tasks:
   manifest:validate:
     desc: Validate the manifest.yaml against schema
     cmds:
-      - poetry run python scripts/validate_manifest.py manifest.yaml docs/manifest_schema.json
+      - poetry run devsynth validate-manifest --manifest-path manifest.yaml --schema-path docs/manifest_schema.json
 
   docs:gen-api:
     desc: Generate API reference documentation
