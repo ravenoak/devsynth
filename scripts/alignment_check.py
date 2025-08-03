@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-# DEPRECATED: use `devsynth align` instead. This script will be removed in a future release.
+# DEPRECATED: use `devsynth align` instead. This script will be removed in the
+# next major release. See docs/policies/deprecation_policy.md for details.
 """Run the DevSynth alignment check as a pre-commit hook.
 
-Deprecated: use ``devsynth align`` instead. This wrapper exists only for
-backward compatibility and will be removed in a future release.
+DEPRECATED: use ``devsynth align`` instead. This wrapper exists only for
+backward compatibility and will be removed in the next major release. See
+``docs/policies/deprecation_policy.md`` for details.
 
 This script is a thin wrapper around the project's CLI alignment command. It
 executes the same alignment logic to ensure consistent behaviour with the

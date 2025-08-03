@@ -55,7 +55,8 @@ version has been published yet.
   hybrid memory architecture, and basic metrics system.
 ### Deprecated
 - `scripts/alignment_check.py` and `scripts/validate_manifest.py` replaced by
-  CLI commands `devsynth align` and `devsynth validate-manifest`.
+  CLI commands `devsynth align` and `devsynth validate-manifest`. These scripts
+  will be removed in v1.0 per the deprecation policy.
 ### Fixed
 - Optional tiktoken dependency no longer breaks Kuzu memory initialization
 - Added missing step definitions for enhanced memory scenarios
