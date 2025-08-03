@@ -1125,22 +1125,11 @@ class WebUI(UXBridge):
         return
 
     def _gather_wizard(self) -> None:
-        """
-        Run the resource gathering wizard with multi-step navigation.
+        """Run the resource gathering wizard with multi-step navigation."""
 
-        This wizard uses the WizardState class for state management and allows users
-        to gather project resources through a 3-step process:
-        1. Resource Type: Select the type of resource to gather
-        2. Resource Location: Specify the location of the resource
-        3. Resource Metadata: Add metadata for the resource
-
-        The wizard maintains state between steps and provides navigation controls.
-        """
         try:
-            # Import WizardState for state management
-            from devsynth.interface.webui_state import WizardState
+            from devsynth.interface.wizard_state_manager import WizardStateManager
 
-            # Initialize the wizard state if it doesn't exist
             wizard_name = "gather_wizard"
             steps = 3
             initial_state = {
@@ -1149,125 +1138,72 @@ class WebUI(UXBridge):
                 "resource_metadata": {},
                 "wizard_started": False,
             }
+            temp_keys = [
+                "resource_type_select",
+                "resource_location_input",
+                "metadata_author_input",
+                "metadata_version_input",
+                "metadata_tags_input",
+                "metadata_doc_type_select",
+                "metadata_language_select",
+                "metadata_custom_field_name_input",
+                "metadata_custom_field_value_input",
+            ]
 
-            # Check if we already have a wizard state
-            if not hasattr(st.session_state, f"{wizard_name}_current_step"):
-                # Create a new WizardState instance
-                wizard_state = WizardState(wizard_name, steps, initial_state)
-            else:
-                # Use the existing WizardState instance
-                wizard_state = WizardState(wizard_name, steps)
+            wizard_manager = WizardStateManager(
+                st.session_state, wizard_name, steps, initial_state
+            )
+            wizard_state = wizard_manager.get_wizard_state()
 
-                # Validate the state to ensure it's not corrupted
-                expected_keys = [
-                    "resource_type",
-                    "resource_location",
-                    "resource_metadata",
-                    "current_step",
-                    "total_steps",
-                    "completed",
-                    "wizard_started",
-                ]
-                actual_keys = [
-                    k.split("_", 1)[1]
-                    for k in st.session_state.keys()
-                    if k.startswith(f"{wizard_name}_")
-                ]
-
-                if not all(key in actual_keys for key in expected_keys):
-                    # State is corrupted, reset it
-                    logger.warning(
-                        f"Corrupted wizard state detected for {wizard_name}, resetting"
-                    )
-                    wizard_state.reset()
-                    # Re-initialize with default values
-                    for key, value in initial_state.items():
-                        wizard_state.set(key, value)
-
-            # Check if the start button is clicked
             start_button_clicked = False
             try:
                 start_button_clicked = st.button(
                     "Start Resource Gathering Wizard",
                     key="start_gather_wizard_button",
                 )
-            except Exception as e:
+            except Exception as exc:
                 self.display_result(
-                    f"[yellow]Warning: Error rendering button: {e}[/yellow]",
+                    f"[yellow]Warning: Error rendering button: {exc}[/yellow]",
                     highlight=False,
                 )
                 return
 
-            # If the wizard is not started and the button is not clicked, just show the button
             if (
                 not start_button_clicked
                 and wizard_state.get_current_step() == 1
-                and not wizard_state.get("wizard_started", False)
+                and not wizard_manager.get_value("wizard_started", False)
             ):
                 return
 
-            # If the start button is clicked, mark the wizard as started
             if start_button_clicked:
-                wizard_state.set("wizard_started", True)
+                wizard_manager.set_value("wizard_started", True)
 
-            # Display the wizard header
             st.header("Resource Gathering Wizard")
 
-            # Get the current step
             current_step = wizard_state.get_current_step()
-
-            # Display progress information
             st.write(
                 f"Step {current_step} of {steps}: {self._get_gather_step_title(current_step)}"
             )
             st.progress(current_step / steps)
 
-            # Handle each step
             if current_step == 1:
-                # Step 1: Resource Type
                 self._handle_gather_step_1(wizard_state)
             elif current_step == 2:
-                # Step 2: Resource Location
                 self._handle_gather_step_2(wizard_state)
             elif current_step == 3:
-                # Step 3: Resource Metadata
                 self._handle_gather_step_3(wizard_state)
 
-            # Navigation buttons
             col1, col2, col3 = st.columns(3)
-
             with col1:
-                # Previous button (not shown on first step)
                 if current_step > 1:
                     if st.button("Previous", key="previous_button"):
-                        wizard_state.previous_step()
+                        wizard_manager.previous_step()
                         st.experimental_rerun()
 
             with col2:
-                # Cancel button
                 if st.button("Cancel", key="cancel_button"):
-                    # Reset the wizard state
-                    wizard_state.reset()
-
-                    # Re-initialize with default values
-                    initial_state = {
-                        "resource_type": "",
-                        "resource_location": "",
-                        "resource_metadata": {},
-                        "wizard_started": False,
-                    }
-
-                    # Ensure all state values are reset to their defaults
-                    for key, value in initial_state.items():
-                        wizard_state.set(key, value)
-
-                    # Ensure navigation state is reset
-                    wizard_state.set_completed(False)
-                    wizard_state.go_to_step(1)
-
-                    # Log the reset for debugging
-                    logger.debug(f"Reset {wizard_name} wizard state")
-
+                    wizard_manager.reset_wizard_state()
+                    wizard_manager.clear_temporary_state(temp_keys)
                     self.display_result(
                         "[blue]Resource gathering canceled.[/blue]",
                         highlight=False,
@@ -1276,73 +1212,29 @@ class WebUI(UXBridge):
                     st.experimental_rerun()
 
             with col3:
-                # Next button (on steps 1-2) or Finish button (on step 3)
                 if current_step < steps:
                     if st.button("Next", key="next_button"):
-                        # Validate the current step before proceeding
                         if self._validate_gather_step(wizard_state, current_step):
-                            wizard_state.next_step()
+                            wizard_manager.next_step()
                             st.experimental_rerun()
                 else:
                     if st.button("Finish", key="finish_button"):
-                        # Validate the final step before completing
                         if self._validate_gather_step(wizard_state, current_step):
-                            # Mark the wizard as completed
-                            wizard_state.set_completed(True)
-
-                            # Process the gathered resources
+                            wizard_manager.set_completed(True)
                             try:
-                                # Check if gather_requirements is available
                                 if gather_requirements is None:
                                     raise ImportError(
                                         "gather_requirements function not available"
                                     )
-
-                                # Get the gathered data
-                                resource_type = wizard_state.get("resource_type")
-                                resource_location = wizard_state.get(
-                                    "resource_location"
-                                )
-                                resource_metadata = wizard_state.get(
-                                    "resource_metadata"
-                                )
-
-                                # Execute gather_requirements with the gathered data
                                 with st.spinner("Processing resources..."):
                                     gather_requirements(self)
-
-                                # Display success message
                                 self.display_result(
                                     "[green]Resources gathered successfully![/green]",
                                     highlight=False,
                                     message_type="success",
                                 )
-
-                                # Reset the wizard state
-                                wizard_state.reset()
-
-                                # Re-initialize with default values
-                                initial_state = {
-                                    "resource_type": "",
-                                    "resource_location": "",
-                                    "resource_metadata": {},
-                                    "wizard_started": False,
-                                }
-
-                                # Ensure all state values are reset to their defaults
-                                for key, value in initial_state.items():
-                                    wizard_state.set(key, value)
-
-                                # Ensure navigation state is reset
-                                wizard_state.set_completed(False)
-                                wizard_state.go_to_step(1)
-
-                                # Log the reset for debugging
-                                logger.debug(
-                                    f"Reset {wizard_name} wizard state after completion"
-                                )
-
-                                # Rerun the UI to refresh the display
+                                wizard_manager.reset_wizard_state()
+                                wizard_manager.clear_temporary_state(temp_keys)
                                 st.experimental_rerun()
                             except ImportError as exc:
                                 self.display_result(
@@ -1350,21 +1242,19 @@ class WebUI(UXBridge):
                                     highlight=False,
                                     message_type="error",
                                 )
-                                wizard_state.set_completed(False)
+                                wizard_manager.set_completed(False)
                             except Exception as exc:
                                 self.display_result(
                                     f"[red]ERROR processing resources: {exc}[/red]",
                                     highlight=False,
                                     message_type="error",
                                 )
-                                wizard_state.set_completed(False)
+                                wizard_manager.set_completed(False)
         except Exception as e:
-            # Handle any unexpected errors
             self.display_result(
                 f"[red]ERROR in gather wizard: {e}[/red]",
                 highlight=False,
             )
-
     def _get_gather_step_title(self, step: int) -> str:
         """Get the title for a gather wizard step."""
         titles = {1: "Resource Type", 2: "Resource Location", 3: "Resource Metadata"}
