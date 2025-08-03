@@ -305,27 +305,16 @@ class KuzuMemoryStore(MemoryStore):
 
     def cleanup(self) -> None:
         """Remove any temporary directory created by :meth:`create_ephemeral`.
-        
+
         This method ensures that all temporary files and directories are properly
         cleaned up, including those created by KuzuStore and KuzuAdapter.
         """
-        # First, try to close any open connections
+        # First, allow the underlying store to release resources
         try:
-            if hasattr(self._store, "conn") and self._store.conn:
-                try:
-                    # Try to commit any pending transactions
-                    self._store.conn.execute("COMMIT")
-                except Exception:
-                    pass
-                
-                # Close the connection if possible
-                if hasattr(self._store.conn, "close"):
-                    try:
-                        self._store.conn.close()
-                    except Exception as e:
-                        logger.warning(f"Error closing Kuzu connection: {e}")
+            if hasattr(self, "_store") and hasattr(self._store, "close"):
+                self._store.close()
         except Exception as e:
-            logger.warning(f"Error during connection cleanup: {e}")
+            logger.warning(f"Error closing Kuzu store: {e}")
             
         # Clean up vector store files
         try:

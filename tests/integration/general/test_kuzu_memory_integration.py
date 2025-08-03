@@ -1,21 +1,30 @@
-import sys
-import types
 import os
+import sys
 from unittest.mock import patch
 
 import pytest
 
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-# Provide a dummy kuzu module if the dependency is not installed
-sys.modules.setdefault("kuzu", types.ModuleType("kuzu"))
+
+@pytest.fixture(autouse=True)
+def no_kuzu(monkeypatch):
+    """Ensure tests run without the real ``kuzu`` dependency."""
+    monkeypatch.delitem(sys.modules, "kuzu", raising=False)
+    monkeypatch.setattr(KuzuMemoryStore, "__abstractmethods__", frozenset())
+    monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
 
 
 @pytest.fixture
-def kuzu_store(ephemeral_kuzu_store):
-    return ephemeral_kuzu_store
+def kuzu_store():
+    store = KuzuMemoryStore.create_ephemeral()
+    try:
+        yield store
+    finally:
+        store.cleanup()
 
 
 @pytest.fixture(autouse=True)
@@ -65,6 +74,7 @@ def test_ephemeral_store_cleanup():
     store = KuzuMemoryStore.create_ephemeral()
     path = store.persist_directory
     assert os.path.exists(path)
+    assert store._store._use_fallback
     store.cleanup()
     assert not os.path.exists(path)
 
@@ -72,5 +82,6 @@ def test_ephemeral_store_cleanup():
 def test_provider_fallback_on_empty_embedding(tmp_path):
     with patch("devsynth.adapters.kuzu_memory_store.embed", return_value=[[]]):
         store = KuzuMemoryStore(str(tmp_path))
+        assert store._store._use_fallback
         emb = store._get_embedding("hello")
         assert emb == store.embedder("hello")

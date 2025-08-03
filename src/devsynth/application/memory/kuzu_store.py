@@ -397,3 +397,33 @@ class KuzuStore(MemoryStore):
                 )
         self._cache.clear()
         return volatile
+
+    # cleanup -----------------------------------------------------------------------
+    def close(self) -> None:
+        """Close any open Kuzu resources."""
+        if self._use_fallback:
+            return
+        try:  # pragma: no cover - requires kuzu
+            if getattr(self, "conn", None):
+                try:
+                    self.conn.execute("COMMIT")
+                except Exception:
+                    pass
+                if hasattr(self.conn, "close"):
+                    try:
+                        self.conn.close()
+                    except Exception:
+                        pass
+            if getattr(self, "db", None) and hasattr(self.db, "close"):
+                try:
+                    self.db.close()
+                except Exception:
+                    pass
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Failed to close Kuzu resources: %s", exc)
+
+    def __del__(self):  # pragma: no cover - defensive
+        try:
+            self.close()
+        except Exception:
+            pass
