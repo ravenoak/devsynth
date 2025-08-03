@@ -104,7 +104,7 @@ mkdocs-section-index = "^0.3.10"
 # minimal: baseline runtime requirements without heavy optional dependencies
 # retrieval: enables vector retrieval support via kuzu and faiss
 # chromadb: use chromadb as the vector store
-# dpgui: install Dear PyGui for a lightweight GUI
+# gui: install Dear PyGui for a desktop GUI
 docs = [
     "mkdocs",
     "mkdocs-material",
@@ -160,7 +160,7 @@ gpu = [
 offline = ["transformers"]
 api = ["fastapi", "prometheus-client"]
 webui = ["streamlit"]
-dpgui = ["dearpygui"]
+gui = ["dearpygui"]
 tests = ["fastapi", "httpx", "tinydb", "duckdb", "lmdb", "astor"]
 dev = [
     "responses",

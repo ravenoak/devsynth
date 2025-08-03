@@ -36,8 +36,8 @@ Some features rely on additional packages. These dependencies are grouped using 
 - **`offline`** – Enables deterministic offline mode. Combine with `gpu` to load local models.
 - **`gpu`** – Installs `torch` and NVIDIA libraries for hardware acceleration.
 - **`api`** – Enables the FastAPI server and Prometheus metrics.
-- **`webui`** – Installs the Streamlit-based WebUI.
-- **`dpgui`** – Installs the Dear PyGui-based desktop UI.
+  - **`webui`** – Installs the Streamlit-based WebUI.
+  - **`gui`** – Installs the Dear PyGui-based desktop UI.
 - **`lmstudio`** – Adds the LM Studio provider integration.
 - **`dev`** and **`docs`** – Development and documentation tooling.
 
@@ -68,7 +68,7 @@ From PyPI you can simply run:
 pip install devsynth
 ```
 
-Extras can be enabled later with `poetry install --extras llm --extras api --extras dpgui` or `pip install 'devsynth[llm,api,dpgui]'`.
+Extras can be enabled later with `poetry install --extras llm --extras api --extras gui` or `pip install 'devsynth[llm,api,gui]'`.
 
 ## Checking for Updates
 
