@@ -259,6 +259,13 @@ suite or specific groups of tests and optionally generate an HTML report:
 
 See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
 
+## Deprecated Scripts
+
+The helper scripts `scripts/alignment_check.py` and `scripts/validate_manifest.py`
+are deprecated. Use `devsynth align` and `devsynth validate-manifest`
+respectively. These wrappers will be removed in a future release once users
+transition to the corresponding CLI commands.
+
 ## Documentation Structure
 
 The documentation is organized for clarity and ease of navigation, following a comprehensive structure. Key directories:
