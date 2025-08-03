@@ -1,0 +1,38 @@
+---
+title: "DevSynth Release Plan"
+date: "2025-08-20"
+version: "0.1.0"
+tags:
+  - roadmap
+  - release
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-20"
+---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Release Plan
+</div>
+
+# DevSynth Release Plan
+
+This release plan defines version milestones for DevSynth starting with the upcoming `0.1.0-beta.1` pre-release and outlines the path toward the `0.1.x` line and future minor versions.
+
+## Milestones
+
+### 0.1.0-beta.1
+- Refresh system architecture diagrams under `docs/architecture/`.
+- Standardize metadata headers across all project documentation.
+- Publish the consolidated release plan for team-wide alignment.
+
+### 0.1.0
+- Stabilize core agent APIs and complete critical test coverage.
+- Finalize user-facing documentation, including updated WebUI instructions.
+- Prepare packaging and automation for a tagged stable release.
+
+### 0.2.0
+- Expand WebUI features with enhanced requirements workflows.
+- Introduce plugin interfaces for third-party provider integration.
+- Iterate on memory system scalability and performance.
+
+Future milestones will be appended to this document as they are defined. For implementation status of individual features, consult the [Feature Status Matrix](../implementation/feature_status_matrix.md).

@@ -9,7 +9,8 @@ tags:
 - agents
 - collaboration
 title: 'WSDE Agent Model: WSDE'
-version: 0.1.0---
+version: 0.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; 'WSDE Agent Model: WSDE'

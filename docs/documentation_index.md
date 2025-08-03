@@ -61,7 +61,6 @@ _This index lists all documentation files, their status, and release phase. It i
 | docs/roadmap/documentation_policies.md | Documentation Policies | published | roadmap |
 | docs/roadmap/index.md | DevSynth Roadmap | published | roadmap |
 | docs/roadmap/post_mvp_roadmap.md | DevSynth Post-MVP Development Roadmap | published | post-mvp |
-| docs/roadmap/pre_1.0_release_plan.md | DevSynth Pre-1.0 Release Plan | published | roadmap |
 | docs/roadmap/release_automation.md | DevSynth Release Automation Workflow | published | roadmap |
 | docs/roadmap/release_plan.md | DevSynth Release Plan | published | roadmap |
 | docs/specifications/documentation_plan.md | DevSynth Documentation Plan | published | consolidation |

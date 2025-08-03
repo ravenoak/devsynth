@@ -8,7 +8,8 @@ tags:
   - "milestones"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"---
+last_reviewed: "2025-08-02"
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Consolidated Roadmap

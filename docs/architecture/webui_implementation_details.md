@@ -14,7 +14,8 @@ tags:
 - error handling
 
 title: WebUI Implementation Details
-version: 0.1.0---
+version: 0.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WebUI Implementation Details
@@ -28,7 +29,7 @@ version: 0.1.0---
 
 ## Introduction
 
-This document provides detailed information about the implementation of the DevSynth WebUI, focusing on responsive design, consistent styling, and enhanced error handling. These features were implemented as part of Phase 4 of the DevSynth Pre-1.0 Release Plan.
+This document provides detailed information about the implementation of the DevSynth WebUI, focusing on responsive design, consistent styling, and enhanced error handling. These features were implemented as part of Phase 4 of the DevSynth [Release Plan](../roadmap/release_plan.md).
 
 ## Responsive Design
 

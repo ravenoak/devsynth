@@ -8,7 +8,8 @@ tags:
 - development-plan
 - project-planning
 title: DevSynth Roadmap
-version: 0.1.0---
+version: 0.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Roadmap
@@ -30,6 +31,7 @@ current implementation progress, see the [Feature Status Matrix](../implementati
 ## Development Plans
 
 - **[Consolidated Roadmap](CONSOLIDATED_ROADMAP.md)**: The canonical source for all roadmap information, consolidating previously separate roadmap documents into a single authoritative plan.
+- **[Release Plan](release_plan.md)**: Version milestones for upcoming releases.
 - **[Development Plan](development_plan.md)**: The overall development plan for the DevSynth project.
 - **[Roadmap Overview](development_plan.md#roadmap-overview)**: Concise summary of planned phases.
 - **[Development Status](development_status.md)**: The current status of development efforts.

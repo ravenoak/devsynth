@@ -12,7 +12,8 @@ tags:
 - framework
 
 title: WSDE-EDRR Integration Architecture
-version: 1.1.0---
+version: 1.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WSDE-EDRR Integration Architecture
@@ -639,6 +640,8 @@ sequenceDiagram
     WSDE->>Memory: retrieve_previous_phase_results(previous_phase)
     Memory->>WSDE: return_results(previous_results)
 ```
+
+![WSDE-EDRR Data Flow](diagrams/wsde_edrr_integration-1.svg)
 
 The data flow follows these key steps:
 
