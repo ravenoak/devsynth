@@ -9,6 +9,7 @@ from devsynth.agents.sandbox import sandboxed
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.testing.run_tests import run_tests
+from devsynth.interface.ux_bridge import UXBridge
 
 logger = DevSynthLogger(__name__)
 
@@ -62,6 +63,20 @@ class ToolRegistry:
         """Return a copy of all registered tools and metadata."""
         return self._tools.copy()
 
+    def export_for_openai(self) -> Sequence[Dict[str, Any]]:
+        """Return tools formatted for OpenAI function calling."""
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "description": meta["description"],
+                    "parameters": meta["parameters"],
+                },
+            }
+            for name, meta in self._tools.items()
+        ]
+
 
 # Global registry instance
 _tool_registry = ToolRegistry()
@@ -73,6 +88,41 @@ tool_registry = _tool_registry
 def get_tool_registry() -> ToolRegistry:
     """Return the global tool registry."""
     return _tool_registry
+
+
+def get_openai_tools() -> Sequence[Dict[str, Any]]:
+    """Export registered tools in OpenAI function-call format."""
+    return _tool_registry.export_for_openai()
+
+
+class _CaptureBridge(UXBridge):
+    """Minimal UX bridge capturing messages for tool output."""
+
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+
+    # The following methods are placeholders; they are not used by the tools
+    # that rely on this bridge but must be implemented to satisfy the
+    # :class:`UXBridge` abstract interface.
+    def ask_question(
+        self,
+        message: str,
+        *,
+        choices: Optional[Sequence[str]] = None,
+        default: Optional[str] = None,
+        show_default: bool = True,
+    ) -> str:  # pragma: no cover - interface stub
+        return default or ""
+
+    def confirm_choice(
+        self, message: str, *, default: bool = False
+    ) -> bool:  # pragma: no cover - interface stub
+        return default
+
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str | None = None
+    ) -> None:
+        self.messages.append(message)
 
 
 def alignment_metrics_tool(
@@ -166,6 +216,69 @@ def run_tests_tool(
     return {"success": success, "output": output}
 
 
+def security_audit_tool(
+    skip_static: bool = False,
+    skip_safety: bool = False,
+    skip_secrets: bool = False,
+    skip_owasp: bool = False,
+) -> Dict[str, Any]:
+    """Run security audit checks and return collected output."""
+
+    logger.debug(
+        "Running security audit with skips: static=%s safety=%s secrets=%s owasp=%s",
+        skip_static,
+        skip_safety,
+        skip_secrets,
+        skip_owasp,
+    )
+    bridge = _CaptureBridge()
+    try:
+        from devsynth.application.cli.commands.security_audit_cmd import (
+            security_audit_cmd,
+        )
+
+        security_audit_cmd(
+            skip_static=skip_static,
+            skip_safety=skip_safety,
+            skip_secrets=skip_secrets,
+            skip_owasp=skip_owasp,
+            bridge=bridge,
+        )
+        return {"success": True, "output": "\n".join(bridge.messages)}
+    except Exception as exc:  # pragma: no cover - defensive programming
+        logger.error("Security audit failed: %s", exc)
+        return {
+            "success": False,
+            "error": str(exc),
+            "output": "\n".join(bridge.messages),
+        }
+
+
+def doctor_tool(config_dir: str = "config", quick: bool = False) -> Dict[str, Any]:
+    """Validate configuration files and environment setup."""
+
+    logger.debug("Running doctor on config_dir=%s quick=%s", config_dir, quick)
+    bridge = _CaptureBridge()
+    try:
+        from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
+
+        doctor_cmd(config_dir=config_dir, quick=quick, bridge=bridge)
+        return {"success": True, "output": "\n".join(bridge.messages)}
+    except SystemExit as exc:  # pragma: no cover - propagate failure but capture output
+        return {
+            "success": False,
+            "error": str(exc),
+            "output": "\n".join(bridge.messages),
+        }
+    except Exception as exc:  # pragma: no cover - defensive programming
+        logger.error("Doctor command failed: %s", exc)
+        return {
+            "success": False,
+            "error": str(exc),
+            "output": "\n".join(bridge.messages),
+        }
+
+
 _tool_registry.register(
     "alignment_metrics",
     alignment_metrics_tool,
@@ -226,6 +339,56 @@ _tool_registry.register(
             "segment_size": {
                 "type": "integer",
                 "description": "Batch size when segmenting tests",
+            },
+        },
+        "required": [],
+    },
+    allow_shell=True,
+)
+
+_tool_registry.register(
+    "security_audit",
+    security_audit_tool,
+    description="Run security audit checks including static analysis and dependency scanning.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "skip_static": {
+                "type": "boolean",
+                "description": "Skip Bandit static analysis",
+            },
+            "skip_safety": {
+                "type": "boolean",
+                "description": "Skip dependency vulnerability scan",
+            },
+            "skip_secrets": {
+                "type": "boolean",
+                "description": "Skip secrets scanning",
+            },
+            "skip_owasp": {
+                "type": "boolean",
+                "description": "Skip OWASP Dependency Check",
+            },
+        },
+        "required": [],
+    },
+    allow_shell=True,
+)
+
+_tool_registry.register(
+    "doctor",
+    doctor_tool,
+    description="Validate configuration files and environment setup.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "config_dir": {
+                "type": "string",
+                "description": "Directory containing configuration files",
+            },
+            "quick": {
+                "type": "boolean",
+                "description": "Run quick pytest checks",
             },
         },
         "required": [],

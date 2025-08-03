@@ -25,6 +25,8 @@ with the registry and the steps for adding new tools.
 |------|-------------|
 | `alignment_metrics` | Collects code alignment metrics and optionally writes a report. |
 | `run_tests` | Executes the project's pytest suites and returns their output. |
+| `security_audit` | Runs static analysis and dependency checks to surface security issues. |
+| `doctor` | Validates configuration files and environment setup. |
 
 You can inspect the registry programmatically:
 
@@ -34,6 +36,14 @@ from devsynth.agents.tools import get_tool_registry
 registry = get_tool_registry()
 for name, meta in registry.list_tools().items():
     print(name, meta["description"])
+```
+
+Tool metadata can also be exported in OpenAI's function-call format:
+
+```python
+from devsynth.agents.tools import get_openai_tools
+
+openai_tools = get_openai_tools()
 ```
 
 ## Adding a New Tool
