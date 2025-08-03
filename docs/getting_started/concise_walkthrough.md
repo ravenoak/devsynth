@@ -45,7 +45,23 @@ cd demo
 
 `devsynth init` now walks you through an interactive setup if it detects existing project files.
 
-The command generates a `.devsynth/project.yaml` file. For reference, you can look at the example configuration in [`templates/project.yaml`](../../templates/project.yaml).
+The command generates a `.devsynth/project.yaml` file and bootstraps a basic
+project layout:
+
+```
+demo/
+├── .devsynth/
+│   └── project.yaml
+├── tests/
+│   ├── unit/sample_test.py
+│   ├── integration/sample_integration_test.py
+│   └── behavior/
+│       ├── features/sample.feature
+│       └── steps/sample_steps.py
+```
+
+For reference, you can look at the example configuration in
+[`templates/project.yaml`](../../templates/project.yaml).
 
 ## 2. Add Requirements
 

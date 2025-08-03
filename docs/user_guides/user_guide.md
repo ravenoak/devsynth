@@ -71,6 +71,10 @@ primary language, optional project goals and an optional path to a constraint
 file. Your answers are written to `.devsynth/project.yaml` by default or to the
 `pyproject.toml` file if you choose that option when prompted.
 
+`devsynth init` also scaffolds a `tests/` directory populated with example
+unit, integration and behavior tests. These samples help verify the
+environment and serve as starting points for your own test suites.
+
 ### `inspect`
 
 Inspects requirements from a file or interactively.
