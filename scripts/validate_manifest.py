@@ -1,12 +1,15 @@
-# DEPRECATED: use `devsynth validate-manifest` instead. This script will be removed in a future release.
+# DEPRECATED: use `devsynth validate-manifest` instead. This script will be
+# removed in the next major release. See docs/policies/deprecation_policy.md for
+# details.
 """Wrapper for validating DevSynth project manifests.
 
-Deprecated: use ``devsynth validate-manifest`` instead. This script remains for
-backward compatibility and will be removed in a future release. Older automation
-that invoked ``scripts/validate_manifest.py`` directly should transition to the
-CLI command. The heavy lifting now lives in
+DEPRECATED: use ``devsynth validate-manifest`` instead. This script remains for
+backward compatibility and will be removed in the next major release. Older
+automation that invoked ``scripts/validate_manifest.py`` directly should
+transition to the CLI command. The heavy lifting now lives in
 :mod:`devsynth.application.cli.commands.validate_manifest_cmd`, so this file
-simply forwards arguments to that command.
+simply forwards arguments to that command. See
+``docs/policies/deprecation_policy.md`` for the deprecation schedule.
 """
 
 from __future__ import annotations
