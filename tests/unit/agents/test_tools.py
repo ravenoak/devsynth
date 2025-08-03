@@ -30,3 +30,27 @@ def test_unknown_tool_returns_none() -> None:
     registry = ToolRegistry()
     assert registry.get("missing") is None
     assert registry.get_metadata("missing") is None
+
+
+def test_export_for_openai_formats_tools() -> None:
+    registry = ToolRegistry()
+    registry.register(
+        "adder",
+        sample_tool,
+        description="Add one to the input",
+        parameters={"type": "object", "properties": {"x": {"type": "integer"}}},
+    )
+    exported = registry.export_for_openai()
+    assert exported == [
+        {
+            "type": "function",
+            "function": {
+                "name": "adder",
+                "description": "Add one to the input",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"x": {"type": "integer"}},
+                },
+            },
+        }
+    ]
