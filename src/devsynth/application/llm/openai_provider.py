@@ -16,6 +16,7 @@ from ...config.settings import get_llm_settings
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
+from devsynth.metrics import inc_provider
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -103,11 +104,23 @@ class OpenAIProvider(StreamingLLMProvider):
             return False
         return True
 
+    def _on_retry(self, exc: Exception, attempt: int, delay: float) -> None:
+        """Emit telemetry when a retry occurs."""
+        logger.warning(
+            "Retrying OpenAIProvider due to %s (attempt %d, delay %.2fs)",
+            exc,
+            attempt,
+            delay,
+        )
+        inc_provider("retry")
+
     def _execute_with_resilience(self, func, *args, **kwargs):
         """Execute a function with retry and circuit breaker protection."""
 
         @retry_with_exponential_backoff(
-            max_retries=self.max_retries, should_retry=self._should_retry
+            max_retries=self.max_retries,
+            should_retry=self._should_retry,
+            on_retry=self._on_retry,
         )
         def _wrapped():
             return self.circuit_breaker.call(func, *args, **kwargs)

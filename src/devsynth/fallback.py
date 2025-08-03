@@ -31,6 +31,17 @@ R = TypeVar("R")
 # Create a logger for this module
 logger = DevSynthLogger("fallback")
 
+# Export metrics helpers for convenience
+__all__ = [
+    "retry_with_exponential_backoff",
+    "with_fallback",
+    "CircuitBreaker",
+    "Bulkhead",
+    "get_retry_metrics",
+    "get_retry_count_metrics",
+    "get_retry_error_metrics",
+]
+
 
 def retry_with_exponential_backoff(
     max_retries: int = 3,
@@ -41,7 +52,9 @@ def retry_with_exponential_backoff(
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
     should_retry: Optional[Callable[[Exception], bool]] = None,
-    retry_conditions: Optional[List[Callable[[Exception], bool]]] = None,
+    retry_conditions: Optional[
+        List[Union[Callable[[Exception], bool], str]]
+    ] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
     error_retry_map: Optional[Dict[type, bool]] = None,
@@ -68,10 +81,11 @@ def retry_with_exponential_backoff(
     should_retry : Optional[Callable[[Exception], bool]]
         Optional function that determines if a caught exception should trigger
         another retry. If it returns ``False`` the exception is re-raised.
-    retry_conditions : Optional[List[Callable[[Exception], bool]]]
+    retry_conditions : Optional[List[Union[Callable[[Exception], bool], str]]]
         Additional per-exception conditions that must all evaluate to ``True``
         for the retry to continue. If any condition returns ``False`` the
-        exception is re-raised.
+        exception is re-raised. String entries are treated as substrings that
+        must appear in the exception message.
     error_retry_map : Optional[Dict[type, bool]]
         Mapping of exception types to a boolean indicating if they should be
         retried regardless of ``retryable_exceptions``. ``False`` aborts the
@@ -89,6 +103,19 @@ def retry_with_exponential_backoff(
             # Initialize variables
             num_retries = 0
             delay = initial_delay
+            compiled_conditions: List[Callable[[Exception], bool]] = []
+            if retry_conditions:
+                for cond in retry_conditions:
+                    if callable(cond):
+                        compiled_conditions.append(cond)
+                    elif isinstance(cond, str):
+                        compiled_conditions.append(
+                            lambda exc, substr=cond: substr in str(exc)
+                        )
+                    else:  # pragma: no cover - defensive
+                        raise TypeError(
+                            "retry_conditions must be callables or strings"
+                        )
 
             # Loop until max retries reached
             while True:
@@ -154,8 +181,8 @@ def retry_with_exponential_backoff(
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
                         raise
-                    if retry_conditions and not all(
-                        cond(e) for cond in retry_conditions
+                    if compiled_conditions and not all(
+                        cond(e) for cond in compiled_conditions
                     ):
                         logger.warning(
                             f"Not retrying {func.__name__} due to retry_conditions policy",
