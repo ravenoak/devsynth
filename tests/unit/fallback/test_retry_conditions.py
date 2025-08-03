@@ -1,10 +1,5 @@
 import pytest
 from unittest.mock import Mock, patch
-from devsynth.adapters.provider_system import (
-    FallbackProvider,
-    BaseProvider,
-    ProviderError,
-)
 import time
 
 from devsynth.fallback import retry_with_exponential_backoff
@@ -91,6 +86,34 @@ def test_retry_conditions_allow_retry():
 
 
 @pytest.mark.medium
+def test_string_condition_allows_retry():
+    mock_func = Mock(side_effect=[Exception("please RETRY"), "ok"])
+    mock_func.__name__ = "mock_func"
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_conditions=["RETRY"],
+    )(mock_func)
+    result = decorated()
+    assert result == "ok"
+    assert mock_func.call_count == 2
+
+
+@pytest.mark.medium
+def test_string_condition_aborts_when_missing():
+    mock_func = Mock(side_effect=Exception("boom"))
+    mock_func.__name__ = "mock_func"
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_conditions=["retry"],
+    )(mock_func)
+    with pytest.raises(Exception):
+        decorated()
+    assert mock_func.call_count == 1
+
+
+@pytest.mark.medium
 def test_exponential_backoff(monkeypatch):
     delays = []
     monkeypatch.setattr(time, "sleep", lambda d: delays.append(round(d, 2)))
@@ -113,6 +136,12 @@ def test_exponential_backoff(monkeypatch):
 
 @pytest.mark.medium
 def test_fallback_provider_order():
+    from devsynth.adapters.provider_system import (
+        FallbackProvider,
+        BaseProvider,
+        ProviderError,
+    )
+
     provider1 = Mock(spec=BaseProvider)
     provider2 = Mock(spec=BaseProvider)
     provider1.complete.side_effect = ProviderError("p1 fail")

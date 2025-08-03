@@ -241,6 +241,19 @@ class BaseProvider:
         )
         self.retry_config = config
 
+    def _emit_retry_telemetry(
+        self, exc: Exception, attempt: int, delay: float
+    ) -> None:
+        """Emit telemetry for a retry attempt."""
+        logger.warning(
+            "Retrying %s due to %s (attempt %d, delay %.2fs)",
+            self.__class__.__name__,
+            exc,
+            attempt,
+            delay,
+        )
+        inc_provider("retry")
+
     def get_retry_decorator(
         self,
         retryable_exceptions: Tuple[Exception, ...] = (Exception,),
@@ -266,6 +279,7 @@ class BaseProvider:
             track_metrics=self.retry_config.get("track_metrics", True),
             retryable_exceptions=retryable_exceptions,
             should_retry=should_retry,
+            on_retry=self._emit_retry_telemetry,
         )
 
     def complete(
@@ -486,6 +500,7 @@ class OpenAIProvider(BaseProvider):
                 track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
             )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI API error: {e}")
@@ -589,6 +604,7 @@ class OpenAIProvider(BaseProvider):
                         delay = delay * (0.5 + random.random())
 
                     # Wait before retrying
+                    self._emit_retry_telemetry(e, retry_count, delay)
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
@@ -680,6 +696,7 @@ class OpenAIProvider(BaseProvider):
                 track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
             )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"OpenAI embedding API error: {e}")
@@ -751,6 +768,7 @@ class OpenAIProvider(BaseProvider):
                         delay = delay * (0.5 + random.random())
 
                     # Wait before retrying
+                    self._emit_retry_telemetry(e, retry_count, delay)
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
@@ -910,6 +928,7 @@ class LMStudioProvider(BaseProvider):
                 track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
             )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio API error: {e}")
@@ -1015,6 +1034,7 @@ class LMStudioProvider(BaseProvider):
                         delay = delay * (0.5 + random.random())
 
                     # Wait before retrying
+                    self._emit_retry_telemetry(e, retry_count, delay)
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
@@ -1098,8 +1118,11 @@ class LMStudioProvider(BaseProvider):
                 exponential_base=retry_config["exponential_base"],
                 max_delay=retry_config["max_delay"],
                 jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
                 should_retry=self._should_retry,
                 retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
             )(_api_call)()
         except requests.exceptions.RequestException as e:
             logger.error(f"LM Studio embedding API error: {e}")
@@ -1168,6 +1191,7 @@ class LMStudioProvider(BaseProvider):
                         delay = delay * (0.5 + random.random())
 
                     # Wait before retrying
+                    self._emit_retry_telemetry(e, retry_count, delay)
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
