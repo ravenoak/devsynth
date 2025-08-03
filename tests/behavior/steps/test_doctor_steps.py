@@ -1,5 +1,6 @@
 """Steps for the doctor.feature without mocks."""
 
+import pytest
 from pytest_bdd import given, when
 
 from .cli_commands_steps import run_command
