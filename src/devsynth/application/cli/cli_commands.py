@@ -1780,20 +1780,23 @@ def dbschema_cmd(
 
 
 def doctor_cmd(
-    config_dir: str = "config", *, bridge: Optional[UXBridge] = None
+    config_dir: str = "config",
+    quick: bool = typer.Option(False, "--quick", help="Run quick tests"),
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Validate environment configuration files."""
 
-    _doctor_impl(config_dir=config_dir, bridge=_resolve_bridge(bridge))
+    _doctor_impl(config_dir=config_dir, quick=quick, bridge=_resolve_bridge(bridge))
 
 
-def check_cmd(config_dir: str = "config") -> None:
+def check_cmd(config_dir: str = "config", quick: bool = False) -> None:
     """Alias for :func:`doctor_cmd`.
 
     Example:
         `devsynth check`
     """
-    doctor_cmd(config_dir)
+    doctor_cmd(config_dir=config_dir, quick=quick)
 
 
 def webui_cmd(*, bridge: UXBridge = bridge) -> None:

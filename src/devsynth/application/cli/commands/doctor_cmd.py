@@ -8,13 +8,16 @@ from typing import Optional
 import importlib.util
 import os
 import sys
+import subprocess
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 
-def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None) -> None:
+def doctor_cmd(
+    config_dir: str = "config", quick: bool = False, *, bridge: Optional[UXBridge] = None
+) -> None:
     """Validate environment configuration files and provide hints.
 
     Parameters
@@ -42,6 +45,15 @@ def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None)
         warnings = False
         critical_missing = False
 
+        # verify expected directory structure
+        required_dirs = ["src", "tests", "docs"]
+        missing_dirs = [d for d in required_dirs if not (Path.cwd() / d).exists()]
+        if missing_dirs:
+            ux_bridge.print(
+                f"[yellow]Missing expected directories: {', '.join(missing_dirs)}[/yellow]"
+            )
+            warnings = True
+
         if sys.version_info < (3, 11):
             ux_bridge.print(
                 f"[yellow]Warning: Python 3.12 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
@@ -54,6 +66,15 @@ def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None)
         if missing_keys:
             ux_bridge.print(
                 f"[yellow]Missing environment variables: {', '.join(missing_keys)}[/yellow]"
+            )
+            warnings = True
+
+        # check for core dependencies
+        core_deps = ["rich", "pytest"]
+        missing_deps = [pkg for pkg in core_deps if importlib.util.find_spec(pkg) is None]
+        if missing_deps:
+            ux_bridge.print(
+                f"[yellow]Missing dependencies: {', '.join(missing_deps)}[/yellow]"
             )
             warnings = True
 
@@ -134,6 +155,25 @@ def doctor_cmd(config_dir: str = "config", *, bridge: Optional[UXBridge] = None)
         for err in consistency_errors:
             ux_bridge.print(f"[yellow]{err}[/yellow]")
             warnings = True
+
+        if quick:
+            ux_bridge.print("[blue]Running quick tests...[/blue]")
+            try:
+                result = subprocess.run(
+                    [sys.executable, "-m", "pytest", "-q"],
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    ux_bridge.print("[yellow]Quick tests failed[/yellow]")
+                    warnings = True
+                else:
+                    ux_bridge.print("[green]Quick tests passed[/green]")
+            except Exception as exc:  # pragma: no cover - defensive
+                ux_bridge.print(
+                    f"[yellow]Quick tests could not be run: {exc}[/yellow]"
+                )
+                warnings = True
 
         if warnings:
             ux_bridge.print(
