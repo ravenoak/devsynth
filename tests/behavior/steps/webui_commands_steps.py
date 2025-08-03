@@ -5,7 +5,7 @@ import sys
 import pytest
 from pytest_bdd import given, when, then, scenarios
 
-from .webui_steps import webui_context, DummyForm
+from .webui_steps import webui_context
 
 scenarios("../features/general/webui_commands.feature")
 
