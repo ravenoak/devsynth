@@ -1,12 +1,16 @@
 """Wrapper functions and utilities for executing workflows."""
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 from pathlib import Path
 import json
 import yaml
 
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.config import get_project_config, save_config
+from devsynth.agents.critique_agent import CritiqueAgent
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
 
 
 def _get_workflow_manager():
@@ -15,9 +19,13 @@ def _get_workflow_manager():
 
     return workflow_manager
 
-
-# Expose the singleton so it can be imported directly from this module
-workflow_manager = _get_workflow_manager()
+# Expose the singleton so it can be imported directly from this module.
+# Importing the application workflow may require optional dependencies, so we
+# fall back to ``None`` when they are unavailable.
+try:  # pragma: no cover - defensive import
+    workflow_manager = _get_workflow_manager()
+except Exception:  # pragma: no cover
+    workflow_manager = None
 
 
 def execute_command(command: str, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -30,6 +38,24 @@ def filter_args(args: Dict[str, Any]) -> Dict[str, Any]:
     return {k: v for k, v in args.items() if v is not None}
 
 
+def _review_content(content: str, bridge: Optional[UXBridge] = None):
+    """Run :class:`CritiqueAgent` on ``content`` and surface issues."""
+
+    critic = CritiqueAgent()
+    critique = critic.review(content)
+    if critique.issues:
+        logger.warning("Critique issues: %s", "; ".join(critique.issues))
+        if bridge:
+            bridge.display_result(
+                "[red]Critique issues:\n" + "\n".join(critique.issues) + "[/red]"
+            )
+    else:
+        logger.info("Critique passed with no issues.")
+        if bridge:
+            bridge.display_result("[green]Critique passed with no issues.[/green]")
+    return critique
+
+
 def init_project(**kwargs: Any) -> Dict[str, Any]:
     """Initialize a new project."""
     return execute_command("init", filter_args(kwargs))
@@ -40,14 +66,30 @@ def generate_specs(requirements_file: str) -> Dict[str, Any]:
     return execute_command("spec", {"requirements_file": requirements_file})
 
 
-def generate_tests(spec_file: str) -> Dict[str, Any]:
-    """Generate tests from specs."""
-    return execute_command("test", {"spec_file": spec_file})
+def generate_tests(
+    spec_file: str, *, bridge: Optional[UXBridge] = None
+) -> Dict[str, Any]:
+    """Generate tests from specs and run a critique pass."""
+
+    result = execute_command("test", {"spec_file": spec_file})
+    content = result.get("content")
+    if isinstance(content, str):
+        critique = _review_content(content, bridge)
+        result["critique"] = critique.issues
+        result["critique_approved"] = critique.approved
+    return result
 
 
-def generate_code() -> Dict[str, Any]:
-    """Generate implementation code from tests."""
-    return execute_command("code", {})
+def generate_code(*, bridge: Optional[UXBridge] = None) -> Dict[str, Any]:
+    """Generate implementation code from tests and critique it."""
+
+    result = execute_command("code", {})
+    content = result.get("content")
+    if isinstance(content, str):
+        critique = _review_content(content, bridge)
+        result["critique"] = critique.issues
+        result["critique_approved"] = critique.approved
+    return result
 
 
 def run_pipeline(
