@@ -6,6 +6,9 @@ set -exo pipefail
 # Use Python 3.12 if available, otherwise fall back to Python 3.11
 poetry env use "$(command -v python3.12 || command -v python3.11)"
 
+# Verify that the virtual environment was created
+poetry env info --path >/dev/null
+
 # Install only the extras required for the test suite. Large GPU packages
 # provided by the `offline` extra are intentionally excluded to keep setup
 # fast. Add the `offline` extra manually if GPU features are needed.
@@ -13,6 +16,9 @@ poetry install \
   --with dev,docs \
   --all-extras \
   --no-interaction
+
+# Validate dependency installation
+poetry run pip check
 
 # Prefetch the cl100k_base encoding for tiktoken
 poetry run python - <<'EOF'
@@ -46,6 +52,9 @@ poetry run python -c "import pytest_bdd"
 
 # Ensure pytest-bdd is installed in the environment
 poetry run pip list | grep pytest-bdd >/dev/null
+
+# Run a smoke test to catch failures early
+poetry run pytest --maxfail=1
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
