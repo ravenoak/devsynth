@@ -17,7 +17,8 @@ def test_register_and_get_tool() -> None:
     )
 
     func = registry.get("adder")
-    assert func is sample_tool
+    assert func is not None
+    assert func(1) == 2
     metadata = registry.get_metadata("adder")
     assert metadata == {
         "description": "Add one to the input",

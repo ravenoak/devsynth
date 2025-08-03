@@ -16,4 +16,8 @@ def test_run_tests_tool_returns_structure() -> None:
 def test_run_tests_tool_registered() -> None:
     """The tool should be registered in the global registry."""
     registry = get_tool_registry()
-    assert registry.get("run_tests") is run_tests_tool
+    func = registry.get("run_tests")
+    assert func is not None
+    with patch("devsynth.agents.tools.run_tests", return_value=(True, "ok")) as mock_run:
+        func(target="unit-tests")
+        mock_run.assert_called_once()
