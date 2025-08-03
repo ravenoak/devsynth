@@ -9,7 +9,8 @@ tags:
 - requirements
 - reasoning
 title: Dialectical Reasoning System for Requirements Management
-version: 1.1.0---
+version: 1.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Dialectical Reasoning System for Requirements Management

@@ -6,7 +6,8 @@ status: published
 tags:
 - documentation
 title: Documentation Update Progress
-version: 0.1.0---
+version: 0.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; Documentation Update Progress
@@ -294,7 +295,7 @@ The project has a well-defined documentation structure organized into directorie
 ### High Priority Tasks (Completed)
 
 - ✅ Consolidate Roadmap Documents
-  - Merge `ROADMAP.md`, `pre_1.0_release_plan.md`, `release_plan.md`, and `PHASE1_TO_PHASE2_TRANSITION.md` into a single roadmap with clear versioning (`CONSOLIDATED_ROADMAP.md`)
+  - Merge `ROADMAP.md`, `release_plan.md`, and `PHASE1_TO_PHASE2_TRANSITION.md` into a single roadmap with clear versioning (`CONSOLIDATED_ROADMAP.md`)
   - Archive historical roadmap information in a separate section (`docs/archived/roadmaps/`)
   - Update references to roadmap documents in README.md
 

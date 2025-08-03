@@ -10,7 +10,8 @@ tags:
 - cli
 
 title: Init Workflow
-version: 0.1.0---
+version: 0.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Init Workflow
@@ -43,6 +44,8 @@ sequenceDiagram
     UX->>U: display completion
 ```
 
+![Init Workflow Sequence Diagram](diagrams/init_workflow-1.svg)
+
 Both the CLI and the future WebUI will use this same sequence by invoking the
 `CoreModules` through the `UXBridge`. This keeps initialization logic in one
 place while supporting multiple user interfaces.
@@ -60,6 +63,8 @@ sequenceDiagram
     U-->>UX: provide answers
     UX->>CLI: save structured file
 ```
+
+![Requirements Wizard Sequence Diagram](diagrams/init_workflow-2.svg)
 
 This wizard shares the same prompts across interfaces thanks to the
 `UXBridge` abstraction.

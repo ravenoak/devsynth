@@ -9,7 +9,8 @@ tags:
 - methodology
 - framework
 title: 'EDRR Framework: Expand, Differentiate, Refine, Retrospect'
-version: 0.1.0---
+version: 0.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; 'EDRR Framework: Expand, Differentiate, Refine, Retrospect'

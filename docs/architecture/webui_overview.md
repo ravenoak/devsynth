@@ -12,7 +12,8 @@ tags:
 - interface
 
 title: WebUI Architecture Overview
-version: 1.1.0---
+version: 1.1.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WebUI Architecture Overview
@@ -78,6 +79,9 @@ flowchart TD
     Utilities -->|includes| ErrorHandlers[Error Handlers]
     Utilities -->|includes| Notifications[Notification System]
 ```
+
+![WebUI Diagram 1](diagrams/webui_overview-1.svg)
+
 
 ### Detailed Component Descriptions
 
@@ -405,6 +409,9 @@ flowchart TB
 
 ```
 
+![WebUI Diagram 2](diagrams/webui_overview-2.svg)
+
+
 ## Data Flow
 
 The WebUI interacts with the core DevSynth logic through the `UXBridge` interface:
@@ -426,6 +433,9 @@ sequenceDiagram
     UXBridge-->>WebUI: Results
     WebUI-->>User: Display results
 ```
+
+![WebUI Diagram 3](diagrams/webui_overview-3.svg)
+
 
 ## State Management
 
@@ -479,6 +489,9 @@ classDiagram
     SessionState *-- UIState
     SessionState *-- ProcessState
 ```
+
+![WebUI Diagram 4](diagrams/webui_overview-4.svg)
+
 
 ### Session State Initialization
 
@@ -867,6 +880,9 @@ flowchart TD
     Core -->|uses| LLMProviders
     Streamlit -->|renders| WebUI[WebUI Interface]
 ```
+
+![WebUI Diagram 5](diagrams/webui_overview-5.svg)
+
 
 ### 1. Local Development Deployment
 
