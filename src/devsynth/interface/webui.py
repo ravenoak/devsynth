@@ -894,6 +894,94 @@ class WebUI(UXBridge):
             st.divider()
         self._gather_wizard()
 
+    def _validate_requirements_step(self, wizard_state, step: int) -> bool:
+        """Validate the current requirements wizard step."""
+        if step == 1:
+            return wizard_state.get("title", "") != ""
+        if step == 2:
+            return wizard_state.get("description", "") != ""
+        if step == 3:
+            return wizard_state.get("type", "") != ""
+        if step == 4:
+            return wizard_state.get("priority", "") != ""
+        if step == 5:
+            return True
+        return True
+
+    def _save_requirements(self, wizard_manager):
+        """Persist requirements to disk and reset wizard state."""
+        try:
+            result = {
+                "title": wizard_manager.get_value("title"),
+                "description": wizard_manager.get_value("description"),
+                "type": wizard_manager.get_value("type"),
+                "priority": wizard_manager.get_value("priority"),
+                "constraints": [
+                    c.strip()
+                    for c in wizard_manager.get_value("constraints", "").split(",")
+                    if c.strip()
+                ],
+            }
+            with open("requirements_wizard.json", "w", encoding="utf-8") as f:
+                f.write(json.dumps(result, indent=2))
+            self.display_result(
+                "[green]Requirements saved to requirements_wizard.json[/green]",
+                message_type="success",
+            )
+            if not wizard_manager.set_completed(True):
+                logger.warning("Failed to mark requirements_wizard as completed")
+            if not wizard_manager.reset_wizard_state():
+                logger.warning("Failed to reset requirements_wizard wizard state")
+            logger.debug("Reset requirements_wizard wizard state after completion")
+            return result
+        except Exception as exc:  # pragma: no cover - defensive
+            self.display_result(
+                f"[red]ERROR saving requirements: {exc}[/red]",
+                message_type="error",
+                highlight=False,
+            )
+            return None
+
+    def _handle_requirements_navigation(
+        self, wizard_manager, wizard_state, current_step: int
+    ):
+        """Handle navigation and saving actions for the requirements wizard."""
+        col1, col2, col3 = st.columns(3)
+
+        if current_step > 1 and col1.button("Previous", key="previous_button"):
+            if not wizard_manager.previous_step():
+                self.display_result(
+                    "Error navigating to previous step", message_type="error"
+                )
+
+        if current_step < wizard_state.get_total_steps():
+            if col2.button("Next", key="next_button"):
+                if self._validate_requirements_step(wizard_state, current_step):
+                    if not wizard_manager.next_step():
+                        self.display_result(
+                            "Error navigating to next step", message_type="error"
+                        )
+                else:
+                    self.display_result(
+                        "Please fill in all required fields", message_type="error"
+                    )
+
+        if current_step == wizard_state.get_total_steps():
+            if col2.button("Save Requirements", key="save_button"):
+                if self._validate_requirements_step(wizard_state, current_step):
+                    return self._save_requirements(wizard_manager)
+                self.display_result(
+                    "Please fill in all required fields", message_type="error"
+                )
+
+        if col3.button("Cancel", key="cancel_button"):
+            if not wizard_manager.reset_wizard_state():
+                logger.warning("Failed to reset requirements_wizard wizard state")
+            logger.debug("Reset requirements_wizard wizard state")
+            self.display_result("Requirements wizard cancelled", message_type="info")
+
+        return None
+
     def _requirements_wizard(self) -> None:
         """
         Interactive requirements wizard using progress steps with WizardStateManager.
@@ -908,21 +996,6 @@ class WebUI(UXBridge):
 
         The wizard maintains state between steps and provides navigation controls.
         """
-
-        # Helper function to validate each step
-        def validate_step(wizard_state, step):
-            """Validate the current step."""
-            if step == 1:
-                return wizard_state.get("title", "") != ""
-            elif step == 2:
-                return wizard_state.get("description", "") != ""
-            elif step == 3:
-                return wizard_state.get("type", "") != ""
-            elif step == 4:
-                return wizard_state.get("priority", "") != ""
-            elif step == 5:
-                return True  # Constraints are optional
-            return True
 
         try:
             # Import WizardStateManager for state management
@@ -1034,104 +1107,11 @@ class WebUI(UXBridge):
                     message_type="error",
                     highlight=False,
                 )
-
-            # Navigation buttons
-            col1, col2, col3 = st.columns(3)
-
-            # Previous button (disabled on first step)
-            if current_step > 1:
-                if col1.button("Previous", key="previous_button"):
-                    success = wizard_manager.previous_step()
-                    if not success:
-                        self.display_result(
-                            "Error navigating to previous step", message_type="error"
-                        )
-
-            # Next button (on steps 1-4)
-            if current_step < wizard_state.get_total_steps():
-                if col2.button("Next", key="next_button"):
-                    if validate_step(wizard_state, current_step):
-                        success = wizard_manager.next_step()
-                        if not success:
-                            self.display_result(
-                                "Error navigating to next step", message_type="error"
-                            )
-                    else:
-                        self.display_result(
-                            "Please fill in all required fields", message_type="error"
-                        )
-
-            # Save button (on last step)
-            if current_step == wizard_state.get_total_steps():
-                if col2.button("Save Requirements", key="save_button"):
-                    if validate_step(wizard_state, current_step):
-                        try:
-                            result = {
-                                "title": wizard_manager.get_value("title"),
-                                "description": wizard_manager.get_value("description"),
-                                "type": wizard_manager.get_value("type"),
-                                "priority": wizard_manager.get_value("priority"),
-                                "constraints": [
-                                    c.strip()
-                                    for c in wizard_manager.get_value(
-                                        "constraints", ""
-                                    ).split(",")
-                                    if c.strip()
-                                ],
-                            }
-                            with open(
-                                "requirements_wizard.json", "w", encoding="utf-8"
-                            ) as f:
-                                f.write(json.dumps(result, indent=2))
-                            self.display_result(
-                                "[green]Requirements saved to requirements_wizard.json[/green]",
-                                message_type="success",
-                            )
-                            # Mark the wizard as completed
-                            success = wizard_manager.set_completed(True)
-                            if not success:
-                                logger.warning(
-                                    f"Failed to mark {wizard_name} as completed"
-                                )
-
-                            # Reset wizard state
-                            success = wizard_manager.reset_wizard_state()
-                            if not success:
-                                logger.warning(
-                                    f"Failed to reset {wizard_name} wizard state"
-                                )
-
-                            # Log the reset for debugging
-                            logger.debug(
-                                f"Reset {wizard_name} wizard state after completion"
-                            )
-
-                            return result
-                        except Exception as exc:
-                            self.display_result(
-                                f"[red]ERROR saving requirements: {exc}[/red]",
-                                message_type="error",
-                                highlight=False,
-                            )
-                            return None
-                    else:
-                        self.display_result(
-                            "Please fill in all required fields", message_type="error"
-                        )
-
-            # Cancel button
-            if col3.button("Cancel", key="cancel_button"):
-                # Reset the wizard state
-                success = wizard_manager.reset_wizard_state()
-                if not success:
-                    logger.warning(f"Failed to reset {wizard_name} wizard state")
-
-                # Log the reset for debugging
-                logger.debug(f"Reset {wizard_name} wizard state")
-
-                self.display_result(
-                    "Requirements wizard cancelled", message_type="info"
-                )
+            result = self._handle_requirements_navigation(
+                wizard_manager, wizard_state, current_step
+            )
+            if result is not None:
+                return result
 
         except Exception as e:
             # Catch-all for any unexpected errors
