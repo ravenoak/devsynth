@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Sequence
 
+from devsynth.agents.sandbox import sandboxed
+
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.testing.run_tests import run_tests
 
@@ -23,10 +25,18 @@ class ToolRegistry:
         func: Callable[..., Any],
         description: str,
         parameters: Dict[str, Any],
+        *,
+        allow_shell: bool = False,
     ) -> None:
-        """Register a tool with its callable and metadata."""
+        """Register a tool with its callable and metadata.
+
+        Tools are automatically wrapped so they execute inside a sandbox that
+        restricts file system access to the project directory and blocks shell
+        command execution unless ``allow_shell`` is ``True``.
+        """
+        wrapped = sandboxed(func, allow_shell=allow_shell)
         self._tools[name] = {
-            "func": func,
+            "func": wrapped,
             "description": description,
             "parameters": parameters,
         }
@@ -142,4 +152,5 @@ _tool_registry.register(
         },
         "required": [],
     },
+    allow_shell=True,
 )
