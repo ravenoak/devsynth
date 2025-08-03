@@ -16,8 +16,12 @@ jobs:
       - uses: snok/install-poetry@v1
       - name: Install dependencies
         run: poetry install --with dev --all-extras --no-interaction
-      - name: Run tests
-        run: poetry run pytest -q
+      - name: Run project checks
+        # Runs tests and documentation checks; fails if any script exits non-zero
+        run: |
+          poetry run python scripts/run_all_tests.py
+          poetry run python scripts/check_internal_links.py
+          poetry run python scripts/fix_code_blocks.py --check
 
   security-scan:
     runs-on: ubuntu-latest
