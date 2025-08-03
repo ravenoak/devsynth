@@ -403,6 +403,41 @@ class SyncManager:
         self.cache.put(cache_key, results)
         return results
 
+    async def cross_store_query_async(
+        self, query: str, stores: Optional[List[str]] | None = None
+    ) -> Dict[str, List[Any]]:
+        """Asynchronously query multiple stores and cache the results."""
+
+        key_stores = ",".join(sorted(stores)) if stores else "all"
+        cache_key = f"{query}:{key_stores}"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        stores = stores or list(self.memory_manager.adapters.keys())
+
+        async def _query(name: str) -> Tuple[str, List[Any]]:
+            adapter = self.memory_manager.adapters.get(name)
+            if not adapter:
+                return name, []
+            if name == "vector" and hasattr(adapter, "similarity_search"):
+                embedding = self.memory_manager._embed_text(query)
+                result = await asyncio.to_thread(
+                    adapter.similarity_search, embedding, top_k=5
+                )
+                return name, result
+            if hasattr(adapter, "search"):
+                result = await asyncio.to_thread(
+                    adapter.search, {"content": query}
+                )
+                return name, result
+            return name, []
+
+        pairs = await asyncio.gather(*(_query(name) for name in stores))
+        results: Dict[str, List[Any]] = {name: items for name, items in pairs}
+        self.cache.put(cache_key, results)
+        return results
+
     def clear_cache(self) -> None:
         """Clear cached query results."""
 

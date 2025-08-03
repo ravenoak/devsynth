@@ -1,11 +1,43 @@
 import pytest
 
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.memory.context_manager import InMemoryStore
 from devsynth.application.memory.adapters.vector_memory_adapter import (
     VectorMemoryAdapter,
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.domain.interfaces.memory import MemoryStore
+
+
+class InMemoryStore(MemoryStore):
+    def __init__(self) -> None:
+        self.items = {}
+
+    def store(self, item: MemoryItem) -> str:
+        item_id = item.id or str(len(self.items))
+        item.id = item_id
+        self.items[item_id] = item
+        return item_id
+
+    def retrieve(self, item_id: str):
+        return self.items.get(item_id)
+
+    def search(self, query: dict):
+        return list(self.items.values())
+
+    def delete(self, item_id: str) -> bool:
+        return self.items.pop(item_id, None) is not None
+
+    def begin_transaction(self, transaction_id: str | None = None):
+        pass
+
+    def commit_transaction(self, transaction_id: str | None = None):
+        pass
+
+    def rollback_transaction(self, transaction_id: str | None = None):
+        pass
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        return False
 
 
 class TestQueryRouterIntegration:
@@ -47,6 +79,13 @@ class TestQueryRouterIntegration:
         for store, items in results.items():
             for item in items:
                 assert item.metadata.get("source_store") == store
+
+    def test_cross_store_query_subset(self, manager):
+        self._populate(manager)
+        results = manager.route_query(
+            "apple", strategy="cross", stores=["vector", "tinydb"]
+        )
+        assert set(results.keys()) == {"vector", "tinydb"}
 
     @pytest.mark.medium
     def test_federated_query(self, manager):
