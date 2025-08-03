@@ -64,3 +64,13 @@ repos:
 ```
 
 Use `pre-commit install` to enable these hooks locally and `pre-commit run --all-files` to run them across the entire codebase.
+
+## Manual installation
+
+If you prefer not to use the pre-commit framework, you can install the alignment hook directly:
+
+```bash
+ln -s ../../scripts/hooks/pre-commit-align.sh .git/hooks/pre-commit
+```
+
+This symlink runs `devsynth align --quiet` from the repository root before each commit.
