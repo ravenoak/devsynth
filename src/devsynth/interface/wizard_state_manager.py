@@ -5,7 +5,7 @@ This module provides a centralized way to manage wizard state,
 ensuring consistency between WebUIBridge and WizardState.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Sequence
 import logging
 
 from devsynth.logging_setup import DevSynthLogger
@@ -217,3 +217,35 @@ class WizardStateManager:
         """
         wizard_state = self.get_wizard_state()
         return wizard_state.set(key, value)
+
+    def clear_temporary_state(self, keys: Optional[Sequence[str]] = None) -> None:
+        """Clear temporary session state values used by the wizard.
+
+        Streamlit widgets store their values in ``st.session_state`` using
+        widget keys. These values are not managed by :class:`WizardState`
+        directly and can leak between runs if left behind. This helper removes
+        such keys after the wizard completes or is cancelled.
+
+        Args:
+            keys: Optional iterable of session state keys to remove. If ``None``
+                or empty, the method performs no action.
+        """
+        if not keys:
+            return
+
+        for key in keys:
+            try:
+                if key in self.session_state:
+                    del self.session_state[key]
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(
+                    "Error clearing temporary state '%s' for %s: %s",
+                    key,
+                    self.wizard_name,
+                    str(exc),
+                )
+            try:
+                delattr(self.session_state, key)
+            except Exception:
+                # session_state may be a dict that doesn't support attribute access
+                pass

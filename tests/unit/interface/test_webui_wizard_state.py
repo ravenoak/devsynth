@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, patch
 from types import ModuleType
 from pathlib import Path
 
+from devsynth.interface.wizard_state_manager import WizardStateManager
+
 # Import the fixtures
 fixtures_path = Path(__file__).parent.parent.parent / 'fixtures'
 sys.path.insert(0, str(fixtures_path))
@@ -31,8 +33,7 @@ def clean_state():
     yield
     # Clean up state
 
-def test_function(clean_state):
-    # Test with clean state
+def test_function(clean_state, wizard_state):
     """Test that the wizard state is properly initialized."""
     state, mock_st = wizard_state
     
@@ -248,6 +249,15 @@ def test_set_wizard_data(gather_wizard_state):
         "language": "Python",
         "lines": 1000
     }
+
+
+@pytest.mark.medium
+def test_manager_clears_temp_state(mock_streamlit):
+    """Ensure temporary state keys are removed by the manager."""
+    manager = WizardStateManager(mock_streamlit.session_state, "temp", 1)
+    mock_streamlit.session_state["temp_key"] = "value"
+    manager.clear_temporary_state(["temp_key"])
+    assert "temp_key" not in mock_streamlit.session_state
 
 @pytest.mark.medium
 def test_wizard_state_in_streamlit_context(gather_wizard_state):
