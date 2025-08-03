@@ -1,0 +1,6 @@
+- id: devsynth-align
+  name: devsynth align
+  description: "Check SDLC artifact alignment with devsynth"
+  entry: devsynth align --quiet
+  language: system
+  pass_filenames: false
