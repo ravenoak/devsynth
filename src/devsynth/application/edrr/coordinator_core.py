@@ -24,7 +24,7 @@ from devsynth.application.documentation.documentation_manager import (
 )
 from devsynth.application.edrr.manifest_parser import ManifestParseError, ManifestParser
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.core import CoreValues, check_report_for_value_conflicts
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType

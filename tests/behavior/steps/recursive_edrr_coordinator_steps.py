@@ -23,7 +23,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import DocumentationManager
 from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
 from devsynth.application.edrr.manifest_parser import ManifestParser
