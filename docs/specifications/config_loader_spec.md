@@ -10,8 +10,15 @@ tags:
 - pseudocode
 
 title: Configuration Loader Specification
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Configuration Loader Specification
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Configuration Loader Specification
+</div>
 
 # Configuration Loader Specification
 

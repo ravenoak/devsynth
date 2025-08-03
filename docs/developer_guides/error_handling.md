@@ -6,8 +6,15 @@ status: published
 tags:
 - developer-guide
 title: Error Handling Guidelines
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Error Handling Guidelines
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Error Handling Guidelines
+</div>
 
 # Error Handling Guidelines
 
@@ -237,4 +244,4 @@ Structured JSON error response:
 - [Microsoft Style Guide: Error Messages](https://docs.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/error-messages)
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

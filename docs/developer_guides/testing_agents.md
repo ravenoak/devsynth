@@ -7,8 +7,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Testing Agents in DevSynth
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Testing Agents in DevSynth
+</div>
 
 # Testing Agents in DevSynth
 
@@ -136,4 +143,4 @@ When writing new BDD tests for agents:
 7. **Run tests regularly** to catch regressions early
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

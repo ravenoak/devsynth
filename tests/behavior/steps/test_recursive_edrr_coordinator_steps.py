@@ -43,6 +43,7 @@ def context():
     return Context()
 
 
+@pytest.mark.medium
 @given("the EDRR coordinator is initialized with recursion support")
 def edrr_coordinator_initialized_with_recursion(context):
     """Initialize the EDRR coordinator with recursion support."""
@@ -81,6 +82,7 @@ def edrr_coordinator_initialized_with_recursion(context):
     assert hasattr(context.edrr_coordinator, 'create_micro_cycle')
 
 
+@pytest.mark.medium
 @given("the memory system is available")
 def memory_system_available(context):
     """Make the memory system available."""
@@ -89,6 +91,7 @@ def memory_system_available(context):
     assert context.edrr_coordinator.memory_manager is context.memory_manager
 
 
+@pytest.mark.medium
 @given("the WSDE team is available")
 def wsde_team_available(context):
     """Make the WSDE team available."""
@@ -97,6 +100,7 @@ def wsde_team_available(context):
     assert context.edrr_coordinator.wsde_team is context.wsde_team
 
 
+@pytest.mark.medium
 @given("the AST analyzer is available")
 def ast_analyzer_available(context):
     """Make the AST analyzer available."""
@@ -107,6 +111,7 @@ def ast_analyzer_available(context):
     assert context.edrr_coordinator.ast_transformer is context.ast_transformer
 
 
+@pytest.mark.medium
 @given("the prompt manager is available")
 def prompt_manager_available(context):
     """Make the prompt manager available."""
@@ -115,6 +120,7 @@ def prompt_manager_available(context):
     assert context.edrr_coordinator.prompt_manager is context.prompt_manager
 
 
+@pytest.mark.medium
 @given("the documentation manager is available")
 def documentation_manager_available(context):
     """Make the documentation manager available."""
@@ -123,6 +129,7 @@ def documentation_manager_available(context):
     assert context.edrr_coordinator.documentation_manager is context.documentation_manager
 
 
+@pytest.mark.medium
 @when(parsers.parse('I start the EDRR cycle with a task to "{task_description}"'))
 def start_edrr_cycle(context, task_description):
     """Start the EDRR cycle with a task."""
@@ -130,6 +137,7 @@ def start_edrr_cycle(context, task_description):
     context.edrr_coordinator.start_cycle(context.task)
 
 
+@pytest.mark.medium
 @given(parsers.parse('the "{phase_name}" phase has completed for a task'))
 def phase_completed(context, phase_name):
     """Set up a completed phase."""
@@ -189,18 +197,21 @@ def phase_completed(context, phase_name):
         }
 
 
+@pytest.mark.medium
 @when(parsers.parse('the coordinator progresses to the "{phase_name}" phase'))
 def progress_to_phase(context, phase_name):
     """Progress to the next phase."""
     context.edrr_coordinator.progress_to_phase(Phase[phase_name.upper()])
 
 
+@pytest.mark.medium
 @then(parsers.parse('the coordinator should enter the "{phase_name}" phase'))
 def verify_phase(context, phase_name):
     """Verify the coordinator has entered the specified phase."""
     assert context.edrr_coordinator.current_phase == Phase[phase_name.upper()]
 
 
+@pytest.mark.medium
 @when(parsers.parse('I create a micro-EDRR cycle for "{task_description}" within the "{phase_name}" phase'))
 def create_micro_cycle(context, task_description, phase_name):
     """Create a micro-EDRR cycle within the specified phase."""
@@ -215,6 +226,7 @@ def create_micro_cycle(context, task_description, phase_name):
     context.current_micro_cycle = micro_cycle
 
 
+@pytest.mark.medium
 @when(parsers.parse('I create a micro-EDRR cycle for "{task_description}" within the "{phase_name}" phase of the "{parent_task}" cycle'))
 def create_nested_micro_cycle(context, task_description, phase_name, parent_task):
     """Create a nested micro-EDRR cycle within the specified phase of a parent micro cycle."""
@@ -232,6 +244,7 @@ def create_nested_micro_cycle(context, task_description, phase_name, parent_task
     context.current_micro_cycle = micro_cycle
 
 
+@pytest.mark.medium
 @then("the micro cycle should be created successfully")
 def verify_micro_cycle_created(context):
     """Verify the micro cycle was created successfully."""
@@ -239,24 +252,28 @@ def verify_micro_cycle_created(context):
     assert isinstance(context.current_micro_cycle, EDRRCoordinator)
 
 
+@pytest.mark.medium
 @then("the micro cycle should have the parent cycle ID set correctly")
 def verify_parent_cycle_id(context):
     """Verify the micro cycle has the correct parent cycle ID."""
     assert context.current_micro_cycle.parent_cycle_id == context.edrr_coordinator.cycle_id
 
 
+@pytest.mark.medium
 @then("the micro cycle should have recursion depth of 1")
 def verify_recursion_depth(context):
     """Verify the micro cycle has recursion depth of 1."""
     assert context.current_micro_cycle.recursion_depth == 1
 
 
+@pytest.mark.medium
 @then("the micro cycle should be tracked as a child of the parent cycle")
 def verify_child_tracking(context):
     """Verify the micro cycle is tracked as a child of the parent cycle."""
     assert context.current_micro_cycle in context.edrr_coordinator.child_cycles
 
 
+@pytest.mark.medium
 @when(parsers.parse('the micro cycle executes its "{phase_name}" phase'))
 def execute_micro_cycle_phase(context, phase_name):
     """Execute the specified phase of the micro cycle."""
@@ -268,12 +285,14 @@ def execute_micro_cycle_phase(context, phase_name):
     context.current_micro_cycle.execute_current_phase()
 
 
+@pytest.mark.medium
 @when("the micro cycle progresses to the \"Differentiate\" phase")
 def progress_micro_cycle_to_differentiate(context):
     """Progress the micro cycle to the Differentiate phase."""
     context.current_micro_cycle.progress_to_phase(Phase.DIFFERENTIATE)
 
 
+@pytest.mark.medium
 @when("the micro cycle completes a full EDRR cycle")
 def complete_micro_cycle(context):
     """Complete a full EDRR cycle for the micro cycle."""
@@ -287,6 +306,7 @@ def complete_micro_cycle(context):
         context.current_micro_cycle.execute_current_phase()
 
 
+@pytest.mark.medium
 @then(parsers.parse('the micro cycle should generate ideas for "{task_description}"'))
 def verify_micro_cycle_ideas(context, task_description):
     """Verify the micro cycle generates ideas for the specified task."""
@@ -297,6 +317,7 @@ def verify_micro_cycle_ideas(context, task_description):
     assert len(context.current_micro_cycle.results[phase_key]["ideas"]) > 0
 
 
+@pytest.mark.medium
 @then(parsers.parse('the micro cycle should evaluate options for "{task_description}"'))
 def verify_micro_cycle_evaluation(context, task_description):
     """Verify the micro cycle evaluates options for the specified task."""
@@ -307,6 +328,7 @@ def verify_micro_cycle_evaluation(context, task_description):
     assert len(context.current_micro_cycle.results[phase_key]["evaluated_options"]) > 0
 
 
+@pytest.mark.medium
 @then(parsers.parse('the micro cycle should produce an implementation for "{task_description}"'))
 def verify_micro_cycle_implementation(context, task_description):
     """Verify the micro cycle produces an implementation for the specified task."""
@@ -331,6 +353,7 @@ def verify_micro_cycle_implementation(context, task_description):
     assert False, f"No valid implementation data found in results[{phase_key}]"
 
 
+@pytest.mark.medium
 @then(parsers.parse('the micro cycle should produce learnings for "{task_description}"'))
 def verify_micro_cycle_learnings(context, task_description):
     """Verify the micro cycle produces learnings for the specified task."""
@@ -341,6 +364,7 @@ def verify_micro_cycle_learnings(context, task_description):
     assert len(context.current_micro_cycle.results[phase_key]["learnings"]) > 0
 
 
+@pytest.mark.medium
 @then("the micro cycle results should be integrated into the parent cycle")
 def verify_results_integration(context):
     """Verify the micro cycle results are integrated into the parent cycle."""
@@ -358,6 +382,7 @@ def verify_results_integration(context):
     assert context.current_micro_cycle.cycle_id in context.edrr_coordinator.results[phase_key]["micro_cycle_results"], f"Cycle ID {context.current_micro_cycle.cycle_id} not in micro_cycle_results: {list(context.edrr_coordinator.results[phase_key]['micro_cycle_results'].keys())}"
 
 
+@pytest.mark.medium
 @then("attempting to create another micro cycle should fail due to recursion depth limits")
 def verify_recursion_depth_limit(context):
     """Verify that attempting to create a micro cycle beyond the recursion depth limit fails."""
@@ -375,6 +400,7 @@ def verify_recursion_depth_limit(context):
     assert "recursion depth" in str(context.exception).lower()
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a very granular task should be prevented")
 def verify_granularity_threshold(context):
     """Verify that creating a micro cycle for a very granular task is prevented."""
@@ -393,6 +419,7 @@ def verify_granularity_threshold(context):
     assert "granularity" in str(context.exception).lower()
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a complex task should be allowed")
 def verify_complex_task_allowed(context):
     """Verify that creating a micro cycle for a complex task is allowed."""
@@ -407,6 +434,7 @@ def verify_complex_task_allowed(context):
         pytest.fail(f"Creating a micro cycle for a complex task raised an exception: {e}")
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a high-cost low-benefit task should be prevented")
 def verify_cost_benefit_analysis(context):
     """Verify that creating a micro cycle for a high-cost low-benefit task is prevented."""
@@ -425,6 +453,7 @@ def verify_cost_benefit_analysis(context):
     assert "cost-benefit" in str(context.exception).lower()
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a low-cost high-benefit task should be allowed")
 def verify_beneficial_task_allowed(context):
     """Verify that creating a micro cycle for a low-cost high-benefit task is allowed."""
@@ -439,6 +468,7 @@ def verify_beneficial_task_allowed(context):
         pytest.fail(f"Creating a micro cycle for a beneficial task raised an exception: {e}")
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a task that already meets quality thresholds should be prevented")
 def verify_quality_threshold(context):
     """Verify that creating a micro cycle for a task that already meets quality thresholds is prevented."""
@@ -457,6 +487,7 @@ def verify_quality_threshold(context):
     assert "quality" in str(context.exception).lower()
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a task that needs quality improvement should be allowed")
 def verify_low_quality_task_allowed(context):
     """Verify that creating a micro cycle for a task that needs quality improvement is allowed."""
@@ -471,6 +502,7 @@ def verify_low_quality_task_allowed(context):
         pytest.fail(f"Creating a micro cycle for a low quality task raised an exception: {e}")
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a resource-intensive task should be prevented")
 def verify_resource_limits(context):
     """Verify that creating a micro cycle for a resource-intensive task is prevented."""
@@ -489,6 +521,7 @@ def verify_resource_limits(context):
     assert "resource" in str(context.exception).lower()
 
 
+@pytest.mark.medium
 @then("creating a micro cycle for a lightweight task should be allowed")
 def verify_lightweight_task_allowed(context):
     """Verify that creating a micro cycle for a lightweight task is allowed."""
@@ -503,6 +536,7 @@ def verify_lightweight_task_allowed(context):
         pytest.fail(f"Creating a micro cycle for a lightweight task raised an exception: {e}")
 
 
+@pytest.mark.medium
 @then("creating a micro cycle with human override to terminate should be prevented")
 def verify_human_override_terminate(context):
     """Verify that creating a micro cycle with human override to terminate is prevented."""
@@ -521,6 +555,7 @@ def verify_human_override_terminate(context):
     assert "human override" in str(context.exception).lower()
 
 
+@pytest.mark.medium
 @then("creating a micro cycle with human override to continue should be allowed")
 def verify_human_override_continue(context):
     """Verify that creating a micro cycle with human override to continue is allowed."""

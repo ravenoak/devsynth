@@ -12,11 +12,9 @@ from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.domain.models.memory import MemoryItem
 pytestmark = pytest.mark.requires_resource('chromadb')
 
-
-@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient',
-    autospec=True)
-def test_init_logs_error_on_bad_fallback_raises_error(mock_client_cls,
-    tmp_path, caplog, monkeypatch):
+@pytest.mark.medium
+@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient', autospec=True)
+def test_init_logs_error_on_bad_fallback_raises_error(mock_client_cls, tmp_path, caplog, monkeypatch):
     """Initialization logs an error when fallback file is invalid.
 
 ReqID: N/A"""
@@ -29,14 +27,11 @@ ReqID: N/A"""
     caplog.set_level(logging.WARNING)
     store = ChromaDBStore(str(tmp_path))
     assert not store._use_fallback
-    assert any('Failed to load fallback store' in rec.message for rec in
-        caplog.records)
+    assert any(('Failed to load fallback store' in rec.message for rec in caplog.records))
 
-
-@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient',
-    autospec=True)
-def test_init_fallback_when_collection_creation_fails(mock_client_cls,
-    tmp_path, caplog, monkeypatch):
+@pytest.mark.medium
+@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient', autospec=True)
+def test_init_fallback_when_collection_creation_fails(mock_client_cls, tmp_path, caplog, monkeypatch):
     """Fallback mode is enabled and errors are logged when collections fail.
 
 ReqID: N/A"""
@@ -51,15 +46,12 @@ ReqID: N/A"""
     store = ChromaDBStore(str(tmp_path))
     assert store._use_fallback
     messages = [rec.message for rec in caplog.records]
-    assert any('Failed to initialize ChromaDB collection' in m for m in
-        messages)
-    assert any('Failed to load fallback store' in m for m in messages)
+    assert any(('Failed to initialize ChromaDB collection' in m for m in messages))
+    assert any(('Failed to load fallback store' in m for m in messages))
 
-
-@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient',
-    autospec=True)
-def test_save_fallback_logs_error_raises_error(mock_client_cls, tmp_path,
-    caplog, monkeypatch):
+@pytest.mark.medium
+@patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient', autospec=True)
+def test_save_fallback_logs_error_raises_error(mock_client_cls, tmp_path, caplog, monkeypatch):
     """Errors during saving fallback store are logged.
 
 ReqID: N/A"""
@@ -70,15 +62,13 @@ ReqID: N/A"""
     mock_client_cls.return_value = mock_client
     store = ChromaDBStore(str(tmp_path))
     store._use_fallback = True
-    store._store['x'] = MemoryItem(id='x', content='c', memory_type=None,
-        metadata={}, created_at=datetime.now())
+    store._store['x'] = MemoryItem(id='x', content='c', memory_type=None, metadata={}, created_at=datetime.now())
     caplog.set_level(logging.ERROR)
     with patch('builtins.open', side_effect=IOError('fail')):
         store._save_fallback()
-    assert any('Failed to save fallback store' in rec.message for rec in
-        caplog.records)
+    assert any(('Failed to save fallback store' in rec.message for rec in caplog.records))
 
-
+@pytest.mark.medium
 @patch('devsynth.application.memory.chromadb_store.chromadb.HttpClient', autospec=True)
 def test_http_client_used_when_host_provided(mock_http_cls, tmp_path, monkeypatch):
     """Providing a host uses the ChromaDB HttpClient."""
@@ -86,7 +76,7 @@ def test_http_client_used_when_host_provided(mock_http_cls, tmp_path, monkeypatc
     store = ChromaDBStore(str(tmp_path), host='remote', port=5555)
     mock_http_cls.assert_called_once_with(host='remote', port=5555)
 
-
+@pytest.mark.medium
 @patch('devsynth.application.memory.chromadb_store.chromadb.PersistentClient', autospec=True)
 def test_persistent_client_used_by_default(mock_client_cls, tmp_path, monkeypatch):
     """PersistentClient is used when no host and logging allowed."""
@@ -95,7 +85,7 @@ def test_persistent_client_used_by_default(mock_client_cls, tmp_path, monkeypatc
     ChromaDBStore(str(tmp_path))
     mock_client_cls.assert_called_once_with(path=str(tmp_path))
 
-
+@pytest.mark.medium
 @patch('devsynth.application.memory.chromadb_store.chromadb.EphemeralClient', autospec=True)
 def test_ephemeral_client_used_in_no_file_mode(mock_client_cls, tmp_path, monkeypatch):
     """EphemeralClient is used when file logging disabled."""
@@ -103,7 +93,6 @@ def test_ephemeral_client_used_in_no_file_mode(mock_client_cls, tmp_path, monkey
     monkeypatch.setenv('ENABLE_CHROMADB', '1')
     ChromaDBStore(str(tmp_path))
     mock_client_cls.assert_called_once()
-
 
 def _create_store(tmp_path, monkeypatch):
     monkeypatch.setenv('DEVSYNTH_NO_FILE_LOGGING', '1')
@@ -113,7 +102,7 @@ def _create_store(tmp_path, monkeypatch):
     store._save_fallback = lambda: None
     return store
 
-
+@pytest.mark.medium
 def test_store_retrieve_delete_succeeds(tmp_path, monkeypatch):
     """Basic store lifecycle succeeds with the Ephemeral client."""
     store = _create_store(tmp_path, monkeypatch)
@@ -126,17 +115,13 @@ def test_store_retrieve_delete_succeeds(tmp_path, monkeypatch):
     store._cache.pop(item_id, None)
     assert store.retrieve(item_id) is None
 
-
+@pytest.mark.medium
 def test_search_by_metadata_succeeds(tmp_path, monkeypatch):
     """Exact-match search returns expected items."""
     store = _create_store(tmp_path, monkeypatch)
-    items = [
-        MemoryItem(id=str(i), content=f'item{i}', memory_type=None, metadata={'tag': 'a' if i % 2 == 0 else 'b'}, created_at=datetime.now())
-        for i in range(3)
-    ]
+    items = [MemoryItem(id=str(i), content=f'item{i}', memory_type=None, metadata={'tag': 'a' if i % 2 == 0 else 'b'}, created_at=datetime.now()) for i in range(3)]
     for itm in items:
         store.store(itm)
     store._cache = {}
     results = store.search({'metadata.tag': 'a'})
     assert {r.id for r in results} == {'0', '2'}
-

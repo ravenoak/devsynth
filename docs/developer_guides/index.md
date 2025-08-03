@@ -8,8 +8,15 @@ tags:
 - contributing
 - development
 title: DevSynth Developer Guides
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Developer Guides
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Developer Guides
+</div>
 
 # DevSynth Developer Guides
 
@@ -72,4 +79,4 @@ If you're new to DevSynth development, we recommend starting with the [Onboardin
 - [User Guides](../user_guides/index.md) - Guides for users of DevSynth
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

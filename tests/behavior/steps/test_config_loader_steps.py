@@ -19,6 +19,7 @@ def context():
     return Context()
 
 
+@pytest.mark.medium
 @given('a project with a project.yaml file')
 def project_with_yaml(tmp_path, monkeypatch, context):
     dev_dir = tmp_path / '.devsynth'
@@ -30,6 +31,7 @@ def project_with_yaml(tmp_path, monkeypatch, context):
     monkeypatch.setattr(os, 'getcwd', lambda: str(tmp_path))
 
 
+@pytest.mark.medium
 @given('a project with a pyproject.toml containing a [tool.devsynth] section')
 def project_with_toml(tmp_path, monkeypatch, context):
     (tmp_path / 'pyproject.toml').write_text('[tool.devsynth]\nlanguage = "python"\n')
@@ -39,6 +41,7 @@ def project_with_toml(tmp_path, monkeypatch, context):
     monkeypatch.setattr(os, 'getcwd', lambda: str(tmp_path))
 
 
+@pytest.mark.medium
 @given('an empty project directory')
 def empty_project_dir(tmp_path, monkeypatch, context):
     # Store the path instead of changing directory
@@ -47,22 +50,26 @@ def empty_project_dir(tmp_path, monkeypatch, context):
     monkeypatch.setattr(os, 'getcwd', lambda: str(tmp_path))
 
 
+@pytest.mark.medium
 @when('I save a default configuration')
 def save_default_config(context):
     cfg = ConfigModel(project_root=str(context.root))
     context.cfg_path = save_config(cfg, path=str(context.root))
 
 
+@pytest.mark.medium
 @then('a project.yaml file should be created')
 def check_cfg_created(context):
     assert context.cfg_path.exists()
 
 
+@pytest.mark.medium
 @when('the configuration loader runs')
 def run_loader(context):
     context.config = load_config()
 
 
+@pytest.mark.medium
 @then(parsers.parse('the configuration should have the key "{key}" set to "{value}"'))
 def check_value(context, key, value):
     assert getattr(context.config, key) == value

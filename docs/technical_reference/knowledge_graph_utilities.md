@@ -8,8 +8,15 @@ tags:
 - technical-reference
 
 title: Knowledge Graph Utilities in DevSynth
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Knowledge Graph Utilities in DevSynth
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Knowledge Graph Utilities in DevSynth
+</div>
 
 # Knowledge Graph Utilities in DevSynth
 

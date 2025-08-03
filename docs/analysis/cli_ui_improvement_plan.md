@@ -10,8 +10,15 @@ tags:
 - usability
 
 title: DevSynth CLI and UI Improvement Plan
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth CLI and UI Improvement Plan
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth CLI and UI Improvement Plan
+</div>
 
 # DevSynth CLI and UI Improvement Plan
 

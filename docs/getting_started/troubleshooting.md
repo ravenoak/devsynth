@@ -9,8 +9,15 @@ tags:
   - "solutions"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Troubleshooting Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Troubleshooting Guide
+</div>
 
 # DevSynth Troubleshooting Guide
 
@@ -212,4 +219,4 @@ When reporting issues, please include:
 - [Configuration Guide](../user_guides/configuration.md) - Guide to configuring DevSynth
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

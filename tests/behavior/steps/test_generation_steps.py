@@ -1,5 +1,6 @@
 """Steps for the test generation feature."""
 
+import pytest
 from pathlib import Path
 from io import StringIO
 from unittest.mock import MagicMock, patch
@@ -10,6 +11,7 @@ from pytest_bdd import scenarios, given, when, then, parsers
 scenarios("../features/general/test_generation.feature")
 
 
+@pytest.mark.medium
 @given("I have a DevSynth project with analyzed requirements")
 def have_analyzed_project(tmp_project_dir, command_context):
     """Create a dummy project with a specs file."""
@@ -19,6 +21,7 @@ def have_analyzed_project(tmp_project_dir, command_context):
     command_context["spec_file"] = str(specs_path)
 
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "devsynth generate tests --type {test_type}"'))
 def run_generate_tests(test_type, command_context):
     """Invoke the test generation command using the CLI function."""
@@ -57,6 +60,7 @@ def run_generate_tests(test_type, command_context):
         command_context["steps_file"] = str(steps_file)
 
 
+@pytest.mark.medium
 @then("the system should generate unit test files")
 def check_unit_tests(command_context):
     """Ensure unit test files were created and workflow called."""
@@ -69,6 +73,7 @@ def check_unit_tests(command_context):
     assert unit_file.exists()
 
 
+@pytest.mark.medium
 @then("the tests should cover the core functionality described in requirements")
 def check_core_functionality(command_context):
     """Check generated unit tests include an assertion."""
@@ -77,6 +82,7 @@ def check_core_functionality(command_context):
     assert "assert" in content
 
 
+@pytest.mark.medium
 @then("the tests should follow best practices for unit testing")
 def check_best_practices(command_context):
     """Verify naming convention for pytest tests."""
@@ -84,6 +90,7 @@ def check_best_practices(command_context):
     assert unit_file.name.startswith("test_")
 
 
+@pytest.mark.medium
 @then("the system should generate Gherkin feature files")
 def check_feature_files(command_context):
     """Ensure feature files were created for behavior tests."""
@@ -96,6 +103,7 @@ def check_feature_files(command_context):
     assert feature_file.exists()
 
 
+@pytest.mark.medium
 @then("the features should describe the expected behavior of the system")
 def check_feature_content(command_context):
     feature_file = Path(command_context["feature_file"])
@@ -103,6 +111,7 @@ def check_feature_content(command_context):
     assert "Feature:" in content
 
 
+@pytest.mark.medium
 @then("the system should generate step definition skeletons")
 def check_steps_created(command_context):
     steps_file = Path(command_context["steps_file"])

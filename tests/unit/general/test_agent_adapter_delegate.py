@@ -5,8 +5,10 @@ from unittest.mock import MagicMock
 import devsynth.adapters.cli.typer_adapter as typer_adapter
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.domain.models.wsde import WSDETeam
+import pytest
 
 
+@pytest.mark.medium
 def test_delegate_task_single_agent_succeeds():
     """Test that delegate task single agent succeeds.
 
@@ -21,6 +23,8 @@ def test_delegate_task_single_agent_succeeds():
     agent.process.assert_called_once_with({"description": "do"})
 
 
+
+@pytest.mark.medium
 def test_delegate_task_multi_agent_succeeds():
     """Test that delegate task multi agent succeeds.
 
@@ -54,6 +58,8 @@ def test_delegate_task_multi_agent_succeeds():
     assert result["dialectical_analysis"] == {"eval": "ok"}
 
 
+
+@pytest.mark.medium
 def test_parse_args_runs_succeeds(monkeypatch):
     """Test that parse args runs succeeds.
 
@@ -82,6 +88,7 @@ def test_parse_args_runs_succeeds(monkeypatch):
     assert executed["run"] and executed["warn"]
 
 
+@pytest.mark.medium
 def test_show_help_lists_groups(monkeypatch):
     """Show help outputs group names without errors."""
     app = typer.Typer()
@@ -101,6 +108,7 @@ def test_show_help_lists_groups(monkeypatch):
     assert "group" in result.stdout
 
 
+@pytest.mark.medium
 def test_show_help_fallback_registered_typers(monkeypatch):
     """Show help works when only registered_typers is available."""
     app = typer.Typer()

@@ -12,8 +12,15 @@ tags:
 
 status: "active"
 author: "DevSynth Team"
-last_reviewed: "2025-07-11"
----
+last_reviewed: "2025-07-11"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE Model Validation
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE Model Validation
+</div>
 
 # WSDE Model Validation
 

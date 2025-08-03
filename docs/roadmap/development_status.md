@@ -12,15 +12,22 @@ tags:
 - foundation-stabilization
 
 title: DevSynth Development Status
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Status
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Status
+</div>
 
 # DevSynth Development Status
 
 **Note:** DevSynth is in a pre-release state. Current versions are numbered
 `0.1.x` and do not represent a stable release.
 
-This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases. Major milestones are tracked in the [Release Plan](release_plan.md).
+This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases. Major milestones are tracked in the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
 For the ordering of upcoming releases, see [Feature Dependencies](feature_dependencies.md) which outlines how key components build on each other.
 
 ## Provider Completion Summary

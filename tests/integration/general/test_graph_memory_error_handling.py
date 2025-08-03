@@ -26,6 +26,7 @@ ReqID: N/A"""
         """Create a GraphMemoryAdapter instance for testing."""
         return GraphMemoryAdapter(base_path=temp_dir, use_rdflib_store=True)
 
+    @pytest.mark.medium
     def test_store_with_invalid_path_raises_permission_error(self):
         """Test storing a memory item with an invalid path raises PermissionError.
 
@@ -36,6 +37,7 @@ ReqID: N/A"""
                 GraphMemoryAdapter(base_path='/root/nonexistent',
                     use_rdflib_store=True)
 
+    @pytest.mark.medium
     def test_retrieve_nonexistent_item_succeeds(self, graph_adapter):
         """Test retrieving a non-existent memory item.
 
@@ -43,6 +45,7 @@ ReqID: N/A"""
         result = graph_adapter.retrieve('nonexistent-id')
         assert result is None
 
+    @pytest.mark.medium
     def test_delete_nonexistent_item_succeeds(self, graph_adapter):
         """Test deleting a non-existent memory item.
 
@@ -50,6 +53,7 @@ ReqID: N/A"""
         result = graph_adapter.delete('nonexistent-id')
         assert result is False
 
+    @pytest.mark.medium
     def test_search_with_invalid_criteria_returns_empty_list(self, graph_adapter):
         """Test searching with invalid criteria returns an empty list.
 
@@ -57,6 +61,7 @@ ReqID: N/A"""
         result = graph_adapter.search(None)
         assert result == []
 
+    @pytest.mark.medium
     def test_query_related_items_nonexistent_succeeds(self, graph_adapter):
         """Test querying related items for a non-existent item.
 
@@ -64,6 +69,7 @@ ReqID: N/A"""
         result = graph_adapter.query_related_items('nonexistent-id')
         assert result == []
 
+    @pytest.mark.medium
     def test_store_with_corrupted_graph_raises_memory_store_error(self, graph_adapter):
         """Test storing a memory item with a corrupted graph raises MemoryStoreError.
 
@@ -74,6 +80,7 @@ ReqID: N/A"""
             with pytest.raises(MemoryStoreError):
                 graph_adapter.store(memory_item)
 
+    @pytest.mark.medium
     def test_concurrent_access_succeeds(self, graph_adapter):
         """Test concurrent access to the graph memory adapter.
 
@@ -90,6 +97,7 @@ ReqID: N/A"""
                 retrieved_items.append(item)
         assert len(retrieved_items) == 10
 
+    @pytest.mark.medium
     def test_store_and_retrieve_with_special_characters_succeeds(self,
         graph_adapter):
         """Test storing and retrieving a memory item with special characters.
@@ -103,6 +111,7 @@ ReqID: N/A"""
         assert retrieved_item is not None
         assert retrieved_item.content == memory_item.content
 
+    @pytest.mark.medium
     def test_store_and_retrieve_with_unicode_characters_succeeds(self,
         graph_adapter):
         """Test storing and retrieving a memory item with Unicode characters.
@@ -116,6 +125,7 @@ ReqID: N/A"""
         assert retrieved_item is not None
         assert retrieved_item.content == memory_item.content
 
+    @pytest.mark.medium
     def test_store_with_very_large_content_succeeds(self, graph_adapter):
         """Test storing a memory item with very large content.
 

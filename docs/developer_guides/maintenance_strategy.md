@@ -9,8 +9,15 @@ tags:
   - documentation
 
 title: DevSynth Maintenance Strategy
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Maintenance Strategy
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Maintenance Strategy
+</div>
 
 # DevSynth Maintenance Strategy
 

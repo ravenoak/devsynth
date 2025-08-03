@@ -9,8 +9,15 @@ tags:
 
 status: published
 author: DevSynth Team
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-08-02"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth Documentation
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth Documentation
+</div>
 
 # DevSynth Documentation
 
@@ -28,7 +35,8 @@ Welcome to the DevSynth documentation! This site provides comprehensive guides, 
 - [API Reference](technical_reference/api_reference/index.md)
 - [Project Analysis](analysis/executive_summary.md)
 - [Implementation Status](implementation/feature_status_matrix.md)
-- [Project Roadmap](roadmap/ROADMAP.md)
+- [Project Roadmap](roadmap/CONSOLIDATED_ROADMAP.md)
+- [Glossary](glossary.md)
 
 
 ## Project Policies

@@ -8,8 +8,15 @@ tags:
   - "configuration"
 
 status: "draft"
-author: "DevSynth Team"
----
+author: "DevSynth Team"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Unified Configuration Loader
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Unified Configuration Loader
+</div>
 
 # Unified Configuration Loader
 

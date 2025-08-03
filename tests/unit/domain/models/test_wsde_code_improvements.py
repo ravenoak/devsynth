@@ -1,3 +1,5 @@
+import pytest
+
 """Unit tests for wsde_code_improvements submodule."""
 from devsynth.domain.models.wsde_facade import WSDETeam
 

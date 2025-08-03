@@ -11,8 +11,15 @@ tags:
 - implementation-plan
 
 title: DevSynth Critical Issues and Recommendations Report
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Critical Issues and Recommendations Report
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Critical Issues and Recommendations Report
+</div>
 
 # DevSynth Critical Issues and Recommendations Report
 

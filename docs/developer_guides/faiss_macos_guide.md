@@ -10,8 +10,15 @@ tags:
 - faiss
 - troubleshooting
 title: FAISS Installation Guide for macOS
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; FAISS Installation Guide for macOS
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; FAISS Installation Guide for macOS
+</div>
 
 # FAISS Installation Guide for macOS
 
@@ -158,4 +165,4 @@ The DevSynth Dockerfile has been updated to handle macOS-specific issues with FA
 - [OpenMP on macOS](https://mac.r-project.org/openmp/)
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

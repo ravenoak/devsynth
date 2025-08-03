@@ -6,8 +6,15 @@ tags:
   - "documentation"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Adapters</a> &gt; Adapters
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Adapters</a> &gt; Adapters
+</div>
 
 # Adapters
 
@@ -27,4 +34,4 @@ For more information on the adapter pattern and how it's used in DevSynth, see:
 - **[Provider System](../architecture/provider_system.md)**: Details on the provider system for integrating external services.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

@@ -12,6 +12,7 @@ from devsynth.adapters.cli.typer_adapter import run_cli
 from devsynth.application.cli.cli_commands import init_cmd
 
 
+@pytest.mark.medium
 @given("I have initialized a DevSynth project")
 def initialized_project(tmp_project_dir):
     """
@@ -21,6 +22,7 @@ def initialized_project(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given(parsers.parse('I have a requirements file "{filename}"'))
 def requirements_file(filename, tmp_project_dir):
     """
@@ -50,6 +52,7 @@ def requirements_file(filename, tmp_project_dir):
     return file_path
 
 
+@pytest.mark.medium
 @then("the system should parse the requirements")
 def check_requirements_parsed(mock_workflow_manager):
     """
@@ -68,6 +71,7 @@ def check_requirements_parsed(mock_workflow_manager):
     assert command == "inspect"
 
 
+@pytest.mark.medium
 @then("create a structured representation in the memory system")
 def check_structured_representation(mock_workflow_manager):
     """
@@ -78,6 +82,7 @@ def check_structured_representation(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
+@pytest.mark.medium
 @then("generate a requirements summary")
 def check_requirements_summary(mock_workflow_manager, tmp_project_dir):
     """
@@ -123,6 +128,7 @@ This is a summary of the requirements created for testing.
     assert content, "Summary file is empty"
 
 
+@pytest.mark.medium
 @then("the system should start an interactive session")
 def check_interactive_session(mock_workflow_manager, command_context):
     """
@@ -142,6 +148,7 @@ def check_interactive_session(mock_workflow_manager, command_context):
     assert cmd_args.get("interactive") is True
 
 
+@pytest.mark.medium
 @then("ask me questions about my requirements")
 def check_questions_asked(mock_workflow_manager):
     """

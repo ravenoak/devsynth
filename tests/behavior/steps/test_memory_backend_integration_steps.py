@@ -82,6 +82,7 @@ def context():
 # Background steps
 
 
+@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
@@ -89,6 +90,7 @@ def devsynth_system_initialized(context):
     assert context.team_coordinator is not None
 
 
+@pytest.mark.medium
 @given("a team of agents is configured")
 def team_of_agents_configured(context):
     """Configure a team of agents."""
@@ -99,6 +101,7 @@ def team_of_agents_configured(context):
     context.teams[team_id] = context.team_coordinator.get_team(team_id)
 
 
+@pytest.mark.medium
 @given("the WSDE model is enabled")
 def wsde_model_enabled(context):
     """Enable the WSDE model."""
@@ -109,6 +112,7 @@ def wsde_model_enabled(context):
 # Scenario Outline: Store and retrieve WSDE artifacts in different memory backends
 
 
+@pytest.mark.medium
 @given(parsers.parse('the memory system is configured with a "{backend_type}" backend'))
 def memory_system_configured_with_backend(context, backend_type):
     """Configure the memory system with the specified backend type."""
@@ -129,6 +133,7 @@ def memory_system_configured_with_backend(context, backend_type):
         pytest.skip(f"Backend {backend_type} not available: {str(e)}")
 
 
+@pytest.mark.medium
 @when("I store a WSDE team state in the memory backend")
 def store_team_state_in_backend(context):
     """Store a WSDE team state in the memory backend."""
@@ -157,6 +162,7 @@ def store_team_state_in_backend(context):
     context.memory_manager.store_item(memory_item)
 
 
+@pytest.mark.medium
 @when("I store a solution in the memory backend")
 def store_solution_in_backend(context):
     """Store a solution in the memory backend."""
@@ -190,6 +196,7 @@ def store_solution_in_backend(context):
     context.memory_manager.store_item(memory_item)
 
 
+@pytest.mark.medium
 @when("I store a dialectical reasoning result in the memory backend")
 def store_dialectical_result_in_backend(context):
     """Store a dialectical reasoning result in the memory backend."""
@@ -230,6 +237,7 @@ def store_dialectical_result_in_backend(context):
     context.memory_manager.store_item(memory_item)
 
 
+@pytest.mark.medium
 @then("I should be able to retrieve the team state from the memory backend")
 def retrieve_team_state_from_backend(context):
     """Retrieve the team state from the memory backend."""
@@ -246,6 +254,7 @@ def retrieve_team_state_from_backend(context):
     context.retrieved_team_state = team_state_item.content
 
 
+@pytest.mark.medium
 @then("I should be able to retrieve the solution from the memory backend")
 def retrieve_solution_from_backend(context):
     """Retrieve the solution from the memory backend."""
@@ -262,9 +271,8 @@ def retrieve_solution_from_backend(context):
     context.retrieved_solution = solution_item.content
 
 
-@then(
-    "I should be able to retrieve the dialectical reasoning result from the memory backend"
-)
+@pytest.mark.medium
+@then(    "I should be able to retrieve the dialectical reasoning result from the memory backend")
 def retrieve_dialectical_result_from_backend(context):
     """Retrieve the dialectical reasoning result from the memory backend."""
     # Query for dialectical reasoning memory items
@@ -282,6 +290,7 @@ def retrieve_dialectical_result_from_backend(context):
     context.retrieved_dialectical_result = dialectical_item.content
 
 
+@pytest.mark.medium
 @then("all retrieved artifacts should match their original versions")
 def verify_artifacts_match_originals(context):
     """Verify that all retrieved artifacts match their original versions."""
@@ -330,6 +339,7 @@ def verify_artifacts_match_originals(context):
 # Scenario: Cross-backend relationships between WSDE artifacts
 
 
+@pytest.mark.medium
 @given("the memory system is configured with multiple backends")
 def memory_system_with_multiple_backends(context):
     """Configure the memory system with multiple backends."""
@@ -356,6 +366,7 @@ def memory_system_with_multiple_backends(context):
         pytest.skip(f"One or more required backends not available: {str(e)}")
 
 
+@pytest.mark.medium
 @when(parsers.parse('I store team state in the "{backend_name}" backend'))
 def store_team_state_in_named_backend(context, backend_name):
     """Store team state in the specified backend."""
@@ -384,6 +395,7 @@ def store_team_state_in_named_backend(context, backend_name):
     context.memory_managers[backend_name].store_item(memory_item)
 
 
+@pytest.mark.medium
 @when(parsers.parse('I store a solution in the "{backend_name}" backend'))
 def store_solution_in_named_backend(context, backend_name):
     """Store a solution in the specified backend."""
@@ -420,11 +432,8 @@ def store_solution_in_named_backend(context, backend_name):
     context.memory_managers[backend_name].store_item(memory_item)
 
 
-@when(
-    parsers.parse(
-        'I store a dialectical reasoning result in the "{backend_name}" backend'
-    )
-)
+@pytest.mark.medium
+@when(    parsers.parse(        'I store a dialectical reasoning result in the "{backend_name}" backend'    ))
 def store_dialectical_result_in_named_backend(context, backend_name):
     """Store a dialectical reasoning result in the specified backend."""
     # Create a dialectical reasoning result
@@ -463,6 +472,7 @@ def store_dialectical_result_in_named_backend(context, backend_name):
     context.memory_managers[backend_name].store_item(memory_item)
 
 
+@pytest.mark.medium
 @when("I create relationships between these artifacts")
 def create_relationships_between_artifacts(context):
     """Create relationships between artifacts in different backends."""
@@ -500,6 +510,7 @@ def create_relationships_between_artifacts(context):
     context.memory_managers["file"].store_item(solution_to_dialectical_relationship)
 
 
+@pytest.mark.medium
 @then("I should be able to retrieve all artifacts from their respective backends")
 def retrieve_all_artifacts_from_backends(context):
     """Retrieve all artifacts from their respective backends."""
@@ -525,9 +536,8 @@ def retrieve_all_artifacts_from_backends(context):
     context.retrieved_dialectical_result = chromadb_query_result[0].content
 
 
-@then(
-    "I should be able to traverse relationships between artifacts in different backends"
-)
+@pytest.mark.medium
+@then(    "I should be able to traverse relationships between artifacts in different backends")
 def traverse_relationships_between_artifacts(context):
     """Traverse relationships between artifacts in different backends."""
     # Query for relationships in the file backend
@@ -565,9 +575,8 @@ def traverse_relationships_between_artifacts(context):
     assert solution_to_dialectical["target_id"] == "dialectical_chromadb"
 
 
-@then(
-    "the relationship metadata should correctly identify the source and target backends"
-)
+@pytest.mark.medium
+@then(    "the relationship metadata should correctly identify the source and target backends")
 def verify_relationship_metadata(context):
     """Verify that relationship metadata correctly identifies source and target backends."""
     # Query for relationships in the file backend
@@ -601,6 +610,7 @@ def verify_relationship_metadata(context):
 # Scenario: Memory backend performance comparison
 
 
+@pytest.mark.medium
 @given("the memory system is configured with all available backends")
 def memory_system_with_all_backends(context):
     """Configure the memory system with all available backends."""
@@ -620,6 +630,7 @@ def memory_system_with_all_backends(context):
         pytest.skip("Not enough backends available for performance comparison")
 
 
+@pytest.mark.medium
 @when("I perform a benchmark storing 100 memory items in each backend")
 def benchmark_storing_items(context):
     """Perform a benchmark storing 100 memory items in each backend."""
@@ -651,6 +662,7 @@ def benchmark_storing_items(context):
         context.performance_metrics["store"][backend_name] = end_time - start_time
 
 
+@pytest.mark.medium
 @when("I perform a benchmark retrieving items by type from each backend")
 def benchmark_retrieving_by_type(context):
     """Perform a benchmark retrieving items by type from each backend."""
@@ -672,6 +684,7 @@ def benchmark_retrieving_by_type(context):
         )
 
 
+@pytest.mark.medium
 @when("I perform a benchmark retrieving items by metadata from each backend")
 def benchmark_retrieving_by_metadata(context):
     """Perform a benchmark retrieving items by metadata from each backend."""
@@ -693,6 +706,7 @@ def benchmark_retrieving_by_metadata(context):
         )
 
 
+@pytest.mark.medium
 @then("I should get performance metrics for each backend")
 def verify_performance_metrics(context):
     """Verify that we have performance metrics for each backend."""
@@ -709,6 +723,7 @@ def verify_performance_metrics(context):
             assert backend_name in context.performance_metrics["retrieve_by_metadata"]
 
 
+@pytest.mark.medium
 @then("I should be able to compare the performance of different backends")
 def compare_backend_performance(context):
     """Compare the performance of different backends."""

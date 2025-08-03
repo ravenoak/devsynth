@@ -5,8 +5,7 @@ import importlib.util
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 sys.modules.setdefault('typer', types.ModuleType('typer'))
-spec = importlib.util.spec_from_file_location('ingest_cmd', Path(__file__).
-    parents[4] / 'src' / 'devsynth' / 'application' / 'cli' / 'ingest_cmd.py')
+spec = importlib.util.spec_from_file_location('ingest_cmd', Path(__file__).parents[4] / 'src' / 'devsynth' / 'application' / 'cli' / 'ingest_cmd.py')
 ingest_cmd = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ingest_cmd)
 expand_phase = ingest_cmd.expand_phase
@@ -14,34 +13,21 @@ differentiate_phase = ingest_cmd.differentiate_phase
 refine_phase = ingest_cmd.refine_phase
 retrospect_phase = ingest_cmd.retrospect_phase
 
-
 @pytest.fixture
 def sample_project(tmp_path):
     src = tmp_path / 'src'
     tests_dir = tmp_path / 'tests'
     src.mkdir()
     tests_dir.mkdir()
-    (src / 'main.py').write_text("""def hello():
-    return 42
-""")
-    (tests_dir / 'test_main.py').write_text(
-        """from src.main import hello
-
-def test_hello():
-    assert hello() == 42
-"""
-        )
-    manifest = {'metadata': {'name': 'sample'}, 'structure': {'type':
-        'single_package', 'directories': {'source': ['src'], 'tests': [
-        'tests']}}}
-    return manifest, tmp_path
-
+    (src / 'main.py').write_text('def hello():\n    return 42\n')
+    (tests_dir / 'test_main.py').write_text('from src.main import hello\n\ndef test_hello():\n    assert hello() == 42\n')
+    manifest = {'metadata': {'name': 'sample'}, 'structure': {'type': 'single_package', 'directories': {'source': ['src'], 'tests': ['tests']}}}
+    return (manifest, tmp_path)
 
 @pytest.fixture
 def mock_bridge():
     ingest_cmd.bridge = MagicMock()
     yield ingest_cmd.bridge
-
 
 @pytest.fixture
 def mock_memory_manager():
@@ -50,9 +36,8 @@ def mock_memory_manager():
         cls.return_value = inst
         yield inst
 
-
-def test_expand_phase_succeeds(sample_project, monkeypatch, mock_bridge,
-    mock_memory_manager):
+@pytest.mark.medium
+def test_expand_phase_succeeds(sample_project, monkeypatch, mock_bridge, mock_memory_manager):
     """Test that expand phase succeeds.
 
 ReqID: N/A"""
@@ -64,9 +49,8 @@ ReqID: N/A"""
     assert result['analysis_metrics']['functions'] >= 1
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
-
-def test_differentiate_phase_succeeds(sample_project, monkeypatch,
-    mock_bridge, mock_memory_manager):
+@pytest.mark.medium
+def test_differentiate_phase_succeeds(sample_project, monkeypatch, mock_bridge, mock_memory_manager):
     """Test that differentiate phase succeeds.
 
 ReqID: N/A"""
@@ -79,9 +63,8 @@ ReqID: N/A"""
     assert result['inconsistencies_found'] == 0
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
-
-def test_refine_phase_succeeds(sample_project, monkeypatch, mock_bridge,
-    mock_memory_manager):
+@pytest.mark.medium
+def test_refine_phase_succeeds(sample_project, monkeypatch, mock_bridge, mock_memory_manager):
     """Test that refine phase succeeds.
 
 ReqID: N/A"""
@@ -95,9 +78,8 @@ ReqID: N/A"""
     assert result['relationships_created'] >= 0
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
-
-def test_retrospect_phase_succeeds(sample_project, monkeypatch, mock_bridge,
-    mock_memory_manager):
+@pytest.mark.medium
+def test_retrospect_phase_succeeds(sample_project, monkeypatch, mock_bridge, mock_memory_manager):
     """Test that retrospect phase succeeds.
 
 ReqID: N/A"""

@@ -11,8 +11,15 @@ tags:
 - uxbridge
 
 title: Phase 1 Overhaul Overview
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Phase 1 Overhaul Overview
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Phase 1 Overhaul Overview
+</div>
 
 # Phase 1 Overhaul Overview
 
@@ -116,4 +123,4 @@ These snippets outline the major modules and how the CLI interacts with them
 through `UXBridge`.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

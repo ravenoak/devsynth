@@ -1,3 +1,5 @@
+import pytest
+
 import os
 from devsynth.config.loader import ConfigModel, load_config
 from devsynth.config import load_project_config
@@ -17,6 +19,7 @@ ReqID: N/A"""
     assert cfg.language == 'python'
 
 
+@pytest.mark.medium
 def test_load_from_pyproject_toml_succeeds(tmp_path, monkeypatch):
     """Load configuration from pyproject.toml.
 
@@ -30,6 +33,7 @@ ReqID: N/A"""
     assert cfg.language == 'python'
 
 
+@pytest.mark.medium
 def test_yaml_toml_equivalence_succeeds(tmp_path, monkeypatch):
     """YAML and TOML configs load to the same ConfigModel data.
 
@@ -58,6 +62,7 @@ directories = {source=['src'], tests=['tests']}
     assert cfg_yaml.as_dict() == cfg_toml.as_dict()
 
 
+@pytest.mark.medium
 def test_load_project_config_yaml_succeeds(tmp_path):
     """load_project_config reads .devsynth/project.yaml.
 
@@ -70,6 +75,7 @@ ReqID: N/A"""
     assert cfg.path == cfg_dir / 'project.yaml'
 
 
+@pytest.mark.medium
 def test_load_project_config_pyproject_succeeds(tmp_path):
     """load_project_config reads [tool.devsynth] table.
 

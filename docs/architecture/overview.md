@@ -10,14 +10,23 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-08-02"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture Overview
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture Overview
+</div>
 
 # DevSynth Architecture Overview
 
 ## Executive Summary
 
 DevSynth is a modular, agentic software engineering platform designed for extensibility, resilience, and traceability. The architecture is organized into distinct layers and components, each with clear responsibilities and interfaces, supporting both human and agentic workflows. This document provides a comprehensive overview of the system architecture, key components, architectural principles, and how they align with the project's SDLC policies.
+
+> **Note**: This document uses domain-specific terminology. For definitions of unfamiliar terms, please refer to the [DevSynth Glossary](../glossary.md).
 
 ## Table of Contents
 
@@ -150,6 +159,3 @@ DevSynth follows a comprehensive set of SDLC policies and documentation standard
 
 
 ---
-## Implementation Status
-
-This feature is **in progress** and not yet implemented.

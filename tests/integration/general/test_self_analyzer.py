@@ -17,6 +17,7 @@ class TestSelfAnalyzer:
 ReqID: N/A"""
 
     @codebase_available
+    @pytest.mark.medium
     def test_analyze_devsynth_codebase_succeeds(self):
         """Test that the SelfAnalyzer can analyze the DevSynth codebase.
 
@@ -71,6 +72,7 @@ ReqID: N/A"""
                 )
 
     @codebase_available
+    @pytest.mark.medium
     def test_architecture_violations_succeeds(self):
         """Test that the SelfAnalyzer can detect architecture violations.
 
@@ -90,6 +92,7 @@ ReqID: N/A"""
             assert 'description' in violation
 
     @codebase_available
+    @pytest.mark.medium
     def test_improvement_opportunities_succeeds(self):
         """Test that the SelfAnalyzer can identify improvement opportunities.
 

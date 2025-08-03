@@ -46,18 +46,21 @@ if __name__ == "__main__":
     return tmp_path
 
 # Step definitions
+@pytest.mark.medium
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
     # This is a placeholder step since we're running tests within the DevSynth codebase
     pass
 
+@pytest.mark.medium
 @given('I have a project with source code')
 def project_with_source_code(context, sample_project):
     """Set up a project with source code for testing."""
     context.project_path = sample_project
     context.file_path = os.path.join(sample_project, "src", "main.py")
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(context, command, mock_refactor_cmd):
     """Run a DevSynth CLI command."""
@@ -123,21 +126,25 @@ def run_command(context, command, mock_refactor_cmd):
         context.result = "failure"
         context.error_message = str(e)
 
+@pytest.mark.medium
 @then('the command should execute successfully')
 def command_successful(context):
     """Verify that the command executed successfully."""
     assert context.result == "success", f"Command failed with error: {context.error_message}"
 
+@pytest.mark.medium
 @then('the command should fail')
 def command_failed(context):
     """Verify that the command failed."""
     assert context.result == "failure", "Command succeeded but was expected to fail"
 
+@pytest.mark.medium
 @then('the system should display refactoring suggestions')
 def display_refactoring_suggestions(context):
     """Verify that refactoring suggestions were displayed."""
     assert len(context.suggestions) > 0, "No refactoring suggestions were generated"
 
+@pytest.mark.medium
 @then('the suggestions should include actionable steps')
 def suggestions_include_actionable_steps(context):
     """Verify that the suggestions include actionable steps."""
@@ -145,6 +152,7 @@ def suggestions_include_actionable_steps(context):
         assert "actionable_steps" in suggestion, "Suggestion does not include actionable steps"
         assert len(suggestion["actionable_steps"]) > 0, "Suggestion has empty actionable steps"
 
+@pytest.mark.medium
 @then('the system should display refactoring suggestions focused on error handling')
 def display_error_handling_suggestions(context):
     """Verify that refactoring suggestions focused on error handling were displayed."""
@@ -153,6 +161,7 @@ def display_error_handling_suggestions(context):
     # In a real test, we would check that the suggestions are actually focused on error handling
     # For this mock, we'll just check that we have suggestions
 
+@pytest.mark.medium
 @then('the system should display detailed refactoring suggestions')
 def display_detailed_suggestions(context):
     """Verify that detailed refactoring suggestions were displayed."""
@@ -161,6 +170,7 @@ def display_detailed_suggestions(context):
     # In a real test, we would check that the suggestions include more details
     # For this mock, we'll just check that we have suggestions
 
+@pytest.mark.medium
 @then('the suggestions should include reasoning and context')
 def suggestions_include_reasoning_and_context(context):
     """Verify that the suggestions include reasoning and context."""
@@ -168,6 +178,7 @@ def suggestions_include_reasoning_and_context(context):
         assert "reasoning" in suggestion, "Suggestion does not include reasoning"
         assert "context" in suggestion, "Suggestion does not include context"
 
+@pytest.mark.medium
 @then('the system should display refactoring suggestions for the specified file')
 def display_file_specific_suggestions(context):
     """Verify that refactoring suggestions for the specified file were displayed."""
@@ -176,6 +187,7 @@ def display_file_specific_suggestions(context):
     # In a real test, we would check that the suggestions are specific to the file
     # For this mock, we'll just check that we have suggestions
 
+@pytest.mark.medium
 @then('the suggestions should be specific to the file\'s content')
 def suggestions_specific_to_file_content(context):
     """Verify that the suggestions are specific to the file's content."""
@@ -184,6 +196,7 @@ def suggestions_specific_to_file_content(context):
     # In a real test, we would check that the suggestions reference the file's content
     # For this mock, we'll just check that we have suggestions
 
+@pytest.mark.medium
 @then('the system should display an error message indicating the file does not exist')
 def file_not_exist_error_displayed(context):
     """Verify that an error message about a non-existent file was displayed."""

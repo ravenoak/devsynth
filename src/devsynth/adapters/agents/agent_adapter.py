@@ -128,13 +128,22 @@ class WSDETeamCoordinator(AgentCoordinator):
     for MVP to work with a single agent.
     """
 
-    def __init__(self):
+    def __init__(self, memory_manager=None):
         self.teams = {}  # Dictionary of teams by team_id
         self.current_team_id = None
+        self.memory_manager = memory_manager
 
     def create_team(self, team_id: str) -> WSDETeam:
         """Create a new WSDE team."""
-        team = WSDETeam(name=team_id)
+        # Import here to avoid circular imports
+        from devsynth.application.collaboration.collaborative_wsde_team import CollaborativeWSDETeam
+        
+        # Use CollaborativeWSDETeam if memory_manager is available, otherwise use WSDETeam
+        if self.memory_manager:
+            team = CollaborativeWSDETeam(name=team_id, memory_manager=self.memory_manager)
+        else:
+            team = WSDETeam(name=team_id)
+            
         self.teams[team_id] = team
         self.current_team_id = team_id
         return team
@@ -264,11 +273,13 @@ class AgentAdapter:
         self,
         llm_port: Optional[LLMPort] = None,
         config: Optional[Dict[str, Any]] = None,
+        memory_manager=None,
     ):
         self.config = config or _DEFAULT_CONFIG
         self.agent_factory = SimplifiedAgentFactory(llm_port)
-        self.agent_coordinator = WSDETeamCoordinator()
+        self.agent_coordinator = WSDETeamCoordinator(memory_manager=memory_manager)
         self.llm_port = llm_port
+        self.memory_manager = memory_manager
         feature_cfg = self.config.get("features", {})
         self.multi_agent_enabled = feature_cfg.get("wsde_collaboration", False)
 

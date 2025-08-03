@@ -8,8 +8,15 @@ tags:
 - technical-reference
 
 title: EDRR Framework Usage Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; EDRR Framework Usage Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; EDRR Framework Usage Guide
+</div>
 
 # EDRR Framework Usage Guide
 
@@ -623,4 +630,4 @@ previous_results = coordinator.memory_manager.retrieve_with_edrr_phase(
 The EDRR framework provides a structured approach to problem-solving and development in DevSynth. By integrating with the WSDE model and leveraging quality-based phase transitions, it enables more effective and efficient problem-solving.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

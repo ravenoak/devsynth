@@ -8,8 +8,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth WebUI Navigation Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth WebUI Navigation Guide
+</div>
 
 # DevSynth WebUI Navigation Guide
 
@@ -508,4 +515,4 @@ devsynth help
 ```
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+This feature is **implemented** and available for use. The WebUI can be launched using the `devsynth webui` command as described in this guide.

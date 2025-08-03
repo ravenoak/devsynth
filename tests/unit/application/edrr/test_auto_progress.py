@@ -9,7 +9,6 @@ from devsynth.application.documentation.documentation_manager import Documentati
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.methodology.base import Phase
 
-
 @pytest.fixture
 def coordinator():
     mm = MagicMock(spec=MemoryManager)
@@ -19,26 +18,22 @@ def coordinator():
     ast = MagicMock(spec=AstTransformer)
     pm = MagicMock(spec=PromptManager)
     dm = MagicMock(spec=DocumentationManager)
-    coord = EDRRCoordinator(memory_manager=mm, wsde_team=wsde,
-        code_analyzer=ca, ast_transformer=ast, prompt_manager=pm,
-        documentation_manager=dm)
+    coord = EDRRCoordinator(memory_manager=mm, wsde_team=wsde, code_analyzer=ca, ast_transformer=ast, prompt_manager=pm, documentation_manager=dm)
     coord.auto_phase_transitions = True
     coord.current_phase = Phase.EXPAND
     return coord
 
-
+@pytest.mark.medium
 def test_maybe_auto_progress_loops_until_none_succeeds(coordinator):
     """Test that maybe auto progress loops until none succeeds.
 
 ReqID: N/A"""
-    with patch.object(coordinator, '_decide_next_phase', side_effect=[Phase
-        .DIFFERENTIATE, None]) as decide, patch.object(coordinator,
-        'progress_to_phase') as prog:
+    with patch.object(coordinator, '_decide_next_phase', side_effect=[Phase.DIFFERENTIATE, None]) as decide, patch.object(coordinator, 'progress_to_phase') as prog:
         coordinator._maybe_auto_progress()
     prog.assert_called_once_with(Phase.DIFFERENTIATE)
     assert decide.call_count == 2
 
-
+@pytest.mark.medium
 def test_maybe_auto_progress_disabled_succeeds(coordinator):
     """Test that maybe auto progress disabled succeeds.
 

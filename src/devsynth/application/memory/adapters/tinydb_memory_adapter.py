@@ -5,11 +5,14 @@ This module provides a memory adapter that handles structured data queries
 using TinyDB.
 """
 from typing import Dict, List, Any, Optional
+import uuid
+from copy import deepcopy
 from tinydb import TinyDB, Query
 from tinydb.storages import MemoryStorage
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....domain.interfaces.memory import MemoryStore
 from ....logging_setup import DevSynthLogger
+from ....exceptions import MemoryTransactionError
 
 logger = DevSynthLogger(__name__)
 
@@ -82,12 +85,13 @@ class TinyDBMemoryAdapter(MemoryStore):
             created_at=datetime.fromisoformat(item_dict['created_at']) if item_dict['created_at'] else None
         )
 
-    def store(self, item: MemoryItem) -> str:
+    def store(self, item: MemoryItem, transaction_id: str = None) -> str:
         """
         Store a memory item in TinyDB.
 
         Args:
             item: The memory item to store
+            transaction_id: Optional transaction ID to use for this operation
 
         Returns:
             The ID of the stored memory item
@@ -99,16 +103,41 @@ class TinyDBMemoryAdapter(MemoryStore):
         # Convert to dictionary
         item_dict = self._memory_item_to_dict(item)
 
-        # Check if the item already exists
-        existing = self.items_table.get(Query().id == item.id)
-        if existing:
-            # Update the existing item
-            self.items_table.update(item_dict, Query().id == item.id)
+        # Check if this operation is part of a transaction
+        if transaction_id:
+            # Check if this is the active transaction
+            if not hasattr(self, '_transaction_id') or self._transaction_id != transaction_id:
+                raise MemoryTransactionError(
+                    f"Transaction {transaction_id} is not active",
+                    transaction_id=transaction_id,
+                    store_type="TinyDBMemoryAdapter",
+                    operation="store"
+                )
+                
+            # Store the item in memory but don't commit to disk yet
+            # Check if the item already exists
+            existing = self.items_table.get(Query().id == item.id)
+            if existing:
+                # Update the existing item
+                self.items_table.update(item_dict, Query().id == item.id)
+            else:
+                # Insert a new item
+                self.items_table.insert(item_dict)
+                
+            logger.info(f"Stored memory item with ID {item.id} in TinyDB Memory Adapter (transaction: {transaction_id})")
         else:
-            # Insert a new item
-            self.items_table.insert(item_dict)
-
-        logger.info(f"Stored memory item with ID {item.id} in TinyDB Memory Adapter")
+            # Not part of a transaction, store normally
+            # Check if the item already exists
+            existing = self.items_table.get(Query().id == item.id)
+            if existing:
+                # Update the existing item
+                self.items_table.update(item_dict, Query().id == item.id)
+            else:
+                # Insert a new item
+                self.items_table.insert(item_dict)
+                
+            logger.info(f"Stored memory item with ID {item.id} in TinyDB Memory Adapter")
+            
         return item.id
 
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
@@ -170,21 +199,44 @@ class TinyDBMemoryAdapter(MemoryStore):
         # Convert to MemoryItem objects
         return [self._dict_to_memory_item(item_dict) for item_dict in results]
 
-    def delete(self, item_id: str) -> bool:
+    def delete(self, item_id: str, transaction_id: str = None) -> bool:
         """
         Delete a memory item from TinyDB.
 
         Args:
             item_id: The ID of the memory item to delete
+            transaction_id: Optional transaction ID to use for this operation
 
         Returns:
             True if the item was deleted, False otherwise
+            
+        Raises:
+            MemoryTransactionError: If the transaction is not active
         """
-        removed = self.items_table.remove(Query().id == item_id)
-        if removed:
-            logger.info(f"Deleted memory item with ID {item_id} from TinyDB Memory Adapter")
-            return True
-        return False
+        # Check if this operation is part of a transaction
+        if transaction_id:
+            # Check if this is the active transaction
+            if not hasattr(self, '_transaction_id') or self._transaction_id != transaction_id:
+                raise MemoryTransactionError(
+                    f"Transaction {transaction_id} is not active",
+                    transaction_id=transaction_id,
+                    store_type="TinyDBMemoryAdapter",
+                    operation="delete"
+                )
+                
+            # Delete the item in memory but don't commit to disk yet
+            removed = self.items_table.remove(Query().id == item_id)
+            if removed:
+                logger.info(f"Deleted memory item with ID {item_id} from TinyDB Memory Adapter (transaction: {transaction_id})")
+                return True
+            return False
+        else:
+            # Not part of a transaction, delete normally
+            removed = self.items_table.remove(Query().id == item_id)
+            if removed:
+                logger.info(f"Deleted memory item with ID {item_id} from TinyDB Memory Adapter")
+                return True
+            return False
 
     def query_structured_data(self, query: Dict[str, Any]) -> List[MemoryItem]:
         """
@@ -244,3 +296,172 @@ class TinyDBMemoryAdapter(MemoryStore):
     def close(self):
         """Close the TinyDB database."""
         self.db.close()
+        
+    def get_all(self) -> List[MemoryItem]:
+        """
+        Get all memory items from TinyDB.
+        
+        Returns:
+            A list of all memory items
+        """
+        results = self.items_table.all()
+        return [self._dict_to_memory_item(item_dict) for item_dict in results]
+        
+    def begin_transaction(self, transaction_id: str) -> str:
+        """
+        Begin a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            The transaction ID
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be started
+        """
+        logger.debug(f"Beginning transaction {transaction_id} in TinyDBMemoryAdapter")
+        
+        # Store the transaction ID and create a snapshot of the current state
+        self._transaction_id = transaction_id
+        self._transaction_snapshot = {
+            item.id: deepcopy(item) for item in self.get_all()
+        }
+        
+        return transaction_id
+        
+    def prepare_commit(self, transaction_id: str) -> bool:
+        """
+        Prepare to commit a transaction.
+        
+        This is the first phase of a two-phase commit protocol.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            True if the transaction is prepared for commit
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be prepared
+        """
+        logger.debug(f"Preparing to commit transaction {transaction_id} in TinyDBMemoryAdapter")
+        
+        # Check if this is the active transaction
+        if not hasattr(self, '_transaction_id') or self._transaction_id != transaction_id:
+            raise MemoryTransactionError(
+                f"Transaction {transaction_id} is not active",
+                transaction_id=transaction_id,
+                store_type="TinyDBMemoryAdapter",
+                operation="prepare_commit"
+            )
+            
+        # TinyDB doesn't have a native prepare phase, so we just return True
+        return True
+        
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """
+        Commit a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            True if the transaction was committed
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be committed
+        """
+        logger.debug(f"Committing transaction {transaction_id} in TinyDBMemoryAdapter")
+        
+        # Check if this is the active transaction
+        if not hasattr(self, '_transaction_id') or self._transaction_id != transaction_id:
+            raise MemoryTransactionError(
+                f"Transaction {transaction_id} is not active",
+                transaction_id=transaction_id,
+                store_type="TinyDBMemoryAdapter",
+                operation="commit_transaction"
+            )
+            
+        # TinyDB doesn't have native transaction support, so we just clear the snapshot
+        if hasattr(self, '_transaction_snapshot'):
+            delattr(self, '_transaction_snapshot')
+            
+        # Clear the transaction ID
+        delattr(self, '_transaction_id')
+        
+        return True
+        
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """
+        Rollback a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            True if the transaction was rolled back
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be rolled back
+        """
+        logger.debug(f"Rolling back transaction {transaction_id} in TinyDBMemoryAdapter")
+        
+        # Check if this is the active transaction
+        if not hasattr(self, '_transaction_id') or self._transaction_id != transaction_id:
+            raise MemoryTransactionError(
+                f"Transaction {transaction_id} is not active",
+                transaction_id=transaction_id,
+                store_type="TinyDBMemoryAdapter",
+                operation="rollback_transaction"
+            )
+            
+        # Restore from snapshot if available
+        if hasattr(self, '_transaction_snapshot'):
+            # Clear the table
+            self.items_table.truncate()
+            
+            # Restore items from snapshot
+            for item in self._transaction_snapshot.values():
+                self.store(item)
+                
+            # Clear the snapshot
+            delattr(self, '_transaction_snapshot')
+            
+        # Clear the transaction ID
+        delattr(self, '_transaction_id')
+        
+        return True
+        
+    def snapshot(self) -> Dict[str, MemoryItem]:
+        """
+        Create a snapshot of the current state.
+        
+        Returns:
+            A dictionary mapping item IDs to memory items
+        """
+        return {
+            item.id: deepcopy(item) for item in self.get_all()
+        }
+        
+    def restore(self, snapshot: Dict[str, MemoryItem]) -> bool:
+        """
+        Restore from a snapshot.
+        
+        Args:
+            snapshot: A dictionary mapping item IDs to memory items
+            
+        Returns:
+            True if the restore was successful
+        """
+        if snapshot is None:
+            return False
+            
+        # Clear the table
+        self.items_table.truncate()
+        
+        # Restore items from snapshot
+        for item in snapshot.values():
+            self.store(item)
+            
+        return True

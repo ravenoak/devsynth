@@ -101,6 +101,9 @@ class ChromaDBMemoryStore(MemoryStore):
 
     Integrates with the provider system to leverage either OpenAI or LM Studio
     for embeddings, with automatic fallback if a provider fails.
+    
+    Supports transactions for atomic operations across multiple store/retrieve/delete
+    operations, with commit and rollback capabilities.
     """
 
     def __init__(
@@ -127,6 +130,10 @@ class ChromaDBMemoryStore(MemoryStore):
         """
         # Setup logging
         self.logger = DevSynthLogger(__name__)
+        
+        # Transaction support
+        self._active_transactions = {}  # Maps transaction_id to transaction data
+        self._transaction_operations = {}  # Maps transaction_id to list of operations
 
         # Determine the persist directory based on environment variables
         if persist_directory is None:
@@ -378,12 +385,13 @@ class ChromaDBMemoryStore(MemoryStore):
                 self.logger.error(f"Default embedder failed: {e}")
                 raise RuntimeError(f"Default embedder failed: {e}")
 
-    def store(self, item: MemoryItem) -> str:
+    def store(self, item: MemoryItem, transaction_id: str = None) -> str:
         """
         Store a memory item.
 
         Args:
             item: The memory item to store
+            transaction_id: Optional transaction ID to add this operation to a transaction
 
         Returns:
             The ID of the stored item
@@ -405,6 +413,17 @@ class ChromaDBMemoryStore(MemoryStore):
         embedding = self._get_embedding(content)
 
         item_id = item.id or str(hash(content))
+        
+        # If this is part of a transaction, add to transaction and return
+        if transaction_id and self.is_transaction_active(transaction_id):
+            operation_data = {
+                "item": item,
+                "embedding": embedding,
+                "item_id": item_id
+            }
+            self.add_to_transaction(transaction_id, "store", operation_data)
+            self.logger.debug(f"Added store operation for item {item_id} to transaction {transaction_id}")
+            return item_id
 
         def _store_operation():
             self.collection.add(
@@ -499,16 +518,25 @@ class ChromaDBMemoryStore(MemoryStore):
 
         return self._with_retries("Search operation", _search_operation)
 
-    def delete(self, item_id: str) -> bool:
+    def delete(self, item_id: str, transaction_id: str = None) -> bool:
         """
         Delete a memory item by ID.
 
         Args:
             item_id: The ID of the item to delete
+            transaction_id: Optional transaction ID to add this operation to a transaction
 
         Returns:
             True if the item was deleted, False otherwise
         """
+        # If this is part of a transaction, add to transaction and return
+        if transaction_id and self.is_transaction_active(transaction_id):
+            operation_data = {
+                "item_id": item_id
+            }
+            self.add_to_transaction(transaction_id, "delete", operation_data)
+            self.logger.debug(f"Added delete operation for item {item_id} to transaction {transaction_id}")
+            return True
 
         def _delete_operation():
             self.collection.delete(ids=[item_id])
@@ -522,11 +550,17 @@ class ChromaDBMemoryStore(MemoryStore):
         def _get_operation():
             result = self.collection.get(include=["documents", "metadatas"])
             items: List[MemoryItem] = []
-            docs = result.get("documents", [[]])
-            metas = result.get("metadatas", [[]])
+            docs = result.get("documents", [])
+            metas = result.get("metadatas", [])
             ids = result.get("ids", [])
-            docs = docs[0] if docs else []
-            metas = metas[0] if metas else []
+            
+            # Handle both flat and nested array structures
+            # ChromaDB can return either format depending on the context
+            if docs and isinstance(docs[0], list):
+                # Nested array format
+                docs = docs[0] if docs else []
+                metas = metas[0] if metas else []
+            
             for idx, item_id in enumerate(ids):
                 doc = docs[idx] if idx < len(docs) else None
                 meta = metas[idx] if idx < len(metas) else {}
@@ -546,3 +580,143 @@ class ChromaDBMemoryStore(MemoryStore):
             return items
 
         return self._with_retries("Get all items", _get_operation)
+        
+    def begin_transaction(self) -> str:
+        """Begin a new transaction and return a transaction ID.
+        
+        Transactions provide atomicity for a series of operations.
+        All operations within a transaction either succeed or fail together.
+        
+        Returns:
+            str: A unique transaction ID
+        """
+        # Generate a unique transaction ID
+        transaction_id = f"tx_{time.time()}_{hash(str(time.time()))}"
+        
+        # Initialize transaction data
+        self._active_transactions[transaction_id] = {
+            "started_at": datetime.now(),
+            "status": "active",
+            "operations": []
+        }
+        
+        # Initialize operations list
+        self._transaction_operations[transaction_id] = []
+        
+        self.logger.debug(f"Transaction {transaction_id} started")
+        return transaction_id
+        
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a transaction, making all its operations permanent.
+        
+        Args:
+            transaction_id: The ID of the transaction to commit
+            
+        Returns:
+            bool: True if the transaction was committed successfully, False otherwise
+        """
+        # Check if transaction exists and is active
+        if not self.is_transaction_active(transaction_id):
+            self.logger.warning(f"Cannot commit transaction {transaction_id}: not active or doesn't exist")
+            return False
+            
+        try:
+            # Execute all pending operations in the transaction
+            operations = self._transaction_operations.get(transaction_id, [])
+            
+            for op in operations:
+                op_type = op.get("type")
+                op_data = op.get("data", {})
+                
+                if op_type == "store":
+                    # Execute store operation
+                    item = op_data.get("item")
+                    if item:
+                        self.store(item)
+                elif op_type == "delete":
+                    # Execute delete operation
+                    item_id = op_data.get("item_id")
+                    if item_id:
+                        self.delete(item_id)
+                # Add other operation types as needed
+            
+            # Mark transaction as committed
+            self._active_transactions[transaction_id]["status"] = "committed"
+            self.logger.debug(f"Transaction {transaction_id} committed successfully")
+            
+            # Clean up
+            self._transaction_operations.pop(transaction_id, None)
+            
+            return True
+        except Exception as e:
+            # Log error and mark transaction as failed
+            self.logger.error(f"Error committing transaction {transaction_id}: {e}")
+            self._active_transactions[transaction_id]["status"] = "failed"
+            self._active_transactions[transaction_id]["error"] = str(e)
+            
+            # Clean up
+            self._transaction_operations.pop(transaction_id, None)
+            
+            return False
+            
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a transaction, undoing all its operations.
+        
+        Args:
+            transaction_id: The ID of the transaction to rollback
+            
+        Returns:
+            bool: True if the transaction was rolled back successfully, False otherwise
+        """
+        # Check if transaction exists
+        if transaction_id not in self._active_transactions:
+            self.logger.warning(f"Cannot rollback transaction {transaction_id}: doesn't exist")
+            return False
+            
+        # Mark transaction as rolled back
+        self._active_transactions[transaction_id]["status"] = "rolled_back"
+        self.logger.debug(f"Transaction {transaction_id} rolled back")
+        
+        # Clean up
+        self._transaction_operations.pop(transaction_id, None)
+        
+        return True
+        
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Check if a transaction is active.
+        
+        Args:
+            transaction_id: The ID of the transaction to check
+            
+        Returns:
+            bool: True if the transaction is active, False otherwise
+        """
+        transaction = self._active_transactions.get(transaction_id)
+        return transaction is not None and transaction.get("status") == "active"
+        
+    def add_to_transaction(self, transaction_id: str, operation_type: str, operation_data: Dict[str, Any]) -> bool:
+        """Add an operation to a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            operation_type: The type of operation (store, delete, etc.)
+            operation_data: The data for the operation
+            
+        Returns:
+            bool: True if the operation was added successfully, False otherwise
+        """
+        if not self.is_transaction_active(transaction_id):
+            self.logger.warning(f"Cannot add operation to transaction {transaction_id}: not active or doesn't exist")
+            return False
+            
+        # Add operation to transaction
+        operation = {
+            "type": operation_type,
+            "data": operation_data,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        self._transaction_operations.setdefault(transaction_id, []).append(operation)
+        self.logger.debug(f"Added {operation_type} operation to transaction {transaction_id}")
+        
+        return True

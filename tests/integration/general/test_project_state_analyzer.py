@@ -16,6 +16,7 @@ class TestProjectStateAnalyzer:
 
 ReqID: N/A"""
 
+    @pytest.mark.medium
     def test_analyze_devsynth_project_succeeds(self):
         """Test analyzing the DevSynth project itself.
 
@@ -60,6 +61,7 @@ ReqID: N/A"""
         for recommendation in report['recommendations']:
             print(f'- {recommendation}')
 
+    @pytest.mark.medium
     def test_analyze_with_missing_files_succeeds(self, tmp_path):
         """Test analyzing a project with missing files.
 
@@ -101,6 +103,7 @@ ReqID: N/A"""
         assert missing_tests_issue is not None
         assert missing_tests_issue['severity'] == 'medium'
 
+    @pytest.mark.medium
     def test_analyze_with_requirements_and_code_succeeds(self, tmp_path):
         """Test analyzing a project with requirements and code but no specifications.
 

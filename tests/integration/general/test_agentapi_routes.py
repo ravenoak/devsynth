@@ -1,3 +1,5 @@
+import pytest
+
 from types import ModuleType
 from unittest.mock import MagicMock
 import importlib
@@ -41,6 +43,7 @@ ReqID: N/A"""
     cli_stub.init_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_gather_route_succeeds(monkeypatch):
     """Test that gather route succeeds.
 
@@ -54,6 +57,7 @@ ReqID: N/A"""
     cli_stub.gather_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_synthesize_and_status_succeeds(monkeypatch):
     """Test that synthesize and status succeeds.
 

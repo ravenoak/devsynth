@@ -25,6 +25,7 @@ def context():
     return Context()
 
 
+@pytest.mark.medium
 @given("a coordinator with agents capable of voting")
 def setup_voting_team(context):
     agent_names = ["agent1", "agent2", "agent3"]
@@ -37,6 +38,7 @@ def setup_voting_team(context):
         context.agents.append(agent)
 
 
+@pytest.mark.medium
 @given("a coordinator with agents unable to propose solutions")
 def setup_agents_no_solution(context):
     agent_names = ["agent1", "agent2"]
@@ -50,11 +52,13 @@ def setup_agents_no_solution(context):
     context.no_solutions = True
 
 
+@pytest.mark.medium
 @given("the dialectical reasoning module raises an exception")
 def dialectical_module_raises(context):
     context.dialectical_error = True
 
 
+@pytest.mark.medium
 @when("I delegate a voting-based task")
 def delegate_voting_task(context):
     context.task = {"vote": True, "description": "choose approach"}
@@ -89,24 +93,28 @@ def delegate_voting_task(context):
         context.error = str(exc)
 
 
+@pytest.mark.medium
 @then("each agent should cast a vote")
 def each_agent_votes(context):
     team = context.coordinator.teams[context.coordinator.current_team_id]
     team.build_consensus.assert_called_once_with(context.task)
 
 
+@pytest.mark.medium
 @then("the outcome should be approved by consensus vote")
 def result_consensus_vote(context):
     assert context.result.get("method") == "consensus_vote"
     assert context.result.get("result") == "approved"
 
 
+@pytest.mark.medium
 @then("the system should return an error message indicating no solutions were proposed")
 def no_solutions_error(context):
     assert context.result is not None
     assert context.result.get("reasoning") == "No solutions available"
 
 
+@pytest.mark.medium
 @then("the system should return a graceful dialectical reasoning error message")
 def dialectical_error_message(context):
     assert context.result is None

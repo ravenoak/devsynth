@@ -10,8 +10,15 @@ tags:
 - configuration
 
 title: Configuration Loader Workflow
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Configuration Loader Workflow
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Configuration Loader Workflow
+</div>
 
 # Configuration Loader Workflow
 

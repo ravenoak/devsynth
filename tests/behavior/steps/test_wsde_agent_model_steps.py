@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 # Import the feature files
 scenarios('../features/general/wsde_agent_model.feature')
-scenarios('../features/wsde_agent_model.feature')
+# scenarios('../features/wsde_agent_model.feature')  # Commented out - feature file not found
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde import WSDETeam
@@ -37,6 +37,7 @@ def context():
 
 # Background steps
 
+@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
@@ -44,6 +45,7 @@ def devsynth_system_initialized(context):
     assert context.team_coordinator is not None
 
 
+@pytest.mark.medium
 @given("a team of agents is configured")
 def team_of_agents_configured(context):
     """Configure a team of agents."""
@@ -54,6 +56,7 @@ def team_of_agents_configured(context):
     context.teams[team_id] = context.team_coordinator.get_team(team_id)
 
 
+@pytest.mark.medium
 @given("the WSDE model is enabled")
 def wsde_model_enabled(context):
     """Enable the WSDE model."""
@@ -63,6 +66,7 @@ def wsde_model_enabled(context):
 
 # Scenario: Peer-based collaboration
 
+@pytest.mark.medium
 @when("I create a team with multiple agents")
 def create_team_with_multiple_agents(context):
     """Create a team with multiple agents."""
@@ -88,6 +92,7 @@ def create_team_with_multiple_agents(context):
         context.team_coordinator.add_agent(agent)
 
 
+@pytest.mark.medium
 @then("all agents should be treated as peers")
 def agents_treated_as_peers(context):
     """Verify that all agents are treated as peers."""
@@ -98,6 +103,7 @@ def agents_treated_as_peers(context):
     assert len(team.agents) > 1
 
 
+@pytest.mark.medium
 @then("no agent should have permanent hierarchical authority")
 def no_permanent_hierarchical_authority(context):
     """Verify that no agent has permanent hierarchical authority."""
@@ -110,6 +116,7 @@ def no_permanent_hierarchical_authority(context):
     assert initial_primus != new_primus
 
 
+@pytest.mark.medium
 @then("agents should be able to collaborate without rigid role sequences")
 def collaborate_without_rigid_role_sequences(context):
     """Verify that agents can collaborate without rigid role sequences."""
@@ -181,6 +188,7 @@ def collaborate_without_rigid_role_sequences(context):
 
 # Scenario: Context-driven leadership
 
+@pytest.mark.medium
 @given("a team with multiple agents with different expertise")
 def team_with_agents_different_expertise(context):
     """Create a team with multiple agents with different expertise."""
@@ -217,6 +225,7 @@ def team_with_agents_different_expertise(context):
     assert len(team.agents) == len(expertise_map)
 
 
+@pytest.mark.medium
 @when("a task requiring specific expertise is assigned")
 def task_requiring_specific_expertise(context):
     """Assign a task requiring specific expertise."""
@@ -229,6 +238,7 @@ def task_requiring_specific_expertise(context):
     context.tasks["python_task"] = task
 
 
+@pytest.mark.medium
 @then("the agent with the most relevant expertise should become the temporary Primus")
 def agent_with_relevant_expertise_becomes_primus(context):
     """Verify that the agent with the most relevant expertise becomes the temporary Primus."""
@@ -255,6 +265,7 @@ def agent_with_relevant_expertise_becomes_primus(context):
     assert any(skill in ["python", "code_generation"] for skill in expertise)
 
 
+@pytest.mark.medium
 @then("the Primus role should change based on the task context")
 def primus_role_changes_with_task_context(context):
     """Verify that the Primus role changes based on the task context."""
@@ -325,6 +336,7 @@ def primus_role_changes_with_task_context(context):
         assert has_doc_expertise, "New Primus should have documentation expertise"
 
 
+@pytest.mark.medium
 @then("the previous Primus should return to peer status")
 def previous_primus_returns_to_peer_status(context):
     """Verify that the previous Primus returns to peer status."""
@@ -374,6 +386,7 @@ def previous_primus_returns_to_peer_status(context):
 
 # Scenario: Autonomous collaboration
 
+@pytest.mark.medium
 @given("a team with multiple agents")
 def team_with_multiple_agents(context):
     """Create a team with multiple agents."""
@@ -398,6 +411,7 @@ def team_with_multiple_agents(context):
         context.agents[agent_type] = agent
         context.team_coordinator.add_agent(agent)
 
+@pytest.mark.medium
 @when("a complex task is assigned")
 def complex_task_assigned(context):
     """Assign a complex task."""
@@ -411,6 +425,7 @@ def complex_task_assigned(context):
     context.tasks["complex_task"] = task
 
 
+@pytest.mark.medium
 @then("any agent should be able to propose solutions at any stage")
 def any_agent_can_propose_solutions(context):
     """Verify that any agent can propose solutions at any stage."""
@@ -445,6 +460,7 @@ def any_agent_can_propose_solutions(context):
     assert len(team.solutions[task_id]) == len(context.agents)
 
 
+@pytest.mark.medium
 @then("any agent should be able to provide critiques at any stage")
 def any_agent_can_provide_critiques(context):
     """Verify that any agent can provide critiques at any stage."""
@@ -475,6 +491,7 @@ def any_agent_can_provide_critiques(context):
         # method returns True for all agents.
 
 
+@pytest.mark.medium
 @then("the system should consider input from all agents")
 def system_considers_all_agent_input(context):
     """Verify that the system considers input from all agents."""
@@ -520,6 +537,7 @@ def system_considers_all_agent_input(context):
 
 # Scenario: Consensus-based decision making
 
+@pytest.mark.medium
 @given("a team with multiple agents")
 def team_with_multiple_agents_for_consensus(context):
     """Create a team with multiple agents for consensus building."""
@@ -544,6 +562,7 @@ def team_with_multiple_agents_for_consensus(context):
         context.agents[agent_type] = agent
         context.team_coordinator.add_agent(agent)
 
+@pytest.mark.medium
 @when("multiple solutions are proposed for a task")
 def multiple_solutions_proposed(context):
     """Propose multiple solutions for a task."""
@@ -562,6 +581,7 @@ def multiple_solutions_proposed(context):
     }
 
 
+@pytest.mark.medium
 @then("the system should facilitate consensus building")
 def system_facilitates_consensus(context):
     """Verify that the system facilitates consensus building."""
@@ -589,6 +609,7 @@ def system_facilitates_consensus(context):
     context.consensus = consensus
 
 
+@pytest.mark.medium
 @then("the final decision should reflect input from all relevant agents")
 def final_decision_reflects_all_input(context):
     """Verify that the final decision reflects input from all relevant agents."""
@@ -619,6 +640,7 @@ def final_decision_reflects_all_input(context):
                 assert context.consensus["consensus"], "Consensus content should not be empty"
 
 
+@pytest.mark.medium
 @then("no single agent should have dictatorial authority")
 def no_dictatorial_authority(context):
     """Verify that no single agent has dictatorial authority."""
@@ -642,6 +664,7 @@ def no_dictatorial_authority(context):
 
 # Scenario: Dialectical review process
 
+@pytest.mark.medium
 @given("a team with a Critic agent")
 def team_with_critic_agent(context):
     """Create a team with a Critic agent."""
@@ -659,6 +682,7 @@ def team_with_critic_agent(context):
     context.team_coordinator.add_agent(agent)
 
 
+@pytest.mark.medium
 @when("a solution is proposed")
 def solution_proposed(context):
     """Propose a solution."""
@@ -670,6 +694,7 @@ def solution_proposed(context):
     }
 
 
+@pytest.mark.medium
 @then("the Critic agent should apply dialectical reasoning")
 def critic_applies_dialectical_reasoning(context):
     """Verify that the Critic agent applies dialectical reasoning."""
@@ -703,6 +728,7 @@ def critic_applies_dialectical_reasoning(context):
     context.dialectical_result = dialectical_result
 
 
+@pytest.mark.medium
 @then("the Critic should identify thesis and antithesis")
 def critic_identifies_thesis_antithesis(context):
     """Verify that the Critic identifies thesis and antithesis."""
@@ -731,6 +757,7 @@ def critic_identifies_thesis_antithesis(context):
         assert False, "Neither 'critique' nor 'critique_categories' found in antithesis"
 
 
+@pytest.mark.medium
 @then("the team should work toward a synthesis")
 def team_works_toward_synthesis(context):
     """Verify that the team works toward a synthesis."""
@@ -776,6 +803,7 @@ def team_works_toward_synthesis(context):
         assert synthesis["is_improvement"] is True
 
 
+@pytest.mark.medium
 @then("the final solution should reflect the dialectical process")
 def final_solution_reflects_dialectical_process(context):
     """Verify that the final solution reflects the dialectical process."""
@@ -823,6 +851,7 @@ def final_solution_reflects_dialectical_process(context):
 # ---------------------------------------------------------------------------
 # Voting result summary steps reused from wsde_peer_review_steps
 
+@pytest.mark.medium
 @given("a voting result with a clear winner")
 def voting_result_setup(context):
     context.team = WSDETeam("vote-team")
@@ -833,11 +862,13 @@ def voting_result_setup(context):
     }
 
 
+@pytest.mark.medium
 @when("the team summarizes the voting result")
 def team_summarizes_vote(context):
     context.vote_summary = context.team.summarize_voting_result(context.voting_result)
 
 
+@pytest.mark.medium
 @then("the summary should mention the winning option")
 def summary_mentions_winner(context):
     assert "optA" in context.vote_summary

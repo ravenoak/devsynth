@@ -2,15 +2,18 @@
 
 from pytest_bdd import given, when, then
 import os
+import pytest
 
 from .webui_steps import webui_context
 
+@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(webui_context):
     """Initialize the WebUI for testing."""
     return webui_context
 
 
+@pytest.mark.medium
 @given("a specification file exists with content \"existing spec\"")
 def spec_file_exists(tmp_path, webui_context):
     """Create a specification file with the given content."""
@@ -20,6 +23,7 @@ def spec_file_exists(tmp_path, webui_context):
     webui_context["st"].text_input.return_value = str(spec_path)
 
 
+@pytest.mark.medium
 @given("a specification file exists with content \"original content\"")
 def spec_file_with_original_content(tmp_path, webui_context):
     """Create a specification file with original content."""
@@ -29,6 +33,7 @@ def spec_file_with_original_content(tmp_path, webui_context):
     webui_context["st"].text_input.return_value = str(spec_path)
 
 
+@pytest.mark.medium
 @when("I load the specification file")
 def load_spec_file(webui_context):
     """Simulate clicking the Load Spec button."""
@@ -43,6 +48,7 @@ def load_spec_file(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I try to load a non-existent specification file")
 def load_nonexistent_spec(tmp_path, webui_context):
     """Simulate trying to load a non-existent specification file."""
@@ -58,12 +64,14 @@ def load_nonexistent_spec(tmp_path, webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I edit the content to \"updated content\"")
 def edit_content(webui_context):
     """Simulate editing the content in the text area."""
     webui_context["st"].text_area.return_value = "updated content"
 
 
+@pytest.mark.medium
 @when("I save the specification without regenerating")
 def save_without_regenerating(webui_context):
     """Simulate clicking the Save Only button without regenerating."""
@@ -97,6 +105,7 @@ def save_without_regenerating(webui_context):
     # without calling any method that might trigger spec_cmd
 
 
+@pytest.mark.medium
 @then("the specification content should be displayed in the editor")
 def check_content_displayed(webui_context):
     """Verify that the specification content is displayed in the editor."""
@@ -105,6 +114,7 @@ def check_content_displayed(webui_context):
     assert webui_context["st"].session_state["spec_content"] == "existing spec"
 
 
+@pytest.mark.medium
 @then("the editor should show empty content")
 def check_empty_content(webui_context):
     """Verify that the editor shows empty content."""
@@ -112,12 +122,14 @@ def check_empty_content(webui_context):
     assert webui_context["st"].session_state["spec_content"] == ""
 
 
+@pytest.mark.medium
 @then("the specification file should be updated")
 def check_file_updated(webui_context):
     """Verify that the specification file was updated."""
     assert webui_context["spec_path"].read_text() == "updated content"
 
 
+@pytest.mark.medium
 @then("the spec command should not be executed")
 def check_spec_not_executed(webui_context):
     """Verify that the spec command was not executed."""

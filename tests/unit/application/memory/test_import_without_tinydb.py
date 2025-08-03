@@ -1,15 +1,15 @@
+import pytest
 import builtins
 import importlib
 import sys
 
-
+@pytest.mark.medium
 def test_import_memory_without_tinydb_succeeds(monkeypatch):
     """Importing memory module should succeed without tinydb installed.
 
 ReqID: N/A"""
     sys.modules.pop('devsynth.application.memory', None)
-    sys.modules.pop(
-        'devsynth.application.memory.adapters.tinydb_memory_adapter', None)
+    sys.modules.pop('devsynth.application.memory.adapters.tinydb_memory_adapter', None)
     real_import = builtins.__import__
 
     def fake_import(name, globals=None, locals=None, fromlist=(), level=0):

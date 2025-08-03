@@ -33,6 +33,7 @@ class TestTyperCLI:
 
     runner = CliRunner()
 
+    @pytest.mark.medium
     def test_show_help_succeeds(self):
         """Test that show help succeeds.
 

@@ -5,8 +5,15 @@ tags:
 - cli
 
 title: CLI Usage
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; CLI Usage
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; CLI Usage
+</div>
 
 # CLI Usage
 
@@ -21,4 +28,4 @@ This short reference outlines the most common DevSynth commands. Recent releases
 Use `devsynth --help` for the full list of available commands and options.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

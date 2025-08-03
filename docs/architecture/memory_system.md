@@ -10,8 +10,15 @@ tags:
 - vector-store
 - knowledge-graph
 title: DevSynth Memory System Architecture
-version: 1.2.0
----
+version: 1.2.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Memory System Architecture
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Memory System Architecture
+</div>
 
 # DevSynth Memory System Architecture
 

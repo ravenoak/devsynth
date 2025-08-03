@@ -8,12 +8,19 @@ tags:
 - roadmap
 
 title: DevSynth Actionable Implementation Roadmap
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Actionable Implementation Roadmap
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Actionable Implementation Roadmap
+</div>
 
 # DevSynth Actionable Implementation Roadmap
 
-**Note:** DevSynth is currently in a pre-release stage. The [Release Plan](release_plan.md) is the canonical source for roadmap updates. Current implementation progress is summarized in the [Feature Status Matrix](../implementation/feature_status_matrix.md).
+**Note:** DevSynth is currently in a pre-release stage. The [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md) is the canonical source for roadmap updates. Current implementation progress is summarized in the [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 **Analysis Date:** July 16, 2025
 **Repository:** https://github.com/ravenoak/devsynth.git
@@ -27,7 +34,7 @@ This roadmap transforms the comprehensive analysis findings into a practical, ph
 ### Strategic Phases
 
 The high-level phases are consolidated in the
-[Release Plan](release_plan.md). Refer to that document for up-to-date
+[Consolidated Roadmap](CONSOLIDATED_ROADMAP.md). Refer to that document for up-to-date
 milestones and timelines.
 
 

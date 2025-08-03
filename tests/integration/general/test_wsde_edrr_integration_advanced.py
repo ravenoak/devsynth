@@ -94,7 +94,7 @@ ReqID: N/A"""
     enhanced_coordinator.progress_to_phase(Phase.REFINE)
     refine_primus = enhanced_coordinator.wsde_team.get_primus()
     assert refine_primus is not None
-    assert any(skill in ['brainstorming', 'exploration', 'creativity', 'ideation'] for
+    assert any(skill in ['implementation', 'coding', 'development', 'optimization'] for
         skill in refine_primus.expertise)
     enhanced_coordinator.progress_to_phase(Phase.RETROSPECT)
     retro_primus = enhanced_coordinator.wsde_team.get_primus()

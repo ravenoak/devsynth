@@ -39,11 +39,13 @@ def context():
     yield ctx
     ctx.cleanup()
 
+@pytest.mark.medium
 @given("the documentation ingestion system is initialized")
 def documentation_ingestion_system_initialized(context):
     """Initialize the documentation ingestion system."""
     context.ingestion_manager = DocumentationIngestionManager()
 
+@pytest.mark.medium
 @given("the memory system is available")
 def memory_system_available(context):
     """Make the memory system available."""
@@ -51,6 +53,7 @@ def memory_system_available(context):
     # Create a new DocumentationIngestionManager with the memory manager
     context.ingestion_manager = DocumentationIngestionManager(memory_manager=context.memory_manager)
 
+@pytest.mark.medium
 @given("I have Markdown documentation files in a directory")
 def have_markdown_documentation(context):
     """Create Markdown documentation files in a directory."""
@@ -66,6 +69,7 @@ def have_markdown_documentation(context):
 
     context.documentation_dirs["markdown"] = markdown_dir
 
+@pytest.mark.medium
 @given("I have text documentation files in a directory")
 def have_text_documentation(context):
     """Create text documentation files in a directory."""
@@ -81,6 +85,7 @@ def have_text_documentation(context):
 
     context.documentation_dirs["text"] = text_dir
 
+@pytest.mark.medium
 @given("I have JSON documentation files in a directory")
 def have_json_documentation(context):
     """Create JSON documentation files in a directory."""
@@ -110,6 +115,7 @@ def have_json_documentation(context):
 
     context.documentation_dirs["json"] = json_dir
 
+@pytest.mark.medium
 @given("I have Python source files with docstrings in a directory")
 def have_python_documentation(context):
     """Create Python source files with docstrings in a directory."""
@@ -150,6 +156,7 @@ class SampleClass:
 
     context.documentation_dirs["python"] = python_dir
 
+@pytest.mark.medium
 @given("I have HTML documentation files in a directory")
 def have_html_documentation(context):
     """Create HTML documentation files in a directory."""
@@ -183,6 +190,7 @@ def have_html_documentation(context):
 
     context.documentation_dirs["html"] = html_dir
 
+@pytest.mark.medium
 @given("I have RST documentation files in a directory")
 def have_rst_documentation(context):
     """Create RST documentation files in a directory."""
@@ -206,6 +214,7 @@ This is another sample RST documentation file.
 
     context.documentation_dirs["rst"] = rst_dir
 
+@pytest.mark.medium
 @given("I have a URL pointing to documentation")
 def have_url_documentation(context):
     """Set up a URL pointing to documentation."""
@@ -217,6 +226,7 @@ def have_url_documentation(context):
     # the ingest_url method handle it. In a real test, we might use
     # unittest.mock.patch to mock the requests.get call.
 
+@pytest.mark.medium
 @given(parsers.parse("I have documentation in multiple formats:"))
 def have_documentation_in_multiple_formats(context):
     """Set up documentation in multiple formats based on the data table."""
@@ -246,6 +256,7 @@ def have_documentation_in_multiple_formats(context):
         elif format_type == "html" and source_type == "url":
             have_url_documentation(context)
 
+@pytest.mark.medium
 @when("I ingest the Markdown documentation")
 def ingest_markdown_documentation(context):
     """Ingest the Markdown documentation."""
@@ -257,6 +268,7 @@ def ingest_markdown_documentation(context):
             metadata={"format": "markdown"}
         )
 
+@pytest.mark.medium
 @when("I ingest the text documentation")
 def ingest_text_documentation(context):
     """Ingest the text documentation."""
@@ -268,6 +280,7 @@ def ingest_text_documentation(context):
             metadata={"format": "text"}
         )
 
+@pytest.mark.medium
 @when("I ingest the JSON documentation")
 def ingest_json_documentation(context):
     """Ingest the JSON documentation."""
@@ -279,6 +292,7 @@ def ingest_json_documentation(context):
             metadata={"format": "json"}
         )
 
+@pytest.mark.medium
 @when("I ingest the Python documentation")
 def ingest_python_documentation(context):
     """Ingest the Python documentation."""
@@ -290,6 +304,7 @@ def ingest_python_documentation(context):
             metadata={"format": "python"}
         )
 
+@pytest.mark.medium
 @when("I ingest the HTML documentation")
 def ingest_html_documentation(context):
     """Ingest the HTML documentation."""
@@ -301,6 +316,7 @@ def ingest_html_documentation(context):
             metadata={"format": "html"}
         )
 
+@pytest.mark.medium
 @when("I ingest the RST documentation")
 def ingest_rst_documentation(context):
     """Ingest the RST documentation."""
@@ -312,6 +328,7 @@ def ingest_rst_documentation(context):
             metadata={"format": "rst"}
         )
 
+@pytest.mark.medium
 @when("I ingest the documentation from the URL")
 def ingest_url_documentation(context):
     """Ingest the documentation from the URL."""
@@ -331,6 +348,7 @@ def ingest_url_documentation(context):
                 metadata={"format": "markdown"}
             )
 
+@pytest.mark.medium
 @when("I ingest documentation from all sources")
 def ingest_all_documentation(context):
     """Ingest documentation from all sources."""
@@ -350,6 +368,7 @@ def ingest_all_documentation(context):
             metadata={"format": "markdown"}  # Assuming the URL returns Markdown content
         )
 
+@pytest.mark.medium
 @when("I ingest documentation from multiple formats")
 def ingest_multiple_formats(context):
     """Ingest documentation from multiple formats."""
@@ -362,6 +381,7 @@ def ingest_multiple_formats(context):
     # Ingest from all directories
     ingest_all_documentation(context)
 
+@pytest.mark.medium
 @then("the documentation should be processed and stored in the memory system")
 def verify_documentation_stored(context):
     """Verify that the documentation was processed and stored in the memory system."""
@@ -372,6 +392,7 @@ def verify_documentation_stored(context):
     docs = context.memory_manager.query_by_metadata({"type": MemoryType.DOCUMENTATION})
     assert len(docs) > 0, "No documentation items found in memory"
 
+@pytest.mark.medium
 @then("I should be able to query information from the Markdown documentation")
 def verify_markdown_query(context):
     """Verify that information can be queried from the Markdown documentation."""
@@ -385,6 +406,7 @@ def verify_markdown_query(context):
     # Store the results for later verification
     context.query_results["markdown"] = query_results
 
+@pytest.mark.medium
 @then("I should be able to query information from the text documentation")
 def verify_text_query(context):
     """Verify that information can be queried from the text documentation."""
@@ -398,6 +420,7 @@ def verify_text_query(context):
     # Store the results for later verification
     context.query_results["text"] = query_results
 
+@pytest.mark.medium
 @then("I should be able to query information from the JSON documentation")
 def verify_json_query(context):
     """Verify that information can be queried from the JSON documentation."""
@@ -411,6 +434,7 @@ def verify_json_query(context):
     # Store the results for later verification
     context.query_results["json"] = query_results
 
+@pytest.mark.medium
 @then("I should be able to query information from the Python docstrings")
 def verify_python_query(context):
     """Verify that information can be queried from the Python docstrings."""
@@ -424,6 +448,7 @@ def verify_python_query(context):
     # Store the results for later verification
     context.query_results["python"] = query_results
 
+@pytest.mark.medium
 @then("I should be able to query information from the HTML documentation")
 def verify_html_query(context):
     """Verify that information can be queried from the HTML documentation."""
@@ -437,6 +462,7 @@ def verify_html_query(context):
     # Store the results for later verification
     context.query_results["html"] = query_results
 
+@pytest.mark.medium
 @then("I should be able to query information from the RST documentation")
 def verify_rst_query(context):
     """Verify that information can be queried from the RST documentation."""
@@ -450,6 +476,7 @@ def verify_rst_query(context):
     # Store the results for later verification
     context.query_results["rst"] = query_results
 
+@pytest.mark.medium
 @then("I should be able to query information from the URL documentation")
 def verify_url_query(context):
     """Verify that information can be queried from the URL documentation."""
@@ -463,6 +490,7 @@ def verify_url_query(context):
     # Store the results for later verification
     context.query_results["url"] = query_results
 
+@pytest.mark.medium
 @then("all documentation should be processed and stored in the memory system")
 def verify_all_documentation_stored(context):
     """Verify that all documentation was processed and stored in the memory system."""
@@ -482,6 +510,7 @@ def verify_all_documentation_stored(context):
         if not format_docs:
             continue
 
+@pytest.mark.medium
 @then("I should be able to query information across all documentation sources")
 def verify_cross_source_query(context):
     """Verify that information can be queried across all documentation sources."""
@@ -492,6 +521,7 @@ def verify_cross_source_query(context):
     # Store the results for later verification
     context.query_results["cross_source"] = query_results
 
+@pytest.mark.medium
 @then("the documentation should be stored in appropriate memory stores:")
 def verify_memory_store_integration(context):
     """Verify that documentation is stored in appropriate memory stores based on the data table."""
@@ -528,6 +558,7 @@ def verify_memory_store_integration(context):
                 relationships = context.memory_manager.get_relationships()
                 assert len(relationships) > 0, "No relationships found in graph store"
 
+@pytest.mark.medium
 @then("I should be able to retrieve documentation using different query methods")
 def verify_different_query_methods(context):
     """Verify that documentation can be retrieved using different query methods."""

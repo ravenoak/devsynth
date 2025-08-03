@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Sequence, Optional
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_bdd import scenarios, given, when, then
 
 from devsynth.interface.ux_bridge import UXBridge
@@ -33,7 +34,7 @@ class DummyBridge(UXBridge):
         pass
 
 
-def _run_wizard(output: Path, bridge: DummyBridge) -> None:
+def _run_wizard(output_filename: str, bridge: DummyBridge, tmpdir: pytest.FixtureRequest) -> None:
     wizard = SetupWizard(bridge)
     name = wizard.bridge.ask_question("Project name?")
     language = wizard.bridge.ask_question("Primary language?")
@@ -48,8 +49,9 @@ def _run_wizard(output: Path, bridge: DummyBridge) -> None:
                 else [f.strip() for f in features.split(",") if f.strip()]
             ),
         }
-        with open(output, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+        # Use tmpdir for file operations
+        output_file = tmpdir.join(output_filename)
+        output_file.write(json.dumps(data, indent=2), encoding="utf-8")
         wizard.bridge.display_result("Requirements saved")
     else:
         wizard.bridge.display_result("Cancelled")
@@ -58,41 +60,48 @@ def _run_wizard(output: Path, bridge: DummyBridge) -> None:
 scenarios("../features/general/requirements_wizard.feature")
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
+@pytest.mark.medium
 @when("I run the requirements wizard")
-def run_requirements_wizard(tmp_project_dir, monkeypatch):
+def run_requirements_wizard(tmp_project_dir, tmpdir, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: Path(tmp_project_dir))
     answers = ["My Project", "python", "feature1,feature2"]
     confirms = [True]
     bridge = DummyBridge(answers, confirms)
-    output = Path(tmp_project_dir) / "requirements_wizard.json"
-    _run_wizard(output, bridge)
+    # Use just the filename, not the full path
+    _run_wizard("requirements_wizard.json", bridge, tmpdir)
 
 
+@pytest.mark.medium
 @when("I cancel the requirements wizard")
-def cancel_requirements_wizard(tmp_project_dir, monkeypatch):
+def cancel_requirements_wizard(tmp_project_dir, tmpdir, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: Path(tmp_project_dir))
     answers = ["My Project", "python", "feature1,feature2"]
     confirms = [False]
     bridge = DummyBridge(answers, confirms)
-    output = Path(tmp_project_dir) / "requirements_wizard.json"
-    _run_wizard(output, bridge)
+    # Use just the filename, not the full path
+    _run_wizard("requirements_wizard.json", bridge, tmpdir)
 
 
+@pytest.mark.medium
 @then('a saved requirements file "requirements_wizard.json" should exist')
-def saved_file_exists(tmp_project_dir):
-    path = Path(tmp_project_dir) / "requirements_wizard.json"
+def saved_file_exists(tmpdir):
+    # Check for the file in tmpdir
+    path = tmpdir.join("requirements_wizard.json")
     assert path.exists()
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    # Read the file using tmpdir's methods
+    data = json.loads(path.read(encoding="utf-8"))
     assert data["name"] == "My Project"
 
 
+@pytest.mark.medium
 @then("no requirements file should exist")
-def no_file(tmp_project_dir):
-    path = Path(tmp_project_dir) / "requirements_wizard.json"
+def no_file(tmpdir):
+    # Check for the file in tmpdir
+    path = tmpdir.join("requirements_wizard.json")
     assert not path.exists()

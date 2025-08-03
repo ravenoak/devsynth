@@ -27,6 +27,7 @@ def test_should_retry_prevents_retry():
     assert mock_func.call_count == 1
 
 
+@pytest.mark.medium
 def test_should_retry_allows_retry_until_success():
     """Retry decorator retries when ``should_retry`` returns True.
 
@@ -44,6 +45,7 @@ def test_should_retry_allows_retry_until_success():
     assert mock_func.call_count == 3
 
 
+@pytest.mark.medium
 def test_retry_on_result_triggers_retry():
     mock_func = Mock(side_effect=["bad", "good"])
     mock_func.__name__ = "mock_func"
@@ -60,6 +62,7 @@ def test_retry_on_result_triggers_retry():
     assert mock_func.call_count == 2
 
 
+@pytest.mark.medium
 def test_retry_conditions_abort_when_condition_fails():
     mock_func = Mock(side_effect=Exception("boom"))
     mock_func.__name__ = "mock_func"
@@ -73,6 +76,7 @@ def test_retry_conditions_abort_when_condition_fails():
     assert mock_func.call_count == 1
 
 
+@pytest.mark.medium
 def test_retry_conditions_allow_retry():
     mock_func = Mock(side_effect=[Exception("please retry"), "ok"])
     mock_func.__name__ = "mock_func"
@@ -86,6 +90,7 @@ def test_retry_conditions_allow_retry():
     assert mock_func.call_count == 2
 
 
+@pytest.mark.medium
 def test_exponential_backoff(monkeypatch):
     delays = []
     monkeypatch.setattr(time, "sleep", lambda d: delays.append(round(d, 2)))
@@ -106,6 +111,7 @@ def test_exponential_backoff(monkeypatch):
     assert delays == [0.2, 0.4]
 
 
+@pytest.mark.medium
 def test_fallback_provider_order():
     provider1 = Mock(spec=BaseProvider)
     provider2 = Mock(spec=BaseProvider)

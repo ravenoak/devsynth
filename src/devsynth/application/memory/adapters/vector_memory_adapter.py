@@ -5,10 +5,13 @@ This module provides a memory adapter that handles vector-based operations
 for similarity search.
 """
 import numpy as np
+import uuid
 from typing import Dict, List, Any, Optional
+from copy import deepcopy
 from ....domain.models.memory import MemoryVector
 from ....domain.interfaces.memory import VectorStore
 from ....logging_setup import DevSynthLogger
+from ....exceptions import MemoryTransactionError
 
 logger = DevSynthLogger(__name__)
 
@@ -136,3 +139,174 @@ class VectorMemoryAdapter(VectorStore):
             "vector_count": len(self.vectors),
             "embedding_dimensions": len(next(iter(self.embeddings.values()))) if self.embeddings else 0
         }
+        
+    def get_all(self) -> List[MemoryVector]:
+        """
+        Get all vectors from the vector store.
+        
+        Returns:
+            A list of all memory vectors
+        """
+        return list(self.vectors.values())
+        
+    def begin_transaction(self, transaction_id: str) -> str:
+        """
+        Begin a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            The transaction ID
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be started
+        """
+        logger.debug(f"Beginning transaction {transaction_id} in VectorMemoryAdapter")
+        
+        # Store the transaction ID
+        if not hasattr(self, '_active_transactions'):
+            self._active_transactions = {}
+            
+        # Create a snapshot of the current state
+        snapshot = {
+            'vectors': deepcopy(self.vectors),
+            'embeddings': deepcopy(self.embeddings)
+        }
+        
+        # Store the snapshot with the transaction ID
+        self._active_transactions[transaction_id] = {
+            'snapshot': snapshot,
+            'prepared': False
+        }
+        
+        return transaction_id
+        
+    def prepare_commit(self, transaction_id: str) -> bool:
+        """
+        Prepare to commit a transaction.
+        
+        This is the first phase of a two-phase commit protocol.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            True if the transaction is prepared for commit
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be prepared
+        """
+        logger.debug(f"Preparing to commit transaction {transaction_id} in VectorMemoryAdapter")
+        
+        # Check if this is an active transaction
+        if not hasattr(self, '_active_transactions') or transaction_id not in self._active_transactions:
+            raise MemoryTransactionError(
+                f"Transaction {transaction_id} is not active",
+                transaction_id=transaction_id,
+                store_type="VectorMemoryAdapter",
+                operation="prepare_commit"
+            )
+            
+        # Mark the transaction as prepared
+        self._active_transactions[transaction_id]['prepared'] = True
+        
+        return True
+        
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """
+        Commit a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            True if the transaction was committed
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be committed
+        """
+        logger.debug(f"Committing transaction {transaction_id} in VectorMemoryAdapter")
+        
+        # Check if this is an active transaction
+        if not hasattr(self, '_active_transactions') or transaction_id not in self._active_transactions:
+            raise MemoryTransactionError(
+                f"Transaction {transaction_id} is not active",
+                transaction_id=transaction_id,
+                store_type="VectorMemoryAdapter",
+                operation="commit_transaction"
+            )
+            
+        # Remove the transaction from the active transactions
+        del self._active_transactions[transaction_id]
+        
+        return True
+        
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """
+        Rollback a transaction.
+        
+        Args:
+            transaction_id: The ID of the transaction
+            
+        Returns:
+            True if the transaction was rolled back
+            
+        Raises:
+            MemoryTransactionError: If the transaction cannot be rolled back
+        """
+        logger.debug(f"Rolling back transaction {transaction_id} in VectorMemoryAdapter")
+        
+        # Check if this is an active transaction
+        if not hasattr(self, '_active_transactions') or transaction_id not in self._active_transactions:
+            raise MemoryTransactionError(
+                f"Transaction {transaction_id} is not active",
+                transaction_id=transaction_id,
+                store_type="VectorMemoryAdapter",
+                operation="rollback_transaction"
+            )
+            
+        # Get the snapshot
+        snapshot = self._active_transactions[transaction_id]['snapshot']
+        
+        # Restore from the snapshot
+        self.vectors = snapshot['vectors']
+        self.embeddings = snapshot['embeddings']
+        
+        # Remove the transaction from the active transactions
+        del self._active_transactions[transaction_id]
+        
+        return True
+        
+    def snapshot(self) -> Dict[str, Any]:
+        """
+        Create a snapshot of the current state.
+        
+        Returns:
+            A dictionary containing the current state
+        """
+        return {
+            'vectors': deepcopy(self.vectors),
+            'embeddings': deepcopy(self.embeddings)
+        }
+        
+    def restore(self, snapshot: Dict[str, Any]) -> bool:
+        """
+        Restore from a snapshot.
+        
+        Args:
+            snapshot: A dictionary containing the state to restore
+            
+        Returns:
+            True if the restore was successful
+        """
+        if snapshot is None:
+            return False
+            
+        try:
+            self.vectors = snapshot['vectors']
+            self.embeddings = snapshot['embeddings']
+            return True
+        except Exception as e:
+            logger.error(f"Failed to restore from snapshot: {e}")
+            return False

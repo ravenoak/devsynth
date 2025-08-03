@@ -6,8 +6,15 @@ status: published
 tags:
 - policy
 title: Maintenance Policy
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Maintenance Policy
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Maintenance Policy
+</div>
 
 # Maintenance Policy
 

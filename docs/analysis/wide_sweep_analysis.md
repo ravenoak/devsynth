@@ -8,8 +8,15 @@ tags:
 - analysis
 
 title: DevSynth Project Wide Sweep Analysis
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Wide Sweep Analysis
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Wide Sweep Analysis
+</div>
 
 # DevSynth Project Wide Sweep Analysis
 

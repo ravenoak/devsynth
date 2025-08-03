@@ -2,8 +2,15 @@
 title: DevSynth Technical Specification
 status: published
 author: DevSynth Team
-version: 1.0
----
+version: 1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Technical Specification
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Technical Specification
+</div>
 
 # DevSynth Technical Specification
 

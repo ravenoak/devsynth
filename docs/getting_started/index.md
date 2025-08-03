@@ -8,8 +8,15 @@ tags:
 - installation
 - basic-usage
 title: Getting Started with DevSynth
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Getting Started with DevSynth
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Getting Started with DevSynth
+</div>
 
 # Getting Started with DevSynth
 
@@ -38,4 +45,4 @@ If you're new to DevSynth, we recommend starting with the [Quick Start Guide](qu
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

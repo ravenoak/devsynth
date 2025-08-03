@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-02"
 status: published
 tags:
 
@@ -11,8 +11,15 @@ tags:
 - quality assurance
 
 title: DevSynth Testing Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Guide
+</div>
 
 # DevSynth Testing Guide
 
@@ -423,7 +430,4 @@ Test coverage is tracked and reported in CI runs.
 
 ---
 
-_Last updated: May 17, 2025_
-## Implementation Status
-
-This feature is **in progress** and not yet implemented.
+_Last updated: August 2, 2025_

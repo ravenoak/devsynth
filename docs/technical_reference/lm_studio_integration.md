@@ -6,8 +6,15 @@ status: published
 tags:
 - technical-reference
 title: LM Studio Integration
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; LM Studio Integration
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; LM Studio Integration
+</div>
 
 # LM Studio Integration
 

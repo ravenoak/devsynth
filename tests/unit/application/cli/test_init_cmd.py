@@ -9,20 +9,61 @@ from unittest.mock import patch
 def _run_init(tmp_path, monkeypatch, *, use_pyproject=False):
     """Helper to run init_cmd with patched bridge."""
     monkeypatch.chdir(tmp_path)
-    answers = iter([str(tmp_path), 'python', 'do stuff', 'memory'])
-    confirms = iter([False, False, False, False, False, False, False, True])
-    monkeypatch.setattr('devsynth.interface.cli.Prompt.ask', lambda *a, **k:
-        next(answers))
-    monkeypatch.setattr('devsynth.interface.cli.Confirm.ask', lambda *a, **
-        k: next(confirms))
-    printed = []
-    monkeypatch.setattr('rich.console.Console.print', lambda self, msg, *,
-        highlight=False: printed.append(msg))
-    if use_pyproject:
+    
+    # Use lists instead of iterators for more predictable behavior
+    answers = [str(tmp_path), 'python', 'do stuff', 'memory']
+    confirms = [False, False, False, False, False, False, False, True]
+    
+    # Create more robust mock implementations with indices
+    answer_index = 0
+    confirm_index = 0
+    
+    def mock_ask(*args, **kwargs):
+        nonlocal answer_index
+        if answer_index < len(answers):
+            result = answers[answer_index]
+            answer_index += 1
+            return result
+        return ""  # Default answer if we run out
+    
+    def mock_confirm(*args, **kwargs):
+        nonlocal confirm_index
+        if confirm_index < len(confirms):
+            result = confirms[confirm_index]
+            confirm_index += 1
+            return result
+        return False  # Default confirmation if we run out
+    
+    # Apply the mocks
+    
+    original = module_name
+    try:
+        monkeypatch.setattr(target_module, mock_function)
+        # Test code here
+    finally:
+        # Restore original if needed for cleanup
+        pass
+
+        monkeypatch.setattr('devsynth.interface.cli.Confirm.ask', mock_confirm)
+    
+        # Capture printed messages
+        printed = []
+        monkeypatch.setattr('rich.console.Console.print', 
+                       lambda self, msg, *, highlight=False: printed.append(msg))
+    
+        # Create pyproject.toml if requested
+        if use_pyproject:
         (tmp_path / 'pyproject.toml').write_text('')
-    bridge = CLIUXBridge()
-    init_cmd(bridge=bridge)
-    return printed
+    
+        # Ensure the .devsynth directory exists
+        devsynth_dir = tmp_path / '.devsynth'
+        devsynth_dir.mkdir(exist_ok=True)
+    
+        # Run the command
+        bridge = CLIUXBridge()
+        init_cmd(bridge=bridge)
+    
+        return printed
 
 
 def _load_config(path: Path):
@@ -31,10 +72,11 @@ def _load_config(path: Path):
     return UnifiedConfigLoader.load(root).config.as_dict()
 
 
+@pytest.mark.medium
 def test_init_cmd_creates_config_succeeds(tmp_path, monkeypatch):
     """Test that init cmd creates config succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     printed = _run_init(tmp_path, monkeypatch)
     cfg_file = tmp_path / '.devsynth' / 'project.yaml'
     if not cfg_file.exists():
@@ -50,15 +92,19 @@ ReqID: N/A"""
     assert any('Initialization complete' in msg for msg in printed)
 
 
+
+@pytest.mark.medium
 def test_init_cmd_idempotent_succeeds(tmp_path, monkeypatch):
     """Test that init cmd idempotent succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     _run_init(tmp_path, monkeypatch)
     printed = _run_init(tmp_path, monkeypatch)
     assert any('Project already initialized' in msg for msg in printed)
 
 
+
+@pytest.mark.medium
 def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
     """--wizard flag should run the SetupWizard."""
 
@@ -68,10 +114,11 @@ def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
         wiz.return_value.run.assert_called_once()
 
 
+@pytest.mark.medium
 def test_cli_help_lists_renamed_commands_succeeds(capsys, monkeypatch):
     """Verify CLI help shows updated command names.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     from devsynth.adapters.cli import typer_adapter
     from devsynth.interface.ux_bridge import UXBridge
     import click

@@ -6,10 +6,19 @@ from rich.progress import Progress
 from devsynth.interface.cli import CLIUXBridge, CLIProgressIndicator
 
 
-def test_cliuxbridge_create_progress_succeeds():
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_function(clean_state):
+    # Test with clean state
     """Test the create_progress method of CLIUXBridge.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     bridge = CLIUXBridge()
     with patch('devsynth.interface.cli.CLIProgressIndicator'
         ) as mock_indicator:
@@ -18,12 +27,23 @@ ReqID: N/A"""
             'Test progress', 50)
 
 
-def test_cliprogressindicator_update_succeeds():
+
+
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliprogressindicator_update_succeeds(clean_state):
     """Test the update method of CLIProgressIndicator.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     console = MagicMock()
-    progress_mock = MagicMock()
+    progress_mock = MagicMock(spec=ClassName)
     with patch('rich.progress.Progress', return_value=progress_mock):
         indicator = CLIProgressIndicator(console, 'Main task', 100)
         indicator.update(advance=5)
@@ -34,12 +54,22 @@ ReqID: N/A"""
             description='Updated task')
 
 
-def test_cliprogressindicator_sanitize_output_succeeds():
+
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliprogressindicator_sanitize_output_succeeds(clean_state):
     """Test that CLIProgressIndicator sanitizes output.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     console = MagicMock()
-    progress_mock = MagicMock()
+    progress_mock = MagicMock(spec=ClassName)
     with patch('rich.progress.Progress', return_value=progress_mock):
         with patch('devsynth.interface.cli.sanitize_output', side_effect=lambda
             x: f'sanitized-{x}'):
@@ -63,12 +93,20 @@ ReqID: N/A"""
                 "  ↳ sanitized-<iframe src=javascript:alert('xss')>")
 
 
-def test_cliprogressindicator_multiple_subtasks_succeeds():
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliprogressindicator_multiple_subtasks_succeeds(clean_state):
     """Test handling of multiple subtasks in CLIProgressIndicator.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     console = MagicMock()
-    progress_mock = MagicMock()
+    progress_mock = MagicMock(spec=ClassName)
     with patch('rich.progress.Progress', return_value=progress_mock):
         indicator = CLIProgressIndicator(console, 'Main task', 100)
         progress_mock.add_task.side_effect = ['subtask1', 'subtask2',
@@ -103,10 +141,20 @@ ReqID: N/A"""
             completed=True)
 
 
-def test_cliuxbridge_display_result_heading_levels_succeeds():
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliuxbridge_display_result_heading_levels_succeeds(clean_state):
     """Test handling of different heading levels in display_result.
 
-ReqID: N/A"""
+
+    ReqID: N/A"""
     bridge = CLIUXBridge()
     with patch('rich.console.Console.print') as out:
         bridge.display_result('# Level 1 Heading')
@@ -123,10 +171,19 @@ ReqID: N/A"""
         out.assert_called_with('Level 6 Heading', style='subheading')
 
 
-def test_cliuxbridge_display_result_smart_styling_succeeds():
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliuxbridge_display_result_smart_styling_succeeds(clean_state):
     """Test smart styling based on message content in display_result.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     bridge = CLIUXBridge()
     with patch('rich.console.Console.print') as out:
         bridge.display_result('ERROR: Something went wrong')
@@ -145,10 +202,19 @@ ReqID: N/A"""
         out.assert_called_with('This is a regular message', style=None)
 
 
-def test_cliuxbridge_display_result_rich_markup_succeeds():
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliuxbridge_display_result_rich_markup_succeeds(clean_state):
     """Test processing of Rich markup in display_result.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     bridge = CLIUXBridge()
     with patch('rich.console.Console.print') as out:
         bridge.display_result(
@@ -162,10 +228,20 @@ ReqID: N/A"""
             'This is [bold blue]highlighted[/bold blue] text', highlight=True)
 
 
-def test_cliuxbridge_display_result_highlight_succeeds():
+
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_cliuxbridge_display_result_highlight_succeeds(clean_state):
     """Test styling based on the highlight flag in display_result.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     bridge = CLIUXBridge()
     with patch('rich.console.Console.print') as out:
         with patch('rich.panel.Panel') as panel_mock:

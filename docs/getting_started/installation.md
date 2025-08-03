@@ -11,8 +11,15 @@ tags:
 - configuration
 
 title: DevSynth Installation Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Installation Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Installation Guide
+</div>
 
 # DevSynth Installation Guide
 
@@ -87,4 +94,4 @@ poetry install --all-extras --with dev,docs
 For more details, see the [Quick Start Guide](../getting_started/quick_start_guide.md).
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

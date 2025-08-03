@@ -1,3 +1,5 @@
+import pytest
+
 import unittest
 from uuid import uuid4
 
@@ -22,6 +24,7 @@ from devsynth.domain.models.requirement import (
 class TestRequirementInterfaces(unittest.TestCase):
     """Tests for concrete implementations of requirement interfaces."""
 
+    @pytest.mark.medium
     def test_inmemory_requirement_repository_crud(self) -> None:
         repo = InMemoryRequirementRepository()
         req = Requirement(title="test")
@@ -31,6 +34,7 @@ class TestRequirementInterfaces(unittest.TestCase):
         self.assertTrue(repo.delete_requirement(req.id))
         self.assertIsNone(repo.get_requirement(req.id))
 
+    @pytest.mark.medium
     def test_inmemory_change_repository(self) -> None:
         repo = InMemoryChangeRepository()
         change = RequirementChange(requirement_id=uuid4())
@@ -42,6 +46,7 @@ class TestRequirementInterfaces(unittest.TestCase):
         self.assertTrue(repo.delete_change(change.id))
         self.assertIsNone(repo.get_change(change.id))
 
+    @pytest.mark.medium
     def test_inmemory_impact_assessment_repository(self) -> None:
         repo = InMemoryImpactAssessmentRepository()
         change_id = uuid4()
@@ -50,6 +55,7 @@ class TestRequirementInterfaces(unittest.TestCase):
         self.assertEqual(repo.get_impact_assessment(assessment.id), assessment)
         self.assertEqual(repo.get_impact_assessment_for_change(change_id), assessment)
 
+    @pytest.mark.medium
     def test_inmemory_requirement_repository_filters(self) -> None:
         repo = InMemoryRequirementRepository()
         req1 = Requirement(title="r1", status=RequirementStatus.PROPOSED, type=RequirementType.FUNCTIONAL)

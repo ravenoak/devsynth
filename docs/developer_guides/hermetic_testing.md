@@ -12,8 +12,15 @@ tags:
 - developer-guide
 
 title: Hermetic Testing Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Hermetic Testing Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Hermetic Testing Guide
+</div>
 
 # Hermetic Testing Guide
 
@@ -311,4 +318,4 @@ When adding new tests:
 By following these guidelines, we ensure that DevSynth's test suite remains reliable, fast, and maintainable.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

@@ -36,13 +36,14 @@ ReqID: N/A"""
         assert self.team.agents[1] == self.agent2
         assert self.team.agents[2] == self.agent3
 
+    @pytest.mark.medium
     def test_register_dialectical_hook_succeeds(self):
         """Test registering a dialectical hook.
 
 ReqID: N/A"""
         hook_called = False
 
-        def test_hook_succeeds(thesis, antitheses):
+        def test_hook_succeeds(self, thesis, antitheses):
             """Test that hook succeeds.
 
 ReqID: N/A"""
@@ -60,6 +61,7 @@ ReqID: N/A"""
         assert hook_called
         assert result == {'synthesis': 'test synthesis'}
 
+    @pytest.mark.medium
     def test_send_message_succeeds(self):
         """Test sending a message between agents.
 
@@ -82,6 +84,7 @@ ReqID: N/A"""
         assert 'timestamp' in message
         assert 'id' in message
 
+    @pytest.mark.medium
     def test_broadcast_message_succeeds(self):
         """Test broadcasting a message to all agents.
 
@@ -104,6 +107,7 @@ ReqID: N/A"""
         assert 'timestamp' in message
         assert 'id' in message
 
+    @pytest.mark.medium
     def test_get_messages_succeeds(self):
         """Test getting messages with filters.
 
@@ -127,6 +131,7 @@ ReqID: N/A"""
         assert type1_messages[0]['type'] == 'type1'
         assert type1_messages[1]['type'] == 'type1'
 
+    @pytest.mark.medium
     def test_conduct_peer_review_succeeds(self):
         """Test conducting a peer review.
 

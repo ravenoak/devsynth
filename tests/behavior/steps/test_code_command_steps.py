@@ -8,10 +8,12 @@ from pytest_bdd import given
 
 from devsynth.application.cli import cli_commands
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     return True
 
+@pytest.mark.medium
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
@@ -19,6 +21,7 @@ def valid_devsynth_project(tmp_project_dir):
 scenarios("../features/general/code_command.feature")
 
 
+@pytest.mark.medium
 @when('I run the command "devsynth code"')
 def run_code_command(monkeypatch, command_context, tmp_project_dir):
     """Execute the code command with a mocked environment."""
@@ -39,16 +42,19 @@ def run_code_command(monkeypatch, command_context, tmp_project_dir):
     command_context["output"] = captured.getvalue()
 
 
+@pytest.mark.medium
 @then("the code command should be executed")
 def code_executed(command_context):
     assert "Code generated" in command_context["output"]
 
 
+@pytest.mark.medium
 @then("the workflow should execute successfully")
 def workflow_success(command_context):
     assert "Code generated" in command_context["output"]
 
 
+@pytest.mark.medium
 @then("the system should display a success message")
 def success_message(command_context):
     assert "generated" in command_context["output"].lower()

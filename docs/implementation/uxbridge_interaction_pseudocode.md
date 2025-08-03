@@ -10,8 +10,15 @@ tags:
 - uxbridge
 
 title: UXBridge Interaction Flow
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; UXBridge Interaction Flow
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; UXBridge Interaction Flow
+</div>
 
 # UXBridge Interaction Flow
 
@@ -50,4 +57,4 @@ The `UXBridge` abstraction is still conceptual. A concrete interface layer and
 end-to-end tests have not yet been created, and WebUI support is incomplete.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

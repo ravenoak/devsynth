@@ -12,8 +12,15 @@ tags:
 - integration
 - best-practices
 title: TDD/BDD-EDRR Integration Training Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; TDD/BDD-EDRR Integration Training Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; TDD/BDD-EDRR Integration Training Guide
+</div>
 
 # TDD/BDD-EDRR Integration Training Guide
 
@@ -418,4 +425,4 @@ For personalized guidance, use the DevSynth learning path generator to create a 
 - [Cucumber Documentation](https://cucumber.io/docs/)
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

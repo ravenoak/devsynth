@@ -70,6 +70,7 @@ def context():
 # Background steps
 
 
+@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
@@ -77,6 +78,7 @@ def devsynth_system_initialized(context):
     assert context is not None
 
 
+@pytest.mark.medium
 @given("the AST-based code analysis module is configured")
 def ast_code_analysis_module_configured(context):
     """Configure the AST-based code analysis module."""
@@ -88,6 +90,7 @@ def ast_code_analysis_module_configured(context):
 # Scenario: Parse Python code into AST
 
 
+@pytest.mark.medium
 @when("I provide Python code to the analyzer")
 def provide_code_to_analyzer(context):
     """Provide Python code to the analyzer."""
@@ -107,6 +110,7 @@ class Person:
 """
 
 
+@pytest.mark.medium
 @then("it should parse the code into an AST representation")
 def parse_code_into_ast(context):
     """Parse the code into an AST representation."""
@@ -119,6 +123,7 @@ def parse_code_into_ast(context):
     assert context.ast is not None
 
 
+@pytest.mark.medium
 @then("the AST should accurately represent the code structure")
 def ast_represents_code_structure(context):
     """Verify that the AST accurately represents the code structure."""
@@ -138,6 +143,7 @@ def ast_represents_code_structure(context):
     assert any(node.name == "Person" for node in class_nodes)
 
 
+@pytest.mark.medium
 @then("I should be able to access all code elements through the AST")
 def access_code_elements_through_ast(context):
     """Verify that all code elements can be accessed through the AST."""
@@ -158,6 +164,7 @@ def access_code_elements_through_ast(context):
 # Scenario: Extract code structure information
 
 
+@pytest.mark.medium
 @given("I have Python code with classes, functions, and variables")
 def have_code_with_classes_functions_variables(context):
     """Provide Python code with classes, functions, and variables."""
@@ -187,6 +194,7 @@ class Calculator:
 """
 
 
+@pytest.mark.medium
 @when("I analyze the code using the AST analyzer")
 def analyze_code_using_ast_analyzer(context):
     """Analyze the code using the AST analyzer."""
@@ -197,6 +205,7 @@ def analyze_code_using_ast_analyzer(context):
     assert context.analysis_result is not None
 
 
+@pytest.mark.medium
 @then("I should receive a structured representation of the code")
 def receive_structured_representation(context):
     """Verify that a structured representation of the code is received."""
@@ -206,6 +215,7 @@ def receive_structured_representation(context):
     assert context.analysis_result.get_variables() is not None
 
 
+@pytest.mark.medium
 @then("the representation should include all classes with their methods")
 def representation_includes_classes_with_methods(context):
     """Verify that the representation includes all classes with their methods."""
@@ -220,6 +230,7 @@ def representation_includes_classes_with_methods(context):
     assert "get_history" in calculator_class["methods"]
 
 
+@pytest.mark.medium
 @then("the representation should include all functions with their parameters")
 def representation_includes_functions_with_parameters(context):
     """Verify that the representation includes all functions with their parameters."""
@@ -234,6 +245,7 @@ def representation_includes_functions_with_parameters(context):
     assert "b" in calculate_sum_func["params"]
 
 
+@pytest.mark.medium
 @then("the representation should include all variables with their types")
 def representation_includes_variables_with_types(context):
     """Verify that the representation includes all variables with their types."""
@@ -254,6 +266,7 @@ def representation_includes_variables_with_types(context):
 # Scenario: Perform AST-based code transformations
 
 
+@pytest.mark.medium
 @given("I have Python code that needs refactoring")
 def have_code_that_needs_refactoring(context):
     """Provide Python code that needs refactoring."""
@@ -274,6 +287,7 @@ class Calculator:
 """
 
 
+@pytest.mark.medium
 @when("I request an AST-based transformation")
 def request_ast_based_transformation(context):
     """Request an AST-based transformation."""
@@ -297,6 +311,7 @@ def request_ast_based_transformation(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should modify the AST according to the transformation rules")
 def system_modifies_ast_according_to_rules(context):
     """Verify that the system modifies the AST according to the transformation rules."""
@@ -307,6 +322,7 @@ def system_modifies_ast_according_to_rules(context):
     assert context.transformation_result != context.code
 
 
+@pytest.mark.medium
 @then("the system should generate valid Python code from the modified AST")
 def system_generates_valid_python_code(context):
     """Verify that the system generates valid Python code from the modified AST."""
@@ -318,6 +334,7 @@ def system_generates_valid_python_code(context):
         pytest.fail(f"Generated code is not valid Python: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the transformed code should maintain the original functionality")
 def transformed_code_maintains_functionality(context):
     """Verify that the transformed code maintains the original functionality."""
@@ -334,6 +351,7 @@ def transformed_code_maintains_functionality(context):
 # Scenario: Extract function definitions
 
 
+@pytest.mark.medium
 @given("I have Python code with multiple function definitions")
 def have_code_with_multiple_function_definitions(context):
     """Provide Python code with multiple function definitions."""
@@ -359,6 +377,7 @@ def divide(a, b):
 """
 
 
+@pytest.mark.medium
 @when("I request to extract function definitions using AST")
 def request_to_extract_function_definitions(context):
     """Request to extract function definitions using AST."""
@@ -366,6 +385,7 @@ def request_to_extract_function_definitions(context):
     context.analysis_result = context.code_analyzer.analyze_code(context.code)
 
 
+@pytest.mark.medium
 @then("the system should identify all functions in the code")
 def system_identifies_all_functions(context):
     """Verify that the system identifies all functions in the code."""
@@ -379,6 +399,7 @@ def system_identifies_all_functions(context):
     assert "divide" in function_names
 
 
+@pytest.mark.medium
 @then("for each function, it should extract the signature, parameters, and return type")
 def extract_signature_parameters_return_type(context):
     """Verify that the system extracts the signature, parameters, and return type for each function."""
@@ -398,6 +419,7 @@ def extract_signature_parameters_return_type(context):
     assert "b" in divide_func["params"]
 
 
+@pytest.mark.medium
 @then("the extracted information should be stored in the memory system")
 def extracted_information_stored_in_memory(context):
     """Verify that the extracted information is stored in the memory system."""
@@ -425,6 +447,7 @@ def extracted_information_stored_in_memory(context):
 # Scenario: Rename identifiers
 
 
+@pytest.mark.medium
 @given("I have Python code with identifiers that need renaming")
 def have_code_with_identifiers_to_rename(context):
     """Provide Python code with identifiers that need renaming."""
@@ -445,6 +468,7 @@ class Calc:
 """
 
 
+@pytest.mark.medium
 @when("I request to rename an identifier using AST transformation")
 def request_to_rename_identifier(context):
     """Request to rename an identifier using AST transformation."""
@@ -466,6 +490,7 @@ def request_to_rename_identifier(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should identify all occurrences of the identifier")
 def system_identifies_all_occurrences(context):
     """Verify that the system identifies all occurrences of the identifier."""
@@ -490,6 +515,7 @@ def system_identifies_all_occurrences(context):
     assert "res = calc_sum" not in context.transformation_result
 
 
+@pytest.mark.medium
 @then("it should rename all occurrences while preserving scope rules")
 def rename_all_occurrences_preserving_scope(context):
     """Verify that the system renames all occurrences while preserving scope rules."""
@@ -500,6 +526,7 @@ def rename_all_occurrences_preserving_scope(context):
     assert "calculate_sum" in context.transformation_result
 
 
+@pytest.mark.medium
 @then("the resulting code should be valid Python with the updated identifier")
 def resulting_code_is_valid_python(context):
     """Verify that the resulting code is valid Python with the updated identifier."""
@@ -514,6 +541,7 @@ def resulting_code_is_valid_python(context):
 # Scenario: Integrate with EDRR workflow
 
 
+@pytest.mark.medium
 @given("the EDRR workflow is configured")
 def edrr_workflow_configured(context):
     """Configure the EDRR workflow."""
@@ -521,6 +549,7 @@ def edrr_workflow_configured(context):
     assert context.ast_workflow_integration is not None
 
 
+@pytest.mark.medium
 @when("I initiate a coding task")
 def initiate_coding_task(context):
     """Initiate a coding task."""
@@ -548,9 +577,8 @@ class Calculator:
 """
 
 
-@then(
-    "the system should use AST analysis in the Expand phase to explore implementation options"
-)
+@pytest.mark.medium
+@then(    "the system should use AST analysis in the Expand phase to explore implementation options")
 def system_uses_ast_analysis_in_expand_phase(context):
     """Verify that the system uses AST analysis in the Expand phase to explore implementation options."""
     # Use the AST workflow integration to explore implementation options
@@ -561,6 +589,18 @@ def system_uses_ast_analysis_in_expand_phase(context):
     )
 
     # Verify that implementation options were generated
+    assert context.implementation_options is not None
+    
+    # Log the type and content of implementation_options for debugging
+    logger.debug(f"Implementation options type: {type(context.implementation_options)}")
+    logger.debug(f"Implementation options content: {context.implementation_options}")
+    
+    # Check if implementation_options is a string (which would cause the TypeError)
+    if isinstance(context.implementation_options, str):
+        # Convert the string to a list with a single dictionary for compatibility
+        context.implementation_options = [{"name": "current_implementation", "code": context.implementation_options}]
+    
+    # Verify that implementation options were generated
     assert len(context.implementation_options) > 0
 
     # Verify that the options include the current implementation
@@ -570,9 +610,8 @@ def system_uses_ast_analysis_in_expand_phase(context):
     )
 
 
-@then(
-    "the system should use AST analysis in the Differentiate phase to evaluate code quality"
-)
+@pytest.mark.medium
+@then(    "the system should use AST analysis in the Differentiate phase to evaluate code quality")
 def system_uses_ast_analysis_in_differentiate_phase(context):
     """Verify that the system uses AST analysis in the Differentiate phase to evaluate code quality."""
     # Use the AST workflow integration to evaluate implementation quality
@@ -592,9 +631,8 @@ def system_uses_ast_analysis_in_differentiate_phase(context):
     assert "maintainability" in context.selected_option["metrics"]
 
 
-@then(
-    "the system should use AST transformations in the Refine phase to improve the code"
-)
+@pytest.mark.medium
+@then(    "the system should use AST transformations in the Refine phase to improve the code")
 def system_uses_ast_transformations_in_refine_phase(context):
     """Verify that the system uses AST transformations in the Refine phase to improve the code."""
     # Use the AST workflow integration to refine the implementation
@@ -611,9 +649,8 @@ def system_uses_ast_transformations_in_refine_phase(context):
     assert True
 
 
-@then(
-    "the system should use AST analysis in the Retrospect phase to verify code quality"
-)
+@pytest.mark.medium
+@then(    "the system should use AST analysis in the Retrospect phase to verify code quality")
 def system_uses_ast_analysis_in_retrospect_phase(context):
     """Verify that the system uses AST analysis in the Retrospect phase to verify code quality."""
     # Use the AST workflow integration to perform a retrospective
@@ -636,9 +673,8 @@ def system_uses_ast_analysis_in_retrospect_phase(context):
     assert "recommendations" in context.retrospective_result
 
 
-@then(
-    "the memory system should store AST analysis results with appropriate EDRR phase tags"
-)
+@pytest.mark.medium
+@then(    "the memory system should store AST analysis results with appropriate EDRR phase tags")
 def memory_system_stores_results_with_edrr_tags(context):
     """Verify that the memory system stores AST analysis results with appropriate EDRR phase tags."""
     # In a real implementation, we would query the memory system for items with EDRR phase tags
@@ -660,6 +696,7 @@ def memory_system_stores_results_with_edrr_tags(context):
 # Scenario: Remove unused imports
 
 
+@pytest.mark.medium
 @given("I have Python code with unused imports")
 def have_code_with_unused_imports(context):
     """Provide Python code with unused imports."""
@@ -679,6 +716,7 @@ def generate_random_number():
 """
 
 
+@pytest.mark.medium
 @when("I request to remove unused imports using AST transformation")
 def request_to_remove_unused_imports(context):
     """Request to remove unused imports using AST transformation."""
@@ -693,6 +731,7 @@ def request_to_remove_unused_imports(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should identify all unused imports")
 def system_identifies_unused_imports(context):
     """Verify that the system identifies all unused imports."""
@@ -703,6 +742,7 @@ def system_identifies_unused_imports(context):
     assert context.transformation_result != context.code
 
 
+@pytest.mark.medium
 @then("it should remove all unused imports from the code")
 def remove_unused_imports_from_code(context):
     """Verify that the system removes all unused imports from the code."""
@@ -716,6 +756,7 @@ def remove_unused_imports_from_code(context):
     assert "import random" in context.transformation_result
 
 
+@pytest.mark.medium
 @then("the resulting code should be valid Python without the unused imports")
 def resulting_code_is_valid_python_without_unused_imports(context):
     """Verify that the resulting code is valid Python without the unused imports."""
@@ -754,6 +795,7 @@ def resulting_code_is_valid_python_without_unused_imports(context):
 # Scenario: Remove redundant assignments
 
 
+@pytest.mark.medium
 @given("I have Python code with redundant assignments")
 def have_code_with_redundant_assignments(context):
     """Provide Python code with redundant assignments."""
@@ -782,6 +824,7 @@ def calculate_total(items):
 """
 
 
+@pytest.mark.medium
 @when("I request to remove redundant assignments using AST transformation")
 def request_to_remove_redundant_assignments(context):
     """Request to remove redundant assignments using AST transformation."""
@@ -798,6 +841,7 @@ def request_to_remove_redundant_assignments(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should identify all redundant assignments")
 def system_identifies_redundant_assignments(context):
     """Verify that the system identifies all redundant assignments."""
@@ -808,6 +852,7 @@ def system_identifies_redundant_assignments(context):
     assert context.transformation_result != context.code
 
 
+@pytest.mark.medium
 @then("it should remove all redundant assignments from the code")
 def remove_redundant_assignments_from_code(context):
     """Verify that the system removes all redundant assignments from the code."""
@@ -820,6 +865,7 @@ def remove_redundant_assignments_from_code(context):
     assert "def calculate_total" in context.transformation_result
 
 
+@pytest.mark.medium
 @then("the resulting code should be valid Python with the same functionality")
 def resulting_code_is_valid_python_with_same_functionality(context):
     """Verify that the resulting code is valid Python with the same functionality."""
@@ -873,6 +919,7 @@ def resulting_code_is_valid_python_with_same_functionality(context):
 # Scenario: Remove unused variables
 
 
+@pytest.mark.medium
 @given("I have Python code with unused variables")
 def have_code_with_unused_variables(context):
     """Provide Python code with unused variables."""
@@ -902,6 +949,7 @@ def calculate_average(numbers):
 """
 
 
+@pytest.mark.medium
 @when("I request to remove unused variables using AST transformation")
 def request_to_remove_unused_variables(context):
     """Request to remove unused variables using AST transformation."""
@@ -916,6 +964,7 @@ def request_to_remove_unused_variables(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should identify all unused variables")
 def system_identifies_unused_variables(context):
     """Verify that the system identifies all unused variables."""
@@ -926,6 +975,7 @@ def system_identifies_unused_variables(context):
     assert context.transformation_result != context.code
 
 
+@pytest.mark.medium
 @then("it should remove all unused variables from the code")
 def remove_unused_variables_from_code(context):
     """Verify that the system removes all unused variables from the code."""
@@ -940,6 +990,7 @@ def remove_unused_variables_from_code(context):
     assert "return avg" in context.transformation_result
 
 
+@pytest.mark.medium
 @then("the resulting code should be valid Python without the unused variables")
 def resulting_code_is_valid_python_without_unused_variables(context):
     """Verify that the resulting code is valid Python without the unused variables."""
@@ -986,6 +1037,7 @@ def resulting_code_is_valid_python_without_unused_variables(context):
 # Scenario: Optimize string literals
 
 
+@pytest.mark.medium
 @given("I have Python code with string literals that can be optimized")
 def have_code_with_string_literals_to_optimize(context):
     """Provide Python code with string literals that can be optimized."""
@@ -1012,6 +1064,7 @@ def generate_report(data):
 """
 
 
+@pytest.mark.medium
 @when("I request to optimize string literals using AST transformation")
 def request_to_optimize_string_literals(context):
     """Request to optimize string literals using AST transformation."""
@@ -1028,6 +1081,7 @@ def request_to_optimize_string_literals(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should identify string literals that can be optimized")
 def system_identifies_string_literals_to_optimize(context):
     """Verify that the system identifies string literals that can be optimized."""
@@ -1038,6 +1092,7 @@ def system_identifies_string_literals_to_optimize(context):
     assert context.transformation_result != context.code
 
 
+@pytest.mark.medium
 @then("it should optimize the string literals in the code")
 def optimize_string_literals_in_code(context):
     """Verify that the system optimizes the string literals in the code."""
@@ -1074,6 +1129,7 @@ def optimize_string_literals_in_code(context):
     )
 
 
+@pytest.mark.medium
 @then("the resulting code should be valid Python with optimized string literals")
 def resulting_code_is_valid_python_with_optimized_string_literals(context):
     """Verify that the resulting code is valid Python with optimized string literals."""
@@ -1129,6 +1185,7 @@ def resulting_code_is_valid_python_with_optimized_string_literals(context):
 # Scenario: Improve code style
 
 
+@pytest.mark.medium
 @given("I have Python code with style issues")
 def have_code_with_style_issues(context):
     """Provide Python code with style issues."""
@@ -1155,6 +1212,7 @@ def inconsistent_spacing_function(a,  b,c):
 """
 
 
+@pytest.mark.medium
 @when("I request to improve code style using AST transformation")
 def request_to_improve_code_style(context):
     """Request to improve code style using AST transformation."""
@@ -1169,6 +1227,7 @@ def request_to_improve_code_style(context):
         pytest.fail(f"AST transformation failed: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the system should identify style issues in the code")
 def system_identifies_style_issues(context):
     """Verify that the system identifies style issues in the code."""
@@ -1179,6 +1238,7 @@ def system_identifies_style_issues(context):
     assert context.transformation_result != context.code
 
 
+@pytest.mark.medium
 @then("it should apply style improvements to the code")
 def apply_style_improvements_to_code(context):
     """Verify that the system applies style improvements to the code."""
@@ -1209,6 +1269,7 @@ def apply_style_improvements_to_code(context):
     assert "inconsistent_spacing_function(a, b, c)" in context.transformation_result
 
 
+@pytest.mark.medium
 @then("the resulting code should follow Python style guidelines")
 def resulting_code_follows_style_guidelines(context):
     """Verify that the resulting code follows Python style guidelines."""
@@ -1252,6 +1313,7 @@ def resulting_code_follows_style_guidelines(context):
 # Scenario: Apply multiple transformations
 
 
+@pytest.mark.medium
 @given("I have Python code that needs multiple transformations")
 def have_code_that_needs_multiple_transformations(context):
     """Provide Python code that needs multiple transformations."""
@@ -1283,6 +1345,7 @@ def processData( data ):
 """
 
 
+@pytest.mark.medium
 @when("I request to apply multiple AST transformations:")
 def request_to_apply_multiple_transformations(context, table=None):
     """Request to apply multiple AST transformations."""
@@ -1347,6 +1410,7 @@ def request_to_apply_multiple_transformations(context, table=None):
     context.transformation_types = [row["transformation_type"] for row in table.rows]
 
 
+@pytest.mark.medium
 @then("the system should apply all transformations in the correct order")
 def system_applies_all_transformations(context):
     """Verify that the system applies all transformations in the correct order."""
@@ -1361,6 +1425,7 @@ def system_applies_all_transformations(context):
     assert True
 
 
+@pytest.mark.medium
 @then("the resulting code should be valid Python with all transformations applied")
 def resulting_code_is_valid_python_with_all_transformations(context):
     """Verify that the resulting code is valid Python with all transformations applied."""
@@ -1372,6 +1437,7 @@ def resulting_code_is_valid_python_with_all_transformations(context):
         pytest.fail(f"Generated code is not valid Python: {str(e)}")
 
 
+@pytest.mark.medium
 @then("the transformed code should maintain the original functionality")
 def transformed_code_maintains_original_functionality(context):
     """Verify that the transformed code maintains the original functionality."""

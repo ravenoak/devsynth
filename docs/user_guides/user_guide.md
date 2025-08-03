@@ -11,8 +11,15 @@ tags:
 - configuration
 
 title: DevSynth User Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth User Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth User Guide
+</div>
 
 # DevSynth User Guide
 
@@ -657,4 +664,4 @@ This user guide provides comprehensive information about using DevSynth effectiv
 For more detailed information about the architecture and internal workings of DevSynth, refer to the [Architecture Documentation](architecture_documentation.md).
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

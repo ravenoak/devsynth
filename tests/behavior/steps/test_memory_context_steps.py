@@ -111,6 +111,7 @@ def context():
 
 # Background steps
 
+@pytest.mark.medium
 @given('the DevSynth system is initialized')
 def devsynth_initialized(context):
     """Step: the DevSynth system is initialized."""
@@ -118,6 +119,7 @@ def devsynth_initialized(context):
     assert context.context_manager is not None
 
 
+@pytest.mark.medium
 @given('a memory store is configured')
 def memory_store_configured(context):
     """Step: a memory store is configured."""
@@ -125,6 +127,7 @@ def memory_store_configured(context):
     assert context.memory_store is not None
 
 
+@pytest.mark.medium
 @given('a context manager is configured')
 def context_manager_configured(context):
     """Step: a context manager is configured."""
@@ -134,6 +137,7 @@ def context_manager_configured(context):
 
 # Scenario: Store and retrieve memory item
 
+@pytest.mark.medium
 @when(parsers.parse('I store a memory item with content "{content}" and type "{memory_type}"'))
 def store_memory_item(context, content, memory_type):
     """Step: I store a memory item with content and type."""
@@ -144,6 +148,7 @@ def store_memory_item(context, content, memory_type):
     )
 
 
+@pytest.mark.medium
 @then('I should receive a memory item ID')
 def receive_memory_item_id(context):
     """Step: I should receive a memory item ID."""
@@ -152,6 +157,7 @@ def receive_memory_item_id(context):
     assert context.memory_item_id.startswith("item_")
 
 
+@pytest.mark.medium
 @then('I should be able to retrieve the memory item using its ID')
 def retrieve_memory_item(context):
     """Step: I should be able to retrieve the memory item using its ID."""
@@ -159,6 +165,7 @@ def retrieve_memory_item(context):
     assert context.retrieved_item is not None
 
 
+@pytest.mark.medium
 @then(parsers.parse('the retrieved memory item should have content "{content}" and type "{memory_type}"'))
 def check_retrieved_item_content_and_type(context, content, memory_type):
     """Step: the retrieved memory item should have content and type."""
@@ -168,6 +175,7 @@ def check_retrieved_item_content_and_type(context, content, memory_type):
 
 # Scenario: Store memory item with metadata
 
+@pytest.mark.medium
 @when(parsers.parse('I store a memory item with content "{content}", type "{memory_type}", and metadata:'))
 def store_memory_item_with_metadata(context, content, memory_type, table):
     """Step: I store a memory item with content, type, and metadata."""
@@ -180,6 +188,7 @@ def store_memory_item_with_metadata(context, content, memory_type, table):
     )
 
 
+@pytest.mark.medium
 @then('the retrieved memory item should have the specified metadata')
 def check_retrieved_item_metadata(context, table):
     """Step: the retrieved memory item should have the specified metadata."""
@@ -191,6 +200,7 @@ def check_retrieved_item_metadata(context, table):
 
 # Scenario: Search for memory items
 
+@pytest.mark.medium
 @given('I have stored the following memory items:')
 def store_multiple_memory_items(context, table):
     """Step: I have stored the following memory items."""
@@ -204,6 +214,7 @@ def store_multiple_memory_items(context, table):
         )
 
 
+@pytest.mark.medium
 @when('I search for memory items with query:')
 def search_memory_items(context, table):
     """Step: I search for memory items with query."""
@@ -213,6 +224,7 @@ def search_memory_items(context, table):
     context.search_results = context.memory_port.search_memory(query)
 
 
+@pytest.mark.medium
 @then('I should receive a list of matching memory items')
 def receive_search_results(context):
     """Step: I should receive a list of matching memory items."""
@@ -220,12 +232,14 @@ def receive_search_results(context):
     assert isinstance(context.search_results, list)
 
 
+@pytest.mark.medium
 @then(parsers.parse('the list should contain {count:d} item'))
 def check_search_results_count(context, count):
     """Step: the list should contain a specific number of items."""
     assert len(context.search_results) == count
 
 
+@pytest.mark.medium
 @then(parsers.parse('the first item should have content "{content}"'))
 def check_first_search_result_content(context, content):
     """Step: the first item should have specific content."""
@@ -234,23 +248,27 @@ def check_first_search_result_content(context, content):
 
 # Scenario: Add and retrieve context values
 
+@pytest.mark.medium
 @given(parsers.parse('I have added a value "{value}" to the context with key "{key}"'))
 def given_add_value_to_context(context, value, key):
     """Step: I have added a value to the context with a key."""
     context.memory_port.add_to_context(key, value)
 
+@pytest.mark.medium
 @when(parsers.parse('I add a value "{value}" to the context with key "{key}"'))
 def add_value_to_context(context, value, key):
     """Step: I add a value to the context with a key."""
     context.memory_port.add_to_context(key, value)
 
 
+@pytest.mark.medium
 @then(parsers.parse('I should be able to retrieve the value using the key "{key}"'))
 def retrieve_value_from_context(context, key):
     """Step: I should be able to retrieve the value using a key."""
     context.context_value = context.memory_port.get_from_context(key)
     assert context.context_value is not None
 
+@pytest.mark.medium
 @then(parsers.parse('I should still be able to retrieve the value using the key "{key}"'))
 def still_retrieve_value_from_context(context, key):
     """Step: I should still be able to retrieve the value using a key after operations."""
@@ -258,6 +276,7 @@ def still_retrieve_value_from_context(context, key):
     assert context.context_value is not None
 
 
+@pytest.mark.medium
 @then(parsers.parse('the retrieved value should be "{value}"'))
 def check_retrieved_context_value(context, value):
     """Step: the retrieved value should be a specific value."""
@@ -266,6 +285,7 @@ def check_retrieved_context_value(context, value):
 
 # Scenario: Get full context
 
+@pytest.mark.medium
 @given('I have added the following values to the context:')
 def add_multiple_values_to_context(context, table):
     """Step: I have added multiple values to the context."""
@@ -273,12 +293,14 @@ def add_multiple_values_to_context(context, table):
         context.memory_port.add_to_context(row['key'], row['value'])
 
 
+@pytest.mark.medium
 @when('I request the full context')
 def request_full_context(context):
     """Step: I request the full context."""
     context.full_context = context.memory_port.get_full_context()
 
 
+@pytest.mark.medium
 @then('I should receive a dictionary with all context values')
 def receive_full_context(context):
     """Step: I should receive a dictionary with all context values."""
@@ -286,6 +308,7 @@ def receive_full_context(context):
     assert isinstance(context.full_context, dict)
 
 
+@pytest.mark.medium
 @then(parsers.parse('the dictionary should contain the keys "{keys}"'))
 def check_full_context_keys(context, keys):
     """Step: the dictionary should contain specific keys."""
@@ -294,6 +317,7 @@ def check_full_context_keys(context, keys):
         assert key in context.full_context
 
 
+@pytest.mark.medium
 @then('the values should match what was added')
 def check_full_context_values(context, table):
     """Step: the values should match what was added."""
@@ -303,6 +327,7 @@ def check_full_context_values(context, table):
 
 # Scenario: Context persistence across operations
 
+@pytest.mark.medium
 @when('I perform multiple memory operations')
 def perform_multiple_memory_operations(context):
     """Step: I perform multiple memory operations."""

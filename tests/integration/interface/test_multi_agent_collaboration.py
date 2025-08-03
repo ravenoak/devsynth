@@ -3,10 +3,8 @@ from devsynth.interface.agentapi import APIBridge
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import sanitize_output
 from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.collaboration.collaborative_wsde_team import
-from typing import Union (
-    CollaborativeWSDETeam,
-)
+from devsynth.application.collaboration.collaborative_wsde_team import CollaborativeWSDETeam
+from typing import Union
 
 
 class DummyProgress:

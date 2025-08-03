@@ -8,8 +8,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; WebUI Onboarding Flow
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; WebUI Onboarding Flow
+</div>
 
 # WebUI Onboarding Flow
 
@@ -25,4 +32,4 @@ for advanced workflows. These options appear in the sidebar after launching
 
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

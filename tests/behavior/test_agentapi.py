@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 import importlib
 import sys
 from fastapi.testclient import TestClient
+import pytest
 
 
 def _setup(monkeypatch):
@@ -29,6 +30,7 @@ def _setup(monkeypatch):
     return cli_stub, agentapi
 
 
+@pytest.mark.medium
 def test_json_requests_succeeds(monkeypatch):
     """Test that json requests succeeds.
 

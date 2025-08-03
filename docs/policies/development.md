@@ -6,8 +6,15 @@ status: published
 tags:
 - policy
 title: Development Policy
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Development Policy
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Development Policy
+</div>
 
 # Development Policy
 

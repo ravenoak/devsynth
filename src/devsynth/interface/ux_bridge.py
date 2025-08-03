@@ -8,7 +8,7 @@ can reuse the same interaction patterns.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union, Dict, Any
 import html
 
 from devsynth.security import sanitize_input
@@ -69,8 +69,26 @@ class UXBridge(ABC):
         """Request confirmation from the user."""
 
     @abstractmethod
-    def display_result(self, message: str, *, highlight: bool = False) -> None:
-        """Display a message to the user."""
+    def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
+        """Display a message to the user.
+        
+        Args:
+            message: The message to display
+            highlight: Whether to highlight the message
+            message_type: Optional type of message (info, success, warning, error, etc.)
+        """
+        
+    def handle_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
+        """Handle an error with enhanced error messages.
+        
+        This method formats the error with actionable suggestions and documentation links,
+        and displays it to the user.
+        
+        Args:
+            error: The error to handle
+        """
+        # Default implementation just displays the error message
+        self.display_result(str(error), highlight=True)
 
     def create_progress(
         self, description: str, *, total: int = 100

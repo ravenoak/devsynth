@@ -1,5 +1,6 @@
 """Steps for the alignment metrics command feature."""
 
+import pytest
 from pytest_bdd import scenarios, given, then
 
 from .cli_commands_steps import (  # noqa: F401
@@ -13,9 +14,11 @@ from .test_analyze_commands_steps import check_error_message  # noqa: F401
 scenarios("../features/general/alignment_metrics_command.feature")
 
 
+@pytest.mark.medium
 @given("alignment metrics calculation fails")
 def metrics_fail(monkeypatch):
     """Force the alignment metrics command to raise an exception."""
+
     def _raise(*_args, **_kwargs):
         raise Exception("metrics failure")
 
@@ -27,6 +30,7 @@ def metrics_fail(monkeypatch):
     monkeypatch.setattr(mod, "calculate_alignment_coverage", _raise)
 
 
+@pytest.mark.medium
 @then("the system should display alignment metrics")
 def check_metrics_output(command_context):
     """Verify that alignment metrics were printed."""

@@ -1,3 +1,5 @@
+import pytest
+
 import toml
 import yaml
 from pathlib import Path
@@ -18,6 +20,7 @@ ReqID: N/A"""
     assert unified.config.version == ConfigModel.version
 
 
+@pytest.mark.medium
 def test_loads_from_yaml_succeeds(tmp_path: Path) ->None:
     """Test that loads from yaml succeeds.
 
@@ -32,6 +35,7 @@ ReqID: N/A"""
     assert unified.config.version == ConfigModel.version
 
 
+@pytest.mark.medium
 def test_save_round_trip_yaml_succeeds(tmp_path: Path) ->None:
     """Test that save round trip yaml succeeds.
 
@@ -48,6 +52,7 @@ ReqID: N/A"""
     assert data['language'] == 'python'
 
 
+@pytest.mark.medium
 def test_save_round_trip_pyproject_succeeds(tmp_path: Path) ->None:
     """Test that save round trip pyproject succeeds.
 

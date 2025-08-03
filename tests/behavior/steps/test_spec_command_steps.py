@@ -10,14 +10,17 @@ from devsynth.application.cli import cli_commands
 scenarios("../features/general/spec_command.feature")
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     return True
 
+@pytest.mark.medium
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_spec_command(command, monkeypatch, command_context, tmp_project_dir):
     """Execute the spec command with a mocked environment."""
@@ -40,21 +43,25 @@ def run_spec_command(command, monkeypatch, command_context, tmp_project_dir):
     command_context["requirements_file"] = req_file
 
 
+@pytest.mark.medium
 @then(parsers.parse('the spec command should process "{req_file}"'))
 def check_spec_processed(command_context, req_file):
     assert command_context["requirements_file"] == req_file
 
 
+@pytest.mark.medium
 @then("generate specifications based on the requirements")
 def check_generation(command_context):
     assert "Specifications generated" in command_context["output"]
 
 
+@pytest.mark.medium
 @then("the workflow should execute successfully")
 def workflow_success(command_context):
     assert "Specifications generated" in command_context["output"]
 
 
+@pytest.mark.medium
 @then("the system should display a success message")
 def success_message(command_context):
     assert "generated" in command_context["output"].lower()

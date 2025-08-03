@@ -8,8 +8,15 @@ tags:
 - developer-guide
 
 title: DevSynth Testing Strategy
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Strategy
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Strategy
+</div>
 
 # DevSynth Testing Strategy
 
@@ -452,4 +459,4 @@ When writing tests for DevSynth, follow these best practices:
 DevSynth's testing strategy combines unit tests, integration tests, and behavior tests to ensure the quality and reliability of the codebase. By following this strategy and the best practices outlined in this document, developers can contribute high-quality, well-tested code to the DevSynth project.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

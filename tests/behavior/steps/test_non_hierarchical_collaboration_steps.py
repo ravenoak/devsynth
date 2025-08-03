@@ -51,6 +51,7 @@ def create_mock_agent(name, expertise):
 
 
 # Background steps
+@pytest.mark.medium
 @given("a WSDE team with multiple agents")
 def wsde_team_with_multiple_agents(context):
     """Create a WSDE team with multiple agents."""
@@ -86,6 +87,7 @@ def wsde_team_with_multiple_agents(context):
     context.agents["devops_agent"] = devops_agent
 
 
+@pytest.mark.medium
 @given("each agent has different expertise areas")
 def agents_with_different_expertise(context):
     """Verify that each agent has different expertise areas."""
@@ -99,6 +101,7 @@ def agents_with_different_expertise(context):
                 assert exp1 != exp2, f"Agents {i} and {j} have identical expertise"
 
 
+@pytest.mark.medium
 @given("the team is configured for non-hierarchical collaboration")
 def team_configured_for_non_hierarchical_collaboration(context):
     """Configure the team for non-hierarchical collaboration."""
@@ -110,6 +113,7 @@ def team_configured_for_non_hierarchical_collaboration(context):
 
 
 # Scenario: Peer-based behavior in WSDE team
+@pytest.mark.medium
 @when("the team is assigned a task requiring multiple expertise areas")
 def team_assigned_multi_expertise_task(context):
     """Assign a task requiring multiple expertise areas to the team."""
@@ -130,6 +134,7 @@ def team_assigned_multi_expertise_task(context):
     context.current_task = task
 
 
+@pytest.mark.medium
 @then("all agents should contribute to the solution")
 def all_agents_contribute(context):
     """Verify that all agents contribute to the solution."""
@@ -148,6 +153,7 @@ def all_agents_contribute(context):
         assert context.contribution_metrics[agent_name]["contribution_score"] > 0
 
 
+@pytest.mark.medium
 @then("no single agent should dominate the decision-making process")
 def no_agent_dominates(context):
     """Verify that no single agent dominates the decision-making process."""
@@ -165,6 +171,7 @@ def no_agent_dominates(context):
     ), f"An agent has {max_contribution_percentage}% contribution, which is too dominant"
 
 
+@pytest.mark.medium
 @then("the contributions should be weighted based on relevant expertise")
 def contributions_weighted_by_expertise(context):
     """Verify that contributions are weighted based on relevant expertise."""
@@ -188,6 +195,7 @@ def contributions_weighted_by_expertise(context):
         ), f"Agent {agent_name} has expertise relevance {expertise_relevance} but contribution score {contribution_score}"
 
 
+@pytest.mark.medium
 @then("the final solution should incorporate insights from all agents")
 def solution_incorporates_all_insights(context):
     """Verify that the final solution incorporates insights from all agents."""
@@ -204,6 +212,7 @@ def solution_incorporates_all_insights(context):
 
 
 # Scenario: Role rotation based on task context
+@pytest.mark.medium
 @given("a sequence of tasks with different expertise requirements")
 def sequence_of_tasks_with_different_requirements(context):
     """Create a sequence of tasks with different expertise requirements."""
@@ -243,6 +252,7 @@ def sequence_of_tasks_with_different_requirements(context):
     context.tasks = tasks
 
 
+@pytest.mark.medium
 @when("the team processes these tasks in sequence")
 def team_processes_tasks_in_sequence(context):
     """Process the sequence of tasks with the team."""
@@ -259,6 +269,7 @@ def team_processes_tasks_in_sequence(context):
         context.solutions[task["id"]] = solution
 
 
+@pytest.mark.medium
 @then("the primus role should rotate among different agents")
 def primus_role_rotates(context):
     """Verify that the primus role rotates among different agents."""
@@ -272,6 +283,7 @@ def primus_role_rotates(context):
     ), f"Only {len(unique_primus_agents)} agents have been primus"
 
 
+@pytest.mark.medium
 @then("each rotation should be based on task-specific expertise")
 def rotation_based_on_task_expertise(context):
     """Verify that each rotation is based on task-specific expertise."""
@@ -290,6 +302,7 @@ def rotation_based_on_task_expertise(context):
         ), f"Primus {primus_name} does not have the required expertise {task['primary_expertise']} for task {task['id']}"
 
 
+@pytest.mark.medium
 @then("the team should maintain a history of role assignments")
 def team_maintains_role_history(context):
     """Verify that the team maintains a history of role assignments."""
@@ -304,6 +317,7 @@ def team_maintains_role_history(context):
         assert any(entry["task_id"] == task["id"] for entry in team_role_history)
 
 
+@pytest.mark.medium
 @then("the role rotation should improve overall solution quality")
 def role_rotation_improves_quality(context):
     """Verify that role rotation improves overall solution quality."""
@@ -322,6 +336,7 @@ def role_rotation_improves_quality(context):
 
 
 # Scenario: Expertise-based task delegation
+@pytest.mark.medium
 @given("a complex task with multiple subtasks")
 def complex_task_with_subtasks(context):
     """Create a complex task with multiple subtasks."""
@@ -368,6 +383,7 @@ def complex_task_with_subtasks(context):
     context.subtasks = subtasks
 
 
+@pytest.mark.medium
 @when("the team breaks down the task into subtasks")
 def team_breaks_down_task(context):
     """Break down the main task into subtasks."""
@@ -378,6 +394,7 @@ def team_breaks_down_task(context):
     context.assignments = context.team.delegate_subtasks(context.subtasks)
 
 
+@pytest.mark.medium
 @then("each subtask should be assigned to the agent with most relevant expertise")
 def subtasks_assigned_by_expertise(context):
     """Verify that each subtask is assigned to the agent with most relevant expertise."""
@@ -392,6 +409,7 @@ def subtasks_assigned_by_expertise(context):
         ), f"Agent {assigned_agent_name} does not have the required expertise {subtask['primary_expertise']} for subtask {subtask['id']}"
 
 
+@pytest.mark.medium
 @then("the assignments should be dynamically adjusted based on progress")
 def assignments_dynamically_adjusted(context):
     """Verify that assignments are dynamically adjusted based on progress."""
@@ -416,6 +434,7 @@ def assignments_dynamically_adjusted(context):
     ), "No assignments were adjusted based on progress"
 
 
+@pytest.mark.medium
 @then("agents should collaborate on subtasks requiring multiple expertise areas")
 def agents_collaborate_on_complex_subtasks(context):
     """Verify that agents collaborate on subtasks requiring multiple expertise areas."""
@@ -449,6 +468,7 @@ def agents_collaborate_on_complex_subtasks(context):
     ), f"Only {len(contributing_agents)} agents contributed to the complex subtask"
 
 
+@pytest.mark.medium
 @then("the final integration should be coordinated by the most qualified agent")
 def final_integration_coordinated_by_qualified_agent(context):
     """Verify that the final integration is coordinated by the most qualified agent."""
@@ -482,6 +502,7 @@ def final_integration_coordinated_by_qualified_agent(context):
 
 
 # Scenario: Adaptive leadership selection
+@pytest.mark.medium
 @given("a task with changing requirements")
 def task_with_changing_requirements(context):
     """Create a task with changing requirements."""
@@ -502,6 +523,7 @@ def task_with_changing_requirements(context):
     context.initial_primus = context.team.get_primus()
 
 
+@pytest.mark.medium
 @when("the requirements change during task execution")
 def requirements_change_during_execution(context):
     """Change the requirements during task execution."""
@@ -520,6 +542,7 @@ def requirements_change_during_execution(context):
     context.team.update_task_requirements(updated_task)
 
 
+@pytest.mark.medium
 @then("the team should reassess leadership roles")
 def team_reassesses_leadership(context):
     """Verify that the team reassesses leadership roles."""
@@ -534,6 +557,7 @@ def team_reassesses_leadership(context):
     assert reassessment_result["reassessment_triggered"] == True
 
 
+@pytest.mark.medium
 @then("the primus role should be reassigned if necessary")
 def primus_role_reassigned(context):
     """Verify that the primus role is reassigned if necessary."""
@@ -554,6 +578,7 @@ def primus_role_reassigned(context):
     ), f"New primus {new_primus.name} does not have the required expertise {context.changing_task['primary_expertise']}"
 
 
+@pytest.mark.medium
 @then("the transition should be smooth without disrupting progress")
 def transition_is_smooth(context):
     """Verify that the transition is smooth without disrupting progress."""
@@ -574,6 +599,7 @@ def transition_is_smooth(context):
     ), "Transition took too long"
 
 
+@pytest.mark.medium
 @then("the new leadership should better address the changed requirements")
 def new_leadership_addresses_changed_requirements(context):
     """Verify that the new leadership better addresses the changed requirements."""
@@ -597,6 +623,7 @@ def new_leadership_addresses_changed_requirements(context):
 
 
 # Scenario: Collaborative problem-solving without hierarchy
+@pytest.mark.medium
 @given("a problem with no clear solution approach")
 def problem_with_no_clear_approach(context):
     """Create a problem with no clear solution approach."""
@@ -611,6 +638,7 @@ def problem_with_no_clear_approach(context):
     context.ambiguous_problem = problem
 
 
+@pytest.mark.medium
 @when("the team collaborates to solve the problem")
 def team_collaborates_on_problem(context):
     """Have the team collaborate to solve the problem."""
@@ -624,6 +652,7 @@ def team_collaborates_on_problem(context):
     )
 
 
+@pytest.mark.medium
 @then("all agents should propose potential approaches")
 def all_agents_propose_approaches(context):
     """Verify that all agents propose potential approaches."""
@@ -640,6 +669,7 @@ def all_agents_propose_approaches(context):
         ), f"Agent {agent_name} proposed 0 approaches"
 
 
+@pytest.mark.medium
 @then("the team should evaluate approaches based on merit not agent status")
 def team_evaluates_approaches_by_merit(context):
     """Verify that the team evaluates approaches based on merit not agent status."""
@@ -681,6 +711,7 @@ def team_evaluates_approaches_by_merit(context):
     ), f"Primus approaches ({avg_primus_score}) are evaluated differently than non-primus approaches ({avg_non_primus_score})"
 
 
+@pytest.mark.medium
 @then("the selected approach should be refined collaboratively")
 def approach_refined_collaboratively(context):
     """Verify that the selected approach is refined collaboratively."""
@@ -699,6 +730,7 @@ def approach_refined_collaboratively(context):
     ), f"Only {len(contributing_agents)} agents contributed to the refinement"
 
 
+@pytest.mark.medium
 @then("the implementation should involve multiple agents working as peers")
 def implementation_involves_multiple_peers(context):
     """Verify that the implementation involves multiple agents working as peers."""

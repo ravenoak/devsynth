@@ -12,8 +12,15 @@ tags:
 - best-practices
 
 title: Test Templates in DevSynth
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Templates in DevSynth
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Templates in DevSynth
+</div>
 
 # Test Templates in DevSynth
 
@@ -144,4 +151,4 @@ The organization of test templates in DevSynth follows best practices for separa
 The test-first approach, combined with clear templates and guidelines, helps ensure consistent, high-quality tests throughout the project.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

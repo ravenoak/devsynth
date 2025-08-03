@@ -1,123 +1,169 @@
 ---
-author: DevSynth Team
-date: '2025-07-08'
-last_reviewed: "2025-07-10"
-status: published
+title: "DevSynth Glossary"
+date: "2025-08-02"
+version: "0.1.0"
 tags:
-- documentation
-- glossary
-- terminology
-- reference
-title: DevSynth Glossary of Terms
-version: 0.1.0
----
+  - "glossary"
+  - "terminology"
+  - "definitions"
+  - "reference"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-02"---
 
-# DevSynth Glossary of Terms
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth Glossary
+</div>
 
-This glossary provides definitions for key terms used throughout the DevSynth project documentation. It ensures consistent terminology and understanding across all documentation artifacts.
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth Glossary
+</div>
+
+# DevSynth Glossary
+
+This glossary provides definitions for domain-specific terminology used throughout the DevSynth project documentation. It serves as a reference for both users and developers to ensure consistent understanding of key concepts.
 
 ## A
 
-### Adapter
-
-In the context of hexagonal architecture, an adapter is a component that connects the application to external systems or interfaces. DevSynth uses adapters for CLI, LLM providers, memory stores, and other external integrations.
+### Adaptive Project Ingestion
+The process by which DevSynth dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and the EDRR framework.
 
 ### Agent
+An autonomous software component that performs specific tasks within the DevSynth system, such as code generation, analysis, or requirement refinement.
 
-An autonomous software entity powered by LLMs that performs specific tasks within the DevSynth system. Agents can collaborate, reason, and make decisions based on their assigned roles and responsibilities.
+### Agent System
+The collection of modular agents and their orchestration framework within DevSynth, powered by LangGraph.
+
+### AgentAdapter
+A component that provides a direct interface for interacting with DevSynth's agent capabilities from Python code.
+
+## B
+
+### Behavior-Driven Development (BDD)
+A software development methodology that focuses on defining the behavior of a system from the user's perspective using Gherkin syntax (Given/When/Then).
+
+### Breadcrumb Navigation
+A navigation aid that shows the hierarchical path to the current document, helping users understand their location within the documentation structure.
 
 ## C
 
 ### ChromaDB
+A vector database used by DevSynth for semantic search and scalable artifact storage.
 
-A vector database used in DevSynth's memory system for storing and retrieving embeddings. ChromaDB enables semantic search capabilities and is available with an embedded backend. Full external-server support is experimental and may require additional setup.
+### CLI (Command Line Interface)
+The primary interface for interacting with DevSynth through terminal commands.
+
+### Code Analysis
+The process of examining code to understand its structure, dependencies, complexity, and potential issues, implemented in DevSynth using NetworkX.
 
 ## D
 
 ### Dialectical Reasoning
+A method of reasoning that examines opposing ideas (thesis and antithesis) to arrive at a synthesis that resolves contradictions. Used in DevSynth for analyzing and improving solutions.
 
-A method of examining ideas by juxtaposing opposing arguments (thesis and antithesis) to arrive at a resolution (synthesis). DevSynth uses dialectical reasoning for requirements evaluation, code review, and multi-agent collaboration.
+### Documentation Harmony
+The principle that all code, tests, and documents should be kept in sync, with traceability via the Requirements Traceability Matrix.
 
 ## E
 
 ### EDRR (Expand, Differentiate, Refine, Retrospect)
+A framework used by DevSynth for project ingestion and adaptation, consisting of four phases:
+- **Expand**: Gather broad information about the project
+- **Differentiate**: Identify unique aspects and patterns
+- **Refine**: Develop a detailed understanding of specific components
+- **Retrospect**: Review and improve the understanding based on new information
 
-A four-phase framework used by DevSynth for project ingestion and adaptation:
-
-- **Expand**: Brainstorming approaches, retrieving relevant documentation, analyzing file structure
-- **Differentiate**: Evaluating and comparing approaches, analyzing code quality
-- **Refine**: Implementing selected approaches, applying code transformations
-- **Retrospect**: Evaluating implementations, verifying code quality, generating final reports
-
-
-### Embedding
-
-A numerical representation of text that captures its semantic meaning. DevSynth uses embeddings for semantic search and similarity comparison in the memory system.
+### EDRRCoordinator
+The component that orchestrates the EDRR process across all system components.
 
 ## H
 
 ### Hexagonal Architecture
+An architectural pattern used in DevSynth that separates core logic from external concerns through ports and adapters, enhancing testability and extensibility.
 
-Also known as Ports and Adapters architecture, it's a design pattern that separates core business logic from external systems. DevSynth uses hexagonal architecture with domain, application, ports, and adapters layers.
+## J
+
+### JSONFileStore
+A simple file-based storage adapter used in DevSynth for legacy and lightweight use cases.
 
 ## K
 
 ### Kuzu
+A graph database used as one of the optional vector store backends in DevSynth.
 
-A lightweight graph database used as DevSynth's primary persistent memory backend.
+## L
+
+### LangGraph
+A framework for orchestrating workflows with LLMs, used in DevSynth to coordinate agent activities.
+
+### LLM (Large Language Model)
+A type of AI model that can understand and generate human language, used in DevSynth for code generation, analysis, and other tasks.
+
+### LM Studio
+A tool for running local LLM models, supported as a provider in DevSynth.
 
 ## M
 
-### Memory Adapter
+### MemoryPort
+A unified interface in DevSynth for memory operations, supporting multiple backends such as ChromaDB, TinyDB, and JSON.
 
-A component that implements the MemoryStore interface to provide specific storage capabilities. DevSynth includes adapters for Kuzu, TinyDB, RDFLib, JSON, and in-memory storage.
+## N
 
-### Memory System
+### NetworkX
+A Python library used in DevSynth for dependency graphing, complexity metrics, and refactoring suggestions.
 
-The subsystem responsible for storing, retrieving, and managing information in DevSynth. It supports multiple backends and provides a unified interface for semantic search and structured data storage.
+## O
 
-### `.devsynth/project.yaml`
+### Offline Mode
+A DevSynth operating mode that functions without network access, using either deterministic text generation or local models.
 
-A YAML file (`.devsynth/project.yaml`) that defines a project's structure, components, and configuration. It's used by DevSynth to understand and adapt to diverse project structures. Previously known as `manifest.yaml` and sometimes referred to as `devsynth.yaml` in older documentation.
+### OfflineProvider
+The LLM provider used when DevSynth is in offline mode, generating deterministic text and embeddings or loading a local model.
 
 ## P
 
-### Port
+### Provider System
+The abstraction layer in DevSynth that manages interactions with different LLM providers (OpenAI, LM Studio, etc.) with fallback and selection logic.
 
-In the context of hexagonal architecture, a port is an interface that defines how the application interacts with external systems. DevSynth uses ports to define interfaces for memory, LLM providers, and other external systems.
-
-### Provider
-
-A component that provides access to an external service, particularly LLM services like OpenAI or LM Studio. The provider system in DevSynth abstracts away the details of specific LLM implementations.
+### Property-Based Testing
+A testing approach that verifies properties of functions across a range of inputs, implemented in DevSynth using the Hypothesis library.
 
 ## R
 
-### RDFLib
+### Requirements Traceability Matrix
+A document that maps requirements to design, code, and tests for bidirectional traceability in DevSynth.
 
-A Python library for working with Resource Description Framework (RDF) data. DevSynth uses RDFLib for knowledge graph storage and SPARQL query capabilities.
+## S
+
+### SDLC (Software Development Life Cycle)
+The process of planning, creating, testing, and deploying software, which DevSynth aims to automate and enhance.
+
+### Semantic Versioning+
+DevSynth's versioning policy, based on Semantic Versioning with additional rules specific to the project.
 
 ## T
 
-### TinyDB
+### TinyDBMemoryAdapter
+A structured data storage adapter in DevSynth for project metadata, relationships, and the project structure model.
 
-A lightweight, document-oriented database for Python. DevSynth uses TinyDB for structured data storage and episodic memory.
+## U
+
+### UXBridge
+A shared interface in DevSynth for CLI, WebUI, and Agent API interactions, providing methods like `ask_question`, `confirm_choice`, and `display_result`.
+
+## V
+
+### Vector Store
+A database optimized for storing and retrieving vector embeddings, used in DevSynth for semantic search capabilities.
 
 ## W
 
-### WSDE (Worker Self-Directed Enterprise)
+### WebUI
+A graphical user interface for DevSynth based on Streamlit, providing an alternative to the CLI.
 
-A multi-agent collaboration framework in DevSynth that includes role management, dialectical reasoning, consensus building, and knowledge integration. Key roles include:
-
-- **Primus**: The lead agent that coordinates the team
-- **Worker**: Performs implementation tasks
-- **Supervisor**: Reviews and evaluates work
-- **Designer**: Creates architectural and design solutions
-- **Evaluator**: Tests and validates implementations
-
+### WSDE (Worker Self-Directed Enterprise) Model
+A sophisticated multi-agent collaboration framework in DevSynth with role management, dialectical reasoning, consensus building, and knowledge integration capabilities.
 
 ---
 
-This glossary will be updated as new terms are introduced or existing terms are refined. If you encounter a term that's not defined here, please submit a request for its addition.
-## Implementation Status
-
-This glossary is **implemented** and expanded as new terms appear.
+_Last updated: August 2, 2025_

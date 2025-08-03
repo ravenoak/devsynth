@@ -48,6 +48,7 @@ class TestQueryRouterIntegration:
             for item in items:
                 assert item.metadata.get("source_store") == store
 
+    @pytest.mark.medium
     def test_federated_query(self, manager):
         self._populate(manager)
         results = manager.route_query("apple", strategy="federated")

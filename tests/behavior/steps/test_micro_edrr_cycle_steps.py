@@ -46,6 +46,7 @@ def context():
     return Context()
 
 
+@pytest.mark.medium
 @given("an initialized EDRR coordinator")
 def edrr_coordinator_initialized(context):
     """
@@ -105,6 +106,7 @@ def edrr_coordinator_initialized(context):
     context.parent_cycle = context.edrr_coordinator
 
 
+@pytest.mark.medium
 @when(parsers.parse('I start an EDRR cycle for "{task_description}"'))
 def start_edrr_cycle(context, task_description):
     """
@@ -132,6 +134,7 @@ def start_edrr_cycle(context, task_description):
     assert context.edrr_coordinator.results is not None, "EDRR cycle should have results dictionary initialized"
 
 
+@pytest.mark.medium
 @when(parsers.parse('I create a micro cycle for "{sub_task_description}" in phase "{phase_name}"'))
 def create_micro_cycle(context, sub_task_description, phase_name):
     """
@@ -171,6 +174,7 @@ def create_micro_cycle(context, sub_task_description, phase_name):
         "Micro cycle should have the parent cycle ID as its parent_cycle_id"
 
 
+@pytest.mark.medium
 @then(parsers.parse("the micro cycle should have recursion depth {depth:d}"))
 def verify_recursion_depth(context, depth):
     """
@@ -196,6 +200,7 @@ def verify_recursion_depth(context, depth):
         "Micro cycle recursion depth should be greater than parent cycle recursion depth"
 
 
+@pytest.mark.medium
 @then("the parent cycle should include the micro cycle")
 def verify_parent_includes_micro(context):
     """

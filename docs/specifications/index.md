@@ -8,8 +8,15 @@ tags:
 - requirements
 - design
 title: DevSynth Specifications
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Specifications
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Specifications
+</div>
 
 # DevSynth Specifications
 

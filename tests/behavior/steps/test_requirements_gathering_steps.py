@@ -9,6 +9,7 @@ from pytest_bdd import scenarios, given, when, then
 
 from devsynth.interface.ux_bridge import UXBridge
 from .webui_steps import webui_context
+import pytest
 
 
 class DummyBridge(UXBridge):
@@ -38,11 +39,13 @@ class DummyBridge(UXBridge):
 scenarios("../features/general/requirements_gathering.feature")
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
+@pytest.mark.medium
 @when("I run the requirements gathering wizard")
 def run_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(sys.modules, "chromadb", MagicMock())
@@ -60,11 +63,13 @@ def run_wizard(tmp_project_dir, monkeypatch):
     gather_cmd(output_file=output, bridge=bridge)
 
 
+@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(webui_context):
     return webui_context
 
 
+@pytest.mark.medium
 @when("I run the requirements gathering wizard in the WebUI")
 def run_webui_wizard(tmp_project_dir, webui_context):
     webui_context["st"].sidebar.radio.return_value = "Requirements"
@@ -84,6 +89,7 @@ def run_webui_wizard(tmp_project_dir, webui_context):
     gather_requirements(webui_context["ui"], output_file=output)
 
 
+@pytest.mark.medium
 @then('a requirements plan file "requirements_plan.yaml" should exist')
 def check_file(tmp_project_dir):
     path = os.path.join(tmp_project_dir, "requirements_plan.yaml")

@@ -12,7 +12,9 @@ ReqID: TEST-METRICS-001
 
 import os
 import sys
+import shutil
 import pytest
+from typing import Dict, Any, Generator
 from pytest_bdd import scenarios, given, when, then, parsers
 from unittest.mock import patch, MagicMock
 from io import StringIO
@@ -26,19 +28,61 @@ scenarios("../features/general/test_metrics.feature")
 
 # Define fixtures and step definitions
 @pytest.fixture
-def command_context():
+def command_context() -> Generator[Dict[str, Any], None, None]:
     """
     Store context about the command being executed.
+    
+    This fixture uses a generator pattern to provide teardown functionality.
+    It also handles cleanup of any resources created during the test.
     """
-    return {"command": "", "output": "", "days": 30, "output_file": None}
+    # Setup: Create the context dictionary
+    ctx = {"command": "", "output": "", "days": 30, "output_file": None}
+    
+    # Yield the context to the test
+    yield ctx
+    
+    # Teardown: Clean up any resources created during the test
+    
+    # Clean up output file if it exists
+    if "output_file" in ctx and ctx["output_file"] and os.path.exists(ctx["output_file"]):
+        try:
+            os.remove(ctx["output_file"])
+        except (OSError, IOError):
+            # If we can't remove the file, it's likely already gone
+            pass
+    
+    # Clean up any files created during the test
+    if "created_files" in ctx:
+        for file_path in ctx.get("created_files", []):
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except (OSError, IOError):
+                    # If we can't remove the file, it's likely already gone
+                    pass
+    
+    # Clean up any directories created during the test (in reverse order to handle nested dirs)
+    if "created_dirs" in ctx:
+        for dir_path in reversed(ctx.get("created_dirs", [])):
+            if os.path.exists(dir_path):
+                try:
+                    shutil.rmtree(dir_path)
+                except (OSError, IOError):
+                    # If we can't remove the directory, it's likely already gone
+                    pass
+    
+    # Clear the context to prevent state leakage between tests
+    ctx.clear()
 
 
 @pytest.fixture
-def mock_workflow_manager():
+def mock_workflow_manager() -> Generator[MagicMock, None, None]:
     """
     Mock the workflow manager to avoid actual execution.
+    
+    This fixture uses a generator pattern to provide teardown functionality.
     """
-    # Create a mock for the workflow manager
+    # Setup: Create a mock for the workflow manager
     mock_manager = MagicMock()
 
     # Configure the mock to return success for execute_command
@@ -65,9 +109,14 @@ def mock_workflow_manager():
         mock_manager,
     ):
         with patch("devsynth.core.workflow_manager", mock_manager):
+            # Yield the mock to the test
             yield mock_manager
+            
+            # Teardown: Reset the mock to prevent state leakage between tests
+            mock_manager.reset_mock()
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """
@@ -82,6 +131,7 @@ def devsynth_cli_installed():
     return True
 
 
+@pytest.mark.medium
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     """
@@ -95,6 +145,7 @@ def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("the project has a Git repository")
 def project_has_git_repo(tmp_project_dir):
     """
@@ -110,8 +161,9 @@ def project_has_git_repo(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("a project with no commit history")
-def project_with_no_commits(tmp_project_dir, command_context):
+def project_with_no_commits(tmp_project_dir, command_context) -> str:
     """
     Set up a project with no commit history.
 
@@ -129,12 +181,16 @@ def project_with_no_commits(tmp_project_dir, command_context):
 
     # Set a flag in the command_context to indicate no commits
     command_context["no_commits"] = True
+    
+    # Store the created directories in the context for cleanup
+    command_context["created_dirs"] = command_context.get("created_dirs", []) + [git_dir]
 
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("a project with no test files")
-def project_with_no_tests(tmp_project_dir, command_context):
+def project_with_no_tests(tmp_project_dir, command_context) -> str:
     """
     Set up a project with no test files.
 
@@ -150,17 +206,23 @@ def project_with_no_tests(tmp_project_dir, command_context):
     os.makedirs(src_dir, exist_ok=True)
 
     # Create a sample Python file that's not a test
-    with open(os.path.join(src_dir, "main.py"), "w") as f:
+    main_py_path = os.path.join(src_dir, "main.py")
+    with open(main_py_path, "w") as f:
         f.write("# This is a sample Python file\n\ndef main():\n    pass\n")
 
     # Set a flag in the command_context to indicate no test files
     command_context["no_tests"] = True
+    
+    # Store the created directories and files in the context for cleanup
+    command_context["created_dirs"] = command_context.get("created_dirs", []) + [src_dir]
+    command_context["created_files"] = command_context.get("created_files", []) + [main_py_path]
 
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
-def run_command(command, monkeypatch, mock_workflow_manager, command_context):
+def run_command(command, monkeypatch, mock_workflow_manager, command_context) -> str:
     """
     Run a DevSynth CLI command.
 
@@ -207,68 +269,75 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
     # Create a StringIO object to capture stdout
     captured_output = StringIO()
+    output = ""
 
-    # Directly call the appropriate command function based on the first argument
-    with patch("sys.stdout", new=captured_output):
-        try:
-            if args[0] == "test-metrics":
-                # For testing purposes, we need to manually set the call args on the mock
-                mock_workflow_manager.execute_command.reset_mock()
+    try:
+        # Directly call the appropriate command function based on the first argument
+        with patch("sys.stdout", new=captured_output):
+            try:
+                if args[0] == "test-metrics":
+                    # For testing purposes, we need to manually set the call args on the mock
+                    mock_workflow_manager.execute_command.reset_mock()
 
-                # Prepare the arguments for the mock
-                test_metrics_args = {
-                    "days": command_context.get("days", 30),
-                    "output_file": command_context.get("output_file", None)
-                }
+                    # Prepare the arguments for the mock
+                    test_metrics_args = {
+                        "days": command_context.get("days", 30),
+                        "output_file": command_context.get("output_file", None)
+                    }
 
-                # Manually set the call args on the mock
-                mock_workflow_manager.execute_command("test-metrics", test_metrics_args)
+                    # Manually set the call args on the mock
+                    mock_workflow_manager.execute_command("test-metrics", test_metrics_args)
 
-                # Ensure the mock is called with the correct arguments
-                mock_workflow_manager.execute_command.assert_called_with(
-                    "test-metrics", test_metrics_args
-                )
+                    # Ensure the mock is called with the correct arguments
+                    mock_workflow_manager.execute_command.assert_called_with(
+                        "test-metrics", test_metrics_args
+                    )
 
-                # Simulate output based on the scenario
-                if "no_commits" in command_context or (hasattr(command_context, "get") and command_context.get("no_commits", False)):
-                    # Scenario: Handle repository with no commits
-                    captured_output.write("Warning: No commits found in the repository.\n")
-                    captured_output.write("Please make sure the repository has at least one commit before running this command.\n")
-                elif "no_tests" in command_context or (hasattr(command_context, "get") and command_context.get("no_tests", False)):
-                    # Scenario: Handle repository with no tests
-                    captured_output.write("Warning: No test files found in the repository.\n")
-                    captured_output.write("Please add tests to your project to enable test-first development metrics.\n")
-                    captured_output.write("Recommendation: Start by creating a tests directory and adding some basic tests.\n")
-                elif command_context.get("output_file"):
-                    # Scenario: Output test metrics to file
-                    captured_output.write(f"Test metrics saved to {command_context['output_file']}\n")
+                    # Simulate output based on the scenario
+                    if "no_commits" in command_context or (hasattr(command_context, "get") and command_context.get("no_commits", False)):
+                        # Scenario: Handle repository with no commits
+                        captured_output.write("Warning: No commits found in the repository.\n")
+                        captured_output.write("Please make sure the repository has at least one commit before running this command.\n")
+                    elif "no_tests" in command_context or (hasattr(command_context, "get") and command_context.get("no_tests", False)):
+                        # Scenario: Handle repository with no tests
+                        captured_output.write("Warning: No test files found in the repository.\n")
+                        captured_output.write("Please add tests to your project to enable test-first development metrics.\n")
+                        captured_output.write("Recommendation: Start by creating a tests directory and adding some basic tests.\n")
+                    elif command_context.get("output_file"):
+                        # Scenario: Output test metrics to file
+                        captured_output.write(f"Test metrics saved to {command_context['output_file']}\n")
+                    else:
+                        # Default scenario
+                        captured_output.write("Test-First Development Metrics:\n")
+                        captured_output.write("  Test-First Ratio: 75%\n")
+                        captured_output.write("  Test Coverage: 85%\n")
+                        captured_output.write("  Test Quality Score: 80%\n\n")
+                        captured_output.write("Commit History Analysis:\n")
+                        captured_output.write("  Total Commits: 120\n")
+                        captured_output.write("  Test Commits: 45\n")
+                        captured_output.write("  Code Commits: 75\n")
                 else:
-                    # Default scenario
-                    captured_output.write("Test-First Development Metrics:\n")
-                    captured_output.write("  Test-First Ratio: 75%\n")
-                    captured_output.write("  Test Coverage: 85%\n")
-                    captured_output.write("  Test Quality Score: 80%\n\n")
-                    captured_output.write("Commit History Analysis:\n")
-                    captured_output.write("  Total Commits: 120\n")
-                    captured_output.write("  Test Commits: 45\n")
-                    captured_output.write("  Code Commits: 75\n")
-            else:
-                # Invalid command, show help
+                    # Invalid command, show help
+                    show_help()
+            except Exception as e:
+                # If there's an error, show help
+                captured_output.write(f"Error: {str(e)}\n")
                 show_help()
-        except Exception as e:
-            # If there's an error, show help
-            captured_output.write(f"Error: {str(e)}\n")
-            show_help()
 
-    # Get the captured output
-    output = captured_output.getvalue()
+        # Get the captured output
+        output = captured_output.getvalue()
 
-    # Store the output in the context
-    command_context["output"] = output
+        # Store the output in the context
+        command_context["output"] = output
+    
+    finally:
+        # Clean up the StringIO object to prevent resource leakage
+        captured_output.close()
 
     return output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should analyze the last {days} days of commit history"))
 def check_analyze_days(days, mock_workflow_manager, command_context):
     """
@@ -286,6 +355,7 @@ def check_analyze_days(days, mock_workflow_manager, command_context):
     )
 
 
+@pytest.mark.medium
 @then("the output should include test-first development metrics")
 def check_test_first_metrics(command_context):
     """
@@ -300,6 +370,7 @@ def check_test_first_metrics(command_context):
     assert "Test-First Development Metrics" in output or "test-first development metrics" in output.lower()
 
 
+@pytest.mark.medium
 @then("the output should include test coverage metrics")
 def check_test_coverage_metrics(command_context):
     """
@@ -314,6 +385,7 @@ def check_test_coverage_metrics(command_context):
     assert "Test Coverage" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse('the system should save the metrics to "{output_file}"'))
 def check_save_metrics(output_file, command_context):
     """
@@ -331,6 +403,7 @@ def check_save_metrics(output_file, command_context):
     # This is already verified in the run_command function
 
 
+@pytest.mark.medium
 @then("the output should indicate that the report was saved")
 def check_report_saved(command_context):
     """
@@ -345,6 +418,7 @@ def check_report_saved(command_context):
     assert "saved to" in output
 
 
+@pytest.mark.medium
 @then("the system should display a warning message")
 def check_warning_message(command_context):
     """
@@ -359,6 +433,7 @@ def check_warning_message(command_context):
     assert "Warning" in output or "warning" in output.lower()
 
 
+@pytest.mark.medium
 @then("the warning message should indicate that no commits were found")
 def check_no_commits_warning(command_context):
     """
@@ -373,6 +448,7 @@ def check_no_commits_warning(command_context):
     assert "no commits" in output.lower() or "No commits" in output
 
 
+@pytest.mark.medium
 @then("the warning message should indicate that no test files were found")
 def check_no_tests_warning(command_context):
     """
@@ -382,6 +458,7 @@ def check_no_tests_warning(command_context):
     assert "no test files" in output.lower() or "No test files" in output
 
 
+@pytest.mark.medium
 @then("the output should include recommendations for test-first development")
 def check_recommendations(command_context):
     """
@@ -391,6 +468,7 @@ def check_recommendations(command_context):
     assert "recommendation" in output.lower() or "Recommendation" in output
 
 
+@pytest.mark.medium
 @then("the workflow should execute successfully")
 def check_workflow_success(mock_workflow_manager):
     """

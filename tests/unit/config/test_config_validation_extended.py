@@ -21,6 +21,7 @@ ReqID: N/A"""
         with tempfile.TemporaryDirectory() as temp_dir:
             yield Path(temp_dir)
 
+    @pytest.mark.medium
     def test_invalid_config_type_is_valid(self, temp_dir):
         """Test validation of invalid configuration types.
 
@@ -38,6 +39,7 @@ ReqID: N/A"""
             ], int)
         assert config.config.edrr_settings['max_recursion_depth'] == 3
 
+    @pytest.mark.medium
     def test_invalid_config_range_is_valid(self, temp_dir):
         """Test validation of out-of-range configuration values.
 
@@ -55,6 +57,7 @@ ReqID: N/A"""
         config = UnifiedConfigLoader.load(path=str(temp_dir))
         assert config.config.wsde_settings['team_size'] == 5
 
+    @pytest.mark.medium
     def test_invalid_config_syntax_raises_error(self, temp_dir):
         """Test handling of configuration files with syntax errors.
 
@@ -75,6 +78,7 @@ ReqID: N/A"""
         except Exception as e:
             assert isinstance(e, (ConfigurationError, yaml.YAMLError))
 
+    @pytest.mark.medium
     def test_missing_required_fields_is_valid(self, temp_dir):
         """Test validation of configuration files with missing required fields.
 
@@ -91,6 +95,7 @@ ReqID: N/A"""
         config = UnifiedConfigLoader.load(path=str(temp_dir))
         assert config.config.version == '1.0'
 
+    @pytest.mark.medium
     def test_env_var_override_succeeds(self, temp_dir, monkeypatch):
         """Test environment variable overrides for configuration values.
 
@@ -110,6 +115,7 @@ ReqID: N/A"""
         config = UnifiedConfigLoader.load(path=str(temp_dir))
         assert config.config.wsde_settings['team_size'] == 5
 
+    @pytest.mark.medium
     def test_config_file_merging_succeeds(self, temp_dir):
         """Test merging of multiple configuration files.
 
@@ -131,6 +137,7 @@ ReqID: N/A"""
         assert config.config.features['wsde_collaboration'] == True
         assert config.config.wsde_settings['team_size'] == 5
 
+    @pytest.mark.medium
     def test_invalid_feature_flag_is_valid(self, temp_dir):
         """Test validation of invalid feature flag values.
 
@@ -148,6 +155,7 @@ ReqID: N/A"""
         assert isinstance(config.config.features['wsde_collaboration'], bool)
         assert config.config.features['wsde_collaboration'] is False
 
+    @pytest.mark.medium
     def test_unknown_setting_is_valid(self, temp_dir):
         """Test validation of unknown settings.
 
@@ -164,6 +172,7 @@ ReqID: N/A"""
         assert config.config.language == 'python'
         assert not hasattr(config.config, 'unknown_setting')
 
+    @pytest.mark.medium
     def test_config_with_comments_succeeds(self, temp_dir):
         """Test loading configuration files with comments.
 
@@ -187,6 +196,7 @@ features:
             assert isinstance(actual_value, bool)
             assert config.config.features['wsde_collaboration'] == actual_value
 
+    @pytest.mark.medium
     def test_empty_config_file_succeeds(self, temp_dir):
         """Test handling of empty configuration files.
 
@@ -197,6 +207,7 @@ ReqID: N/A"""
         assert config.config.version == '1.0'
         assert config.config.language == 'python'
 
+    @pytest.mark.medium
     def test_config_with_null_values_succeeds(self, temp_dir):
         """Test handling of configuration files with null values.
 

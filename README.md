@@ -9,7 +9,7 @@ tags:
   - "readme"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-02"
 ---
 
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
@@ -19,7 +19,7 @@ last_reviewed: "2025-07-10"
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
-**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md), and release milestones are tracked in [docs/roadmap/ROADMAP.md](docs/roadmap/ROADMAP.md).
+**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md), and release milestones are tracked in [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md).
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
 - Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends
@@ -65,7 +65,8 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Implementation Status Matrix](docs/implementation/feature_status_matrix.md)
 - [Requirements Traceability Matrix](docs/requirements_traceability.md)
 - [SDLC Policies](docs/policies/index.md)
-- [Project Roadmap](docs/roadmap/ROADMAP.md)
+- [Project Roadmap](docs/roadmap/CONSOLIDATED_ROADMAP.md)
+- [Glossary](docs/glossary.md)
 
 Installation instructions are covered in detail in the [Installation Guide](docs/getting_started/installation.md) and the [Quick Start Guide](docs/getting_started/quick_start_guide.md).
 
@@ -311,4 +312,4 @@ DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-_Last updated: July 23, 2025
+_Last updated: August 2, 2025_

@@ -1,6 +1,8 @@
 from devsynth.adapters.agents.agent_adapter import SimplifiedAgentFactory
+import pytest
 
 
+@pytest.mark.medium
 def test_register_agent_type_succeeds():
     """Test that register agent type succeeds.
 

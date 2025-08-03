@@ -48,6 +48,7 @@ def context():
     return Context()
 
 
+@pytest.mark.medium
 @given("the EDRR coordinator is initialized")
 def edrr_coordinator_initialized(context):
     """Initialize the EDRR coordinator with actual implementations."""
@@ -75,6 +76,7 @@ def edrr_coordinator_initialized(context):
     )
 
 
+@pytest.mark.medium
 @given("the memory system is available")
 def memory_system_available(context):
     """Make the memory system available."""
@@ -82,6 +84,7 @@ def memory_system_available(context):
     assert context.edrr_coordinator.memory_manager is context.memory_manager
 
 
+@pytest.mark.medium
 @given("the WSDE team is available")
 def wsde_team_available(context):
     """Make the WSDE team available."""
@@ -89,6 +92,7 @@ def wsde_team_available(context):
     assert context.edrr_coordinator.wsde_team is context.wsde_team
 
 
+@pytest.mark.medium
 @given("the AST analyzer is available")
 def ast_analyzer_available(context):
     """Make the AST analyzer available."""
@@ -98,6 +102,7 @@ def ast_analyzer_available(context):
     assert context.edrr_coordinator.ast_transformer is context.ast_transformer
 
 
+@pytest.mark.medium
 @given("the prompt manager is available")
 def prompt_manager_available(context):
     """Make the prompt manager available."""
@@ -105,6 +110,7 @@ def prompt_manager_available(context):
     assert context.edrr_coordinator.prompt_manager is context.prompt_manager
 
 
+@pytest.mark.medium
 @given("the documentation manager is available")
 def documentation_manager_available(context):
     """Make the documentation manager available."""
@@ -114,6 +120,7 @@ def documentation_manager_available(context):
     )
 
 
+@pytest.mark.medium
 @when(parsers.parse('I start the EDRR cycle with a task to "{task_description}"'))
 def start_edrr_cycle(context, task_description):
     """Start the EDRR cycle with a task."""
@@ -121,6 +128,7 @@ def start_edrr_cycle(context, task_description):
     context.edrr_coordinator.start_cycle(context.task)
 
 
+@pytest.mark.medium
 @given(parsers.parse('the "{phase_name}" phase has completed for a task'))
 def phase_completed(context, phase_name):
     """Set up a completed phase."""
@@ -204,23 +212,22 @@ def phase_completed(context, phase_name):
         }
 
 
+@pytest.mark.medium
 @when(parsers.parse('the coordinator progresses to the "{phase_name}" phase'))
 def progress_to_phase(context, phase_name):
     """Progress to the next phase."""
     context.edrr_coordinator.progress_to_phase(Phase[phase_name.upper()])
 
 
+@pytest.mark.medium
 @then(parsers.parse('the coordinator should enter the "{phase_name}" phase'))
 def verify_phase(context, phase_name):
     """Verify the coordinator has entered the specified phase."""
     assert context.edrr_coordinator.current_phase == Phase[phase_name.upper()]
 
 
-@then(
-    parsers.parse(
-        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'
-    )
-)
+@pytest.mark.medium
+@then(    parsers.parse(        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'    ))
 def verify_task_stored(context, phase_name):
     """Verify the task is stored in memory with the correct EDRR phase."""
     test_storage = {}
@@ -253,6 +260,7 @@ def verify_task_stored(context, phase_name):
         context.memory_manager.store_with_edrr_phase = original_store_method
 
 
+@pytest.mark.medium
 @then("the coordinator should store the phase transition in memory")
 def verify_phase_transition_stored(context):
     """Verify the phase transition is stored in memory."""
@@ -280,6 +288,7 @@ def verify_phase_transition_stored(context):
         context.memory_manager.store_with_edrr_phase = original_store_method
 
 
+@pytest.mark.medium
 @then("the WSDE team should be instructed to brainstorm approaches")
 def verify_wsde_brainstorm(context):
     """Verify the WSDE team is instructed to brainstorm approaches."""
@@ -288,6 +297,7 @@ def verify_wsde_brainstorm(context):
     assert "wsde_brainstorm" in context.edrr_coordinator.results[Phase.EXPAND]
 
 
+@pytest.mark.medium
 @then("the WSDE team should be instructed to evaluate and compare approaches")
 def verify_wsde_evaluate(context):
     """Verify the WSDE team is instructed to evaluate and compare approaches."""
@@ -311,6 +321,7 @@ def verify_wsde_evaluate(context):
     assert "evaluation" in context.edrr_coordinator.results[Phase.DIFFERENTIATE]
 
 
+@pytest.mark.medium
 @then("the WSDE team should be instructed to implement the selected approach")
 def verify_wsde_implement(context):
     """Verify the WSDE team is instructed to implement the selected approach."""
@@ -329,6 +340,7 @@ def verify_wsde_implement(context):
     assert "implementation" in context.edrr_coordinator.results[Phase.REFINE]
 
 
+@pytest.mark.medium
 @then("the WSDE team should be instructed to evaluate the implementation")
 def verify_wsde_review(context):
     """Verify the WSDE team is instructed to evaluate the implementation."""
@@ -344,6 +356,7 @@ def verify_wsde_review(context):
     assert "evaluation" in context.edrr_coordinator.results[Phase.RETROSPECT]
 
 
+@pytest.mark.medium
 @then("the AST analyzer should be used to analyze the file structure")
 def verify_ast_analyze(context):
     """Verify the AST analyzer is used to analyze the file structure."""
@@ -365,6 +378,7 @@ def verify_ast_analyze(context):
         os.unlink(temp_file_path)
 
 
+@pytest.mark.medium
 @then("the AST analyzer should be used to evaluate code quality")
 def verify_ast_evaluate(context):
     """Verify the AST analyzer is used to evaluate code quality."""
@@ -396,6 +410,7 @@ def verify_ast_evaluate(context):
     )
 
 
+@pytest.mark.medium
 @then("the AST analyzer should be used to apply code transformations")
 def verify_ast_transform(context):
     """Verify the AST analyzer is used to apply code transformations."""
@@ -415,6 +430,7 @@ def verify_ast_transform(context):
     assert "code" in context.edrr_coordinator.results[Phase.REFINE]["implementation"]
 
 
+@pytest.mark.medium
 @then("the AST analyzer should be used to verify code quality")
 def verify_ast_verify(context):
     """Verify the AST analyzer is used to verify code quality."""
@@ -434,11 +450,8 @@ def verify_ast_verify(context):
     assert "is_valid" in context.edrr_coordinator.results[Phase.RETROSPECT]
 
 
-@then(
-    parsers.parse(
-        'the prompt manager should provide templates for the "{phase_name}" phase'
-    )
-)
+@pytest.mark.medium
+@then(    parsers.parse(        'the prompt manager should provide templates for the "{phase_name}" phase'    ))
 def verify_prompt_templates(context, phase_name):
     """Verify the prompt manager provides templates for the specified phase."""
     phase = Phase[phase_name.upper()]
@@ -491,6 +504,7 @@ def verify_prompt_templates(context, phase_name):
     assert context.edrr_coordinator.results[phase] is not None
 
 
+@pytest.mark.medium
 @then("the documentation manager should retrieve relevant documentation")
 def verify_documentation_retrieve(context):
     """Verify the documentation manager retrieves relevant documentation."""
@@ -510,6 +524,7 @@ def verify_documentation_retrieve(context):
         assert "documentation" in context.edrr_coordinator.results[Phase.EXPAND]
 
 
+@pytest.mark.medium
 @then("the documentation manager should retrieve best practices documentation")
 def verify_documentation_best_practices(context):
     """Verify the documentation manager retrieves best practices documentation."""
@@ -541,6 +556,7 @@ This document outlines best practices for code development."""
         assert Phase.DIFFERENTIATE in context.edrr_coordinator.results
 
 
+@pytest.mark.medium
 @then("the documentation manager should retrieve implementation examples")
 def verify_documentation_examples(context):
     """Verify the documentation manager retrieves implementation examples."""
@@ -567,6 +583,7 @@ This document provides examples of implementations."""
         assert Phase.REFINE in context.edrr_coordinator.results
 
 
+@pytest.mark.medium
 @then("the documentation manager should retrieve evaluation criteria")
 def verify_documentation_criteria(context):
     """Verify the documentation manager retrieves evaluation criteria."""
@@ -590,11 +607,8 @@ This document outlines criteria for evaluating code quality."""
         assert Phase.RETROSPECT in context.edrr_coordinator.results
 
 
-@then(
-    parsers.parse(
-        'the results should be stored in memory with EDRR phase "{phase_name}"'
-    )
-)
+@pytest.mark.medium
+@then(    parsers.parse(        'the results should be stored in memory with EDRR phase "{phase_name}"'    ))
 def verify_results_stored(context, phase_name):
     """Verify the results are stored in memory with the correct EDRR phase."""
     phase = Phase[phase_name.upper()]
@@ -668,6 +682,7 @@ def verify_results_stored(context, phase_name):
         context.memory_manager.store_with_edrr_phase = original_store_method
 
 
+@pytest.mark.medium
 @then("a final report should be generated summarizing the entire EDRR cycle")
 def verify_final_report(context):
     """Verify a final report is generated."""
@@ -688,6 +703,7 @@ def verify_final_report(context):
     assert "summary" in report
 
 
+@pytest.mark.medium
 @given("a valid EDRR manifest file exists")
 def valid_manifest_file_exists(context):
     """Create a valid EDRR manifest file for testing."""
@@ -732,12 +748,14 @@ def valid_manifest_file_exists(context):
         json.dump(manifest_content, f, indent=2)
 
 
+@pytest.mark.medium
 @when("I start the EDRR cycle from the manifest file")
 def start_edrr_cycle_from_manifest(context):
     """Start the EDRR cycle from the manifest file."""
     context.edrr_coordinator.start_cycle_from_manifest(context.manifest_path)
 
 
+@pytest.mark.medium
 @then("the coordinator should parse the manifest successfully")
 def verify_manifest_parsed(context):
     """Verify the manifest was parsed successfully."""
@@ -748,6 +766,7 @@ def verify_manifest_parsed(context):
     )
 
 
+@pytest.mark.medium
 @then("the coordinator should use the phase instructions from the manifest")
 def verify_phase_instructions_used(context):
     """Verify the phase instructions from the manifest are used."""
@@ -757,6 +776,7 @@ def verify_phase_instructions_used(context):
     assert expand_instructions == "Brainstorm approaches for the task"
 
 
+@pytest.mark.medium
 @then("the coordinator should use the phase templates from the manifest")
 def verify_phase_templates_used(context):
     """Verify the phase templates from the manifest are used."""
@@ -767,6 +787,7 @@ def verify_phase_templates_used(context):
     assert "expand_template_2" in expand_templates
 
 
+@pytest.mark.medium
 @then("the coordinator should track phase dependencies")
 def verify_phase_dependencies_tracked(context):
     """Verify the phase dependencies are tracked."""
@@ -780,6 +801,7 @@ def verify_phase_dependencies_tracked(context):
     )
 
 
+@pytest.mark.medium
 @then("the coordinator should monitor execution progress")
 def verify_execution_progress_monitored(context):
     """Verify the execution progress is monitored."""
@@ -791,6 +813,7 @@ def verify_execution_progress_monitored(context):
     )
 
 
+@pytest.mark.medium
 @given("the EDRR coordinator is initialized with enhanced logging")
 def edrr_coordinator_with_enhanced_logging(context):
     """Initialize the EDRR coordinator with enhanced logging enabled."""
@@ -818,6 +841,7 @@ def edrr_coordinator_with_enhanced_logging(context):
     )
 
 
+@pytest.mark.medium
 @when(parsers.parse('I complete a full EDRR cycle with a task to "{task_description}"'))
 def complete_full_edrr_cycle(context, task_description):
     """Complete a full EDRR cycle with the given task."""
@@ -868,6 +892,7 @@ def complete_full_edrr_cycle(context, task_description):
     context.execution_traces = context.edrr_coordinator.get_execution_traces()
 
 
+@pytest.mark.medium
 @then("the coordinator should generate detailed execution traces")
 def verify_detailed_execution_traces(context):
     """Verify that the coordinator generates detailed execution traces."""
@@ -878,6 +903,7 @@ def verify_detailed_execution_traces(context):
         assert phase.name in context.execution_traces["phases"]
 
 
+@pytest.mark.medium
 @then("the execution traces should include phase-specific metrics")
 def verify_phase_specific_metrics(context):
     """Verify that the execution traces include phase-specific metrics."""
@@ -887,6 +913,7 @@ def verify_phase_specific_metrics(context):
         assert isinstance(phase_trace["metrics"], dict)
 
 
+@pytest.mark.medium
 @then("the execution traces should include status tracking for each phase")
 def verify_status_tracking(context):
     """Verify that the execution traces include status tracking for each phase."""
@@ -895,6 +922,7 @@ def verify_status_tracking(context):
         assert "timestamp" in phase_trace
 
 
+@pytest.mark.medium
 @then("the execution traces should include comprehensive metadata")
 def verify_comprehensive_metadata(context):
     """Verify that the execution traces include comprehensive metadata."""
@@ -905,6 +933,7 @@ def verify_comprehensive_metadata(context):
     assert "timestamp" in metadata
 
 
+@pytest.mark.medium
 @then("I should be able to retrieve the full execution history")
 def verify_full_execution_history(context):
     """Verify that the full execution history can be retrieved."""
@@ -917,6 +946,7 @@ def verify_full_execution_history(context):
         assert "details" in entry
 
 
+@pytest.mark.medium
 @then("I should be able to analyze performance metrics for each phase")
 def verify_performance_metrics(context):
     """Verify that performance metrics can be analyzed for each phase."""

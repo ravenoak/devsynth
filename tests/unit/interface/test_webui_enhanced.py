@@ -3,6 +3,17 @@ from types import ModuleType
 from unittest.mock import MagicMock, patch, call
 import pytest
 
+class SessionState(dict):
+    """A dictionary that also allows attribute access."""
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(f"'dict' object has no attribute '{name}'")
+    
+    def __setattr__(self, name, value):
+        self[name] = value
+
 
 def _mock_streamlit():
     """Create a mock streamlit module for testing."""
@@ -27,9 +38,35 @@ def _mock_streamlit():
     st.components = ModuleType('components')
     st.components.v1 = ModuleType('v1')
     st.components.v1.html = MagicMock()
-    st.session_state = {}
-    return st
+    st.session_state = SessionState()
 
+    # Add missing Streamlit attributes
+    st.expander = MagicMock()
+    st.expander.return_value.__enter__ = MagicMock(return_value=MagicMock())
+    st.expander.return_value.__exit__ = MagicMock(return_value=None)
+    st.form_submit_button = MagicMock(return_value=False)
+    st.form = MagicMock()
+    st.form.return_value.__enter__ = MagicMock(return_value=MagicMock())
+    st.form.return_value.__exit__ = MagicMock(return_value=None)
+    st.sidebar = MagicMock()
+    st.sidebar.selectbox = MagicMock(return_value='c')
+    st.sidebar.checkbox = MagicMock(return_value=True)
+    st.sidebar.text_input = MagicMock(return_value='t')
+    st.sidebar.button = MagicMock(return_value=False)
+    st.button = MagicMock(return_value=False)
+    st.radio = MagicMock(return_value='option1')
+    st.slider = MagicMock(return_value=50)
+    st.file_uploader = MagicMock(return_value=None)
+    st.divider = MagicMock()
+    st.columns = MagicMock(return_value=[MagicMock(), MagicMock(), MagicMock()])
+    st.tabs = MagicMock(return_value=[MagicMock(), MagicMock(), MagicMock()])
+    st.spinner = MagicMock()
+    st.spinner.return_value.__enter__ = MagicMock(return_value=MagicMock())
+    st.spinner.return_value.__exit__ = MagicMock(return_value=None)
+    st.code = MagicMock()
+    st.experimental_rerun = MagicMock()
+
+    return st
 
 @pytest.fixture
 def mock_streamlit(monkeypatch):
@@ -38,24 +75,32 @@ def mock_streamlit(monkeypatch):
     monkeypatch.setitem(sys.modules, 'streamlit', st)
     return st
 
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
 
-def test_webui_display_result_highlight_succeeds(mock_streamlit):
+@pytest.mark.medium
+def test_webui_display_result_highlight_succeeds(mock_streamlit, clean_state):
     """Test that highlighted messages use st.info.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
-    import devsynth.interface.webui as webui
+    from devsynth.interface import webui
+    # Reload the module to ensure clean state
     importlib.reload(webui)
+
     from devsynth.interface.webui import WebUI
     bridge = WebUI()
     bridge.display_result('Important message', highlight=True)
     mock_streamlit.info.assert_called_once_with('Important message')
 
-
+@pytest.mark.medium
 def test_webui_display_result_error_raises_error(mock_streamlit):
     """Test that error messages use st.error.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -64,11 +109,11 @@ ReqID: N/A"""
     bridge.display_result('ERROR: Something went wrong', highlight=False)
     mock_streamlit.error.assert_called_once_with('ERROR: Something went wrong')
 
-
+@pytest.mark.medium
 def test_webui_display_result_warning_succeeds(mock_streamlit):
     """Test that warning messages use st.warning.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -77,11 +122,11 @@ ReqID: N/A"""
     bridge.display_result('WARNING: Be careful', highlight=False)
     mock_streamlit.warning.assert_called_once_with('WARNING: Be careful')
 
-
+@pytest.mark.medium
 def test_webui_display_result_success_succeeds(mock_streamlit):
     """Test that success messages use st.success.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -89,13 +134,13 @@ ReqID: N/A"""
     bridge = WebUI()
     bridge.display_result('Task completed successfully', highlight=False)
     mock_streamlit.success.assert_called_once_with(
-        'Task completed successfully')
+    'Task completed successfully')
 
-
+@pytest.mark.medium
 def test_webui_display_result_heading_succeeds(mock_streamlit):
     """Test that heading messages use st.header.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -104,11 +149,11 @@ ReqID: N/A"""
     bridge.display_result('# Heading', highlight=False)
     mock_streamlit.header.assert_called_once_with('Heading')
 
-
+@pytest.mark.medium
 def test_webui_display_result_subheading_succeeds(mock_streamlit):
     """Test that subheading messages use st.subheader.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -117,25 +162,25 @@ ReqID: N/A"""
     bridge.display_result('## Subheading', highlight=False)
     mock_streamlit.subheader.assert_called_once_with('Subheading')
 
-
+@pytest.mark.medium
 def test_webui_display_result_rich_markup_succeeds(mock_streamlit):
     """Test that Rich markup is converted to Markdown/HTML.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
     bridge = WebUI()
     bridge.display_result('[bold]Bold text[/bold]', highlight=False)
-    mock_streamlit.markdown.assert_called_once_with('**Bold text**',
-        unsafe_allow_html=True)
+    mock_streamlit.markdown.assert_called_once_with(
+    '**Bold text**', unsafe_allow_html=True)
 
-
+@pytest.mark.medium
 def test_webui_display_result_normal_succeeds(mock_streamlit):
     """Test that normal messages use st.write.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -144,11 +189,11 @@ ReqID: N/A"""
     bridge.display_result('Normal message', highlight=False)
     mock_streamlit.write.assert_called_once_with('Normal message')
 
-
+@pytest.mark.medium
 def test_webui_progress_indicator_succeeds(mock_streamlit):
     """Test the enhanced progress indicator.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)

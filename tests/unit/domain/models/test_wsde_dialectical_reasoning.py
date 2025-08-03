@@ -25,6 +25,7 @@ ReqID: N/A"""
         self.critic_agent.parameters = {'expertise': ['critique',
             'dialectical_reasoning']}
 
+    @pytest.mark.medium
     def test_categorize_critiques_by_domain_succeeds(self):
         """Test categorizing critique points by domain.
 
@@ -62,6 +63,7 @@ ReqID: N/A"""
             'testability']
         assert 'General issue: Needs improvement' in result['general']
 
+    @pytest.mark.medium
     def test_identify_domain_conflicts_succeeds(self):
         """Test identifying conflicts between different domain perspectives.
 
@@ -87,6 +89,7 @@ ReqID: N/A"""
         assert 'security' in security_performance_conflict['critiques']
         assert 'performance' in security_performance_conflict['critiques']
 
+    @pytest.mark.medium
     def test_prioritize_critiques_succeeds(self):
         """Test prioritizing critique points based on severity and relevance.
 
@@ -110,6 +113,7 @@ ReqID: N/A"""
         assert critical_security['severity'] == 'high'
         assert critical_security['relevance'] > 0.5
 
+    @pytest.mark.medium
     def test_resolve_code_improvement_conflict_succeeds(self):
         """Test resolving conflicts between code improvements from different domains.
 

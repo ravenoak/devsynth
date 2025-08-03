@@ -9,8 +9,15 @@ tags:
 - configuration
 
 title: DevSynth Configuration Examples
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; DevSynth Configuration Examples
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; DevSynth Configuration Examples
+</div>
 
 # DevSynth Configuration Examples
 

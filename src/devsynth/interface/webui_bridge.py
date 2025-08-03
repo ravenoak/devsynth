@@ -7,6 +7,8 @@ from .ux_bridge import UXBridge, ProgressIndicator, sanitize_output
 from .shared_bridge import SharedBridgeMixin
 from .output_formatter import OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.interface.state_access import get_session_value as _get_session_value
+from devsynth.interface.state_access import set_session_value as _set_session_value
 
 # Module level logger
 logger = DevSynthLogger(__name__)
@@ -320,22 +322,79 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         int
             Clamped step index.
         """
+        # Ensure total is a positive integer
+        if not isinstance(total, int) or total <= 0:
+            logger.warning(f"Invalid total steps: {total}, defaulting to 1")
+            total = 1
+            
+        # Ensure current is a valid integer
+        try:
+            current = int(current)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid current step: {current}, defaulting to 0")
+            current = 0
+            
+        # Calculate the next step based on direction
         if direction == "next":
             candidate = current + 1
         elif direction == "back":
             candidate = current - 1
         else:
+            logger.warning(f"Invalid direction: {direction}, keeping current step")
             candidate = current
+            
+        # Ensure the step is within valid range
         return max(0, min(total - 1, candidate))
 
     @staticmethod
     def normalize_wizard_step(value: Any, *, total: int) -> int:
-        """Coerce arbitrary values to a valid wizard step index."""
+        """Coerce arbitrary values to a valid wizard step index.
+        
+        Parameters
+        ----------
+        value:
+            The value to normalize, can be any type.
+        total:
+            Total number of steps.
+            
+        Returns
+        -------
+        int
+            A valid step index between 0 and total-1.
+        """
+        # Ensure total is a positive integer
+        if not isinstance(total, int) or total <= 0:
+            logger.warning(f"Invalid total steps: {total}, defaulting to 1")
+            total = 1
+            
+        # Handle different types of values
+        if value is None:
+            logger.debug("Normalizing None value to step 0")
+            return 0
+            
         try:
-            step = int(float(str(value).strip()))
-        except Exception:
-            step = 0
-        return max(0, min(total - 1, step))
+            # First try direct integer conversion
+            if isinstance(value, int):
+                step = value
+            # Then try float conversion (for string representations of floats)
+            elif isinstance(value, float):
+                step = int(value)
+            # Finally try string conversion with careful handling
+            else:
+                value_str = str(value).strip()
+                if not value_str:
+                    logger.debug("Empty string value, defaulting to step 0")
+                    return 0
+                    
+                # Try to convert to float first (handles both integers and floats in string form)
+                step = int(float(value_str))
+                
+            logger.debug(f"Normalized value {value} to step {step}")
+            return max(0, min(total - 1, step))
+            
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Failed to normalize step value '{value}': {str(e)}, defaulting to 0")
+            return 0
 
     def ask_question(
         self,
@@ -423,6 +482,43 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
             A progress indicator
         """
         return WebUIProgressIndicator(description, total)
+        
+    # ------------------------------------------------------------------
+    # Session state management utilities
+    # ------------------------------------------------------------------
+    @staticmethod
+    def get_session_value(session_state, key, default=None):
+        """Get a value from session state consistently.
+        
+        This function handles different implementations of session state
+        and provides robust error handling.
+        
+        Args:
+            session_state: The session state object
+            key: The key to retrieve from session state
+            default: The default value to return if the key is not found
+            
+        Returns:
+            The value from session state or the default value
+        """
+        return _get_session_value(session_state, key, default)
+            
+    @staticmethod
+    def set_session_value(session_state, key, value):
+        """Set a value in session state consistently.
+        
+        This function handles different implementations of session state
+        and provides robust error handling.
+        
+        Args:
+            session_state: The session state object
+            key: The key to set in session state
+            value: The value to set
+            
+        Returns:
+            True if the value was set successfully, False otherwise
+        """
+        return _set_session_value(session_state, key, value)
 
 
 __all__ = ["WebUIBridge", "WebUIProgressIndicator"]

@@ -112,17 +112,20 @@ def webui_context(monkeypatch):
 scenarios("../features/general/webui_onboarding_flow.feature")
 
 
+@pytest.mark.medium
 @given("the WebUI is initialized")
 def _init(webui_context):
     return webui_context
 
 
+@pytest.mark.medium
 @when('I navigate to "Onboarding"')
 def nav_onboarding(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Onboarding"
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the onboarding form")
 def submit_onboarding(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Onboarding"
@@ -130,11 +133,13 @@ def submit_onboarding(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @then('the "Project Onboarding" header is shown')
 def header_onboarding(webui_context):
     webui_context["st"].header.assert_any_call("Project Onboarding")
 
 
+@pytest.mark.medium
 @then("the init command should be executed")
 def check_init(webui_context):
     assert webui_context["cli"].init_cmd.called

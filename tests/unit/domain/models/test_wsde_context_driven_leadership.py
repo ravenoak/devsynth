@@ -47,6 +47,7 @@ ReqID: N/A"""
         self.team.add_agents([self.python_agent, self.doc_agent, self.
             test_agent, self.security_agent])
 
+    @pytest.mark.medium
     def test_enhanced_calculate_expertise_score_exact_match_matches_expected(
         self):
         """Test enhanced expertise scoring with exact keyword matches.
@@ -59,6 +60,7 @@ ReqID: N/A"""
         assert score > self.team.enhanced_calculate_expertise_score(self.
             doc_agent, task)
 
+    @pytest.mark.medium
     def test_enhanced_calculate_expertise_score_partial_match_matches_expected(
         self):
         """Test enhanced expertise scoring with partial keyword matches.
@@ -71,6 +73,7 @@ ReqID: N/A"""
         assert score > self.team.enhanced_calculate_expertise_score(self.
             doc_agent, task)
 
+    @pytest.mark.medium
     def test_enhanced_calculate_expertise_score_experience_level_succeeds(self
         ):
         """Test that experience level affects expertise scoring.
@@ -90,6 +93,7 @@ ReqID: N/A"""
         assert senior_score > 0
         assert senior_score > junior_score
 
+    @pytest.mark.medium
     def test_enhanced_calculate_expertise_score_performance_history_succeeds(
         self):
         """Test that past performance affects expertise scoring.
@@ -108,6 +112,7 @@ ReqID: N/A"""
         assert poor_score > 0
         assert good_score > poor_score
 
+    @pytest.mark.medium
     def test_enhanced_calculate_expertise_score_nested_task_succeeds(self):
         """Test enhanced expertise scoring with nested task structure.
 
@@ -125,6 +130,7 @@ ReqID: N/A"""
         assert score > self.team.enhanced_calculate_expertise_score(self.
             test_agent, task)
 
+    @pytest.mark.medium
     def test_enhanced_calculate_phase_expertise_score_has_expected(self):
         """Test enhanced phase-specific expertise scoring.
 
@@ -172,6 +178,7 @@ ReqID: N/A"""
         self.team.add_agents([self.python_agent, self.doc_agent, self.
             test_agent, self.security_agent])
 
+    @pytest.mark.medium
     def test_enhanced_select_primus_by_expertise_code_task_succeeds(self):
         """Test enhanced primus selection for a code-related task.
 
@@ -182,6 +189,7 @@ ReqID: N/A"""
         assert selected_primus.has_been_primus
         assert self.team.get_primus() == self.python_agent
 
+    @pytest.mark.medium
     def test_enhanced_select_primus_by_expertise_doc_task_succeeds(self):
         """Test enhanced primus selection for a documentation task.
 
@@ -193,6 +201,7 @@ ReqID: N/A"""
         assert selected_primus.has_been_primus
         assert self.team.get_primus() == self.doc_agent
 
+    @pytest.mark.medium
     def test_enhanced_select_primus_by_expertise_security_task_succeeds(self):
         """Test enhanced primus selection for a security task.
 
@@ -204,6 +213,7 @@ ReqID: N/A"""
         assert selected_primus.has_been_primus
         assert self.team.get_primus() == self.security_agent
 
+    @pytest.mark.medium
     def test_enhanced_select_primus_by_expertise_rotation_succeeds(self):
         """Test that primus selection rotates after all agents have been primus.
 
@@ -217,6 +227,7 @@ ReqID: N/A"""
         assert not self.test_agent.has_been_primus
         assert not self.security_agent.has_been_primus
 
+    @pytest.mark.medium
     def test_enhanced_select_primus_by_expertise_unused_priority_succeeds(self
         ):
         """Test that unused agents are prioritized for primus selection.
@@ -248,6 +259,7 @@ ReqID: N/A"""
         self.team.add_agents([self.python_agent, self.doc_agent, self.
             test_agent, self.security_agent])
 
+    @pytest.mark.medium
     def test_dynamic_role_reassignment_enhanced_code_task_succeeds(self):
         """Test enhanced dynamic role reassignment for a code-related task.
 
@@ -264,6 +276,7 @@ ReqID: N/A"""
         assert self.test_agent in assigned_agents
         assert self.security_agent in assigned_agents
 
+    @pytest.mark.medium
     def test_dynamic_role_reassignment_enhanced_doc_task_succeeds(self):
         """Test enhanced dynamic role reassignment for a documentation task.
 
@@ -283,6 +296,7 @@ ReqID: N/A"""
         assert self.test_agent in assigned_agents
         assert self.security_agent in assigned_agents
 
+    @pytest.mark.medium
     def test_dynamic_role_reassignment_enhanced_testing_task_succeeds(self):
         """Test enhanced dynamic role reassignment for a testing task.
 
@@ -301,6 +315,7 @@ ReqID: N/A"""
         assert self.test_agent in assigned_agents
         assert self.security_agent in assigned_agents
 
+    @pytest.mark.medium
     def test_dynamic_role_reassignment_enhanced_security_task_succeeds(self):
         """Test enhanced dynamic role reassignment for a security task.
 

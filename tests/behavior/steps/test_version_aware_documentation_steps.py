@@ -85,12 +85,14 @@ def context():
     ctx.temp_dir.cleanup()
 
 # Step definitions for Background
+@pytest.mark.medium
 @given("the documentation management system is initialized")
 def doc_system_initialized(context):
     assert context.doc_manager is not None
     assert context.memory_manager is not None
 
 # Step definitions for "Fetch and store documentation" scenario
+@pytest.mark.medium
 @when(parsers.parse('I request documentation for "{library}" version "{version}"'))
 def request_library_documentation(context, library, version):
     # Create a mock documentation file
@@ -114,6 +116,7 @@ def request_library_documentation(context, library, version):
             "version": version
         })
 
+@pytest.mark.medium
 @then("the documentation should be fetched from the appropriate source")
 def doc_fetched_from_source(context):
     assert len(context.fetched_docs) > 0
@@ -121,12 +124,14 @@ def doc_fetched_from_source(context):
         assert "content" in doc
         assert f"{library} {version} Documentation" in doc["content"]
 
+@pytest.mark.medium
 @then("stored in the documentation repository")
 def doc_stored_in_repository(context):
     for (library, version), doc in context.fetched_docs.items():
         assert "id" in doc
         assert context.memory_manager.stored_items.get(doc["id"]) is not None
 
+@pytest.mark.medium
 @then(parsers.parse('I should be able to query information about {topic}'))
 def query_documentation(context, topic):
     for (library, version), doc in context.fetched_docs.items():
@@ -135,6 +140,7 @@ def query_documentation(context, topic):
         assert len(results) > 0
 
 # Step definitions for "Use cached documentation" scenario
+@pytest.mark.medium
 @given(parsers.parse('documentation for "{library}" version "{version}" has been previously fetched'))
 def doc_previously_fetched(context, library, version):
     # Create a mock documentation file
@@ -162,6 +168,7 @@ def doc_previously_fetched(context, library, version):
     )
     context.memory_manager.store(memory_item)
 
+@pytest.mark.medium
 @when(parsers.parse('I request documentation for "{library}" version "{version}" again'))
 def request_doc_again(context, library, version):
     # Mock the behavior of checking cache first
@@ -174,17 +181,20 @@ def request_doc_again(context, library, version):
     # Set a flag to indicate that we used the cached version
     context.used_cached_doc = True
 
+@pytest.mark.medium
 @then("the system should use the cached documentation")
 def system_uses_cached_doc(context):
     """Assert that cached documentation was used instead of fetching."""
     assert getattr(context, "used_cached_doc", False)
 
+@pytest.mark.medium
 @then("not fetch from external sources")
 def not_fetch_from_external(context):
     """Assert that no external fetch occurred when using cached docs."""
     assert getattr(context, "used_cached_doc", False)
 
 # Step definitions for "Detect version drift" scenario
+@pytest.mark.medium
 @given(parsers.parse('documentation for "{library}" version "{version}" is stored'))
 def doc_is_stored(context, library, version):
     # Create a mock documentation file
@@ -216,6 +226,7 @@ def doc_is_stored(context, library, version):
         "metadata": memory_item.metadata
     }
 
+@pytest.mark.medium
 @when(parsers.parse('a new version "{new_version}" is detected'))
 def new_version_detected(context, new_version):
     # In a real implementation, this would involve checking for new versions
@@ -231,6 +242,7 @@ def new_version_detected(context, new_version):
         "new_version": new_version
     }
 
+@pytest.mark.medium
 @then("the system should flag the documentation as outdated")
 def flag_doc_as_outdated(context):
     # In a real implementation, this would check if the documentation is flagged as outdated
@@ -238,6 +250,7 @@ def flag_doc_as_outdated(context):
     assert hasattr(context, 'new_version_detected'), "New version was not detected"
     assert context.new_version_detected, "Documentation was not flagged as outdated"
 
+@pytest.mark.medium
 @then("offer to update to the new version")
 def offer_to_update(context):
     # In a real implementation, this would check if an update is offered
@@ -249,6 +262,7 @@ def offer_to_update(context):
     assert "new_version" in update_info, "New version missing from update info"
 
 # Step definitions for "Query documentation across multiple libraries" scenario
+@pytest.mark.medium
 @given("documentation for multiple libraries is available:")
 def multiple_libraries_available(context):
     # Initialize a dictionary to store documentation for multiple libraries
@@ -306,6 +320,7 @@ Here are some examples of using {library} for statistical analysis.
     # Verify that we have stored documentation for all libraries in the table
     assert len(context.multi_lib_docs) == len(context.table), "Not all libraries were stored"
 
+@pytest.mark.medium
 @when(parsers.parse('I query for information about "{topic}"'))
 def query_for_information(context, topic):
     # Query the memory manager for information about the topic
@@ -315,6 +330,7 @@ def query_for_information(context, topic):
     context.query_results = results
     context.query_topic = topic
 
+@pytest.mark.medium
 @then("I should receive relevant documentation from all applicable libraries")
 def receive_relevant_documentation(context):
     # Verify that we have query results
@@ -325,6 +341,7 @@ def receive_relevant_documentation(context):
     # For testing, ensure at least one result contains the queried topic
     assert any('content' in res for res in context.query_results)
 
+@pytest.mark.medium
 @then("the results should be ranked by relevance")
 def results_ranked_by_relevance(context):
     # Verify that we have query results
@@ -337,6 +354,7 @@ def results_ranked_by_relevance(context):
             assert context.query_results[i].get('score', 0) >= context.query_results[i+1].get('score', 0), "Results are not ranked by relevance"
 
 # Step definitions for "Filter documentation by version constraints" scenario
+@pytest.mark.medium
 @given(parsers.parse('documentation for multiple versions of "{library}" is available:'))
 def multiple_versions_available(context, library):
     # Initialize a dictionary to store documentation for multiple versions
@@ -396,6 +414,7 @@ Here are some examples of using the Keras API in {library} {version}.
     # Verify that we have stored documentation for all versions in the table
     assert len(context.multi_version_docs) == len(context.table), "Not all versions were stored"
 
+@pytest.mark.medium
 @when(parsers.parse('I query for "{topic}" with version constraint "{constraint}"'))
 def query_with_version_constraint(context, topic, constraint):
     # Parse the constraint
@@ -430,6 +449,7 @@ def query_with_version_constraint(context, topic, constraint):
     else:
         raise ValueError(f"Unsupported version constraint format: {constraint}")
 
+@pytest.mark.medium
 @then(parsers.parse('I should only receive documentation from versions {included_versions}'))
 def only_receive_from_versions(context, included_versions):
     # Parse the included versions
@@ -460,6 +480,7 @@ def only_receive_from_versions(context, included_versions):
     # Store the included versions for later verification
     context.included_versions = versions
 
+@pytest.mark.medium
 @then(parsers.parse('not from version {excluded_version}'))
 def not_from_version(context, excluded_version):
     # Verify that we have query results
@@ -471,6 +492,7 @@ def not_from_version(context, excluded_version):
     assert excluded_version not in context.included_versions, f"Version {excluded_version} should be excluded"
 
 # Step definitions for "Documentation ingestion with memory integration" scenario
+@pytest.mark.medium
 @when(parsers.parse('I fetch documentation for "{library}" version "{version}"'))
 def fetch_documentation(context, library, version):
     # Create a mock documentation file with multiple sections to create chunks
@@ -513,6 +535,7 @@ Advanced techniques for using {library}.
         "type": "documentation"
     }
 
+@pytest.mark.medium
 @then("the documentation chunks should be stored in the vector memory store")
 def doc_chunks_in_vector_store(context):
     assert len(context.memory_manager.vector_store) > 0
@@ -520,6 +543,7 @@ def doc_chunks_in_vector_store(context):
         assert content is not None
         assert len(content) > 0
 
+@pytest.mark.medium
 @then("metadata should be stored in the structured memory store")
 def metadata_in_structured_store(context):
     assert len(context.memory_manager.structured_store) > 0
@@ -528,6 +552,7 @@ def metadata_in_structured_store(context):
         assert "library" in metadata
         assert "version" in metadata
 
+@pytest.mark.medium
 @then("relationships should be stored in the knowledge graph")
 def relationships_in_knowledge_graph(context):
     assert len(context.memory_manager.knowledge_graph) > 0

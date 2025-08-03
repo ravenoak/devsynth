@@ -58,6 +58,9 @@ class JSONFileStore(MemoryStore):
         self.items_file = os.path.join(self.base_path, "memory_items.json")
         self.items = self._load_items()
         self.token_count = 0
+        
+        # Transaction support
+        self.active_transactions = {}  # transaction_id -> {snapshot, changes}
 
     def _encrypt(self, data: bytes) -> bytes:
         if not self.encryption_enabled:
@@ -372,18 +375,20 @@ class JSONFileStore(MemoryStore):
                 original_error=e,
             ) from e
 
-    def store(self, item: MemoryItem) -> str:
+    def store(self, item: MemoryItem, transaction_id: str = None) -> str:
         """
         Store an item in memory and return its ID.
 
         Args:
             item: The memory item to store
+            transaction_id: Optional transaction ID to use for this operation
 
         Returns:
             The ID of the stored item
 
         Raises:
             MemoryStoreError: If the item cannot be stored
+            MemoryItemNotFoundError: If the transaction does not exist
         """
         try:
             if not item.id:
@@ -393,24 +398,63 @@ class JSONFileStore(MemoryStore):
                 f"Storing memory item",
                 item_id=item.id,
                 memory_type=item.memory_type.value,
+                transaction_id=transaction_id,
             )
-            self.items[item.id] = item
-            self._save_items()
-            audit_event(
-                "store_memory",
-                store="JSONFileStore",
-                item_id=item.id,
-            )
+            
+            # Check if this operation is part of a transaction
+            if transaction_id:
+                # Check if the transaction exists
+                if transaction_id not in self.active_transactions:
+                    logger.warning(f"Transaction not found", transaction_id=transaction_id)
+                    raise MemoryItemNotFoundError(
+                        f"Transaction {transaction_id} not found",
+                        store_type="json_file",
+                        item_id=transaction_id
+                    )
+                
+                # Get the transaction
+                transaction = self.active_transactions[transaction_id]
+                
+                # Add the change to the transaction
+                transaction["changes"].append({
+                    "operation": "store",
+                    "item_id": item.id,
+                    "item": item
+                })
+                
+                # Apply the change
+                self.items[item.id] = item
+                
+                # Don't save to disk yet - will be saved on commit
+                audit_event(
+                    "store_memory",
+                    store="JSONFileStore",
+                    item_id=item.id,
+                    transaction_id=transaction_id
+                )
+            else:
+                # Not part of a transaction, apply immediately
+                self.items[item.id] = item
+                self._save_items()
+                audit_event(
+                    "store_memory",
+                    store="JSONFileStore",
+                    item_id=item.id,
+                )
 
             # Update token count (rough estimate)
             self.token_count += len(str(item)) // 4
 
             return item.id
+        except MemoryItemNotFoundError:
+            # Re-raise the exception
+            raise
         except Exception as e:
             logger.error(
                 f"Failed to store memory item: {str(e)}",
                 error=e,
                 item_id=item.id if item.id else "unknown",
+                transaction_id=transaction_id,
             )
             raise MemoryStoreError(
                 f"Failed to store memory item: {str(e)}",
@@ -529,22 +573,70 @@ class JSONFileStore(MemoryStore):
                 original_error=e,
             ) from e
 
-    def delete(self, item_id: str) -> bool:
+    def delete(self, item_id: str, transaction_id: str = None) -> bool:
         """
         Delete an item from memory.
 
         Args:
             item_id: The ID of the item to delete
+            transaction_id: Optional transaction ID to use for this operation
 
         Returns:
             True if the item was deleted, False if it was not found
 
         Raises:
             MemoryStoreError: If the delete operation fails
+            MemoryItemNotFoundError: If the transaction does not exist
         """
         try:
-            if item_id in self.items:
-                logger.debug(f"Deleting memory item", item_id=item_id)
+            # Check if the item exists
+            if item_id not in self.items:
+                logger.debug(f"Memory item not found for deletion", item_id=item_id, transaction_id=transaction_id)
+                audit_event(
+                    "delete_memory",
+                    store="JSONFileStore",
+                    item_id=item_id,
+                    deleted=False,
+                    transaction_id=transaction_id,
+                )
+                return False
+                
+            logger.debug(f"Deleting memory item", item_id=item_id, transaction_id=transaction_id)
+            
+            # Check if this operation is part of a transaction
+            if transaction_id:
+                # Check if the transaction exists
+                if transaction_id not in self.active_transactions:
+                    logger.warning(f"Transaction not found", transaction_id=transaction_id)
+                    raise MemoryItemNotFoundError(
+                        f"Transaction {transaction_id} not found",
+                        store_type="json_file",
+                        item_id=transaction_id
+                    )
+                
+                # Get the transaction
+                transaction = self.active_transactions[transaction_id]
+                
+                # Add the change to the transaction
+                transaction["changes"].append({
+                    "operation": "delete",
+                    "item_id": item_id,
+                    "item": self.items[item_id]  # Store the item in case we need to rollback
+                })
+                
+                # Apply the change
+                del self.items[item_id]
+                
+                # Don't save to disk yet - will be saved on commit
+                audit_event(
+                    "delete_memory",
+                    store="JSONFileStore",
+                    item_id=item_id,
+                    deleted=True,
+                    transaction_id=transaction_id
+                )
+            else:
+                # Not part of a transaction, apply immediately
                 del self.items[item_id]
                 self._save_items()
                 audit_event(
@@ -553,19 +645,17 @@ class JSONFileStore(MemoryStore):
                     item_id=item_id,
                     deleted=True,
                 )
-                return True
-            else:
-                logger.debug(f"Memory item not found for deletion", item_id=item_id)
-                audit_event(
-                    "delete_memory",
-                    store="JSONFileStore",
-                    item_id=item_id,
-                    deleted=False,
-                )
-                return False
+                
+            return True
+        except MemoryItemNotFoundError:
+            # Re-raise the exception
+            raise
         except Exception as e:
             logger.error(
-                f"Error deleting memory item: {str(e)}", error=e, item_id=item_id
+                f"Error deleting memory item: {str(e)}", 
+                error=e, 
+                item_id=item_id,
+                transaction_id=transaction_id
             )
             raise MemoryStoreError(
                 f"Error deleting memory item: {str(e)}",
@@ -582,3 +672,176 @@ class JSONFileStore(MemoryStore):
             The estimated token usage
         """
         return self.token_count
+        
+    def begin_transaction(self) -> str:
+        """
+        Begin a new transaction and return a transaction ID.
+        
+        Transactions provide atomicity for a series of operations.
+        All operations within a transaction either succeed or fail together.
+        
+        Returns:
+            The ID of the new transaction
+            
+        Raises:
+            MemoryStoreError: If the transaction cannot be started
+        """
+        try:
+            # Generate a unique transaction ID
+            transaction_id = str(uuid.uuid4())
+            
+            # Create a snapshot of the current state
+            snapshot = {item_id: item.copy() for item_id, item in self.items.items()}
+            
+            # Initialize the transaction
+            self.active_transactions[transaction_id] = {
+                "snapshot": snapshot,
+                "changes": [],
+                "started_at": datetime.now().isoformat()
+            }
+            
+            logger.debug(f"Started transaction", transaction_id=transaction_id)
+            audit_event(
+                "begin_transaction",
+                store="JSONFileStore",
+                transaction_id=transaction_id
+            )
+            
+            return transaction_id
+        except Exception as e:
+            logger.error(
+                f"Failed to start transaction: {str(e)}",
+                error=e
+            )
+            raise MemoryStoreError(
+                f"Failed to start transaction: {str(e)}",
+                store_type="json_file",
+                operation="begin_transaction",
+                original_error=e
+            ) from e
+            
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """
+        Commit a transaction, making all its operations permanent.
+        
+        Args:
+            transaction_id: The ID of the transaction to commit
+            
+        Returns:
+            True if the transaction was committed successfully, False otherwise
+            
+        Raises:
+            MemoryStoreError: If the transaction cannot be committed
+            MemoryItemNotFoundError: If the transaction does not exist
+        """
+        try:
+            # Check if the transaction exists
+            if transaction_id not in self.active_transactions:
+                logger.warning(f"Transaction not found", transaction_id=transaction_id)
+                raise MemoryItemNotFoundError(
+                    f"Transaction {transaction_id} not found",
+                    store_type="json_file",
+                    item_id=transaction_id
+                )
+            
+            # Get the transaction
+            transaction = self.active_transactions[transaction_id]
+            
+            # Save the changes to disk
+            self._save_items()
+            
+            # Remove the transaction
+            del self.active_transactions[transaction_id]
+            
+            logger.debug(f"Committed transaction", transaction_id=transaction_id)
+            audit_event(
+                "commit_transaction",
+                store="JSONFileStore",
+                transaction_id=transaction_id
+            )
+            
+            return True
+        except MemoryItemNotFoundError:
+            # Re-raise the exception
+            raise
+        except Exception as e:
+            logger.error(
+                f"Failed to commit transaction: {str(e)}",
+                error=e,
+                transaction_id=transaction_id
+            )
+            raise MemoryStoreError(
+                f"Failed to commit transaction: {str(e)}",
+                store_type="json_file",
+                operation="commit_transaction",
+                original_error=e
+            ) from e
+            
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """
+        Rollback a transaction, undoing all its operations.
+        
+        Args:
+            transaction_id: The ID of the transaction to rollback
+            
+        Returns:
+            True if the transaction was rolled back successfully, False otherwise
+            
+        Raises:
+            MemoryStoreError: If the transaction cannot be rolled back
+            MemoryItemNotFoundError: If the transaction does not exist
+        """
+        try:
+            # Check if the transaction exists
+            if transaction_id not in self.active_transactions:
+                logger.warning(f"Transaction not found", transaction_id=transaction_id)
+                raise MemoryItemNotFoundError(
+                    f"Transaction {transaction_id} not found",
+                    store_type="json_file",
+                    item_id=transaction_id
+                )
+            
+            # Get the transaction
+            transaction = self.active_transactions[transaction_id]
+            
+            # Restore the snapshot
+            self.items = transaction["snapshot"]
+            
+            # Remove the transaction
+            del self.active_transactions[transaction_id]
+            
+            logger.debug(f"Rolled back transaction", transaction_id=transaction_id)
+            audit_event(
+                "rollback_transaction",
+                store="JSONFileStore",
+                transaction_id=transaction_id
+            )
+            
+            return True
+        except MemoryItemNotFoundError:
+            # Re-raise the exception
+            raise
+        except Exception as e:
+            logger.error(
+                f"Failed to rollback transaction: {str(e)}",
+                error=e,
+                transaction_id=transaction_id
+            )
+            raise MemoryStoreError(
+                f"Failed to rollback transaction: {str(e)}",
+                store_type="json_file",
+                operation="rollback_transaction",
+                original_error=e
+            ) from e
+            
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """
+        Check if a transaction is active.
+        
+        Args:
+            transaction_id: The ID of the transaction to check
+            
+        Returns:
+            True if the transaction is active, False otherwise
+        """
+        return transaction_id in self.active_transactions

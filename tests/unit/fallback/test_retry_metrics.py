@@ -5,6 +5,7 @@ from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.metrics import get_retry_metrics, reset_metrics, get_retry_error_metrics
 
 
+@pytest.mark.medium
 def test_retry_metrics_success():
     reset_metrics()
     mock_func = Mock(side_effect=[Exception("err"), "ok"])
@@ -19,6 +20,7 @@ def test_retry_metrics_success():
     assert metrics.get("success") == 1
 
 
+@pytest.mark.medium
 def test_retry_metrics_failure():
     reset_metrics()
     mock_func = Mock(side_effect=Exception("err"))
@@ -34,6 +36,7 @@ def test_retry_metrics_failure():
     assert metrics.get("failure") == 1
 
 
+@pytest.mark.medium
 def test_retry_metrics_abort_when_not_retryable():
     reset_metrics()
     mock_func = Mock(side_effect=Exception("err"))
@@ -50,6 +53,7 @@ def test_retry_metrics_abort_when_not_retryable():
     assert metrics.get("abort") == 1
 
 
+@pytest.mark.medium
 def test_retry_metrics_invalid_result():
     reset_metrics()
     mock_func = Mock(side_effect=["bad", "good"])
@@ -66,6 +70,7 @@ def test_retry_metrics_invalid_result():
     assert metrics.get("invalid") == 1
 
 
+@pytest.mark.medium
 def test_retry_metrics_success_without_retries():
     reset_metrics()
     mock_func = Mock(return_value="ok")
@@ -80,6 +85,7 @@ def test_retry_metrics_success_without_retries():
     assert metrics.get("attempt") is None
 
 
+@pytest.mark.medium
 def test_retry_error_metrics():
     reset_metrics()
     mock_func = Mock(side_effect=[ValueError("bad"), "ok"])
@@ -93,6 +99,7 @@ def test_retry_error_metrics():
     assert metrics.get("ValueError") == 1
 
 
+@pytest.mark.medium
 def test_retry_error_map_prevents_retry():
     reset_metrics()
     mock_func = Mock(side_effect=ValueError("boom"))

@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch, call, mock_open
 import pytest
 from tests.unit.interface.test_webui_enhanced import _mock_streamlit
 
-
 @pytest.fixture
 def mock_streamlit(monkeypatch):
     """Fixture to mock streamlit for testing."""
@@ -12,20 +11,14 @@ def mock_streamlit(monkeypatch):
 
     class SS(dict):
         pass
-
     st.session_state = SS()
     st.session_state.wizard_step = 0
-    st.session_state['wizard_step'] = 0
-    st.session_state.wizard_data = {
-        "title": "",
-        "description": "",
-        "type": "functional",
-        "priority": "medium",
-        "constraints": "",
-    }
+    state.set('wizard_step', 0)
+    0
+    st.session_state.wizard_data = {'title': '', 'description': '', 'type': 'functional', 'priority': 'medium', 'constraints': ''}
     st.session_state['wizard_data'] = st.session_state.wizard_data
     st.button = MagicMock(return_value=False)
-    st.text_area = MagicMock(return_value="desc")
+    st.text_area = MagicMock(return_value='desc')
     col1_mock = MagicMock(button=MagicMock(return_value=False))
     col2_mock = MagicMock(button=MagicMock(return_value=False))
     st.columns = MagicMock(return_value=(col1_mock, col2_mock))
@@ -39,10 +32,12 @@ def mock_streamlit(monkeypatch):
     st.expander.return_value.__enter__ = MagicMock(return_value=MagicMock())
     st.expander.return_value.__exit__ = MagicMock(return_value=None)
     st.spinner = MagicMock()
-    monkeypatch.setattr('pathlib.Path.exists', lambda self: True)
+
+def mock_function(*args, **kwargs):
+    return st
+    monkeypatch.setattr(target, mock_function)
     monkeypatch.setitem(sys.modules, 'streamlit', st)
     return st
-
 
 @pytest.fixture
 def mock_spec_cmd(monkeypatch):
@@ -55,40 +50,36 @@ def mock_spec_cmd(monkeypatch):
     monkeypatch.setitem(sys.modules, 'devsynth.application.cli', cli_module)
     return spec_cmd
 
-
 @pytest.fixture
 def mock_requirement_types(monkeypatch):
     """Fixture to mock RequirementType and RequirementPriority enums."""
     req_module = ModuleType('devsynth.domain.models.requirement')
 
-
     class _Enum:
+
         def __init__(self, value):
             self.value = value
 
     class MockRequirementType:
-        FUNCTIONAL = _Enum("functional")
-        NON_FUNCTIONAL = _Enum("non_functional")
-        CONSTRAINT = _Enum("constraint")
-
+        FUNCTIONAL = _Enum('functional')
+        NON_FUNCTIONAL = _Enum('non_functional')
+        CONSTRAINT = _Enum('constraint')
 
     class MockRequirementPriority:
-        MUST_HAVE = _Enum("must_have")
-        SHOULD_HAVE = _Enum("should_have")
-        COULD_HAVE = _Enum("could_have")
-        WONT_HAVE = _Enum("wont_have")
-        MEDIUM = _Enum("medium")
+        MUST_HAVE = _Enum('must_have')
+        SHOULD_HAVE = _Enum('should_have')
+        COULD_HAVE = _Enum('could_have')
+        WONT_HAVE = _Enum('wont_have')
+        MEDIUM = _Enum('medium')
     req_module.RequirementType = MockRequirementType
     req_module.RequirementPriority = MockRequirementPriority
-    monkeypatch.setitem(sys.modules, 'devsynth.domain.models.requirement',
-        req_module)
+    monkeypatch.setitem(sys.modules, 'devsynth.domain.models.requirement', req_module)
 
-
-def test_requirements_page_succeeds(mock_streamlit, mock_spec_cmd,
-    mock_requirement_types):
+@pytest.mark.medium
+def test_requirements_page_succeeds(mock_streamlit, mock_spec_cmd, mock_requirement_types):
     """Test the requirements_page method.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -101,11 +92,11 @@ ReqID: N/A"""
     bridge.requirements_page()
     assert mock_spec_cmd.called
 
-
+@pytest.mark.medium
 def test_requirements_wizard_succeeds(mock_streamlit, mock_requirement_types):
     """Test the _requirements_wizard method.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -124,7 +115,7 @@ ReqID: N/A"""
     mock_streamlit.session_state.wizard_step = 4
     mock_streamlit.button.return_value = True
     m = mock_open()
-    with patch("builtins.open", m):
+    with patch('builtins.open', m):
         result = bridge._requirements_wizard()
     assert result is not None
     assert isinstance(result, dict)

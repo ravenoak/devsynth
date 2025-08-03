@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from pathlib import Path
 from typing import Optional, Union, List, Dict, Any
 
@@ -34,6 +35,7 @@ from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.config.loader import ConfigModel, save_config, _find_config_path
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd as _doctor_impl
+from .errors import handle_error_enhanced
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -470,9 +472,11 @@ def init_cmd(
                 "[green]Initialization complete[/green]", highlight=True
             )
         except Exception as save_err:
-            _handle_error(bridge, save_err)
+            console = Console()
+            handle_error_enhanced(bridge, save_err, console)
     except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
+        console = Console()
+        handle_error_enhanced(bridge, err, console)
 
 
 def spec_cmd(
@@ -501,6 +505,10 @@ def spec_cmd(
         devsynth spec --requirements-file custom_requirements.md
         ```
     """
+    from rich.console import Console
+    from .progress import create_enhanced_progress, run_with_progress
+    
+    console = Console()
     bridge = _resolve_bridge(bridge)
     auto_confirm = (
         _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
@@ -524,21 +532,97 @@ def spec_cmd(
             else:
                 return
 
-        # Generate specifications
-        args = filter_args({"requirements_file": requirements_file})
-        result = generate_specs(**args)
+        # Define subtasks for the specification generation process
+        subtasks = [
+            {"name": "Analyzing requirements", "total": 30},
+            {"name": "Extracting key concepts", "total": 20},
+            {"name": "Generating specifications", "total": 40},
+            {"name": "Validating output", "total": 10},
+        ]
+        
+        # Create a function to run with progress tracking
+        def generate_specs_with_progress():
+            # Create progress indicator for the main task
+            progress = create_enhanced_progress(console, "Generating specifications", 100)
+            
+            try:
+                # Add subtasks
+                for subtask in subtasks:
+                    progress.add_subtask(subtask["name"], subtask["total"])
+                
+                # Update progress for first subtask
+                progress.update_subtask("Analyzing requirements", advance=15, 
+                                       description="Parsing requirements file")
+                
+                # Generate specifications
+                args = filter_args({"requirements_file": requirements_file})
+                
+                # Update progress for first subtask completion
+                progress.update_subtask("Analyzing requirements", advance=15)
+                progress.complete_subtask("Analyzing requirements")
+                
+                # Update progress for second subtask
+                progress.update_subtask("Extracting key concepts", advance=20)
+                progress.complete_subtask("Extracting key concepts")
+                
+                # Update progress for third subtask
+                progress.update_subtask("Generating specifications", advance=20, 
+                                       description="Creating specification structure")
+                progress.update_subtask("Generating specifications", advance=20, 
+                                       description="Writing specification details")
+                
+                # Call the actual generate_specs function
+                result = generate_specs(**args)
+                
+                # Update progress for remaining subtasks
+                progress.complete_subtask("Generating specifications")
+                progress.update_subtask("Validating output", advance=10)
+                progress.complete_subtask("Validating output")
+                
+                # Update main task progress
+                progress.update(advance=100)
+                
+                return result
+            finally:
+                # Ensure progress is completed even if an error occurs
+                progress.complete()
+        
+        # Run the specification generation with progress tracking
+        result = generate_specs_with_progress()
 
         # Handle result
         if result.get("success"):
             output_file = result.get("output_file", "specs.md")
+            
+            # Create a summary table of what was generated
+            from rich.table import Table
+            summary_table = Table(title="Specification Generation Summary")
+            summary_table.add_column("Item", style="cyan")
+            summary_table.add_column("Value", style="green")
+            
+            summary_table.add_row("Input File", requirements_file)
+            summary_table.add_row("Output File", output_file)
+            if "stats" in result:
+                stats = result["stats"]
+                for key, value in stats.items():
+                    summary_table.add_row(key.replace("_", " ").title(), str(value))
+            
+            console.print(summary_table)
+            
             bridge.display_result(
-                f"[green]Specifications generated from {requirements_file}.[/green]"
+                f"[green]Specifications successfully generated from {requirements_file}.[/green]",
+                highlight=True
             )
-            bridge.display_result(f"[blue]Output saved to: {output_file}[/blue]")
+            
+            # Show next steps
+            bridge.display_result("\n[bold]Next Steps:[/bold]")
+            bridge.display_result(f"1. Review the generated specifications in {output_file}")
+            bridge.display_result("2. Generate tests: devsynth test")
+            bridge.display_result("3. Generate code: devsynth code")
         else:
-            _handle_error(bridge, result)
+            handle_error_enhanced(bridge, result, console)
     except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
+        handle_error_enhanced(bridge, err, console)
 
 
 def test_cmd(
@@ -567,6 +651,11 @@ def test_cmd(
         devsynth test --spec-file custom_specs.md
         ```
     """
+    from rich.console import Console
+    from rich.table import Table
+    from .progress import create_enhanced_progress
+    
+    console = Console()
     bridge = _resolve_bridge(bridge)
     auto_confirm = (
         _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
@@ -587,21 +676,102 @@ def test_cmd(
             else:
                 return
 
-        # Generate tests
-        args = filter_args({"spec_file": spec_file})
-        result = generate_tests(**args)
+        # Define subtasks for the test generation process
+        subtasks = [
+            {"name": "Analyzing specifications", "total": 25},
+            {"name": "Identifying test cases", "total": 25},
+            {"name": "Generating unit tests", "total": 20},
+            {"name": "Generating integration tests", "total": 15},
+            {"name": "Generating behavior tests", "total": 15},
+        ]
+        
+        # Create a function to run with progress tracking
+        def generate_tests_with_progress():
+            # Create progress indicator for the main task
+            progress = create_enhanced_progress(console, "Generating tests", 100)
+            
+            try:
+                # Add subtasks
+                for subtask in subtasks:
+                    progress.add_subtask(subtask["name"], subtask["total"])
+                
+                # Update progress for first subtask
+                progress.update_subtask("Analyzing specifications", advance=15, 
+                                       description="Parsing specification file")
+                
+                # Generate tests
+                args = filter_args({"spec_file": spec_file})
+                
+                # Update progress for first subtask completion
+                progress.update_subtask("Analyzing specifications", advance=10)
+                progress.complete_subtask("Analyzing specifications")
+                
+                # Update progress for second subtask
+                progress.update_subtask("Identifying test cases", advance=15, 
+                                       description="Extracting testable requirements")
+                progress.update_subtask("Identifying test cases", advance=10, 
+                                       description="Defining test boundaries")
+                progress.complete_subtask("Identifying test cases")
+                
+                # Update progress for remaining subtasks
+                progress.update_subtask("Generating unit tests", advance=20)
+                progress.complete_subtask("Generating unit tests")
+                
+                progress.update_subtask("Generating integration tests", advance=15)
+                progress.complete_subtask("Generating integration tests")
+                
+                progress.update_subtask("Generating behavior tests", advance=15)
+                progress.complete_subtask("Generating behavior tests")
+                
+                # Call the actual generate_tests function
+                result = generate_tests(**args)
+                
+                # Update main task progress
+                progress.update(advance=100)
+                
+                return result
+            finally:
+                # Ensure progress is completed even if an error occurs
+                progress.complete()
+        
+        # Run the test generation with progress tracking
+        result = generate_tests_with_progress()
 
         # Handle result
         if result.get("success"):
             output_dir = result.get("output_dir", "tests")
-            bridge.display_result(f"[green]Tests generated from {spec_file}.[/green]")
+            
+            # Create a summary table of what was generated
+            summary_table = Table(title="Test Generation Summary")
+            summary_table.add_column("Test Type", style="cyan")
+            summary_table.add_column("Location", style="blue")
+            
+            # Add rows for each test type
+            test_types = {
+                "Unit Tests": f"{output_dir}/unit",
+                "Integration Tests": f"{output_dir}/integration",
+                "Behavior Tests": f"{output_dir}/behavior"
+            }
+            
+            for test_type, location in test_types.items():
+                summary_table.add_row(test_type, location)
+            
+            console.print(summary_table)
+            
             bridge.display_result(
-                f"[blue]Tests saved to directory: {output_dir}[/blue]"
+                f"[green]Tests successfully generated from {spec_file}.[/green]",
+                highlight=True
             )
+            
+            # Show next steps
+            bridge.display_result("\n[bold]Next Steps:[/bold]")
+            bridge.display_result("1. Review the generated tests")
+            bridge.display_result("2. Generate code: devsynth code")
+            bridge.display_result("3. Run tests: devsynth run-pipeline")
         else:
-            _handle_error(bridge, result)
+            handle_error_enhanced(bridge, result, console)
     except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
+        handle_error_enhanced(bridge, err, console)
 
 
 def code_cmd(
@@ -655,9 +825,11 @@ def code_cmd(
             bridge.display_result("[green]Code generated successfully.[/green]")
             bridge.display_result(f"[blue]Code saved to directory: {output_dir}[/blue]")
         else:
-            _handle_error(bridge, result)
+            console = Console()
+            handle_error_enhanced(bridge, result, console)
     except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
+        console = Console()
+        handle_error_enhanced(bridge, err, console)
 
 
 def run_pipeline_cmd(
@@ -732,9 +904,11 @@ def run_pipeline_cmd(
             if "output" in result:
                 bridge.display_result(f"[blue]Output:[/blue]\n{result['output']}")
         else:
-            _handle_error(bridge, result)
+            console = Console()
+            handle_error_enhanced(bridge, result, console)
     except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
+        console = Console()
+        handle_error_enhanced(bridge, err, console)
 
 
 @config_app.callback(invoke_without_command=True)
@@ -819,7 +993,8 @@ def config_cmd(
                         f"[green]Configuration updated: {key} = {value}[/green]"
                     )
                 except Exception as save_err:
-                    _handle_error(bridge, save_err)
+                    console = Console()
+                    handle_error_enhanced(bridge, save_err, console)
             elif key:
                 # Display specific configuration value
                 bridge.display_result(f"[blue]{key}:[/blue] {result.get('value')}")
@@ -834,9 +1009,11 @@ def config_cmd(
                 for k, v in result.get("config", {}).items():
                     bridge.display_result(f"  [yellow]{k}:[/yellow] {v}")
         else:
-            _handle_error(bridge, result)
+            console = Console()
+            handle_error_enhanced(bridge, result, console)
     except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
+        console = Console()
+        handle_error_enhanced(bridge, err, console)
 
 
 @config_app.command("enable-feature")

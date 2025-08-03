@@ -712,6 +712,80 @@ class PeerReviewWorkflow:
     max_revision_cycles: int = 3
     team: Optional[Any] = None
     memory_manager: Optional[MemoryManager] = None
+    
+    def _get_revision_from_author(self, revision_request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Get a revised version of the work from the author based on feedback.
+        
+        Args:
+            revision_request: A dictionary containing the original work, feedback summary,
+                             improvement suggestions, and other relevant information
+                             
+        Returns:
+            A dictionary containing the revised work
+        """
+        logger.info(f"Requesting revision from author: {getattr(self.author, 'name', 'Unknown')}")
+        
+        # If the author has a revise_work method, use it
+        if hasattr(self.author, "revise_work") and callable(getattr(self.author, "revise_work")):
+            try:
+                revised_work = self.author.revise_work(revision_request)
+                if revised_work:
+                    logger.info("Author provided revision using revise_work method")
+                    return revised_work
+            except Exception as e:
+                logger.error(f"Error getting revision from author's revise_work method: {str(e)}")
+        
+        # If the team has a request_revision method, use it
+        if self.team and hasattr(self.team, "request_revision") and callable(getattr(self.team, "request_revision")):
+            try:
+                revised_work = self.team.request_revision(self.author, revision_request)
+                if revised_work:
+                    logger.info("Team provided revision using request_revision method")
+                    return revised_work
+            except Exception as e:
+                logger.error(f"Error getting revision from team's request_revision method: {str(e)}")
+        
+        # If the author has a generate_response method (UnifiedAgent interface), use it
+        if hasattr(self.author, "generate_response") and callable(getattr(self.author, "generate_response")):
+            try:
+                # Prepare a prompt for the author
+                prompt = f"""
+                You need to revise your work based on the following feedback:
+                
+                ORIGINAL WORK:
+                {revision_request.get('original_work', {})}
+                
+                FEEDBACK SUMMARY:
+                {revision_request.get('feedback_summary', 'No summary provided')}
+                
+                IMPROVEMENT SUGGESTIONS:
+                {', '.join(revision_request.get('improvement_suggestions', ['No suggestions provided']))}
+                
+                Please provide a revised version that addresses this feedback.
+                """
+                
+                response = self.author.generate_response(prompt)
+                if response:
+                    logger.info("Author provided revision using generate_response method")
+                    return {
+                        "original": revision_request.get("original_work", {}),
+                        "revision": response,
+                        "revision_number": revision_request.get("revision_number", 1),
+                        "improvements": "Addressed reviewer feedback"
+                    }
+            except Exception as e:
+                logger.error(f"Error getting revision from author's generate_response method: {str(e)}")
+        
+        # If all else fails, create a simulated revision (fallback for compatibility)
+        logger.warning("Could not get actual revision from author, using simulated revision")
+        return {
+            "original": revision_request.get("original_work", {}),
+            "revision": f"Revision {revision_request.get('revision_number', 1)}",
+            "revision_number": revision_request.get("revision_number", 1),
+            "improvements": "Addressed reviewer feedback (simulated)",
+            "is_simulated": True
+        }
 
     def run(self) -> Dict[str, Any]:
         """
@@ -762,13 +836,22 @@ class PeerReviewWorkflow:
             ) and revision_count < self.max_revision_cycles:
                 current_review.request_revision()
 
-                # In a real implementation, this would involve getting the revised work product
-                # from the author. For now, we'll simulate a revision by creating a copy.
-                revised_work = {
-                    "original": current_review.work_product,
-                    "revision": f"Revision {revision_count + 1}",
-                    "improvements": "Addressed reviewer feedback",
+                # Request a revision from the author based on the feedback
+                feedback_summary = feedback.get("summary", "")
+                improvement_suggestions = feedback.get("improvement_suggestions", [])
+                
+                # Prepare the revision request with detailed feedback
+                revision_request = {
+                    "original_work": current_review.work_product,
+                    "feedback_summary": feedback_summary,
+                    "improvement_suggestions": improvement_suggestions,
+                    "revision_number": revision_count + 1,
+                    "criteria_results": feedback.get("criteria_results", {}),
+                    "quality_scores": feedback.get("quality_scores", {}),
                 }
+                
+                # Get the revised work from the author
+                revised_work = self._get_revision_from_author(revision_request)
 
                 # Create a new review for the revision
                 current_review = current_review.submit_revision(revised_work)

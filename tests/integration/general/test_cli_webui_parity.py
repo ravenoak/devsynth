@@ -64,6 +64,7 @@ def parity_env(monkeypatch):
     return cli_module, webui.WebUI()
 
 
+@pytest.mark.medium
 def test_init_invocations_match_succeeds(parity_env):
     """Test that init invocations match succeeds.
 
@@ -81,6 +82,7 @@ ReqID: N/A"""
     assert args_cli == args_web
 
 
+@pytest.mark.medium
 def test_display_result_sanitization_succeeds(parity_env, monkeypatch):
     """Ensure CLI and WebUI bridges sanitize output consistently.
 
@@ -117,6 +119,7 @@ ReqID: N/A"""
     assert out_cli_str == out_web_str
 
 
+@pytest.mark.medium
 def test_progress_indicator_parity_succeeds(parity_env, monkeypatch):
     """Ensure CLI and WebUI bridges can create progress indicators with the same interface.
 

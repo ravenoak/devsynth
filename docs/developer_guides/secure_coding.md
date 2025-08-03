@@ -6,8 +6,15 @@ status: published
 tags:
 - developer-guide
 title: Secure Coding Guidelines
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Secure Coding Guidelines
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Secure Coding Guidelines
+</div>
 
 # Secure Coding Guidelines
 
@@ -347,4 +354,4 @@ DevSynth contributors should maintain a strong security mindset:
 - [NIST Secure Software Development Framework](https://csrc.nist.gov/Projects/ssdf)
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

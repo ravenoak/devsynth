@@ -5,7 +5,6 @@ from devsynth.application.agents.critic import CriticAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.ports.llm_port import LLMPort
 
-
 class TestCriticAgent:
     """Unit tests for the CriticAgent class.
 
@@ -16,20 +15,19 @@ ReqID: N/A"""
         """Create a mock LLM port."""
         mock_port = MagicMock(spec=LLMPort)
         mock_port.generate.return_value = 'Generated critique'
-        mock_port.generate_with_context.return_value = (
-            'Generated critique with context')
+        mock_port.generate_with_context.return_value = 'Generated critique with context'
         return mock_port
 
     @pytest.fixture
     def critic_agent(self, mock_llm_port):
         """Create a CriticAgent instance for testing."""
         agent = CriticAgent()
-        config = AgentConfig(name='TestCriticAgent', agent_type=AgentType.
-            CRITIC, description='Test Critic Agent', capabilities=[])
+        config = AgentConfig(name='TestCriticAgent', agent_type=AgentType.CRITIC, description='Test Critic Agent', capabilities=[])
         agent.initialize(config)
         agent.set_llm_port(mock_llm_port)
         return agent
 
+    @pytest.mark.medium
     def test_initialization_succeeds(self, critic_agent):
         """Test that the agent initializes correctly.
 
@@ -44,12 +42,12 @@ ReqID: N/A"""
         assert 'propose_improvements' in capabilities
         assert 'resolve_contradictions' in capabilities
 
+    @pytest.mark.medium
     def test_process_succeeds(self, critic_agent, mock_llm_port):
         """Test the process method.
 
 ReqID: N/A"""
-        inputs = {'context': 'This is a test project', 'content':
-            'This is content to critique'}
+        inputs = {'context': 'This is a test project', 'content': 'This is content to critique'}
         result = critic_agent.process(inputs)
         mock_llm_port.generate.assert_called_once()
         prompt = mock_llm_port.generate.call_args[0][0]
@@ -70,6 +68,7 @@ ReqID: N/A"""
         assert wsde.metadata['agent'] == 'TestCriticAgent'
         assert wsde.metadata['type'] == 'critique'
 
+    @pytest.mark.medium
     def test_process_with_empty_inputs_succeeds(self, critic_agent):
         """Test the process method with empty inputs.
 
@@ -86,13 +85,13 @@ ReqID: N/A"""
         assert wsde.metadata['agent'] == 'TestCriticAgent'
         assert wsde.metadata['type'] == 'critique'
 
+    @pytest.mark.medium
     def test_process_no_llm_port_succeeds(self):
         """Test the process method when no LLM port is set.
 
 ReqID: N/A"""
         agent = CriticAgent()
-        config = AgentConfig(name='TestCriticAgent', agent_type=AgentType.
-            CRITIC, description='Test Critic Agent', capabilities=[])
+        config = AgentConfig(name='TestCriticAgent', agent_type=AgentType.CRITIC, description='Test Critic Agent', capabilities=[])
         agent.initialize(config)
         with patch('devsynth.application.agents.critic.logger') as mock_logger:
             result = agent.process({'content': 'Test content'})
@@ -103,6 +102,7 @@ ReqID: N/A"""
             assert 'role' in result
             assert 'Critique (created by TestCriticAgent' in result['critique']
 
+    @pytest.mark.medium
     def test_get_capabilities_succeeds(self, critic_agent):
         """Test the get_capabilities method.
 
@@ -116,23 +116,22 @@ ReqID: N/A"""
         assert 'propose_improvements' in capabilities
         assert 'resolve_contradictions' in capabilities
 
+    @pytest.mark.medium
     def test_get_capabilities_with_custom_capabilities_succeeds(self):
         """Test the get_capabilities method with custom capabilities.
 
 ReqID: N/A"""
         agent = CriticAgent()
-        config = AgentConfig(name='TestCriticAgent', agent_type=AgentType.
-            CRITIC, description='Test Critic Agent', capabilities=[
-            'custom_capability'])
+        config = AgentConfig(name='TestCriticAgent', agent_type=AgentType.CRITIC, description='Test Critic Agent', capabilities=['custom_capability'])
         agent.initialize(config)
         capabilities = agent.get_capabilities()
         assert len(capabilities) == 1
         assert 'custom_capability' in capabilities
         assert 'apply_dialectical_methods' not in capabilities
 
+    @pytest.mark.medium
     @patch('devsynth.application.agents.critic.logger')
-    def test_process_error_handling_raises_error(self, mock_logger,
-        critic_agent, mock_llm_port):
+    def test_process_error_handling_raises_error(self, mock_logger, critic_agent, mock_llm_port):
         """Test error handling in the process method.
 
 ReqID: N/A"""
@@ -150,13 +149,13 @@ ReqID: N/A"""
         assert wsde.metadata['agent'] == 'TestCriticAgent'
         assert wsde.metadata['type'] == 'critique'
 
+    @pytest.mark.medium
     @patch('devsynth.application.agents.critic.logger')
     def test_create_wsde_error_fails(self, mock_logger, critic_agent):
         """Test error handling when creating a WSDE fails.
 
 ReqID: N/A"""
-        with patch.object(critic_agent, 'create_wsde', side_effect=
-            Exception('Test error')):
+        with patch.object(critic_agent, 'create_wsde', side_effect=Exception('Test error')):
             result = critic_agent.process({'content': 'Test content'})
             assert mock_logger.error.call_count >= 1
             assert 'critique' in result

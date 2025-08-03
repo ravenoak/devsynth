@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 # Import the context fixture from the common file
 from .test_mddr_common import context
 
+@pytest.mark.medium
 @given("perspectives from multiple disciplinary agents")
 def perspectives_from_multiple_disciplinary_agents(context):
     """Set up perspectives from multiple disciplinary agents."""
@@ -47,6 +48,7 @@ def perspectives_from_multiple_disciplinary_agents(context):
     # Store the perspectives in the context
     context.result = {"disciplinary_perspectives": context.perspectives}
 
+@pytest.mark.medium
 @when("the team analyzes the perspectives")
 def team_analyzes_perspectives(context):
     """Simulate the team analyzing the perspectives to identify conflicts."""
@@ -106,6 +108,7 @@ def team_analyzes_perspectives(context):
     # Store the conflicts in the context
     context.conflicts = context.conflicts_result["conflicts"]
 
+@pytest.mark.medium
 @then("conflicts between disciplinary perspectives should be identified")
 def conflicts_between_disciplinary_perspectives_identified(context):
     """Verify that conflicts between disciplinary perspectives are identified."""
@@ -118,6 +121,7 @@ def conflicts_between_disciplinary_perspectives_identified(context):
         assert "disciplines" in conflict
         assert len(conflict["disciplines"]) >= 2
 
+@pytest.mark.medium
 @then("each conflict should be categorized by type and severity")
 def each_conflict_categorized_by_type_and_severity(context):
     """Verify that each conflict is categorized by type and severity."""
@@ -132,6 +136,7 @@ def each_conflict_categorized_by_type_and_severity(context):
         # Verify that the severity is one of the expected severities
         assert conflict["severity"] in ["low", "medium", "high"]
 
+@pytest.mark.medium
 @then("the underlying disciplinary assumptions should be documented")
 def underlying_disciplinary_assumptions_documented(context):
     """Verify that the underlying disciplinary assumptions are documented."""
@@ -158,6 +163,7 @@ def underlying_disciplinary_assumptions_documented(context):
             elif discipline == "accessibility":
                 assert any(term in assumption.lower() for term in ["accessibility", "disability", "access", "user"])
 
+@pytest.mark.medium
 @then("the conflicts should be prioritized for resolution")
 def conflicts_prioritized_for_resolution(context):
     """Verify that the conflicts are prioritized for resolution."""

@@ -79,6 +79,7 @@ def context():
 
 
 @given("a team coordinator with multiple agents")
+@pytest.mark.medium
 def setup_team(context) -> None:
     specs = [
         ("planner", "planner", ["planning"]),
@@ -93,6 +94,7 @@ def setup_team(context) -> None:
 
 
 @given("a critic agent with dialectical reasoning expertise")
+@pytest.mark.medium
 def add_critic_agent(context) -> None:
     critic = SimpleAgent("critic", "critic", ["analysis"])
     context.coordinator.add_agent(critic)
@@ -101,18 +103,21 @@ def add_critic_agent(context) -> None:
 
 
 @when("I delegate a collaborative team task")
+@pytest.mark.medium
 def delegate_task(context) -> None:
     context.task = {"team_task": True, "description": "do work"}
     context.result = context.coordinator.delegate_task(context.task)
 
 
 @when("I delegate a dialectical reasoning task")
+@pytest.mark.medium
 def delegate_dialectical_task(context) -> None:
     context.task = {"team_task": True, "dialectical": True, "description": "debate"}
     context.result = context.coordinator.delegate_task(context.task)
 
 
 @then("each agent should process the task")
+@pytest.mark.medium
 def each_agent_processed(context) -> None:
     for agent in context.agents:
         assert hasattr(agent, "last_inputs")
@@ -120,6 +125,7 @@ def each_agent_processed(context) -> None:
 
 
 @then("the delegation result should include all contributors")
+@pytest.mark.medium
 def result_includes_contributors(context) -> None:
     assert set(context.result.get("contributors", [])) == {
         a.name for a in context.agents
@@ -127,16 +133,19 @@ def result_includes_contributors(context) -> None:
 
 
 @then("the consensus result should be final")
+@pytest.mark.medium
 def consensus_result_final(context) -> None:
     assert context.result.get("result") == "final"
 
 
 @then("the delegation method should be consensus based")
+@pytest.mark.medium
 def method_consensus(context) -> None:
     assert context.result.get("method") == "consensus_synthesis"
 
 
 @then("the team should apply dialectical reasoning before consensus")
+@pytest.mark.medium
 def dialectical_reasoning_applied(context) -> None:
     team: SimpleTeam = context.coordinator.team  # type: ignore[assignment]
     assert team.dialectical_called is True

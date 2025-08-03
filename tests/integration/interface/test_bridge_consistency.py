@@ -21,6 +21,7 @@ def _init_cmd(*, bridge):
     bridge.display_result(value)
 
 
+@pytest.mark.medium
 def test_bridge_output_consistency_succeeds(monkeypatch):
     """Test that bridge output consistency succeeds.
 
@@ -47,6 +48,7 @@ def test_bridge_output_consistency_succeeds(monkeypatch):
     assert cli_result == web_result == api_result == expected
 
 
+@pytest.mark.medium
 def test_bridge_method_signatures_succeeds():
     """Test that bridge method signatures succeeds.
 

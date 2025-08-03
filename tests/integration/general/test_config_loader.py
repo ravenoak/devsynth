@@ -1,3 +1,5 @@
+import pytest
+
 import logging
 from devsynth.config.loader import ConfigModel, load_config, save_config
 
@@ -14,6 +16,7 @@ ReqID: N/A"""
     assert loaded.version == ConfigModel.version
 
 
+@pytest.mark.medium
 def test_load_and_save_pyproject_config_succeeds(tmp_path):
     """Test that load and save pyproject config succeeds.
 
@@ -26,6 +29,7 @@ ReqID: N/A"""
     assert loaded.version == ConfigModel.version
 
 
+@pytest.mark.medium
 def test_version_mismatch_warning_yaml_succeeds(tmp_path, caplog):
     """Test that version mismatch warning yaml succeeds.
 
@@ -38,6 +42,7 @@ ReqID: N/A"""
     assert any('version' in rec.message for rec in caplog.records)
 
 
+@pytest.mark.medium
 def test_version_mismatch_warning_pyproject_succeeds(tmp_path, caplog):
     """Test that version mismatch warning pyproject succeeds.
 

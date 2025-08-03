@@ -1,0 +1,198 @@
+---
+title: "DevSynth Consolidated Roadmap"
+date: "2025-08-02"
+version: "0.1.0"
+tags:
+  - "roadmap"
+  - "release"
+  - "milestones"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-02"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Consolidated Roadmap
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Consolidated Roadmap
+</div>
+
+# DevSynth Consolidated Roadmap
+
+This document serves as the canonical source for all roadmap information, consolidating the previously separate roadmap documents into a single authoritative plan. It outlines the major phases leading to a stable 1.0 release and summarizes key version milestones.
+
+**Note:** DevSynth is currently in a pre-release stage. No official release has been published yet and versions in this plan are provisional. They follow the MAJOR.MINOR.PATCH-STABILITY notation defined in our [Semantic Versioning+ policy](../policies/semantic_versioning.md).
+
+## Current Status
+
+As of August 2, 2025, Phase 1 (Foundation Stabilization) is complete with the following achievements:
+
+- **Test Stabilization**:
+  - Fixed pytest import issues in multiple test files
+  - Fixed method signature issues in test classes
+  - Fixed indentation issues in test files
+  - Fixed syntax errors in behavior test files
+  - Applied fixes for flaky tests in high-priority modules
+  - Applied recommended fixes to improve test isolation
+  - Improved marker coverage from 40.22% to 58.9% (exceeding the 50% target)
+
+- **Documentation**:
+  - Updated documentation tracking in docs/DOCUMENTATION_UPDATE_PROGRESS.md
+  - Documented lessons learned and best practices in flaky_test_lessons.md
+  - Created test stabilization tools and scripts
+
+The project is now transitioning to Phase 2 (Production Readiness).
+
+## Phased Roadmap
+
+### 1. Foundation Stabilization (0.1.x – Q1–Q3 2025) - COMPLETED
+
+- Finalize core architecture (EDRR, WSDE, providers, memory)
+- Anthropic and deterministic offline providers are fully implemented
+- Address adoption barriers and ensure offline capabilities
+- Establish baseline testing and documentation
+
+### 2. Production Readiness (0.2.x–0.3.x – Q4 2025) - IN PROGRESS
+
+- Polish CLI UX and integrate the initial Web UI
+- Perform repository analysis and improve code organization
+- Expand automated testing and CI/CD
+- Introduce multi-language code generation starting in **0.2.x**
+- Provide AST mutation tooling for automated refactoring and testing in **0.3.x**
+
+#### Phase 2 Focus Areas
+
+1. **Web UI Integration and State Management**:
+   - Update WebUI tests to work with the state management system
+   - Ensure consistent behavior between CLI and WebUI through UXBridge
+   - Implement responsive design for different screen sizes
+
+2. **Repository Analysis and Code Organization**:
+   - Implement code structure analysis tools
+   - Create visualization tools for code dependencies
+   - Develop refactoring recommendations based on analysis
+
+3. **Automated Testing and CI/CD Expansion**:
+   - Enhance CI/CD pipelines for multi-language support
+   - Implement automated performance testing
+   - Create comprehensive test coverage reports
+
+4. **Multi-language Code Generation**:
+   - Develop language-specific templates and generators
+   - Implement language detection and selection logic
+   - Add tests for multi-language code generation
+
+5. **AST Mutation Tooling**:
+   - Develop AST-based code transformation tools
+   - Implement language-specific AST mutation strategies
+   - Create testing framework for AST mutations
+
+#### Phase 2 Timeline
+
+1. **Preparation (Weeks 1-2)**:
+   - Review requirements and create detailed implementation plan
+   - Set up infrastructure and establish metrics
+   - Prioritize work items and assign responsibilities
+
+2. **Implementation (Weeks 3-10)**:
+   - Web UI Integration and State Management (Weeks 3-5)
+   - Repository Analysis and Code Organization (Weeks 4-7)
+   - Automated Testing and CI/CD Expansion (Weeks 5-8)
+   - Multi-language Code Generation (Weeks 6-9)
+   - AST Mutation Tooling (Weeks 7-10)
+
+3. **Verification and Finalization (Weeks 11-12)**:
+   - Comprehensive testing and validation
+   - Documentation and reporting
+   - Preparation for Phase 3
+
+### 3. Collaboration & Validation (0.4.x–0.6.x – Q1–Q3 2026) - PLANNED
+
+- Enhance multi-agent collaboration features
+- Validate workflows with real-world projects and community feedback
+- Iterate on metrics, analytics, and documentation quality
+- Integrate the experimental DSPy-AI framework in **0.6.x**
+
+### 4. Full Release & Innovation (0.7.x–1.0.0 – Q4 2026) - PLANNED
+
+- Harden security and performance for production deployments
+- Complete Web UI and API features
+- Finalize documentation and publish the 1.0 release
+- Plan post-1.0 innovations and enterprise capabilities
+- Apply Promise-Theory reliability enhancements beginning in **0.7.x** with stabilization by **0.9.0**
+
+## Version Milestones
+
+- **0.1.0-alpha.1** (COMPLETED): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
+- **0.1.0-beta.1** (IN PROGRESS): WSDE peer review workflow targeted for completion (see [issue 104](../../issues/104.md)), Web UI preview available, and major tests passing.
+- **0.1.0-rc.1** (PLANNED): Documentation freeze and full test suite passing as the release candidate for version 0.1.0.
+- **0.2.0–0.6.0** (PLANNED): Incremental releases adding collaboration, Web UI, and testing improvements.
+- **0.2.x** (PLANNED): Multi-language code generation support.
+- **0.3.x** (PLANNED): AST mutation tooling for refactoring.
+- **0.6.x** (PLANNED): Experimental DSPy-AI integration (finalize by **0.8.0**).
+- **0.7.x–0.9.0** (PLANNED): Optimization, Promise-Theory reliability work, and preparation for the 1.0 release.
+- **1.0.0** (PLANNED): Stable release with comprehensive documentation and production readiness.
+
+## Implementation Details
+
+### UXBridge & Hexagonal Layers
+
+All interfaces (CLI, WebUI, Agent API) use the common **UXBridge** abstraction. This confirms the hexagonal architecture: core workflows are UI-agnostic and testable.
+
+### Configuration & Requirements
+
+DevSynth requires Python 3.12+ support and provides configuration through `pyproject.toml`, `.devsynth/project.yaml` schema, and default config.
+
+### Optional Vector Stores
+
+DevSynth supports alternative memory stores like **ChromaDB** in addition to Kuzu, FAISS, and LMDB. The configuration loader recognizes `memory_backend: chromadb` and `docker-compose.yml` ships with a sample `chromadb` service.
+
+### WSDE Model
+
+The **WSDETeam** and **WSDETeamCoordinator** support rotating primus, consensus voting, and dialectical hooks. The peer review mechanism is implemented, but the full workflow still needs completion.
+
+### DSL & EDRR Integration
+
+The EDRRCoordinator orchestrates expand/differentiate/refine cycles. The `edrr-cycle` command allows stepping through phases.
+
+## Current Test Summary
+
+Recent CI reports collected thousands of tests. The latest run reported **348** failures, **921** passing tests, **100** skipped, and **3** errors due to `chromadb_store` missing during collection. See the [development status](development_status.md#test-failure-summary) document for details.
+
+To publish `0.1.0-beta.1`, the project must:
+
+- Resolve the outstanding WebUI and EDRR coordinator test failures
+- Complete WSDE collaboration integration with the memory system and finalize the peer review workflow
+- Address remaining partial features listed in the [Feature Status Matrix](../implementation/feature_status_matrix.md) such as Methodology Integration and the Retry Mechanism
+- Continue documentation cleanup and polish the Web UI preview
+
+Current builds run with `features.wsde_collaboration` enabled but `features.dialectical_reasoning` disabled. Collaborative and dialectical reasoning features are still experimental and may fail in complex projects.
+
+## Remaining Issues
+
+While Phase 1 is considered complete, there are some remaining issues that should be monitored during Phase 2:
+
+1. **API Change Issues**: Some tests are failing due to API changes in the codebase. These should be addressed as part of the normal development process in Phase 2.
+
+2. **Comprehensive Test Runs**: Full test suite runs still show some failures. These should be addressed incrementally during Phase 2 as part of the continuous improvement process.
+
+3. **Test Stabilization Tools Documentation**: Usage documentation for the test stabilization tools should be completed early in Phase 2.
+
+## Dependencies
+
+Dependencies among major features are summarized in [Feature Dependencies](feature_dependencies.md) to clarify how releases build on each other. For a detailed breakdown of feature implementation progress, see the [Feature Status Matrix](../implementation/feature_status_matrix.md).
+
+---
+
+_Last updated: August 2, 2025_
+
+## Historical Information
+
+This document consolidates information previously contained in:
+- ROADMAP.md
+- release_plan.md
+- pre_1.0_release_plan.md
+- PHASE1_TO_PHASE2_TRANSITION.md
+
+For historical reference, the original documents are archived in the `docs/archived/roadmaps/` directory.

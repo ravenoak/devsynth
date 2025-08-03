@@ -8,8 +8,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Example Project
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Example Project
+</div>
 
 # DevSynth Example Project
 
@@ -68,4 +75,4 @@ The repository contains the resulting `specs.md`, tests in `tests/`, and code in
 The `.github/workflows/example_project.yml` file provides a minimal CI setup that runs the same DevSynth commands on every push or pull request affecting the example. Use it as a starting point for your own projects.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

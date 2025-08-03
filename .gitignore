@@ -1,12 +1,68 @@
+# Environment and local configuration
 .env
+*.env
+.venv/
+env/
+venv/
+ENV/
+
+# Logs
+*.log
+logs/
 devsynth.log
+
+# DevSynth specific
 .devsynth/
-__pycache__/
-.coverage
 CODEX_ENVIRONMENT_SETUP_FAILED
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+coverage.xml
 *.cover
 *,cover
 **/*,cover
-coverage.xml
 coverage_html/
 htmlcov/
+
+# Python distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+.*.swp
+.output.txt
+
+# Test and report files
+.test_categorization_progress.json
+.test_categorization_schedule.json
+flaky_test_report.json
+fresh_isolation_report.json
+isolation_report_*.json
+*_isolation_report.json
+high_priority_isolation_issues.md
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+.benchmarks/
+.hypothesis/
+.test_cache/
+.cache/
+.test_dependency_cache/
+.test_metrics_cache/
+.test_timing_cache/
+TASK_PROGRESS.md

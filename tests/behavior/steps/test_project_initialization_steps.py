@@ -19,16 +19,19 @@ def init_context():
     return {"executed": False}
 
 
+@pytest.mark.medium
 @given("the project_initialization feature context")
 def given_context(init_context):
     return init_context
 
 
+@pytest.mark.medium
 @when("we execute the project_initialization workflow")
 def when_execute(init_context):
     init_context["executed"] = True
 
 
+@pytest.mark.medium
 @then("the project_initialization workflow completes")
 def then_complete(init_context):
     assert init_context.get("executed") is True

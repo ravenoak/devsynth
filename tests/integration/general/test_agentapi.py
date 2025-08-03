@@ -3,6 +3,7 @@ from types import ModuleType
 from unittest.mock import MagicMock
 import importlib
 import sys
+import pytest
 
 
 def _setup(monkeypatch):
@@ -29,6 +30,7 @@ def _setup(monkeypatch):
     return cli_stub, agentapi
 
 
+@pytest.mark.medium
 def test_init_succeeds(monkeypatch):
     """Test that init succeeds.
 

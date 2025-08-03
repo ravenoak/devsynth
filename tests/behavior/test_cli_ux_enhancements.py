@@ -31,4 +31,4 @@ from .steps.cli_ux_enhancements_steps import (
 )
 
 # Load scenarios from the feature file
-scenarios("cli_ux_enhancements.feature")
+scenarios("general/cli_ux_enhancements.feature")

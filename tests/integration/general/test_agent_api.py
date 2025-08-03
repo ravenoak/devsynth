@@ -1,3 +1,5 @@
+import pytest
+
 from types import ModuleType
 from unittest.mock import MagicMock
 import importlib
@@ -71,6 +73,7 @@ ReqID: N/A"""
     setup['cli'].init_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_gather_route_succeeds(monkeypatch):
     """Test that gather route.
 
@@ -84,6 +87,7 @@ ReqID: N/A"""
     setup['cli'].gather_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_synthesize_and_status_succeeds(monkeypatch):
     """Test that synthesize and status.
 
@@ -97,6 +101,7 @@ ReqID: N/A"""
     setup['cli'].run_pipeline_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_spec_route_succeeds(monkeypatch):
     """Test that spec route.
 
@@ -111,6 +116,7 @@ ReqID: N/A"""
     assert kwargs['requirements_file'] == 'custom_reqs.md'
 
 
+@pytest.mark.medium
 def test_test_route_succeeds(monkeypatch):
     """Test that test route.
 
@@ -124,6 +130,7 @@ ReqID: N/A"""
     setup['cli'].test_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_code_route_succeeds(monkeypatch):
     """Test that code route.
 
@@ -136,6 +143,7 @@ ReqID: N/A"""
     setup['cli'].code_cmd.assert_called_once()
 
 
+@pytest.mark.medium
 def test_doctor_route_succeeds(monkeypatch):
     """Test that doctor route.
 
@@ -148,6 +156,7 @@ ReqID: N/A"""
     setup['doctor_cmd'].assert_called_once()
 
 
+@pytest.mark.medium
 def test_edrr_cycle_route_succeeds(monkeypatch):
     """Test that edrr cycle route.
 

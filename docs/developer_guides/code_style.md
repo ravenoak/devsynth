@@ -7,8 +7,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Code Style Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Code Style Guide
+</div>
 
 # DevSynth Code Style Guide
 
@@ -85,4 +92,4 @@ This guide is a living document. If you have suggestions for improvements or cla
 
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

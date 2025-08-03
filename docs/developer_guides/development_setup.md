@@ -12,8 +12,15 @@ tags:
 - getting-started
 
 title: DevSynth Development Setup and Onboarding Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Development Setup and Onboarding Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Development Setup and Onboarding Guide
+</div>
 
 # DevSynth Development Setup and Onboarding Guide
 
@@ -349,4 +356,4 @@ mkdocs serve
 *This document is a living guide and will be updated as the project evolves.*
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

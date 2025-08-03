@@ -2,57 +2,46 @@
 
 import os
 import pytest
-from pytest_bdd import scenario
+from pytest_bdd import scenarios
 from .steps.test_retry_steps import *
 
 feature_file = os.path.join(
     os.path.dirname(__file__), "features", "general", "retry_mechanism.feature"
 )
 
+# Load all scenarios from the feature file
+scenarios(feature_file)
 
-@scenario(feature_file, "Successful retry after transient errors")
-def test_successful_retry_raises_error():
-    """Test successful retry after transient errors.
+# The test functions below are no longer needed as scenarios() will automatically
+# generate test functions for each scenario in the feature file.
+# The naming convention will be test_<scenario_name_with_underscores>
+# For example: test_successful_retry_after_transient_errors
 
-    ReqID: N/A"""
-    pass
+# For documentation purposes, we keep the docstrings of what each scenario tests
+"""
+Scenarios in retry_mechanism.feature:
 
+1. Successful retry after transient errors
+   Test successful retry after transient errors.
+   ReqID: N/A
 
-@scenario(feature_file, "Failure after maximum retries")
-def test_failure_after_max_retries_fails():
-    """Test failure after maximum retries.
+2. Failure after maximum retries
+   Test failure after maximum retries.
+   ReqID: N/A
 
-    ReqID: N/A"""
-    pass
+3. Exponential backoff with jitter
+   Test exponential backoff with jitter.
+   ReqID: N/A
 
+4. Callback function is called on each retry
+   Test callback invocation on each retry.
+   ReqID: N/A
 
-@scenario(feature_file, "Exponential backoff with jitter")
-def test_exponential_backoff_with_jitter_succeeds():
-    """Test exponential backoff with jitter.
+5. Only specified exceptions trigger retries
+   Test selective retry based on exception types.
+   ReqID: N/A
 
-    ReqID: N/A"""
-    pass
-
-
-@scenario(feature_file, "Callback function is called on each retry")
-def test_callback_function_is_called_on_each_retry():
-    """Test callback invocation on each retry.
-
-    ReqID: N/A"""
-    pass
-
-
-@scenario(feature_file, "Only specified exceptions trigger retries")
-def test_only_specified_exceptions_trigger_retries():
-    """Test selective retry based on exception types.
-
-    ReqID: N/A"""
-    pass
-
-
-@scenario(feature_file, "Deterministic backoff without jitter")
-def test_deterministic_backoff_without_jitter():
-    """Test deterministic exponential backoff when jitter is disabled.
-
-    ReqID: N/A"""
-    pass
+6. Deterministic backoff without jitter
+   Test deterministic exponential backoff when jitter is disabled.
+   ReqID: N/A
+"""

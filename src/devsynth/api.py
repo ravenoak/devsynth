@@ -15,8 +15,8 @@ from devsynth.logging_setup import (
     set_request_context,
     clear_request_context,
 )
-from devsynth.config.settings import
-from typing import Union get_settings
+from devsynth.config.settings import get_settings
+from typing import Union
 
 configure_logging()
 logger = DevSynthLogger(__name__)

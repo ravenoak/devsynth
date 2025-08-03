@@ -7,8 +7,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; Technical Debt Documentation
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; Technical Debt Documentation
+</div>
 
 # Technical Debt Documentation
 
@@ -139,4 +146,4 @@ The technical debt backlog should be reviewed at least once per quarter to ensur
 July 20, 2025
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

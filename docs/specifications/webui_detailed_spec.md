@@ -8,8 +8,15 @@ tags:
   - "webui"
   - "ux"
 status: "draft"
-author: "DevSynth Team"
----
+author: "DevSynth Team"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Detailed Specification
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Detailed Specification
+</div>
 
 # WebUI Detailed Specification
 

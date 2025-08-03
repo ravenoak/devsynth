@@ -130,6 +130,10 @@ from devsynth.domain.models.wsde_decision_making import (
     _check_testability,
     _check_security,
 )
+from devsynth.domain.models.wsde_summarization import (
+    summarize_consensus_result,
+    summarize_voting_result,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -337,14 +341,20 @@ class WSDETeam(BaseWSDETeam):
 
         try:
             from devsynth.application.collaboration.peer_review import PeerReview
+            from devsynth.application.memory.memory_manager import MemoryManager
         except Exception:
             return None
 
+        # Get memory_manager if available
+        memory_manager = getattr(self, "memory_manager", None)
+        
         review = PeerReview(
             work_product=work_product,
             author=author,
             reviewers=reviewer_agents,
             send_message=self.send_message,
+            team=self,
+            memory_manager=memory_manager,
         )
         review.assign_reviews()
         self.peer_reviews.append(review)

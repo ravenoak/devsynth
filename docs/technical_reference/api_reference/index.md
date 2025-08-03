@@ -8,8 +8,15 @@ tags:
 - technical-reference
 
 title: API Reference
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="../index.md">Technical Reference</a> &gt; <a href="index.md">Api Reference</a> &gt; API Reference
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="../index.md">Technical Reference</a> &gt; <a href="index.md">Api Reference</a> &gt; API Reference
+</div>
 
 # API Reference
 
@@ -1125,4 +1132,4 @@ This API reference provides detailed information about the internal APIs and ext
 For more information about the architecture and design principles, refer to the [Architecture Documentation](architecture_documentation.md).
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

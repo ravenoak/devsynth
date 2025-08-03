@@ -11,8 +11,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test-Driven and Behavior-Driven Development in DevSynth
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test-Driven and Behavior-Driven Development in DevSynth
+</div>
 
 # Test-Driven and Behavior-Driven Development in DevSynth
 
@@ -303,4 +310,4 @@ Test-Driven and Behavior-Driven Development are essential methodologies in DevSy
 By applying dialectical reasoning to our testing approach, we consider multiple perspectives and ensure that our system is robust and well-designed at all levels of abstraction.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

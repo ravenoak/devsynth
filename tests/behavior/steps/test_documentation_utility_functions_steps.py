@@ -25,6 +25,7 @@ def context():
     return Context()
 
 # Background steps
+@pytest.mark.medium
 @given("the documentation management system is initialized")
 def documentation_system_initialized(context):
     """Initialize the documentation management system."""
@@ -37,6 +38,7 @@ def documentation_system_initialized(context):
     # Mock the query_documentation method to return test data
     context.documentation_manager.query_documentation = MagicMock(return_value=[])
 
+@pytest.mark.medium
 @given(parsers.parse('documentation for multiple libraries is available:\n{table}'))
 def documentation_available(context, table):
     """Set up available documentation for multiple libraries."""
@@ -54,6 +56,7 @@ def documentation_available(context, table):
     context.documentation_manager.repository.has_documentation = MagicMock(return_value=True)
 
 # Scenario steps
+@pytest.mark.medium
 @when(parsers.parse('I use the function documentation utility with "{function_name}"'))
 def use_function_documentation_utility(context, function_name):
     """Use the function documentation utility."""
@@ -75,6 +78,7 @@ def use_function_documentation_utility(context, function_name):
     with patch.object(context.documentation_manager, 'get_function_documentation', return_value=mock_results):
         context.query_results = context.documentation_manager.get_function_documentation(function_name)
 
+@pytest.mark.medium
 @when(parsers.parse('I use the class documentation utility with "{class_name}"'))
 def use_class_documentation_utility(context, class_name):
     """Use the class documentation utility."""
@@ -96,6 +100,7 @@ def use_class_documentation_utility(context, class_name):
     with patch.object(context.documentation_manager, 'get_class_documentation', return_value=mock_results):
         context.query_results = context.documentation_manager.get_class_documentation(class_name)
 
+@pytest.mark.medium
 @when(parsers.parse('I use the examples utility with "{item_name}"'))
 def use_examples_utility(context, item_name):
     """Use the examples utility."""
@@ -119,6 +124,7 @@ def use_examples_utility(context, item_name):
     with patch.object(context.documentation_manager, 'get_usage_examples', return_value=mock_results):
         context.query_results = context.documentation_manager.get_usage_examples(item_name)
 
+@pytest.mark.medium
 @when(parsers.parse('I use the compatibility utility with "{function_name}" across versions:\n{table}'))
 def use_compatibility_utility(context, function_name, table):
     """Use the compatibility utility."""
@@ -148,6 +154,7 @@ def use_compatibility_utility(context, function_name, table):
         versions = [row["version"] for row in context.libraries_data.values()]
         context.query_results = context.documentation_manager.get_api_compatibility(function_name, versions)
 
+@pytest.mark.medium
 @when(parsers.parse('I use the related functions utility with "{function_name}"'))
 def use_related_functions_utility(context, function_name):
     """Use the related functions utility."""
@@ -172,6 +179,7 @@ def use_related_functions_utility(context, function_name):
     with patch.object(context.documentation_manager, 'get_related_functions', return_value=mock_results):
         context.query_results = context.documentation_manager.get_related_functions(function_name)
 
+@pytest.mark.medium
 @when(parsers.parse('I use the usage patterns utility with "{function_name}"'))
 def use_usage_patterns_utility(context, function_name):
     """Use the usage patterns utility."""
@@ -206,6 +214,7 @@ def use_usage_patterns_utility(context, function_name):
         context.query_results = context.documentation_manager.get_usage_patterns(function_name)
 
 # Then steps
+@pytest.mark.medium
 @then("I should receive documentation specifically for that function")
 def verify_function_documentation(context):
     """Verify that function documentation is received."""
@@ -213,6 +222,7 @@ def verify_function_documentation(context):
     assert len(context.query_results) > 0
     assert context.query_results[0]["type"] == "function"
 
+@pytest.mark.medium
 @then("the results should include parameter descriptions")
 def verify_parameter_descriptions(context):
     """Verify that parameter descriptions are included."""
@@ -221,18 +231,21 @@ def verify_parameter_descriptions(context):
     assert "name" in context.query_results[0]["parameters"][0]
     assert "description" in context.query_results[0]["parameters"][0]
 
+@pytest.mark.medium
 @then("the results should include return value information")
 def verify_return_value_information(context):
     """Verify that return value information is included."""
     assert "returns" in context.query_results[0]
     assert context.query_results[0]["returns"] is not None
 
+@pytest.mark.medium
 @then("the results should include example usage")
 def verify_example_usage(context):
     """Verify that example usage is included."""
     assert "examples" in context.query_results[0]
     assert len(context.query_results[0]["examples"]) > 0
 
+@pytest.mark.medium
 @then("I should receive documentation specifically for that class")
 def verify_class_documentation(context):
     """Verify that class documentation is received."""
@@ -240,6 +253,7 @@ def verify_class_documentation(context):
     assert len(context.query_results) > 0
     assert context.query_results[0]["type"] == "class"
 
+@pytest.mark.medium
 @then("the results should include constructor parameters")
 def verify_constructor_parameters(context):
     """Verify that constructor parameters are included."""
@@ -248,18 +262,21 @@ def verify_constructor_parameters(context):
     assert "name" in context.query_results[0]["constructor_params"][0]
     assert "description" in context.query_results[0]["constructor_params"][0]
 
+@pytest.mark.medium
 @then("the results should include method listings")
 def verify_method_listings(context):
     """Verify that method listings are included."""
     assert "methods" in context.query_results[0]
     assert len(context.query_results[0]["methods"]) > 0
 
+@pytest.mark.medium
 @then("the results should include inheritance information")
 def verify_inheritance_information(context):
     """Verify that inheritance information is included."""
     assert "inheritance" in context.query_results[0]
     assert len(context.query_results[0]["inheritance"]) > 0
 
+@pytest.mark.medium
 @then("I should receive only example code snippets")
 def verify_example_code_snippets(context):
     """Verify that only example code snippets are received."""
@@ -268,6 +285,7 @@ def verify_example_code_snippets(context):
     assert all(result["type"] == "example" for result in context.query_results)
     assert all("code" in result for result in context.query_results)
 
+@pytest.mark.medium
 @then("the results should be ranked by relevance")
 def verify_ranked_by_relevance(context):
     """Verify that results are ranked by relevance."""
@@ -275,12 +293,14 @@ def verify_ranked_by_relevance(context):
     # For the mock implementation, we'll just check that there are multiple results
     assert len(context.query_results) > 1
 
+@pytest.mark.medium
 @then("each example should include explanatory comments")
 def verify_explanatory_comments(context):
     """Verify that each example includes explanatory comments."""
     assert all("explanation" in result for result in context.query_results)
     assert all(result["explanation"] is not None for result in context.query_results)
 
+@pytest.mark.medium
 @then("I should receive compatibility information")
 def verify_compatibility_information(context):
     """Verify that compatibility information is received."""
@@ -288,6 +308,7 @@ def verify_compatibility_information(context):
     assert "versions" in context.query_results
     assert len(context.query_results["versions"]) > 0
 
+@pytest.mark.medium
 @then("the results should highlight parameter changes between versions")
 def verify_parameter_changes(context):
     """Verify that parameter changes between versions are highlighted."""
@@ -297,6 +318,7 @@ def verify_parameter_changes(context):
     assert version_with_changes is not None
     assert len(version_with_changes["changes"]) > 0
 
+@pytest.mark.medium
 @then("the results should note deprecated features")
 def verify_deprecated_features(context):
     """Verify that deprecated features are noted."""
@@ -306,6 +328,7 @@ def verify_deprecated_features(context):
     assert version_with_deprecated is not None
     assert len(version_with_deprecated["deprecated"]) > 0
 
+@pytest.mark.medium
 @then("I should receive a list of related statistical functions")
 def verify_related_functions(context):
     """Verify that a list of related statistical functions is received."""
@@ -313,6 +336,7 @@ def verify_related_functions(context):
     assert "related_functions" in context.query_results
     assert len(context.query_results["related_functions"]) > 0
 
+@pytest.mark.medium
 @then("the results should include brief descriptions of each function")
 def verify_brief_descriptions(context):
     """Verify that brief descriptions of each function are included."""
@@ -320,6 +344,7 @@ def verify_brief_descriptions(context):
     assert all("description" in func for func in related_functions)
     assert all(func["description"] is not None for func in related_functions)
 
+@pytest.mark.medium
 @then("the results should explain the relationships between functions")
 def verify_relationships(context):
     """Verify that relationships between functions are explained."""
@@ -327,6 +352,7 @@ def verify_relationships(context):
     assert all("relationship" in func for func in related_functions)
     assert all(func["relationship"] is not None for func in related_functions)
 
+@pytest.mark.medium
 @then("I should receive common usage patterns")
 def verify_common_usage_patterns(context):
     """Verify that common usage patterns are received."""
@@ -334,12 +360,14 @@ def verify_common_usage_patterns(context):
     assert "usage_patterns" in context.query_results
     assert len(context.query_results["usage_patterns"]) > 0
 
+@pytest.mark.medium
 @then("the results should include best practices")
 def verify_best_practices(context):
     """Verify that best practices are included."""
     assert "best_practices" in context.query_results
     assert len(context.query_results["best_practices"]) > 0
 
+@pytest.mark.medium
 @then("the results should include common parameter combinations")
 def verify_common_parameter_combinations(context):
     """Verify that common parameter combinations are included."""

@@ -92,15 +92,19 @@ def webui_env(monkeypatch):
     return webui.WebUI(), mocks
 
 
+@pytest.mark.medium
 def test_webui_pages_invoke_commands_succeeds(webui_env):
     """Test that webui pages invoke commands succeeds.
 
     ReqID: N/A"""
     bridge, mocks = webui_env
+    # Test EDRR and alignment pages
     bridge.edrr_cycle_page()
     assert mocks["edrr_cycle_cmd"].called
     bridge.alignment_page()
     assert mocks["align_cmd"].called
+    
+    # Test metrics and configuration pages
     bridge.alignment_metrics_page()
     assert mocks["alignment_metrics_cmd"].called
     bridge.inspect_config_page()
@@ -111,9 +115,21 @@ def test_webui_pages_invoke_commands_succeeds(webui_env):
     assert mocks["validate_metadata_cmd"].called
     bridge.test_metrics_page()
     assert mocks["test_metrics_cmd"].called
+    
+    # Test documentation and ingestion pages
     bridge.docs_generation_page()
     assert mocks["generate_docs_cmd"].called
     bridge.ingestion_page()
     assert mocks["ingest_cmd"].called
     bridge.apispec_page()
     assert mocks["apispec_cmd"].called
+    
+    # Test refactor, webapp, serve, and dbschema pages
+    bridge.refactor_page()
+    assert mocks["refactor_cmd"].called, "refactor_cmd was not called by refactor_page"
+    bridge.webapp_page()
+    assert mocks["webapp_cmd"].called, "webapp_cmd was not called by webapp_page"
+    bridge.serve_page()
+    assert mocks["serve_cmd"].called, "serve_cmd was not called by serve_page"
+    bridge.dbschema_page()
+    assert mocks["dbschema_cmd"].called, "dbschema_cmd was not called by dbschema_page"

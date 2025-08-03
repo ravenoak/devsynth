@@ -11,8 +11,15 @@ tags:
 - foundation-stabilization
 
 title: DevSynth Feature Status Matrix
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Feature Status Matrix
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Feature Status Matrix
+</div>
 
 # DevSynth Feature Status Matrix
 
