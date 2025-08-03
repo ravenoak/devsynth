@@ -84,6 +84,19 @@ cp templates/behavior/test_steps_template.py tests/behavior/steps/test_my_featur
 pytest tests/behavior/steps/test_my_feature_steps.py
 ```
 
+### Sample Tests
+
+The templates directory also includes runnable example tests that `devsynth init`
+can copy into a new project:
+
+- `unit/sample_test.py` – basic unit test exercising a simple `add` function
+- `integration/sample_integration_test.py` – demonstrates a small workflow
+- `behavior/sample.feature` and `behavior/sample_steps.py` – BDD example for
+  adding two numbers
+
+These files provide ready-to-run tests that verify the development environment
+after initialization.
+
 ## Best Practices
 
 When writing tests, follow these best practices:
