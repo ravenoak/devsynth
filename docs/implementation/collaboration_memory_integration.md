@@ -194,6 +194,15 @@ with memory_manager.begin_transaction(["tinydb", "graph"]) as txn:
     memory_manager.store_item(task_memory_item)
 ```
 
+### 3.4 Implementation Details
+
+The helper `store_collaboration_entity` writes a memory item to the primary
+adapter and then propagates the update to all other configured stores. This
+function is leveraged by `WSDEMemoryIntegration.store_agent_solution` to keep
+solutions synchronized across TinyDB and Graph backends. The `PeerReview`
+workflow uses `store_with_retry`, which builds on the same propagation logic to
+persist review state reliably across stores.
+
 ## 4. Error Handling
 
 ### 4.1 Error Handling Strategy
@@ -265,12 +274,12 @@ class PeerReview:
         
     def finalize(self, approved=True):
         # ... existing logic
-        
+
         if self.memory_manager:
             # Store review result in memory with cross-store synchronization
-            review_item = to_memory_item(self, MemoryType.PEER_REVIEW)
-            self.memory_manager.update_item("tinydb", review_item)
-        
+            from devsynth.application.collaboration.collaboration_memory_utils import store_with_retry
+            store_with_retry(self.memory_manager, self, primary_store="tinydb")
+
         return result
 ```
 

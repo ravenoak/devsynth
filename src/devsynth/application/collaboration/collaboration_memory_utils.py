@@ -447,18 +447,38 @@ def store_collaboration_entity(
                 memory_manager.update_item(primary_store, memory_item)
             else:
                 memory_manager.queue_update(primary_store, memory_item)
-        
+
+        # Synchronize to any additional stores for redundancy
+        other_stores = [
+            name for name in memory_manager.adapters.keys() if name != primary_store
+        ]
+        for store_name in other_stores:
+            try:
+                if immediate_sync:
+                    memory_manager.update_item(store_name, memory_item)
+                else:
+                    memory_manager.queue_update(store_name, memory_item)
+                logger.debug(
+                    f"Synchronized entity {memory_item.id} to store {store_name}"
+                )
+            except Exception as sync_error:
+                logger.warning(
+                    f"Failed to sync entity {memory_item.id} to store {store_name}: {sync_error}"
+                )
+
         # If we started a transaction, commit it
         if transaction_started and transaction_id and has_sync_manager:
             try:
                 memory_manager.sync_manager.commit_transaction(transaction_id)
-                logger.debug(f"Committed transaction {transaction_id} for entity {memory_item.id}")
+                logger.debug(
+                    f"Committed transaction {transaction_id} for entity {memory_item.id}"
+                )
             except Exception as e:
                 logger.warning(f"Failed to commit transaction {transaction_id}: {e}")
                 # We don't rollback here since the operation might have succeeded
-        
+
         return memory_item.id
-        
+
     except Exception as e:
         logger.error(f"Error storing entity {memory_item.id}: {e}")
         
