@@ -46,6 +46,9 @@ from ...domain.models.memory import MemoryItem, MemoryType
 logger = DevSynthLogger(__name__)
 
 
+__all__ = ["ChromaDBStore"]
+
+
 class ChromaDBStore(MemoryStore):
     """
     ChromaDB implementation of the MemoryStore interface.

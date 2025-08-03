@@ -133,7 +133,7 @@ minimal = [
 ]
 
 retrieval = ["kuzu", "faiss-cpu"]
-chromadb = ["chromadb"]
+chromadb = ["chromadb", "tiktoken"]
 lmstudio = ["lmstudio"]
 memory = ["tinydb", "duckdb", "lmdb", "kuzu", "faiss-cpu", "chromadb", "numpy"]
 llm = ["tiktoken", "httpx"]
