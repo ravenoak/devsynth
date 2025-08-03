@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Glossary"
 date: "2025-08-02"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "glossary"
   - "terminology"
@@ -9,7 +9,8 @@ tags:
   - "reference"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"---
+last_reviewed: "2025-08-02"
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; DevSynth Glossary
