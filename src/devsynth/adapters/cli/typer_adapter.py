@@ -25,6 +25,7 @@ from devsynth.application.cli import (
     inspect_cmd,
     webapp_cmd,
     webui_cmd,
+    dpg_cmd,
     dbschema_cmd,
     doctor_cmd,
     refactor_cmd,
@@ -385,6 +386,10 @@ def build_app() -> typer.Typer:
         name="webui",
         help="Launch the Streamlit UI. Example: devsynth webui",
     )(webui_cmd)
+    app.command(
+        name="dpg",
+        help="Launch the Dear PyGUI interface. Example: devsynth dpg",
+    )(dpg_cmd)
     app.command(
         name="dbschema",
         help="Generate a database schema. Example: devsynth dbschema --db-type sqlite",
