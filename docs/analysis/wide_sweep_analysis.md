@@ -20,6 +20,8 @@ version: 0.1.0---
 
 # DevSynth Project Wide Sweep Analysis
 
+> **Status:** Partial — follow-up work tracked in [issue 104](../../issues/104.md).
+
 **Analysis Date:** May 29, 2025
 **Repository:** https://github.com/ravenoak/devsynth.git
 **Analyst:** Agent
