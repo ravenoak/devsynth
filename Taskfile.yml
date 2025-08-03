@@ -50,6 +50,11 @@ tasks:
     cmds:
       - poetry run pytest {{.PYTEST_COV_ARGS}} {{.PYTEST_ARGS}}
 
+  test:smoke:
+    desc: Run a minimal smoke test suite
+    cmds:
+      - poetry run pytest --maxfail=1
+
   # Performance benchmarking tasks
   bench:
     desc: Run performance benchmarks
@@ -112,6 +117,16 @@ tasks:
     cmds:
       - poetry build
 
+  build:wheel:
+    desc: Build wheel distribution
+    cmds:
+      - poetry build --format wheel
+
+  build:sdist:
+    desc: Build source distribution
+    cmds:
+      - poetry build --format sdist
+
   clean:
     desc: Clean build artifacts
     cmds:
@@ -122,6 +137,14 @@ tasks:
       - rm -rf site
       - find . -type d -name __pycache__ -exec rm -rf {} +
       - find . -name '*\,cover' -delete
+
+  release:prep:
+    desc: Build distributions and run smoke tests before tagging a release
+    cmds:
+      - task: clean
+      - task: build:wheel
+      - task: build:sdist
+      - task: test:smoke
 
   # Development workflow tasks
   dev:
