@@ -1,4 +1,5 @@
 """Tests for the ``doctor`` CLI command."""
+
 from textwrap import dedent
 from types import SimpleNamespace
 from pathlib import Path
@@ -10,55 +11,87 @@ import importlib.util
 import pytest
 
 # Create minimal stubs to avoid importing heavy dependencies when loading doctor_cmd
-devsynth_pkg = ModuleType('devsynth')
-sys.modules['devsynth'] = devsynth_pkg
+devsynth_pkg = ModuleType("devsynth")
+devsynth_pkg.__path__ = []
+sys.modules["devsynth"] = devsynth_pkg
+testing_pkg = ModuleType("devsynth.testing")
+testing_pkg.__path__ = []
+sys.modules["devsynth.testing"] = testing_pkg
+run_tests_stub = ModuleType("devsynth.testing.run_tests")
+run_tests_stub.run_tests = lambda *a, **k: (True, "")
+sys.modules["devsynth.testing.run_tests"] = run_tests_stub
 
-logging_stub = ModuleType('devsynth.logging_setup')
+logging_stub = ModuleType("devsynth.logging_setup")
+
+
 class _DummyLogger:
     def __init__(self, *_args, **_kwargs):
         pass
+
     def __call__(self, *args, **kwargs):
         return self
 
+
 DevSynthLogger = _DummyLogger
 logging_stub.DevSynthLogger = DevSynthLogger
-sys.modules['devsynth.logging_setup'] = logging_stub
+logging_stub.configure_logging = lambda *a, **k: None
+sys.modules["devsynth.logging_setup"] = logging_stub
 
-config_stub = ModuleType('devsynth.core.config_loader')
+config_stub = ModuleType("devsynth.core.config_loader")
 config_stub.load_config = lambda *a, **k: SimpleNamespace()
 config_stub._find_project_config = lambda path: None
-sys.modules['devsynth.core.config_loader'] = config_stub
+sys.modules["devsynth.core.config_loader"] = config_stub
 
-cli_stub = ModuleType('devsynth.interface.cli')
+cli_stub = ModuleType("devsynth.interface.cli")
+
+
 class _Bridge:
     def print(self, *args, **kwargs):
         pass
+
+
 cli_stub.CLIUXBridge = _Bridge
-sys.modules['devsynth.interface.cli'] = cli_stub
+sys.modules["devsynth.interface.cli"] = cli_stub
 
-ux_stub = ModuleType('devsynth.interface.ux_bridge')
+ux_stub = ModuleType("devsynth.interface.ux_bridge")
 ux_stub.UXBridge = object
-sys.modules['devsynth.interface.ux_bridge'] = ux_stub
+sys.modules["devsynth.interface.ux_bridge"] = ux_stub
 
-app_pkg = ModuleType('devsynth.application'); app_pkg.__path__ = []
-sys.modules['devsynth.application'] = app_pkg
-cli_pkg = ModuleType('devsynth.application.cli'); cli_pkg.__path__ = []
-sys.modules['devsynth.application.cli'] = cli_pkg
-cli_commands_stub = ModuleType('devsynth.application.cli.cli_commands')
+app_pkg = ModuleType("devsynth.application")
+app_pkg.__path__ = []
+sys.modules["devsynth.application"] = app_pkg
+cli_pkg = ModuleType("devsynth.application.cli")
+cli_pkg.__path__ = []
+sys.modules["devsynth.application.cli"] = cli_pkg
+commands_pkg = ModuleType("devsynth.application.cli.commands")
+commands_pkg.__path__ = []
+sys.modules["devsynth.application.cli.commands"] = commands_pkg
+cli_commands_stub = ModuleType("devsynth.application.cli.cli_commands")
 cli_commands_stub._check_services = lambda bridge: True
-sys.modules['devsynth.application.cli.cli_commands'] = cli_commands_stub
+sys.modules["devsynth.application.cli.cli_commands"] = cli_commands_stub
+align_stub = ModuleType("devsynth.application.cli.commands.align_cmd")
+align_stub.check_alignment = lambda *a, **k: []
+align_stub.display_issues = lambda *a, **k: None
+sys.modules["devsynth.application.cli.commands.align_cmd"] = align_stub
 
 spec = importlib.util.spec_from_file_location(
-    'doctor_cmd',
-    Path(__file__).parents[4] / 'src' / 'devsynth' / 'application' / 'cli' / 'commands' / 'doctor_cmd.py',
+    "devsynth.application.cli.commands.doctor_cmd",
+    Path(__file__).parents[4]
+    / "src"
+    / "devsynth"
+    / "application"
+    / "cli"
+    / "commands"
+    / "doctor_cmd.py",
 )
 doctor_cmd = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
 spec.loader.exec_module(doctor_cmd)
 
+
 def _patch_validation_loader():
     """Return a context manager providing a stub validation module."""
-    stub = ModuleType('validate_config')
+    stub = ModuleType("validate_config")
     stub.CONFIG_SCHEMA = {}
     stub.load_config = lambda path: {}
     stub.validate_config = lambda data, schema: []
@@ -71,122 +104,160 @@ def _patch_validation_loader():
 
     return patch.multiple(
         doctor_cmd.importlib.util,
-        spec_from_file_location=lambda name, location: importlib.machinery.ModuleSpec(name, _Loader()),
+        spec_from_file_location=lambda name, location: importlib.machinery.ModuleSpec(
+            name, _Loader()
+        ),
         module_from_spec=lambda spec: stub,
     )
+
 
 @pytest.mark.medium
 def test_doctor_cmd_old_python_and_missing_env_warn_succeeds(monkeypatch):
     """Missing configs, old Python and absent API keys should trigger warnings.
 
-ReqID: N/A"""
-    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
-    monkeypatch.delenv('ANTHROPIC_API_KEY', raising=False)
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 10, 0))
+    ReqID: N/A"""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 10, 0))
     cfg = SimpleNamespace()
     cfg.exists = lambda: False
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
-        doctor_cmd.doctor_cmd('config')
-        output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
-        assert 'No project configuration found' in output
-        assert 'Python 3.12 or higher' in output
-        assert 'Missing environment variables' in output
-VALID_CONFIG = dedent('\n    application:\n      name: App\n      version: "1.0"\n    logging:\n      level: INFO\n      format: "%(message)s"\n    memory:\n      default_store: kuzu\n      stores:\n        chromadb:\n          enabled: true\n        kuzu: {}\n        faiss:\n          enabled: false\n    llm:\n      default_provider: openai\n      providers:\n        openai:\n          enabled: true\n    agents:\n      max_agents: 1\n      default_timeout: 1\n    edrr:\n      enabled: false\n      default_phase: expand\n    security:\n      input_validation: true\n    performance: {}\n    features:\n      wsde_collaboration: false\n    ')
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
+        doctor_cmd.doctor_cmd("config")
+        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        assert "No project configuration found" in output
+        assert "Python 3.12 or higher" in output
+        assert "Missing environment variables" in output
+
+
+VALID_CONFIG = dedent(
+    '\n    application:\n      name: App\n      version: "1.0"\n    logging:\n      level: INFO\n      format: "%(message)s"\n    memory:\n      default_store: kuzu\n      stores:\n        chromadb:\n          enabled: true\n        kuzu: {}\n        faiss:\n          enabled: false\n    llm:\n      default_provider: openai\n      providers:\n        openai:\n          enabled: true\n    agents:\n      max_agents: 1\n      default_timeout: 1\n    edrr:\n      enabled: false\n      default_phase: expand\n    security:\n      input_validation: true\n    performance: {}\n    features:\n      wsde_collaboration: false\n    '
+)
+
 
 @pytest.mark.medium
 def test_doctor_cmd_success_is_valid(tmp_path, monkeypatch):
     """When everything is valid, a success message should be printed.
 
-ReqID: N/A"""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    ReqID: N/A"""
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    for env in ['default', 'development', 'testing', 'staging', 'production']:
-        (config_dir / f'{env}.yml').write_text(VALID_CONFIG)
+    for env in ["default", "development", "testing", "staging", "production"]:
+        (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
-        assert 'All configuration files are valid' in output
+        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        assert "All configuration files are valid" in output
+
 
 @pytest.mark.medium
 def test_doctor_cmd_invalid_config_is_valid(tmp_path, monkeypatch):
     """Invalid configuration should result in warnings being printed.
 
-ReqID: N/A"""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    ReqID: N/A"""
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    (config_dir / 'default.yml').write_text('application: {name: App}\n')
+    (config_dir / "default.yml").write_text("application: {name: App}\n")
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
-        assert 'Configuration issues detected' in output
+        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        assert "Configuration issues detected" in output
+
 
 @pytest.mark.medium
-@pytest.mark.parametrize('missing', ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY'])
+@pytest.mark.parametrize("missing", ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"])
 def test_doctor_cmd_missing_env_vars_succeeds(monkeypatch, missing):
     """Doctor warns about whichever API key is absent.
 
-ReqID: N/A"""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
+    ReqID: N/A"""
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
     monkeypatch.delenv(missing)
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
-        doctor_cmd.doctor_cmd('config')
-        output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
+        doctor_cmd.doctor_cmd("config")
+        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
         assert missing in output
+
 
 @pytest.mark.medium
 def test_doctor_cmd_warns_missing_optional_feature_pkg_succeeds(monkeypatch, tmp_path):
     """Warn when enabled features require missing optional packages.
 
-ReqID: N/A"""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    ReqID: N/A"""
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    for env in ['default', 'development', 'testing', 'staging', 'production']:
-        (config_dir / f'{env}.yml').write_text(VALID_CONFIG)
+    for env in ["default", "development", "testing", "staging", "production"]:
+        (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    cfg.features = {'wsde_collaboration': True}
-    cfg.memory_store_type = 'memory'
+    cfg.features = {"wsde_collaboration": True}
+    cfg.memory_store_type = "memory"
     real_find = doctor_cmd.importlib.util.find_spec
 
     def fake_find(name, *args, **kwargs):
-        if name == 'langgraph':
+        if name == "langgraph":
             return None
         return real_find(name, *args, **kwargs)
-    with _patch_validation_loader(), patch.object(doctor_cmd.importlib.util, 'find_spec', side_effect=fake_find), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.importlib.util, "find_spec", side_effect=fake_find),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
-        assert 'langgraph' in output
+        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        assert "langgraph" in output
+
 
 @pytest.mark.medium
-@pytest.mark.parametrize('store_type,pkg', [('chromadb', 'chromadb'), ('tinydb', 'tinydb')])
-def test_doctor_cmd_warns_missing_memory_store_pkg_succeeds(monkeypatch, tmp_path, store_type, pkg):
+@pytest.mark.parametrize(
+    "store_type,pkg", [("chromadb", "chromadb"), ("tinydb", "tinydb")]
+)
+def test_doctor_cmd_warns_missing_memory_store_pkg_succeeds(
+    monkeypatch, tmp_path, store_type, pkg
+):
     """Warn and exit when memory store backends lack required packages.
 
-ReqID: N/A"""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    ReqID: N/A"""
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    for env in ['default', 'development', 'testing', 'staging', 'production']:
-        (config_dir / f'{env}.yml').write_text(VALID_CONFIG)
+    for env in ["default", "development", "testing", "staging", "production"]:
+        (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
     cfg.features = {}
@@ -197,64 +268,85 @@ ReqID: N/A"""
         if name == pkg:
             return None
         return real_find(name, *args, **kwargs)
-    with _patch_validation_loader(), patch.object(doctor_cmd.importlib.util, 'find_spec', side_effect=fake_find), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print, pytest.raises(SystemExit) as exc:
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.importlib.util, "find_spec", side_effect=fake_find),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+        pytest.raises(SystemExit) as exc,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
     assert exc.value.code == 1
-    output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
+    output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
     assert pkg in output
+
 
 @pytest.mark.medium
 def test_doctor_cmd_warns_missing_uvicorn_succeeds(monkeypatch, tmp_path):
     """Warn when uvicorn is not installed.
 
-ReqID: N/A"""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    ReqID: N/A"""
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    for env in ['default', 'development', 'testing', 'staging', 'production']:
-        (config_dir / f'{env}.yml').write_text(VALID_CONFIG)
+    for env in ["default", "development", "testing", "staging", "production"]:
+        (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
     cfg.features = {}
-    cfg.memory_store_type = 'memory'
+    cfg.memory_store_type = "memory"
     real_find = doctor_cmd.importlib.util.find_spec
 
     def fake_find(name, *args, **kwargs):
-        if name == 'uvicorn':
+        if name == "uvicorn":
             return None
         return real_find(name, *args, **kwargs)
-    with _patch_validation_loader(), patch.object(doctor_cmd.importlib.util, 'find_spec', side_effect=fake_find), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
+
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.importlib.util, "find_spec", side_effect=fake_find),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = ''.join((str(call.args[0]) for call in mock_print.call_args_list))
-        assert 'uvicorn' in output
+        output = "".join((str(call.args[0]) for call in mock_print.call_args_list))
+        assert "uvicorn" in output
+
 
 @pytest.mark.medium
 def test_check_cmd_alias_succeeds(monkeypatch):
     """The ``check`` alias should delegate to ``doctor_cmd``.
 
 
-ReqID: N/A"""
+    ReqID: N/A"""
     from devsynth.application.cli.cli_commands import check_cmd
-    with patch('devsynth.application.cli.cli_commands.doctor_cmd') as mock_doc:
-        check_cmd('config')
-        mock_doc.assert_called_once_with(config_dir='config', quick=False)
+
+    with patch("devsynth.application.cli.cli_commands.doctor_cmd") as mock_doc:
+        check_cmd("config")
+        mock_doc.assert_called_once_with(config_dir="config", quick=False)
+
 
 @pytest.mark.medium
 def test_doctor_cmd_invokes_service_check(monkeypatch):
     """doctor_cmd should invoke _check_services."""
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    stub = ModuleType('devsynth.application.cli.cli_commands')
+    stub = ModuleType("devsynth.application.cli.cli_commands")
     chk = MagicMock(return_value=True)
     stub._check_services = chk
-    monkeypatch.setitem(sys.modules, 'devsynth.application.cli.cli_commands', stub)
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print'):
-        doctor_cmd.doctor_cmd('config')
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", stub)
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print"),
+    ):
+        doctor_cmd.doctor_cmd("config")
         chk.assert_called_once_with(doctor_cmd.bridge)
 
 
@@ -262,61 +354,81 @@ def test_doctor_cmd_invokes_service_check(monkeypatch):
 def test_doctor_cmd_warns_missing_required_dependency(monkeypatch, tmp_path):
     """Warn when core dependencies are missing."""
 
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    (config_dir / 'default.yml').write_text('application: {name: App}\n')
+    (config_dir / "default.yml").write_text("application: {name: App}\n")
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
     real_find = doctor_cmd.importlib.util.find_spec
 
     def fake_find(name, *a, **kw):
-        if name == 'pytest':
+        if name == "pytest":
             return None
         return real_find(name, *a, **kw)
 
-    with _patch_validation_loader(), patch.object(doctor_cmd.importlib.util, 'find_spec', side_effect=fake_find), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd.importlib.util, "find_spec", side_effect=fake_find),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = ''.join(str(c.args[0]) for c in mock_print.call_args_list)
-        assert 'Missing dependencies: pytest' in output
+        output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
+        assert "Missing dependencies: pytest" in output
 
 
 @pytest.mark.medium
 def test_doctor_cmd_reports_missing_directories(monkeypatch, tmp_path):
     """Warn when expected directories are absent."""
 
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    (config_dir / 'default.yml').write_text('application: {name: App}\n')
+    (config_dir / "default.yml").write_text("application: {name: App}\n")
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    monkeypatch.setattr(doctor_cmd.Path, 'cwd', lambda: tmp_path)
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.bridge, 'print') as mock_print:
+    monkeypatch.setattr(doctor_cmd.Path, "cwd", lambda: tmp_path)
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
-        output = ''.join(str(c.args[0]) for c in mock_print.call_args_list)
-        assert 'Missing expected directories' in output
+        output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
+        assert "Missing expected directories" in output
 
 
 @pytest.mark.medium
 def test_doctor_cmd_quick_tests_failure_warns(monkeypatch, tmp_path):
-    """Quick tests should be invoked and report failures."""
+    """Quick checks should run alignment and unit tests and report failures."""
 
-    monkeypatch.setattr(doctor_cmd.sys, 'version_info', (3, 11, 0))
-    monkeypatch.setenv('OPENAI_API_KEY', '1')
-    monkeypatch.setenv('ANTHROPIC_API_KEY', '1')
-    config_dir = tmp_path / 'cfg'
+    monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
+    monkeypatch.setenv("OPENAI_API_KEY", "1")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    config_dir = tmp_path / "cfg"
     config_dir.mkdir()
-    (config_dir / 'default.yml').write_text('application: {name: App}\n')
+    (config_dir / "default.yml").write_text("application: {name: App}\n")
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    fake_result = SimpleNamespace(returncode=1, stdout='', stderr='')
-    with _patch_validation_loader(), patch.object(doctor_cmd, 'load_config', return_value=cfg), patch.object(doctor_cmd.subprocess, 'run', return_value=fake_result) as mock_run, patch.object(doctor_cmd.bridge, 'print') as mock_print:
+    fake_issues = [{"type": "test", "file": "f", "message": "m"}]
+    with (
+        _patch_validation_loader(),
+        patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(
+            doctor_cmd.align_cmd, "check_alignment", return_value=fake_issues
+        ) as mock_align,
+        patch.object(doctor_cmd.align_cmd, "display_issues") as mock_display,
+        patch.object(doctor_cmd, "run_tests", return_value=(False, "")) as mock_run,
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir), quick=True)
-        mock_run.assert_called_once()
-        output = ''.join(str(c.args[0]) for c in mock_print.call_args_list)
-        assert 'Quick tests failed' in output
+        mock_align.assert_called_once()
+        mock_display.assert_called_once_with(fake_issues, bridge=doctor_cmd.bridge)
+        mock_run.assert_called_once_with("unit-tests")
+        output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
+        assert "Unit tests failed" in output
