@@ -14,6 +14,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.agents.agent_memory_integration import AgentMemoryIntegration
+from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
@@ -21,27 +22,21 @@ logger = DevSynthLogger(__name__)
 
 
 class WSDEMemoryIntegration:
-    """
-    Integration between WSDE teams and the memory system.
+    """Integration between WSDE teams and the memory system."""
 
-    This class provides methods for WSDE teams to store and retrieve information
-    from the memory system, including dialectical processes, agent solutions, and team context.
-    """
-
-    def __init__(self, memory_adapter: MemorySystemAdapter, wsde_team: WSDETeam, 
-                 agent_memory: Optional[AgentMemoryIntegration] = None):
-        """
-        Initialize the WSDE memory integration.
-
-        Args:
-            memory_adapter: The memory system adapter to use
-            wsde_team: The WSDE team to integrate with
-            agent_memory: Optional agent memory integration to use (if None, a new one will be created)
-        """
+    def __init__(
+        self,
+        memory_adapter: MemorySystemAdapter,
+        wsde_team: WSDETeam,
+        agent_memory: Optional[AgentMemoryIntegration] = None,
+        memory_manager: Optional[MemoryManager] = None,
+    ) -> None:
+        """Initialize the WSDE memory integration."""
         self.memory_adapter = memory_adapter
         self.wsde_team = wsde_team
         self.agent_memory = agent_memory or AgentMemoryIntegration(memory_adapter, wsde_team)
         self.context_manager = memory_adapter.get_context_manager()
+        self.memory_manager = memory_manager
 
         logger.info("WSDE memory integration initialized")
 
@@ -91,30 +86,48 @@ class WSDEMemoryIntegration:
 
     def store_agent_solution(self, agent_id: str, task: Dict[str, Any], solution: Dict[str, Any], 
                                edrr_phase: Optional[str] = None) -> str:
-        """
-        Store an agent solution in memory.
+        """Store an agent solution in memory."""
 
-        Args:
-            agent_id: The ID of the agent that produced the solution
-            task: The task that the solution addresses
-            solution: The solution produced by the agent
-            edrr_phase: Optional EDRR phase tag (e.g., "Expand", "Differentiate", "Refine", "Retrospect")
+        if self.memory_manager is not None:
+            # Build a memory item for the solution and sync across stores
+            item = MemoryItem(
+                id=str(uuid.uuid4()),
+                content=solution,
+                memory_type=MemoryType.SOLUTION,
+                metadata={
+                    "agent_id": agent_id,
+                    "task_id": task["id"],
+                    "solution_id": solution["id"],
+                    "timestamp": datetime.now().isoformat(),
+                },
+            )
+            if edrr_phase:
+                item.metadata["edrr_phase"] = edrr_phase
 
-        Returns:
-            The ID of the stored memory item
-        """
-        # Use the agent memory integration to store the agent solution
+            try:
+                from devsynth.application.collaboration.collaboration_memory_utils import (
+                    store_collaboration_entity,
+                )
+
+                store_collaboration_entity(
+                    self.memory_manager,
+                    solution,
+                    primary_store="tinydb",
+                    memory_item=item,
+                )
+                if hasattr(self.memory_manager, "flush_updates"):
+                    self.memory_manager.flush_updates()
+            except Exception as e:
+                logger.error(f"Failed to store solution with cross-store sync: {e}")
+            return item.id
+
+        # Fallback to simple storage if no memory manager
         item_id = self.agent_memory.store_agent_solution(agent_id, task, solution)
 
-        # If EDRR phase is provided, update the metadata of the stored item
         if edrr_phase:
             logger.info(f"Including EDRR phase '{edrr_phase}' in solution metadata")
             memory_store = self.memory_adapter.get_memory_store()
-
-            # Get the stored item
             stored_item = memory_store.get_item(item_id)
-
-            # Update the metadata with the EDRR phase
             if stored_item:
                 stored_item.metadata["edrr_phase"] = edrr_phase
                 memory_store.update_item(stored_item)
