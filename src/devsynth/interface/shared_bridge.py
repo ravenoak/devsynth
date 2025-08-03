@@ -21,9 +21,24 @@ class SharedBridgeMixin:
         *,
         highlight: bool = False,
         message_type: Optional[str] = None,
-    ) -> str:
-        """Format and sanitize a message for output."""
+    ):
+        """Format and sanitize a message for output.
+        
+        Returns:
+            A formatted message, which could be a string, Panel, Text, or other Rich object.
+        """
         formatted = self.formatter.format_message(
             message, message_type=message_type, highlight=highlight
         )
+        
+        # If the formatted message is already a Rich object (Panel, Text, etc.),
+        # return it as is to preserve its type for proper rendering
+        from rich.panel import Panel
+        from rich.text import Text
+        from rich.markdown import Markdown
+        
+        if isinstance(formatted, (Panel, Text, Markdown)):
+            return formatted
+            
+        # Otherwise, sanitize the string representation
         return sanitize_output(str(formatted))

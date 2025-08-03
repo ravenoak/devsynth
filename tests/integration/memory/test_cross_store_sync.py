@@ -34,6 +34,7 @@ def _manager(lmdb, faiss, kuzu, chroma, chroma_vec):
     return manager
 
 
+@pytest.mark.medium
 def test_full_backend_synchronization(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")

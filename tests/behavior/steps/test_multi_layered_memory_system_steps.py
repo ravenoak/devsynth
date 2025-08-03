@@ -43,12 +43,14 @@ def context():
 
 # Background steps
 
+@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
     assert context is not None
 
 
+@pytest.mark.medium
 @given("the multi-layered memory system is configured")
 def multi_layered_memory_system_configured(context):
     """Configure the multi-layered memory system."""
@@ -59,6 +61,7 @@ def multi_layered_memory_system_configured(context):
 
 # Scenario: Multi-layered memory system categorization
 
+@pytest.mark.medium
 @when(parsers.parse('I store information with content "{content}" and type "{memory_type}" in the memory system'))
 def store_information_in_memory_system(context, content, memory_type):
     """Store information in the memory system."""
@@ -77,6 +80,7 @@ def store_information_in_memory_system(context, content, memory_type):
     context.stored_items[content] = item_id
 
 
+@pytest.mark.medium
 @then(parsers.parse('it should be categorized into the {layer} memory layer'))
 def check_memory_layer_categorization(context, layer):
     """Check that the information is categorized into the specified memory layer."""
@@ -109,6 +113,7 @@ def check_memory_layer_categorization(context, layer):
 
 # Scenario: Short-term memory contains immediate context
 
+@pytest.mark.medium
 @then('the short-term memory layer should contain these items')
 def check_short_term_memory_contents(context):
     """Check that the short-term memory layer contains the expected items."""
@@ -127,6 +132,7 @@ def check_short_term_memory_contents(context):
         assert found, f"Item with content '{content}' not found in short-term memory layer"
 
 
+@pytest.mark.medium
 @then('I should be able to retrieve all items from the short-term memory layer')
 def retrieve_items_from_short_term_memory(context):
     """Retrieve all items from the short-term memory layer."""
@@ -148,6 +154,7 @@ def retrieve_items_from_short_term_memory(context):
 
 # Scenario: Episodic memory contains past events
 
+@pytest.mark.medium
 @then('the episodic memory layer should contain these items')
 def check_episodic_memory_contents(context):
     """Check that the episodic memory layer contains the expected items."""
@@ -166,6 +173,7 @@ def check_episodic_memory_contents(context):
         assert found, f"Item with content '{content}' not found in episodic memory layer"
 
 
+@pytest.mark.medium
 @then('I should be able to retrieve all items from the episodic memory layer')
 def retrieve_items_from_episodic_memory(context):
     """Retrieve all items from the episodic memory layer."""
@@ -187,6 +195,7 @@ def retrieve_items_from_episodic_memory(context):
 
 # Scenario: Semantic memory contains general knowledge
 
+@pytest.mark.medium
 @then('the semantic memory layer should contain these items')
 def check_semantic_memory_contents(context):
     """Check that the semantic memory layer contains the expected items."""
@@ -205,6 +214,7 @@ def check_semantic_memory_contents(context):
         assert found, f"Item with content '{content}' not found in semantic memory layer"
 
 
+@pytest.mark.medium
 @then('I should be able to retrieve all items from the semantic memory layer')
 def retrieve_items_from_semantic_memory(context):
     """Retrieve all items from the semantic memory layer."""
@@ -226,6 +236,7 @@ def retrieve_items_from_semantic_memory(context):
 
 # Scenario: Cross-layer memory querying
 
+@pytest.mark.medium
 @given('I have stored items in all memory layers')
 def store_items_in_all_memory_layers(context):
     """Store items in all memory layers."""
@@ -263,6 +274,7 @@ def store_items_in_all_memory_layers(context):
         context.stored_items[content] = item_id
 
 
+@pytest.mark.medium
 @when('I query the memory system without specifying a layer')
 def query_memory_system_without_layer(context):
     """Query the memory system without specifying a layer."""
@@ -270,6 +282,7 @@ def query_memory_system_without_layer(context):
     context.query_results = context.memory_system.query({})
 
 
+@pytest.mark.medium
 @then('I should receive results from all memory layers')
 def check_results_from_all_layers(context):
     """Check that the query results include items from all memory layers."""
@@ -291,6 +304,7 @@ def check_results_from_all_layers(context):
     assert semantic_found, "No items from semantic memory layer found in query results"
 
 
+@pytest.mark.medium
 @when(parsers.parse('I query the memory system specifying the "{layer}" layer'))
 def query_memory_system_with_layer(context, layer):
     """Query the memory system specifying a layer."""
@@ -298,6 +312,7 @@ def query_memory_system_with_layer(context, layer):
     context.query_results = context.memory_system.query({"layer": layer})
 
 
+@pytest.mark.medium
 @then(parsers.parse('I should only receive results from the {layer} memory layer'))
 def check_results_from_specific_layer(context, layer):
     """Check that the query results only include items from the specified layer."""
@@ -313,6 +328,7 @@ def check_results_from_specific_layer(context, layer):
 
 # Scenario: Tiered cache strategy with in-memory cache
 
+@pytest.mark.medium
 @given('the tiered cache strategy is enabled')
 def tiered_cache_strategy_enabled(context):
     """Enable the tiered cache strategy."""
@@ -321,6 +337,7 @@ def tiered_cache_strategy_enabled(context):
     assert context.memory_system.is_tiered_cache_enabled()
 
 
+@pytest.mark.medium
 @when('I access an item from the memory system for the first time')
 def access_item_first_time(context):
     """Access an item from the memory system for the first time."""
@@ -356,6 +373,7 @@ def access_item_first_time(context):
     assert context.memory_system.get_cache_stats()["misses"] > 0
 
 
+@pytest.mark.medium
 @then('it should be retrieved from the underlying storage')
 def check_retrieved_from_storage(context):
     """Check that the item was retrieved from the underlying storage."""
@@ -363,6 +381,7 @@ def check_retrieved_from_storage(context):
     assert context.memory_system.get_cache_stats()["misses"] > 0
 
 
+@pytest.mark.medium
 @when('I access the same item again')
 def access_item_again(context):
     """Access the same item again."""
@@ -391,6 +410,7 @@ def access_item_again(context):
     assert context.memory_system.get_cache_stats()["hits"] > 0
 
 
+@pytest.mark.medium
 @then('it should be retrieved from the in-memory cache')
 def check_retrieved_from_cache(context):
     """Check that the item was retrieved from the in-memory cache."""
@@ -398,6 +418,7 @@ def check_retrieved_from_cache(context):
     assert context.memory_system.get_cache_stats()["hits"] > 0
 
 
+@pytest.mark.medium
 @then('accessing the cached item should be faster than the first access')
 def check_cached_access_faster(context):
     """Check that accessing the cached item is faster than the first access."""
@@ -407,6 +428,7 @@ def check_cached_access_faster(context):
 
 # Scenario: Cache update based on access patterns
 
+@pytest.mark.medium
 @given('the tiered cache strategy is enabled with a limited cache size')
 def tiered_cache_strategy_enabled_with_limited_size(context):
     """Enable the tiered cache strategy with a limited cache size."""
@@ -416,6 +438,7 @@ def tiered_cache_strategy_enabled_with_limited_size(context):
     assert context.memory_system.get_cache_max_size() == 2
 
 
+@pytest.mark.medium
 @when('I access multiple items from the memory system')
 def access_multiple_items(context):
     """Access multiple items from the memory system."""
@@ -436,6 +459,7 @@ def access_multiple_items(context):
         context.retrieved_items[content] = retrieved_item
 
 
+@pytest.mark.medium
 @when('the cache reaches its capacity')
 def cache_reaches_capacity(context):
     """Check that the cache has reached its capacity."""
@@ -443,6 +467,7 @@ def cache_reaches_capacity(context):
     assert context.memory_system.get_cache_size() == 2
 
 
+@pytest.mark.medium
 @when('I access a new item')
 def access_new_item(context):
     """Access a new item from the memory system."""
@@ -462,6 +487,7 @@ def access_new_item(context):
     context.retrieved_items[content] = retrieved_item
 
 
+@pytest.mark.medium
 @then('the least recently used item should be removed from the cache')
 def check_lru_item_removed(context):
     """Check that the least recently used item has been removed from the cache."""
@@ -482,6 +508,7 @@ def check_lru_item_removed(context):
     assert context.memory_system.cache.contains(item_id), "The item should be in the cache after retrieval"
 
 
+@pytest.mark.medium
 @then('the new item should be added to the cache')
 def check_new_item_added_to_cache(context):
     """Check that the new item has been added to the cache."""

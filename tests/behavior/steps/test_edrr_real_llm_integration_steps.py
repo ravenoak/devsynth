@@ -50,6 +50,7 @@ def check_llm_provider(request, monkeypatch):
         if not os.environ.get("OPENAI_API_KEY") and not os.environ.get("LM_STUDIO_ENDPOINT"):
             pytest.skip("No LLM provider configured. Set OPENAI_API_KEY or LM_STUDIO_ENDPOINT.")
 
+@pytest.mark.medium
 @given("an initialized EDRR coordinator with real LLM provider")
 def step_initialized_edrr_coordinator_with_real_llm(context):
     # Set up memory components
@@ -73,6 +74,7 @@ def step_initialized_edrr_coordinator_with_real_llm(context):
         enable_enhanced_logging=True,
     )
 
+@pytest.mark.medium
 @given("a sample Flask application with code quality issues")
 def step_sample_flask_application(context):
     # Create a temporary directory for the project
@@ -110,6 +112,7 @@ if __name__ == '__main__':
 flask==2.0.1
 """)
 
+@pytest.mark.medium
 @given("a configured graph memory system")
 def step_configured_graph_memory_system(context):
     # Create a new memory manager with both adapters
@@ -120,6 +123,7 @@ def step_configured_graph_memory_system(context):
         "graph": context.graph_memory_adapter
     })
 
+@pytest.mark.medium
 @when(parsers.parse('I start an EDRR cycle for "{task_description}"'))
 def step_start_edrr_cycle(context, task_description):
     # Create a task for testing
@@ -132,6 +136,7 @@ def step_start_edrr_cycle(context, task_description):
     # Start EDRR cycle
     context.coordinator.start_cycle(context.task)
 
+@pytest.mark.medium
 @when(parsers.parse('I start an EDRR cycle to "{task_description}"'))
 def step_start_edrr_cycle_for_project(context, task_description):
     # Create a task for testing with project path
@@ -145,6 +150,7 @@ def step_start_edrr_cycle_for_project(context, task_description):
     # Start EDRR cycle
     context.coordinator.start_cycle(context.task)
 
+@pytest.mark.medium
 @when("I progress through all EDRR phases")
 def step_progress_through_all_phases(context):
     # Progress through all phases
@@ -156,6 +162,7 @@ def step_progress_through_all_phases(context):
     context.traces = context.coordinator.get_execution_traces()
     context.history = context.coordinator.get_execution_history()
 
+@pytest.mark.medium
 @then("the cycle should complete successfully")
 def step_cycle_completes_successfully(context):
     # Verify results
@@ -167,6 +174,7 @@ def step_cycle_completes_successfully(context):
     assert context.traces.get("cycle_id") == context.coordinator.cycle_id
     assert len(context.history) >= 4
 
+@pytest.mark.medium
 @then("the final solution should contain a factorial function")
 def step_solution_contains_factorial(context):
     # Get the final solution
@@ -178,6 +186,7 @@ def step_solution_contains_factorial(context):
     assert final_solution is not None
     assert "def factorial" in str(final_solution).lower()
 
+@pytest.mark.medium
 @then("the solution should handle edge cases")
 def step_solution_handles_edge_cases(context):
     # Get the final solution
@@ -192,6 +201,7 @@ def step_solution_handles_edge_cases(context):
     # Check for edge case handling (0, negative numbers, etc.)
     assert any(term in final_solution_str for term in ["if n < 0", "if n <= 0", "raise", "error", "exception", "edge"])
 
+@pytest.mark.medium
 @then("the final solution should address validation issues")
 def step_solution_addresses_validation(context):
     # Get the final solution
@@ -206,6 +216,7 @@ def step_solution_addresses_validation(context):
     # Check for validation
     assert "validation" in final_solution_str or "validate" in final_solution_str
 
+@pytest.mark.medium
 @then("the final solution should include error handling")
 def step_solution_includes_error_handling(context):
     # Get the final solution
@@ -220,6 +231,7 @@ def step_solution_includes_error_handling(context):
     # Check for error handling
     assert "error" in final_solution_str and "handling" in final_solution_str
 
+@pytest.mark.medium
 @then("the final solution should follow Flask best practices")
 def step_solution_follows_flask_best_practices(context):
     # Get the final solution
@@ -238,6 +250,7 @@ def step_solution_follows_flask_best_practices(context):
     ]
     assert any(practice in final_solution_str for practice in best_practices)
 
+@pytest.mark.medium
 @then("the memory system should store phase results correctly")
 def step_memory_system_stores_results(context):
     # Check that the memory system has stored the phase results
@@ -254,6 +267,7 @@ def step_memory_system_stores_results(context):
     cycle_records = [r for r in records if r.metadata.get('cycle_id') == context.coordinator.cycle_id]
     assert len(cycle_records) > 0
 
+@pytest.mark.medium
 @then("the final solution should reference previous phase insights")
 def step_solution_references_previous_insights(context):
     # Get the final solution and phase data

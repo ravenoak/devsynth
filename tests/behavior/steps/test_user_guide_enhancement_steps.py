@@ -27,6 +27,7 @@ def context():
     return Context()
 
 # Background steps
+@pytest.mark.medium
 @given("the DevSynth documentation system is available")
 def docs_system_available(context):
     assert context.docs_dir.exists(), f"Documentation directory {context.docs_dir} does not exist"
@@ -34,11 +35,13 @@ def docs_system_available(context):
     assert context.getting_started_dir.exists(), f"Getting started directory {context.getting_started_dir} does not exist"
 
 # CLI Command Reference steps
+@pytest.mark.medium
 @when("I check the CLI command reference documentation")
 def check_cli_command_reference(context):
     assert context.cli_command_reference.exists(), f"CLI command reference {context.cli_command_reference} does not exist"
     context.current_doc_content = context.cli_command_reference.read_text()
 
+@pytest.mark.medium
 @then("all CLI commands should be documented")
 def all_cli_commands_documented(context):
     # List of expected commands
@@ -52,12 +55,14 @@ def all_cli_commands_documented(context):
     for command in expected_commands:
         assert f"### {command}" in context.current_doc_content, f"Command '{command}' is not documented"
 
+@pytest.mark.medium
 @then("each command should have a description")
 def each_command_has_description(context):
     command_sections = re.findall(r'### ([a-zA-Z-]+)\n\n([^#]+)', context.current_doc_content)
     for command, description in command_sections:
         assert len(description.strip()) > 0, f"Command '{command}' has no description"
 
+@pytest.mark.medium
 @then("each command should list all available options")
 def each_command_lists_options(context):
     command_sections = re.findall(r'### ([a-zA-Z-]+).*?\*\*Options:\*\*\n\| Option \| Description \|', 
@@ -65,6 +70,7 @@ def each_command_lists_options(context):
     # Check that we found options tables for commands that should have options
     assert len(command_sections) > 0, "No command options tables found"
 
+@pytest.mark.medium
 @then("each command should include usage examples")
 def each_command_includes_examples(context):
     command_sections = re.findall(r'### ([a-zA-Z-]+).*?\*\*Examples:\*\*\n```bash', 
@@ -73,29 +79,34 @@ def each_command_includes_examples(context):
     assert len(command_sections) > 0, "No command examples found"
 
 # WebUI Guide steps
+@pytest.mark.medium
 @when("I check the WebUI navigation guide")
 def check_webui_navigation_guide(context):
     assert context.webui_navigation_guide.exists(), f"WebUI navigation guide {context.webui_navigation_guide} does not exist"
     context.current_doc_content = context.webui_navigation_guide.read_text()
 
+@pytest.mark.medium
 @then("it should include screenshots of each page")
 def webui_guide_includes_screenshots(context):
     # Look for image references in markdown
     screenshot_refs = re.findall(r'!\[.*?\]\(.*?\)', context.current_doc_content)
     assert len(screenshot_refs) > 0, "No screenshots found in WebUI navigation guide"
 
+@pytest.mark.medium
 @then("it should describe complete workflows for common tasks")
 def webui_guide_describes_workflows(context):
     # Look for workflow descriptions
     workflow_sections = re.findall(r'## Workflow: (.*?)\n', context.current_doc_content)
     assert len(workflow_sections) > 0, "No workflow sections found in WebUI navigation guide"
 
+@pytest.mark.medium
 @then("it should explain all UI elements and their functions")
 def webui_guide_explains_ui_elements(context):
     # Look for UI element descriptions
     ui_element_sections = re.findall(r'### (.*?) Element\n', context.current_doc_content)
     assert len(ui_element_sections) > 0, "No UI element descriptions found in WebUI navigation guide"
 
+@pytest.mark.medium
 @then("it should provide navigation instructions between pages")
 def webui_guide_provides_navigation_instructions(context):
     # Look for navigation instructions
@@ -103,25 +114,30 @@ def webui_guide_provides_navigation_instructions(context):
     assert len(navigation_sections) > 0, "No navigation instructions found in WebUI navigation guide"
 
 # Quick Start Guide steps
+@pytest.mark.medium
 @when("I check the quick start guide")
 def check_quick_start_guide(context):
     assert context.quick_start_guide.exists(), f"Quick start guide {context.quick_start_guide} does not exist"
     context.current_doc_content = context.quick_start_guide.read_text()
 
+@pytest.mark.medium
 @then("it should include basic installation and setup instructions")
 def quick_start_includes_installation_instructions(context):
     assert "## Installation" in context.current_doc_content, "No installation section found in quick start guide"
 
+@pytest.mark.medium
 @then("it should provide a simple example project")
 def quick_start_provides_example_project(context):
     assert "## Creating Your First DevSynth Project" in context.current_doc_content, "No example project section found in quick start guide"
 
+@pytest.mark.medium
 @then("it should include at least three common use cases")
 def quick_start_includes_common_use_cases(context):
     # Look for use case sections
     use_case_sections = re.findall(r'## Use Case: (.*?)\n', context.current_doc_content)
     assert len(use_case_sections) >= 3, f"Found only {len(use_case_sections)} use cases in quick start guide, expected at least 3"
 
+@pytest.mark.medium
 @then("it should link to more detailed documentation")
 def quick_start_links_to_detailed_docs(context):
     # Look for links to other documentation
@@ -129,35 +145,43 @@ def quick_start_links_to_detailed_docs(context):
     assert len(doc_links) > 0, "No links to detailed documentation found in quick start guide"
 
 # Troubleshooting steps
+@pytest.mark.medium
 @when("I check the troubleshooting documentation")
 def check_troubleshooting_documentation(context):
     assert context.troubleshooting.exists(), f"Troubleshooting documentation {context.troubleshooting} does not exist"
     context.current_doc_content = context.troubleshooting.read_text()
 
+@pytest.mark.medium
 @then("it should cover installation issues")
 def troubleshooting_covers_installation_issues(context):
     assert "## Installation Issues" in context.current_doc_content, "No installation issues section found in troubleshooting documentation"
 
+@pytest.mark.medium
 @then("it should cover configuration issues")
 def troubleshooting_covers_configuration_issues(context):
     assert "## Configuration Issues" in context.current_doc_content, "No configuration issues section found in troubleshooting documentation"
 
+@pytest.mark.medium
 @then("it should cover LLM provider issues")
 def troubleshooting_covers_llm_provider_issues(context):
     assert "## LLM Provider Issues" in context.current_doc_content, "No LLM provider issues section found in troubleshooting documentation"
 
+@pytest.mark.medium
 @then("it should cover memory system issues")
 def troubleshooting_covers_memory_system_issues(context):
     assert "## Memory System Issues" in context.current_doc_content, "No memory system issues section found in troubleshooting documentation"
 
+@pytest.mark.medium
 @then("it should cover command execution issues")
 def troubleshooting_covers_command_execution_issues(context):
     assert "## Command Execution Issues" in context.current_doc_content, "No command execution issues section found in troubleshooting documentation"
 
+@pytest.mark.medium
 @then("it should cover performance issues")
 def troubleshooting_covers_performance_issues(context):
     assert "## Performance Issues" in context.current_doc_content, "No performance issues section found in troubleshooting documentation"
 
+@pytest.mark.medium
 @then("it should provide clear solutions for each issue")
 def troubleshooting_provides_clear_solutions(context):
     # Look for solution sections
@@ -165,6 +189,7 @@ def troubleshooting_provides_clear_solutions(context):
     assert len(solution_sections) > 0, "No solution sections found in troubleshooting documentation"
 
 # Configuration reference steps
+@pytest.mark.medium
 @when("I check the configuration reference documentation")
 def check_configuration_reference(context):
     # This file might not exist yet, so we don't assert its existence
@@ -173,6 +198,7 @@ def check_configuration_reference(context):
     else:
         context.current_doc_content = ""
 
+@pytest.mark.medium
 @then("it should document all configuration options")
 def configuration_reference_documents_all_options(context):
     # This will be implemented when the configuration reference is created
@@ -190,6 +216,7 @@ def configuration_reference_documents_all_options(context):
     for section in expected_sections:
         assert f"## {section}" in context.current_doc_content, f"Configuration section '{section}' is not documented"
 
+@pytest.mark.medium
 @then("it should explain the purpose of each option")
 def configuration_reference_explains_purpose(context):
     if not context.configuration_reference.exists():
@@ -199,6 +226,7 @@ def configuration_reference_explains_purpose(context):
     option_descriptions = re.findall(r'\| `([^`]+)` \| (.*?) \|', context.current_doc_content)
     assert len(option_descriptions) > 0, "No option descriptions found in configuration reference"
 
+@pytest.mark.medium
 @then("it should list possible values for each option")
 def configuration_reference_lists_possible_values(context):
     if not context.configuration_reference.exists():
@@ -208,6 +236,7 @@ def configuration_reference_lists_possible_values(context):
     value_listings = re.findall(r'\| `([^`]+)` \| .*? \| .*? \| (.*?) \|', context.current_doc_content)
     assert len(value_listings) > 0, "No possible values listed in configuration reference"
 
+@pytest.mark.medium
 @then("it should provide examples of common configurations")
 def configuration_reference_provides_examples(context):
     if not context.configuration_reference.exists():
@@ -217,6 +246,7 @@ def configuration_reference_provides_examples(context):
     example_sections = re.findall(r'```(yaml|bash|env)\n', context.current_doc_content)
     assert len(example_sections) > 0, "No configuration examples found in configuration reference"
 
+@pytest.mark.medium
 @then("it should explain how to set options via environment variables")
 def configuration_reference_explains_env_vars(context):
     if not context.configuration_reference.exists():
@@ -224,6 +254,7 @@ def configuration_reference_explains_env_vars(context):
 
     assert "Environment Variables" in context.current_doc_content, "No environment variables section found in configuration reference"
 
+@pytest.mark.medium
 @then("it should explain how to set options via configuration files")
 def configuration_reference_explains_config_files(context):
     if not context.configuration_reference.exists():

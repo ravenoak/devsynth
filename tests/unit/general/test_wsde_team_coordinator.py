@@ -71,6 +71,7 @@ ReqID: N/A"""
         assert self.coordinator.teams[self.coordinator.current_team_id].agents[
             0] == self.agent1
 
+    @pytest.mark.medium
     def test_delegate_task_single_agent_succeeds(self):
         """Test delegating a task with a single agent.
 

@@ -8,8 +8,15 @@ tags:
   - performance
 
 title: DevSynth Performance Benchmark Plan
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Performance Benchmark Plan
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Performance Benchmark Plan
+</div>
 
 # DevSynth Performance Benchmark Plan
 

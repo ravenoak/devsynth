@@ -7,8 +7,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth System Requirements Specification
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth System Requirements Specification
+</div>
 
 # DevSynth System Requirements Specification
 
@@ -69,7 +76,7 @@ Primary users are individual software developers who:
 
 #### 2.3.1 Assumptions
 
-- [ASM-01] The user has Python 3.8 or higher installed
+- [ASM-01] The user has Python 3.12 or higher installed
 - [ASM-02] The user has sufficient hardware resources to run LM Studio with at least one LLM
 - [ASM-03] The user is comfortable with command-line interfaces
 - [ASM-04] The user understands basic software development concepts and practices

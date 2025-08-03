@@ -85,12 +85,14 @@ def parity_context(monkeypatch):
     return {"st": st, "ui": webui.WebUI(), "cli": cli_module}
 
 
+@pytest.mark.medium
 @given("the CLI and WebUI share a UXBridge")
 def shared_setup(parity_context):
     """Return the parity context."""
     return parity_context
 
 
+@pytest.mark.medium
 @when("init is invoked from the CLI and WebUI")
 def invoke_init(parity_context):
     """Invoke the init command via both interfaces."""
@@ -114,6 +116,7 @@ def invoke_init(parity_context):
     ui.onboarding_page()
 
 
+@pytest.mark.medium
 @then("both invocations pass identical arguments")
 def check_calls(parity_context):
     """Ensure CLI calls from CLI and WebUI used the same parameters."""

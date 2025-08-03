@@ -12,8 +12,15 @@ tags:
 - interface
 
 title: WebUI Architecture Overview
-version: 1.1.0
----
+version: 1.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WebUI Architecture Overview
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WebUI Architecture Overview
+</div>
 
 # WebUI Architecture Overview
 
@@ -1217,4 +1224,4 @@ Planned enhancements for the WebUI include:
 6. **Integration with Version Control**: Direct integration with Git repositories
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

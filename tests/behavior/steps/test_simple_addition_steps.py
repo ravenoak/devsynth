@@ -17,16 +17,19 @@ def context():
             self.result = None
     return Context()
 
+@pytest.mark.medium
 @given(parsers.parse("I have the numbers {num1:d} and {num2:d}"))
 def have_numbers(context, num1, num2):
     """Store the numbers in the context."""
     context.numbers = [num1, num2]
 
+@pytest.mark.medium
 @when("I add them together")
 def add_numbers(context):
     """Add the numbers together."""
     context.result = sum(context.numbers)
 
+@pytest.mark.medium
 @then(parsers.parse("the result should be {expected:d}"))
 def check_result(context, expected):
     """Check that the result matches the expected value."""

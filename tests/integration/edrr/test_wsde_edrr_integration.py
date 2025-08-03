@@ -51,6 +51,7 @@ class TestWSDEEDRRIntegration:
         team = WSDETeam(name="TestEDRRIntegrationTeam", agents=mock_agents)
         return team
 
+    @pytest.mark.medium
     def test_phase_specific_role_assignment_has_expected(self, wsde_team, mock_agents):
         """Test that roles are assigned appropriately for each EDRR phase.
 
@@ -127,6 +128,7 @@ class TestWSDEEDRRIntegration:
             agent.current_role in ["Primus", "Evaluator"] for agent in reflective_agents
         ), "No agent with reflective expertise was assigned Primus or Evaluator role in RETROSPECT phase"
 
+    @pytest.mark.medium
     def test_role_rotation_on_phase_transition_has_expected(
         self, wsde_team, mock_agents
     ):
@@ -144,6 +146,7 @@ class TestWSDEEDRRIntegration:
                 break
         assert roles_changed, "Roles should change during phase transition"
 
+    @pytest.mark.medium
     def test_phase_specific_expertise_scoring_succeeds(self, wsde_team, mock_agents):
         """Test that phase-specific expertise scoring works correctly.
 
@@ -188,6 +191,7 @@ class TestWSDEEDRRIntegration:
             score3_refine > score1_refine
         ), "Agent with implementation expertise should score higher in REFINE phase"
 
+    @pytest.mark.medium
     def test_dynamic_role_reassignment_and_consensus(self, mock_agents):
         """Dynamic role reassignment integrates with consensus voting."""
         from devsynth.application.collaboration.WSDE import WSDE
@@ -204,6 +208,7 @@ class TestWSDEEDRRIntegration:
         assert vote.get("status") == "completed"
         assert vote.get("decision") or vote.get("result")
 
+    @pytest.mark.medium
     def test_dialectical_hooks_invoked(self, mock_agents):
         """Registered dialectical hooks should be called during reasoning."""
         from devsynth.application.collaboration.WSDE import WSDE

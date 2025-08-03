@@ -8,8 +8,15 @@ tags:
   - "requirements"
 
 status: "draft"
-author: "DevSynth Team"
----
+author: "DevSynth Team"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Requirements Gathering Workflow
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Requirements Gathering Workflow
+</div>
 
 # Requirements Gathering Workflow
 

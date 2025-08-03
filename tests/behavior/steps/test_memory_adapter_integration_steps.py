@@ -60,6 +60,7 @@ def context(tmp_path):
     return ctx
 
 
+@pytest.mark.medium
 @given("a memory manager with graph and tinydb adapters")
 def have_manager(context):
     assert context.manager is not None
@@ -67,6 +68,7 @@ def have_manager(context):
     assert "tinydb" in context.manager.adapters
 
 
+@pytest.mark.medium
 @when(parsers.parse('I store a graph memory item with id "{item_id}"'))
 def store_graph_item(context, item_id):
     try:
@@ -76,6 +78,7 @@ def store_graph_item(context, item_id):
         pytest.fail(f"Failed to store graph memory item: {e}")
 
 
+@pytest.mark.medium
 @when(parsers.parse('I store a tinydb memory item with id "{item_id}"'))
 def store_tinydb_item(context, item_id):
     try:
@@ -85,6 +88,7 @@ def store_tinydb_item(context, item_id):
         pytest.fail(f"Failed to store tinydb memory item: {e}")
 
 
+@pytest.mark.medium
 @then("querying items by type should return both stored items")
 def query_items(context):
     try:

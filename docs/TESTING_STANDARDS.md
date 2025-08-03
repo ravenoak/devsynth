@@ -6,8 +6,15 @@ tags:
   - "documentation"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth Testing Standards
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth Testing Standards
+</div>
 
 # DevSynth Testing Standards
 

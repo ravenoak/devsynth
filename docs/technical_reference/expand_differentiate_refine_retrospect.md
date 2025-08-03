@@ -11,8 +11,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Expand, Differentiate, Refine, Retrospect: DevSynth's Universal Iterative Methodology
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Expand, Differentiate, Refine, Retrospect: DevSynth's Universal Iterative Methodology
+</div>
 
 # Expand, Differentiate, Refine, Retrospect: DevSynth's Universal Iterative Methodology
 

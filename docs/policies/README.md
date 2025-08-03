@@ -7,8 +7,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies
+</div>
 
 # DevSynth SDLC Policies
 

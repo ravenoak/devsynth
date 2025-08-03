@@ -11,8 +11,15 @@ tags:
 - process
 
 title: Contributing Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Contributing Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Contributing Guide
+</div>
 
 # Contributing Guide
 
@@ -331,4 +338,4 @@ If you have any questions about contributing, please open an issue or reach out 
 Thank you for contributing to DevSynth!
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

@@ -12,8 +12,15 @@ tags:
 - strategic-planning
 
 title: DevSynth Project Executive Summary
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Executive Summary
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Executive Summary
+</div>
 
 # DevSynth Project Executive Summary
 

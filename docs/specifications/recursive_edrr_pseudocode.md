@@ -9,8 +9,15 @@ tags:
 
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Recursive EDRR Pseudocode
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Recursive EDRR Pseudocode
+</div>
 
 # Recursive EDRR Pseudocode
 
@@ -105,4 +112,4 @@ dependencies and increments `recursion_depth`. Results from the micro cycle are
 stored under the parent's phase data so the overall cycle reflects nested work.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

@@ -1,3 +1,5 @@
+import pytest
+
 import os
 from devsynth.application.prompts.prompt_manager import PromptManager
 
@@ -11,6 +13,7 @@ ReqID: N/A"""
     assert pm.auto_tuner is None
 
 
+@pytest.mark.medium
 def test_prompt_auto_tuning_feedback_loop_succeeds(tmp_path):
     """Test that prompt auto tuning feedback loop succeeds.
 

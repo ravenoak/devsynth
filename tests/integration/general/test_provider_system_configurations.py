@@ -41,6 +41,7 @@ class TestProviderConfigurations:
         return {"choices": [{"text": "This is a mock response from LM Studio"}]}
 
     @responses.activate
+    @pytest.mark.medium
     def test_openai_provider_with_different_models_has_expected(
         self, mock_openai_response
     ):
@@ -76,6 +77,7 @@ class TestProviderConfigurations:
             assert result == "This is a mock response from OpenAI"
 
     @responses.activate
+    @pytest.mark.medium
     def test_openai_provider_with_different_parameters_has_expected(
         self, mock_openai_response
     ):
@@ -108,6 +110,7 @@ class TestProviderConfigurations:
             assert result == "This is a mock response from OpenAI"
 
     @responses.activate
+    @pytest.mark.medium
     def test_lm_studio_provider_with_different_endpoints_has_expected(
         self, mock_lm_studio_response
     ):
@@ -139,6 +142,7 @@ class TestProviderConfigurations:
             assert result == "This is a mock response from LM Studio"
 
     @responses.activate
+    @pytest.mark.medium
     def test_lm_studio_provider_with_different_parameters_has_expected(
         self, mock_lm_studio_response
     ):
@@ -171,6 +175,7 @@ class TestProviderConfigurations:
             assert result == "This is a mock response from LM Studio"
 
     @responses.activate
+    @pytest.mark.medium
     def test_fallback_provider_with_different_configurations_has_expected(
         self, mock_openai_response, mock_lm_studio_response
     ):
@@ -232,6 +237,7 @@ class TestProviderConfigurations:
             assert result == "This is a mock response from LM Studio"
 
     @responses.activate
+    @pytest.mark.medium
     def test_provider_system_with_different_default_providers_has_expected(
         self, mock_openai_response, mock_lm_studio_response
     ):
@@ -271,6 +277,7 @@ class TestProviderConfigurations:
             assert result == "This is a mock response from LM Studio"
 
     @responses.activate
+    @pytest.mark.medium
     def test_provider_system_with_context_aware_completion_has_expected(
         self, mock_openai_response
     ):

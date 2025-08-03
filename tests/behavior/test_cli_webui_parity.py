@@ -168,6 +168,7 @@ def _capture_webui_messages(webui_cls, bridge, st):
     return ui
 
 
+@pytest.mark.medium
 def test_init_parity_succeeds(parity_env):
     """Test that init parity succeeds.
 
@@ -187,6 +188,7 @@ ReqID: N/A"""
     assert cli_messages == web_messages
 
 
+@pytest.mark.medium
 def test_spec_parity_succeeds(parity_env):
     """Test that spec parity succeeds.
 
@@ -209,6 +211,7 @@ ReqID: N/A"""
     assert cli_messages == web_messages
 
 
+@pytest.mark.medium
 def test_code_parity_succeeds(parity_env):
     """Test that code parity succeeds.
 
@@ -230,6 +233,7 @@ ReqID: N/A"""
     assert cli_messages == web_messages
 
 
+@pytest.mark.medium
 def test_doctor_parity_succeeds(parity_env):
     """Test that doctor parity succeeds.
 

@@ -13,10 +13,18 @@ def mock_streamlit(monkeypatch):
     return st
 
 
-def test_ui_progress_init_succeeds(mock_streamlit):
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_ui_progress_init_succeeds(mock_streamlit, clean_state):
     """Test the initialization of _UIProgress.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -33,10 +41,20 @@ ReqID: N/A"""
     status_container.markdown.assert_called_with('**Test Progress** - 0%')
 
 
-def test_ui_progress_update_succeeds(mock_streamlit):
+
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_ui_progress_update_succeeds(mock_streamlit, clean_state):
     """Test the update method of _UIProgress.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -54,10 +72,19 @@ ReqID: N/A"""
     progress_bar.progress.assert_called_with(0.25)
 
 
-def test_ui_progress_complete_succeeds(mock_streamlit):
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_ui_progress_complete_succeeds(mock_streamlit, clean_state):
     """Test the complete method of _UIProgress.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -69,10 +96,18 @@ ReqID: N/A"""
     mock_streamlit.success.assert_called_with('Completed: Test Progress')
 
 
-def test_ui_progress_add_subtask_succeeds(mock_streamlit):
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_ui_progress_add_subtask_succeeds(mock_streamlit, clean_state):
     """Test the add_subtask method of _UIProgress.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -91,10 +126,20 @@ ReqID: N/A"""
         '&nbsp;&nbsp;&nbsp;&nbsp;**Subtask 1** - 0%')
 
 
-def test_ui_progress_update_subtask_succeeds(mock_streamlit):
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_ui_progress_update_subtask_succeeds(mock_streamlit, clean_state):
     """Test the update_subtask method of _UIProgress.
 
-ReqID: N/A"""
+
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -116,10 +161,19 @@ ReqID: N/A"""
     subtask_progress_bar.progress.assert_called_with(0.5)
 
 
-def test_ui_progress_complete_subtask_succeeds(mock_streamlit):
+
+@pytest.mark.medium
+
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+def test_ui_progress_complete_subtask_succeeds(mock_streamlit, clean_state):
     """Test the complete_subtask method of _UIProgress.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)

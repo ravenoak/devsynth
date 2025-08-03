@@ -36,6 +36,7 @@ def create_mock_agent(name, expertise):
     return agent
 
 # Background steps
+@pytest.mark.medium
 @given("a WSDE team with agents specialized in different disciplines")
 def wsde_team_with_specialized_agents(context):
     """Create a WSDE team with agents specialized in different disciplines."""
@@ -66,6 +67,7 @@ def wsde_team_with_specialized_agents(context):
         critic_agent
     ]
 
+@pytest.mark.medium
 @given("a knowledge base with multi-disciplinary information")
 def knowledge_base_with_multi_disciplinary_information(context):
     """Create a knowledge base with multi-disciplinary information."""
@@ -93,6 +95,7 @@ def knowledge_base_with_multi_disciplinary_information(context):
     context.team.get_knowledge_for_discipline = MagicMock()
     context.team.get_knowledge_for_discipline.side_effect = lambda discipline: context.knowledge_sources.get(discipline, [])
 
+@pytest.mark.medium
 @given("the team is configured for multi-disciplinary dialectical reasoning")
 def team_configured_for_multi_disciplinary_dialectical_reasoning(context):
     """Configure the team for multi-disciplinary dialectical reasoning."""

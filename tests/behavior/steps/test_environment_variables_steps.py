@@ -7,10 +7,12 @@ import tempfile
 from pathlib import Path
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
+import pytest
 
 # Import the feature file
 scenarios('../features/general/environment_variables.feature')
 
+@pytest.mark.medium
 @given(parsers.parse('I have a .env file with the following content:\n{content}'))
 def create_env_file(content, monkeypatch):
     """Create a temporary .env file with the given content."""
@@ -27,6 +29,7 @@ def create_env_file(content, monkeypatch):
     # Return the path to the .env file for cleanup
     return env_file
 
+@pytest.mark.medium
 @then(parsers.parse('the system should display the value "{value}" for "{key}"'))
 def check_config_value(value, key, mock_workflow_manager):
     """Check that the system displays the expected value for the given key."""

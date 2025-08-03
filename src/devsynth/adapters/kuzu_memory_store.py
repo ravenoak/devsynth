@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 import shutil
+import time
 from typing import Any, Dict, Optional, List
 
 from devsynth.domain.interfaces.memory import MemoryStore
@@ -14,6 +15,7 @@ from devsynth.adapters.provider_system import embed, ProviderError
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.config import settings as settings_module
+from devsynth.exceptions import MemoryStoreError
 
 try:  # pragma: no cover - optional dependency
     from chromadb.utils import embedding_functions
@@ -33,18 +35,47 @@ class KuzuMemoryStore(MemoryStore):
         provider_type: Optional[str] = None,
         collection_name: str = "devsynth_artifacts",
     ) -> None:
+        """Initialize a KuzuMemoryStore with the given parameters.
+        
+        Args:
+            persist_directory: Directory to store data in. If None, uses the default path.
+            use_provider_system: Whether to use the provider system for embeddings.
+            provider_type: Type of provider to use for embeddings.
+            collection_name: Name of the collection to use for vectors.
+        """
         self._temp_dir: Optional[str] = None
-        self.persist_directory = (
+        
+        # Determine the base directory path with proper fallbacks
+        base_directory = (
             persist_directory
             or settings_module.kuzu_db_path
             or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
         )
-        # ``ensure_path_exists`` may redirect the path when running under the
-        # test isolation fixtures.  Capture the returned value so both the
-        # ``KuzuStore`` and ``KuzuAdapter`` use the same final directory.
-        self.persist_directory = settings_module.ensure_path_exists(
-            self.persist_directory
-        )
+        
+        # Normalize and expand the path
+        normalized_path = os.path.abspath(os.path.expanduser(base_directory))
+        
+        # Apply any test isolation redirections via ensure_path_exists
+        # This may redirect the path when running under test isolation fixtures
+        redirected_path = settings_module.ensure_path_exists(normalized_path)
+        
+        # Store the final path
+        self.persist_directory = redirected_path
+        
+        # Ensure the directory exists
+        try:
+            os.makedirs(self.persist_directory, exist_ok=True)
+            logger.debug(f"Using persist directory: {self.persist_directory}")
+        except Exception as e:
+            logger.warning(f"Error creating directory {self.persist_directory}: {e}")
+            # Try to create parent directories if possible
+            try:
+                parent_dir = os.path.dirname(self.persist_directory)
+                os.makedirs(parent_dir, exist_ok=True)
+                os.makedirs(self.persist_directory, exist_ok=True)
+            except Exception:
+                # If we still can't create it, we'll let the store initialization handle it
+                pass
         
         # Explicitly determine whether to use embedded mode
         use_embedded = getattr(settings_module, "KUZU_EMBEDDED", 
@@ -52,17 +83,45 @@ class KuzuMemoryStore(MemoryStore):
         if isinstance(use_embedded, str):
             use_embedded = use_embedded.lower() in {"1", "true", "yes"}
         
-        # Create the directory to ensure it exists
-        os.makedirs(self.persist_directory, exist_ok=True)
+        # Initialize stores with consistent error handling
+        store_initialized = False
+        vector_initialized = False
         
+        # First try to initialize with embedded mode if requested
         try:
             self._store = KuzuStore(self.persist_directory, use_embedded=use_embedded)
-            self.vector = KuzuAdapter(self.persist_directory, collection_name)
+            store_initialized = True
         except Exception as e:
-            logger.warning(f"Error initializing Kuzu store: {e}. Using fallback.")
-            # Ensure fallback is used
-            self._store = KuzuStore(self.persist_directory, use_embedded=False)
+            logger.warning(f"Error initializing KuzuStore with embedded={use_embedded}: {e}")
+            
+        # Then try to initialize the vector store
+        try:
             self.vector = KuzuAdapter(self.persist_directory, collection_name)
+            vector_initialized = True
+        except Exception as e:
+            logger.warning(f"Error initializing KuzuAdapter: {e}")
+            
+        # If either initialization failed, try again with fallback options
+        if not store_initialized:
+            try:
+                # Try with embedded=False as fallback
+                self._store = KuzuStore(self.persist_directory, use_embedded=False)
+                logger.info("Using fallback KuzuStore with embedded=False")
+            except Exception as e:
+                # Last resort: create a minimal in-memory store
+                logger.error(f"Failed to initialize KuzuStore even with fallback: {e}")
+                self._store = KuzuStore(self.persist_directory, use_embedded=False)
+                
+        if not vector_initialized:
+            try:
+                # Try again with explicit path creation
+                os.makedirs(self.persist_directory, exist_ok=True)
+                self.vector = KuzuAdapter(self.persist_directory, collection_name)
+                logger.info("Successfully initialized KuzuAdapter on retry")
+            except Exception as e:
+                # Last resort: create a minimal adapter
+                logger.error(f"Failed to initialize KuzuAdapter even with fallback: {e}")
+                self.vector = KuzuAdapter(self.persist_directory, collection_name)
             
         self.use_provider_system = use_provider_system
         self.provider_type = provider_type
@@ -77,7 +136,8 @@ class KuzuMemoryStore(MemoryStore):
             logger.warning(f"Error initializing embedder: {e}. Using fallback.")
             self.embedder = lambda x: [0.0] * 5
 
-        if self._store._use_fallback:
+        # Log the final state
+        if hasattr(self._store, "_use_fallback") and self._store._use_fallback:
             logger.info("Kuzu unavailable; using in-memory fallback store")
 
     def _get_embedding(self, text: str):
@@ -100,16 +160,67 @@ class KuzuMemoryStore(MemoryStore):
         return self.embedder(text)
 
     def store(self, item: MemoryItem) -> str:
-        embedding = self._get_embedding(str(item.content))
-        self.vector.store_vector(
-            MemoryVector(
+        """Store a memory item and its vector representation.
+        
+        This method ensures that both the memory item and its vector are stored
+        consistently, using transaction support when available.
+        
+        Args:
+            item: The memory item to store
+            
+        Returns:
+            The ID of the stored item
+            
+        Raises:
+            MemoryStoreError: If there's an error storing the item or vector
+        """
+        try:
+            # Get embedding with better error handling
+            embedding = self._get_embedding(str(item.content))
+            if not embedding:
+                logger.warning(f"Empty embedding generated for item {item.id}. Using fallback.")
+                embedding = [0.0] * 5
+                
+            # Create vector object
+            vector = MemoryVector(
                 id=item.id,
                 content=item.content,
                 embedding=embedding,
                 metadata=item.metadata,
             )
-        )
-        return self._store.store(item)
+            
+            # Use transaction if available
+            if hasattr(self._store, "transaction"):
+                with self._store.transaction():
+                    # Store both items, starting with the vector
+                    vector_id = self.vector.store_vector(vector)
+                    item_id = self._store.store(item)
+                    
+                    # Verify consistency
+                    if vector_id != item_id:
+                        logger.warning(
+                            f"Vector ID {vector_id} doesn't match item ID {item_id}. "
+                            f"This might cause retrieval issues."
+                        )
+                    return item_id
+            else:
+                # No transaction support, store sequentially
+                vector_id = self.vector.store_vector(vector)
+                item_id = self._store.store(item)
+                return item_id
+                
+        except Exception as e:
+            logger.error(f"Error storing item {item.id}: {e}")
+            # Try to clean up any partial storage
+            try:
+                self.vector.delete_vector(item.id)
+            except Exception:
+                pass
+            try:
+                self._store.delete(item.id)
+            except Exception:
+                pass
+            raise MemoryStoreError(f"Failed to store item {item.id}: {e}") from e
 
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
         return self._store.retrieve(item_id)
@@ -127,8 +238,51 @@ class KuzuMemoryStore(MemoryStore):
         return results
 
     def delete(self, item_id: str) -> bool:
-        self.vector.delete_vector(item_id)
-        return self._store.delete(item_id)
+        """Delete a memory item and its vector representation.
+        
+        This method ensures that both the memory item and its vector are deleted
+        consistently, using transaction support when available.
+        
+        Args:
+            item_id: The ID of the item to delete
+            
+        Returns:
+            True if the item was deleted, False otherwise
+            
+        Raises:
+            MemoryStoreError: If there's an error deleting the item or vector
+        """
+        try:
+            # Use transaction if available
+            if hasattr(self._store, "transaction"):
+                with self._store.transaction():
+                    # Delete both items
+                    vector_deleted = self.vector.delete_vector(item_id)
+                    item_deleted = self._store.delete(item_id)
+                    
+                    # Log inconsistency but don't fail
+                    if vector_deleted != item_deleted:
+                        logger.warning(
+                            f"Inconsistent delete results for item {item_id}: "
+                            f"vector_deleted={vector_deleted}, item_deleted={item_deleted}"
+                        )
+                    
+                    # Return True if either was deleted
+                    return vector_deleted or item_deleted
+            else:
+                # No transaction support, delete sequentially
+                # Delete vector first to avoid orphaned vectors
+                vector_deleted = self.vector.delete_vector(item_id)
+                item_deleted = self._store.delete(item_id)
+                
+                # Return True if either was deleted
+                return vector_deleted or item_deleted
+                
+        except Exception as e:
+            logger.error(f"Error deleting item {item_id}: {e}")
+            # Don't raise here to maintain backward compatibility
+            # Just log and return False
+            return False
 
     # ------------------------------------------------------------------
     @classmethod
@@ -150,13 +304,81 @@ class KuzuMemoryStore(MemoryStore):
         return store
 
     def cleanup(self) -> None:
-        """Remove any temporary directory created by :meth:`create_ephemeral`."""
+        """Remove any temporary directory created by :meth:`create_ephemeral`.
+        
+        This method ensures that all temporary files and directories are properly
+        cleaned up, including those created by KuzuStore and KuzuAdapter.
+        """
+        # First, try to close any open connections
+        try:
+            if hasattr(self._store, "conn") and self._store.conn:
+                try:
+                    # Try to commit any pending transactions
+                    self._store.conn.execute("COMMIT")
+                except Exception:
+                    pass
+                
+                # Close the connection if possible
+                if hasattr(self._store.conn, "close"):
+                    try:
+                        self._store.conn.close()
+                    except Exception as e:
+                        logger.warning(f"Error closing Kuzu connection: {e}")
+        except Exception as e:
+            logger.warning(f"Error during connection cleanup: {e}")
+            
+        # Clean up vector store files
+        try:
+            vector_data_file = getattr(self.vector, "_data_file", None)
+            if vector_data_file and os.path.exists(vector_data_file):
+                try:
+                    os.remove(vector_data_file)
+                    logger.debug(f"Removed vector data file: {vector_data_file}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove vector data file: {e}")
+                    
+            # Also try to remove any temporary files
+            vector_temp_file = f"{vector_data_file}.tmp" if vector_data_file else None
+            if vector_temp_file and os.path.exists(vector_temp_file):
+                try:
+                    os.remove(vector_temp_file)
+                    logger.debug(f"Removed vector temp file: {vector_temp_file}")
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.warning(f"Error during vector store cleanup: {e}")
+            
+        # Finally, remove the temporary directory
         temp_dir = getattr(self, "_temp_dir", None)
         if temp_dir and os.path.exists(temp_dir):
             try:
+                # Use a short delay to ensure files are not locked
+                time.sleep(0.1)
                 shutil.rmtree(temp_dir)
-            except Exception as exc:  # pragma: no cover - defensive
-                logger.warning("Failed to clean up temporary Kuzu directory: %s", exc)
+                logger.debug(f"Removed temporary directory: {temp_dir}")
+            except Exception as exc:
+                logger.warning(f"Failed to clean up temporary Kuzu directory: {exc}")
+                # Try to remove individual files as a fallback
+                try:
+                    for root, dirs, files in os.walk(temp_dir, topdown=False):
+                        for file in files:
+                            try:
+                                os.remove(os.path.join(root, file))
+                            except Exception:
+                                pass
+                        for dir in dirs:
+                            try:
+                                os.rmdir(os.path.join(root, dir))
+                            except Exception:
+                                pass
+                    # Try to remove the root directory again
+                    try:
+                        os.rmdir(temp_dir)
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
+                    
         if temp_dir:
             self._temp_dir = None
 

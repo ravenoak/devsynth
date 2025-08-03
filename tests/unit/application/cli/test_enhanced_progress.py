@@ -5,7 +5,6 @@ from rich.console import Console
 from devsynth.application.cli.progress import EnhancedProgressIndicator, ProgressManager, create_enhanced_progress, create_task_table, run_with_progress
 from devsynth.interface.ux_bridge import UXBridge
 
-
 class TestEnhancedProgressIndicator:
     """Tests for the EnhancedProgressIndicator class.
 
@@ -40,6 +39,7 @@ ReqID: N/A"""
         indicator._progress.update = original_update
         console.file.close()
 
+    @pytest.mark.medium
     def test_add_subtask_succeeds(self, indicator):
         """Test adding a subtask to the progress indicator.
 
@@ -52,6 +52,7 @@ ReqID: N/A"""
         assert indicator._subtasks['Subtask 1'] == 'task_1'
         assert subtask_id == 'Subtask 1'
 
+    @pytest.mark.medium
     def test_update_subtask_succeeds(self, indicator):
         """Test updating a subtask's progress.
 
@@ -61,9 +62,9 @@ ReqID: N/A"""
         assert len(indicator.update_calls) == 1
         assert indicator.update_calls[0][0] == 'task_1'
         assert indicator.update_calls[0][1]['advance'] == 10
-        assert indicator.update_calls[0][1]['description'
-            ] == '  ↳ Updated subtask'
+        assert indicator.update_calls[0][1]['description'] == '  ↳ Updated subtask'
 
+    @pytest.mark.medium
     def test_complete_subtask_succeeds(self, indicator):
         """Test completing a subtask.
 
@@ -74,6 +75,7 @@ ReqID: N/A"""
         assert indicator.update_calls[0][0] == 'task_1'
         assert indicator.update_calls[0][1]['completed'] is True
 
+    @pytest.mark.medium
     def test_update_succeeds(self, indicator):
         """Test updating the main task's progress.
 
@@ -82,9 +84,9 @@ ReqID: N/A"""
         assert len(indicator.update_calls) == 1
         assert indicator.update_calls[0][0] == indicator._task
         assert indicator.update_calls[0][1]['advance'] == 10
-        assert indicator.update_calls[0][1]['description'
-            ] == 'Updated main task'
+        assert indicator.update_calls[0][1]['description'] == 'Updated main task'
 
+    @pytest.mark.medium
     def test_complete_succeeds(self, indicator):
         """Test completing the main task and all subtasks.
 
@@ -93,16 +95,13 @@ ReqID: N/A"""
         subtask2_id = indicator.add_subtask('Subtask 2', 30)
         indicator.complete()
         assert len(indicator.update_calls) == 3
-        subtask_calls = [call for call in indicator.update_calls if call[0] !=
-            indicator._task]
+        subtask_calls = [call for call in indicator.update_calls if call[0] != indicator._task]
         assert len(subtask_calls) == 2
         for call in subtask_calls:
             assert call[1]['completed'] is True
-        main_task_calls = [call for call in indicator.update_calls if call[
-            0] == indicator._task]
+        main_task_calls = [call for call in indicator.update_calls if call[0] == indicator._task]
         assert len(main_task_calls) == 1
         assert main_task_calls[0][1]['completed'] is True
-
 
 class TestProgressManager:
     """Tests for the ProgressManager class.
@@ -121,16 +120,20 @@ ReqID: N/A"""
         """Create a ProgressManager for testing."""
         return ProgressManager(bridge)
 
+    @pytest.mark.medium
     def test_create_progress_succeeds(self, manager, bridge):
         """Test creating a progress indicator.
+
 
 ReqID: N/A"""
         indicator = manager.create_progress('task1', 'Task 1', 100)
         bridge.create_progress.assert_called_once_with('Task 1', total=100)
         assert manager.indicators['task1'] == indicator
 
+    @pytest.mark.medium
     def test_get_progress_succeeds(self, manager, bridge):
         """Test getting a progress indicator.
+
 
 ReqID: N/A"""
         indicator = manager.create_progress('task1', 'Task 1', 100)
@@ -138,18 +141,21 @@ ReqID: N/A"""
         assert retrieved == indicator
         assert manager.get_progress('non-existent') is None
 
+    @pytest.mark.medium
     def test_update_progress_succeeds(self, manager, bridge):
         """Test updating a progress indicator.
+
 
 ReqID: N/A"""
         indicator = manager.create_progress('task1', 'Task 1', 100)
         manager.update_progress('task1', 10, 'Updated task')
-        indicator.update.assert_called_once_with(advance=10, description=
-            'Updated task')
+        indicator.update.assert_called_once_with(advance=10, description='Updated task')
         manager.update_progress('non-existent', 10, 'Updated task')
 
+    @pytest.mark.medium
     def test_complete_progress_succeeds(self, manager, bridge):
         """Test completing a progress indicator.
+
 
 ReqID: N/A"""
         indicator = manager.create_progress('task1', 'Task 1', 100)
@@ -158,7 +164,7 @@ ReqID: N/A"""
         assert 'task1' not in manager.indicators
         manager.complete_progress('non-existent')
 
-
+@pytest.mark.medium
 def test_create_enhanced_progress_succeeds():
     """Test creating an enhanced progress indicator.
 
@@ -172,15 +178,12 @@ ReqID: N/A"""
     finally:
         console.file.close()
 
-
+@pytest.mark.medium
 def test_create_task_table_succeeds():
     """Test creating a task table.
 
 ReqID: N/A"""
-    tasks = [{'name': 'Task 1', 'status': 'Complete', 'description':
-        'Description 1'}, {'name': 'Task 2', 'status': 'In Progress',
-        'description': 'Description 2'}, {'name': 'Task 3', 'status':
-        'Failed', 'description': 'Description 3'}]
+    tasks = [{'name': 'Task 1', 'status': 'Complete', 'description': 'Description 1'}, {'name': 'Task 2', 'status': 'In Progress', 'description': 'Description 2'}, {'name': 'Task 3', 'status': 'Failed', 'description': 'Description 3'}]
     table = create_task_table(tasks, 'Test Tasks')
     assert table.title == 'Test Tasks'
     assert len(table.columns) == 3
@@ -188,7 +191,7 @@ ReqID: N/A"""
     assert table.columns[1].header == 'Status'
     assert table.columns[2].header == 'Description'
 
-
+@pytest.mark.medium
 def test_run_with_progress_succeeds():
     """Test running a task with a progress indicator.
 
@@ -199,8 +202,7 @@ ReqID: N/A"""
 
     def task_fn():
         return 'result'
-    result = run_with_progress('Task', task_fn, bridge, 100, [{'name':
-        'Subtask 1', 'total': 50}, {'name': 'Subtask 2', 'total': 30}])
+    result = run_with_progress('Task', task_fn, bridge, 100, [{'name': 'Subtask 1', 'total': 50}, {'name': 'Subtask 2', 'total': 30}])
     bridge.create_progress.assert_called_once_with('Task', total=100)
     assert result == 'result'
     progress.complete.assert_called_once()

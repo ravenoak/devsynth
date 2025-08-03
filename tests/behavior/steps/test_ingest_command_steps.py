@@ -25,6 +25,7 @@ def mock_ingest_cmd():
         yield mock
 
 # Step definitions
+@pytest.mark.medium
 @given(parsers.parse('I have a valid project manifest file "{manifest_file}"'))
 def valid_manifest_file(context, manifest_file, tmp_path):
     """Create a valid manifest file for testing."""
@@ -39,6 +40,7 @@ def valid_manifest_file(context, manifest_file, tmp_path):
     
     context.manifest_path = str(manifest_path)
 
+@pytest.mark.medium
 @given(parsers.parse('I have an invalid project manifest file "{manifest_file}"'))
 def invalid_manifest_file(context, manifest_file, tmp_path):
     """Create an invalid manifest file for testing."""
@@ -52,11 +54,13 @@ def invalid_manifest_file(context, manifest_file, tmp_path):
     
     context.manifest_path = str(manifest_path)
 
+@pytest.mark.medium
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
     assert "devsynth" in sys.modules
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(context, command, mock_ingest_cmd, monkeypatch):
     """Run a DevSynth CLI command."""
@@ -96,16 +100,19 @@ def run_command(context, command, mock_ingest_cmd, monkeypatch):
             context.result = "failure"
             context.error_message = str(e)
 
+@pytest.mark.medium
 @then('the command should execute successfully')
 def command_successful(context):
     """Verify that the command executed successfully."""
     assert context.result == "success", f"Command failed with error: {context.error_message}"
 
+@pytest.mark.medium
 @then('the command should fail')
 def command_failed(context):
     """Verify that the command failed."""
     assert context.result == "failure", "Command succeeded but was expected to fail"
 
+@pytest.mark.medium
 @then('the system should display a success message')
 def success_message_displayed(context, capsys):
     """Verify that a success message was displayed."""
@@ -113,6 +120,7 @@ def success_message_displayed(context, capsys):
     # Since we're mocking, we'll just verify the command was successful
     assert context.result == "success"
 
+@pytest.mark.medium
 @then('the system should display an error message explaining the issue')
 def error_message_displayed(context, capsys):
     """Verify that an error message was displayed."""
@@ -121,6 +129,7 @@ def error_message_displayed(context, capsys):
     assert context.result == "failure"
     assert context.error_message is not None
 
+@pytest.mark.medium
 @then('the system should display detailed progress information')
 def detailed_progress_displayed(context, capsys):
     """Verify that detailed progress information was displayed."""
@@ -128,12 +137,14 @@ def detailed_progress_displayed(context, capsys):
     # Since we're mocking, we'll just verify the command was successful
     assert context.result == "success"
 
+@pytest.mark.medium
 @then('the project should be ingested into the system')
 def project_ingested(context, mock_ingest_cmd):
     """Verify that the project was ingested into the system."""
     # Verify that the ingest_cmd function was called
     mock_ingest_cmd.assert_called_once()
 
+@pytest.mark.medium
 @then('the system should display an error message indicating the file does not exist')
 def file_not_exist_error_displayed(context, capsys):
     """Verify that an error message about a non-existent file was displayed."""

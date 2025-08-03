@@ -22,7 +22,7 @@ from devsynth.interface.agentapi import (
     DoctorRequest,
     EDRRCycleRequest,
     LATEST_MESSAGES,
-)
+    ) # Uncommented closing parenthesis
 
 
 @pytest.fixture
@@ -57,22 +57,39 @@ def mock_cli_commands():
         def update_bridge(bridge, message='Success'):
             bridge.display_result(message)
             return True
-        mock_init_cmd.side_effect = lambda **kwargs: update_bridge(kwargs[
-            'bridge'], 'Init successful')
-        mock_gather_cmd.side_effect = lambda **kwargs: update_bridge(kwargs
-            ['bridge'], 'Gather successful')
-        mock_run_pipeline_cmd.side_effect = lambda **kwargs: update_bridge(
-            kwargs['bridge'], 'Synthesize successful')
-        mock_spec_cmd.side_effect = lambda **kwargs: update_bridge(kwargs[
-            'bridge'], 'Spec successful')
-        mock_test_cmd.side_effect = lambda **kwargs: update_bridge(kwargs[
-            'bridge'], 'Test successful')
-        mock_code_cmd.side_effect = lambda **kwargs: update_bridge(kwargs[
-            'bridge'], 'Code successful')
-        mock_doctor_cmd.side_effect = lambda **kwargs: update_bridge(kwargs
-            ['bridge'], 'Doctor successful')
-        mock_edrr_cycle_cmd.side_effect = lambda **kwargs: update_bridge(kwargs
-            ['bridge'], 'EDRR cycle successful')
+            
+        def mock_init_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Init successful')
+            
+        def mock_gather_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Gather successful')
+            
+        def mock_run_pipeline_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Synthesize successful')
+            
+        def mock_spec_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Spec successful')
+            
+        def mock_test_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Test successful')
+            
+        def mock_code_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Code successful')
+            
+        def mock_doctor_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'Doctor successful')
+            
+        def mock_edrr_cycle_handler(**kwargs):
+            return update_bridge(kwargs['bridge'], 'EDRR cycle successful')
+            
+        mock_init_cmd.side_effect = mock_init_handler
+        mock_gather_cmd.side_effect = mock_gather_handler
+        mock_run_pipeline_cmd.side_effect = mock_run_pipeline_handler
+        mock_spec_cmd.side_effect = mock_spec_handler
+        mock_test_cmd.side_effect = mock_test_handler
+        mock_code_cmd.side_effect = mock_code_handler
+        mock_doctor_cmd.side_effect = mock_doctor_handler
+        mock_edrr_cycle_cmd.side_effect = mock_edrr_cycle_handler
         yield {'init_cmd': mock_init_cmd, 'gather_cmd': mock_gather_cmd,
             'run_pipeline_cmd': mock_run_pipeline_cmd, 'spec_cmd':
             mock_spec_cmd, 'test_cmd': mock_test_cmd, 'code_cmd':
@@ -80,10 +97,29 @@ def mock_cli_commands():
             mock_edrr_cycle_cmd}
 
 
-def test_all_endpoints_error_handling_raises_error(mock_cli_commands):
+@pytest.fixture
+def clean_state():
+    """Set up clean state for tests."""
+    # Store original state of LATEST_MESSAGES
+    original_messages = LATEST_MESSAGES.copy()
+    
+    # Clear any existing messages before test
+    LATEST_MESSAGES.clear()
+    
+    yield
+    
+    # Clean up state after test
+    LATEST_MESSAGES.clear()
+    
+    # Restore original messages
+    LATEST_MESSAGES.extend(original_messages)
+
+
+@pytest.mark.medium
+def test_error_handling_in_all_endpoints(mock_cli_commands, clean_state):
     """Test error handling in all endpoints.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     mock_cli_commands['init_cmd'].side_effect = Exception('Init error')
     request = InitRequest(path='.', project_root=None, language=None, goals
         =None)
@@ -138,10 +174,18 @@ ReqID: N/A"""
     assert 'Failed to run EDRR cycle' in excinfo.value.detail
 
 
-def test_all_endpoints_authentication_succeeds(client):
+
+
+
+
+
+
+
+@pytest.mark.medium
+def test_all_endpoints_authentication_succeeds(client, clean_state):
     """Test authentication for all endpoints.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     response = client.post('/api/init', json={'path': '.'})
     assert response.status_code == 401
     response = client.post('/api/init', json={'path': '.'}, headers={
@@ -192,10 +236,15 @@ ReqID: N/A"""
     assert response.status_code == 401
 
 
-def test_parameter_validation_is_valid(mock_cli_commands):
+
+
+
+
+@pytest.mark.medium
+def test_parameter_validation_is_valid(mock_cli_commands, clean_state):
     """Test validation of request parameters.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     request = InitRequest(path=None, project_root=None, language=None,
         goals=None)
     with pytest.raises(HTTPException) as excinfo:
@@ -226,13 +275,15 @@ ReqID: N/A"""
     with pytest.raises(HTTPException) as excinfo:
         edrr_cycle_endpoint(request, token=None)
     assert excinfo.value.status_code == 400
+
     assert 'prompt is required' in excinfo.value.detail
 
 
-def test_edge_cases_succeeds(mock_cli_commands):
+@pytest.mark.medium
+def test_edge_cases_succeeds(mock_cli_commands, clean_state):
     """Test edge cases for API endpoints.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     request = InitRequest(path='', project_root=None, language=None, goals=None
         )
     with pytest.raises(HTTPException) as excinfo:

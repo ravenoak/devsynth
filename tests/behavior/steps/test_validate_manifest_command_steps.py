@@ -11,9 +11,11 @@ from pytest_bdd import given
 from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
 
+@pytest.mark.medium
 @given("no manifest file exists at the provided path")
 def missing_manifest(tmp_path: Path, command_context):
     """Provide a path to a nonexistent manifest file for error handling."""
+
     path = tmp_path / "missing.json"
     command_context["manifest_path"] = path
     return path
@@ -21,6 +23,7 @@ def missing_manifest(tmp_path: Path, command_context):
 scenarios("../features/general/validate_manifest_command.feature")
 
 
+@pytest.mark.medium
 @then("the output should indicate the project configuration is valid")
 def manifest_valid(command_context):
     """Check for a success message from validate-manifest."""

@@ -8,8 +8,15 @@ tags:
 - basic-usage
 - tutorial
 title: DevSynth Basic Usage Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Basic Usage Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Basic Usage Guide
+</div>
 
 # DevSynth Basic Usage Guide
 
@@ -105,4 +112,4 @@ For more detailed information about DevSynth's capabilities and advanced usage s
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

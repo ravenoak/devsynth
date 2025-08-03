@@ -52,17 +52,20 @@ if __name__ == "__main__":
     return tmp_path
 
 # Step definitions
+@pytest.mark.medium
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
     assert "devsynth" in sys.modules
 
+@pytest.mark.medium
 @given('I have a project with source code')
 def project_with_source_code(context, sample_project):
     """Set up a project with source code for testing."""
     context.project_path = sample_project
     context.src_path = os.path.join(sample_project, "src")
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(context, command, mock_inspect_code_cmd, tmp_path):
     """Run a DevSynth CLI command."""
@@ -157,34 +160,40 @@ def run_command(context, command, mock_inspect_code_cmd, tmp_path):
         context.result = "failure"
         context.error_message = str(e)
 
+@pytest.mark.medium
 @then('the command should execute successfully')
 def command_successful(context):
     """Verify that the command executed successfully."""
     assert context.result == "success", f"Command failed with error: {context.error_message}"
 
+@pytest.mark.medium
 @then('the command should fail')
 def command_failed(context):
     """Verify that the command failed."""
     assert context.result == "failure", "Command succeeded but was expected to fail"
 
+@pytest.mark.medium
 @then('the system should display architecture metrics')
 def display_architecture_metrics(context):
     """Verify that architecture metrics were displayed."""
     assert "architecture" in context.metrics, "No architecture metrics were generated"
     assert len(context.metrics["architecture"]) > 0, "Architecture metrics are empty"
 
+@pytest.mark.medium
 @then('the system should display code quality metrics')
 def display_code_quality_metrics(context):
     """Verify that code quality metrics were displayed."""
     assert "quality" in context.metrics, "No code quality metrics were generated"
     assert len(context.metrics["quality"]) > 0, "Code quality metrics are empty"
 
+@pytest.mark.medium
 @then('the system should display health metrics')
 def display_health_metrics(context):
     """Verify that health metrics were displayed."""
     assert "health" in context.metrics, "No health metrics were generated"
     assert len(context.metrics["health"]) > 0, "Health metrics are empty"
 
+@pytest.mark.medium
 @then('the system should display metrics for the specified path')
 def display_path_specific_metrics(context):
     """Verify that metrics for the specified path were displayed."""
@@ -193,6 +202,7 @@ def display_path_specific_metrics(context):
     assert "quality" in context.metrics, "No code quality metrics were generated"
     assert "health" in context.metrics, "No health metrics were generated"
 
+@pytest.mark.medium
 @then('the metrics should be specific to the code in that path')
 def metrics_specific_to_path(context):
     """Verify that the metrics are specific to the code in the specified path."""
@@ -203,6 +213,7 @@ def metrics_specific_to_path(context):
     assert len(context.metrics["quality"]) > 0, "Code quality metrics are empty"
     assert len(context.metrics["health"]) > 0, "Health metrics are empty"
 
+@pytest.mark.medium
 @then('the system should display detailed metrics')
 def display_detailed_metrics(context):
     """Verify that detailed metrics were displayed."""
@@ -210,6 +221,7 @@ def display_detailed_metrics(context):
     assert "explanations" in context.metrics, "No explanations were generated"
     assert "recommendations" in context.metrics, "No recommendations were generated"
 
+@pytest.mark.medium
 @then('the metrics should include explanations and recommendations')
 def metrics_include_explanations_and_recommendations(context):
     """Verify that the metrics include explanations and recommendations."""
@@ -218,6 +230,7 @@ def metrics_include_explanations_and_recommendations(context):
     assert "recommendations" in context.metrics, "No recommendations were generated"
     assert len(context.metrics["recommendations"]) > 0, "Recommendations are empty"
 
+@pytest.mark.medium
 @then('the system should generate a report file')
 def generate_report_file(context):
     """Verify that a report file was generated."""
@@ -231,6 +244,7 @@ def generate_report_file(context):
     
     assert os.path.exists(context.report_path), f"Report file was not created at {context.report_path}"
 
+@pytest.mark.medium
 @then('the report should contain all the metrics')
 def report_contains_all_metrics(context):
     """Verify that the report contains all the metrics."""
@@ -245,6 +259,7 @@ def report_contains_all_metrics(context):
     assert "quality" in report_data, "Report does not contain code quality metrics"
     assert "health" in report_data, "Report does not contain health metrics"
 
+@pytest.mark.medium
 @then('the system should display an error message indicating the path does not exist')
 def path_not_exist_error_displayed(context):
     """Verify that an error message about a non-existent path was displayed."""

@@ -9,7 +9,6 @@ from devsynth.application.documentation.documentation_ingestion_manager import D
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import DocumentationError
 
-
 class TestDocumentationIngestionManager:
     """Tests for the DocumentationIngestionManager class.
 
@@ -37,8 +36,7 @@ ReqID: N/A"""
     @pytest.fixture
     def manager_with_memory(self, mock_memory_manager):
         """Create a DocumentationIngestionManager with a memory manager for testing."""
-        manager = DocumentationIngestionManager(memory_manager=
-            mock_memory_manager)
+        manager = DocumentationIngestionManager(memory_manager=mock_memory_manager)
         return manager
 
     @pytest.fixture
@@ -61,30 +59,16 @@ ReqID: N/A"""
         with open(os.path.join(text_dir, 'sample.txt'), 'w') as f:
             f.write('Sample Text\n\nThis is a sample text file.')
         with open(os.path.join(json_dir, 'sample.json'), 'w') as f:
-            f.write(
-                '{"title": "Sample JSON", "content": "This is a sample JSON file."}'
-                )
+            f.write('{"title": "Sample JSON", "content": "This is a sample JSON file."}')
         with open(os.path.join(python_dir, 'sample.py'), 'w') as f:
-            f.write(
-                """""\"Sample Python Module
-
-This is a sample Python file with docstrings.
-""\"
-
-def sample_function():
-    ""\"This is a sample function.""\"
-    pass"""
-                )
+            f.write('"""Sample Python Module\n\nThis is a sample Python file with docstrings.\n"""\n\ndef sample_function():\n    """This is a sample function."""\n    pass')
         with open(os.path.join(html_dir, 'sample.html'), 'w') as f:
-            f.write(
-                '<html><head><title>Sample HTML</title></head><body><h1>Sample HTML</h1><p>This is a sample HTML file.</p></body></html>'
-                )
+            f.write('<html><head><title>Sample HTML</title></head><body><h1>Sample HTML</h1><p>This is a sample HTML file.</p></body></html>')
         with open(os.path.join(rst_dir, 'sample.rst'), 'w') as f:
             f.write('Sample RST\n=========\n\nThis is a sample RST file.')
-        return {'markdown_dir': markdown_dir, 'text_dir': text_dir,
-            'json_dir': json_dir, 'python_dir': python_dir, 'html_dir':
-            html_dir, 'rst_dir': rst_dir}
+        return {'markdown_dir': markdown_dir, 'text_dir': text_dir, 'json_dir': json_dir, 'python_dir': python_dir, 'html_dir': html_dir, 'rst_dir': rst_dir}
 
+    @pytest.mark.medium
     def test_initialization_succeeds(self, manager):
         """Test initialization of the DocumentationIngestionManager.
 
@@ -93,18 +77,15 @@ ReqID: N/A"""
         assert hasattr(manager, 'supported_file_types')
         assert len(manager.supported_file_types) > 0
 
-    def test_ingest_from_directory_markdown_succeeds(self,
-        manager_with_memory, sample_files, mock_memory_manager):
+    @pytest.mark.medium
+    def test_ingest_from_directory_markdown_succeeds(self, manager_with_memory, sample_files, mock_memory_manager):
         """Test ingesting Markdown documentation from a directory.
 
 ReqID: N/A"""
         print(f"Markdown directory: {sample_files['markdown_dir']}")
-        print(f"Files in directory: {os.listdir(sample_files['markdown_dir'])}"
-            )
+        print(f"Files in directory: {os.listdir(sample_files['markdown_dir'])}")
         print(f'Memory manager: {manager_with_memory.memory_manager}')
-        result = manager_with_memory.ingest_directory(dir_path=sample_files
-            ['markdown_dir'], file_types=['.md'], metadata={'format':
-            'markdown'})
+        result = manager_with_memory.ingest_directory(dir_path=sample_files['markdown_dir'], file_types=['.md'], metadata={'format': 'markdown'})
         print(f'Ingest result: {result}')
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
@@ -113,13 +94,12 @@ ReqID: N/A"""
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'markdown'
 
-    def test_ingest_from_directory_text_succeeds(self, manager_with_memory,
-        sample_files, mock_memory_manager):
+    @pytest.mark.medium
+    def test_ingest_from_directory_text_succeeds(self, manager_with_memory, sample_files, mock_memory_manager):
         """Test ingesting text documentation from a directory.
 
 ReqID: N/A"""
-        manager_with_memory.ingest_directory(dir_path=sample_files[
-            'text_dir'], file_types=['.txt'], metadata={'format': 'text'})
+        manager_with_memory.ingest_directory(dir_path=sample_files['text_dir'], file_types=['.txt'], metadata={'format': 'text'})
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
@@ -127,13 +107,12 @@ ReqID: N/A"""
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'text'
 
-    def test_ingest_from_directory_json_succeeds(self, manager_with_memory,
-        sample_files, mock_memory_manager):
+    @pytest.mark.medium
+    def test_ingest_from_directory_json_succeeds(self, manager_with_memory, sample_files, mock_memory_manager):
         """Test ingesting JSON documentation from a directory.
 
 ReqID: N/A"""
-        manager_with_memory.ingest_directory(dir_path=sample_files[
-            'json_dir'], file_types=['.json'], metadata={'format': 'json'})
+        manager_with_memory.ingest_directory(dir_path=sample_files['json_dir'], file_types=['.json'], metadata={'format': 'json'})
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
@@ -141,13 +120,12 @@ ReqID: N/A"""
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'json'
 
-    def test_ingest_from_directory_python_succeeds(self,
-        manager_with_memory, sample_files, mock_memory_manager):
+    @pytest.mark.medium
+    def test_ingest_from_directory_python_succeeds(self, manager_with_memory, sample_files, mock_memory_manager):
         """Test ingesting Python documentation from a directory.
 
 ReqID: N/A"""
-        manager_with_memory.ingest_directory(dir_path=sample_files[
-            'python_dir'], file_types=['.py'], metadata={'format': 'python'})
+        manager_with_memory.ingest_directory(dir_path=sample_files['python_dir'], file_types=['.py'], metadata={'format': 'python'})
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
@@ -155,13 +133,12 @@ ReqID: N/A"""
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'python'
 
-    def test_ingest_from_directory_html_succeeds(self, manager_with_memory,
-        sample_files, mock_memory_manager):
+    @pytest.mark.medium
+    def test_ingest_from_directory_html_succeeds(self, manager_with_memory, sample_files, mock_memory_manager):
         """Test ingesting HTML documentation from a directory.
 
 ReqID: N/A"""
-        manager_with_memory.ingest_directory(dir_path=sample_files[
-            'html_dir'], file_types=['.html'], metadata={'format': 'html'})
+        manager_with_memory.ingest_directory(dir_path=sample_files['html_dir'], file_types=['.html'], metadata={'format': 'html'})
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
@@ -169,13 +146,12 @@ ReqID: N/A"""
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'html'
 
-    def test_ingest_from_directory_rst_succeeds(self, manager_with_memory,
-        sample_files, mock_memory_manager):
+    @pytest.mark.medium
+    def test_ingest_from_directory_rst_succeeds(self, manager_with_memory, sample_files, mock_memory_manager):
         """Test ingesting RST documentation from a directory.
 
 ReqID: N/A"""
-        manager_with_memory.ingest_directory(dir_path=sample_files[
-            'rst_dir'], file_types=['.rst'], metadata={'format': 'rst'})
+        manager_with_memory.ingest_directory(dir_path=sample_files['rst_dir'], file_types=['.rst'], metadata={'format': 'rst'})
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
@@ -183,21 +159,18 @@ ReqID: N/A"""
         assert 'format' in stored_item.metadata
         assert stored_item.metadata['format'] == 'rst'
 
+    @pytest.mark.medium
     @patch('requests.get')
-    def test_ingest_from_url_succeeds(self, mock_get, manager_with_memory,
-        mock_memory_manager):
+    def test_ingest_from_url_succeeds(self, mock_get, manager_with_memory, mock_memory_manager):
         """Test ingesting documentation from a URL.
 
 ReqID: N/A"""
         mock_response = MagicMock()
-        mock_response.text = (
-            '# Sample Documentation\n\nThis is sample documentation from a URL.'
-            )
+        mock_response.text = '# Sample Documentation\n\nThis is sample documentation from a URL.'
         mock_response.status_code = 200
         mock_response.headers = {'Content-Type': 'text/markdown'}
         mock_get.return_value = mock_response
-        manager_with_memory.ingest_url(url='https://example.com/docs',
-            metadata={'format': 'markdown'})
+        manager_with_memory.ingest_url(url='https://example.com/docs', metadata={'format': 'markdown'})
         mock_get.assert_called_with('https://example.com/docs', timeout=30)
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
@@ -208,22 +181,20 @@ ReqID: N/A"""
         assert 'source' in stored_item.metadata
         assert stored_item.metadata['source'] == 'https://example.com/docs'
 
+    @pytest.mark.medium
     @patch('requests.get')
-    def test_ingest_from_url_error_raises_error(self, mock_get,
-        manager_with_memory):
+    def test_ingest_from_url_error_raises_error(self, mock_get, manager_with_memory):
         """Test error handling when ingesting from a URL.
 
 ReqID: N/A"""
         mock_response = MagicMock()
         mock_response.status_code = 404
-        mock_response.raise_for_status = MagicMock(side_effect=Exception(
-            '404 Not Found'))
+        mock_response.raise_for_status = MagicMock(side_effect=Exception('404 Not Found'))
         mock_get.return_value = mock_response
         with pytest.raises(Exception):
-            manager_with_memory.ingest_url(url=
-                'https://example.com/nonexistent', metadata={'format':
-                'markdown'})
+            manager_with_memory.ingest_url(url='https://example.com/nonexistent', metadata={'format': 'markdown'})
 
+    @pytest.mark.medium
     def test_process_markdown_succeeds(self, manager):
         """Test processing Markdown content.
 
@@ -233,6 +204,7 @@ ReqID: N/A"""
         assert 'Sample Markdown' in processed
         assert 'This is a sample Markdown file' in processed
 
+    @pytest.mark.medium
     def test_process_text_succeeds(self, manager):
         """Test processing text content.
 
@@ -242,45 +214,38 @@ ReqID: N/A"""
         assert 'Sample Text' in processed
         assert 'This is a sample text file' in processed
 
+    @pytest.mark.medium
     def test_process_json_succeeds(self, manager):
         """Test processing JSON content.
 
 ReqID: N/A"""
-        content = (
-            '{"title": "Sample JSON", "content": "This is a sample JSON file."}'
-            )
+        content = '{"title": "Sample JSON", "content": "This is a sample JSON file."}'
         processed = manager._process_json(content)
         assert 'Sample JSON' in processed
         assert 'This is a sample JSON file' in processed
 
+    @pytest.mark.medium
     def test_process_python_succeeds(self, manager):
         """Test processing Python content.
 
 ReqID: N/A"""
-        content = """""\"Sample Python Module
-
-This is a sample Python file with docstrings.
-""\"
-
-def sample_function():
-    ""\"This is a sample function.""\"
-    pass"""
+        content = '"""Sample Python Module\n\nThis is a sample Python file with docstrings.\n"""\n\ndef sample_function():\n    """This is a sample function."""\n    pass'
         processed = manager._process_python(content)
         assert 'Sample Python Module' in processed
         assert 'This is a sample Python file with docstrings' in processed
         assert 'This is a sample function' in processed
 
+    @pytest.mark.medium
     def test_process_html_succeeds(self, manager):
         """Test processing HTML content.
 
 ReqID: N/A"""
-        content = (
-            '<html><head><title>Sample HTML</title></head><body><h1>Sample HTML</h1><p>This is a sample HTML file.</p></body></html>'
-            )
+        content = '<html><head><title>Sample HTML</title></head><body><h1>Sample HTML</h1><p>This is a sample HTML file.</p></body></html>'
         processed = manager._process_html(content)
         assert 'Sample HTML' in processed
         assert 'This is a sample HTML file' in processed
 
+    @pytest.mark.medium
     def test_process_rst_succeeds(self, manager):
         """Test processing RST content.
 

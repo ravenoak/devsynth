@@ -9,6 +9,7 @@ from devsynth.adapters.provider_system import ProviderError
 
 
 @patch('devsynth.agents.base_agent_graph.llm_complete')
+@pytest.mark.medium
 def test_base_agent_graph_successful_invocation_succeeds(mock_llm_complete):
     """Test a successful end-to-end invocation of the base_agent_graph.
 
@@ -27,6 +28,7 @@ ReqID: N/A"""
 
 
 @patch('devsynth.agents.base_agent_graph.llm_complete')
+@pytest.mark.medium
 def test_base_agent_graph_error_in_input_processing_raises_error(
     mock_llm_complete):
     """Test graph behavior when process_input_node sets an error.
@@ -44,6 +46,7 @@ ReqID: N/A"""
 
 
 @patch('devsynth.agents.base_agent_graph.llm_complete')
+@pytest.mark.medium
 def test_base_agent_graph_error_in_llm_call_raises_error(mock_llm_complete):
     """Test graph behavior when llm_call_node encounters an LLM error.
 
@@ -62,6 +65,7 @@ ReqID: N/A"""
 
 
 @patch('devsynth.agents.base_agent_graph.llm_complete')
+@pytest.mark.medium
 def test_base_agent_graph_llm_response_is_none_for_parsing_raises_error(
     mock_llm_complete):
     """Test graph behavior when llm_response is None before parse_output_node.

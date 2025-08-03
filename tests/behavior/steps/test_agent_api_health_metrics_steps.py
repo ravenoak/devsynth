@@ -33,6 +33,7 @@ def api_context(monkeypatch):
     }
 
 
+@pytest.mark.medium
 @given("the Agent API server is running")
 def api_running(api_context):
     """Return the API context with authentication disabled."""
@@ -41,6 +42,7 @@ def api_running(api_context):
     return api_context
 
 
+@pytest.mark.medium
 @given("the Agent API server is running with authentication enabled")
 def api_running_with_auth(api_context):
     """Return the API context with authentication enabled."""
@@ -49,6 +51,7 @@ def api_running_with_auth(api_context):
     return api_context
 
 
+@pytest.mark.medium
 @when("I GET /health")
 def get_health(api_context):
     """Send a GET request to the health endpoint."""
@@ -56,6 +59,7 @@ def get_health(api_context):
     api_context["last_response"] = response
 
 
+@pytest.mark.medium
 @when("I GET /health with a valid token")
 def get_health_with_valid_token(api_context):
     """Send a GET request to the health endpoint with a valid token."""
@@ -66,6 +70,7 @@ def get_health_with_valid_token(api_context):
     api_context["last_response"] = response
 
 
+@pytest.mark.medium
 @when("I GET /health with an invalid token")
 def get_health_with_invalid_token(api_context):
     """Send a GET request to the health endpoint with an invalid token."""
@@ -76,6 +81,7 @@ def get_health_with_invalid_token(api_context):
     api_context["last_response"] = response
 
 
+@pytest.mark.medium
 @when("I GET /metrics")
 def get_metrics(api_context):
     """Send a GET request to the metrics endpoint."""
@@ -83,6 +89,7 @@ def get_metrics(api_context):
     api_context["last_response"] = response
 
 
+@pytest.mark.medium
 @when("I GET /metrics with a valid token")
 def get_metrics_with_valid_token(api_context):
     """Send a GET request to the metrics endpoint with a valid token."""
@@ -93,6 +100,7 @@ def get_metrics_with_valid_token(api_context):
     api_context["last_response"] = response
 
 
+@pytest.mark.medium
 @when("I GET /metrics with an invalid token")
 def get_metrics_with_invalid_token(api_context):
     """Send a GET request to the metrics endpoint with an invalid token."""
@@ -103,12 +111,14 @@ def get_metrics_with_invalid_token(api_context):
     api_context["last_response"] = response
 
 
+@pytest.mark.medium
 @then(parsers.parse("the response status code should be {status_code:d}"))
 def check_status_code(api_context, status_code):
     """Check that the response has the expected status code."""
     assert api_context["last_response"].status_code == status_code
 
 
+@pytest.mark.medium
 @then(parsers.parse('the response should contain "{key}" with value "{value}"'))
 def check_response_key_value(api_context, key, value):
     """Check that the response contains the expected key-value pair."""
@@ -117,6 +127,7 @@ def check_response_key_value(api_context, key, value):
     assert response_json[key] == value
 
 
+@pytest.mark.medium
 @then(parsers.parse('the response should contain "{key}"'))
 def check_response_contains_key(api_context, key):
     """Check that the response contains the expected key."""
@@ -124,6 +135,7 @@ def check_response_contains_key(api_context, key):
     assert key in response_text
 
 
+@pytest.mark.medium
 @then("the response should contain an error message")
 def check_error_message(api_context):
     """Check that the response contains an error message."""

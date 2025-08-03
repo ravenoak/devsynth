@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 # Import the context fixture from the common file
 from .test_mddr_common import context
 
+@pytest.mark.medium
 @given("a synthesis generated from multi-disciplinary perspectives")
 def synthesis_generated_from_multi_disciplinary_perspectives(context):
     """Set up a synthesis generated from multi-disciplinary perspectives."""
@@ -66,6 +67,7 @@ def synthesis_generated_from_multi_disciplinary_perspectives(context):
         }
     }
 
+@pytest.mark.medium
 @when("the team evaluates the synthesis")
 def team_evaluates_synthesis(context):
     """Simulate the team evaluating the synthesis."""
@@ -166,6 +168,7 @@ def team_evaluates_synthesis(context):
     # Call the method with the synthesis
     context.evaluation = context.team.evaluate_multi_disciplinary_synthesis(context.synthesis)
 
+@pytest.mark.medium
 @then("the evaluation should assess the solution from each disciplinary perspective")
 def evaluation_assesses_solution_from_each_disciplinary_perspective(context):
     """Verify that the evaluation assesses the solution from each disciplinary perspective."""
@@ -193,6 +196,7 @@ def evaluation_assesses_solution_from_each_disciplinary_perspective(context):
         # Verify that the overall assessment is a meaningful statement
         assert len(assessment["overall_assessment"]) > 20
 
+@pytest.mark.medium
 @then("the evaluation should verify compliance with discipline-specific standards")
 def evaluation_verifies_compliance_with_discipline_specific_standards(context):
     """Verify that the evaluation checks compliance with discipline-specific standards."""
@@ -220,6 +224,7 @@ def evaluation_verifies_compliance_with_discipline_specific_standards(context):
         for standard, compliance in assessment["standards_compliance"].items():
             assert compliance in ["Compliant", "Mostly Compliant", "Partially Compliant", "Non-Compliant"]
 
+@pytest.mark.medium
 @then("the evaluation should identify any remaining disciplinary concerns")
 def evaluation_identifies_remaining_disciplinary_concerns(context):
     """Verify that the evaluation identifies any remaining disciplinary concerns."""
@@ -242,6 +247,7 @@ def evaluation_identifies_remaining_disciplinary_concerns(context):
                 elif discipline == "accessibility":
                     assert any(term in concern.lower() for term in ["accessibility", "accessible", "disability", "wcag", "aria"])
 
+@pytest.mark.medium
 @then("the evaluation should provide an overall assessment of multi-disciplinary quality")
 def evaluation_provides_overall_assessment_of_multi_disciplinary_quality(context):
     """Verify that the evaluation provides an overall assessment of multi-disciplinary quality."""

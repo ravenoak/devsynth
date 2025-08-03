@@ -4,7 +4,976 @@ from __future__ import annotations
 
 from pytest_bdd import given, when, then, parsers
 from pytest_bdd import scenarios
-from .test_edrr_coordinator_steps import *  # noqa: F401,F403
+
+# Import the feature file for this test
+scenarios("../features/general/edrr_enhanced_recursion.feature")
+
+# Content from test_edrr_coordinator_steps.py inlined here
+"""Step definitions for the EDRR Coordinator feature."""
+
+# Removed duplicate __future__ import
+from pytest_bdd import given, when, then, parsers
+from pytest_bdd import scenarios
+import pytest
+
+scenarios("../features/general/edrr_coordinator.feature")
+import os
+import json
+import tempfile
+from pathlib import Path
+from typing import Dict, Tuple
+from devsynth.methodology.base import Phase
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.edrr.manifest_parser import ManifestParser
+
+
+@pytest.fixture
+def context():
+    """Fixture to provide a context object for storing test state between steps."""
+
+    class Context:
+
+        def __init__(self):
+            self.memory_manager = None
+            self.wsde_team = None
+            self.code_analyzer = None
+            self.ast_transformer = None
+            self.prompt_manager = None
+            self.documentation_manager = None
+            self.edrr_coordinator = None
+            self.task = None
+            self.temp_dir = None
+            self.manifest_path = None
+            self.final_report = None
+            self.execution_traces = None
+
+    return Context()
+
+
+@pytest.mark.medium
+@given("the EDRR coordinator is initialized")
+def edrr_coordinator_initialized(context):
+    """Initialize the EDRR coordinator with actual implementations."""
+    from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+        TinyDBMemoryAdapter,
+    )
+
+    memory_adapter = TinyDBMemoryAdapter()
+    context.memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
+    context.wsde_team = WSDETeam(name="TestEdrrCoordinatorStepsTeam")
+    context.code_analyzer = CodeAnalyzer()
+    context.ast_transformer = AstTransformer()
+    context.prompt_manager = PromptManager(storage_path="tests/fixtures/prompts")
+    context.documentation_manager = DocumentationManager(
+        memory_manager=context.memory_manager, storage_path="tests/fixtures/docs"
+    )
+    context.edrr_coordinator = EDRRCoordinator(
+        memory_manager=context.memory_manager,
+        wsde_team=context.wsde_team,
+        code_analyzer=context.code_analyzer,
+        ast_transformer=context.ast_transformer,
+        prompt_manager=context.prompt_manager,
+        documentation_manager=context.documentation_manager,
+        enable_enhanced_logging=True,
+    )
+
+
+@pytest.mark.medium
+@given("the memory system is available")
+def memory_system_available(context):
+    """Make the memory system available."""
+    assert context.memory_manager is not None
+    assert context.edrr_coordinator.memory_manager is context.memory_manager
+
+
+@pytest.mark.medium
+@given("the WSDE team is available")
+def wsde_team_available(context):
+    """Make the WSDE team available."""
+    assert context.wsde_team is not None
+    assert context.edrr_coordinator.wsde_team is context.wsde_team
+
+
+@pytest.mark.medium
+@given("the AST analyzer is available")
+def ast_analyzer_available(context):
+    """Make the AST analyzer available."""
+    assert context.code_analyzer is not None
+    assert context.ast_transformer is not None
+    assert context.edrr_coordinator.code_analyzer is context.code_analyzer
+    assert context.edrr_coordinator.ast_transformer is context.ast_transformer
+
+
+@pytest.mark.medium
+@given("the prompt manager is available")
+def prompt_manager_available(context):
+    """Make the prompt manager available."""
+    assert context.prompt_manager is not None
+    assert context.edrr_coordinator.prompt_manager is context.prompt_manager
+
+
+@pytest.mark.medium
+@given("the documentation manager is available")
+def documentation_manager_available(context):
+    """Make the documentation manager available."""
+    assert context.documentation_manager is not None
+    assert (
+        context.edrr_coordinator.documentation_manager is context.documentation_manager
+    )
+
+
+@pytest.mark.medium
+@when(parsers.parse('I start the EDRR cycle with a task to "{task_description}"'))
+def start_edrr_cycle(context, task_description):
+    """Start the EDRR cycle with a task."""
+    context.task = {"id": "task-123", "description": task_description}
+    context.edrr_coordinator.start_cycle(context.task)
+
+
+@pytest.mark.medium
+@given(parsers.parse('the "{phase_name}" phase has completed for a task'))
+def phase_completed(context, phase_name):
+    """Set up a completed phase."""
+    context.task = {"id": "task-123", "description": "analyze a Python file"}
+    context.edrr_coordinator.start_cycle(context.task)
+    phase = Phase[phase_name.upper()]
+    test_storage = {}
+    original_store_method = context.memory_manager.store_with_edrr_phase
+
+    def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
+        """Capture stored items for verification."""
+        test_storage.setdefault(edrr_phase, []).append(
+            {
+                "data": data,
+                "data_type": data_type,
+                "metadata": metadata,
+            }
+        )
+        return original_store_method(data, data_type, edrr_phase, metadata)
+
+    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    try:
+        if (
+            phase == Phase.EXPAND
+            or phase == Phase.DIFFERENTIATE
+            or phase == Phase.REFINE
+            or phase == Phase.RETROSPECT
+        ):
+            context.edrr_coordinator.results[Phase.EXPAND] = {
+                "completed": True,
+                "approaches": [
+                    {
+                        "id": "approach-1",
+                        "description": "First approach",
+                        "code": "def approach1(): pass",
+                    },
+                    {
+                        "id": "approach-2",
+                        "description": "Second approach",
+                        "code": "def approach2(): pass",
+                    },
+                ],
+            }
+            context.edrr_coordinator.progress_to_phase(Phase.EXPAND)
+        if (
+            phase == Phase.DIFFERENTIATE
+            or phase == Phase.REFINE
+            or phase == Phase.RETROSPECT
+        ):
+            context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+                "completed": True,
+                "evaluation": {
+                    "selected_approach": {
+                        "id": "approach-1",
+                        "description": "Selected approach",
+                        "code": "def example(): pass",
+                    }
+                },
+            }
+            context.edrr_coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+        if phase == Phase.REFINE or phase == Phase.RETROSPECT:
+            context.edrr_coordinator.results[Phase.REFINE] = {
+                "completed": True,
+                "implementation": {
+                    "code": "def example(): return 'Hello, World!'",
+                    "description": "Implemented solution",
+                },
+            }
+            context.edrr_coordinator.progress_to_phase(Phase.REFINE)
+        if phase == Phase.RETROSPECT:
+            context.edrr_coordinator.progress_to_phase(Phase.RETROSPECT)
+    finally:
+        context.memory_manager.store_with_edrr_phase = original_store_method
+    if (
+        phase not in context.edrr_coordinator.results
+        or not context.edrr_coordinator.results[phase].get("completed", False)
+    ):
+        context.edrr_coordinator.results[phase] = {
+            "completed": True,
+            "outputs": [{"type": "approach", "content": "Sample approach"}],
+        }
+
+
+@pytest.mark.medium
+@when(parsers.parse('the coordinator progresses to the "{phase_name}" phase'))
+def progress_to_phase(context, phase_name):
+    """Progress to the next phase."""
+    context.edrr_coordinator.progress_to_phase(Phase[phase_name.upper()])
+
+
+@pytest.mark.medium
+@then(parsers.parse('the coordinator should enter the "{phase_name}" phase'))
+def verify_phase(context, phase_name):
+    """Verify the coordinator has entered the specified phase."""
+    assert context.edrr_coordinator.current_phase == Phase[phase_name.upper()]
+
+
+@pytest.mark.medium
+@then(    parsers.parse(        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'    ))
+def verify_task_stored(context, phase_name):
+    """Verify the task is stored in memory with the correct EDRR phase."""
+    test_storage = {}
+    original_store_method = context.memory_manager.store_with_edrr_phase
+
+    def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
+        """Capture stored items for verification."""
+        test_storage.setdefault(edrr_phase, []).append(
+            {
+                "data": data,
+                "data_type": data_type,
+                "metadata": metadata,
+            }
+        )
+        return original_store_method(data, data_type, edrr_phase, metadata)
+
+    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    try:
+        context.edrr_coordinator.start_cycle(context.task)
+        phase_key = phase_name.strip('"').upper()
+        assert phase_key in test_storage
+        stored_items = test_storage[phase_key]
+        assert any(
+            item["data"] == context.task
+            and item["data_type"] == MemoryType.TASK_HISTORY
+            for item in stored_items
+        )
+        assert any("cycle_id" in item["metadata"] for item in stored_items)
+    finally:
+        context.memory_manager.store_with_edrr_phase = original_store_method
+
+
+@pytest.mark.medium
+@then("the coordinator should store the phase transition in memory")
+def verify_phase_transition_stored(context):
+    """Verify the phase transition is stored in memory."""
+    test_storage = {}
+    original_store_method = context.memory_manager.store_with_edrr_phase
+
+    def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
+        """Capture stored items for verification."""
+        test_storage.setdefault(edrr_phase, []).append(
+            {
+                "data": data,
+                "data_type": data_type,
+                "metadata": metadata,
+            }
+        )
+        return original_store_method(data, data_type, edrr_phase, metadata)
+
+    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    try:
+        context.edrr_coordinator.progress_to_phase(Phase.EXPAND)
+        all_items = [i for items in test_storage.values() for i in items]
+        assert any(item["data"] is not None for item in all_items)
+        assert any(item["data_type"] == MemoryType.EPISODIC for item in all_items)
+    finally:
+        context.memory_manager.store_with_edrr_phase = original_store_method
+
+
+@pytest.mark.medium
+@then("the WSDE team should be instructed to brainstorm approaches")
+def verify_wsde_brainstorm(context):
+    """Verify the WSDE team is instructed to brainstorm approaches."""
+    context.edrr_coordinator._execute_expand_phase()
+    assert Phase.EXPAND in context.edrr_coordinator.results
+    assert "wsde_brainstorm" in context.edrr_coordinator.results[Phase.EXPAND]
+
+
+@pytest.mark.medium
+@then("the WSDE team should be instructed to evaluate and compare approaches")
+def verify_wsde_evaluate(context):
+    """Verify the WSDE team is instructed to evaluate and compare approaches."""
+    context.edrr_coordinator.results[Phase.EXPAND] = {
+        "completed": True,
+        "approaches": [
+            {
+                "id": "approach-1",
+                "description": "First approach",
+                "code": "def approach1(): pass",
+            },
+            {
+                "id": "approach-2",
+                "description": "Second approach",
+                "code": "def approach2(): pass",
+            },
+        ],
+    }
+    context.edrr_coordinator._execute_differentiate_phase()
+    assert Phase.DIFFERENTIATE in context.edrr_coordinator.results
+    assert "evaluation" in context.edrr_coordinator.results[Phase.DIFFERENTIATE]
+
+
+@pytest.mark.medium
+@then("the WSDE team should be instructed to implement the selected approach")
+def verify_wsde_implement(context):
+    """Verify the WSDE team is instructed to implement the selected approach."""
+    context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+        "completed": True,
+        "evaluation": {
+            "selected_approach": {
+                "id": "approach-1",
+                "description": "Selected approach",
+                "code": "def example(): pass",
+            }
+        },
+    }
+    context.edrr_coordinator._execute_refine_phase()
+    assert Phase.REFINE in context.edrr_coordinator.results
+    assert "implementation" in context.edrr_coordinator.results[Phase.REFINE]
+
+
+@pytest.mark.medium
+@then("the WSDE team should be instructed to evaluate the implementation")
+def verify_wsde_review(context):
+    """Verify the WSDE team is instructed to evaluate the implementation."""
+    context.edrr_coordinator.results[Phase.REFINE] = {
+        "completed": True,
+        "implementation": {
+            "code": "def example(): pass",
+            "description": "Implemented solution",
+        },
+    }
+    context.edrr_coordinator._execute_retrospect_phase()
+    assert Phase.RETROSPECT in context.edrr_coordinator.results
+    assert "evaluation" in context.edrr_coordinator.results[Phase.RETROSPECT]
+
+
+@pytest.mark.medium
+@then("the AST analyzer should be used to analyze the file structure")
+def verify_ast_analyze(context):
+    """Verify the AST analyzer is used to analyze the file structure."""
+    with tempfile.NamedTemporaryFile(
+        suffix=".py", mode="w+", delete=False
+    ) as temp_file:
+        temp_file.write("def example_function():\n    return 'Hello, World!'")
+        temp_file_path = temp_file.name
+    try:
+        context.edrr_coordinator.task = {
+            "id": "task-123",
+            "description": "analyze a file",
+            "file_path": temp_file_path,
+        }
+        context.edrr_coordinator._execute_expand_phase()
+        assert Phase.EXPAND in context.edrr_coordinator.results
+        assert "file_analysis" in context.edrr_coordinator.results[Phase.EXPAND]
+    finally:
+        os.unlink(temp_file_path)
+
+
+@pytest.mark.medium
+@then("the AST analyzer should be used to evaluate code quality")
+def verify_ast_evaluate(context):
+    """Verify the AST analyzer is used to evaluate code quality."""
+    context.edrr_coordinator.task = {
+        "id": "task-123",
+        "description": "evaluate code",
+        "code": "def example(): pass",
+    }
+    context.edrr_coordinator.results[Phase.EXPAND] = {
+        "completed": True,
+        "approaches": [
+            {
+                "id": "approach-1",
+                "description": "First approach",
+                "code": "def approach1(): pass",
+            },
+            {
+                "id": "approach-2",
+                "description": "Second approach",
+                "code": "def approach2(): pass",
+            },
+        ],
+    }
+    context.edrr_coordinator._execute_differentiate_phase()
+    assert Phase.DIFFERENTIATE in context.edrr_coordinator.results
+    assert (
+        "code_quality"
+        in context.edrr_coordinator.results[Phase.DIFFERENTIATE]["evaluation"]
+    )
+
+
+@pytest.mark.medium
+@then("the AST analyzer should be used to apply code transformations")
+def verify_ast_transform(context):
+    """Verify the AST analyzer is used to apply code transformations."""
+    context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+        "completed": True,
+        "evaluation": {
+            "selected_approach": {
+                "id": "approach-1",
+                "description": "Selected approach",
+                "code": "def old_name(): return 'Hello, World!'",
+            }
+        },
+    }
+    context.edrr_coordinator._execute_refine_phase()
+    assert Phase.REFINE in context.edrr_coordinator.results
+    assert "implementation" in context.edrr_coordinator.results[Phase.REFINE]
+    assert "code" in context.edrr_coordinator.results[Phase.REFINE]["implementation"]
+
+
+@pytest.mark.medium
+@then("the AST analyzer should be used to verify code quality")
+def verify_ast_verify(context):
+    """Verify the AST analyzer is used to verify code quality."""
+    context.edrr_coordinator.results[Phase.REFINE] = {
+        "completed": True,
+        "implementation": {
+            "code": "def example(): return 'Hello, World!'",
+            "description": "Implemented solution",
+        },
+    }
+    context.edrr_coordinator._execute_retrospect_phase()
+    assert Phase.RETROSPECT in context.edrr_coordinator.results
+    assert (
+        "code_quality"
+        in context.edrr_coordinator.results[Phase.RETROSPECT]["evaluation"]
+    )
+    assert "is_valid" in context.edrr_coordinator.results[Phase.RETROSPECT]
+
+
+@pytest.mark.medium
+@then(    parsers.parse(        'the prompt manager should provide templates for the "{phase_name}" phase'    ))
+def verify_prompt_templates(context, phase_name):
+    """Verify the prompt manager provides templates for the specified phase."""
+    phase = Phase[phase_name.upper()]
+    if phase == Phase.EXPAND:
+        context.edrr_coordinator.task = {"id": "task-123", "description": "test task"}
+    elif phase == Phase.DIFFERENTIATE:
+        context.edrr_coordinator.results[Phase.EXPAND] = {
+            "completed": True,
+            "approaches": [
+                {
+                    "id": "approach-1",
+                    "description": "First approach",
+                    "code": "def approach1(): pass",
+                },
+                {
+                    "id": "approach-2",
+                    "description": "Second approach",
+                    "code": "def approach2(): pass",
+                },
+            ],
+        }
+    elif phase == Phase.REFINE:
+        context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+            "completed": True,
+            "evaluation": {
+                "selected_approach": {
+                    "id": "approach-1",
+                    "description": "Selected approach",
+                    "code": "def example(): pass",
+                }
+            },
+        }
+    elif phase == Phase.RETROSPECT:
+        context.edrr_coordinator.results[Phase.REFINE] = {
+            "completed": True,
+            "implementation": {
+                "code": "def example(): return 'Hello, World!'",
+                "description": "Implemented solution",
+            },
+        }
+    if phase == Phase.EXPAND:
+        context.edrr_coordinator._execute_expand_phase()
+    elif phase == Phase.DIFFERENTIATE:
+        context.edrr_coordinator._execute_differentiate_phase()
+    elif phase == Phase.REFINE:
+        context.edrr_coordinator._execute_refine_phase()
+    elif phase == Phase.RETROSPECT:
+        context.edrr_coordinator._execute_retrospect_phase()
+    assert phase in context.edrr_coordinator.results
+    assert context.edrr_coordinator.results[phase] is not None
+
+
+@pytest.mark.medium
+@then("the documentation manager should retrieve relevant documentation")
+def verify_documentation_retrieve(context):
+    """Verify the documentation manager retrieves relevant documentation."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        doc_path = os.path.join(temp_dir, "sample_doc.md")
+        with open(doc_path, "w") as f:
+            f.write(
+                "# Sample Documentation\n\nThis is a sample documentation file for testing."
+            )
+        context.documentation_manager.storage_path = temp_dir
+        context.edrr_coordinator.task = {
+            "id": "task-123",
+            "description": "test task with documentation",
+        }
+        context.edrr_coordinator._execute_expand_phase()
+        assert Phase.EXPAND in context.edrr_coordinator.results
+        assert "documentation" in context.edrr_coordinator.results[Phase.EXPAND]
+
+
+@pytest.mark.medium
+@then("the documentation manager should retrieve best practices documentation")
+def verify_documentation_best_practices(context):
+    """Verify the documentation manager retrieves best practices documentation."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        doc_path = os.path.join(temp_dir, "best_practices.md")
+        with open(doc_path, "w") as f:
+            f.write(
+                """# Best Practices
+
+This document outlines best practices for code development."""
+            )
+        context.documentation_manager.storage_path = temp_dir
+        context.edrr_coordinator.results[Phase.EXPAND] = {
+            "completed": True,
+            "approaches": [
+                {
+                    "id": "approach-1",
+                    "description": "First approach",
+                    "code": "def approach1(): pass",
+                },
+                {
+                    "id": "approach-2",
+                    "description": "Second approach",
+                    "code": "def approach2(): pass",
+                },
+            ],
+        }
+        context.edrr_coordinator._execute_differentiate_phase()
+        assert Phase.DIFFERENTIATE in context.edrr_coordinator.results
+
+
+@pytest.mark.medium
+@then("the documentation manager should retrieve implementation examples")
+def verify_documentation_examples(context):
+    """Verify the documentation manager retrieves implementation examples."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        doc_path = os.path.join(temp_dir, "implementation_examples.md")
+        with open(doc_path, "w") as f:
+            f.write(
+                """# Implementation Examples
+
+This document provides examples of implementations."""
+            )
+        context.documentation_manager.storage_path = temp_dir
+        context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+            "completed": True,
+            "evaluation": {
+                "selected_approach": {
+                    "id": "approach-1",
+                    "description": "Selected approach",
+                    "code": "def example(): pass",
+                }
+            },
+        }
+        context.edrr_coordinator._execute_refine_phase()
+        assert Phase.REFINE in context.edrr_coordinator.results
+
+
+@pytest.mark.medium
+@then("the documentation manager should retrieve evaluation criteria")
+def verify_documentation_criteria(context):
+    """Verify the documentation manager retrieves evaluation criteria."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        doc_path = os.path.join(temp_dir, "evaluation_criteria.md")
+        with open(doc_path, "w") as f:
+            f.write(
+                """# Evaluation Criteria
+
+This document outlines criteria for evaluating code quality."""
+            )
+        context.documentation_manager.storage_path = temp_dir
+        context.edrr_coordinator.results[Phase.REFINE] = {
+            "completed": True,
+            "implementation": {
+                "code": "def example(): return 'Hello, World!'",
+                "description": "Implemented solution",
+            },
+        }
+        context.edrr_coordinator._execute_retrospect_phase()
+        assert Phase.RETROSPECT in context.edrr_coordinator.results
+
+
+@pytest.mark.medium
+@then(    parsers.parse(        'the results should be stored in memory with EDRR phase "{phase_name}"'    ))
+def verify_results_stored(context, phase_name):
+    """Verify the results are stored in memory with the correct EDRR phase."""
+    phase = Phase[phase_name.upper()]
+    test_storage = {}
+    original_store_method = context.memory_manager.store_with_edrr_phase
+
+    def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
+        """Test that store method succeeds.
+
+        ReqID: N/A"""
+        test_storage[edrr_phase] = {
+            "data": data,
+            "data_type": data_type,
+            "metadata": metadata,
+        }
+        return original_store_method(data, data_type, edrr_phase, metadata)
+
+    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    try:
+        if phase == Phase.EXPAND:
+            context.edrr_coordinator.task = {
+                "id": "task-123",
+                "description": "test task",
+            }
+        elif phase == Phase.DIFFERENTIATE:
+            context.edrr_coordinator.results[Phase.EXPAND] = {
+                "completed": True,
+                "approaches": [
+                    {
+                        "id": "approach-1",
+                        "description": "First approach",
+                        "code": "def approach1(): pass",
+                    },
+                    {
+                        "id": "approach-2",
+                        "description": "Second approach",
+                        "code": "def approach2(): pass",
+                    },
+                ],
+            }
+        elif phase == Phase.REFINE:
+            context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+                "completed": True,
+                "evaluation": {
+                    "selected_approach": {
+                        "id": "approach-1",
+                        "description": "Selected approach",
+                        "code": "def example(): pass",
+                    }
+                },
+            }
+        elif phase == Phase.RETROSPECT:
+            context.edrr_coordinator.results[Phase.REFINE] = {
+                "completed": True,
+                "implementation": {
+                    "code": "def example(): return 'Hello, World!'",
+                    "description": "Implemented solution",
+                },
+            }
+        if phase == Phase.EXPAND:
+            context.edrr_coordinator._execute_expand_phase()
+        elif phase == Phase.DIFFERENTIATE:
+            context.edrr_coordinator._execute_differentiate_phase()
+        elif phase == Phase.REFINE:
+            context.edrr_coordinator._execute_refine_phase()
+        elif phase == Phase.RETROSPECT:
+            context.edrr_coordinator._execute_retrospect_phase()
+        assert phase_name.upper() in test_storage
+        assert test_storage[phase_name.upper()]["data"] is not None
+    finally:
+        context.memory_manager.store_with_edrr_phase = original_store_method
+
+
+@pytest.mark.medium
+@then("a final report should be generated summarizing the entire EDRR cycle")
+def verify_final_report(context):
+    """Verify a final report is generated."""
+    context.edrr_coordinator.results = {
+        Phase.EXPAND: {"completed": True, "approaches": []},
+        Phase.DIFFERENTIATE: {
+            "completed": True,
+            "evaluation": {"selected_approach": {}},
+        },
+        Phase.REFINE: {"completed": True, "implementation": {}},
+        Phase.RETROSPECT: {"completed": True, "evaluation": {}, "is_valid": True},
+    }
+    report = context.edrr_coordinator.generate_report()
+    assert "task" in report
+    assert "cycle_id" in report
+    assert "timestamp" in report
+    assert "phases" in report
+    assert "summary" in report
+
+
+@pytest.mark.medium
+@given("a valid EDRR manifest file exists")
+def valid_manifest_file_exists(context):
+    """Create a valid EDRR manifest file for testing."""
+    context.temp_dir = tempfile.TemporaryDirectory()
+    manifest_content = {
+        "id": "test-manifest-001",
+        "description": "Test manifest for EDRR coordinator",
+        "metadata": {
+            "version": "1.0",
+            "author": "Test Author",
+            "created_at": "2023-06-01T12:00:00Z",
+        },
+        "phases": {
+            "expand": {
+                "instructions": "Brainstorm approaches for the task",
+                "templates": ["expand_template_1", "expand_template_2"],
+                "resources": ["resource_1", "resource_2"],
+                "dependencies": [],
+            },
+            "differentiate": {
+                "instructions": "Evaluate and compare approaches",
+                "templates": ["differentiate_template_1"],
+                "resources": ["resource_3"],
+                "dependencies": ["expand"],
+            },
+            "refine": {
+                "instructions": "Implement the selected approach",
+                "templates": ["refine_template_1"],
+                "resources": ["resource_4"],
+                "dependencies": ["differentiate"],
+            },
+            "retrospect": {
+                "instructions": "Evaluate the implementation",
+                "templates": ["retrospect_template_1"],
+                "resources": ["resource_5"],
+                "dependencies": ["refine"],
+            },
+        },
+    }
+    context.manifest_path = os.path.join(context.temp_dir.name, "test_manifest.json")
+    with open(context.manifest_path, "w") as f:
+        json.dump(manifest_content, f, indent=2)
+
+
+@pytest.mark.medium
+@when("I start the EDRR cycle from the manifest file")
+def start_edrr_cycle_from_manifest(context):
+    """Start the EDRR cycle from the manifest file."""
+    context.edrr_coordinator.start_cycle_from_manifest(context.manifest_path)
+
+
+@pytest.mark.medium
+@then("the coordinator should parse the manifest successfully")
+def verify_manifest_parsed(context):
+    """Verify the manifest was parsed successfully."""
+    assert context.edrr_coordinator.manifest_parser is not None
+    assert (
+        context.edrr_coordinator.manifest_parser.get_manifest_id()
+        == "test-manifest-001"
+    )
+
+
+@pytest.mark.medium
+@then("the coordinator should use the phase instructions from the manifest")
+def verify_phase_instructions_used(context):
+    """Verify the phase instructions from the manifest are used."""
+    expand_instructions = (
+        context.edrr_coordinator.manifest_parser.get_phase_instructions(Phase.EXPAND)
+    )
+    assert expand_instructions == "Brainstorm approaches for the task"
+
+
+@pytest.mark.medium
+@then("the coordinator should use the phase templates from the manifest")
+def verify_phase_templates_used(context):
+    """Verify the phase templates from the manifest are used."""
+    expand_templates = context.edrr_coordinator.manifest_parser.get_phase_templates(
+        Phase.EXPAND
+    )
+    assert "expand_template_1" in expand_templates
+    assert "expand_template_2" in expand_templates
+
+
+@pytest.mark.medium
+@then("the coordinator should track phase dependencies")
+def verify_phase_dependencies_tracked(context):
+    """Verify the phase dependencies are tracked."""
+    # Dependencies for the Differentiate phase should be met once
+    # the Expand phase has completed.
+    assert (
+        context.edrr_coordinator.manifest_parser.check_phase_dependencies(
+            Phase.DIFFERENTIATE
+        )
+        is True
+    )
+
+
+@pytest.mark.medium
+@then("the coordinator should monitor execution progress")
+def verify_execution_progress_monitored(context):
+    """Verify the execution progress is monitored."""
+    trace = context.edrr_coordinator.manifest_parser.get_execution_trace()
+    assert "start_time" in trace
+    assert (
+        context.edrr_coordinator.manifest_parser.get_phase_status(Phase.EXPAND)
+        is not None
+    )
+
+
+@pytest.mark.medium
+@given("the EDRR coordinator is initialized with enhanced logging")
+def edrr_coordinator_with_enhanced_logging(context):
+    """Initialize the EDRR coordinator with enhanced logging enabled."""
+    from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+        TinyDBMemoryAdapter,
+    )
+
+    memory_adapter = TinyDBMemoryAdapter()
+    context.memory_manager = MemoryManager(adapters={"tinydb": memory_adapter})
+    context.wsde_team = WSDETeam(name="TestEdrrCoordinatorStepsTeam")
+    context.code_analyzer = CodeAnalyzer()
+    context.ast_transformer = AstTransformer()
+    context.prompt_manager = PromptManager(storage_path="tests/fixtures/prompts")
+    context.documentation_manager = DocumentationManager(
+        memory_manager=context.memory_manager, storage_path="tests/fixtures/docs"
+    )
+    context.edrr_coordinator = EDRRCoordinator(
+        memory_manager=context.memory_manager,
+        wsde_team=context.wsde_team,
+        code_analyzer=context.code_analyzer,
+        ast_transformer=context.ast_transformer,
+        prompt_manager=context.prompt_manager,
+        documentation_manager=context.documentation_manager,
+        enable_enhanced_logging=True,
+    )
+
+
+@pytest.mark.medium
+@when(parsers.parse('I complete a full EDRR cycle with a task to "{task_description}"'))
+def complete_full_edrr_cycle(context, task_description):
+    """Complete a full EDRR cycle with the given task."""
+    context.task = {"id": "task-123", "description": task_description}
+    context.edrr_coordinator.start_cycle(context.task)
+    context.edrr_coordinator.results[Phase.EXPAND] = {
+        "completed": True,
+        "approaches": [
+            {
+                "id": "approach-1",
+                "description": "First approach",
+                "code": "def approach1(): pass",
+            },
+            {
+                "id": "approach-2",
+                "description": "Second approach",
+                "code": "def approach2(): pass",
+            },
+        ],
+    }
+    context.edrr_coordinator.progress_to_phase(Phase.EXPAND)
+    context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
+        "completed": True,
+        "evaluation": {
+            "selected_approach": {
+                "id": "approach-1",
+                "description": "Selected approach",
+                "code": "def example(): pass",
+            }
+        },
+    }
+    context.edrr_coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+    context.edrr_coordinator.results[Phase.REFINE] = {
+        "completed": True,
+        "implementation": {
+            "code": "def example(): return 'Hello, World!'",
+            "description": "Implemented solution",
+        },
+    }
+    context.edrr_coordinator.progress_to_phase(Phase.REFINE)
+    context.edrr_coordinator.results[Phase.RETROSPECT] = {
+        "completed": True,
+        "evaluation": {"quality": "good", "issues": [], "suggestions": []},
+        "is_valid": True,
+    }
+    context.edrr_coordinator.progress_to_phase(Phase.RETROSPECT)
+    context.final_report = context.edrr_coordinator.generate_report()
+    context.execution_traces = context.edrr_coordinator.get_execution_traces()
+
+
+@pytest.mark.medium
+@then("the coordinator should generate detailed execution traces")
+def verify_detailed_execution_traces(context):
+    """Verify that the coordinator generates detailed execution traces."""
+    assert context.execution_traces is not None
+    assert "cycle_id" in context.execution_traces
+    assert "phases" in context.execution_traces
+    for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+        assert phase.name in context.execution_traces["phases"]
+
+
+@pytest.mark.medium
+@then("the execution traces should include phase-specific metrics")
+def verify_phase_specific_metrics(context):
+    """Verify that the execution traces include phase-specific metrics."""
+    for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+        phase_trace = context.execution_traces["phases"][phase.name]
+        assert "metrics" in phase_trace
+        assert isinstance(phase_trace["metrics"], dict)
+
+
+@pytest.mark.medium
+@then("the execution traces should include status tracking for each phase")
+def verify_status_tracking(context):
+    """Verify that the execution traces include status tracking for each phase."""
+    for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+        phase_trace = context.execution_traces["phases"][phase.name]
+        assert "timestamp" in phase_trace
+
+
+@pytest.mark.medium
+@then("the execution traces should include comprehensive metadata")
+def verify_comprehensive_metadata(context):
+    """Verify that the execution traces include comprehensive metadata."""
+    assert "metadata" in context.execution_traces
+    metadata = context.execution_traces["metadata"]
+    assert "task_id" in metadata
+    assert "task_description" in metadata
+    assert "timestamp" in metadata
+
+
+@pytest.mark.medium
+@then("I should be able to retrieve the full execution history")
+def verify_full_execution_history(context):
+    """Verify that the full execution history can be retrieved."""
+    history = context.edrr_coordinator.get_execution_history()
+    assert len(history) >= 4
+    for entry in history:
+        assert "timestamp" in entry
+        assert "phase" in entry
+        assert "action" in entry
+        assert "details" in entry
+
+
+@pytest.mark.medium
+@then("I should be able to analyze performance metrics for each phase")
+def verify_performance_metrics(context):
+    """Verify that performance metrics can be analyzed for each phase."""
+    metrics = context.edrr_coordinator.get_performance_metrics()
+    for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+        assert phase.name in metrics
+        phase_metrics = metrics[phase.name]
+        assert "duration" in phase_metrics
+        assert "memory_usage" in phase_metrics
+        assert "component_calls" in phase_metrics
+        component_calls = phase_metrics["component_calls"]
+        assert "wsde_team" in component_calls
+        assert "code_analyzer" in component_calls
+        assert "prompt_manager" in component_calls
+        assert "documentation_manager" in component_calls
+  # noqa: F401,F403
 import pytest
 from unittest.mock import MagicMock, patch
 import time
@@ -49,6 +1018,7 @@ def context():
     return Context()
 
 
+@pytest.mark.medium
 @given("the EDRR coordinator is initialized with enhanced recursion features")
 def edrr_coordinator_initialized_with_enhanced_recursion(context):
     """Initialize the EDRR coordinator with enhanced recursion features."""
@@ -110,6 +1080,7 @@ def edrr_coordinator_initialized_with_enhanced_recursion(context):
 
 
 # Scenario: Improved micro-cycle creation with intelligent task decomposition
+@pytest.mark.medium
 @given("a complex task that requires decomposition")
 def complex_task_requiring_decomposition(context):
     """Create a complex task that requires decomposition."""
@@ -127,6 +1098,7 @@ def complex_task_requiring_decomposition(context):
     }
 
 
+@pytest.mark.medium
 @when("the coordinator determines that recursion is needed")
 def coordinator_determines_recursion_needed(context):
     """Simulate the coordinator determining that recursion is needed."""
@@ -146,6 +1118,7 @@ def coordinator_determines_recursion_needed(context):
     context.edrr_coordinator.should_terminate_recursion = original_should_terminate
 
 
+@pytest.mark.medium
 @then("the coordinator should intelligently decompose the task into subtasks")
 def verify_intelligent_task_decomposition(context):
     """Verify that the task is intelligently decomposed into subtasks."""
@@ -158,6 +1131,7 @@ def verify_intelligent_task_decomposition(context):
     context.subtasks = context.edrr_coordinator._decomposed_tasks
 
 
+@pytest.mark.medium
 @then("each subtask should have clear boundaries and objectives")
 def verify_subtasks_have_clear_boundaries(context):
     """Verify that each subtask has clear boundaries and objectives."""
@@ -171,6 +1145,7 @@ def verify_subtasks_have_clear_boundaries(context):
         assert len(subtask["boundaries"]) > 0
 
 
+@pytest.mark.medium
 @then("the subtasks should collectively cover the entire original task")
 def verify_subtasks_cover_original_task(context):
     """Verify that the subtasks collectively cover the entire original task."""
@@ -189,6 +1164,7 @@ def verify_subtasks_cover_original_task(context):
         ), f"Component {component_id} is not covered by any subtask"
 
 
+@pytest.mark.medium
 @then("the subtasks should be prioritized based on dependencies")
 def verify_subtasks_prioritized_by_dependencies(context):
     """Verify that subtasks are prioritized based on dependencies."""
@@ -209,6 +1185,7 @@ def verify_subtasks_prioritized_by_dependencies(context):
                 ), f"Subtask {subtask['id']} should have lower priority than its dependency {dependency_id}"
 
 
+@pytest.mark.medium
 @then("the coordinator should create micro-cycles for each subtask")
 def verify_micro_cycles_created(context):
     """Verify that micro-cycles are created for each subtask."""
@@ -234,6 +1211,7 @@ def verify_micro_cycles_created(context):
     assert len(context.micro_cycles) == len(context.subtasks)
 
 
+@pytest.mark.medium
 @then("each micro-cycle should have appropriate context from the parent cycle")
 def verify_micro_cycles_have_parent_context(context):
     """Verify that each micro-cycle has appropriate context from the parent cycle."""
@@ -250,6 +1228,7 @@ def verify_micro_cycles_have_parent_context(context):
 
 
 # Scenario: Optimized recursion depth decisions with advanced heuristics
+@pytest.mark.medium
 @given("a task that might require multiple levels of recursion")
 def task_requiring_multiple_recursion_levels(context):
     """Create a task that might require multiple levels of recursion."""
@@ -290,6 +1269,7 @@ def task_requiring_multiple_recursion_levels(context):
     }
 
 
+@pytest.mark.medium
 @when("the coordinator evaluates whether to create nested micro-cycles")
 def coordinator_evaluates_nested_micro_cycles(context):
     """Simulate the coordinator evaluating whether to create nested micro-cycles."""
@@ -355,9 +1335,8 @@ def coordinator_evaluates_nested_micro_cycles(context):
             context.recursion_depth = 3
 
 
-@then(
-    "the coordinator should apply advanced heuristics to determine optimal recursion depth"
-)
+@pytest.mark.medium
+@then(    "the coordinator should apply advanced heuristics to determine optimal recursion depth")
 def verify_advanced_heuristics_applied(context):
     """Verify that advanced heuristics are applied to determine optimal recursion depth."""
     # Check that the coordinator has advanced heuristics configuration
@@ -373,6 +1352,7 @@ def verify_advanced_heuristics_applied(context):
     assert context.recursion_depth <= 3  # Should not exceed the number of levels
 
 
+@pytest.mark.medium
 @then("the heuristics should consider task complexity")
 def verify_heuristics_consider_complexity(context):
     """Verify that the heuristics consider task complexity."""
@@ -401,6 +1381,7 @@ def verify_heuristics_consider_complexity(context):
     assert considered_factors["complexity"] is True
 
 
+@pytest.mark.medium
 @then("the heuristics should consider available resources")
 def verify_heuristics_consider_resources(context):
     """Verify that the heuristics consider available resources."""
@@ -429,6 +1410,7 @@ def verify_heuristics_consider_resources(context):
     assert considered_factors["resources"] is True
 
 
+@pytest.mark.medium
 @then("the heuristics should consider historical performance data")
 def verify_heuristics_consider_historical_data(context):
     """Verify that the heuristics consider historical performance data."""
@@ -508,6 +1490,7 @@ def verify_heuristics_consider_historical_data(context):
     assert reason_3 == "historical data suggests optimal depth"
 
 
+@pytest.mark.medium
 @then("the heuristics should consider diminishing returns at deeper recursion levels")
 def verify_heuristics_consider_diminishing_returns(context):
     """Verify that the heuristics consider diminishing returns at deeper recursion levels."""
@@ -548,6 +1531,7 @@ def verify_heuristics_consider_diminishing_returns(context):
     assert considered_diminishing_returns[0] is True
 
 
+@pytest.mark.medium
 @then("the coordinator should limit recursion to the optimal depth")
 def verify_recursion_limited_to_optimal_depth(context):
     """Verify that recursion is limited to the optimal depth."""
@@ -560,6 +1544,7 @@ def verify_recursion_limited_to_optimal_depth(context):
 
 
 # Scenario: Enhanced result aggregation from recursive cycles
+@pytest.mark.medium
 @given("multiple micro-cycles have completed processing subtasks")
 def multiple_completed_micro_cycles(context):
     """Set up multiple completed micro-cycles."""
@@ -632,6 +1617,7 @@ def multiple_completed_micro_cycles(context):
         }
 
 
+@pytest.mark.medium
 @when("the coordinator aggregates results from these micro-cycles")
 def coordinator_aggregates_results(context):
     """Simulate the coordinator aggregating results from micro-cycles."""
@@ -672,6 +1658,7 @@ def coordinator_aggregates_results(context):
     context.edrr_coordinator._merge_cycle_results = original_merge_cycle_results
 
 
+@pytest.mark.medium
 @then("the aggregation should intelligently merge similar results")
 def verify_intelligent_merging(context):
     """Verify that the aggregation intelligently merges similar results."""
@@ -687,6 +1674,7 @@ def verify_intelligent_merging(context):
     assert len(context.aggregated_results["merged_items"]) > 0
 
 
+@pytest.mark.medium
 @then("the aggregation should resolve conflicts between contradictory results")
 def verify_conflict_resolution(context):
     """Verify that the aggregation resolves conflicts between contradictory results."""
@@ -701,6 +1689,7 @@ def verify_conflict_resolution(context):
     )  # May be 0 if no conflicts
 
 
+@pytest.mark.medium
 @then("the aggregation should preserve unique insights from each micro-cycle")
 def verify_unique_insights_preserved(context):
     """Verify that the aggregation preserves unique insights from each micro-cycle."""
@@ -717,6 +1706,7 @@ def verify_unique_insights_preserved(context):
         )
 
 
+@pytest.mark.medium
 @then("the aggregation should prioritize higher quality results")
 def verify_quality_prioritization(context):
     """Verify that the aggregation prioritizes higher quality results."""
@@ -729,9 +1719,8 @@ def verify_quality_prioritization(context):
     assert len(context.aggregated_results["quality_prioritized_items"]) > 0
 
 
-@then(
-    "the aggregated result should be more comprehensive than any individual micro-cycle result"
-)
+@pytest.mark.medium
+@then(    "the aggregated result should be more comprehensive than any individual micro-cycle result")
 def verify_comprehensive_aggregation(context):
     """Verify that the aggregated result is more comprehensive than any individual micro-cycle result."""
     # Check that the aggregated result has more elements than any individual micro-cycle
@@ -754,6 +1743,7 @@ def verify_comprehensive_aggregation(context):
                 assert aggregated_count >= micro_cycle_count
 
 
+@pytest.mark.medium
 @then("the aggregation metadata should include provenance information")
 def verify_provenance_information(context):
     """Verify that the aggregation metadata includes provenance information."""
@@ -770,6 +1760,7 @@ def verify_provenance_information(context):
 
 
 # Scenario: Adaptive recursion strategy based on task type
+@pytest.mark.medium
 @given("different types of tasks with varying characteristics")
 def different_task_types(context):
     """Set up different types of tasks with varying characteristics."""
@@ -797,6 +1788,7 @@ def different_task_types(context):
     }
 
 
+@pytest.mark.medium
 @when("the coordinator processes these tasks")
 def coordinator_processes_tasks(context):
     """Simulate the coordinator processing different types of tasks."""
@@ -836,6 +1828,7 @@ def coordinator_processes_tasks(context):
     context.edrr_coordinator.create_micro_cycle = original_create_micro_cycle
 
 
+@pytest.mark.medium
 @then("the recursion strategy should adapt to the task type")
 def verify_strategy_adapts_to_task_type(context):
     """Verify that the recursion strategy adapts to the task type."""
@@ -847,6 +1840,7 @@ def verify_strategy_adapts_to_task_type(context):
         assert task_id in context.decomposition_strategies
 
 
+@pytest.mark.medium
 @then("code-related tasks should use AST-based decomposition")
 def verify_code_tasks_use_ast_decomposition(context):
     """Verify that code-related tasks use AST-based decomposition."""
@@ -857,6 +1851,7 @@ def verify_code_tasks_use_ast_decomposition(context):
     )
 
 
+@pytest.mark.medium
 @then("research-related tasks should use topic-based decomposition")
 def verify_research_tasks_use_topic_decomposition(context):
     """Verify that research-related tasks use topic-based decomposition."""
@@ -867,6 +1862,7 @@ def verify_research_tasks_use_topic_decomposition(context):
     )
 
 
+@pytest.mark.medium
 @then("design-related tasks should use component-based decomposition")
 def verify_design_tasks_use_component_decomposition(context):
     """Verify that design-related tasks use component-based decomposition."""
@@ -877,9 +1873,8 @@ def verify_design_tasks_use_component_decomposition(context):
     )
 
 
-@then(
-    "the coordinator should select the appropriate decomposition strategy automatically"
-)
+@pytest.mark.medium
+@then(    "the coordinator should select the appropriate decomposition strategy automatically")
 def verify_automatic_strategy_selection(context):
     """Verify that the coordinator selects the appropriate decomposition strategy automatically."""
     # Check that the strategies match the task types
@@ -893,6 +1888,7 @@ def verify_automatic_strategy_selection(context):
 
 
 # Scenario: Recursion with comprehensive progress tracking
+@pytest.mark.medium
 @given("a task that has been decomposed into multiple subtasks")
 def task_decomposed_into_subtasks(context):
     """Set up a task that has been decomposed into multiple subtasks."""
@@ -947,6 +1943,7 @@ def task_decomposed_into_subtasks(context):
     ]
 
 
+@pytest.mark.medium
 @when("the coordinator creates and executes micro-cycles for these subtasks")
 def coordinator_creates_executes_micro_cycles(context):
     """Simulate the coordinator creating and executing micro-cycles for subtasks."""
@@ -1050,6 +2047,7 @@ def coordinator_creates_executes_micro_cycles(context):
     ] = main_task_completion
 
 
+@pytest.mark.medium
 @then("the coordinator should track progress across all recursion levels")
 def verify_progress_tracking_across_levels(context):
     """Verify that progress is tracked across all recursion levels."""
@@ -1083,6 +2081,7 @@ def verify_progress_tracking_across_levels(context):
         )
 
 
+@pytest.mark.medium
 @then("the progress tracking should show completion percentage for each subtask")
 def verify_completion_percentage_for_subtasks(context):
     """Verify that progress tracking shows completion percentage for each subtask."""
@@ -1117,9 +2116,8 @@ def verify_completion_percentage_for_subtasks(context):
         )
 
 
-@then(
-    "the progress tracking should aggregate completion status up the recursion hierarchy"
-)
+@pytest.mark.medium
+@then(    "the progress tracking should aggregate completion status up the recursion hierarchy")
 def verify_aggregated_completion_status(context):
     """Verify that progress tracking aggregates completion status up the recursion hierarchy."""
     # Check that the main task's completion is an aggregation of subtask completions
@@ -1167,6 +2165,7 @@ def verify_aggregated_completion_status(context):
     )
 
 
+@pytest.mark.medium
 @then("the progress tracking should identify bottlenecks in the recursion tree")
 def verify_bottleneck_identification(context):
     """Verify that progress tracking identifies bottlenecks in the recursion tree."""
@@ -1198,6 +2197,7 @@ def verify_bottleneck_identification(context):
     assert bottleneck_completion == 0
 
 
+@pytest.mark.medium
 @then("the progress tracking should be accessible through the coordinator's API")
 def verify_progress_tracking_accessible(context):
     """Verify that progress tracking is accessible through the coordinator's API."""

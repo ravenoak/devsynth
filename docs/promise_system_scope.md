@@ -11,8 +11,15 @@ tags:
 - architecture
 
 title: 'Promise System: Capability Declaration, Authorization, and Management'
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; 'Promise System: Capability Declaration, Authorization, and Management'
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; 'Promise System: Capability Declaration, Authorization, and Management'
+</div>
 
 # Promise System: Capability Declaration, Authorization, and Management
 
@@ -317,4 +324,4 @@ The Promise System provides DevSynth with a robust framework for capability decl
 As DevSynth continues to mature, the Promise System will become increasingly central to its operation, enabling sophisticated multi-agent collaborations while maintaining clear boundaries and authorization controls.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

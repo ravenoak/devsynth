@@ -6,7 +6,6 @@ manipulation. It allows for precise code modifications while preserving syntax c
 """
 
 import ast
-import astor
 import warnings
 from typing import Dict, List, Any, Optional, Union, Tuple
 from contextlib import contextmanager
@@ -15,6 +14,15 @@ from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
+# Check if astor is available
+try:
+    import astor
+    HAS_ASTOR = True
+except ImportError:
+    logger.warning("astor library not found. Using fallback implementation for to_source.")
+    HAS_ASTOR = False
+    astor = None
 
 
 @contextmanager
@@ -36,7 +44,31 @@ def to_source_with_suppressed_warnings(node):
         The source code as a string
     """
     with suppress_deprecation_warnings():
-        return astor.to_source(node)
+        if HAS_ASTOR:
+            try:
+                # Try astor.to_source first (older versions)
+                try:
+                    return astor.to_source(node)
+                except AttributeError:
+                    # If that fails, try astor.code_gen.to_source (newer versions)
+                    return astor.code_gen.to_source(node)
+            except Exception as e:
+                logger.warning(f"Failed to use astor for code generation: {str(e)}")
+                # Fall back to ast.unparse
+                try:
+                    return ast.unparse(node)
+                except Exception as e2:
+                    logger.error(f"Failed to unparse AST node: {str(e2)}")
+                    # Provide a basic string representation as a last resort
+                    return f"# Failed to generate source code: {str(e2)}\n# Please install astor library for better results"
+        else:
+            # Fallback to ast.unparse (available in Python 3.9+)
+            try:
+                return ast.unparse(node)
+            except Exception as e:
+                logger.error(f"Failed to unparse AST node: {str(e)}")
+                # Provide a basic string representation as a last resort
+                return f"# Failed to generate source code: {str(e)}\n# Please install astor library for better results"
 
 
 class AstTransformer:

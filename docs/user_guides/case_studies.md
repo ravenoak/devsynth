@@ -8,8 +8,15 @@ tags:
 
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth Case Studies
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth Case Studies
+</div>
 
 # DevSynth Case Studies
 
@@ -35,4 +42,4 @@ The `examples/full_workflow` project demonstrates the complete DevSynth process:
 Future examples should include clear instructions about required extras and test execution so users can reproduce the workflow without issues.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

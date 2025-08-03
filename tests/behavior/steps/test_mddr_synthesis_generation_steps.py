@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 # Import the context fixture from the common file
 from .test_mddr_common import context
 
+@pytest.mark.medium
 @given("perspectives and identified conflicts from multiple disciplines")
 def perspectives_and_identified_conflicts_from_multiple_disciplines(context):
     """Set up perspectives and identified conflicts from multiple disciplines."""
@@ -84,6 +85,7 @@ def perspectives_and_identified_conflicts_from_multiple_disciplines(context):
         }
     ]
 
+@pytest.mark.medium
 @when("the team generates a multi-disciplinary synthesis")
 def team_generates_multi_disciplinary_synthesis(context):
     """Simulate the team generating a multi-disciplinary synthesis."""
@@ -157,6 +159,7 @@ def team_generates_multi_disciplinary_synthesis(context):
         conflicts=context.conflicts
     )
 
+@pytest.mark.medium
 @then("the synthesis should address all identified conflicts")
 def synthesis_addresses_all_identified_conflicts(context):
     """Verify that the synthesis addresses all identified conflicts."""
@@ -192,6 +195,7 @@ def synthesis_addresses_all_identified_conflicts(context):
         assert "trade_offs" in resolution
         assert len(resolution["trade_offs"]) > 10, f"Trade-offs for {conflict_id} are not adequately described"
 
+@pytest.mark.medium
 @then("the synthesis should integrate insights from all disciplines")
 def synthesis_integrates_insights_from_all_disciplines(context):
     """Verify that the synthesis integrates insights from all disciplines."""
@@ -221,6 +225,7 @@ def synthesis_integrates_insights_from_all_disciplines(context):
             elif discipline == "accessibility":
                 assert any(term in insight.lower() for term in ["accessibility", "a11y", "aria", "keyboard", "screen reader"])
 
+@pytest.mark.medium
 @then("the synthesis should maintain disciplinary integrity where appropriate")
 def synthesis_maintains_disciplinary_integrity(context):
     """Verify that the synthesis maintains disciplinary integrity where appropriate."""
@@ -241,6 +246,7 @@ def synthesis_maintains_disciplinary_integrity(context):
         explanation = integrity.split(" - ")[1]
         assert len(explanation) > 10, f"Explanation for {discipline} integrity is too short"
 
+@pytest.mark.medium
 @then("the synthesis should document trade-offs between disciplinary requirements")
 def synthesis_documents_trade_offs(context):
     """Verify that the synthesis documents trade-offs between disciplinary requirements."""

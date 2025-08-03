@@ -19,6 +19,7 @@ structure:
 """
 
 
+@pytest.mark.medium
 def test_valid_project_config_loads_succeeds(tmp_path: Path):
     """Test that valid project config loads succeeds.
 
@@ -30,6 +31,7 @@ ReqID: N/A"""
     assert cfg.config.project_root == str(tmp_path)
 
 
+@pytest.mark.medium
 def test_invalid_project_config_raises(tmp_path: Path):
     """Test that invalid project config raises.
 

@@ -43,6 +43,7 @@ def test_memory_type_members_complete():
 
 
 @pytest.mark.parametrize("value", [m.value for m in MemoryType])
+@pytest.mark.medium
 def test_memory_type_lookup_by_value(value):
     """Ensure enum members can be retrieved from their values."""
     assert MemoryType(value).value == value

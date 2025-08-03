@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 # Import the context fixture from the common file
 from .test_mddr_common import context
 
+@pytest.mark.medium
 @given("a multi-disciplinary reasoning process")
 def multi_disciplinary_reasoning_process(context):
     """Set up a multi-disciplinary reasoning process."""
@@ -29,6 +30,7 @@ def multi_disciplinary_reasoning_process(context):
         ]
     }
 
+@pytest.mark.medium
 @given("domain-specific knowledge sources for each discipline")
 def domain_specific_knowledge_sources_for_each_discipline(context):
     """Set up domain-specific knowledge sources for each discipline."""
@@ -164,6 +166,7 @@ def domain_specific_knowledge_sources_for_each_discipline(context):
     context.team.get_knowledge_for_discipline = MagicMock()
     context.team.get_knowledge_for_discipline.side_effect = lambda discipline: context.knowledge_sources.get(discipline, {})
 
+@pytest.mark.medium
 @when("the team applies multi-disciplinary dialectical reasoning")
 def team_applies_multi_disciplinary_dialectical_reasoning(context):
     """Simulate the team applying multi-disciplinary dialectical reasoning with domain knowledge integration."""
@@ -318,6 +321,7 @@ def team_applies_multi_disciplinary_dialectical_reasoning(context):
     # Call the method with the task
     context.result = context.team.apply_multi_disciplinary_dialectical_reasoning_with_knowledge(context.task)
 
+@pytest.mark.medium
 @then("each disciplinary perspective should incorporate domain-specific knowledge")
 def each_disciplinary_perspective_incorporates_domain_specific_knowledge(context):
     """Verify that each disciplinary perspective incorporates domain-specific knowledge."""
@@ -347,6 +351,7 @@ def each_disciplinary_perspective_incorporates_domain_specific_knowledge(context
             source_name = source["source"].lower()
             assert any(term.lower() in perspective_text for term in source_name.split()), f"Source {source['source']} not mentioned in perspective"
 
+@pytest.mark.medium
 @then("the knowledge should be properly attributed to authoritative sources")
 def knowledge_properly_attributed_to_authoritative_sources(context):
     """Verify that the knowledge is properly attributed to authoritative sources."""
@@ -379,6 +384,7 @@ def knowledge_properly_attributed_to_authoritative_sources(context):
             elif perspective["discipline"] == "accessibility":
                 assert any(auth in source_name for auth in ["wcag", "w3c", "webaim", "accessibility"]), f"Not an authoritative accessibility source: {source['source']}"
 
+@pytest.mark.medium
 @then("the synthesis should reflect current best practices across all disciplines")
 def synthesis_reflects_current_best_practices_across_all_disciplines(context):
     """Verify that the synthesis reflects current best practices across all disciplines."""
@@ -406,6 +412,7 @@ def synthesis_reflects_current_best_practices_across_all_disciplines(context):
             elif discipline == "accessibility":
                 assert any(std in item_lower for std in ["wcag", "w3c", "webaim", "compliant", "accessible"]), f"Accessibility item doesn't reference standards: {item}"
 
+@pytest.mark.medium
 @then("the solution should demonstrate awareness of cross-disciplinary implications")
 def solution_demonstrates_awareness_of_cross_disciplinary_implications(context):
     """Verify that the solution demonstrates awareness of cross-disciplinary implications."""

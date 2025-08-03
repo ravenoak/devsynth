@@ -21,6 +21,9 @@ from devsynth.application.cli.cli_commands import (
     inspect_cmd,
     refactor_cmd,
     serve_cmd,
+    gather_cmd,
+    webapp_cmd,
+    dbschema_cmd,
 )
 from devsynth.application.cli.commands.validate_manifest_cmd import (
     validate_manifest_cmd,
@@ -35,6 +38,7 @@ from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """
@@ -47,6 +51,7 @@ def devsynth_cli_installed():
     return True
 
 
+@pytest.mark.medium
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     """
@@ -56,6 +61,7 @@ def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     """Execute a CLI command using Typer's CliRunner."""
@@ -91,6 +97,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     command_context["exit_code"] = result.exit_code
 
 
+@pytest.mark.medium
 @then("the system should display the help information")
 def check_help_displayed(command_context):
     """
@@ -101,6 +108,7 @@ def check_help_displayed(command_context):
     assert "Commands:" in output
 
 
+@pytest.mark.medium
 @then("the output should include all available commands")
 def check_commands_in_help(command_context):
     """
@@ -124,6 +132,7 @@ def check_commands_in_help(command_context):
     assert "analyze" not in output
 
 
+@pytest.mark.medium
 @then("the output should include usage examples")
 def check_usage_examples(command_context):
     """
@@ -133,6 +142,7 @@ def check_usage_examples(command_context):
     assert "Run 'devsynth [COMMAND] --help'" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse('a new project should be created at "{path}"'))
 def check_project_created(path, mock_workflow_manager):
     """
@@ -146,6 +156,7 @@ def check_project_created(path, mock_workflow_manager):
 
 
 # This step definition matches exactly the text in the feature file
+@pytest.mark.medium
 @then('the system should process the "custom-requirements.md" file')
 def check_requirements_file_processed(mock_workflow_manager):
     """
@@ -157,6 +168,7 @@ def check_requirements_file_processed(mock_workflow_manager):
 
 
 # This step definition matches exactly the text in the feature file
+@pytest.mark.medium
 @then('the system should process the "custom-specs.md" file')
 def check_specs_file_processed(mock_workflow_manager):
     """
@@ -167,6 +179,7 @@ def check_specs_file_processed(mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse("generate specifications based on the requirements"))
 def check_generate_specs(mock_workflow_manager):
     """
@@ -176,6 +189,7 @@ def check_generate_specs(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
+@pytest.mark.medium
 @then(parsers.parse("generate tests based on the specifications"))
 def check_generate_tests(mock_workflow_manager):
     """
@@ -185,9 +199,8 @@ def check_generate_tests(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
-@then(
-    parsers.parse("the system should generate {output_type} based on the {input_type}")
-)
+@pytest.mark.medium
+@then(    parsers.parse("the system should generate {output_type} based on the {input_type}"))
 def check_generation(output_type, input_type, mock_workflow_manager, command_context):
     """
     Verify that the system generated the expected output based on the input.
@@ -197,6 +210,7 @@ def check_generation(output_type, input_type, mock_workflow_manager, command_con
     assert mock_workflow_manager.execute_command.called
 
 
+@pytest.mark.medium
 @then(parsers.parse('the system should execute the "{target}" target'))
 def check_target_executed(target, mock_workflow_manager):
     """
@@ -207,6 +221,7 @@ def check_target_executed(target, mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should update the configuration"))
 def check_config_updated(mock_workflow_manager):
     """
@@ -216,6 +231,7 @@ def check_config_updated(mock_workflow_manager):
     # The specific key/value check is done in a separate step
 
 
+@pytest.mark.medium
 @then(parsers.parse('set "{key}" to "{value}"'))
 def check_config_key_value(key, value, mock_workflow_manager):
     """
@@ -226,6 +242,7 @@ def check_config_key_value(key, value, mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse('the system should display the value for "{key}"'))
 def check_config_value_displayed(key, mock_workflow_manager):
     """
@@ -236,6 +253,7 @@ def check_config_value_displayed(key, mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then("the system should display all configuration settings")
 def check_all_config_displayed(mock_workflow_manager):
     """
@@ -246,6 +264,7 @@ def check_all_config_displayed(mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then("the workflow should execute successfully")
 def check_workflow_success(mock_workflow_manager):
     """
@@ -255,6 +274,7 @@ def check_workflow_success(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
+@pytest.mark.medium
 @then("the system should display a success message")
 def check_success_message(command_context):
     """
@@ -277,6 +297,7 @@ def check_success_message(command_context):
     assert success_found, f"No success message found in output: {output}"
 
 
+@pytest.mark.medium
 @then("indicate that the command is not recognized")
 def check_command_not_recognized(command_context):
     """
@@ -288,6 +309,7 @@ def check_command_not_recognized(command_context):
     assert "Commands:" in output
 
 
+@pytest.mark.medium
 @given("a project with invalid environment configuration")
 def project_with_invalid_env_config(tmp_project_dir):
     config_path = os.path.join(tmp_project_dir, "config")
@@ -297,6 +319,7 @@ def project_with_invalid_env_config(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("valid environment configuration")
 def valid_environment_config(tmp_project_dir):
     config_path = os.path.join(tmp_project_dir, "config")
@@ -307,12 +330,14 @@ def valid_environment_config(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @then("the output should indicate configuration errors")
 def check_config_errors(command_context):
     output = command_context.get("output", "")
     assert "warning" in output.lower() or "error" in output.lower()
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should display a warning message"))
 def check_warning_message(command_context):
     """Verify that the system displayed a warning message."""
@@ -320,6 +345,7 @@ def check_warning_message(command_context):
     assert "warning" in output.lower() or "warning" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse('uvicorn should be called with host "{host}" and port {port:d}'))
 def uvicorn_called_with(host, port, command_context):
     """Assert uvicorn.run was invoked with the specified host and port."""
@@ -332,6 +358,7 @@ def uvicorn_called_with(host, port, command_context):
     assert kwargs.get("port") == port
 
 
+@pytest.mark.medium
 @given("essential environment variables are missing")
 def missing_env_vars(monkeypatch):
     """Unset environment variables required for the doctor command."""
@@ -339,6 +366,7 @@ def missing_env_vars(monkeypatch):
     monkeypatch.delenv("LM_STUDIO_ENDPOINT", raising=False)
 
 
+@pytest.mark.medium
 @given("a project with an invalid manifest file")
 def invalid_manifest_file(tmp_project_dir):
     """Create a malformed manifest file in the project directory."""
@@ -348,8 +376,117 @@ def invalid_manifest_file(tmp_project_dir):
     return manifest_path
 
 
+@pytest.mark.medium
 @then("the output should mention the missing variables")
 def output_mentions_missing_vars(command_context):
     """Check that missing environment variables are referenced in output."""
     output = command_context.get("output", "")
     assert "OPENAI_API_KEY" in output or "LM_STUDIO_ENDPOINT" in output
+
+
+# Step definitions for gather command
+@pytest.mark.medium
+@then("the system should gather requirements interactively")
+def check_gather_requirements_interactively(mock_workflow_manager):
+    """Verify that the system gathered requirements interactively."""
+    mock_workflow_manager.execute_command.assert_any_call(
+        "gather", ANY
+    )
+
+
+@pytest.mark.medium
+@then(parsers.parse('save the requirements to "{output_file}"'))
+def check_save_requirements_to_file(output_file, mock_workflow_manager):
+    """Verify that the requirements were saved to the specified file."""
+    mock_workflow_manager.execute_command.assert_any_call(
+        "gather", {"output_file": output_file}
+    )
+
+
+# Step definitions for webapp command
+@pytest.mark.medium
+@then(parsers.parse('the system should generate a Flask application at "{path}"'))
+def check_generate_flask_application(path, mock_workflow_manager):
+    """Verify that the system generated a Flask application at the specified path."""
+    # Extract the name and path from the full path
+    parts = path.split("/")
+    name = parts[-1]
+    path = "/".join(parts[:-1])
+    
+    mock_workflow_manager.execute_command.assert_any_call(
+        "webapp", {"framework": "flask", "name": name, "path": path, "force": False}
+    )
+
+
+@pytest.mark.medium
+@then(parsers.parse('the system should generate a FastAPI application at "{path}"'))
+def check_generate_fastapi_application(path, mock_workflow_manager):
+    """Verify that the system generated a FastAPI application at the specified path."""
+    # Extract the name and path from the full path
+    parts = path.split("/")
+    name = parts[-1]
+    path = "/".join(parts[:-1])
+    
+    mock_workflow_manager.execute_command.assert_any_call(
+        "webapp", {"framework": "fastapi", "name": name, "path": path, "force": False}
+    )
+
+
+@pytest.mark.medium
+@given(parsers.parse('a directory "{path}" already exists'))
+def directory_already_exists(path, tmp_project_dir):
+    """Create a directory that already exists."""
+    full_path = os.path.join(tmp_project_dir, path)
+    os.makedirs(full_path, exist_ok=True)
+    return full_path
+
+
+@pytest.mark.medium
+@then("suggest using the --force option")
+def check_suggest_force_option(command_context):
+    """Verify that the system suggested using the --force option."""
+    output = command_context.get("output", "")
+    assert "--force" in output
+
+
+# Step definitions for dbschema command
+@pytest.mark.medium
+@then(parsers.parse('the system should generate a SQLite database schema at "{path}"'))
+def check_generate_sqlite_schema(path, mock_workflow_manager):
+    """Verify that the system generated a SQLite database schema at the specified path."""
+    # Extract the name and path from the full path
+    parts = path.split("/")
+    name = parts[-1].replace("_schema", "")
+    path = "/".join(parts[:-1])
+    
+    mock_workflow_manager.execute_command.assert_any_call(
+        "dbschema", {"db_type": "sqlite", "name": name, "path": path, "force": False}
+    )
+
+
+@pytest.mark.medium
+@then(parsers.parse('the system should generate a MySQL database schema at "{path}"'))
+def check_generate_mysql_schema(path, mock_workflow_manager):
+    """Verify that the system generated a MySQL database schema at the specified path."""
+    # Extract the name and path from the full path
+    parts = path.split("/")
+    name = parts[-1].replace("_schema", "")
+    path = "/".join(parts[:-1])
+    
+    mock_workflow_manager.execute_command.assert_any_call(
+        "dbschema", {"db_type": "mysql", "name": name, "path": path, "force": False}
+    )
+
+
+@pytest.mark.medium
+@then(parsers.parse('the system should generate a MongoDB database schema at "{path}"'))
+def check_generate_mongodb_schema(path, mock_workflow_manager):
+    """Verify that the system generated a MongoDB database schema at the specified path."""
+    # Extract the name and path from the full path
+    parts = path.split("/")
+    name = parts[-1].replace("_schema", "")
+    path = "/".join(parts[:-1])
+    
+    mock_workflow_manager.execute_command.assert_any_call(
+        "dbschema", {"db_type": "mongodb", "name": name, "path": path, "force": False}
+    )

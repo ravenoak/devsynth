@@ -2,6 +2,7 @@ import pytest
 from devsynth.config.loader import load_config, ConfigurationError
 
 
+@pytest.mark.medium
 def test_load_config_merges_defaults_succeeds(tmp_path):
     """Test that load config merges defaults succeeds.
 
@@ -15,6 +16,7 @@ ReqID: N/A"""
     assert cfg.features['code_generation'] is False
 
 
+@pytest.mark.medium
 def test_malformed_yaml_raises(tmp_path):
     """Test that malformed yaml raises.
 
@@ -26,6 +28,7 @@ ReqID: N/A"""
         load_config(tmp_path)
 
 
+@pytest.mark.medium
 def test_malformed_toml_raises(tmp_path):
     """Test that malformed toml raises.
 

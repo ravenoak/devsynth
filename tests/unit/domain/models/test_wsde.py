@@ -40,6 +40,16 @@ ReqID: N/A"""
         self.critic_agent.current_role = None
         self.critic_agent.parameters = {'expertise': ['critique',
             'dialectical_reasoning']}
+            
+    def teardown_method(self):
+        """Clean up test fixtures."""
+        # Clean up the team and all mock agents
+        self.team = None
+        self.agent1 = None
+        self.agent2 = None
+        self.agent3 = None
+        self.agent4 = None
+        self.critic_agent = None
 
     def test_add_agent_succeeds(self):
         """Test adding an agent to the team.

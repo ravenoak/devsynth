@@ -19,16 +19,19 @@ def workflow_context():
     return {"executed": False}
 
 
+@pytest.mark.medium
 @given("the workflow_execution feature context")
 def given_context(workflow_context):
     return workflow_context
 
 
+@pytest.mark.medium
 @when("we execute the workflow_execution workflow")
 def when_execute(workflow_context):
     workflow_context["executed"] = True
 
 
+@pytest.mark.medium
 @then("the workflow_execution workflow completes")
 def then_complete(workflow_context):
     assert workflow_context.get("executed") is True

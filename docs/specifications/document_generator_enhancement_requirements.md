@@ -6,8 +6,15 @@ tags:
   - "specification"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Documentation Generator Requirements
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Documentation Generator Requirements
+</div>
 
 # DevSynth Documentation Generator Requirements
 
@@ -169,4 +176,4 @@ A system that maintains up-to-date, comprehensive documentation throughout the s
 - Performance meets requirements for specified project sizes
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

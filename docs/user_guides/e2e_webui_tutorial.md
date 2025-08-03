@@ -7,8 +7,15 @@ tags:
   - tutorial
 status: published
 author: DevSynth Team
-last_reviewed: "2025-07-15"
----
+last_reviewed: "2025-07-15"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; End-to-End WebUI Tutorial
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; End-to-End WebUI Tutorial
+</div>
 
 # End-to-End WebUI Tutorial
 

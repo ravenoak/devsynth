@@ -143,6 +143,7 @@ def cross_interface_context(monkeypatch):
     return context
 
 
+@pytest.mark.medium
 @given("the CLI, WebUI, and Agent API share a UXBridge")
 def shared_bridge_setup(cross_interface_context):
     """Set up shared UXBridge for all interfaces."""
@@ -150,6 +151,7 @@ def shared_bridge_setup(cross_interface_context):
     return cross_interface_context
 
 
+@pytest.mark.medium
 @when(parsers.parse('{command} is invoked from all interfaces'))
 def invoke_command_all_interfaces(cross_interface_context, command):
     """Invoke the specified command from all interfaces."""
@@ -264,6 +266,7 @@ def invoke_command_all_interfaces(cross_interface_context, command):
     cross_interface_context["command_params"] = params[command]
 
 
+@pytest.mark.medium
 @when("an error occurs during command execution")
 def simulate_error(cross_interface_context):
     """Simulate an error during command execution."""
@@ -314,6 +317,7 @@ def simulate_error(cross_interface_context):
         cross_interface_context["unexpected_error"] = str(e)
 
 
+@pytest.mark.medium
 @when("user input is required during command execution")
 def simulate_user_input(cross_interface_context):
     """Simulate a scenario where user input is required."""
@@ -345,6 +349,7 @@ def simulate_user_input(cross_interface_context):
         cross_interface_context["api_input_result"] = api_result
 
 
+@pytest.mark.medium
 @then("all invocations pass identical arguments")
 def verify_identical_arguments(cross_interface_context):
     """Verify that all interfaces pass identical arguments to the command."""
@@ -392,6 +397,7 @@ def verify_identical_arguments(cross_interface_context):
         assert call_params[0][param_name] == param_value, f"Parameter '{param_name}' has incorrect value: expected '{param_value}', got '{call_params[0][param_name]}'"
 
 
+@pytest.mark.medium
 @then("the command behavior is consistent across interfaces")
 def verify_consistent_behavior(cross_interface_context):
     """Verify that the command behavior is consistent across interfaces."""
@@ -441,6 +447,7 @@ def verify_consistent_behavior(cross_interface_context):
     assert cmd_func.call_count >= 3, f"Expected at least 3 calls to {command}, got {cmd_func.call_count}"
 
 
+@pytest.mark.medium
 @then("all interfaces handle the error consistently")
 def verify_consistent_error_handling(cross_interface_context):
     """Verify that all interfaces handle errors consistently."""
@@ -474,6 +481,7 @@ def verify_consistent_error_handling(cross_interface_context):
         assert api_args[1].get("highlight", False), "API error not highlighted"
 
 
+@pytest.mark.medium
 @then("appropriate error messages are displayed")
 def verify_error_messages(cross_interface_context):
     """Verify that appropriate error messages are displayed."""
@@ -508,6 +516,7 @@ def verify_error_messages(cross_interface_context):
         assert error_msg in api_msg, f"API error message doesn't match: {api_msg} vs {error_msg}"
 
 
+@pytest.mark.medium
 @then("all interfaces prompt for input consistently")
 def verify_consistent_input_prompting(cross_interface_context):
     """Verify that all interfaces prompt for input consistently."""
@@ -532,6 +541,7 @@ def verify_consistent_input_prompting(cross_interface_context):
     assert cli_prompt == webui_prompt == api_prompt, f"Prompt messages don't match: CLI='{cli_prompt}', WebUI='{webui_prompt}', API='{api_prompt}'"
 
 
+@pytest.mark.medium
 @then("the input is processed correctly")
 def verify_input_processing(cross_interface_context):
     """Verify that user input is processed correctly."""

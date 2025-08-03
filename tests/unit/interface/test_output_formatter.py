@@ -6,7 +6,6 @@ from rich.panel import Panel
 from rich.text import Text
 from devsynth.interface.output_formatter import OutputFormatter, formatter
 
-
 class TestOutputFormatter:
     """Tests for the OutputFormatter class.
 
@@ -22,10 +21,17 @@ ReqID: N/A"""
         """Create a mock console for testing."""
         return MagicMock(spec=Console)
 
-    def test_sanitize_output_succeeds(self, formatter):
+    @pytest.fixture
+    def clean_state(self):
+        # Set up clean state
+        yield
+        # Clean up state
+
+    def test_sanitize_output(self, clean_state):
         """Test sanitizing output text.
 
-ReqID: N/A"""
+        ReqID: N/A"""
+
         assert formatter.sanitize_output('Hello, world!') == 'Hello, world!'
         assert formatter.sanitize_output("<script>alert('XSS')</script>") == ''
         assert formatter.sanitize_output('<div>Some content</div>'
@@ -37,7 +43,7 @@ ReqID: N/A"""
     def test_detect_message_type_succeeds(self, formatter):
         """Test detecting message types.
 
-ReqID: N/A"""
+        ReqID: N/A"""
         assert formatter.detect_message_type('ERROR: Something went wrong'
             ) == 'error'
         assert formatter.detect_message_type('FAILED: Task failed') == 'error'
@@ -63,7 +69,7 @@ ReqID: N/A"""
     def test_format_message_succeeds(self, formatter):
         """Test formatting messages.
 
-ReqID: N/A"""
+        ReqID: N/A"""
         result = formatter.format_message('Hello, world!', highlight=True)
         assert isinstance(result, Panel)
         assert result.renderable == 'Hello, world!'
@@ -112,7 +118,7 @@ ReqID: N/A"""
     def test_display_succeeds(self, formatter, console):
         """Test displaying formatted messages.
 
-ReqID: N/A"""
+        ReqID: N/A"""
         formatter.set_console(console)
         formatter.display('Hello, world!')
         console.print.assert_called_once()
@@ -139,14 +145,14 @@ ReqID: N/A"""
     def test_set_console_succeeds(self, formatter, console):
         """Test setting the console.
 
-ReqID: N/A"""
+        ReqID: N/A"""
         formatter.set_console(console)
         assert formatter.console == console
 
     def test_format_table_succeeds(self, formatter):
         """Test formatting a dictionary as a table.
 
-ReqID: N/A"""
+        ReqID: N/A"""
         data = {'name': 'John Doe', 'age': 30, 'email': 'john@example.com'}
         result = formatter.format_table(data)
         assert 'name  : John Doe' in result
@@ -167,7 +173,7 @@ ReqID: N/A"""
     def test_format_list_succeeds(self, formatter):
         """Test formatting a list of items.
 
-ReqID: N/A"""
+        ReqID: N/A"""
         items = ['Item 1', 'Item 2', 'Item 3']
         result = formatter.format_list(items)
         assert '• Item 1' in result
@@ -189,9 +195,9 @@ ReqID: N/A"""
         assert '• &lt;div&gt;Some content&lt;/div&gt;' in result
         assert '• Item 2' in result
 
+    @pytest.mark.medium
+    def test_formatter_singleton_succeeds(self):
+        """Test that the formatter singleton is an instance of OutputFormatter.
 
-def test_formatter_singleton_succeeds():
-    """Test that the formatter singleton is an instance of OutputFormatter.
-
-ReqID: N/A"""
-    assert isinstance(formatter, OutputFormatter)
+        ReqID: N/A"""
+        assert isinstance(formatter, OutputFormatter)

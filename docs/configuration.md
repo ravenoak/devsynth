@@ -7,8 +7,15 @@ tags:
   - "feature-flags"
 
 status: "draft"
-author: "DevSynth Team"
----
+author: "DevSynth Team"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; Configuration Overview
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; Configuration Overview
+</div>
 
 # Configuration Overview
 

@@ -56,6 +56,7 @@ def mock_workflow_manager():
             yield mock_manager
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """
@@ -68,6 +69,7 @@ def devsynth_cli_installed():
     return True
 
 
+@pytest.mark.medium
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     """
@@ -77,6 +79,7 @@ def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     """
@@ -174,6 +177,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     return output
 
 
+@pytest.mark.medium
 @then("the workflow should execute successfully")
 def check_workflow_success(mock_workflow_manager):
     """
@@ -183,6 +187,7 @@ def check_workflow_success(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
+@pytest.mark.medium
 @given("a project with invalid code structure")
 def project_with_invalid_code_structure(tmp_project_dir):
     """
@@ -197,6 +202,7 @@ def project_with_invalid_code_structure(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("a project with outdated configuration")
 def project_with_outdated_configuration(tmp_project_dir):
     """
@@ -226,6 +232,7 @@ structure:
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("a project with configuration entries that no longer exist")
 def project_with_nonexistent_entries(tmp_project_dir):
     """
@@ -256,6 +263,7 @@ structure:
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @given("a project without a configuration file")
 def project_without_configuration(tmp_project_dir):
     """
@@ -273,6 +281,7 @@ def project_without_configuration(tmp_project_dir):
     return tmp_project_dir
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should analyze the codebase in the current directory"))
 def check_analyze_code_current_dir(mock_workflow_manager, command_context):
     """
@@ -284,6 +293,7 @@ def check_analyze_code_current_dir(mock_workflow_manager, command_context):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse('the system should analyze the codebase at "{path}"'))
 def check_analyze_code_path(path, mock_workflow_manager):
     """
@@ -295,6 +305,7 @@ def check_analyze_code_path(path, mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include architecture information"))
 def check_architecture_info(command_context):
     """
@@ -304,6 +315,7 @@ def check_architecture_info(command_context):
     assert "Architecture" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include code quality metrics"))
 def check_code_quality_metrics(command_context):
     """
@@ -313,6 +325,7 @@ def check_code_quality_metrics(command_context):
     assert "Code Quality Metrics" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include test coverage information"))
 def check_test_coverage_info(command_context):
     """
@@ -322,6 +335,7 @@ def check_test_coverage_info(command_context):
     assert "Test Coverage" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include project health score"))
 def check_project_health_score(command_context):
     """
@@ -331,6 +345,7 @@ def check_project_health_score(command_context):
     assert "Project Health Score" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should analyze the project configuration"))
 def check_inspect_config(mock_workflow_manager, command_context):
     """
@@ -342,6 +357,7 @@ def check_inspect_config(mock_workflow_manager, command_context):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse('the system should analyze the project configuration at "{path}"'))
 def check_inspect_config_path(path, mock_workflow_manager):
     """
@@ -353,6 +369,7 @@ def check_inspect_config_path(path, mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include project information"))
 def check_project_info(command_context):
     """
@@ -362,6 +379,7 @@ def check_project_info(command_context):
     assert "Project Name" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include structure information"))
 def check_structure_info(command_context):
     """
@@ -371,6 +389,7 @@ def check_structure_info(command_context):
     assert "Project Type" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should include directories information"))
 def check_directories_info(command_context):
     """
@@ -380,6 +399,7 @@ def check_directories_info(command_context):
     assert "Directories" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should update the configuration with new findings"))
 def check_update_configuration(mock_workflow_manager):
     """
@@ -391,6 +411,7 @@ def check_update_configuration(mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should indicate that the configuration was updated"))
 def check_configuration_updated(command_context):
     """
@@ -400,6 +421,7 @@ def check_configuration_updated(command_context):
     assert "Configuration updated successfully" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should remove entries that no longer exist"))
 def check_prune_configuration(mock_workflow_manager):
     """
@@ -411,6 +433,7 @@ def check_prune_configuration(mock_workflow_manager):
     )
 
 
+@pytest.mark.medium
 @then(parsers.parse("the output should indicate that the configuration was pruned"))
 def check_configuration_pruned(command_context):
     """
@@ -420,6 +443,7 @@ def check_configuration_pruned(command_context):
     assert "Configuration pruned successfully" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should display a warning message"))
 def check_warning_message(command_context):
     """
@@ -429,11 +453,8 @@ def check_warning_message(command_context):
     assert "Warning" in output
 
 
-@then(
-    parsers.parse(
-        "the warning message should indicate that no configuration file was found"
-    )
-)
+@pytest.mark.medium
+@then(    parsers.parse(        "the warning message should indicate that no configuration file was found"    ))
 def check_no_configuration_warning(command_context):
     """
     Verify that the warning message indicates that no configuration file was found.
@@ -442,6 +463,7 @@ def check_no_configuration_warning(command_context):
     assert "No configuration file found" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the system should display an error message"))
 def check_error_message(command_context):
     """
@@ -451,6 +473,7 @@ def check_error_message(command_context):
     assert "Error" in output
 
 
+@pytest.mark.medium
 @then(parsers.parse("the error message should indicate the analysis problem"))
 def check_analysis_error(command_context):
     """

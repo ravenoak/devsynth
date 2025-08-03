@@ -1,3 +1,5 @@
+import pytest
+
 import types
 from devsynth.domain.models.wsde import WSDETeam
 
@@ -21,6 +23,7 @@ def test_assign_roles_sets_roles():
     assert {"Primus", "Worker", "Supervisor", "Designer", "Evaluator"} <= roles
 
 
+@pytest.mark.medium
 def test_select_primus_by_expertise_prefers_match():
     team = WSDETeam(name="t")
     coder = DummyAgent("coder", ["python"])
@@ -30,6 +33,7 @@ def test_select_primus_by_expertise_prefers_match():
     assert team.get_primus() is doc
 
 
+@pytest.mark.medium
 def test_build_consensus_produces_result():
     team = WSDETeam(name="t")
     a1 = DummyAgent("a1", ["x"])

@@ -8,8 +8,15 @@ tags:
 - design
 - system
 title: DevSynth Architecture
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture
+</div>
 
 # DevSynth Architecture
 
@@ -70,4 +77,4 @@ If you're new to DevSynth's architecture, we recommend starting with the [Overvi
 - [Agent API Reference](../user_guides/api_reference.md) - Programmatic endpoints for automating DevSynth
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

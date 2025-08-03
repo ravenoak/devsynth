@@ -29,12 +29,14 @@ def docs_context(monkeypatch):
 scenarios("../features/general/generate_docs.feature")
 
 
+@pytest.mark.medium
 @given("the generate_docs feature context")
 def given_context(docs_context):
     """Return the patched context."""
     return docs_context
 
 
+@pytest.mark.medium
 @when("we execute the generate_docs workflow")
 def when_execute(docs_context):
     """Invoke the ``generate_docs`` command."""
@@ -44,6 +46,7 @@ def when_execute(docs_context):
     docs_context["cmd"] = generate_docs_cmd
 
 
+@pytest.mark.medium
 @then("the generate_docs workflow completes")
 def then_complete(docs_context):
     """Ensure the command was called."""

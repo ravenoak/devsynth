@@ -327,11 +327,13 @@ def webui_context(monkeypatch):
     return ctx
 
 
+@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(webui_context):
     return webui_context
 
 
+@pytest.mark.medium
 @when(parsers.parse('I navigate to "{page}"'))
 def navigate_to(page, webui_context):
     webui_context["st"].sidebar.radio.return_value = page
@@ -342,6 +344,7 @@ def navigate_to(page, webui_context):
         webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the onboarding form")
 def submit_onboarding(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Onboarding"
@@ -349,6 +352,7 @@ def submit_onboarding(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I update a configuration value")
 def update_config(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Config"
@@ -356,6 +360,7 @@ def update_config(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the edrr cycle form")
 def submit_edrr_cycle(webui_context):
     webui_context["st"].sidebar.radio.return_value = "EDRR Cycle"
@@ -363,6 +368,7 @@ def submit_edrr_cycle(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the alignment form")
 def submit_alignment(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Alignment"
@@ -370,31 +376,37 @@ def submit_alignment(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @then(parsers.parse('the "{header}" header is shown'))
 def check_header(header, webui_context):
     webui_context["st"].header.assert_any_call(header)
 
 
+@pytest.mark.medium
 @then("the init command should be executed")
 def check_init(webui_context):
     assert webui_context["cli"].init_cmd.called
 
 
+@pytest.mark.medium
 @then("the config command should be executed")
 def check_config(webui_context):
     assert webui_context["cli"].config_cmd.called
 
 
+@pytest.mark.medium
 @then("the edrr_cycle command should be executed")
 def check_edrr_cycle(webui_context):
     assert webui_context["cli"].edrr_cycle_cmd.called
 
 
+@pytest.mark.medium
 @then("the align command should be executed")
 def check_align(webui_context):
     assert webui_context["cli"].align_cmd.called
 
 
+@pytest.mark.medium
 @when("I submit the alignment metrics form")
 def submit_alignment_metrics(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Alignment Metrics"
@@ -402,6 +414,7 @@ def submit_alignment_metrics(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the inspect config form")
 def submit_inspect_config(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Inspect Config"
@@ -409,6 +422,7 @@ def submit_inspect_config(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the validate manifest form")
 def submit_validate_manifest(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Validate Manifest"
@@ -416,6 +430,7 @@ def submit_validate_manifest(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the validate metadata form")
 def submit_validate_metadata(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Validate Metadata"
@@ -423,6 +438,7 @@ def submit_validate_metadata(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the test metrics form")
 def submit_test_metrics(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Test Metrics"
@@ -430,6 +446,7 @@ def submit_test_metrics(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the generate docs form")
 def submit_generate_docs(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Generate Docs"
@@ -437,6 +454,7 @@ def submit_generate_docs(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the ingest form")
 def submit_ingest(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Ingest"
@@ -444,6 +462,7 @@ def submit_ingest(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @when("I submit the api spec form")
 def submit_api_spec(webui_context):
     webui_context["st"].sidebar.radio.return_value = "API Spec"
@@ -451,41 +470,49 @@ def submit_api_spec(webui_context):
     webui_context["ui"].run()
 
 
+@pytest.mark.medium
 @then("the alignment_metrics command should be executed")
 def check_alignment_metrics(webui_context):
     assert webui_context["cli"].alignment_metrics_cmd.called
 
 
+@pytest.mark.medium
 @then("the inspect_config command should be executed")
 def check_inspect_config(webui_context):
     assert webui_context["cli"].inspect_config_cmd.called
 
 
+@pytest.mark.medium
 @then("the validate_manifest command should be executed")
 def check_validate_manifest(webui_context):
     assert webui_context["cli"].validate_manifest_cmd.called
 
 
+@pytest.mark.medium
 @then("the validate_metadata command should be executed")
 def check_validate_metadata(webui_context):
     assert webui_context["cli"].validate_metadata_cmd.called
 
 
+@pytest.mark.medium
 @then("the test_metrics command should be executed")
 def check_test_metrics(webui_context):
     assert webui_context["cli"].test_metrics_cmd.called
 
 
+@pytest.mark.medium
 @then("the generate_docs command should be executed")
 def check_generate_docs(webui_context):
     assert webui_context["cli"].generate_docs_cmd.called
 
 
+@pytest.mark.medium
 @then("the ingest command should be executed")
 def check_ingest(webui_context):
     assert webui_context["cli"].ingest_cmd.called
 
 
+@pytest.mark.medium
 @then("the apispec command should be executed")
 def check_apispec(webui_context):
     assert webui_context["cli"].apispec_cmd.called

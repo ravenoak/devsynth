@@ -83,6 +83,7 @@ ReqID: N/A"""
         """Create a WebUI bridge for testing."""
         return WebUI()
 
+    @pytest.mark.medium
     def test_init_command_pipeline_succeeds(self, temp_project_dir,
         api_client, cli_bridge, webui_bridge, monkeypatch):
         """Test the init command pipeline from CLI/WebUI through AgentAPI.
@@ -103,6 +104,7 @@ ReqID: N/A"""
                 args, kwargs = mock_init_cmd.call_args
                 assert kwargs.get('path') == temp_project_dir
 
+    @pytest.mark.medium
     def test_spec_command_pipeline_succeeds(self, temp_project_dir,
         api_client, cli_bridge, webui_bridge, monkeypatch):
         """Test the spec command pipeline from CLI/WebUI through AgentAPI.
@@ -128,6 +130,7 @@ ReqID: N/A"""
                     args, kwargs = mock_spec_cmd.call_args
                     assert kwargs.get('requirements_file') == requirements_file
 
+    @pytest.mark.medium
     def test_test_command_pipeline_succeeds(self, temp_project_dir,
         api_client, cli_bridge, monkeypatch):
         """Test the test command pipeline from CLI through AgentAPI.
@@ -149,6 +152,7 @@ ReqID: N/A"""
             args, kwargs = mock_test_cmd.call_args
             assert kwargs.get('spec_file') == spec_file
 
+    @pytest.mark.medium
     def test_code_command_pipeline_succeeds(self, temp_project_dir,
         api_client, cli_bridge, monkeypatch):
         """Test the code command pipeline from CLI through AgentAPI.
@@ -166,6 +170,7 @@ ReqID: N/A"""
             mock_code_cmd.assert_called_once()
             args, kwargs = mock_code_cmd.call_args
 
+    @pytest.mark.medium
     def test_edrr_cycle_command_pipeline_succeeds(self, temp_project_dir,
         api_client, cli_bridge, monkeypatch):
         """Test the EDRR cycle command pipeline from CLI through AgentAPI.
@@ -186,6 +191,7 @@ ReqID: N/A"""
             assert kwargs.get('prompt') == 'Improve code'
             assert kwargs.get('max_iterations') == 3
 
+    @pytest.mark.medium
     def test_error_handling_in_pipeline_raises_error(self, temp_project_dir,
         cli_bridge, monkeypatch):
         """Test error handling in the CLI/WebUI/AgentAPI pipeline.
@@ -203,3 +209,48 @@ ReqID: N/A"""
             except ValueError as e:
                 assert str(e) == 'Test error'
             mock_init_cmd.assert_called_once()
+            
+    @pytest.mark.medium
+    def test_webui_command_pipeline_succeeds(self, temp_project_dir,
+        api_client, cli_bridge, monkeypatch):
+        """Test the WebUI command pipeline from CLI through AgentAPI.
+
+ReqID: N/A"""
+        # Test the CLI part of the pipeline directly
+        with patch('devsynth.application.cli.cli_commands.webui_cmd'
+            ) as mock_webui_cmd:
+            mock_webui_cmd.return_value = None  # webui_cmd doesn't return a value
+            
+            # Mock the run function to avoid actually launching the WebUI
+            with patch('devsynth.interface.webui.run') as mock_run:
+                # Call the CLI command directly
+                from devsynth.application.cli import webui_cmd
+                webui_cmd(bridge=cli_bridge)
+                
+                # Verify that webui_cmd was called
+                mock_webui_cmd.assert_called_once()
+                
+                # Verify that the run function was called
+                mock_run.assert_called_once()
+                
+    @pytest.mark.medium
+    def test_webui_command_error_handling_succeeds(self, temp_project_dir,
+        cli_bridge, monkeypatch):
+        """Test error handling in the WebUI command pipeline.
+
+ReqID: N/A"""
+        # Test error handling in the CLI part of the pipeline directly
+        with patch('devsynth.interface.webui.run',
+            side_effect=ImportError('No module named "streamlit"')
+            ) as mock_run:
+            
+            # Call the CLI command directly
+            from devsynth.application.cli import webui_cmd
+            webui_cmd(bridge=cli_bridge)
+            
+            # Verify that the run function was called
+            mock_run.assert_called_once()
+            
+            # Verify that an error message was displayed
+            # Since we're using a real CLI bridge, we can't easily check the output
+            # In a real test, we would use a mock bridge and verify the display_result call

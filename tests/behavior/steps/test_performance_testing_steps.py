@@ -34,12 +34,14 @@ def context():
     ctx.cleanup()
 
 
+@pytest.mark.medium
 @given('the DevSynth system is initialized')
 def devsynth_initialized(context):
     """Ensure the test context exists for performance tests."""
     assert context is not None
 
 
+@pytest.mark.medium
 @given('a test project with 100 files is loaded')
 def test_project_loaded_succeeds(context):
     """Test that project loaded succeeds.
@@ -54,6 +56,7 @@ ReqID: N/A"""
     context.test_project_path = temp_dir
 
 
+@pytest.mark.medium
 @when('I perform a full project analysis')
 def perform_project_analysis(context):
     context.memory_before = psutil.Process(os.getpid()).memory_info(
@@ -66,16 +69,19 @@ def perform_project_analysis(context):
         ).rss / 1024 / 1024
 
 
+@pytest.mark.medium
 @then(parsers.parse('the peak memory usage should be less than {limit:d}MB'))
 def check_peak_memory(context, limit):
     assert context.peak_memory < limit, f'Peak memory usage ({context.peak_memory}MB) exceeds limit ({limit}MB)'
 
 
+@pytest.mark.medium
 @then('the memory should be properly released after analysis')
 def check_memory_released(context):
     assert context.memory_after - context.memory_before < 10, f'Memory not properly released: before={context.memory_before}MB, after={context.memory_after}MB'
 
 
+@pytest.mark.medium
 @when('I measure the response time for the following operations:')
 def measure_response_times(context):
     operations_table = [{'operation': 'project initialization',
@@ -100,6 +106,7 @@ def measure_response_times(context):
             'max_time_ms': float(row['max_time_ms'])}
 
 
+@pytest.mark.medium
 @then('all operations should complete within their maximum time limits')
 def check_operation_times(context):
     for operation, data in context.operation_times.items():
@@ -107,6 +114,7 @@ def check_operation_times(context):
             ], f"Operation '{operation}' took {data['duration_ms']}ms, which exceeds the limit of {data['max_time_ms']}ms"
 
 
+@pytest.mark.medium
 @given('test projects of the following sizes:')
 def create_test_projects(context):
     sizes_table = [{'size_description': 'small', 'file_count': '10'}, {
@@ -128,6 +136,7 @@ def create_test_projects(context):
             'file_count': file_count}
 
 
+@pytest.mark.medium
 @when('I perform a full project analysis on each project')
 def analyze_all_projects(context):
     for size_description, project_data in context.test_projects.items():
@@ -142,6 +151,7 @@ def analyze_all_projects(context):
         context.memory_usages[size_description] = end_memory - start_memory
 
 
+@pytest.mark.medium
 @then('the analysis time should scale sub-linearly with project size')
 def check_sublinear_scaling(context):
     sizes = ['small', 'medium', 'large']
@@ -155,6 +165,7 @@ def check_sublinear_scaling(context):
             ] * 1.1, f'Analysis time does not scale sub-linearly: {ratios}'
 
 
+@pytest.mark.medium
 @then('the memory usage should scale linearly with project size')
 def check_linear_scaling(context):
     sizes = ['small', 'medium', 'large']

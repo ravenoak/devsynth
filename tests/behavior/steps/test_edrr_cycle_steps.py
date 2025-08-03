@@ -21,6 +21,7 @@ def context() -> Dict[str, object]:
 
 
 @given("a valid manifest file")
+@pytest.mark.medium
 def valid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
     logger.debug("Setting up valid manifest")
     manifest = tmp_path / "manifest.json"
@@ -35,12 +36,14 @@ def valid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
 
 
 @given("no manifest file exists at the provided path")
+@pytest.mark.medium
 def missing_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
     context["manifest"] = tmp_path / "missing.json"
     return context["manifest"]
 
 
 @given("an invalid manifest file")
+@pytest.mark.medium
 def invalid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
     manifest = tmp_path / "invalid.json"
     manifest.write_text("not valid json")
@@ -49,6 +52,7 @@ def invalid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
 
 
 @when('I run the command "devsynth edrr-cycle" with that file')
+@pytest.mark.medium
 def run_edrr_cycle(context: Dict[str, object]) -> None:
     manifest: Path = context["manifest"]
     logger.debug("Manifest path: %s", manifest)
@@ -77,6 +81,7 @@ def run_edrr_cycle(context: Dict[str, object]) -> None:
 
 
 @then("the coordinator should process the manifest")
+@pytest.mark.medium
 def coordinator_processed_manifest(context: Dict[str, object]) -> None:
     logger.debug("Checking if coordinator processed manifest")
     logger.debug("Context: %s", context)
@@ -85,25 +90,30 @@ def coordinator_processed_manifest(context: Dict[str, object]) -> None:
 
 
 @then("the workflow should complete successfully")
+@pytest.mark.medium
 def workflow_completed(context: Dict[str, object]) -> None:
     assert context.get("started") is True
 
 
 @then("the output should indicate the cycle started")
+@pytest.mark.medium
 def cycle_start_message(context: Dict[str, object]) -> None:
     assert "Starting EDRR cycle" in context.get("output", "")
 
 
 @then("the system should report that the manifest file was not found")
+@pytest.mark.medium
 def manifest_not_found_error(context: Dict[str, object]) -> None:
     assert "not found" in context.get("output", "")
 
 
 @then("the coordinator should not be invoked")
+@pytest.mark.medium
 def coordinator_not_invoked(context: Dict[str, object]) -> None:
     assert context.get("started") is False
 
 
 @then("the system should report that the manifest file is invalid")
+@pytest.mark.medium
 def invalid_manifest_error(context: Dict[str, object]) -> None:
     assert "Invalid manifest" in context.get("output", "")

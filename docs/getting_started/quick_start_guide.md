@@ -1,19 +1,28 @@
 ---
 author: DevSynth Team
 date: '2025-07-08'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-02"
 status: published
 tags:
 - getting-started
 - quick-start
 - tutorial
 title: DevSynth Quick Start Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Quick Start Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Quick Start Guide
+</div>
 
 # DevSynth Quick Start Guide
 
 This guide provides a step-by-step tutorial to help you get started with DevSynth quickly.
+
+> **Note**: This guide uses domain-specific terminology. For definitions of unfamiliar terms, please refer to the [DevSynth Glossary](../glossary.md).
 
 ## Prerequisites
 
@@ -146,7 +155,7 @@ Create a file named `requirements.md` in your project directory with your projec
 Run the following command to generate detailed specifications based on your requirements:
 
 ```bash
-devsynth inspect --requirements-file requirements.md
+devsynth spec --requirements-file requirements.md
 ```
 
 This will create a `specs.md` file in your project directory with detailed specifications derived from your requirements.
@@ -156,7 +165,7 @@ This will create a `specs.md` file in your project directory with detailed speci
 Next, generate tests based on the specifications:
 
 ```bash
-devsynth run-pipeline
+devsynth test
 ```
 
 This command creates test files in the `tests` directory of your project.
@@ -166,7 +175,7 @@ This command creates test files in the `tests` directory of your project.
 Generate the implementation code that satisfies the tests:
 
 ```bash
-devsynth refactor
+devsynth code
 ```
 
 This creates the implementation code in the `src` directory of your project.
@@ -235,12 +244,12 @@ Create a file named `api_requirements.md` with the following content:
 
 # Generate specifications
 
-devsynth inspect --requirements-file api_requirements.md
+devsynth spec --requirements-file api_requirements.md
 
 # Generate tests and code
 
-devsynth run-pipeline
-devsynth refactor
+devsynth test
+devsynth code
 ```
 
 ## Step 3: Run and Test the API
@@ -294,12 +303,12 @@ Create a file named `data_analysis_requirements.md` with the following content:
 
 # Generate specifications
 
-devsynth inspect --requirements-file data_analysis_requirements.md
+devsynth spec --requirements-file data_analysis_requirements.md
 
 # Generate tests and code
 
-devsynth run-pipeline
-devsynth refactor
+devsynth test
+devsynth code
 ```
 
 ## Step 3: Use the Data Analysis Tool
@@ -348,12 +357,12 @@ Create a file named `testing_framework_requirements.md` with the following conte
 
 # Generate specifications
 
-devsynth inspect --requirements-file testing_framework_requirements.md
+devsynth spec --requirements-file testing_framework_requirements.md
 
 # Generate tests and code
 
-devsynth run-pipeline
-devsynth refactor
+devsynth test
+devsynth code
 ```
 
 ## Step 3: Use the Testing Framework
@@ -391,6 +400,3 @@ For more detailed information, refer to the [User Guide](../user_guides/user_gui
 - [Basic Usage Guide](basic_usage.md) - Introduction to basic DevSynth usage
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
-## Implementation Status
-
-This feature is **in progress** and not yet implemented.

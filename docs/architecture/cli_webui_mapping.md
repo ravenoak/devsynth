@@ -11,8 +11,15 @@ tags:
 - webui
 
 title: CLI to WebUI Command Mapping
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; CLI to WebUI Command Mapping
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; CLI to WebUI Command Mapping
+</div>
 
 # CLI to WebUI Command Mapping
 
@@ -34,40 +41,24 @@ backend functions.
 | `gather`                  | **Requirements** – Requirements Plan Wizard          |
 | `wizard`                  | **Requirements** – Requirements Wizard               |
 | `inspect-code`            | **Analysis** – Inspect Code form                     |
-| `refactor`                | N/A (planned **Analysis** workflow suggestions)      |
-| `webapp`                  | N/A (planned **Database/Web App** helper page)       |
-| `serve`                   | N/A (planned server management page; currently runs API server from CLI)                       |
-| `dbschema`                | N/A (planned **Database** helper page)               |
+| `refactor`                | **Analysis** – Refactor Suggestions page             |
+| `webapp`                  | **Web App** – Web App Helper page                    |
+| `serve`                   | **Serve** – API Server management page               |
+| `dbschema`                | **Database** – Database Schema page                  |
 | `doctor` / `check`        | **Doctor** – Diagnostics page   |
 | `EDRR-cycle`              | **EDRR** – Cycle execution page   |
 | `align`                   | **Alignment** – SDLC consistency checks   |
-| `alignment-metrics`       | N/A (planned **Reports** page)                       |
-| `inspect-config`          | N/A (configuration analysis section)                 |
-| `validate-manifest`       | N/A (planned configuration validation)               |
-| `validate-metadata`       | N/A (planned configuration validation)               |
-| `test-metrics`            | N/A (planned test metrics report)                    |
-| `generate-docs`           | N/A (planned **Synthesis** docs generation)          |
-| `ingest`                  | N/A (planned project ingestion form)                 |
-| `apispec`                 | N/A (planned API specification form)                 |
+| `alignment-metrics`       | **Alignment Metrics** – Metrics reporting page        |
+| `inspect-config`          | **Inspect Config** – Configuration analysis page     |
+| `validate-manifest`       | **Validate Manifest** – Configuration validation page|
+| `validate-metadata`       | **Validate Metadata** – Metadata validation page     |
+| `test-metrics`            | **Test Metrics** – Test metrics reporting page       |
+| `generate-docs`           | **Generate Docs** – Documentation generation page    |
+| `ingest`                  | **Ingest** – Project ingestion page                  |
+| `apispec`                 | **API Spec** – API specification page                |
 | `webui`                   | Launches the WebUI                                   |
 
-The following CLI commands remain **N/A** in the WebUI (all planned for future integration):
-
-- `refactor` (planned)
-- `webapp` (planned)
-- `serve` (planned)
-- `dbschema` (planned)
-- `alignment-metrics` (planned)
-- `inspect-config` (planned)
-- `validate-manifest` (planned)
-- `validate-metadata` (planned)
-- `test-metrics` (planned)
-- `generate-docs` (planned)
-- `ingest` (planned)
-- `apispec` (planned)
-
-
-Planned pages will integrate these commands into the WebUI. The `refactor` command is expected to appear in the **Analysis** section for automated improvement suggestions. A new operations page will manage the API server for `serve`, and `dbschema` will hook into the **Database** helper page for schema visualization.
+All CLI commands now have corresponding WebUI pages. Each page calls workflow functions through the `UXBridge` layer, ensuring consistent behavior between the CLI and WebUI interfaces.
 
 Because each page calls workflow functions through the `UXBridge` layer,
 adding UI support for these commands later only requires new pages that

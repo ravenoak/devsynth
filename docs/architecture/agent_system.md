@@ -12,8 +12,15 @@ tags:
 - collaboration
 
 title: DevSynth Agent System Architecture
-version: 1.1.0
----
+version: 1.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Agent System Architecture
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Agent System Architecture
+</div>
 
 # DevSynth Agent System Architecture
 

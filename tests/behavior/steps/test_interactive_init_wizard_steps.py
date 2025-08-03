@@ -15,11 +15,13 @@ from pytest_bdd import scenarios, given, when, then
 scenarios("../features/general/interactive_init_wizard.feature")
 
 
+@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
+@pytest.mark.medium
 @when("I run the initialization wizard")
 def run_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(os.sys.modules, "chromadb", MagicMock())
@@ -35,6 +37,7 @@ def run_wizard(tmp_project_dir, monkeypatch):
     init_cmd(auto_confirm=True)
 
 
+@pytest.mark.medium
 @then("a project configuration file should include the selected options")
 def check_config(tmp_project_dir):
     cfg = UnifiedConfigLoader.load(tmp_project_dir).config

@@ -10,8 +10,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Contexts: Development, Usage, and Self-Improvement
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Contexts: Development, Usage, and Self-Improvement
+</div>
 
 # DevSynth Contexts: Development, Usage, and Self-Improvement
 
@@ -167,4 +174,4 @@ This context refers to the advanced scenario where a functional version of DevSy
 Understanding these three distinct contexts is crucial for effective work with DevSynth. By maintaining clear boundaries between developing DevSynth, using DevSynth, and applying DevSynth to itself, we can avoid confusion and ensure that each context follows appropriate practices and workflows.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

@@ -6,8 +6,15 @@ status: published
 tags:
 - specification
 title: DevSynth Application Technical Specification - MVP Version
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Application Technical Specification - MVP Version
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Application Technical Specification - MVP Version
+</div>
 
 # Project Naming Conventions
 
@@ -914,7 +921,7 @@ Continuous learning features will be deferred to a future version.
 - Support for major operating systems (Linux, macOS, Windows)
 - Minimal external dependencies
 - Clear installation instructions for each platform
-- Support for Python 3.8+
+- Support for Python 3.12 or higher
 - Compatible with LM Studio on all platforms
 
 **Implementation Guidance:**
@@ -935,7 +942,7 @@ Continuous learning features will be deferred to a future version.
 ### 6.1 Development Environment
 
 **MVP Requirements:**
-- Python 3.8+ as the primary language
+- Python 3.12 or higher as the primary language
 - Standard virtual environment support
 - Simple installation via pip/pipx
 - Basic development tools (pytest, black, isort)
@@ -1912,4 +1919,4 @@ Mutation testing will be deferred to a future version.
 - User data is preserved or removed as requested
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

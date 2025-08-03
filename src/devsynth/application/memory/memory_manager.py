@@ -18,6 +18,11 @@ from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...logging_setup import DevSynthLogger
 from .query_router import QueryRouter
 from .sync_manager import SyncManager
+from .transaction_context import TransactionContext
+from .circuit_breaker import CircuitBreaker, circuit_breaker_registry, with_circuit_breaker
+from .retry import retry_with_backoff, retry_memory_operation
+from .error_logger import memory_error_logger
+from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 
 logger = DevSynthLogger(__name__)
 
@@ -175,9 +180,14 @@ class MemoryManager:
 
         return {}
 
+    @retry_memory_operation(max_retries=3, initial_backoff=0.1, max_backoff=2.0)
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
         """
         Retrieve a memory item by ID.
+
+        This method uses retry with exponential backoff to improve reliability
+        when retrieving items from memory adapters. It will try each adapter
+        in turn, and if all fail, it will return None.
 
         Args:
             item_id: The ID of the memory item to retrieve
@@ -186,12 +196,52 @@ class MemoryManager:
             The retrieved memory item, or None if not found
         """
         # Try to retrieve from each adapter
+        errors = {}
         for adapter_name, adapter in self.adapters.items():
             if hasattr(adapter, "retrieve"):
-                item = adapter.retrieve(item_id)
-                if item is not None:
-                    return item
-
+                try:
+                    # Use circuit breaker to protect the retrieve operation
+                    circuit = circuit_breaker_registry.get_or_create(
+                        f"memory_retrieve_{adapter_name}",
+                        failure_threshold=3,
+                        reset_timeout=60.0
+                    )
+                    
+                    item = circuit.execute(adapter.retrieve, item_id)
+                    if item is not None:
+                        return item
+                except CircuitBreakerOpenError as e:
+                    # Circuit is open, log and continue to next adapter
+                    logger.warning(
+                        f"Circuit breaker for {adapter_name} is open, skipping: {e}"
+                    )
+                    errors[adapter_name] = f"Circuit breaker open: {e}"
+                    
+                    # Log to error logger
+                    memory_error_logger.log_error(
+                        operation="retrieve",
+                        adapter_name=adapter_name,
+                        error=e,
+                        context={"item_id": item_id, "circuit_breaker": True}
+                    )
+                except Exception as e:
+                    # Retrieve operation failed, log and continue to next adapter
+                    logger.error(
+                        f"Failed to retrieve memory item from {adapter_name}: {e}"
+                    )
+                    errors[adapter_name] = str(e)
+                    
+                    # Log to error logger
+                    memory_error_logger.log_error(
+                        operation="retrieve",
+                        adapter_name=adapter_name,
+                        error=e,
+                        context={"item_id": item_id}
+                    )
+        
+        if errors:
+            logger.warning(f"Failed to retrieve item {item_id} from any adapter: {errors}")
+            
         return None
 
     def query_related_items(self, item_id: str) -> List[MemoryItem]:
@@ -337,24 +387,83 @@ class MemoryManager:
         """
         Store a memory item.
 
+        This method uses the circuit breaker pattern to protect against failures
+        when storing items in memory adapters. If the primary adapter fails,
+        it will try fallback adapters in order of preference.
+
         Args:
             memory_item: The memory item to store
 
         Returns:
             The ID of the stored memory item
+
+        Raises:
+            ValueError: If no adapters are available for storing memory items
+            MemoryTransactionError: If all adapters fail to store the item
         """
-        # Store in the appropriate adapter
-        # Prefer TinyDB for structured data, then Graph for relationships, then default to first available
-        if "tinydb" in self.adapters:
-            return self.adapters["tinydb"].store(memory_item)
-        elif "graph" in self.adapters:
-            return self.adapters["graph"].store(memory_item)
-        elif self.adapters:
-            # Use the first available adapter
-            adapter_name = next(iter(self.adapters))
-            return self.adapters[adapter_name].store(memory_item)
-        else:
+        # Define adapter preference order
+        adapter_preference = ["tinydb", "graph"]
+        
+        # Add any other adapters not in the preference list
+        for adapter_name in self.adapters:
+            if adapter_name not in adapter_preference:
+                adapter_preference.append(adapter_name)
+                
+        if not adapter_preference:
             raise ValueError("No adapters available for storing memory items")
+            
+        # Try adapters in order of preference
+        errors = {}
+        for adapter_name in adapter_preference:
+            if adapter_name not in self.adapters:
+                continue
+                
+            adapter = self.adapters[adapter_name]
+            circuit = circuit_breaker_registry.get_or_create(
+                f"memory_store_{adapter_name}",
+                failure_threshold=3,
+                reset_timeout=60.0
+            )
+            
+            try:
+                # Use the circuit breaker to protect the store operation
+                return circuit.execute(adapter.store, memory_item)
+            except CircuitBreakerOpenError as e:
+                # Circuit is open, log and continue to next adapter
+                logger.warning(
+                    f"Circuit breaker for {adapter_name} is open, skipping: {e}"
+                )
+                errors[adapter_name] = f"Circuit breaker open: {e}"
+                    
+                # Log to error logger
+                memory_error_logger.log_error(
+                    operation="store_item",
+                    adapter_name=adapter_name,
+                    error=e,
+                    context={"item_id": memory_item.id, "circuit_breaker": True}
+                )
+            except Exception as e:
+                # Store operation failed, log and continue to next adapter
+                logger.error(
+                    f"Failed to store memory item in {adapter_name}: {e}"
+                )
+                errors[adapter_name] = str(e)
+                    
+                # Log to error logger
+                memory_error_logger.log_error(
+                    operation="store_item",
+                    adapter_name=adapter_name,
+                    error=e,
+                    context={"item_id": memory_item.id}
+                )
+                
+        # If we get here, all adapters failed
+        error_msg = f"Failed to store memory item in any adapter: {errors}"
+        logger.error(error_msg)
+        raise MemoryTransactionError(
+            error_msg,
+            operation="store_item"
+        )
 
     def query_by_type(self, memory_type: MemoryType) -> List[MemoryItem]:
         """
@@ -560,9 +669,44 @@ class MemoryManager:
         return self.sync_manager.cross_store_query(query, stores)
 
     def begin_transaction(self, stores: List[str]):
-        """Begin a multi-store transaction."""
-
-        return self.sync_manager.transaction(stores)
+        """
+        Begin a multi-store transaction.
+        
+        This method creates a transaction context that spans multiple memory adapters.
+        It uses the TransactionContext class which implements a two-phase commit protocol
+        for cross-store transactions.
+        
+        Args:
+            stores: List of store names to include in the transaction
+            
+        Returns:
+            A transaction context manager
+            
+        Example:
+            ```python
+            with memory_manager.begin_transaction(['graph', 'tinydb']):
+                memory_manager.store_item(item1)
+                memory_manager.store_item(item2)
+            # Transaction is automatically committed if no exception occurs,
+            # or rolled back if an exception is raised
+            ```
+        """
+        # Get the adapters for the specified stores
+        adapters = []
+        for store_name in stores:
+            adapter = self.adapters.get(store_name)
+            if adapter:
+                adapters.append(adapter)
+            else:
+                logger.warning(f"Store {store_name} not found, skipping")
+                
+        # If no valid adapters were found, fall back to the sync manager
+        if not adapters:
+            logger.warning("No valid adapters found for transaction, falling back to sync manager")
+            return self.sync_manager.transaction(stores)
+            
+        # Create and return a transaction context
+        return TransactionContext(adapters)
 
     def update_item(self, store: str, item: MemoryItem) -> bool:
         """Update an item and propagate to other stores."""
@@ -617,3 +761,50 @@ class MemoryManager:
         """
 
         return []
+        
+    def get_error_summary(self) -> Dict[str, Any]:
+        """
+        Get a summary of memory operation errors.
+        
+        This method provides statistics about errors that have occurred during
+        memory operations, grouped by adapter, operation, and error type.
+        
+        Returns:
+            A dictionary with error statistics
+        """
+        return memory_error_logger.get_error_summary()
+        
+    def get_recent_errors(
+        self,
+        operation: Optional[str] = None,
+        adapter_name: Optional[str] = None,
+        error_type: Optional[str] = None,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get recent memory operation errors, optionally filtered by criteria.
+        
+        Args:
+            operation: Filter by operation (e.g., "store", "retrieve")
+            adapter_name: Filter by adapter name
+            error_type: Filter by error type
+            limit: Maximum number of errors to return
+            
+        Returns:
+            A list of error entries
+        """
+        return memory_error_logger.get_recent_errors(
+            operation=operation,
+            adapter_name=adapter_name,
+            error_type=error_type,
+            limit=limit
+        )
+        
+    def clear_error_log(self) -> None:
+        """
+        Clear the in-memory error log.
+        
+        This method clears the in-memory error log, but does not affect
+        persisted error logs on disk.
+        """
+        memory_error_logger.clear_errors()

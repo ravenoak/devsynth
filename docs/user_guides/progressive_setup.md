@@ -10,8 +10,15 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Progressive Feature Setup
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Progressive Feature Setup
+</div>
 
 # Progressive Feature Setup
 
@@ -108,4 +115,4 @@ Start with a minimal installation and gradually enable advanced reasoning and ve
 
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

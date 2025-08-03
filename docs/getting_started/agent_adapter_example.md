@@ -10,8 +10,15 @@ tags:
 - example
 
 title: Agent Adapter Example
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Agent Adapter Example
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Agent Adapter Example
+</div>
 
 # Agent Adapter Example
 
@@ -83,4 +90,4 @@ This demonstrates programmatic use of the agent system alongside the CLI
 workflow.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

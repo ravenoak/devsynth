@@ -334,6 +334,68 @@ class MemoryStoreError(MemoryAdapterError):
         self.__cause__ = original_error
 
 
+class MemoryTransactionError(MemoryAdapterError):
+    """Exception raised when a memory transaction operation fails."""
+
+    def __init__(
+        self,
+        message: str,
+        transaction_id: Optional[str] = None,
+        store_type: Optional[str] = None,
+        operation: Optional[str] = None,
+        original_error: Optional[Exception] = None,
+    ):
+        # Call parent constructor with the appropriate parameters
+        super().__init__(
+            message,
+            store_type=store_type,
+            operation=operation,
+            error_code="MEMORY_TRANSACTION_ERROR",
+        )
+
+        # Store transaction_id
+        self.transaction_id = transaction_id
+        
+        # Add transaction_id and original_error to details dictionary
+        if transaction_id:
+            self.details["transaction_id"] = transaction_id
+        if original_error:
+            self.details["original_error"] = str(original_error)
+            
+        # Set the cause for proper exception chaining
+        self.__cause__ = original_error
+
+
+class CircuitBreakerOpenError(MemoryAdapterError):
+    """Exception raised when a circuit breaker is open."""
+
+    def __init__(
+        self,
+        message: str,
+        circuit_name: Optional[str] = None,
+        reset_time: Optional[float] = None,
+        store_type: Optional[str] = None,
+        operation: Optional[str] = None,
+    ):
+        # Call parent constructor with the appropriate parameters
+        super().__init__(
+            message,
+            store_type=store_type,
+            operation=operation,
+            error_code="CIRCUIT_BREAKER_OPEN_ERROR",
+        )
+
+        # Store circuit_name and reset_time
+        self.circuit_name = circuit_name
+        self.reset_time = reset_time
+        
+        # Add circuit_name and reset_time to details dictionary
+        if circuit_name:
+            self.details["circuit_name"] = circuit_name
+        if reset_time:
+            self.details["reset_time"] = reset_time
+
+
 # Domain Errors
 
 

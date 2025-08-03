@@ -1,8 +1,8 @@
 import pytest
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.agentapi import APIBridge
-from devsynth.interface.ux_bridge import
-from typing import Union sanitize_output
+from devsynth.interface.ux_bridge import sanitize_output
+from typing import Union
 
 
 class DummyProgress:
@@ -69,6 +69,7 @@ def _setup_cli_bridge(monkeypatch) -> CLIUXBridge:
     return bridge
 
 
+@pytest.mark.medium
 def test_cli_and_api_bridges_consistent_succeeds(monkeypatch):
     """Test that cli and api bridges consistent succeeds.
 

@@ -20,17 +20,20 @@ def api_context(monkeypatch):
     return ctx
 
 
+@pytest.mark.medium
 @given("the Agent API stub is available")
 def api_available(api_context):
     return api_context
 
 
+@pytest.mark.medium
 @when("I call the init endpoint")
 def call_init(api_context):
     req = api_context["api"].InitRequest(path=".")
     api_context["api"].init_endpoint(req, token=None)
 
 
+@pytest.mark.medium
 @then("the init command should be executed through the bridge")
 def check_called(api_context):
     assert api_context["cli"].init_cmd.called

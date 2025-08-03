@@ -8,8 +8,15 @@ tags:
 - development-plan
 - project-planning
 title: DevSynth Roadmap
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Roadmap
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Roadmap
+</div>
 
 # DevSynth Roadmap
 
@@ -22,14 +29,14 @@ current implementation progress, see the [Feature Status Matrix](../implementati
 
 ## Development Plans
 
+- **[Consolidated Roadmap](CONSOLIDATED_ROADMAP.md)**: The canonical source for all roadmap information, consolidating previously separate roadmap documents into a single authoritative plan.
 - **[Development Plan](development_plan.md)**: The overall development plan for the DevSynth project.
 - **[Roadmap Overview](development_plan.md#roadmap-overview)**: Concise summary of planned phases.
 - **[Development Status](development_status.md)**: The current status of development efforts.
 - **[Actionable Roadmap](actionable_roadmap.md)**: Specific, actionable items on the development roadmap.
-- **[Release Plan](release_plan.md)**: Milestones required for the first public release.
-- **[ROADMAP](ROADMAP.md)**: Consolidated list of release milestones.
 - **[Post-MVP Roadmap](post_mvp_roadmap.md)**: Details the features and enhancements planned after the Minimum Viable Product stage.
 - **[Release Automation Workflow](release_automation.md)**: Describes the CI pipeline for tagging and publishing releases.
+- **[Feature Dependencies](feature_dependencies.md)**: Summarizes how major DevSynth features depend on one another.
 - **[Maintenance Policy](../policies/maintenance.md)**: Defines the maintenance strategy and review process.
 
 ## Documentation and Testing Plans

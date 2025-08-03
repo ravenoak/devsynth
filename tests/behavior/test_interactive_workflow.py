@@ -22,6 +22,7 @@ class DummyBridge(UXBridge):
         self.messages.append(message)
 
 
+@pytest.mark.medium
 def test_run_workflow_cli_succeeds(monkeypatch):
     """Test that run workflow cli succeeds.
 
@@ -40,6 +41,7 @@ ReqID: N/A"""
     assert 'ok' in bridge.messages
 
 
+@pytest.mark.medium
 def test_run_workflow_webui_succeeds(monkeypatch):
     """Test that run workflow webui succeeds.
 

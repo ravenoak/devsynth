@@ -11,6 +11,7 @@ from devsynth.adapters.provider_system import (
 
 
 @pytest.mark.asyncio
+@pytest.mark.medium
 async def test_openai_provider_acomplete():
     mock_response = MagicMock()
     mock_response.json.return_value = {"choices": [{"message": {"content": "Async"}}]}
@@ -29,6 +30,7 @@ async def test_openai_provider_acomplete():
 
 
 @pytest.mark.asyncio
+@pytest.mark.medium
 async def test_acomplete_function():
     mock_provider = AsyncMock()
     mock_provider.acomplete.return_value = "response"
@@ -39,6 +41,7 @@ async def test_acomplete_function():
 
 
 @pytest.mark.asyncio
+@pytest.mark.medium
 async def test_aembed_function():
     mock_provider = AsyncMock()
     mock_provider.aembed.return_value = [[0.1, 0.2]]
@@ -49,6 +52,7 @@ async def test_aembed_function():
 
 
 @pytest.mark.asyncio
+@pytest.mark.medium
 async def test_fallback_provider_acomplete():
     provider1 = AsyncMock()
     provider1.acomplete.side_effect = ProviderError("fail1")
@@ -62,6 +66,7 @@ async def test_fallback_provider_acomplete():
 
 
 @pytest.mark.asyncio
+@pytest.mark.medium
 async def test_fallback_provider_aembed():
     provider1 = AsyncMock()
     provider1.aembed.side_effect = ProviderError("fail1")

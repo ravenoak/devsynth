@@ -15,6 +15,7 @@ def _agent(name: str, expertise=None, used: bool=False):
     return agent
 
 
+@pytest.mark.medium
 def test_rotation_without_expertise_is_deterministic_succeeds():
     """Test that rotation without expertise is deterministic succeeds.
 
@@ -29,6 +30,7 @@ ReqID: N/A"""
     assert team.get_primus() is a2
 
 
+@pytest.mark.medium
 def test_documentation_task_prefers_doc_agents_succeeds():
     """Test that documentation task prefers doc agents succeeds.
 
@@ -44,6 +46,7 @@ ReqID: N/A"""
     assert primus is not coder
 
 
+@pytest.mark.medium
 def test_has_been_primus_resets_after_full_rotation_succeeds():
     """Test that has been primus resets after full rotation succeeds.
 
@@ -61,6 +64,7 @@ ReqID: N/A"""
     assert not a2.has_been_primus
 
 
+@pytest.mark.medium
 def test_edge_case_coverage_succeeds():
     """Test that edge case coverage succeeds.
 

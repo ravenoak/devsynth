@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 # Import the context fixture from the common file
 from .test_mddr_common import context
 
+@pytest.mark.medium
 @given("a complex problem spanning multiple disciplines")
 def complex_problem_spanning_multiple_disciplines(context):
     """Define a complex problem that spans multiple disciplines."""
@@ -25,6 +26,7 @@ def complex_problem_spanning_multiple_disciplines(context):
         """
     }
 
+@pytest.mark.medium
 @given("a task requiring security and user experience considerations")
 def task_requiring_security_and_ux_considerations(context):
     """Define a task that requires security and user experience considerations."""
@@ -33,11 +35,13 @@ def task_requiring_security_and_ux_considerations(context):
         "description": "Implement a login form with secure authentication and good user experience"
     }
 
+@pytest.mark.medium
 @given("knowledge sources for security and user experience")
 def knowledge_sources_for_security_and_ux(context):
     """Provide knowledge sources for security and user experience."""
     # This step uses the knowledge sources defined in the background
 
+@pytest.mark.medium
 @given("a task requiring performance and accessibility considerations")
 def task_requiring_performance_and_accessibility_considerations(context):
     """Define a task that requires performance and accessibility considerations."""
@@ -46,11 +50,13 @@ def task_requiring_performance_and_accessibility_considerations(context):
         "description": "Implement a responsive web form that is accessible to all users"
     }
 
+@pytest.mark.medium
 @given("knowledge sources for performance and accessibility")
 def knowledge_sources_for_performance_and_accessibility(context):
     """Provide knowledge sources for performance and accessibility."""
     # This step uses the knowledge sources defined in the background
 
+@pytest.mark.medium
 @given("a task requiring security, user experience, performance, and accessibility considerations")
 def task_requiring_all_four_disciplines(context):
     """Define a task that requires all four disciplines."""
@@ -59,11 +65,13 @@ def task_requiring_all_four_disciplines(context):
         "description": "Implement a secure, user-friendly, high-performance, accessible authentication system"
     }
 
+@pytest.mark.medium
 @given("knowledge sources for all four disciplines")
 def knowledge_sources_for_all_four_disciplines(context):
     """Provide knowledge sources for all four disciplines."""
     # This step uses the knowledge sources defined in the background
 
+@pytest.mark.medium
 @when("the team initiates multi-disciplinary dialectical reasoning")
 def team_initiates_multi_disciplinary_dialectical_reasoning(context):
     """Initiate multi-disciplinary dialectical reasoning process."""
@@ -116,6 +124,7 @@ def team_initiates_multi_disciplinary_dialectical_reasoning(context):
     # Call the method with the task
     context.result = context.team.apply_multi_disciplinary_dialectical_reasoning(context.task)
 
+@pytest.mark.medium
 @then("each disciplinary agent should provide a specialized perspective")
 def each_disciplinary_agent_provides_specialized_perspective(context):
     """Verify that each disciplinary agent provides a specialized perspective."""
@@ -134,6 +143,7 @@ def each_disciplinary_agent_provides_specialized_perspective(context):
         # Verify that the discipline is one of the expected disciplines
         assert perspective["discipline"] in ["security", "user_experience", "performance", "accessibility"]
 
+@pytest.mark.medium
 @then("each perspective should focus on domain-specific considerations")
 def each_perspective_focuses_on_domain_specific_considerations(context):
     """Verify that each perspective focuses on domain-specific considerations."""
@@ -167,6 +177,7 @@ def each_perspective_focuses_on_domain_specific_considerations(context):
                                          for consideration in perspective["considerations"])
             assert has_accessibility_focus, f"Accessibility perspective doesn't focus on accessibility considerations: {perspective['considerations']}"
 
+@pytest.mark.medium
 @then("the perspectives should be documented with disciplinary context")
 def perspectives_documented_with_disciplinary_context(context):
     """Verify that the perspectives are documented with disciplinary context."""
@@ -194,6 +205,7 @@ def perspectives_documented_with_disciplinary_context(context):
         assert any(term in perspective["disciplinary_context"].lower() 
                   for term in ["principle", "standard", "practice", "guideline", "focus", "emphasize", "ensure"])
 
+@pytest.mark.medium
 @then("the collection of perspectives should cover all relevant disciplines")
 def collection_of_perspectives_covers_all_relevant_disciplines(context):
     """Verify that the collection of perspectives covers all relevant disciplines."""

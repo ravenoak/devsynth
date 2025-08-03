@@ -28,12 +28,14 @@ def chroma_context(monkeypatch, tmp_path):
 scenarios("../features/general/chromadb_integration.feature")
 
 
+@pytest.mark.medium
 @given("the chromadb_integration feature context")
 def given_context(chroma_context):
     """Return the patched context."""
     return chroma_context
 
 
+@pytest.mark.medium
 @when("we execute the chromadb_integration workflow")
 def when_execute(chroma_context):
     """Simulate storing and retrieving an item."""
@@ -45,6 +47,7 @@ def when_execute(chroma_context):
     chroma_context["store_instance"] = store
 
 
+@pytest.mark.medium
 @then("the chromadb_integration workflow completes")
 def then_complete(chroma_context):
     """Ensure store operations were attempted."""

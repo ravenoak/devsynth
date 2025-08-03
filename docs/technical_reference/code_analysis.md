@@ -6,8 +6,15 @@ status: published
 tags:
 - technical-reference
 title: Code Analysis Feature
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Code Analysis Feature
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Code Analysis Feature
+</div>
 
 # Code Analysis Feature
 
@@ -128,7 +135,7 @@ The `CodeAnalysisResult` interface provides methods to access information about 
 
 The code analysis feature uses Python's built-in `ast` module to parse and analyze Python code. The `AstVisitor` class extends `ast.NodeVisitor` to traverse the abstract syntax tree and extract information about the code structure.
 
-The implementation handles both Python 3.8+ style AST nodes (using `ast.Constant`) and older style nodes (using `ast.Str`, `ast.Num`, etc.) for backward compatibility.
+The implementation handles both modern Python style AST nodes (using `ast.Constant`, introduced in Python 3.8) and older style nodes (using `ast.Str`, `ast.Num`, etc.) for backward compatibility, though DevSynth itself requires Python 3.12 or higher.
 
 ## Future Enhancements
 

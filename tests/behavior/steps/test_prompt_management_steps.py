@@ -72,6 +72,7 @@ def context():
 # Background steps
 
 
+@pytest.mark.medium
 @given("the DPSy-AI prompt management system is initialized")
 def prompt_management_system_initialized(context):
     """Initialize the DPSy-AI prompt management system."""
@@ -83,6 +84,7 @@ def prompt_management_system_initialized(context):
 # Scenario: Register a prompt template
 
 
+@pytest.mark.medium
 @when(parsers.parse("I register a prompt template with the following details:"))
 def register_prompt_template(context, table=None):
     """Register a prompt template with the provided details."""
@@ -121,6 +123,7 @@ def register_prompt_template(context, table=None):
     context.templates[name] = template
 
 
+@pytest.mark.medium
 @then("the prompt template should be stored in the prompt manager")
 def template_stored_in_manager(context):
     """Verify that the template is stored in the prompt manager."""
@@ -131,6 +134,7 @@ def template_stored_in_manager(context):
     assert template.description == "Template for code reviews"
 
 
+@pytest.mark.medium
 @then("I should be able to retrieve the template by name")
 def retrieve_template_by_name(context):
     """Verify that the template can be retrieved by name."""
@@ -151,6 +155,7 @@ def retrieve_template_by_name(context):
 # Scenario: Use a prompt template with an agent
 
 
+@pytest.mark.medium
 @given('a prompt template named "code_review" exists')
 def prompt_template_exists(context):
     """Ensure a prompt template named "code_review" exists."""
@@ -167,6 +172,7 @@ def prompt_template_exists(context):
     context.templates["code_review"] = template
 
 
+@pytest.mark.medium
 @given("a Code Agent is initialized")
 def code_agent_initialized(context):
     """Initialize a Code Agent."""
@@ -182,11 +188,8 @@ def code_agent_initialized(context):
     context.agents["code_agent"] = agent
 
 
-@when(
-    parsers.parse(
-        'the agent uses the "{template_name}" template with the following variables:'
-    )
-)
+@pytest.mark.medium
+@when(    parsers.parse(        'the agent uses the "{template_name}" template with the following variables:'    ))
 def agent_uses_template(context, template_name, table=None):
     """Use a template with the provided variables."""
     # If table is not provided, create a mock table with default values
@@ -224,6 +227,7 @@ def agent_uses_template(context, template_name, table=None):
     context.reflection_ids[template_name] = result["reflection_id"]
 
 
+@pytest.mark.medium
 @then("the agent should receive the fully rendered prompt")
 def agent_receives_rendered_prompt(context):
     """Verify that the agent receives the fully rendered prompt."""
@@ -233,6 +237,7 @@ def agent_receives_rendered_prompt(context):
     assert "Check for bugs and suggest improvements" in rendered_prompt
 
 
+@pytest.mark.medium
 @then("the prompt usage should be logged for optimization")
 def prompt_usage_logged(context):
     """Verify that the prompt usage is logged for optimization."""
@@ -244,6 +249,7 @@ def prompt_usage_logged(context):
 # Scenario: Prompt template versioning
 
 
+@pytest.mark.medium
 @when(parsers.parse("I update the template with a new version:"))
 def update_template_with_new_version(context, table=None):
     """Update the template with a new version."""
@@ -276,6 +282,7 @@ def update_template_with_new_version(context, table=None):
     assert version is not None
 
 
+@pytest.mark.medium
 @then("both versions of the template should be available")
 def both_versions_available(context):
     """Verify that both versions of the template are available."""
@@ -284,6 +291,7 @@ def both_versions_available(context):
     assert len(template.versions) == 2
 
 
+@pytest.mark.medium
 @then("the latest version should be used by default")
 def latest_version_used_by_default(context):
     """Verify that the latest version is used by default."""
@@ -301,6 +309,7 @@ def latest_version_used_by_default(context):
     assert "Focus on: security, performance, readability" in rendered
 
 
+@pytest.mark.medium
 @then("I should be able to specify which version to use")
 def specify_version_to_use(context):
     """Verify that a specific version can be specified."""
@@ -328,6 +337,7 @@ def specify_version_to_use(context):
 # Scenario: Prompt efficacy tracking
 
 
+@pytest.mark.medium
 @given('a prompt template named "code_review" has been used multiple times')
 def template_used_multiple_times(context):
     """Ensure the template has been used multiple times."""
@@ -368,6 +378,7 @@ def template_used_multiple_times(context):
         )
 
 
+@pytest.mark.medium
 @when("I request efficacy metrics for the template")
 def request_efficacy_metrics(context):
     """Request efficacy metrics for the template."""
@@ -376,6 +387,7 @@ def request_efficacy_metrics(context):
     context.efficacy_metrics["code_review"] = metrics
 
 
+@pytest.mark.medium
 @then("I should receive statistics on its performance")
 def receive_performance_statistics(context):
     """Verify that performance statistics are received."""
@@ -398,6 +410,7 @@ def receive_performance_statistics(context):
                 assert "max_token_count" in version_metrics
 
 
+@pytest.mark.medium
 @then("recommendations for potential improvements")
 def receive_improvement_recommendations(context):
     """Verify that improvement recommendations are received."""
@@ -410,6 +423,7 @@ def receive_improvement_recommendations(context):
 # Scenario: Structured reflection after prompt response
 
 
+@pytest.mark.medium
 @when("an agent uses the template and receives a response")
 def agent_uses_template_and_receives_response(context):
     """Simulate an agent using a template and receiving a response."""
@@ -458,6 +472,7 @@ def agent_uses_template_and_receives_response(context):
     context.reflection_results["current"] = reflection_result
 
 
+@pytest.mark.medium
 @then("a reflection step should be triggered")
 def reflection_step_triggered(context):
     """Verify that a reflection step is triggered."""
@@ -466,6 +481,7 @@ def reflection_step_triggered(context):
     assert context.reflection_results["current"]["reflection"] is not None
 
 
+@pytest.mark.medium
 @then("the reflection results should be stored for future optimization")
 def reflection_results_stored(context):
     """Verify that reflection results are stored for future optimization."""
@@ -481,6 +497,7 @@ def reflection_results_stored(context):
 # Scenario: Dynamic prompt adjustment based on feedback
 
 
+@pytest.mark.medium
 @given("the prompt auto-tuner is enabled")
 def prompt_auto_tuner_enabled(context):
     """Enable the prompt auto-tuner."""
@@ -498,6 +515,7 @@ def prompt_auto_tuner_enabled(context):
     assert len(context.auto_tuner.prompt_variants["code_review"]) > 0
 
 
+@pytest.mark.medium
 @when("the template is used multiple times with varying feedback scores")
 def template_used_with_varying_feedback(context):
     """Use the template multiple times with varying feedback scores."""
@@ -558,6 +576,7 @@ def template_used_with_varying_feedback(context):
     context.variants["better_variant"] = better_variant
 
 
+@pytest.mark.medium
 @then("the system should automatically adjust the prompt template")
 def system_adjusts_prompt_template(context):
     """Verify that the system automatically adjusts the prompt template."""
@@ -572,6 +591,7 @@ def system_adjusts_prompt_template(context):
     ), "Expected the best variant to be different from the initial one"
 
 
+@pytest.mark.medium
 @then("the adjusted template should incorporate successful patterns")
 def adjusted_template_incorporates_successful_patterns(context):
     """Verify that the adjusted template incorporates successful patterns."""
@@ -590,6 +610,7 @@ def adjusted_template_incorporates_successful_patterns(context):
     ), f"Expected success_count > 0, but got {best_variant.success_count}"
 
 
+@pytest.mark.medium
 @then("the adjusted template should avoid unsuccessful patterns")
 def adjusted_template_avoids_unsuccessful_patterns(context):
     """Verify that the adjusted template avoids unsuccessful patterns."""
@@ -607,6 +628,7 @@ def adjusted_template_avoids_unsuccessful_patterns(context):
 # Scenario: Track prompt variant performance
 
 
+@pytest.mark.medium
 @given("multiple variants of a prompt template exist:")
 def multiple_variants_exist(context, table=None):
     """Create multiple variants of a prompt template."""
@@ -663,6 +685,7 @@ def multiple_variants_exist(context, table=None):
     assert len(context.auto_tuner.prompt_variants["code_review"]) >= len(table.rows)
 
 
+@pytest.mark.medium
 @when("each variant is used in similar contexts")
 def variants_used_in_similar_contexts(context):
     """Use each variant in similar contexts and record performance."""
@@ -694,6 +717,7 @@ def variants_used_in_similar_contexts(context):
     ]
 
 
+@pytest.mark.medium
 @then("the system should track performance metrics for each variant")
 def system_tracks_performance_metrics(context):
     """Verify that the system tracks performance metrics for each variant."""
@@ -713,6 +737,7 @@ def system_tracks_performance_metrics(context):
         ), f"Expected performance_score >= 0, but got {variant.performance_score}"
 
 
+@pytest.mark.medium
 @then("the system should identify the best-performing variant")
 def system_identifies_best_variant(context):
     """Verify that the system identifies the best-performing variant."""
@@ -735,6 +760,7 @@ def system_identifies_best_variant(context):
     ), "Expected the detailed variant to be the best performer"
 
 
+@pytest.mark.medium
 @then("the best-performing variant should be recommended for future use")
 def best_variant_recommended(context):
     """Verify that the best-performing variant is recommended for future use."""
@@ -757,6 +783,7 @@ def best_variant_recommended(context):
 # Scenario: Generate new prompt variants through mutation
 
 
+@pytest.mark.medium
 @given('a prompt template named "code_review" exists with performance data')
 def template_exists_with_performance_data(context):
     """Ensure a prompt template exists with performance data."""
@@ -783,6 +810,7 @@ def template_exists_with_performance_data(context):
     assert initial_variant.performance_score > 0
 
 
+@pytest.mark.medium
 @when("I request the auto-tuner to generate new variants")
 def request_generate_new_variants(context):
     """Request the auto-tuner to generate new variants."""
@@ -809,6 +837,7 @@ def request_generate_new_variants(context):
     ]
 
 
+@pytest.mark.medium
 @then("the system should create mutated versions of the template")
 def system_creates_mutated_versions(context):
     """Verify that the system creates mutated versions of the template."""
@@ -825,6 +854,7 @@ def system_creates_mutated_versions(context):
         ), f"Expected mutated variant to have different template, but got the same template"
 
 
+@pytest.mark.medium
 @then("each mutation should modify different aspects of the prompt")
 def mutations_modify_different_aspects(context):
     """Verify that each mutation modifies different aspects of the prompt."""
@@ -857,6 +887,7 @@ def mutations_modify_different_aspects(context):
     ), f"Expected at least 2 different types of mutations, but got {len(mutation_types)}: {mutation_types}"
 
 
+@pytest.mark.medium
 @then("the mutations should be based on historical performance data")
 def mutations_based_on_performance_data(context):
     """Verify that the mutations are based on historical performance data."""
@@ -877,6 +908,7 @@ def mutations_based_on_performance_data(context):
 # Scenario: Generate new prompt variants through recombination
 
 
+@pytest.mark.medium
 @given("multiple prompt templates exist with performance data")
 def multiple_templates_with_performance_data(context):
     """Ensure multiple prompt templates exist with performance data."""
@@ -914,6 +946,7 @@ def multiple_templates_with_performance_data(context):
             assert variant.performance_score > 0
 
 
+@pytest.mark.medium
 @when("I request the auto-tuner to generate recombined variants")
 def request_generate_recombined_variants(context):
     """Request the auto-tuner to generate recombined variants."""
@@ -956,6 +989,7 @@ def request_generate_recombined_variants(context):
     context.variants["recombined"] = recombined_variants
 
 
+@pytest.mark.medium
 @then("the system should create new templates by combining successful elements")
 def system_creates_recombined_templates(context):
     """Verify that the system creates new templates by combining successful elements."""
@@ -974,6 +1008,7 @@ def system_creates_recombined_templates(context):
         ), f"Expected recombined variant to have different template, but got an original template"
 
 
+@pytest.mark.medium
 @then("the recombined templates should preserve the core functionality")
 def recombined_templates_preserve_functionality(context):
     """Verify that the recombined templates preserve the core functionality."""
@@ -990,6 +1025,7 @@ def recombined_templates_preserve_functionality(context):
         ), f"Expected recombined variant to include either '{{instructions}}' or '{{bugs}}', but both were missing"
 
 
+@pytest.mark.medium
 @then("the recombined templates should be added to the available templates")
 def recombined_templates_added_to_available(context):
     """Verify that the recombined templates are added to the available templates."""
@@ -1011,6 +1047,7 @@ def recombined_templates_added_to_available(context):
 # Scenario: Automatic A/B testing of prompt variants
 
 
+@pytest.mark.medium
 @given("multiple variants of a prompt template exist")
 def multiple_variants_exist_for_ab_testing(context):
     """Ensure multiple variants of a prompt template exist for A/B testing."""
@@ -1040,6 +1077,7 @@ def multiple_variants_exist_for_ab_testing(context):
     ), f"Expected at least 4 variants, but got {len(context.auto_tuner.prompt_variants['code_review'])}"
 
 
+@pytest.mark.medium
 @when("I enable A/B testing for the template")
 def enable_ab_testing(context):
     """Enable A/B testing for the template."""
@@ -1054,6 +1092,7 @@ def enable_ab_testing(context):
     }
 
 
+@pytest.mark.medium
 @then("the system should automatically distribute usage across variants")
 def system_distributes_usage(context):
     """Verify that the system automatically distributes usage across variants."""
@@ -1070,6 +1109,7 @@ def system_distributes_usage(context):
         ), f"Expected variant {variant.variant_id} to be used, but usage count didn't increase"
 
 
+@pytest.mark.medium
 @then("the system should collect performance metrics for each variant")
 def system_collects_performance_metrics(context):
     """Verify that the system collects performance metrics for each variant."""
@@ -1110,6 +1150,7 @@ def system_collects_performance_metrics(context):
         ), f"Expected performance_score >= 0, but got {variant.performance_score}"
 
 
+@pytest.mark.medium
 @then("after sufficient data is collected, the system should select the best variant")
 def system_selects_best_variant(context):
     """Verify that the system selects the best variant after collecting data."""
@@ -1146,6 +1187,7 @@ def system_selects_best_variant(context):
     ), f"Expected best variant {best_variant.variant_id} to be selected, but got {selected_variant.variant_id}"
 
 
+@pytest.mark.medium
 @then("the best variant should become the new default")
 def best_variant_becomes_default(context):
     """Verify that the best variant becomes the new default."""
@@ -1169,6 +1211,7 @@ def best_variant_becomes_default(context):
 # Scenario: Continuous prompt optimization cycle
 
 
+@pytest.mark.medium
 @given("the prompt auto-tuner is enabled for a template")
 def auto_tuner_enabled_for_template(context):
     """Ensure the prompt auto-tuner is enabled for a template."""
@@ -1190,6 +1233,7 @@ def auto_tuner_enabled_for_template(context):
     context.initial_variants = list(context.auto_tuner.prompt_variants["code_review"])
 
 
+@pytest.mark.medium
 @when("the template is used in production for a period of time")
 def template_used_in_production(context):
     """Simulate using the template in production for a period of time."""
@@ -1244,6 +1288,7 @@ def template_used_in_production(context):
     }
 
 
+@pytest.mark.medium
 @then("the system should continuously generate and test new variants")
 def system_generates_and_tests_variants(context):
     """Verify that the system continuously generates and tests new variants."""
@@ -1269,6 +1314,7 @@ def system_generates_and_tests_variants(context):
         ), f"Expected new variant {variant.variant_id} to be tested, but usage_count={variant.usage_count}"
 
 
+@pytest.mark.medium
 @then("the system should progressively improve template performance")
 def system_improves_performance(context):
     """Verify that the system progressively improves template performance."""
@@ -1347,6 +1393,7 @@ def system_improves_performance(context):
     context.variants["optimization_best"] = best_variant
 
 
+@pytest.mark.medium
 @then("the system should maintain a history of all optimization steps")
 def system_maintains_optimization_history(context):
     """Verify that the system maintains a history of all optimization steps."""

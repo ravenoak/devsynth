@@ -12,6 +12,7 @@ from tests.behavior.steps.cross_interface_consistency_extended_steps import cros
 feature_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'features',
+    'general',
     'cross_interface_consistency_extended.feature'
 )
 scenarios(feature_path)

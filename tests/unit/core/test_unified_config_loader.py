@@ -1,3 +1,5 @@
+import pytest
+
 from devsynth.config.unified_loader import UnifiedConfigLoader
 import toml
 
@@ -13,6 +15,7 @@ ReqID: N/A"""
     assert not unified.use_pyproject
 
 
+@pytest.mark.medium
 def test_unified_loader_detects_pyproject_succeeds(tmp_path):
     """use_pyproject is True when pyproject.toml exists.
 
@@ -23,6 +26,7 @@ ReqID: N/A"""
     assert unified.use_pyproject
 
 
+@pytest.mark.medium
 def test_unified_loader_prefers_pyproject_succeeds(tmp_path):
     """pyproject.toml is used when both config files exist.
 
@@ -37,6 +41,7 @@ ReqID: N/A"""
     assert unified.config.language == 'python'
 
 
+@pytest.mark.medium
 def test_unified_config_save_updates_pyproject_succeeds(tmp_path):
     """Saving config with use_pyproject=True updates the TOML table.
 
@@ -50,6 +55,7 @@ ReqID: N/A"""
     assert data['tool']['devsynth']['language'] == 'python'
 
 
+@pytest.mark.medium
 def test_unified_config_exists_for_both_formats_returns_expected_result(
     tmp_path):
     """exists() returns True for YAML and TOML configurations.

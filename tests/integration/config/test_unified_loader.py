@@ -1,3 +1,5 @@
+import pytest
+
 import os
 from pathlib import Path
 from devsynth.config.unified_loader import UnifiedConfigLoader
@@ -27,6 +29,7 @@ ReqID: N/A"""
     assert unified.config.version == ConfigModel.version
 
 
+@pytest.mark.medium
 def test_env_var_override_with_custom_path_succeeds(monkeypatch, tmp_path):
     """Test that env var override with custom path succeeds.
 

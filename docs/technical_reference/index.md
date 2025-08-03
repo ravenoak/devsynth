@@ -8,8 +8,15 @@ tags:
 - api
 - documentation
 title: DevSynth Technical Reference
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; DevSynth Technical Reference
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; DevSynth Technical Reference
+</div>
 
 # DevSynth Technical Reference
 

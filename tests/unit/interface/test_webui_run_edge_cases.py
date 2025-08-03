@@ -37,13 +37,23 @@ def stub_streamlit(monkeypatch):
     return st
 
 
-def test_run_method_with_invalid_navigation_is_valid(stub_streamlit):
+@pytest.fixture
+def clean_state():
+    # Set up clean state
+    yield
+    # Clean up state
+
+
+@pytest.mark.medium
+def test_run_method_with_invalid_navigation_option(stub_streamlit, clean_state):
     """Test the run method with an invalid navigation option.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
-    import devsynth.interface.webui as webui
+    from devsynth.interface import webui
+    # Reload the module to ensure clean state
     importlib.reload(webui)
+
     from devsynth.interface.webui import WebUI
     webui_instance = WebUI()
     webui_instance.onboarding_page = MagicMock()
@@ -55,14 +65,14 @@ ReqID: N/A"""
     webui_instance.requirements_page.assert_not_called()
     webui_instance.display_result.assert_called_once()
     assert 'ERROR' in webui_instance.display_result.call_args[0][0]
-    assert 'Invalid navigation option' in webui_instance.display_result.call_args[
-        0][0]
+    assert 'Invalid navigation option' in webui_instance.display_result.call_args[0][0]
 
 
+@pytest.mark.medium
 def test_run_method_with_page_exception_raises_error(stub_streamlit):
     """Test the run method when a page method raises an exception.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -79,11 +89,11 @@ ReqID: N/A"""
     assert 'Test page error' in webui_instance.display_result.call_args[0][0]
 
 
-def test_run_method_with_streamlit_exception_raises_error(stub_streamlit,
-    monkeypatch):
+@pytest.mark.medium
+def test_run_method_with_streamlit_exception_raises_error(stub_streamlit, monkeypatch):
     """Test the run method when streamlit raises an exception.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -95,14 +105,14 @@ ReqID: N/A"""
     webui_instance.run()
     webui_instance.display_result.assert_called_once()
     assert 'ERROR' in webui_instance.display_result.call_args[0][0]
-    assert 'Test streamlit error' in webui_instance.display_result.call_args[0
-        ][0]
+    assert 'Test streamlit error' in webui_instance.display_result.call_args[0][0]
 
 
+@pytest.mark.medium
 def test_run_method_with_sidebar_exception_raises_error(stub_streamlit):
     """Test the run method when sidebar raises an exception.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -114,14 +124,14 @@ ReqID: N/A"""
     webui_instance.run()
     webui_instance.display_result.assert_called_once()
     assert 'ERROR' in webui_instance.display_result.call_args[0][0]
-    assert 'Test sidebar error' in webui_instance.display_result.call_args[0][0
-        ]
+    assert 'Test sidebar error' in webui_instance.display_result.call_args[0][0]
 
 
+@pytest.mark.medium
 def test_run_method_with_multiple_exceptions_raises_error(stub_streamlit):
     """Test the run method when multiple exceptions occur.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -137,10 +147,11 @@ ReqID: N/A"""
     assert 'Test sidebar error' in str(excinfo.value)
 
 
+@pytest.mark.medium
 def test_standalone_run_function_succeeds(stub_streamlit, monkeypatch):
     """Test the standalone run function.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -153,10 +164,11 @@ ReqID: N/A"""
     mock_webui_instance.run.assert_called_once()
 
 
+@pytest.mark.medium
 def test_run_webui_alias_succeeds(stub_streamlit, monkeypatch):
     """Test the run_webui alias function.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
     import devsynth.interface.webui as webui
     importlib.reload(webui)
@@ -169,12 +181,13 @@ ReqID: N/A"""
     mock_webui_instance.run.assert_called_once()
 
 
+@pytest.mark.medium
 def test_main_block_succeeds(stub_streamlit, monkeypatch):
     """Test the __main__ block.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     import importlib
-    run_mock = MagicMock()
+    run_mock = MagicMock(spec=object)
     module = ModuleType('devsynth.interface.webui')
     module.run = run_mock
     module.__name__ = '__main__'

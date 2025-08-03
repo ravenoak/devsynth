@@ -4,7 +4,6 @@ import pytest
 from unittest.mock import MagicMock, patch
 core_stub = types.ModuleType('devsynth.core')
 
-
 class CoreValues:
 
     @classmethod
@@ -14,17 +13,13 @@ class CoreValues:
     def validate_report(self, report):
         return []
 
-
 def check_report_for_value_conflicts(report, core_values=None):
     return []
-
-
 core_stub.CoreValues = CoreValues
 core_stub.check_report_for_value_conflicts = check_report_for_value_conflicts
 sys.modules['devsynth.core'] = core_stub
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.methodology.base import Phase
-
 
 @pytest.fixture
 def coordinator():
@@ -37,7 +32,7 @@ def coordinator():
     doc = MagicMock()
     return EDRRCoordinator(mem, wsde, code, ast, prompt, doc)
 
-
+@pytest.mark.medium
 def test_progress_to_phase_runs_succeeds(coordinator):
     """Test that progress to phase runs succeeds.
 
@@ -45,14 +40,13 @@ ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
     coordinator._historical_data = []
-    with patch.object(coordinator, '_execute_expand_phase', return_value={
-        'done': True}) as ex:
+    with patch.object(coordinator, '_execute_expand_phase', return_value={'done': True}) as ex:
         coordinator.progress_to_phase(Phase.EXPAND)
     ex.assert_called_once_with({})
     assert coordinator.results['EXPAND'] == {'done': True}
     assert coordinator.current_phase == Phase.EXPAND
 
-
+@pytest.mark.medium
 def test_execute_expand_phase_succeeds(coordinator):
     """Test that execute expand phase succeeds.
 
@@ -68,15 +62,14 @@ ReqID: N/A"""
     assert res['code_elements'] == {'f': 1}
     coordinator.memory_manager.store_with_edrr_phase.assert_called()
 
-
+@pytest.mark.medium
 def test_execute_differentiate_phase_succeeds(coordinator):
     """Test that execute differentiate phase succeeds.
 
 ReqID: N/A"""
     coordinator.task = {'description': 'demo'}
     coordinator.cycle_id = 'cid'
-    coordinator.memory_manager.retrieve_with_edrr_phase.return_value = {'ideas'
-        : [1, 2]}
+    coordinator.memory_manager.retrieve_with_edrr_phase.return_value = {'ideas': [1, 2]}
     coordinator.wsde_team.create_comparison_matrix.return_value = 'cm'
     coordinator.wsde_team.evaluate_options.return_value = 'eo'
     coordinator.wsde_team.analyze_trade_offs.return_value = 'to'
@@ -88,7 +81,7 @@ ReqID: N/A"""
     assert res['decision_criteria'] == 'dc'
     coordinator.memory_manager.store_with_edrr_phase.assert_called()
 
-
+@pytest.mark.medium
 def test_execute_refine_phase_succeeds(coordinator):
     """Test that execute refine phase succeeds.
 
@@ -114,7 +107,7 @@ ReqID: N/A"""
     assert res['quality_checks'] == {'qa': []}
     coordinator.memory_manager.store_with_edrr_phase.assert_called()
 
-
+@pytest.mark.medium
 def test_execute_retrospect_phase_succeeds(coordinator):
     """Test that execute retrospect phase succeeds.
 

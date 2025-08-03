@@ -10,8 +10,15 @@ tags:
 - reference
 
 title: DevSynth CLI Command Reference
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Reference
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Reference
+</div>
 
 # DevSynth CLI Command Reference
 
@@ -817,4 +824,4 @@ paths:
 This reference covers all the DevSynth CLI commands and their options. For more detailed information about specific features or workflows, refer to the DevSynth documentation or use the `--help` option with any command.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

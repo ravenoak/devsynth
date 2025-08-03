@@ -10,8 +10,15 @@ tags:
 - uxbridge
 
 title: Interactive Requirements Collection Pseudocode
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Interactive Requirements Collection Pseudocode
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Interactive Requirements Collection Pseudocode
+</div>
 
 # Interactive Requirements Collection Pseudocode
 

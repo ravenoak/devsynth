@@ -1,8 +1,9 @@
-"""Tests for WorkflowManager. # ReqID: FR-09"""
+import pytest
+'Tests for WorkflowManager. # ReqID: FR-09'
 from unittest.mock import MagicMock
 from devsynth.application.orchestration.workflow import WorkflowManager
 
-
+@pytest.mark.medium
 def test_get_workflow_status_delegates_to_port_succeeds():
     """Workflow status and progress tracking.
 

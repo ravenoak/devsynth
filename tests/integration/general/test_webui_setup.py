@@ -116,6 +116,7 @@ class DummyForm:
         return self.submitted
 
 
+@pytest.mark.medium
 def test_guided_setup_button_invokes_wizard_succeeds(monkeypatch):
     """Test that guided setup button invokes wizard succeeds.
 
@@ -132,6 +133,7 @@ def test_guided_setup_button_invokes_wizard_succeeds(monkeypatch):
     assert mock_run.called
 
 
+@pytest.mark.medium
 def test_offline_toggle_saves_config_succeeds(monkeypatch, tmp_path):
     """Test that offline toggle saves config succeeds.
 

@@ -77,6 +77,7 @@ def context():
 
 
 # Background steps
+@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_initialized():
     """Initialize the DevSynth system."""
@@ -84,6 +85,7 @@ def devsynth_initialized():
     pass
 
 
+@pytest.mark.medium
 @given("the project state analyzer is configured")
 def project_state_analyzer_configured(context, test_project_dir):
     """Configure the project state analyzer."""
@@ -91,6 +93,7 @@ def project_state_analyzer_configured(context, test_project_dir):
 
 
 # Scenario: Analyze project structure
+@pytest.mark.medium
 @when("I analyze the project structure")
 def analyze_project_structure(context):
     """Analyze the project structure."""
@@ -98,6 +101,7 @@ def analyze_project_structure(context):
     context.result = context.analyzer.files
 
 
+@pytest.mark.medium
 @then("the analyzer should identify all files in the project")
 def verify_files_identified(context, test_project_dir):
     """Verify that all files in the project are identified."""
@@ -110,6 +114,7 @@ def verify_files_identified(context, test_project_dir):
     assert len(context.result) == file_count, f"Expected {file_count} files, but found {len(context.result)}"
 
 
+@pytest.mark.medium
 @then("the analyzer should categorize files by type")
 def verify_files_categorized(context):
     """Verify that files are categorized by type."""
@@ -123,6 +128,7 @@ def verify_files_categorized(context):
     assert len(categories) > 0, "No file categories found"
 
 
+@pytest.mark.medium
 @then("the analyzer should detect the programming languages used")
 def verify_languages_detected(context):
     """Verify that programming languages are detected."""
@@ -133,6 +139,7 @@ def verify_languages_detected(context):
     assert context.analyzer.languages["python"]["percentage"] > 0, "Python percentage is zero"
 
 
+@pytest.mark.medium
 @then("the analyzer should provide metrics about the project structure")
 def verify_metrics_provided(context):
     """Verify that metrics about the project structure are provided."""
@@ -147,6 +154,7 @@ def verify_metrics_provided(context):
 
 
 # Scenario: Infer project architecture
+@pytest.mark.medium
 @when("I analyze the project architecture")
 def analyze_project_architecture(context):
     """Analyze the project architecture."""
@@ -155,6 +163,7 @@ def analyze_project_architecture(context):
     context.result = context.analyzer.architecture
 
 
+@pytest.mark.medium
 @then("the analyzer should detect the architecture pattern used")
 def verify_architecture_detected(context):
     """Verify that the architecture pattern is detected."""
@@ -162,6 +171,7 @@ def verify_architecture_detected(context):
     assert len(context.result) > 0, "No architecture patterns detected"
 
 
+@pytest.mark.medium
 @then("the analyzer should identify components based on the architecture")
 def verify_components_identified(context):
     """Verify that components are identified based on the architecture."""
@@ -175,6 +185,7 @@ def verify_components_identified(context):
     assert len(components) > 0, "No components identified"
 
 
+@pytest.mark.medium
 @then("the analyzer should provide confidence scores for detected architectures")
 def verify_confidence_scores(context):
     """Verify that confidence scores are provided for detected architectures."""
@@ -184,6 +195,7 @@ def verify_confidence_scores(context):
         assert 0 <= arch_info["confidence"] <= 1, "Confidence score not between 0 and 1"
 
 
+@pytest.mark.medium
 @then("the analyzer should identify architectural layers")
 def verify_layers_identified(context):
     """Verify that architectural layers are identified."""
@@ -198,6 +210,7 @@ def verify_layers_identified(context):
 
 
 # Scenario: Analyze MVC architecture
+@pytest.mark.medium
 @given("a project with Model-View-Controller architecture")
 def project_with_mvc_architecture(context, test_project_dir):
     """Set up a project with Model-View-Controller architecture."""
@@ -205,6 +218,7 @@ def project_with_mvc_architecture(context, test_project_dir):
     context.analyzer = ProjectStateAnalyzer(str(test_project_dir))
 
 
+@pytest.mark.medium
 @then("the analyzer should detect MVC architecture with high confidence")
 def verify_mvc_detected(context):
     """Verify that MVC architecture is detected with high confidence."""
@@ -213,6 +227,7 @@ def verify_mvc_detected(context):
     assert context.result["mvc"]["confidence"] > 0.5, "MVC confidence is not high"
 
 
+@pytest.mark.medium
 @then("the analyzer should identify models, views, and controllers")
 def verify_mvc_components(context):
     """Verify that models, views, and controllers are identified."""
@@ -225,6 +240,7 @@ def verify_mvc_components(context):
     assert "controllers" in components, "Controllers not identified"
 
 
+@pytest.mark.medium
 @then("the analyzer should analyze dependencies between MVC components")
 def verify_mvc_dependencies(context):
     """Verify that dependencies between MVC components are analyzed."""
@@ -235,6 +251,7 @@ def verify_mvc_dependencies(context):
 
 
 # Scenario: Analyze hexagonal architecture
+@pytest.mark.medium
 @given("a project with hexagonal architecture")
 def project_with_hexagonal_architecture(context, test_project_dir):
     """Set up a project with hexagonal architecture."""
@@ -246,6 +263,7 @@ def project_with_hexagonal_architecture(context, test_project_dir):
 
 
 # Scenario: Integrate with EDRR workflow
+@pytest.mark.medium
 @given("the EDRR workflow is configured")
 def edrr_workflow_configured(context):
     """Configure the EDRR workflow."""
@@ -253,6 +271,7 @@ def edrr_workflow_configured(context):
     context.edrr_coordinator = MagicMock(spec=EnhancedEDRRCoordinator)
 
 
+@pytest.mark.medium
 @when("I initiate a project analysis task")
 def initiate_project_analysis_task(context):
     """Initiate a project analysis task."""
@@ -260,6 +279,7 @@ def initiate_project_analysis_task(context):
     context.result = {"task": "project_analysis", "status": "completed"}
 
 
+@pytest.mark.medium
 @then("the system should use project state analysis in the Analysis phase")
 def verify_analysis_phase(context):
     """Verify that project state analysis is used in the Analysis phase."""
@@ -268,6 +288,7 @@ def verify_analysis_phase(context):
 
 
 # Scenario: Integrate with WSDE team
+@pytest.mark.medium
 @given("the WSDE team is configured")
 def wsde_team_configured(context):
     """Configure the WSDE team."""
@@ -275,6 +296,7 @@ def wsde_team_configured(context):
     context.wsde_team = MagicMock(spec=WSDETeam)
 
 
+@pytest.mark.medium
 @when("I assign a project analysis task to the WSDE team")
 def assign_project_analysis_task(context):
     """Assign a project analysis task to the WSDE team."""
@@ -282,6 +304,7 @@ def assign_project_analysis_task(context):
     context.result = {"task": "project_analysis", "assigned_to": "wsde_team", "status": "completed"}
 
 
+@pytest.mark.medium
 @then("the team should collaborate to analyze different aspects of the project")
 def verify_team_collaboration(context):
     """Verify that the team collaborates to analyze different aspects of the project."""

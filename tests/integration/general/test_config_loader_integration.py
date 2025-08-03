@@ -1,3 +1,5 @@
+import pytest
+
 import os
 from devsynth.config.loader import load_config
 
@@ -15,6 +17,7 @@ ReqID: N/A"""
     assert cfg.language == 'python'
 
 
+@pytest.mark.medium
 def test_load_config_from_pyproject_succeeds(tmp_path):
     """Test that load config from pyproject succeeds.
 
@@ -27,6 +30,7 @@ ReqID: N/A"""
     assert cfg.language == 'python'
 
 
+@pytest.mark.medium
 def test_pyproject_precedence_over_yaml_succeeds(tmp_path):
     """Test that pyproject precedence over yaml succeeds.
 

@@ -8,8 +8,15 @@ tags:
 - documentation
 - usage
 title: DevSynth User Guides
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth User Guides
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth User Guides
+</div>
 
 # DevSynth User Guides
 
@@ -50,4 +57,4 @@ If you're new to DevSynth, we recommend starting with the [Getting Started](../g
 - [CLI ↔ WebUI Mapping](../architecture/cli_webui_mapping.md) - Equivalent WebUI actions for CLI commands
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

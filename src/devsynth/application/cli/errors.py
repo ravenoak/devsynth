@@ -1,284 +1,265 @@
-"""Improved error handling for the DevSynth CLI.
+"""Enhanced error handling for the DevSynth CLI.
 
-This module provides improved error handling for the DevSynth CLI, including
-detailed error messages with suggestions and documentation links.
+This module provides enhanced error handling for the DevSynth CLI, with more
+detailed error messages, visual distinction, and specific solutions.
 """
 
-from typing import Dict, Optional, List, Any
+from typing import Union, Dict, Any, List, Optional
 from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.table import Table
+from rich.traceback import Traceback
 
-from devsynth.exceptions import DevSynthError, CommandError, ValidationError, ConfigurationError
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import get_logger
 
+# Common error patterns and their solutions
+ERROR_SOLUTIONS = {
+    "file not found": "Make sure the file exists and the path is correct. Use absolute paths if needed.",
+    "permission denied": "Check file permissions. You may need to run with elevated privileges or change file permissions.",
+    "invalid format": "Verify the file format matches what the command expects (e.g., YAML, JSON, Markdown).",
+    "invalid parameter": "Check the command parameters. Use --help to see valid options.",
+    "connection error": "Check your internet connection. If using a proxy, verify your proxy settings.",
+    "timeout": "The operation timed out. Try again or increase the timeout setting in your configuration.",
+    "api key": "Ensure your API key is correctly set in the environment or configuration file.",
+    "out of memory": "The operation requires more memory. Try closing other applications or increasing available memory.",
+    "configuration": "There may be an issue with your configuration. Run 'devsynth doctor' to diagnose configuration problems.",
+    "import error": "A required module could not be imported. Make sure all dependencies are installed.",
+    "syntax error": "There is a syntax error in your code or configuration file. Check for typos or missing characters.",
+    "value error": "An invalid value was provided. Check the expected type and format of the value.",
+    "type error": "An object of the wrong type was used. Check the expected type of the parameter.",
+    "attribute error": "An attribute or method does not exist on the object. Check for typos or missing imports.",
+    "key error": "A dictionary key was not found. Check that the key exists in the dictionary.",
+    "index error": "An index is out of range. Check that the index is within the bounds of the list or array.",
+    "name error": "A name is not defined. Check for typos or missing imports.",
+    "assertion error": "An assertion failed. Check the condition that failed and why it might be false.",
+    "runtime error": "An error occurred during execution. Check the error message for more details.",
+    "io error": "An I/O error occurred. Check file permissions and disk space.",
+    "os error": "An operating system error occurred. Check file permissions and system resources.",
+}
 
 # Documentation links for different error types
-DOCUMENTATION_LINKS = {
-    "CommandError": "https://devsynth.ai/docs/cli/troubleshooting#command-errors",
-    "ValidationError": "https://devsynth.ai/docs/cli/troubleshooting#validation-errors",
-    "ConfigurationError": "https://devsynth.ai/docs/cli/troubleshooting#configuration-errors",
-    "ProviderError": "https://devsynth.ai/docs/providers/troubleshooting",
-    "LLMError": "https://devsynth.ai/docs/providers/llm/troubleshooting",
-    "MemoryError": "https://devsynth.ai/docs/memory/troubleshooting",
-    "default": "https://devsynth.ai/docs/troubleshooting",
+DOC_LINKS = {
+    "file": "[link=https://devsynth.ai/docs/file-handling]File Handling Documentation[/link]",
+    "parameter": "[link=https://devsynth.ai/docs/command-parameters]Command Parameters Documentation[/link]",
+    "configuration": "[link=https://devsynth.ai/docs/configuration]Configuration Documentation[/link]",
+    "api": "[link=https://devsynth.ai/docs/api-integration]API Integration Documentation[/link]",
+    "network": "[link=https://devsynth.ai/docs/network-troubleshooting]Network Troubleshooting[/link]",
+    "memory": "[link=https://devsynth.ai/docs/performance]Performance Optimization[/link]",
+    "import": "[link=https://devsynth.ai/docs/dependencies]Dependency Management[/link]",
+    "syntax": "[link=https://devsynth.ai/docs/syntax]Syntax Reference[/link]",
+    "value": "[link=https://devsynth.ai/docs/validation]Input Validation[/link]",
+    "type": "[link=https://devsynth.ai/docs/types]Type System[/link]",
+    "attribute": "[link=https://devsynth.ai/docs/objects]Object Model[/link]",
+    "key": "[link=https://devsynth.ai/docs/dictionaries]Dictionary Operations[/link]",
+    "index": "[link=https://devsynth.ai/docs/lists]List Operations[/link]",
+    "name": "[link=https://devsynth.ai/docs/namespaces]Namespaces and Scopes[/link]",
+    "assertion": "[link=https://devsynth.ai/docs/assertions]Assertions and Contracts[/link]",
+    "runtime": "[link=https://devsynth.ai/docs/runtime]Runtime Environment[/link]",
+    "io": "[link=https://devsynth.ai/docs/io]I/O Operations[/link]",
+    "os": "[link=https://devsynth.ai/docs/os]Operating System Integration[/link]",
 }
 
-# Suggestions for different error types
-ERROR_SUGGESTIONS = {
-    "CommandError": [
-        "Check the command syntax and arguments",
-        "Run the command with --help to see usage examples",
-        "Ensure you're in the correct directory",
+# Recovery suggestions for different error types
+RECOVERY_SUGGESTIONS = {
+    "file not found": [
+        "Check if the file exists in the current directory",
+        "Use an absolute path to the file",
+        "Create the file if it doesn't exist",
     ],
-    "ValidationError": [
-        "Check the input values against the expected format",
-        "Ensure all required fields are provided",
-        "Verify that file paths exist and are accessible",
+    "permission denied": [
+        "Change the file permissions with chmod",
+        "Run the command with elevated privileges",
+        "Check if the file is locked by another process",
     ],
-    "ConfigurationError": [
-        "Check your configuration file for syntax errors",
-        "Ensure all required configuration options are set",
-        "Run 'devsynth doctor' to diagnose configuration issues",
+    "connection error": [
+        "Check your internet connection",
+        "Verify your proxy settings",
+        "Try again later if the service might be down",
+        "Check if the API endpoint URL is correct",
     ],
-    "ProviderError": [
-        "Check your provider API keys and credentials",
-        "Verify your internet connection",
-        "Ensure the provider service is available",
+    "timeout": [
+        "Increase the timeout setting in your configuration",
+        "Try again when the network is less congested",
+        "Break the operation into smaller chunks",
     ],
-    "LLMError": [
-        "Check your LLM provider API key",
-        "Verify your internet connection",
-        "Ensure you have sufficient quota with your LLM provider",
-        "Try reducing the complexity of your prompt",
+    "api key": [
+        "Check if your API key is correctly set in the environment",
+        "Verify that your API key is valid and not expired",
+        "Generate a new API key if necessary",
     ],
-    "MemoryError": [
-        "Check your memory store configuration",
-        "Ensure required dependencies are installed",
-        "Verify file permissions for file-based memory stores",
+    "out of memory": [
+        "Close other applications to free up memory",
+        "Increase the memory limit in your configuration",
+        "Break the operation into smaller chunks",
     ],
-    "default": [
-        "Check the command syntax and arguments",
-        "Ensure you're in the correct directory",
-        "Run 'devsynth doctor' to diagnose common issues",
+    "configuration": [
+        "Run 'devsynth doctor' to diagnose configuration problems",
+        "Check your configuration file for errors",
+        "Reset to default configuration with 'devsynth config --reset'",
     ],
 }
 
-# Common error patterns and their fixes
-COMMON_ERRORS = {
-    "No such file or directory": "The specified file or directory does not exist. Check the path and try again.",
-    "Permission denied": "You don't have permission to access the specified file or directory. Check file permissions or run with elevated privileges.",
-    "Connection refused": "Could not connect to the specified service. Ensure the service is running and accessible.",
-    "API key": "There may be an issue with your API key. Check that it's correctly set in your configuration.",
-    "Timeout": "The operation timed out. Check your internet connection or try again later.",
-    "Invalid JSON": "The JSON data is invalid. Check the syntax and structure of your JSON file.",
-    "YAML parsing error": "The YAML data is invalid. Check the syntax and structure of your YAML file.",
-    "ImportError": "A required module could not be imported. Ensure all dependencies are installed.",
-    "ModuleNotFoundError": "A required module could not be found. Ensure all dependencies are installed.",
-}
+def handle_error_enhanced(
+    bridge: UXBridge, 
+    error: Union[Exception, Dict[str, Any], str],
+    console: Optional[Console] = None,
+    show_traceback: bool = False,
+) -> None:
+    """Handle errors with enhanced visual feedback and specific solutions.
 
-
-def format_error_message(error: Exception) -> str:
-    """Format an error message with detailed information.
-    
     Args:
-        error: The exception to format
-        
-    Returns:
-        A formatted error message with detailed information
+        bridge: The UX bridge to use for displaying messages
+        error: The error to handle, can be an Exception, a result dict, or a string
+        console: Optional Rich console for enhanced output
+        show_traceback: Whether to show the full traceback
     """
-    # Get the error type and message
-    error_type = error.__class__.__name__
-    error_message = str(error)
+    logger = get_logger("cli_errors")
     
-    # Get suggestions for this error type
-    suggestions = ERROR_SUGGESTIONS.get(error_type, ERROR_SUGGESTIONS["default"])
+    # Create a console if not provided
+    if console is None:
+        console = Console()
     
-    # Get documentation link for this error type
-    doc_link = DOCUMENTATION_LINKS.get(error_type, DOCUMENTATION_LINKS["default"])
-    
-    # Check for common error patterns
-    additional_info = None
-    for pattern, fix in COMMON_ERRORS.items():
-        if pattern.lower() in error_message.lower():
-            additional_info = fix
-            break
-    
-    # Format the error message
-    formatted_message = f"[bold red]Error ({error_type}):[/bold red] {error_message}\n\n"
-    
-    if additional_info:
-        formatted_message += f"[yellow]What happened:[/yellow] {additional_info}\n\n"
-    
-    formatted_message += "[yellow]Suggestions:[/yellow]\n"
-    for suggestion in suggestions:
-        formatted_message += f"- {suggestion}\n"
-    
-    formatted_message += f"\n[blue]Documentation:[/blue] {doc_link}"
-    
-    # If it's a DevSynthError, add details
-    if isinstance(error, DevSynthError) and error.details:
-        formatted_message += "\n\n[yellow]Details:[/yellow]"
-        for key, value in error.details.items():
-            formatted_message += f"\n- {key}: {value}"
-    
-    return formatted_message
+    if isinstance(error, Exception):
+        # Log the error for debugging with full traceback
+        logger.error(f"Command error: {str(error)}", exc_info=True)
 
+        # Get the error message and type
+        error_msg = str(error)
+        error_type = type(error).__name__
 
-def display_error(error: Exception, console: Console) -> None:
-    """Display an error message with detailed information.
-    
-    Args:
-        error: The exception to display
-        console: The Rich console to use for output
-    """
-    formatted_message = format_error_message(error)
-    console.print(Panel(formatted_message, title="Error", border_style="red"))
-
-
-def create_error_table(errors: List[Dict[str, Any]], title: str = "Errors") -> Table:
-    """Create a table of errors with their details.
-    
-    Args:
-        errors: The list of errors
-        title: The title of the table
-        
-    Returns:
-        The table
-    """
-    table = Table(title=title)
-    table.add_column("Error Type", style="red")
-    table.add_column("Message")
-    table.add_column("Suggestions", style="yellow")
-    
-    for error in errors:
-        error_type = error.get("type", "Unknown")
-        message = error.get("message", "")
-        suggestions = error.get("suggestions", [])
-        
-        table.add_row(
-            error_type,
-            message,
-            "\n".join([f"- {suggestion}" for suggestion in suggestions])
+        # Create a panel with the error details
+        error_panel = Panel(
+            f"{error_msg}",
+            title=f"[bold red]{error_type} Error[/bold red]",
+            border_style="red",
+            expand=False,
         )
-        
-    return table
+        console.print(error_panel)
 
+        # Show traceback if requested
+        if show_traceback:
+            console.print(Traceback.from_exception(type(error), error, error.__traceback__))
 
-def handle_command_error(error: CommandError, console: Console) -> None:
-    """Handle a command error with detailed information.
-    
-    Args:
-        error: The command error to handle
-        console: The Rich console to use for output
-    """
-    # Get the command and arguments
-    command = error.details.get("command", "Unknown")
-    args = error.details.get("args", {})
-    
-    # Format the error message
-    formatted_message = f"[bold red]Command Error:[/bold red] {error.message}\n\n"
-    formatted_message += f"[yellow]Command:[/yellow] {command}\n"
-    
-    if args:
-        formatted_message += "[yellow]Arguments:[/yellow]\n"
-        for key, value in args.items():
-            formatted_message += f"- {key}: {value}\n"
-    
-    # Get suggestions for this error
-    suggestions = ERROR_SUGGESTIONS.get("CommandError", ERROR_SUGGESTIONS["default"])
-    formatted_message += "\n[yellow]Suggestions:[/yellow]\n"
-    for suggestion in suggestions:
-        formatted_message += f"- {suggestion}\n"
-    
-    # Add documentation link
-    doc_link = DOCUMENTATION_LINKS.get("CommandError", DOCUMENTATION_LINKS["default"])
-    formatted_message += f"\n[blue]Documentation:[/blue] {doc_link}"
-    
-    # Display the error message
-    console.print(Panel(formatted_message, title="Command Error", border_style="red"))
+        # Find relevant solutions based on error message
+        solutions = []
+        for pattern, solution in ERROR_SOLUTIONS.items():
+            if pattern.lower() in error_msg.lower() or pattern.lower() in error_type.lower():
+                solutions.append(solution)
 
+        # Find recovery suggestions based on error message
+        recovery_suggestions = []
+        for pattern, suggestions in RECOVERY_SUGGESTIONS.items():
+            if pattern.lower() in error_msg.lower() or pattern.lower() in error_type.lower():
+                recovery_suggestions.extend(suggestions)
 
-def handle_validation_error(error: ValidationError, console: Console) -> None:
-    """Handle a validation error with detailed information.
-    
-    Args:
-        error: The validation error to handle
-        console: The Rich console to use for output
-    """
-    # Get the field, value, and constraints
-    field = error.details.get("field", "Unknown")
-    value = error.details.get("value", "")
-    constraints = error.details.get("constraints", {})
-    
-    # Format the error message
-    formatted_message = f"[bold red]Validation Error:[/bold red] {error.message}\n\n"
-    formatted_message += f"[yellow]Field:[/yellow] {field}\n"
-    formatted_message += f"[yellow]Value:[/yellow] {value}\n"
-    
-    if constraints:
-        formatted_message += "[yellow]Constraints:[/yellow]\n"
-        for key, value in constraints.items():
-            formatted_message += f"- {key}: {value}\n"
-    
-    # Get suggestions for this error
-    suggestions = ERROR_SUGGESTIONS.get("ValidationError", ERROR_SUGGESTIONS["default"])
-    formatted_message += "\n[yellow]Suggestions:[/yellow]\n"
-    for suggestion in suggestions:
-        formatted_message += f"- {suggestion}\n"
-    
-    # Add documentation link
-    doc_link = DOCUMENTATION_LINKS.get("ValidationError", DOCUMENTATION_LINKS["default"])
-    formatted_message += f"\n[blue]Documentation:[/blue] {doc_link}"
-    
-    # Display the error message
-    console.print(Panel(formatted_message, title="Validation Error", border_style="red"))
+        # Find relevant documentation links based on error type and message
+        relevant_docs = []
+        for keyword, link in DOC_LINKS.items():
+            if keyword.lower() in error_msg.lower() or keyword.lower() in error_type.lower():
+                relevant_docs.append(link)
 
+        # Create a table with solutions and recovery suggestions
+        if solutions or recovery_suggestions:
+            help_table = Table(show_header=False, box=None, expand=False)
+            help_table.add_column("Category", style="bold yellow")
+            help_table.add_column("Content")
 
-def handle_configuration_error(error: ConfigurationError, console: Console) -> None:
-    """Handle a configuration error with detailed information.
-    
-    Args:
-        error: The configuration error to handle
-        console: The Rich console to use for output
-    """
-    # Get the config key and value
-    config_key = error.details.get("config_key", "Unknown")
-    config_value = error.details.get("config_value", "")
-    
-    # Format the error message
-    formatted_message = f"[bold red]Configuration Error:[/bold red] {error.message}\n\n"
-    formatted_message += f"[yellow]Configuration Key:[/yellow] {config_key}\n"
-    formatted_message += f"[yellow]Value:[/yellow] {config_value}\n"
-    
-    # Get suggestions for this error
-    suggestions = ERROR_SUGGESTIONS.get("ConfigurationError", ERROR_SUGGESTIONS["default"])
-    formatted_message += "\n[yellow]Suggestions:[/yellow]\n"
-    for suggestion in suggestions:
-        formatted_message += f"- {suggestion}\n"
-    
-    # Add documentation link
-    doc_link = DOCUMENTATION_LINKS.get("ConfigurationError", DOCUMENTATION_LINKS["default"])
-    formatted_message += f"\n[blue]Documentation:[/blue] {doc_link}"
-    
-    # Display the error message
-    console.print(Panel(formatted_message, title="Configuration Error", border_style="red"))
+            if solutions:
+                for solution in solutions:
+                    help_table.add_row("Solution:", solution)
 
+            if recovery_suggestions:
+                for i, suggestion in enumerate(recovery_suggestions):
+                    if i == 0:
+                        help_table.add_row("Recovery:", suggestion)
+                    else:
+                        help_table.add_row("", suggestion)
 
-def handle_error(error: Exception, console: Console) -> None:
-    """Handle an error with detailed information.
-    
-    This function dispatches to the appropriate handler based on the error type.
-    
-    Args:
-        error: The error to handle
-        console: The Rich console to use for output
-    """
-    if isinstance(error, CommandError):
-        handle_command_error(error, console)
-    elif isinstance(error, ValidationError):
-        handle_validation_error(error, console)
-    elif isinstance(error, ConfigurationError):
-        handle_configuration_error(error, console)
+            console.print(help_table)
+
+        # Display documentation links if found
+        if relevant_docs:
+            docs_panel = Panel(
+                "\n".join([f"• {doc}" for doc in relevant_docs]),
+                title="[bold cyan]Relevant Documentation[/bold cyan]",
+                border_style="cyan",
+                expand=False,
+            )
+            console.print(docs_panel)
+
+        # Always provide a general help tip
+        bridge.display_result(
+            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
+            highlight=False,
+        )
+
+    elif isinstance(error, dict):
+        # Handle result dict with error message
+        message = error.get("message", "Unknown error")
+        code = error.get("code", "")
+        details = error.get("details", "")
+
+        # Log the error
+        logger.error(f"Command error: {message} (Code: {code})")
+
+        # Create a panel with the error details
+        error_panel = Panel(
+            f"{message}\n\n{details}" if details else message,
+            title=f"[bold red]Error {code if code else ''}[/bold red]",
+            border_style="red",
+            expand=False,
+        )
+        console.print(error_panel)
+
+        # Find relevant solutions based on error message
+        solutions = []
+        for pattern, solution in ERROR_SOLUTIONS.items():
+            if pattern.lower() in message.lower():
+                solutions.append(solution)
+
+        # Find recovery suggestions based on error message
+        recovery_suggestions = []
+        for pattern, suggestions in RECOVERY_SUGGESTIONS.items():
+            if pattern.lower() in message.lower():
+                recovery_suggestions.extend(suggestions)
+
+        # Create a table with solutions and recovery suggestions
+        if solutions or recovery_suggestions:
+            help_table = Table(show_header=False, box=None, expand=False)
+            help_table.add_column("Category", style="bold yellow")
+            help_table.add_column("Content")
+
+            if solutions:
+                for solution in solutions:
+                    help_table.add_row("Solution:", solution)
+
+            if recovery_suggestions:
+                for i, suggestion in enumerate(recovery_suggestions):
+                    if i == 0:
+                        help_table.add_row("Recovery:", suggestion)
+                    else:
+                        help_table.add_row("", suggestion)
+
+            console.print(help_table)
+
     else:
-        display_error(error, console)
+        # Handle string error message
+        error_msg = str(error)
+        logger.error(f"Command error: {error_msg}")
+
+        # Create a panel with the error details
+        error_panel = Panel(
+            error_msg,
+            title="[bold red]Error[/bold red]",
+            border_style="red",
+            expand=False,
+        )
+        console.print(error_panel)
+
+    # Always provide a way to get help
+    bridge.display_result(
+        "[dim]For more help, visit https://devsynth.ai/docs or run 'devsynth doctor'.[/dim]",
+        highlight=False,
+    )

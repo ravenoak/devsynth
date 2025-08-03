@@ -8,8 +8,15 @@ tags:
   - summary
   - final
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
----
+last_reviewed: "2025-07-10"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Repository Harmonization Final Summary
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Repository Harmonization Final Summary
+</div>
 
 # DevSynth Repository Harmonization Final Summary
 

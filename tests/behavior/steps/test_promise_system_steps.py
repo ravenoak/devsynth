@@ -27,11 +27,13 @@ def context():
     return Context()
 
 # Background steps
+@pytest.mark.medium
 @given("the Promise System is initialized")
 def promise_system_initialized(context):
     """Initialize the Promise System."""
     assert context.promise_broker is not None, "Promise broker should be initialized"
 
+@pytest.mark.medium
 @given(parsers.parse('an agent "{agent_id}" is registered with the system'))
 def agent_registered(context, agent_id):
     """Register an agent with the system."""
@@ -39,6 +41,7 @@ def agent_registered(context, agent_id):
     assert agent_id in context.agents, f"Agent {agent_id} should be registered"
 
 # Scenario: Agent registers a capability
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" registers capability "{capability}" with constraints:'))
 def agent_registers_capability(context, agent_id, capability):
     """Register a capability for an agent with constraints."""
@@ -55,6 +58,7 @@ def agent_registers_capability(context, agent_id, capability):
     context.promise_broker.register_capability_with_type(agent_id, promise_type, constraints)
     context.capabilities[f"{agent_id}:{capability}"] = constraints
 
+@pytest.mark.medium
 @then(parsers.parse('agent "{agent_id}" should have capability "{capability}"'))
 def agent_has_capability(context, agent_id, capability):
     """Verify that an agent has a capability."""
@@ -62,6 +66,7 @@ def agent_has_capability(context, agent_id, capability):
     capability_names = [cap.name for cap in capabilities]
     assert capability in capability_names, f"Agent {agent_id} should have capability {capability}"
 
+@pytest.mark.medium
 @then("the capability should have the specified constraints")
 def capability_has_constraints(context):
     """Verify that the capability has the specified constraints."""
@@ -70,6 +75,7 @@ def capability_has_constraints(context):
     assert len(context.capabilities) > 0, "At least one capability should be registered"
 
 # Scenario: Agent creates a promise
+@pytest.mark.medium
 @given(parsers.parse('agent "{agent_id}" has capability "{capability}"'))
 def agent_has_capability_given(context, agent_id, capability):
     """Given that an agent has a capability."""
@@ -78,6 +84,7 @@ def agent_has_capability_given(context, agent_id, capability):
     context.promise_broker.register_capability_with_type(agent_id, promise_type, constraints)
     context.capabilities[f"{agent_id}:{capability}"] = constraints
 
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" creates a promise of type "{capability}" with parameters:'))
 def agent_creates_promise(context, agent_id, capability):
     """Create a promise of a specific type with parameters."""
@@ -100,17 +107,20 @@ def agent_creates_promise(context, agent_id, capability):
 
     context.promises[f"{agent_id}:{capability}"] = promise
 
+@pytest.mark.medium
 @then("a new promise should be created")
 def promise_created(context):
     """Verify that a new promise was created."""
     assert len(context.promises) > 0, "A promise should have been created"
 
+@pytest.mark.medium
 @then(parsers.parse('the promise should be in "{state}" state'))
 def promise_in_state(context, state):
     """Verify that the promise is in the specified state."""
     promise = list(context.promises.values())[-1]  # Get the last created promise
     assert promise.state.name == state, f"Promise should be in {state} state, but was in {promise.state.name}"
 
+@pytest.mark.medium
 @then("the promise should have the specified parameters")
 def promise_has_parameters(context):
     """Verify that the promise has the specified parameters."""
@@ -122,6 +132,7 @@ def promise_has_parameters(context):
     assert "description" in parameters, "Promise parameters should include description"
 
 # Scenario: Agent fulfills a promise
+@pytest.mark.medium
 @given(parsers.parse('agent "{agent_id}" has created a promise of type "{capability}"'))
 def agent_has_created_promise(context, agent_id, capability):
     """Given that an agent has created a promise of a specific type."""
@@ -145,6 +156,7 @@ def agent_has_created_promise(context, agent_id, capability):
     context.promises[f"{agent_id}:{capability}"] = promise
     agent.mixin._pending_requests[promise.id] = promise
 
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" fulfills the promise with result:'))
 def agent_fulfills_promise(context, agent_id):
     """Fulfill a promise with a result."""
@@ -160,6 +172,7 @@ def agent_fulfills_promise(context, agent_id):
     promise = list(context.promises.values())[-1]  # Get the last created promise
     agent.fulfill_promise(promise.id, result)
 
+@pytest.mark.medium
 @then("the promise should have the result data")
 def promise_has_result(context):
     """Verify that the promise has the result data."""
@@ -172,6 +185,7 @@ def promise_has_result(context):
     assert "success" in result, "Promise result should include success"
 
 # Scenario: Agent rejects a promise
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" rejects the promise with reason "{reason}"'))
 def agent_rejects_promise(context, agent_id, reason):
     """Reject a promise with a reason."""
@@ -179,6 +193,7 @@ def agent_rejects_promise(context, agent_id, reason):
     promise = list(context.promises.values())[-1]  # Get the last created promise
     agent.reject_promise(promise.id, reason)
 
+@pytest.mark.medium
 @then("the promise should have the rejection reason")
 def promise_has_rejection_reason(context):
     """Verify that the promise has the rejection reason."""
@@ -189,11 +204,13 @@ def promise_has_rejection_reason(context):
     assert "Invalid file path" in str(reason), "Promise rejection reason should include 'Invalid file path'"
 
 # Scenario: Unauthorized agent cannot create a promise
+@pytest.mark.medium
 @given(parsers.parse('agent "{agent_id}" does not have capability "{capability}"'))
 def agent_does_not_have_capability(context, agent_id, capability):
     """Ensure the agent does not have the specified capability."""
     assert f"{agent_id}:{capability}" not in context.capabilities
 
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" attempts to create a promise of type "{capability}"'))
 def agent_attempts_to_create_promise(context, agent_id, capability):
     """Attempt to create a promise of a specific type."""
@@ -220,11 +237,13 @@ def agent_attempts_to_create_promise(context, agent_id, capability):
     except Exception as e:
         context.last_error = e
 
+@pytest.mark.medium
 @then("the operation should be denied")
 def operation_denied(context):
     """Verify that the operation was denied."""
     assert context.last_error is not None, "An error should have been raised"
 
+@pytest.mark.medium
 @then("no promise should be created")
 def no_promise_created(context):
     """Verify that no promise was created."""
@@ -232,6 +251,7 @@ def no_promise_created(context):
     assert "analysis_agent:CODE_GENERATION" not in context.promises, "No promise should have been created"
 
 # Scenario: Creating a chain of promises
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" creates a parent promise of type "{capability}"'))
 def agent_creates_parent_promise(context, agent_id, capability):
     """Create a parent promise of a specific type."""
@@ -257,6 +277,7 @@ def agent_creates_parent_promise(context, agent_id, capability):
     # Also store it in the pending requests for the agent
     agent.mixin._pending_requests[promise.id] = promise
 
+@pytest.mark.medium
 @when(parsers.parse('agent "{agent_id}" creates child promises for each file to analyze'))
 def agent_creates_child_promises(context, agent_id):
     """Create child promises for each file to analyze."""
@@ -291,6 +312,7 @@ def agent_creates_child_promises(context, agent_id):
         # Store the child promise in the context
         context.promises["children"].append(child_promise)
 
+@pytest.mark.medium
 @then("a promise chain should be created")
 def promise_chain_created(context):
     """Verify that a promise chain was created."""
@@ -298,6 +320,7 @@ def promise_chain_created(context):
     assert "children" in context.promises, "Child promises should have been created"
     assert len(context.promises["children"]) > 0, "At least one child promise should have been created"
 
+@pytest.mark.medium
 @then("all promises in the chain should be linked correctly")
 def promises_linked_correctly(context):
     """Verify that all promises in the chain are linked correctly."""

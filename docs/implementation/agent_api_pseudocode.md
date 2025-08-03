@@ -10,8 +10,15 @@ tags:
 - api
 
 title: Agent API Pseudocode
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Agent API Pseudocode
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Agent API Pseudocode
+</div>
 
 # Agent API Pseudocode
 
@@ -50,4 +57,4 @@ This API is illustrative only. The service routes are not yet implemented and
 authentication, error handling, and streaming responses remain to be designed.
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

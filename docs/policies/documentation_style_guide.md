@@ -9,8 +9,15 @@ tags:
 - guide
 
 title: DevSynth Documentation Style Guide
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Style Guide
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Style Guide
+</div>
 
 # DevSynth Documentation Style Guide
 

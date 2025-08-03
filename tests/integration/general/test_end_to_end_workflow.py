@@ -28,15 +28,14 @@ class TestEndToEndWorkflow:
     ReqID: N/A"""
 
     @pytest.fixture
-    def temp_project_dir(self):
-        """Create a temporary project directory for testing."""
-        temp_dir = tempfile.mkdtemp()
-        try:
-            yield temp_dir
-        finally:
-            shutil.rmtree(temp_dir)
+    def temp_project_dir(self, tmpdir):
+        """Create a temporary project directory for testing using pytest's tmpdir fixture."""
+        # Convert tmpdir to string path
+        temp_dir = str(tmpdir)
+        yield temp_dir
+        # No need for cleanup as pytest handles it automatically
 
-    def test_complete_workflow_succeeds(self, temp_project_dir, monkeypatch):
+    def test_complete_workflow_succeeds(self, temp_project_dir, tmpdir, monkeypatch):
         """Test a complete workflow from requirements to code.
 
         This test simulates a complete development workflow:
@@ -61,8 +60,9 @@ class TestEndToEndWorkflow:
                 auto_confirm=True,
             )
             assert os.path.exists(os.path.join(temp_project_dir, ".devsynth"))
-            requirements_dir = os.path.join(temp_project_dir, "docs")
-            os.makedirs(requirements_dir, exist_ok=True)
+            # Create docs directory in tmpdir
+            requirements_dir = tmpdir.join("docs")
+            requirements_dir.ensure(dir=True)
             requirements_content = """
             # Task Manager API Requirements
             
@@ -85,8 +85,9 @@ class TestEndToEndWorkflow:
             3. The API shall use proper HTTP status codes
             4. The API shall require authentication for protected endpoints
             """
-            with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
-                f.write(requirements_content)
+            # Use tmpdir directly for file operations
+            requirements_file = requirements_dir.join("requirements.md")
+            requirements_file.write(requirements_content)
             analyzer = ProjectStateAnalyzer(temp_project_dir)
             initial_report = analyzer.analyze()
             assert initial_report["requirements_count"] > 0
@@ -143,7 +144,7 @@ class TestEndToEndWorkflow:
         finally:
             os.chdir(original_dir)
 
-    def test_inconsistent_project_workflow_succeeds(self, temp_project_dir):
+    def test_inconsistent_project_workflow_succeeds(self, temp_project_dir, tmpdir):
         """Test workflow with an inconsistent project state.
 
         This test simulates a workflow with an inconsistent project state:
@@ -167,8 +168,9 @@ class TestEndToEndWorkflow:
                 auto_confirm=True,
             )
             assert os.path.exists(os.path.join(temp_project_dir, ".devsynth"))
-            requirements_dir = os.path.join(temp_project_dir, "docs")
-            os.makedirs(requirements_dir, exist_ok=True)
+            # Create docs directory in tmpdir
+            requirements_dir = tmpdir.join("docs")
+            requirements_dir.ensure(dir=True)
             requirements_content = """
             # User Authentication Requirements
             
@@ -186,10 +188,13 @@ class TestEndToEndWorkflow:
             1. The system shall allow users to reset their password
             2. The system shall allow users to change their password
             """
-            with open(os.path.join(requirements_dir, "requirements.md"), "w") as f:
-                f.write(requirements_content)
-            src_dir = os.path.join(temp_project_dir, "src")
-            os.makedirs(src_dir, exist_ok=True)
+            # Use tmpdir directly for file operations
+            requirements_file = requirements_dir.join("requirements.md")
+            requirements_file.write(requirements_content)
+            
+            # Create src directory in tmpdir
+            src_dir = tmpdir.join("src")
+            src_dir.ensure(dir=True)
             user_code = """
             class User:
                 def __init__(self, email, password):
@@ -216,8 +221,9 @@ class TestEndToEndWorkflow:
                     self.password = new_password
                     return True
             """
-            with open(os.path.join(src_dir, "user.py"), "w") as f:
-                f.write(user_code)
+            # Use tmpdir directly for file operations
+            user_file = src_dir.join("user.py")
+            user_file.write(user_code)
             analyzer = ProjectStateAnalyzer(temp_project_dir)
             initial_report = analyzer.analyze()
             assert initial_report["requirements_count"] > 0

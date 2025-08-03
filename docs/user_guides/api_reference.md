@@ -8,8 +8,15 @@ tags:
   - "user-guide"
 
 status: "draft"
-author: "DevSynth Team"
----
+author: "DevSynth Team"---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Agent API Reference
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Agent API Reference
+</div>
 
 # Agent API Reference
 
@@ -42,4 +49,4 @@ print(resp.json())
 ```
 ## Implementation Status
 
-This feature is **in progress** and not yet implemented.
+.

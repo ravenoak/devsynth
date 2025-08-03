@@ -1,29 +1,27 @@
+import pytest
 from devsynth.application.collaboration.wsde_team_consensus import ConsensusBuildingMixin
 
 class DummyTeam(ConsensusBuildingMixin):
+
     def __init__(self):
         self.tracked_decisions = {}
 
-
+@pytest.mark.medium
 def test_summarize_voting_result_tie():
     mixin = DummyTeam()
-    result = {
-        'status': 'completed',
-        'result': {'tied': True, 'tied_options': ['A', 'B']},
-        'tie_resolution': {'winner': 'A'},
-    }
+    result = {'status': 'completed', 'result': {'tied': True, 'tied_options': ['A', 'B']}, 'tie_resolution': {'winner': 'A'}}
     summary = mixin.summarize_voting_result(result)
     assert 'tie between a, b' in summary.lower()
     assert 'favour of a' in summary.lower()
 
-
+@pytest.mark.medium
 def test_summarize_voting_result_winner():
     mixin = DummyTeam()
     result = {'status': 'completed', 'result': 'B', 'vote_counts': {'B': 3}}
     summary = mixin.summarize_voting_result(result)
     assert summary == "Option 'B' selected with 3 votes."
 
-
+@pytest.mark.medium
 def test_summarize_consensus_result_methods():
     mixin = DummyTeam()
     consensus = {'method': 'synthesis', 'synthesis': {'text': 'do x'}}

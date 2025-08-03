@@ -1,10 +1,12 @@
 from pytest_bdd import scenarios, then, when
 
 from .webui_steps import webui_context
+import pytest
 
 scenarios("../features/general/webui_spec_editor.feature")
 
 
+@pytest.mark.medium
 @when("I edit a specification file")
 def edit_spec_file(tmp_path, webui_context):
     spec_path = tmp_path / "specs.md"
@@ -19,11 +21,13 @@ def edit_spec_file(tmp_path, webui_context):
     webui_context["spec_path"] = spec_path
 
 
+@pytest.mark.medium
 @then("the spec command should be executed")
 def check_spec(webui_context):
     assert webui_context["cli"].spec_cmd.called
 
 
+@pytest.mark.medium
 @then("the specification should be displayed")
 def spec_displayed(webui_context):
     assert webui_context["st"].markdown.called

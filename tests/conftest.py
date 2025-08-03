@@ -13,6 +13,7 @@ import tempfile
 import shutil
 import uuid
 import socket
+import yaml
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -462,18 +463,31 @@ def is_cli_available() -> bool:
 
 def is_chromadb_available() -> bool:
     """Check if the chromadb package is installed."""
-    if os.environ.get("ENABLE_CHROMADB", "false").lower() in {"0", "false", "no"}:
-        return False
-    if (
-        os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower()
-        == "false"
-    ):
-        return False
+    # Check environment variable override first
+    if os.environ.get("DEVSYNTH_FORCE_CHROMADB_AVAILABLE", "false").lower() == "true":
+        return True
+    
+    # Check if chromadb is installed
     try:  # pragma: no cover - simple import check
         import chromadb  # noqa: F401
-
         return True
-    except Exception:
+    except ImportError:
+        # Print a clear error message
+        print("\n\033[91mWARNING: chromadb package is not installed but is required for memory integration tests.\033[0m")
+        print("\033[93mTo install chromadb, run: poetry install --extras chromadb\033[0m")
+        print("\033[93mOr to install all memory dependencies: poetry install --extras memory\033[0m")
+        print("\033[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false\033[0m\n")
+        
+        # Check if we're running in CI environment
+        if os.environ.get("CI", "false").lower() == "true":
+            # In CI, we want to fail rather than skip
+            return True
+        
+        # For local development, respect the resource availability flag
+        if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower() == "false":
+            return False
+            
+        # Default behavior: return False to skip tests requiring chromadb
         return False
 
 

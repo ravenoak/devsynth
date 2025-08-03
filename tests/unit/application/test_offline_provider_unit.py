@@ -1,7 +1,8 @@
+import pytest
 from devsynth.application.llm.offline_provider import OfflineProvider
 
-
-def test_offline_provider_instantiation_succeeds(tmp_path) ->None:
+@pytest.mark.medium
+def test_offline_provider_instantiation_succeeds(tmp_path) -> None:
     """Test that offline provider instantiation succeeds.
 
 ReqID: N/A"""

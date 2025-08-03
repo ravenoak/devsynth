@@ -8,8 +8,15 @@ tags:
 - technical-reference
 
 title: 'Sprint-EDRR Integration: Implementation Strategy'
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; 'Sprint-EDRR Integration: Implementation Strategy'
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; 'Sprint-EDRR Integration: Implementation Strategy'
+</div>
 
 # Sprint-EDRR Integration: Implementation Strategy
 

@@ -25,6 +25,7 @@ def _setup_with_auth(monkeypatch, access_token='test_token'):
         settings_stub}
 
 
+@pytest.mark.medium
 def test_api_requires_authentication_succeeds(monkeypatch):
     """Test that API endpoints require authentication when access control is enabled.
 
@@ -44,6 +45,7 @@ ReqID: N/A"""
     assert resp.json() == {'messages': ['init']}
 
 
+@pytest.mark.medium
 def test_api_authentication_disabled_succeeds(monkeypatch):
     """Test that API endpoints don't require authentication when access control is disabled.
 
@@ -59,6 +61,7 @@ ReqID: N/A"""
     assert resp.json() == {'messages': ['init']}
 
 
+@pytest.mark.medium
 def test_api_error_handling_raises_error(monkeypatch):
     """Test that API endpoints handle errors properly.
 
@@ -76,6 +79,7 @@ ReqID: N/A"""
     assert 'Test error' in resp.json()['error']
 
 
+@pytest.mark.medium
 def test_api_validation_is_valid(monkeypatch):
     """Test that API endpoints validate request parameters.
 
@@ -88,6 +92,7 @@ ReqID: N/A"""
     assert resp.status_code == 422
 
 
+@pytest.mark.medium
 def test_api_health_endpoint_succeeds(monkeypatch):
     """Test the health endpoint.
 
@@ -102,6 +107,7 @@ ReqID: N/A"""
     assert resp.json() == {'status': 'ok'}
 
 
+@pytest.mark.medium
 def test_api_metrics_endpoint_succeeds(monkeypatch):
     """Test the metrics endpoint.
 

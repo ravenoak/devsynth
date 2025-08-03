@@ -29,6 +29,7 @@ class TestProviderConfig:
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     def test_get_provider_config_has_expected(self):
         """Test that provider config can be loaded.
 

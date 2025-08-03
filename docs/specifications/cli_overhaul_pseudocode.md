@@ -10,8 +10,15 @@ tags:
 - pseudocode
 
 title: CLI Overhaul Pseudocode
-version: 0.1.0
----
+version: 0.1.0---
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; CLI Overhaul Pseudocode
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; CLI Overhaul Pseudocode
+</div>
 
 # CLI Overhaul Pseudocode
 

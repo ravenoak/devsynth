@@ -63,46 +63,55 @@ def cli_context(monkeypatch):
     }
 
 # Step definitions for progress indicators
+@pytest.mark.medium
 @given("the CLI is initialized")
 def cli_initialized(cli_context):
     return cli_context
 
+@pytest.mark.medium
 @when("I run a long-running command")
 def run_long_command(cli_context):
     # Simulate running a long command like run-pipeline
     cli_context["commands"].run_pipeline_cmd(bridge=cli_context["bridge"])
 
+@pytest.mark.medium
 @then("I should see a progress indicator")
 def check_progress_indicator(cli_context):
     cli_context["bridge"].create_progress.assert_called_once()
 
+@pytest.mark.medium
 @then("the progress indicator should update as the operation progresses")
 def check_progress_updates(cli_context):
     # Verify that the progress indicator's update method was called
     assert cli_context["progress"].update.called
 
+@pytest.mark.medium
 @then("the progress indicator should complete when the operation is done")
 def check_progress_completion(cli_context):
     # Verify that the progress indicator's complete method was called
     cli_context["progress"].complete.assert_called_once()
 
 # Step definitions for error messages
+@pytest.mark.medium
 @when("I run a command with invalid parameters")
 def run_invalid_command(cli_context):
     # Simulate running a command with invalid parameters
     cli_context["command_error"] = cli_context["errors"].ParameterError("Invalid parameter: --format must be one of [json, yaml, markdown]")
 
+@pytest.mark.medium
 @then("I should see a detailed error message")
 def check_detailed_error(cli_context):
     # In the implementation, we'll ensure detailed error messages are displayed
     assert "Invalid parameter" in str(cli_context["command_error"])
 
+@pytest.mark.medium
 @then("the error message should suggest how to fix the issue")
 def check_error_suggestion(cli_context):
     # Verify that the error message includes a suggestion
     error_message = str(cli_context["command_error"])
     assert "must be one of" in error_message, "Error message should suggest valid options"
 
+@pytest.mark.medium
 @then("the error message should include relevant documentation links")
 def check_error_docs(cli_context):
     # Mock the error handler to include documentation links
@@ -114,21 +123,25 @@ def check_error_docs(cli_context):
     assert cli_context["bridge"].display_result.call_count > 0
 
 # Step definitions for command autocompletion
+@pytest.mark.medium
 @given("the CLI is initialized with autocompletion")
 def cli_with_autocompletion(cli_context):
     return cli_context
 
+@pytest.mark.medium
 @when("I type a partial command and press tab")
 def type_partial_command(cli_context):
     # Simulate typing a partial command and pressing tab
     cli_context["completions"] = cli_context["autocomplete"].get_completions("i")
 
+@pytest.mark.medium
 @then("I should see command completion suggestions")
 def check_completion_suggestions(cli_context):
     # Verify that completions were returned
     assert len(cli_context["completions"]) > 0
     assert "init" in cli_context["completions"]
 
+@pytest.mark.medium
 @then("I should be able to select a suggestion to complete the command")
 def select_completion(cli_context):
     # Simulate selecting a completion
@@ -136,22 +149,26 @@ def select_completion(cli_context):
     assert completed == "init"
 
 # Step definitions for help text
+@pytest.mark.medium
 @when("I run a command with the --help flag")
 def run_help_command(cli_context):
     # Simulate running a command with --help
     cli_context["help_text"] = "Usage: devsynth init [OPTIONS]\n\nOptions:\n  --path TEXT  Project path\n  --help      Show this message and exit.\n\nExamples:\n  devsynth init --path ./my-project"
 
+@pytest.mark.medium
 @then("I should see detailed help text")
 def check_help_text(cli_context):
     # Verify that help text includes usage information
     assert "Usage:" in cli_context["help_text"]
     assert "Options:" in cli_context["help_text"]
 
+@pytest.mark.medium
 @then("the help text should include usage examples")
 def check_help_examples(cli_context):
     # Verify that help text includes examples
     assert "Examples:" in cli_context["help_text"]
 
+@pytest.mark.medium
 @then("the help text should explain all available options")
 def check_help_options(cli_context):
     # Verify that help text explains options
@@ -159,6 +176,7 @@ def check_help_options(cli_context):
     assert "--help" in cli_context["help_text"]
 
 # Step definitions for colorized output
+@pytest.mark.medium
 @when("I run a command that produces output")
 def run_output_command(cli_context):
     # Simulate running a command that produces output
@@ -174,6 +192,7 @@ def run_output_command(cli_context):
             kwargs_str = ", ".join(f"{k}={repr(v)}" for k, v in mock_call[2].items())
             cli_context["console_calls"].append(f"args: {args_str}, kwargs: {kwargs_str}")
 
+@pytest.mark.medium
 @then("the output should be colorized for better readability")
 def check_colorized_output(cli_context):
     # Verify that output was printed with color
@@ -186,6 +205,7 @@ def check_colorized_output(cli_context):
 
     assert has_style, "No colorized output (with style) was found in the console calls"
 
+@pytest.mark.medium
 @then("different types of information should have different colors")
 def check_different_colors(cli_context):
     # Verify that different types of information have different colors
@@ -204,6 +224,7 @@ def check_different_colors(cli_context):
     # We should have at least 2 different styles for different types of information
     assert len(styles) >= 1, "No different styles found for different types of information"
 
+@pytest.mark.medium
 @then("warnings and errors should be highlighted appropriately")
 def check_highlighted_warnings(cli_context):
     # Verify that warnings and errors are highlighted appropriately

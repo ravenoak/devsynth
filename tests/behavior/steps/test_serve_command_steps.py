@@ -34,12 +34,14 @@ def mock_socket():
         yield mock_socket, mock_instance
 
 # Step definitions
+@pytest.mark.medium
 @given('the DevSynth CLI is installed')
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
     # This is a placeholder step since we're running tests within the DevSynth codebase
     pass
 
+@pytest.mark.medium
 @given('no other service is running on port 8080')
 def no_service_on_port(mock_socket):
     """Ensure no service is running on port 8080."""
@@ -48,6 +50,7 @@ def no_service_on_port(mock_socket):
     mock_socket_instance.bind.return_value = None  # No exception means port is free
     mock_socket_instance.close.return_value = None
 
+@pytest.mark.medium
 @given('a service is already running on port 8080')
 def service_on_port(mock_socket):
     """Simulate a service running on port 8080."""
@@ -55,6 +58,7 @@ def service_on_port(mock_socket):
     mock_socket_instance = mock_socket[1]
     mock_socket_instance.bind.side_effect = socket.error("Port already in use")
 
+@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(context, command, mock_serve_cmd):
     """Run a DevSynth CLI command."""
@@ -97,28 +101,33 @@ def run_command(context, command, mock_serve_cmd):
             context.result = "failure"
             context.error_message = str(e)
 
+@pytest.mark.medium
 @then('the command should execute successfully')
 def command_successful(context):
     """Verify that the command executed successfully."""
     assert context.result == "success", f"Command failed with error: {context.error_message}"
 
+@pytest.mark.medium
 @then('the command should fail')
 def command_failed(context):
     """Verify that the command failed."""
     assert context.result == "failure", "Command succeeded but was expected to fail"
 
+@pytest.mark.medium
 @then('the API server should start on the default port')
 def api_server_default_port(context, mock_serve_cmd):
     """Verify that the API server started on the default port."""
     assert context.port == 8080
     mock_serve_cmd.assert_called_once()
 
+@pytest.mark.medium
 @then(parsers.parse('the API server should start on port {port:d}'))
 def api_server_custom_port(context, port, mock_serve_cmd):
     """Verify that the API server started on the specified port."""
     assert context.port == port
     mock_serve_cmd.assert_called_once()
 
+@pytest.mark.medium
 @then('the system should display a message indicating the server is running')
 def server_running_message(context, capsys):
     """Verify that a message about the server running was displayed."""
@@ -126,6 +135,7 @@ def server_running_message(context, capsys):
     # Since we're mocking, we'll just verify the command was successful
     assert context.result == "success"
 
+@pytest.mark.medium
 @then(parsers.parse('the system should display a message indicating the server is running on port {port:d}'))
 def server_running_on_port_message(context, port, capsys):
     """Verify that a message about the server running on a specific port was displayed."""
@@ -134,12 +144,14 @@ def server_running_on_port_message(context, port, capsys):
     assert context.result == "success"
     assert context.port == port
 
+@pytest.mark.medium
 @then('the API server should start with verbose logging enabled')
 def verbose_logging_enabled(context, mock_serve_cmd):
     """Verify that the API server started with verbose logging enabled."""
     assert context.verbose is True
     mock_serve_cmd.assert_called_once()
 
+@pytest.mark.medium
 @then('the system should display detailed log messages')
 def detailed_log_messages(context, capsys):
     """Verify that detailed log messages were displayed."""
@@ -148,6 +160,7 @@ def detailed_log_messages(context, capsys):
     assert context.result == "success"
     assert context.verbose is True
 
+@pytest.mark.medium
 @then('the system should display an error message about the port being in use')
 def port_in_use_error(context, capsys):
     """Verify that an error message about the port being in use was displayed."""

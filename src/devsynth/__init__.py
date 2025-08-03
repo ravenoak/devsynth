@@ -1,5 +1,5 @@
 # Version and metadata
-__version__ = "0.1.0"
+__version__ = "0.1.0-alpha.1"
 
 # Import the DevSynthLogger class first
 from devsynth.logging_setup import DevSynthLogger, set_request_context, clear_request_context
