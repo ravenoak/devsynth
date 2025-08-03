@@ -87,6 +87,20 @@ poetry run pytest
 Running `pytest` directly may fail because required plugins (for example
 `pytest-bdd`) are installed only in the Poetry virtual environment.
 
+## Test Speed Categories
+
+Tests are grouped by runtime using pytest markers:
+
+- `@pytest.mark.fast` – completes in under **1 second**
+- `@pytest.mark.medium` – completes in under **5 seconds**
+- `@pytest.mark.slow` – takes **5 seconds or more**
+
+These markers make it easy to select subsets of the suite. For example:
+
+```bash
+poetry run python scripts/run_all_tests.py --fast --medium
+```
+
 ## Conditional Test Execution
 
 The test framework includes a mechanism for conditionally skipping tests based on resource availability. This is useful for tests that depend on external resources like LM Studio or other services that might not always be available.
