@@ -21,6 +21,8 @@ version: 1.0.0---
 
 # DevSynth Project Status
 
+> **Status:** Partial — deployment automation improvements tracked in [issue 109](../../issues/109.md).
+
 This document tracks the current status of the DevSynth project, including implementation progress, test status, and upcoming tasks. It serves as a central reference for project status and is updated regularly as part of the development process.
 
 ## Current Date
