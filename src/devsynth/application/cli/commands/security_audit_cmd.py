@@ -8,6 +8,7 @@ so that the audit can be executed via the ``devsynth`` CLI.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from typing import Optional
 
@@ -31,6 +32,49 @@ def run_bandit() -> None:
     subprocess.check_call(["bandit", "-r", "src", "-ll"])
 
 
+def run_secrets_scan() -> None:
+    """Detect potential API keys or secrets in the repository."""
+    pattern = re.compile(
+        r"(?:api_key|token|secret)[\'\"]?\s*[:=]\s*[\'\"][A-Za-z0-9-_]{16,}[\'\"]",
+        re.IGNORECASE,
+    )
+    findings: list[str] = []
+    for root, _dirs, files in os.walk("."):
+        for name in files:
+            if not name.endswith(
+                (".py", ".env", ".txt", ".md", ".cfg", ".ini", ".yaml", ".yml", ".json")
+            ):
+                continue
+            path = os.path.join(root, name)
+            try:
+                with open(path, "r", encoding="utf-8", errors="ignore") as handle:
+                    for lineno, line in enumerate(handle, start=1):
+                        if pattern.search(line):
+                            findings.append(f"{path}:{lineno}")
+            except OSError:
+                continue
+    if findings:
+        raise RuntimeError("Potential secrets detected:\n" + "\n".join(findings))
+
+
+def run_owasp_dependency_check() -> None:
+    """Run OWASP Dependency Check if available."""
+    try:
+        subprocess.check_call(
+            [
+                "dependency-check",
+                "--project",
+                "DevSynth",
+                "--format",
+                "JSON",
+                "--out",
+                "owasp_report",
+            ]
+        )
+    except FileNotFoundError as exc:  # pragma: no cover - external tool
+        raise RuntimeError("dependency-check executable not found") from exc
+
+
 def check_required_env() -> None:
     """Ensure required security environment variables are set."""
     missing = [name for name in REQUIRED_ENV_VARS if not os.getenv(name)]
@@ -41,22 +85,35 @@ def check_required_env() -> None:
 
 
 def security_audit_cmd(
-    skip_static: bool = False, *, bridge: Optional[UXBridge] = None
+    skip_static: bool = False,
+    skip_safety: bool = False,
+    skip_secrets: bool = False,
+    skip_owasp: bool = False,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Execute security audits and monitoring checks.
 
     Example:
-        ``devsynth security-audit --skip-static``
+        ``devsynth security-audit --skip-owasp``
 
     Args:
         skip_static: Skip running Bandit static analysis when ``True``.
+        skip_safety: Skip dependency vulnerability scan when ``True``.
+        skip_secrets: Skip secrets scanning when ``True``.
+        skip_owasp: Skip OWASP Dependency Check when ``True``.
         bridge: Optional UX bridge for user feedback.
     """
     bridge = bridge or globals()["bridge"]
 
     bridge.display_result("[blue]Running security audit checks...[/blue]")
     check_required_env()
-    run_safety()
+    if not skip_safety:
+        run_safety()
     if not skip_static:
         run_bandit()
+    if not skip_secrets:
+        run_secrets_scan()
+    if not skip_owasp:
+        run_owasp_dependency_check()
     bridge.display_result("[green]Security audit completed successfully.[/green]")
