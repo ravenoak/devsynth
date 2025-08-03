@@ -37,6 +37,12 @@ from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.doctor_cmd import doctor_cmd as _doctor_impl
 from .errors import handle_error_enhanced
 
+# Optional Dear PyGUI interface support
+try:  # pragma: no cover - optional dependency handling
+    from devsynth.interface.dpg_ui import run as run_dpg_ui
+except Exception:  # pragma: no cover - defensive
+    run_dpg_ui = None  # type: ignore
+
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
@@ -1796,5 +1802,15 @@ def webui_cmd(*, bridge: UXBridge = bridge) -> None:
         from devsynth.interface.webui import run
 
         run()
+    except Exception as err:  # pragma: no cover - defensive
+        bridge.display_result(f"[red]Error:[/red] {err}")
+
+
+def dpg_cmd(*, bridge: UXBridge = bridge) -> None:
+    """Launch the Dear PyGUI interface."""
+    try:
+        if run_dpg_ui is None:
+            raise ImportError("Dear PyGUI interface is unavailable")
+        run_dpg_ui()
     except Exception as err:  # pragma: no cover - defensive
         bridge.display_result(f"[red]Error:[/red] {err}")
