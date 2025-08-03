@@ -133,6 +133,30 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
 
         return solution
 
+    def request_peer_review(
+        self, work_product: Any, author: Any, reviewer_agents: List[Any]
+    ) -> Any:
+        """Create and track a peer review cycle with memory coordination."""
+
+        try:
+            from .peer_review import PeerReview
+        except Exception:
+            return None
+
+        review = PeerReview(
+            work_product=work_product,
+            author=author,
+            reviewers=reviewer_agents,
+            send_message=self.send_message,
+            team=self,
+            memory_manager=self.memory_manager,
+        )
+        review.assign_reviews()
+        if not hasattr(self, "peer_reviews"):
+            self.peer_reviews = []
+        self.peer_reviews.append(review)
+        return review
+
     def _update_collaboration_metrics(
         self, problem_id: str, solution: Dict[str, Any]
     ) -> None:

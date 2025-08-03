@@ -158,62 +158,58 @@ ReqID: N/A"""
     coordinator.peer_review_phases = ["DIFFERENTIATE", "REFINE", "RETROSPECT"]
     coordinator.max_revision_cycles = 1
     
-    # Mock the run_peer_review function
-    with patch('devsynth.application.collaboration.peer_review.run_peer_review') as mock_run_peer_review:
-        # Configure the mock to return a successful peer review result
-        mock_run_peer_review.return_value = {
-            'status': 'approved',
-            'quality_score': 0.85,
-            'feedback': ['Good implementation', 'Well-structured code'],
-            'all_criteria_passed': True,
-            'review_id': 'test-review-123',
-        }
-        
-        # Start a new cycle
-        task = {'description': 'Create a Python function to calculate factorial',
-                'language': 'python', 'domain': 'code_generation'}
-        coordinator.start_cycle(task)
-        
-        # Execute the Differentiate phase
-        coordinator.progress_to_phase(Phase.DIFFERENTIATE)
-        differentiate_results = coordinator.execute_current_phase()
-        
-        # Verify that peer review was executed for the Differentiate phase
-        assert 'peer_review' in differentiate_results
-        assert differentiate_results['peer_review']['status'] == 'approved'
-        assert differentiate_results['peer_review']['quality_score'] == 0.85
-        
-        # Execute the Refine phase
-        coordinator.progress_to_phase(Phase.REFINE)
-        refine_results = coordinator.execute_current_phase()
-        
-        # Verify that peer review was executed for the Refine phase
-        assert 'peer_review' in refine_results
-        assert refine_results['peer_review']['status'] == 'approved'
-        
-        # Execute the Retrospect phase
-        coordinator.progress_to_phase(Phase.RETROSPECT)
-        retrospect_results = coordinator.execute_current_phase()
-        
-        # Verify that peer review was executed for the Retrospect phase
-        assert 'peer_review' in retrospect_results
-        assert retrospect_results['peer_review']['status'] == 'approved'
-        
-        # Verify that run_peer_review was called exactly 3 times (once for each phase)
-        assert mock_run_peer_review.call_count == 3
-        
-        # Verify the arguments for the first call (Differentiate phase)
-        _, kwargs = mock_run_peer_review.call_args_list[0]
-        assert kwargs['work_product']['phase'] == 'DIFFERENTIATE'
-        assert 'results' in kwargs['work_product']
-        assert kwargs['max_revision_cycles'] == 1
-        
-        # Generate the final report and verify it includes peer review results
-        report = coordinator.generate_report()
-        assert 'phases' in report
-        assert 'DIFFERENTIATE' in report['phases']
-        assert 'peer_review' in report['phases']['DIFFERENTIATE']
-        assert 'REFINE' in report['phases']
-        assert 'peer_review' in report['phases']['REFINE']
-        assert 'RETROSPECT' in report['phases']
-        assert 'peer_review' in report['phases']['RETROSPECT']
+    # Mock the run_peer_review function and capture flush calls
+    with patch.object(coordinator.memory_manager, 'flush_updates') as mock_flush:
+        def fake_run_peer_review(*args, **kwargs):
+            mm = kwargs.get('memory_manager')
+            if mm:
+                mm.flush_updates()
+            return {
+                'status': 'approved',
+                'quality_score': 0.85,
+                'feedback': ['Good implementation', 'Well-structured code'],
+                'all_criteria_passed': True,
+                'review_id': 'test-review-123',
+            }
+
+        with patch('devsynth.application.collaboration.peer_review.run_peer_review', side_effect=fake_run_peer_review) as mock_run_peer_review:
+            task = {'description': 'Create a Python function to calculate factorial',
+                    'language': 'python', 'domain': 'code_generation'}
+            coordinator.start_cycle(task)
+
+            coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+            differentiate_results = coordinator.execute_current_phase()
+
+            assert 'peer_review' in differentiate_results
+            assert differentiate_results['peer_review']['status'] == 'approved'
+            assert differentiate_results['peer_review']['quality_score'] == 0.85
+
+            coordinator.progress_to_phase(Phase.REFINE)
+            refine_results = coordinator.execute_current_phase()
+            assert 'peer_review' in refine_results
+            assert refine_results['peer_review']['status'] == 'approved'
+
+            coordinator.progress_to_phase(Phase.RETROSPECT)
+            retrospect_results = coordinator.execute_current_phase()
+            assert 'peer_review' in retrospect_results
+            assert retrospect_results['peer_review']['status'] == 'approved'
+
+            assert mock_run_peer_review.call_count == 3
+            for call in mock_run_peer_review.call_args_list:
+                assert call.kwargs['memory_manager'] is coordinator.memory_manager
+
+            _, kwargs = mock_run_peer_review.call_args_list[0]
+            assert kwargs['work_product']['phase'] == 'DIFFERENTIATE'
+            assert 'results' in kwargs['work_product']
+            assert kwargs['max_revision_cycles'] == 1
+
+            report = coordinator.generate_report()
+            assert 'phases' in report
+            assert 'DIFFERENTIATE' in report['phases']
+            assert 'peer_review' in report['phases']['DIFFERENTIATE']
+            assert 'REFINE' in report['phases']
+            assert 'peer_review' in report['phases']['REFINE']
+            assert 'RETROSPECT' in report['phases']
+            assert 'peer_review' in report['phases']['RETROSPECT']
+
+            mock_flush.assert_called()

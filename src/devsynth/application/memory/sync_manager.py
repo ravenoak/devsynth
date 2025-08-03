@@ -498,7 +498,15 @@ class SyncManager:
         # Commit transaction for each store
         for ctx in contexts.values():
             ctx.__exit__(None, None, None)
-            
+
+        # Flush any queued updates to ensure persistence across stores
+        try:
+            self.flush_queue()
+            if self.async_mode:
+                asyncio.run(self.wait_for_async())
+        except Exception as e:
+            logger.error(f"Error flushing updates for transaction {transaction_id}: {e}")
+
         # Remove transaction state
         del self._active_transactions[transaction_id]
         
@@ -546,3 +554,6 @@ class SyncManager:
                     
         # Remove transaction state
         del self._active_transactions[transaction_id]
+        # Clear any queued updates that shouldn't be applied
+        with self._queue_lock:
+            self._queue = []
