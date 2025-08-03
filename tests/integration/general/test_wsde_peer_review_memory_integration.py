@@ -7,7 +7,7 @@ correctly stores data in the memory system.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from devsynth.adapters.agents.agent_adapter import AgentAdapter, WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
@@ -22,28 +22,22 @@ class MockMemoryAdapter:
 
     def __init__(self):
         self.items = {}
-        self.update_calls = []
-        self.queue_update_calls = []
+        self.store_calls = []
 
-    def update(self, item):
-        """Mock update method."""
+    def store(self, item):
+        """Mock store method."""
         self.items[item.id] = item
-        self.update_calls.append(item)
-        return item.id
-
-    def queue_update(self, item):
-        """Mock queue_update method."""
-        self.items[item.id] = item
-        self.queue_update_calls.append(item)
+        self.store_calls.append(item)
         return item.id
 
     def retrieve(self, item_id):
-        """Mock retrieve method."""
         return self.items.get(item_id)
 
     def search(self, query, limit=10):
-        """Mock search method."""
-        return []
+        return list(self.items.values())
+
+    def get_all_items(self):
+        return list(self.items.values())
 
 
 @pytest.fixture
@@ -124,9 +118,9 @@ def test_peer_review_stores_in_memory(wsde_team, memory_manager, memory_adapter)
     
     # Request peer review
     review = wsde_team.request_peer_review(work_product, author, reviewers)
-    
+
     # Verify that the review is stored in memory during assign_reviews
-    assert len(memory_adapter.update_calls) > 0 or len(memory_adapter.queue_update_calls) > 0
+    assert len(memory_adapter.store_calls) > 0
     
     # Find the stored review
     stored_review = None
@@ -187,31 +181,22 @@ def test_full_peer_review_workflow_with_memory(wsde_team, memory_manager, memory
 
 
 def test_cross_store_synchronization(wsde_team, memory_manager):
-    """Test cross-store synchronization for peer review."""
-    # Create a second mock adapter
+    """Test that peer review results persist across multiple memory stores."""
     second_adapter = MockMemoryAdapter()
     memory_manager.adapters["graph"] = second_adapter
-    
-    # Enable sync manager
-    memory_manager.sync_manager = MagicMock()
-    memory_manager.sync_manager.begin_transaction = MagicMock(return_value=True)
-    memory_manager.sync_manager.commit_transaction = MagicMock(return_value=True)
-    
-    # Get author and reviewers
+
     author = wsde_team.agents[0]
     reviewers = wsde_team.agents[1:]
-    
-    # Create a work product
     work_product = {"text": "Test work product"}
-    
-    # Request peer review with immediate sync
-    with patch('devsynth.application.collaboration.peer_review.PeerReview.store_in_memory') as mock_store:
-        review = wsde_team.request_peer_review(work_product, author, reviewers)
-        review.store_in_memory(immediate_sync=True)
-    
-    # Verify that store_in_memory was called with immediate_sync=True
-    mock_store.assert_called_with(immediate_sync=True)
-    
-    # Verify that the sync manager was used
-    memory_manager.sync_manager.begin_transaction.assert_called()
-    memory_manager.sync_manager.commit_transaction.assert_called()
+
+    review = wsde_team.request_peer_review(work_product, author, reviewers)
+    review.collect_reviews()
+    review.finalize(approved=True)
+
+    def has_review(adapter):
+        return any(
+            item.memory_type == MemoryType.PEER_REVIEW for item in adapter.items.values()
+        )
+
+    assert has_review(memory_manager.adapters["tinydb"])
+    assert has_review(second_adapter)

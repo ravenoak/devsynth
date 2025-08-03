@@ -62,13 +62,21 @@ class PeerReview:
             primary_store = self._get_primary_store()
             
             # Store with retry for better reliability
-            return store_with_retry(
+            item_id = store_with_retry(
                 self.memory_manager,
                 self,
                 primary_store=primary_store,
                 immediate_sync=immediate_sync,
-                max_retries=3
+                max_retries=3,
             )
+            # Ensure queued updates are flushed so data persists
+            try:
+                self.memory_manager.flush_updates()
+            except Exception as flush_error:
+                logger.warning(
+                    f"Failed to flush memory updates for review {self.review_id}: {flush_error}"
+                )
+            return item_id
         except Exception as e:
             logger.error(f"Failed to store review {self.review_id} in memory: {str(e)}")
             return None
@@ -885,7 +893,15 @@ class PeerReviewWorkflow:
                 except Exception as e:
                     logger.error(f"Failed to commit transaction {transaction_id}: {str(e)}")
                     # We don't rollback here since individual operations may have succeeded
-            
+            # Flush any pending memory updates to ensure persistence
+            if self.memory_manager is not None:
+                try:
+                    self.memory_manager.flush_updates()
+                except Exception as flush_error:
+                    logger.warning(
+                        f"Failed to flush memory updates for workflow: {flush_error}"
+                    )
+
             return result
             
         except Exception as e:

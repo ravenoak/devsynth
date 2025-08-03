@@ -605,6 +605,10 @@ class ConsensusBuildingMixin:
 
                 if primary:
                     self.memory_manager.sync_manager.update_item(primary, item)
+                    try:
+                        self.memory_manager.flush_updates()
+                    except Exception:
+                        pass
             except Exception:
                 pass
 
