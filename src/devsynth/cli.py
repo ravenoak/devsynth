@@ -14,9 +14,9 @@ import json
 from typing import Any
 
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
-from devsynth.logging_setup import DevSynthLogger
+from devsynth.logger import setup_logging
 
-logger = DevSynthLogger(__name__)
+logger = setup_logging(__name__)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -28,7 +28,11 @@ def main(argv: list[str] | None = None) -> None:
     """
 
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--analyze-repo", metavar="PATH", help="Analyze a repository and output JSON data")
+    parser.add_argument(
+        "--analyze-repo",
+        metavar="PATH",
+        help="Analyze a repository and output JSON data",
+    )
     args, remaining = parser.parse_known_args(argv)
 
     if args.analyze_repo:

@@ -9,17 +9,15 @@ from prometheus_client import (
 )
 import time
 
-from devsynth.logging_setup import (
-    DevSynthLogger,
-    configure_logging,
+from devsynth.logger import (
+    setup_logging,
     set_request_context,
     clear_request_context,
 )
 from devsynth.config.settings import get_settings
 from typing import Union
 
-configure_logging()
-logger = DevSynthLogger(__name__)
+logger = setup_logging(__name__)
 settings = get_settings()
 
 

@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-from utils.logging_setup import setup_logging
+from devsynth.logger import setup_logging
 
 from devsynth.exceptions import ConfigurationError, DevSynthError
 
