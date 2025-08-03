@@ -9,7 +9,7 @@ tags:
   - "guidelines"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-04"
 ---
 
 # Contributing to DevSynth
@@ -57,6 +57,8 @@ pre-commit run devsynth-align --all-files
 
 The `devsynth-align` hook runs `devsynth align --quiet` and will block commits
 if alignment issues are detected.
+
+For examples of additional hooks, including link checking and formatting, see [pre-commit hook samples](docs/developer_guides/pre_commit_samples.md).
 
 ## Testing
 
