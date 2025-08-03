@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-03"
 status: published
 tags:
 
@@ -9,6 +9,7 @@ tags:
 - ux
 - cli
 - webui
+- dpg
 
 title: UXBridge Abstraction
 version: 0.1.0
@@ -25,9 +26,10 @@ version: 0.1.0
 # UXBridge Abstraction
 
 The **UXBridge** is a thin interface that decouples DevSynth's workflow logic from
-any specific user interface framework. CLI commands and future WebUI components
-invoke workflow functions through this common layer, allowing the same code in
-`src/devsynth/core` to be reused across different front‑ends.
+any specific user interface framework. CLI commands, the Streamlit‑based WebUI,
+and the Dear PyGUI desktop interface invoke workflow functions through this
+common layer, allowing the same code in `src/devsynth/core` to be reused across
+different front‑ends.
 
 ## Responsibilities
 
@@ -46,6 +48,7 @@ invoke workflow functions through this common layer, allowing the same code in
 graph LR
     CLI[CLI Modules] --> Bridge[UXBridge]
     WebUI[WebUI] --> Bridge
+    DPG[Dear PyGUI] --> Bridge
     AgentAPI[Agent API] --> Bridge
     Bridge --> Core[Workflow Functions]
 ```
@@ -86,6 +89,32 @@ graph LR
     Bridge --> WF[Workflow Functions]
 ```
 
+## Dear PyGUI Consumption
+
+The Dear PyGUI interface offers a lightweight desktop client that also
+implements the `UXBridge`. A minimal window is defined in
+`src/devsynth/interface/dpg_ui.py`; each button triggers the same workflow
+functions used by the CLI and WebUI.
+
+### Setup
+
+```bash
+poetry install --with gui
+poetry run python -m devsynth.interface.dpg_ui
+```
+
+Launching the module starts the Dear PyGUI event loop and binds common
+DevSynth workflows to buttons.
+
+<!-- Diagram: Dear PyGUI layout using UXBridge -->
+```mermaid
+graph TD
+    Window[Dear PyGUI Window] -->|buttons| Bridge[UXBridge]
+    Bridge --> WF[Workflow Functions]
+```
+
+![Dear PyGUI layout](diagrams/dpg_overview.svg)
+
 ## Unified Interaction Pattern
 
 Both CLI commands and the WebUI rely on the same interaction calls. A single
@@ -106,12 +135,15 @@ function some_command(args, bridge=bridge):
 - **CLI Implementation:** `src/devsynth/interface/cli.py`
 - **Bridge Definition:** `src/devsynth/interface/ux_bridge.py`
 - **Workflow Functions:** `src/devsynth/core/workflows.py`
+- **Dear PyGUI Bridge:** `src/devsynth/interface/dpg_bridge.py`
+- **Dear PyGUI UI:** `src/devsynth/interface/dpg_ui.py`
 
 Additional documentation that explains how the bridge integrates with the user
 interfaces can be found in:
 
-- **[CLI to WebUI Command Mapping](cli_webui_mapping.md)** – shows how each CLI
-  command corresponds to a WebUI page using the `UXBridge` layer.
+- **[CLI to WebUI and Dear PyGUI Command Mapping](cli_webui_mapping.md)** – shows
+  how each CLI command corresponds to WebUI pages and Dear PyGUI windows using
+  the `UXBridge` layer.
 - **[WebUI Architecture Overview](webui_overview.md)** – details how the
   Streamlit interface implements `UXBridge` for feature parity with the CLI.
 
@@ -165,6 +197,6 @@ Regardless of implementation, all bridges guarantee a few key invariants:
   `validate_safe_input` so unsafe content is rejected early.
 ## Implementation Status
 
-This feature is **implemented**. Both the CLI and WebUI rely on the
-`UXBridge` abstraction, and unit tests ensure consistent behaviour across
+This feature is **implemented**. The CLI, WebUI, and Dear PyGUI interfaces rely
+on the `UXBridge` abstraction, and unit tests ensure consistent behaviour across
 bridges.
