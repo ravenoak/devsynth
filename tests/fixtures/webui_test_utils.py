@@ -28,6 +28,25 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
+class DummyForm:
+    """Simple context manager used for mock Streamlit components."""
+
+    def __init__(self, submitted: bool = True):
+        self.submitted = submitted
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def form_submit_button(self, *_args, **_kwargs):  # pragma: no cover - simple mock
+        return self.submitted
+
+    def button(self, *_args, **_kwargs):  # pragma: no cover - simple mock
+        return self.submitted
+
+
 def create_mock_streamlit():
     """
     Create a standardized mock Streamlit implementation.
@@ -68,6 +87,7 @@ def create_mock_streamlit():
     st.time_input = MagicMock(return_value=None)
     st.file_uploader = MagicMock(return_value=None)
     st.color_picker = MagicMock(return_value="")
+    st.toggle = MagicMock(return_value=True)
     
     # Mock display functions
     st.write = MagicMock()
@@ -81,6 +101,7 @@ def create_mock_streamlit():
     st.info = MagicMock()
     st.success = MagicMock()
     st.progress = MagicMock()
+    st.tabs = MagicMock(return_value=[DummyForm() for _ in range(5)])
     
     # Mock layout functions
     col1_mock = MagicMock()
@@ -221,15 +242,30 @@ def mock_webui(mock_streamlit):
     
     # Mock CLI commands
     cli_mock = ModuleType('devsynth.application.cli')
-    cli_mock.init_cmd = MagicMock()
-    cli_mock.spec_cmd = MagicMock()
-    cli_mock.test_cmd = MagicMock()
-    cli_mock.code_cmd = MagicMock()
-    cli_mock.run_pipeline_cmd = MagicMock()
-    cli_mock.doctor_cmd = MagicMock()
-    cli_mock.edrr_cycle_cmd = MagicMock()
-    cli_mock.config_cmd = MagicMock()
-    cli_mock.inspect_cmd = MagicMock()
+    command_names = [
+        'init_cmd',
+        'spec_cmd',
+        'test_cmd',
+        'code_cmd',
+        'run_pipeline_cmd',
+        'doctor_cmd',
+        'edrr_cycle_cmd',
+        'config_cmd',
+        'inspect_cmd',
+        'align_cmd',
+        'inspect_code_cmd',
+        'alignment_metrics_cmd',
+        'validate_manifest_cmd',
+        'validate_metadata_cmd',
+        'test_metrics_cmd',
+        'generate_docs_cmd',
+        'ingest_cmd',
+        'apispec_cmd',
+        'analyze_manifest_cmd',
+        'inspect_config_cmd',
+    ]
+    for name in command_names:
+        setattr(cli_mock, name, MagicMock())
     
     # Patch the CLI module
     with patch.dict('sys.modules', {'devsynth.application.cli': cli_mock}):
@@ -449,3 +485,11 @@ def assert_wizard_completed(wizard_state, expected_completed: bool = True) -> No
     """
     assert wizard_state.is_completed() == expected_completed, \
         f"Expected wizard completed status to be {expected_completed}, but it's {wizard_state.is_completed()}"
+
+
+@pytest.fixture
+def webui_context(mock_webui):
+    """Convenience fixture returning only the WebUI context."""
+
+    _, context = mock_webui
+    return context
