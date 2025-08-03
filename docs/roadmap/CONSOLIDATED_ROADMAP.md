@@ -27,7 +27,7 @@ This document serves as the canonical source for all roadmap information, consol
 
 ## Current Status
 
-As of August 2, 2025, Phase 1 (Foundation Stabilization) is complete with the following achievements:
+As of August 2, 2025, the project is finalizing Phase 1 (Foundation Stabilization) with `0.1.0-alpha.1` as the current target. Achievements to date include:
 
 - **Test Stabilization**:
   - Fixed pytest import issues in multiple test files
@@ -43,18 +43,18 @@ As of August 2, 2025, Phase 1 (Foundation Stabilization) is complete with the fo
   - Documented lessons learned and best practices in flaky_test_lessons.md
   - Created test stabilization tools and scripts
 
-The project is now transitioning to Phase 2 (Production Readiness).
+The project will transition to Phase 2 (Production Readiness) after publishing `0.1.0-alpha.1`.
 
 ## Phased Roadmap
 
-### 1. Foundation Stabilization (0.1.x – Q1–Q3 2025) - COMPLETED
+### 1. Foundation Stabilization (0.1.x – Q1–Q3 2025) - IN PROGRESS
 
 - Finalize core architecture (EDRR, WSDE, providers, memory)
 - Anthropic and deterministic offline providers are fully implemented
 - Address adoption barriers and ensure offline capabilities
 - Establish baseline testing and documentation
 
-### 2. Production Readiness (0.2.x–0.3.x – Q4 2025) - IN PROGRESS
+### 2. Production Readiness (0.2.x–0.3.x – Q4 2025) - PLANNED
 
 - Polish CLI UX and integrate the initial Web UI
 - Perform repository analysis and improve code organization
@@ -125,8 +125,8 @@ The project is now transitioning to Phase 2 (Production Readiness).
 
 ## Version Milestones
 
-- **0.1.0-alpha.1** (COMPLETED): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
-- **0.1.0-beta.1** (IN PROGRESS): WSDE peer review workflow targeted for completion (see [issue 104](../../issues/104.md)), Web UI preview available, and major tests passing.
+- **0.1.0-alpha.1** (CURRENT TARGET): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
+- **0.1.0-beta.1** (PLANNED): WSDE peer review workflow targeted for completion (see [issue 104](../../issues/104.md)), Web UI preview available, and major tests passing.
 - **0.1.0-rc.1** (PLANNED): Documentation freeze and full test suite passing as the release candidate for version 0.1.0.
 - **0.2.0–0.6.0** (PLANNED): Incremental releases adding collaboration, Web UI, and testing improvements.
 - **0.2.x** (PLANNED): Multi-language code generation support.
@@ -161,7 +161,7 @@ The EDRRCoordinator orchestrates expand/differentiate/refine cycles. The `edrr-c
 
 Recent CI reports collected thousands of tests. The latest run reported **348** failures, **921** passing tests, **100** skipped, and **3** errors due to `chromadb_store` missing during collection. See the [development status](development_status.md#test-failure-summary) document for details.
 
-To publish `0.1.0-beta.1`, the project must:
+To publish `0.1.0-alpha.1`, the project must:
 
 - Resolve the outstanding WebUI and EDRR coordinator test failures
 - Complete WSDE collaboration integration with the memory system and finalize the peer review workflow
@@ -172,7 +172,7 @@ Current builds run with `features.wsde_collaboration` enabled but `features.dial
 
 ## Remaining Issues
 
-While Phase 1 is considered complete, there are some remaining issues that should be monitored during Phase 2:
+While Phase 1 is nearing completion, there are some remaining issues that should be monitored before moving to Phase 2:
 
 1. **API Change Issues**: Some tests are failing due to API changes in the codebase. These should be addressed as part of the normal development process in Phase 2.
 
