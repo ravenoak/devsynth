@@ -128,7 +128,7 @@ Example of test isolation (from `tests/behavior/conftest.py`):
 @pytest.fixture(autouse=True)
 def patch_env_and_cleanup(tmp_project_dir):
     """
-    Patch environment variables for LLM providers and ensure all logs/artifacts 
+    Patch environment variables for LLM providers and ensure all logs/artifacts
     are isolated and cleaned up.
     """
     # Save old environment and set test environment
@@ -316,6 +316,8 @@ reports with `pytest-html`.
 ```
 
 Combine options (for example, integration tests with a report) as needed.
+
+For utilities that fix flaky tests and categorize runtime, refer to [Test Stabilization Tools](test_stabilization_tools.md).
 
 ### Running Specific Test Types
 
