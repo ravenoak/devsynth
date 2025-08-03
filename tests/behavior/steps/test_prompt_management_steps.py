@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 scenarios("../features/general/prompt_management.feature")
 
 # Import the modules needed for the steps
-from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.prompts.prompt_template import (
     PromptTemplate,
     PromptTemplateVersion,

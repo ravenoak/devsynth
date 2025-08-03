@@ -13,7 +13,7 @@ from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemor
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import DocumentationManager
 from devsynth.adapters.provider_system import get_provider, ProviderType
 from devsynth.methodology.base import Phase

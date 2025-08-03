@@ -7,7 +7,7 @@ It provides functions to register these templates with the PromptManager.
 
 from typing import Dict, Any, Optional
 
-from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.methodology.base import Phase
 from devsynth.logging_setup import DevSynthLogger
 

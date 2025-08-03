@@ -21,7 +21,7 @@ from devsynth.application.edrr.edrr_phase_transitions import (
     collect_phase_metrics,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType
 from devsynth.logging_setup import DevSynthLogger
