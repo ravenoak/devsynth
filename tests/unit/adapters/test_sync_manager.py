@@ -15,11 +15,45 @@ def _load_module(path: pathlib.Path, name: str):
 PACKAGE_PATH = SRC_ROOT / 'devsynth/application/memory'
 memory_manager_module = _load_module(PACKAGE_PATH / 'memory_manager.py', 'devsynth.application.memory.memory_manager')
 vector_adapter_module = _load_module(PACKAGE_PATH / 'adapters/vector_memory_adapter.py', 'devsynth.application.memory.adapters.vector_memory_adapter')
-context_module = _load_module(PACKAGE_PATH / 'context_manager.py', 'devsynth.application.memory.context_manager')
 MemoryManager = memory_manager_module.MemoryManager
 VectorMemoryAdapter = vector_adapter_module.VectorMemoryAdapter
-InMemoryStore = context_module.InMemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.domain.interfaces.memory import MemoryStore
+
+
+class InMemoryStore(MemoryStore):
+    """Simple in-memory store for testing purposes."""
+
+    def __init__(self) -> None:
+        self.items = {}
+        self._active = False
+
+    def store(self, item: MemoryItem) -> str:
+        item_id = item.id or str(len(self.items))
+        item.id = item_id
+        self.items[item_id] = item
+        return item_id
+
+    def retrieve(self, item_id: str):
+        return self.items.get(item_id)
+
+    def search(self, query: dict):
+        return list(self.items.values())
+
+    def delete(self, item_id: str) -> bool:
+        return self.items.pop(item_id, None) is not None
+
+    def begin_transaction(self, transaction_id: str | None = None):
+        self._active = True
+
+    def commit_transaction(self, transaction_id: str | None = None):
+        self._active = False
+
+    def rollback_transaction(self, transaction_id: str | None = None):
+        self._active = False
+
+    def is_transaction_active(self) -> bool:
+        return self._active
 
 class TestSyncManagerCrossStoreQuery:
     """Tests for the SyncManagerCrossStoreQuery component.
@@ -67,6 +101,14 @@ class TestSyncManagerCrossStoreQuery:
         refreshed = manager.sync_manager.cross_store_query('apple')
         assert len(refreshed['tinydb']) == 2
 
+    @pytest.mark.asyncio
+    @pytest.mark.medium
+    async def test_cross_store_query_async_succeeds(self, manager):
+        """Test that asynchronous cross-store query returns results."""
+        self._add_items(manager)
+        results = await manager.sync_manager.cross_store_query_async('apple')
+        assert 'vector' in results and 'tinydb' in results
+
 class TestSyncManagerConcurrentUpdates:
     """Tests for concurrent update scenarios."""
 
@@ -105,4 +147,4 @@ class TestSyncManagerConcurrentUpdates:
         await manager.sync_manager.wait_for_async()
         result = manager.adapters['b'].retrieve('x')
         assert result.content == 'newest'
-        assert manager.sync_manager.conflict_log
+        assert len(manager.sync_manager.conflict_log) == 1

@@ -59,9 +59,17 @@ class QueryRouter:
         logger.warning("Adapter %s does not support direct queries", store)
         return []
 
-    def cross_store_query(self, query: str) -> Dict[str, List[Any]]:
-        """Query all configured stores and return grouped results."""
-        grouped = self.memory_manager.sync_manager.cross_store_query(query)
+    def cross_store_query(
+        self, query: str, stores: Optional[List[str]] | None = None
+    ) -> Dict[str, List[Any]]:
+        """Query configured stores and return grouped results.
+
+        Args:
+            query: The search query.
+            stores: Optional list of store names to restrict the query. If not
+                provided, all configured stores are queried.
+        """
+        grouped = self.memory_manager.sync_manager.cross_store_query(query, stores)
         for store, items in grouped.items():
             for item in items:
                 if hasattr(item, "metadata"):
@@ -138,12 +146,13 @@ class QueryRouter:
         store: Optional[str] = None,
         strategy: str = "direct",
         context: Optional[Dict[str, Any]] = None,
+        stores: Optional[List[str]] | None = None,
     ) -> Any:
         """Route a query according to the specified strategy."""
         if strategy == "direct" and store:
             return self.direct_query(query, store)
         if strategy == "cross":
-            return self.cross_store_query(query)
+            return self.cross_store_query(query, stores)
         if strategy == "cascading":
             return self.cascading_query(query)
         if strategy == "federated":

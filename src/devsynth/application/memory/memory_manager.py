@@ -646,11 +646,12 @@ class MemoryManager:
         store: Union[str, None] = None,
         strategy: str = "direct",
         context: Optional[Dict[str, Any]] = None,
+        stores: Optional[List[str]] | None = None,
     ) -> Any:
         """Route a query through the :class:`QueryRouter`."""
 
         return self.query_router.route(
-            query, store=store, strategy=strategy, context=context
+            query, store=store, strategy=strategy, context=context, stores=stores
         )
 
     def synchronize(
