@@ -10,7 +10,7 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-31"---
+last_reviewed: "2025-08-03"---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; Requirements Traceability Matrix (RTM)
@@ -75,7 +75,7 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-57 | Message passing protocol between agents | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/message_protocol.py | tests/behavior/features/wsde_message_passing_peer_review.feature | Implemented |
 | FR-58 | Peer review mechanism for agent outputs | [WSDE Interaction Specification](specifications/wsde_interaction_specification.md) | src/devsynth/application/collaboration/peer_review.py | tests/behavior/features/wsde_message_passing_peer_review.feature | Implemented |
 | FR-59 | Advanced query patterns across memory stores | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/query_router.py | tests/behavior/features/hybrid_memory_query_patterns.feature, tests/integration/test_memory_agent_integration.py, tests/integration/test_wsde_memory_edrr_integration.py | Partially Implemented |
-| FR-60 | Synchronization between memory stores | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/sync_manager.py | tests/behavior/features/hybrid_memory_query_patterns.feature, tests/unit/adapters/test_sync_manager.py, tests/integration/test_graph_memory_edrr_integration.py | Partially Implemented |
+| FR-60 | Synchronization between memory stores | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/sync_manager.py, src/devsynth/application/collaboration/collaboration_memory_utils.py | tests/behavior/features/hybrid_memory_query_patterns.feature, tests/unit/adapters/test_sync_manager.py, tests/integration/test_graph_memory_edrr_integration.py, tests/integration/memory/test_cross_store_sync.py | Implemented |
 | FR-61 | Authentication utilities with Argon2 hashing | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/authentication.py | tests/unit/security/test_authentication.py | Implemented |
 | FR-62 | Role-based authorization checks | [Security and Privacy Framework](analysis/critical_recommendations.md#5-security-and-privacy-framework-high) | src/devsynth/security/authorization.py | tests/unit/security/test_authorization.py | Implemented |
 | FR-63 | Input sanitization utilities | [Secure Coding Guidelines](developer_guides/secure_coding.md) | src/devsynth/security/sanitization.py | tests/unit/security/test_sanitization.py | Implemented |
@@ -106,8 +106,9 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 | FR-90 | Metrics commands for alignment and test reporting | [Metrics System Specification](specifications/metrics_system.md) | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, src/devsynth/application/cli/commands/test_metrics_cmd.py | tests/unit/application/cli/test_metrics_commands.py, tests/behavior/features/alignment_metrics_command.feature, tests/behavior/features/test_metrics.feature | Implemented |
 | FR-91 | Knowledge graph utility functions for advanced memory queries | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/knowledge_graph_utils.py | tests/unit/application/memory/test_knowledge_graph_utils.py | Implemented |
 | FR-92 | Multi-language code generation agent | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/agents/multi_language_code.py | tests/unit/application/agents/test_multi_language_code.py | Implemented |
+| FR-93 | Embedded Kuzu graph memory store support | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/kuzu_store.py, src/devsynth/adapters/kuzu_memory_store.py | tests/unit/application/memory/test_kuzu_store.py, tests/integration/general/test_kuzu_memory_integration.py, tests/integration/general/test_kuzu_memory_fallback.py | Implemented |
 
-_Last updated: July 31, 2025_
+_Last updated: August 29, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column
