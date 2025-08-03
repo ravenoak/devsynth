@@ -25,7 +25,7 @@ version: 0.1.0---
 # DevSynth Development Status
 
 **Note:** DevSynth is in a pre-release state. Current versions are numbered
-`0.1.x` and do not represent a stable release.
+`0.1.x` and do not represent a stable release. The active development target is the `0.1.0-alpha.1` milestone, which finalizes the core architecture and offline provider support.
 
 This document serves as the single source of truth for the current development status of the DevSynth project. It consolidates information from various summary documents and provides a clear overview of implementation progress across all phases. Major milestones are tracked in the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
 For the ordering of upcoming releases, see [Feature Dependencies](feature_dependencies.md) which outlines how key components build on each other.
@@ -438,7 +438,7 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 
 2. **Continue Feature Development**: With a solid foundation in place, continue developing new features according to the project roadmap, following the established best practices for documentation, testing, and code organization.
 
-### Outstanding Tasks
+### Outstanding Tasks for `0.1.0-alpha.1`
 
 - ~~Finalize unit tests for the `MemoryType` enum and resolve any remaining failures.~~
 - ~~Verify that the EDRR coordinator and AST code analysis features fully match their BDD scenarios.~~
@@ -447,9 +447,9 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - Complete WSDE collaboration integration with the memory system; finalize peer review workflow and cross-store synchronization.
 - Some CLI and ingestion workflows still require interactive prompts. Related unit tests now run unconditionally in the hermetic test environment and no longer depend on the `DEVSYNTH_RUN_INGEST_TESTS` or `DEVSYNTH_RUN_WSDE_TESTS` flags.
 
-For updated scheduling, see the consolidated [ROADMAP](ROADMAP.md).
+For updated scheduling, see the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
 ## Implementation Status
 
 Development is **in progress** with outstanding tasks tracked in
 [issue 102](../../issues/102.md) and related issues. Repository harmonization is
-complete and efforts are shifting toward the `0.1.0-beta.1` milestone.
+complete and efforts are focused on delivering the `0.1.0-alpha.1` milestone. Work toward `0.1.0-beta.1` will begin after its release.
