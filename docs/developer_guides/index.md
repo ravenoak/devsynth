@@ -32,6 +32,7 @@ This section is for developers contributing to the DevSynth project or those loo
 - **[Dependency Management](dependency_management.md)**: How to update and check project dependencies.
 - **[Dependency Strategy](dependencies.md)**: Overview of optional extras and CI checks.
 - **[Repository Structure](../repo_structure.md)**: An overview of how the DevSynth repository is organized.
+- **[Requirements Wizard Structure](requirements_wizard_structure.md)**: Overview of the requirements wizard helpers.
 
 ## Testing Guides
 
