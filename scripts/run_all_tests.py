@@ -13,10 +13,11 @@ Usage:
 """
 
 import argparse
+import logging
 import sys
 import time
 
-from utils.logging_setup import setup_logging
+from devsynth.logger import setup_logging
 
 from devsynth.exceptions import DevSynthError
 from devsynth.testing.run_tests import run_tests
@@ -95,6 +96,9 @@ def parse_args():
 def main() -> int:
     """Main function to run tests based on command line arguments."""
     args = parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     if args.report:
         try:
