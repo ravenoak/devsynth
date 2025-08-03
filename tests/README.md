@@ -321,6 +321,8 @@ poetry run python scripts/run_all_tests.py --target unit-tests  # run only unit 
 poetry run python scripts/run_all_tests.py --report             # generate HTML report under test_reports/
 ```
 
+For additional utilities like flaky-test fixes and incremental categorization, see [Test Stabilization Tools](../docs/developer_guides/test_stabilization_tools.md).
+
 ## Referencing Requirements in Tests
 
 All tests should include the requirement ID they verify in the test's docstring. This links the test back to the relevant entry in `docs/requirements_traceability.md`.

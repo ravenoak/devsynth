@@ -17,6 +17,12 @@ To address these issues, we created three scripts:
 2. `fix_test_method_signatures.py`: Fixes inconsistent method signatures in test classes
 3. `fix_test_syntax_errors.py`: Fixes common syntax errors in test files
 
+Additional tools assist with broader stabilization tasks:
+
+4. `fix_flaky_tests.py`: Detects and resolves common flaky-test patterns
+5. `incremental_test_categorization.py`: Measures runtime and applies `fast`, `medium`, or `slow` markers
+6. `run_all_tests.py`: Runs categorized tests with optional parallelism and HTML reporting
+
 ## Usage
 
 ### Fix Missing Pytest Imports
@@ -64,6 +70,30 @@ Example:
 python scripts/fix_test_syntax_errors.py tests/behavior/steps
 ```
 
+### Fix Flaky Tests
+
+```bash
+python scripts/fix_flaky_tests.py --module tests/unit/interface --pattern isolation
+```
+
+This script scans tests for mocking, isolation, and state issues that can cause nondeterministic failures. Use `--dry-run` to preview changes or `--report` to generate a summary of detected problems.
+
+### Incremental Test Categorization
+
+```bash
+python scripts/incremental_test_categorization.py --update --batch-size 10
+```
+
+The categorization tool measures execution time in batches and updates test files with speed markers. Progress is saved to `.test_categorization_progress.json`, allowing subsequent runs to continue where they left off.
+
+### Run All Tests
+
+```bash
+python scripts/run_all_tests.py --fast --medium --report
+```
+
+This wrapper around `pytest` respects speed markers, can segment tests for faster feedback, and optionally produces an HTML report under `test_reports/`.
+
 ## Common Test Issues and Solutions
 
 ### Missing Pytest Imports
@@ -97,7 +127,7 @@ def test_something():
 class TestSomething:
     def test_method1(self):
         pass
-        
+
     def test_method2():  # Missing 'self'
         pass
 
@@ -105,7 +135,7 @@ class TestSomething:
 class TestSomething:
     def test_method1(self):
         pass
-        
+
     def test_method2(self):  # Added 'self'
         pass
 ```
