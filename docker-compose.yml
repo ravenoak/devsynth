@@ -21,6 +21,10 @@ services:
       - DEVSYNTH_LLM_PROVIDER=openai
     networks:
       - devsynth-network
+    profiles:
+      - development
+      - staging
+      - production
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -28,6 +32,11 @@ services:
       retries: 3
       start_period: 5s
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 
   # Development tools
@@ -44,11 +53,17 @@ services:
       - devsynth-network
     profiles:
       - tools
+      - development
     healthcheck:
       test: ["CMD", "true"]
       interval: 1m
       timeout: 10s
       retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Test runner
   test-runner:
@@ -65,11 +80,17 @@ services:
       - devsynth-network
     profiles:
       - test
+      - testing
     healthcheck:
       test: ["CMD", "true"]
       interval: 1m
       timeout: 10s
       retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Optional ChromaDB service for persistent vector storage
   chromadb:
@@ -84,6 +105,19 @@ services:
       - devsynth-network
     profiles:
       - memory
+      - development
+      - staging
+      - production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/collections"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   prometheus:
     image: prom/prometheus
@@ -100,6 +134,36 @@ services:
       retries: 3
     profiles:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - devsynth-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 
 networks:
@@ -108,3 +172,5 @@ networks:
 volumes:
   chromadb-data:
     name: devsynth-chromadb-data
+  grafana-data:
+    name: devsynth-grafana-data

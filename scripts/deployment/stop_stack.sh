@@ -2,5 +2,9 @@
 set -euo pipefail
 
 # Stop DevSynth stack
+# Usage: stop_stack.sh [environment]
+#   environment: development (default), staging, production, testing
 
-docker compose down
+ENVIRONMENT=${1:-development}
+
+docker compose --profile "${ENVIRONMENT}" --profile monitoring down

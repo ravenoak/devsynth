@@ -50,13 +50,13 @@ cp .env.example .env
 
 # Edit .env with your settings
 
-# Start the development environment
+# Start the development environment with monitoring
 
-docker compose up -d
+docker compose --profile development --profile monitoring up -d
 
-# Check the status
+# Check service health
 
-docker compose ps
+scripts/deployment/check_health.sh development
 ```
 
 Logs are written to the `./logs` directory by default when running via
@@ -80,14 +80,14 @@ Stop the stack with `task docker:down` and view logs using `task docker:logs`.
 Helper scripts in `scripts/deployment` automate common tasks:
 
 ```bash
-# Start the stack with monitoring enabled
-scripts/deployment/start_stack.sh
+# Start the stack with monitoring enabled for development
+scripts/deployment/start_stack.sh development
 
 # Check container health
-scripts/deployment/check_health.sh
+scripts/deployment/check_health.sh development
 
 # Stop services
-scripts/deployment/stop_stack.sh
+scripts/deployment/stop_stack.sh development
 ```
 
 ## Deployment Environments
@@ -108,15 +108,15 @@ DevSynth supports multiple deployment environments, each with its own configurat
 
 # Start the development environment
 
-docker compose up -d
+docker compose --profile development up -d
 
-# View logs
+# View logs (JSON formatted)
 
-docker compose logs -f
+docker compose --profile development logs -f
 
 # Run development tools
 
-docker compose --profile tools up -d dev-tools
+docker compose --profile development --profile tools up -d dev-tools
 docker compose exec dev-tools bash
 ```
 
@@ -126,11 +126,11 @@ docker compose exec dev-tools bash
 
 # Run tests
 
-docker compose --profile test up test-runner
+docker compose --profile testing up test-runner
 
 # Run specific tests
 
-docker compose --profile test run test-runner pytest tests/unit/
+docker compose --profile testing run test-runner pytest tests/unit/
 ```
 
 ## Staging Environment
@@ -143,14 +143,14 @@ export DEVSYNTH_ENV=staging
 export DEVSYNTH_LLM_PROVIDER=openai
 export DEVSYNTH_OPENAI_API_KEY=your-api-key
 
-# Build and start staging environment
+# Build and start staging environment with monitoring
 
-docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+docker compose --profile staging --profile monitoring up -d
 ```
 
 ## Production Environment
 
-Use the production compose file which includes Prometheus and Grafana for monitoring.
+Monitoring services (Prometheus and Grafana) can be enabled via the monitoring profile.
 
 ```bash
 
@@ -161,9 +161,9 @@ export DEVSYNTH_LLM_PROVIDER=openai
 export DEVSYNTH_OPENAI_API_KEY=your-api-key
 export DEVSYNTH_OPENAI_MODEL=gpt-4
 
-# Build and start production environment
+# Build and start production environment with monitoring
 
-docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
+docker compose --profile production --profile monitoring up -d
 ```
 
 ## Configuration
@@ -210,22 +210,25 @@ Use the validation script to check your configuration:
 DevSynth includes built-in health checks for all services:
 
 - **DevSynth API**: `http://localhost:8000/health`
-- **ChromaDB**: `http://localhost:8001/api/v1/heartbeat`
+- **ChromaDB**: `http://localhost:8001/api/v1/collections`
+- **Prometheus**: `http://localhost:9090/-/ready`
+- **Grafana**: `http://localhost:3000/api/health`
 
-
-Monitor container health with:
+Monitor container health with the helper script:
 
 ```bash
-docker compose ps
-docker compose top
+scripts/deployment/check_health.sh development
 ```
 
-Prometheus scrapes metrics from `http://localhost:8000/metrics` and Grafana is
-available at `http://localhost:3000` (default credentials admin/admin).
-The API exposes metrics via `prometheus-client`, so visiting
-`http://localhost:8000/metrics` returns Prometheus-formatted data. Point your
-Prometheus server at this endpoint or open `http://localhost:9090` to query
-metrics.
+Logs are written in structured JSON format and can be viewed with:
+
+```bash
+docker compose --profile development logs -f
+```
+
+Prometheus scrapes metrics from `http://localhost:8000/metrics`, and Grafana is
+available at `http://localhost:3000` (default credentials admin/admin). Open
+`http://localhost:9090` to query collected metrics.
 
 ## Troubleshooting
 
@@ -319,7 +322,7 @@ For sensitive information:
 # Using Docker secrets (swarm mode)
 
 docker secret create devsynth_openai_key /path/to/key_file
-docker stack deploy -c docker-compose.yml -c docker-compose.production.yml devsynth
+docker stack deploy -c docker-compose.yml devsynth
 
 # Using environment files with restricted permissions
 
