@@ -151,10 +151,7 @@ class Settings(BaseSettings):
                 "DEVSYNTH_MEMORY_STORE", "memory"
             ),
             "kuzu_db_path": lambda s: os.environ.get("DEVSYNTH_KUZU_DB_PATH", None),
-            "kuzu_embedded": lambda s: os.environ.get(
-                "DEVSYNTH_KUZU_EMBEDDED", "true"
-            ).lower()
-            in ["true", "1", "yes"],
+            "kuzu_embedded": "kuzu_embedded",
             "openai_api_key": lambda s: os.environ.get("OPENAI_API_KEY", None),
             "access_token": lambda s: os.environ.get("DEVSYNTH_ACCESS_TOKEN", None),
         }
@@ -644,6 +641,10 @@ _settings_instance = None
 
 # Initialize settings for module-level access
 _settings = Settings()
+
+# Expose commonly used settings at module level
+kuzu_embedded = _settings.kuzu_embedded
+KUZU_EMBEDDED = _settings.kuzu_embedded
 
 
 def get_settings(reload: bool = False, **kwargs) -> Settings:

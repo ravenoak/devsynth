@@ -37,15 +37,21 @@ import importlib
 import sys
 
 required = ["pytest", "pytest_bdd", "pydantic", "yaml", "typer", "tiktoken", "chromadb"]
-missing = []
-for pkg in required:
-    try:
-        importlib.import_module(pkg)
-    except Exception:
-        missing.append(pkg)
-if missing:
-    sys.exit("Missing packages: " + ", ".join(missing))
-EOF
+  missing = []
+  for pkg in required:
+      try:
+          importlib.import_module(pkg)
+      except Exception:
+          missing.append(pkg)
+  if missing:
+      sys.exit("Missing packages: " + ", ".join(missing))
+  EOF
+
+# Kuzu is optional; skip related tests if it's not installed
+if ! poetry run python -c "import kuzu" >/dev/null 2>&1; then
+  echo "[warning] kuzu package not installed; kuzu tests will be skipped"
+  export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false
+fi
 
 # Double-check that pytest-bdd can be imported
 poetry run python -c "import pytest_bdd"
