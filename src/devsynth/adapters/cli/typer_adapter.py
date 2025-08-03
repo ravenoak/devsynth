@@ -451,7 +451,7 @@ def build_app() -> typer.Typer:
     )(generate_docs_cmd)
     app.command(
         name="security-audit",
-        help="Run security checks. Example: devsynth security-audit --skip-static",
+        help="Run security checks. Example: devsynth security-audit --skip-owasp",
     )(security_audit_cmd)
     app.command(
         name="ingest",
