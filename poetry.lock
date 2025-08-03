@@ -1059,7 +1059,7 @@ description = "DearPyGui: A simple Python GUI Toolkit"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"dpgui\""
+markers = "extra == \"gui\""
 files = [
     {file = "dearpygui-2.1.0-cp310-cp310-macosx_10_6_x86_64.whl", hash = "sha256:374d4c605affdf8a49eef4cf434f76e17df374590e51745b62c67025d1d41ec3"},
     {file = "dearpygui-2.1.0-cp310-cp310-macosx_13_0_arm64.whl", hash = "sha256:074985fa9d1622edda89c7f113d7a25ae5543f2e3f684bba3601e688c873936f"},
@@ -7968,8 +7968,8 @@ api = ["fastapi", "prometheus-client"]
 chromadb = ["chromadb", "tiktoken"]
 dev = ["pydantic-settings", "pyyaml", "toml"]
 docs = ["hypothesis"]
-dpgui = ["dearpygui"]
 gpu = ["nvidia-cublas-cu12", "nvidia-cuda-cupti-cu12", "nvidia-cuda-nvrtc-cu12", "nvidia-cuda-runtime-cu12", "nvidia-cudnn-cu12", "nvidia-cufft-cu12", "nvidia-cufile-cu12", "nvidia-curand-cu12", "nvidia-cusolver-cu12", "nvidia-cusparse-cu12", "nvidia-cusparselt-cu12", "nvidia-nccl-cu12", "nvidia-nvjitlink-cu12", "nvidia-nvtx-cu12", "torch"]
+gui = ["dearpygui"]
 llm = ["httpx", "tiktoken"]
 lmstudio = ["lmstudio"]
 memory = ["chromadb", "duckdb", "faiss-cpu", "kuzu", "lmdb", "numpy", "tinydb"]
@@ -7982,4 +7982,4 @@ webui = ["streamlit"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.12"
-content-hash = "522beedc9eb6b064aea978db570dba68126e62c4bb580004c827a27922608c36"
+content-hash = "8fdb9bb7f62977c8163525a52f3475812976e991cdfccd9c8afd5443a358fe0a"
