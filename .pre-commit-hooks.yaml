@@ -4,3 +4,9 @@
   entry: devsynth align --quiet
   language: system
   pass_filenames: false
+- id: check-frontmatter
+  name: check frontmatter formatting
+  description: "Detect frontmatter formatting issues in Markdown files"
+  entry: python scripts/fix_frontmatter.py --check
+  language: system
+  pass_filenames: false
