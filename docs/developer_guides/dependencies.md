@@ -37,6 +37,7 @@ Some features rely on additional packages. These dependencies are grouped using 
 - **`gpu`** – Installs `torch` and NVIDIA libraries for hardware acceleration.
 - **`api`** – Enables the FastAPI server and Prometheus metrics.
 - **`webui`** – Installs the Streamlit-based WebUI.
+- **`dpgui`** – Installs the Dear PyGui-based desktop UI.
 - **`lmstudio`** – Adds the LM Studio provider integration.
 - **`dev`** and **`docs`** – Development and documentation tooling.
 
@@ -67,7 +68,7 @@ From PyPI you can simply run:
 pip install devsynth
 ```
 
-Extras can be enabled later with `poetry install --extras llm --extras api` or `pip install 'devsynth[llm,api]'`.
+Extras can be enabled later with `poetry install --extras llm --extras api --extras dpgui` or `pip install 'devsynth[llm,api,dpgui]'`.
 
 ## Checking for Updates
 

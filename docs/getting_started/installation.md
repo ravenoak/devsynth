@@ -47,7 +47,7 @@ For a lightweight setup with only the core runtime:
 poetry install --without dev --without docs
 ```
 
-Extras may be added later using `poetry install --extras llm --extras api --extras offline`.
+Extras may be added later using `poetry install --extras llm --extras api --extras offline --extras dpgui`.
 Install the optional `gpu` extra for hardware-accelerated models:
 `poetry install --extras gpu`.
 
