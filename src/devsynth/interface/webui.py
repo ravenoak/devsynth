@@ -55,7 +55,7 @@ try:  # pragma: no cover - optional dependency handling
     _cli_mod = importlib.import_module("devsynth.application.cli")  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
     _cli_mod = None
-    
+
 # Import gather_requirements at the module level for better testability
 try:
     from devsynth.core.workflows import gather_requirements
@@ -308,7 +308,9 @@ class WebUI(UXBridge):
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         return st.checkbox(message, value=default, key=message)
 
-    def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str = None
+    ) -> None:
         """Display a message to the user with appropriate styling.
 
         Args:
@@ -349,7 +351,7 @@ class WebUI(UXBridge):
             # Use explicit message_type if provided
             if message_type == "error":
                 st.error(message)
-                
+
                 # Add suggestions and documentation links for common errors
                 error_type = self._get_error_type(message)
                 if error_type:
@@ -359,7 +361,7 @@ class WebUI(UXBridge):
                         st.markdown("**Suggestions:**")
                         for suggestion in suggestions:
                             st.markdown(f"- {suggestion}")
-    
+
                     # Add documentation links
                     doc_links = self._get_documentation_links(error_type)
                     if doc_links:
@@ -895,7 +897,7 @@ class WebUI(UXBridge):
     def _requirements_wizard(self) -> None:
         """
         Interactive requirements wizard using progress steps with WizardStateManager.
-        
+
         This wizard uses the WizardStateManager class for state management and allows users
         to define requirements through a 5-step process:
         1. Title: Enter the requirement title
@@ -903,9 +905,10 @@ class WebUI(UXBridge):
         3. Type: Select the requirement type
         4. Priority: Select the requirement priority
         5. Constraints: Enter any constraints
-        
+
         The wizard maintains state between steps and provides navigation controls.
         """
+
         # Helper function to validate each step
         def validate_step(wizard_state, step):
             """Validate the current step."""
@@ -920,72 +923,108 @@ class WebUI(UXBridge):
             elif step == 5:
                 return True  # Constraints are optional
             return True
-            
+
         try:
             # Import WizardStateManager for state management
             from devsynth.interface.wizard_state_manager import WizardStateManager
-            
+
             # Initialize the wizard state manager
             wizard_name = "requirements_wizard"
             steps = 5  # ["Title", "Description", "Type", "Priority", "Constraints"]
             initial_state = {
                 "title": os.environ.get("DEVSYNTH_REQ_TITLE", ""),
                 "description": os.environ.get("DEVSYNTH_REQ_DESCRIPTION", ""),
-                "type": os.environ.get("DEVSYNTH_REQ_TYPE", RequirementType.FUNCTIONAL.value),
-                "priority": os.environ.get("DEVSYNTH_REQ_PRIORITY", RequirementPriority.MEDIUM.value),
+                "type": os.environ.get(
+                    "DEVSYNTH_REQ_TYPE", RequirementType.FUNCTIONAL.value
+                ),
+                "priority": os.environ.get(
+                    "DEVSYNTH_REQ_PRIORITY", RequirementPriority.MEDIUM.value
+                ),
                 "constraints": os.environ.get("DEVSYNTH_REQ_CONSTRAINTS", ""),
-                "wizard_started": True  # Requirements wizard is always started (no start button)
+                "wizard_started": True,  # Requirements wizard is always started (no start button)
             }
-            
+
             # Create the wizard state manager
-            wizard_manager = WizardStateManager(st.session_state, wizard_name, steps, initial_state)
-            
+            wizard_manager = WizardStateManager(
+                st.session_state, wizard_name, steps, initial_state
+            )
+
             # Get the wizard state
             wizard_state = wizard_manager.get_wizard_state()
-            
+
             # Display the wizard header
             st.header("Requirements Wizard")
-            
+
             # Get the current step
             current_step = wizard_state.get_current_step()
             step_names = ["Title", "Description", "Type", "Priority", "Constraints"]
-            
+
             # Display progress information
-            st.write(f"Step {current_step} of {wizard_state.get_total_steps()}: {step_names[current_step - 1]}")
+            st.write(
+                f"Step {current_step} of {wizard_state.get_total_steps()}: {step_names[current_step - 1]}"
+            )
             st.progress(current_step / wizard_state.get_total_steps())
-            
+
             # Handle each step
             try:
                 if current_step == 1:
-                    title = st.text_input("Requirement Title", wizard_state.get("title", ""))
+                    title = st.text_input(
+                        "Requirement Title", wizard_state.get("title", "")
+                    )
                     wizard_state.set("title", title)
                 elif current_step == 2:
-                    description = st.text_area("Requirement Description", wizard_state.get("description", ""))
+                    description = st.text_area(
+                        "Requirement Description", wizard_state.get("description", "")
+                    )
                     wizard_state.set("description", description)
                 elif current_step == 3:
                     options = [t.value for t in RequirementType]
                     # Handle case where type is not in options
-                    current_type = wizard_state.get("type", RequirementType.FUNCTIONAL.value)
+                    current_type = wizard_state.get(
+                        "type", RequirementType.FUNCTIONAL.value
+                    )
                     try:
                         index = options.index(current_type)
                     except ValueError:
                         index = 0
                         wizard_state.set("type", options[0])
-                    selected_type = st.selectbox("Requirement Type", options, index=index)
-                    wizard_state.set("type", selected_type)
+                    selected_type = st.selectbox(
+                        "Requirement Type", options, index=index
+                    )
+                    if selected_type in options:
+                        wizard_state.set("type", selected_type)
+                    else:
+                        logger.warning(
+                            "Invalid requirement type selected: %s", selected_type
+                        )
+                        wizard_state.set("type", options[index])
                 elif current_step == 4:
                     options = [p.value for p in RequirementPriority]
                     # Handle case where priority is not in options
-                    current_priority = wizard_state.get("priority", RequirementPriority.MEDIUM.value)
+                    current_priority = wizard_state.get(
+                        "priority", RequirementPriority.MEDIUM.value
+                    )
                     try:
                         index = options.index(current_priority)
                     except ValueError:
                         index = 0
                         wizard_state.set("priority", options[0])
-                    selected_priority = st.selectbox("Requirement Priority", options, index=index)
-                    wizard_state.set("priority", selected_priority)
+                    selected_priority = st.selectbox(
+                        "Requirement Priority", options, index=index
+                    )
+                    if selected_priority in options:
+                        wizard_state.set("priority", selected_priority)
+                    else:
+                        logger.warning(
+                            "Invalid requirement priority selected: %s",
+                            selected_priority,
+                        )
+                        wizard_state.set("priority", options[index])
                 elif current_step == 5:
-                    constraints = st.text_area("Constraints (comma separated)", wizard_state.get("constraints", ""))
+                    constraints = st.text_area(
+                        "Constraints (comma separated)",
+                        wizard_state.get("constraints", ""),
+                    )
                     wizard_state.set("constraints", constraints)
             except Exception as e:
                 # Handle any UI rendering errors gracefully
@@ -995,27 +1034,33 @@ class WebUI(UXBridge):
                     message_type="error",
                     highlight=False,
                 )
-            
+
             # Navigation buttons
             col1, col2, col3 = st.columns(3)
-            
+
             # Previous button (disabled on first step)
             if current_step > 1:
                 if col1.button("Previous", key="previous_button"):
                     success = wizard_manager.previous_step()
                     if not success:
-                        self.display_result("Error navigating to previous step", message_type="error")
-            
+                        self.display_result(
+                            "Error navigating to previous step", message_type="error"
+                        )
+
             # Next button (on steps 1-4)
             if current_step < wizard_state.get_total_steps():
                 if col2.button("Next", key="next_button"):
                     if validate_step(wizard_state, current_step):
                         success = wizard_manager.next_step()
                         if not success:
-                            self.display_result("Error navigating to next step", message_type="error")
+                            self.display_result(
+                                "Error navigating to next step", message_type="error"
+                            )
                     else:
-                        self.display_result("Please fill in all required fields", message_type="error")
-            
+                        self.display_result(
+                            "Please fill in all required fields", message_type="error"
+                        )
+
             # Save button (on last step)
             if current_step == wizard_state.get_total_steps():
                 if col2.button("Save Requirements", key="save_button"):
@@ -1027,28 +1072,40 @@ class WebUI(UXBridge):
                                 "type": wizard_manager.get_value("type"),
                                 "priority": wizard_manager.get_value("priority"),
                                 "constraints": [
-                                    c.strip() for c in wizard_manager.get_value("constraints", "").split(",") if c.strip()
+                                    c.strip()
+                                    for c in wizard_manager.get_value(
+                                        "constraints", ""
+                                    ).split(",")
+                                    if c.strip()
                                 ],
                             }
-                            with open("requirements_wizard.json", "w", encoding="utf-8") as f:
+                            with open(
+                                "requirements_wizard.json", "w", encoding="utf-8"
+                            ) as f:
                                 f.write(json.dumps(result, indent=2))
                             self.display_result(
                                 "[green]Requirements saved to requirements_wizard.json[/green]",
-                                message_type="success"
+                                message_type="success",
                             )
                             # Mark the wizard as completed
                             success = wizard_manager.set_completed(True)
                             if not success:
-                                logger.warning(f"Failed to mark {wizard_name} as completed")
-                            
+                                logger.warning(
+                                    f"Failed to mark {wizard_name} as completed"
+                                )
+
                             # Reset wizard state
                             success = wizard_manager.reset_wizard_state()
                             if not success:
-                                logger.warning(f"Failed to reset {wizard_name} wizard state")
-                            
+                                logger.warning(
+                                    f"Failed to reset {wizard_name} wizard state"
+                                )
+
                             # Log the reset for debugging
-                            logger.debug(f"Reset {wizard_name} wizard state after completion")
-                            
+                            logger.debug(
+                                f"Reset {wizard_name} wizard state after completion"
+                            )
+
                             return result
                         except Exception as exc:
                             self.display_result(
@@ -1058,20 +1115,24 @@ class WebUI(UXBridge):
                             )
                             return None
                     else:
-                        self.display_result("Please fill in all required fields", message_type="error")
-            
+                        self.display_result(
+                            "Please fill in all required fields", message_type="error"
+                        )
+
             # Cancel button
             if col3.button("Cancel", key="cancel_button"):
                 # Reset the wizard state
                 success = wizard_manager.reset_wizard_state()
                 if not success:
                     logger.warning(f"Failed to reset {wizard_name} wizard state")
-                
+
                 # Log the reset for debugging
                 logger.debug(f"Reset {wizard_name} wizard state")
-                
-                self.display_result("Requirements wizard cancelled", message_type="info")
-                
+
+                self.display_result(
+                    "Requirements wizard cancelled", message_type="info"
+                )
+
         except Exception as e:
             # Catch-all for any unexpected errors
             logger.error(f"Unexpected error in requirements wizard: {str(e)}")
@@ -1080,25 +1141,25 @@ class WebUI(UXBridge):
                 message_type="error",
                 highlight=False,
             )
-            
+
         return
 
     def _gather_wizard(self) -> None:
         """
         Run the resource gathering wizard with multi-step navigation.
-        
+
         This wizard uses the WizardState class for state management and allows users
         to gather project resources through a 3-step process:
         1. Resource Type: Select the type of resource to gather
         2. Resource Location: Specify the location of the resource
         3. Resource Metadata: Add metadata for the resource
-        
+
         The wizard maintains state between steps and provides navigation controls.
         """
         try:
             # Import WizardState for state management
             from devsynth.interface.webui_state import WizardState
-            
+
             # Initialize the wizard state if it doesn't exist
             wizard_name = "gather_wizard"
             steps = 3
@@ -1106,9 +1167,9 @@ class WebUI(UXBridge):
                 "resource_type": "",
                 "resource_location": "",
                 "resource_metadata": {},
-                "wizard_started": False
+                "wizard_started": False,
             }
-            
+
             # Check if we already have a wizard state
             if not hasattr(st.session_state, f"{wizard_name}_current_step"):
                 # Create a new WizardState instance
@@ -1116,21 +1177,33 @@ class WebUI(UXBridge):
             else:
                 # Use the existing WizardState instance
                 wizard_state = WizardState(wizard_name, steps)
-                
+
                 # Validate the state to ensure it's not corrupted
-                expected_keys = ["resource_type", "resource_location", "resource_metadata", 
-                               "current_step", "total_steps", "completed", "wizard_started"]
-                actual_keys = [k.split('_', 1)[1] for k in st.session_state.keys() 
-                              if k.startswith(f"{wizard_name}_")]
-                
+                expected_keys = [
+                    "resource_type",
+                    "resource_location",
+                    "resource_metadata",
+                    "current_step",
+                    "total_steps",
+                    "completed",
+                    "wizard_started",
+                ]
+                actual_keys = [
+                    k.split("_", 1)[1]
+                    for k in st.session_state.keys()
+                    if k.startswith(f"{wizard_name}_")
+                ]
+
                 if not all(key in actual_keys for key in expected_keys):
                     # State is corrupted, reset it
-                    logger.warning(f"Corrupted wizard state detected for {wizard_name}, resetting")
+                    logger.warning(
+                        f"Corrupted wizard state detected for {wizard_name}, resetting"
+                    )
                     wizard_state.reset()
                     # Re-initialize with default values
                     for key, value in initial_state.items():
                         wizard_state.set(key, value)
-            
+
             # Check if the start button is clicked
             start_button_clicked = False
             try:
@@ -1144,25 +1217,31 @@ class WebUI(UXBridge):
                     highlight=False,
                 )
                 return
-            
+
             # If the wizard is not started and the button is not clicked, just show the button
-            if not start_button_clicked and wizard_state.get_current_step() == 1 and not wizard_state.get("wizard_started", False):
+            if (
+                not start_button_clicked
+                and wizard_state.get_current_step() == 1
+                and not wizard_state.get("wizard_started", False)
+            ):
                 return
-                
+
             # If the start button is clicked, mark the wizard as started
             if start_button_clicked:
                 wizard_state.set("wizard_started", True)
-            
+
             # Display the wizard header
             st.header("Resource Gathering Wizard")
-            
+
             # Get the current step
             current_step = wizard_state.get_current_step()
-            
+
             # Display progress information
-            st.write(f"Step {current_step} of {steps}: {self._get_gather_step_title(current_step)}")
+            st.write(
+                f"Step {current_step} of {steps}: {self._get_gather_step_title(current_step)}"
+            )
             st.progress(current_step / steps)
-            
+
             # Handle each step
             if current_step == 1:
                 # Step 1: Resource Type
@@ -1173,49 +1252,49 @@ class WebUI(UXBridge):
             elif current_step == 3:
                 # Step 3: Resource Metadata
                 self._handle_gather_step_3(wizard_state)
-            
+
             # Navigation buttons
             col1, col2, col3 = st.columns(3)
-            
+
             with col1:
                 # Previous button (not shown on first step)
                 if current_step > 1:
                     if st.button("Previous", key="previous_button"):
                         wizard_state.previous_step()
                         st.experimental_rerun()
-            
+
             with col2:
                 # Cancel button
                 if st.button("Cancel", key="cancel_button"):
                     # Reset the wizard state
                     wizard_state.reset()
-                    
+
                     # Re-initialize with default values
                     initial_state = {
                         "resource_type": "",
                         "resource_location": "",
                         "resource_metadata": {},
-                        "wizard_started": False
+                        "wizard_started": False,
                     }
-                    
+
                     # Ensure all state values are reset to their defaults
                     for key, value in initial_state.items():
                         wizard_state.set(key, value)
-                    
+
                     # Ensure navigation state is reset
                     wizard_state.set_completed(False)
                     wizard_state.go_to_step(1)
-                    
+
                     # Log the reset for debugging
                     logger.debug(f"Reset {wizard_name} wizard state")
-                    
+
                     self.display_result(
                         "[blue]Resource gathering canceled.[/blue]",
                         highlight=False,
-                        message_type="info"
+                        message_type="info",
                     )
                     st.experimental_rerun()
-            
+
             with col3:
                 # Next button (on steps 1-2) or Finish button (on step 3)
                 if current_step < steps:
@@ -1230,65 +1309,73 @@ class WebUI(UXBridge):
                         if self._validate_gather_step(wizard_state, current_step):
                             # Mark the wizard as completed
                             wizard_state.set_completed(True)
-                            
+
                             # Process the gathered resources
                             try:
                                 # Check if gather_requirements is available
                                 if gather_requirements is None:
-                                    raise ImportError("gather_requirements function not available")
-                                
+                                    raise ImportError(
+                                        "gather_requirements function not available"
+                                    )
+
                                 # Get the gathered data
                                 resource_type = wizard_state.get("resource_type")
-                                resource_location = wizard_state.get("resource_location")
-                                resource_metadata = wizard_state.get("resource_metadata")
-                                
+                                resource_location = wizard_state.get(
+                                    "resource_location"
+                                )
+                                resource_metadata = wizard_state.get(
+                                    "resource_metadata"
+                                )
+
                                 # Execute gather_requirements with the gathered data
                                 with st.spinner("Processing resources..."):
                                     gather_requirements(self)
-                                
+
                                 # Display success message
                                 self.display_result(
                                     "[green]Resources gathered successfully![/green]",
                                     highlight=False,
-                                    message_type="success"
+                                    message_type="success",
                                 )
-                                
+
                                 # Reset the wizard state
                                 wizard_state.reset()
-                                
+
                                 # Re-initialize with default values
                                 initial_state = {
                                     "resource_type": "",
                                     "resource_location": "",
                                     "resource_metadata": {},
-                                    "wizard_started": False
+                                    "wizard_started": False,
                                 }
-                                
+
                                 # Ensure all state values are reset to their defaults
                                 for key, value in initial_state.items():
                                     wizard_state.set(key, value)
-                                
+
                                 # Ensure navigation state is reset
                                 wizard_state.set_completed(False)
                                 wizard_state.go_to_step(1)
-                                
+
                                 # Log the reset for debugging
-                                logger.debug(f"Reset {wizard_name} wizard state after completion")
-                                
+                                logger.debug(
+                                    f"Reset {wizard_name} wizard state after completion"
+                                )
+
                                 # Rerun the UI to refresh the display
                                 st.experimental_rerun()
                             except ImportError as exc:
                                 self.display_result(
                                     f"[red]ERROR importing gather_requirements: {exc}[/red]",
                                     highlight=False,
-                                    message_type="error"
+                                    message_type="error",
                                 )
                                 wizard_state.set_completed(False)
                             except Exception as exc:
                                 self.display_result(
                                     f"[red]ERROR processing resources: {exc}[/red]",
                                     highlight=False,
-                                    message_type="error"
+                                    message_type="error",
                                 )
                                 wizard_state.set_completed(False)
         except Exception as e:
@@ -1297,94 +1384,102 @@ class WebUI(UXBridge):
                 f"[red]ERROR in gather wizard: {e}[/red]",
                 highlight=False,
             )
-            
+
     def _get_gather_step_title(self, step: int) -> str:
         """Get the title for a gather wizard step."""
-        titles = {
-            1: "Resource Type",
-            2: "Resource Location",
-            3: "Resource Metadata"
-        }
+        titles = {1: "Resource Type", 2: "Resource Location", 3: "Resource Metadata"}
         return titles.get(step, f"Step {step}")
-    
+
     def _handle_gather_step_1(self, wizard_state):
         """Handle the first step of the gather wizard (Resource Type)."""
         # Get the current value
         current_value = wizard_state.get("resource_type", "")
-        
+
         # Display the input field
         resource_type = st.selectbox(
             "Select the type of resource to gather:",
             ["", "documentation", "code", "data", "custom"],
-            index=0 if not current_value else ["", "documentation", "code", "data", "custom"].index(current_value),
-            key="resource_type_select"
+            index=(
+                0
+                if not current_value
+                else ["", "documentation", "code", "data", "custom"].index(
+                    current_value
+                )
+            ),
+            key="resource_type_select",
         )
-        
+
         # Save the value
         wizard_state.set("resource_type", resource_type)
-    
+
     def _handle_gather_step_2(self, wizard_state):
         """Handle the second step of the gather wizard (Resource Location)."""
         # Get the current value
         current_value = wizard_state.get("resource_location", "")
-        
+
         # Display the input field
         resource_location = st.text_input(
             "Enter the location of the resource:",
             value=current_value,
-            key="resource_location_input"
+            key="resource_location_input",
         )
-        
+
         # Save the value
         wizard_state.set("resource_location", resource_location)
-    
+
     def _handle_gather_step_3(self, wizard_state):
         """Handle the third step of the gather wizard (Resource Metadata)."""
         # Get the current metadata
         metadata = wizard_state.get("resource_metadata", {})
-        
+
         # Display the input fields
         st.subheader("Resource Metadata")
-        
+
         # Author field
         author = st.text_input(
-            "Author:",
-            value=metadata.get("author", ""),
-            key="metadata_author_input"
+            "Author:", value=metadata.get("author", ""), key="metadata_author_input"
         )
-        
+
         # Version field
         version = st.text_input(
-            "Version:",
-            value=metadata.get("version", ""),
-            key="metadata_version_input"
+            "Version:", value=metadata.get("version", ""), key="metadata_version_input"
         )
-        
+
         # Tags field
         tags_str = ",".join(metadata.get("tags", []))
         tags_input = st.text_input(
-            "Tags (comma-separated):",
-            value=tags_str,
-            key="metadata_tags_input"
+            "Tags (comma-separated):", value=tags_str, key="metadata_tags_input"
         )
         tags = [tag.strip() for tag in tags_input.split(",")] if tags_input else []
-        
+
         # Resource type specific fields
         resource_type = wizard_state.get("resource_type", "")
         if resource_type == "documentation":
             doc_type = st.selectbox(
                 "Documentation Type:",
                 ["", "user guide", "api reference", "tutorial", "other"],
-                index=0 if not metadata.get("doc_type") else ["", "user guide", "api reference", "tutorial", "other"].index(metadata.get("doc_type", "")),
-                key="metadata_doc_type_select"
+                index=(
+                    0
+                    if not metadata.get("doc_type")
+                    else ["", "user guide", "api reference", "tutorial", "other"].index(
+                        metadata.get("doc_type", "")
+                    )
+                ),
+                key="metadata_doc_type_select",
             )
             metadata["doc_type"] = doc_type
         elif resource_type == "code":
             language = st.selectbox(
                 "Programming Language:",
                 ["", "python", "javascript", "go", "rust", "other"],
-                index=0 if not metadata.get("language") else ["", "python", "javascript", "go", "rust", "other"].index(metadata.get("language", "")),
-                key="metadata_language_select"
+                index=(
+                    0
+                    if not metadata.get("language")
+                    else ["", "python", "javascript", "go", "rust", "other"].index(
+                        metadata.get("language", "")
+                    )
+                ),
+                key="metadata_language_select",
             )
             metadata["language"] = language
         elif resource_type == "custom":
@@ -1392,34 +1487,30 @@ class WebUI(UXBridge):
             custom_field = st.text_input(
                 "Custom Field Name:",
                 value=metadata.get("custom_field_name", ""),
-                key="metadata_custom_field_name_input"
+                key="metadata_custom_field_name_input",
             )
             custom_value = st.text_input(
                 "Custom Field Value:",
                 value=metadata.get("custom_field_value", ""),
-                key="metadata_custom_field_value_input"
+                key="metadata_custom_field_value_input",
             )
             if custom_field and custom_value:
                 metadata[custom_field] = custom_value
-        
+
         # Update the metadata
-        metadata.update({
-            "author": author,
-            "version": version,
-            "tags": tags
-        })
-        
+        metadata.update({"author": author, "version": version, "tags": tags})
+
         # Save the metadata
         wizard_state.set("resource_metadata", metadata)
-    
+
     def _validate_gather_step(self, wizard_state, step: int) -> bool:
         """
         Validate the current step of the gather wizard.
-        
+
         Args:
             wizard_state: The WizardState instance
             step: The step number to validate
-            
+
         Returns:
             True if the step is valid, False otherwise
         """
@@ -1430,7 +1521,7 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[red]Error: Please select a resource type.[/red]",
                     highlight=False,
-                    message_type="error"
+                    message_type="error",
                 )
                 return False
         elif step == 2:
@@ -1440,7 +1531,7 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[red]Error: Please enter a resource location.[/red]",
                     highlight=False,
-                    message_type="error"
+                    message_type="error",
                 )
                 return False
         elif step == 3:
@@ -1450,33 +1541,33 @@ class WebUI(UXBridge):
                 self.display_result(
                     "[red]Error: Please enter an author.[/red]",
                     highlight=False,
-                    message_type="error"
+                    message_type="error",
                 )
                 return False
             if not metadata.get("version"):
                 self.display_result(
                     "[red]Error: Please enter a version.[/red]",
                     highlight=False,
-                    message_type="error"
+                    message_type="error",
                 )
                 return False
-        
+
         return True
 
     def analysis_page(self) -> None:
         """Render the code analysis page."""
         st.header("Code Analysis")
-        
+
         # Helper functions for state management
         def get_session_value(key, default=None):
             return WebUIBridge.get_session_value(st.session_state, key, default)
-            
+
         def set_session_value(key, value):
             WebUIBridge.set_session_value(st.session_state, key, value)
-        
+
         # Get saved path from session state or use default
         saved_path = get_session_value("analysis_path", ".")
-        
+
         with st.expander("Inspect Code", expanded=True):
             with st.form("analysis"):
                 path = st.text_input("Path", saved_path)
@@ -1488,7 +1579,7 @@ class WebUI(UXBridge):
                 if submitted and path:
                     # Save path to session state
                     set_session_value("analysis_path", path)
-                    
+
                     # Validate that the path exists
                     if not Path(path).exists():
                         st.error(f"Path '{path}' not found")
@@ -1509,17 +1600,17 @@ class WebUI(UXBridge):
     def synthesis_page(self) -> None:
         """Render the synthesis execution page."""
         st.header("Synthesis Execution")
-        
+
         # Helper functions for state management
         def get_session_value(key, default=None):
             return WebUIBridge.get_session_value(st.session_state, key, default)
-            
+
         def set_session_value(key, value):
             WebUIBridge.set_session_value(st.session_state, key, value)
-        
+
         # Get saved spec file from session state or use default
         saved_spec_file = get_session_value("synthesis_spec_file", "specs.md")
-        
+
         with st.expander("Generate Tests", expanded=True):
             with st.form("tests"):
                 spec_file = st.text_input("Spec File", saved_spec_file)
@@ -1531,7 +1622,7 @@ class WebUI(UXBridge):
                 if submitted and spec_file:
                     # Save spec file to session state
                     set_session_value("synthesis_spec_file", spec_file)
-                    
+
                     # Validate that the spec file exists
                     if not Path(spec_file).exists():
                         st.error(f"Specification file '{spec_file}' not found")
@@ -1573,25 +1664,24 @@ class WebUI(UXBridge):
     def config_page(self) -> None:
         """Render the configuration editing page."""
         st.header("Configuration Editing")
-        
+
         # Helper functions for state management
         def get_session_value(key, default=None):
             return WebUIBridge.get_session_value(st.session_state, key, default)
-            
+
         def set_session_value(key, value):
             WebUIBridge.set_session_value(st.session_state, key, value)
 
         try:
             cfg = load_project_config()
-            
+
             # Get saved offline mode from session state or use config value
-            saved_offline_mode = get_session_value("config_offline_mode", cfg.config.offline_mode)
-            
-            offline_toggle = st.toggle(
-                "Offline Mode",
-                value=saved_offline_mode
+            saved_offline_mode = get_session_value(
+                "config_offline_mode", cfg.config.offline_mode
             )
-            
+
+            offline_toggle = st.toggle("Offline Mode", value=saved_offline_mode)
+
             # Save toggle state to session state when it changes
             if saved_offline_mode != offline_toggle:
                 set_session_value("config_offline_mode", offline_toggle)
