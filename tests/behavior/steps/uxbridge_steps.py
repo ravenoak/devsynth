@@ -15,11 +15,13 @@ from rich.prompt import Prompt, Confirm
 @pytest.fixture
 def context():
     """Create a context for the UXBridge tests."""
+
     class Context:
         def __init__(self):
             self.cli_bridge = None
             self.webui_bridge = None
             self.api_bridge = None
+            self.dpg_bridge = None
             self.workflow_result = None
             self.user_response = "yes"
             self.confirmation_result = True
@@ -36,8 +38,8 @@ def cli_running(context, monkeypatch):
     mock_prompt.ask.return_value = context.user_response
 
     # Create a CLIUXBridge with the mocked console
-    with patch('devsynth.interface.cli.Console', return_value=mock_console):
-        with patch('devsynth.interface.cli.Prompt', mock_prompt):
+    with patch("devsynth.interface.cli.Console", return_value=mock_console):
+        with patch("devsynth.interface.cli.Prompt", mock_prompt):
             context.cli_bridge = CLIUXBridge()
             context.cli_bridge.console = mock_console
 
@@ -45,12 +47,15 @@ def cli_running(context, monkeypatch):
 @given("the WebUI is running")
 def webui_running(context):
     """Set up a WebUI environment with a mock UXBridge."""
+
     # Create a mock WebUI bridge
     class MockWebUIBridge(UXBridge):
         def __init__(self):
             self.displayed_results = []
 
-        def ask_question(self, message, *, choices=None, default=None, show_default=True):
+        def ask_question(
+            self, message, *, choices=None, default=None, show_default=True
+        ):
             return context.user_response
 
         def confirm_choice(self, message, *, default=False):
@@ -65,13 +70,16 @@ def webui_running(context):
 @given("the Agent API is used")
 def agent_api_used(context):
     """Set up an Agent API environment with a mock UXBridge."""
+
     # Create a mock Agent API bridge
     class MockAgentAPIBridge(UXBridge):
         def __init__(self):
             self.questions_asked = []
             self.choices_confirmed = []
 
-        def ask_question(self, message, *, choices=None, default=None, show_default=True):
+        def ask_question(
+            self, message, *, choices=None, default=None, show_default=True
+        ):
             self.questions_asked.append((message, choices, default, show_default))
             return context.user_response
 
@@ -85,6 +93,29 @@ def agent_api_used(context):
     context.api_bridge = MockAgentAPIBridge()
 
 
+@given("Dear PyGUI is running")
+def dpg_running(context):
+    """Set up a Dear PyGUI environment with a mock UXBridge."""
+
+    class MockDPGBridge(UXBridge):
+        def __init__(self):
+            self.questions_asked = []
+
+        def ask_question(
+            self, message, *, choices=None, default=None, show_default=True
+        ):
+            self.questions_asked.append((message, choices, default, show_default))
+            return context.user_response
+
+        def confirm_choice(self, message, *, default=False):
+            return context.confirmation_result
+
+        def display_result(self, message, *, highlight=False):
+            pass
+
+    context.dpg_bridge = MockDPGBridge()
+
+
 @when(parsers.parse('a workflow asks "{question}"'))
 def workflow_asks_question(context, question):
     """Simulate a workflow asking a question through the bridge."""
@@ -92,6 +123,13 @@ def workflow_asks_question(context, question):
     # This avoids the issue with pytest trying to read from stdin
     assert context.cli_bridge is not None
     # We'll verify that the bridge exists, which is sufficient for this test
+
+
+@when("a workflow asks a question in Dear PyGUI")
+def workflow_asks_question_dpg(context):
+    """Simulate a workflow asking a question through Dear PyGUI."""
+    result = context.dpg_bridge.ask_question("Proceed?")
+    assert result == context.user_response
 
 
 @when("a workflow completes an action")
@@ -129,3 +167,8 @@ def choice_confirmed_through_bridge(context):
     assert len(context.api_bridge.choices_confirmed) > 0
     assert context.api_bridge.choices_confirmed[0][0] == "Proceed with this action?"
 
+
+@then("the user is prompted through Dear PyGUI")
+def user_prompted_through_dpg(context):
+    """Verify that the user was prompted via the Dear PyGUI bridge."""
+    assert len(context.dpg_bridge.questions_asked) > 0

@@ -17,3 +17,8 @@ Feature: UXBridge Interface
     Given the Agent API is used
     When a workflow requires confirmation
     Then the choice is confirmed through the bridge
+
+  Scenario: Dear PyGUI prompts the user
+    Given Dear PyGUI is running
+    When a workflow asks a question in Dear PyGUI
+    Then the user is prompted through Dear PyGUI
