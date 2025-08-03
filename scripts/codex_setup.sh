@@ -15,6 +15,7 @@ poetry env info --path >/dev/null
 poetry install \
   --with dev,docs \
   --all-extras \
+  --without offline,gpu \
   --no-interaction
 
 # Validate dependency installation
@@ -37,15 +38,15 @@ import importlib
 import sys
 
 required = ["pytest", "pytest_bdd", "pydantic", "yaml", "typer", "tiktoken", "chromadb"]
-  missing = []
-  for pkg in required:
-      try:
-          importlib.import_module(pkg)
-      except Exception:
-          missing.append(pkg)
-  if missing:
-      sys.exit("Missing packages: " + ", ".join(missing))
-  EOF
+missing = []
+for pkg in required:
+    try:
+        importlib.import_module(pkg)
+    except Exception:
+        missing.append(pkg)
+if missing:
+    sys.exit("Missing packages: " + ", ".join(missing))
+EOF
 
 # Kuzu is optional; skip related tests if it's not installed
 if ! poetry run python -c "import kuzu" >/dev/null 2>&1; then
