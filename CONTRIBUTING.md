@@ -50,7 +50,13 @@ pre-commit install
 
 # Run all hooks on the current codebase
 pre-commit run --all-files
+
+# Run the alignment check manually
+pre-commit run devsynth-align --all-files
 ```
+
+The `devsynth-align` hook runs `devsynth align --quiet` and will block commits
+if alignment issues are detected.
 
 ## Testing
 
