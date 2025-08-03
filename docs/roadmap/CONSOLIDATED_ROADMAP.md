@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Consolidated Roadmap"
 date: "2025-08-02"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "roadmap"
   - "release"

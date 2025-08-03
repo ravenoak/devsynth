@@ -45,6 +45,7 @@ version has been published yet.
 - Updated cross-references in documentation
 - Renamed CLI commands: `adaptive`→`refactor`, `analyze`→`inspect`, `run`→`run-pipeline`, `replay`→`retrace`
 - Synchronized feature status reports with latest implementation
+- Stabilized pre-release references to maintain version `0.1.0-alpha.1` across configuration and documentation
 
 ### Fixed
 - Improved error handling in the EDRR coordinator
@@ -59,4 +60,3 @@ version has been published yet.
 ### Fixed
 - Optional tiktoken dependency no longer breaks Kuzu memory initialization
 - Added missing step definitions for enhanced memory scenarios
-
