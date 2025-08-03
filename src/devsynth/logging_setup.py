@@ -365,35 +365,59 @@ class DevSynthLogger:
         # Don't create log directory here - defer until explicitly configured
         # This is important for test isolation
 
+    def _log(self, level: int, msg: str, *args, **kwargs) -> None:
+        """Internal helper to dispatch log messages with standard kwargs.
+
+        This method ensures standard logging parameters like ``exc_info``,
+        ``stack_info`` and ``stacklevel`` are handled correctly while any
+        remaining keyword arguments are treated as ``extra`` fields.  This
+        avoids ``KeyError`` exceptions when callers provide legitimate logging
+        kwargs from higher-level APIs such as the requirements wizard.
+        """
+
+        exc = kwargs.pop("exc_info", None)
+        stack_info = kwargs.pop("stack_info", None)
+        stacklevel = kwargs.pop("stacklevel", None)
+        extra = kwargs.pop("extra", None)
+
+        if kwargs:
+            if extra is None:
+                extra = kwargs
+            else:
+                extra.update(kwargs)
+
+        log_kwargs: dict[str, Any] = {"exc_info": exc, "extra": extra}
+        if stack_info is not None:
+            log_kwargs["stack_info"] = stack_info
+        if stacklevel is not None:
+            log_kwargs["stacklevel"] = stacklevel
+
+        self.logger.log(level, msg, *args, **log_kwargs)
+
     def debug(self, msg: str, *args, **kwargs) -> None:
         """Log a debug message."""
-        exc = kwargs.pop("exc_info", None)
-        self.logger.debug(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
+        self._log(logging.DEBUG, msg, *args, **kwargs)
 
     def info(self, msg: str, *args, **kwargs) -> None:
         """Log an info message."""
-        exc = kwargs.pop("exc_info", None)
-        self.logger.info(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
+        self._log(logging.INFO, msg, *args, **kwargs)
 
     def warning(self, msg: str, *args, **kwargs) -> None:
         """Log a warning message."""
-        exc = kwargs.pop("exc_info", None)
-        self.logger.warning(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
+        self._log(logging.WARNING, msg, *args, **kwargs)
 
     def error(self, msg: str, *args, **kwargs) -> None:
         """Log an error message."""
-        exc = kwargs.pop("exc_info", None)
-        self.logger.error(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
+        self._log(logging.ERROR, msg, *args, **kwargs)
 
     def critical(self, msg: str, *args, **kwargs) -> None:
         """Log a critical message."""
-        exc = kwargs.pop("exc_info", None)
-        self.logger.critical(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
+        self._log(logging.CRITICAL, msg, *args, **kwargs)
 
     def exception(self, msg: str, *args, **kwargs) -> None:
         """Log an exception message with traceback."""
-        exc = kwargs.pop("exc_info", None)
-        self.logger.exception(msg, *args, exc_info=exc, extra=kwargs if kwargs else None)
+        kwargs.setdefault("exc_info", True)
+        self._log(logging.ERROR, msg, *args, **kwargs)
 
 
 # Don't configure logging on import - this is now explicit
