@@ -56,6 +56,12 @@ jobs:
       - name: Validate MkDocs configuration
         run: |
           mkdocs build --strict
+      - name: Run project checks
+        # Runs tests and documentation checks; fails if any script exits non-zero
+        run: |
+          python scripts/run_all_tests.py
+          python scripts/check_internal_links.py
+          python scripts/fix_code_blocks.py --check
       - name: Summary
         run: |
           echo "Documentation validation completed successfully!"

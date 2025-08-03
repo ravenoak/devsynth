@@ -19,25 +19,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e .[dev,docs]
-          
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install TypeScript
         run: npm install -g typescript
-          
+
       - name: Verify code examples in documentation
         run: |
           python scripts/verify_code_examples.py docs README.md DEVELOPMENT_PLAN.md DEVONBOARDING.md --verbose
+
+      - name: Run project checks
+        # Runs tests and documentation checks; fails if any script exits non-zero
+        run: |
+          python scripts/run_all_tests.py
+          python scripts/check_internal_links.py
+          python scripts/fix_code_blocks.py --check
