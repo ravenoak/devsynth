@@ -231,18 +231,18 @@ This command allows you to view or modify DevSynth configuration settings. It pr
 Validates environment configuration files for common issues.
 
 ```bash
-devsynth doctor [--config-dir DIR]
-devsynth check [--config-dir DIR]
+devsynth doctor [--config-dir DIR] [--quick]
+devsynth check [--config-dir DIR] [--quick]
 ```
 
 **Example:**
 
 ```bash
-devsynth doctor --config-dir ./config
+devsynth doctor --config-dir ./config --quick
 ```
 
 **Details:**
-Run this command before other workflows to ensure your `config/*.yml` files are complete. If no configuration is found, the output suggests running `devsynth init` to generate defaults.
+Run this command before other workflows to ensure your `config/*.yml` files are complete. If no configuration is found, the output suggests running `devsynth init` to generate defaults. Using the `--quick` flag also performs an alignment check and executes unit tests for a concise project health assessment.
 
 ## Configuration Options
 

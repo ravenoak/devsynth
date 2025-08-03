@@ -8,7 +8,8 @@ from typing import Optional
 import importlib.util
 import os
 import sys
-import subprocess
+from . import align_cmd
+from devsynth.testing.run_tests import run_tests
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -16,7 +17,10 @@ console = Console()
 
 
 def doctor_cmd(
-    config_dir: str = "config", quick: bool = False, *, bridge: Optional[UXBridge] = None
+    config_dir: str = "config",
+    quick: bool = False,
+    *,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Validate environment configuration files and provide hints.
 
@@ -35,6 +39,7 @@ def doctor_cmd(
     ux_bridge = bridge if bridge is not None else globals()["bridge"]
     try:
         from devsynth.application.cli.cli_commands import _check_services
+
         config = load_config()
         _check_services(ux_bridge)
         if _find_project_config(Path.cwd()) is None:
@@ -71,7 +76,9 @@ def doctor_cmd(
 
         # check for core dependencies
         core_deps = ["rich", "pytest"]
-        missing_deps = [pkg for pkg in core_deps if importlib.util.find_spec(pkg) is None]
+        missing_deps = [
+            pkg for pkg in core_deps if importlib.util.find_spec(pkg) is None
+        ]
         if missing_deps:
             ux_bridge.print(
                 f"[yellow]Missing dependencies: {', '.join(missing_deps)}[/yellow]"
@@ -157,22 +164,28 @@ def doctor_cmd(
             warnings = True
 
         if quick:
-            ux_bridge.print("[blue]Running quick tests...[/blue]")
+            ux_bridge.print("[blue]Running alignment check...[/blue]")
             try:
-                result = subprocess.run(
-                    [sys.executable, "-m", "pytest", "-q"],
-                    capture_output=True,
-                    text=True,
-                )
-                if result.returncode != 0:
-                    ux_bridge.print("[yellow]Quick tests failed[/yellow]")
+                issues = align_cmd.check_alignment(bridge=ux_bridge)
+                align_cmd.display_issues(issues, bridge=ux_bridge)
+                if issues:
                     warnings = True
-                else:
-                    ux_bridge.print("[green]Quick tests passed[/green]")
             except Exception as exc:  # pragma: no cover - defensive
                 ux_bridge.print(
-                    f"[yellow]Quick tests could not be run: {exc}[/yellow]"
+                    f"[yellow]Alignment check could not be run: {exc}[/yellow]"
                 )
+                warnings = True
+
+            ux_bridge.print("[blue]Running unit tests...[/blue]")
+            try:
+                success, _ = run_tests("unit-tests")
+                if not success:
+                    ux_bridge.print("[yellow]Unit tests failed[/yellow]")
+                    warnings = True
+                else:
+                    ux_bridge.print("[green]Unit tests passed[/green]")
+            except Exception as exc:  # pragma: no cover - defensive
+                ux_bridge.print(f"[yellow]Unit tests could not be run: {exc}[/yellow]")
                 warnings = True
 
         if warnings:
