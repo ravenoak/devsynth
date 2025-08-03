@@ -259,12 +259,11 @@ suite or specific groups of tests and optionally generate an HTML report:
 
 See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
 
-## Deprecated Scripts
+## Alignment and Manifest Validation
 
-The helper scripts `scripts/alignment_check.py` and `scripts/validate_manifest.py`
-are deprecated. Use `devsynth align` and `devsynth validate-manifest`
-respectively. These wrappers will be removed in a future release once users
-transition to the corresponding CLI commands.
+Use `devsynth align` and `devsynth validate-manifest` for alignment checks and
+manifest validation. These CLI commands replace the legacy helper scripts and
+will fully supersede them in a future release.
 
 ## Documentation Structure
 

@@ -53,6 +53,9 @@ version has been published yet.
 ### Changed
 - Updated documentation to reflect implementation of WebUI, CLI overhaul,
   hybrid memory architecture, and basic metrics system.
+### Deprecated
+- `scripts/alignment_check.py` and `scripts/validate_manifest.py` replaced by
+  CLI commands `devsynth align` and `devsynth validate-manifest`.
 ### Fixed
 - Optional tiktoken dependency no longer breaks Kuzu memory initialization
 - Added missing step definitions for enhanced memory scenarios
