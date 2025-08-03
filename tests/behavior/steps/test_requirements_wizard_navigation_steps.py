@@ -33,8 +33,6 @@ def wizard_context(monkeypatch):
         pass
 
     st.session_state = SS()
-    st.session_state.wizard_step = 0
-    st.session_state.wizard_data = {}
     st.sidebar = ModuleType("sidebar")
     st.sidebar.radio = MagicMock(return_value="Requirements")
     st.sidebar.title = MagicMock()
@@ -47,7 +45,7 @@ def wizard_context(monkeypatch):
     st.text_area = MagicMock(return_value="desc")
     st.selectbox = MagicMock(return_value="choice")
     st.checkbox = MagicMock(return_value=True)
-    st.button = MagicMock(side_effect=[False, True, False])
+    st.button = MagicMock(return_value=False)
     st.spinner = DummyForm
     st.divider = MagicMock()
     st.columns = MagicMock(
@@ -78,8 +76,11 @@ def _init(wizard_context):
 @pytest.mark.medium
 @when("I open the requirements wizard")
 def open_wizard(wizard_context):
-    wizard_context["st"].sidebar.radio.return_value = "Requirements"
-    wizard_context["ui"].requirements_page()
+    col1 = MagicMock(button=lambda *a, **k: False)
+    col2 = MagicMock(button=lambda *a, **k: False)
+    col3 = MagicMock(button=lambda *a, **k: False)
+    wizard_context["st"].columns.return_value = (col1, col2, col3)
+    wizard_context["ui"]._requirements_wizard()
 
 
 @pytest.mark.medium
@@ -87,7 +88,8 @@ def open_wizard(wizard_context):
 def click_next(wizard_context):
     col1 = MagicMock(button=lambda *a, **k: False)
     col2 = MagicMock(button=lambda *a, **k: True)
-    wizard_context["st"].columns.return_value = (col1, col2)
+    col3 = MagicMock(button=lambda *a, **k: False)
+    wizard_context["st"].columns.return_value = (col1, col2, col3)
     wizard_context["ui"]._requirements_wizard()
 
 
@@ -96,17 +98,34 @@ def click_next(wizard_context):
 def click_back(wizard_context):
     col1 = MagicMock(button=lambda *a, **k: True)
     col2 = MagicMock(button=lambda *a, **k: False)
-    wizard_context["st"].columns.return_value = (col1, col2)
+    col3 = MagicMock(button=lambda *a, **k: False)
+    wizard_context["st"].columns.return_value = (col1, col2, col3)
+    wizard_context["ui"]._requirements_wizard()
+
+
+@pytest.mark.medium
+@when("I click the wizard cancel button")
+def click_cancel(wizard_context):
+    col1 = MagicMock(button=lambda *a, **k: False)
+    col2 = MagicMock(button=lambda *a, **k: False)
+    col3 = MagicMock(button=lambda *a, **k: True)
+    wizard_context["st"].columns.return_value = (col1, col2, col3)
     wizard_context["ui"]._requirements_wizard()
 
 
 @pytest.mark.medium
 @then("the wizard should show step 2")
 def show_step_two(wizard_context):
-    assert wizard_context["st"].session_state.wizard_step == 1
+    assert wizard_context["st"].session_state["requirements_wizard_current_step"] == 2
 
 
 @pytest.mark.medium
 @then("the wizard should show step 1")
 def show_step_one(wizard_context):
-    assert wizard_context["st"].session_state.wizard_step == 0
+    assert wizard_context["st"].session_state["requirements_wizard_current_step"] == 1
+
+
+@pytest.mark.medium
+@then("the wizard state should reset to step 1")
+def state_reset(wizard_context):
+    assert wizard_context["st"].session_state["requirements_wizard_current_step"] == 1
