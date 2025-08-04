@@ -115,6 +115,41 @@ graph TD
 
 ![Dear PyGUI layout](diagrams/dpg_overview.svg)
 
+### Button Layout
+
+The desktop client exposes the following buttons mapped to their CLI commands:
+
+| Button Label       | CLI Command |
+|--------------------|-------------|
+| Init               | `init` |
+| Gather             | `gather` |
+| Inspect            | `inspect` |
+| Spec               | `spec` |
+| Test               | `test` |
+| Code               | `code` |
+| Run Pipeline       | `run-pipeline` |
+| Config             | `config` |
+| Enable Feature     | `config enable-feature` |
+| Wizard             | `wizard` |
+| Inspect Code       | `inspect-code` |
+| Refactor           | `refactor` |
+| Webapp             | `webapp` |
+| Serve              | `serve` |
+| DbSchema           | `dbschema` |
+| Doctor             | `doctor` |
+| Check              | `check` |
+| EDRR Cycle         | `EDRR-cycle` |
+| Align              | `align` |
+| Alignment Metrics  | `alignment-metrics` |
+| Inspect Config     | `inspect-config` |
+| Validate Manifest  | `validate-manifest` |
+| Validate Metadata  | `validate-metadata` |
+| Test Metrics       | `test-metrics` |
+| Generate Docs      | `generate-docs` |
+| Ingest             | `ingest` |
+| API Spec           | `apispec` |
+| WebUI              | `webui` |
+
 ## Unified Interaction Pattern
 
 Both CLI commands and the WebUI rely on the same interaction calls. A single

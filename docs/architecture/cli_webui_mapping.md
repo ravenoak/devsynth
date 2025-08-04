@@ -33,32 +33,32 @@ abstraction to reuse the CLI's backend functions.
 | CLI Command / Subcommand  | WebUI Page / Action                                   | Dear PyGUI Widget / Action               |
 |---------------------------|-------------------------------------------------------|------------------------------------------|
 | `init`                    | **Onboarding** – Initialize Project form             | **Init** button                           |
-| `spec`                    | **Requirements** – Generate Specs form               | N/A                                      |
-| `test`                    | **Synthesis** – Generate Tests form                  | N/A                                      |
-| `code`                    | **Synthesis** – Generate Code button                 | N/A                                      |
-| `run-pipeline`            | **Synthesis** – Run Pipeline button                  | N/A                                      |
-| `config`                  | **Config** – Update/View Configuration               | N/A                                      |
-| `config enable-feature`   | **Config** – Manage Feature Flags                    | N/A                                      |
+| `spec`                    | **Requirements** – Generate Specs form               | **Spec** button                          |
+| `test`                    | **Synthesis** – Generate Tests form                  | **Test** button                          |
+| `code`                    | **Synthesis** – Generate Code button                 | **Code** button                          |
+| `run-pipeline`            | **Synthesis** – Run Pipeline button                  | **Run Pipeline** button                  |
+| `config`                  | **Config** – Update/View Configuration               | **Config** button                        |
+| `config enable-feature`   | **Config** – Manage Feature Flags                    | **Enable Feature** button                |
 | `inspect`                 | **Requirements** – Inspect Requirements form         | **Inspect** button                        |
 | `gather`                  | **Requirements** – Requirements Plan Wizard          | **Gather** button                         |
-| `wizard`                  | **Requirements** – Requirements Wizard               | N/A                                      |
-| `inspect-code`            | **Analysis** – Inspect Code form                     | N/A                                      |
-| `refactor`                | **Analysis** – Refactor Suggestions page             | N/A                                      |
-| `webapp`                  | **Web App** – Web App Helper page                    | N/A                                      |
-| `serve`                   | **Serve** – API Server management page               | N/A                                      |
-| `dbschema`                | **Database** – Database Schema page                  | N/A                                      |
-| `doctor` / `check`        | **Doctor** – Diagnostics page                        | N/A                                      |
-| `EDRR-cycle`              | **EDRR** – Cycle execution page                      | N/A                                      |
-| `align`                   | **Alignment** – SDLC consistency checks              | N/A                                      |
-| `alignment-metrics`       | **Alignment Metrics** – Metrics reporting page       | N/A                                      |
-| `inspect-config`          | **Inspect Config** – Configuration analysis page     | N/A                                      |
-| `validate-manifest`       | **Validate Manifest** – Configuration validation page | N/A                                      |
-| `validate-metadata`       | **Validate Metadata** – Metadata validation page     | N/A                                      |
-| `test-metrics`            | **Test Metrics** – Test metrics reporting page       | N/A                                      |
-| `generate-docs`           | **Generate Docs** – Documentation generation page    | N/A                                      |
-| `ingest`                  | **Ingest** – Project ingestion page                  | N/A                                      |
-| `apispec`                 | **API Spec** – API specification page                | N/A                                      |
-| `webui`                   | Launches the WebUI                                   | N/A                                      |
+| `wizard`                  | **Requirements** – Requirements Wizard               | **Wizard** button                        |
+| `inspect-code`            | **Analysis** – Inspect Code form                     | **Inspect Code** button                  |
+| `refactor`                | **Analysis** – Refactor Suggestions page             | **Refactor** button                      |
+| `webapp`                  | **Web App** – Web App Helper page                    | **Webapp** button                        |
+| `serve`                   | **Serve** – API Server management page               | **Serve** button                         |
+| `dbschema`                | **Database** – Database Schema page                  | **DbSchema** button                      |
+| `doctor` / `check`        | **Doctor** – Diagnostics page                        | **Doctor** / **Check** buttons           |
+| `EDRR-cycle`              | **EDRR** – Cycle execution page                      | **EDRR Cycle** button                    |
+| `align`                   | **Alignment** – SDLC consistency checks              | **Align** button                         |
+| `alignment-metrics`       | **Alignment Metrics** – Metrics reporting page       | **Alignment Metrics** button             |
+| `inspect-config`          | **Inspect Config** – Configuration analysis page     | **Inspect Config** button                |
+| `validate-manifest`       | **Validate Manifest** – Configuration validation page | **Validate Manifest** button             |
+| `validate-metadata`       | **Validate Metadata** – Metadata validation page     | **Validate Metadata** button             |
+| `test-metrics`            | **Test Metrics** – Test metrics reporting page       | **Test Metrics** button                  |
+| `generate-docs`           | **Generate Docs** – Documentation generation page    | **Generate Docs** button                 |
+| `ingest`                  | **Ingest** – Project ingestion page                  | **Ingest** button                        |
+| `apispec`                 | **API Spec** – API specification page                | **API Spec** button                      |
+| `webui`                   | Launches the WebUI                                   | **WebUI** button                         |
 | `dpg`                     | N/A                                                   | Launches the Dear PyGUI interface        |
 
 All CLI commands now have corresponding WebUI pages. The Dear PyGUI desktop
