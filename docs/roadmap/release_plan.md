@@ -42,8 +42,13 @@ git push origin v0.1.0-alpha.1
 - Prepare packaging and automation for a tagged stable release.
 
 ### 0.2.0
+- Achieve baseline Dear PyGui parity for core workflows via the desktop interface; requires the `gui` optional extras (`devsynth[gui]`). See the [Dear PyGui User Guide](../user_guides/dearpygui.md).
 - Expand WebUI features with enhanced requirements workflows.
 - Introduce plugin interfaces for third-party provider integration.
 - Iterate on memory system scalability and performance.
+
+### 0.3.0
+- Reach full feature parity with Dear PyGui across advanced workflows.
+- Refine plugin architecture and cross-platform GUI support.
 
 Future milestones will be appended to this document as they are defined. For implementation status of individual features, consult the [Feature Status Matrix](../implementation/feature_status_matrix.md).
