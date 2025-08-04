@@ -1,40 +1,37 @@
-import os
+import importlib.util
 import json
+import os
 import shutil
 from pathlib import Path
-from typing import Optional, Union, List, Dict, Any
-
+from typing import Any, Dict, List, Optional, Union
 
 import typer
-import importlib.util
 from rich.console import Console
 
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
-
+from devsynth.config import config_key_autocomplete as loader_autocomplete
+from devsynth.config import get_settings
+from devsynth.config.loader import ConfigModel, _find_config_path, save_config
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.core import workflows
 from devsynth.core.workflows import (
     filter_args,
-    init_project,
+    gather_requirements,
+    generate_code,
     generate_specs,
     generate_tests,
-    generate_code,
-    run_pipeline,
+    init_project,
     inspect_requirements,
-    gather_requirements,
+    run_pipeline,
 )
-from devsynth.logging_setup import configure_logging
-from ..orchestration.refactor_workflow import refactor_workflow_manager
-from devsynth.logging_setup import DevSynthLogger, get_logger
 from devsynth.exceptions import DevSynthError
-from devsynth.config import (
-    get_settings,
-    config_key_autocomplete as loader_autocomplete,
-)
-from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.config.loader import ConfigModel, save_config, _find_config_path
-from .commands.edrr_cycle_cmd import edrr_cycle_cmd
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger, configure_logging, get_logger
+
+from ..orchestration.refactor_workflow import refactor_workflow_manager
 from .commands.doctor_cmd import doctor_cmd as _doctor_impl
+from .commands.edrr_cycle_cmd import edrr_cycle_cmd
+from .commands.run_tests_cmd import run_tests_cmd
 from .errors import handle_error_enhanced
 
 # Optional Dear PyGUI interface support
@@ -512,8 +509,9 @@ def spec_cmd(
         ```
     """
     from rich.console import Console
+
     from .progress import create_enhanced_progress, run_with_progress
-    
+
     console = Console()
     bridge = _resolve_bridge(bridge)
     auto_confirm = (
@@ -545,84 +543,98 @@ def spec_cmd(
             {"name": "Generating specifications", "total": 40},
             {"name": "Validating output", "total": 10},
         ]
-        
+
         # Create a function to run with progress tracking
         def generate_specs_with_progress():
             # Create progress indicator for the main task
-            progress = create_enhanced_progress(console, "Generating specifications", 100)
-            
+            progress = create_enhanced_progress(
+                console, "Generating specifications", 100
+            )
+
             try:
                 # Add subtasks
                 for subtask in subtasks:
                     progress.add_subtask(subtask["name"], subtask["total"])
-                
+
                 # Update progress for first subtask
-                progress.update_subtask("Analyzing requirements", advance=15, 
-                                       description="Parsing requirements file")
-                
+                progress.update_subtask(
+                    "Analyzing requirements",
+                    advance=15,
+                    description="Parsing requirements file",
+                )
+
                 # Generate specifications
                 args = filter_args({"requirements_file": requirements_file})
-                
+
                 # Update progress for first subtask completion
                 progress.update_subtask("Analyzing requirements", advance=15)
                 progress.complete_subtask("Analyzing requirements")
-                
+
                 # Update progress for second subtask
                 progress.update_subtask("Extracting key concepts", advance=20)
                 progress.complete_subtask("Extracting key concepts")
-                
+
                 # Update progress for third subtask
-                progress.update_subtask("Generating specifications", advance=20, 
-                                       description="Creating specification structure")
-                progress.update_subtask("Generating specifications", advance=20, 
-                                       description="Writing specification details")
-                
+                progress.update_subtask(
+                    "Generating specifications",
+                    advance=20,
+                    description="Creating specification structure",
+                )
+                progress.update_subtask(
+                    "Generating specifications",
+                    advance=20,
+                    description="Writing specification details",
+                )
+
                 # Call the actual generate_specs function
                 result = generate_specs(**args)
-                
+
                 # Update progress for remaining subtasks
                 progress.complete_subtask("Generating specifications")
                 progress.update_subtask("Validating output", advance=10)
                 progress.complete_subtask("Validating output")
-                
+
                 # Update main task progress
                 progress.update(advance=100)
-                
+
                 return result
             finally:
                 # Ensure progress is completed even if an error occurs
                 progress.complete()
-        
+
         # Run the specification generation with progress tracking
         result = generate_specs_with_progress()
 
         # Handle result
         if result.get("success"):
             output_file = result.get("output_file", "specs.md")
-            
+
             # Create a summary table of what was generated
             from rich.table import Table
+
             summary_table = Table(title="Specification Generation Summary")
             summary_table.add_column("Item", style="cyan")
             summary_table.add_column("Value", style="green")
-            
+
             summary_table.add_row("Input File", requirements_file)
             summary_table.add_row("Output File", output_file)
             if "stats" in result:
                 stats = result["stats"]
                 for key, value in stats.items():
                     summary_table.add_row(key.replace("_", " ").title(), str(value))
-            
+
             console.print(summary_table)
-            
+
             bridge.display_result(
                 f"[green]Specifications successfully generated from {requirements_file}.[/green]",
-                highlight=True
+                highlight=True,
             )
-            
+
             # Show next steps
             bridge.display_result("\n[bold]Next Steps:[/bold]")
-            bridge.display_result(f"1. Review the generated specifications in {output_file}")
+            bridge.display_result(
+                f"1. Review the generated specifications in {output_file}"
+            )
             bridge.display_result("2. Generate tests: devsynth test")
             bridge.display_result("3. Generate code: devsynth code")
         else:
@@ -659,8 +671,9 @@ def test_cmd(
     """
     from rich.console import Console
     from rich.table import Table
+
     from .progress import create_enhanced_progress
-    
+
     console = Console()
     bridge = _resolve_bridge(bridge)
     auto_confirm = (
@@ -690,85 +703,94 @@ def test_cmd(
             {"name": "Generating integration tests", "total": 15},
             {"name": "Generating behavior tests", "total": 15},
         ]
-        
+
         # Create a function to run with progress tracking
         def generate_tests_with_progress():
             # Create progress indicator for the main task
             progress = create_enhanced_progress(console, "Generating tests", 100)
-            
+
             try:
                 # Add subtasks
                 for subtask in subtasks:
                     progress.add_subtask(subtask["name"], subtask["total"])
-                
+
                 # Update progress for first subtask
-                progress.update_subtask("Analyzing specifications", advance=15, 
-                                       description="Parsing specification file")
-                
+                progress.update_subtask(
+                    "Analyzing specifications",
+                    advance=15,
+                    description="Parsing specification file",
+                )
+
                 # Generate tests
                 args = filter_args({"spec_file": spec_file})
-                
+
                 # Update progress for first subtask completion
                 progress.update_subtask("Analyzing specifications", advance=10)
                 progress.complete_subtask("Analyzing specifications")
-                
+
                 # Update progress for second subtask
-                progress.update_subtask("Identifying test cases", advance=15, 
-                                       description="Extracting testable requirements")
-                progress.update_subtask("Identifying test cases", advance=10, 
-                                       description="Defining test boundaries")
+                progress.update_subtask(
+                    "Identifying test cases",
+                    advance=15,
+                    description="Extracting testable requirements",
+                )
+                progress.update_subtask(
+                    "Identifying test cases",
+                    advance=10,
+                    description="Defining test boundaries",
+                )
                 progress.complete_subtask("Identifying test cases")
-                
+
                 # Update progress for remaining subtasks
                 progress.update_subtask("Generating unit tests", advance=20)
                 progress.complete_subtask("Generating unit tests")
-                
+
                 progress.update_subtask("Generating integration tests", advance=15)
                 progress.complete_subtask("Generating integration tests")
-                
+
                 progress.update_subtask("Generating behavior tests", advance=15)
                 progress.complete_subtask("Generating behavior tests")
-                
+
                 # Call the actual generate_tests function
                 result = generate_tests(**args)
-                
+
                 # Update main task progress
                 progress.update(advance=100)
-                
+
                 return result
             finally:
                 # Ensure progress is completed even if an error occurs
                 progress.complete()
-        
+
         # Run the test generation with progress tracking
         result = generate_tests_with_progress()
 
         # Handle result
         if result.get("success"):
             output_dir = result.get("output_dir", "tests")
-            
+
             # Create a summary table of what was generated
             summary_table = Table(title="Test Generation Summary")
             summary_table.add_column("Test Type", style="cyan")
             summary_table.add_column("Location", style="blue")
-            
+
             # Add rows for each test type
             test_types = {
                 "Unit Tests": f"{output_dir}/unit",
                 "Integration Tests": f"{output_dir}/integration",
-                "Behavior Tests": f"{output_dir}/behavior"
+                "Behavior Tests": f"{output_dir}/behavior",
             }
-            
+
             for test_type, location in test_types.items():
                 summary_table.add_row(test_type, location)
-            
+
             console.print(summary_table)
-            
+
             bridge.display_result(
                 f"[green]Tests successfully generated from {spec_file}.[/green]",
-                highlight=True
+                highlight=True,
             )
-            
+
             # Show next steps
             bridge.display_result("\n[bold]Next Steps:[/bold]")
             bridge.display_result("1. Review the generated tests")
@@ -1072,9 +1094,9 @@ def refactor_cmd(
     bridge = _resolve_bridge(bridge)
     try:
         from rich.console import Console
+        from rich.markdown import Markdown
         from rich.panel import Panel
         from rich.table import Table
-        from rich.markdown import Markdown
 
         console = Console()
 
