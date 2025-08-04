@@ -11,9 +11,10 @@ import subprocess
 import sys
 from typing import Sequence
 
-from devsynth.logger import setup_logging
+from devsynth.logging_setup import DevSynthLogger, configure_logging
 
-logger = setup_logging(__name__)
+configure_logging()
+logger = DevSynthLogger(__name__)
 
 
 def main(argv: Sequence[str] | None = None) -> None:

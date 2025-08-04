@@ -17,12 +17,13 @@ import logging
 import sys
 import time
 
-from devsynth.logger import setup_logging
+from devsynth.logging_setup import DevSynthLogger, configure_logging
 
 from devsynth.exceptions import DevSynthError
 from devsynth.testing.run_tests import run_tests
 
-logger = setup_logging(__name__)
+configure_logging()
+logger = DevSynthLogger(__name__)
 
 
 def parse_args():
