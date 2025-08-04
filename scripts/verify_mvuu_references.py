@@ -20,12 +20,19 @@ def _extract_mvuu_json(message: str) -> dict:
 
 
 def verify_mvuu_affected_files(message: str, changed_files: Iterable[str]) -> List[str]:
-    """Return errors if changed files lack MVUU references."""
+    """Return errors for MVUU checks on changed files and required fields."""
     mvuu = _extract_mvuu_json(message)
+    errors: List[str] = []
+
+    if mvuu.get("mvuu") is not True:
+        errors.append("'mvuu' must be true")
+
+    if "issue" not in mvuu:
+        errors.append("Missing required field 'issue'")
+
     affected = set(mvuu.get("affected_files", []))
     changed = set(changed_files)
     missing = changed - affected
-    errors: List[str] = []
     if missing:
         errors.append(
             "MVUU affected_files missing entries for: " + ", ".join(sorted(missing))
