@@ -26,6 +26,18 @@ repos:
       entry: python scripts/find_syntax_errors.py
       language: system
       pass_filenames: false
+    - id: verify-mvuu-references
+      name: verify mvuu references
+      entry: python scripts/verify_mvuu_references.py
+      language: system
+      pass_filenames: false
+      stages: [push]
+    - id: update-traceability
+      name: update traceability
+      entry: python scripts/update_traceability.py
+      language: system
+      pass_filenames: false
+      stages: [post-commit]
     - id: commit-message-lint
       name: commit message lint
       entry: python scripts/commit_linter.py

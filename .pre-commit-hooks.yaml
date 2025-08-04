@@ -28,3 +28,15 @@
   entry: python scripts/find_syntax_errors.py
   language: system
   pass_filenames: false
+- id: verify-mvuu-references
+  name: verify mvuu references
+  description: "Ensure MVUU references are valid"
+  entry: python scripts/verify_mvuu_references.py
+  language: system
+  pass_filenames: false
+- id: update-traceability
+  name: update traceability
+  description: "Update traceability data"
+  entry: python scripts/update_traceability.py
+  language: system
+  pass_filenames: false
