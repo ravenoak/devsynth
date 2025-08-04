@@ -30,6 +30,7 @@ from devsynth.exceptions import (
     MemoryStoreError,
     MemoryItemNotFoundError,
 )
+from devsynth.core import feature_flags
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -147,10 +148,11 @@ class DuckDBStore(MemoryStore, VectorStore):
             # Configure HNSW parameters if enabled and vector extension is available
             if self.enable_hnsw and self.vector_extension_available:
                 try:
-                    # Enable experimental persistence for HNSW indexes
-                    self.conn.execute(
-                        "SET hnsw_enable_experimental_persistence = true;"
-                    )
+                    if feature_flags.experimental_enabled():
+                        # Enable experimental persistence for HNSW indexes
+                        self.conn.execute(
+                            "SET hnsw_enable_experimental_persistence = true;"
+                        )
 
                     # Set HNSW parameters
                     self.conn.execute(f"SET hnsw_M = {self.hnsw_config['M']};")

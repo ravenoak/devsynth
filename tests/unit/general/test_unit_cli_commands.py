@@ -2,6 +2,7 @@ from unittest.mock import patch, mock_open, MagicMock
 import os
 import yaml
 from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.core import feature_flags
 import pytest
 from devsynth.application.cli import cli_commands
 from devsynth.application.cli.cli_commands import (
@@ -319,97 +320,120 @@ class TestCLICommands:
         ) as mock_load:
             cli_commands.enable_feature_cmd("code_generation")
         mock_load.assert_called_once()
-        
+
     def test_enable_feature_cmd_load_error_displays_error(self, mock_bridge):
         """enable_feature_cmd should display an error when loading the configuration fails.
-        
+
         ReqID: N/A"""
         with patch(
             "devsynth.config.unified_loader.UnifiedConfigLoader.load",
-            side_effect=Exception("Failed to load configuration")
+            side_effect=Exception("Failed to load configuration"),
         ):
             cli_commands.enable_feature_cmd("code_generation")
-            
+
         # Verify that an error message was displayed
         mock_bridge.display_result.assert_any_call(
             "[red]Error:[/red] Failed to load configuration", highlight=False
         )
-        
+
     def test_enable_feature_cmd_save_error_displays_error(self, mock_bridge):
         """enable_feature_cmd should display an error when saving the configuration fails.
-        
+
         ReqID: N/A"""
         cfg = MagicMock()
         cfg.features = {}
         cfg.as_dict.return_value = {"features": {"code_generation": True}}
-        
+
         with (
             patch(
                 "devsynth.config.unified_loader.UnifiedConfigLoader.load",
-                return_value=cfg
+                return_value=cfg,
             ),
             patch(
                 "devsynth.application.cli.cli_commands.save_config",
-                side_effect=Exception("Failed to save configuration")
+                side_effect=Exception("Failed to save configuration"),
             ),
-            patch("pathlib.Path.exists", return_value=False)
+            patch("pathlib.Path.exists", return_value=False),
         ):
             cli_commands.enable_feature_cmd("code_generation")
-            
+
         # Verify that an error message was displayed
         mock_bridge.display_result.assert_any_call(
             "[red]Error:[/red] Failed to save configuration", highlight=False
         )
-        
+
     def test_enable_feature_cmd_nonexistent_feature_creates_feature(self, mock_bridge):
         """enable_feature_cmd should create a new feature if it doesn't exist.
-        
+
         ReqID: N/A"""
         cfg = MagicMock()
         cfg.features = {}
-        
+
         with (
             patch(
                 "devsynth.config.unified_loader.UnifiedConfigLoader.load",
-                return_value=cfg
+                return_value=cfg,
             ),
             patch("devsynth.application.cli.cli_commands.save_config"),
-            patch("pathlib.Path.exists", return_value=False)
+            patch("pathlib.Path.exists", return_value=False),
         ):
             cli_commands.enable_feature_cmd("new_feature")
-            
+
         # Verify that the feature was added to the features dictionary
         assert cfg.features["new_feature"] is True
-        
+
         # Verify that a success message was displayed
         mock_bridge.display_result.assert_called_once_with(
             "Feature 'new_feature' enabled."
         )
-        
+
     def test_enable_feature_cmd_already_enabled_feature_succeeds(self, mock_bridge):
         """enable_feature_cmd should succeed when enabling an already enabled feature.
-        
+
         ReqID: N/A"""
         cfg = MagicMock()
         cfg.features = {"code_generation": True}
-        
+
         with (
             patch(
                 "devsynth.config.unified_loader.UnifiedConfigLoader.load",
-                return_value=cfg
+                return_value=cfg,
             ),
             patch("devsynth.application.cli.cli_commands.save_config"),
-            patch("pathlib.Path.exists", return_value=False)
+            patch("pathlib.Path.exists", return_value=False),
         ):
             cli_commands.enable_feature_cmd("code_generation")
-            
+
         # Verify that the feature is still enabled
         assert cfg.features["code_generation"] is True
-        
+
         # Verify that a success message was displayed
         mock_bridge.display_result.assert_called_once_with(
             "Feature 'code_generation' enabled."
         )
+
+    def test_enable_feature_cmd_persists_existing_flags(self, tmp_path, mock_bridge):
+        """Enabling one feature should not disable existing flags.
+
+        ReqID: N/A"""
+
+        dev_dir = tmp_path / ".devsynth"
+        dev_dir.mkdir()
+        config_file = dev_dir / "project.yaml"
+        config_file.write_text("features:\n  code_generation: true\n")
+
+        cwd = os.getcwd()
+        os.chdir(tmp_path)
+        try:
+            feature_flags.refresh()
+            cli_commands.enable_feature_cmd("test_generation")
+            assert feature_flags.is_enabled("test_generation") is True
+        finally:
+            os.chdir(cwd)
+
+        cfg = UnifiedConfigLoader.load(tmp_path).config
+        assert cfg.features["code_generation"] is True
+        assert cfg.features["test_generation"] is True
 
     def test_init_creates_config_and_commands_use_loader_succeeds(
         self, tmp_path, mock_bridge
@@ -793,7 +817,7 @@ class TestCLICommands:
 
     def test_webapp_cmd_flask_succeeds(self, tmp_path):
         """webapp_cmd successfully generates a Flask application."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -812,12 +836,12 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             webapp_cmd(framework="flask", name="myapp", path=str(tmp_path))
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ Flask application 'myapp' generated successfully![/green]"
             )
-            
+
             # Verify that the necessary files were created
             expected_files = [
                 os.path.join(tmp_path, "myapp", "myapp", "__init__.py"),
@@ -829,13 +853,13 @@ class TestCLICommands:
                 os.path.join(tmp_path, "myapp", "app.py"),
                 os.path.join(tmp_path, "myapp", "README.md"),
             ]
-            
+
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
-            
+
     def test_webapp_cmd_fastapi_succeeds(self, tmp_path):
         """webapp_cmd successfully generates a FastAPI application."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -854,15 +878,15 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             webapp_cmd(framework="fastapi", name="myapi", path=str(tmp_path))
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ FastAPI application 'myapi' generated successfully![/green]"
             )
-            
+
     def test_webapp_cmd_existing_dir_without_force_fails(self, tmp_path):
         """webapp_cmd fails when directory exists and force is False."""
-        
+
         with (
             patch.object(cli_commands.bridge, "print"),
             patch.object(cli_commands.bridge, "display_result") as disp,
@@ -871,15 +895,15 @@ class TestCLICommands:
             patch("builtins.open", mock_open()),
         ):
             webapp_cmd(framework="flask", name="myapp", path=str(tmp_path), force=False)
-            
+
             # Verify that the warning message was displayed
             disp.assert_any_call(
                 f"[yellow]Directory {os.path.join(tmp_path, 'myapp')} already exists. Use --force to overwrite.[/yellow]"
             )
-            
+
     def test_webapp_cmd_existing_dir_with_force_succeeds(self, tmp_path):
         """webapp_cmd succeeds when directory exists and force is True."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -899,7 +923,7 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             webapp_cmd(framework="flask", name="myapp", path=str(tmp_path), force=True)
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ Flask application 'myapp' generated successfully![/green]"
@@ -929,10 +953,10 @@ class TestCLICommands:
                 "[red]\u2717 Error:[/red] Unsupported database type 'foo'. Supported: sqlite, mysql, postgresql, mongodb",
                 highlight=False,
             )
-            
+
     def test_dbschema_cmd_sqlite_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a SQLite database schema."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -951,24 +975,24 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             dbschema_cmd(db_type="sqlite", name="mydb", path=str(tmp_path))
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ SQLite database schema 'mydb' generated successfully![/green]"
             )
-            
+
             # Verify that the necessary files were created
             expected_files = [
                 os.path.join(tmp_path, "mydb_schema", "schema.sql"),
                 os.path.join(tmp_path, "mydb_schema", "README.md"),
             ]
-            
+
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
-            
+
     def test_dbschema_cmd_mysql_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a MySQL database schema."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -987,24 +1011,24 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             dbschema_cmd(db_type="mysql", name="mydb", path=str(tmp_path))
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ MySQL database schema 'mydb' generated successfully![/green]"
             )
-            
+
             # Verify that the necessary files were created
             expected_files = [
                 os.path.join(tmp_path, "mydb_schema", "schema.sql"),
                 os.path.join(tmp_path, "mydb_schema", "README.md"),
             ]
-            
+
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
-            
+
     def test_dbschema_cmd_mongodb_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a MongoDB database schema."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -1023,24 +1047,24 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             dbschema_cmd(db_type="mongodb", name="mydb", path=str(tmp_path))
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ MongoDB database schema 'mydb' generated successfully![/green]"
             )
-            
+
             # Verify that the necessary files were created
             expected_files = [
                 os.path.join(tmp_path, "mydb_schema", "schema.json"),
                 os.path.join(tmp_path, "mydb_schema", "README.md"),
             ]
-            
+
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
-            
+
     def test_dbschema_cmd_existing_dir_without_force_fails(self, tmp_path):
         """dbschema_cmd fails when directory exists and force is False."""
-        
+
         with (
             patch.object(cli_commands.bridge, "print"),
             patch.object(cli_commands.bridge, "display_result") as disp,
@@ -1049,15 +1073,15 @@ class TestCLICommands:
             patch("builtins.open", mock_open()),
         ):
             dbschema_cmd(db_type="sqlite", name="mydb", path=str(tmp_path), force=False)
-            
+
             # Verify that the warning message was displayed
             disp.assert_any_call(
                 f"[yellow]Directory {os.path.join(tmp_path, 'mydb_schema')} already exists. Use --force to overwrite.[/yellow]"
             )
-            
+
     def test_dbschema_cmd_existing_dir_with_force_succeeds(self, tmp_path):
         """dbschema_cmd succeeds when directory exists and force is True."""
-        
+
         with (
             patch.object(
                 cli_commands.bridge,
@@ -1077,58 +1101,58 @@ class TestCLICommands:
             patch("builtins.open", mock_open()) as mock_file,
         ):
             dbschema_cmd(db_type="sqlite", name="mydb", path=str(tmp_path), force=True)
-            
+
             # Verify that the success message was displayed
             disp.assert_any_call(
                 "[green]✓ SQLite database schema 'mydb' generated successfully![/green]"
             )
-            
+
     def test_webui_cmd_success_succeeds(self, mock_bridge):
         """webui_cmd successfully launches the WebUI.
-        
+
         ReqID: N/A"""
         # Mock the webui module and run function
         mock_run = MagicMock()
         with patch("devsynth.application.cli.cli_commands.run", mock_run):
             webui_cmd()
-            
+
         # Verify that the run function was called
         mock_run.assert_called_once()
-        
+
         # No error message should be displayed
         assert not any(
             "Error" in str(call.args[0])
             for call in mock_bridge.display_result.call_args_list
         )
-        
+
     def test_webui_cmd_import_error_displays_error(self, mock_bridge):
         """webui_cmd displays an error when the WebUI module is unavailable.
-        
+
         ReqID: N/A"""
         # Mock an ImportError when importing the webui module
         with patch(
             "devsynth.application.cli.cli_commands.run",
-            side_effect=ImportError("No module named 'streamlit'")
+            side_effect=ImportError("No module named 'streamlit'"),
         ):
             webui_cmd()
-            
+
         # Verify that an error message was displayed
         assert any(
             "Error" in str(call.args[0])
             for call in mock_bridge.display_result.call_args_list
         )
-        
+
     def test_webui_cmd_runtime_error_displays_error(self, mock_bridge):
         """webui_cmd displays an error when the WebUI fails to launch.
-        
+
         ReqID: N/A"""
         # Mock a RuntimeError when running the WebUI
         with patch(
             "devsynth.application.cli.cli_commands.run",
-            side_effect=RuntimeError("Failed to launch WebUI")
+            side_effect=RuntimeError("Failed to launch WebUI"),
         ):
             webui_cmd()
-            
+
         # Verify that an error message was displayed
         assert any(
             "Error" in str(call.args[0])
