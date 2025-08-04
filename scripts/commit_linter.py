@@ -51,14 +51,23 @@ def lint_commit_message(message: str) -> List[str]:
         )
     try:
         mvuu = _extract_mvuu_json(message)
-        jsonschema.validate(mvuu, SCHEMA)
+
         trace_id = str(mvuu.get("TraceID", ""))
-        if not trace_id.startswith("MVUU-"):
-            errors.append("TraceID must start with 'MVUU-'")
+        if not re.fullmatch(r"DSY-\d+", trace_id):
+            errors.append("TraceID must match pattern 'DSY-<number>'")
+
+        if mvuu.get("mvuu") is not True:
+            errors.append("'mvuu' must be true")
+
+        if "issue" not in mvuu:
+            errors.append("Missing required field 'issue'")
+
+        try:
+            jsonschema.validate(mvuu, SCHEMA)
+        except jsonschema.ValidationError as exc:  # pragma: no cover - passthrough
+            errors.append(f"MVUU JSON invalid: {exc.message}")
     except ValueError as exc:
         errors.append(str(exc))
-    except jsonschema.ValidationError as exc:  # pragma: no cover - passthrough
-        errors.append(f"MVUU JSON invalid: {exc.message}")
     return errors
 
 

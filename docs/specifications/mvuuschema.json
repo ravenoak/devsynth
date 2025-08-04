@@ -20,7 +20,7 @@
     },
     "TraceID": {
       "type": "string",
-      "description": "Traceability identifier in the form MVUU-0000."
+      "description": "Traceability identifier in the form DSY-0000."
     },
     "mvuu": {
       "type": "boolean",
