@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MVUU Schema",
+  "type": "object",
+  "required": ["utility_statement", "affected_files", "tests", "TraceID"],
+  "properties": {
+    "utility_statement": {
+      "type": "string",
+      "description": "Summary of the utility provided by the change."
+    },
+    "affected_files": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "List of file paths impacted by the update."
+    },
+    "tests": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "References to tests validating the change."
+    },
+    "TraceID": {
+      "type": "string",
+      "description": "Identifier used for traceability."
+    }
+  },
+  "additionalProperties": false
+}

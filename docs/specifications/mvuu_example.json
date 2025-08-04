@@ -1,0 +1,11 @@
+{
+  "utility_statement": "Documented MVUU schema for tracking minimal updates.",
+  "affected_files": [
+    "docs/specifications/mvuuschema.json",
+    "docs/specifications/mvuu_example.json"
+  ],
+  "tests": [
+    "poetry run pytest tests/"
+  ],
+  "TraceID": "MVUU-0001"
+}

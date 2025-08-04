@@ -241,6 +241,7 @@ Good documentation is essential for the project. Please follow these guidelines:
 - Keep the README.md up to date
 - Add examples for new functionality
 - Document API changes
+- Record MVUU details using `docs/specifications/mvuuschema.json` (see `mvuu_example.json` for structure)
 
 
 ## Pull Request Process
