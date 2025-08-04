@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400">
+  <rect width="600" height="400" fill="#ffffff" stroke="#000" />
+  <text x="20" y="30" font-size="24" font-family="sans-serif">MVUU Dashboard</text>
+  <rect x="20" y="50" width="200" height="300" fill="#f0f0f0" stroke="#000" />
+  <text x="30" y="70" font-size="14" font-family="sans-serif">Trace IDs</text>
+  <text x="30" y="100" font-size="12" font-family="monospace">T-1234</text>
+  <text x="30" y="120" font-size="12" font-family="monospace">T-5678</text>
+  <rect x="240" y="50" width="340" height="300" fill="#f0f0f0" stroke="#000" />
+  <text x="250" y="70" font-size="14" font-family="sans-serif">Issue: DS-1</text>
+  <text x="250" y="90" font-size="12" font-family="monospace">file_a.py</text>
+  <text x="250" y="110" font-size="12" font-family="monospace">file_b.py</text>
+</svg>
