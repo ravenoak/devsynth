@@ -111,3 +111,47 @@ def test_create_progress_returns_indicator(monkeypatch):
     from devsynth.interface.ux_bridge import ProgressIndicator
 
     assert isinstance(indicator, ProgressIndicator)
+
+
+@pytest.mark.medium
+def test_cancellable_progress_allows_cancel(monkeypatch):
+    """Cancellable progress indicators expose cancellation state."""
+    bridge_module, dpg_mod = _setup_dpg(monkeypatch, click_button="Cancel")
+    bridge = bridge_module.DearPyGUIBridge()
+    indicator = bridge.create_progress("desc", cancellable=True)
+    assert indicator.is_cancelled()
+
+
+@pytest.mark.medium
+def test_run_cli_command_executes_and_polls(monkeypatch):
+    """run_cli_command executes in background and polls the UI."""
+    bridge_module, dpg_mod = _setup_dpg(monkeypatch)
+    bridge = bridge_module.DearPyGUIBridge()
+
+    def _cmd():
+        import time
+
+        time.sleep(0.01)
+        return "done"
+
+    result = bridge.run_cli_command(_cmd)
+    assert result == "done"
+    assert dpg_mod.render_dearpygui_frame.call_count >= 1
+
+
+@pytest.mark.medium
+def test_run_cli_command_handles_exception(monkeypatch):
+    """Exceptions are reported via display_result."""
+    bridge_module, dpg_mod = _setup_dpg(monkeypatch)
+    bridge = bridge_module.DearPyGUIBridge()
+    bridge.display_result = MagicMock()
+
+    def _bad():
+        raise ValueError("<boom>")
+
+    bridge.run_cli_command(_bad)
+    bridge.display_result.assert_called_once()
+    (msg,) = bridge.display_result.call_args[0]
+    kwargs = bridge.display_result.call_args[1]
+    assert "<" not in msg and ">" not in msg
+    assert kwargs["message_type"] == "error"
