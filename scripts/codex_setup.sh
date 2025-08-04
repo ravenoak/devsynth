@@ -3,6 +3,13 @@ set -exo pipefail
 # NOTE: This script provisions the Codex testing environment only. It is not
 # intended for regular development setup.
 
+# Ensure pipx is available for installing the CLI
+if ! command -v pipx >/dev/null; then
+  apt-get update && apt-get install -y pipx
+fi
+export PATH="$HOME/.local/bin:$PATH"
+pipx ensurepath
+
 # Use Python 3.12 if available, otherwise fall back to Python 3.11
 poetry env use "$(command -v python3.12 || command -v python3.11)"
 
@@ -14,9 +21,25 @@ poetry env info --path >/dev/null
 # fast. Add the `offline` extra manually if GPU features are needed.
 poetry install \
   --with dev,docs \
-  --all-extras \
-  --without offline,gpu \
+  -E docs \
+  -E minimal \
+  -E retrieval \
+  -E chromadb \
+  -E lmstudio \
+  -E memory \
+  -E llm \
+  -E api \
+  -E webui \
+  -E gui \
+  -E tests \
   --no-interaction
+
+# Install the DevSynth CLI with pipx and verify it works
+pipx install --editable . --force
+poetry run pip freeze > /tmp/devsynth-requirements.txt
+pipx runpip devsynth install -r /tmp/devsynth-requirements.txt
+command -v devsynth >/dev/null
+devsynth --version || echo "[warning] devsynth --version failed"
 
 # Validate dependency installation
 poetry run pip check
