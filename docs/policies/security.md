@@ -112,7 +112,7 @@ and routine dependency and static analysis checks in CI.
 ## Implementation Status
 Security configuration flags and basic encryption utilities are implemented.
 Automated audits and basic monitoring are provided via the
-`security-audit` command (also available as `scripts/security_audit.py`).
+  `security-audit` command, available via `devsynth security-audit`.
 Memory stores support encryption at rest and emit audit logs for store, retrieve,
 and delete operations.
 Runtime checks in [`src/devsynth/config/settings.py`](../../src/devsynth/config/settings.py)

@@ -45,6 +45,6 @@ This phase is **complete**. All Phase 1 success criteria have been validated, in
 | Configuration management system | ✅ Environment-specific YAML files with validation script |
 | Basic monitoring and health checks | ✅ `/metrics` and `/health` endpoints with Prometheus integration |
 | Provider abstraction | ✅ `adapters/provider_system.py` supports multiple LLMs |
-| Basic security measures & tests | ✅ `security_audit.py` script and access token checks |
+| Basic security measures & tests | ✅ `devsynth security-audit` command and access token checks |
 | Input validation and data protection | ✅ Settings flags and validation utilities |
 
