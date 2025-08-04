@@ -33,7 +33,9 @@ def build_entry(metadata: Dict[str, Any]) -> Dict[str, Any]:
         "features": [metadata.get("utility_statement", "")],
         "files": metadata.get("affected_files", []),
         "tests": metadata.get("tests", []),
-        "issue": metadata.get("issue"),
+        "issue": metadata.get("issue", ""),
+        "mvuu": metadata.get("mvuu", False),
+        "notes": metadata.get("notes"),
     }
 
 
