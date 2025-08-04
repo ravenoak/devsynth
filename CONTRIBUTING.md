@@ -81,7 +81,7 @@ Good documentation is essential. Please update relevant documentation for any ch
 
 1. Ensure your fork is up to date with the main repository
 2. Run tests and code formatters locally
-3. Push your changes and create a pull request
+3. Push your changes and create a pull request using the [pull request template](.github/pull_request_template.md)
 4. Respond to review feedback
 
 ## Release Process
