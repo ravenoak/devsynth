@@ -56,6 +56,13 @@ Development and test commands may fail until the setup script completes
 successfully, the marker file is removed, and the tests pass.
 
 
+### pipx installation
+
+- `scripts/codex_setup.sh` installs `pipx`.
+- The DevSynth CLI is installed using `pipx install --editable .`.
+- The script adds `~/.local/bin` to `PATH` so the `devsynth` command is available.
+- Contributors must keep the `pipx` installation steps in sync with project requirements.
+
 ## Project Structure
 
 ```
