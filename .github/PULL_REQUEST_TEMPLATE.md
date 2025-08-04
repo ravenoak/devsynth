@@ -57,12 +57,31 @@
 
 <!-- Verify that you have completed the following -->
 
+- [ ] Commits include an MVUU JSON block
+- [ ] Commits include a TraceID and link to the relevant issue
+- [ ] `traceability.json` has been updated
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
 - [ ] Any dependent changes have been merged and published
+
+### Commit Message Template
+
+```text
+<type>: <summary>
+
+TraceID: <TraceID>
+Issue: #<issue-number>
+
+{
+  "MVUU": {
+    "TraceID": "<TraceID>",
+    "Issue": "#<issue-number>"
+  }
+}
+```
 
 ## Additional Notes
 
