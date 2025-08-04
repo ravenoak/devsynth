@@ -3,13 +3,15 @@ from __future__ import annotations
 """Dear PyGUI implementation of :class:`UXBridge`.
 
 This bridge provides a minimal user interaction layer built on top of
-`dearpygui`.  The implementation mirrors the behaviour of other bridges in the
-project, exposing synchronous methods for prompting users, confirming choices
-and displaying results.  Each interaction runs inside a simple Dear PyGUI event
-loop and uses safe text handling utilities provided by the project.
+``dearpygui``.  The implementation mirrors the behaviour of other bridges in
+the project, exposing synchronous methods for prompting users, confirming
+choices and displaying results.  Each interaction runs inside a simple Dear
+PyGUI event loop and uses safe text handling utilities provided by the
+project.
 """
 
-from typing import Optional, Sequence
+from typing import Any, Callable, Optional, Sequence
+import threading
 
 try:  # pragma: no cover - dearpygui may not be installed during tests
     import dearpygui.dearpygui as dpg
@@ -21,14 +23,19 @@ from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 
 class DearPyGUIProgressIndicator(ProgressIndicator):
-    """Simple progress indicator backed by a Dear PyGUI progress bar."""
+    """Progress indicator backed by a Dear PyGUI progress bar."""
 
-    def __init__(self, description: str, total: int) -> None:
+    def __init__(
+        self, description: str, total: int, *, cancellable: bool = False
+    ) -> None:
         self._total = float(total)
         self._current = 0.0
+        self._cancelled = threading.Event()
         self._window = dpg.window(label=sanitize_output(description))
         with self._window:
             self._bar_id = dpg.add_progress_bar(default_value=0.0)
+            if cancellable:
+                dpg.add_button(label="Cancel", callback=self.cancel)
 
     def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
         self._current += advance
@@ -41,6 +48,19 @@ class DearPyGUIProgressIndicator(ProgressIndicator):
         dpg.set_value(self._bar_id, 1.0)
         dpg.render_dearpygui_frame()
         dpg.delete_item(self._window)
+
+    # ------------------------------------------------------------------
+    # Cancellation helpers
+    # ------------------------------------------------------------------
+    def cancel(self) -> None:
+        """Request cancellation of the running operation."""
+
+        self._cancelled.set()
+
+    def is_cancelled(self) -> bool:
+        """Return whether cancellation has been requested."""
+
+        return self._cancelled.is_set()
 
 
 class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
@@ -153,9 +173,71 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
         self._event_loop(lambda: not dpg.does_item_exist(win))
 
     def create_progress(
-        self, description: str, *, total: int = 100
+        self, description: str, *, total: int = 100, cancellable: bool = False
     ) -> ProgressIndicator:
-        return DearPyGUIProgressIndicator(description, total)
+        return DearPyGUIProgressIndicator(description, total, cancellable=cancellable)
+
+    # ------------------------------------------------------------------
+    # Command helpers
+    # ------------------------------------------------------------------
+    def run_cli_command(
+        self,
+        cmd: Callable[..., Any],
+        *,
+        description: Optional[str] = None,
+        cancellable: bool = False,
+        message_type: str = "error",
+        **kwargs: Any,
+    ) -> Any:
+        """Execute a potentially blocking CLI command.
+
+        The command is executed in a background thread while this method polls
+        ``render_dearpygui_frame`` to keep the UI responsive.  Any exceptions
+        raised by the command are captured and displayed via
+        :meth:`display_result` using the provided ``message_type``.
+
+        Args:
+            cmd: Callable representing the CLI command.
+            description: Optional description for the progress indicator.
+            cancellable: Whether to show a cancel button.
+            message_type: Message type used if an exception occurs.
+            **kwargs: Additional keyword arguments passed to ``cmd``.
+
+        Returns:
+            The result returned by ``cmd`` or ``None`` if an error occurred.
+        """
+
+        prog_desc = description or f"Running {getattr(cmd, '__name__', 'command')}"
+        progress = self.create_progress(prog_desc, cancellable=cancellable)
+
+        result: list[Any] = []
+        error: list[BaseException] = []
+        done = threading.Event()
+
+        def _target() -> None:
+            try:
+                result.append(cmd(**kwargs))
+            except BaseException as exc:  # pragma: no cover - defensive
+                error.append(exc)
+            finally:
+                done.set()
+
+        threading.Thread(target=_target, daemon=True).start()
+
+        while not done.is_set():
+            if cancellable and progress.is_cancelled():
+                break
+            dpg.render_dearpygui_frame()
+
+        progress.complete()
+
+        if error:
+            self.display_result(
+                sanitize_output(str(error[0])), message_type=message_type
+            )
+            return None
+
+        return result[0] if result else None
 
 
 __all__ = ["DearPyGUIBridge", "DearPyGUIProgressIndicator"]
