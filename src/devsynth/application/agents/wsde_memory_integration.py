@@ -145,9 +145,38 @@ class WSDEMemoryIntegration:
         Returns:
             A list of memory items containing solutions for the task
         """
-        # Use the agent memory integration to retrieve the solutions
-        solutions = self.agent_memory.retrieve_agent_solutions(task_id)
+        # If a memory manager is available, query all registered stores
+        if self.memory_manager is not None:
+            results: List[MemoryItem] = []
+            for adapter in self.memory_manager.adapters.values():
+                store = adapter
+                if hasattr(adapter, "get_memory_store"):
+                    store = adapter.get_memory_store()  # type: ignore[assignment]
 
+                items: List[MemoryItem] = []
+                if hasattr(store, "items"):
+                    items = list(store.items.values())  # type: ignore[assignment]
+                elif hasattr(store, "search"):
+                    try:
+                        items = store.search({"memory_type": MemoryType.SOLUTION})
+                    except Exception:
+                        try:
+                            items = store.search({"memory_type": MemoryType.SOLUTION.value})
+                        except Exception:
+                            items = []
+                for item in items:
+                    if (
+                        item.memory_type == MemoryType.SOLUTION
+                        and item.metadata.get("task_id") == task_id
+                    ):
+                        results.append(item)
+            logger.info(
+                f"Retrieved {len(results)} agent solutions for task {task_id} across stores"
+            )
+            return results
+
+        # Fallback to agent-level retrieval
+        solutions = self.agent_memory.retrieve_agent_solutions(task_id)
         logger.info(f"Retrieved {len(solutions)} agent solutions for task {task_id}")
         return solutions
 
@@ -208,13 +237,13 @@ class WSDEMemoryIntegration:
         all_solutions = self.retrieve_agent_solutions(task_id)
 
         # Filter solutions by EDRR phase
-        filtered_solutions = []
-        for solution in all_solutions:
-            # Check if the solution has the specified EDRR phase
-            if solution.metadata.get("edrr_phase") == edrr_phase:
-                filtered_solutions.append(solution)
+        filtered_solutions = [
+            sol for sol in all_solutions if sol.metadata.get("edrr_phase") == edrr_phase
+        ]
 
-        logger.info(f"Retrieved {len(filtered_solutions)} solutions with EDRR phase '{edrr_phase}' for task {task_id}")
+        logger.info(
+            f"Retrieved {len(filtered_solutions)} solutions with EDRR phase '{edrr_phase}' for task {task_id}"
+        )
         return filtered_solutions
 
     def query_knowledge_graph(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:

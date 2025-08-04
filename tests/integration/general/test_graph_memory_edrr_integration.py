@@ -10,6 +10,9 @@ from devsynth.methodology.base import Phase
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
 
 
 class TestGraphMemoryEDRRIntegration:
@@ -30,7 +33,20 @@ ReqID: N/A"""
     @pytest.fixture
     def graph_adapter(self, temp_dir):
         """Create a GraphMemoryAdapter instance for testing."""
-        return GraphMemoryAdapter(base_path=temp_dir, use_rdflib_store=True)
+        return GraphMemoryAdapter(base_path=temp_dir, use_rdflib_store=False)
+
+    class SimpleStore(InMemoryStore):
+        def begin_transaction(self, *args, **kwargs):
+            return None
+
+        def commit_transaction(self, *args, **kwargs):
+            return True
+
+        def rollback_transaction(self, *args, **kwargs):
+            return False
+
+        def is_transaction_active(self, *args, **kwargs):
+            return False
 
     @pytest.fixture
     def mock_dependencies(self):
@@ -197,6 +213,34 @@ ReqID: N/A"""
         assert 'differentiate-item' in relationships
         assert 'refine-item' in relationships
         assert 'retrospect-item' in relationships
+
+    def test_cross_store_sync_with_memory_manager(self, graph_adapter, mock_dependencies, sample_task):
+        """Ensure MemoryManager synchronizes graph and fallback stores."""
+        fallback = self.SimpleStore()
+        adapter = MemorySystemAdapter(
+            memory_store=fallback, context_manager=SimpleContextManager(), create_paths=False
+        )
+        manager = MemoryManager(adapters={"graph": graph_adapter, "tinydb": adapter})
+
+        coordinator = EDRRCoordinator(
+            memory_manager=manager,
+            wsde_team=mock_dependencies["wsde_team"],
+            code_analyzer=mock_dependencies["code_analyzer"],
+            ast_transformer=mock_dependencies["ast_transformer"],
+            prompt_manager=mock_dependencies["prompt_manager"],
+            documentation_manager=mock_dependencies["documentation_manager"],
+            enable_enhanced_logging=True,
+            config={"edrr": {"max_recursion_depth": 3, "phase_transition": {"auto": False}}, "features": {"automatic_phase_transitions": False}},
+        )
+
+        coordinator.start_cycle(sample_task)
+        manager.flush_updates()
+
+        # Verify task record exists in both stores
+        assert any(
+            item.metadata.get("edrr_phase") == Phase.EXPAND.name for item in fallback.items.values()
+        )
+        assert len(graph_adapter.search({"edrr_phase": Phase.EXPAND.name})) > 0
 
     def test_transaction_rollback_reverts_changes(self, graph_adapter):
         """Ensure transaction rollback restores previous state."""
