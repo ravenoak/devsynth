@@ -298,21 +298,21 @@ Always run tests with `poetry run pytest`. If `pytest` reports missing packages,
 poetry run pytest
 ```
 
-### Using `run_all_tests.py`
+### Using `devsynth run-pipeline`
 
-The `scripts/run_all_tests.py` helper script wraps `pytest` and can execute the
+The `devsynth run-pipeline` command wraps `pytest` and can execute the
 entire suite or selected groups of tests. It also supports generating HTML
 reports with `pytest-html`.
 
 ```bash
-# Run the full suite
-./scripts/run_all_tests.py
+# Run the full suite (unit tests)
+devsynth run-pipeline --target unit-tests
 
-# Run only unit tests
-./scripts/run_all_tests.py --unit
+# Run integration tests
+devsynth run-pipeline --target integration-tests
 
 # Produce an HTML report in `test_reports/`
-./scripts/run_all_tests.py --report
+devsynth run-pipeline --target unit-tests --report
 ```
 
 Combine options (for example, integration tests with a report) as needed.

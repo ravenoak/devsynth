@@ -43,23 +43,23 @@ To manage this large test suite efficiently, we've implemented a test execution 
 
 ### Running Tests with Parallelization
 
-The `scripts/run_tests.sh` script provides a flexible way to run tests with parallelization:
+The `devsynth run-pipeline` command provides a flexible way to run tests with parallelization:
 
 ```bash
 # Run all tests with default parallelization (4 processes)
-./scripts/run_tests.sh
+devsynth run-pipeline
 
 # Run unit tests with 8 parallel processes
-./scripts/run_tests.sh -p 8 -c unit
+devsynth run-pipeline -p 8 -c unit
 
 # Run fast tests only
-./scripts/run_tests.sh -c fast
+devsynth run-pipeline -c fast
 
 # Run tests with specific markers
-./scripts/run_tests.sh -m "not requires_llm_provider"
+devsynth run-pipeline -m "not requires_llm_provider"
 
 # Run tests with coverage reporting
-./scripts/run_tests.sh --coverage
+devsynth run-pipeline --coverage
 ```
 
 #### Available Options
@@ -156,10 +156,10 @@ Or automatically using the `categorize_tests.py` script.
 
 ### Running Tests During Development
 
-1. **Run fast tests frequently**: Use `./scripts/run_tests.sh -c fast` during active development
+1. **Run fast tests frequently**: Use `devsynth run-pipeline -c fast` during active development
 2. **Run specific tests**: Use `python -m pytest path/to/test_file.py::test_function` for specific tests
 3. **Run related tests**: After making changes, run tests related to the changed code
-4. **Run all tests before committing**: Use `./scripts/run_tests.sh` to run all tests before committing
+4. **Run all tests before committing**: Use `devsynth run-pipeline` to run all tests before committing
 
 ## Troubleshooting
 
@@ -169,8 +169,8 @@ Or automatically using the `categorize_tests.py` script.
 
 If tests are taking too long to run:
 
-1. Use parallelization: `./scripts/run_tests.sh -p 8`
-2. Run only fast tests: `./scripts/run_tests.sh -c fast`
+1. Use parallelization: `devsynth run-pipeline -p 8`
+2. Run only fast tests: `devsynth run-pipeline -c fast`
 3. Run only specific tests: `python -m pytest path/to/test_file.py`
 4. Check for tests without speed markers: `python scripts/categorize_tests.py --dry-run`
 

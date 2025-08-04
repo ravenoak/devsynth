@@ -102,7 +102,7 @@ Fast tests execute in less than 1 second. They are ideal for running frequently 
 
 **Count**: 0 tests (target: ~40% of all tests)
 
-**How to run**: `python scripts/run_all_tests.py --fast`
+**How to run**: `devsynth run-pipeline --fast`
 
 ### Medium Tests
 
@@ -110,7 +110,7 @@ Medium tests execute between 1-5 seconds. They provide a good balance between co
 
 **Count**: 318 tests (target: ~40% of all tests)
 
-**How to run**: `python scripts/run_all_tests.py --medium`
+**How to run**: `devsynth run-pipeline --medium`
 
 ### Slow Tests
 
@@ -118,7 +118,7 @@ Slow tests execute in more than 5 seconds. They are typically integration or beh
 
 **Count**: 0 tests (target: ~20% of all tests)
 
-**How to run**: `python scripts/run_all_tests.py --slow`
+**How to run**: `devsynth run-pipeline --slow`
 
 ### Unmarked Tests
 
@@ -149,34 +149,34 @@ For detailed information on how to run tests efficiently, see the [Efficient Tes
 
 ```bash
 # Run all tests
-python scripts/run_all_tests.py
+devsynth run-pipeline
 
 # Run only unit tests
-python scripts/run_all_tests.py --unit
+devsynth run-pipeline --unit
 
 # Run only fast tests
-python scripts/run_all_tests.py --fast
+devsynth run-pipeline --fast
 
 # Run only unit tests that are fast
-python scripts/run_all_tests.py --unit --fast
+devsynth run-pipeline --unit --fast
 
 # Run tests with segmentation for better performance
-python scripts/run_all_tests.py --segment
+devsynth run-pipeline --segment
 ```
 
 ## Test Metrics
 
-Test metrics are collected and reported using the `test_metrics.py` script. This script provides comprehensive information about the test suite, including test counts, failing tests, and coverage metrics.
+Test metrics are collected and reported using the `devsynth test-metrics` command. This command provides comprehensive information about the test suite, including test counts, failing tests, and coverage metrics.
 
 ```bash
 # Generate a basic metrics report
-python scripts/test_metrics.py
+devsynth test-metrics
 
 # Generate an HTML report
-python scripts/test_metrics.py --html
+devsynth test-metrics --html
 
 # Run tests to identify failures
-python scripts/test_metrics.py --run-tests
+devsynth test-metrics --run-tests
 ```
 
 The metrics report is saved to `test_metrics_report.json` by default.

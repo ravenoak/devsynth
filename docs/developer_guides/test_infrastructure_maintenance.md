@@ -35,7 +35,7 @@ The DevSynth test infrastructure consists of several key components:
    - Marker detection and validation
 
 2. **Test Execution System**
-   - `run_all_tests.py`: Main script for running tests
+   - `devsynth run-pipeline`: Command for running tests
    - `distributed_test_runner_enhanced.py`: Script for distributed test execution
    - `run_balanced_tests.py`: Script for balanced test distribution
 
@@ -96,7 +96,7 @@ The test infrastructure depends on several external libraries:
    - Reduce unnecessary file system operations
 
 2. **Optimize Test Execution**
-   - Review and optimize the test execution process in `run_all_tests.py`
+   - Review and optimize the test execution process in `devsynth run-pipeline`
    - Implement more efficient test distribution in `distributed_test_runner_enhanced.py`
    - Optimize load balancing in `run_balanced_tests.py`
 
@@ -136,7 +136,7 @@ To add a new test category (e.g., security tests):
    ```
 3. **Update the test execution system** to support the new category:
    ```python
-   # In run_all_tests.py
+   # In devsynth run-pipeline
    import argparse
    parser = argparse.ArgumentParser()
    parser.add_argument("--security", action="store_true", help="Run security tests")
@@ -167,7 +167,7 @@ To add a new speed category (e.g., "ultra-fast" for tests under 0.1 seconds):
    ```
 3. **Update the test execution system** to support the new category:
    ```python
-   # In run_all_tests.py
+   # In devsynth run-pipeline
    import argparse
    parser = argparse.ArgumentParser()
    parser.add_argument("--ultra-fast", action="store_true", help="Run ultra-fast tests")
@@ -284,8 +284,8 @@ To extend the reporting system with new metrics or visualizations:
   - `scripts/fix_test_markers.py`: Script for fixing marker placement issues
   - `scripts/reconcile_test_counts.py`: Script for reconciling test counts
 
-- **Test Execution Scripts**:
-  - `scripts/run_all_tests.py`: Script for running all tests
+- **Test Execution Commands**:
+  - `devsynth run-pipeline`: Command for running tests
   - `scripts/distributed_test_runner_enhanced.py`: Script for distributed test execution
   - `scripts/run_balanced_tests.py`: Script for balanced test distribution
 

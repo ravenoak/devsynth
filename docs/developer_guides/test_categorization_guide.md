@@ -30,7 +30,7 @@ Fast tests execute in less than 1 second. They are ideal for running frequently 
 
 **Target**: ~40% of all tests
 
-**How to run**: `python scripts/run_all_tests.py --fast`
+**How to run**: `devsynth run-pipeline --fast`
 
 ### Medium Tests
 
@@ -38,7 +38,7 @@ Medium tests execute between 1-5 seconds. They provide a good balance between co
 
 **Target**: ~40% of all tests
 
-**How to run**: `python scripts/run_all_tests.py --medium`
+**How to run**: `devsynth run-pipeline --medium`
 
 ### Slow Tests
 
@@ -46,7 +46,7 @@ Slow tests execute in more than 5 seconds. They are typically integration or beh
 
 **Target**: ~20% of all tests
 
-**How to run**: `python scripts/run_all_tests.py --slow`
+**How to run**: `devsynth run-pipeline --slow`
 
 ## Current Categorization Status
 

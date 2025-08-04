@@ -29,7 +29,26 @@ removed in the next major release.
 - Remove deprecated items in the next major release (v1.0).
 
 For example, `scripts/alignment_check.py` and `scripts/validate_manifest.py`
-are deprecated and scheduled for removal in v1.0.
+are deprecated in favor of `devsynth align` and `devsynth validate-manifest`
+and are scheduled for removal in v1.0.
 
 Developers should migrate to the recommended replacements before the removal
 version.
+
+## Deprecation Notice
+
+The following legacy scripts are deprecated and will be removed in v1.0
+(scheduled for July 2026):
+
+| Deprecated Script | Replacement Command | Removal Version |
+|-------------------|---------------------|-----------------|
+| `scripts/alignment_check.py` | `devsynth align` | v1.0 |
+| `scripts/validate_manifest.py` | `devsynth validate-manifest` | v1.0 |
+| `scripts/run_all_tests.py` | `devsynth run-pipeline` | v1.0 |
+| `scripts/run_tests.sh` | `devsynth run-pipeline` | v1.0 |
+| `scripts/validate_config.py` | `devsynth inspect-config` | v1.0 |
+| `scripts/test_metrics.py` | `devsynth test-metrics` | v1.0 |
+| `scripts/security_audit.py` | `devsynth security-audit` | v1.0 |
+
+All deprecated scripts remain available throughout the current minor release
+series but will be removed once v1.0 is released.

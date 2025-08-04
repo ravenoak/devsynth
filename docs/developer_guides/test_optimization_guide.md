@@ -296,16 +296,16 @@ Once tests are categorized, you can run them by speed category:
 
 ```bash
 # Run fast tests
-python scripts/run_all_tests.py --speed fast
+devsynth run-pipeline --speed fast
 
 # Run medium tests
-python scripts/run_all_tests.py --speed medium
+devsynth run-pipeline --speed medium
 
 # Run slow tests
-python scripts/run_all_tests.py --speed slow
+devsynth run-pipeline --speed slow
 
 # Run tests for a specific category and speed
-python scripts/run_all_tests.py --category unit --speed fast
+devsynth run-pipeline --category unit --speed fast
 ```
 
 ## Best Practices

@@ -192,17 +192,17 @@ Key environment variables:
 
 ### Validating Configuration
 
-Use the validation script to check your configuration:
+Use the CLI command to check your configuration:
 
 ```bash
 
 # Validate all environments
 
-./scripts/validate_config.py
+devsynth inspect-config
 
 # Validate specific environments
 
-./scripts/validate_config.py --environments development production
+devsynth inspect-config --environments development production
 ```
 
 ## Health Checks and Monitoring

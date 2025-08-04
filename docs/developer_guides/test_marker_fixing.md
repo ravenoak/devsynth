@@ -155,16 +155,16 @@ Once tests are properly marked, you can run them by speed category:
 
 ```bash
 # Run fast tests
-python scripts/run_all_tests.py --fast
+devsynth run-pipeline --fast
 
 # Run medium tests
-python scripts/run_all_tests.py --medium
+devsynth run-pipeline --medium
 
 # Run slow tests
-python scripts/run_all_tests.py --slow
+devsynth run-pipeline --slow
 
 # Run fast and medium tests
-python scripts/run_all_tests.py --fast --medium
+devsynth run-pipeline --fast --medium
 ```
 
 This enables more efficient test execution, especially in CI/CD pipelines where you might want to run fast tests more frequently than slow tests.

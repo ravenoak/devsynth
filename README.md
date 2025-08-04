@@ -248,13 +248,13 @@ poetry run pytest
 If `pytest` reports missing packages, run `poetry install` to ensure all
 dependencies are installed.
 
-You can also use the helper script `scripts/run_all_tests.py` to run the entire
+You can also use the `devsynth run-pipeline` command to run the entire
 suite or specific groups of tests and optionally generate an HTML report:
 
 ```bash
-./scripts/run_all_tests.py                     # run all tests
-./scripts/run_all_tests.py --target unit-tests  # run only unit tests
-./scripts/run_all_tests.py --report             # generate HTML report under test_reports/
+devsynth run-pipeline --target unit-tests            # run unit tests
+devsynth run-pipeline --target integration-tests     # run integration tests
+devsynth run-pipeline --target unit-tests --report   # generate HTML report under test_reports/
 ```
 
 See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
