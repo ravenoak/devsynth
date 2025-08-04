@@ -58,7 +58,7 @@ For a more detailed overview of the architecture, see the [Architecture Overview
 
 Before setting up the development environment, ensure you have the following installed:
 
-- **Python 3.12++**: Required for running the project
+- **Python 3.12**: Required for running the project
 - **Poetry**: Used for dependency management
 - **Git**: Required for version control
 - **Docker** (optional): For containerized development and testing
