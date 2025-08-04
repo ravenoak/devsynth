@@ -8,6 +8,10 @@ from devsynth.application.ingestion import Ingestion
 from devsynth.methodology.base import Phase
 
 
+@pytest.fixture(autouse=True)
+def _non_interactive(monkeypatch):
+    monkeypatch.setenv('DEVSYNTH_NONINTERACTIVE', '1')
+
 def test_run_ingestion_invokes_edrr_phases_succeeds(tmp_path):
     """Test that run ingestion invokes edrr phases succeeds.
 

@@ -430,9 +430,14 @@ class TinyDBMemoryAdapter(MemoryStore):
             
         # Clear the transaction ID
         delattr(self, '_transaction_id')
-        
+
         return True
-        
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return True if the given transaction ID is currently active."""
+
+        return hasattr(self, '_transaction_id') and self._transaction_id == transaction_id
+
     def snapshot(self) -> Dict[str, MemoryItem]:
         """
         Create a snapshot of the current state.

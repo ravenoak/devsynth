@@ -31,6 +31,12 @@ from devsynth.domain.models.memory import MemoryItem, MemoryVector, MemoryType
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 
 
+@pytest.fixture(autouse=True)
+def _non_interactive(monkeypatch):
+    """Ensure ingestion runs without interactive prompts."""
+
+    monkeypatch.setenv("DEVSYNTH_NONINTERACTIVE", "1")
+
 @pytest.fixture
 def temp_project_dir():
     """Create a temporary directory for the test project."""
