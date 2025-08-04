@@ -19,11 +19,9 @@ class _Bridge:
 
 
 cli_stub.CLIUXBridge = _Bridge
-sys.modules["devsynth.interface.cli"] = cli_stub
 
 ux_stub = ModuleType("devsynth.interface.ux_bridge")
 ux_stub.UXBridge = object
-sys.modules["devsynth.interface.ux_bridge"] = ux_stub
 
 logging_stub = ModuleType("devsynth.logging_setup")
 
@@ -35,24 +33,38 @@ class _Logger:
 
 logging_stub.DevSynthLogger = _Logger
 logging_stub.configure_logging = lambda *a, **k: None
-sys.modules["devsynth.logging_setup"] = logging_stub
 
 run_tests_module = ModuleType("devsynth.testing.run_tests")
 run_tests_module.run_tests = lambda *a, **k: (True, "")
-sys.modules["devsynth.testing.run_tests"] = run_tests_module
 
-spec = importlib.util.spec_from_file_location(
-    "run_tests_cmd",
-    Path(__file__).resolve().parents[5]
-    / "src"
-    / "devsynth"
-    / "application"
-    / "cli"
-    / "commands"
-    / "run_tests_cmd.py",
-)
-run_tests_cmd = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(run_tests_cmd)
+
+def _load_run_tests_cmd():
+    """Load the run_tests_cmd module with required stubs."""
+    with patch.dict(
+        sys.modules,
+        {
+            "devsynth.interface.cli": cli_stub,
+            "devsynth.interface.ux_bridge": ux_stub,
+            "devsynth.logging_setup": logging_stub,
+            "devsynth.testing.run_tests": run_tests_module,
+        },
+    ):
+        spec = importlib.util.spec_from_file_location(
+            "run_tests_cmd",
+            Path(__file__).resolve().parents[5]
+            / "src"
+            / "devsynth"
+            / "application"
+            / "cli"
+            / "commands"
+            / "run_tests_cmd.py",
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    return module
+
+
+run_tests_cmd = _load_run_tests_cmd()
 
 
 class DummyBridge:
