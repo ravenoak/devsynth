@@ -4,13 +4,14 @@ Step definitions for Analyze Commands feature.
 
 import os
 import sys
-import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
-from unittest.mock import patch, MagicMock
 from io import StringIO
+from unittest.mock import MagicMock, patch
+
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the CLI modules
-from devsynth.adapters.cli.typer_adapter import run_cli, show_help, parse_args
+from devsynth.adapters.cli.typer_adapter import parse_args, run_cli, show_help
 from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
@@ -52,8 +53,7 @@ def mock_workflow_manager():
         "devsynth.application.orchestration.workflow.workflow_manager",
         mock_manager,
     ):
-        with patch("devsynth.core.workflow_manager", mock_manager):
-            yield mock_manager
+        yield mock_manager
 
 
 @pytest.mark.medium
@@ -454,7 +454,11 @@ def check_warning_message(command_context):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        "the warning message should indicate that no configuration file was found"    ))
+@then(
+    parsers.parse(
+        "the warning message should indicate that no configuration file was found"
+    )
+)
 def check_no_configuration_warning(command_context):
     """
     Verify that the warning message indicates that no configuration file was found.

@@ -40,6 +40,12 @@ Fix the script and rerun it offline to finish provisioning:
    ```bash
    poetry env info --path
    poetry run pip check
+   # Ensure extras required for tests are installed
+   poetry run python - <<'EOF'
+import importlib, sys
+for pkg in ("fastapi", "streamlit", "lmstudio", "tinydb", "duckdb", "lmdb", "chromadb"):
+    importlib.import_module(pkg)
+EOF
    poetry run pip list | grep pytest-bdd
    ```
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.

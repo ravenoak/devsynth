@@ -6,17 +6,18 @@ using a graph-based approach with RDFLib. It integrates with RDFLibStore for enh
 functionality and improved integration between different memory stores.
 """
 
+import json
 import os
 import uuid
-import json
-from typing import Dict, List, Any, Optional, Set, Union
 from contextlib import contextmanager
 from copy import deepcopy
+from typing import Any, Dict, List, Optional, Set, Union
 
 try:
     import rdflib
-    from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD
-    from rdflib.namespace import FOAF, DC
+    from rdflib import RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+    from rdflib.namespace import DC, FOAF
+
     from ....exceptions import MemoryTransactionError
 
     try:
@@ -33,10 +34,11 @@ except Exception:
         return uri
 
 
-from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
+
 from ....domain.interfaces.memory import MemoryStore, VectorStore
+from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....logging_setup import DevSynthLogger
-from devsynth.exceptions import MemoryError, MemoryStoreError, MemoryItemNotFoundError
 from ..rdflib_store import RDFLibStore
 
 logger = DevSynthLogger(__name__)
@@ -147,177 +149,203 @@ class GraphMemoryAdapter(MemoryStore):
         except Exception:
             self.rollback_transaction(transaction_id)
             raise
-            
+
     def begin_transaction(self, transaction_id: str) -> str:
         """
         Begin a transaction.
-        
+
         Args:
             transaction_id: The ID of the transaction
-            
+
         Returns:
             The transaction ID
-            
+
         Raises:
             MemoryTransactionError: If the transaction cannot be started
         """
         logger.debug(f"Beginning transaction {transaction_id} in GraphMemoryAdapter")
-        
+
         # Store the transaction ID
-        if not hasattr(self, '_active_transactions'):
+        if not hasattr(self, "_active_transactions"):
             self._active_transactions = {}
-            
+
         # Create a snapshot of the current state
         snapshot = self.graph.serialize(format="turtle")
-        
+
         # Store the snapshot with the transaction ID
         self._active_transactions[transaction_id] = {
-            'snapshot': snapshot,
-            'prepared': False
+            "snapshot": snapshot,
+            "prepared": False,
         }
-        
+
         # Also maintain compatibility with the existing transaction stack
-        if not hasattr(self, '_transaction_stack'):
+        if not hasattr(self, "_transaction_stack"):
             self._transaction_stack = []
         self._transaction_stack.append(snapshot)
-        
+
         return transaction_id
-        
+
     def prepare_commit(self, transaction_id: str) -> bool:
         """
         Prepare to commit a transaction.
-        
+
         This is the first phase of a two-phase commit protocol.
-        
+
         Args:
             transaction_id: The ID of the transaction
-            
+
         Returns:
             True if the transaction is prepared for commit
-            
+
         Raises:
             MemoryTransactionError: If the transaction cannot be prepared
         """
-        logger.debug(f"Preparing to commit transaction {transaction_id} in GraphMemoryAdapter")
-        
+        logger.debug(
+            f"Preparing to commit transaction {transaction_id} in GraphMemoryAdapter"
+        )
+
         # Check if this is an active transaction
-        if not hasattr(self, '_active_transactions') or transaction_id not in self._active_transactions:
+        if (
+            not hasattr(self, "_active_transactions")
+            or transaction_id not in self._active_transactions
+        ):
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
                 store_type="GraphMemoryAdapter",
-                operation="prepare_commit"
+                operation="prepare_commit",
             )
-            
+
         # Mark the transaction as prepared
-        self._active_transactions[transaction_id]['prepared'] = True
-        
+        self._active_transactions[transaction_id]["prepared"] = True
+
         # Save the current state to ensure durability
         self._save_graph()
-        
+
         return True
-        
+
     def commit_transaction(self, transaction_id: str) -> bool:
         """
         Commit a transaction.
-        
+
         Args:
             transaction_id: The ID of the transaction
-            
+
         Returns:
             True if the transaction was committed
-            
+
         Raises:
             MemoryTransactionError: If the transaction cannot be committed
         """
         logger.debug(f"Committing transaction {transaction_id} in GraphMemoryAdapter")
-        
+
         # Check if this is an active transaction
-        if not hasattr(self, '_active_transactions') or transaction_id not in self._active_transactions:
+        if (
+            not hasattr(self, "_active_transactions")
+            or transaction_id not in self._active_transactions
+        ):
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
                 store_type="GraphMemoryAdapter",
-                operation="commit_transaction"
+                operation="commit_transaction",
             )
-            
+
         # Remove the transaction from the active transactions
         del self._active_transactions[transaction_id]
-        
+
         # Also maintain compatibility with the existing transaction stack
-        if hasattr(self, '_transaction_stack') and self._transaction_stack:
+        if hasattr(self, "_transaction_stack") and self._transaction_stack:
             self._transaction_stack.pop()
-            
+
         # Save the current state to ensure durability
         self._save_graph()
-        
+
         return True
-        
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Check if a transaction is currently active.
+
+        Args:
+            transaction_id: The ID of the transaction to check.
+
+        Returns:
+            ``True`` if the transaction is active, ``False`` otherwise.
+        """
+
+        return (
+            hasattr(self, "_active_transactions")
+            and transaction_id in self._active_transactions
+        )
+
     def rollback_transaction(self, transaction_id: str) -> bool:
         """
         Rollback a transaction.
-        
+
         Args:
             transaction_id: The ID of the transaction
-            
+
         Returns:
             True if the transaction was rolled back
-            
+
         Raises:
             MemoryTransactionError: If the transaction cannot be rolled back
         """
         logger.debug(f"Rolling back transaction {transaction_id} in GraphMemoryAdapter")
-        
+
         # Check if this is an active transaction
-        if not hasattr(self, '_active_transactions') or transaction_id not in self._active_transactions:
+        if (
+            not hasattr(self, "_active_transactions")
+            or transaction_id not in self._active_transactions
+        ):
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
                 store_type="GraphMemoryAdapter",
-                operation="rollback_transaction"
+                operation="rollback_transaction",
             )
-            
+
         # Get the snapshot
-        snapshot = self._active_transactions[transaction_id]['snapshot']
-        
+        snapshot = self._active_transactions[transaction_id]["snapshot"]
+
         # Restore the graph from the snapshot
         self.graph = Graph()
         self.graph.parse(data=snapshot, format="turtle")
-        
+
         # Save the restored graph
         self._save_graph()
-        
+
         # Remove the transaction from the active transactions
         del self._active_transactions[transaction_id]
-        
+
         # Also maintain compatibility with the existing transaction stack
-        if hasattr(self, '_transaction_stack') and self._transaction_stack:
+        if hasattr(self, "_transaction_stack") and self._transaction_stack:
             self._transaction_stack.pop()
-            
+
         return True
-        
+
     def snapshot(self) -> str:
         """
         Create a snapshot of the current state.
-        
+
         Returns:
             A serialized representation of the graph
         """
         return self.graph.serialize(format="turtle")
-        
+
     def restore(self, snapshot: str) -> bool:
         """
         Restore from a snapshot.
-        
+
         Args:
             snapshot: A serialized representation of the graph
-            
+
         Returns:
             True if the restore was successful
         """
         if snapshot is None:
             return False
-            
+
         try:
             self.graph = Graph()
             self.graph.parse(data=snapshot, format="turtle")
@@ -879,7 +907,7 @@ class GraphMemoryAdapter(MemoryStore):
                         ?item devsynth:confidenceThreshold ?threshold .
                         OPTIONAL { ?item devsynth:lastAccessTime ?lastAccess }
                         OPTIONAL { ?item devsynth:accessCount ?accessCount }
-                        OPTIONAL { 
+                        OPTIONAL {
                             ?item devsynth:volatilityEnabled ?enabled .
                             FILTER(?enabled = "true"^^<http://www.w3.org/2001/XMLSchema#boolean>)
                         }
@@ -935,10 +963,10 @@ class GraphMemoryAdapter(MemoryStore):
                     update_query = f"""
                         PREFIX devsynth: <http://devsynth.ai/ontology/>
 
-                        DELETE {{ 
+                        DELETE {{
                             <{item_uri}> devsynth:confidence "{confidence}"^^<http://www.w3.org/2001/XMLSchema#float> .
                         }}
-                        INSERT {{ 
+                        INSERT {{
                             <{item_uri}> devsynth:confidence "{new_confidence}"^^<http://www.w3.org/2001/XMLSchema#float> .
                         }}
                         WHERE {{ }}
