@@ -306,7 +306,9 @@ If you find a bug or have a feature request, please create an issue on GitHub:
 - Use present tense ("Add feature" not "Added feature")
 
 Every commit message must include an MVUU JSON block that documents the utility,
-affected files, tests, and traceability information.
+affected files, tests, traceability information, and confirms MVUU usage along
+with the related issue. See the [MVUU schema](../specifications/mvuuschema.json)
+for the full specification.
 
 ### Commit template
 
@@ -321,7 +323,9 @@ Optional detailed description
   "utility_statement": "Explain the utility provided by this change.",
   "affected_files": ["path/to/file"],
   "tests": ["poetry run pytest tests/..."],
-  "TraceID": "MVUU-0000"
+  "TraceID": "DSY-0000",
+  "mvuu": true,
+  "issue": "#123"
 }
 ```
 
@@ -329,14 +333,27 @@ Optional detailed description
 Example commit message:
 
 ```text
-Add token tracking functionality for LLM interactions
+feat(tracking): add token usage instrumentation
 
 - Implement TokenTracker class
 - Add token counting to LLMAdapter
 - Update documentation with token usage examples
+```
 
-
-Fixes #123
+```json
+{
+  "utility_statement": "Adds token tracking for better cost estimation.",
+  "affected_files": [
+    "src/devsynth/token_tracker.py",
+    "docs/usage.md"
+  ],
+  "tests": [
+    "poetry run pytest tests/unit/test_token_tracker.py"
+  ],
+  "TraceID": "DSY-1234",
+  "mvuu": true,
+  "issue": "#123"
+}
 ```
 
 ## Versioning
