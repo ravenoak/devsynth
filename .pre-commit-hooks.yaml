@@ -10,3 +10,21 @@
   entry: python scripts/fix_frontmatter.py --check
   language: system
   pass_filenames: false
+- id: check-internal-links
+  name: check internal links
+  description: "Detect broken internal links in Markdown files"
+  entry: python scripts/check_internal_links.py
+  language: system
+  pass_filenames: false
+- id: fix-code-blocks
+  name: fix code blocks
+  description: "Ensure Markdown code blocks are formatted correctly"
+  entry: python scripts/fix_code_blocks.py --check
+  language: system
+  pass_filenames: false
+- id: find-syntax-errors
+  name: find syntax errors
+  description: "Detect Python syntax errors across the repository"
+  entry: python scripts/find_syntax_errors.py
+  language: system
+  pass_filenames: false
