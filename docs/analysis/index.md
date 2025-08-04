@@ -27,6 +27,7 @@ This section contains various analysis documents related to the DevSynth project
 - **[Technical Deep Dive](technical_deep_dive.md)**: A detailed technical analysis of DevSynth.
 - **[Wide Sweep Analysis](wide_sweep_analysis.md)**: A broad analysis of the DevSynth project.
 - **[CLI and UI Improvement Plan](cli_ui_improvement_plan.md)**: Outline of upcoming usability enhancements.
+- **[MVUU Dashboard](mvuu_dashboard.md)**: Overview of the MVUU traceability dashboard.
 - **[Performance Benchmark Plan](performance_plan.md)**: Expected metrics for core components.
 
 ## Related Documentation
