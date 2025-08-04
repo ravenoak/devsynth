@@ -74,7 +74,7 @@ For instructions on configuring a development environment, see the [development 
 
 ### Environment Requirements
 
-DevSynth requires **Python 3.12 or higher**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
+DevSynth requires **Python 3.12**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
 
 ## Installation
 
