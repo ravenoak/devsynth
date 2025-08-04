@@ -305,6 +305,26 @@ If you find a bug or have a feature request, please create an issue on GitHub:
 - Keep commits focused on a single change
 - Use present tense ("Add feature" not "Added feature")
 
+Every commit message must include an MVUU JSON block that documents the utility,
+affected files, tests, and traceability information.
+
+### Commit template
+
+```text
+type(scope): short summary
+
+Optional detailed description
+```
+
+```json
+{
+  "utility_statement": "Explain the utility provided by this change.",
+  "affected_files": ["path/to/file"],
+  "tests": ["poetry run pytest tests/..."],
+  "TraceID": "MVUU-0000"
+}
+```
+
 
 Example commit message:
 
