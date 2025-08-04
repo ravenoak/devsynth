@@ -1,13 +1,14 @@
 ---
 title: "DevSynth System Requirements Specification"
-date: "2025-07-07"
-version: "0.1.0"
+date: "2025-08-04"
+version: "0.1.0-alpha.1"
 tags:
   - "documentation"
 
-status: "published"
+status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
+last_reviewed: "2025-08-04"
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; DevSynth System Requirements Specification
@@ -23,9 +24,11 @@ last_reviewed: "2025-07-10"---
 
 | Document Title | DevSynth System Requirements Specification |
 |---------------|-------------------------------------------|
-| Version       | 1.0                                       |
+| Version       | 0.1.0-alpha.1                              |
 | Status        | Draft                                     |
-| Date          | May 2025                                  |
+| Date          | August 2025                               |
+
+This specification describes an unreleased system targeting the `0.1.0-alpha.1` live test as outlined in the [release plan](roadmap/release_plan.md).
 
 ## 1. Introduction
 
@@ -428,6 +431,20 @@ Primary users are individual software developers who:
 - [QA-12] The system shall minimize resource usage (memory, CPU, disk)
 - [QA-13] The system shall provide configuration options for performance tuning
 
+### 7.5 Repository Practices
+
+- [QA-14] The development process shall use atomic, idempotent commits.
+  - Acceptance Criteria:
+    - Commit hooks reject commits that bundle unrelated changes.
+    - CI reruns commits to verify no unintended side effects.
+- [QA-15] The system shall enforce MVUU metadata for all contributions.
+  - Acceptance Criteria:
+    - Commit hooks validate presence and format of MVUU metadata.
+    - CI fails if metadata is missing or inconsistent.
+- [QA-16] The main branch shall remain continuously usable.
+  - Acceptance Criteria:
+    - CI must pass before merging to main.
+    - Commit hooks run tests and block pushes on failure.
 
 ## 8. Verification and Validation
 
@@ -455,6 +472,12 @@ Primary users are individual software developers who:
 | LM Studio | A local Provider that runs on the developer's machine |
 | Test-Driven Development | A software development approach where tests are written before the code |
 | Token | The basic unit of text processed by language models, roughly 3/4 the number of words |
+
+## Changelog
+
+- **0.1.0-alpha.1** (2025-08-04): Added non-functional requirements for atomic, idempotent commits, MVUU metadata enforcement, and continuous main-branch usability with associated CI and commit-hook criteria in preparation for the first live test.
+- **0.1.0-alpha.0** (2025-05-01): Initial draft.
+
 ## Implementation Status
 
-This specification is **implemented** and reflects the current system.
+This specification is **in progress** and outlines planned behavior for the upcoming `0.1.0-alpha.1` milestone.
