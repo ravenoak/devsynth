@@ -2,25 +2,37 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MVUU Schema",
   "type": "object",
-  "required": ["utility_statement", "affected_files", "tests", "TraceID"],
+  "required": ["utility_statement", "affected_files", "tests", "TraceID", "mvuu", "issue"],
   "properties": {
     "utility_statement": {
       "type": "string",
-      "description": "Summary of the utility provided by the change."
+      "description": "Commit utility statement summarizing the change."
     },
     "affected_files": {
       "type": "array",
       "items": {"type": "string"},
-      "description": "List of file paths impacted by the update."
+      "description": "Paths to files modified in this commit."
     },
     "tests": {
       "type": "array",
       "items": {"type": "string"},
-      "description": "References to tests validating the change."
+      "description": "Commands or references to tests validating the change."
     },
     "TraceID": {
       "type": "string",
-      "description": "Identifier used for traceability."
+      "description": "Traceability identifier in the form MVUU-0000."
+    },
+    "mvuu": {
+      "type": "boolean",
+      "description": "Set to true to confirm this commit uses the MVUU format."
+    },
+    "issue": {
+      "type": "string",
+      "description": "Related issue identifier (e.g., '#123')."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional additional context for reviewers."
     }
   },
   "additionalProperties": false

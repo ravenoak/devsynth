@@ -11,7 +11,10 @@ VALID_MESSAGE = (
     '  "utility_statement": "Example",\n'
     '  "affected_files": ["file.txt"],\n'
     '  "tests": ["pytest tests/example.py"],\n'
-    '  "TraceID": "MVUU-0001"\n'
+    '  "TraceID": "MVUU-0001",\n'
+    '  "mvuu": true,\n'
+    '  "issue": "#1",\n'
+    '  "notes": "demo"\n'
     "}\n"
     "```\n"
 )

@@ -7,5 +7,8 @@
   "tests": [
     "poetry run pytest tests/"
   ],
-  "TraceID": "MVUU-0001"
+  "TraceID": "MVUU-0001",
+  "mvuu": true,
+  "issue": "#1",
+  "notes": "Initial schema documentation."
 }

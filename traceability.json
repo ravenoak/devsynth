@@ -10,6 +10,8 @@
     "tests": [
       "poetry run pytest tests/"
     ],
-    "issue": null
+    "issue": "#1",
+    "mvuu": true,
+    "notes": "Initial schema documentation."
   }
 }
