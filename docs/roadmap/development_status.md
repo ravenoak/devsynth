@@ -119,9 +119,9 @@ This phase focuses on stabilizing the foundation of the DevSynth project by addr
 3. **Configuration Management**:
    - Implemented environment-specific configuration (development, testing, staging, production)
    - Created production configuration templates with security hardening
-   - Added configuration validation script with schema validation
+   - Added configuration validation command with schema validation
    - Implemented error handling and environment variable support
-   - Files: `/config/*.yml`, `/scripts/validate_config.py`
+   - Files: `/config/*.yml`, `devsynth inspect-config`
 
 
 ##### Completed Tasks (continued)
@@ -232,7 +232,7 @@ This work is planned for after the completion of Month 2.
 The completion of Phase 1 produced several key artifacts:
 
 - **Assessment Documents**: [Feature Status Matrix](../implementation/feature_status_matrix.md), [EDRR Framework Assessment](../implementation/edrr_assessment.md), and [WSDE Model Validation](../implementation/wsde_validation.md)
-- **Deployment Infrastructure**: multi-stage `Dockerfile`, `docker-compose.yml`, environment-specific configuration files in `config/`, and the `scripts/validate_config.py` validation script
+- **Deployment Infrastructure**: multi-stage `Dockerfile`, `docker-compose.yml`, environment-specific configuration files in `config/`, and the `devsynth inspect-config` validation script
 - **Documentation**: comprehensive [Deployment Guide](../deployment/deployment_guide.md) and updated planning documents
 
 ## Phase 2: Repository Analysis and Inventory

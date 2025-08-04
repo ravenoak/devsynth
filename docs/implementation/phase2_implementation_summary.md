@@ -37,7 +37,7 @@ The following major changes and improvements were implemented:
 
 A test parallelization strategy was implemented using pytest-xdist to significantly reduce test execution time. This includes:
 
-- A `run_tests.sh` script that provides a flexible way to run tests with parallelization
+- The `devsynth run-pipeline` command provides a flexible way to run tests with parallelization
 - Support for different test categories (unit, integration, behavior, performance, property)
 - Support for test speed categories (fast, medium, slow)
 - Special handling for tests that require isolation
@@ -46,13 +46,13 @@ Example usage:
 
 ```bash
 # Run all tests with default parallelization (4 processes)
-./scripts/run_tests.sh
+devsynth run-pipeline
 
 # Run unit tests with 8 parallel processes
-./scripts/run_tests.sh -p 8 -c unit
+devsynth run-pipeline -p 8 -c unit
 
 # Run fast tests only
-./scripts/run_tests.sh -c fast
+devsynth run-pipeline -c fast
 ```
 
 ### Test Categorization

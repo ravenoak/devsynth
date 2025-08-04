@@ -16,9 +16,8 @@ last_reviewed: "2025-07-21"---
 # Security Audit
 
 The `devsynth security-audit` command aggregates multiple scanners to help
-protect the project. By default all checks run. The legacy
-`scripts/security_audit.py` wrapper is deprecated and will be removed in a
-future release.
+protect the project. By default all checks run. The legacy wrapper script is
+deprecated and will be removed in a future release.
 
 ## Checks
 

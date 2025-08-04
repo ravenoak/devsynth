@@ -21,7 +21,7 @@ Additional tools assist with broader stabilization tasks:
 
 4. `fix_flaky_tests.py`: Detects and resolves common flaky-test patterns
 5. `incremental_test_categorization.py`: Measures runtime and applies `fast`, `medium`, or `slow` markers
-6. `run_all_tests.py`: Runs categorized tests with optional parallelism and HTML reporting
+6. `devsynth run-pipeline`: Runs categorized tests with optional parallelism and HTML reporting
 
 ## Usage
 
@@ -89,7 +89,7 @@ The categorization tool measures execution time in batches and updates test file
 ### Run All Tests
 
 ```bash
-python scripts/run_all_tests.py --fast --medium --report
+devsynth run-pipeline --fast --medium --report
 ```
 
 This wrapper around `pytest` respects speed markers, can segment tests for faster feedback, and optionally produces an HTML report under `test_reports/`.

@@ -108,7 +108,7 @@ The following deliverables were produced during Month 1:
    - Multi-stage Dockerfile (`/Dockerfile`)
    - Docker Compose configuration (`/docker-compose.yml`)
    - Environment-specific configuration files (`/config/*.yml`)
-   - Configuration validation script (`/scripts/validate_config.py`)
+   - Configuration validation command (`devsynth inspect-config`)
 
 3. **Documentation**:
    - Deployment Guide (`/docs/deployment/deployment_guide.md`)

@@ -36,36 +36,36 @@ tests/
 
 ## Running Tests Efficiently
 
-### Using the run_all_tests.py Script
+### Using the `devsynth run-pipeline` Command
 
-The `run_all_tests.py` script provides a convenient way to run tests with various options for performance optimization:
+The `devsynth run-pipeline` command provides a convenient way to run tests with various options for performance optimization:
 
 ```bash
 # Run all tests
-python scripts/run_all_tests.py
+devsynth run-pipeline
 
 # Run only unit tests
-python scripts/run_all_tests.py --unit
+devsynth run-pipeline --unit
 
 # Run only fast tests
-python scripts/run_all_tests.py --fast
+devsynth run-pipeline --fast
 
 # Run only unit tests that are fast
-python scripts/run_all_tests.py --unit --fast
+devsynth run-pipeline --unit --fast
 
 # Run tests with segmentation for better performance
-python scripts/run_all_tests.py --segment
+devsynth run-pipeline --segment
 
 # Disable parallel execution
-python scripts/run_all_tests.py --no-parallel
+devsynth run-pipeline --no-parallel
 
 # Generate HTML report
-python scripts/run_all_tests.py --report
+devsynth run-pipeline --report
 ```
 
 ### Command-line Options
 
-The `run_all_tests.py` script supports the following options:
+The `devsynth run-pipeline` command supports the following options:
 
 | Option | Description |
 |--------|-------------|
@@ -88,16 +88,16 @@ Here are some common use cases:
 
 ```bash
 # Run fast tests during development
-python scripts/run_all_tests.py --fast
+devsynth run-pipeline --fast
 
 # Run all unit tests with segmentation
-python scripts/run_all_tests.py --unit --segment
+devsynth run-pipeline --unit --segment
 
 # Run behavior tests with verbose output
-python scripts/run_all_tests.py --behavior --verbose
+devsynth run-pipeline --behavior --verbose
 
 # Run all tests and generate a report
-python scripts/run_all_tests.py --all --report
+devsynth run-pipeline --all --report
 ```
 
 ## Test Categorization
@@ -174,20 +174,20 @@ def test_slow_operation():
 
 ### Parallel Test Execution
 
-Tests can be run in parallel using pytest-xdist, which is enabled by default in the `run_all_tests.py` script. To disable parallel execution, use the `--no-parallel` option.
+Tests can be run in parallel using pytest-xdist, which is enabled by default in the `devsynth run-pipeline` command. To disable parallel execution, use the `--no-parallel` option.
 
 ### Test Segmentation
 
 For large test suites, running tests in smaller batches can improve performance and reduce memory usage. Use the `--segment` option to enable test segmentation:
 
 ```bash
-python scripts/run_all_tests.py --segment
+devsynth run-pipeline --segment
 ```
 
 You can control the batch size using the `--segment-size` option:
 
 ```bash
-python scripts/run_all_tests.py --segment --segment-size 20
+devsynth run-pipeline --segment --segment-size 20
 ```
 
 ### Balanced Test Distribution
@@ -379,7 +379,7 @@ All test scripts use aggressive caching to avoid re-collecting and re-running te
 To disable caching and always collect fresh data:
 
 ```bash
-python scripts/run_all_tests.py --no-cache
+devsynth run-pipeline --no-cache
 ```
 
 The `test_utils.py` module provides common caching functionality for all test scripts, including:
@@ -411,31 +411,31 @@ python scripts/categorize_tests_improved.py --fast-threshold 0.5 --medium-thresh
 
 ## Test Metrics and Reporting
 
-The `test_metrics.py` script provides comprehensive metrics on the test suite:
+The `devsynth test-metrics` command provides comprehensive metrics on the test suite:
 
 ```bash
 # Generate a basic metrics report
-python scripts/test_metrics.py
+devsynth test-metrics
 
 # Generate an HTML report
-python scripts/test_metrics.py --html
+devsynth test-metrics --html
 
 # Run tests to identify failures
-python scripts/test_metrics.py --run-tests
+devsynth test-metrics --run-tests
 
 # Skip coverage calculation for faster execution
-python scripts/test_metrics.py --skip-coverage
+devsynth test-metrics --skip-coverage
 
 # Analyze only a specific category
-python scripts/test_metrics.py --category unit
+devsynth test-metrics --category unit
 
 # Analyze only tests with a specific speed marker
-python scripts/test_metrics.py --speed fast
+devsynth test-metrics --speed fast
 ```
 
 ### Command-line Options
 
-The `test_metrics.py` script supports the following options:
+The `devsynth test-metrics` command supports the following options:
 
 | Option | Description |
 |--------|-------------|

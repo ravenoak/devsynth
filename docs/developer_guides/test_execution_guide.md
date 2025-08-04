@@ -42,23 +42,23 @@ Tests are also categorized by execution time:
 
 ### Running Tests with Parallelization
 
-The `scripts/run_tests.sh` script provides a flexible way to run tests with parallelization:
+The `devsynth run-pipeline` command provides a flexible way to run tests with parallelization:
 
 ```bash
 # Run all tests with default parallelization (4 processes)
-./scripts/run_tests.sh
+devsynth run-pipeline
 
 # Run unit tests with 8 parallel processes
-./scripts/run_tests.sh -p 8 -c unit
+devsynth run-pipeline -p 8 -c unit
 
 # Run fast tests only
-./scripts/run_tests.sh -c fast
+devsynth run-pipeline -c fast
 
 # Run tests with specific markers
-./scripts/run_tests.sh -m "not requires_llm_provider"
+devsynth run-pipeline -m "not requires_llm_provider"
 
 # Run tests with coverage reporting
-./scripts/run_tests.sh --coverage
+devsynth run-pipeline --coverage
 ```
 
 #### Available Options
@@ -83,26 +83,26 @@ The `scripts/run_tests.sh` script provides a flexible way to run tests with para
 
 ### Test Metrics Reporting
 
-The `scripts/test_metrics.py` script generates comprehensive reports on the test suite status:
+The `devsynth test-metrics` command generates comprehensive reports on the test suite status:
 
 ```bash
 # Generate a basic test metrics report
-python scripts/test_metrics.py
+devsynth test-metrics
 
 # Generate an HTML report
-python scripts/test_metrics.py --html
+devsynth test-metrics --html
 
 # Skip coverage calculation for faster execution
-python scripts/test_metrics.py --skip-coverage
+devsynth test-metrics --skip-coverage
 
 # Analyze only unit tests
-python scripts/test_metrics.py --category unit
+devsynth test-metrics --category unit
 
 # Analyze only fast tests
-python scripts/test_metrics.py --speed fast
+devsynth test-metrics --speed fast
 
 # Run tests to identify failures
-python scripts/test_metrics.py --run-tests
+devsynth test-metrics --run-tests
 ```
 
 #### Available Options
@@ -144,12 +144,12 @@ During active development, you should focus on running fast, relevant tests:
 
 2. **Run fast tests**: Run only fast tests to get quick feedback:
    ```bash
-   ./scripts/run_tests.sh -c fast
+   devsynth run-pipeline -c fast
    ```
 
 3. **Skip slow dependencies**: Skip tests that require slow dependencies:
    ```bash
-   ./scripts/run_tests.sh -m "not requires_llm_provider"
+   devsynth run-pipeline -m "not requires_llm_provider"
    ```
 
 ### Before Committing Changes
@@ -158,17 +158,17 @@ Before committing changes, you should run a more comprehensive test suite:
 
 1. **Run all tests for the modified component**:
    ```bash
-   ./scripts/run_tests.sh -c unit -m "component_name"
+   devsynth run-pipeline -c unit -m "component_name"
    ```
 
 2. **Run integration tests** that involve the modified component:
    ```bash
-   ./scripts/run_tests.sh -c integration -m "component_name"
+   devsynth run-pipeline -c integration -m "component_name"
    ```
 
 3. **Run behavior tests** for user-facing features:
    ```bash
-   ./scripts/run_tests.sh -c behavior
+   devsynth run-pipeline -c behavior
    ```
 
 ### In Continuous Integration
@@ -177,12 +177,12 @@ In CI environments, you should run the full test suite with parallelization:
 
 1. **Run all tests**:
    ```bash
-   ./scripts/run_tests.sh -p 8
+   devsynth run-pipeline -p 8
    ```
 
 2. **Generate test metrics report**:
    ```bash
-   python scripts/test_metrics.py --html --run-tests
+   devsynth test-metrics --html --run-tests
    ```
 
 ## Test Performance Optimization
@@ -254,10 +254,10 @@ def test_function_with_mocked_dependency(mocker):
 
 If tests are taking too long to run:
 
-1. Use parallelization: `./scripts/run_tests.sh -p 8`
-2. Run only fast tests: `./scripts/run_tests.sh -c fast`
+1. Use parallelization: `devsynth run-pipeline -p 8`
+2. Run only fast tests: `devsynth run-pipeline -c fast`
 3. Run only specific tests: `python -m pytest path/to/test_file.py`
-4. Skip coverage calculation: `python scripts/test_metrics.py --skip-coverage`
+4. Skip coverage calculation: `devsynth test-metrics --skip-coverage`
 
 #### Behavior Tests Not Being Collected
 
