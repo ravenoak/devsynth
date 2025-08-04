@@ -151,7 +151,10 @@ class Settings(BaseSettings):
                 "DEVSYNTH_MEMORY_STORE", "memory"
             ),
             "kuzu_db_path": lambda s: os.environ.get("DEVSYNTH_KUZU_DB_PATH", None),
-            "kuzu_embedded": "kuzu_embedded",
+            "kuzu_embedded": lambda s: _parse_bool_env(
+                os.environ.get("DEVSYNTH_KUZU_EMBEDDED", s.kuzu_embedded),
+                "kuzu_embedded",
+            ),
             "openai_api_key": lambda s: os.environ.get("OPENAI_API_KEY", None),
             "access_token": lambda s: os.environ.get("DEVSYNTH_ACCESS_TOKEN", None),
         }
