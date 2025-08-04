@@ -1,25 +1,22 @@
 """Tests for the ``doctor`` CLI command."""
 
-from textwrap import dedent
-from types import SimpleNamespace
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-from types import ModuleType
-import sys
 import importlib
 import importlib.util
+import sys
+from pathlib import Path
+from textwrap import dedent
+from types import ModuleType, SimpleNamespace
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 # Create minimal stubs to avoid importing heavy dependencies when loading doctor_cmd
 devsynth_pkg = ModuleType("devsynth")
 devsynth_pkg.__path__ = []
-sys.modules["devsynth"] = devsynth_pkg
 testing_pkg = ModuleType("devsynth.testing")
 testing_pkg.__path__ = []
-sys.modules["devsynth.testing"] = testing_pkg
 run_tests_stub = ModuleType("devsynth.testing.run_tests")
 run_tests_stub.run_tests = lambda *a, **k: (True, "")
-sys.modules["devsynth.testing.run_tests"] = run_tests_stub
 
 logging_stub = ModuleType("devsynth.logging_setup")
 
@@ -35,12 +32,10 @@ class _DummyLogger:
 DevSynthLogger = _DummyLogger
 logging_stub.DevSynthLogger = DevSynthLogger
 logging_stub.configure_logging = lambda *a, **k: None
-sys.modules["devsynth.logging_setup"] = logging_stub
 
 config_stub = ModuleType("devsynth.core.config_loader")
 config_stub.load_config = lambda *a, **k: SimpleNamespace()
 config_stub._find_project_config = lambda path: None
-sys.modules["devsynth.core.config_loader"] = config_stub
 
 cli_stub = ModuleType("devsynth.interface.cli")
 
@@ -51,42 +46,59 @@ class _Bridge:
 
 
 cli_stub.CLIUXBridge = _Bridge
-sys.modules["devsynth.interface.cli"] = cli_stub
 
 ux_stub = ModuleType("devsynth.interface.ux_bridge")
 ux_stub.UXBridge = object
-sys.modules["devsynth.interface.ux_bridge"] = ux_stub
 
 app_pkg = ModuleType("devsynth.application")
 app_pkg.__path__ = []
-sys.modules["devsynth.application"] = app_pkg
 cli_pkg = ModuleType("devsynth.application.cli")
 cli_pkg.__path__ = []
-sys.modules["devsynth.application.cli"] = cli_pkg
 commands_pkg = ModuleType("devsynth.application.cli.commands")
 commands_pkg.__path__ = []
-sys.modules["devsynth.application.cli.commands"] = commands_pkg
 cli_commands_stub = ModuleType("devsynth.application.cli.cli_commands")
 cli_commands_stub._check_services = lambda bridge: True
-sys.modules["devsynth.application.cli.cli_commands"] = cli_commands_stub
 align_stub = ModuleType("devsynth.application.cli.commands.align_cmd")
 align_stub.check_alignment = lambda *a, **k: []
 align_stub.display_issues = lambda *a, **k: None
-sys.modules["devsynth.application.cli.commands.align_cmd"] = align_stub
 
-spec = importlib.util.spec_from_file_location(
-    "devsynth.application.cli.commands.doctor_cmd",
-    Path(__file__).parents[4]
-    / "src"
-    / "devsynth"
-    / "application"
-    / "cli"
-    / "commands"
-    / "doctor_cmd.py",
-)
-doctor_cmd = importlib.util.module_from_spec(spec)
-assert spec and spec.loader
-spec.loader.exec_module(doctor_cmd)
+
+def _load_doctor_cmd():
+    """Load the doctor_cmd module with required stubs."""
+    with patch.dict(
+        sys.modules,
+        {
+            "devsynth": devsynth_pkg,
+            "devsynth.testing": testing_pkg,
+            "devsynth.testing.run_tests": run_tests_stub,
+            "devsynth.logging_setup": logging_stub,
+            "devsynth.core.config_loader": config_stub,
+            "devsynth.interface.cli": cli_stub,
+            "devsynth.interface.ux_bridge": ux_stub,
+            "devsynth.application": app_pkg,
+            "devsynth.application.cli": cli_pkg,
+            "devsynth.application.cli.commands": commands_pkg,
+            "devsynth.application.cli.cli_commands": cli_commands_stub,
+            "devsynth.application.cli.commands.align_cmd": align_stub,
+        },
+    ):
+        spec = importlib.util.spec_from_file_location(
+            "devsynth.application.cli.commands.doctor_cmd",
+            Path(__file__).parents[4]
+            / "src"
+            / "devsynth"
+            / "application"
+            / "cli"
+            / "commands"
+            / "doctor_cmd.py",
+        )
+        module = importlib.util.module_from_spec(spec)
+        assert spec and spec.loader
+        spec.loader.exec_module(module)
+    return module
+
+
+doctor_cmd = _load_doctor_cmd()
 
 
 def _patch_validation_loader():

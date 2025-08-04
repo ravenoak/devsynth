@@ -7,11 +7,19 @@ can reuse the same interaction patterns.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Optional, Sequence, Union, Dict, Any
 import html
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional, Sequence, Union
 
-from devsynth.security import sanitize_input
+try:  # pragma: no cover - import guarded for optional deps
+    # Import directly from the sanitization module to avoid initializing the
+    # entire security package, which may have optional dependencies.
+    from devsynth.security.sanitization import sanitize_input
+except Exception:  # pragma: no cover - graceful degradation
+
+    def sanitize_input(text: str) -> str:  # type: ignore[override]
+        """Fallback sanitizer used when security helpers are unavailable."""
+        return text
 
 
 def sanitize_output(text: str) -> str:
@@ -69,21 +77,23 @@ class UXBridge(ABC):
         """Request confirmation from the user."""
 
     @abstractmethod
-    def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str = None
+    ) -> None:
         """Display a message to the user.
-        
+
         Args:
             message: The message to display
             highlight: Whether to highlight the message
             message_type: Optional type of message (info, success, warning, error, etc.)
         """
-        
+
     def handle_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
         """Handle an error with enhanced error messages.
-        
+
         This method formats the error with actionable suggestions and documentation links,
         and displays it to the user.
-        
+
         Args:
             error: The error to handle
         """
