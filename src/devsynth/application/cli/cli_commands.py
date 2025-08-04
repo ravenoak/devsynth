@@ -1833,6 +1833,12 @@ def webui_cmd(*, bridge: UXBridge = bridge) -> None:
 
 def dpg_cmd(*, bridge: UXBridge = bridge) -> None:
     """Launch the Dear PyGUI interface."""
+    settings = get_settings(reload=True)
+    if not getattr(settings, "gui_enabled", False):
+        bridge.display_result(
+            "[yellow]GUI support is disabled. Enable 'gui.enabled' in configuration to use this command.[/yellow]"
+        )
+        return
     try:
         if run_dpg_ui is None:
             raise ImportError("Dear PyGUI interface is unavailable")

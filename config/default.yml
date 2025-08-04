@@ -112,6 +112,10 @@ performance:
     max_workers: 4
     timeout: 300  # seconds
 
+# GUI settings
+gui:
+  enabled: false
+
 # Formal verification settings
 formalVerification:
   propertyTesting: false
