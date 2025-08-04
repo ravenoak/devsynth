@@ -15,8 +15,10 @@ last_reviewed: "2025-07-21"---
 
 # Security Audit
 
-The `security_audit.py` script aggregates multiple scanners to help protect the
-project. By default all checks run.
+The `devsynth security-audit` command aggregates multiple scanners to help
+protect the project. By default all checks run. The legacy
+`scripts/security_audit.py` wrapper is deprecated and will be removed in a
+future release.
 
 ## Checks
 
@@ -31,14 +33,13 @@ project. By default all checks run.
 Run all checks:
 
 ```bash
-python scripts/security_audit.py
+devsynth security-audit
 ```
 
 Skip specific scanners using flags:
 
 ```bash
-python scripts/security_audit.py --skip-bandit --skip-secrets --skip-owasp --skip-safety
+devsynth security-audit --skip-bandit --skip-secrets --skip-owasp --skip-safety
 ```
 
-`--skip-static` is retained as an alias for `--skip-bandit` for backward
-compatibility.
+`--skip-static` remains an alias for `--skip-bandit` for backward compatibility.
