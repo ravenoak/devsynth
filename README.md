@@ -109,6 +109,13 @@ You can install DevSynth in a few different ways:
    poetry sync --all-extras --all-groups
    ```
 
+5. **Quick GUI preview** – install from PyPI and launch the Dear PyGui interface
+
+   ```bash
+   pip install 'devsynth[gui]'
+   devsynth dpg
+   ```
+
    Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
@@ -183,6 +190,7 @@ The repository includes runnable examples that walk through common workflows:
 - [EDRR Cycle Example](examples/edrr_cycle_example) – run the Expand–Differentiate–Refine–Retrospect workflow
 - [End-to-End CLI Example](examples/e2e_cli_example) – complete workflow using the CLI
 - [End-to-End WebUI Example](examples/e2e_webui_example) – complete workflow using the WebUI
+- [Dear PyGui UI Example](examples/dpg_ui_example) – launch the experimental GUI
 
 ## Running Tests
 
