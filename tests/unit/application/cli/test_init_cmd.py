@@ -1,114 +1,99 @@
+"""Tests for the ``init`` CLI command and related help output."""
+
 from pathlib import Path
-from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.application.cli.cli_commands import init_cmd
-from devsynth.interface.cli import CLIUXBridge
-import pytest
 from unittest.mock import patch
 
+import click
+import pytest
+import typer
 
-def _run_init(tmp_path, monkeypatch, *, use_pyproject=False):
-    """Helper to run init_cmd with patched bridge."""
+from devsynth.adapters.cli import typer_adapter
+from devsynth.application.cli.cli_commands import init_cmd
+from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+
+
+def _run_init(tmp_path, monkeypatch, *, use_pyproject: bool = False):
+    """Run ``init_cmd`` with patched prompts and confirmations.
+
+    This helper simulates user interaction by monkeypatching the ``Prompt`` and
+    ``Confirm`` calls used by the command. It returns any messages printed to
+    the console so tests can assert against them.
+    """
+
     monkeypatch.chdir(tmp_path)
-    
-    # Use lists instead of iterators for more predictable behavior
-    answers = [str(tmp_path), 'python', 'do stuff', 'memory']
-    confirms = [False, False, False, False, False, False, False, True]
-    
-    # Create more robust mock implementations with indices
-    answer_index = 0
-    confirm_index = 0
-    
-    def mock_ask(*args, **kwargs):
-        nonlocal answer_index
-        if answer_index < len(answers):
-            result = answers[answer_index]
-            answer_index += 1
-            return result
-        return ""  # Default answer if we run out
-    
-    def mock_confirm(*args, **kwargs):
-        nonlocal confirm_index
-        if confirm_index < len(confirms):
-            result = confirms[confirm_index]
-            confirm_index += 1
-            return result
-        return False  # Default confirmation if we run out
-    
-    # Apply the mocks
-    
-    original = module_name
-    try:
-        monkeypatch.setattr(target_module, mock_function)
-        # Test code here
-    finally:
-        # Restore original if needed for cleanup
-        pass
 
-        monkeypatch.setattr('devsynth.interface.cli.Confirm.ask', mock_confirm)
-    
-        # Capture printed messages
-        printed = []
-        monkeypatch.setattr('rich.console.Console.print', 
-                       lambda self, msg, *, highlight=False: printed.append(msg))
-    
-        # Create pyproject.toml if requested
-        if use_pyproject:
-        (tmp_path / 'pyproject.toml').write_text('')
-    
-        # Ensure the .devsynth directory exists
-        devsynth_dir = tmp_path / '.devsynth'
-        devsynth_dir.mkdir(exist_ok=True)
-    
-        # Run the command
-        bridge = CLIUXBridge()
-        init_cmd(bridge=bridge)
-    
-        return printed
+    answers = iter([str(tmp_path), "python", "do stuff", "memory"])
+    monkeypatch.setattr(
+        "devsynth.interface.cli.Prompt.ask", lambda *a, **k: next(answers)
+    )
+
+    def mock_confirm(prompt, *args, **kwargs):
+        text = str(prompt)
+        if "offline" in text.lower():
+            return False
+        return True
+
+    monkeypatch.setattr("devsynth.interface.cli.Confirm.ask", mock_confirm)
+
+    printed: list[str] = []
+    monkeypatch.setattr(
+        "rich.console.Console.print",
+        lambda self, msg, *, highlight=False: printed.append(str(msg)),
+    )
+
+    if use_pyproject:
+        (tmp_path / "pyproject.toml").write_text("")
+
+    bridge = CLIUXBridge()
+    init_cmd(bridge=bridge)
+
+    return printed
 
 
-def _load_config(path: Path):
-    root = (path.parent.parent if path.parent.name == '.devsynth' else path
-        .parent)
+def _load_config(path: Path) -> dict:
+    """Load project configuration for the given path."""
+
+    root = path.parent.parent if path.parent.name == ".devsynth" else path.parent
     return UnifiedConfigLoader.load(root).config.as_dict()
 
 
 @pytest.mark.medium
 def test_init_cmd_creates_config_succeeds(tmp_path, monkeypatch):
-    """Test that init cmd creates config succeeds.
+    """Init command creates configuration when none exists."""
 
-    ReqID: N/A"""
     printed = _run_init(tmp_path, monkeypatch)
-    cfg_file = tmp_path / '.devsynth' / 'project.yaml'
-    if not cfg_file.exists():
-        cfg_file = tmp_path / '.devsynth' / 'project.yaml'
-    if not cfg_file.exists():
-        cfg_file = tmp_path / 'pyproject.toml'
-    data = _load_config(cfg_file)
-    assert data['project_root'] == str(tmp_path)
-    assert data['language'] == 'python'
-    assert data['goals'] == 'do stuff'
-    assert data['memory_store_type'] == 'memory'
-    assert data['offline_mode'] is False
-    assert any('Initialization complete' in msg for msg in printed)
 
+    cfg_file = tmp_path / ".devsynth" / "project.yaml"
+    if not cfg_file.exists():
+        cfg_file = tmp_path / "pyproject.toml"
+
+    data = _load_config(cfg_file)
+
+    assert data["project_root"] == str(tmp_path)
+    assert data["language"] == "python"
+    assert data["goals"] == "do stuff"
+    assert data["memory_store_type"] == "memory"
+    assert data["offline_mode"] is False
+    assert any("Initialization complete" in msg for msg in printed)
 
 
 @pytest.mark.medium
 def test_init_cmd_idempotent_succeeds(tmp_path, monkeypatch):
-    """Test that init cmd idempotent succeeds.
+    """Running init twice reports project already initialized."""
 
-    ReqID: N/A"""
     _run_init(tmp_path, monkeypatch)
     printed = _run_init(tmp_path, monkeypatch)
-    assert any('Project already initialized' in msg for msg in printed)
 
+    assert any("Project already initialized" in msg for msg in printed)
 
 
 @pytest.mark.medium
 def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
-    """--wizard flag should run the SetupWizard."""
+    """``--wizard`` flag runs the interactive ``SetupWizard``."""
 
-    with patch('devsynth.application.cli.setup_wizard.SetupWizard') as wiz:
+    with patch("devsynth.application.cli.setup_wizard.SetupWizard") as wiz:
         init_cmd(wizard=True)
         wiz.assert_called_once()
         wiz.return_value.run.assert_called_once()
@@ -116,34 +101,33 @@ def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
 
 @pytest.mark.medium
 def test_cli_help_lists_renamed_commands_succeeds(capsys, monkeypatch):
-    """Verify CLI help shows updated command names.
+    """``devsynth --help`` lists renamed commands and omits old ones."""
 
-    ReqID: N/A"""
-    from devsynth.adapters.cli import typer_adapter
-    from devsynth.interface.ux_bridge import UXBridge
-    import click
-    import typer
-    orig = typer.main.get_click_type
+    orig_get_click_type = typer.main.get_click_type
 
-    def patched_get_click_type(*, annotation, parameter_info):
+    def patched_get_click_type(*, annotation, parameter_info):  # pragma: no cover
         if annotation in {UXBridge, typer.models.Context}:
             return click.STRING
-        origin = getattr(annotation, '__origin__', None)
-        if origin in {UXBridge, typer.models.Context, dict
-            } or annotation is dict:
+        origin = getattr(annotation, "__origin__", None)
+        if origin in {UXBridge, typer.models.Context, dict} or annotation is dict:
             return click.STRING
-        return orig(annotation=annotation, parameter_info=parameter_info)
-    monkeypatch.setattr(typer.main, 'get_click_type', patched_get_click_type)
-    monkeypatch.setattr(typer_adapter, '_warn_if_features_disabled', lambda :
-        None)
+        return orig_get_click_type(annotation=annotation, parameter_info=parameter_info)
+
+    monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
+    monkeypatch.setattr(typer_adapter, "_warn_if_features_disabled", lambda: None)
+
     with pytest.raises(SystemExit) as exc:
-        typer_adapter.parse_args(['--help'])
+        typer_adapter.parse_args(["--help"])
     assert exc.value.code == 0
+
     output = capsys.readouterr().out
     lines = [line.strip() for line in output.splitlines()]
-    assert 'refactor' in output
-    assert 'inspect' in output
-    assert 'run-pipeline' in output
-    assert all(not line.startswith('adaptive') for line in lines)
-    assert all(not line.startswith('analyze ') and ' analyze ' not in line for
-        line in lines)
+
+    assert "refactor" in output
+    assert "inspect" in output
+    assert "run-pipeline" in output
+    assert all(not line.startswith("adaptive") for line in lines)
+    assert all(
+        not line.startswith("analyze ") and " analyze " not in line for line in lines
+    )
+
