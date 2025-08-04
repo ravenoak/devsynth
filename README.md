@@ -60,6 +60,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [User Guide](docs/user_guides/user_guide.md)
 - [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
 - [CLI Reference](docs/user_guides/cli_reference.md)
+- [Dear PyGui Guide](docs/user_guides/dearpygui.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Project Analysis](docs/analysis/executive_summary.md)
 - [Implementation Status Matrix](docs/implementation/feature_status_matrix.md)

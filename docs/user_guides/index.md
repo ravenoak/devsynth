@@ -31,6 +31,7 @@ This section provides comprehensive guides for users of DevSynth, covering gener
   - [Advanced Usage](user_guide.md#advanced-usage): Advanced features and techniques.
   - [End-to-End CLI Tutorial](e2e_cli_tutorial.md): Step-by-step CLI workflow.
   - [End-to-End WebUI Tutorial](e2e_webui_tutorial.md): Step-by-step WebUI workflow.
+  - [Dear PyGui User Guide](dearpygui.md): Guide to the Dear PyGui desktop interface.
 
 ## Overview
 

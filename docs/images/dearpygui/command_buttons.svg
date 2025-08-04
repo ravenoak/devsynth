@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120">
+  <rect width="400" height="120" fill="#f0f0f0" stroke="#888"/>
+  <rect x="50" y="40" width="80" height="40" fill="#d9d9d9" stroke="#666"/>
+  <text x="90" y="65" font-size="14" text-anchor="middle" fill="#333">Init</text>
+  <rect x="160" y="40" width="80" height="40" fill="#d9d9d9" stroke="#666"/>
+  <text x="200" y="65" font-size="14" text-anchor="middle" fill="#333">Inspect</text>
+  <rect x="270" y="40" width="80" height="40" fill="#d9d9d9" stroke="#666"/>
+  <text x="310" y="65" font-size="14" text-anchor="middle" fill="#333">Gather</text>
+</svg>
