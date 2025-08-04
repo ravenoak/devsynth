@@ -12,6 +12,7 @@ from devsynth.config import config_key_autocomplete as loader_autocomplete
 from devsynth.config import get_settings
 from devsynth.config.loader import ConfigModel, _find_config_path, save_config
 from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.core import feature_flags
 from devsynth.core import workflows
 from devsynth.core.workflows import (
     filter_args,
@@ -1062,6 +1063,7 @@ def enable_feature_cmd(name: str, *, bridge: Optional[UXBridge] = None) -> None:
             use_pyproject=(Path("pyproject.toml").exists()),
         )
 
+        feature_flags.refresh()
         bridge.display_result(f"Feature '{name}' enabled.")
     except Exception as err:
         bridge.display_result(f"[red]Error:[/red] {err}", highlight=False)
