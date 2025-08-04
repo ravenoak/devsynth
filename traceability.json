@@ -1,0 +1,15 @@
+{
+  "MVUU-0001": {
+    "features": [
+      "Documented MVUU schema for tracking minimal updates."
+    ],
+    "files": [
+      "docs/specifications/mvuuschema.json",
+      "docs/specifications/mvuu_example.json"
+    ],
+    "tests": [
+      "poetry run pytest tests/"
+    ],
+    "issue": null
+  }
+}

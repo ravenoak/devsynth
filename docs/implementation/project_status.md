@@ -9,7 +9,8 @@ tags:
 - progress
 - tracking
 title: DevSynth Project Status
-version: 1.0.0---
+version: 1.0.0
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Project Status
@@ -40,6 +41,25 @@ The overall project is **partially implemented**. Approximately **70%** of docum
 - **Documentation**: Documentation cleanup and organization in progress
 
 For a detailed breakdown of feature status, see the [Feature Status Matrix](feature_status_matrix.md).
+
+## Traceability Matrix
+
+The repository tracks requirement coverage in `traceability.json`. Each entry maps a `TraceID`
+to related features, affected files, tests, and the associated issue.
+
+```json
+{
+  "TraceID": {
+    "features": ["description of functionality"],
+    "files": ["path/to/file.py"],
+    "tests": ["pytest command or test paths"],
+    "issue": "issue reference or null"
+  }
+}
+```
+
+The `scripts/update_traceability.py` helper runs in CI to append new entries based on MVUU metadata.
+
 
 ## Test Status
 
