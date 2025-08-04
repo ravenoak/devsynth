@@ -1,55 +1,56 @@
 import inspect
-import typer
-import click
-from typing import Optional, Dict, List, Any
-from rich.console import Console
-from rich.panel import Panel
-from rich.markdown import Markdown
-from rich.table import Table
-from rich.box import ROUNDED
+from typing import Any, Dict, List, Optional
 
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.core.config_loader import load_config
-from devsynth.interface.cli import DEVSYNTH_THEME
+import click
+import typer
+from rich.box import ROUNDED
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.table import Table
 
 from devsynth.application.cli import (
-    init_cmd,
-    spec_cmd,
-    test_cmd,
     code_cmd,
-    run_pipeline_cmd,
-    config_cmd,
-    enable_feature_cmd,
-    gather_cmd,
     config_app,
-    inspect_cmd,
-    webapp_cmd,
-    webui_cmd,
-    dpg_cmd,
+    config_cmd,
     dbschema_cmd,
     doctor_cmd,
-    refactor_cmd,
-    inspect_code_cmd,
+    dpg_cmd,
     edrr_cycle_cmd,
+    enable_feature_cmd,
+    gather_cmd,
+    init_cmd,
+    inspect_cmd,
+    inspect_code_cmd,
+    refactor_cmd,
+    run_pipeline_cmd,
     serve_cmd,
+    spec_cmd,
+    test_cmd,
+    webapp_cmd,
+    webui_cmd,
 )
-from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.cli.apispec import apispec_cmd
 from devsynth.application.cli.commands.align_cmd import align_cmd
 from devsynth.application.cli.commands.alignment_metrics_cmd import (
     alignment_metrics_cmd,
 )
+from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
+from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
+from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
+from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
 from devsynth.application.cli.commands.validate_manifest_cmd import (
     validate_manifest_cmd,
 )
 from devsynth.application.cli.commands.validate_metadata_cmd import (
     validate_metadata_cmd,
 )
-from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
-from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
-from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
+from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.cli.requirements_commands import requirements_app
+from devsynth.core.config_loader import load_config
+from devsynth.interface.cli import DEVSYNTH_THEME
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -367,6 +368,10 @@ def build_app() -> typer.Typer:
         name="run-pipeline",
         help=run_pipeline_help.format(),
     )(run_pipeline_cmd)
+    app.command(
+        name="run-tests",
+        help="Run test suites. Example: devsynth run-tests --target unit-tests",
+    )(run_tests_cmd)
     app.add_typer(config_app, name="config", help="Manage configuration settings")
     app.command(
         name="inspect",
