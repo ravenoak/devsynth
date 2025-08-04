@@ -61,6 +61,13 @@ def lint_commit_message(message: str) -> List[str]:
 
         if "issue" not in mvuu:
             errors.append("Missing required field 'issue'")
+        else:
+            issue = str(mvuu.get("issue", ""))
+            match = re.fullmatch(r"#(\d+)", issue)
+            if not match:
+                errors.append("Issue must reference a ticket like '#123'")
+            elif not (ROOT / "issues" / f"{match.group(1)}.md").exists():
+                errors.append(f"Issue {issue} not found in 'issues' directory")
 
         try:
             jsonschema.validate(mvuu, SCHEMA)

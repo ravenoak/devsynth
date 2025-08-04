@@ -28,7 +28,7 @@
     },
     "issue": {
       "type": "string",
-      "description": "Related issue identifier (e.g., '#123')."
+      "description": "Related issue identifier referencing issues/<id>.md (e.g., '#102')."
     },
     "notes": {
       "type": "string",

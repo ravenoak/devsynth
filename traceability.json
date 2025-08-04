@@ -1,5 +1,6 @@
 {
   "MVUU-0001": {
+    "commit": "f447275b445c34b4d2cfc3e470c64aaf580a3d85",
     "features": [
       "Documented MVUU schema for tracking minimal updates."
     ],
@@ -7,11 +8,12 @@
       "docs/specifications/mvuuschema.json",
       "docs/specifications/mvuu_example.json"
     ],
+    "issue": "#102",
+    "mvuu": true,
+    "notes": "Initial schema documentation.",
     "tests": [
       "poetry run pytest tests/"
     ],
-    "issue": "#1",
-    "mvuu": true,
-    "notes": "Initial schema documentation."
+    "timestamp": "2025-08-04T11:23:58-07:00"
   }
 }

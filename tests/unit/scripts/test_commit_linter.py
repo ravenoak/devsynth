@@ -13,7 +13,7 @@ VALID_MESSAGE = (
     '  "tests": ["pytest tests/example.py"],\n'
     '  "TraceID": "DSY-0001",\n'
     '  "mvuu": true,\n'
-    '  "issue": "#1",\n'
+    '  "issue": "#102",\n'
     '  "notes": "demo"\n'
     "}\n"
     "```\n"
@@ -30,7 +30,7 @@ INVALID_TRACEID_MESSAGE = (
     '  "tests": ["pytest tests/example.py"],\n'
     '  "TraceID": "BAD-0001",\n'
     '  "mvuu": true,\n'
-    '  "issue": "#1"\n'
+    '  "issue": "#102"\n'
     "}\n"
     "```\n"
 )
@@ -57,7 +57,21 @@ MVUU_FALSE_MESSAGE = (
     '  "tests": ["pytest tests/example.py"],\n'
     '  "TraceID": "DSY-0001",\n'
     '  "mvuu": false,\n'
-    '  "issue": "#1"\n'
+    '  "issue": "#102"\n'
+    "}\n"
+    "```\n"
+)
+
+UNKNOWN_ISSUE_MESSAGE = (
+    "feat: unknown issue\n\n"
+    "```json\n"
+    "{\n"
+    '  "utility_statement": "Example",\n'
+    '  "affected_files": ["file.txt"],\n'
+    '  "tests": ["pytest tests/example.py"],\n'
+    '  "TraceID": "DSY-0001",\n'
+    '  "mvuu": true,\n'
+    '  "issue": "#9999"\n'
     "}\n"
     "```\n"
 )
@@ -90,3 +104,9 @@ def test_lint_commit_message_mvuu_false():
     """mvuu field set to false should produce an error."""
     errors = lint_commit_message(MVUU_FALSE_MESSAGE)
     assert any("mvuu" in e for e in errors)
+
+
+def test_lint_commit_message_unknown_issue():
+    """Unknown issue reference should produce an error."""
+    errors = lint_commit_message(UNKNOWN_ISSUE_MESSAGE)
+    assert any("Issue" in e for e in errors)

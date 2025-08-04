@@ -45,7 +45,8 @@ For a detailed breakdown of feature status, see the [Feature Status Matrix](feat
 ## Traceability Matrix
 
 The repository tracks requirement coverage in `traceability.json`. Each entry maps a `TraceID`
-to related features, affected files, tests, and the associated issue.
+to related features, affected files, tests, the associated issue, MVUU metadata, and commit
+provenance.
 
 ```json
 {
@@ -53,7 +54,11 @@ to related features, affected files, tests, and the associated issue.
     "features": ["description of functionality"],
     "files": ["path/to/file.py"],
     "tests": ["pytest command or test paths"],
-    "issue": "issue reference or null"
+    "issue": "issue reference or null",
+    "mvuu": true,
+    "notes": "optional context",
+    "commit": "git commit hash",
+    "timestamp": "ISO-8601 commit time"
   }
 }
 ```

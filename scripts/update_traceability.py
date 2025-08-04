@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Append MVUU metadata to traceability.json.
+"""Append MVUU metadata to ``traceability.json``.
 
-This script parses the most recent commit message for an MVUU JSON block
-and appends a new entry to ``traceability.json``. Existing TraceIDs are
-left unchanged.
+The script parses an MVUU JSON block from the commit message and appends a
+new entry to ``traceability.json`` including the commit hash and timestamp.
+Existing TraceIDs are left unchanged.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ import sys
 from typing import Any, Dict
 
 MVUU_BLOCK_RE = re.compile(r"```json\n(?P<json>{.*?})\n```", re.DOTALL)
+ISSUE_RE = re.compile(r"#(?P<id>\d+)$")
 
 
 def extract_mvuu(commit_msg: str) -> Dict[str, Any]:
@@ -39,6 +40,16 @@ def build_entry(metadata: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _validate_issue(issue: str, root: pathlib.Path) -> None:
+    """Ensure ``issue`` references an existing ticket."""
+    match = ISSUE_RE.fullmatch(issue)
+    if not match:
+        raise ValueError("Issue must reference a ticket like '#123'")
+    ticket = root / "issues" / f"{match.group('id')}.md"
+    if not ticket.exists():
+        raise ValueError(f"Issue {issue} not found in 'issues' directory")
+
+
 def update_traceability(trace_file: pathlib.Path, commit: str) -> None:
     """Append a traceability entry for ``commit`` if needed."""
     commit_msg = subprocess.run(
@@ -48,8 +59,22 @@ def update_traceability(trace_file: pathlib.Path, commit: str) -> None:
         text=True,
     ).stdout
     metadata = extract_mvuu(commit_msg)
+    _validate_issue(metadata.get("issue", ""), trace_file.parent)
     trace_id = metadata["TraceID"]
     entry = build_entry(metadata)
+    commit_hash = subprocess.run(
+        ["git", "rev-parse", commit],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    timestamp = subprocess.run(
+        ["git", "show", "-s", "--format=%cI", commit_hash],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    entry.update({"commit": commit_hash, "timestamp": timestamp})
     data = json.loads(trace_file.read_text()) if trace_file.exists() else {}
     if trace_id not in data:
         data[trace_id] = entry
