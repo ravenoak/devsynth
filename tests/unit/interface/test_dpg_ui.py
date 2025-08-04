@@ -5,11 +5,13 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import json
 import sys
 import threading
 import time as real_time
 
 import devsynth.interface.dpg_ui as dpg_ui
+from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 
 
 def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
@@ -72,10 +74,12 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
         "edrr_cycle_cmd",
         "ingest_cmd",
     ]
-    cli_funcs = {name: _register(name, with_param=(name == "enable_feature_cmd")) for name in cli_cmd_names}
+    cli_funcs = {
+        name: _register(name, with_param=(name == "enable_feature_cmd"))
+        for name in cli_cmd_names
+    }
 
     other_cmds = {
-        "wizard_cmd": _register("wizard_cmd"),
         "apispec_cmd": _register("apispec_cmd"),
         "align_cmd": _register("align_cmd"),
         "alignment_metrics_cmd": _register("alignment_metrics_cmd"),
@@ -88,7 +92,6 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
 
     fake_cli = SimpleNamespace(**cli_funcs)
     fake_apispec = SimpleNamespace(apispec_cmd=other_cmds["apispec_cmd"])
-    fake_requirements = SimpleNamespace(wizard_cmd=other_cmds["wizard_cmd"])
     fake_commands = SimpleNamespace(
         align_cmd=other_cmds["align_cmd"],
         alignment_metrics_cmd=other_cmds["alignment_metrics_cmd"],
@@ -101,9 +104,6 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", fake_cli)
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.apispec", fake_apispec)
-    monkeypatch.setitem(
-        sys.modules, "devsynth.application.cli.requirements_commands", fake_requirements
-    )
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.commands", fake_commands)
 
     class DummyBridge:
@@ -153,7 +153,6 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
         ("Run Pipeline", "run_pipeline_cmd"),
         ("Config", "config_cmd"),
         ("Enable Feature", "enable_feature_cmd"),
-        ("Wizard", "wizard_cmd"),
         ("Inspect Code", "inspect_code_cmd"),
         ("Refactor", "refactor_cmd"),
         ("Webapp", "webapp_cmd"),
@@ -189,5 +188,95 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
         assert progress.update.call_count > 0
         progress.complete.assert_called_once()
 
+    assert "Wizard" in callbacks
     assert funcs["enable_feature_cmd"].call_args[0] == ("feat",)
 
+
+def test_requirements_wizard_dialog(tmp_path, monkeypatch):
+    """Wizard dialog saves requirements and shows progress."""
+
+    answers = iter(
+        [
+            "My title",
+            "My description",
+            RequirementType.FUNCTIONAL.value,
+            RequirementPriority.HIGH.value,
+            "c1, c2",
+        ]
+    )
+
+    update_calls: list[tuple[int, str | None]] = []
+
+    class FakeProgress:
+        def update(self, advance: int = 0, description: str | None = None) -> None:
+            update_calls.append((advance, description))
+
+        def complete(self) -> None:  # pragma: no cover - simple
+            pass
+
+    class FakeBridge:
+        def __init__(self) -> None:
+            self.messages: list[str] = []
+
+        def ask_question(self, *_args, **_kwargs) -> str:
+            return next(answers)
+
+        def create_progress(self, *_args, **_kwargs) -> FakeProgress:
+            return FakeProgress()
+
+        def display_result(self, message: str, **_kwargs) -> None:
+            self.messages.append(message)
+
+    monkeypatch.chdir(tmp_path)
+    bridge = FakeBridge()
+    dpg_ui._requirements_wizard_dialog(bridge)
+
+    with open(tmp_path / "requirements_wizard.json", "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+
+    assert data["title"] == "My title"
+    assert data["priority"] == RequirementPriority.HIGH.value
+    assert "[green]Requirements saved" in bridge.messages[-1]
+    descriptions = [d for _a, d in update_calls if d]
+    assert descriptions[0].startswith("Step 1/5")
+
+
+def test_requirements_wizard_dialog_error(monkeypatch, tmp_path):
+    """Errors in wizard are reported and progress closed."""
+
+    answers = iter(["t", "d", "functional", "medium", "c"])
+
+    class FakeProgress:
+        def __init__(self) -> None:
+            self.completed = False
+
+        def update(self, advance: int = 0, description: str | None = None) -> None:
+            pass
+
+        def complete(self) -> None:
+            self.completed = True
+
+    class FakeBridge:
+        def __init__(self) -> None:
+            self.messages: list[str] = []
+            self.progress: FakeProgress | None = None
+
+        def ask_question(self, *_args, **_kwargs) -> str:
+            return next(answers)
+
+        def create_progress(self, *_args, **_kwargs) -> FakeProgress:
+            self.progress = FakeProgress()
+            return self.progress
+
+        def display_result(self, message: str, **_kwargs) -> None:
+            self.messages.append(message)
+
+    def boom(*_args, **_kwargs):
+        raise OSError("boom")
+
+    monkeypatch.setattr("builtins.open", boom)
+    bridge = FakeBridge()
+    dpg_ui._requirements_wizard_dialog(bridge)
+
+    assert any("ERROR in requirements wizard" in m for m in bridge.messages)
+    assert bridge.progress is not None and bridge.progress.completed
