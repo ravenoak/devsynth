@@ -9,6 +9,7 @@ ensures consistent user interaction behaviour across interfaces.
 from __future__ import annotations
 
 from typing import Callable
+import json
 import threading
 import time
 
@@ -18,6 +19,7 @@ except Exception:  # pragma: no cover - defensive
     dpg = None  # type: ignore
 
 from .dpg_bridge import DearPyGUIBridge
+from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 
 
 def _bind(
@@ -47,6 +49,105 @@ def _bind(
         threading.Thread(target=_pulse, daemon=True).start()
 
     return _callback
+
+
+def _requirements_wizard_dialog(bridge: DearPyGUIBridge) -> None:
+    """Interactive requirements wizard displayed via modal dialogs.
+
+    This implementation mirrors the WebUI requirements wizard by providing
+    step-based progress information and graceful error handling. Collected
+    requirements are written to ``requirements_wizard.json``.
+    """
+
+    steps = [
+        (
+            "title",
+            "Requirement Title",
+            None,
+            "",
+        ),
+        (
+            "description",
+            "Requirement Description",
+            None,
+            "",
+        ),
+        (
+            "type",
+            "Requirement Type",
+            [t.value for t in RequirementType],
+            RequirementType.FUNCTIONAL.value,
+        ),
+        (
+            "priority",
+            "Requirement Priority",
+            [p.value for p in RequirementPriority],
+            RequirementPriority.MEDIUM.value,
+        ),
+        (
+            "constraints",
+            "Constraints (comma separated, optional)",
+            None,
+            "",
+        ),
+    ]
+
+    step_names = ["Title", "Description", "Type", "Priority", "Constraints"]
+    responses: dict[str, str] = {}
+    progress = bridge.create_progress("Requirements Wizard", total=len(steps))
+
+    index = 0
+    try:
+        while index < len(steps):
+            key, message, choices, default = steps[index]
+            progress.update(
+                description=f"Step {index + 1}/{len(steps)}: {step_names[index]}",
+                advance=0,
+            )
+            reply = bridge.ask_question(
+                message + " (type 'back' to go back)",
+                choices=choices,
+                default=responses.get(key, default),
+            )
+            if reply.lower() == "back":
+                if index > 0:
+                    index -= 1
+                    progress.update(
+                        description=f"Step {index + 1}/{len(steps)}: {step_names[index]}",
+                        advance=-1,
+                    )
+                else:
+                    bridge.display_result("[yellow]Already at first step.[/yellow]")
+                continue
+            responses[key] = reply
+            index += 1
+            progress.update(advance=1)
+
+        result = {
+            "title": responses.get("title", ""),
+            "description": responses.get("description", ""),
+            "type": responses.get("type", RequirementType.FUNCTIONAL.value),
+            "priority": responses.get("priority", RequirementPriority.MEDIUM.value),
+            "constraints": [
+                c.strip()
+                for c in responses.get("constraints", "").split(",")
+                if c.strip()
+            ],
+        }
+
+        with open("requirements_wizard.json", "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+
+        bridge.display_result(
+            "[green]Requirements saved to requirements_wizard.json[/green]"
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        bridge.display_result(
+            f"[red]ERROR in requirements wizard: {exc}[/red]",
+            message_type="error",
+        )
+    finally:
+        progress.complete()
 
 
 def run() -> None:
@@ -79,7 +180,6 @@ def run() -> None:
         ingest_cmd,
     )
     from devsynth.application.cli.apispec import apispec_cmd
-    from devsynth.application.cli.requirements_commands import wizard_cmd
     from devsynth.application.cli.commands import (
         align_cmd,
         alignment_metrics_cmd,
@@ -105,7 +205,9 @@ def run() -> None:
         dpg.add_button(label="Run Pipeline", callback=_bind(run_pipeline_cmd, bridge))
         dpg.add_button(label="Config", callback=_bind(config_cmd, bridge))
         dpg.add_button(label="Enable Feature", callback=_bind(_enable_feature, bridge))
-        dpg.add_button(label="Wizard", callback=_bind(wizard_cmd, bridge))
+        dpg.add_button(
+            label="Wizard", callback=lambda: _requirements_wizard_dialog(bridge)
+        )
         dpg.add_button(label="Inspect Code", callback=_bind(inspect_code_cmd, bridge))
         dpg.add_button(label="Refactor", callback=_bind(refactor_cmd, bridge))
         dpg.add_button(label="Webapp", callback=_bind(webapp_cmd, bridge))
