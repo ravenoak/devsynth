@@ -67,7 +67,7 @@ This document outlines the coding standards and style guidelines for the DevSynt
 - **Headings:** Use ATX-style headings (`# Heading 1`, `## Heading 2`, etc.).
 - **Lists:** Use hyphens (`-`) or asterisks (`*`) for unordered lists, and numbers (`1.`) for ordered lists.
 - **Code Blocks:** Use fenced code blocks with language identifiers (e.g., ```python ... ```).
-- **Front-matter:** All Markdown documents should include front-matter metadata as defined in `docs/metadata_template.md` and validated by `scripts/validate_metadata.py`.
+  - **Front-matter:** All Markdown documents should include front-matter metadata as defined in `docs/metadata_template.md` and validated by the `devsynth validate-metadata` command.
 
 
 ## 4. Gherkin (.feature file) Style
