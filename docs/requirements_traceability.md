@@ -24,6 +24,41 @@ last_reviewed: "2025-08-03"---
 
 This matrix links requirements to design, code modules, and tests, ensuring bidirectional traceability and coverage. Update this file as requirements, code, and tests evolve.
 
+## Traceability JSON Format
+
+Traceability metadata is stored in `traceability.json` with each entry keyed by a `TraceID` such as `DSY-0001`. Entries capture:
+
+| Field | Description |
+|-------|-------------|
+| `features` | Summary of the feature or change. |
+| `files` | List of affected file paths. |
+| `tests` | Commands or references validating the change. |
+| `issue` | Related issue identifier in `DSY-<id>` format. |
+| `mvuu` | Set to `true` when the commit follows MVUU guidelines. |
+| `notes` | Optional context for reviewers. |
+
+Example:
+
+```json
+{
+  "DSY-0001": {
+    "features": [
+      "Documented MVUU schema for tracking minimal updates."
+    ],
+    "files": [
+      "docs/specifications/mvuuschema.json",
+      "docs/specifications/mvuu_example.json"
+    ],
+    "tests": [
+      "poetry run pytest tests/"
+    ],
+    "issue": "DSY-0001",
+    "mvuu": true,
+    "notes": "Initial schema documentation."
+  }
+}
+```
+
 | Requirement ID | Description | Design/Doc Reference | Code Module(s) | Test(s) | Status |
 |---------------|-------------|----------------------|---------------|---------|--------|
 | FR-01 | System initialization with required configuration | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/init_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |

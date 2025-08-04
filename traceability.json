@@ -1,5 +1,5 @@
 {
-  "MVUU-0001": {
+  "DSY-0001": {
     "features": [
       "Documented MVUU schema for tracking minimal updates."
     ],
@@ -10,8 +10,23 @@
     "tests": [
       "poetry run pytest tests/"
     ],
-    "issue": "#1",
+    "issue": "DSY-0001",
     "mvuu": true,
     "notes": "Initial schema documentation."
+  },
+  "DSY-0002": {
+    "features": [
+      "Documented traceability JSON format and converted MVUU entry to DSY."
+    ],
+    "files": [
+      "traceability.json",
+      "docs/requirements_traceability.md"
+    ],
+    "tests": [
+      "poetry run python scripts/verify_requirements_traceability.py docs/requirements_traceability.md"
+    ],
+    "issue": "DSY-0002",
+    "mvuu": true,
+    "notes": "Added format description and updated traceability entry."
   }
 }
