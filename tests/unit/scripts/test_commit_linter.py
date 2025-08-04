@@ -48,6 +48,19 @@ MISSING_ISSUE_MESSAGE = (
     "```\n"
 )
 
+MISSING_MVUU_MESSAGE = (
+    "feat: no mvuu\n\n"
+    "```json\n"
+    "{\n"
+    '  "utility_statement": "Example",\n'
+    '  "affected_files": ["file.txt"],\n'
+    '  "tests": ["pytest tests/example.py"],\n'
+    '  "TraceID": "DSY-0001",\n'
+    '  "issue": "#1"\n'
+    "}\n"
+    "```\n"
+)
+
 MVUU_FALSE_MESSAGE = (
     "feat: mvuu false\n\n"
     "```json\n"
@@ -89,4 +102,10 @@ def test_lint_commit_message_missing_issue():
 def test_lint_commit_message_mvuu_false():
     """mvuu field set to false should produce an error."""
     errors = lint_commit_message(MVUU_FALSE_MESSAGE)
+    assert any("mvuu" in e for e in errors)
+
+
+def test_lint_commit_message_missing_mvuu():
+    """Missing mvuu field should produce an error."""
+    errors = lint_commit_message(MISSING_MVUU_MESSAGE)
     assert any("mvuu" in e for e in errors)
