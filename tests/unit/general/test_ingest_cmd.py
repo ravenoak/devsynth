@@ -29,6 +29,11 @@ cli_pkg = sys.modules.setdefault('devsynth.application.cli', types.
     ModuleType('cli'))
 setattr(cli_pkg, 'ingest_cmd', ingest_cmd)
 
+# Ensure CLI runs without interactive prompts during tests
+@pytest.fixture(autouse=True)
+def _non_interactive(monkeypatch):
+    monkeypatch.setenv('DEVSYNTH_NONINTERACTIVE', '1')
+
 # Helper to invoke ingest_cmd using the currently patched bridge fixture.
 def ingest_cmd_fn(*args, **kwargs):
     return ingest_cmd.ingest_cmd(*args, **kwargs, bridge=ingest_cmd.bridge)

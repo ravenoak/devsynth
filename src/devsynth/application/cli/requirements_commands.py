@@ -53,6 +53,21 @@ NON_INTERACTIVE = os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {
 # Create a Typer app for requirements management
 requirements_app = typer.Typer(help="Requirements management commands")
 
+
+@requirements_app.callback()
+def main(
+    non_interactive: bool = typer.Option(
+        NON_INTERACTIVE,
+        "--non-interactive/--interactive",
+        help="Run without interactive prompts",
+        envvar="DEVSYNTH_NONINTERACTIVE",
+    )
+):
+    """Configure global options for the requirements commands."""
+
+    global NON_INTERACTIVE
+    NON_INTERACTIVE = non_interactive
+
 # Console for rich output
 bridge: UXBridge = CLIUXBridge()
 console = Console()
