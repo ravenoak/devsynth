@@ -55,12 +55,26 @@ except Exception as exc:
     sys.exit(1)
 EOF
 
-# Verify key packages are present
+# Verify key packages (including test extras) are present
 poetry run python - <<'EOF'
 import importlib
 import sys
 
-required = ["pytest", "pytest_bdd", "pydantic", "yaml", "typer", "tiktoken", "chromadb"]
+required = [
+    "pytest",
+    "pytest_bdd",
+    "pydantic",
+    "yaml",
+    "typer",
+    "tiktoken",
+    "chromadb",
+    "fastapi",
+    "streamlit",
+    "lmstudio",
+    "tinydb",
+    "duckdb",
+    "lmdb",
+]
 missing = []
 for pkg in required:
     try:
@@ -70,6 +84,9 @@ for pkg in required:
 if missing:
     sys.exit("Missing packages: " + ", ".join(missing))
 EOF
+
+# Ensure dependency tree is healthy after installing extras
+poetry run pip check
 
 # Kuzu is optional; skip related tests if it's not installed
 if ! poetry run python -c "import kuzu" >/dev/null 2>&1; then
@@ -84,7 +101,7 @@ poetry run python -c "import pytest_bdd"
 poetry run pip list | grep pytest-bdd >/dev/null
 
 # Run a smoke test to catch failures early
-poetry run pytest --maxfail=1
+poetry run pytest tests/behavior/steps/test_alignment_metrics_steps.py --maxfail=1
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED

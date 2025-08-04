@@ -128,6 +128,46 @@ class RDFLibStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
+    # transactional API ---------------------------------------------------
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a new transaction.
+
+        RDFLibStore currently treats transactions as no-ops but returns a
+        generated identifier for interface compatibility.
+
+        Args:
+            transaction_id: Optional transaction identifier.
+
+        Returns:
+            The transaction identifier.
+        """
+
+        return transaction_id or str(uuid.uuid4())
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a previously started transaction.
+
+        Transactions are treated as no-ops and always succeed.
+        """
+
+        return True
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a previously started transaction.
+
+        Transactions are treated as no-ops and always succeed.
+        """
+
+        return True
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Check whether a transaction is active.
+
+        Since transactions are no-ops, this always returns ``False``.
+        """
+
+        return False
+
     def _count_tokens(self, text: str) -> int:
         """
         Count the number of tokens in a text string.
