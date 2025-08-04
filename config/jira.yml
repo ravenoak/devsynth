@@ -1,0 +1,6 @@
+# Example configuration for the Jira adapter
+jira:
+  url: "https://example.atlassian.net"
+  email: "user@example.com"
+  token: "YOUR_JIRA_TOKEN"
+  project_key: "PROJ"

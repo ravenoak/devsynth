@@ -91,6 +91,20 @@ DevSynth provides built-in support for several common development approaches:
 - Documentation for creating adapters
 - Example implementations
 
+### Project Management Tool Adapters
+
+DevSynth also ships with scaffolding for integrating external project
+tracking systems. These adapters allow methodology progress to be
+synchronized with tools that teams already use:
+
+- **GitHub Project Adapter** – synchronizes EDRR tasks with GitHub
+  Projects boards. Configure via `config/github_project.yml`.
+- **Jira Adapter** – provides hooks for creating and transitioning Jira
+  issues. Configure via `config/jira.yml`.
+
+Both adapters currently focus on configuration loading and provide
+placeholders for future network operations.
+
 
 ## Configuring Your Preferred Methodology
 

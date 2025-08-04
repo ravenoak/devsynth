@@ -1,0 +1,5 @@
+# Example configuration for the GitHub Project adapter
+github_project:
+  token: "YOUR_GITHUB_TOKEN"
+  organization: "my-org"
+  project_number: 1
