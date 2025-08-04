@@ -112,6 +112,11 @@ class GraphMemoryAdapter(MemoryStore):
 
             logger.info("Graph Memory Adapter initialized with basic RDFLib")
 
+    # ------------------------------------------------------------------
+    def is_transaction_active(self, transaction_id: str) -> bool:  # pragma: no cover - simple interface compliance
+        """Return False as GraphMemoryAdapter does not track transactions."""
+        return False
+
     def _save_graph(self) -> None:
         """Save the RDF graph to disk if a base path is provided."""
         if self.use_rdflib_store and self.rdflib_store:

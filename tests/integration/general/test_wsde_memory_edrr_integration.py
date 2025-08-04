@@ -5,6 +5,8 @@ from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegr
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType
 from devsynth.application.collaboration.peer_review import PeerReview
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
 
 
 class SimpleStore(InMemoryStore):
@@ -65,6 +67,15 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
 
     assert has_solution(primary)
     assert has_solution(secondary)
+
+    # Remove the solution from the primary store to test cross-store retrieval
+    for sid, itm in list(primary.items.items()):
+        if itm.metadata.get("solution_id") == "sol1":
+            del primary.items[sid]
+
+    # Retrieval should still succeed via the secondary store
+    retrieved = wsde_memory.retrieve_agent_solutions("task1")
+    assert any(r.metadata.get("solution_id") == "sol1" for r in retrieved)
 
     class SimpleAgent:
         def __init__(self, name):

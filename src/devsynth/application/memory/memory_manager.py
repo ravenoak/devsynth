@@ -127,19 +127,20 @@ class MemoryManager:
             id="", content=content, memory_type=memory_type, metadata=metadata
         )
 
-        # Store in the appropriate adapter
-        # Prefer Graph for EDRR phases due to relationship tracking capabilities,
-        # then TinyDB for structured data, then default to first available
-        if "graph" in self.adapters:
-            return self.adapters["graph"].store(memory_item)
-        elif "tinydb" in self.adapters:
-            return self.adapters["tinydb"].store(memory_item)
-        elif self.adapters:
-            # Use the first available adapter
-            adapter_name = next(iter(self.adapters))
-            return self.adapters[adapter_name].store(memory_item)
-        else:
+        # Determine primary store preference order
+        if not self.adapters:
             raise ValueError("No adapters available for storing memory items")
+
+        if "graph" in self.adapters:
+            primary_store = "graph"
+        elif "tinydb" in self.adapters:
+            primary_store = "tinydb"
+        else:
+            primary_store = next(iter(self.adapters))
+
+        # Use the sync manager to propagate to all stores
+        self.sync_manager.update_item(primary_store, memory_item)
+        return memory_item.id
 
     def retrieve_with_edrr_phase(
         self,
