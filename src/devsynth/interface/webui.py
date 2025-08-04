@@ -908,7 +908,9 @@ class WebUI(UXBridge):
             return True
         return True
 
-    def _save_requirements(self, wizard_manager):
+    def _save_requirements(
+        self, wizard_manager, temp_keys: Optional[Sequence[str]] = None
+    ):
         """Persist requirements to disk and reset wizard state."""
         try:
             result = {
@@ -933,6 +935,7 @@ class WebUI(UXBridge):
             if not wizard_manager.reset_wizard_state():
                 logger.warning("Failed to reset requirements_wizard wizard state")
             logger.debug("Reset requirements_wizard wizard state after completion")
+            wizard_manager.clear_temporary_state(temp_keys)
             return result
         except Exception as exc:  # pragma: no cover - defensive
             self.display_result(
@@ -943,7 +946,11 @@ class WebUI(UXBridge):
             return None
 
     def _handle_requirements_navigation(
-        self, wizard_manager, wizard_state, current_step: int
+        self,
+        wizard_manager,
+        wizard_state,
+        current_step: int,
+        temp_keys: Optional[Sequence[str]] = None,
     ):
         """Handle navigation and saving actions for the requirements wizard."""
         col1, col2, col3 = st.columns(3)
@@ -969,7 +976,7 @@ class WebUI(UXBridge):
         if current_step == wizard_state.get_total_steps():
             if col2.button("Save Requirements", key="save_button"):
                 if self._validate_requirements_step(wizard_state, current_step):
-                    return self._save_requirements(wizard_manager)
+                    return self._save_requirements(wizard_manager, temp_keys)
                 self.display_result(
                     "Please fill in all required fields", message_type="error"
                 )
@@ -978,6 +985,7 @@ class WebUI(UXBridge):
             if not wizard_manager.reset_wizard_state():
                 logger.warning("Failed to reset requirements_wizard wizard state")
             logger.debug("Reset requirements_wizard wizard state")
+            wizard_manager.clear_temporary_state(temp_keys)
             self.display_result("Requirements wizard cancelled", message_type="info")
 
         return None
@@ -1017,6 +1025,14 @@ class WebUI(UXBridge):
                 "wizard_started": True,  # Requirements wizard is always started (no start button)
             }
 
+            temp_keys = [
+                "requirements_title_input",
+                "requirements_description_input",
+                "requirements_type_select",
+                "requirements_priority_select",
+                "requirements_constraints_input",
+            ]
+
             # Create the wizard state manager
             wizard_manager = WizardStateManager(
                 st.session_state, wizard_name, steps, initial_state
@@ -1042,12 +1058,16 @@ class WebUI(UXBridge):
             try:
                 if current_step == 1:
                     title = st.text_input(
-                        "Requirement Title", wizard_state.get("title", "")
+                        "Requirement Title",
+                        wizard_state.get("title", ""),
+                        key=temp_keys[0],
                     )
                     wizard_state.set("title", title)
                 elif current_step == 2:
                     description = st.text_area(
-                        "Requirement Description", wizard_state.get("description", "")
+                        "Requirement Description",
+                        wizard_state.get("description", ""),
+                        key=temp_keys[1],
                     )
                     wizard_state.set("description", description)
                 elif current_step == 3:
@@ -1062,7 +1082,7 @@ class WebUI(UXBridge):
                         index = 0
                         wizard_state.set("type", options[0])
                     selected_type = st.selectbox(
-                        "Requirement Type", options, index=index
+                        "Requirement Type", options, index=index, key=temp_keys[2]
                     )
                     if selected_type in options:
                         wizard_state.set("type", selected_type)
@@ -1083,7 +1103,10 @@ class WebUI(UXBridge):
                         index = 0
                         wizard_state.set("priority", options[0])
                     selected_priority = st.selectbox(
-                        "Requirement Priority", options, index=index
+                        "Requirement Priority",
+                        options,
+                        index=index,
+                        key=temp_keys[3],
                     )
                     if selected_priority in options:
                         wizard_state.set("priority", selected_priority)
@@ -1097,6 +1120,7 @@ class WebUI(UXBridge):
                     constraints = st.text_area(
                         "Constraints (comma separated)",
                         wizard_state.get("constraints", ""),
+                        key=temp_keys[4],
                     )
                     wizard_state.set("constraints", constraints)
             except Exception as e:
@@ -1108,7 +1132,7 @@ class WebUI(UXBridge):
                     highlight=False,
                 )
             result = self._handle_requirements_navigation(
-                wizard_manager, wizard_state, current_step
+                wizard_manager, wizard_state, current_step, temp_keys
             )
             if result is not None:
                 return result
@@ -1255,6 +1279,7 @@ class WebUI(UXBridge):
                 f"[red]ERROR in gather wizard: {e}[/red]",
                 highlight=False,
             )
+
     def _get_gather_step_title(self, step: int) -> str:
         """Get the title for a gather wizard step."""
         titles = {1: "Resource Type", 2: "Resource Location", 3: "Resource Metadata"}

@@ -53,6 +53,8 @@ for _name in _stub_modules:
         if _name == "tinydb.storages":
             _mod.JSONStorage = object
             _mod.MemoryStorage = object
+            _mod.Storage = object
+            _mod.touch = lambda *a, **k: None
         if _name == "tinydb.middlewares":
             _mod.CachingMiddleware = object
         if _name == "openai":

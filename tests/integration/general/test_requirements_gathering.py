@@ -1,7 +1,33 @@
 import os
+import sys
+from types import ModuleType
 import yaml
-from unittest.mock import patch
-from devsynth.application.cli.cli_commands import init_cmd, gather_cmd
+
+# Stub optional heavy dependencies for test isolation
+for _name in [
+    "langgraph",
+    "langgraph.checkpoint",
+    "langgraph.checkpoint.base",
+    "langgraph.graph",
+    "tiktoken",
+    "duckdb",
+    "lmdb",
+    "faiss",
+    "httpx",
+]:
+    if _name not in sys.modules:
+        _mod = ModuleType(_name)
+        if _name == "langgraph.checkpoint.base":
+            _mod.BaseCheckpointSaver = object
+            _mod.empty_checkpoint = object()
+        if _name == "langgraph.graph":
+            _mod.END = None
+            _mod.StateGraph = object
+        if _name == "tiktoken":
+            _mod.encoding_for_model = lambda *a, **k: None
+        sys.modules[_name] = _mod
+
+from devsynth.application.requirements.interactions import gather_requirements
 
 
 def test_gather_updates_config_succeeds(tmp_path):
@@ -9,17 +35,12 @@ def test_gather_updates_config_succeeds(tmp_path):
 
     ReqID: N/A"""
     os.chdir(tmp_path)
-    init_cmd(
-        root=str(tmp_path),
-        language="python",
-        goals="",
-        memory_backend="memory",
-        auto_confirm=True,
-    )
+    os.makedirs(".devsynth", exist_ok=True)
+    with open(".devsynth/project.yaml", "w", encoding="utf-8") as f:
+        f.write("{}")
     answers = ["goal1", "constraint1", "high"]
 
     class Bridge:
-
         def __init__(self):
             self.i = 0
 
@@ -41,7 +62,9 @@ def test_gather_updates_config_succeeds(tmp_path):
             pass
 
     bridge = Bridge()
-    gather_cmd(output_file="requirements_plan.yaml", bridge=bridge)
+    gather_requirements(bridge, output_file="requirements_plan.yaml")
     cfg_path = tmp_path / ".devsynth" / "project.yaml"
     data = yaml.safe_load(open(cfg_path))
     assert data.get("priority") == "high"
+    assert data.get("goals") == "goal1"
+    assert data.get("constraints") == "constraint1"
