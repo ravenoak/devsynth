@@ -31,10 +31,25 @@ git tag v0.1.0-alpha.1
 git push origin v0.1.0-alpha.1
 ```
 
+- MVUU JSON schema finalization
+- Commit-message linter enforcement
+- Traceability automation and ticket linkage
+- Baseline Dear PyGui parity tasks:
+  - Wizard forms
+  - Progress UI
+  - CLI mapping
+
 ### 0.1.0-beta.1
 - Refresh system architecture diagrams under `docs/architecture/`.
 - Standardize metadata headers across all project documentation.
 - Publish the consolidated release plan for team-wide alignment.
+- MVUU JSON schema finalization
+- Commit-message linter enforcement
+- Traceability automation and ticket linkage
+- Baseline Dear PyGui parity tasks:
+  - Wizard forms
+  - Progress UI
+  - CLI mapping
 
 ### 0.1.0
 - Stabilize core agent APIs and complete critical test coverage.
@@ -46,6 +61,12 @@ git push origin v0.1.0-alpha.1
 - Expand WebUI features with enhanced requirements workflows.
 - Introduce plugin interfaces for third-party provider integration.
 - Iterate on memory system scalability and performance.
+
+### 0.2.0+
+- Implement feature flags for experimental modules.
+- Automate project-board synchronization with release milestones.
+- Introduce a Jira adapter for issue tracking integration.
+- Develop the MVUU dashboard for monitoring and analytics.
 
 ### 0.3.0
 - Reach full feature parity with Dear PyGui across advanced workflows.
