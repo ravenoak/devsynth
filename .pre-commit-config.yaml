@@ -26,6 +26,12 @@ repos:
       entry: python scripts/find_syntax_errors.py
       language: system
       pass_filenames: false
+    - id: commit-message-lint
+      name: commit message lint
+      entry: python scripts/commit_linter.py
+      language: system
+      stages: [commit-msg]
+      pass_filenames: true
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
   hooks:
