@@ -399,4 +399,5 @@ For more detailed information, refer to the [User Guide](../user_guides/user_gui
 - [Installation Guide](installation.md) - Detailed installation instructions
 - [Basic Usage Guide](basic_usage.md) - Introduction to basic DevSynth usage
 - [User Guide](../user_guides/user_guide.md) - Comprehensive guide for users
+- [Dear PyGui Guide](../user_guides/dearpygui.md) - Dear PyGui desktop interface
 - [Architecture Overview](../architecture/overview.md) - Overview of DevSynth's architecture
