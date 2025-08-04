@@ -11,6 +11,8 @@ from devsynth.interface.ux_bridge import UXBridge
 from .webui_steps import webui_context
 import pytest
 
+pytest_plugins = ["tests.fixtures.webui_test_utils"]
+
 
 class DummyBridge(UXBridge):
     def __init__(self, answers: Sequence[str]):
@@ -96,3 +98,5 @@ def check_file(tmp_project_dir):
     assert os.path.exists(path)
     data = yaml.safe_load(open(path))
     assert data.get("priority") == "high"
+    assert data.get("goals") == ["Goal one", "Goal two"]
+    assert data.get("constraints") == ["Constraint A", "Constraint B"]

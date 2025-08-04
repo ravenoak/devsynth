@@ -380,6 +380,9 @@ class DevSynthLogger:
         stacklevel = kwargs.pop("stacklevel", None)
         extra = kwargs.pop("extra", None)
 
+        if isinstance(exc, BaseException):
+            exc = (exc.__class__, exc, exc.__traceback__)
+
         if kwargs:
             if extra is None:
                 extra = kwargs

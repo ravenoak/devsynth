@@ -11,6 +11,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 import os
+from types import ModuleType
 
 
 def _ensure_dev_synth_importable() -> None:
@@ -50,6 +51,28 @@ except Exception:
 # Disable optional backends by default so tests don't try to import heavy
 # dependencies unless explicitly enabled.
 os.environ.setdefault("ENABLE_CHROMADB", "0")
+
+# Provide lightweight stubs for optional network libraries used by plugins
+if "openai" not in sys.modules:
+    _openai = ModuleType("openai")
+    _openai.OpenAI = object
+    _openai.AsyncOpenAI = object
+    _openai.types = ModuleType("openai.types")
+    _openai.types.chat = ModuleType("openai.types.chat")
+    _openai.types.chat.ChatCompletion = object
+    _openai.types.chat.ChatCompletionChunk = object
+    sys.modules["openai.types"] = _openai.types
+    sys.modules["openai.types.chat"] = _openai.types.chat
+    sys.modules["openai"] = _openai
+if "httpx" not in sys.modules:
+    _httpx = ModuleType("httpx")
+    _httpx.URL = object
+    _httpx.Proxy = object
+    _httpx.Timeout = object
+    _httpx.Response = object
+    _httpx.BaseTransport = object
+    _httpx.AsyncBaseTransport = object
+    sys.modules["httpx"] = _httpx
 
 pytest_plugins = [
     "tests.fixtures.ports",
