@@ -3,6 +3,9 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock
 
+import threading
+import time
+
 import pytest
 
 
@@ -155,3 +158,71 @@ def test_run_cli_command_handles_exception(monkeypatch):
     kwargs = bridge.display_result.call_args[1]
     assert "<" not in msg and ">" not in msg
     assert kwargs["message_type"] == "error"
+
+
+@pytest.mark.medium
+def test_run_cli_command_cancellation(monkeypatch):
+    """run_cli_command exits early when progress is cancelled."""
+    bridge_module, dpg_mod = _setup_dpg(monkeypatch)
+
+    cancel_event = threading.Event()
+    release_event = threading.Event()
+
+    class FakeProgress:
+        def __init__(self) -> None:
+            self.complete = MagicMock()
+
+        def is_cancelled(self) -> bool:
+            return cancel_event.is_set()
+
+    progress = FakeProgress()
+    monkeypatch.setattr(
+        bridge_module.DearPyGUIBridge,
+        "create_progress",
+        lambda self, desc, cancellable=False: progress,
+    )
+
+    bridge = bridge_module.DearPyGUIBridge()
+
+    def _cmd():
+        release_event.wait()
+        return "done"
+
+    def _trigger_cancel():
+        time.sleep(0.01)
+        cancel_event.set()
+        release_event.set()
+
+    threading.Thread(target=_trigger_cancel).start()
+    result = bridge.run_cli_command(_cmd, cancellable=True)
+    assert result is None
+    assert progress.complete.called
+    assert dpg_mod.render_dearpygui_frame.call_count >= 1
+
+
+@pytest.mark.medium
+def test_run_cli_command_propagates_async_error(monkeypatch):
+    """Errors raised in background threads are surfaced."""
+    bridge_module, dpg_mod = _setup_dpg(monkeypatch)
+    progress = MagicMock()
+    progress.is_cancelled.return_value = False
+    progress.complete = MagicMock()
+    monkeypatch.setattr(
+        bridge_module.DearPyGUIBridge,
+        "create_progress",
+        lambda self, desc, cancellable=False: progress,
+    )
+    bridge = bridge_module.DearPyGUIBridge()
+    bridge.display_result = MagicMock()
+
+    def _bad():
+        time.sleep(0.01)
+        raise RuntimeError("boom")
+
+    result = bridge.run_cli_command(_bad)
+    assert result is None
+    bridge.display_result.assert_called_once()
+    (msg,), kwargs = bridge.display_result.call_args
+    assert "boom" in msg
+    assert kwargs["message_type"] == "error"
+    assert progress.complete.called
