@@ -15,8 +15,8 @@ This script:
 
 import os
 import re
-from pathlib import Path
 import urllib.parse
+from pathlib import Path
 
 
 def slugify(text: str) -> str:
@@ -109,7 +109,7 @@ def check_internal_links(file_path, docs_dir):
     return broken_links
 
 
-def main():
+def main() -> int:
     """Main function to check internal links in all Markdown files."""
     docs_dir = Path("docs")
 
@@ -139,6 +139,8 @@ def main():
         f"\nFound {total_broken_links} broken links in {files_with_broken_links} files"
     )
 
+    return 1 if total_broken_links else 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
