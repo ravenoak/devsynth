@@ -34,6 +34,15 @@ This guide explains the feature flags available in `config/*.yml` files and how 
 
 For the UX design rationale behind gradually exposing these capabilities, see the [Progressive Complexity UX Design section](analysis/dialectical_evaluation.md#synthesis-progressive-complexity-ux-design).
 
+## GUI Configuration
+
+DevSynth includes an optional Dear PyGUI interface. To prevent unintended GUI launches in headless environments this interface is disabled by default. Set `gui.enabled` to `true` to enable the `dpg` CLI command:
+
+```yaml
+gui:
+  enabled: true
+```
+
 ## Enabling Flags
 
 1. **CLI**: use the `config` command to set a flag:

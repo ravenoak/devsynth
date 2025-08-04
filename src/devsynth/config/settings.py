@@ -222,6 +222,11 @@ class Settings(BaseSettings):
         json_schema_extra={"env": "ENABLE_CHROMADB"},
     )
 
+    # GUI settings
+    gui_enabled: bool = Field(
+        default=False, json_schema_extra={"env": "DEVSYNTH_GUI_ENABLED"}
+    )
+
     # Path settings
     log_dir: str = Field(default=None, json_schema_extra={"env": "DEVSYNTH_LOG_DIR"})
     project_dir: str = Field(
