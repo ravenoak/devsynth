@@ -18,6 +18,7 @@ KUZU_ADAPTER_PATH = ROOT / "src/devsynth/adapters/kuzu_memory_store.py"
 @pytest.fixture
 def KuzuMemoryStoreClass(monkeypatch):
     """Load ``KuzuMemoryStore`` and its dependencies from source."""
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")
     fake_pkg = ModuleType("devsynth.application.memory")
     fake_pkg.__path__ = [str(KUZU_STORE_PATH.parent)]
     monkeypatch.setitem(sys.modules, "devsynth.application.memory", fake_pkg)

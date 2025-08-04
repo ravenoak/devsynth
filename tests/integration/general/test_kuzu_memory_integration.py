@@ -15,6 +15,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 @pytest.fixture
 def no_kuzu(monkeypatch):
     """Ensure tests run without the real ``kuzu`` dependency."""
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")
     monkeypatch.delitem(sys.modules, "kuzu", raising=False)
     monkeypatch.setattr(KuzuMemoryStore, "__abstractmethods__", frozenset())
     monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
@@ -36,6 +37,7 @@ def fake_kuzu(monkeypatch):
             return None
 
     fake = types.SimpleNamespace(Database=Database, Connection=Connection)
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")
     monkeypatch.setitem(sys.modules, "kuzu", fake)
     monkeypatch.setattr(KuzuMemoryStore, "__abstractmethods__", frozenset())
     monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
@@ -67,8 +69,10 @@ def mock_embed():
             "devsynth.adapters.kuzu_memory_store.embed", return_value=[[0.1, 0.2, 0.3]]
         ),
         patch(
-            "devsynth.adapters.kuzu_memory_store.embedding_functions.DefaultEmbeddingFunction",
-            lambda: (lambda x: [0.0] * 5),
+            "devsynth.adapters.kuzu_memory_store.embedding_functions",
+            types.SimpleNamespace(
+                DefaultEmbeddingFunction=lambda: (lambda x: [0.0] * 5)
+            ),
         ),
     ):
         yield

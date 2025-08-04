@@ -77,10 +77,9 @@ class KuzuMemoryStore(MemoryStore):
                 # If we still can't create it, we'll let the store initialization handle it
                 pass
 
-        # Explicitly determine whether to use embedded mode
-        use_embedded = getattr(settings_module, "kuzu_embedded", True)
-        if isinstance(use_embedded, str):
-            use_embedded = use_embedded.lower() in {"1", "true", "yes"}
+        # Determine embedded mode from the configuration settings
+        # ``get_settings`` ensures the latest environment configuration is used
+        use_embedded = settings_module.get_settings().kuzu_embedded
 
         # Initialize stores with consistent error handling
         store_initialized = False
