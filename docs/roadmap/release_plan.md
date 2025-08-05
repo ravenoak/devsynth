@@ -70,6 +70,7 @@ Streamlit MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
 
 ### 0.2.0+ (Future Features)
 - Implement feature flags for experimental modules.
+- Introduce feature flags for the MVUU dashboard and Dear PyGui interface.
 - Automate project-board synchronization with release milestones.
 - Introduce a Jira adapter for issue tracking integration.
 

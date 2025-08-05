@@ -49,6 +49,8 @@ class ConfigModel:
             "wsde_consensus_voting": False,
             "uxbridge_webui": False,
             "uxbridge_agent_api": False,
+            "gui": False,
+            "mvuu_dashboard": False,
         }
     )
     memory_store_type: str = "memory"
@@ -126,6 +128,8 @@ _VALID_FEATURE_FLAGS = {
     "wsde_consensus_voting",
     "uxbridge_webui",
     "uxbridge_agent_api",
+    "gui",
+    "mvuu_dashboard",
 }
 
 
@@ -202,7 +206,7 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
                 logger.error("Malformed YAML configuration: %s", exc)
                 raise ConfigurationError(
                     f"Malformed YAML configuration in {cfg_path}. Please check the syntax and formatting.",
-                    config_key=str(cfg_path)
+                    config_key=str(cfg_path),
                 ) from exc
         else:
             try:
@@ -212,7 +216,7 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
                 logger.error("Malformed TOML configuration: %s", exc)
                 raise ConfigurationError(
                     f"Malformed TOML configuration in {cfg_path}. Please check the syntax and formatting.",
-                    config_key=str(cfg_path)
+                    config_key=str(cfg_path),
                 ) from exc
 
         # Support legacy ``memory_backend`` key used in older docs
@@ -232,7 +236,7 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
         logger.error("Invalid configuration values: %s", exc)
         raise ConfigurationError(
             f"Invalid configuration values: {exc}. Please check the configuration documentation for valid options.",
-            config_key="validation"
+            config_key="validation",
         ) from exc
 
     # Validate version
@@ -246,11 +250,15 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
     # Validate EDRR settings
     if config.features.get("edrr_framework", False):
         if config.edrr_settings.get("max_recursion_depth", 0) < 1:
-            logger.warning("max_recursion_depth should be at least 1, setting to default (3)")
+            logger.warning(
+                "max_recursion_depth should be at least 1, setting to default (3)"
+            )
             config.edrr_settings["max_recursion_depth"] = 3
 
         if not isinstance(config.edrr_settings.get("phase_weights", {}), dict):
-            logger.warning("phase_weights should be a dictionary, setting to default values")
+            logger.warning(
+                "phase_weights should be a dictionary, setting to default values"
+            )
             config.edrr_settings["phase_weights"] = {
                 "expand": 1.0,
                 "differentiate": 1.0,
@@ -265,7 +273,9 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
             config.wsde_settings["team_size"] = 5
 
         if not isinstance(config.wsde_settings.get("voting_weights", {}), dict):
-            logger.warning("voting_weights should be a dictionary, setting to default values")
+            logger.warning(
+                "voting_weights should be a dictionary, setting to default values"
+            )
             config.wsde_settings["voting_weights"] = {
                 "expertise": 0.6,
                 "historical": 0.3,
@@ -273,13 +283,25 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
             }
 
     # Validate UXBridge settings
-    if config.features.get("uxbridge_webui", False) or config.features.get("uxbridge_agent_api", False):
-        if config.uxbridge_settings.get("webui_port", 0) < 1024 or config.uxbridge_settings.get("webui_port", 0) > 65535:
-            logger.warning("webui_port should be between 1024 and 65535, setting to default (8501)")
+    if config.features.get("uxbridge_webui", False) or config.features.get(
+        "uxbridge_agent_api", False
+    ):
+        if (
+            config.uxbridge_settings.get("webui_port", 0) < 1024
+            or config.uxbridge_settings.get("webui_port", 0) > 65535
+        ):
+            logger.warning(
+                "webui_port should be between 1024 and 65535, setting to default (8501)"
+            )
             config.uxbridge_settings["webui_port"] = 8501
 
-        if config.uxbridge_settings.get("api_port", 0) < 1024 or config.uxbridge_settings.get("api_port", 0) > 65535:
-            logger.warning("api_port should be between 1024 and 65535, setting to default (8000)")
+        if (
+            config.uxbridge_settings.get("api_port", 0) < 1024
+            or config.uxbridge_settings.get("api_port", 0) > 65535
+        ):
+            logger.warning(
+                "api_port should be between 1024 and 65535, setting to default (8000)"
+            )
             config.uxbridge_settings["api_port"] = 8000
 
     return config

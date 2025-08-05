@@ -50,6 +50,14 @@ devsynth mvuu-dashboard
 
 The dashboard uses Streamlit to visualize traceability information.
 
+Enable the dashboard and desktop client by setting feature flags in your configuration:
+
+```yaml
+features:
+  gui: true
+  mvuu_dashboard: true
+```
+
 ## Screenshots
 
 ![Main window](../images/dearpygui/main_window.svg)
