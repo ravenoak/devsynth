@@ -2,9 +2,6 @@ name: Commit Message Lint
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/commit_message_lint.yml'
-      - 'scripts/commit_linter.py'
   workflow_dispatch:
 
 jobs:
