@@ -8,6 +8,7 @@ from .validator import (
     validate_commit_message,
     validate_affected_files,
 )
+from .linter import lint_commit_message, lint_range
 from .storage import (
     format_mvuu_footer,
     read_commit_message,
@@ -32,6 +33,8 @@ __all__ = [
     "validate_data",
     "validate_commit_message",
     "validate_affected_files",
+    "lint_commit_message",
+    "lint_range",
     "format_mvuu_footer",
     "read_commit_message",
     "read_mvuu_from_commit",
