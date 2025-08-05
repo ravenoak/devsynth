@@ -1,3 +1,14 @@
+---
+title: "Test Stabilization Tools"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Stabilization Tools
 
 This document provides information about the test stabilization tools created during Phase 1 of the DevSynth project. These tools are designed to help identify and fix common issues in test files.

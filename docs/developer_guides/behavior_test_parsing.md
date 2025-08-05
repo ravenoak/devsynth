@@ -1,3 +1,14 @@
+---
+title: "Behavior Test Parsing and Marker Management"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Behavior Test Parsing and Marker Management
 
 This document provides information about the enhanced behavior test parsing solution implemented to address the discrepancies between pytest-bdd test detection and file parsing in the DevSynth project.

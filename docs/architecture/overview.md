@@ -1,7 +1,8 @@
 ---
+
 title: "DevSynth Architecture Overview"
 date: "2025-06-16"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "architecture"
   - "design"
@@ -10,8 +11,8 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"---
-
+last_reviewed: "2025-08-02"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture Overview
 </div>

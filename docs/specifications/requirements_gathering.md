@@ -1,15 +1,16 @@
 ---
+
 title: "Requirements Gathering Workflow"
 date: "2025-07-20"
 last_reviewed: "2025-07-20"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "specification"
   - "requirements"
 
 status: "draft"
-author: "DevSynth Team"---
-
+author: "DevSynth Team"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Requirements Gathering Workflow
 </div>

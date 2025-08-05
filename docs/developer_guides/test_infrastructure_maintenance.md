@@ -1,3 +1,14 @@
+---
+title: "Test Infrastructure Maintenance and Extension Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Infrastructure Maintenance and Extension Guide
 
 This guide provides detailed instructions and best practices for maintaining and extending the DevSynth test infrastructure. It covers how to maintain the test infrastructure, extend it with new features, and troubleshoot common issues.

@@ -1,3 +1,14 @@
+---
+title: "Test Infrastructure Architecture"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Infrastructure Architecture
 
 This document provides a comprehensive overview of the DevSynth test infrastructure architecture, including the caching mechanisms, test categorization, and performance optimization strategies.

@@ -1,14 +1,15 @@
 ---
+
 title: "Semantic Versioning Policy"
 date: "2025-07-07"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "policy"
   - "versioning"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Semantic Versioning Policy
 </div>
@@ -44,7 +45,6 @@ component. The full version string is `MAJOR.MINOR.PATCH-STABILITY`.
 ### Examples
 
 - `0.1.0-alpha.1` – first alpha iteration of version `0.1.0`.
-- `0.1.0-beta.1` – first beta iteration of version `0.1.0`.
 - `0.1.0-rc.1` – first release candidate of version `0.1.0`.
 
 ## Semantic Versioning+

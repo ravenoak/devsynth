@@ -9,7 +9,7 @@ tags:
 - agents
 - collaboration
 title: 'WSDE Agent Model: WSDE'
-version: 0.1.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">

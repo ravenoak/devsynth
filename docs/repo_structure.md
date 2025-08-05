@@ -1,13 +1,14 @@
 ---
+
 title: DevSynth Repository Structure
 date: 2025-07-08
-version: 0.1.0
+version: "0.1.0-alpha.1"
 tags:
 - documentation
 status: published
 author: DevSynth Team
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; DevSynth Repository Structure
 </div>

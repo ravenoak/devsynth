@@ -1,16 +1,17 @@
 ---
+
 title: "UXBridge Interface Extension"
 date: "2025-06-19"
 last_reviewed: "2025-07-20"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "specification"
   - "ux"
   - "cli"
   - "webui"
 status: "draft"
-author: "DevSynth Team"---
-
+author: "DevSynth Team"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; UXBridge Interface Extension
 </div>

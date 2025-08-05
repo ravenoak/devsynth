@@ -1,12 +1,14 @@
 ---
-tags:
-
-- user-guide
-- cli
-
 title: CLI Usage
-version: 0.1.0---
-
+date: "2025-06-19"
+version: "0.1.0-alpha.1"
+tags:
+  - user-guide
+  - cli
+status: draft
+author: "DevSynth Team"
+last_reviewed: "2025-06-19"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; CLI Usage
 </div>

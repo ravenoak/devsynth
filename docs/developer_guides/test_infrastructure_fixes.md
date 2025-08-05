@@ -1,3 +1,14 @@
+---
+title: "Test Infrastructure Fixes"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Infrastructure Fixes
 
 This document summarizes the fixes implemented to address issues in the DevSynth test infrastructure as identified in the docs/DOCUMENTATION_UPDATE_PROGRESS.md file.

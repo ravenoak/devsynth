@@ -1,4 +1,5 @@
 ---
+
 title: "DevSynth Post-MVP Development Roadmap"
 date: "2025-07-07"
 version: "0.1.0-alpha.1"
@@ -7,8 +8,8 @@ tags:
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Post-MVP Development Roadmap
 </div>

@@ -1,15 +1,16 @@
 ---
+
 title: "WebUI Onboarding Flow"
 date: "2025-07-01"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "getting-started"
   - "webui"
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; WebUI Onboarding Flow
 </div>

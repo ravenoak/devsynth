@@ -1,14 +1,15 @@
 ---
+
 title: "Security Audit"
 date: "2025-07-21"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "developer-guide"
   - "security"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-21"---
-
+last_reviewed: "2025-07-21"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Security Audit
 </div>

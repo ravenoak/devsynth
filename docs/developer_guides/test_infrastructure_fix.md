@@ -1,3 +1,14 @@
+---
+title: "Test Infrastructure Fix Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Infrastructure Fix Guide
 
 This document provides information about the `fix_test_infrastructure.py` script, which addresses critical issues in the DevSynth test infrastructure.

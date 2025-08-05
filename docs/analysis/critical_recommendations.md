@@ -1,4 +1,5 @@
 ---
+
 author: Multi-disciplinary Expert Panel
 date: '2025-05-29'
 last_reviewed: "2025-07-10"
@@ -11,8 +12,8 @@ tags:
 - implementation-plan
 
 title: DevSynth Critical Issues and Recommendations Report
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Critical Issues and Recommendations Report
 </div>

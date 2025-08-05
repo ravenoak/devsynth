@@ -1,4 +1,5 @@
 ---
+
 author: Author Name
 date: YYYY-MM-DD
 last_reviewed: "2025-07-10"
@@ -10,8 +11,8 @@ tags:
 - relevant_keyword
 
 title: Document Title
-version: X.Y.Z---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; Document Title
 </div>

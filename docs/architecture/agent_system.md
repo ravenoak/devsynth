@@ -12,7 +12,7 @@ tags:
 - collaboration
 
 title: DevSynth Agent System Architecture
-version: 1.1.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">

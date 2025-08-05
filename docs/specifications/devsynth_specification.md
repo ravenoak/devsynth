@@ -1,9 +1,13 @@
 ---
 title: DevSynth Technical Specification
+date: "2025-06-01"
+version: "0.1.0-alpha.1"
+tags:
+  - specification
 status: published
 author: DevSynth Team
-version: 1.0---
-
+last_reviewed: "2025-06-01"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Technical Specification
 </div>

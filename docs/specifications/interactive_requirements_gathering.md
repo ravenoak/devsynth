@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-07-01'
 last_reviewed: '2025-07-20'
@@ -10,8 +11,8 @@ tags:
 - workflow
 
 title: Interactive Requirements Gathering
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Interactive Requirements Gathering
 </div>

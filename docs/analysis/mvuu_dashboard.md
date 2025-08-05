@@ -1,3 +1,14 @@
+---
+title: "MVUU Dashboard"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "analysis"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # MVUU Dashboard
 
 The MVUU dashboard provides an interactive view of commit traceability data

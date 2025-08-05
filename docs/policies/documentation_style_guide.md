@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-07-07'
 last_reviewed: "2025-07-10"
@@ -9,8 +10,8 @@ tags:
 - guide
 
 title: DevSynth Documentation Style Guide
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Style Guide
 </div>
@@ -35,7 +36,7 @@ All documentation files should include YAML frontmatter with the following field
 ---
 title: "Document Title"
 date: "YYYY-MM-DD" # Date of creation
-version: "X.Y.Z" # Document version
+version: "0.1.0-alpha.1"
 tags:
   - "tag1"
   - "tag2"
@@ -251,7 +252,7 @@ Use tables for structured data:
 ---
 title: "Feature X User Guide"
 date: "2025-06-01"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "feature-x"
   - "user-guide"

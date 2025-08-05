@@ -1,18 +1,17 @@
 ---
-author: DevSynth Team
-date: '2025-06-01'
-last_reviewed: "2025-07-20"
-status: active
-tags:
-
-- development
-- status
-- implementation
-- phases
-- foundation-stabilization
-
 title: DevSynth Development Status
-version: 0.1.0-alpha.1
+date: '2025-06-01'
+version: "0.1.0-alpha.1"
+tags:
+  - development
+  - status
+  - implementation
+  - phases
+  - foundation-stabilization
+status: active
+author: DevSynth Team
+last_reviewed: '2025-07-20'
+---
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Status
@@ -452,4 +451,4 @@ For updated scheduling, see the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
 
 Development is **in progress** with outstanding tasks tracked in
 [issue 102](../../issues/102.md) and related issues. Repository harmonization is
-complete and efforts are focused on delivering the `0.1.0-alpha.1` milestone. Work toward `0.1.0-beta.1` will begin after its release.
+complete and efforts are focused on delivering the `0.1.0-alpha.1` milestone. Work toward `0.1.0-alpha.1` will begin after its release.

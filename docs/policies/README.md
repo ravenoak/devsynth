@@ -1,14 +1,15 @@
 ---
+
 title: "DevSynth SDLC Policies"
 date: "2025-07-07"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "policy"
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies
 </div>

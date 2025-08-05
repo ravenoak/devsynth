@@ -1,3 +1,14 @@
+---
+title: "WebUI Wizard State Persistence Fixes"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "implementation"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # WebUI Wizard State Persistence Fixes
 
 ## Issue Summary

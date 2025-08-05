@@ -1,3 +1,15 @@
+---
+title: "Comprehensive Test Execution Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+  - "guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Comprehensive Test Execution Guide
 
 This guide provides detailed instructions and best practices for efficiently executing tests in the DevSynth project. It covers test categorization, prioritization, filtering, and parallel execution to help you run tests more effectively.

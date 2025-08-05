@@ -1,3 +1,15 @@
+---
+title: "Test Optimization Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+  - "guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Optimization Guide
 
 This guide provides comprehensive information about the test optimization tools and strategies implemented in DevSynth to improve test performance, reliability, and efficiency.

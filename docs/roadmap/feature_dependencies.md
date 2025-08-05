@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-07-17'
 last_reviewed: '2025-07-17'
@@ -7,8 +8,8 @@ tags:
 - roadmap
 - dependencies
 title: Feature Dependencies
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; Feature Dependencies
 </div>

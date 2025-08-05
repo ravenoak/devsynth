@@ -1,3 +1,15 @@
+---
+title: "DevSynth CLI UX Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "user-guide"
+  - "cli"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # DevSynth CLI UX Guide
 
 This guide provides information on the user experience features of the DevSynth command-line interface (CLI). It covers progress indicators, error handling, shell completion, and output formatting.
