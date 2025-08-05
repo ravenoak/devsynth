@@ -31,17 +31,24 @@ This guide explains the feature flags available in `config/*.yml` files and how 
 | `test_generation` | Enables automatic test creation features. |
 | `documentation_generation` | Provides automated documentation generation. |
 | `experimental_features` | Gates bleeding edge functionality; off in most configs. |
+| `mvuu_dashboard` | Enables the MVUU traceability dashboard. |
+| `gui` | Enables the Dear PyGui desktop client. |
 
 For the UX design rationale behind gradually exposing these capabilities, see the [Progressive Complexity UX Design section](analysis/dialectical_evaluation.md#synthesis-progressive-complexity-ux-design).
 
 ## GUI Configuration
 
-DevSynth includes an optional Dear PyGUI interface. To prevent unintended GUI launches in headless environments this interface is disabled by default. Set `gui.enabled` to `true` to enable the `dpg` CLI command:
+DevSynth includes an optional Dear PyGUI interface. To prevent unintended GUI launches in headless environments this interface is disabled by default. Set `gui.enabled` to `true` to enable the `dpg` CLI command and activate related feature flags:
 
 ```yaml
 gui:
   enabled: true
+features:
+  gui: true
+  mvuu_dashboard: true
 ```
+
+This example enables both the desktop client and the MVUU traceability dashboard.
 
 ## Enabling Flags
 
