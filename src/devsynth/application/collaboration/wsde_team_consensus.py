@@ -605,6 +605,18 @@ class ConsensusBuildingMixin:
 
                 if primary:
                     self.memory_manager.sync_manager.update_item(primary, item)
+                    # Also store a summary for quick retrieval
+                    summary_text = self.summarize_consensus_result(consensus_result)
+                    summary_item = MemoryItem(
+                        id=f"{decision_id}_summary",
+                        content={
+                            "decision_id": decision_id,
+                            "summary": summary_text,
+                        },
+                        memory_type=MemoryType.TEAM_STATE,
+                        metadata={"type": "CONSENSUS_SUMMARY"},
+                    )
+                    self.memory_manager.sync_manager.update_item(primary, summary_item)
                     try:
                         self.memory_manager.flush_updates()
                     except Exception:
@@ -907,6 +919,7 @@ class ConsensusBuildingMixin:
             tie_resolution = voting_result.get("tie_resolution")
             if tie_resolution and tie_resolution.get("winner"):
                 summary += f" Tie resolved in favour of {tie_resolution['winner']}."
+            self._store_voting_summary(summary, voting_result)
             return summary
 
         # Normal voting outcome
@@ -921,9 +934,47 @@ class ConsensusBuildingMixin:
         if winner:
             vote_counts = voting_result.get("vote_counts", {})
             count = vote_counts.get(winner, 0)
-            return f"Option '{winner}' selected with {count} votes."
+            summary = f"Option '{winner}' selected with {count} votes."
+            self._store_voting_summary(summary, voting_result)
+            return summary
 
-        return "Voting completed."
+        summary = "Voting completed."
+        self._store_voting_summary(summary, voting_result)
+        return summary
+
+    def _store_voting_summary(
+        self, summary: str, voting_result: Dict[str, Any]
+    ) -> None:
+        """Persist a voting summary to memory if available."""
+        if (
+            not summary
+            or not hasattr(self, "memory_manager")
+            or self.memory_manager is None
+        ):
+            return
+        try:
+            if "tinydb" in self.memory_manager.adapters:
+                primary = "tinydb"
+            elif "graph" in self.memory_manager.adapters:
+                primary = "graph"
+            elif self.memory_manager.adapters:
+                primary = next(iter(self.memory_manager.adapters))
+            else:
+                primary = None
+            if primary:
+                item = MemoryItem(
+                    id=f"voting_summary_{uuid.uuid4()}",
+                    content={"summary": summary, "voting_result": voting_result},
+                    memory_type=MemoryType.TEAM_STATE,
+                    metadata={"type": "VOTING_SUMMARY"},
+                )
+                self.memory_manager.sync_manager.update_item(primary, item)
+                try:
+                    self.memory_manager.flush_updates()
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     def summarize_consensus_result(self, consensus_result: Dict[str, Any]) -> str:
         """Generate a concise summary from a consensus result."""
