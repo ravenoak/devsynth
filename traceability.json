@@ -1,7 +1,7 @@
 {
   "DSY-0001": {
     "features": [
-      "Documented MVUU schema for tracking minimal updates."
+      "Documented MVUU schema for tracking minimal updates and assigned DSY TraceID."
     ],
     "files": [
       "docs/specifications/mvuuschema.json",
