@@ -24,6 +24,7 @@ class CoreConfig:
     directories: Dict[str, list[str]] | None = None
     features: Dict[str, bool] | None = None
     resources: Dict[str, Any] | None = None
+    mvuu: Dict[str, Any] | None = None
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -41,6 +42,7 @@ class CoreConfig:
             },
             "features": self.features or {},
             "resources": self.resources or {},
+            "mvuu": self.mvuu or {},
         }
 
 
@@ -120,6 +122,13 @@ def load_config(start_path: Optional[str] = None) -> CoreConfig:
             config_data.update(_load_yaml(project_cfg))
         else:
             config_data.update(_load_toml(project_cfg))
+
+    # MVUU configuration
+    mvu_cfg = root / ".devsynth" / "mvu.yml"
+    if not mvu_cfg.exists():
+        mvu_cfg = root / ".devsynth" / "mvu.yaml"
+    if mvu_cfg.exists():
+        config_data["mvuu"] = _load_yaml(mvu_cfg)
 
     # Environment overrides
     config_data.update(_parse_env(defaults))
