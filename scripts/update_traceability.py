@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Append MVUU metadata to traceability.json.
+"""Append MVUU metadata to ``traceability.json``.
 
-This script parses the most recent commit message for an MVUU JSON block
-and appends a new entry to ``traceability.json``. Existing TraceIDs are
-left unchanged.
+Deprecated: parsing and validation now live in ``devsynth.core.mvu``; this
+script remains as a thin wrapper and will be removed in a future release.
 """
 
 from __future__ import annotations
@@ -11,31 +10,22 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import re
 import subprocess
 import sys
-from typing import Any, Dict
+from typing import Dict
 
-MVUU_BLOCK_RE = re.compile(r"```json\n(?P<json>{.*?})\n```", re.DOTALL)
-
-
-def extract_mvuu(commit_msg: str) -> Dict[str, Any]:
-    """Return the parsed MVUU metadata from ``commit_msg``."""
-    match = MVUU_BLOCK_RE.search(commit_msg)
-    if not match:
-        raise ValueError("Missing MVUU JSON block fenced with ```json ... ```")
-    return json.loads(match.group("json"))
+from devsynth.core.mvu import parse_commit_message, MVUU
 
 
-def build_entry(metadata: Dict[str, Any]) -> Dict[str, Any]:
+def build_entry(mvuu: MVUU) -> Dict[str, object]:
     """Build a traceability entry from MVUU metadata."""
     return {
-        "features": [metadata.get("utility_statement", "")],
-        "files": metadata.get("affected_files", []),
-        "tests": metadata.get("tests", []),
-        "issue": metadata.get("issue", ""),
-        "mvuu": metadata.get("mvuu", False),
-        "notes": metadata.get("notes"),
+        "features": [mvuu.utility_statement],
+        "files": mvuu.affected_files,
+        "tests": mvuu.tests,
+        "issue": mvuu.issue,
+        "mvuu": mvuu.mvuu,
+        "notes": mvuu.notes,
     }
 
 
@@ -47,9 +37,9 @@ def update_traceability(trace_file: pathlib.Path, commit: str) -> None:
         capture_output=True,
         text=True,
     ).stdout
-    metadata = extract_mvuu(commit_msg)
-    trace_id = metadata["TraceID"]
-    entry = build_entry(metadata)
+    mvuu = parse_commit_message(commit_msg)
+    trace_id = mvuu.TraceID
+    entry = build_entry(mvuu)
     data = json.loads(trace_file.read_text()) if trace_file.exists() else {}
     if trace_id not in data:
         data[trace_id] = entry
