@@ -1,0 +1,32 @@
+name: MVU Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  mvu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --with dev
+      - name: Run MVU unit tests
+        run: |
+          poetry run pytest tests/unit/core/mvu/
+      - name: Run MVU CLI tests
+        run: |
+          poetry run pytest tests/behavior/steps/test_mvu_commands_steps.py
+      - name: Verify rewrite round-trip
+        run: |
+          poetry run pytest tests/integration/mvu/test_atomic_rewrite_round_trip.py
