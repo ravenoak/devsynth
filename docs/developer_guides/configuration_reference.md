@@ -1,3 +1,16 @@
+---
+title: "Configuration Reference"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+  - "reference"
+  - "configuration"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Configuration Reference
 
 ## Feature Flags

@@ -1,14 +1,15 @@
 ---
+
 title: "DevSynth Release Plan"
 date: "2025-07-07"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "roadmap"
   - "release"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-20"---
-
+last_reviewed: "2025-07-20"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Release Plan
 </div>
@@ -57,7 +58,7 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
 
 - **0.1.0-alpha.1**: Core architecture in place with Anthropic and offline
   providers, baseline CLI commands, and initial EDRR/WSDE integration.
-- **0.1.0-beta.1**: WSDE peer review workflow targeted for completion
+- **0.1.0-alpha.1**: WSDE peer review workflow targeted for completion
   (see [issue 104](../../issues/104.md)), Web UI preview available, and major
   tests passing.
 - **0.1.0-rc.1**: Documentation freeze and full test suite passing as the
@@ -75,12 +76,12 @@ For a detailed breakdown of feature implementation progress, see the
 [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 ## Implementation Status
-Execution of this release plan is **in progress** with milestones tracked in [issue 104](../../issues/104.md). The repository harmonization effort has concluded, the **0.1.0-alpha.1** milestone is complete, and preparations for `0.1.0-beta.1` are underway.
+Execution of this release plan is **in progress** with milestones tracked in [issue 104](../../issues/104.md). The repository harmonization effort has concluded, the **0.1.0-alpha.1** milestone is complete, and preparations for `0.1.0-alpha.1` are underway.
 
 ### Current Test Summary
 
 Recent CI reports collected thousands of tests. The latest run reported **348** failures, **921** passing tests, **100** skipped, and **3** errors due to `chromadb_store` missing during collection. See the [development status](development_status.md#test-failure-summary) document for details.
-To publish `0.1.0-beta.1`, the project must:
+To publish `0.1.0-alpha.1`, the project must:
 
 - Resolve the outstanding WebUI and EDRR coordinator test failures.
 - Complete WSDE collaboration integration with the memory system and finalize the peer review workflow.

@@ -1,3 +1,14 @@
+---
+title: "Test Infrastructure Improvements Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Infrastructure Improvements Guide
 
 This guide provides information on recent improvements to the DevSynth test infrastructure and guidance for continuing the work. It covers the new scripts for test marker standardization and flaky test detection, as well as best practices for improving test reliability.

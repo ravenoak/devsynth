@@ -6,7 +6,7 @@ status: published
 tags:
 - documentation
 title: Documentation Update Progress
-version: 0.1.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">

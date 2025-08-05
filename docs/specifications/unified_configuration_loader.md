@@ -1,15 +1,16 @@
 ---
+
 title: "Unified Configuration Loader"
 date: "2025-06-16"
 last_reviewed: "2025-07-20"
-version: "0.2.0"
+version: "0.1.0-alpha.1"
 tags:
   - "specification"
   - "configuration"
 
 status: "draft"
-author: "DevSynth Team"---
-
+author: "DevSynth Team"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Unified Configuration Loader
 </div>

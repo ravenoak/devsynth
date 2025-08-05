@@ -9,7 +9,7 @@ tags:
 - progress
 - tracking
 title: DevSynth Project Status
-version: 1.0.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">
@@ -32,7 +32,7 @@ August 2, 2025
 
 ## Implementation Status
 
-The overall project is **partially implemented**. Approximately **70%** of documented features are functional. Work continues toward the `0.1.0-beta.1` milestone, but several integration tests remain unstable.
+The overall project is **partially implemented**. Approximately **70%** of documented features are functional. Work continues toward the `0.1.0-alpha.1` milestone, but several integration tests remain unstable.
 
 ### Key Metrics
 
@@ -64,7 +64,7 @@ The `scripts/update_traceability.py` helper runs in CI to append new entries bas
 
 ## Test Status
 
-Recent CI runs report **348** failing tests and **921** passing tests with **100** skipped. Test collection triggered **3** errors. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of failures, blocking `0.1.0-beta.1`.
+Recent CI runs report **348** failing tests and **921** passing tests with **100** skipped. Test collection triggered **3** errors. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of failures, blocking `0.1.0-alpha.1`.
 
 ### Test Categorization Progress
 

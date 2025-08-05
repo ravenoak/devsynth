@@ -1,14 +1,16 @@
 ---
+
 title: "Configuration Overview"
 date: "2025-06-01"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "configuration"
   - "feature-flags"
 
 status: "draft"
-author: "DevSynth Team"---
-
+author: "DevSynth Team"
+last_reviewed: "2025-06-01"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; Configuration Overview
 </div>

@@ -1,7 +1,8 @@
 ---
+
 title: "Delimiting Recursion Algorithms"
 date: "2025-06-16"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "specification"
   - "EDRR"
@@ -9,8 +10,8 @@ tags:
 
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Delimiting Recursion Algorithms
 </div>

@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-06-01'
 last_reviewed: "2025-07-10"
@@ -11,8 +12,8 @@ tags:
 - process
 
 title: Contributing Guide
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Contributing Guide
 </div>

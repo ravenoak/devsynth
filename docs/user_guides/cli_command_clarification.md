@@ -1,7 +1,8 @@
 ---
+
 title: DevSynth CLI Command Clarification
 date: 2025-08-02
-version: 0.1.0
+version: "0.1.0-alpha.1"
 tags:
 - cli
 - commands
@@ -9,8 +10,8 @@ tags:
 - documentation
 status: published
 author: DevSynth Team
-last_reviewed: "2025-08-02"---
-
+last_reviewed: "2025-08-02"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Clarification
 </div>

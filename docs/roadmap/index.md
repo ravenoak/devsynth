@@ -8,7 +8,7 @@ tags:
 - development-plan
 - project-planning
 title: DevSynth Roadmap
-version: 0.1.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">

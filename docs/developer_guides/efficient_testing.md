@@ -1,3 +1,14 @@
+---
+title: "Efficient Testing Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Efficient Testing Guide
 
 This guide provides information on how to efficiently run and manage tests in the DevSynth project. It covers the testing infrastructure, test categorization, performance optimization techniques, and best practices.

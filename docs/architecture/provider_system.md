@@ -10,7 +10,7 @@ tags:
 - openai
 - lm-studio
 title: Provider System Architecture
-version: 1.1.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">
@@ -860,7 +860,7 @@ tls_ca_file = "/path/to/ca.pem"
 
 # docker-compose.yml
 
-version: '3'
+version: "0.1.0-alpha.1"
 services:
   devsynth:
     image: devsynth:latest

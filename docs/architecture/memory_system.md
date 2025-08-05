@@ -10,7 +10,7 @@ tags:
 - vector-store
 - knowledge-graph
 title: DevSynth Memory System Architecture
-version: 1.2.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">

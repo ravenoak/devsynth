@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-07-07'
 last_reviewed: "2025-07-10"
@@ -8,8 +9,8 @@ tags:
 - developer-guide
 
 title: Test Isolation Best Practices
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Isolation Best Practices
 </div>

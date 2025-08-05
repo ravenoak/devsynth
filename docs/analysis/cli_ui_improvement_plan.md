@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-06-15'
 last_reviewed: "2025-07-10"
@@ -10,8 +11,8 @@ tags:
 - usability
 
 title: DevSynth CLI and UI Improvement Plan
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth CLI and UI Improvement Plan
 </div>

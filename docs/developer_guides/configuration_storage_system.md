@@ -1,15 +1,16 @@
 ---
+
 title: "DevSynth Configuration and Storage System"
 date: "2025-07-07"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "developer-guide"
   - "configuration"
 
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"---
-
+last_reviewed: "2025-07-10"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Configuration and Storage System
 </div>
@@ -54,7 +55,7 @@ Example:
 
 ```yaml
 projectName: example-project
-version: 0.1.0
+version: "0.1.0-alpha.1"
 lastUpdated: 2025-05-25T12:00:00
 structure:
   type: single_package

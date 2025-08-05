@@ -97,7 +97,7 @@ def create_metadata_header(title, tags):
     return f"""---
 title: "{title}"
 date: "{CURRENT_DATE}"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - {tags_str}
 status: "published"

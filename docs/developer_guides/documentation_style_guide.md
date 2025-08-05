@@ -1,7 +1,8 @@
 ---
+
 title: "DevSynth Documentation Style Guide"
 date: "2025-08-02"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "documentation"
   - "style guide"
@@ -9,8 +10,8 @@ tags:
   - "formatting"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"---
-
+last_reviewed: "2025-08-02"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Documentation Style Guide
 </div>
@@ -52,7 +53,7 @@ All documentation files should follow this basic structure:
 ---
 title: "Document Title"
 date: "YYYY-MM-DD"
-version: "X.Y.Z"
+version: "0.1.0-alpha.1"
 tags:
   - "tag1"
   - "tag2"
@@ -115,7 +116,7 @@ Example:
 ---
 title: "DevSynth Documentation Style Guide"
 date: "2025-08-02"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "documentation"
   - "style guide"

@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-07-31'
 last_reviewed: "2025-07-31"
@@ -9,8 +10,8 @@ tags:
 - wizard
 - state-management
 title: Requirements Wizard WizardState Integration Guide
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Requirements Wizard WizardState Integration Guide
 </div>

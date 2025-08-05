@@ -6,7 +6,7 @@ status: published
 tags:
 - developer-guide
 title: Agent Tools
-version: 0.1.0
+version: "0.1.0-alpha.1"
 ---
 
 <div class="breadcrumbs">

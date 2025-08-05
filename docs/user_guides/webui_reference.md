@@ -1,15 +1,15 @@
 ---
+
 author: DevSynth Team
 date: '2025-06-18'
+last_reviewed: '2025-06-18'
 status: draft
 tags:
-
-- webui
-- user-guide
-
+  - webui
+  - user-guide
 title: DevSynth WebUI Reference
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth WebUI Reference
 </div>

@@ -1,15 +1,17 @@
 ---
+
 title: "Agent API Reference"
 date: "2025-06-19"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "api"
   - "reference"
   - "user-guide"
 
 status: "draft"
-author: "DevSynth Team"---
-
+author: "DevSynth Team"
+last_reviewed: "2025-06-19"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Agent API Reference
 </div>

@@ -1,7 +1,8 @@
 ---
+
 title: "DevSynth Documentation Review Schedule"
 date: "2025-08-02"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "documentation"
   - "review"
@@ -9,8 +10,8 @@ tags:
   - "policy"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"---
-
+last_reviewed: "2025-08-02"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Review Schedule
 </div>

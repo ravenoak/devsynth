@@ -1,3 +1,14 @@
+---
+title: "DevSynth Metrics and Analytics System"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "specification"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # DevSynth Metrics and Analytics System
 
 This document outlines a best-practices approach for implementing a unified metrics and analytics framework in DevSynth, consolidating isolated metrics implementations into a coherent system.

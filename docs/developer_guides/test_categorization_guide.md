@@ -1,3 +1,15 @@
+---
+title: "Test Categorization Guide"
+date: "2025-08-05"
+version: "0.1.0-alpha.1"
+tags:
+  - "developer-guide"
+  - "guide"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-08-05"
+---
+
 # Test Categorization Guide
 
 This guide explains the approach to test categorization in the DevSynth project, including the test categorization schedule and how to use it.

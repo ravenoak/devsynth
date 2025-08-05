@@ -1,4 +1,5 @@
 ---
+
 author: DevSynth Team
 date: '2025-07-08'
 last_reviewed: "2025-08-02"
@@ -8,8 +9,8 @@ tags:
 - quick-start
 - tutorial
 title: DevSynth Quick Start Guide
-version: 0.1.0---
-
+version: "0.1.0-alpha.1"
+---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Quick Start Guide
 </div>
