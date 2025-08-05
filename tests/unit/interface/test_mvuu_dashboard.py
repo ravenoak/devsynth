@@ -28,10 +28,10 @@ def test_load_traceability_reads_specified_file(tmp_path: Path):
 
 
 def test_render_dashboard_invokes_streamlit(monkeypatch: pytest.MonkeyPatch):
-    data = {"MVUU-0001": {"mvuu": True, "issue": "DSY-0001", "files": ["file.txt"], "features": []}}
+    data = {"DSY-0001": {"mvuu": True, "issue": "DSY-0001", "files": ["file.txt"], "features": []}}
 
     mock_sidebar = MagicMock()
-    mock_sidebar.selectbox.return_value = "MVUU-0001"
+    mock_sidebar.selectbox.return_value = "DSY-0001"
 
     mock_st = MagicMock()
     mock_st.sidebar = mock_sidebar
@@ -42,8 +42,8 @@ def test_render_dashboard_invokes_streamlit(monkeypatch: pytest.MonkeyPatch):
 
     mock_st.title.assert_called_once_with("MVUU Traceability Dashboard")
     mock_sidebar.header.assert_called_once_with("TraceIDs")
-    mock_sidebar.selectbox.assert_called_once_with("Select TraceID", ["MVUU-0001"])
-    mock_st.subheader.assert_called_once_with("TraceID: MVUU-0001")
+    mock_sidebar.selectbox.assert_called_once_with("Select TraceID", ["DSY-0001"])
+    mock_st.subheader.assert_called_once_with("TraceID: DSY-0001")
     mock_st.markdown.assert_any_call("**Linked Issue:** DSY-0001")
     mock_st.markdown.assert_any_call("### Affected Files")
     mock_st.write.assert_called_once_with("file.txt")
