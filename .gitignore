@@ -42,6 +42,7 @@ build/
 *~
 .*.swp
 .output.txt
+traceability.json
 
 # Test and report files
 .test_categorization_progress.json

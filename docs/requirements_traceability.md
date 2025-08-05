@@ -26,7 +26,7 @@ This matrix links requirements to design, code modules, and tests, ensuring bidi
 
 ## Traceability JSON Format
 
-Traceability metadata is stored in `traceability.json` with each entry keyed by a `TraceID` such as `DSY-0001`. Entries capture:
+Traceability metadata is stored in a local `traceability.json` (not committed to the repository) with each entry keyed by a `TraceID` such as `DSY-0001`. Entries capture:
 
 | Field | Description |
 |-------|-------------|
@@ -59,10 +59,23 @@ Example:
 }
 ```
 
+> **Note:** `traceability.json` is ignored by version control and should remain local to each contributor.
+
+## MVUU Database Integration
+
+Traceability entries correspond to detailed MVUU records stored in
+`docs/specifications/mvuu_database.json`. Each record follows the
+[`mvuuschema.json`](specifications/mvuuschema.json) format and includes a
+`TraceID` that matches an entry in your local `traceability.json`. This linkage
+enables the database to serve as a repository-wide log of MVUU metadata while the
+traceability matrix summarizes how each change maps to requirements, files and
+tests. When adding a new MVUU record, ensure the same `TraceID` appears in your
+local `traceability.json` so requirements coverage reflects the update.
+
 ## Update Procedure
 
 Run `scripts/update_traceability.py` after tests pass to append MVUU metadata
-from the latest commit into `traceability.json`.
+from the latest commit into your local `traceability.json`.
 
 ### Git Hook
 
@@ -72,8 +85,8 @@ Enable the `pre-push` hook to automate this step:
 ln -s ../../scripts/hooks/pre-push-traceability.sh .git/hooks/pre-push
 ```
 
-The hook runs the test suite and updates `traceability.json` when the tests
-complete successfully.
+The hook runs the test suite and updates your local `traceability.json` when the
+tests complete successfully.
 
 | Requirement ID | Description | Design/Doc Reference | Code Module(s) | Test(s) | Status |
 |---------------|-------------|----------------------|---------------|---------|--------|

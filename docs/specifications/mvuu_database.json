@@ -1,0 +1,29 @@
+[
+  {
+    "utility_statement": "Demonstrate MVUU database entry for DSY-0101.",
+    "affected_files": [
+      "docs/specifications/mvuu_database.json"
+    ],
+    "tests": [
+      "poetry run pytest --maxfail=1"
+    ],
+    "TraceID": "DSY-0101",
+    "mvuu": true,
+    "issue": "#0101",
+    "notes": "Sample MVUU database entry."
+  },
+  {
+    "utility_statement": "Second MVUU sample referencing schema usage.",
+    "affected_files": [
+      "docs/specifications/mvuuschema.json",
+      "docs/specifications/mvuu_database.json"
+    ],
+    "tests": [
+      "poetry run pytest tests/specifications/test_mvuu_schema.py"
+    ],
+    "TraceID": "DSY-0102",
+    "mvuu": true,
+    "issue": "#0102",
+    "notes": "Another example entry using MVUU schema."
+  }
+]

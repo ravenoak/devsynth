@@ -11,19 +11,23 @@
     "affected_files": {
       "type": "array",
       "items": {"type": "string"},
+      "minItems": 1,
       "description": "Paths to files modified in this commit."
     },
     "tests": {
       "type": "array",
       "items": {"type": "string"},
+      "minItems": 1,
       "description": "Commands or references to tests validating the change."
     },
     "TraceID": {
       "type": "string",
+      "pattern": "^DSY-\\d{4}$",
       "description": "Traceability identifier in the form DSY-0000."
     },
     "mvuu": {
       "type": "boolean",
+      "const": true,
       "description": "Set to true to confirm this commit uses the MVUU format."
     },
     "issue": {

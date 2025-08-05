@@ -44,8 +44,9 @@ For a detailed breakdown of feature status, see the [Feature Status Matrix](feat
 
 ## Traceability Matrix
 
-The repository tracks requirement coverage in `traceability.json`. Each entry maps a `TraceID`
-to related features, affected files, tests, and the associated issue.
+Each contributor tracks requirement coverage in a local `traceability.json`
+(ignored by version control). Each entry maps a `TraceID` to related features,
+affected files, tests, and the associated issue.
 
 ```json
 {
