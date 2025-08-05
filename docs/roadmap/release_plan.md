@@ -62,11 +62,13 @@ git push origin v0.1.0-alpha.1
 - Introduce plugin interfaces for third-party provider integration.
 - Iterate on memory system scalability and performance.
 
+### MVUU Dashboard
+- Launch Streamlit MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
+
 ### 0.2.0+
 - Implement feature flags for experimental modules.
 - Automate project-board synchronization with release milestones.
 - Introduce a Jira adapter for issue tracking integration.
-- Develop the MVUU dashboard for monitoring and analytics.
 
 ### 0.3.0
 - Reach full feature parity with Dear PyGui across advanced workflows.

@@ -28,5 +28,24 @@
     "issue": "DSY-0002",
     "mvuu": true,
     "notes": "Added format description and updated traceability entry."
+  },
+  "DSY-0003": {
+    "features": [
+      "Added MVUU dashboard tests and CLI entry with documentation."
+    ],
+    "files": [
+      "tests/unit/interface/test_mvuu_dashboard.py",
+      "pyproject.toml",
+      "docs/user_guides/dearpygui.md",
+      "docs/roadmap/release_plan.md",
+      "traceability.json"
+    ],
+    "tests": [
+      "poetry run pytest tests/unit/interface/test_mvuu_dashboard.py",
+      "poetry run pytest tests/unit/general/test_mvuu_dashboard_cli.py"
+    ],
+    "issue": "DSY-0003",
+    "mvuu": true,
+    "notes": "MVUU dashboard CLI exposure and tests."
   }
 }
