@@ -4,9 +4,26 @@
 
 <!-- Provide a brief description of the changes in this PR -->
 
-## Related Issues
+## MVUU JSON
 
-<!-- Link to any related issues using the format: Fixes #123, Addresses #456 -->
+```json
+{
+  "utility_statement": "",
+  "affected_files": [],
+  "tests": [],
+  "TraceID": "",
+  "mvuu": true,
+  "issue": "#"
+}
+```
+
+## TraceID
+
+<!-- Provide the TraceID associated with this work -->
+
+## Linked Issue
+
+<!-- Link to the issue using the format: Fixes #123 -->
 
 ## Type of Change
 
@@ -57,6 +74,7 @@
 
 <!-- Verify that you have completed the following -->
 
+- [ ] PR description includes the MVUU JSON block above with TraceID and issue link
 - [ ] Commits include an MVUU JSON block
 - [ ] Commits include a TraceID and link to the relevant issue
 - [ ] `traceability.json` has been updated
@@ -77,8 +95,12 @@ Issue: #<issue-number>
 
 {
   "MVUU": {
+    "utility_statement": "<utility_statement>",
+    "affected_files": ["path/to/file"],
+    "tests": ["poetry run pytest tests/..."],
     "TraceID": "<TraceID>",
-    "Issue": "#<issue-number>"
+    "mvuu": true,
+    "issue": "#<issue-number>"
   }
 }
 ```
