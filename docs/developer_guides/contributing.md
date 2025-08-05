@@ -371,6 +371,19 @@ feat(tracking): add token usage instrumentation
 }
 ```
 
+## Issue Traceability Automation
+
+Commits that reference GitHub issues (for example, `#123`) can be automatically processed on `main` by enabling the `update_issue_links` workflow found under `.github/workflows.disabled/update_issue_links.yml`. When activated, the workflow runs `scripts/update_issue_links.py` to post the commit URL as a comment on each referenced issue and requires access to the repository `GITHUB_TOKEN`.
+
+To run the script locally, provide a token with permission to comment on issues:
+
+```bash
+export GITHUB_TOKEN=<your-token>
+python scripts/update_issue_links.py --commit <commit-sha>
+```
+
+The script reads `GITHUB_TOKEN` or `GH_TOKEN` from the environment to authenticate with the GitHub API.
+
 ## Versioning
 
 DevSynth follows [Semantic Versioning](https://semver.org/):
