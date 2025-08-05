@@ -20,6 +20,16 @@ _DEFAULT_CONFIG = {
         "path": "docs/specifications/mvuu_database.json",
         "format": "json",
     },
+    "issues": {
+        "github": {
+            "base_url": "https://api.github.com/repos/ORG/REPO",
+            "token": "YOUR_GITHUB_TOKEN",
+        },
+        "jira": {
+            "base_url": "https://jira.example.com",
+            "token": "YOUR_JIRA_TOKEN",
+        },
+    },
 }
 
 
