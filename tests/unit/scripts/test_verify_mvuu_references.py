@@ -53,7 +53,7 @@ def test_verify_mvuu_affected_files_valid():
 def test_verify_mvuu_affected_files_missing():
     """Missing affected file should produce an error."""
     errors = verify_mvuu_affected_files(VALID_MESSAGE, ["other.txt"])
-    assert any("missing entries" in e for e in errors)
+    assert any("missing files" in e for e in errors)
 
 
 def test_verify_mvuu_affected_files_missing_issue():

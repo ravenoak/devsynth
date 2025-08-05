@@ -1,39 +1,29 @@
 #!/usr/bin/env python3
-"""Verify MVUU affected files cover changed files."""
+"""Verify MVUU affected files cover changed files.
+
+Deprecated: core MVUU helpers live in ``devsynth.core.mvu``; this script is a
+thin wrapper kept for backward compatibility.
+"""
 
 from __future__ import annotations
 
 import argparse
-import json
-import re
 import subprocess
 import sys
 from typing import Iterable, List
 
-
-def _extract_mvuu_json(message: str) -> dict:
-    pattern = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
-    match = pattern.search(message)
-    if not match:
-        raise ValueError("Missing MVUU JSON block fenced with ```json … ```")
-    return json.loads(match.group(1))
+from devsynth.core.mvu import validate_commit_message, validate_affected_files
 
 
 def verify_mvuu_affected_files(message: str, changed_files: Iterable[str]) -> List[str]:
-    """Return errors if changed files lack MVUU references."""
-    mvuu = _extract_mvuu_json(message)
+    """Return discrepancies between MVUU metadata and changed files."""
     errors: List[str] = []
-    if mvuu.get("mvuu") is not True:
-        errors.append("'mvuu' must be true")
-    if "issue" not in mvuu:
-        errors.append("Missing required field 'issue'")
-    affected = set(mvuu.get("affected_files", []))
-    changed = set(changed_files)
-    missing = changed - affected
-    if missing:
-        errors.append(
-            "MVUU affected_files missing entries for: " + ", ".join(sorted(missing))
-        )
+    try:
+        mvuu = validate_commit_message(message)
+    except Exception as exc:  # pragma: no cover - surface all validation errors
+        errors.append(str(exc))
+    else:
+        errors.extend(validate_affected_files(mvuu, changed_files))
     return errors
 
 
