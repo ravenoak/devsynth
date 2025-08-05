@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 
 import streamlit as st
 
@@ -12,7 +13,10 @@ _DEFAULT_TRACE_PATH = Path(__file__).resolve().parents[3] / "traceability.json"
 
 
 def load_traceability(path: Path = _DEFAULT_TRACE_PATH) -> dict:
-    """Load traceability data from ``traceability.json``.
+    """Generate and load MVUU traceability data.
+
+    This function invokes ``devsynth mvu report --output traceability.json`` to
+    refresh the local report before parsing it.
 
     Parameters
     ----------
@@ -25,6 +29,10 @@ def load_traceability(path: Path = _DEFAULT_TRACE_PATH) -> dict:
     dict
         Parsed JSON content describing MVUU traceability information.
     """
+    subprocess.run(
+        ["devsynth", "mvu", "report", "--output", str(path)],
+        check=True,
+    )
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
