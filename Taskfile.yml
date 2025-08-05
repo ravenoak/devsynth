@@ -160,6 +160,7 @@ tasks:
       - task: manifest:validate
       - task: lint
       - task: test:coverage
+      - poetry run python scripts/update_traceability.py
       - task: docs:build
 
   # Python-specific tasks
