@@ -187,20 +187,27 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
         description: Optional[str] = None,
         cancellable: bool = False,
         message_type: str = "error",
+        progress_hook: Callable[[ProgressIndicator], None] | None = None,
+        error_hook: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Execute a potentially blocking CLI command.
 
         The command is executed in a background thread while this method polls
-        ``render_dearpygui_frame`` to keep the UI responsive.  Any exceptions
-        raised by the command are captured and displayed via
-        :meth:`display_result` using the provided ``message_type``.
+        ``render_dearpygui_frame`` to keep the UI responsive.  Optional hooks
+        allow callers to update progress or handle errors manually.  Any
+        unhandled exceptions are displayed via :meth:`display_result` using the
+        provided ``message_type``.
 
         Args:
             cmd: Callable representing the CLI command.
             description: Optional description for the progress indicator.
             cancellable: Whether to show a cancel button.
             message_type: Message type used if an exception occurs.
+            progress_hook: Optional callable invoked every UI poll with the
+                :class:`ProgressIndicator`.
+            error_hook: Optional callable invoked with any caught exception
+                instead of displaying it directly.
             **kwargs: Additional keyword arguments passed to ``cmd``.
 
         Returns:
@@ -213,6 +220,7 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
         result: list[Any] = []
         error: list[BaseException] = []
         done = threading.Event()
+        cancelled = threading.Event()
 
         def _target() -> None:
             try:
@@ -224,17 +232,28 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
 
         threading.Thread(target=_target, daemon=True).start()
 
-        while not done.is_set():
+        while True:
             if cancellable and progress.is_cancelled():
+                cancelled.set()
+            if done.is_set() or cancelled.is_set():
                 break
+            if progress_hook is not None:
+                progress_hook(progress)
             dpg.render_dearpygui_frame()
 
         progress.complete()
 
         if error:
-            self.display_result(
-                sanitize_output(str(error[0])), message_type=message_type
-            )
+            exc = error[0]
+            if error_hook is not None:
+                error_hook(exc)
+            else:
+                self.display_result(
+                    sanitize_output(str(exc)), message_type=message_type
+                )
+            return None
+
+        if cancelled.is_set():
             return None
 
         return result[0] if result else None
