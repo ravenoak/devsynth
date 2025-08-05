@@ -1,0 +1,6 @@
+{
+  "$schema": "../../docs/specifications/mvuuschema.json",
+  "TraceID": "MVUU-EXAMPLE-001",
+  "description": "Demonstrates an MVUU entry for the example workflow",
+  "commit": "abc1234"
+}

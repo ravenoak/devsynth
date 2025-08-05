@@ -38,6 +38,8 @@ version has been published yet.
 - Basic security utilities for authentication, authorization, and input sanitization
 - Doctor command for configuration validation
 - Anthropic API support and deterministic offline provider implementation
+- MVUU engine for tracking Minimum Viable Utility Units
+- Atomic-Rewrite workflow for granular commit generation
 
 ### Changed
 - Moved development documents to appropriate locations in the docs/ directory

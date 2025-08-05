@@ -308,7 +308,7 @@ If you find a bug or have a feature request, please create an issue on GitHub:
 
 Every commit message must include an MVUU JSON block that documents the utility,
 affected files, tests, traceability information, and confirms MVUU usage along
-with the related issue. See the [MVUU schema](../specifications/mvuuschema.json)
+with the related issue. See the [docs/specifications/mvuuschema.json](../specifications/mvuuschema.json)
 for the full specification.
 
 ### Commit template
