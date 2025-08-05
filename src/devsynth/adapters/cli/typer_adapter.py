@@ -40,6 +40,7 @@ from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_
 from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
 from devsynth.application.cli.commands.mvuu_dashboard_cmd import mvuu_dashboard_cmd
 from devsynth.application.cli.commands.mvu_init_cmd import mvu_init_cmd
+from devsynth.application.cli.commands.mvu_lint_cmd import mvu_lint_cmd
 from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
 from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
 from devsynth.application.cli.commands.validate_manifest_cmd import (
@@ -474,6 +475,13 @@ def build_app() -> typer.Typer:
     )(mvuu_dashboard_cmd)
     mvu_app = typer.Typer(help="MVU utilities")
     mvu_app.command("init", help="Scaffold MVU configuration")(mvu_init_cmd)
+    mvu_app.command(
+        "lint",
+        help=(
+            "Lint commit messages for MVUU compliance.\n\n"
+            "Examples:\n  devsynth mvu lint --range origin/main..HEAD"
+        ),
+    )(mvu_lint_cmd)
     app.add_typer(mvu_app, name="mvu")
     app.command(
         name="serve",

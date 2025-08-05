@@ -1,8 +1,4 @@
-import sys
-
-sys.path.append("scripts")
-
-from commit_linter import lint_commit_message  # type: ignore
+from devsynth.core.mvu.linter import lint_commit_message
 
 VALID_MESSAGE = (
     "feat: add example\n\n"
