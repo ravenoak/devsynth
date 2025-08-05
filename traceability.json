@@ -65,5 +65,22 @@
     "issue": "DSY-0004",
     "mvuu": true,
     "notes": "Integrates update_traceability after successful tests."
+  },
+  "DSY-0005": {
+    "features": [
+      "Documented MVUU dashboard completion and commit-linter enforcement in the release plan.",
+      "Added requirements for atomic MVUU commits, continuous main usability, and GUI traceability in the system requirements specification."
+    ],
+    "files": [
+      "docs/roadmap/release_plan.md",
+      "docs/system_requirements_specification.md",
+      "traceability.json"
+    ],
+    "tests": [
+      "poetry run pytest --maxfail=1"
+    ],
+    "issue": "DSY-0005",
+    "mvuu": true,
+    "notes": "Updated roadmap and SRS to capture MVUU and traceability requirements."
   }
 }

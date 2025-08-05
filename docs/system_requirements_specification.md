@@ -384,6 +384,7 @@ Primary users are individual software developers who:
 - [IR-01] The system shall provide a command-line interface for all functions
 - [IR-02] The system shall support standard CLI conventions and patterns
 - [IR-03] The system shall provide help documentation for all commands
+- [IR-03a] The GUI shall expose MVUU traceability linking requirements, commits, and verification artifacts.
 
 
 ### 6.2 Software Interfaces
@@ -433,9 +434,9 @@ Primary users are individual software developers who:
 
 ### 7.5 Repository Practices
 
-- [QA-14] The development process shall use atomic, idempotent commits.
+- [QA-14] The development process shall use atomic MVUU commits.
   - Acceptance Criteria:
-    - Commit hooks reject commits that bundle unrelated changes.
+    - Commit hooks reject commits that bundle unrelated MVUU changes.
     - CI reruns commits to verify no unintended side effects.
 - [QA-15] The system shall enforce MVUU metadata for all contributions.
   - Acceptance Criteria:
