@@ -34,6 +34,7 @@ git push origin v0.1.0-alpha.1
 - MVUU JSON schema finalization
 - Commit-message linter enforcement
 - Traceability automation and ticket linkage
+- Automatic issue comments for commit traceability
 - Baseline Dear PyGui parity tasks:
   - Wizard forms
   - Progress UI
@@ -46,6 +47,7 @@ git push origin v0.1.0-alpha.1
 - MVUU JSON schema finalization
 - Commit-message linter enforcement
 - Traceability automation and ticket linkage
+- Automatic issue comments for commit traceability
 - Baseline Dear PyGui parity tasks:
   - Wizard forms
   - Progress UI
