@@ -98,6 +98,17 @@ ln -s ../../scripts/hooks/pre-push-traceability.sh .git/hooks/pre-push
 The hook runs the test suite and updates your local `traceability.json` when the
 tests complete successfully.
 
+### Reporting
+
+Generate a matrix from MVUU metadata stored in commit history:
+
+```bash
+devsynth mvu report --since origin/main --format markdown --output trace.md
+```
+
+Use `--format html` to produce an HTML table. Omitting `--output` prints the
+report to standard output.
+
 | Requirement ID | Description | Design/Doc Reference | Code Module(s) | Test(s) | Status |
 |---------------|-------------|----------------------|---------------|---------|--------|
 | FR-01 | System initialization with required configuration | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/init_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
