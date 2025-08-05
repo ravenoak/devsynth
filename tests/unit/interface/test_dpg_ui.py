@@ -7,8 +7,6 @@ from unittest.mock import MagicMock
 
 import json
 import sys
-import threading
-import time as real_time
 
 import devsynth.interface.dpg_ui as dpg_ui
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
@@ -22,34 +20,15 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
     fake_dpg.is_dearpygui_running.side_effect = [False]
     monkeypatch.setattr(dpg_ui, "dpg", fake_dpg)
 
-    threads: list[threading.Thread] = []
-    real_thread = threading.Thread
-
-    class ThreadRecorder:
-        def __init__(self, target, daemon=False):
-            self._t = real_thread(target=target, daemon=daemon)
-            threads.append(self._t)
-
-        def start(self) -> None:  # pragma: no cover - simple proxy
-            self._t.start()
-
-    monkeypatch.setattr(dpg_ui.threading, "Thread", ThreadRecorder)
-    monkeypatch.setattr(dpg_ui.time, "sleep", lambda _x: None)
-
-    events: dict[str, threading.Event] = {}
     funcs: dict[str, MagicMock] = {}
 
     def _register(name: str, *, with_param: bool = False) -> MagicMock:
-        event = threading.Event()
-        events[name] = event
         mock = MagicMock()
         mock.__name__ = name
-
         if with_param:
-            mock.side_effect = lambda *_args, bridge, _event=event: _event.wait()
+            mock.side_effect = lambda *_args, bridge: None
         else:
-            mock.side_effect = lambda *, bridge, _event=event: _event.wait()
-
+            mock.side_effect = lambda *, bridge: None
         funcs[name] = mock
         return mock
 
@@ -106,6 +85,13 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.apispec", fake_apispec)
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.commands", fake_commands)
 
+    class FakeProgress:
+        def __init__(self) -> None:
+            self.update = MagicMock()
+            self.complete = MagicMock()
+            self._current = 0
+            self._total = 100
+
     class DummyBridge:
         instance: "DummyBridge" | None = None
 
@@ -113,23 +99,17 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
             DummyBridge.instance = self
             self.progresses: list[FakeProgress] = []
 
-        def create_progress(self, _msg: str):
+        def run_cli_command(self, cmd, *, progress_hook=None):
             progress = FakeProgress()
             self.progresses.append(progress)
-            return progress
+            if progress_hook:
+                progress_hook(progress)
+                progress_hook(progress)
+            cmd(bridge=self)
+            progress.complete()
 
         def ask_question(self, _prompt: str) -> str:
             return "feat"
-
-    class FakeProgress:
-        def __init__(self) -> None:
-            self.update = MagicMock(side_effect=self._update)
-            self.complete = MagicMock()
-            self._current = 0
-            self._total = 100
-
-        def _update(self, advance: int = 1, description: str | None = None) -> None:
-            self._current += advance
 
     monkeypatch.setattr(dpg_ui, "DearPyGUIBridge", DummyBridge)
 
@@ -174,18 +154,11 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
     ]
 
     for label, name in label_to_name:
-        pre = len(threads)
         cb = callbacks[label]
         cb()
-        progress = bridge.progresses[-1]
-        while progress.update.call_count == 0:
-            real_time.sleep(0.01)
-        events[name].set()
-        for t in threads[pre:]:
-            t.join()
-
         funcs[name].assert_called_once()
-        assert progress.update.call_count > 0
+        progress = bridge.progresses[-1]
+        assert progress.update.call_count >= 2
         progress.complete.assert_called_once()
 
     assert "Wizard" in callbacks

@@ -28,6 +28,18 @@ poetry install --extras gui
 poetry run python -m devsynth.interface.dpg_ui
 ```
 
+## Using the GUI
+
+Launching the module opens a window that mirrors the DevSynth CLI. Every
+available command is exposed as a button. Clicking a button runs the same
+workflow as the CLI while displaying a modal progress dialog. Commands that
+require additional input present wizard-style forms that guide you through the
+necessary steps.
+
+Long‑running operations update the progress bar automatically so you can track
+completion without blocking the interface. Errors are reported in modal
+dialogs, allowing you to retry or inspect the output.
+
 ## Command Mapping
 
 The table below shows how common CLI commands map to Dear PyGui actions.

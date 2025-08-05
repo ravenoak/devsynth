@@ -10,8 +10,6 @@ from __future__ import annotations
 
 from typing import Callable
 import json
-import threading
-import time
 
 try:  # pragma: no cover - optional dependency
     import dearpygui.dearpygui as dpg
@@ -28,25 +26,12 @@ def _bind(
     """Return a callback that executes *cmd* with a progress indicator."""
 
     def _callback() -> None:
-        progress = bridge.create_progress(f"Running {cmd.__name__}")
-        done = threading.Event()
+        def _pulse(progress) -> None:
+            progress.update(advance=5)
+            if getattr(progress, "_current", 0) >= getattr(progress, "_total", 100):
+                progress._current = 0
 
-        def _run() -> None:
-            try:
-                cmd(bridge=bridge)
-            finally:
-                done.set()
-
-        def _pulse() -> None:
-            while not done.is_set():
-                progress.update(advance=5)
-                if getattr(progress, "_current", 0) >= getattr(progress, "_total", 100):
-                    progress._current = 0
-                time.sleep(0.1)
-            progress.complete()
-
-        threading.Thread(target=_run, daemon=True).start()
-        threading.Thread(target=_pulse, daemon=True).start()
+        bridge.run_cli_command(cmd, progress_hook=_pulse)
 
     return _callback
 

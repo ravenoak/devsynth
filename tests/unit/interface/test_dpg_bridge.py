@@ -226,3 +226,29 @@ def test_run_cli_command_propagates_async_error(monkeypatch):
     assert "boom" in msg
     assert kwargs["message_type"] == "error"
     assert progress.complete.called
+
+
+@pytest.mark.medium
+def test_run_cli_command_progress_and_error_hooks(monkeypatch):
+    """progress_hook and error_hook are utilised when provided."""
+    bridge_module, dpg_mod = _setup_dpg(monkeypatch)
+    bridge = bridge_module.DearPyGUIBridge()
+
+    prog_calls: list[int] = []
+    err: list[BaseException] = []
+
+    def _hook(progress):
+        prog_calls.append(1)
+
+    def _err(exc):
+        err.append(exc)
+
+    def _bad():
+        time.sleep(0.01)
+        raise ValueError("boom")
+
+    bridge.run_cli_command(
+        _bad, progress_hook=_hook, error_hook=_err, message_type="custom"
+    )
+    assert prog_calls  # progress_hook called at least once
+    assert err and isinstance(err[0], ValueError)
