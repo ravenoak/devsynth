@@ -48,6 +48,15 @@ poetry install --without dev --without docs
 ```
 
 Extras may be added later using `poetry install --extras llm --extras api --extras offline --extras gui`.
+
+### Enable GUI support
+
+Install the optional desktop interface by including the `gui` extra:
+
+```bash
+poetry install --extras gui
+```
+
 Install the optional `gpu` extra for hardware-accelerated models:
 `poetry install --extras gpu`.
 
