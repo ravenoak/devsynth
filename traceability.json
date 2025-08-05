@@ -47,5 +47,23 @@
     "issue": "DSY-0003",
     "mvuu": true,
     "notes": "MVUU dashboard CLI exposure and tests."
+  },
+  "DSY-0004": {
+    "features": [
+      "Automated traceability updates via CI and pre-push hook with documentation."
+    ],
+    "files": [
+      "Taskfile.yml",
+      "scripts/hooks/pre-push-traceability.sh",
+      "docs/requirements_traceability.md",
+      "traceability.json"
+    ],
+    "tests": [
+      "poetry run pytest --maxfail=1",
+      "poetry run python scripts/verify_requirements_traceability.py docs/requirements_traceability.md"
+    ],
+    "issue": "DSY-0004",
+    "mvuu": true,
+    "notes": "Integrates update_traceability after successful tests."
   }
 }

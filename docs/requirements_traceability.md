@@ -59,6 +59,22 @@ Example:
 }
 ```
 
+## Update Procedure
+
+Run `scripts/update_traceability.py` after tests pass to append MVUU metadata
+from the latest commit into `traceability.json`.
+
+### Git Hook
+
+Enable the `pre-push` hook to automate this step:
+
+```bash
+ln -s ../../scripts/hooks/pre-push-traceability.sh .git/hooks/pre-push
+```
+
+The hook runs the test suite and updates `traceability.json` when the tests
+complete successfully.
+
 | Requirement ID | Description | Design/Doc Reference | Code Module(s) | Test(s) | Status |
 |---------------|-------------|----------------------|---------------|---------|--------|
 | FR-01 | System initialization with required configuration | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/cli/commands/init_cmd.py | tests/behavior/features/cli_commands.feature | Implemented |
@@ -143,7 +159,7 @@ Example:
 | FR-92 | Multi-language code generation agent | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/agents/multi_language_code.py | tests/unit/application/agents/test_multi_language_code.py | Implemented |
 | FR-93 | Embedded Kuzu graph memory store support | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/kuzu_store.py, src/devsynth/adapters/kuzu_memory_store.py | tests/unit/application/memory/test_kuzu_store.py, tests/integration/general/test_kuzu_memory_integration.py, tests/integration/general/test_kuzu_memory_fallback.py | Implemented |
 
-_Last updated: August 29, 2025_
+_Last updated: September 1, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column
