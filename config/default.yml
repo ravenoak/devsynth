@@ -131,3 +131,4 @@ features:
   prompt_auto_tuning: false
   automatic_phase_transitions: true
   collaboration_notifications: true
+  mvuu_enforcement: false

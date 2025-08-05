@@ -37,6 +37,12 @@ def experimental_enabled() -> bool:
     return is_enabled("experimental_features")
 
 
+def mvuu_enforcement_enabled() -> bool:
+    """Convenience wrapper for the ``mvuu_enforcement`` flag."""
+
+    return is_enabled("mvuu_enforcement")
+
+
 def refresh() -> None:
     """Clear cached feature flags.
 

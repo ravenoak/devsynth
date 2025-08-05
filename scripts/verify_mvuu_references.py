@@ -10,6 +10,8 @@ import subprocess
 import sys
 from typing import Iterable, List
 
+from devsynth.core.feature_flags import mvuu_enforcement_enabled
+
 
 def _extract_mvuu_json(message: str) -> dict:
     pattern = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
@@ -45,6 +47,9 @@ def _changed_files(commit_hash: str) -> List[str]:
 
 
 def main() -> int:
+    if not mvuu_enforcement_enabled():
+        return 0
+
     parser = argparse.ArgumentParser(
         description="Ensure MVUU references exist for changed files."
     )

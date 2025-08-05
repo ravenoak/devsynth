@@ -342,6 +342,18 @@ python scripts/commit_linter.py --range origin/main..HEAD
 The script validates Conventional Commit headers and the MVUU JSON block and
 is also executed automatically via a `commit-msg` pre-commit hook.
 
+### Enabling MVUU enforcement
+
+MVUU linting and pre-commit hooks are disabled by default. Enable enforcement by
+setting the `mvuu_enforcement` feature flag in your project configuration:
+
+```yaml
+features:
+  mvuu_enforcement: true
+```
+
+After updating configuration, run `pre-commit install` to activate the hooks.
+
 
 Example commit message:
 

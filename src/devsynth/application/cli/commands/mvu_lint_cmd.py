@@ -7,6 +7,7 @@ from typing import Optional
 
 import typer
 
+from devsynth.core.feature_flags import mvuu_enforcement_enabled
 from devsynth.core.mvu.linter import lint_commit_message, lint_range
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
@@ -28,6 +29,9 @@ def mvu_lint_cmd(
 ) -> None:
     """Lint commit messages for MVUU compliance."""
     ux_bridge = bridge or CLIUXBridge()
+    if not mvuu_enforcement_enabled():
+        ux_bridge.print("[yellow]MVUU enforcement disabled; skipping lint[/yellow]")
+        return
     if message_file is not None:
         message = message_file.read_text(encoding="utf-8")
         errors = lint_commit_message(message)

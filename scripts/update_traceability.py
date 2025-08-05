@@ -16,6 +16,8 @@ import subprocess
 import sys
 from typing import Any, Dict
 
+from devsynth.core.feature_flags import mvuu_enforcement_enabled
+
 MVUU_BLOCK_RE = re.compile(r"```json\n(?P<json>{.*?})\n```", re.DOTALL)
 
 
@@ -57,6 +59,9 @@ def update_traceability(trace_file: pathlib.Path, commit: str) -> None:
 
 
 def main() -> None:
+    if not mvuu_enforcement_enabled():
+        return
+
     parser = argparse.ArgumentParser(
         description="Update traceability.json from MVUU metadata"
     )

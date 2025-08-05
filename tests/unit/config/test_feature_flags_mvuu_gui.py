@@ -1,12 +1,14 @@
-import pytest
-from pathlib import Path
 import textwrap
+from pathlib import Path
+
+import pytest
+
 from devsynth.config.unified_loader import UnifiedConfigLoader
 
 
 @pytest.mark.medium
-def test_gui_and_mvuu_dashboard_flags_recognized(tmp_path: Path) -> None:
-    """Test that gui and mvuu_dashboard feature flags are recognized.
+def test_gui_mvuu_flags_recognized(tmp_path: Path) -> None:
+    """Test that gui, mvuu_dashboard, and mvuu_enforcement flags are recognized.
 
     ReqID: N/A"""
     cfg_dir = tmp_path / ".devsynth"
@@ -19,9 +21,11 @@ def test_gui_and_mvuu_dashboard_flags_recognized(tmp_path: Path) -> None:
             features:
               gui: true
               mvuu_dashboard: true
+              mvuu_enforcement: true
             """
         )
     )
     config = UnifiedConfigLoader.load(path=str(tmp_path))
     assert config.config.features["gui"] is True
     assert config.config.features["mvuu_dashboard"] is True
+    assert config.config.features["mvuu_enforcement"] is True

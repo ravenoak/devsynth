@@ -3,17 +3,17 @@ from __future__ import annotations
 """Unified configuration loader for DevSynth projects."""
 
 import os
+from dataclasses import field
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+import toml
+import yaml
+from pydantic.dataclasses import dataclass
 
 from devsynth import __version__ as project_version
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import ConfigurationError
-
-import yaml
-import toml
-from pydantic.dataclasses import dataclass
-from dataclasses import field
+from devsynth.logging_setup import DevSynthLogger
 
 
 @dataclass
@@ -51,6 +51,7 @@ class ConfigModel:
             "uxbridge_agent_api": False,
             "gui": False,
             "mvuu_dashboard": False,
+            "mvuu_enforcement": False,
         }
     )
     memory_store_type: str = "memory"
@@ -130,6 +131,7 @@ _VALID_FEATURE_FLAGS = {
     "uxbridge_agent_api",
     "gui",
     "mvuu_dashboard",
+    "mvuu_enforcement",
 }
 
 
