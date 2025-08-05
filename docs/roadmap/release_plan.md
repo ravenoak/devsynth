@@ -32,7 +32,7 @@ git push origin v0.1.0-alpha.1
 ```
 
 - MVUU JSON schema finalization
-- Commit-message linter enforcement
+- Commit-linter enforcement
 - Traceability automation and ticket linkage
 - Baseline Dear PyGui parity tasks:
   - Wizard forms
@@ -44,7 +44,7 @@ git push origin v0.1.0-alpha.1
 - Standardize metadata headers across all project documentation.
 - Publish the consolidated release plan for team-wide alignment.
 - MVUU JSON schema finalization
-- Commit-message linter enforcement
+- Commit-linter enforcement
 - Traceability automation and ticket linkage
 - Baseline Dear PyGui parity tasks:
   - Wizard forms
@@ -55,6 +55,7 @@ git push origin v0.1.0-alpha.1
 - Stabilize core agent APIs and complete critical test coverage.
 - Finalize user-facing documentation, including updated WebUI instructions.
 - Prepare packaging and automation for a tagged stable release.
+- Complete MVUU dashboard for requirements traceability via `devsynth mvuu-dashboard`.
 
 ### 0.2.0
 - Achieve baseline Dear PyGui parity for core workflows via the desktop interface; requires the `gui` optional extras (`devsynth[gui]`). See the [Dear PyGui User Guide](../user_guides/dearpygui.md).
@@ -62,10 +63,10 @@ git push origin v0.1.0-alpha.1
 - Introduce plugin interfaces for third-party provider integration.
 - Iterate on memory system scalability and performance.
 
-### MVUU Dashboard
-- Launch Streamlit MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
+### MVUU Dashboard (Completed)
+Streamlit MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
 
-### 0.2.0+
+### 0.2.0+ (Future Features)
 - Implement feature flags for experimental modules.
 - Automate project-board synchronization with release milestones.
 - Introduce a Jira adapter for issue tracking integration.
