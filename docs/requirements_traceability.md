@@ -61,6 +61,16 @@ Example:
 
 > **Note:** `traceability.json` is ignored by version control and should remain local to each contributor.
 
+## MVU Configuration
+
+Initialize MVU support by creating `.devsynth/mvu.yml`:
+
+```bash
+devsynth mvu init
+```
+
+This file stores the default schema path and storage settings for MVUU records.
+
 ## MVUU Database Integration
 
 Traceability entries correspond to detailed MVUU records stored in

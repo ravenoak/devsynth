@@ -57,6 +57,7 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [ingest](#ingest)
   - [apispec](#apispec)
   - [serve](#serve)
+  - [mvu](#mvu)
 - [Environment Variables](#environment-variables)
 - [Configuration File](#configuration-file)
 - [Examples](#examples)
@@ -122,6 +123,7 @@ test-metrics
 generate-docs
 ingest
 apispec
+mvu
 serve
 ```
 
@@ -615,7 +617,20 @@ test-metrics
 generate-docs
 ingest
 apispec
+mvu
 serve
+```
+
+### mvu
+
+Utilities for Minimal Viable Useful Unit configuration.
+
+#### init
+
+Scaffold `.devsynth/mvu.yml` with default schema path and storage settings.
+
+```bash
+devsynth mvu init
 ```
 
 ## Environment Variables
