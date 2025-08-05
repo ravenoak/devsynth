@@ -189,6 +189,7 @@ dev = [
 
 [tool.poetry.scripts]
 devsynth = "devsynth.adapters.cli:run_cli"
+mvuu-dashboard = "devsynth.application.cli.commands.mvuu_dashboard_cmd:mvuu_dashboard_cmd"
 
 [tool.mypy]
 python_version = "3.12"

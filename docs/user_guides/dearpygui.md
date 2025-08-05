@@ -40,6 +40,16 @@ The table below shows how common CLI commands map to Dear PyGui actions.
 
 For a full mapping of commands across interfaces, see the [CLI to WebUI and Dear PyGUI Command Mapping](../architecture/cli_webui_mapping.md).
 
+## MVUU Dashboard
+
+Launch the MVUU traceability dashboard to explore commit links:
+
+```bash
+devsynth mvuu-dashboard
+```
+
+The dashboard uses Streamlit to visualize traceability information.
+
 ## Screenshots
 
 ![Main window](../images/dearpygui/main_window.svg)
