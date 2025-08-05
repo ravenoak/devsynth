@@ -111,6 +111,7 @@ We are committed to providing a friendly, safe, and welcoming environment for al
    - Linting (flake8)
    - Type checking (mypy)
    - Test-first development check (ensures tests exist before implementing functionality)
+   - Commit message linting for MVUU compliance
 
 
    The test-first check enforces the TDD/BDD approach by verifying that new or modified Python files have corresponding test files. This ensures that you write tests before implementing functionality.
@@ -328,6 +329,16 @@ Optional detailed description
   "issue": "#123"
 }
 ```
+
+
+Lint commit messages locally with the dedicated linter:
+
+```bash
+python scripts/commit_linter.py --range origin/main..HEAD
+```
+
+The script validates Conventional Commit headers and the MVUU JSON block and
+is also executed automatically via a `commit-msg` pre-commit hook.
 
 
 Example commit message:

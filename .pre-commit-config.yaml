@@ -28,6 +28,7 @@ repos:
       pass_filenames: false
     - id: commit-message-lint
       name: commit message lint
+      description: lint commit messages for MVUU compliance
       entry: python scripts/commit_linter.py
       language: system
       stages: [commit-msg]
