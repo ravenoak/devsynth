@@ -9,7 +9,7 @@ tags:
   - "readme"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"
+last_reviewed: "2025-08-05"
 ---
 
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
@@ -276,6 +276,27 @@ Use `devsynth align` and `devsynth validate-manifest` for alignment checks and
 manifest validation. These CLI commands replace the legacy helper scripts and
 will fully supersede them in a future release.
 
+## Minimum Viable Utility Units (MVUU) Engine
+
+The MVUU engine records the smallest useful change so you can trace
+requirements and tests across commits. Initialize it for a project with:
+
+```bash
+devsynth mvu init
+```
+
+This command scaffolds `.devsynth/mvu.yml` and enables MVUU tracking. After
+initialization you can lint commits, generate reports, or rewrite history:
+
+```bash
+devsynth mvu lint --range origin/main..HEAD
+devsynth mvu report --since origin/main --format html --output report.html
+devsynth mvu rewrite --path . --branch-name atomic
+```
+
+DevSynth itself continues using an ad‑hoc workflow until v0.4, so MVUU is
+optional for now.
+
 ## Documentation Structure
 
 The documentation is organized for clarity and ease of navigation, following a comprehensive structure. Key directories:
@@ -329,4 +350,4 @@ DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-_Last updated: August 2, 2025_
+_Last updated: August 5, 2025_
