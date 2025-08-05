@@ -321,12 +321,14 @@ Optional detailed description
 
 ```json
 {
-  "utility_statement": "Explain the utility provided by this change.",
-  "affected_files": ["path/to/file"],
-  "tests": ["poetry run pytest tests/..."],
-  "TraceID": "DSY-0000",
-  "mvuu": true,
-  "issue": "#123"
+  "MVUU": {
+    "utility_statement": "Explain the utility provided by this change.",
+    "affected_files": ["path/to/file"],
+    "tests": ["poetry run pytest tests/..."],
+    "TraceID": "DSY-0000",
+    "mvuu": true,
+    "issue": "#123"
+  }
 }
 ```
 
@@ -353,17 +355,19 @@ feat(tracking): add token usage instrumentation
 
 ```json
 {
-  "utility_statement": "Adds token tracking for better cost estimation.",
-  "affected_files": [
-    "src/devsynth/token_tracker.py",
-    "docs/usage.md"
-  ],
-  "tests": [
-    "poetry run pytest tests/unit/test_token_tracker.py"
-  ],
-  "TraceID": "DSY-1234",
-  "mvuu": true,
-  "issue": "#123"
+  "MVUU": {
+    "utility_statement": "Adds token tracking for better cost estimation.",
+    "affected_files": [
+      "src/devsynth/token_tracker.py",
+      "docs/usage.md"
+    ],
+    "tests": [
+      "poetry run pytest tests/unit/test_token_tracker.py"
+    ],
+    "TraceID": "DSY-1234",
+    "mvuu": true,
+    "issue": "#123"
+  }
 }
 ```
 
