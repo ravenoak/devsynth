@@ -9,11 +9,19 @@ entry.
 
 ## Usage
 
-Run the dashboard using the DevSynth CLI:
+To populate the dashboard, DevSynth generates a fresh traceability report:
+
+```bash
+$ devsynth mvu report --output traceability.json
+```
+
+The `mvuu-dashboard` command runs this step automatically and then launches a
+Streamlit application that reads `traceability.json` and displays TraceIDs,
+affected files, and related issues:
 
 ```bash
 $ devsynth mvuu-dashboard
 ```
 
-The command launches a Streamlit application that reads the local
-`traceability.json` and displays TraceIDs, affected files, and related issues.
+If report generation fails, the dashboard falls back to any existing
+`traceability.json`.
