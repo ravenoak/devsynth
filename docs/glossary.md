@@ -108,6 +108,9 @@ A tool for running local LLM models, supported as a provider in DevSynth.
 ### MemoryPort
 A unified interface in DevSynth for memory operations, supporting multiple backends such as ChromaDB, TinyDB, and JSON.
 
+### MVUU (Minimum Viable Utility Units)
+The smallest useful unit of work recorded by DevSynth for traceability and progress reporting.
+
 ## N
 
 ### NetworkX

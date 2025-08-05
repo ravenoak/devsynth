@@ -31,6 +31,8 @@ git tag v0.1.0-alpha.1
 git push origin v0.1.0-alpha.1
 ```
 
+- MVUU engine prototype for Minimum Viable Utility Units
+- Atomic-Rewrite workflow baseline
 - MVUU JSON schema finalization
 - Commit-linter enforcement
 - Traceability automation and ticket linkage
@@ -44,6 +46,8 @@ git push origin v0.1.0-alpha.1
 - Refresh system architecture diagrams under `docs/architecture/`.
 - Standardize metadata headers across all project documentation.
 - Publish the consolidated release plan for team-wide alignment.
+- MVUU engine refinement
+- Atomic-Rewrite workflow integration
 - MVUU JSON schema finalization
 - Commit-linter enforcement
 - Traceability automation and ticket linkage
@@ -57,6 +61,7 @@ git push origin v0.1.0-alpha.1
 - Stabilize core agent APIs and complete critical test coverage.
 - Finalize user-facing documentation, including updated WebUI instructions.
 - Prepare packaging and automation for a tagged stable release.
+- Finalize MVUU engine and Atomic-Rewrite tooling.
 - Complete MVUU dashboard for requirements traceability via `devsynth mvuu-dashboard`.
 
 ### 0.2.0

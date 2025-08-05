@@ -75,7 +75,7 @@ This file stores the default schema path and storage settings for MVUU records.
 
 Traceability entries correspond to detailed MVUU records stored in
 `docs/specifications/mvuu_database.json`. Each record follows the
-[`mvuuschema.json`](specifications/mvuuschema.json) format and includes a
+[`docs/specifications/mvuuschema.json`](specifications/mvuuschema.json) format and includes a
 `TraceID` that matches an entry in your local `traceability.json`. This linkage
 enables the database to serve as a repository-wide log of MVUU metadata while the
 traceability matrix summarizes how each change maps to requirements, files and
