@@ -21,7 +21,7 @@ The Dear PyGui interface provides a lightweight desktop client for DevSynth. It 
 
 ## Installation
 
-Install the GUI extra and run the interface module:
+Install the `gui` extra to pull in Dear PyGui and run the interface module:
 
 ```bash
 poetry install --extras gui

@@ -1,5 +1,6 @@
 import sys
 import types
+
 import pytest
 
 # Stub heavy optional dependencies before importing cli_commands
@@ -63,16 +64,41 @@ class DummyBridge:
 
 
 def test_dpg_command_disabled(monkeypatch):
-    monkeypatch.setattr(cc, "get_settings", lambda reload=True: types.SimpleNamespace(gui_enabled=False))
+    monkeypatch.setattr(
+        cc, "get_settings", lambda reload=True: types.SimpleNamespace(gui_enabled=False)
+    )
     monkeypatch.setattr(cc, "run_dpg_ui", lambda: None)
     bridge = DummyBridge()
     cc.dpg_cmd(bridge=bridge)
     assert any("GUI support is disabled" in m for m in bridge.messages)
 
 
+def test_dpg_command_missing_dependency(monkeypatch):
+    monkeypatch.setattr(
+        cc, "get_settings", lambda reload=True: types.SimpleNamespace(gui_enabled=True)
+    )
+    monkeypatch.setattr(cc, "run_dpg_ui", None)
+    bridge = DummyBridge()
+    cc.dpg_cmd(bridge=bridge)
+    assert any("Dear PyGUI interface is unavailable" in m for m in bridge.messages)
+
+
 def test_dpg_command_enabled(monkeypatch):
+    import importlib
+
     called: list[bool] = []
-    monkeypatch.setattr(cc, "get_settings", lambda reload=True: types.SimpleNamespace(gui_enabled=True))
-    monkeypatch.setattr(cc, "run_dpg_ui", lambda: called.append(True))
-    cc.dpg_cmd(bridge=DummyBridge())
+
+    ui_stub = types.ModuleType("devsynth.interface.dpg_ui")
+    ui_stub.run = lambda: called.append(True)  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "devsynth.interface.dpg_ui", ui_stub)
+
+    import devsynth.application.cli.cli_commands as cc_mod
+
+    importlib.reload(cc_mod)
+    monkeypatch.setattr(
+        cc_mod,
+        "get_settings",
+        lambda reload=True: types.SimpleNamespace(gui_enabled=True),
+    )
+    cc_mod.dpg_cmd(bridge=DummyBridge())
     assert called == [True]
