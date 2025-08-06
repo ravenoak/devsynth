@@ -38,6 +38,9 @@ from unittest.mock import MagicMock
 
 from devsynth.interface.webui_bridge import WebUIBridge
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.config import load_project_config, save_config
+from devsynth.domain.models.requirement import RequirementPriority, RequirementType
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 import streamlit as st
 
@@ -146,9 +149,6 @@ try:
     from devsynth.application.cli.setup_wizard import SetupWizard
 except Exception:  # pragma: no cover - optional dependency
     SetupWizard = None
-from devsynth.config import load_project_config, save_config
-from devsynth.domain.models.requirement import RequirementPriority, RequirementType
-from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 
 class WebUI(UXBridge):
@@ -228,7 +228,7 @@ class WebUI(UXBridge):
                 message_type="error",
             )
             self.display_result(
-                f"Make sure the file exists and the path is correct.", highlight=False
+                "Make sure the file exists and the path is correct.", highlight=False
             )
             return None
         except PermissionError as e:
@@ -238,7 +238,7 @@ class WebUI(UXBridge):
                 message_type="error",
             )
             self.display_result(
-                f"Make sure you have the necessary permissions to access this file.",
+                "Make sure you have the necessary permissions to access this file.",
                 highlight=False,
                 message_type="info",
             )
@@ -248,7 +248,7 @@ class WebUI(UXBridge):
                 f"ERROR: Invalid value: {str(e)}", highlight=False, message_type="error"
             )
             self.display_result(
-                f"Please check your input and try again.",
+                "Please check your input and try again.",
                 highlight=False,
                 message_type="info",
             )
@@ -949,10 +949,17 @@ class WebUI(UXBridge):
         self,
         wizard_manager,
         wizard_state,
-        current_step: int,
         temp_keys: Optional[Sequence[str]] = None,
     ):
-        """Handle navigation and saving actions for the requirements wizard."""
+        """Handle navigation and saving actions for the requirements wizard.
+
+        The current step is derived from ``wizard_state`` each time this helper is
+        invoked rather than being passed in by the caller.  This ensures that the
+        navigation logic always operates on the most recent session state even if
+        the caller caches an outdated step value.
+        """
+
+        current_step = wizard_state.get_current_step()
         col1, col2, col3 = st.columns(3)
 
         if current_step > 1 and col1.button("Previous", key="previous_button"):
@@ -1132,7 +1139,7 @@ class WebUI(UXBridge):
                     highlight=False,
                 )
             result = self._handle_requirements_navigation(
-                wizard_manager, wizard_state, current_step, temp_keys
+                wizard_manager, wizard_state, temp_keys
             )
             if result is not None:
                 return result

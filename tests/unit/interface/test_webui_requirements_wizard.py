@@ -41,7 +41,7 @@ def clean_state():
 @pytest.mark.medium
 def test_requirements_wizard_initialization(stub_streamlit, clean_state):
     import importlib
-    from devsynth.interface import webui
+    import devsynth.interface.webui as webui
 
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
@@ -116,12 +116,13 @@ def test_handle_requirements_navigation_next(stub_streamlit):
     manager = MagicMock()
     state = MagicMock()
     state.get_total_steps.return_value = 5
+    state.get_current_step.return_value = 1
     stub_streamlit.columns.return_value = (
         MagicMock(button=MagicMock(return_value=False)),
         MagicMock(button=MagicMock(return_value=True)),
         MagicMock(button=MagicMock(return_value=False)),
     )
-    ui._handle_requirements_navigation(manager, state, 1)
+    ui._handle_requirements_navigation(manager, state)
     manager.next_step.assert_called_once()
 
 
