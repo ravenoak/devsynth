@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-05-25'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-16"
 status: published
 tags:
 
@@ -145,7 +145,18 @@ When using templates to create tests, follow these best practices:
 
 For more details on testing approaches, see the [TDD/BDD Approach Documentation](/docs/developer_guides/tdd_bdd_approach.md).
 
-## 8. Conclusion
+## 8. Review Process
+
+Regular review keeps templates aligned with the project's evolving test
+strategy and integration requirements:
+
+1. Revisit each template at least once per quarter to confirm it reflects
+   current integration scenarios.
+2. Verify that examples run with the enhanced parser by constructing paths
+   with `build_test_path`.
+3. Update metadata headers like `last_reviewed` whenever adjustments are made.
+
+## 9. Conclusion
 
 The organization of test templates in DevSynth follows best practices for separation of concerns while maintaining discoverability and usability. By placing templates in a dedicated directory, we ensure that they are not accidentally run as tests while still making them easily accessible to developers.
 
