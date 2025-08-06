@@ -421,3 +421,41 @@ def test_gather_wizard_validation_with_state(gather_wizard_state, mock_gather_re
 
     # Verify we're still at step 1 (validation failed)
     assert state.get_current_step() == 1
+
+
+@pytest.mark.medium
+def test_gather_wizard_start_resets_state(monkeypatch):
+    """Starting the gather wizard clears any lingering state."""
+    import types, importlib
+    import devsynth.interface.webui as webui
+    importlib.reload(webui)
+
+    st = types.SimpleNamespace()
+    st.session_state = {
+        "gather_wizard_current_step": 3,
+        "gather_wizard_total_steps": 3,
+        "gather_wizard_completed": False,
+        "gather_wizard_resource_type": "docs",
+        "gather_wizard_resource_location": "/tmp",
+        "gather_wizard_resource_metadata": {},
+        "gather_wizard_wizard_started": False,
+    }
+
+    st.button = lambda label, key=None: key == "start_gather_wizard_button"
+    st.header = lambda *a, **k: None
+    st.write = lambda *a, **k: None
+    st.progress = lambda *a, **k: None
+    st.selectbox = lambda *a, **k: ""
+    def make_col():
+        return types.SimpleNamespace(button=lambda *a, **k: False)
+    st.columns = lambda n: [make_col(), make_col(), make_col()]
+    st.experimental_rerun = lambda: None
+
+    monkeypatch.setattr(webui, "st", st)
+    import devsynth.interface.webui_state as webui_state
+    monkeypatch.setattr(webui_state, "st", st)
+
+    ui = webui.WebUI()
+    ui._gather_wizard()
+
+    assert st.session_state["gather_wizard_current_step"] == 1

@@ -1200,6 +1200,10 @@ class WebUI(UXBridge):
                 return
 
             if start_button_clicked:
+                # Reset any previous wizard state to ensure a clean start
+                wizard_manager.reset_wizard_state()
+                # Clear temporary widget values that may have lingered
+                wizard_manager.clear_temporary_state(temp_keys)
                 wizard_manager.set_value("wizard_started", True)
 
             st.header("Resource Gathering Wizard")
