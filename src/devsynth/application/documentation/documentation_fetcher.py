@@ -536,20 +536,23 @@ class DocumentationFetcher:
 
         logger.info("Documentation fetcher initialized")
 
-    def fetch_documentation(self, library: str, version: str) -> List[Dict[str, Any]]:
-        """
-        Fetch documentation for a library version.
+    def fetch_documentation(
+        self, library: str, version: str, offline: bool = False
+    ) -> List[Dict[str, Any]]:
+        """Fetch documentation for a library version.
 
         Args:
-            library: The name of the library
-            version: The version of the library
+            library: The name of the library.
+            version: The version of the library.
+            offline: If ``True`` the method will only return cached
+                documentation and will not attempt any network calls.
 
         Returns:
-            A list of documentation chunks
+            A list of documentation chunks.
 
         Raises:
-            ValueError: If no source supports the library or no cached data is available
-                when ``offline`` is True.
+            ValueError: If ``offline`` is ``True`` and no cached documentation is
+                available or if no source supports the requested library.
         """
 
         cache_file = os.path.join(self.cache_dir, f"{library}_{version}.json")
@@ -603,6 +606,9 @@ class DocumentationFetcher:
 
         # Remove duplicates and sort
         versions = sorted(list(set(versions)), key=self._version_key)
+
+        if not versions:
+            raise ValueError(f"No versions found for {library}")
 
         logger.info(f"Found {len(versions)} available versions for {library}")
         return versions
