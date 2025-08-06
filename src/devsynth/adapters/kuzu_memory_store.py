@@ -25,6 +25,18 @@ except Exception:  # pragma: no cover - optional dependency
 logger = DevSynthLogger(__name__)
 
 
+def _is_kuzu_available() -> bool:
+    """Return True if the Kuzu dependency is available."""
+    if os.environ.get("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import kuzu  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
 class KuzuMemoryStore(MemoryStore):
     """Memory store using :class:`KuzuStore` with embedding support."""
 
@@ -80,6 +92,9 @@ class KuzuMemoryStore(MemoryStore):
         # Determine embedded mode from the configuration settings
         # ``get_settings`` ensures the latest environment configuration is used
         use_embedded = settings_module.get_settings().kuzu_embedded
+        if not _is_kuzu_available():
+            logger.info("Kuzu not available; using in-memory fallback store")
+            use_embedded = False
 
         # Initialize stores with consistent error handling
         store_initialized = False
