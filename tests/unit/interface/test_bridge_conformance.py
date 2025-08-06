@@ -102,7 +102,7 @@ def _make_dpg(monkeypatch):
     return DearPyGUIBridge()
 
 
-@pytest.mark.medium
+@pytest.mark.slow
 @pytest.mark.parametrize("factory", [_make_cli, _make_api, _make_web, _make_dpg])
 def test_bridge_implements_methods_succeeds(factory, monkeypatch):
     """Test that bridge implements methods succeeds.

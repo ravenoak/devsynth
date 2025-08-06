@@ -4,17 +4,18 @@ import pytest
 
 
 @pytest.mark.medium
-
 @pytest.fixture
 def clean_state():
     # Set up clean state
     yield
     # Clean up state
 
+
+@pytest.mark.slow
 def test_function(clean_state):
     # Test with clean state
     times = iter([100.0, 101.0])
-    
+
     original = module_name
     try:
         monkeypatch.setattr(target_module, mock_function)

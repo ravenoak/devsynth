@@ -7,22 +7,22 @@ import pytest
 
 
 @pytest.mark.medium
-
 @pytest.fixture
 def clean_state():
     # Set up clean state
     yield
     # Clean up state
 
+
+@pytest.mark.slow
 def test_function(clean_state):
     # Test with clean state
     bridge = MagicMock(spec=UXBridge)
     run_called = {}
 
     def fake_run(self):
-        run_called['called'] = True
+        run_called["called"] = True
 
-    
     original = module_name
     try:
         monkeypatch.setattr(target_module, mock_function)
@@ -33,4 +33,4 @@ def test_function(clean_state):
 
         wizard = WebUISetupWizard(bridge)
         wizard.run()
-        assert run_called.get('called') is True
+        assert run_called.get("called") is True
