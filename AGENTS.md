@@ -35,19 +35,34 @@ Fix the script and rerun it offline to finish provisioning:
    `--minimal` variant) and verifies key packages such as `pytest-bdd` are
    available.
 2. Run `bash scripts/codex_setup.sh` (without network access) until it completes
-   without errors. After it finishes, verify the environment and dependencies:
+   without errors. After it finishes, verify the environment, dependencies,
+   and extras:
 
-   ```bash
-   poetry env info --path
-   poetry run pip check
-   # Ensure extras required for tests are installed
-   poetry run python - <<'EOF'
+ ```bash
+  poetry env info --path
+  poetry run pip check
+  # Ensure extras required for tests are installed. These imports
+  # confirm retrieval, chromadb, GUI, and API extras are available offline.
+  poetry run python - <<'EOF'
 import importlib, sys
-for pkg in ("fastapi", "streamlit", "lmstudio", "tinydb", "duckdb", "lmdb", "chromadb"):
+for pkg in (
+    "fastapi",
+    "streamlit",
+    "lmstudio",
+    "tinydb",
+    "duckdb",
+    "lmdb",
+    "chromadb",
+    "kuzu",
+    "faiss",
+    "prometheus_client",
+    "httpx",
+    "dearpygui",
+):
     importlib.import_module(pkg)
 EOF
-   poetry run pip list | grep pytest-bdd
-   ```
+  poetry run pip list | grep pytest-bdd
+  ```
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
 4. Execute `poetry run pytest --maxfail=1` to verify the environment quickly.
 5. If the tests fail, rerun the setup script and repeat until
