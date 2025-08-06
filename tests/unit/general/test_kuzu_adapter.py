@@ -1,7 +1,10 @@
 """Tests for the ``KuzuAdapter`` vector store."""
 
+import pytest
 from devsynth.domain.models.memory import MemoryVector
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+
+pytestmark = pytest.mark.requires_resource("kuzu")
 
 
 def test_store_and_retrieve_vector_succeeds(tmp_path):
