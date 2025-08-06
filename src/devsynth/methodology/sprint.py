@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
+from devsynth.methodology.sprint_adapter import map_ceremony_to_phase
 
 logger = DevSynthLogger(__name__)
 
@@ -513,7 +514,10 @@ class SprintAdapter(BaseMethodologyAdapter):
         """
         if not mapping:
             return None
+
+        normalized = mapping.lower()
         for phase in Phase:
-            if phase.value in mapping:
+            if phase.value in normalized:
                 return phase
-        return None
+
+        return map_ceremony_to_phase(normalized)
