@@ -44,107 +44,114 @@ TEST_CATEGORIES = {
 # Speed categories
 SPEED_CATEGORIES = ["fast", "medium", "slow"]
 
+
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description='Generate test metrics report.'
+    parser = argparse.ArgumentParser(description="Generate test metrics report.")
+    parser.add_argument(
+        "-o",
+        "--output",
+        default="test_metrics_report.json",
+        help="Output file for the report (default: test_metrics_report.json)",
     )
     parser.add_argument(
-        '-o', '--output',
-        default='test_metrics_report.json',
-        help='Output file for the report (default: test_metrics_report.json)'
+        "--run-tests",
+        action="store_true",
+        help="Run tests to identify failures (otherwise just counts tests)",
     )
     parser.add_argument(
-        '--run-tests',
-        action='store_true',
-        help='Run tests to identify failures (otherwise just counts tests)'
+        "--html",
+        action="store_true",
+        help="Generate an HTML report in addition to JSON",
     )
     parser.add_argument(
-        '--html',
-        action='store_true',
-        help='Generate an HTML report in addition to JSON'
+        "--skip-coverage",
+        action="store_true",
+        help="Skip coverage calculation (faster)",
     )
     parser.add_argument(
-        '--skip-coverage',
-        action='store_true',
-        help='Skip coverage calculation (faster)'
+        "--category",
+        choices=list(TEST_CATEGORIES.keys()) + ["all"],
+        default="all",
+        help="Only analyze tests in the specified category",
     )
     parser.add_argument(
-        '--category',
-        choices=list(TEST_CATEGORIES.keys()) + ['all'],
-        default='all',
-        help='Only analyze tests in the specified category'
+        "--speed",
+        choices=SPEED_CATEGORIES + ["all"],
+        default="all",
+        help="Only analyze tests with the specified speed marker",
     )
     parser.add_argument(
-        '--speed',
-        choices=SPEED_CATEGORIES + ['all'],
-        default='all',
-        help='Only analyze tests with the specified speed marker'
+        "--no-parallel", action="store_true", help="Disable parallel test execution"
     )
     parser.add_argument(
-        '--no-parallel',
-        action='store_true',
-        help='Disable parallel test execution'
+        "--no-cache",
+        action="store_true",
+        help="Disable caching (always collect fresh data)",
     )
     parser.add_argument(
-        '--no-cache',
-        action='store_true',
-        help='Disable caching (always collect fresh data)'
+        "--segment",
+        action="store_true",
+        help="Run tests in smaller batches to improve performance",
     )
     parser.add_argument(
-        '--segment',
-        action='store_true',
-        help='Run tests in smaller batches to improve performance'
-    )
-    parser.add_argument(
-        '--segment-size',
+        "--segment-size",
         type=int,
         default=50,
-        help='Number of tests per batch when using --segment (default: 50)'
+        help="Number of tests per batch when using --segment (default: 50)",
     )
     parser.add_argument(
-        '--clear-cache',
-        action='store_true',
-        help='Clear all cached data before running'
+        "--clear-cache",
+        action="store_true",
+        help="Clear all cached data before running",
     )
     return parser.parse_args()
+
 
 def count_tests_by_category(use_cache: bool = True) -> Dict[str, int]:
     """
     Count tests by category (unit, integration, behavior, etc.).
-    
+
     Args:
         use_cache: Whether to use cached results if available
-        
+
     Returns:
         Dictionary mapping category names to test counts.
     """
     # Check for cached results
-    cache_file = '.test_metrics_cache/category_counts.json'
-    cache_timestamp_file = '.test_metrics_cache/category_counts_timestamp.txt'
-    
-    if use_cache and os.path.exists(cache_file) and os.path.exists(cache_timestamp_file):
+    cache_file = ".test_metrics_cache/category_counts.json"
+    cache_timestamp_file = ".test_metrics_cache/category_counts_timestamp.txt"
+
+    if (
+        use_cache
+        and os.path.exists(cache_file)
+        and os.path.exists(cache_timestamp_file)
+    ):
         try:
             # Check if cache is recent (less than 24 hours old)
-            with open(cache_timestamp_file, 'r') as f:
+            with open(cache_timestamp_file, "r") as f:
                 timestamp = float(f.read().strip())
-                
+
             if time.time() - timestamp < 86400:  # 24 hours in seconds
-                with open(cache_file, 'r') as f:
+                with open(cache_file, "r") as f:
                     counts = json.load(f)
-                    print("Using cached test counts by category (less than 24 hours old)")
+                    print(
+                        "Using cached test counts by category (less than 24 hours old)"
+                    )
                     return counts
             else:
-                print("Cached test counts are more than 24 hours old, collecting fresh data...")
+                print(
+                    "Cached test counts are more than 24 hours old, collecting fresh data..."
+                )
         except (json.JSONDecodeError, FileNotFoundError, ValueError):
             # Cache is invalid, continue with collection
             pass
-    
+
     print("Collecting test counts by category using common_test_collector...")
-    
+
     # Use common_test_collector to get test counts
     test_counts = common_test_collector.get_test_counts(use_cache=use_cache)
-    
+
     # Convert to the expected format
     counts = {}
     for category in TEST_CATEGORIES:
@@ -152,167 +159,197 @@ def count_tests_by_category(use_cache: bool = True) -> Dict[str, int]:
             counts[category] = test_counts[category]
         else:
             counts[category] = 0
-    
+
     # Add total count
-    counts['total'] = test_counts['total']
-    
+    counts["total"] = test_counts["total"]
+
     # Cache the results
     os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-    with open(cache_file, 'w') as f:
+    with open(cache_file, "w") as f:
         json.dump(counts, f)
-    
+
     # Save the timestamp
-    with open(cache_timestamp_file, 'w') as f:
+    with open(cache_timestamp_file, "w") as f:
         f.write(str(time.time()))
-    
+
     return counts
 
-def count_tests_by_speed(use_cache: bool = True, category_counts: Dict[str, int] = None) -> Dict[str, int]:
+
+def count_tests_by_speed(
+    use_cache: bool = True, category_counts: Dict[str, int] = None
+) -> Dict[str, int]:
     """
     Count tests by speed category (fast, medium, slow).
-    
+
     Args:
         use_cache: Whether to use cached results if available
         category_counts: Pre-computed category counts to avoid recalculation
-        
+
     Returns:
         Dictionary mapping speed categories to test counts.
     """
     # Check for cached results
-    cache_file = '.test_metrics_cache/speed_counts.json'
-    cache_timestamp_file = '.test_metrics_cache/speed_counts_timestamp.txt'
-    
-    if use_cache and os.path.exists(cache_file) and os.path.exists(cache_timestamp_file):
+    cache_file = ".test_metrics_cache/speed_counts.json"
+    cache_timestamp_file = ".test_metrics_cache/speed_counts_timestamp.txt"
+
+    if (
+        use_cache
+        and os.path.exists(cache_file)
+        and os.path.exists(cache_timestamp_file)
+    ):
         try:
             # Check if cache is recent (less than 24 hours old)
-            with open(cache_timestamp_file, 'r') as f:
+            with open(cache_timestamp_file, "r") as f:
                 timestamp = float(f.read().strip())
-                
+
             if time.time() - timestamp < 86400:  # 24 hours in seconds
-                with open(cache_file, 'r') as f:
+                with open(cache_file, "r") as f:
                     counts = json.load(f)
                     print("Using cached test counts by speed (less than 24 hours old)")
                     return counts
             else:
-                print("Cached test counts by speed are more than 24 hours old, collecting fresh data...")
+                print(
+                    "Cached test counts by speed are more than 24 hours old, collecting fresh data..."
+                )
         except (json.JSONDecodeError, FileNotFoundError, ValueError):
             # Cache is invalid, continue with collection
             pass
-    
+
     print("Collecting test counts by speed category using common_test_collector...")
-    
+
     # Use common_test_collector to get marker counts
     marker_counts = common_test_collector.get_marker_counts(use_cache=use_cache)
-    
+
     # Extract counts for each speed category
     counts = {}
     for speed in SPEED_CATEGORIES:
         counts[speed] = marker_counts["total"][speed]
-    
+
     # Calculate unmarked tests
     if category_counts is None:
-        total_tests = count_tests_by_category(use_cache)['total']
+        total_tests = count_tests_by_category(use_cache)["total"]
     else:
-        total_tests = category_counts['total']
-        
+        total_tests = category_counts["total"]
+
     marked_tests = sum(counts.values())
-    counts['unmarked'] = total_tests - marked_tests
-    
+    counts["unmarked"] = total_tests - marked_tests
+
     # Cache the results
     os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-    with open(cache_file, 'w') as f:
+    with open(cache_file, "w") as f:
         json.dump(counts, f)
-    
+
     # Save the timestamp
-    with open(cache_timestamp_file, 'w') as f:
+    with open(cache_timestamp_file, "w") as f:
         f.write(str(time.time()))
-    
+
     return counts
 
-def identify_failing_tests(parallel: bool = True, segment: bool = True, 
-                      segment_size: int = 50, use_cache: bool = True) -> Dict[str, List[str]]:
+
+def identify_failing_tests(
+    parallel: bool = True,
+    segment: bool = True,
+    segment_size: int = 50,
+    use_cache: bool = True,
+) -> Dict[str, List[str]]:
     """
     Run tests to identify failing tests.
-    
+
     Args:
         parallel (bool): Whether to run tests in parallel using pytest-xdist
         segment (bool): Whether to run tests in smaller batches
         segment_size (int): Number of tests per batch when using segmentation
         use_cache (bool): Whether to use cached results if available
-        
+
     Returns:
         Dictionary mapping categories to lists of failing test names.
     """
     # Check for cached results
-    cache_file = '.test_metrics_cache/failing_tests.json'
-    cache_timestamp_file = '.test_metrics_cache/failing_tests_timestamp.txt'
-    
-    if use_cache and os.path.exists(cache_file) and os.path.exists(cache_timestamp_file):
+    cache_file = ".test_metrics_cache/failing_tests.json"
+    cache_timestamp_file = ".test_metrics_cache/failing_tests_timestamp.txt"
+
+    if (
+        use_cache
+        and os.path.exists(cache_file)
+        and os.path.exists(cache_timestamp_file)
+    ):
         try:
             # Check if cache is recent (less than 1 hour old)
-            with open(cache_timestamp_file, 'r') as f:
+            with open(cache_timestamp_file, "r") as f:
                 timestamp = float(f.read().strip())
-                
+
             if time.time() - timestamp < 3600:  # 1 hour in seconds
-                with open(cache_file, 'r') as f:
+                with open(cache_file, "r") as f:
                     failing_tests = json.load(f)
                     print("Using cached failing tests (less than 1 hour old)")
                     return failing_tests
             else:
-                print("Cached failing tests are more than 1 hour old, running tests again...")
+                print(
+                    "Cached failing tests are more than 1 hour old, running tests again..."
+                )
         except (json.JSONDecodeError, FileNotFoundError, ValueError):
             # Cache is invalid, continue with test execution
             pass
-    
+
     print("Identifying failing tests...")
     failing_tests = {}
-    
+
     for category, path in TEST_CATEGORIES.items():
         if not os.path.exists(path):
             failing_tests[category] = []
             continue
-        
+
         print(f"  Running {category} tests...")
-        
+
         if segment:
             # Use common_test_collector to collect tests for this category
-            test_list = common_test_collector.collect_tests_by_category(category, use_cache=use_cache)
-            
+            test_list = common_test_collector.collect_tests_by_category(
+                category, use_cache=use_cache
+            )
+
             if not test_list:
                 print(f"    No tests found in {path}")
                 failing_tests[category] = []
                 continue
-            
-            print(f"    Found {len(test_list)} tests, running in batches of {segment_size}...")
-            
+
+            print(
+                f"    Found {len(test_list)} tests, running in batches of {segment_size}..."
+            )
+
             try:
                 # Run tests in batches
                 failing = []
                 for i in range(0, len(test_list), segment_size):
-                    batch = test_list[i:i+segment_size]
-                    print(f"    Running batch {i//segment_size + 1}/{(len(test_list) + segment_size - 1)//segment_size}...")
-                    
+                    batch = test_list[i : i + segment_size]
+                    print(
+                        f"    Running batch {i//segment_size + 1}/{(len(test_list) + segment_size - 1)//segment_size}..."
+                    )
+
                     # Create command for this batch
                     cmd = [
-                        'python', '-m', 'pytest',
+                        "python",
+                        "-m",
+                        "pytest",
                         *batch,
-                        '-v',  # verbose mode
+                        "-v",  # verbose mode
                     ]
-                    
+
                     # Run tests in parallel using pytest-xdist if requested
                     if parallel:
-                        cmd.extend(['-n', 'auto'])  # Use auto to determine the optimal number of processes
-                    
+                        cmd.extend(
+                            ["-n", "auto"]
+                        )  # Use auto to determine the optimal number of processes
+
                     # Run the batch
                     batch_result = subprocess.run(cmd, capture_output=True, text=True)
-                    
+
                     # Parse the output to get failing tests
-                    for line in batch_result.stdout.split('\n'):
-                        if 'FAILED' in line:
-                            match = re.search(r'(test_\w+\.py::[\w:]+)', line)
+                    for line in batch_result.stdout.split("\n"):
+                        if "FAILED" in line:
+                            match = re.search(r"(test_\w+\.py::[\w:]+)", line)
                             if match:
                                 failing.append(match.group(1))
-                
+
                 failing_tests[category] = failing
             except Exception as e:
                 print(f"    Error: {e}")
@@ -320,127 +357,146 @@ def identify_failing_tests(parallel: bool = True, segment: bool = True,
         else:
             # Run all tests at once
             cmd = [
-                'python', '-m', 'pytest', 
+                "python",
+                "-m",
+                "pytest",
                 path,
-                '-v',  # verbose mode
+                "-v",  # verbose mode
             ]
-            
+
             # Run tests in parallel using pytest-xdist if requested
             if parallel:
-                cmd.extend(['-n', 'auto'])  # Use auto to determine the optimal number of processes
-            
+                cmd.extend(
+                    ["-n", "auto"]
+                )  # Use auto to determine the optimal number of processes
+
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True)
-                
+
                 # Parse the output to get failing tests
                 failing = []
-                for line in result.stdout.split('\n'):
-                    if 'FAILED' in line:
-                        match = re.search(r'(test_\w+\.py::[\w:]+)', line)
+                for line in result.stdout.split("\n"):
+                    if "FAILED" in line:
+                        match = re.search(r"(test_\w+\.py::[\w:]+)", line)
                         if match:
                             failing.append(match.group(1))
-                
+
                 failing_tests[category] = failing
             except Exception as e:
                 print(f"    Error running tests in {path}: {e}")
                 failing_tests[category] = []
-    
+
     # Cache the results
     os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-    with open(cache_file, 'w') as f:
+    with open(cache_file, "w") as f:
         json.dump(failing_tests, f)
-    
+
     # Save the timestamp
-    with open(cache_timestamp_file, 'w') as f:
+    with open(cache_timestamp_file, "w") as f:
         f.write(str(time.time()))
-    
+
     return failing_tests
+
 
 def calculate_coverage() -> Dict[str, float]:
     """
     Calculate test coverage metrics.
-    
+
     Returns:
         Dictionary with coverage metrics.
     """
     coverage = {
-        'line_coverage': 0.0,
-        'branch_coverage': 0.0,
+        "line_coverage": 0.0,
+        "branch_coverage": 0.0,
+        "uncovered_modules": [],
     }
-    
+
     # Run pytest with coverage
     cmd = [
-        'python', '-m', 'pytest',
-        '--cov=src/devsynth',
-        '--cov-report=term',
+        "python",
+        "-m",
+        "pytest",
+        "--cov=src/devsynth",
+        "--cov-report=term-missing",
     ]
-    
+
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        # Parse the output to get coverage metrics
-        for line in result.stdout.split('\n'):
-            if 'TOTAL' in line:
+
+        # Parse the output to get coverage metrics and modules with 0% coverage
+        for line in result.stdout.split("\n"):
+            if "TOTAL" in line:
                 parts = line.split()
                 if len(parts) >= 4:
-                    coverage['line_coverage'] = float(parts[-1].strip('%'))
+                    coverage["line_coverage"] = float(parts[-1].strip("%"))
                 if len(parts) >= 5:
-                    coverage['branch_coverage'] = float(parts[-2].strip('%'))
+                    coverage["branch_coverage"] = float(parts[-2].strip("%"))
+            elif line.strip().endswith("0%") and not line.startswith("-"):
+                module = line.split()[0]
+                coverage["uncovered_modules"].append(module)
     except Exception:
         pass
-    
+
     return coverage
+
 
 def generate_report(args) -> Dict[str, Any]:
     """
     Generate a comprehensive test metrics report.
-    
+
     Returns:
         Dictionary with the report data.
     """
     print("Counting tests by category...")
     category_counts = count_tests_by_category()
-    
+
     print("Counting tests by speed...")
     speed_counts = count_tests_by_speed()
-    
+
     failing_tests = {}
     if args.run_tests:
         print("Running tests to identify failures...")
         failing_tests = identify_failing_tests()
-    
+
     print("Calculating coverage metrics...")
     coverage = calculate_coverage()
-    
+
     # Build the report
     report = {
-        'timestamp': datetime.datetime.now().isoformat(),
-        'test_counts': {
-            'by_category': category_counts,
-            'by_speed': speed_counts,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "test_counts": {
+            "by_category": category_counts,
+            "by_speed": speed_counts,
         },
-        'failing_tests': failing_tests,
-        'coverage': coverage,
+        "failing_tests": failing_tests,
+        "coverage": coverage,
     }
-    
+
     # Calculate summary metrics
-    total_tests = category_counts['total']
-    total_failing = sum(len(tests) for tests in failing_tests.values()) if failing_tests else 0
-    
-    report['summary'] = {
-        'total_tests': total_tests,
-        'total_failing': total_failing,
-        'pass_rate': (total_tests - total_failing) / total_tests * 100 if total_tests > 0 else 0,
-        'line_coverage': coverage['line_coverage'],
+    total_tests = category_counts["total"]
+    total_failing = (
+        sum(len(tests) for tests in failing_tests.values()) if failing_tests else 0
+    )
+
+    report["summary"] = {
+        "total_tests": total_tests,
+        "total_failing": total_failing,
+        "pass_rate": (
+            (total_tests - total_failing) / total_tests * 100 if total_tests > 0 else 0
+        ),
+        "line_coverage": coverage["line_coverage"],
+        "uncovered_modules": coverage.get("uncovered_modules", []),
     }
-    
+
     return report
+
 
 def save_json_report(report: Dict[str, Any], filename: str):
     """Save the report as a JSON file."""
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         json.dump(report, f, indent=2)
     print(f"Report saved to {filename}")
+
 
 def generate_html_report(report: Dict[str, Any], filename: str):
     """Generate an HTML report from the metrics data."""
@@ -496,17 +552,17 @@ def generate_html_report(report: Dict[str, Any], filename: str):
                 <th>Count</th>
             </tr>
     """
-    
+
     # Add category counts
-    for category, count in report['test_counts']['by_category'].items():
-        if category != 'total':
+    for category, count in report["test_counts"]["by_category"].items():
+        if category != "total":
             html += f"""
             <tr>
                 <td>{category}</td>
                 <td>{count}</td>
             </tr>
             """
-    
+
     html += f"""
         </table>
         
@@ -517,18 +573,18 @@ def generate_html_report(report: Dict[str, Any], filename: str):
                 <th>Count</th>
             </tr>
     """
-    
+
     # Add speed counts
-    for speed, count in report['test_counts']['by_speed'].items():
+    for speed, count in report["test_counts"]["by_speed"].items():
         html += f"""
         <tr>
             <td>{speed}</td>
             <td>{count}</td>
         </tr>
         """
-    
+
     # Add failing tests if available
-    if report['failing_tests']:
+    if report["failing_tests"]:
         html += """
         <h2>Failing Tests</h2>
         <table>
@@ -537,8 +593,8 @@ def generate_html_report(report: Dict[str, Any], filename: str):
                 <th>Test</th>
             </tr>
         """
-        
-        for category, tests in report['failing_tests'].items():
+
+        for category, tests in report["failing_tests"].items():
             for test in tests:
                 html += f"""
                 <tr>
@@ -546,9 +602,9 @@ def generate_html_report(report: Dict[str, Any], filename: str):
                     <td>{test}</td>
                 </tr>
                 """
-        
+
         html += "</table>"
-    
+
     html += f"""
         <div class="timestamp">
             Generated on: {report['timestamp']}
@@ -556,15 +612,15 @@ def generate_html_report(report: Dict[str, Any], filename: str):
     </body>
     </html>
     """
-    
-    with open(filename, 'w') as f:
+
+    with open(filename, "w") as f:
         f.write(html)
     print(f"HTML report saved to {filename}")
 
 
 def clear_cache():
     """Clear all cached data."""
-    cache_dir = '.test_metrics_cache'
+    cache_dir = ".test_metrics_cache"
     if os.path.exists(cache_dir):
         print(f"Clearing cache directory: {cache_dir}")
         for file in os.listdir(cache_dir):
@@ -572,44 +628,45 @@ def clear_cache():
     else:
         print("No cache directory found.")
 
+
 def generate_report(args) -> Dict[str, Any]:
     """
     Generate a comprehensive test metrics report based on command-line arguments.
-    
+
     Args:
         args: Command-line arguments
-        
+
     Returns:
         Dictionary with the report data
     """
     # Count tests by category
     use_cache = not args.no_cache
     category_counts = count_tests_by_category(use_cache)
-    
+
     # Filter by category if specified
-    if args.category != 'all':
+    if args.category != "all":
         if args.category in category_counts:
             filtered_counts = {
                 args.category: category_counts[args.category],
-                'total': category_counts[args.category]
+                "total": category_counts[args.category],
             }
             category_counts = filtered_counts
         else:
             print(f"Category '{args.category}' not found in test categories.")
-            category_counts = {args.category: 0, 'total': 0}
-    
+            category_counts = {args.category: 0, "total": 0}
+
     # Count tests by speed
     speed_counts = count_tests_by_speed(use_cache, category_counts)
-    
+
     # Filter by speed if specified
-    if args.speed != 'all':
+    if args.speed != "all":
         if args.speed in speed_counts:
             filtered_counts = {args.speed: speed_counts[args.speed]}
             speed_counts = filtered_counts
         else:
             print(f"Speed '{args.speed}' not found in speed categories.")
             speed_counts = {args.speed: 0}
-    
+
     # Identify failing tests if requested
     failing_tests = {}
     if args.run_tests:
@@ -617,61 +674,68 @@ def generate_report(args) -> Dict[str, Any]:
         parallel = not args.no_parallel
         segment = args.segment
         segment_size = args.segment_size
-        
+
         # Run tests to identify failures
         failing_tests = identify_failing_tests(
             parallel=parallel,
             segment=segment,
             segment_size=segment_size,
-            use_cache=use_cache
+            use_cache=use_cache,
         )
-        
+
         # Filter by category if specified
-        if args.category != 'all':
+        if args.category != "all":
             if args.category in failing_tests:
                 failing_tests = {args.category: failing_tests[args.category]}
             else:
                 failing_tests = {args.category: []}
-    
+
     # Calculate coverage if not skipped
-    coverage = {'line_coverage': 0.0, 'branch_coverage': 0.0}
+    coverage = {"line_coverage": 0.0, "branch_coverage": 0.0}
     if not args.skip_coverage:
         print("Calculating coverage metrics...")
         coverage = calculate_coverage()
-    
+
     # Build the report
     report = {
-        'timestamp': datetime.datetime.now().isoformat(),
-        'execution_parameters': {
-            'category': args.category,
-            'speed': args.speed,
-            'run_tests': args.run_tests,
-            'skip_coverage': args.skip_coverage,
-            'parallel': not args.no_parallel,
-            'use_cache': not args.no_cache,
-            'segment': args.segment,
-            'segment_size': args.segment_size if hasattr(args, 'segment_size') else None
+        "timestamp": datetime.datetime.now().isoformat(),
+        "execution_parameters": {
+            "category": args.category,
+            "speed": args.speed,
+            "run_tests": args.run_tests,
+            "skip_coverage": args.skip_coverage,
+            "parallel": not args.no_parallel,
+            "use_cache": not args.no_cache,
+            "segment": args.segment,
+            "segment_size": (
+                args.segment_size if hasattr(args, "segment_size") else None
+            ),
         },
-        'test_counts': {
-            'by_category': category_counts,
-            'by_speed': speed_counts,
+        "test_counts": {
+            "by_category": category_counts,
+            "by_speed": speed_counts,
         },
-        'failing_tests': failing_tests,
-        'coverage': coverage,
+        "failing_tests": failing_tests,
+        "coverage": coverage,
     }
-    
+
     # Calculate summary metrics
-    total_tests = category_counts['total']
-    total_failing = sum(len(tests) for tests in failing_tests.values()) if failing_tests else 0
-    
-    report['summary'] = {
-        'total_tests': total_tests,
-        'total_failing': total_failing,
-        'pass_rate': (total_tests - total_failing) / total_tests * 100 if total_tests > 0 else 0,
-        'line_coverage': coverage['line_coverage'],
+    total_tests = category_counts["total"]
+    total_failing = (
+        sum(len(tests) for tests in failing_tests.values()) if failing_tests else 0
+    )
+
+    report["summary"] = {
+        "total_tests": total_tests,
+        "total_failing": total_failing,
+        "pass_rate": (
+            (total_tests - total_failing) / total_tests * 100 if total_tests > 0 else 0
+        ),
+        "line_coverage": coverage["line_coverage"],
     }
-    
+
     return report
+
 
 def print_execution_plan(args):
     """Print the execution plan based on command-line arguments."""
@@ -683,9 +747,10 @@ def print_execution_plan(args):
     print(f"- Parallel Execution: {not args.no_parallel}")
     print(f"- Use Cache: {not args.no_cache}")
     print(f"- Segmentation: {args.segment}")
-    if args.segment and hasattr(args, 'segment_size'):
+    if args.segment and hasattr(args, "segment_size"):
         print(f"- Segment Size: {args.segment_size}")
     print(f"{'='*80}\n")
+
 
 def print_summary(report, args, execution_time):
     """Print a summary of the report and execution time."""
@@ -694,73 +759,82 @@ def print_summary(report, args, execution_time):
     print(f"{'='*80}")
     print(f"- Total Tests: {report['summary']['total_tests']}")
     print(f"- Tests by Category:")
-    for category, count in report['test_counts']['by_category'].items():
-        if category != 'total':
+    for category, count in report["test_counts"]["by_category"].items():
+        if category != "total":
             print(f"  - {category}: {count}")
     print(f"- Tests by Speed:")
-    for speed, count in report['test_counts']['by_speed'].items():
+    for speed, count in report["test_counts"]["by_speed"].items():
         print(f"  - {speed}: {count}")
-    
+
     if args.run_tests:
-        total_failing = report['summary']['total_failing']
+        total_failing = report["summary"]["total_failing"]
         print(f"- Failing Tests: {total_failing}")
         print(f"- Pass Rate: {report['summary']['pass_rate']:.2f}%")
-    
+
     if not args.skip_coverage:
         print(f"- Line Coverage: {report['summary']['line_coverage']:.2f}%")
-    
-    print(f"\nExecution Time: {execution_time:.2f} seconds ({execution_time/60:.2f} minutes)")
+        if report["summary"]["uncovered_modules"]:
+            print("- Modules with 0% coverage:")
+            for mod in report["summary"]["uncovered_modules"]:
+                print(f"  - {mod}")
+
+    print(
+        f"\nExecution Time: {execution_time:.2f} seconds ({execution_time/60:.2f} minutes)"
+    )
+
 
 def print_optimization_tips(args):
     """Print tips for faster execution based on command-line arguments."""
     print("\nTips for faster execution:")
     if not args.skip_coverage:
         print("- Skip coverage calculation: --skip-coverage")
-    if args.category == 'all':
+    if args.category == "all":
         print("- Analyze only a specific category: --category unit")
-    if args.speed == 'all':
+    if args.speed == "all":
         print("- Analyze only a specific speed: --speed fast")
     if not args.segment and args.run_tests:
         print("- Run tests in smaller batches: --segment")
-    if hasattr(args, 'no_cache') and not args.no_cache:
+    if hasattr(args, "no_cache") and not args.no_cache:
         print("- Use cached results when available: remove --no-cache")
-    
+
     print("\nFor more options, run: python scripts/test_metrics.py --help")
+
 
 def main():
     """Main function."""
     start_time = time.time()
     args = parse_args()
-    
+
     # Clear cache if requested
     if args.clear_cache:
         clear_cache()
-    
+
     print("Generating test metrics report...")
     print(f"{'='*80}")
-    
+
     # Print execution plan
     print_execution_plan(args)
-    
+
     # Generate the report
     report = generate_report(args)
-    
+
     # Save the report
     save_json_report(report, args.output)
-    
+
     if args.html:
-        html_filename = args.output.replace('.json', '.html')
+        html_filename = args.output.replace(".json", ".html")
         generate_html_report(report, html_filename)
-    
+
     # Calculate execution time
     end_time = time.time()
     execution_time = end_time - start_time
-    
+
     # Print summary
     print_summary(report, args, execution_time)
-    
+
     # Print tips for faster execution
     print_optimization_tips(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
