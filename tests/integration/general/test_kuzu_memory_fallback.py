@@ -3,9 +3,11 @@ import sys
 import types
 import tempfile
 import shutil
+from unittest.mock import patch
+
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from unittest.mock import patch
+from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 
 
 def test_memory_system_falls_back_when_kuzu_unavailable(monkeypatch):
@@ -17,6 +19,13 @@ def test_memory_system_falls_back_when_kuzu_unavailable(monkeypatch):
     import devsynth.adapters.kuzu_memory_store as km_store
     importlib.reload(km_store)
     monkeypatch.setattr(km_store, "embedding_functions", None)
+    monkeypatch.setattr(km_store.KuzuMemoryStore, "__abstractmethods__", set())
+    monkeypatch.setattr(km_store.KuzuMemoryStore, "begin_transaction", lambda self, tid: tid)
+    monkeypatch.setattr(km_store.KuzuMemoryStore, "commit_transaction", lambda self, tid: True)
+    monkeypatch.setattr(km_store.KuzuMemoryStore, "is_transaction_active", lambda self, tid: False)
+    monkeypatch.setattr(km_store.KuzuMemoryStore, "rollback_transaction", lambda self, tid: None)
+    import devsynth.adapters.memory.memory_adapter as mem_adapter
+    monkeypatch.setattr(mem_adapter, "KuzuMemoryStore", km_store.KuzuMemoryStore)
 
     temp_dir = tempfile.mkdtemp()
     try:
@@ -30,6 +39,7 @@ def test_memory_system_falls_back_when_kuzu_unavailable(monkeypatch):
             )
         # Memory store should have fallen back
         assert adapter.memory_store._store._use_fallback is True
+        assert isinstance(adapter.vector_store, KuzuAdapter)
         item = MemoryItem(id="t1", content="hi", memory_type=MemoryType.WORKING)
         adapter.memory_store.store(item)
         result = adapter.memory_store.retrieve("t1")
