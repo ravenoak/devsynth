@@ -35,15 +35,6 @@ from devsynth.logging_setup import get_logger
 # Initialize logger
 logger = get_logger(__name__)
 
-# When running automated tests, DEVSYNTH_NONINTERACTIVE may be set to bypass
-# any interactive prompts. In this mode, the ingestion process should progress
-# through phases automatically.
-NON_INTERACTIVE = os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {
-    "1",
-    "true",
-    "yes",
-}
-
 
 class ArtifactType(Enum):
     """Types of artifacts that can be discovered during ingestion."""
@@ -171,6 +162,8 @@ class Ingestion:
         project_root: Union[str, Path],
         manifest_path: Optional[Union[str, Path]] = None,
         edrr_coordinator: Optional[EDRRCoordinator] = None,
+        *,
+        auto_phase_transitions: bool = True,
     ):
         """
         Initialize the ingestion system.
@@ -178,6 +171,7 @@ class Ingestion:
         Args:
             project_root: Root directory of the project
             manifest_path: Path to project configuration file (defaults to .devsynth/project.yaml)
+            auto_phase_transitions: Whether EDRR phases should progress automatically
         """
         self.project_root = Path(project_root).resolve()
 
@@ -215,9 +209,7 @@ class Ingestion:
                 prompt_manager=prompt_manager,
                 documentation_manager=documentation_manager,
                 config={
-                    "features": {
-                        "automatic_phase_transitions": NON_INTERACTIVE
-                    }
+                    "features": {"automatic_phase_transitions": auto_phase_transitions}
                 },
             )
 
