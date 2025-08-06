@@ -52,18 +52,14 @@ async def add_request_id(request, call_next):
 
 
 @app.middleware("http")
-async def count_requests(request, call_next):
-    RESPONSE = await call_next(request)
-    REQUEST_COUNT.labels(endpoint=request.url.path).inc()
-    return RESPONSE
-
-
-@app.middleware("http")
-async def record_latency(request, call_next):
+async def record_metrics(request, call_next):
+    """Record request count and latency in a single middleware."""
     start = time.time()
     response = await call_next(request)
     duration = time.time() - start
-    REQUEST_LATENCY.labels(endpoint=request.url.path).observe(duration)
+    endpoint = request.url.path
+    REQUEST_COUNT.labels(endpoint=endpoint).inc()
+    REQUEST_LATENCY.labels(endpoint=endpoint).observe(duration)
     return response
 
 

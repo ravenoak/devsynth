@@ -1,0 +1,12 @@
+"""Benchmarks for API endpoints. ReqID: PERF-03"""
+
+from fastapi.testclient import TestClient
+
+from devsynth.api import app
+
+client = TestClient(app)
+
+
+def test_health_endpoint_benchmark(benchmark):
+    """Benchmark the /health endpoint. ReqID: PERF-03"""
+    benchmark(lambda: client.get("/health"))
