@@ -3,9 +3,17 @@ set -exo pipefail
 # NOTE: This script provisions the Codex testing environment only. It is not
 # intended for regular development setup.
 
-# Ensure pipx is available for installing the CLI
+# Ensure pipx is available for installing the CLI. When rerunning offline,
+# skip installation if pipx is already present so the script can proceed
+# without network access.
 if ! command -v pipx >/dev/null; then
-  apt-get update && apt-get install -y pipx
+  if command -v apt-get >/dev/null; then
+    if ! (apt-get update && apt-get install -y pipx); then
+      echo "[warning] failed to install pipx" >&2
+    fi
+  else
+    echo "[warning] apt-get unavailable; pipx not installed" >&2
+  fi
 fi
 export PATH="$HOME/.local/bin:$PATH"
 pipx ensurepath
@@ -34,10 +42,14 @@ poetry install \
   -E tests \
   --no-interaction
 
-# Install the DevSynth CLI with pipx and verify it works
-pipx install --editable . --force
+# Install the DevSynth CLI with pipx and verify it works. On subsequent
+# runs, skip the installation step to avoid network access.
+if ! command -v devsynth >/dev/null; then
+  pipx install --editable . --force
+fi
 poetry run pip freeze > /tmp/devsynth-requirements.txt
-pipx runpip devsynth install -r /tmp/devsynth-requirements.txt
+pipx runpip devsynth install -r /tmp/devsynth-requirements.txt || \
+  echo "[warning] pipx runpip devsynth failed" >&2
 command -v devsynth >/dev/null
 devsynth --version || echo "[warning] devsynth --version failed"
 
@@ -74,6 +86,11 @@ required = [
     "tinydb",
     "duckdb",
     "lmdb",
+    "kuzu",
+    "faiss",
+    "prometheus_client",
+    "httpx",
+    "dearpygui",
 ]
 missing = []
 for pkg in required:
