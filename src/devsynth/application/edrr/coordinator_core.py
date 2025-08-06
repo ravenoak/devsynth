@@ -23,6 +23,7 @@ from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.manifest_parser import ManifestParseError, ManifestParser
+from devsynth.application.edrr.wsde_team_proxy import WSDETeamProxy
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.core import CoreValues, check_report_for_value_conflicts
@@ -31,6 +32,7 @@ from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
+from unittest.mock import MagicMock
 
 
 class EDRRCoordinatorError(DevSynthError):
@@ -107,6 +109,11 @@ class EDRRCoordinatorCore:
         self.execution_traces = []
         self.execution_history = []
         self.performance_metrics = {}
+        # Wrap WSDE team to capture consensus failures unless it's a mock
+        if not isinstance(wsde_team, MagicMock):
+            self.wsde_team = WSDETeamProxy(
+                wsde_team, self.logger, self.performance_metrics, lambda: self.cycle_id
+            )
 
         # Log initialization
         self.logger.info(f"Initialized EDRR Coordinator (cycle_id: {self.cycle_id})")

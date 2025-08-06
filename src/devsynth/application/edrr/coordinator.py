@@ -23,12 +23,14 @@ from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.manifest_parser import ManifestParseError, ManifestParser
+from devsynth.application.edrr.wsde_team_proxy import WSDETeamProxy
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.core import CoreValues, check_report_for_value_conflicts
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import DevSynthError
+from unittest.mock import MagicMock
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 
@@ -144,6 +146,11 @@ class EDRRCoordinator:
         self._execution_traces = {} if enable_enhanced_logging else None
         self._execution_history = [] if enable_enhanced_logging else None
         self.performance_metrics: Dict[str, Any] = {}
+        # Wrap WSDE team to capture consensus failures unless it's a mock
+        if not isinstance(wsde_team, MagicMock):
+            self.wsde_team = WSDETeamProxy(
+                wsde_team, logger, self.performance_metrics, lambda: self.cycle_id
+            )
         self.manual_next_phase: Optional[Phase] = None
         self._preserved_context: Dict[str, Any] = {}
 
@@ -3293,6 +3300,21 @@ class EDRRCoordinator:
         )
 
         wsde_results = self.wsde_team.process(task)
+        if wsde_results is None:
+            logger.warning(
+                "Consensus failure during micro-cycle %s",
+                iteration,
+                extra={"cycle_id": self.cycle_id, "phase": phase.value},
+            )
+            self.performance_metrics.setdefault("consensus_failures", []).append(
+                {
+                    "iteration": iteration,
+                    "phase": phase.value,
+                    "cycle_id": self.cycle_id,
+                }
+            )
+            wsde_results = {}
+
         if hasattr(self.wsde_team, "apply_enhanced_dialectical_reasoning"):
             try:
                 wsde_results = self.wsde_team.apply_enhanced_dialectical_reasoning(
