@@ -312,6 +312,10 @@ For production deployments:
 4. Configure rate limiting
 5. Use secrets management for sensitive values
 6. Enable audit logging
+7. Enforce TLS 1.3 with strict certificate verification
+8. Run containers with read-only root filesystems and drop unused capabilities
+9. Scan container images and dependencies for vulnerabilities before release
+10. Rotate stored secrets automatically through the configured secret manager
 
 
 ### Secrets Management
