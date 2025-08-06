@@ -6,30 +6,12 @@ wizards with proper state persistence between steps.
 """
 
 import pytest
-import sys
-from unittest.mock import MagicMock, patch
-from types import ModuleType
-from pathlib import Path
 
 from devsynth.interface.wizard_state_manager import WizardStateManager
-
-# Import the fixtures
-fixtures_path = Path(__file__).parent.parent.parent / "fixtures"
-sys.path.insert(0, str(fixtures_path))
-try:
-    from webui_wizard_state_fixture import (
-        mock_streamlit,
-        wizard_state,
-        gather_wizard_state,
-        simulate_wizard_navigation,
-        set_wizard_data,
-    )
-except ImportError:
-    # For debugging import issues
-    print(f"Fixtures path: {fixtures_path}")
-    print(f"Fixtures path exists: {fixtures_path.exists()}")
-    print(f"Files in fixtures directory: {list(fixtures_path.glob('*.py'))}")
-    raise
+from tests.fixtures.webui_wizard_state_fixture import (
+    set_wizard_data,
+    simulate_wizard_navigation,
+)
 
 
 @pytest.mark.medium

@@ -8,9 +8,9 @@ the package has been installed via Poetry.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
-import os
 from types import ModuleType
 
 
@@ -77,4 +77,6 @@ if "httpx" not in sys.modules:
 pytest_plugins = [
     "tests.fixtures.ports",
     "tests.fixtures.kuzu",
+    "tests.fixtures.state_access_fixture",
+    "tests.fixtures.webui_wizard_state_fixture",
 ]
