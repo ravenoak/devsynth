@@ -33,7 +33,7 @@ from ..orchestration.refactor_workflow import refactor_workflow_manager
 from .commands.doctor_cmd import doctor_cmd as _doctor_impl
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.run_tests_cmd import run_tests_cmd
-from .errors import handle_error_enhanced
+from .commands.completion_cmd import generate_completion_script, detect_shell
 
 # Optional Dear PyGUI interface support
 try:  # pragma: no cover - optional dependency handling
@@ -109,192 +109,13 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
 def _handle_error(
     bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
 ) -> None:
-    """Handle errors consistently across all commands.
-
-    Args:
-        bridge: The UX bridge to use for displaying messages
-        error: The error to handle, can be an Exception, a result dict, or a string
-    """
+    """Delegate to the bridge's enhanced error handler."""
     logger = get_logger("cli_commands")
-
-    # Common error patterns and their solutions
-    error_solutions = {
-        "file not found": "Make sure the file exists and the path is correct. Use absolute paths if needed.",
-        "permission denied": "Check file permissions. You may need to run with elevated privileges or change file permissions.",
-        "invalid format": "Verify the file format matches what the command expects (e.g., YAML, JSON, Markdown).",
-        "invalid parameter": "Check the command parameters. Use --help to see valid options.",
-        "connection error": "Check your internet connection. If using a proxy, verify your proxy settings.",
-        "timeout": "The operation timed out. Try again or increase the timeout setting in your configuration.",
-        "api key": "Ensure your API key is correctly set in the environment or configuration file.",
-        "out of memory": "The operation requires more memory. Try closing other applications or increasing available memory.",
-        "configuration": "There may be an issue with your configuration. Run 'devsynth doctor' to diagnose configuration problems.",
-    }
-
-    # Documentation links for different error types
-    doc_links = {
-        "file": "[link=https://devsynth.ai/docs/file-handling]File Handling Documentation[/link]",
-        "parameter": "[link=https://devsynth.ai/docs/command-parameters]Command Parameters Documentation[/link]",
-        "configuration": "[link=https://devsynth.ai/docs/configuration]Configuration Documentation[/link]",
-        "api": "[link=https://devsynth.ai/docs/api-integration]API Integration Documentation[/link]",
-        "network": "[link=https://devsynth.ai/docs/network-troubleshooting]Network Troubleshooting[/link]",
-        "memory": "[link=https://devsynth.ai/docs/performance]Performance Optimization[/link]",
-    }
-
     if isinstance(error, Exception):
-        # Log the error for debugging with full traceback
-        logger.error(f"Command error: {str(error)}", exc_info=True)
-
-        # Get the error message
-        error_msg = str(error)
-
-        # Create a panel with the error details
-        bridge.display_result(
-            f"[bold red]Error:[/bold red] {error_msg}", highlight=False
-        )
-
-        # Find relevant solutions based on error message
-        solutions = []
-        relevant_docs = []
-
-        # Check for known error patterns
-        for pattern, solution in error_solutions.items():
-            if pattern.lower() in error_msg.lower():
-                solutions.append(solution)
-
-        # Add documentation links based on error type
-        for keyword, link in doc_links.items():
-            if keyword.lower() in error_msg.lower():
-                relevant_docs.append(link)
-
-        # Display solutions if found
-        if solutions:
-            bridge.display_result(
-                "[bold yellow]Suggested solutions:[/bold yellow]", highlight=False
-            )
-            for i, solution in enumerate(solutions, 1):
-                bridge.display_result(
-                    f"  [yellow]{i}.[/yellow] {solution}", highlight=False
-                )
-
-        # Display documentation links if found
-        if relevant_docs:
-            bridge.display_result(
-                "[bold cyan]Relevant documentation:[/bold cyan]", highlight=False
-            )
-            for doc in relevant_docs:
-                bridge.display_result(f"  • {doc}", highlight=False)
-
-        # Always provide a general help tip
-        bridge.display_result(
-            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
-            highlight=False,
-        )
-
-    elif isinstance(error, dict):
-        # Handle result dict with error message
-        message = error.get("message", "Unknown error")
-        code = error.get("code", "")
-        details = error.get("details", "")
-
-        # Log the error
-        logger.error(f"Command error: {message} (Code: {code})")
-
-        # Display a structured error message
-        bridge.display_result(
-            f"[bold red]Error {code if code else ''}:[/bold red] {message}",
-            highlight=False,
-        )
-
-        if details:
-            bridge.display_result(
-                f"[yellow]Details:[/yellow] {details}", highlight=False
-            )
-
-        # Find relevant solutions based on error message
-        solutions = []
-        relevant_docs = []
-
-        # Check for known error patterns
-        for pattern, solution in error_solutions.items():
-            if pattern.lower() in message.lower() or (
-                details and pattern.lower() in details.lower()
-            ):
-                solutions.append(solution)
-
-        # Add documentation links based on error type
-        for keyword, link in doc_links.items():
-            if keyword.lower() in message.lower() or (
-                details and keyword.lower() in details.lower()
-            ):
-                relevant_docs.append(link)
-
-        # Display solutions if found
-        if solutions:
-            bridge.display_result(
-                "[bold yellow]Suggested solutions:[/bold yellow]", highlight=False
-            )
-            for i, solution in enumerate(solutions, 1):
-                bridge.display_result(
-                    f"  [yellow]{i}.[/yellow] {solution}", highlight=False
-                )
-
-        # Display documentation links if found
-        if relevant_docs:
-            bridge.display_result(
-                "[bold cyan]Relevant documentation:[/bold cyan]", highlight=False
-            )
-            for doc in relevant_docs:
-                bridge.display_result(f"  • {doc}", highlight=False)
-
-        # Always provide a general help tip
-        bridge.display_result(
-            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
-            highlight=False,
-        )
+        logger.error("Command error: %s", error, exc_info=True)
     else:
-        # Handle string error message
-        logger.error(f"Command error: {error}")
-
-        # Display a user-friendly error message
-        bridge.display_result(f"[bold red]Error:[/bold red] {error}", highlight=False)
-
-        # Find relevant solutions based on error message
-        solutions = []
-        relevant_docs = []
-
-        # Check for known error patterns
-        for pattern, solution in error_solutions.items():
-            if pattern.lower() in str(error).lower():
-                solutions.append(solution)
-
-        # Add documentation links based on error type
-        for keyword, link in doc_links.items():
-            if keyword.lower() in str(error).lower():
-                relevant_docs.append(link)
-
-        # Display solutions if found
-        if solutions:
-            bridge.display_result(
-                "[bold yellow]Suggested solutions:[/bold yellow]", highlight=False
-            )
-            for i, solution in enumerate(solutions, 1):
-                bridge.display_result(
-                    f"  [yellow]{i}.[/yellow] {solution}", highlight=False
-                )
-
-        # Display documentation links if found
-        if relevant_docs:
-            bridge.display_result(
-                "[bold cyan]Relevant documentation:[/bold cyan]", highlight=False
-            )
-            for doc in relevant_docs:
-                bridge.display_result(f"  • {doc}", highlight=False)
-
-        # Always provide a general help tip
-        bridge.display_result(
-            "[dim]Run 'devsynth help' or 'devsynth <command> --help' for more information.[/dim]",
-            highlight=False,
-        )
+        logger.error("Command error: %s", error)
+    bridge.handle_error(error)
 
 
 def _validate_file_path(path: str, must_exist: bool = True) -> Optional[str]:
@@ -476,11 +297,9 @@ def init_cmd(
                 "[green]Initialization complete[/green]", highlight=True
             )
         except Exception as save_err:
-            console = Console()
-            handle_error_enhanced(bridge, save_err, console)
+            _handle_error(bridge, save_err)
     except Exception as err:  # pragma: no cover - defensive
-        console = Console()
-        handle_error_enhanced(bridge, err, console)
+        _handle_error(bridge, err)
 
 
 def spec_cmd(
@@ -639,9 +458,9 @@ def spec_cmd(
             bridge.display_result("2. Generate tests: devsynth test")
             bridge.display_result("3. Generate code: devsynth code")
         else:
-            handle_error_enhanced(bridge, result, console)
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        handle_error_enhanced(bridge, err, console)
+        _handle_error(bridge, err)
 
 
 def test_cmd(
@@ -798,9 +617,9 @@ def test_cmd(
             bridge.display_result("2. Generate code: devsynth code")
             bridge.display_result("3. Run tests: devsynth run-pipeline")
         else:
-            handle_error_enhanced(bridge, result, console)
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        handle_error_enhanced(bridge, err, console)
+        _handle_error(bridge, err)
 
 
 def code_cmd(
@@ -854,11 +673,9 @@ def code_cmd(
             bridge.display_result("[green]Code generated successfully.[/green]")
             bridge.display_result(f"[blue]Code saved to directory: {output_dir}[/blue]")
         else:
-            console = Console()
-            handle_error_enhanced(bridge, result, console)
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        console = Console()
-        handle_error_enhanced(bridge, err, console)
+        _handle_error(bridge, err)
 
 
 def run_pipeline_cmd(
@@ -933,11 +750,9 @@ def run_pipeline_cmd(
             if "output" in result:
                 bridge.display_result(f"[blue]Output:[/blue]\n{result['output']}")
         else:
-            console = Console()
-            handle_error_enhanced(bridge, result, console)
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        console = Console()
-        handle_error_enhanced(bridge, err, console)
+        _handle_error(bridge, err)
 
 
 @config_app.callback(invoke_without_command=True)
@@ -1022,8 +837,7 @@ def config_cmd(
                         f"[green]Configuration updated: {key} = {value}[/green]"
                     )
                 except Exception as save_err:
-                    console = Console()
-                    handle_error_enhanced(bridge, save_err, console)
+                    _handle_error(bridge, save_err)
             elif key:
                 # Display specific configuration value
                 bridge.display_result(f"[blue]{key}:[/blue] {result.get('value')}")
@@ -1038,11 +852,9 @@ def config_cmd(
                 for k, v in result.get("config", {}).items():
                     bridge.display_result(f"  [yellow]{k}:[/yellow] {v}")
         else:
-            console = Console()
-            handle_error_enhanced(bridge, result, console)
+            _handle_error(bridge, result)
     except Exception as err:  # pragma: no cover - defensive
-        console = Console()
-        handle_error_enhanced(bridge, err, console)
+        _handle_error(bridge, err)
 
 
 @config_app.command("enable-feature")
@@ -1801,6 +1613,30 @@ def dbschema_cmd(
                 border_style="red",
             )
         )
+
+
+def completion_cmd(
+    shell: str = typer.Option("bash", help="Target shell for completion"),
+    *,
+    bridge: Optional[UXBridge] = None,
+) -> None:
+    """Display a shell completion script for the DevSynth CLI."""
+    bridge = _resolve_bridge(bridge)
+    try:
+        if not shell:
+            shell = detect_shell()
+        progress = bridge.create_progress("Generating completion script", total=1)
+        script_path = generate_completion_script(shell)
+        progress.update(advance=1)
+        with open(script_path, "r", encoding="utf-8") as f:
+            bridge.show_completion(f.read())
+    except Exception as err:  # pragma: no cover - defensive
+        _handle_error(bridge, err)
+    finally:
+        try:
+            progress.complete()
+        except Exception:
+            pass
 
 
 def doctor_cmd(
