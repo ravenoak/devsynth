@@ -63,3 +63,4 @@ version has been published yet.
 ### Fixed
 - Optional tiktoken dependency no longer breaks Kuzu memory initialization
 - Added missing step definitions for enhanced memory scenarios
+- Linked remaining alpha tasks (WebUI, Kuzu memory, WSDE collaboration, CLI ingestion) to milestone `0.1.0-alpha.1` and updated development status.

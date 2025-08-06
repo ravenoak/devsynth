@@ -405,8 +405,7 @@ The completion of Phase 1 produced several key artifacts:
 7. **Metrics Commands Implemented**:
    - Added `alignment_metrics` and `test_metrics` CLI commands
    - Commands generate alignment and test-first development reports
-   - Latest coverage reports show approximately **15%** line coverage across the
-     codebase.
+   - Latest coverage run encountered failures before generating a new report; baseline coverage remains roughly **15%** line coverage across the codebase.
 
 ### Remaining Test Failures
 
@@ -442,9 +441,10 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - ~~Finalize unit tests for the `MemoryType` enum and resolve any remaining failures.~~
 - ~~Verify that the EDRR coordinator and AST code analysis features fully match their BDD scenarios.~~
 - ~~Complete WSDE agent collaboration capabilities.~~
-- Investigate failing Web UI and Kuzu-related tests; implement fixes for the requirements wizard and memory initialization logic.
-- Complete WSDE collaboration integration with the memory system; finalize peer review workflow and cross-store synchronization.
-- Some CLI and ingestion workflows still require interactive prompts. Related unit tests now run unconditionally in the hermetic test environment and no longer depend on the `DEVSYNTH_RUN_INGEST_TESTS` or `DEVSYNTH_RUN_WSDE_TESTS` flags.
+- [Issue 102](../../issues/102.md): refine WebUI and interactive CLI flows, resolving requirements wizard navigation bugs.
+- [Issue 113](../../issues/113.md): stabilize Kuzu-backed memory initialization and related tests.
+- [Issue 112](../../issues/112.md): complete WSDE collaboration with memory synchronization.
+- [Issue 117](../../issues/117.md): remove interactive prompts from CLI ingestion to support automation.
 
 For updated scheduling, see the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
 ## Implementation Status
