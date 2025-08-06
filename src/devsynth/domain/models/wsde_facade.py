@@ -147,7 +147,9 @@ WSDETeam._validate_role_mapping = _validate_role_mapping
 WSDETeam._auto_assign_roles = _auto_assign_roles
 WSDETeam.get_role_map = get_role_map
 WSDETeam._calculate_expertise_score = LegacyWSDETeam._calculate_expertise_score
-WSDETeam._calculate_phase_expertise_score = LegacyWSDETeam._calculate_phase_expertise_score
+WSDETeam._calculate_phase_expertise_score = (
+    LegacyWSDETeam._calculate_phase_expertise_score
+)
 WSDETeam._assign_roles_for_edrr_phase = _assign_roles_for_edrr_phase
 
 # Enhanced Context-Driven Leadership methods
@@ -323,9 +325,8 @@ def new_init(
 
 WSDETeam.__init__ = new_init
 
-# Use legacy implementations for Primus rotation and retrieval
+# Use legacy implementations for Primus rotation and role operations
 WSDETeam.rotate_primus = LegacyWSDETeam.rotate_primus
-WSDETeam.get_primus = LegacyWSDETeam.get_primus
 WSDETeam.rotate_roles = LegacyWSDETeam.rotate_roles
 WSDETeam.select_primus_by_expertise = LegacyWSDETeam.select_primus_by_expertise
 
@@ -349,8 +350,16 @@ def request_peer_review(
         author=author,
         reviewers=reviewer_agents,
         send_message=self.send_message,
+        team=self,
+        memory_manager=getattr(self, "memory_manager", None),
     )
     review.assign_reviews()
+    # Initial storage for cross-store synchronization
+    if getattr(self, "memory_manager", None):
+        try:
+            review.store_in_memory(immediate_sync=True)
+        except Exception:
+            pass
     if not hasattr(self, "peer_reviews"):
         self.peer_reviews = []
     self.peer_reviews.append(review)
@@ -366,8 +375,9 @@ def conduct_peer_review(
     if review is None:
         return {"review": None, "feedback": {}}
     review.collect_reviews()
-    feedback = review.aggregate_feedback()
-    review.status = "completed"
+    # Finalize review to aggregate feedback and persist with synchronization
+    result = review.finalize()
+    feedback = result.get("feedback", {})
     return {"review": review, "feedback": feedback}
 
 
