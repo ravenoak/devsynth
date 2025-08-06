@@ -20,6 +20,7 @@ from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETeam):
@@ -53,6 +54,14 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         """
         super().__init__(name, description)
         self.memory_manager = memory_manager
+        if self.memory_manager is not None:
+            try:
+                self.memory_manager.register_sync_hook(self._memory_sync_hook)
+            except Exception:
+                # Failing to register a hook should not break team initialization
+                self.logger.debug(
+                    "Could not register memory sync hook", exc_info=True
+                )
 
         # Initialize attributes for task management
         self.subtasks = {}
@@ -67,6 +76,9 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         self.leadership_reassessments = {}
         self.transition_metrics = {}
         self.collaboration_metrics = {}
+
+        # Track the last memory item synchronized for testing/monitoring
+        self.last_synced_item: Optional[str] = None
 
     def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Vote on a decision then build consensus if needed."""
@@ -156,6 +168,35 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             self.peer_reviews = []
         self.peer_reviews.append(review)
         return review
+
+    def sync_team_state(self) -> Optional[str]:
+        """Persist the team's current state using the memory manager."""
+
+        if self.memory_manager is None or not self.memory_manager.adapters:
+            return None
+
+        item = MemoryItem(
+            id=str(uuid.uuid4()),
+            content={
+                "team_name": self.name,
+                "agents": [agent.name for agent in self.agents],
+            },
+            memory_type=MemoryType.COLLABORATION_TEAM,
+            metadata={"team": self.name},
+        )
+
+        primary = (
+            "tinydb"
+            if "tinydb" in self.memory_manager.adapters
+            else next(iter(self.memory_manager.adapters))
+        )
+        self.memory_manager.update_item(primary, item)
+        return item.id
+
+    def _memory_sync_hook(self, item: Optional[MemoryItem]) -> None:
+        """Record the last synchronized item for observability/testing."""
+
+        self.last_synced_item = getattr(item, "id", None)
 
     def _update_collaboration_metrics(
         self, problem_id: str, solution: Dict[str, Any]
