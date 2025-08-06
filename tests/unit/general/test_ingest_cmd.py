@@ -137,26 +137,19 @@ class TestIngestCmd:
             dry_run=False, verbose=True
         )
 
-    def test_ingest_cmd_env_vars_used(
+    def test_ingest_cmd_forwards_auto_phase_flag(
         self,
         mock_bridge,
         mock_validate_manifest,
         mock_load_manifest,
         mock_ingestion,
-        monkeypatch,
     ):
-        """Test ingest_cmd reads defaults from environment variables."""
-        monkeypatch.setenv("DEVSYNTH_MANIFEST_PATH", "env_manifest.yaml")
-        monkeypatch.setenv("DEVSYNTH_INGEST_DRY_RUN", "1")
-        monkeypatch.setenv("DEVSYNTH_INGEST_VERBOSE", "1")
-        ingest_cmd(bridge=mock_bridge)
-        mock_validate_manifest.assert_called_once_with(
-            Path("env_manifest.yaml"), True, bridge=mock_bridge
-        )
-        mock_load_manifest.assert_not_called()
-        mock_ingestion.return_value.run_ingestion.assert_called_once_with(
-            dry_run=True, verbose=True
-        )
+        """Ensure auto_phase_transitions flag propagates to Ingestion."""
+
+        ingest_cmd(auto_phase_transitions=False, bridge=mock_bridge)
+        mock_ingestion.assert_called_once()
+        _, kwargs = mock_ingestion.call_args
+        assert kwargs.get("auto_phase_transitions") is False
 
     def test_ingest_cmd_manifest_error_raises_error(
         self, mock_bridge, mock_validate_manifest

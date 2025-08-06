@@ -43,6 +43,7 @@ def ingest_cmd(
     validate_only: bool = False,
     *,
     bridge: Optional[UXBridge] = None,
+    auto_phase_transitions: bool = True,
 ) -> None:
     """Ingest a project into DevSynth.
 
@@ -57,6 +58,7 @@ def ingest_cmd(
         dry_run: If True, performs a dry run without making any changes.
         verbose: If True, provides verbose output.
         validate_only: If True, only validates the manifest without performing ingestion.
+        auto_phase_transitions: If True, EDRR phases advance automatically.
     """
     bridge = bridge or DEFAULT_BRIDGE
 
@@ -121,7 +123,11 @@ def ingest_cmd(
             return
 
         # Perform the ingestion using the Ingestion class
-        ingestion = Ingestion(manifest_path.parent, manifest_path)
+        ingestion = Ingestion(
+            manifest_path.parent,
+            manifest_path,
+            auto_phase_transitions=auto_phase_transitions,
+        )
         result = ingestion.run_ingestion(dry_run=dry_run, verbose=verbose)
 
         if result.get("success"):
