@@ -20,6 +20,11 @@ scenarios('../features/general/wsde_edrr_integration.feature')
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.memory.context_manager import InMemoryStore
+from devsynth.application.collaboration.collaborative_wsde_team import (
+    CollaborativeWSDETeam,
+)
+from devsynth.domain.models.memory import MemoryType
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.requirements.prompt_manager import PromptManager
@@ -581,3 +586,36 @@ def verify_continue_after_recovery(context):
     assert context.edrr_coordinator.current_phase == next_phase  # noqa: F401,F403
 
 scenarios("../features/general/wsde_edrr_integration.feature")
+
+
+def test_wsde_team_update_propagates_across_memory_stores():
+    """WSDE team state synchronization should update all stores."""
+
+    class SimpleStore(InMemoryStore):
+        def begin_transaction(self, *args, **kwargs):
+            return None
+
+        def commit_transaction(self, *args, **kwargs):
+            return True
+
+        def rollback_transaction(self, *args, **kwargs):
+            return False
+
+        def is_transaction_active(self) -> bool:
+            return False
+
+    primary = SimpleStore()
+    secondary = SimpleStore()
+    manager = MemoryManager(adapters={"tinydb": primary, "graph": secondary})
+
+    team = CollaborativeWSDETeam(name="SyncTeam", memory_manager=manager)
+    team.sync_team_state()
+
+    assert any(
+        item.memory_type == MemoryType.COLLABORATION_TEAM
+        for item in primary.items.values()
+    )
+    assert any(
+        item.memory_type == MemoryType.COLLABORATION_TEAM
+        for item in secondary.items.values()
+    )

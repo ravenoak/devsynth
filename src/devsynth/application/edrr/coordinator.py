@@ -246,9 +246,16 @@ class EDRRCoordinator:
             return None
 
         try:
-            return self.memory_manager.store_with_edrr_phase(
+            item_id = self.memory_manager.store_with_edrr_phase(
                 content, memory_type, edrr_phase, metadata
             )
+            try:
+                self.memory_manager.flush_updates()
+            except Exception as flush_error:
+                logger.debug(
+                    f"Failed to flush memory updates for {memory_type}: {flush_error}"
+                )
+            return item_id
         except Exception as e:
             logger.error(f"Failed to store memory item with EDRR phase: {e}")
             return None
@@ -302,6 +309,39 @@ class EDRRCoordinator:
         except Exception as e:
             logger.error(f"Failed to retrieve memory item with EDRR phase: {e}")
             return {}
+
+    def _execute_peer_review(
+        self, phase: Phase, work_product: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Execute a basic peer review for the given ``work_product``."""
+
+        if not hasattr(self.wsde_team, "request_peer_review"):
+            return None
+
+        author = self.wsde_team.get_primus()
+        reviewers = [a for a in self.wsde_team.agents if a != author]
+        if not reviewers:
+            return None
+
+        try:
+            review = self.wsde_team.request_peer_review(work_product, author, reviewers)
+            if review is None:
+                return None
+            if hasattr(review, "collect_reviews"):
+                review.collect_reviews()
+            if hasattr(review, "finalize"):
+                review.finalize(approved=True)
+            result = getattr(review, "reviews", {})
+            self._safe_store_with_edrr_phase(
+                result,
+                MemoryType.PEER_REVIEW,
+                phase.value,
+                {"cycle_id": self.cycle_id, "phase": phase.value},
+            )
+            return result
+        except Exception as e:
+            logger.warning(f"Peer review failed for phase {phase.value}: {e}")
+            return None
 
     def _persist_context_snapshot(self, phase: Phase) -> None:
         """Persist preserved context for a phase."""
@@ -2188,6 +2228,11 @@ class EDRRCoordinator:
         try:
             results = executor(context)
             self.results[self.current_phase.name] = results
+
+            # Optional peer review for the phase results
+            pr_result = self._execute_peer_review(self.current_phase, results)
+            if pr_result is not None:
+                results["peer_review"] = pr_result
 
             # Run additional micro-cycles until quality thresholds are met
             results = self._run_micro_cycles(self.current_phase, results)

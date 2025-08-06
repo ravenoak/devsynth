@@ -6,7 +6,7 @@ allowing for efficient querying of different types of memory and tagging
 items with EDRR phases.
 """
 
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union, Callable
 from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 from ...domain.models.memory import (
     MemoryItem,
@@ -67,6 +67,24 @@ class MemoryManager:
         self.query_router = query_router or QueryRouter(self)
         self.sync_manager = sync_manager or SyncManager(self)
         self.embedding_provider = embedding_provider
+        # Registered hooks called after synchronization events
+        self._sync_hooks: List[Callable[[Optional[MemoryItem]], None]] = []
+
+    def register_sync_hook(
+        self, hook: Callable[[Optional[MemoryItem]], None]
+    ) -> None:
+        """Register a callback invoked after memory synchronization."""
+
+        self._sync_hooks.append(hook)
+
+    def _notify_sync_hooks(self, item: Optional[MemoryItem]) -> None:
+        """Invoke registered synchronization hooks with ``item``."""
+
+        for hook in list(self._sync_hooks):
+            try:
+                hook(item)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(f"Sync hook failed: {exc}")
 
     def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
         """Return an embedding for ``text``.
@@ -140,6 +158,7 @@ class MemoryManager:
 
         # Use the sync manager to propagate to all stores
         self.sync_manager.update_item(primary_store, memory_item)
+        self._notify_sync_hooks(memory_item)
         return memory_item.id
 
     def retrieve_with_edrr_phase(
@@ -713,22 +732,28 @@ class MemoryManager:
     def update_item(self, store: str, item: MemoryItem) -> bool:
         """Update an item and propagate to other stores."""
 
-        return self.sync_manager.update_item(store, item)
+        result = self.sync_manager.update_item(store, item)
+        if result:
+            self._notify_sync_hooks(item)
+        return result
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
         """Queue an update for asynchronous propagation."""
 
         self.sync_manager.queue_update(store, item)
+        self._notify_sync_hooks(item)
 
     def flush_updates(self) -> None:
         """Flush queued updates synchronously."""
 
         self.sync_manager.flush_queue()
+        self._notify_sync_hooks(None)
 
     async def flush_updates_async(self) -> None:
         """Flush queued updates asynchronously."""
 
         await self.sync_manager.flush_queue_async()
+        self._notify_sync_hooks(None)
 
     async def wait_for_sync(self) -> None:
         """Wait for asynchronous sync tasks to complete."""
