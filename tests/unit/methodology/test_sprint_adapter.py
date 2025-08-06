@@ -36,3 +36,56 @@ def test_should_progress_when_time_exceeded(monkeypatch):
     results = {"completed_activities": []}
     monkeypatch.setattr(adapter, "_get_required_activities", lambda phase: [])
     assert adapter.should_progress_to_next_phase(Phase.EXPAND, context, results)
+
+
+def test_ceremony_mapping_to_phase():
+    """Configured ceremonies map to the correct EDRR phases."""
+    config = {
+        "settings": {
+            "ceremonyMapping": {
+                "planning": "retrospect.iteration_planning",
+                "dailyStandup": "phase_progression_tracking",
+                "review": "refine.outputs_review",
+                "retrospective": "retrospect.process_evaluation",
+            }
+        }
+    }
+    adapter = SprintAdapter(config)
+    assert adapter.get_ceremony_phase("planning") == Phase.RETROSPECT
+    assert adapter.get_ceremony_phase("review") == Phase.REFINE
+    assert adapter.get_ceremony_phase("retrospective") == Phase.RETROSPECT
+    assert adapter.get_ceremony_phase("dailyStandup") is None
+
+
+def test_before_cycle_provides_context():
+    """before_cycle initializes sprint metadata."""
+    adapter = SprintAdapter({"settings": {"sprintDuration": 1}})
+    context = adapter.before_cycle()
+    assert context["sprint_number"] == 1
+    assert "sprint_start_time" in context
+    assert "sprint_end_time" in context
+
+
+def test_before_expand_sets_phase_start_time():
+    """before_expand adds a phase start timestamp."""
+    adapter = SprintAdapter({"settings": {}})
+    context = adapter.before_expand({})
+    assert "phase_start_time" in context
+    assert isinstance(context["phase_start_time"], datetime.datetime)
+
+
+def test_after_retrospect_captures_sprint_plan():
+    """after_retrospect stores next cycle recommendations as sprint plan."""
+    adapter = SprintAdapter({"settings": {}})
+    results = {
+        "next_cycle_recommendations": {
+            "scope": ["item1"],
+            "objectives": ["obj"],
+            "success_criteria": ["done"],
+        }
+    }
+    adapter.after_retrospect({}, results)
+    assert adapter.sprint_plan["planned_scope"] == ["item1"]
+    assert adapter.sprint_plan["objectives"] == ["obj"]
+    assert adapter.sprint_plan["success_criteria"] == ["done"]
+

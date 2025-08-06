@@ -63,6 +63,14 @@ class SprintAdapter(BaseMethodologyAdapter):
             "retrospective_reviews": [],
         }
 
+        # Map sprint ceremonies to their corresponding EDRR phases
+        self.ceremony_phase_map = {}
+        ceremony_mapping = self.sprint_settings.get("ceremonyMapping", {})
+        for ceremony, target in ceremony_mapping.items():
+            self.ceremony_phase_map[ceremony] = self._extract_phase_from_mapping(
+                target
+            )
+
     def should_start_cycle(self) -> bool:
         """Determine if a new sprint cycle should begin.
 
@@ -478,3 +486,34 @@ class SprintAdapter(BaseMethodologyAdapter):
             "sprint": self.current_sprint_number,
         }
         self.metrics["retrospective_reviews"].append(summary)
+
+    def get_ceremony_phase(self, ceremony: str) -> Optional[Phase]:
+        """Return the EDRR phase associated with an Agile ceremony.
+
+        Args:
+            ceremony: Name of the ceremony (e.g., ``planning`` or ``review``).
+
+        Returns:
+            ``Phase`` enum if the ceremony maps to a known phase, otherwise ``None``.
+        """
+        return self.ceremony_phase_map.get(ceremony)
+
+    def _extract_phase_from_mapping(self, mapping: str) -> Optional[Phase]:
+        """Extract an EDRR phase from a ceremony mapping string.
+
+        The mapping string may refer to a phase directly (``"refine"``) or include
+        a sub-phase path such as ``"retrospect.iteration_planning"``. If no known
+        phase can be identified, ``None`` is returned.
+
+        Args:
+            mapping: Configuration string representing the target phase.
+
+        Returns:
+            ``Phase`` instance or ``None`` if the mapping is unknown.
+        """
+        if not mapping:
+            return None
+        for phase in Phase:
+            if phase.value in mapping:
+                return phase
+        return None
