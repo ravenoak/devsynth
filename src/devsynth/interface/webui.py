@@ -1234,6 +1234,7 @@ class WebUI(UXBridge):
                     if st.button("Previous", key="previous_button"):
                         wizard_manager.previous_step()
                         st.experimental_rerun()
+                        return
 
             with col2:
                 if st.button("Cancel", key="cancel_button"):
@@ -1245,6 +1246,7 @@ class WebUI(UXBridge):
                         message_type="info",
                     )
                     st.experimental_rerun()
+                    return
 
             with col3:
                 if current_step < steps:
@@ -1252,17 +1254,19 @@ class WebUI(UXBridge):
                         if self._validate_gather_step(wizard_state, current_step):
                             wizard_manager.next_step()
                             st.experimental_rerun()
+                            return
                 else:
                     if st.button("Finish", key="finish_button"):
                         if self._validate_gather_step(wizard_state, current_step):
                             wizard_manager.set_completed(True)
                             try:
-                                if gather_requirements is None:
+                                req_fn = globals().get("gather_requirements")
+                                if req_fn is None:
                                     raise ImportError(
                                         "gather_requirements function not available"
                                     )
                                 with st.spinner("Processing resources..."):
-                                    gather_requirements(self)
+                                    req_fn(self)
                                 self.display_result(
                                     "[green]Resources gathered successfully![/green]",
                                     highlight=False,
@@ -1271,6 +1275,7 @@ class WebUI(UXBridge):
                                 wizard_manager.reset_wizard_state()
                                 wizard_manager.clear_temporary_state(temp_keys)
                                 st.experimental_rerun()
+                                return
                             except ImportError as exc:
                                 self.display_result(
                                     f"[red]ERROR importing gather_requirements: {exc}[/red]",

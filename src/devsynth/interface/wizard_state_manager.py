@@ -52,7 +52,7 @@ class WizardStateManager:
         else:
             # Use the existing WizardState instance
             logger.debug(f"Using existing WizardState for {self.wizard_name}")
-            wizard_state = WizardState(self.wizard_name, self.steps)
+            wizard_state = WizardState(self.wizard_name, self.steps, self.initial_state)
             
             # Validate the state to ensure it's not corrupted
             if not self.validate_wizard_state(wizard_state):
