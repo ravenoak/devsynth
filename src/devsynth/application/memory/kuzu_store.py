@@ -12,6 +12,7 @@ import json
 import os
 import sys
 import importlib
+import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from contextlib import contextmanager
@@ -54,7 +55,9 @@ logger = DevSynthLogger(__name__)
 class KuzuStore(MemoryStore):
     """Lightweight ``MemoryStore`` backed by KuzuDB."""
 
-    def __init__(self, file_path: Union[str, None] = None, use_embedded: Union[bool, None] = None) -> None:
+    def __init__(
+        self, file_path: Union[str, None] = None, use_embedded: Union[bool, None] = None
+    ) -> None:
         # ``ensure_path_exists`` handles path redirection and optional
         # directory creation based on the test environment.  Use the returned
         # path so tests that set ``DEVSYNTH_PROJECT_DIR`` are respected and
@@ -64,16 +67,25 @@ class KuzuStore(MemoryStore):
         # test isolation fixtures.  Use the returned path so the database is
         # created in the correct location rather than the original argument
         # which may be outside the temporary test directory.
-        self.file_path = os.path.abspath(
+        base_path = os.path.abspath(
             settings_module.ensure_path_exists(
                 file_path
                 or settings_module.kuzu_db_path
                 or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
             )
         )
-        # Explicitly create the directory even when ``ensure_path_exists`` is
-        # patched not to, ensuring the database can always be opened.
-        os.makedirs(self.file_path, exist_ok=True)
+        try:
+            os.makedirs(base_path, exist_ok=True)
+            self.file_path = base_path
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            logger.warning(
+                "Unable to create Kuzu store directory %s: %s; using temporary directory",
+                base_path,
+                exc,
+            )
+            self.file_path = tempfile.mkdtemp(prefix="kuzu_store_")
+            os.makedirs(self.file_path, exist_ok=True)
+
         self.db_path = os.path.join(self.file_path, "kuzu.db")
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
@@ -92,7 +104,11 @@ class KuzuStore(MemoryStore):
         # when initializing the store.  Read the value from the exported
         # constant via ``devsynth.config`` instead of the module attribute.
         raw_embedded = (
-            getattr(settings_module, "KUZU_EMBEDDED", settings_module._settings.kuzu_embedded)
+            getattr(
+                settings_module,
+                "KUZU_EMBEDDED",
+                settings_module._settings.kuzu_embedded,
+            )
             if use_embedded is None
             else use_embedded
         )
@@ -362,7 +378,9 @@ class KuzuStore(MemoryStore):
         return items
 
     # memory volatility -------------------------------------------------------
-    def add_memory_volatility(self, decay_rate: float = 0.1, threshold: float = 0.5) -> None:
+    def add_memory_volatility(
+        self, decay_rate: float = 0.1, threshold: float = 0.5
+    ) -> None:
         """Enable simple volatility controls on stored items."""
         for item in self.get_all_items():
             item.metadata.setdefault("confidence", 1.0)

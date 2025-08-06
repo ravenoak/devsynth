@@ -64,81 +64,37 @@ class KuzuMemoryStore(MemoryStore):
             or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
         )
 
-        # Normalize and expand the path
+        # Normalize, expand and apply any test isolation redirections
         normalized_path = os.path.abspath(os.path.expanduser(base_directory))
-
-        # Apply any test isolation redirections via ensure_path_exists
-        # This may redirect the path when running under test isolation fixtures
         redirected_path = settings_module.ensure_path_exists(normalized_path)
 
-        # Store the final path
-        self.persist_directory = redirected_path
-
-        # Ensure the directory exists
-        try:
-            os.makedirs(self.persist_directory, exist_ok=True)
-            logger.debug(f"Using persist directory: {self.persist_directory}")
-        except Exception as e:
-            logger.warning(f"Error creating directory {self.persist_directory}: {e}")
-            # Try to create parent directories if possible
-            try:
-                parent_dir = os.path.dirname(self.persist_directory)
-                os.makedirs(parent_dir, exist_ok=True)
-                os.makedirs(self.persist_directory, exist_ok=True)
-            except Exception:
-                # If we still can't create it, we'll let the store initialization handle it
-                pass
-
-        # Determine embedded mode from the configuration settings
-        # ``get_settings`` ensures the latest environment configuration is used
+        # Determine embedded mode from configuration
         use_embedded = settings_module.get_settings().kuzu_embedded
         if not _is_kuzu_available():
             logger.info("Kuzu not available; using in-memory fallback store")
             use_embedded = False
 
-        # Initialize stores with consistent error handling
-        store_initialized = False
-        vector_initialized = False
-
-        # First try to initialize with embedded mode if requested
-        try:
-            self._store = KuzuStore(self.persist_directory, use_embedded=use_embedded)
-            store_initialized = True
-        except Exception as e:
-            logger.warning(
-                f"Error initializing KuzuStore with embedded={use_embedded}: {e}"
-            )
-
-        # Then try to initialize the vector store
-        try:
-            self.vector = KuzuAdapter(self.persist_directory, collection_name)
-            vector_initialized = True
-        except Exception as e:
-            logger.warning(f"Error initializing KuzuAdapter: {e}")
-
-        # If either initialization failed, try again with fallback options
-        if not store_initialized:
+        # Ensure both the database store and vector store are initialised on the
+        # same usable path.  If initialisation fails (e.g. due to filesystem
+        # permissions) fall back to a temporary directory and retry once.
+        current_path = redirected_path
+        for _ in range(2):
             try:
-                # Try with embedded=False as fallback
-                self._store = KuzuStore(self.persist_directory, use_embedded=False)
-                logger.info("Using fallback KuzuStore with embedded=False")
-            except Exception as e:
-                # Last resort: create a minimal in-memory store
-                logger.error(f"Failed to initialize KuzuStore even with fallback: {e}")
-                self._store = KuzuStore(self.persist_directory, use_embedded=False)
-
-        if not vector_initialized:
-            try:
-                # Try again with explicit path creation
-                os.makedirs(self.persist_directory, exist_ok=True)
-                self.vector = KuzuAdapter(self.persist_directory, collection_name)
-                logger.info("Successfully initialized KuzuAdapter on retry")
-            except Exception as e:
-                # Last resort: create a minimal adapter
-                logger.error(
-                    f"Failed to initialize KuzuAdapter even with fallback: {e}"
+                self._store = KuzuStore(current_path, use_embedded=use_embedded)
+                # ``KuzuStore`` may internally adjust the path; use its final value
+                current_path = self._store.file_path
+                self.vector = KuzuAdapter(current_path, collection_name)
+                break
+            except Exception as exc:
+                logger.warning(
+                    f"Initialization error for Kuzu memory at {current_path}: {exc}"
                 )
-                self.vector = KuzuAdapter(self.persist_directory, collection_name)
+                current_path = tempfile.mkdtemp(prefix="kuzu_store_")
+        else:
+            raise MemoryStoreError("Failed to initialise Kuzu memory store")
+
+        # Persist the final path used by both backends
+        self.persist_directory = current_path
 
         self.use_provider_system = use_provider_system
         self.provider_type = provider_type

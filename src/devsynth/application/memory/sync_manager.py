@@ -18,18 +18,19 @@ from .tiered_cache import TieredCache
 if TYPE_CHECKING:
     from .memory_manager import MemoryManager
 
+
 class DummyTransactionContext:
     """
     A dummy transaction context for adapters that have begin_transaction
     but don't return a context manager.
     """
-    
+
     def __init__(self, adapter: Any, transaction_id: str = None):
         self.adapter = adapter
         self.transaction_id = transaction_id or str(uuid.uuid4())
         self.committed = False
         self.rolled_back = False
-        
+
     def __enter__(self):
         """Begin the transaction."""
         if hasattr(self.adapter, "begin_transaction"):
@@ -41,12 +42,12 @@ class DummyTransactionContext:
             # Otherwise, just return the result
             return result
         return self
-        
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Commit or roll back the transaction."""
         if hasattr(self, "context"):
             return self.context.__exit__(exc_type, exc_val, exc_tb)
-            
+
         if exc_type is None:
             # Commit the transaction
             if hasattr(self.adapter, "commit_transaction"):
@@ -58,6 +59,7 @@ class DummyTransactionContext:
                 self.adapter.rollback_transaction(self.transaction_id)
                 self.rolled_back = True
         return False  # Don't suppress exceptions
+
 
 logger = DevSynthLogger(__name__)
 
@@ -133,24 +135,24 @@ class SyncManager:
         This manager attempts to use native transaction support on each
         adapter if available and falls back to snapshot/restore semantics
         otherwise. All changes are rolled back if an exception occurs.
-        
+
         Args:
             stores: List of store names to include in the transaction
-            
+
         Yields:
             Dictionary mapping store names to transaction objects
-            
+
         Raises:
             Exception: If any error occurs during the transaction
         """
         transaction_id = str(uuid.uuid4())
         logger.debug(f"Starting transaction {transaction_id} for stores: {stores}")
-        
+
         snapshots: Dict[str, Dict[str, MemoryItem]] = {}  # Store -> {ID -> Item}
         contexts: Dict[str, Any] = {}
         txns: Dict[str, Any] = {}
         added_items: Dict[str, Set[str]] = {}  # Store -> {Item IDs}
-        
+
         # Track which stores are participating in the transaction
         participating_stores = []
 
@@ -160,10 +162,10 @@ class SyncManager:
             if not adapter:
                 logger.warning(f"Store {name} not found, skipping")
                 continue
-                
+
             participating_stores.append(name)
             added_items[name] = set()
-                
+
             try:
                 if hasattr(adapter, "begin_transaction"):
                     # Use DummyTransactionContext to handle adapters that don't return a context manager
@@ -174,7 +176,9 @@ class SyncManager:
                     # For adapters without transaction support, take a snapshot
                     items = self._get_all_items(adapter)
                     snapshots[name] = {item.id: self._copy_item(item) for item in items}
-                    logger.debug(f"Created snapshot for {name} with {len(snapshots[name])} items")
+                    logger.debug(
+                        f"Created snapshot for {name} with {len(snapshots[name])} items"
+                    )
             except Exception as e:
                 logger.error(f"Error beginning transaction for {name}: {e}")
                 # Roll back any stores that were already set up
@@ -184,7 +188,7 @@ class SyncManager:
         try:
             # Yield the transaction objects to the caller
             yield txns
-            
+
             # If we get here, commit all transactions
             for name, ctx in contexts.items():
                 try:
@@ -195,25 +199,25 @@ class SyncManager:
                     # If a commit fails, we need to roll back all stores
                     self._rollback_partial_transaction(contexts, snapshots, added_items)
                     raise
-                    
+
             logger.debug(f"Transaction {transaction_id} committed successfully")
-            
+
         except Exception as exc:
             # Roll back all transactions
             logger.error(f"Transaction {transaction_id} failed: {exc}")
             self._rollback_partial_transaction(contexts, snapshots, added_items, exc)
             raise
-            
+
     def _rollback_partial_transaction(
-        self, 
-        contexts: Dict[str, Any], 
+        self,
+        contexts: Dict[str, Any],
         snapshots: Dict[str, Dict[str, MemoryItem]],
         added_items: Dict[str, Set[str]],
-        exc: Exception = None
+        exc: Exception = None,
     ):
         """
         Roll back a partially completed transaction.
-        
+
         Args:
             contexts: Dictionary mapping store names to transaction contexts
             snapshots: Dictionary mapping store names to snapshots
@@ -221,11 +225,11 @@ class SyncManager:
             exc: Exception that caused the rollback, if any
         """
         rollback_errors = []
-        
+
         # Create a dummy exception if none was provided
         if exc is None:
             exc = ValueError("Transaction rolled back")
-            
+
         # Roll back stores with native transaction support
         for name, ctx in contexts.items():
             try:
@@ -235,41 +239,41 @@ class SyncManager:
                 error_msg = f"Error rolling back transaction for {name}: {e}"
                 logger.error(error_msg)
                 rollback_errors.append(error_msg)
-        
+
         # Restore snapshots for stores without native transaction support
         for name, items in snapshots.items():
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
                 continue
-                
+
             try:
                 # Get current items to identify added items
                 current_items = self._get_all_items(adapter)
                 current_ids = {item.id for item in current_items}
-                
+
                 # Delete items that were added during the transaction
                 for item_id in current_ids - set(items.keys()):
                     if hasattr(adapter, "delete"):
                         adapter.delete(item_id)
                         logger.debug(f"Deleted added item {item_id} from {name}")
-                
+
                 # Restore original items
                 for item_id, item in items.items():
                     if hasattr(adapter, "store"):
                         adapter.store(item)
                         logger.debug(f"Restored item {item_id} in {name}")
-                        
+
                 logger.debug(f"Restored snapshot for {name}")
             except Exception as e:
                 error_msg = f"Error restoring snapshot for {name}: {e}"
                 logger.error(error_msg)
                 rollback_errors.append(error_msg)
-        
+
         # If there were errors during rollback, log them but don't raise
         # (we want to continue with the original exception)
         if rollback_errors:
             logger.error(f"Errors during transaction rollback: {rollback_errors}")
-            
+
         logger.error(f"Transaction rolled back due to error: {exc}")
 
     def synchronize(
@@ -279,8 +283,10 @@ class SyncManager:
         source_adapter = self.memory_manager.adapters.get(source)
         target_adapter = self.memory_manager.adapters.get(target)
         if not source_adapter or not target_adapter:
-            logger.warning("Sync failed due to missing adapters")
-            return {"error": 1}
+            logger.warning(
+                "Sync skipped due to missing adapters: %s -> %s", source, target
+            )
+            return {f"{source}_to_{target}": 0}
 
         count = 0
         for item in self._get_all_items(source_adapter):
@@ -427,9 +433,7 @@ class SyncManager:
                 )
                 return name, result
             if hasattr(adapter, "search"):
-                result = await asyncio.to_thread(
-                    adapter.search, {"content": query}
-                )
+                result = await asyncio.to_thread(adapter.search, {"content": query})
                 return name, result
             return name, []
 
@@ -453,38 +457,38 @@ class SyncManager:
         """Return statistics about synchronization operations."""
 
         return dict(self.stats)
-        
+
     # ------------------------------------------------------------------
     # Explicit transaction methods to support peer review workflow
-    
+
     def begin_transaction(self, transaction_id: str) -> None:
         """
         Begin a new transaction with the given ID.
-        
+
         This method starts a transaction that can be committed or rolled back later.
         It's designed to support the peer review workflow and other components that
         expect explicit transaction methods rather than the context manager pattern.
-        
+
         Args:
             transaction_id: A unique identifier for the transaction
-            
+
         Raises:
             ValueError: If a transaction with the given ID already exists
         """
         if transaction_id in self._active_transactions:
             logger.warning(f"Transaction {transaction_id} already exists")
             return
-            
+
         logger.debug(f"Beginning transaction {transaction_id}")
-        
+
         # Get all store names
         stores = list(self.memory_manager.adapters.keys())
-        
+
         # Initialize transaction state
         snapshots = {}
         contexts = {}
         txns = {}
-        
+
         # Begin transaction for each store
         for name in stores:
             adapter = self.memory_manager.adapters.get(name)
@@ -498,7 +502,7 @@ class SyncManager:
                 snapshots[name] = [
                     self._copy_item(i) for i in self._get_all_items(adapter)
                 ]
-        
+
         # Store transaction state
         self._active_transactions[transaction_id] = {
             "stores": stores,
@@ -507,29 +511,29 @@ class SyncManager:
             "txns": txns,
             "started_at": datetime.now(),
         }
-        
+
     def commit_transaction(self, transaction_id: str) -> None:
         """
         Commit the transaction with the given ID.
-        
+
         This method commits a previously started transaction, making all changes permanent.
-        
+
         Args:
             transaction_id: The unique identifier for the transaction
-            
+
         Raises:
             ValueError: If no transaction with the given ID exists
         """
         if transaction_id not in self._active_transactions:
             logger.warning(f"No transaction {transaction_id} to commit")
             return
-            
+
         logger.debug(f"Committing transaction {transaction_id}")
-        
+
         # Get transaction state
         transaction = self._active_transactions[transaction_id]
         contexts = transaction.get("contexts", {})
-        
+
         # Commit transaction for each store
         for ctx in contexts.values():
             ctx.__exit__(None, None, None)
@@ -540,41 +544,43 @@ class SyncManager:
             if self.async_mode:
                 asyncio.run(self.wait_for_async())
         except Exception as e:
-            logger.error(f"Error flushing updates for transaction {transaction_id}: {e}")
+            logger.error(
+                f"Error flushing updates for transaction {transaction_id}: {e}"
+            )
 
         # Remove transaction state
         del self._active_transactions[transaction_id]
-        
+
     def rollback_transaction(self, transaction_id: str) -> None:
         """
         Roll back the transaction with the given ID.
-        
+
         This method rolls back a previously started transaction, discarding all changes.
-        
+
         Args:
             transaction_id: The unique identifier for the transaction
-            
+
         Raises:
             ValueError: If no transaction with the given ID exists
         """
         if transaction_id not in self._active_transactions:
             logger.warning(f"No transaction {transaction_id} to roll back")
             return
-            
+
         logger.debug(f"Rolling back transaction {transaction_id}")
-        
+
         # Get transaction state
         transaction = self._active_transactions[transaction_id]
         contexts = transaction.get("contexts", {})
         snapshots = transaction.get("snapshots", {})
-        
+
         # Create a dummy exception for rollback
         exc = ValueError("Transaction rolled back")
-        
+
         # Roll back transaction for each store
         for ctx in contexts.values():
             ctx.__exit__(type(exc), exc, exc.__traceback__)
-            
+
         # Restore snapshots for stores without native transaction support
         for name, items in snapshots.items():
             adapter = self.memory_manager.adapters.get(name)
@@ -586,7 +592,7 @@ class SyncManager:
             for itm in items:
                 if hasattr(adapter, "store"):
                     adapter.store(itm)
-                    
+
         # Remove transaction state
         del self._active_transactions[transaction_id]
         # Clear any queued updates that shouldn't be applied
