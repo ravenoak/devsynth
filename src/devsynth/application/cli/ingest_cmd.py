@@ -6,32 +6,33 @@ which triggers the full ingestion and adaptation pipeline, driven by .devsynth/p
 and its project structure definitions.
 """
 
+import json
 import os
 import sys
-import yaml
-import json
 import time
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
-from rich.console import Console
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
+from typing import Any, Dict, Optional, Union
 
-from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.application.ingestion import Ingestion
+import yaml
+from rich.console import Console
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
-from devsynth.domain.models.project import ProjectModel
-from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.ingestion import Ingestion
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.project import ProjectModel
 from devsynth.domain.models.wsde import WSDETeam
+from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
-bridge: UXBridge = CLIUXBridge()
+DEFAULT_BRIDGE: UXBridge = CLIUXBridge()
 console = Console()
 
 
@@ -41,7 +42,7 @@ def ingest_cmd(
     verbose: bool = False,
     validate_only: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Ingest a project into DevSynth.
 
@@ -57,6 +58,8 @@ def ingest_cmd(
         verbose: If True, provides verbose output.
         validate_only: If True, only validates the manifest without performing ingestion.
     """
+    bridge = bridge or DEFAULT_BRIDGE
+
     try:
         # Allow environment variables to provide default values when arguments
         # are not supplied. CLI flags still override these settings.
@@ -69,20 +72,21 @@ def ingest_cmd(
             manifest_path = Path(manifest_path)
 
         if not dry_run:
-            dry_run = (
-                os.environ.get("DEVSYNTH_INGEST_DRY_RUN", "0").lower()
-                in {"1", "true", "yes"}
-            )
+            dry_run = os.environ.get("DEVSYNTH_INGEST_DRY_RUN", "0").lower() in {
+                "1",
+                "true",
+                "yes",
+            }
         if not verbose:
-            verbose = (
-                os.environ.get("DEVSYNTH_INGEST_VERBOSE", "0").lower()
-                in {"1", "true", "yes"}
-            )
+            verbose = os.environ.get("DEVSYNTH_INGEST_VERBOSE", "0").lower() in {
+                "1",
+                "true",
+                "yes",
+            }
         if not validate_only:
-            validate_only = (
-                os.environ.get("DEVSYNTH_INGEST_VALIDATE_ONLY", "0").lower()
-                in {"1", "true", "yes"}
-            )
+            validate_only = os.environ.get(
+                "DEVSYNTH_INGEST_VALIDATE_ONLY", "0"
+            ).lower() in {"1", "true", "yes"}
 
         if verbose:
             bridge.print(f"[bold]DevSynth Ingestion[/bold]")
@@ -146,7 +150,7 @@ def validate_manifest(
     manifest_path: Path,
     verbose: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """
     Validate the manifest file.
@@ -158,6 +162,8 @@ def validate_manifest(
     Raises:
         ManifestError: If the manifest is invalid.
     """
+    bridge = bridge or DEFAULT_BRIDGE
+
     # Check if the manifest path is in a .devsynth directory
     if manifest_path.parent.name == ".devsynth" and not manifest_path.parent.exists():
         # This project is not managed by DevSynth, so we don't need to validate a manifest
@@ -203,8 +209,6 @@ def validate_manifest(
 
 def load_manifest(
     manifest_path: Optional[Path] = None,
-    *,
-    bridge: UXBridge = bridge,
 ) -> Dict[str, Any]:
     """
     Load the manifest file.
@@ -257,7 +261,7 @@ def expand_phase(
     manifest: Dict[str, Any],
     verbose: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
@@ -281,6 +285,7 @@ def expand_phase(
 
     project_root = Path.cwd()
 
+    bridge = bridge or DEFAULT_BRIDGE
     memory_manager = memory_manager or MemoryManager(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
@@ -349,7 +354,7 @@ def differentiate_phase(
     expand_results: Dict[str, Any],
     verbose: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
@@ -358,6 +363,7 @@ def differentiate_phase(
 
     start = time.perf_counter()
 
+    bridge = bridge or DEFAULT_BRIDGE
     memory_manager = memory_manager or MemoryManager(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
@@ -427,7 +433,7 @@ def refine_phase(
     differentiate_results: Dict[str, Any],
     verbose: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
@@ -436,6 +442,7 @@ def refine_phase(
 
     start = time.perf_counter()
 
+    bridge = bridge or DEFAULT_BRIDGE
     memory_manager = memory_manager or MemoryManager(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
@@ -495,7 +502,7 @@ def retrospect_phase(
     refine_results: Dict[str, Any],
     verbose: bool = False,
     *,
-    bridge: UXBridge = bridge,
+    bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
@@ -504,6 +511,7 @@ def retrospect_phase(
 
     start = time.perf_counter()
 
+    bridge = bridge or DEFAULT_BRIDGE
     memory_manager = memory_manager or MemoryManager(
         adapters={"tinydb": TinyDBMemoryAdapter()}
     )
