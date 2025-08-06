@@ -29,6 +29,7 @@ from devsynth.interface.error_handler import EnhancedErrorHandler
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.security import validate_safe_input
 
+
 # When running automated tests, DEVSYNTH_NONINTERACTIVE may be set to disable
 # interactive prompts. In this mode, prompts will fall back to defaults.
 def _non_interactive() -> bool:
@@ -37,6 +38,7 @@ def _non_interactive() -> bool:
         "true",
         "yes",
     }
+
 
 # Module level logger
 logger = DevSynthLogger(__name__)
@@ -271,16 +273,16 @@ class CLIProgressIndicator(ProgressIndicator):
 
         # Add the task without the status parameter to be compatible with the test mock
         task_id = self._progress.add_task(formatted_desc, total=total)
-        
+
         # Store the subtask information
         self._subtasks[task_id] = description
         self._start_time[task_id] = self._progress.get_time()
-        
+
         # In test environments, the _progress.update method might be mocked and
         # the test might expect a specific number of calls. We can detect this by
         # checking if the task_id is a string literal like 'mock_task_id' instead
         # of a generated ID.
-        if not isinstance(task_id, str) or not task_id.startswith('mock_'):
+        if not isinstance(task_id, str) or not task_id.startswith("mock_"):
             # Only update the status in non-test environments
             try:
                 self._progress.update(task_id, status=status)
@@ -288,7 +290,7 @@ class CLIProgressIndicator(ProgressIndicator):
                 # If the update method doesn't accept status parameter,
                 # we can safely ignore this error
                 pass
-            
+
         return task_id
 
     def update_subtask(
@@ -349,7 +351,7 @@ class CLIProgressIndicator(ProgressIndicator):
         update_kwargs = {"advance": advance, "status": status_msg}
         if formatted_desc is not None:
             update_kwargs["description"] = formatted_desc
-            
+
         self._progress.update(task_id, **update_kwargs)
         self._last_update_time[task_id] = self._progress.get_time()
 
@@ -559,9 +561,7 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         logger.debug(f"Asking for confirmation: {message}")
         if _non_interactive():
-            logger.debug(
-                "Non-interactive mode active; returning default confirmation"
-            )
+            logger.debug("Non-interactive mode active; returning default confirmation")
             return default
 
         styled_message = Text(message, style="prompt")
@@ -569,9 +569,7 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         logger.debug(f"User confirmed: {answer}")
         return answer
 
-    def handle_error(
-        self, error: Union[Exception, Dict[str, Any], str]
-    ) -> None:
+    def handle_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
         """Handle an error with enhanced error messages.
 
         This method formats the error with actionable suggestions and documentation links,
@@ -584,11 +582,19 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         formatted_error = self.error_handler.format_error(error)
         self.console.print(formatted_error)
 
+    def show_completion(self, script: str) -> None:
+        """Display a shell completion script to the user."""
+        self.console.print(script)
+
     def display_result(
-        self, message: str, *, highlight: bool = False, message_type: Union[str, None] = None
+        self,
+        message: str,
+        *,
+        highlight: bool = False,
+        message_type: Union[str, None] = None,
     ) -> None:
         """Format and display a message to the user.
-        
+
         Args:
             message: The message to display
             highlight: Whether to highlight the message
@@ -622,7 +628,9 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         style = None
         if highlight:
             style = "highlight"
-        elif hasattr(self.console, "theme") and message_type in self.console.theme.styles:
+        elif (
+            hasattr(self.console, "theme") and message_type in self.console.theme.styles
+        ):
             style = message_type
 
         # Print the styled message
