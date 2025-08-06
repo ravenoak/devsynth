@@ -56,6 +56,9 @@ class JSONFileStore(MemoryStore):
         self.encryption_enabled = encryption_enabled
         self.encryption_key = encryption_key
         self.items_file = os.path.join(self.base_path, "memory_items.json")
+        self.no_file_logging = os.environ.get(
+            "DEVSYNTH_NO_FILE_LOGGING", "0"
+        ).lower() in ("1", "true", "yes")
         self.items = self._load_items()
         self.token_count = 0
         
@@ -80,15 +83,8 @@ class JSONFileStore(MemoryStore):
         environment variable. In test environments with file operations disabled,
         it will avoid creating directories.
         """
-        # Check if we're in a test environment with file operations disabled
-        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
-
         # Only create directories if not in a test environment with file operations disabled
-        if not no_file_logging:
+        if not self.no_file_logging:
             os.makedirs(self.base_path, exist_ok=True)
 
     @contextmanager
@@ -169,15 +165,8 @@ class JSONFileStore(MemoryStore):
         Raises:
             MemoryCorruptionError: If the memory data is corrupted
         """
-        # Check if we're in a test environment with file operations disabled
-        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
-
         # In test environments with file operations disabled, return an empty dictionary
-        if no_file_logging:
+        if self.no_file_logging:
             logger.info(
                 f"In test environment, using in-memory store", file_path=self.items_file
             )
@@ -266,15 +255,8 @@ class JSONFileStore(MemoryStore):
             FileOperationError: For other file operation errors
             MemoryStoreError: For other memory store errors
         """
-        # Check if we're in a test environment with file operations disabled
-        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
-
         # In test environments with file operations disabled, do nothing
-        if no_file_logging:
+        if self.no_file_logging:
             logger.info(
                 f"In test environment, skipping file save operation",
                 file_path=self.items_file,
