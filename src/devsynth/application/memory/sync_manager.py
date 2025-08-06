@@ -276,19 +276,23 @@ class SyncManager:
 
         logger.error(f"Transaction rolled back due to error: {exc}")
 
-    def synchronize(
-        self, source: str, target: str, bidirectional: bool = False
-    ) -> Dict[str, int]:
-        """Synchronize items from source to target (optionally both ways)."""
-        source_adapter = self.memory_manager.adapters.get(source)
-        target_adapter = self.memory_manager.adapters.get(target)
-        if not source_adapter or not target_adapter:
-            logger.warning(
-                "Sync skipped due to missing adapters: %s -> %s", source, target
-            )
-            return {f"{source}_to_{target}": 0}
+    def _sync_one_way(self, source_adapter: Any, target_adapter: Any) -> int:
+        """Synchronize data from ``source_adapter`` to ``target_adapter``.
+
+        This helper performs a one-way sync of both memory items and vectors,
+        applying the conflict resolution strategy where necessary.
+
+        Args:
+            source_adapter: Adapter providing the items/vectors to copy
+            target_adapter: Adapter receiving the synchronized data
+
+        Returns:
+            int: Number of items/vectors synchronized
+        """
 
         count = 0
+
+        # Synchronize memory items
         for item in self._get_all_items(source_adapter):
             to_store = item
             existing = None
@@ -303,6 +307,7 @@ class SyncManager:
             if existing and to_store is existing and hasattr(source_adapter, "store"):
                 source_adapter.store(existing)
 
+        # Synchronize vectors
         for vector in self._get_all_vectors(source_adapter):
             existing_vec = None
             if hasattr(target_adapter, "retrieve_vector"):
@@ -311,11 +316,37 @@ class SyncManager:
                 target_adapter.store_vector(vector)
                 count += 1
                 self.stats["synchronized"] += 1
-        result = {f"{source}_to_{target}": count}
 
-        if bidirectional:
-            reverse = self.synchronize(target, source, False)
-            result.update(reverse)
+        return count
+
+    def synchronize(
+        self, source: str, target: str, bidirectional: bool = False
+    ) -> Dict[str, int]:
+        """Synchronize items from ``source`` to ``target`` transactionally.
+
+        If ``bidirectional`` is ``True``, the reverse synchronization is
+        performed within the same transaction to ensure atomicity across both
+        directions.
+        """
+
+        source_adapter = self.memory_manager.adapters.get(source)
+        target_adapter = self.memory_manager.adapters.get(target)
+        if not source_adapter or not target_adapter:
+            logger.warning(
+                "Sync skipped due to missing adapters: %s -> %s", source, target
+            )
+            return {f"{source}_to_{target}": 0}
+
+        result: Dict[str, int] = {}
+
+        # Execute synchronization inside a transaction for atomicity
+        with self.transaction([source, target]):
+            forward = self._sync_one_way(source_adapter, target_adapter)
+            result[f"{source}_to_{target}"] = forward
+            if bidirectional:
+                reverse = self._sync_one_way(target_adapter, source_adapter)
+                result[f"{target}_to_{source}"] = reverse
+
         return result
 
     def update_item(self, store: str, item: MemoryItem) -> bool:
