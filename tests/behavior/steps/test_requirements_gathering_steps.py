@@ -1,15 +1,16 @@
 import os
-from typing import Sequence, Optional
+import sys
 from types import ModuleType
+from typing import Optional, Sequence
 from unittest.mock import MagicMock
 
+import pytest
 import yaml
-import sys
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
 from devsynth.interface.ux_bridge import UXBridge
+
 from .webui_steps import webui_context
-import pytest
 
 pytest_plugins = ["tests.fixtures.webui_test_utils"]
 
@@ -75,11 +76,15 @@ def given_webui_initialized(webui_context):
 @when("I run the requirements gathering wizard in the WebUI")
 def run_webui_wizard(tmp_project_dir, webui_context):
     webui_context["st"].sidebar.radio.return_value = "Requirements"
-    webui_context["st"].text_area.side_effect = [
-        "Goal one,Goal two",
-        "Constraint A,Constraint B",
-    ]
-    webui_context["st"].selectbox.return_value = "high"
+    answers = iter(
+        [
+            "Goal one,Goal two",
+            "Constraint A,Constraint B",
+            "high",
+        ]
+    )
+    webui_context["ui"].ask_question = lambda *a, **k: next(answers)
+    webui_context["ui"].confirm = lambda *a, **k: True
     with open(
         os.path.join(tmp_project_dir, "pyproject.toml"), "w", encoding="utf-8"
     ) as f:

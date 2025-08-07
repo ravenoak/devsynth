@@ -414,7 +414,11 @@ class DevSynthLogger:
             else:
                 extra.update(safe_kwargs)
 
-        log_kwargs: dict[str, Any] = {"exc_info": exc, "extra": extra}
+        log_kwargs: dict[str, Any] = {}
+        if exc is not None:
+            log_kwargs["exc_info"] = exc
+        if extra is not None:
+            log_kwargs["extra"] = extra
         if stack_info is not None:
             log_kwargs["stack_info"] = stack_info
         if stacklevel is not None:

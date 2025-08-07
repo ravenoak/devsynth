@@ -4,6 +4,8 @@ from types import ModuleType
 
 import yaml
 
+# Ensures gather_requirements persists priority, goals, and constraints
+
 # Stub optional heavy dependencies for test isolation
 for _name in [
     "langgraph",
