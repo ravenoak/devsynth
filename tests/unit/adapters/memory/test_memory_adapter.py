@@ -6,6 +6,11 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+# These tests exercise multiple backend implementations and can consume
+# significant memory when run in parallel.  Mark them so they can be
+# executed with reduced concurrency when needed.
+pytestmark = [pytest.mark.memory_intensive]
+
 # Import duckdb safely
 try:
     import duckdb
@@ -337,6 +342,7 @@ class TestMemorySystemAdapter:
     @pytest.mark.medium
     @pytest.mark.requires_resource("lmdb")
     @pytest.mark.requires_resource("faiss")
+    @pytest.mark.isolation
     def test_sync_manager_coordinated_backends(self, tmp_path, monkeypatch):
         """SyncManager should propagate between LMDB, FAISS and Kuzu."""
 
