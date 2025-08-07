@@ -22,6 +22,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.domain.models.project import ProjectModel
 from devsynth.domain.models.wsde import WSDETeam
 from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
@@ -42,6 +43,8 @@ def ingest_cmd(
     verbose: bool = False,
     validate_only: bool = False,
     *,
+    yes: bool = False,
+    priority: Optional[str] = None,
     bridge: Optional[UXBridge] = None,
     auto_phase_transitions: bool = True,
     non_interactive: bool = False,
@@ -59,6 +62,8 @@ def ingest_cmd(
         dry_run: If True, performs a dry run without making any changes.
         verbose: If True, provides verbose output.
         validate_only: If True, only validates the manifest without performing ingestion.
+        yes: Automatically answer yes to prompts.
+        priority: Project priority to persist without prompting.
         auto_phase_transitions: If True, EDRR phases advance automatically.
         non_interactive: If True, disable interactive prompts for automation.
     """
@@ -74,6 +79,12 @@ def ingest_cmd(
             manifest_path = Path(os.path.join(os.getcwd(), "manifest.yaml"))
         else:
             manifest_path = Path(manifest_path)
+
+        project_root = (
+            manifest_path.parent.parent
+            if manifest_path.parent.name == ".devsynth"
+            else manifest_path.parent
+        )
 
         if not dry_run:
             dry_run = os.environ.get("DEVSYNTH_INGEST_DRY_RUN", "0").lower() in {
@@ -97,6 +108,21 @@ def ingest_cmd(
             ).lower() in {"1", "true", "yes"}
         if non_interactive:
             os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
+
+        if not yes:
+            yes = os.environ.get("DEVSYNTH_AUTO_CONFIRM", "0").lower() in {
+                "1",
+                "true",
+                "yes",
+            }
+        if yes:
+            os.environ["DEVSYNTH_AUTO_CONFIRM"] = "1"
+        if priority is None:
+            priority = os.environ.get("DEVSYNTH_INGEST_PRIORITY")
+        if priority:
+            cfg = UnifiedConfigLoader.load(project_root)
+            cfg.config.priority = priority
+            UnifiedConfigLoader.save(cfg)
 
         if verbose:
             bridge.print(f"[bold]DevSynth Ingestion[/bold]")
