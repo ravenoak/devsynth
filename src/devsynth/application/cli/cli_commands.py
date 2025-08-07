@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import typer
+from typer.models import OptionInfo
 from rich.console import Console
 
 from devsynth.config import config_key_autocomplete as loader_autocomplete
@@ -56,6 +57,32 @@ def _env_flag(name: str) -> Optional[bool]:
     if val is None:
         return None
     return val.lower() in {"1", "true", "yes"}
+
+
+def _parse_features(value: Optional[Union[List[str], str]]) -> Dict[str, bool]:
+    """Parse feature flags from list or JSON string."""
+    if value is None or isinstance(value, OptionInfo):
+        return {}
+    if isinstance(value, list):
+        if len(value) == 1:
+            item = value[0]
+            try:
+                parsed = json.loads(item)
+            except json.JSONDecodeError:
+                return {item: True}
+        else:
+            return {f: True for f in value}
+    else:
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return {f.strip(): True for f in value.split(";") if f.strip()}
+
+    if isinstance(parsed, dict):
+        return {k: bool(v) for k, v in parsed.items()}
+    if isinstance(parsed, list):
+        return {f: True for f in parsed}
+    return {}
 
 
 console = Console()
@@ -151,7 +178,13 @@ def init_cmd(
     goals: Optional[str] = None,
     memory_backend: Optional[str] = None,
     offline_mode: Optional[bool] = None,
-    features: Optional[Dict[str, bool]] = None,
+    features: Optional[List[str]] = typer.Option(
+        None,
+        help=(
+            "Features to enable. Provide multiple --features options or a JSON"
+            " mapping string."
+        ),
+    ),
     auto_confirm: Optional[bool] = None,
     bridge: Optional[UXBridge] = None,
 ) -> None:
@@ -240,9 +273,11 @@ def init_cmd(
         if features is None:
             env_feats = os.environ.get("DEVSYNTH_INIT_FEATURES")
             if env_feats:
-                features = {f.strip(): True for f in env_feats.split(";") if f.strip()}
+                features_map = _parse_features(env_feats)
             else:
-                features = config.features or {}
+                features_map = config.features or {}
+        else:
+            features_map = _parse_features(features)
         for feat in [
             "wsde_collaboration",
             "dialectical_reasoning",
@@ -251,14 +286,14 @@ def init_cmd(
             "documentation_generation",
             "experimental_features",
         ]:
-            if feat in features:
-                features[feat] = bool(features[feat])
+            if feat in features_map:
+                features_map[feat] = bool(features_map[feat])
             elif auto_confirm:
-                features[feat] = True
+                features_map[feat] = True
             else:
-                features[feat] = bridge.confirm_choice(
+                features_map[feat] = bridge.confirm_choice(
                     f"Enable {feat.replace('_', ' ')}?",
-                    default=features.get(feat, False),
+                    default=features_map.get(feat, False),
                 )
 
         # Confirm and save
@@ -276,7 +311,7 @@ def init_cmd(
         config.goals = goals
         config.memory_store_type = memory_backend
         config.offline_mode = offline_mode
-        config.features = features
+        config.features = features_map
 
         try:
             save_config(
@@ -291,7 +326,7 @@ def init_cmd(
                 goals=goals,
                 memory_backend=memory_backend,
                 offline_mode=offline_mode,
-                features=features,
+                features=features_map,
             )
             bridge.display_result(
                 "[green]Initialization complete[/green]", highlight=True

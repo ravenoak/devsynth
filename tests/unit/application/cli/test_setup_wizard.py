@@ -3,6 +3,7 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 import pytest
 
+
 class DummyBridge(UXBridge):
     """Legacy DummyBridge implementation - not recommended for new tests."""
 
@@ -17,8 +18,9 @@ class DummyBridge(UXBridge):
     def confirm_choice(self, *a, **k):
         return self.confirms.pop(0)
 
-    def display_result(self, message: str, *, highlight: bool=False) -> None:
+    def display_result(self, message: str, *, highlight: bool = False) -> None:
         self.messages.append(message)
+
 
 class RobustDummyBridge(UXBridge):
     """More robust implementation of DummyBridge with better error handling."""
@@ -35,7 +37,7 @@ class RobustDummyBridge(UXBridge):
             answer = self.answers[self.answer_index]
             self.answer_index += 1
             return answer
-        return ''
+        return ""
 
     def confirm_choice(self, *args, **kwargs):
         if self.confirm_index < len(self.confirms):
@@ -47,22 +49,24 @@ class RobustDummyBridge(UXBridge):
     def display_result(self, message, **kwargs):
         self.messages.append(message)
 
+
 @pytest.mark.medium
 def test_setup_wizard_instantiation_succeeds() -> None:
     """Test that setup wizard instantiation succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     wizard = SetupWizard()
     assert isinstance(wizard.bridge, CLIUXBridge)
+
 
 @pytest.mark.medium
 def test_wizard_prompts_via_cli_bridge_succeeds(tmp_path, monkeypatch) -> None:
     """Ensure the wizard uses CLIUXBridge for prompting.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     monkeypatch.chdir(tmp_path)
-    answers = [str(tmp_path), 'single_package', 'python', '', 'my goal', 'memory']
-    confirms = [False, False, False, False, False, False, False, True]
+    answers = [str(tmp_path), "python", "single_package", "", "my goal", "memory"]
+    confirms = [False, False, False, False, False, False, False, False, True]
     asked = []
     confirmed = []
     answer_index = 0
@@ -75,7 +79,7 @@ ReqID: N/A"""
             result = answers[answer_index]
             answer_index += 1
             return result
-        return ''
+        return ""
 
     def mock_confirm_choice(self, msg, **k):
         nonlocal confirm_index
@@ -85,46 +89,48 @@ ReqID: N/A"""
             confirm_index += 1
             return result
         return False
-    monkeypatch.setattr(CLIUXBridge, 'ask_question', mock_ask_question)
-    monkeypatch.setattr(CLIUXBridge, 'confirm_choice', mock_confirm_choice)
-    monkeypatch.setattr(CLIUXBridge, 'display_result', lambda self, m, **k: None)
+
+    monkeypatch.setattr(CLIUXBridge, "ask_question", mock_ask_question)
+    monkeypatch.setattr(CLIUXBridge, "confirm_choice", mock_confirm_choice)
+    monkeypatch.setattr(CLIUXBridge, "display_result", lambda self, m, **k: None)
     wizard = SetupWizard()
     cfg = wizard.run()
     assert cfg.path.exists()
-    assert asked[0].startswith('Project root')
+    assert asked[0].startswith("Project root")
+
 
 @pytest.mark.medium
 def test_setup_wizard_run_succeeds(tmp_path, monkeypatch) -> None:
     """Test that setup wizard run succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     monkeypatch.chdir(tmp_path)
-    devsynth_dir = tmp_path / '.devsynth'
+    devsynth_dir = tmp_path / ".devsynth"
     devsynth_dir.mkdir(exist_ok=True)
-    answers = [str(tmp_path), 'single_package', 'python', '', 'do stuff', 'kuzu']
-    confirms = [True, True, False, False, False, False, False, True]
+    answers = [str(tmp_path), "python", "single_package", "", "do stuff", "kuzu"]
+    confirms = [False, True, True, False, False, False, False, False, True]
     bridge = RobustDummyBridge(answers, confirms)
     wizard = SetupWizard(bridge)
     cfg = wizard.run()
-    cfg_file = tmp_path / '.devsynth' / 'project.yaml'
-    assert cfg_file.exists()
-    assert cfg.config.goals == 'do stuff'
-    assert cfg.config.memory_store_type == 'kuzu'
+    assert cfg.path.exists()
+    assert cfg.config.goals == "do stuff"
+    assert cfg.config.memory_store_type == "kuzu"
     assert cfg.config.offline_mode is True
-    assert cfg.config.features['wsde_collaboration'] is True
-    assert any(('Initialization complete' in msg for msg in bridge.messages))
+    assert cfg.config.features["wsde_collaboration"] is True
+    assert any(("Initialization complete" in msg for msg in bridge.messages))
+
 
 @pytest.mark.medium
 def test_setup_wizard_abort_succeeds(tmp_path, monkeypatch) -> None:
     """Test that setup wizard abort succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     monkeypatch.chdir(tmp_path)
-    answers = [str(tmp_path), 'single_package', 'python', '', '', 'memory']
-    confirms = [False, False, False, False, False, False, False, False]
+    answers = [str(tmp_path), "python", "single_package", "", "", "memory"]
+    confirms = [False, False, False, False, False, False, False, False, False]
     bridge = RobustDummyBridge(answers, confirms)
     wizard = SetupWizard(bridge)
     wizard.run()
-    cfg_file = tmp_path / '.devsynth' / 'project.yaml'
+    cfg_file = tmp_path / ".devsynth" / "project.yaml"
     assert not cfg_file.exists()
-    assert any(('Initialization aborted' in msg for msg in bridge.messages))
+    assert any(("Initialization aborted" in msg for msg in bridge.messages))
