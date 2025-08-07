@@ -1,0 +1,25 @@
+name: Provider Test Suite
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test-providers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Install dependencies
+        run: poetry install --with dev --extras "llm lmstudio"
+      - name: Run provider tests
+        run: >-
+          poetry run pytest
+          tests/unit/adapters/providers/test_provider_factory.py
+          tests/integration/general/test_provider_system*.py

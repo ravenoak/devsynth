@@ -18,7 +18,7 @@ import httpx
 import requests
 
 from devsynth.config.settings import get_settings
-from devsynth.exceptions import DevSynthError
+from devsynth.exceptions import ConfigurationError, DevSynthError
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
@@ -166,9 +166,16 @@ class ProviderFactory:
             ProviderError: If provider creation fails
         """
         # Reload provider configuration to respect updated environment variables
-        get_provider_config.cache_clear()
+        if hasattr(get_provider_config, "cache_clear"):
+            get_provider_config.cache_clear()
         config = config or get_provider_config()
-        tls_settings = get_settings()
+        try:
+            tls_settings = get_settings()
+        except ConfigurationError:
+            old_key = os.environ.pop("OPENAI_API_KEY", None)
+            tls_settings = get_settings(reload=True)
+            if old_key is not None:
+                os.environ["OPENAI_API_KEY"] = old_key
         tls_conf = tls_config or _create_tls_config(tls_settings)
 
         if provider_type is None:
@@ -241,9 +248,7 @@ class BaseProvider:
         )
         self.retry_config = config
 
-    def _emit_retry_telemetry(
-        self, exc: Exception, attempt: int, delay: float
-    ) -> None:
+    def _emit_retry_telemetry(self, exc: Exception, attempt: int, delay: float) -> None:
         """Emit telemetry for a retry attempt."""
         logger.warning(
             "Retrying %s due to %s (attempt %d, delay %.2fs)",
