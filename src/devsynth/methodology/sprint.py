@@ -68,9 +68,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         self.ceremony_phase_map = {}
         ceremony_mapping = self.sprint_settings.get("ceremonyMapping", {})
         for ceremony, target in ceremony_mapping.items():
-            self.ceremony_phase_map[ceremony] = self._extract_phase_from_mapping(
-                target
-            )
+            self.ceremony_phase_map[ceremony] = self._extract_phase_from_mapping(target)
 
     def should_start_cycle(self) -> bool:
         """Determine if a new sprint cycle should begin.
@@ -199,11 +197,22 @@ class SprintAdapter(BaseMethodologyAdapter):
             }
         )
 
-        req_analysis = results.get("expand", {}).get("requirements_analysis")
+        expand_results = results.get("expand", {})
+        req_analysis = expand_results.get("requirements_analysis")
         if req_analysis:
             self._align_with_requirements(req_analysis)
 
-        self._review_retrospective(results.get("retrospect", {}))
+        # Track actual scope delivered during the sprint
+        self.metrics["actual_scope"].append(
+            expand_results.get("processed_artifacts", [])
+        )
+
+        retrospect_results = results.get("retrospect", {})
+        self._review_retrospective(retrospect_results)
+
+        evaluation = retrospect_results.get("evaluation")
+        if evaluation is not None:
+            self.metrics["quality_metrics"][self.current_sprint_number] = evaluation
 
         # Generate retrospective report
         self._generate_retrospective_report(results)
