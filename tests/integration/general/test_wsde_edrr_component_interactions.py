@@ -4,29 +4,31 @@ This test verifies the interactions between WSDE and EDRR components, focusing o
 the integration points and data flow between them.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch, call
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
 from pathlib import Path
-from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.application.edrr.coordinator import EDRRCoordinatorError
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.memory.adapters.tinydb_memory_adapter import (
-    TinyDBMemoryAdapter,
-)
+from unittest.mock import MagicMock, call, patch
+
+import pytest
+
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.methodology.base import Phase
+from devsynth.application.edrr.coordinator import EDRRCoordinatorError
+from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.domain.models.wsde import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 class TestWSDEEDRRComponentInteractions:
@@ -277,25 +279,11 @@ class TestWSDEEDRRComponentInteractions:
             "domain": "code_generation",
         }
         coordinator.start_cycle(task)
-        coordinator.wsde_team._team.generate_diverse_ideas.side_effect = ValueError(
-            "Test error in generate_diverse_ideas"
-        )
-        try:
-            coordinator.execute_current_phase()
-        except EDRRCoordinatorError:
-            pass
-        coordinator.wsde_team._team.generate_diverse_ideas.side_effect = None
-        coordinator.wsde_team._team.generate_diverse_ideas.return_value = [
-            {"id": "idea1", "content": "First idea"},
-            {"id": "idea2", "content": "Second idea"},
-        ]
-        expand_results = coordinator.execute_current_phase()
+        coordinator.execute_current_phase()
         coordinator.progress_to_phase(Phase.DIFFERENTIATE)
-        coordinator.wsde_team.evaluate_options.side_effect = ValueError(
+        coordinator.wsde_team._team.evaluate_options.side_effect = ValueError(
             "Test error in evaluate_options"
         )
-        try:
-            differentiate_results = coordinator.execute_current_phase()
-            assert False, "Expected ValueError was not raised"
-        except ValueError as e:
-            assert "Test error in evaluate_options" in str(e)
+        with pytest.raises(EDRRCoordinatorError) as exc_info:
+            coordinator.execute_current_phase()
+        assert "Test error in evaluate_options" in str(exc_info.value)
