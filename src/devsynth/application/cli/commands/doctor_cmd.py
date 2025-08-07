@@ -1,15 +1,19 @@
-from pathlib import Path
-from rich.console import Console
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.core.config_loader import load_config, _find_project_config
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
-from typing import Optional
 import importlib.util
 import os
 import sys
-from . import align_cmd
+from pathlib import Path
+from typing import Optional
+
+from rich.console import Console
+
+from devsynth.application.cli.utils import _check_services
+from devsynth.core.config_loader import _find_project_config, load_config
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
 from devsynth.testing.run_tests import run_tests
+
+from . import align_cmd
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -38,8 +42,6 @@ def doctor_cmd(
     """
     ux_bridge = bridge if bridge is not None else globals()["bridge"]
     try:
-        from devsynth.application.cli.cli_commands import _check_services
-
         config = load_config()
         _check_services(ux_bridge)
         if _find_project_config(Path.cwd()) is None:

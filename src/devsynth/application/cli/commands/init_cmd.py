@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
 import typer
 
@@ -14,8 +14,7 @@ from devsynth.core.workflows import init_project
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
-# Reuse helper functions from cli_commands to avoid duplication
-from devsynth.application.cli import cli_commands as _cli
+from ..utils import _env_flag, _handle_error, _parse_features, _resolve_bridge
 
 logger = DevSynthLogger(__name__)
 
@@ -39,9 +38,9 @@ def init_cmd(
 ) -> None:
     """Initialize a new project with fewer interactive steps."""
 
-    bridge = _cli._resolve_bridge(bridge)
+    bridge = _resolve_bridge(bridge)
     auto_confirm = (
-        _cli._env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
     )
 
     try:
@@ -99,7 +98,7 @@ def init_cmd(
             return
 
         if offline_mode is None:
-            env_offline = _cli._env_flag("DEVSYNTH_INIT_OFFLINE_MODE")
+            env_offline = _env_flag("DEVSYNTH_INIT_OFFLINE_MODE")
             if env_offline is not None:
                 offline_mode = env_offline
             else:
@@ -109,9 +108,9 @@ def init_cmd(
 
         if features is None:
             env_feats = os.environ.get("DEVSYNTH_INIT_FEATURES")
-            features_map = _cli._parse_features(env_feats) if env_feats else {}
+            features_map = _parse_features(env_feats) if env_feats else {}
         else:
-            features_map = _cli._parse_features(features)
+            features_map = _parse_features(features)
 
         config.project_root = root
         config.language = language
@@ -139,7 +138,6 @@ def init_cmd(
                 highlight=True,
             )
         except Exception as save_err:  # pragma: no cover - defensive
-            _cli._handle_error(bridge, save_err)
+            _handle_error(bridge, save_err)
     except Exception as err:  # pragma: no cover - defensive
-        _cli._handle_error(bridge, err)
-
+        _handle_error(bridge, err)

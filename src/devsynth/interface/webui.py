@@ -68,10 +68,12 @@ except ImportError:
 
 
 try:
-    from devsynth.application.cli.cli_commands import init_cmd, spec_cmd
+    from devsynth.application.cli import init_cmd, spec_cmd
+    import devsynth.application.cli.utils as cli_utils
 except Exception:  # pragma: no cover
     init_cmd = None
     spec_cmd = None
+    cli_utils = None  # type: ignore
 
 
 def _cli(name: str):
@@ -1978,18 +1980,14 @@ class WebUI(UXBridge):
             submitted = st.form_submit_button("Run Refactor")
         if submitted:
             with st.spinner("Running refactor analysis..."):
-                import sys
-
-                module = sys.modules.get("devsynth.application.cli.cli_commands")
-                if module is None:  # pragma: no cover - defensive fallback
-                    import devsynth.application.cli.cli_commands as module
-
-                original = getattr(module, "bridge", None)
-                module.bridge = self
-                try:
-                    module.refactor_cmd(path=path or None, bridge=self)
-                finally:
-                    module.bridge = original
+                cmd = _cli("refactor_cmd")
+                if cmd and cli_utils is not None:
+                    original = cli_utils.bridge
+                    cli_utils.bridge = self
+                    try:
+                        cmd(path=path or None, bridge=self)
+                    finally:
+                        cli_utils.bridge = original
 
     def webapp_page(self) -> None:
         """Generate a starter web application."""
@@ -2001,23 +1999,19 @@ class WebUI(UXBridge):
             submitted = st.form_submit_button("Generate Web App")
         if submitted:
             with st.spinner("Generating web app..."):
-                import sys
-
-                module = sys.modules.get("devsynth.application.cli.cli_commands")
-                if module is None:  # pragma: no cover - defensive fallback
-                    import devsynth.application.cli.cli_commands as module
-
-                original = getattr(module, "bridge", None)
-                module.bridge = self
-                try:
-                    module.webapp_cmd(
-                        framework=framework,
-                        name=name,
-                        path=path,
-                        bridge=self,
-                    )
-                finally:
-                    module.bridge = original
+                cmd = _cli("webapp_cmd")
+                if cmd and cli_utils is not None:
+                    original = cli_utils.bridge
+                    cli_utils.bridge = self
+                    try:
+                        cmd(
+                            framework=framework,
+                            name=name,
+                            path=path,
+                            bridge=self,
+                        )
+                    finally:
+                        cli_utils.bridge = original
 
     def serve_page(self) -> None:
         """Run the DevSynth API server."""
@@ -2028,18 +2022,14 @@ class WebUI(UXBridge):
             submitted = st.form_submit_button("Start Server")
         if submitted:
             with st.spinner("Starting server..."):
-                import sys
-
-                module = sys.modules.get("devsynth.application.cli.cli_commands")
-                if module is None:  # pragma: no cover - defensive fallback
-                    import devsynth.application.cli.cli_commands as module
-
-                original = getattr(module, "bridge", None)
-                module.bridge = self
-                try:
-                    module.serve_cmd(host=host, port=int(port), bridge=self)
-                finally:
-                    module.bridge = original
+                cmd = _cli("serve_cmd")
+                if cmd and cli_utils is not None:
+                    original = cli_utils.bridge
+                    cli_utils.bridge = self
+                    try:
+                        cmd(host=host, port=int(port), bridge=self)
+                    finally:
+                        cli_utils.bridge = original
 
     def dbschema_page(self) -> None:
         """Generate a database schema."""
@@ -2051,23 +2041,19 @@ class WebUI(UXBridge):
             submitted = st.form_submit_button("Generate Schema")
         if submitted:
             with st.spinner("Generating schema..."):
-                import sys
-
-                module = sys.modules.get("devsynth.application.cli.cli_commands")
-                if module is None:  # pragma: no cover - defensive fallback
-                    import devsynth.application.cli.cli_commands as module
-
-                original = getattr(module, "bridge", None)
-                module.bridge = self
-                try:
-                    module.dbschema_cmd(
-                        db_type=db_type,
-                        name=name,
-                        path=path,
-                        bridge=self,
-                    )
-                finally:
-                    module.bridge = original
+                cmd = _cli("dbschema_cmd")
+                if cmd and cli_utils is not None:
+                    original = cli_utils.bridge
+                    cli_utils.bridge = self
+                    try:
+                        cmd(
+                            db_type=db_type,
+                            name=name,
+                            path=path,
+                            bridge=self,
+                        )
+                    finally:
+                        cli_utils.bridge = original
 
     def doctor_page(self) -> None:
         """Render the doctor diagnostics page."""
