@@ -13,6 +13,8 @@ update provides real interactions with ChromaDB using its client API so that
 vectors are persisted and retrieved from a ChromaDB collection.
 """
 
+from contextlib import contextmanager
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -25,8 +27,8 @@ except Exception as e:  # pragma: no cover - if chromadb is missing the tests sk
         "ChromaDBVectorAdapter requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
     ) from e
 
-from ....domain.models.memory import MemoryVector
 from ....domain.interfaces.memory import VectorStore
+from ....domain.models.memory import MemoryVector
 from ....logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -65,6 +67,30 @@ class ChromaDBVectorAdapter(VectorStore):
         logger.info(
             "ChromaDB Vector Adapter initialized with collection '%s'", collection_name
         )
+
+    @contextmanager
+    def begin_transaction(self):
+        """Provide a basic transactional wrapper using snapshot semantics."""
+        snapshot = {v.id: deepcopy(v) for v in self.get_all_vectors()}
+        try:
+            yield
+        except Exception:
+            try:
+                existing = self.collection.get(include=[])
+                ids = existing.get("ids", []) if existing else []
+                if ids:
+                    self.collection.delete(ids=ids)
+                for vec in snapshot.values():
+                    self.collection.add(
+                        ids=[vec.id],
+                        embeddings=[vec.embedding],
+                        metadatas=[vec.metadata or {}],
+                        documents=[vec.content],
+                    )
+                self.vectors = snapshot
+            except Exception as e:  # pragma: no cover - defensive
+                logger.error(f"Error rolling back ChromaDB transaction: {e}")
+            raise
 
     def store_vector(self, vector: MemoryVector) -> str:
         """
