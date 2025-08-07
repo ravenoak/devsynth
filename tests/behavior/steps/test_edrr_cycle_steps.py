@@ -1,119 +1,92 @@
-"""Steps for the edrr_cycle.feature implemented without mocks."""
-
-from __future__ import annotations
-
-import json
-import logging
-from pathlib import Path
-from typing import Dict
+"""Step definitions for the ``edrr_cycle.feature`` file."""
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
-logger = logging.getLogger(__name__)
+from devsynth.application.orchestration.workflow import workflow_manager
 
 scenarios("../features/general/edrr_cycle.feature")
 
 
 @pytest.fixture
-def context() -> Dict[str, object]:
-    return {}
+def context():
+    """Context object for storing state between steps."""
+
+    class Context:
+        def __init__(self):
+            self.manifest = None
+            self.output = None
+            self.started = False
+
+    return Context()
 
 
 @given("a valid manifest file")
-@pytest.mark.medium
-def valid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
-    logger.debug("Setting up valid manifest")
+def valid_manifest(tmp_path, context):
+    """Create a valid manifest file."""
     manifest = tmp_path / "manifest.json"
-    manifest_content = '{"project": "demo"}'
-    logger.debug("Writing manifest content: %s", manifest_content)
-    manifest.write_text(manifest_content)
-    context["manifest"] = manifest
-    logger.debug("Manifest path: %s", manifest)
-    logger.debug("Manifest exists: %s", manifest.exists())
-    logger.debug("Manifest content: %s", manifest.read_text())
+    manifest.write_text('{"project": "demo"}')
+    context.manifest = manifest
     return manifest
 
 
 @given("no manifest file exists at the provided path")
-@pytest.mark.medium
-def missing_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
-    context["manifest"] = tmp_path / "missing.json"
-    return context["manifest"]
+def missing_manifest(tmp_path, context):
+    """Ensure no manifest file exists at the provided path."""
+    manifest = tmp_path / "missing.json"
+    context.manifest = manifest
+    return manifest
 
 
 @given("an invalid manifest file")
-@pytest.mark.medium
-def invalid_manifest(tmp_path: Path, context: Dict[str, object]) -> Path:
+def invalid_manifest(tmp_path, context):
+    """Create an invalid manifest file."""
     manifest = tmp_path / "invalid.json"
     manifest.write_text("not valid json")
-    context["manifest"] = manifest
+    context.manifest = manifest
     return manifest
 
 
 @when('I run the command "devsynth edrr-cycle" with that file')
-@pytest.mark.medium
-def run_edrr_cycle(context: Dict[str, object]) -> None:
-    manifest: Path = context["manifest"]
-    logger.debug("Manifest path: %s", manifest)
-    logger.debug("Manifest exists: %s", manifest.exists())
-
-    if not manifest.exists():
-        context["output"] = f"[red]Manifest file not found:[/red] {manifest}"
-        context["started"] = False
-        logger.debug("Manifest not found, started = %s", context.get("started"))
-        return
-
-    try:
-        manifest_content = manifest.read_text()
-        logger.debug("Manifest content: %s", manifest_content)
-        json_content = json.loads(manifest_content)
-        logger.debug("Parsed JSON: %s", json_content)
-    except Exception as e:
-        context["output"] = f"[red]Invalid manifest:[/red] {manifest}"
-        context["started"] = False
-        logger.debug("Invalid manifest: %s, started = %s", e, context.get("started"))
-        return
-
-    context["output"] = "[bold]Starting EDRR cycle[/bold]"
-    context["started"] = True
-    logger.debug("EDRR cycle started, started = %s", context.get("started"))
+def run_edrr_cycle(context):
+    """Execute the edrr-cycle command through the workflow manager."""
+    manifest = context.manifest
+    result = workflow_manager.execute_command("edrr-cycle", {"manifest": str(manifest)})
+    context.output = result.get("message")
+    context.started = result.get("success", False)
 
 
 @then("the coordinator should process the manifest")
-@pytest.mark.medium
-def coordinator_processed_manifest(context: Dict[str, object]) -> None:
-    logger.debug("Checking if coordinator processed manifest")
-    logger.debug("Context: %s", context)
-    logger.debug("Started: %s", context.get("started"))
-    assert context.get("started") is True
+def coordinator_processed_manifest(context):
+    """Verify that the coordinator processed the manifest."""
+    assert context.started is True
 
 
 @then("the workflow should complete successfully")
-@pytest.mark.medium
-def workflow_completed(context: Dict[str, object]) -> None:
-    assert context.get("started") is True
+def workflow_completed(context):
+    """Verify that the workflow completed successfully."""
+    assert context.started is True
 
 
 @then("the output should indicate the cycle started")
-@pytest.mark.medium
-def cycle_start_message(context: Dict[str, object]) -> None:
-    assert "Starting EDRR cycle" in context.get("output", "")
+def cycle_start_message(context):
+    """Verify that the output indicates the cycle started."""
+    assert "Starting EDRR cycle" in (context.output or "")
 
 
 @then("the system should report that the manifest file was not found")
-@pytest.mark.medium
-def manifest_not_found_error(context: Dict[str, object]) -> None:
-    assert "not found" in context.get("output", "")
+def manifest_not_found_error(context):
+    """Verify that the system reports that the manifest file was not found."""
+    assert "not found" in (context.output or "")
 
 
 @then("the coordinator should not be invoked")
-@pytest.mark.medium
-def coordinator_not_invoked(context: Dict[str, object]) -> None:
-    assert context.get("started") is False
+def coordinator_not_invoked(context):
+    """Verify that the coordinator was not invoked."""
+    assert context.started is False
 
 
 @then("the system should report that the manifest file is invalid")
-@pytest.mark.medium
-def invalid_manifest_error(context: Dict[str, object]) -> None:
-    assert "Invalid manifest" in context.get("output", "")
+def invalid_manifest_error(context):
+    """Verify that the system reports that the manifest file is invalid."""
+    assert "Invalid manifest" in (context.output or "")

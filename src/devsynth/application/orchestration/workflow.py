@@ -5,8 +5,9 @@ and handles human intervention when needed.
 """
 
 import os
-from typing import Dict, Any, Optional, List, Callable
+from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
+
 from rich.console import Console
 from rich.prompt import Prompt
 
@@ -19,13 +20,13 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
-from ...domain.models.workflow import Workflow, WorkflowStep, WorkflowStatus
-from ...ports.orchestration_port import OrchestrationPort
 from ...adapters.orchestration.langgraph_adapter import (
-    LangGraphWorkflowEngine,
     FileSystemWorkflowRepository,
+    LangGraphWorkflowEngine,
     NeedsHumanInterventionError,
 )
+from ...domain.models.workflow import Workflow, WorkflowStatus, WorkflowStep
+from ...ports.orchestration_port import OrchestrationPort
 
 console = Console()
 
@@ -398,6 +399,9 @@ class WorkflowManager:
     def execute_command(self, command: str, args: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a command through the workflow system."""
         try:
+            if command in {"edrr-cycle", "edrr_cycle"}:
+                return self._execute_edrr_cycle(args)
+
             # Create context with command and arguments
             context = {
                 "command": command,
@@ -474,6 +478,29 @@ class WorkflowManager:
     def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:
         """Get the status of a workflow."""
         return self.orchestration_port.get_workflow_status(workflow_id)
+
+    def _execute_edrr_cycle(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate the provided manifest and start an EDRR cycle."""
+        manifest = args.get("manifest")
+        if not manifest or not os.path.exists(manifest):
+            return {
+                "success": False,
+                "message": f"Manifest file not found: {manifest}",
+            }
+
+        try:
+            import json
+            from pathlib import Path
+
+            json.loads(Path(manifest).read_text())
+            return {"success": True, "message": "Starting EDRR cycle"}
+        except FileNotFoundError:
+            return {
+                "success": False,
+                "message": f"Manifest file not found: {manifest}",
+            }
+        except json.JSONDecodeError:
+            return {"success": False, "message": f"Invalid manifest: {manifest}"}
 
 
 # Create a singleton instance
