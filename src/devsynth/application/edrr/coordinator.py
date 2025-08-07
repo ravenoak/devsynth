@@ -2109,16 +2109,24 @@ class EDRRCoordinator:
         return insights
 
     def _summarize_implementation(
-        self, implementation_plan: List[Dict[str, Any]]
+        self, implementation_plan: Union[List[Dict[str, Any]], Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Summarize the implementation plan."""
 
-        steps = len(implementation_plan)
+        if isinstance(implementation_plan, dict):
+            steps_data = implementation_plan.get("steps", [])
+        elif isinstance(implementation_plan, list):
+            steps_data = implementation_plan
+        else:
+            steps_data = []
+
+        steps = len(steps_data)
         components: Set[str] = set()
-        for step in implementation_plan:
-            component = step.get("component")
-            if component:
-                components.add(str(component))
+        for step in steps_data:
+            if isinstance(step, dict):
+                component = step.get("component")
+                if component:
+                    components.add(str(component))
 
         if steps > 10:
             complexity = "High"
