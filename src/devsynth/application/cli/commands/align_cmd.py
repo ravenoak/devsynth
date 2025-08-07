@@ -7,11 +7,13 @@ This module provides functionality to check alignment between SDLC artifacts.
 import os
 import re
 from typing import Dict, List, Optional, Set
+
 from rich.console import Console
 from rich.table import Table
-from devsynth.logging_setup import DevSynthLogger
+
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -249,6 +251,7 @@ def display_issues(issues: List[Dict], *, bridge: UXBridge = bridge) -> None:
 def align_cmd(
     path: str = ".",
     verbose: bool = False,
+    quiet: bool = False,
     output: Optional[str] = None,
     *,
     bridge: Optional[UXBridge] = None,
@@ -264,6 +267,8 @@ def align_cmd(
         output: Path to output file for alignment report
     """
     ux_bridge = bridge or globals()["bridge"]
+    # Quiet flag is accepted for CLI compatibility but currently unused
+    _ = quiet
     try:
         ux_bridge.print("[bold]Checking alignment between SDLC artifacts...[/bold]")
 
