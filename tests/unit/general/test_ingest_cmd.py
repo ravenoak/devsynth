@@ -13,6 +13,27 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
+# Stub optional dependencies to allow direct import of ingest_cmd without
+# requiring the full runtime stack.
+import types
+
+sys.modules.setdefault("langgraph", types.ModuleType("langgraph"))
+sys.modules.setdefault("langgraph.checkpoint", types.ModuleType("langgraph.checkpoint"))
+_checkpoint_base = types.ModuleType("langgraph.checkpoint.base")
+setattr(_checkpoint_base, "BaseCheckpointSaver", object)
+setattr(_checkpoint_base, "empty_checkpoint", object)
+sys.modules["langgraph.checkpoint.base"] = _checkpoint_base
+sys.modules["langgraph.checkpoint"].base = _checkpoint_base
+_graph_module = types.ModuleType("langgraph.graph")
+setattr(_graph_module, "END", object())
+
+class _DummyStateGraph:  # pragma: no cover - simple placeholder
+    def __init__(self, *args, **kwargs):
+        pass
+
+_graph_module.StateGraph = _DummyStateGraph
+sys.modules["langgraph.graph"] = _graph_module
+
 from devsynth.application.cli.ingest_cmd import (
     differentiate_phase,
     expand_phase,
@@ -150,6 +171,36 @@ class TestIngestCmd:
         mock_ingestion.assert_called_once()
         _, kwargs = mock_ingestion.call_args
         assert kwargs.get("auto_phase_transitions") is False
+
+    def test_ingest_cmd_non_interactive_flag_sets_env(
+        self,
+        mock_bridge,
+        mock_validate_manifest,
+        mock_load_manifest,
+        mock_ingestion,
+    ):
+        """Flag disables prompts by setting DEVSYNTH_NONINTERACTIVE."""
+
+        with patch.dict(os.environ, {}, clear=True):
+            ingest_cmd(non_interactive=True, bridge=mock_bridge)
+            assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
+
+    def test_ingest_cmd_env_var_enables_non_interactive(
+        self,
+        mock_bridge,
+        mock_validate_manifest,
+        mock_load_manifest,
+        mock_ingestion,
+    ):
+        """Environment variable triggers non-interactive mode."""
+
+        with patch.dict(
+            os.environ,
+            {"DEVSYNTH_INGEST_NONINTERACTIVE": "1"},
+            clear=True,
+        ):
+            ingest_cmd(bridge=mock_bridge)
+            assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
 
     def test_ingest_cmd_manifest_error_raises_error(
         self, mock_bridge, mock_validate_manifest
