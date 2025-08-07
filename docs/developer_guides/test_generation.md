@@ -1,0 +1,35 @@
+---
+last_reviewed: "2025-08-17"
+status: draft
+tags:
+  - testing
+  - workflow
+  - automation
+title: Test Generation Review Workflow
+version: "0.1.0-alpha.1"
+---
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Generation Review Workflow
+</div>
+
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Generation Review Workflow
+</div>
+
+# Test Generation Review Workflow
+
+## Overview
+
+This guide describes how automatically generated tests should be reviewed and incorporated into the codebase.
+
+## Workflow
+
+1. **Generate tests** – run the test agent or related tooling to create initial tests.
+2. **Scaffold integration tests** – use the integration test scaffolder to create placeholder files when coverage is missing.
+3. **Manual review** – examine generated tests for correctness and completeness.
+4. **Replace placeholders** – implement real assertions and remove `assert False` markers.
+5. **Submit for review** – open a pull request and follow cross-functional review guidelines.
+
+## Edge Case Templates
+
+Edge case prompt templates live in `src/devsynth/application/prompts/templates/test_generation/`. Use these templates to guide the agent when generating tests for boundary values and error conditions.

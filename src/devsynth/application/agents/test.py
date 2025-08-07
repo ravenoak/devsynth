@@ -3,10 +3,11 @@ Test agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
+from .base import BaseAgent
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -18,6 +19,30 @@ class TestAgent(BaseAgent):
     # Avoid pytest collecting this agent class as a test case
     __test__ = False
 
+    def scaffold_integration_tests(self, test_names: List[str]) -> Dict[str, str]:
+        """Create placeholder integration test modules.
+
+        Args:
+            test_names: List of base names for integration tests.
+
+        Returns:
+            Dictionary mapping filenames to placeholder test content.
+        """
+        template = (
+            '"""Placeholder integration test for {name}."""\n\n'
+            "def test_{name}():\n"
+            '    """TODO: implement integration test for {name}."""\n'
+            '    assert False, "Integration test not yet implemented"\n'
+        )
+
+        placeholders: Dict[str, str] = {}
+        names = test_names or ["placeholder"]
+        for name in names:
+            safe_name = name.strip().lower().replace(" ", "_")
+            filename = f"test_{safe_name}.py"
+            placeholders[filename] = template.format(name=safe_name)
+        return placeholders
+
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce tests."""
         # Get role-specific prompt
@@ -26,15 +51,15 @@ class TestAgent(BaseAgent):
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
-        
+
         You are a testing expert. Your task is to create comprehensive tests.
-        
+
         Project context:
         {inputs.get('context', '')}
-        
+
         Specifications:
         {inputs.get('specifications', '')}
-        
+
         Create comprehensive tests with the following sections:
         1. BDD feature files
         2. Unit tests
@@ -45,6 +70,10 @@ class TestAgent(BaseAgent):
 
         # Generate the tests using the LLM port
         tests = self.generate_text(prompt)
+
+        # Scaffold placeholder integration tests if names are provided
+        integration_names = inputs.get("integration_test_names", [])
+        integration_tests = self.scaffold_integration_tests(integration_names)
 
         # Create a WSDE with the tests
         test_wsde = None
@@ -66,6 +95,7 @@ class TestAgent(BaseAgent):
             "wsde": test_wsde,
             "agent": self.name,
             "role": self.current_role,
+            "integration_tests": integration_tests,
         }
 
     def get_capabilities(self) -> List[str]:
