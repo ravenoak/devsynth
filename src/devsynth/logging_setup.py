@@ -5,15 +5,15 @@ This module provides a centralized logging configuration with structured logging
 capabilities, ensuring consistent error reporting across the application.
 """
 
-import os
-import sys
 import json
 import logging
+import os
+import sys
 import traceback
+from contextvars import ContextVar
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, Union, List
-from contextvars import ContextVar
+from typing import Any, Dict, List, Optional, Union
 
 # We'll import DevSynthError later to avoid circular imports
 
@@ -384,10 +384,35 @@ class DevSynthLogger:
             exc = (exc.__class__, exc, exc.__traceback__)
 
         if kwargs:
+            RESERVED = {
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "message",
+                "asctime",
+            }
+            safe_kwargs = {k: v for k, v in kwargs.items() if k not in RESERVED}
             if extra is None:
-                extra = kwargs
+                extra = safe_kwargs
             else:
-                extra.update(kwargs)
+                extra.update(safe_kwargs)
 
         log_kwargs: dict[str, Any] = {"exc_info": exc, "extra": extra}
         if stack_info is not None:

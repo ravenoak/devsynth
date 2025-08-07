@@ -2,23 +2,34 @@
 CLI commands for requirements management.
 """
 
-import logging
-import uuid
 import json
+import logging
 import os
+import uuid
+from pathlib import Path
 from typing import List, Optional, Union
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
 
+from devsynth.adapters.requirements.cli_chat import CLIChatAdapter
+from devsynth.adapters.requirements.console_notification import (
+    ConsoleNotificationAdapter,
+)
+from devsynth.adapters.requirements.memory_repository import (
+    InMemoryChangeRepository,
+    InMemoryChatRepository,
+    InMemoryDialecticalReasoningRepository,
+    InMemoryImpactAssessmentRepository,
+    InMemoryRequirementRepository,
+)
 from devsynth.application.requirements.dialectical_reasoner import (
     DialecticalReasonerService,
 )
 from devsynth.application.requirements.requirement_service import RequirementService
+from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import (
     ChangeType,
     Requirement,
@@ -27,17 +38,8 @@ from devsynth.domain.models.requirement import (
     RequirementStatus,
     RequirementType,
 )
-from devsynth.adapters.requirements.cli_chat import CLIChatAdapter
-from devsynth.adapters.requirements.console_notification import (
-    ConsoleNotificationAdapter,
-)
-from devsynth.adapters.requirements.memory_repository import (
-    InMemoryChatRepository,
-    InMemoryChangeRepository,
-    InMemoryDialecticalReasoningRepository,
-    InMemoryImpactAssessmentRepository,
-    InMemoryRequirementRepository,
-)
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 from devsynth.ports.llm_port import LLMPort
 
 # When running automated tests, DEVSYNTH_NONINTERACTIVE may be set to disable
@@ -67,6 +69,7 @@ def main(
 
     global NON_INTERACTIVE
     NON_INTERACTIVE = non_interactive
+
 
 # Console for rich output
 bridge: UXBridge = CLIUXBridge()
@@ -909,10 +912,13 @@ def wizard_cmd(
         ],
     }
 
-    with open(output_file, "w", encoding="utf-8") as f:
+    path = Path(output_file)
+    out_dir = ensure_path_exists(str(path.parent), create=True)
+    output_path = Path(out_dir) / path.name
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
 
-    bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")
+    bridge.display_result(f"[green]Requirements saved to {output_path}[/green]")
 
 
 @requirements_app.command("gather")
