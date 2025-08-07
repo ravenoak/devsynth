@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-07"
 status: published
 tags:
 
@@ -10,6 +10,7 @@ tags:
 
 title: Security Policy
 version: "0.1.0-alpha.1"
+review_cadence: quarterly
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Security Policy
@@ -22,6 +23,10 @@ version: "0.1.0-alpha.1"
 # Security Policy
 
 This policy outlines security design principles and operational guidelines for DevSynth.
+
+## Review Cadence
+
+This policy is reviewed quarterly by the DevSynth team to ensure it remains current and effective.
 
 ## Design Guidelines
 
