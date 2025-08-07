@@ -8,133 +8,133 @@ ensuring backward compatibility.
 This is intended to eventually replace the monolithic wsde.py module.
 """
 
-from typing import Any, Dict, List, Optional, Callable, Iterable
-from datetime import datetime
 import re
+from datetime import datetime
+from typing import Any, Callable, Dict, Iterable, List, Optional
 from uuid import uuid4
 
-from devsynth.methodology.base import Phase
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.exceptions import DevSynthError
-
-# Import from specialized modules
-from devsynth.domain.models.wsde_base import WSDE, WSDETeam
-from devsynth.domain.models.wsde import WSDETeam as LegacyWSDETeam
-from devsynth.domain.models.wsde_roles import (
-    assign_roles,
-    assign_roles_for_phase,
-    dynamic_role_reassignment,
-    _validate_role_mapping,
-    _auto_assign_roles,
-    get_role_map,
-    _assign_roles_for_edrr_phase,
-)
-from devsynth.domain.models.wsde_voting import (
-    vote_on_critical_decision,
-    _apply_majority_voting,
-    _handle_tied_vote,
-    _apply_weighted_voting,
-    _record_voting_history,
-    consensus_vote,
-    build_consensus,
-)
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
-from devsynth.domain.models.wsde_dialectical import (
-    apply_dialectical_reasoning,
-    _generate_antithesis,
-    _generate_synthesis,
-    _categorize_critiques_by_domain,
-    _identify_domain_conflicts,
-    _prioritize_critiques,
-    _calculate_priority_score,
-    _resolve_code_improvement_conflict,
-    _resolve_content_improvement_conflict,
-    _check_code_standards_compliance,
-    _check_content_standards_compliance,
-    _generate_detailed_synthesis_reasoning,
-)
-from devsynth.domain.models.wsde_security_checks import (
-    _check_pep8_compliance,
-    _check_security_best_practices,
-    _balance_security_and_performance,
-    _balance_security_and_usability,
-    _balance_performance_and_maintainability,
-)
+from devsynth.domain.models.wsde import WSDETeam as LegacyWSDETeam
+
+# Import from specialized modules
+from devsynth.domain.models.wsde_base import WSDE, WSDETeam
 from devsynth.domain.models.wsde_code_improvements import (
+    _improve_clarity,
     _improve_credentials,
     _improve_error_handling,
     _improve_input_validation,
-    _improve_security,
     _improve_performance,
     _improve_readability,
-    _improve_clarity,
-    _improve_with_examples,
+    _improve_security,
     _improve_structure,
+    _improve_with_examples,
 )
-from devsynth.domain.models.wsde_knowledge import (
-    apply_dialectical_reasoning_with_knowledge_graph,
-    _get_task_id,
-    _generate_antithesis_with_knowledge_graph,
-    _generate_synthesis_with_knowledge_graph,
-    _generate_evaluation_with_knowledge_graph,
-    apply_enhanced_dialectical_reasoning_with_knowledge,
-    _identify_relevant_knowledge,
-    _generate_enhanced_antithesis_with_knowledge,
-    _generate_enhanced_synthesis_with_standards,
-    _generate_evaluation_with_compliance,
+from devsynth.domain.models.wsde_context_driven_leadership import (
+    dynamic_role_reassignment_enhanced,
+    enhanced_calculate_expertise_score,
+    enhanced_calculate_phase_expertise_score,
+    enhanced_select_primus_by_expertise,
 )
-from devsynth.domain.models.wsde_multidisciplinary import (
-    apply_multi_disciplinary_dialectical_reasoning,
-    _gather_disciplinary_perspectives,
-    _determine_agent_discipline,
-    _solution_addresses_item,
-    _identify_perspective_conflicts,
-    _generate_multi_disciplinary_synthesis,
-    _generate_multi_disciplinary_evaluation,
+from devsynth.domain.models.wsde_decision_making import (
+    _calculate_idea_similarity,
+    _check_completeness,
+    _check_consistency,
+    _check_security,
+    _check_testability,
+    _optimize_for_maintainability,
+    _optimize_for_performance,
+    _optimize_for_security,
+    _topological_sort_steps,
+    analyze_trade_offs,
+    create_comparison_matrix,
+    create_implementation_plan,
+    elaborate_details,
+    evaluate_options,
+    formulate_decision_criteria,
+    generate_diverse_ideas,
+    optimize_implementation,
+    perform_quality_assurance,
+    select_best_option,
+)
+from devsynth.domain.models.wsde_dialectical import (
+    _calculate_priority_score,
+    _categorize_critiques_by_domain,
+    _check_code_standards_compliance,
+    _check_content_standards_compliance,
+    _generate_antithesis,
+    _generate_detailed_synthesis_reasoning,
+    _generate_synthesis,
+    _identify_domain_conflicts,
+    _prioritize_critiques,
+    _resolve_code_improvement_conflict,
+    _resolve_content_improvement_conflict,
+    apply_dialectical_reasoning,
 )
 from devsynth.domain.models.wsde_enhanced_dialectical import (
-    apply_enhanced_dialectical_reasoning,
-    apply_enhanced_dialectical_reasoning_multi,
-    _identify_thesis,
     _generate_enhanced_antithesis,
     _generate_enhanced_synthesis,
     _generate_evaluation,
+    _identify_thesis,
+    apply_enhanced_dialectical_reasoning,
+    apply_enhanced_dialectical_reasoning_multi,
+)
+from devsynth.domain.models.wsde_knowledge import (
+    _generate_antithesis_with_knowledge_graph,
+    _generate_enhanced_antithesis_with_knowledge,
+    _generate_enhanced_synthesis_with_standards,
+    _generate_evaluation_with_compliance,
+    _generate_evaluation_with_knowledge_graph,
+    _generate_synthesis_with_knowledge_graph,
+    _get_task_id,
+    _identify_relevant_knowledge,
+    apply_dialectical_reasoning_with_knowledge_graph,
+    apply_enhanced_dialectical_reasoning_with_knowledge,
+)
+from devsynth.domain.models.wsde_multidisciplinary import (
+    _determine_agent_discipline,
+    _gather_disciplinary_perspectives,
+    _generate_multi_disciplinary_evaluation,
+    _generate_multi_disciplinary_synthesis,
+    _identify_perspective_conflicts,
+    _solution_addresses_item,
+    apply_multi_disciplinary_dialectical_reasoning,
+)
+from devsynth.domain.models.wsde_roles import (
+    _assign_roles_for_edrr_phase,
+    _auto_assign_roles,
+    _validate_role_mapping,
+    assign_roles,
+    assign_roles_for_phase,
+    dynamic_role_reassignment,
+    get_role_map,
+)
+from devsynth.domain.models.wsde_security_checks import (
+    _balance_performance_and_maintainability,
+    _balance_security_and_performance,
+    _balance_security_and_usability,
+    _check_pep8_compliance,
+    _check_security_best_practices,
 )
 from devsynth.domain.models.wsde_solution_analysis import (
     _analyze_solution,
     _generate_comparative_analysis,
-    _generate_multi_solution_synthesis,
     _generate_comparative_evaluation,
+    _generate_multi_solution_synthesis,
 )
-from devsynth.domain.models.wsde_decision_making import (
-    generate_diverse_ideas,
-    _calculate_idea_similarity,
-    create_comparison_matrix,
-    evaluate_options,
-    analyze_trade_offs,
-    formulate_decision_criteria,
-    select_best_option,
-    elaborate_details,
-    create_implementation_plan,
-    _topological_sort_steps,
-    optimize_implementation,
-    _optimize_for_performance,
-    _optimize_for_maintainability,
-    _optimize_for_security,
-    perform_quality_assurance,
-    _check_completeness,
-    _check_consistency,
-    _check_testability,
-    _check_security,
+from devsynth.domain.models.wsde_voting import (
+    _apply_majority_voting,
+    _apply_weighted_voting,
+    _handle_tied_vote,
+    _record_voting_history,
+    build_consensus,
+    consensus_vote,
+    vote_on_critical_decision,
 )
-from devsynth.domain.models.wsde_context_driven_leadership import (
-    enhanced_calculate_expertise_score,
-    enhanced_calculate_phase_expertise_score,
-    enhanced_select_primus_by_expertise,
-    dynamic_role_reassignment_enhanced,
-)
+from devsynth.exceptions import DevSynthError
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
 
@@ -358,6 +358,10 @@ def request_peer_review(
     if getattr(self, "memory_manager", None):
         try:
             review.store_in_memory(immediate_sync=True)
+            try:
+                self.memory_manager.flush_updates()
+            except Exception:
+                self.logger.debug("Peer review memory flush failed", exc_info=True)
         except Exception:
             pass
     if not hasattr(self, "peer_reviews"):
@@ -377,6 +381,11 @@ def conduct_peer_review(
     review.collect_reviews()
     # Finalize review to aggregate feedback and persist with synchronization
     result = review.finalize()
+    if getattr(self, "memory_manager", None):
+        try:
+            self.memory_manager.flush_updates()
+        except Exception:
+            self.logger.debug("Peer review finalize flush failed", exc_info=True)
     feedback = result.get("feedback", {})
     return {"review": review, "feedback": feedback}
 

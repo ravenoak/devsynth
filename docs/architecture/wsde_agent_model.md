@@ -178,6 +178,15 @@ When conflicts arise, the team follows this process:
 
 The WSDE model integrates seamlessly with the EDRR (Expand, Differentiate, Refine, Retrospect) framework:
 
+### Memory Synchronization Hooks
+
+To maintain consistent state across components, the lightweight
+`EDRRCoordinator` and the WSDE facade register synchronization hooks with the
+central `MemoryManager`. After dialectical reasoning steps or peer review
+operations, pending updates are flushed and hooks are invoked so downstream
+adapters remain in sync. This ensures that artifacts created in one phase are
+immediately available to the others.
+
 ### Expand Phase
 
 - **Architect Agent**: Proposes architectural approaches
