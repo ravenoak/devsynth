@@ -11,7 +11,25 @@ import logging
 from functools import wraps
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, cast
 
+from prometheus_client import Counter
+
 from devsynth.logging_setup import DevSynthLogger
+
+__all__ = [
+    "RetryError",
+    "retry_with_backoff",
+    "retry_operation",
+    "RetryConfig",
+    "DEFAULT_RETRY_CONFIG",
+    "QUICK_RETRY_CONFIG",
+    "PERSISTENT_RETRY_CONFIG",
+    "NETWORK_RETRY_CONFIG",
+    "MEMORY_RETRY_CONFIG",
+    "retry_event_counter",
+    "retry_function_counter",
+    "retry_error_counter",
+    "reset_memory_retry_metrics",
+]
 
 T = TypeVar('T')
 
@@ -31,6 +49,30 @@ class RetryError(Exception):
         self.last_exception = last_exception
 
 
+retry_event_counter = Counter(
+    "devsynth_memory_retry_events_total",
+    "Retry events for memory operations",
+    ["status"],
+)
+retry_function_counter = Counter(
+    "devsynth_memory_retry_function_total",
+    "Memory retry attempts per function",
+    ["function"],
+)
+retry_error_counter = Counter(
+    "devsynth_memory_retry_errors_total",
+    "Memory retry events per exception type",
+    ["error_type"],
+)
+
+
+def reset_memory_retry_metrics() -> None:
+    """Reset Prometheus counters for memory retries."""
+    retry_event_counter.clear()
+    retry_function_counter.clear()
+    retry_error_counter.clear()
+
+
 def retry_with_backoff(
     max_retries: int = 3,
     initial_backoff: float = 1.0,
@@ -38,7 +80,9 @@ def retry_with_backoff(
     max_backoff: float = 60.0,
     jitter: bool = True,
     exceptions_to_retry: Optional[List[Type[Exception]]] = None,
-    logger: Optional[logging.Logger] = None
+    logger: Optional[logging.Logger] = None,
+    condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    track_metrics: bool = True,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -60,59 +104,90 @@ def retry_with_backoff(
         def wrapper(*args: Any, **kwargs: Any) -> T:
             nonlocal logger
             logger = logger or DevSynthLogger(__name__)
-            
+
             retry_count = 0
             backoff = initial_backoff
             last_exception = None
-            
+            callbacks = condition_callbacks or []
+
             while retry_count <= max_retries:
                 try:
                     if retry_count > 0:
                         logger.info(
                             f"Retry attempt {retry_count}/{max_retries} for {func.__name__}"
                         )
-                    return func(*args, **kwargs)
+                    result = func(*args, **kwargs)
+                    if track_metrics:
+                        retry_event_counter.labels(status="success").inc()
+                    return result
                 except Exception as e:
                     # Check if we should retry this exception
-                    if (exceptions_to_retry is not None and 
+                    if (exceptions_to_retry is not None and
                             not any(isinstance(e, exc) for exc in exceptions_to_retry)):
                         logger.warning(
                             f"Exception {type(e).__name__} not in retry list, re-raising"
                         )
+                        if track_metrics:
+                            retry_event_counter.labels(status="abort").inc()
+                            retry_error_counter.labels(
+                                error_type=type(e).__name__
+                            ).inc()
                         raise
-                    
+
+                    if callbacks and not all(cb(e, retry_count) for cb in callbacks):
+                        if track_metrics:
+                            retry_event_counter.labels(status="abort").inc()
+                            retry_error_counter.labels(
+                                error_type=type(e).__name__
+                            ).inc()
+                        raise
+
                     last_exception = e
                     retry_count += 1
-                    
+
                     if retry_count > max_retries:
                         logger.error(
                             f"Max retries ({max_retries}) exceeded for {func.__name__}"
                         )
+                        if track_metrics:
+                            retry_event_counter.labels(status="failure").inc()
+                            retry_error_counter.labels(
+                                error_type=type(e).__name__
+                            ).inc()
                         break
-                    
+
                     # Calculate backoff time with jitter
                     actual_backoff = min(backoff, max_backoff)
                     if jitter:
                         # Add random jitter between 0% and 25%
                         jitter_amount = random.uniform(0, 0.25 * actual_backoff)
                         actual_backoff += jitter_amount
-                    
+
                     logger.warning(
                         f"Attempt {retry_count} failed with {type(e).__name__}: {e}. "
                         f"Retrying in {actual_backoff:.2f} seconds..."
                     )
-                    
+                    if track_metrics:
+                        retry_event_counter.labels(status="attempt").inc()
+                        retry_function_counter.labels(function=func.__name__).inc()
+                        retry_error_counter.labels(error_type=type(e).__name__).inc()
+
                     # Wait before retrying
                     time.sleep(actual_backoff)
-                    
+
                     # Increase backoff for next attempt
                     backoff *= backoff_multiplier
-            
+
             # If we get here, all retries failed
             error_message = (
                 f"All {max_retries} retry attempts failed for {func.__name__}"
             )
             logger.error(error_message)
+            if track_metrics and last_exception is not None:
+                retry_event_counter.labels(status="failure").inc()
+                retry_error_counter.labels(
+                    error_type=type(last_exception).__name__
+                ).inc()
             raise RetryError(error_message, last_exception)
         
         return cast(Callable[..., T], wrapper)
@@ -129,88 +204,25 @@ def retry_operation(
     jitter: bool = True,
     exceptions_to_retry: Optional[List[Type[Exception]]] = None,
     logger: Optional[logging.Logger] = None,
+    condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    track_metrics: bool = True,
     *args: Any,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> T:
-    """
-    Retry an operation with exponential backoff.
-    
-    This function provides the same functionality as the retry_with_backoff decorator
-    but can be used directly with any function.
-    
-    Args:
-        operation: Function to retry
-        max_retries: Maximum number of retry attempts
-        initial_backoff: Initial backoff time in seconds
-        backoff_multiplier: Multiplier for backoff time after each retry
-        max_backoff: Maximum backoff time in seconds
-        jitter: Whether to add random jitter to backoff time
-        exceptions_to_retry: List of exception types to retry on (defaults to all exceptions)
-        logger: Optional logger instance
-        *args: Arguments to pass to the operation
-        **kwargs: Keyword arguments to pass to the operation
-        
-    Returns:
-        Result of the operation
-        
-    Raises:
-        RetryError: If all retry attempts fail
-    """
-    logger = logger or DevSynthLogger(__name__)
-    
-    retry_count = 0
-    backoff = initial_backoff
-    last_exception = None
-    
-    while retry_count <= max_retries:
-        try:
-            if retry_count > 0:
-                logger.info(
-                    f"Retry attempt {retry_count}/{max_retries} for {operation.__name__}"
-                )
-            return operation(*args, **kwargs)
-        except Exception as e:
-            # Check if we should retry this exception
-            if (exceptions_to_retry is not None and 
-                    not any(isinstance(e, exc) for exc in exceptions_to_retry)):
-                logger.warning(
-                    f"Exception {type(e).__name__} not in retry list, re-raising"
-                )
-                raise
-            
-            last_exception = e
-            retry_count += 1
-            
-            if retry_count > max_retries:
-                logger.error(
-                    f"Max retries ({max_retries}) exceeded for {operation.__name__}"
-                )
-                break
-            
-            # Calculate backoff time with jitter
-            actual_backoff = min(backoff, max_backoff)
-            if jitter:
-                # Add random jitter between 0% and 25%
-                jitter_amount = random.uniform(0, 0.25 * actual_backoff)
-                actual_backoff += jitter_amount
-            
-            logger.warning(
-                f"Attempt {retry_count} failed with {type(e).__name__}: {e}. "
-                f"Retrying in {actual_backoff:.2f} seconds..."
-            )
-            
-            # Wait before retrying
-            time.sleep(actual_backoff)
-            
-            # Increase backoff for next attempt
-            backoff *= backoff_multiplier
-    
-    # If we get here, all retries failed
-    error_message = (
-        f"All {max_retries} retry attempts failed for {operation.__name__}"
-    )
-    logger.error(error_message)
-    raise RetryError(error_message, last_exception)
+    """Retry an operation with exponential backoff."""
+
+    decorated = retry_with_backoff(
+        max_retries=max_retries,
+        initial_backoff=initial_backoff,
+        backoff_multiplier=backoff_multiplier,
+        max_backoff=max_backoff,
+        jitter=jitter,
+        exceptions_to_retry=exceptions_to_retry,
+        logger=logger,
+        condition_callbacks=condition_callbacks,
+        track_metrics=track_metrics,
+    )(operation)
+    return decorated(*args, **kwargs)
 
 
 class RetryConfig:
@@ -223,7 +235,8 @@ class RetryConfig:
         backoff_multiplier: float = 2.0,
         max_backoff: float = 60.0,
         jitter: bool = True,
-        exceptions_to_retry: Optional[List[Type[Exception]]] = None
+        exceptions_to_retry: Optional[List[Type[Exception]]] = None,
+        condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
     ):
         """
         Initialize retry configuration.
@@ -242,6 +255,7 @@ class RetryConfig:
         self.max_backoff = max_backoff
         self.jitter = jitter
         self.exceptions_to_retry = exceptions_to_retry
+        self.condition_callbacks = condition_callbacks
 
 
 # Default retry configurations for different types of operations
@@ -333,5 +347,6 @@ def with_retry(
         backoff_multiplier=config.backoff_multiplier,
         max_backoff=config.max_backoff,
         jitter=config.jitter,
-        exceptions_to_retry=config.exceptions_to_retry
+        exceptions_to_retry=config.exceptions_to_retry,
+        condition_callbacks=config.condition_callbacks,
     )
