@@ -1,6 +1,7 @@
 import os
 import sys
 from types import ModuleType
+
 import yaml
 
 # Stub optional heavy dependencies for test isolation
@@ -30,11 +31,12 @@ for _name in [
 from devsynth.application.requirements.interactions import gather_requirements
 
 
-def test_gather_updates_config_succeeds(tmp_path):
+def test_gather_updates_config_succeeds(tmp_path, monkeypatch):
     """Test that gather updates config succeeds.
 
     ReqID: N/A"""
     os.chdir(tmp_path)
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
     os.makedirs(".devsynth", exist_ok=True)
     with open(".devsynth/project.yaml", "w", encoding="utf-8") as f:
         f.write("{}")
