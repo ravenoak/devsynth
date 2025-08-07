@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .commands.align_cmd import align_cmd
 from .commands.code_cmd import code_cmd
 from .commands.completion_cmd import completion_cmd
 from .commands.config_cmd import config_app, config_cmd, enable_feature_cmd
@@ -12,6 +13,7 @@ from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.gather_cmd import gather_cmd
 from .commands.init_cmd import init_cmd
 from .commands.inspect_cmd import inspect_cmd
+from .commands.inspect_config_cmd import inspect_config_cmd
 from .commands.refactor_cmd import refactor_cmd
 from .commands.run_pipeline_cmd import run_pipeline_cmd
 from .commands.run_tests_cmd import run_tests_cmd
@@ -31,6 +33,8 @@ COMMAND_REGISTRY = {
     "gather": gather_cmd,
     "refactor": refactor_cmd,
     "inspect": inspect_cmd,
+    "inspect-config": inspect_config_cmd,
+    "align": align_cmd,
     "webapp": webapp_cmd,
     "serve": serve_cmd,
     "dbschema": dbschema_cmd,
@@ -54,6 +58,8 @@ __all__ = [
     "dpg_cmd",
     "gather_cmd",
     "inspect_cmd",
+    "inspect_config_cmd",
+    "align_cmd",
     "refactor_cmd",
     "run_pipeline_cmd",
     "serve_cmd",

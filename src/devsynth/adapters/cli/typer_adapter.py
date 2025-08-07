@@ -1,4 +1,3 @@
-import inspect
 from typing import Any, Dict, List, Optional
 
 import click
@@ -9,54 +8,50 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
-from devsynth.application.cli import (
-    code_cmd,
-    config_app,
-    config_cmd,
-    dbschema_cmd,
-    doctor_cmd,
-    dpg_cmd,
-    edrr_cycle_cmd,
-    enable_feature_cmd,
-    gather_cmd,
-    init_cmd,
-    inspect_cmd,
-    inspect_code_cmd,
-    refactor_cmd,
-    run_pipeline_cmd,
-    serve_cmd,
-    spec_cmd,
-    test_cmd,
-    webapp_cmd,
-    webui_cmd,
-)
-from devsynth.application.cli.apispec import apispec_cmd
-from devsynth.application.cli.commands.align_cmd import align_cmd
-from devsynth.application.cli.commands.alignment_metrics_cmd import (
-    alignment_metrics_cmd,
-)
-from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
-from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
-from devsynth.application.cli.commands.mvu_init_cmd import mvu_init_cmd
-from devsynth.application.cli.commands.mvu_lint_cmd import mvu_lint_cmd
-from devsynth.application.cli.commands.mvu_report_cmd import mvu_report_cmd
-from devsynth.application.cli.commands.mvu_rewrite_cmd import mvu_rewrite_cmd
-from devsynth.application.cli.commands.mvuu_dashboard_cmd import mvuu_dashboard_cmd
-from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
-from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
-from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
-from devsynth.application.cli.commands.validate_manifest_cmd import (
-    validate_manifest_cmd,
-)
-from devsynth.application.cli.commands.validate_metadata_cmd import (
-    validate_metadata_cmd,
-)
-from devsynth.application.cli.ingest_cmd import ingest_cmd
+from devsynth.application.cli import config_app
+from devsynth.application.cli.command_registry import COMMAND_REGISTRY
 from devsynth.application.cli.requirements_commands import requirements_app
 from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
+
+
+def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None:
+    COMMAND_REGISTRY["init"](wizard=wizard, bridge=bridge)
+
+
+def spec_cmd(
+    requirements_file: str = "requirements.md", *, bridge: Optional[UXBridge] = None
+) -> None:
+    from devsynth.application.cli import cli_commands
+    from devsynth.application.cli.commands import spec_cmd as _spec_module
+
+    _spec_module.generate_specs = cli_commands.generate_specs
+    COMMAND_REGISTRY["spec"](requirements_file=requirements_file, bridge=bridge)
+
+
+def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) -> None:
+    COMMAND_REGISTRY["test"](spec_file=spec_file, bridge=bridge)
+
+
+def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+    COMMAND_REGISTRY["code"](bridge=bridge)
+
+
+def run_pipeline_cmd(
+    *,
+    target: Optional[str] = None,
+    report: Optional[str] = None,
+    bridge: Optional[UXBridge] = None,
+) -> None:
+    COMMAND_REGISTRY["run-pipeline"](target=target, report=report, bridge=bridge)
+
+
+def inspect_config_cmd(
+    path: Optional[str] = None, update: bool = False, prune: bool = False
+) -> None:
+    COMMAND_REGISTRY["inspect-config"](path=path, update=update, prune=prune)
 
 
 def _patch_typer_types() -> None:
@@ -189,7 +184,6 @@ class CommandHelp:
 def build_app() -> typer.Typer:
     """Create a Typer application with all commands registered."""
     _patch_typer_types()
-    # Define enhanced help text for the main app
     main_help = CommandHelp(
         summary="DevSynth CLI - automate iterative 'Expand, Differentiate, Refine, Retrace' workflows.",
         description=(
@@ -224,301 +218,19 @@ def build_app() -> typer.Typer:
         ],
     )
 
-    # Create the Typer app with enhanced help
     app = typer.Typer(
         help=main_help.format(),
         context_settings={"help_option_names": ["--help", "-h"]},
     )
 
-    # Mount the requirements sub-app
     app.add_typer(requirements_app, name="requirements")
-
-    # Register commands from the application layer with enhanced help text
-
-    # Init command
-    init_help = CommandHelp(
-        summary="Initialize or onboard a project",
-        description=(
-            "This command sets up a new DevSynth project with the specified configuration. "
-            "It creates a configuration file in the project directory and initializes "
-            "the necessary directory structure. You can use the interactive wizard for "
-            "a guided setup experience."
-        ),
-        examples=[
-            {
-                "command": "devsynth init",
-                "description": "Initialize a project with default settings in the current directory",
-            },
-            {
-                "command": "devsynth init --wizard",
-                "description": "Start the interactive setup wizard for guided project initialization",
-            },
-        ],
-        notes=[
-            "If a project is already initialized in the current directory, the command will notify you.",
-            "The wizard mode provides a step-by-step guide to configure your project.",
-            "Configuration includes project language, goals, memory backend, and feature flags.",
-        ],
-        options={"--wizard": "Enable interactive setup wizard mode"},
-    )
-    app.command(
-        name="init",
-        help=init_help.format(),
-    )(init_cmd)
-    # Spec command
-    spec_help = CommandHelp(
-        summary="Generate specifications from requirements",
-        description=(
-            "This command analyzes a requirements file and generates detailed specifications. "
-            "It uses natural language processing to understand the requirements and create "
-            "structured specifications that can be used to generate tests. The specifications "
-            "include functional requirements, non-functional requirements, and constraints."
-        ),
-        examples=[
-            {
-                "command": "devsynth spec",
-                "description": "Generate specifications from the default requirements.md file",
-            },
-            {
-                "command": "devsynth spec --requirements-file custom_requirements.md",
-                "description": "Generate specifications from a custom requirements file",
-            },
-        ],
-        notes=[
-            "The requirements file should be in Markdown format.",
-            "The generated specifications will be saved to specs.md by default.",
-            "The command will analyze the requirements for completeness and clarity.",
-            "You can review and edit the generated specifications before proceeding to the next step.",
-        ],
-        options={
-            "--requirements-file": "Path to the requirements file (default: requirements.md)"
-        },
-    )
-    app.command(
-        name="spec",
-        help=spec_help.format(),
-    )(spec_cmd)
-
-    # Test command
-    test_help = CommandHelp(
-        summary="Generate tests from specifications",
-        description=(
-            "This command analyzes a specifications file and generates comprehensive tests. "
-            "It creates test cases that cover the functional requirements, edge cases, and "
-            "error conditions described in the specifications. The tests are designed to "
-            "validate that the implementation meets the requirements."
-        ),
-        examples=[
-            {
-                "command": "devsynth test",
-                "description": "Generate tests from the default specs.md file",
-            },
-            {
-                "command": "devsynth test --spec-file custom_specs.md",
-                "description": "Generate tests from a custom specifications file",
-            },
-        ],
-        notes=[
-            "The specifications file should be in Markdown format.",
-            "The generated tests will be saved to the appropriate test directories.",
-            "The command will generate unit tests, integration tests, and behavior tests as appropriate.",
-            "You can review and edit the generated tests before proceeding to the next step.",
-        ],
-        options={"--spec-file": "Path to the specifications file (default: specs.md)"},
-    )
-    app.command(
-        name="test",
-        help=test_help.format(),
-    )(test_cmd)
-
-    # Code command
-    code_help = CommandHelp(
-        summary="Generate code from tests",
-        description=(
-            "This command analyzes the test files and generates implementation code that "
-            "satisfies the tests. It uses test-driven development principles to create "
-            "code that meets the requirements as expressed in the tests. The generated "
-            "code includes all necessary classes, methods, and functions."
-        ),
-        examples=[
-            {
-                "command": "devsynth code",
-                "description": "Generate code from the existing test files",
-            }
-        ],
-        notes=[
-            "The command will analyze all test files in the project.",
-            "The generated code will be saved to the appropriate source directories.",
-            "The command uses the EDRR methodology to iteratively improve the code.",
-            "You can review and edit the generated code before running the tests.",
-        ],
-    )
-    app.command(name="code", help=code_help.format())(code_cmd)
-    # Run-pipeline command
-    run_pipeline_help = CommandHelp(
-        summary="Execute the generated code and run tests",
-        description=(
-            "This command executes the generated code and runs the specified tests. "
-            "It can run unit tests, integration tests, behavior tests, or all tests. "
-            "The command provides detailed feedback on test execution, including "
-            "pass/fail status, code coverage, and performance metrics."
-        ),
-        examples=[
-            {
-                "command": "devsynth run-pipeline",
-                "description": "Run all tests in the project",
-            },
-            {
-                "command": "devsynth run-pipeline --target unit-tests",
-                "description": "Run only unit tests",
-            },
-            {
-                "command": "devsynth run-pipeline --target integration-tests",
-                "description": "Run only integration tests",
-            },
-            {
-                "command": "devsynth run-pipeline --target behavior-tests",
-                "description": "Run only behavior tests",
-            },
-        ],
-        notes=[
-            "The command will automatically build the project before running tests.",
-            "Test results will be displayed in the console and saved to a report file.",
-            "Failed tests will be highlighted with detailed error information.",
-            "You can use the test results to identify issues and improve the code.",
-        ],
-        options={
-            "--target": "Type of tests to run (unit-tests, integration-tests, behavior-tests, or all)"
-        },
-    )
-    app.command(
-        name="run-pipeline",
-        help=run_pipeline_help.format(),
-    )(run_pipeline_cmd)
-    app.command(
-        name="run-tests",
-        help="Run test suites. Example: devsynth run-tests --target unit-tests",
-    )(run_tests_cmd)
     app.add_typer(config_app, name="config", help="Manage configuration settings")
-    app.command(
-        name="inspect",
-        help=(
-            "Inspect a requirements file or run an interactive analysis. "
-            "Example: devsynth inspect --input reqs.txt"
-        ),
-    )(inspect_cmd)
-    app.command(
-        name="gather",
-        help="Interactive requirements gathering wizard",
-    )(gather_cmd)
-    app.command(
-        name="webapp",
-        help="Generate a web application. Example: devsynth webapp --framework flask",
-    )(webapp_cmd)
-    app.command(
-        name="webui",
-        help="Launch the Streamlit UI. Example: devsynth webui",
-    )(webui_cmd)
-    app.command(
-        name="dpg",
-        help="Launch the Dear PyGUI interface. Example: devsynth dpg",
-    )(dpg_cmd)
-    app.command(
-        name="dbschema",
-        help="Generate a database schema. Example: devsynth dbschema --db-type sqlite",
-    )(dbschema_cmd)
-    if "aliases" in inspect.signature(app.command).parameters:
-        app.command(
-            name="doctor",
-            help="Validate configuration files. Example: devsynth doctor",
-            aliases=["check"],
-        )(doctor_cmd)
-    else:
-        app.command(
-            name="doctor",
-            help="Validate configuration files. Example: devsynth doctor",
-        )(doctor_cmd)
-    app.command(
-        name="refactor",
-        help="Suggest next workflow steps. Example: devsynth refactor",
-    )(refactor_cmd)
-    app.command(
-        name="inspect-code",
-        help=(
-            "Inspect a codebase and report architecture, quality and health "
-            "metrics. Example: devsynth inspect-code --path ./src"
-        ),
-    )(inspect_code_cmd)
-    app.command(
-        name="edrr-cycle",
-        help="Run an EDRR cycle from a manifest file or prompt. Examples: devsynth edrr-cycle --manifest manifest.yaml, devsynth edrr-cycle --prompt 'Improve error handling'",
-    )(edrr_cycle_cmd)
-    app.command(
-        name="align",
-        help="Check SDLC artifact alignment. Example: devsynth align --verbose",
-    )(align_cmd)
-    app.command(
-        name="alignment-metrics",
-        help="Collect alignment metrics. Example: devsynth alignment-metrics",
-    )(alignment_metrics_cmd)
-    app.command(
-        name="inspect-config",
-        help="Inspect project configuration. Example: devsynth inspect-config",
-    )(inspect_config_cmd)
-    app.command(
-        name="validate-manifest",
-        help="Validate project config file. Example: devsynth validate-manifest",
-    )(validate_manifest_cmd)
-    app.command(
-        name="validate-metadata",
-        help="Validate documentation metadata. Example: devsynth validate-metadata --directory docs",
-    )(validate_metadata_cmd)
-    app.command(
-        name="test-metrics",
-        help="Analyze test-first metrics. Example: devsynth test-metrics --days 30",
-    )(test_metrics_cmd)
-    app.command(
-        name="generate-docs",
-        help="Generate API docs. Example: devsynth generate-docs",
-    )(generate_docs_cmd)
-    app.command(
-        name="security-audit",
-        help="Run security checks. Example: devsynth security-audit --skip-owasp",
-    )(security_audit_cmd)
-    app.command(
-        name="ingest",
-        help="Ingest a project. Example: devsynth ingest manifest.yaml",
-    )(ingest_cmd)
-    app.command(
-        name="apispec",
-        help="Generate an API spec. Example: devsynth apispec",
-    )(apispec_cmd)
-    app.command(
-        name="mvuu-dashboard",
-        help="Launch the MVUU traceability dashboard. Example: devsynth mvuu-dashboard",
-    )(mvuu_dashboard_cmd)
-    mvu_app = typer.Typer(help="MVU utilities")
-    mvu_app.command("init", help="Scaffold MVU configuration")(mvu_init_cmd)
-    mvu_app.command(
-        "lint",
-        help=(
-            "Lint commit messages for MVUU compliance.\n\n"
-            "Examples:\n  devsynth mvu lint --range origin/main..HEAD"
-        ),
-    )(mvu_lint_cmd)
-    mvu_app.command(
-        "report",
-        help="Generate MVU traceability reports.",
-    )(mvu_report_cmd)
-    mvu_app.command(
-        "rewrite",
-        help="Rewrite commit history into atomic commits.",
-    )(mvu_rewrite_cmd)
-    app.add_typer(mvu_app, name="mvu")
-    app.command(
-        name="serve",
-        help="Run the DevSynth API server. Example: devsynth serve --port 8080",
-    )(serve_cmd)
+
+    for name, cmd in COMMAND_REGISTRY.items():
+        if name in {"config", "enable-feature"}:
+            continue
+        override = globals().get(f"{name.replace('-', '_')}_cmd", cmd)
+        app.command(name)(override)
 
     @app.callback(invoke_without_command=True)
     def main(ctx: typer.Context):
