@@ -5,30 +5,34 @@ This module tests the functionality of the ingestion module, which implements
 the "Expand, Differentiate, Refine, Retrospect" methodology for project ingestion.
 """
 
-import os
-import pytest
-import tempfile
-import yaml
 import json
+import os
 import sys
+import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+import yaml
+
+from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.ingestion import (
-    Ingestion,
-    ArtifactType,
     ArtifactStatus,
+    ArtifactType,
+    Ingestion,
+    IngestionMetrics,
     IngestionPhase,
     ProjectStructureType,
-    IngestionMetrics,
 )
-from devsynth.exceptions import IngestionError, ManifestError
-from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.faiss_store import FAISSStore
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
-from devsynth.domain.models.memory import MemoryItem, MemoryVector, MemoryType
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.exceptions import IngestionError, ManifestError
 
 
 @pytest.fixture(autouse=True)
@@ -36,6 +40,8 @@ def _non_interactive(monkeypatch):
     """Ensure ingestion runs without interactive prompts."""
 
     monkeypatch.setenv("DEVSYNTH_NONINTERACTIVE", "1")
+    monkeypatch.setenv("DEVSYNTH_AUTO_CONFIRM", "1")
+
 
 @pytest.fixture
 def temp_project_dir():
@@ -79,6 +85,33 @@ def create_project_structure(temp_project_dir):
     (tests_dir / "test_main.py").touch()
     (docs_dir / "README.md").touch()
     return temp_project_dir
+
+
+@patch("devsynth.application.cli.ingest_cmd.validate_manifest")
+@patch("devsynth.application.cli.ingest_cmd.Ingestion")
+def test_ingest_cmd_non_interactive_priority_persists(
+    mock_ingestion,
+    mock_validate,
+    temp_project_dir,
+    create_manifest_file,
+    monkeypatch,
+):
+    """Ingest command saves priority without prompting."""
+
+    mock_instance = MagicMock()
+    mock_instance.run_ingestion.return_value = {"success": True, "metrics": {}}
+    mock_ingestion.return_value = mock_instance
+
+    monkeypatch.chdir(temp_project_dir)
+    ingest_cmd(
+        manifest_path=str(create_manifest_file),
+        yes=True,
+        priority="high",
+        non_interactive=True,
+    )
+
+    cfg = UnifiedConfigLoader.load(temp_project_dir)
+    assert cfg.config.priority == "high"
 
 
 class TestIngestionMetrics:
@@ -562,6 +595,7 @@ def test_kuzu_fallback_to_chromadb(tmp_path, monkeypatch):
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
     monkeypatch.setitem(sys.modules, "kuzu", None)
     import importlib
+
     import devsynth.application.memory.kuzu_store as kuzu_store_module
 
     importlib.reload(kuzu_store_module)
@@ -579,8 +613,8 @@ def test_kuzu_fallback_to_chromadb(tmp_path, monkeypatch):
             }
         )
 
-    from devsynth.application.memory.chromadb_store import ChromaDBStore
     from devsynth.adapters.memory.chroma_db_adapter import ChromaDBAdapter
+    from devsynth.application.memory.chromadb_store import ChromaDBStore
 
     assert isinstance(adapter.memory_store, ChromaDBStore)
     assert isinstance(adapter.vector_store, ChromaDBAdapter)
