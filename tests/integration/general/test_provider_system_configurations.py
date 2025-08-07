@@ -4,22 +4,24 @@ This test verifies that the provider system works correctly with different LLM c
 including different models, parameters, and provider combinations.
 """
 
-import pytest
-import os
-from unittest.mock import patch, MagicMock
-import responses
 import json
+import os
+from unittest.mock import MagicMock, patch
+
+import pytest
+import responses
+
 from devsynth.adapters.provider_system import (
-    get_provider_config,
-    ProviderFactory,
-    OpenAIProvider,
-    LMStudioProvider,
     FallbackProvider,
-    get_provider,
+    LMStudioProvider,
+    OpenAIProvider,
+    ProviderError,
+    ProviderFactory,
+    ProviderType,
     complete,
     embed,
-    ProviderType,
-    ProviderError,
+    get_provider,
+    get_provider_config,
 )
 
 
@@ -119,7 +121,7 @@ class TestProviderConfigurations:
         ReqID: N/A"""
         responses.add(
             responses.POST,
-            "http://127.0.0.1:1234/v1/completions",
+            "http://127.0.0.1:1234/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
@@ -130,7 +132,7 @@ class TestProviderConfigurations:
         responses.reset()
         responses.add(
             responses.POST,
-            "http://custom-endpoint:5678/v1/completions",
+            "http://custom-endpoint:5678/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
@@ -151,7 +153,7 @@ class TestProviderConfigurations:
         ReqID: N/A"""
         responses.add(
             responses.POST,
-            "http://127.0.0.1:1234/v1/completions",
+            "http://127.0.0.1:1234/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
@@ -162,7 +164,7 @@ class TestProviderConfigurations:
         responses.reset()
         responses.add(
             responses.POST,
-            "http://127.0.0.1:1234/v1/completions",
+            "http://127.0.0.1:1234/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
@@ -190,7 +192,7 @@ class TestProviderConfigurations:
         )
         responses.add(
             responses.POST,
-            "http://127.0.0.1:1234/v1/completions",
+            "http://127.0.0.1:1234/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
@@ -217,7 +219,7 @@ class TestProviderConfigurations:
         )
         responses.add(
             responses.POST,
-            "http://127.0.0.1:1234/v1/completions",
+            "http://127.0.0.1:1234/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
@@ -260,7 +262,7 @@ class TestProviderConfigurations:
         responses.reset()
         responses.add(
             responses.POST,
-            "http://127.0.0.1:1234/v1/completions",
+            "http://127.0.0.1:1234/v1/chat/completions",
             json=mock_lm_studio_response,
             status=200,
         )
