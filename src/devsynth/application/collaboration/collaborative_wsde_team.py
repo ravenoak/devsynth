@@ -59,9 +59,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
                 self.memory_manager.register_sync_hook(self._memory_sync_hook)
             except Exception:
                 # Failing to register a hook should not break team initialization
-                self.logger.debug(
-                    "Could not register memory sync hook", exc_info=True
-                )
+                self.logger.debug("Could not register memory sync hook", exc_info=True)
 
         # Initialize attributes for task management
         self.subtasks = {}
@@ -191,6 +189,10 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
             else next(iter(self.memory_manager.adapters))
         )
         self.memory_manager.update_item(primary, item)
+        try:  # Ensure the update is persisted
+            self.memory_manager.flush_updates()
+        except Exception:
+            pass
         return item.id
 
     def _memory_sync_hook(self, item: Optional[MemoryItem]) -> None:
