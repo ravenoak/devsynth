@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-05-25'
-last_reviewed: "2025-08-16"
+last_reviewed: "2025-08-17"
 status: published
 tags:
 
@@ -104,6 +104,15 @@ cp tests/templates/behavior/step_definitions_template.py tests/behavior/steps/te
 
 After copying a template, edit it to replace the placeholder content with your actual test code.
 
+For integration tests the enhanced parser can build file paths dynamically:
+
+```python
+from scripts import enhanced_test_parser as etp
+
+etp.build_test_path("integration", "workflow", component="general")
+# -> "tests/integration/general/test_workflow.py"
+```
+
 ## 5. Template Content
 
 Each template includes:
@@ -153,7 +162,8 @@ strategy and integration requirements:
 1. Revisit each template at least once per quarter to confirm it reflects
    current integration scenarios.
 2. Verify that examples run with the enhanced parser by constructing paths
-   with `build_test_path`.
+   with `build_test_path`. Integration examples should include the
+   appropriate `component` parameter to select the correct subdirectory.
 3. Update metadata headers like `last_reviewed` whenever adjustments are made.
 
 ## 9. Conclusion
@@ -163,4 +173,6 @@ The organization of test templates in DevSynth follows best practices for separa
 The test-first approach, combined with clear templates and guidelines, helps ensure consistent, high-quality tests throughout the project.
 ## Implementation Status
 
-.
+Integration templates support component-specific directories through the
+`build_test_path` helper, enabling reviewers to generate accurate paths for
+any subsystem.
