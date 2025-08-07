@@ -106,10 +106,12 @@ def test_cli_help_lists_renamed_commands_succeeds(capsys, monkeypatch):
     orig_get_click_type = typer.main.get_click_type
 
     def patched_get_click_type(*, annotation, parameter_info):  # pragma: no cover
-        if annotation in {UXBridge, typer.models.Context}:
+        if annotation in {UXBridge, typer.models.Context, object}:
             return click.STRING
         origin = getattr(annotation, "__origin__", None)
-        if origin in {UXBridge, typer.models.Context, dict} or annotation is dict:
+        if origin in {UXBridge, typer.models.Context, dict, list}:
+            return click.STRING
+        if annotation in {dict, list}:
             return click.STRING
         return orig_get_click_type(annotation=annotation, parameter_info=parameter_info)
 
@@ -130,4 +132,3 @@ def test_cli_help_lists_renamed_commands_succeeds(capsys, monkeypatch):
     assert all(
         not line.startswith("analyze ") and " analyze " not in line for line in lines
     )
-

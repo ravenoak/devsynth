@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import os
+import json
 from pathlib import Path
-from typing import Dict, Optional, List, Tuple, Any
+from typing import Dict, Optional, List, Tuple, Any, Union
 
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.console import Console
+
 
 def _env_flag(name: str) -> Optional[bool]:
     """Return boolean value for ``name`` if set, otherwise ``None``."""
@@ -17,6 +19,33 @@ def _env_flag(name: str) -> Optional[bool]:
     if val is None:
         return None
     return val.lower() in {"1", "true", "yes"}
+
+
+def _parse_features(value: Optional[Union[List[str], str]]) -> Dict[str, bool]:
+    """Parse feature flags from list or JSON string."""
+    if value is None or hasattr(value, "param_decls"):
+        return {}
+    if isinstance(value, list):
+        if len(value) == 1:
+            item = value[0]
+            try:
+                parsed = json.loads(item)
+            except json.JSONDecodeError:
+                return {item: True}
+        else:
+            return {f: True for f in value}
+    else:
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return {f.strip(): True for f in value.split(";") if f.strip()}
+
+    if isinstance(parsed, dict):
+        return {k: bool(v) for k, v in parsed.items()}
+    if isinstance(parsed, list):
+        return {f: True for f in parsed}
+    return {}
+
 
 from devsynth.config import load_project_config, ProjectUnifiedConfig
 from devsynth.config.unified_loader import UnifiedConfigLoader
@@ -42,8 +71,8 @@ class SetupWizard:
             "code_generation": "Enable automatic code generation from specifications.",
             "test_generation": "Enable automatic test generation from specifications.",
             "documentation_generation": "Enable automatic documentation generation from code.",
-            "experimental_features": "Enable experimental features that may not be fully stable."
-        }
+            "experimental_features": "Enable experimental features that may not be fully stable.",
+        },
     }
 
     # Quick setup presets
@@ -58,8 +87,8 @@ class SetupWizard:
                 "code_generation": True,
                 "test_generation": True,
                 "documentation_generation": True,
-                "experimental_features": False
-            }
+                "experimental_features": False,
+            },
         },
         "standard": {
             "structure": "single_package",
@@ -71,8 +100,8 @@ class SetupWizard:
                 "code_generation": True,
                 "test_generation": True,
                 "documentation_generation": True,
-                "experimental_features": False
-            }
+                "experimental_features": False,
+            },
         },
         "advanced": {
             "structure": "monorepo",
@@ -84,9 +113,9 @@ class SetupWizard:
                 "code_generation": True,
                 "test_generation": True,
                 "documentation_generation": True,
-                "experimental_features": True
-            }
-        }
+                "experimental_features": True,
+            },
+        },
     }
 
     def __init__(self, bridge: Optional[UXBridge] = None) -> None:
@@ -108,11 +137,19 @@ class SetupWizard:
     def _show_help(self, topic: str, subtopic: Optional[str] = None) -> None:
         """Show help text for a specific option."""
         if subtopic:
-            help_text = self.HELP_TEXT.get("features", {}).get(subtopic, "No help available")
+            help_text = self.HELP_TEXT.get("features", {}).get(
+                subtopic, "No help available"
+            )
         else:
             help_text = self.HELP_TEXT.get(topic, "No help available")
-        
-        self.console.print(Panel(Markdown(help_text), title=f"Help: {topic.replace('_', ' ').title()}", border_style="blue"))
+
+        self.console.print(
+            Panel(
+                Markdown(help_text),
+                title=f"Help: {topic.replace('_', ' ').title()}",
+                border_style="blue",
+            )
+        )
 
     def _prompt_with_help(self, topic: str, question: str, **kwargs) -> Any:
         """Prompt the user with a question and offer help."""
@@ -128,12 +165,12 @@ class SetupWizard:
         existing = cfg.config.features or {}
         result: Dict[str, bool] = {}
         features = features or {}
-        
+
         self._show_progress("Configure Features")
         self.bridge.display_result(
             "[italic]Configure which features to enable in your DevSynth project.[/italic]"
         )
-        
+
         feature_list = [
             "wsde_collaboration",
             "dialectical_reasoning",
@@ -142,7 +179,7 @@ class SetupWizard:
             "documentation_generation",
             "experimental_features",
         ]
-        
+
         for feat in feature_list:
             if feat in features:
                 result[feat] = bool(features[feat])
@@ -156,14 +193,18 @@ class SetupWizard:
                 )
         return result
 
-    def _apply_quick_setup(self, preset: str, cfg: ProjectUnifiedConfig) -> Dict[str, Any]:
+    def _apply_quick_setup(
+        self, preset: str, cfg: ProjectUnifiedConfig
+    ) -> Dict[str, Any]:
         """Apply a quick setup preset."""
         if preset not in self.QUICK_SETUP_PRESETS:
-            self.bridge.display_result(f"[yellow]Unknown preset: {preset}. Using 'standard' instead.[/yellow]")
+            self.bridge.display_result(
+                f"[yellow]Unknown preset: {preset}. Using 'standard' instead.[/yellow]"
+            )
             preset = "standard"
-            
+
         preset_config = self.QUICK_SETUP_PRESETS[preset]
-        
+
         return {
             "structure": preset_config["structure"],
             "memory_backend": preset_config["memory_backend"],
@@ -184,12 +225,15 @@ class SetupWizard:
         goals: Optional[str] = None,
         memory_backend: Optional[str] = None,
         offline_mode: Optional[bool] = None,
-        features: Optional[Dict[str, bool]] = None,
+        features: Optional[List[str]] = None,
         auto_confirm: Optional[bool] = None,
     ) -> ProjectUnifiedConfig:
         """Execute the wizard steps and persist configuration."""
 
-        auto_confirm = _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+        auto_confirm = (
+            _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+        )
+        features = _parse_features(features)
 
         try:
             cfg = load_project_config()
@@ -212,15 +256,15 @@ class SetupWizard:
         self.bridge.display_result(
             "[italic]This wizard will guide you through setting up your DevSynth project.[/italic]"
         )
-        
+
         # Offer quick setup option
         quick_setup = False
         if not auto_confirm:
             quick_setup = self.bridge.confirm_choice(
-                "Would you like to use quick setup with predefined configurations?", 
-                default=False
+                "Would you like to use quick setup with predefined configurations?",
+                default=False,
             )
-        
+
         quick_preset = None
         if quick_setup:
             quick_preset = self.bridge.ask_question(
@@ -233,12 +277,12 @@ class SetupWizard:
             memory_backend = preset_config["memory_backend"]
             offline_mode = preset_config["offline_mode"]
             features = preset_config["features"]
-            
+
             # Still need to ask for these basic settings
             self._show_progress("Basic Settings")
         else:
             self._show_progress("Basic Settings")
-        
+
         # Basic settings (always ask for these)
         root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
         if root is None:
@@ -246,12 +290,14 @@ class SetupWizard:
 
         language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
         if language is None:
-            language = self._prompt_with_help("language", "Primary language", default="python")
+            language = self._prompt_with_help(
+                "language", "Primary language", default="python"
+            )
 
         # Project settings
         if not quick_setup:
             self._show_progress("Project Configuration")
-            
+
             structure = structure or os.environ.get("DEVSYNTH_INIT_STRUCTURE")
             if structure is None:
                 structure = self._prompt_with_help(
@@ -289,8 +335,10 @@ class SetupWizard:
 
             # Memory settings
             self._show_progress("Memory Configuration")
-            
-            memory_backend = memory_backend or os.environ.get("DEVSYNTH_INIT_MEMORY_BACKEND")
+
+            memory_backend = memory_backend or os.environ.get(
+                "DEVSYNTH_INIT_MEMORY_BACKEND"
+            )
             if memory_backend is None:
                 memory_backend = self._prompt_with_help(
                     "memory_backend",
@@ -310,7 +358,7 @@ class SetupWizard:
 
             # Feature settings
             features = self._prompt_features(cfg, features, auto_confirm)
-        
+
         # Summary and confirmation
         self.bridge.display_result("\n[bold]Configuration Summary:[/bold]")
         self.bridge.display_result(f"Project Root: {root}")
@@ -321,15 +369,21 @@ class SetupWizard:
         if goals:
             self.bridge.display_result(f"Goals: {goals}")
         self.bridge.display_result(f"Memory Backend: {memory_backend}")
-        self.bridge.display_result(f"Offline Mode: {'Enabled' if offline_mode else 'Disabled'}")
-        
+        self.bridge.display_result(
+            f"Offline Mode: {'Enabled' if offline_mode else 'Disabled'}"
+        )
+
         self.bridge.display_result("\nFeatures:")
         for feat, enabled in features.items():
-            self.bridge.display_result(f"  {feat.replace('_', ' ').title()}: {'Enabled' if enabled else 'Disabled'}")
+            self.bridge.display_result(
+                f"  {feat.replace('_', ' ').title()}: {'Enabled' if enabled else 'Disabled'}"
+            )
 
         proceed = auto_confirm
         if not proceed:
-            proceed = self.bridge.confirm_choice("Proceed with initialization?", default=True)
+            proceed = self.bridge.confirm_choice(
+                "Proceed with initialization?", default=True
+            )
 
         if not proceed:
             self.bridge.display_result("[yellow]Initialization aborted.[/yellow]")
@@ -342,7 +396,7 @@ class SetupWizard:
             console=self.console,
         ) as progress:
             task = progress.add_task("[green]Initializing project...", total=None)
-            
+
             cfg.set_root(root)
             cfg.config.structure = structure
             cfg.set_language(language)
@@ -352,18 +406,24 @@ class SetupWizard:
             cfg.config.offline_mode = offline_mode
             cfg.config.features = features
             cfg.path = UnifiedConfigLoader.save(cfg)
-            
-            progress.update(task, description="[green]Project initialized successfully!")
 
-        self.bridge.display_result("[bold green]Initialization complete![/bold green]", highlight=True)
-        
+            progress.update(
+                task, description="[green]Project initialized successfully!"
+            )
+
+        self.bridge.display_result(
+            "[bold green]Initialization complete![/bold green]", highlight=True
+        )
+
         # Show next steps
         self.bridge.display_result("\n[bold]Next Steps:[/bold]")
-        self.bridge.display_result("1. Create or edit your requirements file: requirements.md")
+        self.bridge.display_result(
+            "1. Create or edit your requirements file: requirements.md"
+        )
         self.bridge.display_result("2. Generate specifications: devsynth spec")
         self.bridge.display_result("3. Generate tests: devsynth test")
         self.bridge.display_result("4. Generate code: devsynth code")
-        
+
         return cfg
 
 
