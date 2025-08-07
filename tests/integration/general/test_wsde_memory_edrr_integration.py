@@ -1,12 +1,17 @@
+import sys
+
+import pytest
+
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
-from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegration
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.domain.models.memory import MemoryType
 from devsynth.application.collaboration.peer_review import PeerReview
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
+from devsynth.application.memory.context_manager import (
+    InMemoryStore,
+    SimpleContextManager,
+)
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde import WSDETeam
 
 
 class SimpleStore(InMemoryStore):
@@ -26,19 +31,20 @@ class SimpleStore(InMemoryStore):
 def test_store_and_retrieve_solution_by_phase_succeeds(tmp_path):
     """Test that store and retrieve solution by phase succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     store = SimpleStore()
-    adapter = MemorySystemAdapter(memory_store=store, context_manager=
-        SimpleContextManager(), create_paths=False)
-    manager = MemoryManager(adapters={'default': adapter})
-    team = WSDETeam(name='TestWsdeMemoryEdrrIntegrationTeam')
+    adapter = MemorySystemAdapter(
+        memory_store=store, context_manager=SimpleContextManager(), create_paths=False
+    )
+    manager = MemoryManager(adapters={"default": adapter})
+    team = WSDETeam(name="TestWsdeMemoryEdrrIntegrationTeam")
     wsde_memory = WSDEMemoryIntegration(adapter, team)
-    task = {'id': 'task1', 'description': 'demo'}
-    solution = {'id': 'sol1', 'content': 's'}
-    wsde_memory.store_agent_solution('agent1', task, solution, 'Expand')
-    results = wsde_memory.retrieve_solutions_by_edrr_phase('task1', 'Expand')
+    task = {"id": "task1", "description": "demo"}
+    solution = {"id": "sol1", "content": "s"}
+    wsde_memory.store_agent_solution("agent1", task, solution, "Expand")
+    results = wsde_memory.retrieve_solutions_by_edrr_phase("task1", "Expand")
     assert len(results) == 1
-    assert results[0].metadata.get('edrr_phase') == 'Expand'
+    assert results[0].metadata.get("edrr_phase") == "Expand"
 
 
 def test_cross_store_sync_and_peer_review_workflow(tmp_path):
@@ -49,7 +55,9 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
         memory_store=primary, context_manager=SimpleContextManager(), create_paths=False
     )
     adapter2 = MemorySystemAdapter(
-        memory_store=secondary, context_manager=SimpleContextManager(), create_paths=False
+        memory_store=secondary,
+        context_manager=SimpleContextManager(),
+        create_paths=False,
     )
     manager = MemoryManager(adapters={"tinydb": adapter1, "graph": adapter2})
     team = WSDETeam(name="SyncTeam")
@@ -98,7 +106,59 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
     manager.flush_updates()
 
     def has_review(store):
-        return any(item.memory_type == MemoryType.PEER_REVIEW for item in store.items.values())
+        return any(
+            item.memory_type == MemoryType.PEER_REVIEW for item in store.items.values()
+        )
 
     assert has_review(primary)
     assert has_review(secondary)
+
+
+@pytest.mark.medium
+@pytest.mark.requires_resource("lmdb")
+@pytest.mark.requires_resource("faiss")
+def test_sync_manager_coordinated_backends(tmp_path, monkeypatch):
+    """Ensure SyncManager synchronizes LMDB, FAISS and Kuzu stores."""
+
+    LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
+    FAISSStore = pytest.importorskip(
+        "devsynth.application.memory.faiss_store"
+    ).FAISSStore
+    from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+    from devsynth.application.memory.sync_manager import SyncManager
+    from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+
+    monkeypatch.delitem(sys.modules, "kuzu", raising=False)
+    ef = pytest.importorskip("chromadb.utils.embedding_functions")
+    monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
+    try:
+        from devsynth.application.memory.kuzu_store import KuzuStore
+    except Exception:  # pragma: no cover - optional
+        KuzuStore = None
+
+    for cls in (KuzuMemoryStore, LMDBStore, FAISSStore, KuzuStore):
+        if cls is not None:
+            try:
+                cls.__abstractmethods__ = frozenset()
+            except Exception:
+                pass
+    lmdb_store = LMDBStore(str(tmp_path / "lmdb"))
+    faiss_store = FAISSStore(str(tmp_path / "faiss"))
+    kuzu_store = KuzuMemoryStore.create_ephemeral(use_provider_system=False)
+
+    manager = MemoryManager(
+        adapters={"lmdb": lmdb_store, "faiss": faiss_store, "kuzu": kuzu_store}
+    )
+    manager.sync_manager = SyncManager(manager)
+
+    item = MemoryItem(id="x", content="hello", memory_type=MemoryType.CODE)
+    vector = MemoryVector(id="x", content="hello", embedding=[0.1] * 5, metadata={})
+
+    lmdb_store.store(item)
+    faiss_store.store_vector(vector)
+
+    manager.synchronize("lmdb", "kuzu")
+    manager.synchronize("faiss", "kuzu")
+
+    assert kuzu_store.retrieve("x") is not None
+    assert kuzu_store.vector.retrieve_vector("x") is not None

@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Set, Tuple
 import asyncio
-from threading import Lock, RLock
+import time
+import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-import time
-import uuid
+from threading import Lock, RLock
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
 
-from ...logging_setup import DevSynthLogger
 from ...domain.models.memory import MemoryItem
+from ...logging_setup import DevSynthLogger
 from .tiered_cache import TieredCache
 
 if TYPE_CHECKING:
@@ -148,10 +148,10 @@ class SyncManager:
         transaction_id = str(uuid.uuid4())
         logger.debug(f"Starting transaction {transaction_id} for stores: {stores}")
 
-        snapshots: Dict[str, Dict[str, MemoryItem]] = {}  # Store -> {ID -> Item}
+        snapshots: Dict[str, Dict[str, Dict[str, Any]]] = {}
         contexts: Dict[str, Any] = {}
         txns: Dict[str, Any] = {}
-        added_items: Dict[str, Set[str]] = {}  # Store -> {Item IDs}
+        added_items: Dict[str, Set[str]] = {}
 
         # Track which stores are participating in the transaction
         participating_stores = []
@@ -173,11 +173,14 @@ class SyncManager:
                     txns[name] = ctx.__enter__()
                     contexts[name] = ctx
                 else:
-                    # For adapters without transaction support, take a snapshot
                     items = self._get_all_items(adapter)
-                    snapshots[name] = {item.id: self._copy_item(item) for item in items}
+                    vectors = self._get_all_vectors(adapter)
+                    snapshots[name] = {
+                        "items": {item.id: self._copy_item(item) for item in items},
+                        "vectors": {vec.id: deepcopy(vec) for vec in vectors},
+                    }
                     logger.debug(
-                        f"Created snapshot for {name} with {len(snapshots[name])} items"
+                        f"Created snapshot for {name} with {len(snapshots[name]['items'])} items and {len(snapshots[name]['vectors'])} vectors"
                     )
             except Exception as e:
                 logger.error(f"Error beginning transaction for {name}: {e}")
@@ -211,7 +214,7 @@ class SyncManager:
     def _rollback_partial_transaction(
         self,
         contexts: Dict[str, Any],
-        snapshots: Dict[str, Dict[str, MemoryItem]],
+        snapshots: Dict[str, Dict[str, Dict[str, Any]]],
         added_items: Dict[str, Set[str]],
         exc: Exception = None,
     ):
@@ -241,27 +244,36 @@ class SyncManager:
                 rollback_errors.append(error_msg)
 
         # Restore snapshots for stores without native transaction support
-        for name, items in snapshots.items():
+        for name, snap in snapshots.items():
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
                 continue
 
             try:
-                # Get current items to identify added items
+                items = snap.get("items", {})
+                vectors = snap.get("vectors", {})
+
                 current_items = self._get_all_items(adapter)
                 current_ids = {item.id for item in current_items}
-
-                # Delete items that were added during the transaction
                 for item_id in current_ids - set(items.keys()):
                     if hasattr(adapter, "delete"):
                         adapter.delete(item_id)
                         logger.debug(f"Deleted added item {item_id} from {name}")
-
-                # Restore original items
                 for item_id, item in items.items():
                     if hasattr(adapter, "store"):
                         adapter.store(item)
                         logger.debug(f"Restored item {item_id} in {name}")
+
+                current_vectors = self._get_all_vectors(adapter)
+                current_vec_ids = {vec.id for vec in current_vectors}
+                for vec_id in current_vec_ids - set(vectors.keys()):
+                    if hasattr(adapter, "delete_vector"):
+                        adapter.delete_vector(vec_id)
+                        logger.debug(f"Deleted added vector {vec_id} from {name}")
+                for vec_id, vec in vectors.items():
+                    if hasattr(adapter, "store_vector"):
+                        adapter.store_vector(vec)
+                        logger.debug(f"Restored vector {vec_id} in {name}")
 
                 logger.debug(f"Restored snapshot for {name}")
             except Exception as e:
@@ -516,7 +528,7 @@ class SyncManager:
         stores = list(self.memory_manager.adapters.keys())
 
         # Initialize transaction state
-        snapshots = {}
+        snapshots: Dict[str, Dict[str, List[Any]]] = {}
         contexts = {}
         txns = {}
 
@@ -530,9 +542,10 @@ class SyncManager:
                 txns[name] = ctx.__enter__()
                 contexts[name] = ctx
             else:
-                snapshots[name] = [
-                    self._copy_item(i) for i in self._get_all_items(adapter)
-                ]
+                snapshots[name] = {
+                    "items": [self._copy_item(i) for i in self._get_all_items(adapter)],
+                    "vectors": [deepcopy(v) for v in self._get_all_vectors(adapter)],
+                }
 
         # Store transaction state
         self._active_transactions[transaction_id] = {
@@ -613,16 +626,24 @@ class SyncManager:
             ctx.__exit__(type(exc), exc, exc.__traceback__)
 
         # Restore snapshots for stores without native transaction support
-        for name, items in snapshots.items():
+        for name, snap in snapshots.items():
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
                 continue
+            items = snap.get("items", [])
+            vectors = snap.get("vectors", [])
             if hasattr(adapter, "delete"):
                 for itm in self._get_all_items(adapter):
                     adapter.delete(itm.id)
+            if hasattr(adapter, "delete_vector"):
+                for vec in self._get_all_vectors(adapter):
+                    adapter.delete_vector(vec.id)
             for itm in items:
                 if hasattr(adapter, "store"):
                     adapter.store(itm)
+            for vec in vectors:
+                if hasattr(adapter, "store_vector"):
+                    adapter.store_vector(vec)
 
         # Remove transaction state
         del self._active_transactions[transaction_id]
