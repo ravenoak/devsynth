@@ -1,0 +1,17 @@
+# Sprint-EDRR Integration Guide
+
+This guide explains how the `SprintAdapter` connects traditional sprint practices with DevSynth's Expand, Differentiate, Refine, Retrospect (EDRR) methodology.
+
+## Requirement Analysis
+
+During the **Expand** phase, requirement analysis results feed directly into sprint planning. After each cycle, the adapter updates the upcoming sprint plan and records the actual scope delivered.
+
+## Retrospective Evaluation
+
+Retrospective data is automatically reviewed at the end of the cycle. Evaluation metrics are stored for later inspection alongside positive notes, improvement areas, and action items.
+
+## Usage
+
+1. Configure DevSynth to use the sprint methodology.
+2. Run an EDRR cycle. Requirement analysis outcomes will populate the next sprint plan.
+3. After the Retrospect phase, evaluation results are logged into sprint metrics for continuous improvement.
