@@ -12,7 +12,37 @@ This document provides a comprehensive guide to the agent-based components withi
 
 This file covers all AI and service agents implemented in the `src/devsynth/` directory and related scripts in `scripts/` that embody agentic behavior.
 
+## Quick Start
+
+Always lint and test before committing.
+
+### Linting
+
+```bash
+poetry run pre-commit run --files path/to/file1.py [path/to/file2.py ...]
+```
+
+### Tests
+
+```bash
+poetry run pytest
+```
+
+Running hooks and tests through `poetry run` ensures they execute inside the project's virtual environment and prevents missing-package errors. Always invoke the pre-commit hooks on the files you are about to commit using the `--files` option shown above.
+
+## Module-Level AGENTS.md Files
+
+Some directories include their own `AGENTS.md` with additional, more specific instructions. To locate them:
+
+```bash
+find . -name AGENTS.md
+```
+
+Instructions in a nested `AGENTS.md` override guidance from parent directories for files within their scope.
+
 ## Environment Setup
+
+**Important:** `scripts/codex_setup.sh` exclusively provisions the Codex environment. Never reference or duplicate its logic outside of this file.
 
 The automated Codex environment runs the setup script as:
 
