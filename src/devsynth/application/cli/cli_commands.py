@@ -34,7 +34,8 @@ from ..orchestration.refactor_workflow import refactor_workflow_manager
 from .commands.doctor_cmd import doctor_cmd as _doctor_impl
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
 from .commands.run_tests_cmd import run_tests_cmd
-from .commands.completion_cmd import generate_completion_script, detect_shell
+from .commands.completion_cmd import completion_cmd
+from .commands.init_cmd import init_cmd
 
 # Optional Dear PyGUI interface support
 try:  # pragma: no cover - optional dependency handling
@@ -170,173 +171,6 @@ def config_key_autocomplete(ctx: typer.Context, incomplete: str):
     return loader_autocomplete(ctx, incomplete)
 
 
-def init_cmd(
-    wizard: bool = False,
-    *,
-    root: Optional[str] = None,
-    language: Optional[str] = None,
-    goals: Optional[str] = None,
-    memory_backend: Optional[str] = None,
-    offline_mode: Optional[bool] = None,
-    features: Optional[List[str]] = typer.Option(
-        None,
-        help=(
-            "Features to enable. Provide multiple --features options or a JSON"
-            " mapping string."
-        ),
-    ),
-    auto_confirm: Optional[bool] = None,
-    bridge: Optional[UXBridge] = None,
-) -> None:
-    """Initialize a new project.
-
-    This command sets up a new DevSynth project with the specified configuration.
-    It will create a configuration file in the project directory.
-
-    Args:
-        wizard: If True, run the interactive setup wizard for a guided setup
-        bridge: Optional UX bridge for interaction
-
-    Examples:
-        Initialize a project with interactive prompts:
-        ```
-        devsynth init
-        ```
-
-        Initialize a project with the guided setup wizard:
-        ```
-        devsynth init --wizard
-        ```
-    """
-
-    bridge = _resolve_bridge(bridge)
-    auto_confirm = (
-        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
-    )
-    try:
-        if wizard:
-            from .setup_wizard import SetupWizard
-
-            SetupWizard(bridge).run()
-            return
-
-        config = UnifiedConfigLoader.load().config
-        if _find_config_path(Path.cwd()) is not None:
-            bridge.display_result("[yellow]Project already initialized[/yellow]")
-            return
-
-        root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
-        if root is None:
-            root = bridge.ask_question(
-                "Project root directory?", default=str(Path.cwd())
-            )
-
-        # Validate root directory
-        root_path = Path(root)
-        if not root_path.exists():
-            if auto_confirm or bridge.confirm_choice(
-                f"Directory '{root}' does not exist. Create it?", default=True
-            ):
-                root_path.mkdir(parents=True, exist_ok=True)
-            else:
-                bridge.display_result("[yellow]Initialization cancelled[/yellow]")
-                return
-
-        language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
-        if language is None:
-            language = bridge.ask_question("Primary language?", default="python")
-
-        goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS")
-        if goals is None:
-            goals = bridge.ask_question("Project goals?", default="")
-
-        memory_backend = memory_backend or os.environ.get(
-            "DEVSYNTH_INIT_MEMORY_BACKEND"
-        )
-        if memory_backend is None:
-            memory_backend = bridge.ask_question(
-                "Select memory backend",
-                choices=["memory", "file", "kuzu", "chromadb"],
-                default="memory",
-            )
-
-        if offline_mode is None:
-            env_offline = _env_flag("DEVSYNTH_INIT_OFFLINE_MODE")
-            if env_offline is not None:
-                offline_mode = env_offline
-            else:
-                offline_mode = bridge.confirm_choice(
-                    "Enable offline mode?", default=False
-                )
-
-        # Configure features
-        if features is None:
-            env_feats = os.environ.get("DEVSYNTH_INIT_FEATURES")
-            if env_feats:
-                features_map = _parse_features(env_feats)
-            else:
-                features_map = config.features or {}
-        else:
-            features_map = _parse_features(features)
-        for feat in [
-            "wsde_collaboration",
-            "dialectical_reasoning",
-            "code_generation",
-            "test_generation",
-            "documentation_generation",
-            "experimental_features",
-        ]:
-            if feat in features_map:
-                features_map[feat] = bool(features_map[feat])
-            elif auto_confirm:
-                features_map[feat] = True
-            else:
-                features_map[feat] = bridge.confirm_choice(
-                    f"Enable {feat.replace('_', ' ')}?",
-                    default=features_map.get(feat, False),
-                )
-
-        # Confirm and save
-        proceed = auto_confirm if auto_confirm is not None else None
-        if proceed is None:
-            proceed = bridge.confirm_choice(
-                "Proceed with initialization?", default=True
-            )
-        if not proceed:
-            bridge.display_result("[yellow]Initialization cancelled[/yellow]")
-            return
-
-        config.project_root = root
-        config.language = language
-        config.goals = goals
-        config.memory_store_type = memory_backend
-        config.offline_mode = offline_mode
-        config.features = features_map
-
-        try:
-            save_config(
-                ConfigModel(**config.as_dict()),
-                use_pyproject=(Path("pyproject.toml").exists()),
-            )
-            # Trigger workflow manager so tests can verify initialization logic
-            init_project(
-                root=root,
-                structure=config.structure,
-                language=language,
-                goals=goals,
-                memory_backend=memory_backend,
-                offline_mode=offline_mode,
-                features=features_map,
-            )
-            bridge.display_result(
-                "[green]Initialization complete[/green]", highlight=True
-            )
-        except Exception as save_err:
-            _handle_error(bridge, save_err)
-    except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
-
-
 def spec_cmd(
     requirements_file: str = "requirements.md",
     *,
@@ -365,7 +199,8 @@ def spec_cmd(
     """
     from rich.console import Console
 
-    from .progress import create_enhanced_progress, run_with_progress
+    from .progress import create_enhanced_progress
+    from devsynth.interface.progress_utils import run_with_progress
 
     console = Console()
     bridge = _resolve_bridge(bridge)
@@ -1648,31 +1483,6 @@ def dbschema_cmd(
                 border_style="red",
             )
         )
-
-
-def completion_cmd(
-    shell: str = typer.Option("bash", help="Target shell for completion"),
-    *,
-    bridge: Optional[UXBridge] = None,
-) -> None:
-    """Display a shell completion script for the DevSynth CLI."""
-    bridge = _resolve_bridge(bridge)
-    try:
-        if not shell:
-            shell = detect_shell()
-        progress = bridge.create_progress("Generating completion script", total=1)
-        script_path = generate_completion_script(shell)
-        progress.update(advance=1)
-        with open(script_path, "r", encoding="utf-8") as f:
-            bridge.show_completion(f.read())
-    except Exception as err:  # pragma: no cover - defensive
-        _handle_error(bridge, err)
-    finally:
-        try:
-            progress.complete()
-        except Exception:
-            pass
-
 
 def doctor_cmd(
     config_dir: str = "config",

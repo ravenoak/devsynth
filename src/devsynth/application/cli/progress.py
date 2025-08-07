@@ -22,6 +22,7 @@ from rich.markdown import Markdown
 
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.interface.cli import CLIProgressIndicator
+from devsynth.interface.progress_utils import run_with_progress
 
 
 class EnhancedProgressIndicator(CLIProgressIndicator):
@@ -263,41 +264,3 @@ def create_task_table(tasks: List[Dict[str, Any]], title: str = "Tasks") -> Tabl
     return table
 
 
-def run_with_progress(
-    task_name: str,
-    task_fn: Callable[[], Any],
-    bridge: UXBridge,
-    total: int = 100,
-    subtasks: Optional[List[Dict[str, Any]]] = None
-) -> Any:
-    """Run a task with a progress indicator.
-
-    Args:
-        task_name: The name of the task
-        task_fn: The function to run
-        bridge: The UXBridge to use for creating progress indicators
-        total: The total number of steps in the task
-        subtasks: Optional list of subtasks with their descriptions and totals
-
-    Returns:
-        The result of the task function
-    """
-    # Create a progress indicator for the task
-    progress = bridge.create_progress(task_name, total=total)
-
-    try:
-        # If we have an enhanced progress indicator and subtasks, add them
-        if isinstance(progress, EnhancedProgressIndicator) and subtasks:
-            for subtask in subtasks:
-                progress.add_subtask(
-                    subtask.get("name", "Subtask"),
-                    total=subtask.get("total", 100)
-                )
-
-        # Run the task function
-        result = task_fn()
-
-        return result
-    finally:
-        # Mark the task as complete, even if an exception occurs
-        progress.complete()
