@@ -6,15 +6,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import typer
-from typer.models import OptionInfo
 from rich.console import Console
+from typer.models import OptionInfo
 
 from devsynth.config import config_key_autocomplete as loader_autocomplete
 from devsynth.config import get_settings
 from devsynth.config.loader import ConfigModel, _find_config_path, save_config
 from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.core import feature_flags
-from devsynth.core import workflows
+from devsynth.core import feature_flags, workflows
 from devsynth.core.workflows import (
     filter_args,
     gather_requirements,
@@ -31,11 +30,11 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger, configure_logging, get_logger
 
 from ..orchestration.refactor_workflow import refactor_workflow_manager
+from .commands.completion_cmd import completion_cmd
 from .commands.doctor_cmd import doctor_cmd as _doctor_impl
 from .commands.edrr_cycle_cmd import edrr_cycle_cmd
-from .commands.run_tests_cmd import run_tests_cmd
-from .commands.completion_cmd import completion_cmd
 from .commands.init_cmd import init_cmd
+from .commands.run_tests_cmd import run_tests_cmd
 
 # Optional Dear PyGUI interface support
 try:  # pragma: no cover - optional dependency handling
@@ -84,6 +83,19 @@ def _parse_features(value: Optional[Union[List[str], str]]) -> Dict[str, bool]:
     if isinstance(parsed, list):
         return {f: True for f in parsed}
     return {}
+
+
+def _parse_report(value: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Parse report data from JSON string."""
+    if not value:
+        return None
+    try:
+        data = json.loads(value)
+        if isinstance(data, dict):
+            return data
+    except json.JSONDecodeError:
+        logger.warning("Invalid report JSON provided: %s", value)
+    return None
 
 
 console = Console()
@@ -199,8 +211,9 @@ def spec_cmd(
     """
     from rich.console import Console
 
-    from .progress import create_enhanced_progress
     from devsynth.interface.progress_utils import run_with_progress
+
+    from .progress import create_enhanced_progress
 
     console = Console()
     bridge = _resolve_bridge(bridge)
@@ -550,10 +563,12 @@ def code_cmd(
 
 def run_pipeline_cmd(
     target: Optional[str] = None,
-    report: Optional[Dict[str, Any]] = None,
+    report: Optional[str] = typer.Option(
+        None, "--report", help="JSON string with additional report data"
+    ),
     *,
     auto_confirm: Optional[bool] = None,
-    bridge: Optional[UXBridge] = None,
+    bridge: Optional[Any] = typer.Option(None, hidden=True),
 ) -> None:
     """Run the generated code or a specific target.
 
@@ -562,7 +577,7 @@ def run_pipeline_cmd(
 
     Args:
         target: Execution target (e.g. "unit-tests", "integration-tests", "all")
-        report: Optional report data that should be persisted with pipeline results
+        report: JSON string with report data to persist with pipeline results
         bridge: Optional UX bridge for interaction
 
     Examples:
@@ -576,7 +591,7 @@ def run_pipeline_cmd(
         devsynth run-pipeline --target unit-tests
         ```
     """
-    bridge = _resolve_bridge(bridge)
+    bridge = _resolve_bridge(bridge if isinstance(bridge, UXBridge) else None)
     auto_confirm = (
         _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
     )
@@ -604,7 +619,7 @@ def run_pipeline_cmd(
             f"[blue]Running {'target: ' + target if target else 'default pipeline'}...[/blue]"
         )
         result = workflows.execute_command(
-            "run-pipeline", {"target": target, "report": report}
+            "run-pipeline", {"target": target, "report": _parse_report(report)}
         )
 
         # Handle result
@@ -1483,6 +1498,7 @@ def dbschema_cmd(
                 border_style="red",
             )
         )
+
 
 def doctor_cmd(
     config_dir: str = "config",
