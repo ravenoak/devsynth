@@ -37,12 +37,12 @@ from devsynth.application.cli.commands.alignment_metrics_cmd import (
 )
 from devsynth.application.cli.commands.generate_docs_cmd import generate_docs_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
-from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
-from devsynth.application.cli.commands.mvuu_dashboard_cmd import mvuu_dashboard_cmd
 from devsynth.application.cli.commands.mvu_init_cmd import mvu_init_cmd
 from devsynth.application.cli.commands.mvu_lint_cmd import mvu_lint_cmd
-from devsynth.application.cli.commands.mvu_rewrite_cmd import mvu_rewrite_cmd
 from devsynth.application.cli.commands.mvu_report_cmd import mvu_report_cmd
+from devsynth.application.cli.commands.mvu_rewrite_cmd import mvu_rewrite_cmd
+from devsynth.application.cli.commands.mvuu_dashboard_cmd import mvuu_dashboard_cmd
+from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
 from devsynth.application.cli.commands.security_audit_cmd import security_audit_cmd
 from devsynth.application.cli.commands.test_metrics_cmd import test_metrics_cmd
 from devsynth.application.cli.commands.validate_manifest_cmd import (
@@ -55,7 +55,28 @@ from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.cli.requirements_commands import requirements_app
 from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME
+from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
+
+
+def _patch_typer_types() -> None:
+    """Allow Typer to handle custom parameter annotations used in the CLI."""
+
+    orig = typer.main.get_click_type
+
+    def patched_get_click_type(*, annotation, parameter_info):  # type: ignore[override]
+        if annotation in {UXBridge, typer.models.Context, Any}:
+            return click.STRING
+        origin = getattr(annotation, "__origin__", None)
+        if origin in {UXBridge, typer.models.Context, dict, Any} or annotation is dict:
+            return click.STRING
+        try:
+            return orig(annotation=annotation, parameter_info=parameter_info)
+        except RuntimeError:
+            return click.STRING
+
+    typer.main.get_click_type = patched_get_click_type
+
 
 logger = DevSynthLogger(__name__)
 
@@ -167,6 +188,7 @@ class CommandHelp:
 
 def build_app() -> typer.Typer:
     """Create a Typer application with all commands registered."""
+    _patch_typer_types()
     # Define enhanced help text for the main app
     main_help = CommandHelp(
         summary="DevSynth CLI - automate iterative 'Expand, Differentiate, Refine, Retrace' workflows.",

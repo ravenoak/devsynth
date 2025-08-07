@@ -9,7 +9,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 
@@ -43,11 +43,11 @@ def run_tests_cmd(
         50, "--segment-size", help="Number of tests per batch when segmenting"
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: Optional[Any] = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites."""
 
-    ux_bridge = bridge or globals()["bridge"]
+    ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
 
     speed_categories = []
     if fast:
