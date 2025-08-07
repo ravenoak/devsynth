@@ -1,14 +1,11 @@
-"""Deprecated wrapper for the security audit command.
-
-This script is retained for backward compatibility and simply invokes
-``devsynth security-audit``. It will be removed in a future release.
-"""
+"""Run static and dependency security checks."""
 
 from __future__ import annotations
 
 import argparse
 import subprocess
 import sys
+import tempfile
 from typing import Sequence
 
 from devsynth.logger import setup_logging
@@ -16,50 +13,72 @@ from devsynth.logger import setup_logging
 logger = setup_logging(__name__)
 
 
+def run_bandit() -> None:
+    """Execute Bandit static analysis."""
+    subprocess.check_call(
+        [
+            "poetry",
+            "run",
+            "bandit",
+            "-q",
+            "-r",
+            "src",
+        ]
+    )
+
+
+def run_safety() -> None:
+    """Export dependencies and run Safety vulnerability scan."""
+    with tempfile.NamedTemporaryFile("w+", delete=False) as req_file:
+        subprocess.check_call(
+            [
+                "poetry",
+                "export",
+                "--without-hashes",
+                "-f",
+                "requirements.txt",
+                "--output",
+                req_file.name,
+            ]
+        )
+        subprocess.check_call(
+            [
+                "poetry",
+                "run",
+                "safety",
+                "check",
+                "--file",
+                req_file.name,
+                "--full-report",
+            ]
+        )
+
+
 def main(argv: Sequence[str] | None = None) -> None:
-    """Parse arguments and invoke ``devsynth security-audit``."""
+    """Run Bandit and Safety unless explicitly skipped."""
+
     parser = argparse.ArgumentParser(
-        description="Deprecated wrapper for `devsynth security-audit`.",
+        description="Run Bandit static analysis and Safety dependency scan.",
     )
     parser.add_argument(
         "--skip-bandit",
+        "--skip-static",
         action="store_true",
         help="Skip running Bandit static analysis",
     )
     parser.add_argument(
-        "--skip-static",
-        action="store_true",
-        help="Alias for --skip-bandit",
-    )
-    parser.add_argument(
         "--skip-safety",
         action="store_true",
-        help="Skip dependency vulnerability scan using safety",
-    )
-    parser.add_argument(
-        "--skip-secrets",
-        action="store_true",
-        help="Skip secrets scanning",
-    )
-    parser.add_argument(
-        "--skip-owasp",
-        action="store_true",
-        help="Skip OWASP Dependency Check",
+        help="Skip dependency vulnerability scan using Safety",
     )
     args = parser.parse_args(argv)
 
-    cmd = ["devsynth", "security-audit"]
-    if args.skip_bandit or args.skip_static:
-        cmd.append("--skip-static")
-    if args.skip_safety:
-        cmd.append("--skip-safety")
-    if args.skip_secrets:
-        cmd.append("--skip-secrets")
-    if args.skip_owasp:
-        cmd.append("--skip-owasp")
-
-    logger.info("Invoking devsynth security-audit")
-    subprocess.run(cmd, check=True)
+    if not args.skip_bandit:
+        logger.info("Running Bandit static analysis")
+        run_bandit()
+    if not args.skip_safety:
+        logger.info("Running Safety dependency scan")
+        run_safety()
     logger.info("Security audit completed successfully")
 
 
@@ -72,4 +91,3 @@ if __name__ == "__main__":
     except Exception:  # pragma: no cover - unexpected errors
         logger.exception("Unexpected error during security audit")
         sys.exit(1)
-

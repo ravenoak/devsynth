@@ -30,6 +30,12 @@ jobs:
       - name: Verify MVUU references
         run: |
           python scripts/verify_mvuu_references.py origin/main..HEAD
+      - name: Run Bandit
+        run: |
+          poetry run bandit -q -r src
+      - name: Run Safety
+        run: |
+          python scripts/dependency_safety_check.py
       - name: Build package
         run: |
           poetry build
