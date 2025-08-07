@@ -36,11 +36,6 @@ def _parse_bool_env(value: Any, field: str) -> bool:
     )
 
 
-import toml
-
-from .loader import load_config
-
-
 def is_devsynth_managed_project(project_dir: str = None) -> bool:
     """
     Check if the project is managed by DevSynth.
