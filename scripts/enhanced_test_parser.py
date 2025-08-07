@@ -23,7 +23,7 @@ Usage:
     tests = collect_tests_from_directory('tests/unit')
 
     # Build a path for an integration test using templates
-    path = build_test_path('integration', 'my_service')
+    path = build_test_path('integration', 'my_service', component='interface')
     print(path)
 """
 
@@ -47,7 +47,7 @@ TEST_CATEGORIES = {
 # Templates for generating test file paths by category
 TEST_TEMPLATES = {
     "unit": "tests/unit/test_{name}.py",
-    "integration": "tests/integration/test_{name}.py",
+    "integration": "tests/integration/{component}/test_{name}.py",
     "performance": "tests/performance/test_{name}.py",
     "property": "tests/property/test_{name}.py",
 }
@@ -69,11 +69,31 @@ def get_test_template(category: str) -> str:
     return TEST_TEMPLATES[category]
 
 
-def build_test_path(category: str, name: str) -> str:
-    """Build a test file path from a category and test name."""
+def build_test_path(category: str, name: str, **kwargs: str) -> str:
+    """Build a test file path from a category and test name.
+
+    Additional keyword arguments may be supplied for templates that
+    require extra placeholders. For example, integration tests use a
+    ``component`` placeholder to identify the target subsystem.
+
+    Args:
+        category: Test category such as ``"unit"`` or ``"integration"``.
+        name: Base name of the test file without prefixes.
+        **kwargs: Extra template parameters like ``component``.
+
+    Returns:
+        Fully formatted test file path.
+
+    Raises:
+        ValueError: If required template variables are missing.
+    """
 
     template = get_test_template(category)
-    return template.format(name=name)
+    try:
+        return template.format(name=name, **kwargs)
+    except KeyError as exc:  # pragma: no cover - direct KeyError capture
+        missing = exc.args[0]
+        raise ValueError(f"Missing template parameter: {missing}") from exc
 
 
 # Cache for parsed files to improve performance
