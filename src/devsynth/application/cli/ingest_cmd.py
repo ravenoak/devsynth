@@ -44,6 +44,7 @@ def ingest_cmd(
     *,
     bridge: Optional[UXBridge] = None,
     auto_phase_transitions: bool = True,
+    non_interactive: bool = False,
 ) -> None:
     """Ingest a project into DevSynth.
 
@@ -59,6 +60,7 @@ def ingest_cmd(
         verbose: If True, provides verbose output.
         validate_only: If True, only validates the manifest without performing ingestion.
         auto_phase_transitions: If True, EDRR phases advance automatically.
+        non_interactive: If True, disable interactive prompts for automation.
     """
     bridge = bridge or DEFAULT_BRIDGE
 
@@ -89,6 +91,12 @@ def ingest_cmd(
             validate_only = os.environ.get(
                 "DEVSYNTH_INGEST_VALIDATE_ONLY", "0"
             ).lower() in {"1", "true", "yes"}
+        if not non_interactive:
+            non_interactive = os.environ.get(
+                "DEVSYNTH_INGEST_NONINTERACTIVE", "0"
+            ).lower() in {"1", "true", "yes"}
+        if non_interactive:
+            os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
 
         if verbose:
             bridge.print(f"[bold]DevSynth Ingestion[/bold]")
