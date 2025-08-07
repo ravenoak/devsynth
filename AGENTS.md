@@ -30,6 +30,10 @@ poetry run pytest
 
 Running hooks and tests through `poetry run` ensures they execute inside the project's virtual environment and prevents missing-package errors. Always invoke the pre-commit hooks on the files you are about to commit using the `--files` option shown above.
 
+## GitHub Actions Workflows
+
+All GitHub Actions workflows are disabled at this time. You may add or modify workflow files under `.github/workflows/`, but they must remain disabled. Never enable any workflow; all new workflows must be created in a disabled state.
+
 ## Module-Level AGENTS.md Files
 
 Some directories include their own `AGENTS.md` with additional, more specific instructions. To locate them:
