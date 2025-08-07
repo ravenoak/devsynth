@@ -6,11 +6,11 @@ mechanisms for critical components, ensuring that the system can continue to fun
 even when errors occur.
 """
 
-import time
-import random
 import functools
-import threading
 import queue
+import random
+import threading
+import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 from prometheus_client import Counter
@@ -18,12 +18,12 @@ from prometheus_client import Counter
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
 from .metrics import (
+    get_retry_count_metrics,
+    get_retry_error_metrics,
+    get_retry_metrics,
     inc_retry,
     inc_retry_count,
     inc_retry_error,
-    get_retry_metrics,
-    get_retry_count_metrics,
-    get_retry_error_metrics,
 )
 
 # Type variables for generic functions
@@ -50,12 +50,20 @@ retry_error_counter = Counter(
     ["error_type"],
 )
 
+# Prometheus counters for circuit breaker metrics
+circuit_breaker_state_counter = Counter(
+    "devsynth_circuit_breaker_state_total",
+    "Circuit breaker state transitions",
+    ["function", "state"],
+)
+
 
 def reset_prometheus_metrics() -> None:
     """Reset all Prometheus retry counters."""
     retry_event_counter.clear()
     retry_function_counter.clear()
     retry_error_counter.clear()
+    circuit_breaker_state_counter.clear()
 
 
 # Export metrics helpers for convenience
@@ -70,6 +78,7 @@ __all__ = [
     "retry_event_counter",
     "retry_function_counter",
     "retry_error_counter",
+    "circuit_breaker_state_counter",
     "reset_prometheus_metrics",
 ]
 
@@ -83,13 +92,12 @@ def retry_with_exponential_backoff(
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
     should_retry: Optional[Callable[[Exception], bool]] = None,
-    retry_conditions: Optional[
-        List[Union[Callable[[Exception], bool], str]]
-    ] = None,
+    retry_conditions: Optional[List[Union[Callable[[Exception], bool], str]]] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
     error_retry_map: Optional[Dict[type, bool]] = None,
+    circuit_breaker: Optional["CircuitBreaker"] = None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -122,6 +130,9 @@ def retry_with_exponential_backoff(
         Mapping of exception types to a boolean indicating if they should be
         retried regardless of ``retryable_exceptions``. ``False`` aborts the
         retry loop when that error is encountered.
+    circuit_breaker : Optional["CircuitBreaker"]
+        Circuit breaker instance used to guard function calls. If provided,
+        each retry attempt is executed through the circuit breaker.
 
     Returns
     -------
@@ -130,6 +141,8 @@ def retry_with_exponential_backoff(
     """
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        wrapped_func = circuit_breaker(func) if circuit_breaker else func
+
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
             # Initialize variables
@@ -145,15 +158,13 @@ def retry_with_exponential_backoff(
                             lambda exc, substr=cond: substr in str(exc)
                         )
                     else:  # pragma: no cover - defensive
-                        raise TypeError(
-                            "retry_conditions must be callables or strings"
-                        )
+                        raise TypeError("retry_conditions must be callables or strings")
             cb_list: List[Callable[[Exception, int], bool]] = condition_callbacks or []
 
             # Loop until max retries reached
             while True:
                 try:
-                    result = func(*args, **kwargs)
+                    result = wrapped_func(*args, **kwargs)
                     if retry_on_result and retry_on_result(result):
                         raise ValueError("retry_on_result triggered")
                     if track_metrics:
@@ -161,7 +172,10 @@ def retry_with_exponential_backoff(
                         retry_event_counter.labels(status="success").inc()
                     return result
                 except Exception as e:
-                    if isinstance(e, ValueError) and str(e) == "retry_on_result triggered":
+                    if (
+                        isinstance(e, ValueError)
+                        and str(e) == "retry_on_result triggered"
+                    ):
                         num_retries += 1
                         if num_retries > max_retries:
                             if track_metrics:
@@ -176,9 +190,7 @@ def retry_with_exponential_backoff(
                             inc_retry("invalid")
                             inc_retry_error("InvalidResult")
                             retry_event_counter.labels(status="invalid").inc()
-                            retry_error_counter.labels(
-                                error_type="InvalidResult"
-                            ).inc()
+                            retry_error_counter.labels(error_type="InvalidResult").inc()
                         if jitter:
                             delay = min(
                                 max_delay,
@@ -247,7 +259,10 @@ def retry_with_exponential_backoff(
                                 error_type=e.__class__.__name__
                             ).inc()
                         raise
-                    if error_retry_map is not None and error_retry_map.get(type(e)) is False:
+                    if (
+                        error_retry_map is not None
+                        and error_retry_map.get(type(e)) is False
+                    ):
                         logger.warning(
                             f"Not retrying {func.__name__} due to error_retry_map policy",
                             error=e,
@@ -317,9 +332,7 @@ def retry_with_exponential_backoff(
                         inc_retry_count(func.__name__)
                         inc_retry_error(e.__class__.__name__)
                         retry_event_counter.labels(status="attempt").inc()
-                        retry_function_counter.labels(
-                            function=func.__name__
-                        ).inc()
+                        retry_function_counter.labels(function=func.__name__).inc()
                         retry_error_counter.labels(
                             error_type=e.__class__.__name__
                         ).inc()
@@ -501,12 +514,18 @@ class CircuitBreaker:
                 with self.lock:
                     self.state = self.HALF_OPEN
                     self.test_calls_remaining = self.test_calls
+                circuit_breaker_state_counter.labels(
+                    function=func.__name__, state=self.HALF_OPEN
+                ).inc()
                 self.logger.info(
                     f"Circuit breaker for {func.__name__} transitioned from OPEN to HALF_OPEN",
                     function=func.__name__,
                     state=self.state,
                 )
             else:
+                circuit_breaker_state_counter.labels(
+                    function=func.__name__, state=self.OPEN
+                ).inc()
                 self.logger.warning(
                     f"Circuit breaker for {func.__name__} is OPEN, failing fast",
                     function=func.__name__,
@@ -534,6 +553,9 @@ class CircuitBreaker:
                     if self.test_calls_remaining <= 0:
                         self.state = self.CLOSED
                         self.failure_count = 0
+                        circuit_breaker_state_counter.labels(
+                            function=func.__name__, state=self.CLOSED
+                        ).inc()
                         self.logger.info(
                             f"Circuit breaker for {func.__name__} transitioned from HALF_OPEN to CLOSED",
                             function=func.__name__,
@@ -550,6 +572,9 @@ class CircuitBreaker:
                     and self.failure_count >= self.failure_threshold
                 ):
                     self.state = self.OPEN
+                    circuit_breaker_state_counter.labels(
+                        function=func.__name__, state=self.OPEN
+                    ).inc()
                     self.logger.warning(
                         f"Circuit breaker for {func.__name__} transitioned to OPEN due to failure",
                         error=e,
