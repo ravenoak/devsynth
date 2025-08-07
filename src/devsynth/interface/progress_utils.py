@@ -286,3 +286,37 @@ def with_progress(bridge: UXBridge, description: str, total: int = 100) -> Calla
     """
     manager = ProgressManager(bridge)
     return manager.with_progress(description, total)
+
+
+def run_with_progress(
+    task_name: str,
+    task_fn: Callable[[], T],
+    bridge: UXBridge,
+    total: int = 100,
+    subtasks: Optional[List[Dict[str, Any]]] = None,
+) -> T:
+    """Run a task while displaying a progress indicator.
+
+    Args:
+        task_name: Description of the task to display.
+        task_fn: Function executing the task.
+        bridge: UXBridge used to create progress indicators.
+        total: Total number of steps for the task.
+        subtasks: Optional list of subtasks with ``name`` and ``total`` keys.
+
+    Returns:
+        Result of ``task_fn``.
+    """
+
+    progress = bridge.create_progress(task_name, total=total)
+    try:
+        if subtasks:
+            for subtask in subtasks:
+                progress.add_subtask(
+                    subtask.get("name", "Subtask"),
+                    total=subtask.get("total", 100),
+                )
+
+        return task_fn()
+    finally:
+        progress.complete()

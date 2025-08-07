@@ -15,6 +15,7 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.interface.enhanced_error_handler import improved_error_handler
+from devsynth.interface.progress_utils import run_with_progress
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -279,7 +280,12 @@ def completion_cmd(
         if install:
             # Install the completion script
             try:
-                install_path = install_completion_script(shell)
+                install_path = run_with_progress(
+                    "Installing completion script",
+                    lambda: install_completion_script(shell),
+                    ux_bridge,
+                    total=1,
+                )
                 ux_bridge.display_result(
                     f"Shell completion script installed to: {install_path}",
                     message_type="success"
@@ -314,7 +320,12 @@ def completion_cmd(
         else:
             # Generate the completion script
             try:
-                script_path = generate_completion_script(shell, output)
+                script_path = run_with_progress(
+                    "Generating completion script",
+                    lambda: generate_completion_script(shell, output),
+                    ux_bridge,
+                    total=1,
+                )
                 
                 if output:
                     ux_bridge.display_result(

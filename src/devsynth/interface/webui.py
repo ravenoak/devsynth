@@ -41,6 +41,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
+from devsynth.interface.progress_utils import run_with_progress
 
 import streamlit as st
 
@@ -1261,8 +1262,11 @@ class WebUI(UXBridge):
                                     raise ImportError(
                                         "gather_requirements function not available"
                                     )
-                                with st.spinner("Processing resources..."):
-                                    gather_requirements(self)
+                                run_with_progress(
+                                    "Processing resources...",
+                                    lambda: gather_requirements(self),
+                                    self,
+                                )
                                 self.display_result(
                                     "[green]Resources gathered successfully![/green]",
                                     highlight=False,

@@ -33,6 +33,16 @@ DevSynth follows a structured workflow that takes you from requirements to worki
 
 If you prefer a graphical interface, start the WebUI with `devsynth webui`. The WebUI provides pages that correspond to the CLI commands described below.
 
+## Enable Shell Completion
+
+DevSynth can generate shell completion scripts to speed up command entry:
+
+```bash
+devsynth completion --install
+```
+
+Run the above command to install completion for your current shell or omit `--install` to print the script path.
+
 ## Initialize a Project
 
 Start by creating a new DevSynth project:
