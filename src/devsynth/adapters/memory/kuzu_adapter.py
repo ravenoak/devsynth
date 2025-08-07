@@ -8,8 +8,8 @@ stores used throughout the codebase and keeps the tests deterministic.
 
 from __future__ import annotations
 
-import os
 import json
+import os
 import uuid
 from typing import Any, Dict, List, Optional
 
@@ -18,12 +18,11 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover - optional dependency
     np = None
 
+# Import settings module so ``ensure_path_exists`` can be monkeypatched
+from devsynth.config import settings as settings_module
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
 from devsynth.logging_setup import DevSynthLogger
-
-# Import settings module so ``ensure_path_exists`` can be monkeypatched
-from devsynth.config import settings as settings_module
 
 logger = DevSynthLogger(__name__)
 
@@ -36,10 +35,13 @@ class KuzuAdapter(VectorStore):
     ) -> None:
         self.persist_directory = os.path.expanduser(persist_directory)
         self.collection_name = collection_name
-        # Ensure the directory exists even when ``ensure_path_exists`` is
-        # patched to no-op during tests.  ``os.makedirs`` is safe to call on an
-        # existing path and avoids failures when persisting vectors.
-        settings_module.ensure_path_exists(self.persist_directory)
+        # ``ensure_path_exists`` may redirect the path when running in the
+        # isolated test environment.  Use the returned value so the adapter
+        # writes to the correct location and then create the directory to
+        # mirror the behaviour of other vector stores.
+        self.persist_directory = settings_module.ensure_path_exists(
+            self.persist_directory
+        )
         os.makedirs(self.persist_directory, exist_ok=True)
         self._data_file = os.path.join(
             self.persist_directory, f"{collection_name}.json"
