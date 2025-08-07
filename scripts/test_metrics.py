@@ -27,6 +27,7 @@ import time
 import sys
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Any
+import psutil
 
 # Import common test collector
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -246,12 +247,47 @@ def count_tests_by_speed(
     return counts
 
 
+def _run_with_memory(cmd: List[str]) -> Tuple[str, str, float]:
+    """Run a command and track peak memory usage.
+
+    Args:
+        cmd: Command and arguments to execute.
+
+    Returns:
+        stdout: Captured standard output.
+        stderr: Captured standard error.
+        peak_mb: Peak resident set size in megabytes observed while the
+            command was running (including child processes).
+    """
+    process = psutil.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
+    peak = 0
+    try:
+        while True:
+            if process.poll() is not None:
+                break
+            rss = process.memory_info().rss
+            for child in process.children(recursive=True):
+                try:
+                    rss += child.memory_info().rss
+                except psutil.Error:
+                    continue
+            peak = max(peak, rss)
+            time.sleep(0.1)
+        stdout, stderr = process.communicate()
+    finally:
+        process.wait()
+    peak_mb = peak / (1024 * 1024)
+    return stdout, stderr, peak_mb
+
+
 def identify_failing_tests(
     parallel: bool = True,
     segment: bool = True,
     segment_size: int = 50,
     use_cache: bool = True,
-) -> Dict[str, List[str]]:
+) -> Tuple[Dict[str, List[str]], Dict[str, float]]:
     """
     Run tests to identify failing tests.
 
@@ -292,7 +328,8 @@ def identify_failing_tests(
             pass
 
     print("Identifying failing tests...")
-    failing_tests = {}
+    failing_tests: Dict[str, List[str]] = {}
+    memory_usage: Dict[str, float] = {}
 
     for category, path in TEST_CATEGORIES.items():
         if not os.path.exists(path):
@@ -318,7 +355,7 @@ def identify_failing_tests(
 
             try:
                 # Run tests in batches
-                failing = []
+                failing: List[str] = []
                 for i in range(0, len(test_list), segment_size):
                     batch = test_list[i : i + segment_size]
                     print(
@@ -336,19 +373,26 @@ def identify_failing_tests(
 
                     # Run tests in parallel using pytest-xdist if requested
                     if parallel:
-                        cmd.extend(
-                            ["-n", "auto"]
-                        )  # Use auto to determine the optimal number of processes
+                        cmd.extend(["-n", "auto"])
+                    else:
+                        cmd.extend(["-n", "1"])
 
-                    # Run the batch
-                    batch_result = subprocess.run(cmd, capture_output=True, text=True)
+                    # Run the batch with memory tracking
+                    stdout, _, peak = _run_with_memory(cmd)
 
                     # Parse the output to get failing tests
-                    for line in batch_result.stdout.split("\n"):
+                    for line in stdout.split("\n"):
                         if "FAILED" in line:
                             match = re.search(r"(test_\w+\.py::[\w:]+)", line)
                             if match:
                                 failing.append(match.group(1))
+
+                    key = (
+                        batch[0]
+                        if len(batch) == 1
+                        else f"{category}_batch_{i//segment_size + 1}"
+                    )
+                    memory_usage[key] = peak
 
                 failing_tests[category] = failing
             except Exception as e:
@@ -366,22 +410,23 @@ def identify_failing_tests(
 
             # Run tests in parallel using pytest-xdist if requested
             if parallel:
-                cmd.extend(
-                    ["-n", "auto"]
-                )  # Use auto to determine the optimal number of processes
+                cmd.extend(["-n", "auto"])
+            else:
+                cmd.extend(["-n", "1"])
 
             try:
-                result = subprocess.run(cmd, capture_output=True, text=True)
+                stdout, _, peak = _run_with_memory(cmd)
 
                 # Parse the output to get failing tests
-                failing = []
-                for line in result.stdout.split("\n"):
+                failing: List[str] = []
+                for line in stdout.split("\n"):
                     if "FAILED" in line:
                         match = re.search(r"(test_\w+\.py::[\w:]+)", line)
                         if match:
                             failing.append(match.group(1))
 
                 failing_tests[category] = failing
+                memory_usage[category] = peak
             except Exception as e:
                 print(f"    Error running tests in {path}: {e}")
                 failing_tests[category] = []
@@ -395,7 +440,7 @@ def identify_failing_tests(
     with open(cache_timestamp_file, "w") as f:
         f.write(str(time.time()))
 
-    return failing_tests
+    return failing_tests, memory_usage
 
 
 def calculate_coverage() -> Dict[str, float]:
@@ -669,6 +714,7 @@ def generate_report(args) -> Dict[str, Any]:
 
     # Identify failing tests if requested
     failing_tests = {}
+    memory_usage = {}
     if args.run_tests:
         # Determine execution parameters
         parallel = not args.no_parallel
@@ -676,7 +722,7 @@ def generate_report(args) -> Dict[str, Any]:
         segment_size = args.segment_size
 
         # Run tests to identify failures
-        failing_tests = identify_failing_tests(
+        failing_tests, memory_usage = identify_failing_tests(
             parallel=parallel,
             segment=segment,
             segment_size=segment_size,
@@ -716,6 +762,7 @@ def generate_report(args) -> Dict[str, Any]:
             "by_speed": speed_counts,
         },
         "failing_tests": failing_tests,
+        "memory_usage": memory_usage,
         "coverage": coverage,
     }
 
@@ -770,6 +817,13 @@ def print_summary(report, args, execution_time):
         total_failing = report["summary"]["total_failing"]
         print(f"- Failing Tests: {total_failing}")
         print(f"- Pass Rate: {report['summary']['pass_rate']:.2f}%")
+        if report.get("memory_usage"):
+            print("- Top Memory Consumers:")
+            top_mem = sorted(
+                report["memory_usage"].items(), key=lambda x: x[1], reverse=True
+            )[:5]
+            for test, mem in top_mem:
+                print(f"  - {test}: {mem:.2f} MB")
 
     if not args.skip_coverage:
         print(f"- Line Coverage: {report['summary']['line_coverage']:.2f}%")
