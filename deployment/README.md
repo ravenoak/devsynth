@@ -7,6 +7,9 @@ This directory contains Docker Compose files and helper scripts for running DevS
 - `bootstrap_env.sh` – build and start DevSynth with monitoring
 - `health_check.sh` – verify running services
 
+All scripts perform basic security checks, refusing to run as root,
+verifying required tooling, and warning if `.env` files are world-readable.
+
 Use these files together to spin up a complete local environment:
 
 ```bash
