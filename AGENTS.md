@@ -14,7 +14,9 @@ This file covers all AI and service agents implemented in the `src/devsynth/` di
 
 ## Quick Start
 
-Always lint and test before committing.
+Always lint and test before committing. Prefix linting and test commands with
+`poetry run` to ensure they execute within the project's virtual environment
+and avoid missing packages.
 
 ### Linting
 
@@ -29,6 +31,8 @@ poetry run pytest
 ```
 
 Running hooks and tests through `poetry run` ensures they execute inside the project's virtual environment and prevents missing-package errors. Always invoke the pre-commit hooks on the files you are about to commit using the `--files` option shown above.
+All linting and test commands must be executed via `poetry run`; running them
+without the prefix may result in missing dependencies.
 
 ## GitHub Actions Workflows
 
@@ -171,8 +175,8 @@ Refer to `docs/architecture/agent_system.md` and `docs/architecture/wsde_agent_m
 - **Running Tests:**
   - `poetry run pytest tests/`
   - See `docs/developer_guides/hermetic_testing.md` for isolation practices.
-  - Running the full suite requires the `minimal`, `retrieval`, `memory`, `llm`,
-    `api`, `webui`, and `lmstudio` extras.
+  - Running the full suite requires the `minimal`, `retrieval`, `chromadb`, and
+    `gui` extras.
 
 ## Pull Request (PR) Guidelines
 

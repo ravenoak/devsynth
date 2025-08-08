@@ -133,9 +133,6 @@ poetry run pre-commit run --files <files>
 poetry run pytest
 ```
 
-`scripts/codex_setup.sh` is exclusively for provisioning the Codex environment
-and must not be referenced outside that context.
-
 ## Optional Dependencies
 
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
