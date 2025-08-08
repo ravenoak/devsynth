@@ -14,6 +14,8 @@ services:
       - DEVSYNTH_ENV=development
       - DEVSYNTH_LOG_LEVEL=DEBUG
       - DEVSYNTH_LLM_PROVIDER=openai
+    security_opt:
+      - no-new-privileges:true
     networks:
       - devsynth-network
     healthcheck:

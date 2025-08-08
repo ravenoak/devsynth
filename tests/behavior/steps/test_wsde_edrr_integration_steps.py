@@ -83,8 +83,7 @@ def context():
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
-    # This is a placeholder step that doesn't need to do anything specific
-    pass
+    context.system_initialized = True
 
 
 @pytest.mark.medium
