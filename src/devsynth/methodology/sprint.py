@@ -8,6 +8,8 @@ import datetime
 import time
 from typing import Any, Dict, List, Optional
 
+from devsynth.application.edrr.sprint_planning import map_requirements_to_plan
+from devsynth.application.edrr.sprint_retrospective import map_retrospective_to_summary
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
 from devsynth.methodology.sprint_adapter import map_ceremony_to_phase
@@ -200,7 +202,8 @@ class SprintAdapter(BaseMethodologyAdapter):
         expand_results = results.get("expand", {})
         req_analysis = expand_results.get("requirements_analysis")
         if req_analysis:
-            self._align_with_requirements(req_analysis)
+            self.sprint_plan = map_requirements_to_plan(req_analysis)
+            self.metrics["planned_scope"].append(self.sprint_plan["planned_scope"])
 
         # Track actual scope delivered during the sprint
         self.metrics["actual_scope"].append(
@@ -208,7 +211,11 @@ class SprintAdapter(BaseMethodologyAdapter):
         )
 
         retrospect_results = results.get("retrospect", {})
-        self._review_retrospective(retrospect_results)
+        summary = map_retrospective_to_summary(
+            retrospect_results, self.current_sprint_number
+        )
+        if summary:
+            self.metrics["retrospective_reviews"].append(summary)
 
         evaluation = retrospect_results.get("evaluation")
         if evaluation is not None:
@@ -470,32 +477,6 @@ class SprintAdapter(BaseMethodologyAdapter):
             "Insights generated: %d",
             len(results.get("retrospect", {}).get("insights", [])),
         )
-
-    def _align_with_requirements(self, requirement_results: Dict[str, Any]) -> None:
-        """Align sprint planning with requirement analysis results."""
-        if not requirement_results:
-            return
-        planned = requirement_results.get("recommended_scope") or []
-        objectives = requirement_results.get("objectives") or []
-        success = requirement_results.get("success_criteria") or []
-        self.sprint_plan = {
-            "planned_scope": planned,
-            "objectives": objectives,
-            "success_criteria": success,
-        }
-        self.metrics["planned_scope"].append(planned)
-
-    def _review_retrospective(self, retrospective: Dict[str, Any]) -> None:
-        """Automate review of sprint retrospectives."""
-        if not retrospective:
-            return
-        summary = {
-            "positives": retrospective.get("positives", []),
-            "improvements": retrospective.get("improvements", []),
-            "action_items": retrospective.get("action_items", []),
-            "sprint": self.current_sprint_number,
-        }
-        self.metrics["retrospective_reviews"].append(summary)
 
     def get_ceremony_phase(self, ceremony: str) -> Optional[Phase]:
         """Return the EDRR phase associated with an Agile ceremony.
