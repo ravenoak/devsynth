@@ -15,3 +15,7 @@ If a deployment needs to be rolled back, use the following steps:
    ```bash
    scripts/deployment/health_check.sh
    ```
+4. (Optional) Republish the previous image tag as `latest` if the rollback is permanent:
+   ```bash
+   scripts/deployment/publish_image.sh <previous_tag>
+   ```

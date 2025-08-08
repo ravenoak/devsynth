@@ -3,6 +3,7 @@ version: '3.8'
 services:
   # Main DevSynth application
   devsynth:
+    image: ghcr.io/devsynth/devsynth:${DEVSYNTH_IMAGE_TAG:-latest}
     build:
       context: .
       target: development
