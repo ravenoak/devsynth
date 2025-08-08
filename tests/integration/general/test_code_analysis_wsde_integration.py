@@ -7,24 +7,26 @@ within the WSDE framework to analyze and transform code during the development p
 """
 
 import os
-import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.memory.memory_manager import MemoryManager
+
+import pytest
+
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.ast_workflow_integration import (
+    AstWorkflowIntegration,
+)
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
 )
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.application.code_analysis.transformer import CodeTransformer
-from devsynth.application.code_analysis.ast_workflow_integration import (
-    AstWorkflowIntegration,
-)
+from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.task import Task, TaskStatus
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 def test_agent_type_expert_exists():

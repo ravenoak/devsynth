@@ -5,25 +5,28 @@ This module contains the step definitions for the Code Transformer behavior test
 """
 
 import os
-import pytest
 import tempfile
 from pathlib import Path
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+from pytest_bdd import given, parsers, then, when
 
 from devsynth.application.code_analysis.transformer import CodeTransformer
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
-
 # Import the feature file
-scenarios = pytest.importorskip("pytest_bdd").scenarios("../features/general/code_transformer.feature")
+scenarios = pytest.importorskip("pytest_bdd").scenarios(
+    "../features/general/code_transformer.feature"
+)
 
 
 @pytest.fixture
 def context():
     """Create a context object for sharing data between steps."""
+
     class Context:
         def __init__(self):
             self.transformer = None
@@ -33,7 +36,7 @@ def context():
             self.result = None
             self.edrr_coordinator = None
             self.wsde_team = None
-    
+
     return Context()
 
 
@@ -80,9 +83,15 @@ def transform_code(context, transformation):
 @then("the transformed code should not contain unused imports")
 def verify_no_unused_imports(context):
     """Verify that the transformed code does not contain unused imports."""
-    assert "import re" not in context.result.transformed_code, "Unused import 're' still present"
-    assert "import os" in context.result.transformed_code, "Import 'os' was removed but it's used"
-    assert "import sys" in context.result.transformed_code, "Import 'sys' was removed but it's used"
+    assert (
+        "import re" not in context.result.transformed_code
+    ), "Unused import 're' still present"
+    assert (
+        "import os" in context.result.transformed_code
+    ), "Import 'os' was removed but it's used"
+    assert (
+        "import sys" in context.result.transformed_code
+    ), "Import 'sys' was removed but it's used"
 
 
 @pytest.mark.medium
@@ -92,8 +101,12 @@ def verify_functionality_maintained(context):
     # This would require executing the code, which is beyond the scope of this test
     # Instead, we'll check that the main function is still present
     assert "def main():" in context.result.transformed_code, "Main function is missing"
-    assert "print(os.path.join" in context.result.transformed_code, "os.path.join call is missing"
-    assert "print(sys.version)" in context.result.transformed_code, "sys.version call is missing"
+    assert (
+        "print(os.path.join" in context.result.transformed_code
+    ), "os.path.join call is missing"
+    assert (
+        "print(sys.version)" in context.result.transformed_code
+    ), "sys.version call is missing"
 
 
 @pytest.mark.medium
@@ -121,8 +134,12 @@ def calculate_sum(a, b):
 @then("the transformed code should not contain redundant assignments")
 def verify_no_redundant_assignments(context):
     """Verify that the transformed code does not contain redundant assignments."""
-    assert "result = a + b" not in context.result.transformed_code, "Redundant assignment still present"
-    assert "return a + b" in context.result.transformed_code, "Direct return not present"
+    assert (
+        "result = a + b" not in context.result.transformed_code
+    ), "Redundant assignment still present"
+    assert (
+        "return a + b" in context.result.transformed_code
+    ), "Direct return not present"
 
 
 # Scenario: Transform code with unused variables
@@ -134,10 +151,10 @@ def python_code_with_unused_variables(context):
 def process_data(data):
     result = []
     count = 0  # This variable is unused
-    
+
     for item in data:
         result.append(item * 2)
-    
+
     return result
 """
 
@@ -146,8 +163,12 @@ def process_data(data):
 @then("the transformed code should not contain unused variables")
 def verify_no_unused_variables(context):
     """Verify that the transformed code does not contain unused variables."""
-    assert "count = 0" not in context.result.transformed_code, "Unused variable 'count' still present"
-    assert "result = []" in context.result.transformed_code, "Variable 'result' was removed but it's used"
+    assert (
+        "count = 0" not in context.result.transformed_code
+    ), "Unused variable 'count' still present"
+    assert (
+        "result = []" in context.result.transformed_code
+    ), "Variable 'result' was removed but it's used"
 
 
 # Scenario: Transform code with string literals
@@ -166,12 +187,16 @@ def greet(name):
 @then("the transformed code should contain optimized string literals")
 def verify_optimized_string_literals(context):
     """Verify that the transformed code contains optimized string literals."""
-    assert '"Hello, " + name + "!"' not in context.result.transformed_code, "Unoptimized string concatenation still present"
-    assert any([
-        f'"Hello, {name}!"' in context.result.transformed_code,
-        "f'Hello, {name}!'" in context.result.transformed_code,
-        'f"Hello, {name}!"' in context.result.transformed_code
-    ]), "Optimized string not present"
+    assert (
+        '"Hello, " + name + "!"' not in context.result.transformed_code
+    ), "Unoptimized string concatenation still present"
+    assert any(
+        [
+            f'"Hello, {name}!"' in context.result.transformed_code,
+            "f'Hello, {name}!'" in context.result.transformed_code,
+            'f"Hello, {name}!"' in context.result.transformed_code,
+        ]
+    ), "Optimized string not present"
 
 
 # Scenario: Transform code with style issues
@@ -223,16 +248,18 @@ def main():
 
 
 @pytest.mark.medium
-@when(parsers.parse("I transform the code using the following transformations:\n{table}"))
+@when(
+    parsers.parse("I transform the code using the following transformations:\n{table}")
+)
 def transform_code_with_multiple_transformations(context, table):
     """Transform the code using multiple transformations."""
     # Parse the table
-    rows = [line.strip().split('|') for line in table.strip().split('\n')]
+    rows = [line.strip().split("|") for line in table.strip().split("\n")]
     rows = [[cell.strip() for cell in row if cell.strip()] for row in rows]
-    
+
     # Skip the header row
     transformations = [row[0] for row in rows[1:]]
-    
+
     # Apply the transformations
     context.result = context.transformer.transform_code(context.code, transformations)
 
@@ -242,16 +269,24 @@ def transform_code_with_multiple_transformations(context, table):
 def verify_all_issues_addressed(context):
     """Verify that the transformed code addresses all issues."""
     # Check for unused imports
-    assert "import re" not in context.result.transformed_code, "Unused import 're' still present"
-    
+    assert (
+        "import re" not in context.result.transformed_code
+    ), "Unused import 're' still present"
+
     # Check for redundant assignments
-    assert "result = a + b" not in context.result.transformed_code, "Redundant assignment still present"
-    
+    assert (
+        "result = a + b" not in context.result.transformed_code
+    ), "Redundant assignment still present"
+
     # Check for unused variables
-    assert "z = 15" not in context.result.transformed_code, "Unused variable 'z' still present"
-    
+    assert (
+        "z = 15" not in context.result.transformed_code
+    ), "Unused variable 'z' still present"
+
     # Check for string literals
-    assert '"Hello, " + "world!"' not in context.result.transformed_code, "Unoptimized string concatenation still present"
+    assert (
+        '"Hello, " + "world!"' not in context.result.transformed_code
+    ), "Unoptimized string concatenation still present"
 
 
 @pytest.mark.medium
@@ -260,13 +295,21 @@ def verify_all_changes_recorded(context):
     """Verify that the transformation records all changes made."""
     assert hasattr(context.result, "changes"), "No changes recorded"
     assert len(context.result.changes) > 0, "No changes recorded"
-    
+
     # Check that changes for different transformations were recorded
     change_descriptions = [change["description"] for change in context.result.changes]
-    assert any("import" in desc.lower() for desc in change_descriptions), "No import-related changes recorded"
-    assert any("assignment" in desc.lower() for desc in change_descriptions), "No assignment-related changes recorded"
-    assert any("variable" in desc.lower() for desc in change_descriptions), "No variable-related changes recorded"
-    assert any("string" in desc.lower() for desc in change_descriptions), "No string-related changes recorded"
+    assert any(
+        "import" in desc.lower() for desc in change_descriptions
+    ), "No import-related changes recorded"
+    assert any(
+        "assignment" in desc.lower() for desc in change_descriptions
+    ), "No assignment-related changes recorded"
+    assert any(
+        "variable" in desc.lower() for desc in change_descriptions
+    ), "No variable-related changes recorded"
+    assert any(
+        "string" in desc.lower() for desc in change_descriptions
+    ), "No string-related changes recorded"
 
 
 # Scenario: Transform a file
@@ -277,10 +320,11 @@ def python_file_with_code_issues(context):
     # Create a temporary file
     fd, context.file_path = tempfile.mkstemp(suffix=".py")
     os.close(fd)
-    
+
     # Write code with issues to the file
     with open(context.file_path, "w") as f:
-        f.write("""
+        f.write(
+            """
 import os
 import sys
 import re  # This import is unused
@@ -288,23 +332,32 @@ import re  # This import is unused
 def main():
     print(os.path.join("a", "b"))
     print(sys.version)
-""")
+"""
+        )
 
 
 @pytest.mark.medium
 @when(parsers.parse('I transform the file using the "{transformation}" transformation'))
 def transform_file(context, transformation):
     """Transform the file using the specified transformation."""
-    context.result = context.transformer.transform_file(context.file_path, [transformation])
+    context.result = context.transformer.transform_file(
+        context.file_path, [transformation]
+    )
 
 
 @pytest.mark.medium
 @then("the transformed file should not contain unused imports")
 def verify_file_no_unused_imports(context):
     """Verify that the transformed file does not contain unused imports."""
-    assert "import re" not in context.result.transformed_code, "Unused import 're' still present"
-    assert "import os" in context.result.transformed_code, "Import 'os' was removed but it's used"
-    assert "import sys" in context.result.transformed_code, "Import 'sys' was removed but it's used"
+    assert (
+        "import re" not in context.result.transformed_code
+    ), "Unused import 're' still present"
+    assert (
+        "import os" in context.result.transformed_code
+    ), "Import 'os' was removed but it's used"
+    assert (
+        "import sys" in context.result.transformed_code
+    ), "Import 'sys' was removed but it's used"
 
 
 @pytest.mark.medium
@@ -314,8 +367,12 @@ def verify_file_functionality_maintained(context):
     # This would require executing the code, which is beyond the scope of this test
     # Instead, we'll check that the main function is still present
     assert "def main():" in context.result.transformed_code, "Main function is missing"
-    assert "print(os.path.join" in context.result.transformed_code, "os.path.join call is missing"
-    assert "print(sys.version)" in context.result.transformed_code, "sys.version call is missing"
+    assert (
+        "print(os.path.join" in context.result.transformed_code
+    ), "os.path.join call is missing"
+    assert (
+        "print(sys.version)" in context.result.transformed_code
+    ), "sys.version call is missing"
 
 
 @pytest.mark.medium
@@ -333,41 +390,57 @@ def directory_with_python_files(context):
     """Set up a directory with Python files."""
     # Create a temporary directory
     context.dir_path = tempfile.mkdtemp()
-    
+
     # Create Python files with issues
     with open(os.path.join(context.dir_path, "file1.py"), "w") as f:
-        f.write("""
+        f.write(
+            """
 import os
 import re  # This import is unused
 
 def main():
     print(os.path.join("a", "b"))
-""")
-    
+"""
+        )
+
     with open(os.path.join(context.dir_path, "file2.py"), "w") as f:
-        f.write("""
+        f.write(
+            """
 import sys
 import re  # This import is unused
 
 def main():
     print(sys.version)
-""")
+"""
+        )
 
 
 @pytest.mark.medium
-@when(parsers.parse('I transform the directory using the "{transformation}" transformation'))
+@when(
+    parsers.parse(
+        'I transform the directory using the "{transformation}" transformation'
+    )
+)
 def transform_directory(context, transformation):
     """Transform the directory using the specified transformation."""
-    context.result = context.transformer.transform_directory(context.dir_path, recursive=False, transformations=[transformation])
+    context.result = context.transformer.transform_directory(
+        context.dir_path, recursive=False, transformations=[transformation]
+    )
 
 
 @pytest.mark.medium
 @then("all Python files in the directory should be transformed")
 def verify_all_files_transformed(context):
     """Verify that all Python files in the directory were transformed."""
-    assert len(context.result) == 2, f"Expected 2 files to be transformed, but got {len(context.result)}"
-    assert any("file1.py" in result.file_path for result in context.result), "file1.py was not transformed"
-    assert any("file2.py" in result.file_path for result in context.result), "file2.py was not transformed"
+    assert (
+        len(context.result) == 2
+    ), f"Expected 2 files to be transformed, but got {len(context.result)}"
+    assert any(
+        "file1.py" in result.file_path for result in context.result
+    ), "file1.py was not transformed"
+    assert any(
+        "file2.py" in result.file_path for result in context.result
+    ), "file2.py was not transformed"
 
 
 @pytest.mark.medium
@@ -375,7 +448,9 @@ def verify_all_files_transformed(context):
 def verify_no_files_with_unused_imports(context):
     """Verify that none of the transformed files contain unused imports."""
     for result in context.result:
-        assert "import re" not in result.transformed_code, f"Unused import 're' still present in {result.file_path}"
+        assert (
+            "import re" not in result.transformed_code
+        ), f"Unused import 're' still present in {result.file_path}"
 
 
 @pytest.mark.medium
@@ -383,11 +458,17 @@ def verify_no_files_with_unused_imports(context):
 def verify_all_files_functionality_maintained(context):
     """Verify that all transformed files maintain their original functionality."""
     for result in context.result:
-        assert "def main():" in result.transformed_code, f"Main function is missing in {result.file_path}"
+        assert (
+            "def main():" in result.transformed_code
+        ), f"Main function is missing in {result.file_path}"
         if "file1.py" in result.file_path:
-            assert "print(os.path.join" in result.transformed_code, "os.path.join call is missing in file1.py"
+            assert (
+                "print(os.path.join" in result.transformed_code
+            ), "os.path.join call is missing in file1.py"
         if "file2.py" in result.file_path:
-            assert "print(sys.version)" in result.transformed_code, "sys.version call is missing in file2.py"
+            assert (
+                "print(sys.version)" in result.transformed_code
+            ), "sys.version call is missing in file2.py"
 
 
 @pytest.mark.medium
@@ -406,45 +487,61 @@ def directory_with_python_files_and_subdirectories(context):
     """Set up a directory with Python files and subdirectories."""
     # Create a temporary directory
     context.dir_path = tempfile.mkdtemp()
-    
+
     # Create Python files with issues in the main directory
     with open(os.path.join(context.dir_path, "file1.py"), "w") as f:
-        f.write("""
+        f.write(
+            """
 import os
 import re  # This import is unused
 
 def main():
     print(os.path.join("a", "b"))
-""")
-    
+"""
+        )
+
     # Create a subdirectory with Python files
     subdir = os.path.join(context.dir_path, "subdir")
     os.mkdir(subdir)
-    
+
     with open(os.path.join(subdir, "file2.py"), "w") as f:
-        f.write("""
+        f.write(
+            """
 import sys
 import re  # This import is unused
 
 def main():
     print(sys.version)
-""")
+"""
+        )
 
 
 @pytest.mark.medium
-@when(parsers.parse('I transform the directory recursively using the "{transformation}" transformation'))
+@when(
+    parsers.parse(
+        'I transform the directory recursively using the "{transformation}" transformation'
+    )
+)
 def transform_directory_recursively(context, transformation):
     """Transform the directory recursively using the specified transformation."""
-    context.result = context.transformer.transform_directory(context.dir_path, recursive=True, transformations=[transformation])
+    context.result = context.transformer.transform_directory(
+        context.dir_path, recursive=True, transformations=[transformation]
+    )
 
 
 @pytest.mark.medium
 @then("all Python files in the directory and its subdirectories should be transformed")
 def verify_all_files_and_subdirs_transformed(context):
     """Verify that all Python files in the directory and its subdirectories were transformed."""
-    assert len(context.result) == 2, f"Expected 2 files to be transformed, but got {len(context.result)}"
-    assert any("file1.py" in result.file_path for result in context.result), "file1.py was not transformed"
-    assert any("file2.py" in result.file_path for result in context.result), "file2.py was not transformed"
+    assert (
+        len(context.result) == 2
+    ), f"Expected 2 files to be transformed, but got {len(context.result)}"
+    assert any(
+        "file1.py" in result.file_path for result in context.result
+    ), "file1.py was not transformed"
+    assert any(
+        "file2.py" in result.file_path for result in context.result
+    ), "file2.py was not transformed"
 
 
 # Scenario: Validate syntax before and after transformation
@@ -491,7 +588,9 @@ def verify_transformation_proceeds_if_valid(context):
 def verify_transformed_code_valid_syntax(context):
     """Verify that the transformed code has valid syntax."""
     # We can use the transformer's validate_syntax method to check
-    assert context.transformer.validate_syntax(context.result.transformed_code), "Transformed code has invalid syntax"
+    assert context.transformer.validate_syntax(
+        context.result.transformed_code
+    ), "Transformed code has invalid syntax"
 
 
 # Scenario: Handle syntax errors gracefully
@@ -511,7 +610,9 @@ def attempt_to_transform_code(context):
     """Attempt to transform the code."""
     # We'll use a try-except block to catch any exceptions
     try:
-        context.result = context.transformer.transform_code(context.code, ["remove_unused_imports"])
+        context.result = context.transformer.transform_code(
+            context.code, ["remove_unused_imports"]
+        )
         context.exception = None
     except Exception as e:
         context.exception = e
@@ -542,7 +643,9 @@ def verify_transformation_not_proceeded(context):
     """Verify that the transformer does not proceed with the transformation."""
     # If the transformation failed, context.result should be None
     # If it succeeded despite the syntax errors, context.result should not be None
-    assert context.result is None or not hasattr(context.result, "transformed_code"), "Transformation proceeded despite syntax errors"
+    assert context.result is None or not hasattr(
+        context.result, "transformed_code"
+    ), "Transformation proceeded despite syntax errors"
 
 
 # Scenario: Integrate with EDRR workflow
@@ -559,14 +662,20 @@ def edrr_workflow_configured(context):
 def initiate_code_transformation_task(context):
     """Initiate a code transformation task."""
     # Mock the execution of a code transformation task
-    context.result = {"task": "code_transformation", "phase": "refinement", "status": "completed"}
+    context.result = {
+        "task": "code_transformation",
+        "phase": "refinement",
+        "status": "completed",
+    }
 
 
 @pytest.mark.medium
 @then("the system should use code transformation in the Refinement phase")
 def verify_refinement_phase(context):
     """Verify that code transformation is used in the Refinement phase."""
-    assert context.result["phase"] == "refinement", "Code transformation not used in Refinement phase"
+    assert (
+        context.result["phase"] == "refinement"
+    ), "Code transformation not used in Refinement phase"
 
 
 @pytest.mark.medium
@@ -574,15 +683,21 @@ def verify_refinement_phase(context):
 def verify_appropriate_transformations(context):
     """Verify that appropriate transformations are applied based on the code analysis."""
     # This is a placeholder verification
-    assert context.result["task"] == "code_transformation", "Code transformation task not executed"
+    assert (
+        context.result["task"] == "code_transformation"
+    ), "Code transformation task not executed"
 
 
 @pytest.mark.medium
-@then("the memory system should store transformation results with appropriate EDRR phase tags")
+@then(
+    "the memory system should store transformation results with appropriate EDRR phase tags"
+)
 def verify_results_stored_with_phase_tags(context):
     """Verify that transformation results are stored with appropriate EDRR phase tags."""
     # This is a placeholder verification
-    assert context.result["phase"] == "refinement", "Results not stored with Refinement phase tag"
+    assert (
+        context.result["phase"] == "refinement"
+    ), "Results not stored with Refinement phase tag"
 
 
 # Scenario: Integrate with WSDE team
@@ -599,7 +714,11 @@ def wsde_team_configured(context):
 def assign_code_transformation_task(context):
     """Assign a code transformation task to the WSDE team."""
     # Mock the assignment of a code transformation task
-    context.result = {"task": "code_transformation", "assigned_to": "wsde_team", "status": "completed"}
+    context.result = {
+        "task": "code_transformation",
+        "assigned_to": "wsde_team",
+        "status": "completed",
+    }
 
 
 @pytest.mark.medium
@@ -607,7 +726,9 @@ def assign_code_transformation_task(context):
 def verify_team_collaboration(context):
     """Verify that the team collaborates to transform different aspects of the code."""
     # This is a placeholder verification
-    assert context.result["assigned_to"] == "wsde_team", "Task not assigned to WSDE team"
+    assert (
+        context.result["assigned_to"] == "wsde_team"
+    ), "Task not assigned to WSDE team"
 
 
 @pytest.mark.medium
@@ -623,4 +744,6 @@ def verify_results_shared(context):
 def verify_consolidated_code(context):
     """Verify that the team produces consolidated transformed code."""
     # This is a placeholder verification
-    assert context.result["task"] == "code_transformation", "Code transformation task not executed"
+    assert (
+        context.result["task"] == "code_transformation"
+    ), "Code transformation task not executed"

@@ -11,7 +11,7 @@ from devsynth.application.memory.context_manager import (
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class SimpleStore(InMemoryStore):

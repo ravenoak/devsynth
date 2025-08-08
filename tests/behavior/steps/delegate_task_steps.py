@@ -10,7 +10,7 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 scenarios("../features/general/delegate_task.feature")
 
@@ -141,4 +141,3 @@ def method_consensus(context) -> None:
 def dialectical_reasoning_applied(context) -> None:
     team: SimpleTeam = context.coordinator.team  # type: ignore[assignment]
     assert team.dialectical_called is True
-

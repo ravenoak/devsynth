@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
+
 import pytest
-from devsynth.domain.models.wsde import WSDETeam
+
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 def _agent(name: str, expertise: list[str], used: bool = False):
@@ -95,8 +97,10 @@ def test_select_primus_by_expertise_coverage_succeeds():
     import inspect
     import os
     from types import SimpleNamespace
+
     import coverage
-    import devsynth.domain.models.wsde as wsde
+
+    import devsynth.domain.models.wsde_facade as wsde
 
     team = wsde.WSDETeam(name="TestWsdePrimusSelectionTeam")
     cov = coverage.Coverage()

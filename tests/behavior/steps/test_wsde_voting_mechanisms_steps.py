@@ -11,17 +11,19 @@ pytest.skip(
     "Advanced WSDE collaboration features not implemented", allow_module_level=True
 )
 
-from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock
+
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
 scenarios("../features/general/wsde_voting_mechanisms.feature")
 
-# Import the modules needed for the steps
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
+
+# Import the modules needed for the steps
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.fixture

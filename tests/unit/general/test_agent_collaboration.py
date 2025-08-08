@@ -1,17 +1,19 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.domain.models.wsde import WSDE, WSDETeam
-from devsynth.domain.models.agent import AgentType, AgentConfig
-from devsynth.application.agents.unified_agent import UnifiedAgent
-from devsynth.application.agents.specification import SpecificationAgent
-from devsynth.application.agents.test import TestAgent
-from devsynth.application.agents.code import CodeAgent
+
+import pytest
+
 from devsynth.adapters.agents.agent_adapter import (
+    AgentAdapter,
     SimplifiedAgentFactory,
     WSDETeamCoordinator,
-    AgentAdapter,
 )
+from devsynth.application.agents.code import CodeAgent
+from devsynth.application.agents.specification import SpecificationAgent
+from devsynth.application.agents.test import TestAgent
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
+from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.wsde_facade import WSDE, WSDETeam
 from devsynth.exceptions import ValidationError
 
 
@@ -46,7 +48,6 @@ class TestAgentCollaboration:
         coordinator = WSDETeamCoordinator()
         assert coordinator.teams == {}
         assert coordinator.current_team_id is None
-
 
     @pytest.mark.medium
     def test_add_agent_succeeds(self, mock_agent):

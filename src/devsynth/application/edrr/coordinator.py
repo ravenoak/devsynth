@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from unittest.mock import MagicMock
 
 import yaml
 
@@ -27,10 +28,9 @@ from devsynth.application.edrr.wsde_team_proxy import WSDETeamProxy
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.core import CoreValues, check_report_for_value_conflicts
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import DevSynthError
-from unittest.mock import MagicMock
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 

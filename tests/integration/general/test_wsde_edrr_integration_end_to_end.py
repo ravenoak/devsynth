@@ -5,20 +5,22 @@ This test verifies the complete integration between the WSDE agent model and the
 including dynamic role assignment, multi-agent collaboration, and dialectical reasoning.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.memory.memory_manager import MemoryManager
+
+import pytest
+
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.methodology.base import Phase
+from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 class ExpertAgent(UnifiedAgent):

@@ -3,9 +3,11 @@ Test the integration between WSDE and EDRR, particularly the phase-specific
 role assignment functionality.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.domain.models.wsde import WSDETeam
+
+import pytest
+
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 

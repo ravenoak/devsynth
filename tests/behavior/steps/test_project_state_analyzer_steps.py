@@ -5,19 +5,23 @@ This module contains the step definitions for the Project State Analyzer behavio
 """
 
 import os
-import pytest
 from pathlib import Path
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from devsynth.application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
+import pytest
+from pytest_bdd import given, parsers, then, when
+
+from devsynth.application.code_analysis.project_state_analyzer import (
+    ProjectStateAnalyzer,
+)
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
-
 # Import the feature file
-scenarios = pytest.importorskip("pytest_bdd").scenarios("../features/general/project_state_analyzer.feature")
+scenarios = pytest.importorskip("pytest_bdd").scenarios(
+    "../features/general/project_state_analyzer.feature"
+)
 
 
 @pytest.fixture
@@ -25,7 +29,7 @@ def test_project_dir(tmp_path):
     """Create a temporary directory with a test project structure."""
     # Create a basic project structure
     project_dir = tmp_path / "test_project"
-    
+
     # Create directories for different architecture patterns
     (project_dir / "src" / "models").mkdir(parents=True)
     (project_dir / "src" / "views").mkdir(parents=True)
@@ -35,7 +39,7 @@ def test_project_dir(tmp_path):
     (project_dir / "src" / "adapters").mkdir(parents=True)
     (project_dir / "docs").mkdir(parents=True)
     (project_dir / "tests").mkdir(parents=True)
-    
+
     # Create some Python files
     (project_dir / "src" / "models" / "user.py").write_text(
         "class User:\n    def __init__(self, name):\n        self.name = name"
@@ -46,7 +50,7 @@ def test_project_dir(tmp_path):
     (project_dir / "src" / "views" / "user_view.py").write_text(
         "class UserView:\n    def render_user(self, user):\n        return f'User: {user.name}'"
     )
-    
+
     # Create requirements and specification files
     (project_dir / "docs" / "requirements.md").write_text(
         "# Requirements\n\n1. The system shall allow users to create accounts.\n2. The system shall allow users to log in."
@@ -54,25 +58,26 @@ def test_project_dir(tmp_path):
     (project_dir / "docs" / "specifications.md").write_text(
         "# Specifications\n\n1. User Creation: The system will provide an API endpoint for user creation.\n2. User Authentication: The system will support username/password authentication."
     )
-    
+
     # Create a test file
     (project_dir / "tests" / "test_user.py").write_text(
         "def test_user_creation():\n    from src.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
     )
-    
+
     return project_dir
 
 
 @pytest.fixture
 def context():
     """Create a context object for sharing data between steps."""
+
     class Context:
         def __init__(self):
             self.analyzer = None
             self.result = None
             self.edrr_coordinator = None
             self.wsde_team = None
-    
+
     return Context()
 
 
@@ -109,9 +114,11 @@ def verify_files_identified(context, test_project_dir):
     file_count = 0
     for root, _, files in os.walk(test_project_dir):
         file_count += len(files)
-    
+
     # Verify that the analyzer found all files
-    assert len(context.result) == file_count, f"Expected {file_count} files, but found {len(context.result)}"
+    assert (
+        len(context.result) == file_count
+    ), f"Expected {file_count} files, but found {len(context.result)}"
 
 
 @pytest.mark.medium
@@ -123,7 +130,7 @@ def verify_files_categorized(context):
     for file_info in context.result.values():
         if "category" in file_info:
             categories.add(file_info["category"])
-    
+
     # Verify that there are multiple categories
     assert len(categories) > 0, "No file categories found"
 
@@ -133,10 +140,12 @@ def verify_files_categorized(context):
 def verify_languages_detected(context):
     """Verify that programming languages are detected."""
     context.analyzer._detect_languages()
-    
+
     # Verify that Python is detected
     assert "python" in context.analyzer.languages, "Python language not detected"
-    assert context.analyzer.languages["python"]["percentage"] > 0, "Python percentage is zero"
+    assert (
+        context.analyzer.languages["python"]["percentage"] > 0
+    ), "Python percentage is zero"
 
 
 @pytest.mark.medium
@@ -145,7 +154,7 @@ def verify_metrics_provided(context):
     """Verify that metrics about the project structure are provided."""
     # Analyze the project to get metrics
     result = context.analyzer.analyze()
-    
+
     # Verify that metrics are provided
     assert "metrics" in result, "No metrics in analysis result"
     assert "total_files" in result["metrics"], "No total_files metric"
@@ -177,10 +186,10 @@ def verify_components_identified(context):
     """Verify that components are identified based on the architecture."""
     # Get the architecture with the highest confidence
     architecture_type = max(context.result.items(), key=lambda x: x[1]["confidence"])[0]
-    
+
     # Identify components for this architecture
     components = context.analyzer._identify_components(architecture_type)
-    
+
     # Verify that components are identified
     assert len(components) > 0, "No components identified"
 
@@ -201,10 +210,10 @@ def verify_layers_identified(context):
     """Verify that architectural layers are identified."""
     # Get the architecture with the highest confidence
     architecture_type = max(context.result.items(), key=lambda x: x[1]["confidence"])[0]
-    
+
     # Identify components for this architecture
     components = context.analyzer._identify_components(architecture_type)
-    
+
     # Verify that layers are identified (components represent layers)
     assert len(components) > 0, "No layers identified"
 
@@ -233,7 +242,7 @@ def verify_mvc_components(context):
     """Verify that models, views, and controllers are identified."""
     # Identify MVC components
     components = context.analyzer._identify_components("mvc")
-    
+
     # Verify that models, views, and controllers are identified
     assert "models" in components, "Models not identified"
     assert "views" in components, "Views not identified"
@@ -301,7 +310,11 @@ def wsde_team_configured(context):
 def assign_project_analysis_task(context):
     """Assign a project analysis task to the WSDE team."""
     # Mock the assignment of a project analysis task
-    context.result = {"task": "project_analysis", "assigned_to": "wsde_team", "status": "completed"}
+    context.result = {
+        "task": "project_analysis",
+        "assigned_to": "wsde_team",
+        "status": "completed",
+    }
 
 
 @pytest.mark.medium

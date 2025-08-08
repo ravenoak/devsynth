@@ -5,36 +5,35 @@ from pytest_bdd import scenarios
 # Content from test_edrr_enhanced_recursion_steps.py inlined here
 """Step definitions for the Enhanced EDRR Recursion Handling feature."""
 
-from __future__ import annotations
 
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
+
 # Content from test_edrr_coordinator_steps.py inlined here
 """Step definitions for the EDRR Coordinator feature."""
 
-from __future__ import annotations
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
+
 import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("../features/general/edrr_coordinator.feature")
-import os
 import json
+import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryType
-from devsynth.domain.models.wsde import WSDETeam
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.edrr.manifest_parser import ManifestParser
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -944,26 +943,30 @@ def verify_performance_metrics(context):
         assert "code_analyzer" in component_calls
         assert "prompt_manager" in component_calls
         assert "documentation_manager" in component_calls
-  # noqa: F401,F403
-import pytest
-from unittest.mock import MagicMock, patch
+
+
 import time
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+# noqa: F401,F403
+import pytest
 
 # Import the scenarios from the feature file
 scenarios("../features/general/edrr_enhanced_recursion.feature")
 
-# Import the necessary components
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.wsde_facade import WSDETeam
+
+# Import the necessary components
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -2153,6 +2156,8 @@ def verify_progress_tracking_accessible(context):
     assert progress_data == context.progress_tracking
     assert context.task["id"] in progress_data
     assert "completion_percentage" in progress_data[context.task["id"]]
-  # noqa: F401,F403
+
+
+# noqa: F401,F403
 
 scenarios("../features/general/edrr_enhanced_recursion.feature")

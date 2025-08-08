@@ -1,11 +1,13 @@
-import typer
-import click
-from click.testing import CliRunner
 from unittest.mock import MagicMock
+
+import click
+import pytest
+import typer
+from click.testing import CliRunner
+
 import devsynth.adapters.cli.typer_adapter as typer_adapter
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
-from devsynth.domain.models.wsde import WSDETeam
-import pytest
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.mark.medium
@@ -21,7 +23,6 @@ def test_delegate_task_single_agent_succeeds():
     result = coord.delegate_task({"description": "do"})
     assert result["result"] == "ok"
     agent.process.assert_called_once_with({"description": "do"})
-
 
 
 @pytest.mark.medium
@@ -56,7 +57,6 @@ def test_delegate_task_multi_agent_succeeds():
     team.select_primus_by_expertise.assert_called_once_with(task)
     assert result["result"] == "final"
     assert result["dialectical_analysis"] == {"eval": "ok"}
-
 
 
 @pytest.mark.medium

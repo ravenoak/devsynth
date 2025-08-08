@@ -5,9 +5,9 @@ This module extends the EDRRCoordinator class with enhanced phase transition
 logic, quality scoring, and metrics collection.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -22,8 +22,8 @@ from devsynth.application.edrr.edrr_phase_transitions import (
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.requirements.prompt_manager import PromptManager
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 

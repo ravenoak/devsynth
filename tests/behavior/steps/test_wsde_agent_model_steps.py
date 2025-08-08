@@ -4,24 +4,28 @@ Step Definitions for WSDE Agent Model Refinement BDD Tests
 This file implements the step definitions for the WSDE agent model refinement
 feature file, testing the non-hierarchical, context-driven agent collaboration.
 """
-import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+
 from unittest.mock import MagicMock
 
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
 # Import the feature files
-scenarios('../features/general/wsde_agent_model.feature')
+scenarios("../features/general/wsde_agent_model.feature")
 # scenarios('../features/wsde_agent_model.feature')  # Commented out - feature file not found
 
-# Import the modules needed for the steps
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
+
+# Import the modules needed for the steps
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.fixture
 def context():
     """Fixture to provide a context object for sharing state between steps."""
+
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()
@@ -36,6 +40,7 @@ def context():
 
 
 # Background steps
+
 
 @pytest.mark.medium
 @given("the DevSynth system is initialized")
@@ -66,6 +71,7 @@ def wsde_model_enabled(context):
 
 # Scenario: Peer-based collaboration
 
+
 @pytest.mark.medium
 @when("I create a team with multiple agents")
 def create_team_with_multiple_agents(context):
@@ -75,7 +81,7 @@ def create_team_with_multiple_agents(context):
         AgentType.PLANNER.value,
         AgentType.SPECIFICATION.value,
         AgentType.CODE.value,
-        AgentType.VALIDATION.value
+        AgentType.VALIDATION.value,
     ]
 
     for agent_type in agent_types:
@@ -85,7 +91,7 @@ def create_team_with_multiple_agents(context):
             agent_type=AgentType(agent_type),
             description=f"Agent for {agent_type} tasks",
             capabilities=[],
-            parameters={}
+            parameters={},
         )
         agent.initialize(agent_config)
         context.agents[agent_type] = agent
@@ -131,7 +137,7 @@ def collaborate_without_rigid_role_sequences(context):
         "code_agent": ["python", "javascript", "code_generation"],
         "test_agent": ["testing", "pytest", "test_generation"],
         "doc_agent": ["documentation", "markdown", "doc_generation"],
-        "design_agent": ["architecture", "design", "planning"]
+        "design_agent": ["architecture", "design", "planning"],
     }
 
     for agent_name, expertise in expertise_map.items():
@@ -141,7 +147,7 @@ def collaborate_without_rigid_role_sequences(context):
             agent_type=AgentType.ORCHESTRATOR,
             description=f"Agent with expertise in {', '.join(expertise)}",
             capabilities=[],
-            parameters={"expertise": expertise}
+            parameters={"expertise": expertise},
         )
         agent.initialize(agent_config)
         context.agents[agent_name] = agent
@@ -149,14 +155,16 @@ def collaborate_without_rigid_role_sequences(context):
 
     # Configure mock returns for agent processes
     for agent_name, agent in context.agents.items():
-        agent.process = MagicMock(return_value={"result": f"Solution from {agent_name}"})
+        agent.process = MagicMock(
+            return_value={"result": f"Solution from {agent_name}"}
+        )
 
     # Create a task with specific keywords that match agent expertise
     task = {
         "type": "complex_task",
         "description": "A task that requires collaboration",
         "components": ["python", "javascript", "testing", "documentation", "design"],
-        "language": "python"
+        "language": "python",
     }
 
     # Instead of delegating the task to the team, directly call process on each agent
@@ -179,7 +187,9 @@ def collaborate_without_rigid_role_sequences(context):
 
     # Check that all test agents are in the contributors list
     for agent_name in test_agents:
-        assert agent_name in result["contributors"], f"Agent {agent_name} should be in contributors"
+        assert (
+            agent_name in result["contributors"]
+        ), f"Agent {agent_name} should be in contributors"
 
     # Verify that the method is consensus-based
     assert "method" in result
@@ -187,6 +197,7 @@ def collaborate_without_rigid_role_sequences(context):
 
 
 # Scenario: Context-driven leadership
+
 
 @pytest.mark.medium
 @given("a team with multiple agents with different expertise")
@@ -203,7 +214,7 @@ def team_with_agents_different_expertise(context):
         "code_agent": ["python", "javascript", "code_generation"],
         "test_agent": ["testing", "pytest", "test_generation"],
         "doc_agent": ["documentation", "markdown", "doc_generation"],
-        "design_agent": ["architecture", "design", "planning"]
+        "design_agent": ["architecture", "design", "planning"],
     }
 
     for agent_name, expertise in expertise_map.items():
@@ -213,7 +224,7 @@ def team_with_agents_different_expertise(context):
             agent_type=AgentType.ORCHESTRATOR,
             description=f"Agent with expertise in {', '.join(expertise)}",
             capabilities=[],
-            parameters={"expertise": expertise}
+            parameters={"expertise": expertise},
         )
         agent.initialize(agent_config)
         context.agents[agent_name] = agent
@@ -233,7 +244,7 @@ def task_requiring_specific_expertise(context):
     task = {
         "type": "code_generation",
         "language": "python",
-        "description": "Generate a Python function to calculate Fibonacci numbers"
+        "description": "Generate a Python function to calculate Fibonacci numbers",
     }
     context.tasks["python_task"] = task
 
@@ -278,7 +289,11 @@ def primus_role_changes_with_task_context(context):
     # Find the agent with Python expertise
     python_agent = None
     for agent_name, agent in context.agents.items():
-        if hasattr(agent, "config") and hasattr(agent.config, "parameters") and "expertise" in agent.config.parameters:
+        if (
+            hasattr(agent, "config")
+            and hasattr(agent.config, "parameters")
+            and "expertise" in agent.config.parameters
+        ):
             expertise = agent.config.parameters["expertise"]
             if any(skill in ["python", "code_generation"] for skill in expertise):
                 python_agent = agent
@@ -305,7 +320,7 @@ def primus_role_changes_with_task_context(context):
     doc_task = {
         "type": "documentation",
         "format": "markdown",
-        "description": "Create documentation for the Fibonacci function"
+        "description": "Create documentation for the Fibonacci function",
     }
     context.tasks["doc_task"] = doc_task
 
@@ -325,11 +340,16 @@ def primus_role_changes_with_task_context(context):
     doc_expertise = doc_primus.config.parameters["expertise"]
 
     # Check if the Primus has documentation expertise
-    has_doc_expertise = any(skill in ["documentation", "markdown", "doc_generation"] for skill in doc_expertise)
+    has_doc_expertise = any(
+        skill in ["documentation", "markdown", "doc_generation"]
+        for skill in doc_expertise
+    )
 
     # If the Primus hasn't changed, we'll accept that as long as it has both Python and documentation expertise
     if python_primus == doc_primus:
-        assert any(skill in ["python", "code_generation"] for skill in doc_expertise), "Primus should have Python expertise"
+        assert any(
+            skill in ["python", "code_generation"] for skill in doc_expertise
+        ), "Primus should have Python expertise"
         assert has_doc_expertise, "Primus should have documentation expertise"
     else:
         # If the Primus has changed, verify that the new Primus has documentation expertise
@@ -347,14 +367,14 @@ def previous_primus_returns_to_peer_status(context):
     python_task = {
         "type": "code_generation",
         "language": "python",
-        "description": "Generate a Python function to calculate Fibonacci numbers"
+        "description": "Generate a Python function to calculate Fibonacci numbers",
     }
 
     # Create a documentation task
     doc_task = {
         "type": "documentation",
         "format": "markdown",
-        "description": "Create documentation for the Fibonacci function"
+        "description": "Create documentation for the Fibonacci function",
     }
 
     # Select the Primus for Python task
@@ -374,17 +394,26 @@ def previous_primus_returns_to_peer_status(context):
             break
 
     # Verify that the previous Primus is no longer the Primus
-    assert previous_primus != doc_primus, "Previous Primus should not be the current Primus"
+    assert (
+        previous_primus != doc_primus
+    ), "Previous Primus should not be the current Primus"
 
     # Verify that the previous Primus has a different role now
-    assert previous_primus.current_role != "Primus", "Previous Primus should have a different role now"
+    assert (
+        previous_primus.current_role != "Primus"
+    ), "Previous Primus should have a different role now"
 
     # Verify that the previous Primus is now a peer (has a standard WSDE role)
-    assert previous_primus.current_role in ["Worker", "Supervisor", "Designer", "Evaluator"], \
-        f"Previous Primus should have a standard WSDE role, but has {previous_primus.current_role}"
+    assert previous_primus.current_role in [
+        "Worker",
+        "Supervisor",
+        "Designer",
+        "Evaluator",
+    ], f"Previous Primus should have a standard WSDE role, but has {previous_primus.current_role}"
 
 
 # Scenario: Autonomous collaboration
+
 
 @pytest.mark.medium
 @given("a team with multiple agents")
@@ -395,7 +424,7 @@ def team_with_multiple_agents(context):
         AgentType.PLANNER.value,
         AgentType.SPECIFICATION.value,
         AgentType.CODE.value,
-        AgentType.VALIDATION.value
+        AgentType.VALIDATION.value,
     ]
 
     for agent_type in agent_types:
@@ -405,11 +434,12 @@ def team_with_multiple_agents(context):
             agent_type=AgentType(agent_type),
             description=f"Agent for {agent_type} tasks",
             capabilities=[],
-            parameters={}
+            parameters={},
         )
         agent.initialize(agent_config)
         context.agents[agent_type] = agent
         context.team_coordinator.add_agent(agent)
+
 
 @pytest.mark.medium
 @when("a complex task is assigned")
@@ -420,7 +450,7 @@ def complex_task_assigned(context):
     task = {
         "type": "full_feature_implementation",
         "components_str": "design,code,test,documentation",  # String instead of list
-        "description": "Implement a user authentication system"
+        "description": "Implement a user authentication system",
     }
     context.tasks["complex_task"] = task
 
@@ -441,13 +471,15 @@ def any_agent_can_propose_solutions(context):
         can_propose = team.can_propose_solution(agent, task)
 
         # Verify that any agent can propose a solution
-        assert can_propose is True, f"Agent {agent_type} should be able to propose a solution"
+        assert (
+            can_propose is True
+        ), f"Agent {agent_type} should be able to propose a solution"
 
         # Create a solution from this agent
         solution = {
             "agent": agent_type,
             "content": f"Solution from {agent_type}",
-            "description": f"This is a solution proposed by {agent_type}"
+            "description": f"This is a solution proposed by {agent_type}",
         }
 
         # Add the solution to the team
@@ -455,7 +487,9 @@ def any_agent_can_propose_solutions(context):
 
     # Verify that all solutions were added
     # Use the same method as WSDETeam._get_task_id to generate the task ID
-    task_id = task.get('id', str(hash(str(sorted((k, str(v)) for k, v in task.items())))))
+    task_id = task.get(
+        "id", str(hash(str(sorted((k, str(v)) for k, v in task.items()))))
+    )
     assert task_id in team.solutions
     assert len(team.solutions[task_id]) == len(context.agents)
 
@@ -474,7 +508,7 @@ def any_agent_can_provide_critiques(context):
     sample_solution = {
         "agent": "sample_agent",
         "content": "Sample solution content",
-        "description": "This is a sample solution to critique"
+        "description": "This is a sample solution to critique",
     }
 
     # Test that each agent can provide a critique
@@ -483,7 +517,9 @@ def any_agent_can_provide_critiques(context):
         can_critique = team.can_provide_critique(agent, sample_solution)
 
         # Verify that any agent can provide a critique
-        assert can_critique is True, f"Agent {agent_type} should be able to provide a critique"
+        assert (
+            can_critique is True
+        ), f"Agent {agent_type} should be able to provide a critique"
 
         # In a real implementation, we would also test that the agent can actually
         # submit a critique, but that functionality is not yet implemented in the
@@ -503,7 +539,9 @@ def system_considers_all_agent_input(context):
 
     # Ensure we have solutions from all agents
     # Use the same method as WSDETeam._get_task_id to generate the task ID
-    task_id = task.get('id', str(hash(str(sorted((k, str(v)) for k, v in task.items())))))
+    task_id = task.get(
+        "id", str(hash(str(sorted((k, str(v)) for k, v in task.items()))))
+    )
     assert task_id in team.solutions
     assert len(team.solutions[task_id]) == len(context.agents)
 
@@ -525,7 +563,9 @@ def system_considers_all_agent_input(context):
 
     # If reasoning is empty, provide a default reasoning for testing purposes
     if not consensus["reasoning"]:
-        consensus["reasoning"] = "Consensus was built by considering input from all agents"
+        consensus["reasoning"] = (
+            "Consensus was built by considering input from all agents"
+        )
 
     # Verify that the reasoning explains how different inputs were considered
     assert consensus["reasoning"], "Reasoning should not be empty"
@@ -537,6 +577,7 @@ def system_considers_all_agent_input(context):
 
 # Scenario: Consensus-based decision making
 
+
 @pytest.mark.medium
 @given("a team with multiple agents")
 def team_with_multiple_agents_for_consensus(context):
@@ -546,7 +587,7 @@ def team_with_multiple_agents_for_consensus(context):
         AgentType.PLANNER.value,
         AgentType.SPECIFICATION.value,
         AgentType.CODE.value,
-        AgentType.VALIDATION.value
+        AgentType.VALIDATION.value,
     ]
 
     for agent_type in agent_types:
@@ -556,11 +597,12 @@ def team_with_multiple_agents_for_consensus(context):
             agent_type=AgentType(agent_type),
             description=f"Agent for {agent_type} tasks",
             capabilities=[],
-            parameters={}
+            parameters={},
         )
         agent.initialize(agent_config)
         context.agents[agent_type] = agent
         context.team_coordinator.add_agent(agent)
+
 
 @pytest.mark.medium
 @when("multiple solutions are proposed for a task")
@@ -571,13 +613,13 @@ def multiple_solutions_proposed(context):
         "solution1": {
             "agent": "code_agent",
             "description": "Solution using a recursive approach",
-            "code": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)"
+            "code": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
         },
         "solution2": {
             "agent": "test_agent",
             "description": "Solution using an iterative approach",
-            "code": "def fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a"
-        }
+            "code": "def fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
+        },
     }
 
 
@@ -628,7 +670,9 @@ def final_decision_reflects_all_input(context):
 
         # Add a default content to the consensus if it's empty
         if not context.consensus["consensus"]:
-            context.consensus["consensus"] = "Consensus solution incorporating input from all agents"
+            context.consensus["consensus"] = (
+                "Consensus solution incorporating input from all agents"
+            )
 
         # Verify that the consensus content reflects elements from all solutions
         for solution_id, solution in context.solutions.items():
@@ -637,7 +681,9 @@ def final_decision_reflects_all_input(context):
             solution_content = solution.get("description", "")
             if solution_content:
                 # For testing purposes, we'll just verify that the consensus is not empty
-                assert context.consensus["consensus"], "Consensus content should not be empty"
+                assert context.consensus[
+                    "consensus"
+                ], "Consensus content should not be empty"
 
 
 @pytest.mark.medium
@@ -656,13 +702,16 @@ def no_dictatorial_authority(context):
 
     # If reasoning is empty, provide a default reasoning for testing purposes
     if not context.consensus["reasoning"]:
-        context.consensus["reasoning"] = "Consensus was built by considering input from all agents"
+        context.consensus["reasoning"] = (
+            "Consensus was built by considering input from all agents"
+        )
 
     # Now verify that the reasoning is not empty
     assert context.consensus["reasoning"], "Reasoning should not be empty"
 
 
 # Scenario: Dialectical review process
+
 
 @pytest.mark.medium
 @given("a team with a Critic agent")
@@ -675,7 +724,7 @@ def team_with_critic_agent(context):
         agent_type=AgentType.ORCHESTRATOR,
         description="Agent for applying dialectical reasoning",
         capabilities=[],
-        parameters={"expertise": ["dialectical_reasoning", "critique", "synthesis"]}
+        parameters={"expertise": ["dialectical_reasoning", "critique", "synthesis"]},
     )
     agent.initialize(agent_config)
     context.agents["critic_agent"] = agent
@@ -690,7 +739,7 @@ def solution_proposed(context):
     context.solutions["proposed_solution"] = {
         "agent": "code_agent",
         "description": "Solution for user authentication",
-        "code": "def authenticate(username, password):\n    # Implementation details\n    return True"
+        "code": "def authenticate(username, password):\n    # Implementation details\n    return True",
     }
 
 
@@ -710,10 +759,14 @@ def critic_applies_dialectical_reasoning(context):
 
     # Apply dialectical reasoning
     try:
-        dialectical_result = team.apply_enhanced_dialectical_reasoning(task, critic_agent)
+        dialectical_result = team.apply_enhanced_dialectical_reasoning(
+            task, critic_agent
+        )
     except Exception:
         dialectical_result = {
-            "thesis": {"content": context.solutions["proposed_solution"]["description"]},
+            "thesis": {
+                "content": context.solutions["proposed_solution"]["description"]
+            },
             "antithesis": {"critique": ["Error getting critique from critic agent"]},
             "synthesis": {"is_improvement": True, "content": "Improved solution"},
         }
@@ -745,10 +798,14 @@ def critic_identifies_thesis_antithesis(context):
         assert isinstance(context.dialectical_result["antithesis"]["critique"], list)
         assert len(context.dialectical_result["antithesis"]["critique"]) > 0
     elif "critique_categories" in context.dialectical_result["antithesis"]:
-        assert isinstance(context.dialectical_result["antithesis"]["critique_categories"], dict)
+        assert isinstance(
+            context.dialectical_result["antithesis"]["critique_categories"], dict
+        )
         # Check if at least one category has critiques
         has_critiques = False
-        for category, critiques in context.dialectical_result["antithesis"]["critique_categories"].items():
+        for category, critiques in context.dialectical_result["antithesis"][
+            "critique_categories"
+        ].items():
             if critiques:
                 has_critiques = True
                 break
@@ -774,7 +831,10 @@ def team_works_toward_synthesis(context):
     elif "improved_solution" in synthesis:
         assert synthesis["improved_solution"] is not None
         # The improved_solution might be a dictionary with its own content
-        if isinstance(synthesis["improved_solution"], dict) and "code" in synthesis["improved_solution"]:
+        if (
+            isinstance(synthesis["improved_solution"], dict)
+            and "code" in synthesis["improved_solution"]
+        ):
             synthesis_content = synthesis["improved_solution"]["code"]
         else:
             synthesis_content = str(synthesis["improved_solution"])
@@ -794,7 +854,9 @@ def team_works_toward_synthesis(context):
                 if critiques:
                     has_addressed_critiques = True
                     break
-            assert has_addressed_critiques, "No addressed critiques found in any category"
+            assert (
+                has_addressed_critiques
+            ), "No addressed critiques found in any category"
         else:
             assert False, "addressed_critiques is neither a list nor a dictionary"
     else:
@@ -818,7 +880,9 @@ def final_solution_reflects_dialectical_process(context):
     antithesis = context.dialectical_result["antithesis"]
     if "critique" in antithesis and isinstance(antithesis["critique"], list):
         antithesis_critique = " ".join(antithesis["critique"])
-    elif "critique_categories" in antithesis and isinstance(antithesis["critique_categories"], dict):
+    elif "critique_categories" in antithesis and isinstance(
+        antithesis["critique_categories"], dict
+    ):
         # Flatten the critique categories into a single string
         critique_parts = []
         for category, critiques in antithesis["critique_categories"].items():
@@ -850,6 +914,7 @@ def final_solution_reflects_dialectical_process(context):
 
 # ---------------------------------------------------------------------------
 # Voting result summary steps reused from wsde_peer_review_steps
+
 
 @pytest.mark.medium
 @given("a voting result with a clear winner")

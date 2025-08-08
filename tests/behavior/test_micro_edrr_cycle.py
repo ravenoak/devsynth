@@ -5,19 +5,20 @@ This script implements the step definitions for the micro_edrr_cycle.feature fil
 """
 
 import os
-import pytest
 from unittest.mock import MagicMock, patch
-from pytest_bdd import scenarios, given, when, then
 
-from devsynth.application.edrr.coordinator import EDRRCoordinator
-from devsynth.application.memory.memory_manager import MemoryManager
+import pytest
+from pytest_bdd import given, scenarios, then, when
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(

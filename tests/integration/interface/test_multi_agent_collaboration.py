@@ -1,10 +1,13 @@
 import types
+from typing import Union
+
+from devsynth.application.collaboration.collaborative_wsde_team import (
+    CollaborativeWSDETeam,
+)
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.interface.agentapi import APIBridge
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import sanitize_output
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.collaboration.collaborative_wsde_team import CollaborativeWSDETeam
-from typing import Union
 
 
 class DummyProgress:
@@ -23,7 +26,9 @@ class DummyProgress:
         self.complete()
         return False
 
-    def update(self, *, advance: float = 1, description: Union[str, None] = None) -> None:
+    def update(
+        self, *, advance: float = 1, description: Union[str, None] = None
+    ) -> None:
         if description:
             self.description = sanitize_output(description)
         self.current += advance

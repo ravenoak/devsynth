@@ -2,15 +2,16 @@ from __future__ import annotations
 
 """Peer review utilities for WSDE teams."""
 
-from typing import Any, Dict, List, Callable, Optional, Union, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
-from .message_protocol import MessageType
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logging_setup import DevSynthLogger
+
+from .message_protocol import MessageType
 
 logger = DevSynthLogger(__name__)
 
@@ -39,28 +40,28 @@ class PeerReview:
     quality_score: float = 0.0
     metrics_results: Dict[str, Any] = field(default_factory=dict)
     consensus_result: Dict[str, Any] = field(default_factory=dict)
-    
+
     def store_in_memory(self, immediate_sync: bool = False) -> Optional[str]:
         """
         Store the review in memory with optional cross-store synchronization.
-        
+
         Args:
             immediate_sync: Whether to synchronize immediately or queue for later
-            
+
         Returns:
             The ID of the stored review, or None if storage failed
         """
         if self.memory_manager is None:
             logger.debug("Memory manager not available, skipping storage")
             return None
-            
+
         try:
             # Import here to avoid circular imports
             from .collaboration_memory_utils import store_with_retry
-            
+
             # Determine the primary store to use
             primary_store = self._get_primary_store()
-            
+
             # Store with retry for better reliability
             item_id = store_with_retry(
                 self.memory_manager,
@@ -80,17 +81,17 @@ class PeerReview:
         except Exception as e:
             logger.error(f"Failed to store review {self.review_id} in memory: {str(e)}")
             return None
-            
+
     def _get_primary_store(self) -> str:
         """
         Determine the primary store to use for this review.
-        
+
         Returns:
             The name of the primary store
         """
         if self.memory_manager is None:
             return "tinydb"  # Default fallback
-            
+
         # Try to find the best store in this order: tinydb, graph, kuzu, first available
         if "tinydb" in self.memory_manager.adapters:
             return "tinydb"
@@ -102,58 +103,66 @@ class PeerReview:
             return next(iter(self.memory_manager.adapters))
         else:
             return "tinydb"  # Default fallback
-            
+
     def _start_transaction(self) -> Tuple[bool, Any]:
         """
         Start a transaction for atomic operations.
-        
+
         Returns:
             A tuple of (success, transaction_id)
         """
-        if self.memory_manager is None or not hasattr(self.memory_manager, "sync_manager"):
+        if self.memory_manager is None or not hasattr(
+            self.memory_manager, "sync_manager"
+        ):
             return False, None
-            
+
         try:
-            transaction_id = f"peer_review_{self.review_id}_{datetime.now().timestamp()}"
+            transaction_id = (
+                f"peer_review_{self.review_id}_{datetime.now().timestamp()}"
+            )
             self.memory_manager.sync_manager.begin_transaction(transaction_id)
             return True, transaction_id
         except Exception as e:
             logger.error(f"Failed to start transaction: {str(e)}")
             return False, None
-            
+
     def _commit_transaction(self, transaction_id: Any) -> bool:
         """
         Commit a transaction.
-        
+
         Args:
             transaction_id: The ID of the transaction to commit
-            
+
         Returns:
             True if the transaction was committed successfully, False otherwise
         """
-        if self.memory_manager is None or not hasattr(self.memory_manager, "sync_manager"):
+        if self.memory_manager is None or not hasattr(
+            self.memory_manager, "sync_manager"
+        ):
             return False
-            
+
         try:
             self.memory_manager.sync_manager.commit_transaction(transaction_id)
             return True
         except Exception as e:
             logger.error(f"Failed to commit transaction {transaction_id}: {str(e)}")
             return False
-            
+
     def _rollback_transaction(self, transaction_id: Any) -> bool:
         """
         Rollback a transaction.
-        
+
         Args:
             transaction_id: The ID of the transaction to rollback
-            
+
         Returns:
             True if the transaction was rolled back successfully, False otherwise
         """
-        if self.memory_manager is None or not hasattr(self.memory_manager, "sync_manager"):
+        if self.memory_manager is None or not hasattr(
+            self.memory_manager, "sync_manager"
+        ):
             return False
-            
+
         try:
             self.memory_manager.sync_manager.rollback_transaction(transaction_id)
             return True
@@ -164,7 +173,7 @@ class PeerReview:
     def assign_reviews(self) -> None:
         """Notify reviewers of the review request."""
         self.updated_at = datetime.now()
-        
+
         # Start a transaction for atomic operations
         transaction_started, transaction_id = self._start_transaction()
 
@@ -179,7 +188,9 @@ class PeerReview:
                     if hasattr(self.team, "rotate_roles"):
                         self.team.rotate_roles()
                 except Exception as e:
-                    logger.warning(f"Error selecting primus or rotating roles: {str(e)}")
+                    logger.warning(
+                        f"Error selecting primus or rotating roles: {str(e)}"
+                    )
 
             if self.send_message:
                 for reviewer in self.reviewers:
@@ -201,14 +212,14 @@ class PeerReview:
                         subject="Peer Review Request",
                         content=content,
                     )
-            
+
             # Store the review in memory
             self.store_in_memory(immediate_sync=transaction_started)
-            
+
             # Commit the transaction if it was started
             if transaction_started:
                 self._commit_transaction(transaction_id)
-                
+
         except Exception as e:
             logger.error(f"Error in assign_reviews: {str(e)}")
             # Rollback the transaction if it was started
@@ -219,7 +230,7 @@ class PeerReview:
         """Gather feedback from all reviewers."""
 
         self.updated_at = datetime.now()
-        
+
         # Start a transaction for atomic operations
         transaction_started, transaction_id = self._start_transaction()
 
@@ -291,7 +302,7 @@ class PeerReview:
 
                         # Try to use WSDETeam's dialectical reasoning if available
                         try:
-                            from devsynth.domain.models.wsde import WSDETeam
+                            from devsynth.domain.models.wsde_facade import WSDETeam
 
                             temp_team = WSDETeam(name="PeerReviewTeam")
                             temp_team.add_solution(task, solution)
@@ -307,12 +318,15 @@ class PeerReview:
                                 and "synthesis" in dialectical_result
                             ):
                                 result["thesis"] = dialectical_result["thesis"].get(
-                                    "content", "The solution provides basic functionality."
+                                    "content",
+                                    "The solution provides basic functionality.",
                                 )
-                                result["antithesis"] = dialectical_result["antithesis"].get(
-                                    "critique", ["The solution could be improved."]
-                                )
-                                result["synthesis"] = dialectical_result["synthesis"].get(
+                                result["antithesis"] = dialectical_result[
+                                    "antithesis"
+                                ].get("critique", ["The solution could be improved."])
+                                result["synthesis"] = dialectical_result[
+                                    "synthesis"
+                                ].get(
                                     "improved_solution",
                                     "Improved implementation recommended.",
                                 )
@@ -326,24 +340,26 @@ class PeerReview:
                                         "strengths": ["Provides basic functionality"],
                                     },
                                     "antithesis": {
-                                        "critique": dialectical_result["antithesis"].get(
-                                            "critique", []
-                                        ),
-                                        "challenges": dialectical_result["antithesis"].get(
-                                            "challenges", []
-                                        ),
+                                        "critique": dialectical_result[
+                                            "antithesis"
+                                        ].get("critique", []),
+                                        "challenges": dialectical_result[
+                                            "antithesis"
+                                        ].get("challenges", []),
                                     },
                                     "synthesis": {
-                                        "improvements": dialectical_result["synthesis"].get(
-                                            "improvements", []
-                                        ),
+                                        "improvements": dialectical_result[
+                                            "synthesis"
+                                        ].get("improvements", []),
                                         "improved_solution": dialectical_result[
                                             "synthesis"
                                         ].get("improved_solution", ""),
                                     },
                                 }
                         except (ImportError, Exception) as e:
-                            logger.warning(f"Error applying dialectical reasoning: {str(e)}")
+                            logger.warning(
+                                f"Error applying dialectical reasoning: {str(e)}"
+                            )
                             # If WSDETeam is not available or fails, create a simple dialectical analysis
                             if "thesis" not in result:
                                 result["thesis"] = (
@@ -395,16 +411,16 @@ class PeerReview:
                 except Exception as e:
                     logger.warning(f"Error building consensus: {str(e)}")
                     self.consensus_result = {}
-            
+
             # Store the updated review in memory
             self.store_in_memory(immediate_sync=transaction_started)
-            
+
             # Commit the transaction if it was started
             if transaction_started:
                 self._commit_transaction(transaction_id)
-                
+
             return self.reviews
-            
+
         except Exception as e:
             logger.error(f"Error in collect_reviews: {str(e)}")
             # Rollback the transaction if it was started
@@ -509,18 +525,18 @@ class PeerReview:
 
         self.updated_at = datetime.now()
         self.status = "revision_requested"
-        
+
         # Start a transaction for atomic operations
         transaction_started, transaction_id = self._start_transaction()
-        
+
         try:
             # Store the updated review in memory
             self.store_in_memory(immediate_sync=transaction_started)
-            
+
             # Commit the transaction if it was started
             if transaction_started:
                 self._commit_transaction(transaction_id)
-                
+
         except Exception as e:
             logger.error(f"Error in request_revision: {str(e)}")
             # Rollback the transaction if it was started
@@ -538,14 +554,14 @@ class PeerReview:
         self.revision = revision
         self.revision_history.append(revision)
         self.status = "revised"
-        
+
         # Start a transaction for atomic operations
         transaction_started, transaction_id = self._start_transaction()
-        
+
         try:
             # Store the updated review in memory
             self.store_in_memory(immediate_sync=transaction_started)
-            
+
             # Create a new review for the revision, linked to this one
             new_review = PeerReview(
                 work_product=revision,
@@ -558,22 +574,22 @@ class PeerReview:
                 memory_manager=self.memory_manager,  # Pass the memory manager to the new review
                 previous_review=self,
             )
-            
+
             # Store the new review in memory
             new_review.store_in_memory(immediate_sync=transaction_started)
-            
+
             # Commit the transaction if it was started
             if transaction_started:
                 self._commit_transaction(transaction_id)
-                
+
             return new_review
-            
+
         except Exception as e:
             logger.error(f"Error in submit_revision: {str(e)}")
             # Rollback the transaction if it was started
             if transaction_started:
                 self._rollback_transaction(transaction_id)
-                
+
             # Create a new review without memory integration as fallback
             new_review = PeerReview(
                 work_product=revision,
@@ -585,7 +601,7 @@ class PeerReview:
                 team=self.team,
                 previous_review=self,
             )
-            
+
             return new_review
 
     def finalize(self, approved: bool = True) -> Dict[str, Any]:
@@ -593,10 +609,10 @@ class PeerReview:
 
         self.updated_at = datetime.now()
         self.status = "approved" if approved else "rejected"
-        
+
         # Start a transaction for atomic operations
         transaction_started, transaction_id = self._start_transaction()
-        
+
         try:
             # Determine if all criteria passed (if applicable)
             all_criteria_passed = True
@@ -683,19 +699,19 @@ class PeerReview:
 
             # Store the finalized review in memory
             self.store_in_memory(immediate_sync=transaction_started)
-            
+
             # Commit the transaction if it was started
             if transaction_started:
                 self._commit_transaction(transaction_id)
-                
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in finalize: {str(e)}")
             # Rollback the transaction if it was started
             if transaction_started:
                 self._rollback_transaction(transaction_id)
-                
+
             # Create a minimal result as fallback
             return {
                 "status": self.status,
@@ -720,79 +736,101 @@ class PeerReviewWorkflow:
     max_revision_cycles: int = 3
     team: Optional[Any] = None
     memory_manager: Optional[MemoryManager] = None
-    
-    def _get_revision_from_author(self, revision_request: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _get_revision_from_author(
+        self, revision_request: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Get a revised version of the work from the author based on feedback.
-        
+
         Args:
             revision_request: A dictionary containing the original work, feedback summary,
                              improvement suggestions, and other relevant information
-                             
+
         Returns:
             A dictionary containing the revised work
         """
-        logger.info(f"Requesting revision from author: {getattr(self.author, 'name', 'Unknown')}")
-        
+        logger.info(
+            f"Requesting revision from author: {getattr(self.author, 'name', 'Unknown')}"
+        )
+
         # If the author has a revise_work method, use it
-        if hasattr(self.author, "revise_work") and callable(getattr(self.author, "revise_work")):
+        if hasattr(self.author, "revise_work") and callable(
+            getattr(self.author, "revise_work")
+        ):
             try:
                 revised_work = self.author.revise_work(revision_request)
                 if revised_work:
                     logger.info("Author provided revision using revise_work method")
                     return revised_work
             except Exception as e:
-                logger.error(f"Error getting revision from author's revise_work method: {str(e)}")
-        
+                logger.error(
+                    f"Error getting revision from author's revise_work method: {str(e)}"
+                )
+
         # If the team has a request_revision method, use it
-        if self.team and hasattr(self.team, "request_revision") and callable(getattr(self.team, "request_revision")):
+        if (
+            self.team
+            and hasattr(self.team, "request_revision")
+            and callable(getattr(self.team, "request_revision"))
+        ):
             try:
                 revised_work = self.team.request_revision(self.author, revision_request)
                 if revised_work:
                     logger.info("Team provided revision using request_revision method")
                     return revised_work
             except Exception as e:
-                logger.error(f"Error getting revision from team's request_revision method: {str(e)}")
-        
+                logger.error(
+                    f"Error getting revision from team's request_revision method: {str(e)}"
+                )
+
         # If the author has a generate_response method (UnifiedAgent interface), use it
-        if hasattr(self.author, "generate_response") and callable(getattr(self.author, "generate_response")):
+        if hasattr(self.author, "generate_response") and callable(
+            getattr(self.author, "generate_response")
+        ):
             try:
                 # Prepare a prompt for the author
                 prompt = f"""
                 You need to revise your work based on the following feedback:
-                
+
                 ORIGINAL WORK:
                 {revision_request.get('original_work', {})}
-                
+
                 FEEDBACK SUMMARY:
                 {revision_request.get('feedback_summary', 'No summary provided')}
-                
+
                 IMPROVEMENT SUGGESTIONS:
                 {', '.join(revision_request.get('improvement_suggestions', ['No suggestions provided']))}
-                
+
                 Please provide a revised version that addresses this feedback.
                 """
-                
+
                 response = self.author.generate_response(prompt)
                 if response:
-                    logger.info("Author provided revision using generate_response method")
+                    logger.info(
+                        "Author provided revision using generate_response method"
+                    )
                     return {
                         "original": revision_request.get("original_work", {}),
                         "revision": response,
                         "revision_number": revision_request.get("revision_number", 1),
-                        "improvements": "Addressed reviewer feedback"
+                        "improvements": "Addressed reviewer feedback",
                     }
             except Exception as e:
-                logger.error(f"Error getting revision from author's generate_response method: {str(e)}")
-        
+                logger.error(
+                    f"Error getting revision from author's generate_response method: {str(e)}"
+                )
+
         # If all else fails, create a simulated revision (fallback for compatibility)
-        logger.warning("Could not get actual revision from author, using simulated revision")
+        logger.warning(
+            "Could not get actual revision from author, using simulated revision"
+        )
         return {
             "original": revision_request.get("original_work", {}),
             "revision": f"Revision {revision_request.get('revision_number', 1)}",
             "revision_number": revision_request.get("revision_number", 1),
             "improvements": "Addressed reviewer feedback (simulated)",
-            "is_simulated": True
+            "is_simulated": True,
         }
 
     def run(self) -> Dict[str, Any]:
@@ -805,16 +843,20 @@ class PeerReviewWorkflow:
         # Start a transaction for the entire workflow if memory manager is available
         transaction_started = False
         transaction_id = None
-        
-        if self.memory_manager is not None and hasattr(self.memory_manager, "sync_manager"):
+
+        if self.memory_manager is not None and hasattr(
+            self.memory_manager, "sync_manager"
+        ):
             try:
                 transaction_id = f"peer_review_workflow_{datetime.now().timestamp()}"
                 self.memory_manager.sync_manager.begin_transaction(transaction_id)
                 transaction_started = True
-                logger.debug(f"Started transaction {transaction_id} for peer review workflow")
+                logger.debug(
+                    f"Started transaction {transaction_id} for peer review workflow"
+                )
             except Exception as e:
                 logger.error(f"Failed to start transaction for workflow: {str(e)}")
-        
+
         try:
             review = PeerReview(
                 work_product=self.work_product,
@@ -847,7 +889,7 @@ class PeerReviewWorkflow:
                 # Request a revision from the author based on the feedback
                 feedback_summary = feedback.get("summary", "")
                 improvement_suggestions = feedback.get("improvement_suggestions", [])
-                
+
                 # Prepare the revision request with detailed feedback
                 revision_request = {
                     "original_work": current_review.work_product,
@@ -857,7 +899,7 @@ class PeerReviewWorkflow:
                     "criteria_results": feedback.get("criteria_results", {}),
                     "quality_scores": feedback.get("quality_scores", {}),
                 }
-                
+
                 # Get the revised work from the author
                 revised_work = self._get_revision_from_author(revision_request)
 
@@ -884,14 +926,18 @@ class PeerReviewWorkflow:
                 "final_quality_score": quality_score,
                 "all_criteria_passed": all_criteria_passed,
             }
-            
+
             # Commit the transaction if it was started
             if transaction_started:
                 try:
                     self.memory_manager.sync_manager.commit_transaction(transaction_id)
-                    logger.debug(f"Committed transaction {transaction_id} for peer review workflow")
+                    logger.debug(
+                        f"Committed transaction {transaction_id} for peer review workflow"
+                    )
                 except Exception as e:
-                    logger.error(f"Failed to commit transaction {transaction_id}: {str(e)}")
+                    logger.error(
+                        f"Failed to commit transaction {transaction_id}: {str(e)}"
+                    )
                     # We don't rollback here since individual operations may have succeeded
             # Flush any pending memory updates to ensure persistence
             if self.memory_manager is not None:
@@ -903,18 +949,24 @@ class PeerReviewWorkflow:
                     )
 
             return result
-            
+
         except Exception as e:
             logger.error(f"Error in peer review workflow: {str(e)}")
-            
+
             # Rollback the transaction if it was started
             if transaction_started:
                 try:
-                    self.memory_manager.sync_manager.rollback_transaction(transaction_id)
-                    logger.debug(f"Rolled back transaction {transaction_id} due to error")
+                    self.memory_manager.sync_manager.rollback_transaction(
+                        transaction_id
+                    )
+                    logger.debug(
+                        f"Rolled back transaction {transaction_id} due to error"
+                    )
                 except Exception as rollback_error:
-                    logger.error(f"Failed to rollback transaction {transaction_id}: {str(rollback_error)}")
-            
+                    logger.error(
+                        f"Failed to rollback transaction {transaction_id}: {str(rollback_error)}"
+                    )
+
             # Return error information
             return {
                 "error": f"Error in peer review workflow: {str(e)}",

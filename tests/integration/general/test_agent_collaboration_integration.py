@@ -6,19 +6,23 @@ between specialized agents to work together on complex tasks.
 """
 
 import os
-import pytest
+from typing import Any, Dict
 from unittest.mock import MagicMock, patch
-from typing import Dict, Any
+
+import pytest
+
 from devsynth.application.collaboration.agent_collaboration import (
     AgentCollaborationSystem,
-    CollaborationTask,
     AgentMessage,
+    CollaborationTask,
     MessageType,
     TaskStatus,
 )
 from devsynth.application.collaboration.message_protocol import (
     MessageProtocol,
     MessageStore,
+)
+from devsynth.application.collaboration.message_protocol import (
     MessageType as ProtocolMessageType,
 )
 from devsynth.application.collaboration.peer_review import run_peer_review
@@ -255,7 +259,7 @@ class TestAgentCollaborationSystem:
     def test_peer_review_with_team_builds_consensus_and_rotates_roles(self):
         """Peer review integrates WSDETeam role rotation and consensus."""
 
-        from devsynth.domain.models.wsde import WSDETeam
+        from devsynth.domain.models.wsde_facade import WSDETeam
 
         class DummyAgent(MockAgent):
             def __init__(self, name):

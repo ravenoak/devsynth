@@ -1,8 +1,8 @@
 """Step definitions for the Enhanced EDRR Phase Transitions feature."""
 
 from __future__ import annotations
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
+
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file for this test
 scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
@@ -10,29 +10,30 @@ scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
 # Content from test_edrr_coordinator_steps.py inlined here
 """Step definitions for the EDRR Coordinator feature."""
 
-# Removed duplicate __future__ import
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
 import pytest
 
+# Removed duplicate __future__ import
+from pytest_bdd import given, parsers, scenarios, then, when
+
 scenarios("../features/general/edrr_coordinator.feature")
-import os
 import json
+import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryType
-from devsynth.domain.models.wsde import WSDETeam
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.edrr.manifest_parser import ManifestParser
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -237,7 +238,11 @@ def verify_phase(context, phase_name):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'    ))
+@then(
+    parsers.parse(
+        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'
+    )
+)
 def verify_task_stored(context, phase_name):
     """Verify the task is stored in memory with the correct EDRR phase."""
     test_storage = {}
@@ -461,7 +466,11 @@ def verify_ast_verify(context):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'the prompt manager should provide templates for the "{phase_name}" phase'    ))
+@then(
+    parsers.parse(
+        'the prompt manager should provide templates for the "{phase_name}" phase'
+    )
+)
 def verify_prompt_templates(context, phase_name):
     """Verify the prompt manager provides templates for the specified phase."""
     phase = Phase[phase_name.upper()]
@@ -618,7 +627,11 @@ This document outlines criteria for evaluating code quality."""
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'the results should be stored in memory with EDRR phase "{phase_name}"'    ))
+@then(
+    parsers.parse(
+        'the results should be stored in memory with EDRR phase "{phase_name}"'
+    )
+)
 def verify_results_stored(context, phase_name):
     """Verify the results are stored in memory with the correct EDRR phase."""
     phase = Phase[phase_name.upper()]
@@ -972,23 +985,26 @@ def verify_performance_metrics(context):
         assert "code_analyzer" in component_calls
         assert "prompt_manager" in component_calls
         assert "documentation_manager" in component_calls
-  # noqa: F401,F403
-import pytest
-from unittest.mock import MagicMock, patch
+
+
 import time
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+# noqa: F401,F403
+import pytest
 
 scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -1630,7 +1646,9 @@ def verify_historical_data_used(context):
 
 
 @pytest.mark.medium
-@then(    "the phase transition criteria should be adjusted based on previous success patterns")
+@then(
+    "the phase transition criteria should be adjusted based on previous success patterns"
+)
 def verify_criteria_adjusted_based_on_patterns(context):
     """Verify that phase transition criteria are adjusted based on previous success patterns."""
     assert hasattr(context.edrr_coordinator, "_adjusted_criteria")
@@ -1649,7 +1667,9 @@ def verify_criteria_adjusted_based_on_patterns(context):
 
 
 @pytest.mark.medium
-@then(    "the coordinator should prioritize strategies that were effective in similar tasks")
+@then(
+    "the coordinator should prioritize strategies that were effective in similar tasks"
+)
 def verify_effective_strategies_prioritized(context):
     """Verify that strategies that were effective in similar tasks are prioritized."""
     for phase in ["EXPAND", "DIFFERENTIATE", "REFINE", "RETROSPECT"]:
@@ -1808,7 +1828,9 @@ def verify_context_includes_key_insights(context, phase_name):
 
 
 @pytest.mark.medium
-@then(    'the context should include all constraints identified in the "{phase_name}" phase')
+@then(
+    'the context should include all constraints identified in the "{phase_name}" phase'
+)
 def verify_context_includes_constraints(context, phase_name):
     """Verify that the context includes all constraints identified in the specified phase."""
     phase = Phase[phase_name.upper()]

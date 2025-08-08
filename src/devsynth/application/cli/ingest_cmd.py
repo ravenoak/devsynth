@@ -24,7 +24,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.domain.models.project import ProjectModel
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge

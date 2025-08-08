@@ -5,20 +5,23 @@ This file implements the step definitions for the enhanced dialectical reasoning
 feature file, testing the advanced dialectical reasoning capabilities of the WSDE model.
 """
 
-import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock, patch
+
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
 scenarios("../features/general/enhanced_dialectical_reasoning.feature")
 
-# Import the modules needed for the steps
-from devsynth.domain.models.wsde import WSDETeam
+from typing import Any, Dict, List
+
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
-from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.agents.base import BaseAgent
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from typing import Dict, List, Any
+
+# Import the modules needed for the steps
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.fixture
