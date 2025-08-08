@@ -6,23 +6,24 @@ allowing for efficient querying of different types of memory and tagging
 items with EDRR phases.
 """
 
-from typing import Dict, List, Any, Optional, Union, Callable
-from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
-from ...domain.models.memory import (
-    MemoryItem,
-    MemoryType,
-    MemoryItemType,
-    MemoryVector,
-)
+from functools import lru_cache
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 from ...domain.interfaces.memory import MemoryStore, VectorStore
+from ...domain.models.memory import MemoryItem, MemoryItemType, MemoryType, MemoryVector
+from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 from ...logging_setup import DevSynthLogger
+from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+from .circuit_breaker import (
+    CircuitBreaker,
+    circuit_breaker_registry,
+    with_circuit_breaker,
+)
+from .error_logger import memory_error_logger
 from .query_router import QueryRouter
+from .retry import retry_memory_operation, retry_with_backoff
 from .sync_manager import SyncManager
 from .transaction_context import TransactionContext
-from .circuit_breaker import CircuitBreaker, circuit_breaker_registry, with_circuit_breaker
-from .retry import retry_with_backoff, retry_memory_operation
-from .error_logger import memory_error_logger
-from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 
 logger = DevSynthLogger(__name__)
 
@@ -70,9 +71,7 @@ class MemoryManager:
         # Registered hooks called after synchronization events
         self._sync_hooks: List[Callable[[Optional[MemoryItem]], None]] = []
 
-    def register_sync_hook(
-        self, hook: Callable[[Optional[MemoryItem]], None]
-    ) -> None:
+    def register_sync_hook(self, hook: Callable[[Optional[MemoryItem]], None]) -> None:
         """Register a callback invoked after memory synchronization."""
 
         self._sync_hooks.append(hook)
@@ -86,20 +85,20 @@ class MemoryManager:
             except Exception as exc:  # pragma: no cover - defensive
                 logger.debug(f"Sync hook failed: {exc}")
 
-    def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
-        """Return an embedding for ``text``.
+    @lru_cache(maxsize=128)
+    def _cached_embedding(self, text: str, dimension: int) -> Tuple[float, ...]:
+        """Return a cached embedding for ``text``.
 
-        If an ``embedding_provider`` was supplied during initialization this
-        method delegates to ``embedding_provider.embed`` and falls back to a
-        deterministic embedding on error.  The fallback keeps unit tests
-        hermetic when no external provider is available.
+        The result is cached to avoid recomputing embeddings for repeated
+        inputs, improving performance especially when an external provider is
+        used.
         """
         if self.embedding_provider is not None:
             try:
                 result = self.embedding_provider.embed(text)
                 if isinstance(result, list) and result and isinstance(result[0], list):
-                    return result[0]
-                return result
+                    result = result[0]
+                return tuple(result)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning(
                     "Embedding provider failed: %s; falling back to deterministic embedding",
@@ -107,14 +106,18 @@ class MemoryManager:
                 )
 
         if not text:
-            return [0.0] * dimension
+            return tuple([0.0] * dimension)
 
         vector = [0.0] * dimension
         for idx, char in enumerate(text):
             vector[idx % dimension] += float(ord(char))
 
         length = float(len(text))
-        return [v / length for v in vector]
+        return tuple(v / length for v in vector)
+
+    def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
+        """Return an embedding for ``text`` using an LRU cache."""
+        return list(self._cached_embedding(text, dimension))
 
     def store_with_edrr_phase(
         self,
@@ -224,9 +227,9 @@ class MemoryManager:
                     circuit = circuit_breaker_registry.get_or_create(
                         f"memory_retrieve_{adapter_name}",
                         failure_threshold=3,
-                        reset_timeout=60.0
+                        reset_timeout=60.0,
                     )
-                    
+
                     item = circuit.execute(adapter.retrieve, item_id)
                     if item is not None:
                         return item
@@ -236,13 +239,13 @@ class MemoryManager:
                         f"Circuit breaker for {adapter_name} is open, skipping: {e}"
                     )
                     errors[adapter_name] = f"Circuit breaker open: {e}"
-                    
+
                     # Log to error logger
                     memory_error_logger.log_error(
                         operation="retrieve",
                         adapter_name=adapter_name,
                         error=e,
-                        context={"item_id": item_id, "circuit_breaker": True}
+                        context={"item_id": item_id, "circuit_breaker": True},
                     )
                 except Exception as e:
                     # Retrieve operation failed, log and continue to next adapter
@@ -250,18 +253,20 @@ class MemoryManager:
                         f"Failed to retrieve memory item from {adapter_name}: {e}"
                     )
                     errors[adapter_name] = str(e)
-                    
+
                     # Log to error logger
                     memory_error_logger.log_error(
                         operation="retrieve",
                         adapter_name=adapter_name,
                         error=e,
-                        context={"item_id": item_id}
+                        context={"item_id": item_id},
                     )
-        
+
         if errors:
-            logger.warning(f"Failed to retrieve item {item_id} from any adapter: {errors}")
-            
+            logger.warning(
+                f"Failed to retrieve item {item_id} from any adapter: {errors}"
+            )
+
         return None
 
     def query_related_items(self, item_id: str) -> List[MemoryItem]:
@@ -423,28 +428,26 @@ class MemoryManager:
         """
         # Define adapter preference order
         adapter_preference = ["tinydb", "graph"]
-        
+
         # Add any other adapters not in the preference list
         for adapter_name in self.adapters:
             if adapter_name not in adapter_preference:
                 adapter_preference.append(adapter_name)
-                
+
         if not adapter_preference:
             raise ValueError("No adapters available for storing memory items")
-            
+
         # Try adapters in order of preference
         errors = {}
         for adapter_name in adapter_preference:
             if adapter_name not in self.adapters:
                 continue
-                
+
             adapter = self.adapters[adapter_name]
             circuit = circuit_breaker_registry.get_or_create(
-                f"memory_store_{adapter_name}",
-                failure_threshold=3,
-                reset_timeout=60.0
+                f"memory_store_{adapter_name}", failure_threshold=3, reset_timeout=60.0
             )
-            
+
             try:
                 # Use the circuit breaker to protect the store operation
                 return circuit.execute(adapter.store, memory_item)
@@ -454,36 +457,31 @@ class MemoryManager:
                     f"Circuit breaker for {adapter_name} is open, skipping: {e}"
                 )
                 errors[adapter_name] = f"Circuit breaker open: {e}"
-                    
+
                 # Log to error logger
                 memory_error_logger.log_error(
                     operation="store_item",
                     adapter_name=adapter_name,
                     error=e,
-                    context={"item_id": memory_item.id, "circuit_breaker": True}
+                    context={"item_id": memory_item.id, "circuit_breaker": True},
                 )
             except Exception as e:
                 # Store operation failed, log and continue to next adapter
-                logger.error(
-                    f"Failed to store memory item in {adapter_name}: {e}"
-                )
+                logger.error(f"Failed to store memory item in {adapter_name}: {e}")
                 errors[adapter_name] = str(e)
-                    
+
                 # Log to error logger
                 memory_error_logger.log_error(
                     operation="store_item",
                     adapter_name=adapter_name,
                     error=e,
-                    context={"item_id": memory_item.id}
+                    context={"item_id": memory_item.id},
                 )
-                
+
         # If we get here, all adapters failed
         error_msg = f"Failed to store memory item in any adapter: {errors}"
         logger.error(error_msg)
-        raise MemoryTransactionError(
-            error_msg,
-            operation="store_item"
-        )
+        raise MemoryTransactionError(error_msg, operation="store_item")
 
     def query_by_type(self, memory_type: MemoryType) -> List[MemoryItem]:
         """
@@ -692,17 +690,17 @@ class MemoryManager:
     def begin_transaction(self, stores: List[str]):
         """
         Begin a multi-store transaction.
-        
+
         This method creates a transaction context that spans multiple memory adapters.
         It uses the TransactionContext class which implements a two-phase commit protocol
         for cross-store transactions.
-        
+
         Args:
             stores: List of store names to include in the transaction
-            
+
         Returns:
             A transaction context manager
-            
+
         Example:
             ```python
             with memory_manager.begin_transaction(['graph', 'tinydb']):
@@ -720,12 +718,14 @@ class MemoryManager:
                 adapters.append(adapter)
             else:
                 logger.warning(f"Store {store_name} not found, skipping")
-                
+
         # If no valid adapters were found, fall back to the sync manager
         if not adapters:
-            logger.warning("No valid adapters found for transaction, falling back to sync manager")
+            logger.warning(
+                "No valid adapters found for transaction, falling back to sync manager"
+            )
             return self.sync_manager.transaction(stores)
-            
+
         # Create and return a transaction context
         return TransactionContext(adapters)
 
@@ -788,19 +788,19 @@ class MemoryManager:
         """
 
         return []
-        
+
     def get_error_summary(self) -> Dict[str, Any]:
         """
         Get a summary of memory operation errors.
-        
+
         This method provides statistics about errors that have occurred during
         memory operations, grouped by adapter, operation, and error type.
-        
+
         Returns:
             A dictionary with error statistics
         """
         return memory_error_logger.get_error_summary()
-        
+
     def get_recent_errors(
         self,
         operation: Optional[str] = None,
@@ -810,13 +810,13 @@ class MemoryManager:
     ) -> List[Dict[str, Any]]:
         """
         Get recent memory operation errors, optionally filtered by criteria.
-        
+
         Args:
             operation: Filter by operation (e.g., "store", "retrieve")
             adapter_name: Filter by adapter name
             error_type: Filter by error type
             limit: Maximum number of errors to return
-            
+
         Returns:
             A list of error entries
         """
@@ -824,13 +824,13 @@ class MemoryManager:
             operation=operation,
             adapter_name=adapter_name,
             error_type=error_type,
-            limit=limit
+            limit=limit,
         )
-        
+
     def clear_error_log(self) -> None:
         """
         Clear the in-memory error log.
-        
+
         This method clears the in-memory error log, but does not affect
         persisted error logs on disk.
         """
