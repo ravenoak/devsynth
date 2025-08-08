@@ -5,18 +5,22 @@ This module provides utilities for integrating the Promise System with DevSynth 
 allowing agents to declare capabilities, request capabilities from other agents,
 and track promise fulfillment.
 """
-from typing import Any, Dict, List, Optional, Set, Type, Union, Callable
-import logging
-import uuid
-import time
-import threading
-from datetime import datetime, UTC
 
-from devsynth.exceptions import DevSynthError
+import logging
+import threading
+import time
+import uuid
+from datetime import UTC, datetime
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
+
 from devsynth.application.promises import (
-    Promise, PromiseBroker, CapabilityMetadata,
-    CapabilityNotFoundError, UnauthorizedAccessError
+    CapabilityMetadata,
+    CapabilityNotFoundError,
+    Promise,
+    PromiseBroker,
+    UnauthorizedAccessError,
 )
+from devsynth.exceptions import DevSynthError
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -24,7 +28,9 @@ logger = logging.getLogger(__name__)
 
 class AgentCapabilityError(DevSynthError):
     """Base class for agent capability errors."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Agent capability error")
 
 
 class CapabilityHandler:
@@ -43,7 +49,7 @@ class CapabilityHandler:
         description: str,
         parameters: Dict[str, str] = None,
         tags: List[str] = None,
-        authorized_requesters: Set[str] = None
+        authorized_requesters: Set[str] = None,
     ):
         """
         Initialize a capability handler.
@@ -109,7 +115,9 @@ class CapabilityHandler:
             result = self.handler_func(*args, **kwargs)
 
             # Set execution completed metadata
-            promise.set_metadata("execution_completed_at", datetime.now(UTC).isoformat())
+            promise.set_metadata(
+                "execution_completed_at", datetime.now(UTC).isoformat()
+            )
 
             # Resolve the promise with the result
             promise.resolve(result)
@@ -171,7 +179,7 @@ class PromiseAgentMixin:
         description: str,
         parameters: Dict[str, str] = None,
         tags: List[str] = None,
-        authorized_requesters: Set[str] = None
+        authorized_requesters: Set[str] = None,
     ) -> str:
         """
         Register a capability that this agent provides.
@@ -198,7 +206,7 @@ class PromiseAgentMixin:
             description=description,
             parameters=parameters,
             tags=tags,
-            authorized_requesters=authorized_requesters
+            authorized_requesters=authorized_requesters,
         )
 
         # Register the capability with the broker
@@ -208,14 +216,16 @@ class PromiseAgentMixin:
             provider_id=self.agent_id,
             parameters=parameters,
             tags=tags,
-            authorized_requesters=authorized_requesters
+            authorized_requesters=authorized_requesters,
         )
 
         # Store the handler and capability ID
         self._capability_handlers[name] = handler
         self._capability_ids[name] = capability_id
 
-        logger.debug(f"Agent {self.agent_id} registered capability '{name}' with ID {capability_id}")
+        logger.debug(
+            f"Agent {self.agent_id} registered capability '{name}' with ID {capability_id}"
+        )
 
         return capability_id
 
@@ -252,7 +262,7 @@ class PromiseAgentMixin:
         provider_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
         timeout: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ) -> Promise:
         """
         Request a capability from another agent.
@@ -273,10 +283,7 @@ class PromiseAgentMixin:
         """
         # Request the capability from the broker
         promise = self.broker.request_capability(
-            requester_id=self.agent_id,
-            name=name,
-            provider_id=provider_id,
-            tags=tags
+            requester_id=self.agent_id, name=name, provider_id=provider_id, tags=tags
         )
 
         # Store the promise and arguments for tracking
@@ -291,12 +298,11 @@ class PromiseAgentMixin:
         if timeout is not None:
             promise.set_metadata("timeout", timeout)
             promise.set_metadata("requested_at", time.time())
+
             # Start a timer to automatically reject the promise when the timeout expires
             def _timeout_reject() -> None:
                 if promise.is_pending:
-                    error_msg = (
-                        f"Capability request timed out after {timeout} seconds"
-                    )
+                    error_msg = f"Capability request timed out after {timeout} seconds"
                     promise.reject(TimeoutError(error_msg))
 
             timer = threading.Timer(timeout, _timeout_reject)
@@ -322,9 +328,7 @@ class PromiseAgentMixin:
         return promise
 
     def wait_for_capability(
-        self,
-        promise: Promise,
-        wait_timeout: Optional[float] = None
+        self, promise: Promise, wait_timeout: Optional[float] = None
     ) -> Any:
         """
         Wait for a capability request to be fulfilled.
@@ -348,8 +352,13 @@ class PromiseAgentMixin:
         start_time = time.time()
         while promise.is_pending:
             # Check for timeout
-            if effective_timeout is not None and time.time() - start_time > effective_timeout:
-                error_msg = f"Capability request timed out after {effective_timeout} seconds"
+            if (
+                effective_timeout is not None
+                and time.time() - start_time > effective_timeout
+            ):
+                error_msg = (
+                    f"Capability request timed out after {effective_timeout} seconds"
+                )
                 promise.reject(TimeoutError(error_msg))
                 raise TimeoutError(error_msg)
 
@@ -478,7 +487,9 @@ class PromiseAgent:
         """Delegate to mixin's request_capability."""
         return self.mixin.request_capability(*args, **kwargs)
 
-    def wait_for_capability(self, promise: Promise, wait_timeout: Optional[float] = None) -> Any:
+    def wait_for_capability(
+        self, promise: Promise, wait_timeout: Optional[float] = None
+    ) -> Any:
         """Delegate to mixin's wait_for_capability."""
         return self.mixin.wait_for_capability(promise, wait_timeout)
 
@@ -496,12 +507,12 @@ class PromiseAgent:
 
     def create_promise(
         self,
-        type: 'PromiseType',
+        type: "PromiseType",
         parameters: Dict[str, Any],
         context_id: str,
         tags: Optional[List[str]] = None,
         parent_id: Optional[str] = None,
-        priority: int = 1
+        priority: int = 1,
     ) -> Promise:
         """
         Create a new promise with the given parameters.
@@ -599,11 +610,11 @@ class PromiseAgent:
     def create_child_promise(
         self,
         parent_id: str,
-        type: 'PromiseType',
+        type: "PromiseType",
         parameters: Dict[str, Any],
         context_id: str,
         tags: Optional[List[str]] = None,
-        priority: int = 1
+        priority: int = 1,
     ) -> Promise:
         """
         Create a child promise linked to a parent promise.
@@ -636,7 +647,7 @@ class PromiseAgent:
             context_id=context_id,
             tags=tags,
             parent_id=parent_id,
-            priority=priority
+            priority=priority,
         )
 
         # Ensure the parent-child relationship is established

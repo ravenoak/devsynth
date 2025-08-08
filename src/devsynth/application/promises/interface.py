@@ -4,17 +4,19 @@ DevSynth Promise System API Specification.
 This module defines the core interface for the Promise System, which provides
 a capability declaration, verification, and authorization framework for agents.
 """
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Set, Any, Union, Generic, TypeVar, Callable
-from enum import Enum
-from dataclasses import dataclass
-import uuid
+
 import logging
+import uuid
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, Generic, List, Optional, Set, TypeVar, Union
 
 from devsynth.exceptions import PromiseStateError
 
-T = TypeVar('T')
-S = TypeVar('S')
+T = TypeVar("T")
+S = TypeVar("S")
+
 
 class PromiseInterface(Generic[T], ABC):
     """
@@ -26,31 +28,31 @@ class PromiseInterface(Generic[T], ABC):
     @abstractmethod
     def id(self) -> str:
         """Get the unique identifier of this promise."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
-    def state(self) -> 'PromiseState':
+    def state(self) -> "PromiseState":
         """Get the current state of this promise."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def is_pending(self) -> bool:
         """Check if the promise is in the pending state."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def is_fulfilled(self) -> bool:
         """Check if the promise is in the fulfilled state."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def is_rejected(self) -> bool:
         """Check if the promise is in the rejected state."""
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
@@ -64,7 +66,7 @@ class PromiseInterface(Generic[T], ABC):
         Raises:
             PromiseStateError: If the promise is not in the fulfilled state.
         """
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
@@ -78,10 +80,10 @@ class PromiseInterface(Generic[T], ABC):
         Raises:
             PromiseStateError: If the promise is not in the rejected state.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def set_metadata(self, key: str, value: Any) -> 'PromiseInterface[T]':
+    def set_metadata(self, key: str, value: Any) -> "PromiseInterface[T]":
         """
         Set a metadata value for DevSynth analysis.
 
@@ -92,7 +94,7 @@ class PromiseInterface(Generic[T], ABC):
         Returns:
             Self, for chaining
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_metadata(self, key: str) -> Any:
@@ -105,10 +107,14 @@ class PromiseInterface(Generic[T], ABC):
         Returns:
             The associated value, or None if the key does not exist
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def then(self, on_fulfilled: Callable[[T], S], on_rejected: Optional[Callable[[Exception], S]] = None) -> 'PromiseInterface[S]':
+    def then(
+        self,
+        on_fulfilled: Callable[[T], S],
+        on_rejected: Optional[Callable[[Exception], S]] = None,
+    ) -> "PromiseInterface[S]":
         """
         Attaches callbacks for the resolution and/or rejection of the Promise.
 
@@ -119,10 +125,10 @@ class PromiseInterface(Generic[T], ABC):
         Returns:
             A new Promise resolving with the return value of the called callback.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def catch(self, on_rejected: Callable[[Exception], S]) -> 'PromiseInterface[S]':
+    def catch(self, on_rejected: Callable[[Exception], S]) -> "PromiseInterface[S]":
         """
         Attaches a callback for only the rejection of the Promise.
 
@@ -132,7 +138,7 @@ class PromiseInterface(Generic[T], ABC):
         Returns:
             A new Promise resolving with the return value of the on_rejected callback.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def resolve(self, value: T) -> None:
@@ -146,7 +152,7 @@ class PromiseInterface(Generic[T], ABC):
         Raises:
             PromiseStateError: If the promise is already fulfilled or rejected
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def reject(self, reason: Exception) -> None:
@@ -160,15 +166,16 @@ class PromiseInterface(Generic[T], ABC):
         Raises:
             PromiseStateError: If the promise is already fulfilled or rejected
         """
-        pass
+        raise NotImplementedError
 
 
 class PromiseState(Enum):
     """Represents the possible states of a Promise."""
-    PENDING = "pending"       # Promise is created but not yet fulfilled
-    FULFILLED = "fulfilled"   # Promise has been successfully fulfilled
-    REJECTED = "rejected"     # Promise has failed to be fulfilled
-    CANCELLED = "cancelled"   # Promise has been cancelled before fulfillment
+
+    PENDING = "pending"  # Promise is created but not yet fulfilled
+    FULFILLED = "fulfilled"  # Promise has been successfully fulfilled
+    REJECTED = "rejected"  # Promise has failed to be fulfilled
+    CANCELLED = "cancelled"  # Promise has been cancelled before fulfillment
 
 
 class BasicPromise(PromiseInterface[T], Generic[T]):
@@ -315,8 +322,10 @@ class BasicPromise(PromiseInterface[T], Generic[T]):
         self._on_fulfilled.clear()
         self._on_rejected.clear()
 
+
 class PromiseType(Enum):
     """Types of promises that can be made in the system."""
+
     FILE_READ = "file_read"
     FILE_WRITE = "file_write"
     CODE_ANALYSIS = "code_analysis"
@@ -332,11 +341,12 @@ class PromiseType(Enum):
 @dataclass
 class PromiseMetadata:
     """Metadata associated with a Promise."""
+
     created_at: float  # Unix timestamp
-    owner_id: str      # ID of the agent that created the promise
-    context_id: str    # Context or task ID this promise belongs to
-    tags: List[str]    # User-defined tags for filtering and organization
-    trace_id: str      # For distributed tracing
+    owner_id: str  # ID of the agent that created the promise
+    context_id: str  # Context or task ID this promise belongs to
+    tags: List[str]  # User-defined tags for filtering and organization
+    trace_id: str  # For distributed tracing
     priority: int = 1  # Priority level (higher is more important)
 
 
@@ -346,15 +356,16 @@ class Promise:
     Represents a Promise in the system - a declaration of intent to perform
     a capability with specific parameters and constraints.
     """
-    id: str                           # Unique identifier
-    type: PromiseType                 # Type of capability
-    parameters: Dict[str, Any]        # Parameters for this promise
-    state: PromiseState               # Current state
-    metadata: PromiseMetadata         # Associated metadata
-    result: Optional[Any] = None      # Result when fulfilled
-    error: Optional[str] = None       # Error message if rejected
-    parent_id: Optional[str] = None   # Parent promise if this is a sub-promise
-    children_ids: List[str] = None    # Child promises if this has sub-promises
+
+    id: str  # Unique identifier
+    type: PromiseType  # Type of capability
+    parameters: Dict[str, Any]  # Parameters for this promise
+    state: PromiseState  # Current state
+    metadata: PromiseMetadata  # Associated metadata
+    result: Optional[Any] = None  # Result when fulfilled
+    error: Optional[str] = None  # Error message if rejected
+    parent_id: Optional[str] = None  # Parent promise if this is a sub-promise
+    children_ids: List[str] = None  # Child promises if this has sub-promises
 
     def __post_init__(self):
         if self.children_ids is None:
@@ -376,7 +387,7 @@ class IPromiseManager(ABC):
         context_id: str,
         tags: Optional[List[str]] = None,
         parent_id: Optional[str] = None,
-        priority: int = 1
+        priority: int = 1,
     ) -> Promise:
         """
         Create a new promise with the given parameters.
@@ -393,7 +404,7 @@ class IPromiseManager(ABC):
         Returns:
             A newly created Promise in PENDING state
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def fulfill_promise(self, promise_id: str, result: Any) -> Promise:
@@ -407,7 +418,7 @@ class IPromiseManager(ABC):
         Returns:
             The updated Promise in FULFILLED state
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def reject_promise(self, promise_id: str, error: str) -> Promise:
@@ -421,7 +432,7 @@ class IPromiseManager(ABC):
         Returns:
             The updated Promise in REJECTED state
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def cancel_promise(self, promise_id: str, reason: str) -> Promise:
@@ -435,7 +446,7 @@ class IPromiseManager(ABC):
         Returns:
             The updated Promise in CANCELLED state
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_promise(self, promise_id: str) -> Promise:
@@ -448,7 +459,7 @@ class IPromiseManager(ABC):
         Returns:
             The Promise object
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def list_promises(
@@ -458,7 +469,7 @@ class IPromiseManager(ABC):
         state: Optional[PromiseState] = None,
         type: Optional[PromiseType] = None,
         tags: Optional[List[str]] = None,
-        parent_id: Optional[str] = None
+        parent_id: Optional[str] = None,
     ) -> List[Promise]:
         """
         List promises matching the given filters.
@@ -474,7 +485,7 @@ class IPromiseManager(ABC):
         Returns:
             List of matching Promises
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def create_child_promise(
@@ -484,7 +495,7 @@ class IPromiseManager(ABC):
         parameters: Dict[str, Any],
         owner_id: str,
         tags: Optional[List[str]] = None,
-        priority: int = 1
+        priority: int = 1,
     ) -> Promise:
         """
         Create a child promise linked to a parent promise.
@@ -500,7 +511,7 @@ class IPromiseManager(ABC):
         Returns:
             A newly created Promise linked to its parent
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def validate_promise_chain(self, root_promise_id: str) -> bool:
@@ -513,7 +524,7 @@ class IPromiseManager(ABC):
         Returns:
             True if the chain is valid, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_promise_chain(self, promise_id: str) -> List[Promise]:
@@ -526,7 +537,7 @@ class IPromiseManager(ABC):
         Returns:
             List of all related Promises in the chain
         """
-        pass
+        raise NotImplementedError
 
 
 class IPromiseAuthority(ABC):
@@ -537,10 +548,7 @@ class IPromiseAuthority(ABC):
 
     @abstractmethod
     def can_create(
-        self,
-        agent_id: str,
-        promise_type: PromiseType,
-        parameters: Dict[str, Any]
+        self, agent_id: str, promise_type: PromiseType, parameters: Dict[str, Any]
     ) -> bool:
         """
         Check if an agent is authorized to create a promise of the given type.
@@ -553,7 +561,7 @@ class IPromiseAuthority(ABC):
         Returns:
             True if authorized, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def can_fulfill(self, agent_id: str, promise_id: str) -> bool:
@@ -567,7 +575,7 @@ class IPromiseAuthority(ABC):
         Returns:
             True if authorized, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def can_reject(self, agent_id: str, promise_id: str) -> bool:
@@ -581,7 +589,7 @@ class IPromiseAuthority(ABC):
         Returns:
             True if authorized, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def can_cancel(self, agent_id: str, promise_id: str) -> bool:
@@ -595,15 +603,10 @@ class IPromiseAuthority(ABC):
         Returns:
             True if authorized, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def can_delegate(
-        self,
-        agent_id: str,
-        promise_id: str,
-        delegate_to: str
-    ) -> bool:
+    def can_delegate(self, agent_id: str, promise_id: str, delegate_to: str) -> bool:
         """
         Check if an agent is authorized to delegate a promise to another agent.
 
@@ -615,14 +618,11 @@ class IPromiseAuthority(ABC):
         Returns:
             True if authorized, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def register_capability(
-        self,
-        agent_id: str,
-        promise_type: PromiseType,
-        constraints: Dict[str, Any]
+        self, agent_id: str, promise_type: PromiseType, constraints: Dict[str, Any]
     ) -> bool:
         """
         Register an agent as capable of handling promises of a specific type.
@@ -635,7 +635,7 @@ class IPromiseAuthority(ABC):
         Returns:
             True if registration successful, False otherwise
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def list_agent_capabilities(self, agent_id: str) -> Dict[PromiseType, Dict]:
@@ -648,4 +648,4 @@ class IPromiseAuthority(ABC):
         Returns:
             Dictionary mapping capability types to their constraints
         """
-        pass
+        raise NotImplementedError

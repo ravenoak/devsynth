@@ -3,7 +3,7 @@ Domain interfaces for code analysis.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 
 class FileAnalysisResult(ABC):
@@ -17,7 +17,7 @@ class FileAnalysisResult(ABC):
             A list of dictionaries containing import information.
             Each dictionary should have at least 'name' and 'path' keys.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_classes(self) -> List[Dict[str, Any]]:
@@ -27,7 +27,7 @@ class FileAnalysisResult(ABC):
             A list of dictionaries containing class information.
             Each dictionary should have at least 'name', 'methods', and 'attributes' keys.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_functions(self) -> List[Dict[str, Any]]:
@@ -37,7 +37,7 @@ class FileAnalysisResult(ABC):
             A list of dictionaries containing function information.
             Each dictionary should have at least 'name', 'params', and 'return_type' keys.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_variables(self) -> List[Dict[str, Any]]:
@@ -47,7 +47,7 @@ class FileAnalysisResult(ABC):
             A list of dictionaries containing variable information.
             Each dictionary should have at least 'name' and 'type' keys.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_docstring(self) -> str:
@@ -56,7 +56,7 @@ class FileAnalysisResult(ABC):
         Returns:
             The docstring as a string, or an empty string if no docstring is found.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_metrics(self) -> Dict[str, Any]:
@@ -65,7 +65,7 @@ class FileAnalysisResult(ABC):
         Returns:
             A dictionary of metrics, such as lines of code, complexity, etc.
         """
-        pass
+        raise NotImplementedError
 
 
 class CodeAnalysisResult(ABC):
@@ -81,7 +81,7 @@ class CodeAnalysisResult(ABC):
         Returns:
             The FileAnalysisResult for the file, or None if the file was not analyzed.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_symbol_references(self, symbol_name: str) -> List[Dict[str, Any]]:
@@ -94,7 +94,7 @@ class CodeAnalysisResult(ABC):
             A list of dictionaries containing reference information.
             Each dictionary should have at least 'file', 'line', and 'column' keys.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_dependencies(self, module_name: str) -> List[str]:
@@ -106,7 +106,7 @@ class CodeAnalysisResult(ABC):
         Returns:
             A list of module names that the specified module depends on.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_metrics(self) -> Dict[str, Any]:
@@ -115,7 +115,7 @@ class CodeAnalysisResult(ABC):
         Returns:
             A dictionary of metrics, such as total lines of code, number of files, etc.
         """
-        pass
+        raise NotImplementedError
 
 
 class TransformationResult(ABC):
@@ -128,7 +128,7 @@ class TransformationResult(ABC):
         Returns:
             The original code as a string.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_transformed_code(self) -> str:
@@ -137,7 +137,7 @@ class TransformationResult(ABC):
         Returns:
             The transformed code as a string.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_changes(self) -> List[Dict[str, Any]]:
@@ -147,7 +147,7 @@ class TransformationResult(ABC):
             A list of dictionaries containing change information.
             Each dictionary should have at least a 'description' key.
         """
-        pass
+        raise NotImplementedError
 
 
 class CodeTransformationProvider(ABC):
@@ -166,7 +166,7 @@ class CodeTransformationProvider(ABC):
         Returns:
             A TransformationResult containing the transformed code and changes made.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def transform_file(
@@ -181,7 +181,7 @@ class CodeTransformationProvider(ABC):
         Returns:
             A TransformationResult containing the transformed code and changes made.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def transform_directory(
@@ -197,7 +197,7 @@ class CodeTransformationProvider(ABC):
         Returns:
             A dictionary mapping file paths to TransformationResult objects.
         """
-        pass
+        raise NotImplementedError
 
 
 class CodeAnalysisProvider(ABC):
@@ -213,7 +213,7 @@ class CodeAnalysisProvider(ABC):
         Returns:
             A FileAnalysisResult containing the analysis of the file.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def analyze_directory(
@@ -228,7 +228,7 @@ class CodeAnalysisProvider(ABC):
         Returns:
             A CodeAnalysisResult containing the analysis of the directory.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def analyze_code(
@@ -243,7 +243,7 @@ class CodeAnalysisProvider(ABC):
         Returns:
             A FileAnalysisResult containing the analysis of the code.
         """
-        pass
+        raise NotImplementedError
 
 
 class SimpleFileAnalysis(FileAnalysisResult):
