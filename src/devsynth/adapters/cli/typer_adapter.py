@@ -65,6 +65,7 @@ def completion_cmd(
     """Generate or install shell completion scripts."""
 
     bridge = bridge or CLIUXBridge()
+    progress = bridge.create_progress("Generating completion script", total=2)
     app = build_app()
     from click.shell_completion import get_completion_class
 
@@ -72,6 +73,7 @@ def completion_cmd(
     completion_cls = get_completion_class(shell_name)
     comp = completion_cls(app, {}, "devsynth", "_DEVSYNTH_COMPLETE")
     script = comp.source()
+    progress.update(status="Script generated", advance=1)
 
     if install:
         target = path or Path.home() / f".devsynth-completion.{shell_name}"
@@ -79,6 +81,8 @@ def completion_cmd(
         bridge.show_completion(str(target))
     else:
         bridge.show_completion(script)
+
+    progress.complete()
 
 
 def _patch_typer_types() -> None:
@@ -242,6 +246,8 @@ def build_app() -> typer.Typer:
             "Only the embedded ChromaDB backend is currently supported.",
             "Use 'devsynth <command> --help' for more information on a specific command.",
             "Configuration can be managed with 'devsynth config' commands.",
+            "Pre-built shell completion scripts live in 'scripts/completions'.",
+            "Long-running commands display progress indicators for better feedback.",
         ],
     )
 
@@ -259,7 +265,10 @@ def build_app() -> typer.Typer:
     app.add_typer(requirements_app, name="requirements")
     app.add_typer(config_app, name="config", help="Manage configuration settings")
 
-    @app.command("completion")
+    @app.command(
+        "completion",
+        help="Show or install shell completion scripts (see scripts/completions).",
+    )
     def completion(
         shell: Optional[str] = typer.Option(None, "--shell", help="Shell type"),
         install: bool = typer.Option(

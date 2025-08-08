@@ -80,15 +80,15 @@ from devsynth.interface.cli import CLIUXBridge
 def my_command(bridge=None):
     # Get the bridge
     ux_bridge = bridge or CLIUXBridge()
-    
+
     # Create a progress indicator
     progress = ux_bridge.create_progress("Processing files", total=100)
-    
+
     # Update the progress
     for i in range(100):
         # Do some work
         progress.update(advance=1)
-    
+
     # Complete the progress
     progress.complete()
 ```
@@ -105,14 +105,14 @@ def my_long_running_task(progress_callback=None):
         # Update the progress
         if progress_callback:
             progress_callback(advance=1, status=f"Processing item {i}")
-    
+
     # Return the result
     return "Task completed successfully"
 
 def my_command(bridge=None):
     # Get the bridge
     ux_bridge = bridge or CLIUXBridge()
-    
+
     # Run the task with a long-running progress indicator
     result = run_with_long_running_progress(
         "My long-running task",
@@ -125,7 +125,7 @@ def my_command(bridge=None):
             {"name": "Subtask 3", "total": 100},
         ]
     )
-    
+
     # Display the result
     ux_bridge.display_result(result, message_type="success")
 ```
@@ -203,20 +203,20 @@ from devsynth.exceptions import DevSynthError
 def my_command(bridge=None):
     # Get the bridge
     ux_bridge = bridge or CLIUXBridge()
-    
+
     try:
         # Do some work that might raise an error
         memory_manager = MemoryManager()
-        
+
         # This might raise a DevSynthError if the memory store is not configured
         result = memory_manager.get("key_that_might_not_exist")
-        
+
         # Display the result
         ux_bridge.display_result(result, message_type="success")
     except DevSynthError as e:
         # Use the improved error handler to format the error
         formatted_error = improved_error_handler.format_error(e)
-        
+
         # Display the error
         ux_bridge.console.print(formatted_error)
 ```
@@ -227,7 +227,7 @@ DevSynth provides shell completion for bash, zsh, and fish shells to make it eas
 
 ### Installing Shell Completion
 
-To install shell completion, use the `completion` command:
+Pre-built completion scripts are available in `scripts/completions/` for Bash, Zsh, and Fish. You can source these files directly or install them using the `completion` command:
 
 ```bash
 # Install shell completion for the current shell
@@ -301,10 +301,10 @@ def my_command():
         output_style=CommandOutputStyle.STANDARD,
         title="Success",
     )
-    
+
     # Display the message
     standardized_formatter.console.print(message)
-    
+
     # Format a table
     data = [
         {"name": "Item 1", "value": 42},
@@ -316,10 +316,10 @@ def my_command():
         output_style=CommandOutputStyle.STANDARD,
         title="Results",
     )
-    
+
     # Display the table
     standardized_formatter.console.print(table)
-    
+
     # Format a list
     items = ["Item 1", "Item 2", "Item 3"]
     list_output = standardized_formatter.format_list(
@@ -327,10 +327,10 @@ def my_command():
         output_style=CommandOutputStyle.STANDARD,
         title="Items",
     )
-    
+
     # Display the list
     standardized_formatter.console.print(list_output)
-    
+
     # Format code
     code = """
     def hello_world():
@@ -342,10 +342,10 @@ def my_command():
         output_style=CommandOutputStyle.STANDARD,
         title="Example Code",
     )
-    
+
     # Display the code
     standardized_formatter.console.print(code_output)
-    
+
     # Format help text
     help_output = standardized_formatter.format_help(
         "my-command",
@@ -361,10 +361,10 @@ def my_command():
         ],
         output_style=CommandOutputStyle.STANDARD,
     )
-    
+
     # Display the help text
     standardized_formatter.console.print(help_output)
-    
+
     # Format and display a command result in one step
     standardized_formatter.display(
         "Operation completed successfully",

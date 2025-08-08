@@ -52,6 +52,18 @@ def init_cmd(
         or non_interactive
     )
 
+    def _ask(
+        prompt: str,
+        default: str,
+        *,
+        choices: Optional[List[str]] = None,
+    ) -> str:
+        """Prompt the user unless running in auto-confirm mode."""
+
+        if auto_confirm:
+            return default
+        return bridge.ask_question(prompt, default=default, choices=choices)
+
     if non_interactive:
         os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
 
@@ -69,52 +81,42 @@ def init_cmd(
         config = UnifiedConfigLoader.load().config
 
         root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
-        if root is None:
-            if defaults or non_interactive:
-                root = str(Path.cwd())
-            else:
-                root = bridge.ask_question(
-                    "Project root directory?", default=str(Path.cwd())
-                )
+        root = root or _ask("Project root directory?", str(Path.cwd()))
 
         root_path = Path(root)
+        if root_path.exists() and not root_path.is_dir():
+            _handle_error(bridge, ValueError(f"'{root}' is not a directory"))
+            return
         if not root_path.exists():
             try:
                 root_path.mkdir(parents=True, exist_ok=True)
             except OSError as exc:  # pragma: no cover - defensive
-                bridge.display_result(
-                    f"[red]Failed to create directory '{root}': {exc}[/red]",
-                    message_type="error",
-                )
+                _handle_error(bridge, exc)
                 return
 
-        language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
-        if language is None:
-            if defaults or non_interactive:
-                language = "python"
-            else:
-                language = bridge.ask_question("Primary language?", default="python")
+        language = (
+            language
+            or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
+            or _ask("Primary language?", "python")
+        )
 
         goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS", "")
-        if not goals and not auto_confirm:
-            goals = bridge.ask_question("Project goals?", default="")
+        if not goals:
+            goals = _ask("Project goals?", "")
 
         memory_backend = memory_backend or os.environ.get(
             "DEVSYNTH_INIT_MEMORY_BACKEND"
         )
-        if memory_backend is None:
-            if defaults or non_interactive:
-                memory_backend = "memory"
-            else:
-                memory_backend = bridge.ask_question(
-                    "Select memory backend",
-                    choices=["memory", "file", "kuzu", "chromadb"],
-                    default="memory",
-                )
-        if memory_backend not in {"memory", "file", "kuzu", "chromadb"}:
-            bridge.display_result(
-                f"[red]Invalid memory backend: {memory_backend}[/red]",
-                message_type="error",
+        memory_backend = memory_backend or _ask(
+            "Select memory backend",
+            "memory",
+            choices=["memory", "file", "kuzu", "chromadb"],
+        )
+
+        valid_backends = {"memory", "file", "kuzu", "chromadb"}
+        if memory_backend not in valid_backends:
+            _handle_error(
+                bridge, ValueError(f"Invalid memory backend: {memory_backend}")
             )
             return
 
@@ -129,11 +131,13 @@ def init_cmd(
                     "Enable offline mode?", default=False
                 )
 
-        if features is None:
+        try:
             env_feats = os.environ.get("DEVSYNTH_INIT_FEATURES")
-            features_map = _parse_features(env_feats) if env_feats else {}
-        else:
-            features_map = _parse_features(features)
+            raw_features = features if features is not None else env_feats
+            features_map = _parse_features(raw_features) if raw_features else {}
+        except Exception as exc:
+            _handle_error(bridge, exc)
+            return
 
         config.project_root = root
         config.language = language
