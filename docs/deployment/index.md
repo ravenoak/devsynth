@@ -21,7 +21,8 @@ last_reviewed: "2025-07-10"
 
 This section provides documentation on deploying DevSynth in various environments and configurations.
 
-- **[Deployment Guide](deployment_guide.md)**: A comprehensive guide to deploying DevSynth in production environments, now with enhanced security practices such as TLS enforcement, container hardening, and automated secret rotation.
+ - **[Deployment Guide](deployment_guide.md)**: A comprehensive guide to deploying DevSynth in production environments, now with enhanced security practices such as TLS enforcement, container hardening, and automated secret rotation.
+ - **[Security Guidelines](security_guidelines.md)**: Mandatory preflight checks and safeguards for all deployment scripts.
 
 ## Related Documentation
 

@@ -16,6 +16,7 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
+from unittest.mock import MagicMock
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -25,6 +26,7 @@ from devsynth.application.documentation.documentation_manager import (
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryItem
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
@@ -38,6 +40,7 @@ def context():
             """Initialize the context with empty attributes."""
             self.edrr_coordinator = None
             self.memory_manager = None
+            self.memory_adapter = None
             self.wsde_team = None
             self.code_analyzer = None
             self.ast_transformer = None
@@ -49,6 +52,8 @@ def context():
             self.task_description = None
             self.sub_task_description = None
             self.phase = None
+            self.start_called = False
+            self.end_called = False
 
     return Context()
 
@@ -74,12 +79,31 @@ def edrr_coordinator_initialized(context):
     # Create a temporary directory for the test
     temp_dir = tempfile.mkdtemp()
 
-    # Initialize memory manager
-    context.memory_manager = MemoryManager()
-    assert context.memory_manager is not None, "Memory manager initialization failed"
+    # Initialize an in-memory adapter to avoid external dependencies
+    class InMemoryAdapter:
+        def __init__(self):
+            self.items = []
+
+        def store(self, item: MemoryItem) -> str:
+            item.id = str(len(self.items) + 1)
+            self.items.append(item)
+            return item.id
+
+        def query_by_metadata(self, metadata):
+            return [
+                item
+                for item in self.items
+                if all(item.metadata.get(k) == v for k, v in metadata.items())
+            ]
+
+    context.memory_adapter = InMemoryAdapter()
+    context.memory_manager = MemoryManager(
+        adapters={"in_memory": context.memory_adapter}
+    )
 
     # Initialize WSDE team (mock)
-    context.wsde_team = WSDETeam(name="TestMicroEdrrCycleStepsTeam")
+    context.wsde_team = MagicMock()
+    context.wsde_team.generate_diverse_ideas.return_value = []
     assert context.wsde_team is not None, "WSDE team initialization failed"
 
     # Initialize code analyzer and AST transformer
@@ -93,7 +117,7 @@ def edrr_coordinator_initialized(context):
     assert context.prompt_manager is not None, "Prompt manager initialization failed"
 
     # Initialize documentation manager
-    context.documentation_manager = DocumentationManager()
+    context.documentation_manager = DocumentationManager(context.memory_manager)
     assert (
         context.documentation_manager is not None
     ), "Documentation manager initialization failed"
@@ -114,6 +138,20 @@ def edrr_coordinator_initialized(context):
 
     # Store the parent cycle for later reference
     context.parent_cycle = context.edrr_coordinator
+
+
+@given("I register micro cycle monitoring hooks")
+def register_micro_cycle_hooks(context):
+    """Register hooks that track micro cycle lifecycle."""
+
+    def start_hook(info):
+        context.start_called = True
+
+    def end_hook(info):
+        context.end_called = True
+
+    context.edrr_coordinator.register_micro_cycle_hook("start", start_hook)
+    context.edrr_coordinator.register_micro_cycle_hook("end", end_hook)
 
 
 @when(parsers.parse('I start an EDRR cycle for "{task_description}"'))
@@ -274,6 +312,13 @@ def verify_parent_includes_micro(context):
         {"cycle_id": context.micro_cycle.cycle_id}
     )
     assert len(memory_items) > 0, "Micro cycle should have memory items"
+
+
+@then("the hooks should record the micro cycle lifecycle")
+def hooks_recorded(context):
+    """Ensure start and end hooks were triggered."""
+    assert context.start_called is True
+    assert context.end_called is True
 
 
 # noqa: F401,F403
