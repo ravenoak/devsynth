@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Dict, Any
 import time
+from typing import Any, Dict, List, Optional, Sequence
 
-from .ux_bridge import UXBridge, ProgressIndicator, sanitize_output
-from .shared_bridge import SharedBridgeMixin
-from .output_formatter import OutputFormatter
-from devsynth.logging_setup import DevSynthLogger
+import streamlit as st
+
 from devsynth.interface.state_access import get_session_value as _get_session_value
 from devsynth.interface.state_access import set_session_value as _set_session_value
+from devsynth.logging_setup import DevSynthLogger
+
+from .output_formatter import OutputFormatter
+from .shared_bridge import SharedBridgeMixin
+from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 # Module level logger
 logger = DevSynthLogger(__name__)
@@ -326,14 +329,14 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         if not isinstance(total, int) or total <= 0:
             logger.warning(f"Invalid total steps: {total}, defaulting to 1")
             total = 1
-            
+
         # Ensure current is a valid integer
         try:
             current = int(current)
         except (ValueError, TypeError):
             logger.warning(f"Invalid current step: {current}, defaulting to 0")
             current = 0
-            
+
         # Calculate the next step based on direction
         if direction == "next":
             candidate = current + 1
@@ -342,21 +345,21 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         else:
             logger.warning(f"Invalid direction: {direction}, keeping current step")
             candidate = current
-            
+
         # Ensure the step is within valid range
         return max(0, min(total - 1, candidate))
 
     @staticmethod
     def normalize_wizard_step(value: Any, *, total: int) -> int:
         """Coerce arbitrary values to a valid wizard step index.
-        
+
         Parameters
         ----------
         value:
             The value to normalize, can be any type.
         total:
             Total number of steps.
-            
+
         Returns
         -------
         int
@@ -366,12 +369,12 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         if not isinstance(total, int) or total <= 0:
             logger.warning(f"Invalid total steps: {total}, defaulting to 1")
             total = 1
-            
+
         # Handle different types of values
         if value is None:
             logger.debug("Normalizing None value to step 0")
             return 0
-            
+
         try:
             # First try direct integer conversion
             if isinstance(value, int):
@@ -385,15 +388,17 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
                 if not value_str:
                     logger.debug("Empty string value, defaulting to step 0")
                     return 0
-                    
+
                 # Try to convert to float first (handles both integers and floats in string form)
                 step = int(float(value_str))
-                
+
             logger.debug(f"Normalized value {value} to step {step}")
             return max(0, min(total - 1, step))
-            
+
         except (ValueError, TypeError) as e:
-            logger.warning(f"Failed to normalize step value '{value}': {str(e)}, defaulting to 0")
+            logger.warning(
+                f"Failed to normalize step value '{value}': {str(e)}, defaulting to 0"
+            )
             return 0
 
     def ask_question(
@@ -444,17 +449,8 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
     def display_result(
         self, message: str, *, highlight: bool = False, message_type: str = None
     ) -> None:
-        """Display a message to the user.
+        """Display a message to the user with Streamlit styling."""
 
-        This implementation formats the message using the OutputFormatter
-        for consistency with CLIUXBridge.
-
-        Args:
-            message: The message to display
-            highlight: Whether to highlight the message
-            message_type: Optional type of message (info, success, warning, error, etc.)
-        """
-        # Log the message with appropriate level based on message_type
         if message_type == "error":
             logger.error(f"WebUI displaying error: {message}")
         elif message_type == "warning":
@@ -467,6 +463,18 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         formatted = self._format_for_output(
             message, highlight=highlight, message_type=message_type
         )
+
+        if message_type == "error":
+            st.error(formatted)
+        elif message_type == "warning":
+            st.warning(formatted)
+        elif message_type == "success":
+            st.success(formatted)
+        elif message_type == "info" or highlight:
+            getattr(st, "info", st.write)(formatted)
+        else:
+            st.write(formatted)
+
         self.messages.append(formatted)
 
     def create_progress(
@@ -482,39 +490,39 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
             A progress indicator
         """
         return WebUIProgressIndicator(description, total)
-        
+
     # ------------------------------------------------------------------
     # Session state management utilities
     # ------------------------------------------------------------------
     @staticmethod
     def get_session_value(session_state, key, default=None):
         """Get a value from session state consistently.
-        
+
         This function handles different implementations of session state
         and provides robust error handling.
-        
+
         Args:
             session_state: The session state object
             key: The key to retrieve from session state
             default: The default value to return if the key is not found
-            
+
         Returns:
             The value from session state or the default value
         """
         return _get_session_value(session_state, key, default)
-            
+
     @staticmethod
     def set_session_value(session_state, key, value):
         """Set a value in session state consistently.
-        
+
         This function handles different implementations of session state
         and provides robust error handling.
-        
+
         Args:
             session_state: The session state object
             key: The key to set in session state
             value: The value to set
-            
+
         Returns:
             True if the value was set successfully, False otherwise
         """
