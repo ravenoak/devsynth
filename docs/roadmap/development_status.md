@@ -405,7 +405,7 @@ The completion of Phase 1 produced several key artifacts:
 7. **Metrics Commands Implemented**:
    - Added `alignment_metrics` and `test_metrics` CLI commands
    - Commands generate alignment and test-first development reports
-   - Latest coverage run encountered failures before generating a new report; baseline coverage remains roughly **15%** line coverage across the codebase.
+   - Latest coverage run reports approximately **25%** line coverage across the codebase, and CI now enforces a minimum 25% coverage threshold via `pytest.ini`.
 
 ### Remaining Test Failures
 
