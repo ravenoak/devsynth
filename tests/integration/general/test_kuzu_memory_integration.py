@@ -1,13 +1,12 @@
 import os
 import sys
-from unittest.mock import patch
-
 import types
+from unittest.mock import patch
 
 import pytest
 
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
