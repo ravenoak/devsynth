@@ -13,6 +13,7 @@ update provides real interactions with ChromaDB using its client API so that
 vectors are persisted and retrieved from a ChromaDB collection.
 """
 
+import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
@@ -68,28 +69,64 @@ class ChromaDBVectorAdapter(VectorStore):
             "ChromaDB Vector Adapter initialized with collection '%s'", collection_name
         )
 
-    @contextmanager
-    def begin_transaction(self):
-        """Provide a basic transactional wrapper using snapshot semantics."""
+        # Storage for active transactions - maps transaction ID to snapshot
+        self._active_transactions: Dict[str, Dict[str, MemoryVector]] = {}
+
+    def begin_transaction(self, transaction_id: Optional[str] = None) -> str:
+        """Begin a transaction by taking a snapshot of current vectors."""
+        transaction_id = transaction_id or str(uuid.uuid4())
         snapshot = {v.id: deepcopy(v) for v in self.get_all_vectors()}
+        self._active_transactions[transaction_id] = snapshot
+        logger.debug("Began ChromaDB transaction %s", transaction_id)
+        return transaction_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a transaction by discarding its snapshot."""
+        if transaction_id in self._active_transactions:
+            self._active_transactions.pop(transaction_id, None)
+            logger.debug("Committed ChromaDB transaction %s", transaction_id)
+            return True
+        logger.warning("Attempted to commit unknown transaction %s", transaction_id)
+        return False
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a transaction by restoring the snapshot of vectors."""
+        snapshot = self._active_transactions.pop(transaction_id, None)
+        if snapshot is None:
+            logger.warning(
+                "Attempted to rollback unknown transaction %s", transaction_id
+            )
+            return False
         try:
-            yield
+            existing = self.collection.get(include=[])
+            ids = existing.get("ids", []) if existing else []
+            if ids:
+                self.collection.delete(ids=ids)
+            for vec in snapshot.values():
+                self.collection.add(
+                    ids=[vec.id],
+                    embeddings=[vec.embedding],
+                    metadatas=[vec.metadata or {}],
+                    documents=[vec.content],
+                )
+            self.vectors = snapshot
+            logger.debug("Rolled back ChromaDB transaction %s", transaction_id)
+            return True
+        except Exception as e:  # pragma: no cover - defensive
+            logger.error(
+                "Error rolling back ChromaDB transaction %s: %s", transaction_id, e
+            )
+            return False
+
+    @contextmanager
+    def transaction(self, transaction_id: Optional[str] = None):
+        """Context manager wrapper around transaction methods."""
+        tid = self.begin_transaction(transaction_id)
+        try:
+            yield tid
+            self.commit_transaction(tid)
         except Exception:
-            try:
-                existing = self.collection.get(include=[])
-                ids = existing.get("ids", []) if existing else []
-                if ids:
-                    self.collection.delete(ids=ids)
-                for vec in snapshot.values():
-                    self.collection.add(
-                        ids=[vec.id],
-                        embeddings=[vec.embedding],
-                        metadatas=[vec.metadata or {}],
-                        documents=[vec.content],
-                    )
-                self.vectors = snapshot
-            except Exception as e:  # pragma: no cover - defensive
-                logger.error(f"Error rolling back ChromaDB transaction: {e}")
+            self.rollback_transaction(tid)
             raise
 
     def store_vector(self, vector: MemoryVector) -> str:
