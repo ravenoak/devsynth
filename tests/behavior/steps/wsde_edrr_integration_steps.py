@@ -91,8 +91,7 @@ def context():
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
-    # This is a placeholder step that doesn't need to do anything specific
-    pass
+    context.system_initialized = True
 
 
 @given("the WSDE team is configured with agents having different expertise")

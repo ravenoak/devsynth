@@ -35,30 +35,29 @@ RUN pip install --no-cache-dir "poetry==1.8.2"
 RUN useradd -m -u ${USER_UID} ${USERNAME}
 
 WORKDIR /workspace
+RUN chown -R ${USERNAME}:${USERNAME} /workspace
 
 # Copy dependency files first for caching
-COPY pyproject.toml poetry.lock* ./
+COPY --chown=${USERNAME}:${USERNAME} pyproject.toml poetry.lock* ./
 
 # Builder stage to install dependencies
 FROM base AS builder
 WORKDIR /workspace
-COPY pyproject.toml poetry.lock* ./
+COPY --chown=${USERNAME}:${USERNAME} pyproject.toml poetry.lock* ./
+USER ${USERNAME}
 RUN poetry install --with dev,docs --all-extras --no-root
 
 # Development stage with all dependencies and dev tools
 FROM base AS development
-COPY --from=builder /workspace/.venv /workspace/.venv
+COPY --from=builder --chown=${USERNAME}:${USERNAME} /workspace/.venv /workspace/.venv
 ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Copy source and tests
-COPY src ./src
-COPY tests ./tests
-COPY docs ./docs
-COPY scripts ./scripts
-COPY templates ./templates
-
-# Ensure user owns workspace
-RUN chown -R ${USERNAME}:${USERNAME} /workspace
+COPY --chown=${USERNAME}:${USERNAME} src ./src
+COPY --chown=${USERNAME}:${USERNAME} tests ./tests
+COPY --chown=${USERNAME}:${USERNAME} docs ./docs
+COPY --chown=${USERNAME}:${USERNAME} scripts ./scripts
+COPY --chown=${USERNAME}:${USERNAME} templates ./templates
 
 USER ${USERNAME}
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
@@ -75,16 +74,13 @@ CMD ["poetry", "run", "pytest", "-q"]
 
 # Production stage with minimal dependencies
 FROM base AS production
-COPY --from=builder /workspace/.venv /workspace/.venv
+COPY --from=builder --chown=${USERNAME}:${USERNAME} /workspace/.venv /workspace/.venv
 ENV PATH="/workspace/.venv/bin:$PATH"
 
 EXPOSE 8000
 
 # Copy only source code (no tests)
-COPY src ./src
-
-# Ensure user owns workspace
-RUN chown -R ${USERNAME}:${USERNAME} /workspace
+COPY --chown=${USERNAME}:${USERNAME} src ./src
 
 USER ${USERNAME}
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
