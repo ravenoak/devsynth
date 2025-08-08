@@ -20,6 +20,7 @@ from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoor
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
@@ -229,3 +230,23 @@ def test_performance_metrics_and_traceability_succeeds(enhanced_coordinator):
     assert traces is not None
     metrics = enhanced_coordinator.get_performance_metrics()
     assert metrics is not None
+
+
+def test_memory_sync_hook_handles_wsde_events():
+    """Verify memory sync hooks are invoked during updates."""
+
+    mm = MemoryManager()
+    events: list[str | None] = []
+    mm.register_sync_hook(lambda item: events.append(getattr(item, "id", None)))
+
+    item = MemoryItem(
+        id="adv-item",
+        content={},
+        memory_type=MemoryType.TEAM_STATE,
+        metadata={},
+    )
+    mm.update_item("tinydb" if "tinydb" in mm.adapters else "default", item)
+    mm.flush_updates()
+
+    assert events[0] == "adv-item"
+    assert events[-1] is None

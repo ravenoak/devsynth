@@ -358,7 +358,10 @@ class SyncManager:
             if bidirectional:
                 reverse = self._sync_one_way(target_adapter, source_adapter)
                 result[f"{target}_to_{source}"] = reverse
-
+        try:
+            self.memory_manager._notify_sync_hooks(None)
+        except Exception:
+            pass
         return result
 
     def update_item(self, store: str, item: MemoryItem) -> bool:
@@ -381,6 +384,10 @@ class SyncManager:
             if existing and to_store is existing and hasattr(adapter, "store"):
                 adapter.store(existing)
         self.stats["synchronized"] += 1
+        try:
+            self.memory_manager._notify_sync_hooks(item)
+        except Exception:
+            pass
         return True
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
@@ -389,6 +396,10 @@ class SyncManager:
             self._queue.append((store, item))
         if self.async_mode:
             self.schedule_flush()
+        try:
+            self.memory_manager._notify_sync_hooks(item)
+        except Exception:
+            pass
 
     def flush_queue(self) -> None:
         """Propagate all queued updates."""
@@ -400,6 +411,10 @@ class SyncManager:
             self.update_item(store, item)
         with self._queue_lock:
             self._queue = []
+        try:
+            self.memory_manager._notify_sync_hooks(None)
+        except Exception:
+            pass
 
     async def flush_queue_async(self) -> None:
         """Asynchronously propagate queued updates."""
@@ -412,6 +427,10 @@ class SyncManager:
             await asyncio.sleep(0)
         with self._queue_lock:
             self._queue = []
+        try:
+            self.memory_manager._notify_sync_hooks(None)
+        except Exception:
+            pass
 
     def schedule_flush(self, delay: float = 0.1) -> None:
         async def _delayed():

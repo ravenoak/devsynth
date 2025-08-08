@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
@@ -141,8 +141,8 @@ class MessageStore:
         return list(self.messages.values())
 
 
-from ..memory.memory_manager import MemoryManager
 from ...domain.models.memory import MemoryItem, MemoryType
+from ..memory.memory_manager import MemoryManager
 
 
 class MessageProtocol:
@@ -206,7 +206,7 @@ class MessageProtocol:
                     primary = None
 
                 if primary:
-                    self.memory_manager.sync_manager.update_item(primary, item)
+                    self.memory_manager.update_item(primary, item)
                     try:
                         self.memory_manager.flush_updates()
                     except Exception:
