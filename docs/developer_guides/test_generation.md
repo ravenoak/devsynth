@@ -30,6 +30,16 @@ This guide describes how automatically generated tests should be reviewed and in
 4. **Replace placeholders** – implement real assertions and remove `assert False` markers.
 5. **Submit for review** – open a pull request and follow cross-functional review guidelines.
 
+## Review Checklist
+
+Before merging generated tests, ensure reviewers verify the following:
+
+- **Meaningful coverage** – tests exercise realistic workflows and edge cases.
+- **No placeholders** – templates or skipped examples have been replaced with real assertions.
+- **Style compliance** – code follows project linting and naming conventions.
+- **Integration templates referenced** – new modules leverage templates from
+  `tests/integration/templates/` when scaffolding tests.
+
 ## Edge Case Templates
 
 Edge case prompt templates live in `src/devsynth/application/prompts/templates/test_generation/`. Use these templates to guide the agent when generating tests for boundary values and error conditions.
