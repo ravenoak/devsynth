@@ -118,9 +118,23 @@ You can install DevSynth in a few different ways:
    devsynth dpg
    ```
 
-   Use pip or pipx only when installing from PyPI.
+Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
+
+## Development Workflow
+
+Run all development commands inside the Poetry-managed virtual environment. A
+typical workflow is:
+
+```bash
+poetry install
+poetry run pre-commit run --files <files>
+poetry run pytest
+```
+
+`scripts/codex_setup.sh` is exclusively for provisioning the Codex environment
+and must not be referenced outside that context.
 
 ## Optional Dependencies
 
