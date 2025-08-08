@@ -19,8 +19,8 @@ def test_edrr_coordinator_delegates_to_helper():
     task = {"solution": {}}
     critic = MagicMock()
     with patch(
-        "devsynth.application.orchestration.edrr_coordinator._apply_dialectical_reasoning",
-        return_value={"ok": True},
+        "devsynth.application.orchestration.edrr_coordinator.reasoning_loop",
+        return_value=[{"ok": True}],
     ) as helper:
         result = coordinator.apply_dialectical_reasoning(task, critic)
     helper.assert_called_once_with(team, task, critic, None)

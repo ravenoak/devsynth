@@ -3,6 +3,7 @@
 from typing import Any, Dict, Optional
 
 from devsynth.exceptions import ConsensusError
+from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -26,8 +27,5 @@ class DialecticalReasoner:
                 task, critic_agent, memory_integration
             )
         except ConsensusError as exc:  # pragma: no cover - logging path
-            logger.error(
-                "Consensus failure during dialectical reasoning",
-                extra={"error": str(exc)},
-            )
+            log_consensus_failure(logger, exc)
             return None
