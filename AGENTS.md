@@ -32,7 +32,10 @@ poetry run pytest
 
 Running hooks and tests through `poetry run` ensures they execute inside the project's virtual environment and prevents missing-package errors. Always invoke the pre-commit hooks on the files you are about to commit using the `--files` option shown above.
 All linting and test commands must be executed via `poetry run`; running them
-without the prefix may result in missing dependencies.
+without the prefix may result in missing dependencies. If `poetry run pytest`
+reports missing packages, rerun `scripts/codex_setup.sh` or
+`poetry install --with dev --extras tests` to install the required
+dependencies.
 
 ## GitHub Actions Workflows
 
