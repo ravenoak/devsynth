@@ -364,6 +364,33 @@ class SyncManager:
             pass
         return result
 
+    def synchronize_core(self) -> Dict[str, int]:
+        """Synchronize LMDB and FAISS stores into the Kuzu store.
+
+        This helper coordinates synchronization across the primary persistent
+        backends used by the memory system. If any of the stores are missing
+        the operation is skipped for that pair. The method returns a mapping of
+        performed synchronization directions to the number of items synced.
+
+        Returns:
+            Mapping of synchronization directions to counts.
+        """
+
+        results: Dict[str, int] = {}
+        adapters = self.memory_manager.adapters
+
+        # All coordination is centred around the Kuzu store when present.
+        if "kuzu" not in adapters:
+            return results
+
+        if "lmdb" in adapters:
+            results.update(self.synchronize("lmdb", "kuzu"))
+
+        if "faiss" in adapters:
+            results.update(self.synchronize("faiss", "kuzu"))
+
+        return results
+
     def update_item(self, store: str, item: MemoryItem) -> bool:
         """Update item in one store and propagate to others."""
         adapter = self.memory_manager.adapters.get(store)
