@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from devsynth.application.cli import config_app
-from devsynth.application.cli.command_registry import COMMAND_REGISTRY
+from devsynth.application.cli.registry import COMMAND_REGISTRY
 from devsynth.application.cli.requirements_commands import requirements_app
 from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME
