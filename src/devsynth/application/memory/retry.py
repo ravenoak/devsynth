@@ -5,14 +5,19 @@ This module provides a retry mechanism with exponential backoff for memory opera
 to handle transient failures and improve reliability of cross-store operations.
 """
 
-import time
-import random
 import logging
+import random
+import time
 from functools import wraps
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, cast
 
 from prometheus_client import Counter
 
+from devsynth.application.memory.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerOpenError,
+    get_circuit_breaker_registry,
+)
 from devsynth.logging_setup import DevSynthLogger
 
 __all__ = [
@@ -31,16 +36,16 @@ __all__ = [
     "reset_memory_retry_metrics",
 ]
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class RetryError(Exception):
     """Exception raised when all retry attempts fail."""
-    
+
     def __init__(self, message: str, last_exception: Optional[Exception] = None):
         """
         Initialize the retry error.
-        
+
         Args:
             message: Error message
             last_exception: The last exception that was caught during retry
@@ -83,10 +88,13 @@ def retry_with_backoff(
     logger: Optional[logging.Logger] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
     track_metrics: bool = True,
+    circuit_breaker_name: Optional[str] = None,
+    circuit_breaker_failure_threshold: int = 3,
+    circuit_breaker_reset_timeout: float = 60.0,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with exponential backoff.
-    
+
     Args:
         max_retries: Maximum number of retry attempts
         initial_backoff: Initial backoff time in seconds
@@ -95,35 +103,67 @@ def retry_with_backoff(
         jitter: Whether to add random jitter to backoff time
         exceptions_to_retry: List of exception types to retry on (defaults to all exceptions)
         logger: Optional logger instance
-        
+        condition_callbacks: Optional list of callbacks invoked after each
+            exception to determine if retry should continue
+        track_metrics: Whether to track Prometheus metrics
+        circuit_breaker_name: Name of circuit breaker to use for protecting the
+            wrapped function. If provided, retries abort when the circuit
+            breaker opens.
+        circuit_breaker_failure_threshold: Failures allowed before opening the
+            circuit breaker
+        circuit_breaker_reset_timeout: Time in seconds before the circuit
+            breaker transitions from OPEN to HALF-OPEN
+
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
             nonlocal logger
             logger = logger or DevSynthLogger(__name__)
+            func_name = getattr(func, "__name__", "<unknown>")
 
             retry_count = 0
             backoff = initial_backoff
-            last_exception = None
+            last_exception: Optional[Exception] = None
             callbacks = condition_callbacks or []
+            cb: Optional[CircuitBreaker] = None
+            if circuit_breaker_name:
+                registry = get_circuit_breaker_registry()
+                cb = registry.get_or_create(
+                    name=circuit_breaker_name,
+                    failure_threshold=circuit_breaker_failure_threshold,
+                    reset_timeout=circuit_breaker_reset_timeout,
+                )
 
             while retry_count <= max_retries:
                 try:
                     if retry_count > 0:
                         logger.info(
-                            f"Retry attempt {retry_count}/{max_retries} for {func.__name__}"
+                            f"Retry attempt {retry_count}/{max_retries} for {func_name}"
                         )
-                    result = func(*args, **kwargs)
+                    if cb:
+                        result = cb.execute(func, *args, **kwargs)
+                    else:
+                        result = func(*args, **kwargs)
                     if track_metrics:
                         retry_event_counter.labels(status="success").inc()
                     return result
+                except CircuitBreakerOpenError as e:
+                    logger.warning(
+                        f"Circuit breaker '{circuit_breaker_name}' is open, aborting retries"
+                    )
+                    if track_metrics:
+                        retry_event_counter.labels(status="abort").inc()
+                        retry_error_counter.labels(error_type=type(e).__name__).inc()
+                    raise
                 except Exception as e:
                     # Check if we should retry this exception
-                    if (exceptions_to_retry is not None and
-                            not any(isinstance(e, exc) for exc in exceptions_to_retry)):
+                    if exceptions_to_retry is not None and not any(
+                        isinstance(e, exc) for exc in exceptions_to_retry
+                    ):
                         logger.warning(
                             f"Exception {type(e).__name__} not in retry list, re-raising"
                         )
@@ -147,7 +187,7 @@ def retry_with_backoff(
 
                     if retry_count > max_retries:
                         logger.error(
-                            f"Max retries ({max_retries}) exceeded for {func.__name__}"
+                            f"Max retries ({max_retries}) exceeded for {func_name}"
                         )
                         if track_metrics:
                             retry_event_counter.labels(status="failure").inc()
@@ -169,7 +209,7 @@ def retry_with_backoff(
                     )
                     if track_metrics:
                         retry_event_counter.labels(status="attempt").inc()
-                        retry_function_counter.labels(function=func.__name__).inc()
+                        retry_function_counter.labels(function=func_name).inc()
                         retry_error_counter.labels(error_type=type(e).__name__).inc()
 
                     # Wait before retrying
@@ -179,9 +219,7 @@ def retry_with_backoff(
                     backoff *= backoff_multiplier
 
             # If we get here, all retries failed
-            error_message = (
-                f"All {max_retries} retry attempts failed for {func.__name__}"
-            )
+            error_message = f"All {max_retries} retry attempts failed for {func_name}"
             logger.error(error_message)
             if track_metrics and last_exception is not None:
                 retry_event_counter.labels(status="failure").inc()
@@ -189,9 +227,9 @@ def retry_with_backoff(
                     error_type=type(last_exception).__name__
                 ).inc()
             raise RetryError(error_message, last_exception)
-        
+
         return cast(Callable[..., T], wrapper)
-    
+
     return decorator
 
 
@@ -206,6 +244,9 @@ def retry_operation(
     logger: Optional[logging.Logger] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
     track_metrics: bool = True,
+    circuit_breaker_name: Optional[str] = None,
+    circuit_breaker_failure_threshold: int = 3,
+    circuit_breaker_reset_timeout: float = 60.0,
     *args: Any,
     **kwargs: Any,
 ) -> T:
@@ -221,13 +262,16 @@ def retry_operation(
         logger=logger,
         condition_callbacks=condition_callbacks,
         track_metrics=track_metrics,
+        circuit_breaker_name=circuit_breaker_name,
+        circuit_breaker_failure_threshold=circuit_breaker_failure_threshold,
+        circuit_breaker_reset_timeout=circuit_breaker_reset_timeout,
     )(operation)
     return decorated(*args, **kwargs)
 
 
 class RetryConfig:
     """Configuration for retry operations."""
-    
+
     def __init__(
         self,
         max_retries: int = 3,
@@ -237,10 +281,13 @@ class RetryConfig:
         jitter: bool = True,
         exceptions_to_retry: Optional[List[Type[Exception]]] = None,
         condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+        circuit_breaker_name: Optional[str] = None,
+        circuit_breaker_failure_threshold: int = 3,
+        circuit_breaker_reset_timeout: float = 60.0,
     ):
         """
         Initialize retry configuration.
-        
+
         Args:
             max_retries: Maximum number of retry attempts
             initial_backoff: Initial backoff time in seconds
@@ -248,6 +295,10 @@ class RetryConfig:
             max_backoff: Maximum backoff time in seconds
             jitter: Whether to add random jitter to backoff time
             exceptions_to_retry: List of exception types to retry on (defaults to all exceptions)
+            condition_callbacks: Optional list of callbacks to determine if retry should continue
+            circuit_breaker_name: Optional name of circuit breaker to use
+            circuit_breaker_failure_threshold: Failures allowed before opening circuit breaker
+            circuit_breaker_reset_timeout: Seconds before circuit breaker tries to close
         """
         self.max_retries = max_retries
         self.initial_backoff = initial_backoff
@@ -256,6 +307,9 @@ class RetryConfig:
         self.jitter = jitter
         self.exceptions_to_retry = exceptions_to_retry
         self.condition_callbacks = condition_callbacks
+        self.circuit_breaker_name = circuit_breaker_name
+        self.circuit_breaker_failure_threshold = circuit_breaker_failure_threshold
+        self.circuit_breaker_reset_timeout = circuit_breaker_reset_timeout
 
 
 # Default retry configurations for different types of operations
@@ -263,18 +317,12 @@ DEFAULT_RETRY_CONFIG = RetryConfig()
 
 # Configuration for quick retries (shorter backoff)
 QUICK_RETRY_CONFIG = RetryConfig(
-    max_retries=5,
-    initial_backoff=0.1,
-    backoff_multiplier=1.5,
-    max_backoff=5.0
+    max_retries=5, initial_backoff=0.1, backoff_multiplier=1.5, max_backoff=5.0
 )
 
 # Configuration for persistent retries (more attempts, longer backoff)
 PERSISTENT_RETRY_CONFIG = RetryConfig(
-    max_retries=10,
-    initial_backoff=2.0,
-    backoff_multiplier=2.0,
-    max_backoff=300.0
+    max_retries=10, initial_backoff=2.0, backoff_multiplier=2.0, max_backoff=300.0
 )
 
 # Configuration for network operations
@@ -283,38 +331,29 @@ NETWORK_RETRY_CONFIG = RetryConfig(
     initial_backoff=1.0,
     backoff_multiplier=2.0,
     max_backoff=60.0,
-    exceptions_to_retry=[
-        ConnectionError,
-        TimeoutError,
-        OSError
-    ]
+    exceptions_to_retry=[ConnectionError, TimeoutError, OSError],
 )
 
 # Configuration for memory operations
 MEMORY_RETRY_CONFIG = RetryConfig(
-    max_retries=3,
-    initial_backoff=0.1,
-    backoff_multiplier=2.0,
-    max_backoff=2.0
+    max_retries=3, initial_backoff=0.1, backoff_multiplier=2.0, max_backoff=2.0
 )
 
 
 def retry_memory_operation(
-    max_retries: int = 3,
-    initial_backoff: float = 0.1,
-    max_backoff: float = 2.0
+    max_retries: int = 3, initial_backoff: float = 0.1, max_backoff: float = 2.0
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator specifically for memory operations with appropriate defaults.
-    
+
     This is a convenience wrapper around retry_with_backoff with defaults
     suitable for memory operations.
-    
+
     Args:
         max_retries: Maximum number of retry attempts
         initial_backoff: Initial backoff time in seconds
         max_backoff: Maximum backoff time in seconds
-        
+
     Returns:
         Decorator function
     """
@@ -323,24 +362,24 @@ def retry_memory_operation(
         initial_backoff=initial_backoff,
         backoff_multiplier=2.0,
         max_backoff=max_backoff,
-        jitter=True
+        jitter=True,
     )
 
 
 def with_retry(
-    retry_config: Optional[RetryConfig] = None
+    retry_config: Optional[RetryConfig] = None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with the specified retry configuration.
-    
+
     Args:
         retry_config: Retry configuration to use (defaults to DEFAULT_RETRY_CONFIG)
-        
+
     Returns:
         Decorator function
     """
     config = retry_config or DEFAULT_RETRY_CONFIG
-    
+
     return retry_with_backoff(
         max_retries=config.max_retries,
         initial_backoff=config.initial_backoff,
@@ -349,4 +388,7 @@ def with_retry(
         jitter=config.jitter,
         exceptions_to_retry=config.exceptions_to_retry,
         condition_callbacks=config.condition_callbacks,
+        circuit_breaker_name=config.circuit_breaker_name,
+        circuit_breaker_failure_threshold=config.circuit_breaker_failure_threshold,
+        circuit_breaker_reset_timeout=config.circuit_breaker_reset_timeout,
     )
