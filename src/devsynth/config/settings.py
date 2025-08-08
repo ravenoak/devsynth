@@ -649,7 +649,8 @@ _settings = Settings()
 
 # Expose commonly used settings at module level
 kuzu_embedded = _settings.kuzu_embedded
-KUZU_EMBEDDED = _settings.kuzu_embedded
+# Backward-compatible constant
+KUZU_EMBEDDED = kuzu_embedded
 
 
 def get_settings(reload: bool = False, **kwargs) -> Settings:
