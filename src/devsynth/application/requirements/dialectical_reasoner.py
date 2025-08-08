@@ -7,6 +7,10 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
+from devsynth.application.collaboration.exceptions import (
+    ConsensusError as BaseConsensusError,
+)
+from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.requirement import (
     ChatMessage,
     ChatSession,
@@ -15,6 +19,8 @@ from devsynth.domain.models.requirement import (
     Requirement,
     RequirementChange,
 )
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.ports.llm_port import LLMPort
 from devsynth.ports.requirement_port import (
     ChatRepositoryPort,
     DialecticalReasonerPort,
@@ -23,8 +29,15 @@ from devsynth.ports.requirement_port import (
     NotificationPort,
     RequirementRepositoryPort,
 )
-from devsynth.ports.llm_port import LLMPort
-from devsynth.domain.models.memory import MemoryType
+
+logger = DevSynthLogger(__name__)
+
+
+class ConsensusError(BaseConsensusError):
+    """Lightweight consensus error used by the requirement reasoner."""
+
+    def __init__(self, message: str):  # pragma: no cover - simple wrapper
+        Exception.__init__(self, message)
 
 
 class DialecticalReasonerService(DialecticalReasonerPort):
@@ -101,6 +114,24 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         reasoning.conclusion, reasoning.recommendation = (
             self._generate_conclusion_and_recommendation(change, reasoning.synthesis)
         )
+        # Determine consensus before persisting
+        try:
+            consensus_reached = self._evaluate_consensus(reasoning)
+        except ConsensusError as exc:
+            logger.error(
+                "Consensus evaluation failed",  # pragma: no cover - log path
+                extra={"change_id": str(change.id), "error": str(exc)},
+            )
+            raise
+
+        if not consensus_reached:
+            logger.error(
+                "Consensus not reached for change",  # pragma: no cover - log path
+                extra={"change_id": str(change.id)},
+            )
+            raise ConsensusError("Consensus not reached")
+
+        logger.info("Consensus reached for change", extra={"change_id": str(change.id)})
 
         # Save and persist the reasoning
         saved = self.reasoning_repository.save_reasoning(reasoning)
@@ -247,6 +278,23 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         except Exception:
             # Memory persistence failures should not interrupt flow
             pass
+
+    def _evaluate_consensus(self, reasoning: DialecticalReasoning) -> bool:
+        """Use the LLM to determine if consensus was achieved."""
+        prompt = (
+            "Determine if the following reasoning reaches consensus. "
+            "Respond with 'yes' or 'no'.\n"
+            f"Thesis: {reasoning.thesis}\n"
+            f"Antithesis: {reasoning.antithesis}\n"
+            f"Synthesis: {reasoning.synthesis}\n"
+            f"Conclusion: {reasoning.conclusion}\n"
+            f"Recommendation: {reasoning.recommendation}\n"
+        )
+        try:
+            response = self.llm_service.query(prompt)
+        except Exception as exc:  # pragma: no cover - defensive
+            raise ConsensusError(f"Consensus check failed: {exc}") from exc
+        return response.strip().lower().startswith("yes")
 
     def _generate_thesis(self, change: RequirementChange) -> str:
         """
