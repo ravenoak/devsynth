@@ -382,6 +382,8 @@ class DevSynthLogger:
 
         if isinstance(exc, BaseException):
             exc = (exc.__class__, exc, exc.__traceback__)
+        elif exc is True:
+            exc = sys.exc_info()
 
         if kwargs:
             RESERVED = {
