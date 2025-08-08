@@ -8,7 +8,11 @@ set -euo pipefail
 API_URL=${1:-http://localhost:8000/health}
 GRAFANA_URL=${2:-http://localhost:3000/api/health}
 
-curl -fsS "$API_URL" > /dev/null
-curl -fsS "$GRAFANA_URL" > /dev/null
+for url in "$API_URL" "$GRAFANA_URL"; do
+  if ! curl -fsS "$url" > /dev/null; then
+    echo "Health check failed for $url" >&2
+    exit 1
+  fi
+done
 
 echo "All services are healthy"

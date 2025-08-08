@@ -7,8 +7,13 @@ set -euo pipefail
 
 ENVIRONMENT=${1:-development}
 
-# Build images for the current compose configuration
+# Ensure Docker is available before continuing
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Docker is required but could not be found in PATH." >&2
+  exit 1
+fi
 
+# Build images for the current compose configuration
 docker compose build
 
 # Start the stack for the requested environment
