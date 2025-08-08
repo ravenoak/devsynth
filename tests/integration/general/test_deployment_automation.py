@@ -1,7 +1,7 @@
 """Tests for deployment automation scripts.
 
-This suite verifies that deployment scripts exist and basic rollback
-instructions are documented.
+This suite verifies that deployment scripts exist, images can be published,
+and rollback instructions are documented.
 """
 
 from pathlib import Path
@@ -11,11 +11,11 @@ SCRIPTS_DIR = ROOT / "scripts/deployment"
 RUNBOOKS_DIR = ROOT / "docs/deployment/runbooks"
 
 
-def test_bootstrap_env_script_exists_and_contains_docker():
-    script = SCRIPTS_DIR / "bootstrap_env.sh"
+def test_bootstrap_script_exists_and_builds_images():
+    script = SCRIPTS_DIR / "bootstrap.sh"
     assert script.exists()
     content = script.read_text()
-    assert "docker compose" in content
+    assert "docker compose build" in content
 
 
 def test_health_check_script_exists_and_contains_curl():
@@ -25,8 +25,23 @@ def test_health_check_script_exists_and_contains_curl():
     assert "curl" in content
 
 
-def test_rollback_runbook_mentions_stop_stack():
+def test_publish_image_script_exists_and_pushes():
+    script = SCRIPTS_DIR / "publish_image.sh"
+    assert script.exists()
+    content = script.read_text()
+    assert "docker compose push" in content
+
+
+def test_docker_compose_defines_image_for_devsynth():
+    compose_file = ROOT / "docker-compose.yml"
+    assert compose_file.exists()
+    text = compose_file.read_text()
+    assert "image: ghcr.io/devsynth/devsynth" in text
+
+
+def test_rollback_runbook_mentions_scripts():
     runbook = RUNBOOKS_DIR / "rollback.md"
     assert runbook.exists()
     text = runbook.read_text()
     assert "stop_stack.sh" in text
+    assert "publish_image.sh" in text
