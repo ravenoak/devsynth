@@ -5,12 +5,13 @@ The Promise Broker serves as a central registry for capabilities provided by dif
 agents within the DevSynth system. It handles capability registration, discovery,
 request matching, and authorization.
 """
-from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
+
 import logging
 import uuid
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from devsynth.exceptions import DevSynthError
 from devsynth.application.promises import Promise, PromiseError
+from devsynth.exceptions import DevSynthError
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -18,22 +19,30 @@ logger = logging.getLogger(__name__)
 
 class PromiseBrokerError(PromiseError):
     """Base class for Promise Broker errors."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Promise broker error")
 
 
 class CapabilityNotFoundError(PromiseBrokerError):
     """Error raised when a requested capability is not found."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Capability not found")
 
 
 class UnauthorizedAccessError(PromiseBrokerError):
     """Error raised when an agent attempts to access a capability it's not authorized for."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Unauthorized access")
 
 
 class CapabilityAlreadyRegisteredError(PromiseBrokerError):
     """Error raised when attempting to register a capability that's already registered."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Capability already registered")
 
 
 class CapabilityMetadata:
@@ -46,7 +55,7 @@ class CapabilityMetadata:
         provider_id: str,
         parameters: Dict[str, str] = None,
         tags: List[str] = None,
-        authorized_requesters: Set[str] = None
+        authorized_requesters: Set[str] = None,
     ):
         """
         Initialize capability metadata.
@@ -110,8 +119,10 @@ class CapabilityMetadata:
             "provider_id": self.provider_id,
             "parameters": self.parameters,
             "tags": self.tags,
-            "authorized_requesters": list(self.authorized_requesters) if self.authorized_requesters else None,
-            "active_promises": len(self.promises)
+            "authorized_requesters": (
+                list(self.authorized_requesters) if self.authorized_requesters else None
+            ),
+            "active_promises": len(self.promises),
         }
 
 
@@ -149,7 +160,7 @@ class PromiseBroker:
         provider_id: str,
         parameters: Dict[str, str] = None,
         tags: List[str] = None,
-        authorized_requesters: Set[str] = None
+        authorized_requesters: Set[str] = None,
     ) -> str:
         """
         Register a new capability with the broker.
@@ -176,7 +187,7 @@ class PromiseBroker:
             provider_id=provider_id,
             parameters=parameters,
             tags=tags,
-            authorized_requesters=authorized_requesters
+            authorized_requesters=authorized_requesters,
         )
 
         # Check if a capability with the same name and provider already exists
@@ -207,7 +218,9 @@ class PromiseBroker:
                     self._tag_index[tag] = []
                 self._tag_index[tag].append(capability.id)
 
-        logger.debug(f"Registered capability '{name}' with ID {capability.id} from provider {provider_id}")
+        logger.debug(
+            f"Registered capability '{name}' with ID {capability.id} from provider {provider_id}"
+        )
         return capability.id
 
     def unregister_capability(self, capability_id: str) -> bool:
@@ -265,7 +278,7 @@ class PromiseBroker:
         name: Optional[str] = None,
         provider_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        requester_id: Optional[str] = None
+        requester_id: Optional[str] = None,
     ) -> List[CapabilityMetadata]:
         """
         Find capabilities matching the given criteria.
@@ -318,7 +331,7 @@ class PromiseBroker:
         requester_id: str,
         name: str,
         provider_id: Optional[str] = None,
-        tags: Optional[List[str]] = None
+        tags: Optional[List[str]] = None,
     ) -> Promise:
         """
         Request a capability from the broker.
@@ -338,9 +351,7 @@ class PromiseBroker:
         """
         # Find matching capabilities
         candidates = self.find_capabilities(
-            name=name,
-            provider_id=provider_id,
-            tags=tags
+            name=name, provider_id=provider_id, tags=tags
         )
 
         if not candidates:
@@ -381,7 +392,9 @@ class PromiseBroker:
 
         return promise
 
-    def get_capabilities_provided_by(self, provider_id: str) -> List[CapabilityMetadata]:
+    def get_capabilities_provided_by(
+        self, provider_id: str
+    ) -> List[CapabilityMetadata]:
         """
         Get all capabilities provided by a specific agent.
 
@@ -394,9 +407,13 @@ class PromiseBroker:
         if provider_id not in self._provider_index:
             return []
 
-        return [self._capabilities[cap_id] for cap_id in self._provider_index[provider_id]]
+        return [
+            self._capabilities[cap_id] for cap_id in self._provider_index[provider_id]
+        ]
 
-    def get_capabilities_available_to(self, requester_id: str) -> List[CapabilityMetadata]:
+    def get_capabilities_available_to(
+        self, requester_id: str
+    ) -> List[CapabilityMetadata]:
         """
         Get all capabilities available to a specific agent.
 
@@ -407,11 +424,12 @@ class PromiseBroker:
             List of capability metadata objects the requester is authorized to use
         """
         return [
-            cap for cap in self._capabilities.values()
-            if cap.authorize(requester_id)
+            cap for cap in self._capabilities.values() if cap.authorize(requester_id)
         ]
 
-    def register_capability_with_type(self, agent_id: str, promise_type, constraints: Dict[str, Any]) -> str:
+    def register_capability_with_type(
+        self, agent_id: str, promise_type, constraints: Dict[str, Any]
+    ) -> str:
         """
         Register a capability for an agent with the given promise type and constraints.
 
@@ -431,5 +449,5 @@ class PromiseBroker:
             description=f"Capability for {promise_type.name}",
             provider_id=agent_id,
             parameters=constraints,
-            tags=[promise_type.name]
+            tags=[promise_type.name],
         )

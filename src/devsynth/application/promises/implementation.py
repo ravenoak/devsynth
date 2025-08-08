@@ -2,23 +2,25 @@
 Concrete implementation of the Promise system.
 Provides a Promise class that implements the PromiseInterface.
 """
+
+import logging
+import uuid
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
-import uuid
-import logging
 
-from devsynth.exceptions import DevSynthError
 from devsynth.application.promises.interface import PromiseInterface
+from devsynth.exceptions import DevSynthError
 
 # Setup logger
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
-S = TypeVar('S')
+T = TypeVar("T")
+S = TypeVar("S")
 
 
 class PromiseState(Enum):
     """Enum representing the possible states of a Promise."""
+
     PENDING = auto()
     FULFILLED = auto()
     REJECTED = auto()
@@ -26,12 +28,16 @@ class PromiseState(Enum):
 
 class PromiseError(DevSynthError):
     """Base class for Promise-related errors."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Promise error")
 
 
 class PromiseStateError(PromiseError):
     """Error raised when an invalid state transition is attempted."""
-    pass
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or "Invalid promise state")
 
 
 class Promise(PromiseInterface[T], Generic[T]):
@@ -68,9 +74,9 @@ class Promise(PromiseInterface[T], Generic[T]):
             "created_at": None,  # Will be set by calling code
             "resolved_at": None,
             "rejected_at": None,
-            "source": None,      # Component that created this promise
+            "source": None,  # Component that created this promise
             "capability": None,  # Capability this promise represents
-            "tags": [],          # User-defined tags for filtering and grouping
+            "tags": [],  # User-defined tags for filtering and grouping
         }
 
         logger.debug(f"Promise {self._id} created in PENDING state")
@@ -112,7 +118,9 @@ class Promise(PromiseInterface[T], Generic[T]):
             PromiseStateError: If the promise is not in the fulfilled state.
         """
         if self._state != PromiseState.FULFILLED:
-            raise PromiseStateError(f"Cannot get value of promise in state {self._state}")
+            raise PromiseStateError(
+                f"Cannot get value of promise in state {self._state}"
+            )
         return self._value
 
     @property
@@ -127,7 +135,9 @@ class Promise(PromiseInterface[T], Generic[T]):
             PromiseStateError: If the promise is not in the rejected state.
         """
         if self._state != PromiseState.REJECTED:
-            raise PromiseStateError(f"Cannot get reason of promise in state {self._state}")
+            raise PromiseStateError(
+                f"Cannot get reason of promise in state {self._state}"
+            )
         return self._reason
 
     @property
@@ -171,7 +181,7 @@ class Promise(PromiseInterface[T], Generic[T]):
             self._children_ids.append(child_id)
             logger.debug(f"Added child promise {child_id} to parent {self._id}")
 
-    def set_metadata(self, key: str, value: Any) -> 'Promise[T]':
+    def set_metadata(self, key: str, value: Any) -> "Promise[T]":
         """
         Set a metadata value for DevSynth analysis.
 
@@ -197,7 +207,11 @@ class Promise(PromiseInterface[T], Generic[T]):
         """
         return self._metadata.get(key)
 
-    def then(self, on_fulfilled: Callable[[T], S], on_rejected: Optional[Callable[[Exception], S]] = None) -> 'Promise[S]':
+    def then(
+        self,
+        on_fulfilled: Callable[[T], S],
+        on_rejected: Optional[Callable[[Exception], S]] = None,
+    ) -> "Promise[S]":
         """
         Attaches callbacks for the resolution and/or rejection of the Promise.
 
@@ -249,7 +263,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         logger.debug(f"Promise {self._id} chained to new promise {result_promise.id}")
         return result_promise
 
-    def catch(self, on_rejected: Callable[[Exception], S]) -> 'Promise[S]':
+    def catch(self, on_rejected: Callable[[Exception], S]) -> "Promise[S]":
         """
         Attaches a callback for only the rejection of the Promise.
 
@@ -328,7 +342,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         self._on_rejected = []
 
     @staticmethod
-    def resolve_value(value: T) -> 'Promise[T]':
+    def resolve_value(value: T) -> "Promise[T]":
         """
         Creates a Promise that is resolved with a given value.
 
@@ -343,7 +357,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return promise
 
     @staticmethod
-    def reject_with(reason: Exception) -> 'Promise[Any]':
+    def reject_with(reason: Exception) -> "Promise[Any]":
         """
         Creates a Promise that is rejected with a given reason.
 
@@ -358,7 +372,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return promise
 
     @staticmethod
-    def all(promises: List['Promise[Any]']) -> 'Promise[List[Any]]':
+    def all(promises: List["Promise[Any]"]) -> "Promise[List[Any]]":
         """
         Returns a promise that resolves when all of the promises in the iterable argument
         have resolved, or rejects with the reason of the first passed promise that rejects.
@@ -396,7 +410,7 @@ class Promise(PromiseInterface[T], Generic[T]):
         return result_promise
 
     @staticmethod
-    def race(promises: List['Promise[T]']) -> 'Promise[T]':
+    def race(promises: List["Promise[T]"]) -> "Promise[T]":
         """
         Returns a promise that resolves or rejects as soon as one of the promises in
         the iterable resolves or rejects, with the value or reason from that promise.
