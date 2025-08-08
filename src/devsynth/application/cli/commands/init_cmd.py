@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 import typer
 
@@ -34,14 +34,26 @@ def init_cmd(
         ),
     ),
     auto_confirm: Optional[bool] = None,
+    defaults: Annotated[
+        bool, typer.Option("--defaults", help="Use default values for all prompts")
+    ] = False,
+    non_interactive: Annotated[
+        bool,
+        typer.Option("--non-interactive", help="Run without interactive prompts"),
+    ] = False,
     bridge: Optional[UXBridge] = None,
 ) -> None:
     """Initialize a new project with fewer interactive steps."""
 
     bridge = _resolve_bridge(bridge)
     auto_confirm = (
-        _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
+        (_env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm)
+        or defaults
+        or non_interactive
     )
+
+    if non_interactive:
+        os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
 
     try:
         if wizard:
@@ -58,9 +70,12 @@ def init_cmd(
 
         root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
         if root is None:
-            root = bridge.ask_question(
-                "Project root directory?", default=str(Path.cwd())
-            )
+            if defaults or non_interactive:
+                root = str(Path.cwd())
+            else:
+                root = bridge.ask_question(
+                    "Project root directory?", default=str(Path.cwd())
+                )
 
         root_path = Path(root)
         if not root_path.exists():
@@ -75,7 +90,10 @@ def init_cmd(
 
         language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
         if language is None:
-            language = bridge.ask_question("Primary language?", default="python")
+            if defaults or non_interactive:
+                language = "python"
+            else:
+                language = bridge.ask_question("Primary language?", default="python")
 
         goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS", "")
         if not goals and not auto_confirm:
@@ -85,11 +103,14 @@ def init_cmd(
             "DEVSYNTH_INIT_MEMORY_BACKEND"
         )
         if memory_backend is None:
-            memory_backend = bridge.ask_question(
-                "Select memory backend",
-                choices=["memory", "file", "kuzu", "chromadb"],
-                default="memory",
-            )
+            if defaults or non_interactive:
+                memory_backend = "memory"
+            else:
+                memory_backend = bridge.ask_question(
+                    "Select memory backend",
+                    choices=["memory", "file", "kuzu", "chromadb"],
+                    default="memory",
+                )
         if memory_backend not in {"memory", "file", "kuzu", "chromadb"}:
             bridge.display_result(
                 f"[red]Invalid memory backend: {memory_backend}[/red]",
@@ -101,6 +122,8 @@ def init_cmd(
             env_offline = _env_flag("DEVSYNTH_INIT_OFFLINE_MODE")
             if env_offline is not None:
                 offline_mode = env_offline
+            elif auto_confirm:
+                offline_mode = False
             else:
                 offline_mode = bridge.confirm_choice(
                     "Enable offline mode?", default=False
