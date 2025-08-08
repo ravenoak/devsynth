@@ -24,6 +24,9 @@ from .metrics import (
     inc_retry,
     inc_retry_count,
     inc_retry_error,
+    retry_event_counter,
+    retry_function_counter,
+    retry_error_counter,
 )
 
 # Type variables for generic functions
@@ -33,24 +36,7 @@ R = TypeVar("R")
 # Create a logger for this module
 logger = DevSynthLogger("fallback")
 
-# Prometheus counters for retry metrics
-retry_event_counter = Counter(
-    "devsynth_retry_events_total",
-    "Retry events grouped by status",
-    ["status"],
-)
-retry_function_counter = Counter(
-    "devsynth_retry_function_total",
-    "Retry attempts per function",
-    ["function"],
-)
-retry_error_counter = Counter(
-    "devsynth_retry_errors_total",
-    "Retry events grouped by exception type",
-    ["error_type"],
-)
-
-# Prometheus counters for circuit breaker metrics
+# Prometheus counter for circuit breaker metrics
 circuit_breaker_state_counter = Counter(
     "devsynth_circuit_breaker_state_total",
     "Circuit breaker state transitions",
@@ -126,6 +112,15 @@ def retry_with_exponential_backoff(
         for the retry to continue. If any condition returns ``False`` the
         exception is re-raised. String entries are treated as substrings that
         must appear in the exception message.
+    condition_callbacks : Optional[List[Callable[[Exception, int], bool]]]
+        Callbacks invoked with the exception and current retry attempt. All
+        callbacks must return ``True`` for the retry loop to continue.
+    retry_on_result : Optional[Callable[[T], bool]]
+        Predicate executed on successful results. If it returns ``True`` a
+        retry is triggered as if an exception had been raised.
+    track_metrics : bool
+        When ``True`` retry attempts are recorded via
+        :mod:`devsynth.metrics` and Prometheus counters.
     error_retry_map : Optional[Dict[type, bool]]
         Mapping of exception types to a boolean indicating if they should be
         retried regardless of ``retryable_exceptions``. ``False`` aborts the
@@ -169,7 +164,6 @@ def retry_with_exponential_backoff(
                         raise ValueError("retry_on_result triggered")
                     if track_metrics:
                         inc_retry("success")
-                        retry_event_counter.labels(status="success").inc()
                     return result
                 except Exception as e:
                     if (
@@ -181,16 +175,10 @@ def retry_with_exponential_backoff(
                             if track_metrics:
                                 inc_retry("failure")
                                 inc_retry_error("InvalidResult")
-                                retry_event_counter.labels(status="failure").inc()
-                                retry_error_counter.labels(
-                                    error_type="InvalidResult"
-                                ).inc()
                             raise
                         if track_metrics:
                             inc_retry("invalid")
                             inc_retry_error("InvalidResult")
-                            retry_event_counter.labels(status="invalid").inc()
-                            retry_error_counter.labels(error_type="InvalidResult").inc()
                         if jitter:
                             delay = min(
                                 max_delay,
@@ -224,10 +212,6 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
-                            retry_event_counter.labels(status="abort").inc()
-                            retry_error_counter.labels(
-                                error_type=e.__class__.__name__
-                            ).inc()
                         raise
                     if should_retry and not should_retry(e):
                         logger.warning(
@@ -238,10 +222,6 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
-                            retry_event_counter.labels(status="abort").inc()
-                            retry_error_counter.labels(
-                                error_type=e.__class__.__name__
-                            ).inc()
                         raise
                     if compiled_conditions and not all(
                         cond(e) for cond in compiled_conditions
@@ -254,10 +234,6 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
-                            retry_event_counter.labels(status="abort").inc()
-                            retry_error_counter.labels(
-                                error_type=e.__class__.__name__
-                            ).inc()
                         raise
                     if (
                         error_retry_map is not None
@@ -271,10 +247,6 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
-                            retry_event_counter.labels(status="abort").inc()
-                            retry_error_counter.labels(
-                                error_type=e.__class__.__name__
-                            ).inc()
                         raise
 
                     if cb_list and not all(cb(e, num_retries) for cb in cb_list):
@@ -286,10 +258,6 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
-                            retry_event_counter.labels(status="abort").inc()
-                            retry_error_counter.labels(
-                                error_type=e.__class__.__name__
-                            ).inc()
                         raise
 
                     num_retries += 1
@@ -303,10 +271,6 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("failure")
                             inc_retry_error(e.__class__.__name__)
-                            retry_event_counter.labels(status="failure").inc()
-                            retry_error_counter.labels(
-                                error_type=e.__class__.__name__
-                            ).inc()
                         raise
 
                     # Calculate delay with jitter if enabled
@@ -331,11 +295,6 @@ def retry_with_exponential_backoff(
                         inc_retry("attempt")
                         inc_retry_count(func.__name__)
                         inc_retry_error(e.__class__.__name__)
-                        retry_event_counter.labels(status="attempt").inc()
-                        retry_function_counter.labels(function=func.__name__).inc()
-                        retry_error_counter.labels(
-                            error_type=e.__class__.__name__
-                        ).inc()
 
                     # Call on_retry callback if provided
                     if on_retry:
