@@ -53,7 +53,9 @@ The following patterns are used for test file placement:
 
 1. **Unit Tests**: `tests/unit/<module_path>/test_<module_name>.py`
    - Unit tests follow the same directory structure as the source code
-   - Example: `src/devsynth/domain/models/wsde.py` → `tests/unit/domain/models/test_wsde.py`
+   - Examples:
+     - `src/devsynth/domain/models/wsde_core.py` → `tests/unit/domain/models/test_wsde_core.py`
+     - `src/devsynth/domain/models/wsde_facade.py` → `tests/unit/domain/models/test_wsde_facade.py`
 
 2. **Integration Tests**: `tests/integration/<feature_area>/test_<feature_name>.py`
    - Integration tests are grouped by feature area

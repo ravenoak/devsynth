@@ -326,8 +326,9 @@ final = team.build_consensus(task)
 print(final["consensus"])
 ```
 
-The methods used in this example are implemented in
-`src/devsynth/domain/models/wsde.py` and tested in
+The methods used in this example are implemented across
+`src/devsynth/domain/models/wsde_core.py` and
+`src/devsynth/domain/models/wsde_facade.py` and tested in
 `tests/unit/domain/test_wsde_phase_role_rotation.py` and
 `tests/integration/general/test_collaborative_decision_making.py`.
 
