@@ -223,14 +223,14 @@ def build_app() -> typer.Typer:
         context_settings={"help_option_names": ["--help", "-h"]},
     )
 
-    app.add_typer(requirements_app, name="requirements")
-    app.add_typer(config_app, name="config", help="Manage configuration settings")
-
     for name, cmd in COMMAND_REGISTRY.items():
         if name in {"config", "enable-feature"}:
             continue
         override = globals().get(f"{name.replace('-', '_')}_cmd", cmd)
         app.command(name)(override)
+
+    app.add_typer(requirements_app, name="requirements")
+    app.add_typer(config_app, name="config", help="Manage configuration settings")
 
     @app.callback(invoke_without_command=True)
     def main(ctx: typer.Context):
