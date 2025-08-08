@@ -4,12 +4,12 @@ Wraps :func:`devsynth.testing.run_tests` to provide a `devsynth run-tests`
 command. This command mirrors the options exposed by the underlying helper.
 
 Example:
-    `devsynth run-tests --target unit-tests --fast`
+    `devsynth run-tests --target unit-tests --speed fast`
 """
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import typer
 
@@ -28,9 +28,11 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    fast: bool = typer.Option(False, "--fast", help="Run only fast tests"),
-    medium: bool = typer.Option(False, "--medium", help="Run only medium tests"),
-    slow: bool = typer.Option(False, "--slow", help="Run only slow tests"),
+    speeds: List[str] = typer.Option(
+        [],
+        "--speed",
+        help="Speed categories to run (can be used multiple times)",
+    ),
     report: bool = typer.Option(False, "--report", help="Generate HTML report"),
     verbose: bool = typer.Option(False, "--verbose", help="Show verbose output"),
     no_parallel: bool = typer.Option(
@@ -49,15 +51,7 @@ def run_tests_cmd(
 
     ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
 
-    speed_categories = []
-    if fast:
-        speed_categories.append("fast")
-    if medium:
-        speed_categories.append("medium")
-    if slow:
-        speed_categories.append("slow")
-    if not speed_categories:
-        speed_categories = None
+    speed_categories = speeds or None
 
     success, _ = run_tests(
         target,

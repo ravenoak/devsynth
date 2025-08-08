@@ -22,10 +22,7 @@ def patch_typer_types(monkeypatch):
         if annotation in {module.UXBridge, typer.models.Context, typing.Any}:
             return click.STRING
         origin = getattr(annotation, "__origin__", None)
-        if (
-            origin in {module.UXBridge, typer.models.Context, dict, typing.Any}
-            or annotation is dict
-        ):
+        if origin in {module.UXBridge, typer.models.Context, typing.Any}:
             return click.STRING
         try:
             return orig(annotation=annotation, parameter_info=parameter_info)
@@ -46,7 +43,7 @@ def test_run_tests_cmd_invokes_runner() -> None:
     """run_tests_cmd should call the underlying ``run_tests`` helper."""
 
     with patch.object(module, "run_tests", return_value=(True, "ok")) as mock_run:
-        module.run_tests_cmd(target="unit-tests", fast=True, bridge=DummyBridge())
+        module.run_tests_cmd(target="unit-tests", speeds=["fast"], bridge=DummyBridge())
         mock_run.assert_called_once()
 
 
@@ -70,7 +67,7 @@ def test_run_tests_cli_full_invocation() -> None:
         app = build_app()
         result = runner.invoke(
             app,
-            ["run-tests", "--target", "unit-tests", "--fast", "--verbose"],
+            ["run-tests", "--target", "unit-tests", "--speed", "fast", "--verbose"],
         )
 
         assert result.exit_code == 0

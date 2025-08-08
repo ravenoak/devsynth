@@ -63,7 +63,7 @@ def _patch_typer_types() -> None:
         if annotation in {UXBridge, typer.models.Context, Any}:
             return click.STRING
         origin = getattr(annotation, "__origin__", None)
-        if origin in {UXBridge, typer.models.Context, dict, Any} or annotation is dict:
+        if origin in {UXBridge, typer.models.Context, Any}:
             return click.STRING
         try:
             return orig(annotation=annotation, parameter_info=parameter_info)
