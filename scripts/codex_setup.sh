@@ -24,23 +24,17 @@ poetry env use "$(command -v python3.12 || command -v python3.11)"
 # Verify that the virtual environment was created
 poetry env info --path >/dev/null
 
-# Install only the extras required for the test suite. Large GPU packages
-# provided by the `offline` extra are intentionally excluded to keep setup
-# fast. Add the `offline` extra manually if GPU features are needed.
+# Install all extras required for the test suite. Large GPU packages provided by
+# the `offline` extra are intentionally excluded to keep setup fast. Add the
+# `offline` extra manually if GPU features are needed.
 poetry install \
   --with dev,docs \
-  -E docs \
-  -E minimal \
-  -E retrieval \
-  -E chromadb \
-  -E lmstudio \
-  -E memory \
-  -E llm \
-  -E api \
-  -E webui \
-  -E gui \
-  -E tests \
+  --all-extras \
   --no-interaction
+
+# Ensure pytest-bdd is available after installation
+poetry run python -c "import pytest_bdd"
+poetry run pip list | grep pytest-bdd >/dev/null
 
 # Install the DevSynth CLI with pipx and verify it works. On subsequent
 # runs, skip the installation step to avoid network access.
@@ -110,12 +104,6 @@ if ! poetry run python -c "import kuzu" >/dev/null 2>&1; then
   echo "[warning] kuzu package not installed; kuzu tests will be skipped"
   export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false
 fi
-
-# Double-check that pytest-bdd can be imported
-poetry run python -c "import pytest_bdd"
-
-# Ensure pytest-bdd is installed in the environment
-poetry run pip list | grep pytest-bdd >/dev/null
 
 # Run a smoke test to catch failures early
 poetry run pytest tests/behavior/steps/test_alignment_metrics_steps.py --maxfail=1
