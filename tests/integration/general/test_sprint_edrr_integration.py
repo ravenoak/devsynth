@@ -23,6 +23,7 @@ def test_requirements_analysis_updates_sprint_plan():
     adapter.after_cycle(results)
 
     assert adapter.sprint_plan["planned_scope"] == ["feature"]
+    assert adapter.sprint_plan["objectives"] == ["obj"]
     assert adapter.metrics["planned_scope"][0] == ["feature"]
     assert adapter.metrics["actual_scope"][0] == ["feature"]
 
@@ -43,6 +44,10 @@ def test_retrospective_evaluation_logged():
     adapter.after_cycle(results)
 
     assert adapter.metrics["retrospective_reviews"][0]["action_items"] == ["fix"]
+    assert (
+        adapter.metrics["retrospective_reviews"][0]["sprint"]
+        == adapter.current_sprint_number
+    )
     assert adapter.metrics["quality_metrics"][adapter.current_sprint_number] == {
         "quality": "high"
     }
