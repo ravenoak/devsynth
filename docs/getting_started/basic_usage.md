@@ -41,7 +41,7 @@ DevSynth can generate shell completion scripts to speed up command entry:
 devsynth completion --install
 ```
 
-Run the above command to install completion for your current shell or omit `--install` to print the script path.
+Run the above command to install completion for your current shell or pass `--shell zsh` to target a specific shell. Omit `--install` to print the script instead of saving it.
 
 ## Initialize a Project
 
@@ -59,6 +59,8 @@ cd my-project
 ```
 
 This command creates a new project directory with the necessary structure for DevSynth to work with. When executed inside an existing project, it now launches an interactive wizard that reads any `pyproject.toml` or `project.yaml` it finds.
+
+Both the CLI and WebUI display a progress bar for each step and provide clearer warnings if initialization is aborted.
 
 ## Define Requirements
 

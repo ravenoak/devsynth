@@ -1,8 +1,9 @@
 import importlib
 import sys
-from types import ModuleType
 from pathlib import Path
+from types import ModuleType
 from unittest.mock import MagicMock
+
 import pytest
 
 
@@ -142,7 +143,7 @@ def test_offline_toggle_saves_config_succeeds(monkeypatch, tmp_path):
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
-    from devsynth.config import ProjectUnifiedConfig, ConfigModel
+    from devsynth.config import ConfigModel, ProjectUnifiedConfig
 
     cfg = ProjectUnifiedConfig(
         ConfigModel(project_root=str(tmp_path)), tmp_path / "project.yaml", False
@@ -158,3 +159,16 @@ def test_offline_toggle_saves_config_succeeds(monkeypatch, tmp_path):
     )
     webui.WebUI().config_page()
     assert saved.get("offline") is True
+
+
+@pytest.mark.medium
+def test_webui_bridge_error_display_succeeds(monkeypatch):
+    """WebUIBridge displays errors via st.error."""
+    st = _setup_streamlit(monkeypatch)
+    from devsynth.interface import webui_bridge
+
+    # Ensure WebUIBridge uses our stubbed streamlit module
+    monkeypatch.setattr(webui_bridge, "st", st)
+    bridge = webui_bridge.WebUIBridge()
+    bridge.display_result("Failure", message_type="error")
+    assert st.error.called

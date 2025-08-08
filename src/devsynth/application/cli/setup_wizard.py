@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import os
 import json
+import os
 from pathlib import Path
-from typing import Dict, Optional, List, Tuple, Any, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.panel import Panel
-from rich.markdown import Markdown
 from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 
 def _env_flag(name: str) -> Optional[bool]:
@@ -47,10 +47,12 @@ def _parse_features(value: Optional[Union[List[str], str]]) -> Dict[str, bool]:
     return {}
 
 
-from devsynth.config import load_project_config, ProjectUnifiedConfig
+from devsynth.config import ProjectUnifiedConfig, load_project_config
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
+
+from .progress import ProgressManager
 
 
 class SetupWizard:
@@ -123,6 +125,8 @@ class SetupWizard:
         self.console = Console()
         self.total_steps = 4  # Basic, Project, Memory, Features
         self.current_step = 0
+        self.progress_manager = ProgressManager(self.bridge)
+        self._progress_id = "wizard"
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -130,9 +134,11 @@ class SetupWizard:
     def _show_progress(self, description: str) -> None:
         """Show the current progress in the wizard."""
         self.current_step += 1
-        self.bridge.display_result(
-            f"[bold blue]Step {self.current_step}/{self.total_steps}: {description}[/bold blue]"
+        desc = f"Step {self.current_step}/{self.total_steps}: {description}"
+        self.progress_manager.update_progress(
+            self._progress_id, advance=1, description=desc
         )
+        self.bridge.display_result(f"[bold blue]{desc}[/bold blue]")
 
     def _show_help(self, topic: str, subtopic: Optional[str] = None) -> None:
         """Show help text for a specific option."""
@@ -235,6 +241,10 @@ class SetupWizard:
         )
         features = _parse_features(features)
 
+        self.progress_manager.create_progress(
+            self._progress_id, "Setup Wizard", total=self.total_steps
+        )
+
         try:
             cfg = load_project_config()
         except Exception:
@@ -246,7 +256,11 @@ class SetupWizard:
                 False,
             )
         if cfg.exists():
-            self.bridge.display_result("[yellow]Project already initialized[/yellow]")
+            self.bridge.display_result(
+                "[yellow]Project already initialized[/yellow]",
+                message_type="warning",
+            )
+            self.progress_manager.complete_progress(self._progress_id)
             return cfg
 
         # Welcome message
@@ -386,7 +400,10 @@ class SetupWizard:
             )
 
         if not proceed:
-            self.bridge.display_result("[yellow]Initialization aborted.[/yellow]")
+            self.bridge.display_result(
+                "[yellow]Initialization aborted.[/yellow]", message_type="warning"
+            )
+            self.progress_manager.complete_progress(self._progress_id)
             return cfg
 
         # Show progress during initialization
@@ -411,8 +428,11 @@ class SetupWizard:
                 task, description="[green]Project initialized successfully!"
             )
 
+        self.progress_manager.complete_progress(self._progress_id)
         self.bridge.display_result(
-            "[bold green]Initialization complete![/bold green]", highlight=True
+            "[bold green]Initialization complete![/bold green]",
+            highlight=True,
+            message_type="success",
         )
 
         # Show next steps

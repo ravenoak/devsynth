@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import click
@@ -12,7 +13,7 @@ from devsynth.application.cli import config_app
 from devsynth.application.cli.registry import COMMAND_REGISTRY
 from devsynth.application.cli.requirements_commands import requirements_app
 from devsynth.core.config_loader import load_config
-from devsynth.interface.cli import DEVSYNTH_THEME
+from devsynth.interface.cli import DEVSYNTH_THEME, CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
@@ -52,6 +53,32 @@ def inspect_config_cmd(
     path: Optional[str] = None, update: bool = False, prune: bool = False
 ) -> None:
     COMMAND_REGISTRY["inspect-config"](path=path, update=update, prune=prune)
+
+
+def completion_cmd(
+    shell: Optional[str] = None,
+    install: bool = False,
+    path: Optional[Path] = None,
+    *,
+    bridge: Optional[UXBridge] = None,
+) -> None:
+    """Generate or install shell completion scripts."""
+
+    bridge = bridge or CLIUXBridge()
+    app = build_app()
+    from click.shell_completion import get_completion_class
+
+    shell_name = shell or "bash"
+    completion_cls = get_completion_class(shell_name)
+    comp = completion_cls(app, {}, "devsynth", "_DEVSYNTH_COMPLETE")
+    script = comp.source()
+
+    if install:
+        target = path or Path.home() / f".devsynth-completion.{shell_name}"
+        target.write_text(script)
+        bridge.show_completion(str(target))
+    else:
+        bridge.show_completion(script)
 
 
 def _patch_typer_types() -> None:
@@ -231,6 +258,16 @@ def build_app() -> typer.Typer:
 
     app.add_typer(requirements_app, name="requirements")
     app.add_typer(config_app, name="config", help="Manage configuration settings")
+
+    @app.command("completion")
+    def completion(
+        shell: Optional[str] = typer.Option(None, "--shell", help="Shell type"),
+        install: bool = typer.Option(
+            False, "--install", help="Install completion script"
+        ),
+        path: Optional[Path] = typer.Option(None, "--path", help="Installation path"),
+    ) -> None:
+        completion_cmd(shell=shell, install=install, path=path)
 
     @app.callback(invoke_without_command=True)
     def main(ctx: typer.Context):
