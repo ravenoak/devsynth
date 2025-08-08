@@ -19,6 +19,7 @@ from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoor
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
@@ -275,3 +276,23 @@ def test_peer_review_integration_in_edrr_workflow_succeeds(coordinator):
             assert "peer_review" in report["phases"]["RETROSPECT"]
 
             mock_flush.assert_called()
+
+
+def test_memory_sync_hook_captures_events_during_team_sync():
+    """Ensure memory synchronization hooks capture memory updates."""
+
+    mm = MemoryManager()
+    events: list[str | None] = []
+    mm.register_sync_hook(lambda item: events.append(getattr(item, "id", None)))
+
+    item = MemoryItem(
+        id="end-item",
+        content={},
+        memory_type=MemoryType.TEAM_STATE,
+        metadata={},
+    )
+    mm.update_item("tinydb" if "tinydb" in mm.adapters else "default", item)
+    mm.flush_updates()
+
+    assert events[0] == "end-item"
+    assert events[-1] is None

@@ -287,3 +287,23 @@ class TestWSDEEDRRComponentInteractions:
         with pytest.raises(EDRRCoordinatorError) as exc_info:
             coordinator.execute_current_phase()
         assert "Test error in evaluate_options" in str(exc_info.value)
+
+    def test_memory_sync_hook_receives_events(self, memory_manager):
+        """Ensure memory sync hooks capture memory updates."""
+
+        events: list[str | None] = []
+        memory_manager.register_sync_hook(
+            lambda item: events.append(getattr(item, "id", None))
+        )
+
+        item = MemoryItem(
+            id="test-item",
+            content={},
+            memory_type=MemoryType.TEAM_STATE,
+            metadata={},
+        )
+        memory_manager.update_item("default", item)
+        memory_manager.flush_updates()
+
+        assert events[0] == "test-item"
+        assert events[-1] is None

@@ -606,7 +606,7 @@ class ConsensusBuildingMixin:
                     primary = None
 
                 if primary:
-                    self.memory_manager.sync_manager.update_item(primary, item)
+                    self.memory_manager.update_item(primary, item)
                     # Also store a summary for quick retrieval
                     summary_text = self.summarize_consensus_result(consensus_result)
                     summary_item = MemoryItem(
@@ -618,7 +618,7 @@ class ConsensusBuildingMixin:
                         memory_type=MemoryType.TEAM_STATE,
                         metadata={"type": "CONSENSUS_SUMMARY"},
                     )
-                    self.memory_manager.sync_manager.update_item(primary, summary_item)
+                    self.memory_manager.update_item(primary, summary_item)
                     try:
                         self.memory_manager.flush_updates()
                     except Exception:
@@ -970,7 +970,7 @@ class ConsensusBuildingMixin:
                     memory_type=MemoryType.TEAM_STATE,
                     metadata={"type": "VOTING_SUMMARY"},
                 )
-                self.memory_manager.sync_manager.update_item(primary, item)
+                self.memory_manager.update_item(primary, item)
                 try:
                     self.memory_manager.flush_updates()
                 except Exception:
