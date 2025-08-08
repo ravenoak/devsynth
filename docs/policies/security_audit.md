@@ -16,25 +16,27 @@ ensure code quality and supply chain safety.
 
 ## Running Locally
 
-Use the bundled script, which delegates to
-`src/devsynth/security/audit.py`:
+Run the bundled script to execute both tools:
 
 ```bash
-poetry run python scripts/security_audit.py
+poetry run python scripts/dependency_safety_check.py
 ```
 
-To skip checks:
+To skip checks or update dependencies first:
 
 ```bash
-poetry run python scripts/security_audit.py --skip-bandit --skip-safety
+poetry run python scripts/dependency_safety_check.py --skip-bandit --skip-safety
+poetry run python scripts/dependency_safety_check.py --update
 ```
 
 ## Continuous Integration
 
-`bandit` and `safety` run in CI via a disabled workflow
-[`.github/workflows/ci.yml.disabled`](../../.github/workflows/ci.yml.disabled).
-The workflow installs dependencies with Poetry and executes the bundled
-`scripts/security_audit.py` utility on pull requests and pushes to
+`bandit` and `safety` run in CI via disabled workflows
+[`dependency_check.yml`](../../.github/workflows.disabled/dependency_check.yml)
+and
+[`static_analysis.yml`](../../.github/workflows.disabled/static_analysis.yml).
+These workflows install dependencies with Poetry and execute the
+`scripts/dependency_safety_check.py` utility on pull requests and pushes to
 `main` when enabled.
 
 ## Logging
