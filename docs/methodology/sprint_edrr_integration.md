@@ -15,3 +15,7 @@ Retrospective data is automatically reviewed at the end of the cycle. Evaluation
 1. Configure DevSynth to use the sprint methodology.
 2. Run an EDRR cycle. Requirement analysis outcomes will populate the next sprint plan.
 3. After the Retrospect phase, evaluation results are logged into sprint metrics for continuous improvement.
+
+## Consensus and Logging
+
+Dialectical reasoning now checks for consensus before recording requirement decisions. When consensus cannot be reached, the failure is logged so teams can address outstanding conflicts in subsequent EDRR cycles, completing the feedback loop.
