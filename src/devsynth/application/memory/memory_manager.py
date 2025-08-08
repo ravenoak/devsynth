@@ -679,6 +679,11 @@ class MemoryManager:
 
         return self.sync_manager.synchronize(source_store, target_store, bidirectional)
 
+    def synchronize_core_stores(self) -> Dict[str, int]:
+        """Synchronize LMDB and FAISS stores into the Kuzu store."""
+
+        return self.sync_manager.synchronize_core()
+
     # ------------------------------------------------------------------
     def cross_store_query(
         self, query: str, stores: Optional[List[str]] | None = None

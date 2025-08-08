@@ -7,19 +7,20 @@ except ImportError as e:  # pragma: no cover - optional dependency
     raise ImportError(
         "ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
     ) from e
-from typing import Any, Dict, List, Optional, Union, ContextManager
-import os
-import logging
-import time
 import atexit
+import logging
+import os
 import sys
+import time
 from contextlib import contextmanager
+from datetime import datetime
+from typing import Any, ContextManager, Dict, List, Optional, Union
+
+from devsynth.adapters.provider_system import ProviderError, embed, get_provider
+from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from datetime import datetime
-from devsynth.adapters.provider_system import get_provider, embed, ProviderError
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.config.settings import ensure_path_exists
 
 # Global registry to track ChromaDB clients and ensure proper cleanup
 _chromadb_clients = {}
@@ -101,7 +102,7 @@ class ChromaDBMemoryStore(MemoryStore):
 
     Integrates with the provider system to leverage either OpenAI or LM Studio
     for embeddings, with automatic fallback if a provider fails.
-    
+
     Supports transactions for atomic operations across multiple store/retrieve/delete
     operations, with commit and rollback capabilities.
     """
@@ -130,7 +131,7 @@ class ChromaDBMemoryStore(MemoryStore):
         """
         # Setup logging
         self.logger = DevSynthLogger(__name__)
-        
+
         # Transaction support
         self._active_transactions = {}  # Maps transaction_id to transaction data
         self._transaction_operations = {}  # Maps transaction_id to list of operations
@@ -179,21 +180,16 @@ class ChromaDBMemoryStore(MemoryStore):
 
         while retry_count < max_retries:
             try:
-                # Use ephemeral client when file operations are disabled in tests
-                if os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in {
-                    "1",
-                    "true",
-                    "yes",
-                }:
-                    self.client = chromadb.EphemeralClient()
-                else:
-                    self.client = chromadb.PersistentClient(path=persist_directory)
-
-                client_id = f"client_{self.persist_directory}"
-                _chromadb_clients[client_id] = self.client
+                # Use a context manager so the client is always cleaned up
+                self._client_ctx = chromadb_client_context(
+                    persist_directory, instance_id=self.instance_id
+                )
+                self.client = self._client_ctx.__enter__()
 
                 self.logger.info(
-                    f"ChromaDB client initialized with persist directory: {persist_directory}, instance_id: {self.instance_id}"
+                    "ChromaDB client initialized with persist directory: %s, instance_id: %s",
+                    persist_directory,
+                    self.instance_id,
                 )
 
                 # Create or get collection with error handling
@@ -218,7 +214,7 @@ class ChromaDBMemoryStore(MemoryStore):
                     )
                     raise RuntimeError(
                         f"Failed to initialize ChromaDB after {max_retries} attempts: {e}"
-                    ) from last_exception
+                    )
 
         # Use provider system for embeddings if specified, otherwise fallback to default
         self.use_provider_system = use_provider_system
@@ -238,27 +234,30 @@ class ChromaDBMemoryStore(MemoryStore):
         # Register cleanup method
         atexit.register(self._cleanup)
 
-    def _cleanup(self):
+    def close(self) -> None:
+        """Close the ChromaDB client and release resources."""
+        ctx = getattr(self, "_client_ctx", None)
+        if ctx:
+            try:
+                ctx.__exit__(None, None, None)
+            except Exception as e:  # pragma: no cover - best effort cleanup
+                self.logger.warning(f"Error closing ChromaDB client: {e}")
+            finally:
+                self._client_ctx = None
+                self.client = None
+
+    def _cleanup(self) -> None:
         """Clean up resources when the instance is destroyed."""
         self.logger.debug(
             f"Cleaning up ChromaDBMemoryStore resources for {self.collection_name}"
         )
+        self.close()
 
-        # Explicitly close the client and remove it from the global registry
-        client_id = f"client_{self.persist_directory}"
-        if client_id in _chromadb_clients:
-            try:
-                client = _chromadb_clients[client_id]
-                if hasattr(client, "close"):
-                    client.close()
-                _chromadb_clients.pop(client_id, None)
-                self.logger.debug(
-                    f"Closed ChromaDB client for {self.persist_directory}"
-                )
-            except Exception as e:
-                self.logger.warning(
-                    f"Error closing ChromaDB client for {self.persist_directory}: {e}"
-                )
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:  # pragma: no cover - defensive
+            pass
 
     def _with_retries(self, operation_name, operation_func, *args, **kwargs):
         """
@@ -413,16 +412,14 @@ class ChromaDBMemoryStore(MemoryStore):
         embedding = self._get_embedding(content)
 
         item_id = item.id or str(hash(content))
-        
+
         # If this is part of a transaction, add to transaction and return
         if transaction_id and self.is_transaction_active(transaction_id):
-            operation_data = {
-                "item": item,
-                "embedding": embedding,
-                "item_id": item_id
-            }
+            operation_data = {"item": item, "embedding": embedding, "item_id": item_id}
             self.add_to_transaction(transaction_id, "store", operation_data)
-            self.logger.debug(f"Added store operation for item {item_id} to transaction {transaction_id}")
+            self.logger.debug(
+                f"Added store operation for item {item_id} to transaction {transaction_id}"
+            )
             return item_id
 
         def _store_operation():
@@ -531,11 +528,11 @@ class ChromaDBMemoryStore(MemoryStore):
         """
         # If this is part of a transaction, add to transaction and return
         if transaction_id and self.is_transaction_active(transaction_id):
-            operation_data = {
-                "item_id": item_id
-            }
+            operation_data = {"item_id": item_id}
             self.add_to_transaction(transaction_id, "delete", operation_data)
-            self.logger.debug(f"Added delete operation for item {item_id} to transaction {transaction_id}")
+            self.logger.debug(
+                f"Added delete operation for item {item_id} to transaction {transaction_id}"
+            )
             return True
 
         def _delete_operation():
@@ -553,14 +550,14 @@ class ChromaDBMemoryStore(MemoryStore):
             docs = result.get("documents", [])
             metas = result.get("metadatas", [])
             ids = result.get("ids", [])
-            
+
             # Handle both flat and nested array structures
             # ChromaDB can return either format depending on the context
             if docs and isinstance(docs[0], list):
                 # Nested array format
                 docs = docs[0] if docs else []
                 metas = metas[0] if metas else []
-            
+
             for idx, item_id in enumerate(ids):
                 doc = docs[idx] if idx < len(docs) else None
                 meta = metas[idx] if idx < len(metas) else {}
@@ -580,54 +577,56 @@ class ChromaDBMemoryStore(MemoryStore):
             return items
 
         return self._with_retries("Get all items", _get_operation)
-        
+
     def begin_transaction(self) -> str:
         """Begin a new transaction and return a transaction ID.
-        
+
         Transactions provide atomicity for a series of operations.
         All operations within a transaction either succeed or fail together.
-        
+
         Returns:
             str: A unique transaction ID
         """
         # Generate a unique transaction ID
         transaction_id = f"tx_{time.time()}_{hash(str(time.time()))}"
-        
+
         # Initialize transaction data
         self._active_transactions[transaction_id] = {
             "started_at": datetime.now(),
             "status": "active",
-            "operations": []
+            "operations": [],
         }
-        
+
         # Initialize operations list
         self._transaction_operations[transaction_id] = []
-        
+
         self.logger.debug(f"Transaction {transaction_id} started")
         return transaction_id
-        
+
     def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a transaction, making all its operations permanent.
-        
+
         Args:
             transaction_id: The ID of the transaction to commit
-            
+
         Returns:
             bool: True if the transaction was committed successfully, False otherwise
         """
         # Check if transaction exists and is active
         if not self.is_transaction_active(transaction_id):
-            self.logger.warning(f"Cannot commit transaction {transaction_id}: not active or doesn't exist")
+            self.logger.warning(
+                f"Cannot commit transaction {transaction_id}: not active or doesn't exist"
+            )
             return False
-            
+
         try:
             # Execute all pending operations in the transaction
             operations = self._transaction_operations.get(transaction_id, [])
-            
+
             for op in operations:
                 op_type = op.get("type")
                 op_data = op.get("data", {})
-                
+
                 if op_type == "store":
                     # Execute store operation
                     item = op_data.get("item")
@@ -639,84 +638,92 @@ class ChromaDBMemoryStore(MemoryStore):
                     if item_id:
                         self.delete(item_id)
                 # Add other operation types as needed
-            
+
             # Mark transaction as committed
             self._active_transactions[transaction_id]["status"] = "committed"
             self.logger.debug(f"Transaction {transaction_id} committed successfully")
-            
+
             # Clean up
             self._transaction_operations.pop(transaction_id, None)
-            
+
             return True
         except Exception as e:
             # Log error and mark transaction as failed
             self.logger.error(f"Error committing transaction {transaction_id}: {e}")
             self._active_transactions[transaction_id]["status"] = "failed"
             self._active_transactions[transaction_id]["error"] = str(e)
-            
+
             # Clean up
             self._transaction_operations.pop(transaction_id, None)
-            
+
             return False
-            
+
     def rollback_transaction(self, transaction_id: str) -> bool:
         """Rollback a transaction, undoing all its operations.
-        
+
         Args:
             transaction_id: The ID of the transaction to rollback
-            
+
         Returns:
             bool: True if the transaction was rolled back successfully, False otherwise
         """
         # Check if transaction exists
         if transaction_id not in self._active_transactions:
-            self.logger.warning(f"Cannot rollback transaction {transaction_id}: doesn't exist")
+            self.logger.warning(
+                f"Cannot rollback transaction {transaction_id}: doesn't exist"
+            )
             return False
-            
+
         # Mark transaction as rolled back
         self._active_transactions[transaction_id]["status"] = "rolled_back"
         self.logger.debug(f"Transaction {transaction_id} rolled back")
-        
+
         # Clean up
         self._transaction_operations.pop(transaction_id, None)
-        
+
         return True
-        
+
     def is_transaction_active(self, transaction_id: str) -> bool:
         """Check if a transaction is active.
-        
+
         Args:
             transaction_id: The ID of the transaction to check
-            
+
         Returns:
             bool: True if the transaction is active, False otherwise
         """
         transaction = self._active_transactions.get(transaction_id)
         return transaction is not None and transaction.get("status") == "active"
-        
-    def add_to_transaction(self, transaction_id: str, operation_type: str, operation_data: Dict[str, Any]) -> bool:
+
+    def add_to_transaction(
+        self, transaction_id: str, operation_type: str, operation_data: Dict[str, Any]
+    ) -> bool:
         """Add an operation to a transaction.
-        
+
         Args:
             transaction_id: The ID of the transaction
             operation_type: The type of operation (store, delete, etc.)
             operation_data: The data for the operation
-            
+
         Returns:
             bool: True if the operation was added successfully, False otherwise
         """
         if not self.is_transaction_active(transaction_id):
-            self.logger.warning(f"Cannot add operation to transaction {transaction_id}: not active or doesn't exist")
+            self.logger.warning(
+                f"Cannot add operation to transaction {transaction_id}: not active or doesn't exist"
+            )
             return False
-            
+
         # Add operation to transaction
         operation = {
             "type": operation_type,
             "data": operation_data,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
-        
+
         self._transaction_operations.setdefault(transaction_id, []).append(operation)
-        self.logger.debug(f"Added {operation_type} operation to transaction {transaction_id}")
-        
+        self.logger.debug(
+            f"Added {operation_type} operation to transaction {transaction_id}"
+        )
+
         return True

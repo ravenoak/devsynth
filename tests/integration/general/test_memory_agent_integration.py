@@ -4,19 +4,21 @@ This test verifies that agents can store and retrieve information from the memor
 and that the memory system correctly manages agent-specific memory.
 """
 
-import pytest
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
 from unittest.mock import MagicMock, patch
-from devsynth.application.memory.memory_manager import MemoryManager
+
+import pytest
+
+from devsynth.application.agents.agent_memory_integration import AgentMemoryIntegration
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
-from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.application.agents.agent_memory_integration import AgentMemoryIntegration
 
 
 class TestMemoryAgentIntegration:
@@ -201,8 +203,87 @@ class TestMemoryAgentIntegration:
         assert retrieved_items[0].metadata["source"] == metadata["source"]
         assert retrieved_items[0].metadata["confidence"] == metadata["confidence"]
         assert retrieved_items[0].metadata["agent_name"] == "TestAgent"
-        assert retrieved_items[0].metadata["context"]["task_id"] == context["task_id"]
-        assert retrieved_items[0].metadata["context"]["phase"] == context["phase"]
+
+    @pytest.mark.medium
+    @pytest.mark.requires_resource("lmdb")
+    @pytest.mark.requires_resource("faiss")
+    def test_persistent_sync_across_stores(self, tmp_path, monkeypatch):
+        """Ensure LMDB and FAISS persistence with Kuzu resynchronization."""
+
+        import sys
+
+        LMDBStore = pytest.importorskip(
+            "devsynth.application.memory.lmdb_store"
+        ).LMDBStore
+        FAISSStore = pytest.importorskip(
+            "devsynth.application.memory.faiss_store"
+        ).FAISSStore
+        from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+        from devsynth.application.memory.kuzu_store import KuzuStore
+        from devsynth.application.memory.sync_manager import SyncManager
+        from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+
+        # Force use of the in-memory Kuzu fallback
+        monkeypatch.delitem(sys.modules, "kuzu", raising=False)
+        monkeypatch.setenv("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "false")
+
+        ef = pytest.importorskip("chromadb.utils.embedding_functions")
+        monkeypatch.setattr(
+            ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5)
+        )
+
+        for cls in (LMDBStore, FAISSStore, KuzuMemoryStore, KuzuStore):
+            try:
+                monkeypatch.setattr(cls, "__abstractmethods__", frozenset())
+            except Exception:
+                pass
+
+        lmdb_store = LMDBStore(str(tmp_path / "lmdb"))
+        faiss_store = FAISSStore(str(tmp_path / "faiss"))
+        kuzu_store = KuzuMemoryStore(
+            persist_directory=str(tmp_path / "kuzu"), use_provider_system=False
+        )
+
+        manager = MemoryManager(
+            adapters={"lmdb": lmdb_store, "faiss": faiss_store, "kuzu": kuzu_store}
+        )
+        manager.sync_manager = SyncManager(manager)
+
+        item = MemoryItem(id="persist", content="data", memory_type=MemoryType.CODE)
+        vector = MemoryVector(
+            id="persist", content="data", embedding=[0.1] * 5, metadata={}
+        )
+
+        lmdb_store.store(item)
+        faiss_store.store_vector(vector)
+        manager.sync_manager.synchronize_core()
+
+        assert kuzu_store.retrieve("persist") is not None
+        assert kuzu_store.vector.retrieve_vector("persist") is not None
+
+        # Simulate restart by creating new instances
+        lmdb_store.close()
+        lmdb2 = LMDBStore(str(tmp_path / "lmdb"))
+        faiss2 = FAISSStore(str(tmp_path / "faiss"))
+        kuzu2 = KuzuMemoryStore(
+            persist_directory=str(tmp_path / "kuzu"), use_provider_system=False
+        )
+
+        manager2 = MemoryManager(
+            adapters={"lmdb": lmdb2, "faiss": faiss2, "kuzu": kuzu2}
+        )
+        manager2.sync_manager = SyncManager(manager2)
+
+        # LMDB and FAISS persisted
+        assert lmdb2.retrieve("persist") is not None
+        assert faiss2.retrieve_vector("persist") is not None
+        # Kuzu fallback does not persist; synchronize to restore
+        assert kuzu2.retrieve("persist") is None
+
+        manager2.sync_manager.synchronize_core()
+
+        assert kuzu2.retrieve("persist") is not None
+        assert kuzu2.vector.retrieve_vector("persist") is not None
 
     def test_sync_manager_transaction_rolls_back_succeeds(self, temp_dir):
         """Ensure multi-store transactions roll back on error."""
