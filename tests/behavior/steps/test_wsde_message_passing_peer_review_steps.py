@@ -4,16 +4,17 @@ pytest.skip(
     "Advanced WSDE collaboration features not implemented", allow_module_level=True
 )
 
-from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock
+
+from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("../features/general/wsde_message_passing_peer_review.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
-from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.collaboration.message_protocol import MessageType
+from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.fixture
@@ -74,7 +75,11 @@ def team_with_multiple_agents(context):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        'agent "{sender}" sends a message to agent "{recipient}" with type "{msg_type}"'    ))
+@when(
+    parsers.parse(
+        'agent "{sender}" sends a message to agent "{recipient}" with type "{msg_type}"'
+    )
+)
 def send_message(context, sender, recipient, msg_type):
     message = context.team.send_message(
         sender=sender,
@@ -108,7 +113,11 @@ def stored_in_history(context):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        'agent "{sender}" sends a broadcast message to all agents with type "{msg_type}"'    ))
+@when(
+    parsers.parse(
+        'agent "{sender}" sends a broadcast message to all agents with type "{msg_type}"'
+    )
+)
 def broadcast_message(context, sender, msg_type):
     message = context.team.broadcast_message(sender, msg_type, subject="broadcast")
     context.last_message = message
@@ -138,7 +147,11 @@ def broadcast_single_event(context):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        'agent "{sender}" sends a message with priority "{priority}" to agent "{recipient}"'    ))
+@when(
+    parsers.parse(
+        'agent "{sender}" sends a message with priority "{priority}" to agent "{recipient}"'
+    )
+)
 def send_priority_message(context, sender, priority, recipient):
     message = context.team.send_message(
         sender=sender,
@@ -152,7 +165,11 @@ def send_priority_message(context, sender, priority, recipient):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'agent "{recipient}" should receive the message with priority "{priority}"'    ))
+@then(
+    parsers.parse(
+        'agent "{recipient}" should receive the message with priority "{priority}"'
+    )
+)
 def recipient_priority(context, recipient, priority):
     msgs = context.team.get_messages(recipient)
     assert any(m.metadata.get("priority") == priority for m in msgs)
@@ -200,7 +217,11 @@ def send_structured(context, sender, table=None):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'agent "{recipient}" should receive the message with the structured content'    ))
+@then(
+    parsers.parse(
+        'agent "{recipient}" should receive the message with the structured content'
+    )
+)
 def check_structured(context, recipient):
     msgs = context.team.get_messages(recipient)
     assert any(m.content == context.last_message.content for m in msgs)

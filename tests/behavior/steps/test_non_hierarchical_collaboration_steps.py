@@ -11,12 +11,14 @@ pytest.skip(
     "Advanced WSDE collaboration features not implemented", allow_module_level=True
 )
 
-from pytest_bdd import given, when, then, parsers, scenarios
 from unittest.mock import MagicMock, patch
-from devsynth.domain.models.wsde import WSDETeam
+
+from pytest_bdd import given, parsers, scenarios, then, when
+
 from devsynth.application.agents.base import BaseAgent
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 # Import the feature file
 scenarios("../features/general/non_hierarchical_collaboration.feature")

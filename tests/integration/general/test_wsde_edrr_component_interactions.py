@@ -27,7 +27,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 

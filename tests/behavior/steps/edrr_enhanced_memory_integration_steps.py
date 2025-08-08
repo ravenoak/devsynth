@@ -9,34 +9,34 @@ import pytest
 
 pytest.skip("Placeholder feature not implemented", allow_module_level=True)
 
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
+
 # Content from test_edrr_coordinator_steps.py inlined here
 """Step definitions for the EDRR Coordinator feature."""
 
-from __future__ import annotations
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
+
 import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("../features/general/edrr_coordinator.feature")
-import os
 import json
+import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryType
-from devsynth.domain.models.wsde import WSDETeam
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.edrr.manifest_parser import ManifestParser
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -946,9 +946,12 @@ def verify_performance_metrics(context):
         assert "code_analyzer" in component_calls
         assert "prompt_manager" in component_calls
         assert "documentation_manager" in component_calls
-  # noqa: F401,F403
-import pytest
+
+
 import logging
+
+# noqa: F401,F403
+import pytest
 
 # Import the scenarios from the feature file
 scenarios("../features/general/edrr_enhanced_memory_integration.feature")
@@ -958,23 +961,23 @@ from unittest.mock import MagicMock, patch
 
 logger = logging.getLogger(__name__)
 
-from devsynth.application.edrr.coordinator import EDRRCoordinator
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
-from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
-    EnhancedGraphMemoryAdapter,
-)
-from devsynth.application.memory.adapters.tinydb_memory_adapter import (
-    TinyDBMemoryAdapter,
-)
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.domain.models.memory import MemoryType
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
+    EnhancedGraphMemoryAdapter,
+)
+from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
@@ -1387,6 +1390,6 @@ def step_coordinator_evolves_over_time(context):
 
 # Additional scenarios (Multi-modal memory and Memory with temporal awareness) would be implemented similarly
 # For brevity, I'm omitting them here, but they would follow the same pattern
-  # noqa: F401,F403
+# noqa: F401,F403
 
 scenarios("../features/general/edrr_enhanced_memory_integration.feature")

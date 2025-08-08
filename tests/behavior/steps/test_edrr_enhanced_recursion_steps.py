@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file for this test
 scenarios("../features/general/edrr_enhanced_recursion.feature")
@@ -11,29 +10,30 @@ scenarios("../features/general/edrr_enhanced_recursion.feature")
 # Content from test_edrr_coordinator_steps.py inlined here
 """Step definitions for the EDRR Coordinator feature."""
 
-# Removed duplicate __future__ import
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
 import pytest
 
+# Removed duplicate __future__ import
+from pytest_bdd import given, parsers, scenarios, then, when
+
 scenarios("../features/general/edrr_coordinator.feature")
-import os
 import json
+import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryType
-from devsynth.domain.models.wsde import WSDETeam
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.edrr.manifest_parser import ManifestParser
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -238,7 +238,11 @@ def verify_phase(context, phase_name):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'    ))
+@then(
+    parsers.parse(
+        'the coordinator should store the task in memory with EDRR phase "{phase_name}"'
+    )
+)
 def verify_task_stored(context, phase_name):
     """Verify the task is stored in memory with the correct EDRR phase."""
     test_storage = {}
@@ -462,7 +466,11 @@ def verify_ast_verify(context):
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'the prompt manager should provide templates for the "{phase_name}" phase'    ))
+@then(
+    parsers.parse(
+        'the prompt manager should provide templates for the "{phase_name}" phase'
+    )
+)
 def verify_prompt_templates(context, phase_name):
     """Verify the prompt manager provides templates for the specified phase."""
     phase = Phase[phase_name.upper()]
@@ -619,7 +627,11 @@ This document outlines criteria for evaluating code quality."""
 
 
 @pytest.mark.medium
-@then(    parsers.parse(        'the results should be stored in memory with EDRR phase "{phase_name}"'    ))
+@then(
+    parsers.parse(
+        'the results should be stored in memory with EDRR phase "{phase_name}"'
+    )
+)
 def verify_results_stored(context, phase_name):
     """Verify the results are stored in memory with the correct EDRR phase."""
     phase = Phase[phase_name.upper()]
@@ -973,26 +985,30 @@ def verify_performance_metrics(context):
         assert "code_analyzer" in component_calls
         assert "prompt_manager" in component_calls
         assert "documentation_manager" in component_calls
-  # noqa: F401,F403
-import pytest
-from unittest.mock import MagicMock, patch
+
+
 import time
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+# noqa: F401,F403
+import pytest
 
 # Import the scenarios from the feature file
 scenarios("../features/general/edrr_enhanced_recursion.feature")
 
-# Import the necessary components
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.wsde_facade import WSDETeam
+
+# Import the necessary components
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
@@ -1336,7 +1352,9 @@ def coordinator_evaluates_nested_micro_cycles(context):
 
 
 @pytest.mark.medium
-@then(    "the coordinator should apply advanced heuristics to determine optimal recursion depth")
+@then(
+    "the coordinator should apply advanced heuristics to determine optimal recursion depth"
+)
 def verify_advanced_heuristics_applied(context):
     """Verify that advanced heuristics are applied to determine optimal recursion depth."""
     # Check that the coordinator has advanced heuristics configuration
@@ -1720,7 +1738,9 @@ def verify_quality_prioritization(context):
 
 
 @pytest.mark.medium
-@then(    "the aggregated result should be more comprehensive than any individual micro-cycle result")
+@then(
+    "the aggregated result should be more comprehensive than any individual micro-cycle result"
+)
 def verify_comprehensive_aggregation(context):
     """Verify that the aggregated result is more comprehensive than any individual micro-cycle result."""
     # Check that the aggregated result has more elements than any individual micro-cycle
@@ -1874,7 +1894,9 @@ def verify_design_tasks_use_component_decomposition(context):
 
 
 @pytest.mark.medium
-@then(    "the coordinator should select the appropriate decomposition strategy automatically")
+@then(
+    "the coordinator should select the appropriate decomposition strategy automatically"
+)
 def verify_automatic_strategy_selection(context):
     """Verify that the coordinator selects the appropriate decomposition strategy automatically."""
     # Check that the strategies match the task types
@@ -2117,7 +2139,9 @@ def verify_completion_percentage_for_subtasks(context):
 
 
 @pytest.mark.medium
-@then(    "the progress tracking should aggregate completion status up the recursion hierarchy")
+@then(
+    "the progress tracking should aggregate completion status up the recursion hierarchy"
+)
 def verify_aggregated_completion_status(context):
     """Verify that progress tracking aggregates completion status up the recursion hierarchy."""
     # Check that the main task's completion is an aggregation of subtask completions

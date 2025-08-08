@@ -5,16 +5,16 @@ This module provides integration between the WSDE model and the memory system,
 allowing WSDE teams to store and retrieve information from memory.
 """
 
-from typing import Dict, Any, List, Optional
 import json
 import uuid
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.agents.agent_memory_integration import AgentMemoryIntegration
 from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
@@ -34,14 +34,21 @@ class WSDEMemoryIntegration:
         """Initialize the WSDE memory integration."""
         self.memory_adapter = memory_adapter
         self.wsde_team = wsde_team
-        self.agent_memory = agent_memory or AgentMemoryIntegration(memory_adapter, wsde_team)
+        self.agent_memory = agent_memory or AgentMemoryIntegration(
+            memory_adapter, wsde_team
+        )
         self.context_manager = memory_adapter.get_context_manager()
         self.memory_manager = memory_manager
 
         logger.info("WSDE memory integration initialized")
 
-    def store_dialectical_process(self, task: Dict[str, Any], thesis: Dict[str, Any], 
-                                 antithesis: Dict[str, Any], synthesis: Dict[str, Any]) -> str:
+    def store_dialectical_process(
+        self,
+        task: Dict[str, Any],
+        thesis: Dict[str, Any],
+        antithesis: Dict[str, Any],
+        synthesis: Dict[str, Any],
+    ) -> str:
         """
         Store a dialectical process in memory.
 
@@ -84,8 +91,13 @@ class WSDEMemoryIntegration:
             logger.info(f"No dialectical process found for task {task_id}")
             return {}
 
-    def store_agent_solution(self, agent_id: str, task: Dict[str, Any], solution: Dict[str, Any], 
-                               edrr_phase: Optional[str] = None) -> str:
+    def store_agent_solution(
+        self,
+        agent_id: str,
+        task: Dict[str, Any],
+        solution: Dict[str, Any],
+        edrr_phase: Optional[str] = None,
+    ) -> str:
         """Store an agent solution in memory."""
 
         if self.memory_manager is not None:
@@ -161,7 +173,9 @@ class WSDEMemoryIntegration:
                         items = store.search({"memory_type": MemoryType.SOLUTION})
                     except Exception:
                         try:
-                            items = store.search({"memory_type": MemoryType.SOLUTION.value})
+                            items = store.search(
+                                {"memory_type": MemoryType.SOLUTION.value}
+                            )
                         except Exception:
                             items = []
                 for item in items:
@@ -222,7 +236,9 @@ class WSDEMemoryIntegration:
         logger.info(f"Found {len(similar_vectors)} similar solutions for query")
         return similar_vectors
 
-    def retrieve_solutions_by_edrr_phase(self, task_id: str, edrr_phase: str) -> List[MemoryItem]:
+    def retrieve_solutions_by_edrr_phase(
+        self, task_id: str, edrr_phase: str
+    ) -> List[MemoryItem]:
         """
         Retrieve agent solutions for a specific task filtered by EDRR phase.
 
@@ -246,7 +262,9 @@ class WSDEMemoryIntegration:
         )
         return filtered_solutions
 
-    def query_knowledge_graph(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def query_knowledge_graph(
+        self, query: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Query the knowledge graph for information.
 
@@ -266,14 +284,20 @@ class WSDEMemoryIntegration:
         # Check if the memory store supports knowledge graph queries
         if hasattr(memory_store, "query_graph"):
             results = memory_store.query_graph(query, limit=limit)
-            logger.info(f"Queried knowledge graph with '{query}', found {len(results)} results")
+            logger.info(
+                f"Queried knowledge graph with '{query}', found {len(results)} results"
+            )
             return results
         else:
-            error_msg = "Knowledge graph querying is not supported by the current memory store"
+            error_msg = (
+                "Knowledge graph querying is not supported by the current memory store"
+            )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-    def query_related_concepts(self, concept: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def query_related_concepts(
+        self, concept: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Query the knowledge graph for concepts related to a given concept.
 
@@ -299,10 +323,14 @@ class WSDEMemoryIntegration:
 
         # Execute the query
         results = self.query_knowledge_graph(query, limit=limit)
-        logger.info(f"Queried for concepts related to '{concept}', found {len(results)} results")
+        logger.info(
+            f"Queried for concepts related to '{concept}', found {len(results)} results"
+        )
         return results
 
-    def query_concept_relationships(self, concept1: str, concept2: str) -> List[Dict[str, Any]]:
+    def query_concept_relationships(
+        self, concept1: str, concept2: str
+    ) -> List[Dict[str, Any]]:
         """
         Query the knowledge graph for relationships between two concepts.
 
@@ -334,10 +362,14 @@ class WSDEMemoryIntegration:
 
         # Execute the query
         results = self.query_knowledge_graph(query)
-        logger.info(f"Queried for relationships between '{concept1}' and '{concept2}', found {len(results)} results")
+        logger.info(
+            f"Queried for relationships between '{concept1}' and '{concept2}', found {len(results)} results"
+        )
         return results
 
-    def query_by_concept_type(self, concept_type: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def query_by_concept_type(
+        self, concept_type: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Query the knowledge graph for concepts of a specific type.
 
@@ -366,10 +398,14 @@ class WSDEMemoryIntegration:
 
         # Execute the query
         results = self.query_knowledge_graph(query, limit=limit)
-        logger.info(f"Queried for concepts of type '{concept_type}', found {len(results)} results")
+        logger.info(
+            f"Queried for concepts of type '{concept_type}', found {len(results)} results"
+        )
         return results
 
-    def query_knowledge_for_task(self, task: Dict[str, Any], limit: int = 10) -> List[Dict[str, Any]]:
+    def query_knowledge_for_task(
+        self, task: Dict[str, Any], limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Query the knowledge graph for knowledge relevant to a specific task.
 
@@ -393,12 +429,27 @@ class WSDEMemoryIntegration:
                     keywords.extend(req.lower().split())
 
         # Remove common words and duplicates
-        common_words = {"a", "an", "the", "and", "or", "but", "for", "in", "on", "at", "to", "with"}
+        common_words = {
+            "a",
+            "an",
+            "the",
+            "and",
+            "or",
+            "but",
+            "for",
+            "in",
+            "on",
+            "at",
+            "to",
+            "with",
+        }
         keywords = [kw for kw in keywords if kw not in common_words]
         keywords = list(set(keywords))
 
         # Create a query to find relevant concepts
-        keyword_filters = " || ".join([f'CONTAINS(LCASE(STR(?concept)), "{kw}")' for kw in keywords])
+        keyword_filters = " || ".join(
+            [f'CONTAINS(LCASE(STR(?concept)), "{kw}")' for kw in keywords]
+        )
         query = f"""
         SELECT ?concept (COUNT(?match) AS ?relevance)
         WHERE {{
@@ -413,7 +464,9 @@ class WSDEMemoryIntegration:
 
         # Execute the query
         results = self.query_knowledge_graph(query, limit=limit)
-        logger.info(f"Queried for knowledge relevant to task, found {len(results)} results")
+        logger.info(
+            f"Queried for knowledge relevant to task, found {len(results)} results"
+        )
         return results
 
     def integrate_knowledge_from_dialectical_process(
@@ -435,7 +488,9 @@ class WSDEMemoryIntegration:
         Returns:
             A dictionary containing the integrated knowledge with categorization and metadata
         """
-        logger.info(f"Integrating knowledge from dialectical process for task {task_id}")
+        logger.info(
+            f"Integrating knowledge from dialectical process for task {task_id}"
+        )
 
         # Extract components from the dialectical process
         thesis = dialectical_process.get("thesis", {})
@@ -450,7 +505,7 @@ class WSDEMemoryIntegration:
             "key_insights": [],
             "domain_categories": {},
             "relevance_scores": {},
-            "knowledge_graph_entries": []
+            "knowledge_graph_entries": [],
         }
 
         # Extract key insights from the synthesis
@@ -471,7 +526,10 @@ class WSDEMemoryIntegration:
 
         if "weaknesses" in evaluation:
             integrated_knowledge["key_insights"].extend(
-                [f"Area for improvement: {weakness}" for weakness in evaluation["weaknesses"]]
+                [
+                    f"Area for improvement: {weakness}"
+                    for weakness in evaluation["weaknesses"]
+                ]
             )
 
         # Extract insights from the antithesis
@@ -496,17 +554,16 @@ class WSDEMemoryIntegration:
                     "text": insight,
                     "task_id": task_id,
                     "timestamp": datetime.now().isoformat(),
-                    "source": "dialectical_process"
+                    "source": "dialectical_process",
                 },
-                "relationships": []
+                "relationships": [],
             }
 
             # Add domain categorization as a relationship
             domain = self._categorize_insight_by_domain(insight)
-            entry["relationships"].append({
-                "type": "categorized_as",
-                "target": f"domain:{domain}"
-            })
+            entry["relationships"].append(
+                {"type": "categorized_as", "target": f"domain:{domain}"}
+            )
 
             # Add relevance as a property
             relevance = integrated_knowledge["relevance_scores"].get(insight, 0.5)
@@ -517,7 +574,9 @@ class WSDEMemoryIntegration:
         # Store the integrated knowledge in the memory system
         self._store_integrated_knowledge(integrated_knowledge)
 
-        logger.info(f"Successfully integrated {len(integrated_knowledge['key_insights'])} insights from dialectical process")
+        logger.info(
+            f"Successfully integrated {len(integrated_knowledge['key_insights'])} insights from dialectical process"
+        )
         return integrated_knowledge
 
     def _categorize_insight_by_domain(self, insight: str) -> str:
@@ -535,13 +594,75 @@ class WSDEMemoryIntegration:
 
         # Define domain keywords for categorization
         domain_keywords = {
-            "security": ["security", "authentication", "authorization", "vulnerability", "exploit", "password", "encryption", "csrf", "xss"],
-            "performance": ["performance", "speed", "latency", "throughput", "optimization", "efficient", "slow", "fast", "bottleneck"],
-            "maintainability": ["maintainability", "readability", "documentation", "comment", "structure", "organization", "clean", "technical debt"],
-            "reliability": ["reliability", "error handling", "exception", "fault tolerance", "recovery", "robustness", "stability"],
-            "usability": ["usability", "user experience", "ux", "interface", "accessibility", "intuitive", "user-friendly"],
-            "scalability": ["scalability", "scale", "load", "concurrent", "distributed", "horizontal", "vertical"],
-            "testability": ["testability", "test", "mock", "stub", "assertion", "coverage", "unit test", "integration test"]
+            "security": [
+                "security",
+                "authentication",
+                "authorization",
+                "vulnerability",
+                "exploit",
+                "password",
+                "encryption",
+                "csrf",
+                "xss",
+            ],
+            "performance": [
+                "performance",
+                "speed",
+                "latency",
+                "throughput",
+                "optimization",
+                "efficient",
+                "slow",
+                "fast",
+                "bottleneck",
+            ],
+            "maintainability": [
+                "maintainability",
+                "readability",
+                "documentation",
+                "comment",
+                "structure",
+                "organization",
+                "clean",
+                "technical debt",
+            ],
+            "reliability": [
+                "reliability",
+                "error handling",
+                "exception",
+                "fault tolerance",
+                "recovery",
+                "robustness",
+                "stability",
+            ],
+            "usability": [
+                "usability",
+                "user experience",
+                "ux",
+                "interface",
+                "accessibility",
+                "intuitive",
+                "user-friendly",
+            ],
+            "scalability": [
+                "scalability",
+                "scale",
+                "load",
+                "concurrent",
+                "distributed",
+                "horizontal",
+                "vertical",
+            ],
+            "testability": [
+                "testability",
+                "test",
+                "mock",
+                "stub",
+                "assertion",
+                "coverage",
+                "unit test",
+                "integration test",
+            ],
         }
 
         # Check each domain for keyword matches
@@ -552,7 +673,9 @@ class WSDEMemoryIntegration:
         # Default domain if no matches found
         return "general"
 
-    def _calculate_insight_relevance(self, insight: str, synthesis: Dict[str, Any]) -> float:
+    def _calculate_insight_relevance(
+        self, insight: str, synthesis: Dict[str, Any]
+    ) -> float:
         """
         Calculate the relevance score of an insight based on whether it was addressed in the synthesis.
 
@@ -582,7 +705,11 @@ class WSDEMemoryIntegration:
         if "content" in synthesis:
             insight_words = set(insight.lower().split())
             content_words = set(synthesis["content"].lower().split())
-            word_overlap = len(insight_words.intersection(content_words)) / len(insight_words) if insight_words else 0
+            word_overlap = (
+                len(insight_words.intersection(content_words)) / len(insight_words)
+                if insight_words
+                else 0
+            )
             if word_overlap > 0.5:
                 relevance = max(relevance, 0.7)
 
@@ -605,8 +732,8 @@ class WSDEMemoryIntegration:
                 "timestamp": integrated_knowledge["timestamp"],
                 "source": "dialectical_process",
                 "num_insights": len(integrated_knowledge["key_insights"]),
-                "domains": list(integrated_knowledge["domain_categories"].keys())
-            }
+                "domains": list(integrated_knowledge["domain_categories"].keys()),
+            },
         )
 
         # Store the knowledge in memory
@@ -620,11 +747,11 @@ class WSDEMemoryIntegration:
             for entry in integrated_knowledge["knowledge_graph_entries"]:
                 try:
                     memory_store.add_to_graph(
-                        entry["concept"],
-                        entry["properties"],
-                        entry["relationships"]
+                        entry["concept"], entry["properties"], entry["relationships"]
                     )
-                    logger.info(f"Added knowledge graph entry for concept {entry['concept']}")
+                    logger.info(
+                        f"Added knowledge graph entry for concept {entry['concept']}"
+                    )
                 except Exception as e:
                     logger.error(f"Failed to add knowledge graph entry: {str(e)}")
 
@@ -645,7 +772,7 @@ class WSDEMemoryIntegration:
         query = {
             "memory_type": MemoryType.KNOWLEDGE,
             "metadata.task_id": task_id,
-            "metadata.source": "dialectical_process"
+            "metadata.source": "dialectical_process",
         }
 
         # Execute the query
@@ -658,7 +785,11 @@ class WSDEMemoryIntegration:
                 content = json.loads(result.content)
                 knowledge_items.append(content)
             except json.JSONDecodeError:
-                logger.warning(f"Failed to parse integrated knowledge content for item {result.id}")
+                logger.warning(
+                    f"Failed to parse integrated knowledge content for item {result.id}"
+                )
 
-        logger.info(f"Retrieved {len(knowledge_items)} integrated knowledge items for task {task_id}")
+        logger.info(
+            f"Retrieved {len(knowledge_items)} integrated knowledge items for task {task_id}"
+        )
         return knowledge_items

@@ -1,44 +1,47 @@
-import pytest
-from unittest.mock import MagicMock
 import sys
 import types
-argon2_mod = types.ModuleType('argon2')
-setattr(argon2_mod, 'PasswordHasher', object)
-exceptions_mod = types.ModuleType('exceptions')
-setattr(exceptions_mod, 'VerifyMismatchError', type('VerifyMismatchError',
-    (), {}))
-setattr(argon2_mod, 'exceptions', exceptions_mod)
-sys.modules.setdefault('argon2', argon2_mod)
-sys.modules.setdefault('argon2.exceptions', exceptions_mod)
-sys.modules.setdefault('requests', types.ModuleType('requests'))
-crypto_mod = types.ModuleType('cryptography')
-fernet_mod = types.ModuleType('fernet')
-setattr(fernet_mod, 'Fernet', object)
+from unittest.mock import MagicMock
+
+import pytest
+
+argon2_mod = types.ModuleType("argon2")
+setattr(argon2_mod, "PasswordHasher", object)
+exceptions_mod = types.ModuleType("exceptions")
+setattr(exceptions_mod, "VerifyMismatchError", type("VerifyMismatchError", (), {}))
+setattr(argon2_mod, "exceptions", exceptions_mod)
+sys.modules.setdefault("argon2", argon2_mod)
+sys.modules.setdefault("argon2.exceptions", exceptions_mod)
+sys.modules.setdefault("requests", types.ModuleType("requests"))
+crypto_mod = types.ModuleType("cryptography")
+fernet_mod = types.ModuleType("fernet")
+setattr(fernet_mod, "Fernet", object)
 crypto_mod.fernet = fernet_mod
-sys.modules.setdefault('cryptography', crypto_mod)
-sys.modules.setdefault('cryptography.fernet', fernet_mod)
-sys.modules.setdefault('jsonschema', types.ModuleType('jsonschema'))
-rdflib_mod = types.ModuleType('rdflib')
-setattr(rdflib_mod, 'Graph', object)
-setattr(rdflib_mod, 'Literal', object)
-setattr(rdflib_mod, 'URIRef', object)
-setattr(rdflib_mod, 'Namespace', object)
-setattr(rdflib_mod, 'RDF', object)
-setattr(rdflib_mod, 'RDFS', object)
-setattr(rdflib_mod, 'XSD', object)
-namespace_mod = types.ModuleType('namespace')
-setattr(namespace_mod, 'FOAF', object)
-setattr(namespace_mod, 'DC', object)
+sys.modules.setdefault("cryptography", crypto_mod)
+sys.modules.setdefault("cryptography.fernet", fernet_mod)
+sys.modules.setdefault("jsonschema", types.ModuleType("jsonschema"))
+rdflib_mod = types.ModuleType("rdflib")
+setattr(rdflib_mod, "Graph", object)
+setattr(rdflib_mod, "Literal", object)
+setattr(rdflib_mod, "URIRef", object)
+setattr(rdflib_mod, "Namespace", object)
+setattr(rdflib_mod, "RDF", object)
+setattr(rdflib_mod, "RDFS", object)
+setattr(rdflib_mod, "XSD", object)
+namespace_mod = types.ModuleType("namespace")
+setattr(namespace_mod, "FOAF", object)
+setattr(namespace_mod, "DC", object)
 rdflib_mod.namespace = namespace_mod
-sys.modules.setdefault('rdflib', rdflib_mod)
-sys.modules.setdefault('rdflib.namespace', namespace_mod)
-from devsynth.application.edrr.coordinator import EDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.memory.memory_manager import MemoryManager
+sys.modules.setdefault("rdflib", rdflib_mod)
+sys.modules.setdefault("rdflib.namespace", namespace_mod)
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
-from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class SimpleAgent:
@@ -49,14 +52,14 @@ class SimpleAgent:
         self.current_role = None
 
     def process(self, task):
-        return {'processed_by': self.name}
+        return {"processed_by": self.name}
 
 
 @pytest.fixture
 def coordinator():
-    team = WSDETeam(name='TestEdrrMicroCycleContextTeam')
-    team.add_agent(SimpleAgent('agent1'))
-    team.generate_diverse_ideas = MagicMock(return_value=['idea'])
+    team = WSDETeam(name="TestEdrrMicroCycleContextTeam")
+    team.add_agent(SimpleAgent("agent1"))
+    team.generate_diverse_ideas = MagicMock(return_value=["idea"])
     team.create_comparison_matrix = MagicMock(return_value={})
     team.evaluate_options = MagicMock(return_value=[])
     team.analyze_trade_offs = MagicMock(return_value=[])
@@ -76,33 +79,42 @@ def coordinator():
     mm.retrieve_historical_patterns.return_value = []
     analyzer = MagicMock(spec=CodeAnalyzer)
     analyzer.analyze_project_structure.return_value = []
-    return EDRRCoordinator(memory_manager=mm, wsde_team=team, code_analyzer
-        =analyzer, ast_transformer=MagicMock(spec=AstTransformer),
-        prompt_manager=MagicMock(spec=PromptManager), documentation_manager
-        =MagicMock(spec=DocumentationManager), enable_enhanced_logging=False)
+    return EDRRCoordinator(
+        memory_manager=mm,
+        wsde_team=team,
+        code_analyzer=analyzer,
+        ast_transformer=MagicMock(spec=AstTransformer),
+        prompt_manager=MagicMock(spec=PromptManager),
+        documentation_manager=MagicMock(spec=DocumentationManager),
+        enable_enhanced_logging=False,
+    )
 
 
 def test_micro_tasks_context_spawns_cycles_succeeds(coordinator):
     """Test that micro tasks context spawns cycles succeeds.
 
-ReqID: N/A"""
-    coordinator.start_cycle({'description': 'macro'})
-    context = {'micro_tasks': [{'description': 'm1'}, {'description': 'm2'}]}
+    ReqID: N/A"""
+    coordinator.start_cycle({"description": "macro"})
+    context = {"micro_tasks": [{"description": "m1"}, {"description": "m2"}]}
     results = coordinator.execute_current_phase(context)
     assert len(coordinator.child_cycles) == 2
-    assert len(results['micro_cycle_results']) == 2
+    assert len(results["micro_cycle_results"]) == 2
 
 
 def test_nested_micro_tasks_create_recursive_cycles_succeeds(coordinator):
     """Test that nested micro tasks create recursive cycles succeeds.
 
-ReqID: N/A"""
-    coordinator.start_cycle({'description': 'macro'})
-    context = {'micro_tasks': [{'description': 'm1', 'micro_tasks': [{
-        'description': 'm1-child'}]}]}
+    ReqID: N/A"""
+    coordinator.start_cycle({"description": "macro"})
+    context = {
+        "micro_tasks": [
+            {"description": "m1", "micro_tasks": [{"description": "m1-child"}]}
+        ]
+    }
     results = coordinator.execute_current_phase(context)
     assert len(coordinator.child_cycles) == 1
     child = coordinator.child_cycles[0]
     assert len(child.child_cycles) == 1
-    assert len(results['micro_cycle_results'][child.cycle_id][
-        'micro_cycle_results']) == 1
+    assert (
+        len(results["micro_cycle_results"][child.cycle_id]["micro_cycle_results"]) == 1
+    )

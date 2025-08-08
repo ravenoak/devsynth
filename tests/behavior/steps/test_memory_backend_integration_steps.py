@@ -5,10 +5,11 @@ This file implements the step definitions for the memory backend integration
 feature file, testing all available memory backends with the WSDE model.
 """
 
-import pytest
-import time
-import os
 import logging
+import os
+import time
+
+import pytest
 
 chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
     "0",
@@ -17,19 +18,20 @@ chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
 }
 if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
-from pytest_bdd import given, when, then, parsers, scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
 scenarios("../features/general/memory_backend_integration.feature")
 
-# Import the modules needed for the steps
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 
+# Import the modules needed for the steps
+from devsynth.domain.models.wsde_facade import WSDETeam
+
 logger = logging.getLogger(__name__)
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
@@ -272,7 +274,9 @@ def retrieve_solution_from_backend(context):
 
 
 @pytest.mark.medium
-@then(    "I should be able to retrieve the dialectical reasoning result from the memory backend")
+@then(
+    "I should be able to retrieve the dialectical reasoning result from the memory backend"
+)
 def retrieve_dialectical_result_from_backend(context):
     """Retrieve the dialectical reasoning result from the memory backend."""
     # Query for dialectical reasoning memory items
@@ -433,7 +437,11 @@ def store_solution_in_named_backend(context, backend_name):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        'I store a dialectical reasoning result in the "{backend_name}" backend'    ))
+@when(
+    parsers.parse(
+        'I store a dialectical reasoning result in the "{backend_name}" backend'
+    )
+)
 def store_dialectical_result_in_named_backend(context, backend_name):
     """Store a dialectical reasoning result in the specified backend."""
     # Create a dialectical reasoning result
@@ -537,7 +545,9 @@ def retrieve_all_artifacts_from_backends(context):
 
 
 @pytest.mark.medium
-@then(    "I should be able to traverse relationships between artifacts in different backends")
+@then(
+    "I should be able to traverse relationships between artifacts in different backends"
+)
 def traverse_relationships_between_artifacts(context):
     """Traverse relationships between artifacts in different backends."""
     # Query for relationships in the file backend
@@ -576,7 +586,9 @@ def traverse_relationships_between_artifacts(context):
 
 
 @pytest.mark.medium
-@then(    "the relationship metadata should correctly identify the source and target backends")
+@then(
+    "the relationship metadata should correctly identify the source and target backends"
+)
 def verify_relationship_metadata(context):
     """Verify that relationship metadata correctly identifies source and target backends."""
     # Query for relationships in the file backend

@@ -1,30 +1,30 @@
-from pathlib import Path
 import json
 import time
-from typing import Dict, Any, Optional, List, Union
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 from tqdm import tqdm
 
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
-
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.memory.adapters.tinydb_memory_adapter import (
-    TinyDBMemoryAdapter,
-)
-from devsynth.domain.models.wsde import WSDETeam
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.core import run_pipeline
-from devsynth.methodology.base import Phase
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.exceptions import DevSynthError
 from devsynth.core.config_loader import load_config
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.exceptions import DevSynthError
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
 # Default bridge for CLI output
@@ -32,12 +32,12 @@ bridge: UXBridge = CLIUXBridge()
 
 
 def edrr_cycle_cmd(
-    manifest: Optional[str] = None, 
+    manifest: Optional[str] = None,
     prompt: Optional[str] = None,
     context: Optional[str] = None,
     max_iterations: int = 3,
     auto: bool = True,
-    bridge: Optional[UXBridge] = None
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Run an enhanced EDRR cycle from a manifest file or a prompt.
 
@@ -78,7 +78,9 @@ def edrr_cycle_cmd(
     try:
         # Validate input parameters
         if not manifest and not prompt:
-            ux_bridge.print("[red]Error:[/red] Either manifest or prompt must be provided")
+            ux_bridge.print(
+                "[red]Error:[/red] Either manifest or prompt must be provided"
+            )
             return
 
         # Initialize components
@@ -119,7 +121,9 @@ def edrr_cycle_cmd(
                 ux_bridge.print(f"[red]Manifest file not found:[/red] {manifest_path}")
                 return
 
-            ux_bridge.print(f"[bold]Starting EDRR cycle from manifest:[/bold] {manifest}")
+            ux_bridge.print(
+                f"[bold]Starting EDRR cycle from manifest:[/bold] {manifest}"
+            )
             coordinator.start_cycle_from_manifest(manifest_path, is_file=True)
         else:
             # Create a task dictionary from the prompt and context

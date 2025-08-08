@@ -1,13 +1,13 @@
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, scenarios, then, when
 
-from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 scenarios("../features/wsde_peer_review.feature")
 
@@ -38,9 +38,7 @@ def wsde_enabled(context):
 @given("a simple work product and two reviewers")
 def simple_work_and_reviewers(context):
     author = UnifiedAgent()
-    author.initialize(
-        AgentConfig(name="author", agent_type=AgentType.ORCHESTRATOR)
-    )
+    author.initialize(AgentConfig(name="author", agent_type=AgentType.ORCHESTRATOR))
     r1 = UnifiedAgent()
     r1.initialize(AgentConfig(name="rev1", agent_type=AgentType.ORCHESTRATOR))
     r2 = UnifiedAgent()
@@ -98,9 +96,7 @@ def voting_result_setup(context):
 
 @when("the team summarizes the voting result")
 def team_summarizes_vote(context):
-    context.vote_summary = context.team.summarize_voting_result(
-        context.voting_result
-    )
+    context.vote_summary = context.team.summarize_voting_result(context.voting_result)
 
 
 @then("the summary should mention the winning option")

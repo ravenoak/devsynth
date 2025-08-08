@@ -1,31 +1,35 @@
 from __future__ import annotations
 
-from pytest_bdd import given, when, then, parsers
-from pytest_bdd import scenarios
 import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the scenarios from the feature file
-scenarios('../features/general/micro_edrr_cycle.feature')
+scenarios("../features/general/micro_edrr_cycle.feature")
+
+import json
 
 # Import the necessary components
 import os
-import json
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
-from devsynth.methodology.base import Phase
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.wsde import WSDETeam
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.requirements.prompt_manager import PromptManager
-from devsynth.application.documentation.documentation_manager import DocumentationManager
+from devsynth.application.documentation.documentation_manager import (
+    DocumentationManager,
+)
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.requirements.prompt_manager import PromptManager
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 @pytest.fixture
 def context():
     """Fixture that provides a context object for the tests."""
+
     class Context:
         def __init__(self):
             """Initialize the context with empty attributes."""
@@ -88,7 +92,9 @@ def edrr_coordinator_initialized(context):
 
     # Initialize documentation manager
     context.documentation_manager = DocumentationManager()
-    assert context.documentation_manager is not None, "Documentation manager initialization failed"
+    assert (
+        context.documentation_manager is not None
+    ), "Documentation manager initialization failed"
 
     # Initialize EDRR coordinator
     context.edrr_coordinator = EDRRCoordinator(
@@ -98,9 +104,11 @@ def edrr_coordinator_initialized(context):
         ast_transformer=context.ast_transformer,
         prompt_manager=context.prompt_manager,
         documentation_manager=context.documentation_manager,
-        enable_enhanced_logging=True
+        enable_enhanced_logging=True,
     )
-    assert context.edrr_coordinator is not None, "EDRR coordinator initialization failed"
+    assert (
+        context.edrr_coordinator is not None
+    ), "EDRR coordinator initialization failed"
 
     # Store the parent cycle for later reference
     context.parent_cycle = context.edrr_coordinator
@@ -130,12 +138,20 @@ def start_edrr_cycle(context, task_description):
 
     # Verify that the cycle was started successfully
     assert context.cycle_id is not None, "EDRR cycle ID should not be None"
-    assert context.edrr_coordinator.current_phase is not None, "EDRR cycle should have a current phase"
-    assert context.edrr_coordinator.results is not None, "EDRR cycle should have results dictionary initialized"
+    assert (
+        context.edrr_coordinator.current_phase is not None
+    ), "EDRR cycle should have a current phase"
+    assert (
+        context.edrr_coordinator.results is not None
+    ), "EDRR cycle should have results dictionary initialized"
 
 
 @pytest.mark.medium
-@when(parsers.parse('I create a micro cycle for "{sub_task_description}" in phase "{phase_name}"'))
+@when(
+    parsers.parse(
+        'I create a micro cycle for "{sub_task_description}" in phase "{phase_name}"'
+    )
+)
 def create_micro_cycle(context, sub_task_description, phase_name):
     """
     Create a micro cycle for the given sub-task in the specified phase.
@@ -158,20 +174,21 @@ def create_micro_cycle(context, sub_task_description, phase_name):
         context.edrr_coordinator.progress_to_phase(context.phase)
 
     # Verify that we're in the correct phase
-    assert context.edrr_coordinator.current_phase == context.phase, \
-        f"Expected to be in phase {context.phase}, but current phase is {context.edrr_coordinator.current_phase}"
+    assert (
+        context.edrr_coordinator.current_phase == context.phase
+    ), f"Expected to be in phase {context.phase}, but current phase is {context.edrr_coordinator.current_phase}"
 
     # Create the micro cycle
     context.micro_cycle = context.edrr_coordinator.create_micro_cycle(
-        {"description": sub_task_description},
-        context.phase
+        {"description": sub_task_description}, context.phase
     )
 
     # Verify that the micro cycle was created successfully
     assert context.micro_cycle is not None, "Micro cycle should not be None"
     assert context.micro_cycle.cycle_id is not None, "Micro cycle ID should not be None"
-    assert context.micro_cycle.parent_cycle_id == context.edrr_coordinator.cycle_id, \
-        "Micro cycle should have the parent cycle ID as its parent_cycle_id"
+    assert (
+        context.micro_cycle.parent_cycle_id == context.edrr_coordinator.cycle_id
+    ), "Micro cycle should have the parent cycle ID as its parent_cycle_id"
 
 
 @pytest.mark.medium
@@ -192,12 +209,14 @@ def verify_recursion_depth(context, depth):
     assert context.micro_cycle is not None, "Micro cycle was not created"
 
     # Verify that the micro cycle has the expected recursion depth
-    assert context.micro_cycle.recursion_depth == depth, \
-        f"Expected recursion depth {depth}, but got {context.micro_cycle.recursion_depth}"
+    assert (
+        context.micro_cycle.recursion_depth == depth
+    ), f"Expected recursion depth {depth}, but got {context.micro_cycle.recursion_depth}"
 
     # Verify that the recursion depth is greater than the parent cycle's recursion depth
-    assert context.micro_cycle.recursion_depth > context.parent_cycle.recursion_depth, \
-        "Micro cycle recursion depth should be greater than parent cycle recursion depth"
+    assert (
+        context.micro_cycle.recursion_depth > context.parent_cycle.recursion_depth
+    ), "Micro cycle recursion depth should be greater than parent cycle recursion depth"
 
 
 @pytest.mark.medium
@@ -220,25 +239,40 @@ def verify_parent_includes_micro(context):
     assert context.micro_cycle is not None, "Micro cycle was not created"
 
     # Verify that the micro cycle is in the parent cycle's child_cycles list
-    assert context.micro_cycle.cycle_id in [cycle.cycle_id for cycle in context.parent_cycle.child_cycles], \
-        "Parent cycle does not include the micro cycle in its child_cycles list"
+    assert context.micro_cycle.cycle_id in [
+        cycle.cycle_id for cycle in context.parent_cycle.child_cycles
+    ], "Parent cycle does not include the micro cycle in its child_cycles list"
 
     # Verify that the micro cycle is stored in the parent's results
     phase_key = context.phase.name
-    assert phase_key in context.parent_cycle.results, \
-        f"Phase {phase_key} not found in parent cycle results"
-    assert "micro_cycle_results" in context.parent_cycle.results[phase_key], \
-        "micro_cycle_results not found in parent cycle phase results"
-    assert context.micro_cycle.cycle_id in context.parent_cycle.results[phase_key]["micro_cycle_results"], \
-        "Micro cycle ID not found in parent cycle micro_cycle_results"
+    assert (
+        phase_key in context.parent_cycle.results
+    ), f"Phase {phase_key} not found in parent cycle results"
+    assert (
+        "micro_cycle_results" in context.parent_cycle.results[phase_key]
+    ), "micro_cycle_results not found in parent cycle phase results"
+    assert (
+        context.micro_cycle.cycle_id
+        in context.parent_cycle.results[phase_key]["micro_cycle_results"]
+    ), "Micro cycle ID not found in parent cycle micro_cycle_results"
 
     # Verify that the micro cycle task is stored correctly
-    assert "task" in context.parent_cycle.results[phase_key]["micro_cycle_results"][context.micro_cycle.cycle_id], \
-        "Task not found in micro cycle results"
-    assert context.parent_cycle.results[phase_key]["micro_cycle_results"][context.micro_cycle.cycle_id]["task"]["description"] == context.sub_task_description, \
-        "Micro cycle task description does not match"
+    assert (
+        "task"
+        in context.parent_cycle.results[phase_key]["micro_cycle_results"][
+            context.micro_cycle.cycle_id
+        ]
+    ), "Task not found in micro cycle results"
+    assert (
+        context.parent_cycle.results[phase_key]["micro_cycle_results"][
+            context.micro_cycle.cycle_id
+        ]["task"]["description"]
+        == context.sub_task_description
+    ), "Micro cycle task description does not match"
 
     # Verify that the parent cycle has a reference to the micro cycle's memory items
     # This is important for result aggregation
-    memory_items = context.memory_manager.query_by_metadata({"cycle_id": context.micro_cycle.cycle_id})
+    memory_items = context.memory_manager.query_by_metadata(
+        {"cycle_id": context.micro_cycle.cycle_id}
+    )
     assert len(memory_items) > 0, "Micro cycle should have memory items"

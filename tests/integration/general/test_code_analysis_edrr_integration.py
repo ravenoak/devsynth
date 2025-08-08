@@ -7,29 +7,31 @@ within the EDRR framework to analyze and transform code during the development p
 """
 
 import os
-import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
-from devsynth.domain.models.wsde import WSDETeam
-from devsynth.application.memory.memory_manager import MemoryManager
+
+import pytest
+
+from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.ast_workflow_integration import (
+    AstWorkflowIntegration,
+)
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
 )
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.application.code_analysis.transformer import CodeTransformer
-from devsynth.application.code_analysis.ast_workflow_integration import (
-    AstWorkflowIntegration,
-)
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.methodology.base import Phase
+from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 
 def test_agent_type_expert_exists():

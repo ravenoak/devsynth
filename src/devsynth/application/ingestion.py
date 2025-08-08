@@ -5,32 +5,32 @@ This module implements the "Expand, Differentiate, Refine, Retrospect" methodolo
 enabling DevSynth to understand and adapt to project structures as defined in .devsynth/project.yaml.
 """
 
-import os
 import json
-import yaml
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+import os
 import time
 from datetime import datetime
-import networkx as nx
 from enum import Enum, auto
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-from devsynth.application.edrr.coordinator import EDRRCoordinator
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.application.memory.adapters.tinydb_memory_adapter import (
-    TinyDBMemoryAdapter,
-)
-from devsynth.domain.models.wsde import WSDETeam
+import networkx as nx
+import yaml
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
-from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.methodology.base import Phase
-
+from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+    TinyDBMemoryAdapter,
+)
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import IngestionError, ManifestError
 from devsynth.logging_setup import get_logger
+from devsynth.methodology.base import Phase
 
 # Initialize logger
 logger = get_logger(__name__)

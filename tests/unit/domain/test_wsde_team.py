@@ -1,6 +1,8 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from devsynth.domain.models.wsde import WSDETeam
+
+import pytest
+
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.fixture
@@ -177,9 +179,11 @@ def test_vote_on_critical_decision_coverage_succeeds():
 
     ReqID: N/A"""
     import inspect
-    import coverage
     from types import SimpleNamespace
-    import devsynth.domain.models.wsde as wsde
+
+    import coverage
+
+    import devsynth.domain.models.wsde_facade as wsde
 
     team = wsde.WSDETeam(name="TestWsdeTeamTeam")
     a1 = SimpleNamespace(
@@ -297,8 +301,10 @@ def test_select_primus_coverage_succeeds(team_with_agents):
 
     ReqID: N/A"""
     import inspect
+
     import coverage
-    import devsynth.domain.models.wsde as wsde
+
+    import devsynth.domain.models.wsde_facade as wsde
 
     team, doc, coder, tester = team_with_agents
     cov = coverage.Coverage()

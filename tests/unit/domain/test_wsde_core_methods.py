@@ -1,7 +1,8 @@
+import types
+
 import pytest
 
-import types
-from devsynth.domain.models.wsde import WSDETeam
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class DummyAgent:
