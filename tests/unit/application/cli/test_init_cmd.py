@@ -1,7 +1,7 @@
 """Tests for the ``init`` CLI command and related help output."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import click
 import pytest
@@ -97,6 +97,38 @@ def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
         init_cmd(wizard=True)
         wiz.assert_called_once()
         wiz.return_value.run.assert_called_once()
+
+
+@pytest.mark.medium
+def test_init_cmd_defaults_non_interactive_skips_prompts(tmp_path, monkeypatch):
+    """``--defaults`` and ``--non-interactive`` skip prompts and use defaults."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("DEVSYNTH_NONINTERACTIVE", raising=False)
+
+    bridge = CLIUXBridge()
+    bridge.ask_question = MagicMock()
+    bridge.confirm_choice = MagicMock()
+
+    printed: list[str] = []
+    monkeypatch.setattr(
+        "rich.console.Console.print",
+        lambda self, msg, *, highlight=False: printed.append(str(msg)),
+    )
+
+    init_cmd(defaults=True, non_interactive=True, bridge=bridge)
+
+    cfg_file = tmp_path / ".devsynth" / "project.yaml"
+    data = _load_config(cfg_file)
+
+    assert data["project_root"] == str(tmp_path)
+    assert data["language"] == "python"
+    assert data["goals"] == ""
+    assert data["memory_store_type"] == "memory"
+    assert data["offline_mode"] is False
+    bridge.ask_question.assert_not_called()
+    bridge.confirm_choice.assert_not_called()
+    assert any("Initialization complete" in msg for msg in printed)
 
 
 @pytest.mark.medium

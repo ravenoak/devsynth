@@ -4,18 +4,20 @@ Documentation Ingestion Module
 This module provides components for ingesting and processing documentation from various sources.
 """
 
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-import os
-import json
-import re
-import requests
-from datetime import datetime
 import hashlib
+import json
+import os
+import re
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+import requests
+
+from devsynth.exceptions import DevSynthError
 
 from ...domain.models.memory import MemoryItem, MemoryType
 from ...logging_setup import DevSynthLogger
-from devsynth.exceptions import DevSynthError
 
 logger = DevSynthLogger(__name__)
 
@@ -474,10 +476,28 @@ class DocumentationIngestionManager:
         self,
         project_root: Union[str, Path] | None = None,
         manifest_path: Union[str, Path] | None = None,
+        docs_dirs: Optional[List[str]] = None,
+        non_interactive: bool = False,
     ) -> List[Dict[str, Any]]:
-        """Ingest documentation based on ``.devsynth/project.yaml``."""
+        """Ingest documentation based on ``.devsynth/project.yaml``.
+
+        Args:
+            project_root: Root directory of the project. Defaults to the current
+                working directory.
+            manifest_path: Optional path to a manifest file. When provided the
+                project configuration is loaded relative to this file.
+            docs_dirs: Optional list of documentation directories to ingest.
+                If not supplied, uses the ``docs`` directories defined in the
+                project configuration or ``["docs"]`` as a fallback.
+            non_interactive: When ``True`` disables interactive prompts for
+                automation and sets the ``DEVSYNTH_NONINTERACTIVE`` environment
+                variable.
+        """
 
         from devsynth.config import load_project_config
+
+        if non_interactive:
+            os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
 
         root = Path(project_root or os.getcwd())
 
@@ -486,7 +506,7 @@ class DocumentationIngestionManager:
         else:
             config = load_project_config(root)
 
-        docs_dirs = config.config.directories.get("docs", ["docs"])
+        docs_dirs = docs_dirs or config.config.directories.get("docs", ["docs"])
         results: List[Dict[str, Any]] = []
 
         for rel in docs_dirs:
