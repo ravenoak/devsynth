@@ -66,9 +66,16 @@ def test_gather_updates_config_succeeds(tmp_path, monkeypatch):
             pass
 
     bridge = Bridge()
-    gather_requirements(bridge, output_file="requirements_plan.yaml")
+    output = tmp_path / "requirements_plan.yaml"
+    gather_requirements(bridge, output_file=str(output))
+
     cfg_path = tmp_path / ".devsynth" / "project.yaml"
-    data = yaml.safe_load(open(cfg_path))
+    data = yaml.safe_load(open(cfg_path, encoding="utf-8"))
     assert data.get("priority") == "high"
     assert data.get("goals") == "goal1"
     assert data.get("constraints") == "constraint1"
+
+    plan = yaml.safe_load(open(output, encoding="utf-8"))
+    assert plan["priority"] == "high"
+    assert plan["goals"] == ["goal1"]
+    assert plan["constraints"] == ["constraint1"]

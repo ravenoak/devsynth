@@ -17,8 +17,8 @@ from pathlib import Path
 from devsynth.logging_setup import (
     DevSynthLogger,
     JSONFormatter,
-    set_request_context,
     clear_request_context,
+    set_request_context,
 )
 
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
