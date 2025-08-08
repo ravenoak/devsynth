@@ -13,6 +13,7 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Any, Dict
 
 from devsynth.logging_setup import (
     DevSynthLogger,
@@ -101,10 +102,27 @@ def setup_logging(name: str, log_level: int | str | None = None) -> DevSynthLogg
     return DevSynthLogger(name)
 
 
+def log_consensus_failure(
+    logger: DevSynthLogger, error: Exception, extra: Dict[str, Any] | None = None
+) -> None:
+    """Log a consensus failure using ``logger``.
+
+    Args:
+        logger: Logger instance to emit the log.
+        error: The exception that triggered the failure.
+        extra: Optional additional context for the log record.
+    """
+    data: Dict[str, Any] = {"error": str(error)}
+    if extra:
+        data.update(extra)
+    logger.error("Consensus failure", extra=data)
+
+
 __all__ = [
     "configure_logging",
     "get_logger",
     "setup_logging",
+    "log_consensus_failure",
     "DevSynthLogger",
     "set_request_context",
     "clear_request_context",

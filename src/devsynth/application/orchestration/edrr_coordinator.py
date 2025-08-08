@@ -2,10 +2,8 @@
 
 from typing import Any, Callable, Dict, List, Optional
 
-from devsynth.domain.models.wsde_dialectical import (
-    apply_dialectical_reasoning as _apply_dialectical_reasoning,
-)
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.dialectical_reasoning import reasoning_loop
 
 logger = DevSynthLogger(__name__)
 
@@ -64,8 +62,6 @@ class EDRRCoordinator:
             Result from :func:`apply_dialectical_reasoning`.
         """
         logger.info("EDRRCoordinator invoking dialectical reasoning")
-        result = _apply_dialectical_reasoning(
-            self.wsde_team, task, critic_agent, memory_integration
-        )
+        results = reasoning_loop(self.wsde_team, task, critic_agent, memory_integration)
         self._sync_memory()
-        return result
+        return results[-1] if results else {}
