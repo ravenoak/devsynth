@@ -365,7 +365,11 @@ class EDRRCoordinator:
                 review.collect_reviews()
             if hasattr(review, "finalize"):
                 review.finalize(approved=True)
-            result = getattr(review, "reviews", {})
+            result = {
+                "status": getattr(review, "status", None),
+                "quality_score": getattr(review, "quality_score", None),
+                "reviews": getattr(review, "reviews", {}),
+            }
             self._safe_store_with_edrr_phase(
                 result,
                 MemoryType.PEER_REVIEW,
