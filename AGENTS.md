@@ -37,6 +37,35 @@ reports missing packages, rerun `scripts/codex_setup.sh` or
 `poetry install --with dev --extras tests` to install the required
 dependencies.
 
+## Dependency Validation
+
+After setting up the environment with `scripts/codex_setup.sh` or `poetry install`,
+confirm that dependencies are consistent and that test extras are present:
+
+```bash
+poetry run pip check
+poetry run pip list | grep pytest-bdd
+```
+
+These commands surface version conflicts and verify that the `pytest-bdd` plugin
+needed for behavior-driven tests is installed.
+
+## Troubleshooting Test Collection Failures
+
+If `poetry run pytest` fails during the collection phase (e.g., missing modules or
+plugin import errors), rerun the setup script to reinstall dependencies:
+
+```bash
+bash scripts/codex_setup.sh
+poetry run pip check
+poetry run pip list | grep pytest-bdd
+poetry run pytest --maxfail=1
+```
+
+Rerun the script until the checks and test collection succeed. If a
+`CODEX_ENVIRONMENT_SETUP_FAILED` file is present, address the issues, rerun the
+script, and remove the marker once the setup completes.
+
 ## GitHub Actions Workflows
 
 All GitHub Actions workflows are disabled at this time. You may add or modify workflow files under `.github/workflows/`, but they must remain disabled. Never enable any workflow; all new workflows must be created in a disabled state.
