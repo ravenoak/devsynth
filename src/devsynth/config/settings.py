@@ -183,8 +183,10 @@ class Settings(BaseSettings):
     kuzu_db_path: Optional[str] = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_KUZU_DB_PATH"}
     )
-    # Enable or disable the embedded KuzuDB backend. When set to ``False``
-    # the system will always fall back to the in-memory implementation.
+    # Enable or disable the embedded KuzuDB backend.  When set to ``False`` the
+    # system always falls back to the lightweight in-memory implementation.  The
+    # value can be overridden via the ``DEVSYNTH_KUZU_EMBEDDED`` environment
+    # variable.
     kuzu_embedded: bool = Field(
         default=True, json_schema_extra={"env": "DEVSYNTH_KUZU_EMBEDDED"}
     )
