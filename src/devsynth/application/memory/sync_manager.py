@@ -360,8 +360,8 @@ class SyncManager:
                 result[f"{target}_to_{source}"] = reverse
         try:
             self.memory_manager._notify_sync_hooks(None)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Peer review failed: %s", exc)
         return result
 
     def synchronize_core(self) -> Dict[str, int]:
@@ -413,8 +413,8 @@ class SyncManager:
         self.stats["synchronized"] += 1
         try:
             self.memory_manager._notify_sync_hooks(item)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Peer review failed: %s", exc)
         return True
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
@@ -425,8 +425,8 @@ class SyncManager:
             self.schedule_flush()
         try:
             self.memory_manager._notify_sync_hooks(item)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Peer review failed: %s", exc)
 
     def flush_queue(self) -> None:
         """Propagate all queued updates."""
@@ -440,8 +440,8 @@ class SyncManager:
             self._queue = []
         try:
             self.memory_manager._notify_sync_hooks(None)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Peer review failed: %s", exc)
 
     async def flush_queue_async(self) -> None:
         """Asynchronously propagate queued updates."""
@@ -456,8 +456,8 @@ class SyncManager:
             self._queue = []
         try:
             self.memory_manager._notify_sync_hooks(None)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Peer review failed: %s", exc)
 
     def schedule_flush(self, delay: float = 0.1) -> None:
         async def _delayed():

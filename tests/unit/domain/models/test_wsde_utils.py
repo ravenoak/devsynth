@@ -1,4 +1,6 @@
-from types import SimpleNamespace
+import logging
+import sys
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -104,3 +106,20 @@ def test_add_solution_appends_and_triggers_hooks():
     assert team.solutions["t1"] == [solution]
     hook.assert_called_once_with(task, [solution])
     assert result == solution
+
+
+def test_request_peer_review_logs_warning_on_failure(monkeypatch, caplog):
+    module_name = "devsynth.application.collaboration.peer_review"
+    fake_module = ModuleType("peer_review")
+    monkeypatch.setitem(sys.modules, module_name, fake_module)
+
+    import devsynth.application.collaboration as collab_pkg
+
+    monkeypatch.delattr(collab_pkg, "peer_review", raising=False)
+
+    team = SimpleNamespace(peer_reviews=[])
+    with caplog.at_level(logging.WARNING):
+        result = request_peer_review(team, "work", "author", [])
+
+    assert result is None
+    assert any("Peer review failed" in r.message for r in caplog.records)
