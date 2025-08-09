@@ -14,6 +14,17 @@ ensure code quality and supply chain safety.
 - **Bandit** – scans the `src` tree for common security issues.
 - **Safety** – checks project dependencies for known vulnerabilities.
 
+## Pre-commit Hooks
+
+`bandit` and `safety` are configured as pre-commit hooks. Run them against
+the files you are modifying:
+
+```bash
+poetry run pre-commit run bandit safety --files path/to/file1.py
+```
+
+Use `--all-files` to scan the entire repository.
+
 ## Running Locally
 
 Run the bundled script to execute both tools:
