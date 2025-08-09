@@ -6,15 +6,16 @@ with WizardState integration, which allows users to capture requirements through
 multi-step wizard with proper state management.
 """
 
-import sys
 import json
+import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
+
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the scenarios from the feature file
-scenarios("../features/webui_requirements_wizard_with_state.feature")
+scenarios("../features/webui/requirements_wizard_with_state.feature")
 
 
 @pytest.fixture
@@ -22,19 +23,19 @@ def wizard_context(monkeypatch):
     """Create a context for the requirements wizard tests."""
     # Create a mock streamlit module
     st = ModuleType("streamlit")
-    
+
     # Create a session state that behaves like a dictionary
     class SessionState(dict):
         def __getattr__(self, name):
             if name in self:
                 return self[name]
             return None
-            
+
         def __setattr__(self, name, value):
             self[name] = value
-    
+
     st.session_state = SessionState()
-    
+
     # Mock common streamlit functions
     st.button = MagicMock(return_value=False)
     st.text_input = MagicMock(return_value="")
@@ -50,7 +51,7 @@ def wizard_context(monkeypatch):
     st.time_input = MagicMock(return_value=None)
     st.file_uploader = MagicMock(return_value=None)
     st.color_picker = MagicMock(return_value="")
-    
+
     # Mock display functions
     st.write = MagicMock()
     st.markdown = MagicMock()
@@ -66,26 +67,28 @@ def wizard_context(monkeypatch):
     st.spinner = MagicMock()
     st.spinner.return_value.__enter__ = MagicMock()
     st.spinner.return_value.__exit__ = MagicMock()
-    
+
     # Mock layout functions
     col1_mock = MagicMock()
     col1_mock.button = MagicMock(return_value=False)
     col2_mock = MagicMock()
     col2_mock.button = MagicMock(return_value=False)
     st.columns = MagicMock(return_value=[col1_mock, col2_mock])
-    
+
     # Patch streamlit
     monkeypatch.setitem(sys.modules, "streamlit", st)
-    
+
     # Import the WebUI class after patching streamlit
     import importlib
+
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
-    
+
     # Create a WebUI instance
     ui = webui.WebUI()
     ui.display_result = MagicMock()
-    
+
     # Create the context
     context = {
         "st": st,
@@ -93,12 +96,12 @@ def wizard_context(monkeypatch):
         "webui": webui,
         "col1": col1_mock,
         "col2": col2_mock,
-        "requirements_data": {}
+        "requirements_data": {},
     }
-    
+
     # Import WizardState after patching streamlit
     from devsynth.interface.webui_state import WizardState
-    
+
     # Create a WizardState instance for the requirements wizard
     wizard_name = "requirements_wizard"
     steps = 5  # Match the actual implementation with 5 steps
@@ -108,32 +111,34 @@ def wizard_context(monkeypatch):
         "type": "Functional",
         "priority": "Medium",
         "constraints": "",
-        "wizard_started": True
+        "wizard_started": True,
     }
-    
+
     # Create the WizardState instance
     state = WizardState(wizard_name, steps, initial_state)
     context["wizard_state"] = state
-    
+
     # Mock the requirements wizard method to use WizardState
     original_requirements_wizard = ui._requirements_wizard
-    
+
     def patched_requirements_wizard():
         """Patched requirements wizard that uses WizardState."""
         # Use the WizardState instance
         nonlocal state
-        
+
         # Display the wizard header
         st.header("Requirements Wizard")
-        
+
         # Get the current step
         current_step = state.get_current_step()
         step_names = ["Title", "Description", "Type", "Priority", "Constraints"]
-        
+
         # Display progress information
-        st.write(f"Step {current_step} of {state.get_total_steps()}: {step_names[current_step - 1]}")
+        st.write(
+            f"Step {current_step} of {state.get_total_steps()}: {step_names[current_step - 1]}"
+        )
         st.progress(current_step / state.get_total_steps())
-        
+
         # Handle each step
         try:
             if current_step == 1:
@@ -142,7 +147,9 @@ def wizard_context(monkeypatch):
                 state.set("title", title)
             elif current_step == 2:
                 # Step 2: Description
-                description = st.text_area("Requirement Description", value=state.get("description", ""))
+                description = st.text_area(
+                    "Requirement Description", value=state.get("description", "")
+                )
                 state.set("description", description)
             elif current_step == 3:
                 # Step 3: Type
@@ -164,40 +171,48 @@ def wizard_context(monkeypatch):
                 except ValueError:
                     index = 0
                     state.set("priority", options[0])
-                selected_priority = st.selectbox("Requirement Priority", options, index=index)
+                selected_priority = st.selectbox(
+                    "Requirement Priority", options, index=index
+                )
                 state.set("priority", selected_priority)
             elif current_step == 5:
                 # Step 5: Constraints
-                constraints = st.text_area("Constraints (comma separated)", value=state.get("constraints", ""))
+                constraints = st.text_area(
+                    "Constraints (comma separated)", value=state.get("constraints", "")
+                )
                 state.set("constraints", constraints)
         except Exception as e:
             # Handle any UI rendering errors gracefully
             ui.display_result(f"ERROR rendering wizard step: {e}", message_type="error")
-        
+
         # Navigation buttons
         col1, col2, col3 = st.columns(3)
-        
+
         # Previous button (disabled on first step)
         if current_step > 1:
             if col1.button("Previous", key="previous_button"):
                 state.previous_step()
-        
+
         # Next button (on steps 1-4)
         if current_step < state.get_total_steps():
             if col2.button("Next", key="next_button"):
                 if validate_step(state, current_step):
                     state.next_step()
                 else:
-                    ui.display_result("Please fill in all required fields", message_type="error")
-        
+                    ui.display_result(
+                        "Please fill in all required fields", message_type="error"
+                    )
+
         # Save button (on last step) - renamed to "Finish" for test compatibility
         if current_step == state.get_total_steps():
-            if col2.button("Finish", key="finish_button"):  # Use "Finish" instead of "Save Requirements"
+            if col2.button(
+                "Finish", key="finish_button"
+            ):  # Use "Finish" instead of "Save Requirements"
                 if validate_step(state, current_step):
                     try:
                         # Mark the wizard as completed
                         state.set_completed(True)
-                        
+
                         # Save the requirements
                         result = {
                             "title": state.get("title"),
@@ -205,42 +220,55 @@ def wizard_context(monkeypatch):
                             "type": state.get("type"),
                             "priority": state.get("priority"),
                             "constraints": [
-                                c.strip() for c in state.get("constraints", "").split(",") if c.strip()
+                                c.strip()
+                                for c in state.get("constraints", "").split(",")
+                                if c.strip()
                             ],
                         }
-                        with open("requirements_wizard.json", "w", encoding="utf-8") as f:
+                        with open(
+                            "requirements_wizard.json", "w", encoding="utf-8"
+                        ) as f:
                             json.dump(result, f, indent=2)
-                        
-                        ui.display_result("Requirements saved to requirements_wizard.json", message_type="success")
-                        
+
+                        ui.display_result(
+                            "Requirements saved to requirements_wizard.json",
+                            message_type="success",
+                        )
+
                         # Note: We don't reset the state here to match test expectations
                         # The actual implementation resets the state, but the tests expect it to remain completed
-                        
+
                     except Exception as e:
-                        ui.display_result(f"Error saving requirements: {str(e)}", message_type="error")
+                        ui.display_result(
+                            f"Error saving requirements: {str(e)}", message_type="error"
+                        )
                 else:
-                    ui.display_result("Please fill in all required fields", message_type="error")
-        
+                    ui.display_result(
+                        "Please fill in all required fields", message_type="error"
+                    )
+
         # Cancel button
         if col3.button("Cancel", key="cancel_button"):
             # Reset the wizard state
             state.reset()
-            
+
             # Re-initialize with default values
             for key, value in initial_state.items():
                 state.set(key, value)
-                
+
             ui.display_result("Requirements wizard cancelled", message_type="info")
-    
+
     # Replace the requirements wizard method
     ui._requirements_wizard = patched_requirements_wizard
     context["original_requirements_wizard"] = original_requirements_wizard
-    
+
     # Mock the requirements saving function
     save_requirements_mock = MagicMock()
-    monkeypatch.setattr('devsynth.core.workflows.save_requirements', save_requirements_mock)
+    monkeypatch.setattr(
+        "devsynth.core.workflows.save_requirements", save_requirements_mock
+    )
     context["save_requirements_mock"] = save_requirements_mock
-    
+
     return context
 
 
@@ -253,7 +281,7 @@ def webui_initialized(wizard_context):
 
 
 @pytest.mark.medium
-@when("I navigate to \"Requirements\"")
+@when('I navigate to "Requirements"')
 def navigate_to_requirements(wizard_context):
     """Navigate to the Requirements page."""
     # This would simulate navigation to the Requirements page
@@ -292,7 +320,9 @@ def check_wizard_first_step(wizard_context):
 def click_wizard_next(wizard_context):
     """Click the wizard next button."""
     # Set up the next button to be clicked
-    wizard_context["st"].button.side_effect = lambda text, key=None, **kwargs: key == "next_button"
+    wizard_context["st"].button.side_effect = (
+        lambda text, key=None, **kwargs: key == "next_button"
+    )
     wizard_context["ui"]._requirements_wizard()
     # Reset button state after clicking
     wizard_context["st"].button.side_effect = None
@@ -304,7 +334,9 @@ def click_wizard_next(wizard_context):
 def check_wizard_step(wizard_context, step):
     """Check that the wizard shows the specified step."""
     assert wizard_context["wizard_state"].get_current_step() == step
-    wizard_context["st"].write.assert_any_call(f"Step {step} of 5: {get_step_title(step)}")
+    wizard_context["st"].write.assert_any_call(
+        f"Step {step} of 5: {get_step_title(step)}"
+    )
 
 
 @pytest.mark.medium
@@ -312,7 +344,9 @@ def check_wizard_step(wizard_context, step):
 def click_wizard_back(wizard_context):
     """Click the wizard back button."""
     # Set up the back button to be clicked
-    wizard_context["st"].button.side_effect = lambda text, key=None, **kwargs: key == "previous_button"
+    wizard_context["st"].button.side_effect = (
+        lambda text, key=None, **kwargs: key == "previous_button"
+    )
     wizard_context["ui"]._requirements_wizard()
     # Reset button state after clicking
     wizard_context["st"].button.side_effect = None
@@ -326,13 +360,13 @@ def enter_goals_information(wizard_context):
     # Set title and description (steps 1 and 2)
     title = "User Authentication System"
     description = "Build a scalable web application with user authentication"
-    
+
     wizard_context["requirements_data"]["title"] = title
     wizard_context["requirements_data"]["description"] = description
-    
+
     wizard_context["wizard_state"].set("title", title)
     wizard_context["wizard_state"].set("description", description)
-    
+
     # Mock the text input/area to return the values
     wizard_context["st"].text_input.return_value = title
     wizard_context["st"].text_area.return_value = description
@@ -345,15 +379,17 @@ def enter_constraints_information(wizard_context):
     # Set type and priority (steps 3 and 4)
     req_type = "Functional"
     priority = "High"
-    
+
     wizard_context["requirements_data"]["type"] = req_type
     wizard_context["requirements_data"]["priority"] = priority
-    
+
     wizard_context["wizard_state"].set("type", req_type)
     wizard_context["wizard_state"].set("priority", priority)
-    
+
     # Mock the selectbox to return the values
-    wizard_context["st"].selectbox.return_value = priority  # Will be used for both type and priority
+    wizard_context["st"].selectbox.return_value = (
+        priority  # Will be used for both type and priority
+    )
 
 
 @pytest.mark.medium
@@ -362,10 +398,10 @@ def enter_priorities(wizard_context):
     """Enter project priorities."""
     # Set constraints (step 5)
     constraints = "Time: 3 months, Budget: $50,000, Security: High"
-    
+
     wizard_context["requirements_data"]["constraints"] = constraints
     wizard_context["wizard_state"].set("constraints", constraints)
-    
+
     # Mock the text_area to return the constraints
     wizard_context["st"].text_area.return_value = constraints
 
@@ -375,7 +411,9 @@ def enter_priorities(wizard_context):
 def click_finish_button(wizard_context):
     """Click the finish button."""
     # Set up the finish button to be clicked
-    wizard_context["st"].button.side_effect = lambda text, key=None, **kwargs: key == "finish_button"
+    wizard_context["st"].button.side_effect = (
+        lambda text, key=None, **kwargs: key == "finish_button"
+    )
     wizard_context["ui"]._requirements_wizard()
     # Reset button state after clicking
     wizard_context["st"].button.side_effect = None
@@ -398,7 +436,7 @@ def check_success_message(wizard_context):
 
 
 @pytest.mark.medium
-@then(parsers.parse("the requirements should be saved to \"{filename}\""))
+@then(parsers.parse('the requirements should be saved to "{filename}"'))
 def check_requirements_saved(wizard_context, filename):
     """Check that the requirements are saved to the specified file."""
     # This would check that the requirements were properly saved
@@ -413,7 +451,9 @@ def check_requirements_saved(wizard_context, filename):
 def click_cancel_button(wizard_context):
     """Click the cancel button."""
     # Set up the cancel button to be clicked
-    wizard_context["st"].button.side_effect = lambda text, key=None, **kwargs: key == "cancel_button"
+    wizard_context["st"].button.side_effect = (
+        lambda text, key=None, **kwargs: key == "cancel_button"
+    )
     wizard_context["ui"]._requirements_wizard()
     # Reset button state after clicking
     wizard_context["st"].button.side_effect = None
@@ -445,7 +485,7 @@ def enter_invalid_goals_information(wizard_context):
     """Enter invalid project goals information."""
     # Set invalid title (empty)
     wizard_context["wizard_state"].set("title", "")
-    
+
     # Mock the text_input to return an empty value
     wizard_context["st"].text_input.return_value = ""
 
@@ -455,7 +495,10 @@ def enter_invalid_goals_information(wizard_context):
 def check_validation_errors(wizard_context):
     """Check that validation errors are displayed."""
     wizard_context["ui"].display_result.assert_called()
-    assert "error" in wizard_context["ui"].display_result.call_args[0][0].lower() or "required" in wizard_context["ui"].display_result.call_args[0][0].lower()
+    assert (
+        "error" in wizard_context["ui"].display_result.call_args[0][0].lower()
+        or "required" in wizard_context["ui"].display_result.call_args[0][0].lower()
+    )
 
 
 @pytest.mark.medium
@@ -470,34 +513,40 @@ def check_wizard_remains_on_step(wizard_context):
 def check_goals_info_preserved(wizard_context):
     """Check that the previously entered project goals information is preserved."""
     assert wizard_context["wizard_state"].get("title") == "User Authentication System"
-    assert wizard_context["wizard_state"].get("description") == "Build a scalable web application with user authentication"
+    assert (
+        wizard_context["wizard_state"].get("description")
+        == "Build a scalable web application with user authentication"
+    )
 
 
 @pytest.mark.medium
 @when("I trigger an error condition")
 def trigger_error_condition(wizard_context):
     """Trigger an error condition in the wizard."""
+
     # Simulate an error when saving requirements
     def raise_error(*args, **kwargs):
         raise Exception("Test error")
-    
+
     # Replace the display_result method to raise an error
     original_display_result = wizard_context["ui"].display_result
     wizard_context["ui"].display_result = raise_error
-    
+
     # Try to complete the wizard
     wizard_context["wizard_state"].go_to_step(3)
     wizard_context["wizard_state"].set("priorities", "Test priorities")
-    
+
     try:
         # This should trigger an error
         click_finish_button(wizard_context)
     except Exception:
         # Restore the original method
         wizard_context["ui"].display_result = original_display_result
-        
+
         # Display an error message
-        wizard_context["ui"].display_result("Error saving requirements: Test error", message_type="error")
+        wizard_context["ui"].display_result(
+            "Error saving requirements: Test error", message_type="error"
+        )
 
 
 @pytest.mark.medium
@@ -518,13 +567,7 @@ def check_wizard_state_reset(wizard_context):
 
 def get_step_title(step):
     """Get the title for a step."""
-    titles = {
-        1: "Title",
-        2: "Description",
-        3: "Type",
-        4: "Priority",
-        5: "Constraints"
-    }
+    titles = {1: "Title", 2: "Description", 3: "Type", 4: "Priority", 5: "Constraints"}
     return titles.get(step, f"Step {step}")
 
 

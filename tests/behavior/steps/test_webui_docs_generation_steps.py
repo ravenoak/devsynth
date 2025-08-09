@@ -1,10 +1,10 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import webui_context, given_webui_initialized
+from .test_webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
-scenarios("../features/webui_docs_generation.feature")
+scenarios("../features/webui/docs_generation.feature")
 
 
 @pytest.mark.medium
@@ -23,7 +23,9 @@ def select_custom_template(webui_context):
 @when("I select specific components for documentation")
 def select_specific_components(webui_context):
     # Mock the multiselect function if it's used in the page
-    webui_context["st"].multiselect = pytest.MagicMock(return_value=["Component1", "Component2"])
+    webui_context["st"].multiselect = pytest.MagicMock(
+        return_value=["Component1", "Component2"]
+    )
 
 
 @pytest.mark.medium

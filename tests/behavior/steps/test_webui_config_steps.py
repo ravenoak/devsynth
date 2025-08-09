@@ -3,9 +3,9 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-scenarios("../features/webui_config.feature")
+scenarios("../features/webui/config.feature")
 
 
 @pytest.fixture
@@ -40,7 +40,15 @@ def webui_context(monkeypatch):
     st.number_input = MagicMock(return_value=1)
     st.spinner = DummyForm
     st.divider = MagicMock()
-    st.tabs = MagicMock(return_value=[DummyForm(True), DummyForm(True), DummyForm(True), DummyForm(True), DummyForm(True)])
+    st.tabs = MagicMock(
+        return_value=[
+            DummyForm(True),
+            DummyForm(True),
+            DummyForm(True),
+            DummyForm(True),
+            DummyForm(True),
+        ]
+    )
 
     class _CompV1:
         @staticmethod
@@ -134,17 +142,18 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
     # Mock the load_project_config function to return a valid ProjectUnifiedConfig object
-    from devsynth.config import ProjectUnifiedConfig
-    from devsynth.config.loader import ConfigModel
     from pathlib import Path
 
+    from devsynth.config import ProjectUnifiedConfig
+    from devsynth.config.loader import ConfigModel
+
     mock_config = ConfigModel(
-        project_root="/mock/project/root", 
+        project_root="/mock/project/root",
         offline_mode=False,
         provider_settings={"provider": "openai", "model": "gpt-3.5-turbo"},
         memory_settings={"memory_provider": "chromadb"},
         uxbridge_settings={"default_interface": "cli"},
-        features={"feature1": False, "feature2": False}
+        features={"feature1": False, "feature2": False},
     )
     mock_project_config = ProjectUnifiedConfig(
         config=mock_config,
@@ -180,6 +189,7 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.config.settings", settings_stub)
 
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -220,6 +230,7 @@ def given_webui_initialized(webui_context):
 @given("I have a valid project directory")
 def given_valid_project_directory(webui_context, monkeypatch):
     from pathlib import Path
+
     monkeypatch.setattr(Path, "exists", lambda _self: True)
     monkeypatch.setattr(Path, "is_dir", lambda _self: True)
     return webui_context
@@ -246,7 +257,13 @@ def select_provider_settings(webui_context):
     # Mock the tabs to return the provider settings tab as active
     tabs = webui_context["st"].tabs.return_value
     # Set the second tab (index 1) as the active tab
-    webui_context["st"].tabs.return_value = [DummyForm(False), DummyForm(True), DummyForm(False), DummyForm(False), DummyForm(False)]
+    webui_context["st"].tabs.return_value = [
+        DummyForm(False),
+        DummyForm(True),
+        DummyForm(False),
+        DummyForm(False),
+        DummyForm(False),
+    ]
     webui_context["ui"].config_page()
 
 
@@ -256,7 +273,13 @@ def select_memory_settings(webui_context):
     # Mock the tabs to return the memory settings tab as active
     tabs = webui_context["st"].tabs.return_value
     # Set the third tab (index 2) as the active tab
-    webui_context["st"].tabs.return_value = [DummyForm(False), DummyForm(False), DummyForm(True), DummyForm(False), DummyForm(False)]
+    webui_context["st"].tabs.return_value = [
+        DummyForm(False),
+        DummyForm(False),
+        DummyForm(True),
+        DummyForm(False),
+        DummyForm(False),
+    ]
     webui_context["ui"].config_page()
 
 
@@ -266,7 +289,13 @@ def select_feature_flags(webui_context):
     # Mock the tabs to return the feature flags tab as active
     tabs = webui_context["st"].tabs.return_value
     # Set the fifth tab (index 4) as the active tab
-    webui_context["st"].tabs.return_value = [DummyForm(False), DummyForm(False), DummyForm(False), DummyForm(False), DummyForm(True)]
+    webui_context["st"].tabs.return_value = [
+        DummyForm(False),
+        DummyForm(False),
+        DummyForm(False),
+        DummyForm(False),
+        DummyForm(True),
+    ]
     webui_context["ui"].config_page()
 
 
@@ -280,14 +309,18 @@ def modify_offline_mode(webui_context):
 @pytest.mark.medium
 @when('I modify the "provider" setting')
 def modify_provider_setting(webui_context):
-    webui_context["st"].selectbox.return_value = "anthropic"  # Change provider to anthropic
+    webui_context["st"].selectbox.return_value = (
+        "anthropic"  # Change provider to anthropic
+    )
     webui_context["ui"].config_page()
 
 
 @pytest.mark.medium
 @when('I modify the "memory_provider" setting')
 def modify_memory_provider(webui_context):
-    webui_context["st"].selectbox.return_value = "kuzu"  # Change memory provider to kuzu
+    webui_context["st"].selectbox.return_value = (
+        "kuzu"  # Change memory provider to kuzu
+    )
     webui_context["ui"].config_page()
 
 
@@ -311,7 +344,9 @@ def enter_invalid_config(webui_context):
     # Simulate entering an invalid value that will cause an error
     webui_context["st"].text_input.return_value = "invalid://value"
     # Make save_config raise an exception
-    webui_context["webui"].save_config = MagicMock(side_effect=ValueError("Invalid configuration value"))
+    webui_context["webui"].save_config = MagicMock(
+        side_effect=ValueError("Invalid configuration value")
+    )
     webui_context["ui"].config_page()
 
 
@@ -391,7 +426,10 @@ def see_success_message(webui_context):
 @pytest.mark.medium
 @then("the feature flag should be enabled")
 def feature_flag_enabled(webui_context):
-    assert webui_context["cli"].enable_feature_cmd.called or webui_context["webui"].save_config.called
+    assert (
+        webui_context["cli"].enable_feature_cmd.called
+        or webui_context["webui"].save_config.called
+    )
 
 
 @pytest.mark.medium
@@ -418,4 +456,7 @@ def config_reset_to_defaults(webui_context):
 @then("I should see the configuration page with preserved state")
 def see_config_with_preserved_state(webui_context):
     # Check that session state preserves values
-    assert "config_tab" in webui_context["st"].session_state or webui_context["st"].tabs.called
+    assert (
+        "config_tab" in webui_context["st"].session_state
+        or webui_context["st"].tabs.called
+    )

@@ -1,10 +1,10 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import webui_context, given_webui_initialized
+from .test_webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
-scenarios("../features/webui_ingestion.feature")
+scenarios("../features/webui/ingestion.feature")
 
 
 @pytest.mark.medium
@@ -30,7 +30,9 @@ def select_local_directory(webui_context):
 @when("I select a data file for ingestion")
 def select_data_file(webui_context):
     # Mock the file uploader
-    webui_context["st"].file_uploader = pytest.MagicMock(return_value={"name": "data.csv"})
+    webui_context["st"].file_uploader = pytest.MagicMock(
+        return_value={"name": "data.csv"}
+    )
 
 
 @pytest.mark.medium

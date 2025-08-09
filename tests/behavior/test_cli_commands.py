@@ -1,26 +1,33 @@
 """
 Test file for CLI Command Execution feature.
 """
+
 import os
+
 import pytest
-from pytest_bdd import scenarios, given, when, then, parsers
-from .steps.cli_commands_steps import *
-from .steps.edrr_cycle_steps import *
-from .steps.delegate_task_steps import *
-from .steps.doctor_command_steps import *
+from pytest_bdd import given, parsers, scenarios, then, when
+
+from .steps.test_cli_commands_steps import *
+from .steps.test_delegate_task_steps import *
+from .steps.test_doctor_command_steps import *
+from .steps.test_edrr_cycle_steps import *
 
 # Define feature file paths
-FEATURE_FILE = os.path.join(os.path.dirname(__file__), 'features', 'general',
-    'cli_commands.feature')
-EDRR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'general',
-    'edrr_cycle.feature')
-DELEGATE_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'general',
-    'delegate_task.feature')
-DOCTOR_FEATURE = os.path.join(os.path.dirname(__file__), 'features', 'general',
-    'doctor_command.feature')
+FEATURE_FILE = os.path.join(
+    os.path.dirname(__file__), "features", "general", "cli_commands.feature"
+)
+EDRR_FEATURE = os.path.join(
+    os.path.dirname(__file__), "features", "general", "edrr_cycle.feature"
+)
+DELEGATE_FEATURE = os.path.join(
+    os.path.dirname(__file__), "features", "general", "delegate_task.feature"
+)
+DOCTOR_FEATURE = os.path.join(
+    os.path.dirname(__file__), "features", "general", "doctor_command.feature"
+)
 
 # Mark all tests as requiring CLI resource
-pytestmark = pytest.mark.requires_resource('cli')
+pytestmark = pytest.mark.requires_resource("cli")
 
 # Load all scenarios from the feature files
 scenarios(FEATURE_FILE)

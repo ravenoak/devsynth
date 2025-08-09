@@ -42,7 +42,7 @@ def _app() -> Typer:
     return app
 
 
-scenarios("../features/mvu_commands.feature")
+scenarios("../features/mvu/commands.feature")
 
 
 @given("the DevSynth CLI is installed")

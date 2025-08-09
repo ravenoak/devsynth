@@ -4,20 +4,26 @@ Step definitions for WebUI Command Execution feature.
 
 import os
 import sys
+from unittest.mock import ANY, MagicMock, patch
+
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
-from unittest.mock import patch, MagicMock, ANY
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the CLI modules
 from typer.testing import CliRunner
+
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.cli_commands import webui_cmd
 
 # Register the feature scenarios
-scenarios("../features/webui_command.feature")
+scenarios("../features/webui/command.feature")
 
 # Reuse existing step definitions
-from .test_cli_commands_steps import devsynth_cli_installed, valid_devsynth_project, run_command
+from .test_cli_commands_steps import (
+    devsynth_cli_installed,
+    run_command,
+    valid_devsynth_project,
+)
 
 
 @pytest.mark.medium
@@ -26,6 +32,7 @@ def streamlit_webui_unavailable(monkeypatch):
     """
     Make the Streamlit WebUI module unavailable for testing error handling.
     """
+
     # Create a mock that raises an ImportError when imported
     def mock_import_error(name, *args, **kwargs):
         if name == "devsynth.interface.webui":
@@ -49,10 +56,10 @@ def check_webui_launched(command_context, monkeypatch):
     # but we can check that the webui_cmd function was called
     # and that it attempted to import and run the WebUI
     output = command_context.get("output", "")
-    
+
     # Check that there's no error message in the output
     assert "Error" not in output, f"Error message found in output: {output}"
-    
+
     # The actual WebUI launch would happen in a real environment
     # Here we're just verifying that the command executed without errors
     exit_code = command_context.get("exit_code", 1)
@@ -78,8 +85,10 @@ def check_webui_error_message(command_context):
     output = command_context.get("output", "")
     assert "Error" in output, f"No error message found in output: {output}"
     # Check for specific error message about the WebUI not being available
-    assert "No module named 'streamlit'" in output or "WebUI could not be launched" in output, \
-        f"Error message does not indicate WebUI launch failure: {output}"
+    assert (
+        "No module named 'streamlit'" in output
+        or "WebUI could not be launched" in output
+    ), f"Error message does not indicate WebUI launch failure: {output}"
 
 
 @pytest.mark.medium
@@ -92,13 +101,13 @@ def check_webui_pages(command_context, table):
     # but we can verify that the command executed without errors
     exit_code = command_context.get("exit_code", 1)
     assert exit_code == 0, f"Command failed with exit code {exit_code}"
-    
+
     # In a real test, we would use Selenium or another browser automation tool
     # to check that the WebUI contains all the required pages
     # For now, we'll just log the pages that should be present
     pages = [row[0] for row in table]
     print(f"The WebUI should contain the following pages: {', '.join(pages)}")
-    
+
     # This is a placeholder for future implementation
     # In a real test, we would check that each page is accessible
     pass

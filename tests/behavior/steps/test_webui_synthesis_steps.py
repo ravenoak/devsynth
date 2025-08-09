@@ -3,9 +3,9 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-scenarios("../features/webui_synthesis.feature")
+scenarios("../features/webui/synthesis.feature")
 
 
 @pytest.fixture
@@ -134,9 +134,10 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
     # Mock the load_project_config function to return a valid ProjectUnifiedConfig object
+    from pathlib import Path
+
     from devsynth.config import ProjectUnifiedConfig
     from devsynth.config.loader import ConfigModel
-    from pathlib import Path
 
     mock_config = ConfigModel(project_root="/mock/project/root", offline_mode=False)
     mock_project_config = ProjectUnifiedConfig(
@@ -173,6 +174,7 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.config.settings", settings_stub)
 
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -212,6 +214,7 @@ def given_webui_initialized(webui_context):
 @given("I have a valid project directory")
 def given_valid_project_directory(webui_context, monkeypatch):
     from pathlib import Path
+
     monkeypatch.setattr(Path, "exists", lambda _self: True)
     monkeypatch.setattr(Path, "is_dir", lambda _self: True)
     return webui_context
@@ -275,7 +278,11 @@ def expand_advanced_options(webui_context):
 @pytest.mark.medium
 @when("I select specific test generation options")
 def select_test_generation_options(webui_context):
-    webui_context["st"].checkbox.side_effect = [True, False, True]  # Custom option pattern
+    webui_context["st"].checkbox.side_effect = [
+        True,
+        False,
+        True,
+    ]  # Custom option pattern
     webui_context["st"].selectbox.return_value = "bdd"  # Select BDD test style
     webui_context["st"].number_input.return_value = 90  # Set coverage target to 90%
 
@@ -283,9 +290,15 @@ def select_test_generation_options(webui_context):
 @pytest.mark.medium
 @when("I select specific code generation options")
 def select_code_generation_options(webui_context):
-    webui_context["st"].checkbox.side_effect = [True, True, False]  # Custom option pattern
+    webui_context["st"].checkbox.side_effect = [
+        True,
+        True,
+        False,
+    ]  # Custom option pattern
     webui_context["st"].selectbox.return_value = "python"  # Select Python language
-    webui_context["st"].text_input.return_value = "src/custom"  # Custom output directory
+    webui_context["st"].text_input.return_value = (
+        "src/custom"  # Custom output directory
+    )
 
 
 @pytest.mark.medium
@@ -397,4 +410,7 @@ def can_retry_operation(webui_context):
 @then("I should see the synthesis page with preserved state")
 def see_synthesis_with_preserved_state(webui_context):
     # Check that session state preserves values
-    assert "synthesis_options" in webui_context["st"].session_state or webui_context["st"].columns.called
+    assert (
+        "synthesis_options" in webui_context["st"].session_state
+        or webui_context["st"].columns.called
+    )

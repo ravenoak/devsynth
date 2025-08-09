@@ -9,7 +9,7 @@ from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
-scenarios("../features/wsde_peer_review.feature")
+scenarios("../features/wsde/peer_review.feature")
 
 
 @pytest.fixture

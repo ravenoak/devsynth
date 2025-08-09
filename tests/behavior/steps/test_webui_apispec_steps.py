@@ -1,10 +1,10 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import webui_context, given_webui_initialized
+from .test_webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
-scenarios("../features/webui_apispec.feature")
+scenarios("../features/webui/apispec.feature")
 
 
 @pytest.mark.medium
