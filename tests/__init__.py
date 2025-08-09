@@ -27,6 +27,11 @@ def _ensure_dev_synth_importable() -> None:
     try:  # pragma: no cover - quick check
         import devsynth  # noqa: F401
 
+        # Load optional subpackages explicitly to mirror historic behaviour
+        try:  # pragma: no cover - best effort
+            devsynth.initialize_subpackages()
+        except AttributeError:
+            pass
         return
     except Exception:
         pass
