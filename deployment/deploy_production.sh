@@ -20,6 +20,13 @@ command -v docker compose >/dev/null 2>&1 || {
   exit 1
 }
 
+# Run policy checks before deployment
+command -v poetry >/dev/null 2>&1 || {
+  echo "poetry is required but not installed." >&2
+  exit 1
+}
+poetry run python scripts/security_audit.py
+
 # Ensure sensitive env files are not world-readable
 if [[ -f .env ]] && [[ $(stat -c '%a' .env) -gt 600 ]]; then
   echo ".env file permissions are too permissive; run 'chmod 600 .env'." >&2

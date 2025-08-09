@@ -13,19 +13,17 @@ manner and maintains a secure supply chain.
 - Audit reports are reviewed at least quarterly.
 - Additional reviews occur before major releases.
 
-## Review Process
+## Periodic Audit Process
 
-1. Run the security checks:
+1. Execute the bundled audit script:
    ```bash
-   poetry run pre-commit run --all-files bandit safety
+   poetry run python scripts/security_audit.py
    ```
-   or
-   ```bash
-   poetry run python scripts/dependency_safety_check.py
-   ```
-2. Record findings in the issue tracker.
-3. Prioritize and remediate identified vulnerabilities.
-4. Close issues once fixes are merged and verified.
+   This runs Bandit static analysis and Safety dependency checks.
+2. Capture the output and store it with the audit logs.
+3. Record findings in the issue tracker.
+4. Prioritize and remediate identified vulnerabilities.
+5. Close issues once fixes are merged and verified and document completion in the next audit.
 
 ## Responsibilities
 
