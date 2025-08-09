@@ -33,13 +33,13 @@ def test_llm_backend_adapter_init_succeeds(mock_factory):
 
     ReqID: N/A"""
 
-    # Create a custom adapter that doesn't use the global factory
-    class LLMBackendAdapterForTest(LLMBackendAdapter):
-        def __init__(self, custom_factory=None):
-            self.factory = custom_factory or mock_factory
+    # Create a helper adapter and override the factory after instantiation
+    class LLMBackendAdapterTestHelper(LLMBackendAdapter):
+        """Test helper for injecting a custom factory."""
 
     # Use our custom adapter instead of the original one
-    adapter = LLMBackendAdapterForTest()
+    adapter = LLMBackendAdapterTestHelper()
+    adapter.factory = mock_factory
     assert adapter.factory is mock_factory
     assert isinstance(adapter.factory, MagicMock)
     assert adapter.factory._spec_class == SimpleLLMProviderFactory
