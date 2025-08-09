@@ -10,7 +10,7 @@ from pathlib import Path
 def run_script(path: Path) -> subprocess.CompletedProcess[str]:
     """Run the script against ``path`` and return the completed process."""
 
-    script = Path(__file__).resolve().parents[2] / "scripts" / "find_syntax_errors.py"
+    script = Path(__file__).resolve().parents[3] / "scripts" / "find_syntax_errors.py"
     return subprocess.run(
         [sys.executable, str(script), str(path)],
         check=False,
