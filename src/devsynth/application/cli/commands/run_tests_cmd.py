@@ -9,9 +9,10 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import typer
+from typer.models import OptionInfo
 
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
@@ -20,6 +21,27 @@ from devsynth.testing.run_tests import run_tests
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
+
+
+def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
+    """Convert ``--feature`` options into a dictionary.
+
+    Each value should be in the form ``name`` or ``name=value`` where ``value``
+    can be interpreted as a boolean. If ``value`` is omitted it defaults to
+    ``True``.
+    """
+
+    if not values or isinstance(values, OptionInfo):
+        return {}
+
+    result: Dict[str, bool] = {}
+    for item in values:
+        if "=" in item:
+            name, raw = item.split("=", 1)
+            result[name] = raw.lower() not in {"0", "false", "no"}
+        else:
+            result[item] = True
+    return result
 
 
 def run_tests_cmd(
@@ -44,6 +66,11 @@ def run_tests_cmd(
     segment_size: int = typer.Option(
         50, "--segment-size", help="Number of tests per batch when segmenting"
     ),
+    features: List[str] = typer.Option(
+        [],
+        "--feature",
+        help="Feature flags to enable/disable (format: name or name=false)",
+    ),
     *,
     bridge: Optional[Any] = typer.Option(None, hidden=True),
 ) -> None:
@@ -52,6 +79,9 @@ def run_tests_cmd(
     ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
 
     speed_categories = speeds or None
+    feature_map = _parse_feature_options(features)
+    if feature_map:
+        logger.debug("Feature flags: %s", feature_map)
 
     success, _ = run_tests(
         target,
