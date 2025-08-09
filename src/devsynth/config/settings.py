@@ -650,8 +650,9 @@ _settings_instance = None
 _settings = Settings()
 
 # Expose commonly used settings at module level
+kuzu_db_path = _settings.kuzu_db_path
 kuzu_embedded = _settings.kuzu_embedded
-# Backward-compatible constant
+# Backward-compatible constant for older imports
 KUZU_EMBEDDED = kuzu_embedded
 
 

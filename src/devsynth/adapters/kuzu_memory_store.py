@@ -67,8 +67,14 @@ class KuzuMemoryStore(MemoryStore):
         normalized_path = os.path.abspath(os.path.expanduser(base_directory))
         redirected_path = settings_module.ensure_path_exists(normalized_path)
 
-        # Determine embedded mode from configuration
-        use_embedded = settings_module.get_settings().kuzu_embedded
+        # Determine embedded mode from configuration.  Some older versions of
+        # the settings module may not expose ``kuzu_embedded`` directly, so use
+        # ``getattr`` with a sensible default.
+        use_embedded = getattr(
+            settings_module.get_settings(),
+            "kuzu_embedded",
+            getattr(settings_module, "kuzu_embedded", True),
+        )
         if not _is_kuzu_available():
             logger.info("Kuzu not available; using in-memory fallback store")
             use_embedded = False
