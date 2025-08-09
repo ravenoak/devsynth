@@ -14,7 +14,13 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
 
-def _run_init(tmp_path, monkeypatch, *, use_pyproject: bool = False):
+def _run_init(
+    tmp_path,
+    monkeypatch,
+    *,
+    use_pyproject: bool = False,
+    metrics_dashboard: bool = False,
+):
     """Run ``init_cmd`` with patched prompts and confirmations.
 
     This helper simulates user interaction by monkeypatching the ``Prompt`` and
@@ -40,14 +46,14 @@ def _run_init(tmp_path, monkeypatch, *, use_pyproject: bool = False):
     printed: list[str] = []
     monkeypatch.setattr(
         "rich.console.Console.print",
-        lambda self, msg, *, highlight=False: printed.append(str(msg)),
+        lambda self, msg="", *a, **k: printed.append(str(msg)),
     )
 
     if use_pyproject:
         (tmp_path / "pyproject.toml").write_text("")
 
     bridge = CLIUXBridge()
-    init_cmd(bridge=bridge)
+    init_cmd(metrics_dashboard=metrics_dashboard, bridge=bridge)
 
     return printed
 
@@ -90,6 +96,16 @@ def test_init_cmd_idempotent_succeeds(tmp_path, monkeypatch):
 
 
 @pytest.mark.medium
+def test_init_cmd_metrics_dashboard_option(tmp_path, monkeypatch):
+    """``--metrics-dashboard`` prints dashboard instructions."""
+
+    printed = _run_init(tmp_path, monkeypatch, metrics_dashboard=True)
+
+    assert any("mvuu-dashboard" in msg for msg in printed)
+    assert any("mvuu_dashboard: true" in msg for msg in printed)
+
+
+@pytest.mark.medium
 def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
     """``--wizard`` flag runs the interactive ``SetupWizard``."""
 
@@ -97,6 +113,45 @@ def test_init_cmd_wizard_option_invokes_setup(monkeypatch):
         init_cmd(wizard=True)
         wiz.assert_called_once()
         wiz.return_value.run.assert_called_once()
+
+
+@pytest.mark.medium
+def test_init_cmd_reports_progress(tmp_path, monkeypatch):
+    """Init command reports progress steps."""
+
+    monkeypatch.chdir(tmp_path)
+
+    answers = iter([str(tmp_path), "python", "do stuff", "memory"])
+    monkeypatch.setattr(
+        "devsynth.interface.cli.Prompt.ask", lambda *a, **k: next(answers)
+    )
+    monkeypatch.setattr("devsynth.interface.cli.Confirm.ask", lambda *a, **k: False)
+
+    class DummyProgress:
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+            self.completed = False
+
+        def update(self, **kwargs) -> None:
+            self.calls.append(kwargs)
+
+        def complete(self) -> None:
+            self.completed = True
+
+    progress = DummyProgress()
+
+    monkeypatch.setattr("rich.console.Console.print", lambda self, *a, **k: None)
+
+    bridge = CLIUXBridge()
+    monkeypatch.setattr(bridge, "create_progress", lambda desc, total: progress)
+
+    init_cmd(bridge=bridge)
+
+    assert progress.calls[0]["description"] == "Saving configuration"
+    assert progress.calls[0]["status"] == "writing config"
+    assert progress.calls[1]["description"] == "Generating project files"
+    assert progress.calls[1]["status"] == "scaffolding"
+    assert progress.completed
 
 
 @pytest.mark.medium
@@ -113,7 +168,7 @@ def test_init_cmd_defaults_non_interactive_skips_prompts(tmp_path, monkeypatch):
     printed: list[str] = []
     monkeypatch.setattr(
         "rich.console.Console.print",
-        lambda self, msg, *, highlight=False: printed.append(str(msg)),
+        lambda self, msg="", *a, **k: printed.append(str(msg)),
     )
 
     init_cmd(defaults=True, non_interactive=True, bridge=bridge)
