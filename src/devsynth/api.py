@@ -1,21 +1,48 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Header
 import uuid
-from fastapi.responses import Response
-from prometheus_client import (
-    Counter,
-    Histogram,
-    generate_latest,
-    CONTENT_TYPE_LATEST,
-)
-import time
 
-from devsynth.logger import (
-    setup_logging,
-    set_request_context,
-    clear_request_context,
-)
-from devsynth.config.settings import get_settings
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.responses import Response
+
+# Prometheus metrics are optional; fall back to lightweight stubs when the
+# dependency isn't available.  This keeps the API usable in stripped-down test
+# environments where the monitoring stack is absent.
+try:  # pragma: no cover - import guarded for optional dependency
+    from prometheus_client import (
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Histogram,
+        generate_latest,
+    )
+except Exception:  # pragma: no cover - fallback for minimal environments
+
+    class _NoopMetric:  # type: ignore[override]
+        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
+            pass
+
+        def labels(self, *args: object, **kwargs: object) -> "_NoopMetric":
+            return self
+
+        def inc(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def observe(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def clear(self) -> None:
+            pass
+
+    Counter = Histogram = _NoopMetric
+
+    def generate_latest() -> bytes:  # type: ignore[override]
+        return b""
+
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"  # type: ignore[override]
+
+import time
 from typing import Union
+
+from devsynth.config.settings import get_settings
+from devsynth.logger import clear_request_context, set_request_context, setup_logging
 
 logger = setup_logging(__name__)
 settings = get_settings()
@@ -41,25 +68,18 @@ app = FastAPI(title="DevSynth API")
 
 
 @app.middleware("http")
-async def add_request_id(request, call_next):
-    """Attach a correlation ID to each request and log context."""
+async def request_context_and_metrics(request, call_next):
+    """Attach correlation ID and record metrics in a single middleware."""
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     set_request_context(request_id=request_id)
+    start = time.perf_counter()
     response = await call_next(request)
-    response.headers["X-Request-ID"] = request_id
-    clear_request_context()
-    return response
-
-
-@app.middleware("http")
-async def record_metrics(request, call_next):
-    """Record request count and latency in a single middleware."""
-    start = time.time()
-    response = await call_next(request)
-    duration = time.time() - start
+    duration = time.perf_counter() - start
     endpoint = request.url.path
     REQUEST_COUNT.labels(endpoint=endpoint).inc()
     REQUEST_LATENCY.labels(endpoint=endpoint).observe(duration)
+    response.headers["X-Request-ID"] = request_id
+    clear_request_context()
     return response
 
 

@@ -1,36 +1,68 @@
 """Adapter that coordinates memory-related components."""
 
 import os
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
-from ...domain.interfaces.memory import MemoryStore, ContextManager, VectorStore
+from typing import Any, Dict, List, Optional, Union
+
+# Create a logger for this module early so optional imports can log failures
+from devsynth.logging_setup import DevSynthLogger
+
 from ...application.memory.context_manager import InMemoryStore, SimpleContextManager
-from ...application.memory.json_file_store import JSONFileStore
-from ...application.memory.tinydb_store import TinyDBStore
 from ...application.memory.duckdb_store import DuckDBStore
+from ...application.memory.json_file_store import JSONFileStore
 from ...application.memory.lmdb_store import LMDBStore
-from ...application.memory.faiss_store import FAISSStore
-from ...application.memory.rdflib_store import RDFLibStore
+from ...application.memory.tinydb_store import TinyDBStore
+from ...domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
+
+logger = DevSynthLogger(__name__)
+
+try:  # pragma: no cover - optional dependency
+    from ...application.memory.faiss_store import FAISSStore
+except Exception as exc:  # pragma: no cover - graceful fallback
+    logger.debug("FAISSStore unavailable: %s", exc)
+    FAISSStore = None  # type: ignore[assignment]
+
+try:  # pragma: no cover - optional dependency
+    from ...application.memory.rdflib_store import RDFLibStore
+except Exception as exc:  # pragma: no cover - graceful fallback
+    logger.debug("RDFLibStore unavailable: %s", exc)
+    RDFLibStore = None  # type: ignore[assignment]
+
+from devsynth.exceptions import DevSynthError, MemoryStoreError
+
 from ...adapters.kuzu_memory_store import KuzuMemoryStore
 from ...adapters.memory.kuzu_adapter import KuzuAdapter
 from ...application.memory.persistent_context_manager import PersistentContextManager
-from ...config.settings import get_settings, ensure_path_exists
-
-# Create a logger for this module
-from devsynth.logging_setup import DevSynthLogger
-
-logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError, MemoryStoreError
+from ...config.settings import ensure_path_exists, get_settings
 
 
 class MemorySystemAdapter:
-    """
-    Adapter for the memory system.
+    """Adapter coordinating memory stores and context managers.
 
-    This class provides a unified interface to the memory components (store, context manager,
-    and vector store). It supports dependency injection for improved testability and
-    deferred path creation for better test isolation.
+    The adapter was historically a plain object with a dynamic ``__dict__``.
+    Defining ``__slots__`` reduces its per-instance memory footprint and
+    avoids the overhead of dynamically allocating attributes for the many
+    memory-system configurations exercised in integration tests.
     """
+
+    __slots__ = (
+        "config",
+        "storage_type",
+        "memory_path",
+        "max_context_size",
+        "context_expiration_days",
+        "vector_store_enabled",
+        "provider_type",
+        "chromadb_collection_name",
+        "chromadb_host",
+        "chromadb_port",
+        "enable_chromadb",
+        "encryption_at_rest",
+        "encryption_key",
+        "memory_store",
+        "context_manager",
+        "vector_store",
+    )
 
     def __init__(
         self,
@@ -151,8 +183,8 @@ class MemorySystemAdapter:
                 self.vector_store = None
             else:
                 try:
-                    from ...application.memory.chromadb_store import ChromaDBStore
                     from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
+                    from ...application.memory.chromadb_store import ChromaDBStore
                 except Exception as e:  # pragma: no cover - optional dependency
                     logger.warning(
                         "ChromaDB dependencies not available: %s; using in-memory store",
@@ -193,8 +225,8 @@ class MemorySystemAdapter:
             ):
                 logger.info("Kuzu unavailable; falling back to ChromaDB")
                 try:
-                    from ...application.memory.chromadb_store import ChromaDBStore
                     from ...adapters.memory.chroma_db_adapter import ChromaDBAdapter
+                    from ...application.memory.chromadb_store import ChromaDBStore
 
                     self.memory_store = ChromaDBStore(
                         self.memory_path,
@@ -475,23 +507,23 @@ class MemorySystemAdapter:
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
         return self.memory_store.get_all()
-        
+
     def begin_transaction(self) -> str:
         """
         Begin a new transaction.
-        
+
         This method delegates to the underlying memory store.
         If the memory store doesn't support transactions, a MemoryStoreError is raised.
-        
+
         Returns:
             The ID of the new transaction
-            
+
         Raises:
             MemoryStoreError: If the memory store doesn't support transactions or an error occurs
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-            
+
         try:
             # Check if the memory store supports transactions
             if hasattr(self.memory_store, "begin_transaction"):
@@ -501,26 +533,26 @@ class MemorySystemAdapter:
         except Exception as e:
             logger.error(f"Error beginning transaction: {e}")
             raise MemoryStoreError(f"Error beginning transaction: {e}")
-            
+
     def commit_transaction(self, transaction_id: str) -> bool:
         """
         Commit a transaction.
-        
+
         This method delegates to the underlying memory store.
         If the memory store doesn't support transactions, a MemoryStoreError is raised.
-        
+
         Args:
             transaction_id: The ID of the transaction to commit
-            
+
         Returns:
             True if the transaction was committed successfully, False otherwise
-            
+
         Raises:
             MemoryStoreError: If the memory store doesn't support transactions or an error occurs
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-            
+
         try:
             # Check if the memory store supports transactions
             if hasattr(self.memory_store, "commit_transaction"):
@@ -529,27 +561,29 @@ class MemorySystemAdapter:
                 raise MemoryStoreError("Memory store does not support transactions")
         except Exception as e:
             logger.error(f"Error committing transaction {transaction_id}: {e}")
-            raise MemoryStoreError(f"Error committing transaction {transaction_id}: {e}")
-            
+            raise MemoryStoreError(
+                f"Error committing transaction {transaction_id}: {e}"
+            )
+
     def rollback_transaction(self, transaction_id: str) -> bool:
         """
         Rollback a transaction.
-        
+
         This method delegates to the underlying memory store.
         If the memory store doesn't support transactions, a MemoryStoreError is raised.
-        
+
         Args:
             transaction_id: The ID of the transaction to rollback
-            
+
         Returns:
             True if the transaction was rolled back successfully, False otherwise
-            
+
         Raises:
             MemoryStoreError: If the memory store doesn't support transactions or an error occurs
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-            
+
         try:
             # Check if the memory store supports transactions
             if hasattr(self.memory_store, "rollback_transaction"):
@@ -558,27 +592,29 @@ class MemorySystemAdapter:
                 raise MemoryStoreError("Memory store does not support transactions")
         except Exception as e:
             logger.error(f"Error rolling back transaction {transaction_id}: {e}")
-            raise MemoryStoreError(f"Error rolling back transaction {transaction_id}: {e}")
-            
+            raise MemoryStoreError(
+                f"Error rolling back transaction {transaction_id}: {e}"
+            )
+
     def is_transaction_active(self, transaction_id: str) -> bool:
         """
         Check if a transaction is active.
-        
+
         This method delegates to the underlying memory store.
         If the memory store doesn't support transactions, a MemoryStoreError is raised.
-        
+
         Args:
             transaction_id: The ID of the transaction to check
-            
+
         Returns:
             True if the transaction is active, False otherwise
-            
+
         Raises:
             MemoryStoreError: If the memory store doesn't support transactions or an error occurs
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-            
+
         try:
             # Check if the memory store supports transactions
             if hasattr(self.memory_store, "is_transaction_active"):
@@ -587,54 +623,62 @@ class MemorySystemAdapter:
                 raise MemoryStoreError("Memory store does not support transactions")
         except Exception as e:
             logger.error(f"Error checking transaction {transaction_id} status: {e}")
-            raise MemoryStoreError(f"Error checking transaction {transaction_id} status: {e}")
-            
-    def execute_in_transaction(self, operations: List[callable], fallback_operations: List[callable] = None) -> Any:
+            raise MemoryStoreError(
+                f"Error checking transaction {transaction_id} status: {e}"
+            )
+
+    def execute_in_transaction(
+        self, operations: List[callable], fallback_operations: List[callable] = None
+    ) -> Any:
         """
         Execute a series of operations within a transaction.
-        
+
         This method provides a high-level interface for executing operations within a transaction.
         If any operation fails, the transaction is rolled back and the fallback operations are executed.
-        
+
         Args:
             operations: A list of callables to execute within the transaction
             fallback_operations: A list of callables to execute if the transaction fails
-            
+
         Returns:
             The result of the last operation
-            
+
         Raises:
             MemoryStoreError: If the memory store doesn't support transactions or an error occurs
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-            
+
         # Begin a transaction
         transaction_id = self.begin_transaction()
-        
+
         try:
             # Execute the operations
             result = None
             for operation in operations:
                 result = operation()
-                
+
             # Commit the transaction
             self.commit_transaction(transaction_id)
-            
+
             return result
         except Exception as e:
             # Rollback the transaction
-            logger.error(f"Error executing operations in transaction {transaction_id}: {e}")
+            logger.error(
+                f"Error executing operations in transaction {transaction_id}: {e}"
+            )
             self.rollback_transaction(transaction_id)
-            
+
             # Execute fallback operations if provided
             if fallback_operations:
                 try:
                     for operation in fallback_operations:
                         operation()
                 except Exception as fallback_error:
-                    logger.error(f"Error executing fallback operations: {fallback_error}")
-                    
+                    logger.error(
+                        f"Error executing fallback operations: {fallback_error}"
+                    )
+
             # Re-raise the original error
             raise MemoryStoreError(f"Error executing operations in transaction: {e}")
 
