@@ -107,11 +107,11 @@ def init_cmd(
 
         config = UnifiedConfigLoader.load().config
 
-        root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
-        if not root:
-            root = _ask("Project root directory", str(Path.cwd()))
-        root = root or str(Path.cwd())
-
+        root = (
+            root
+            or os.environ.get("DEVSYNTH_INIT_ROOT")
+            or _ask("Project root directory", str(Path.cwd()))
+        )
         root_path = Path(root)
         if root_path.exists() and not root_path.is_dir():
             _handle_error(
@@ -125,25 +125,25 @@ def init_cmd(
                 _handle_error(bridge, exc)
                 return
 
-        language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
-        if not language:
-            language = _ask("Primary language", "python")
-        language = language or "python"
-
-        goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS", "")
-        if not goals:
-            goals = _ask("Project goals", "")
-
-        memory_backend = memory_backend or os.environ.get(
-            "DEVSYNTH_INIT_MEMORY_BACKEND"
+        language = (
+            language
+            or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
+            or _ask("Primary language", "python")
         )
-        if not memory_backend:
-            memory_backend = _ask(
+
+        goals = (
+            goals or os.environ.get("DEVSYNTH_INIT_GOALS") or _ask("Project goals", "")
+        )
+
+        memory_backend = (
+            memory_backend
+            or os.environ.get("DEVSYNTH_INIT_MEMORY_BACKEND")
+            or _ask(
                 "Memory backend",
                 "memory",
                 choices=["memory", "file", "kuzu", "chromadb"],
             )
-        memory_backend = memory_backend or "memory"
+        )
 
         valid_backends = {"memory", "file", "kuzu", "chromadb"}
         if memory_backend not in valid_backends:
