@@ -1,10 +1,14 @@
 import json
-import yaml
 from types import ModuleType
 from unittest.mock import MagicMock
+
 import pytest
+import yaml
+
 from devsynth.application.cli import requirements_commands as rc
+from devsynth.application.cli.config import CLIConfig
 from devsynth.interface.ux_bridge import UXBridge
+
 
 class DummyBridge(UXBridge):
 
@@ -20,17 +24,29 @@ class DummyBridge(UXBridge):
     def display_result(self, *_a, **_k):
         pass
 
+
 @pytest.mark.medium
 def test_wizard_cmd_back_navigation_succeeds(tmp_path, monkeypatch):
     """Users should be able to revise answers using 'back'."""
-    monkeypatch.setattr(rc, 'NON_INTERACTIVE', False)
-    answers = ['Old title', 'back', 'New title', 'Description', 'functional', 'medium', '']
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    answers = [
+        "Old title",
+        "back",
+        "New title",
+        "Description",
+        "functional",
+        "medium",
+        "",
+    ]
     bridge = DummyBridge(answers)
-    output = tmp_path / 'req.json'
-    rc.wizard_cmd(output_file=str(output), bridge=bridge)
+    output = tmp_path / "req.json"
+    rc.wizard_cmd(
+        output_file=str(output), bridge=bridge, config=CLIConfig(non_interactive=False)
+    )
     data = json.load(open(output))
-    assert data['title'] == 'New title'
-    assert data['priority'] == 'medium'
+    assert data["title"] == "New title"
+    assert data["priority"] == "medium"
+
 
 @pytest.mark.medium
 def test_gather_requirements_cmd_yaml_succeeds(tmp_path, monkeypatch):
@@ -43,11 +59,12 @@ def test_gather_requirements_cmd_yaml_succeeds(tmp_path, monkeypatch):
 
         def confirm(self, *a, **k):
             return True
-    answers = ['goal1', 'constraint1', 'high']
+
+    answers = ["goal1", "constraint1", "high"]
     bridge = Bridge(answers)
-    output = tmp_path / 'requirements_plan.yaml'
+    output = tmp_path / "requirements_plan.yaml"
     monkeypatch.chdir(tmp_path)
     rc.gather_requirements_cmd(output_file=str(output), bridge=bridge)
     assert output.exists()
     data = yaml.safe_load(open(output))
-    assert data['priority'] == 'high'
+    assert data["priority"] == "high"

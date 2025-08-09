@@ -7,6 +7,7 @@ import yaml
 # Ensures gather_requirements persists priority, goals, and constraints
 pytestmark = pytest.mark.usefixtures("stub_optional_deps")
 
+from devsynth.application.cli.config import CLIConfig
 from devsynth.application.cli.requirements_wizard import requirements_wizard
 from devsynth.application.requirements.interactions import gather_requirements
 
@@ -85,7 +86,7 @@ def test_requirements_wizard_persists_priority_succeeds(tmp_path, monkeypatch):
 
     bridge = Bridge()
     output = tmp_path / "requirements_wizard.json"
-    requirements_wizard(bridge, output_file=str(output))
+    requirements_wizard(bridge, output_file=str(output), config=CLIConfig())
     data = json.load(open(output, encoding="utf-8"))
     assert data["priority"] == "high"
     assert data["title"] == "My Title"

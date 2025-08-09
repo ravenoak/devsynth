@@ -8,7 +8,6 @@ requirement from the user. It mirrors the behaviour of the Typer based
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -16,12 +15,7 @@ from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import UXBridge
 
-# When running automated tests we may want to avoid interactive prompts.
-NON_INTERACTIVE = os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {
-    "1",
-    "true",
-    "yes",
-}
+from .config import CLIConfig
 
 
 def requirements_wizard(
@@ -33,6 +27,7 @@ def requirements_wizard(
     req_type: Optional[str] = None,
     priority: Optional[str] = None,
     constraints: Optional[str] = None,
+    config: Optional[CLIConfig] = None,
 ) -> None:
     """Collect requirement details via ``bridge`` and persist them.
 
@@ -43,9 +38,11 @@ def requirements_wizard(
     output_file:
         Path where the requirement should be written. The file is always JSON.
     title, description, req_type, priority, constraints:
-        Optional values to pre-populate the wizard. When ``NON_INTERACTIVE`` is
-        true these values are used directly without prompting.
+        Optional values to pre-populate the wizard. When ``config.non_interactive``
+        is true these values are used directly without prompting.
     """
+
+    config = config or CLIConfig.from_env()
 
     steps: Sequence[tuple[str, str, Optional[Sequence[str]], str]] = [
         ("title", "Requirement title", None, ""),
@@ -83,7 +80,7 @@ def requirements_wizard(
     while index < len(steps):
         key, message, choices, default = steps[index]
         default_val = responses.get(key, default)
-        if NON_INTERACTIVE:
+        if config.non_interactive:
             reply = default_val or ""
         else:
             prefix = f"Step {index + 1}/{len(steps)}: "
