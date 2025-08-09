@@ -164,7 +164,7 @@ Initialize a new DevSynth project or onboard an existing one.
 devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--language LANG]
              [--source-dirs DIRS] [--test-dirs DIRS] [--docs-dirs DIRS]
              [--extra-languages LANGS] [--goals TEXT] [--constraints FILE]
-             [--wizard]
+             [--wizard] [--metrics-dashboard]
 ```
 
 **Options:**
@@ -183,9 +183,11 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--goals`: High-level goals or constraints for the project
 - `--constraints`: Path to a constraint configuration file
 - `--wizard`: Launch the guided setup wizard even outside a detected project
+- `--metrics-dashboard`: Print instructions for enabling the optional MVUU metrics dashboard
 
 
 This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `project.yaml`. Use the `--wizard` flag to start the wizard explicitly in any directory. The command uses provided options and `DEVSYNTH_INIT_*` environment variables directly, prompting only for missing values. Supplying `--defaults` or `--non-interactive` skips prompts entirely.
+Progress messages show when configuration is saved and when scaffolding files are generated.
 The wizard reads configuration using the [Unified Config Loader](../implementation/config_loader_workflow.md),
 which prefers the `[tool.devsynth]` table in `pyproject.toml` when both files are present.
 During the wizard you will:
@@ -193,6 +195,19 @@ During the wizard you will:
 1. Select the memory backend (``memory``, ``file``, ``Kuzu`` or ``ChromaDB``).
 2. Choose whether to enable optional features such as ``wsde_collaboration`` and ``dialectical_reasoning``.
 3. Decide if DevSynth should operate in offline mode.
+
+Developers writing custom commands can leverage the progress utilities to show
+step-based status updates:
+
+```python
+from devsynth.interface.progress_utils import step_progress
+
+with step_progress(bridge, ["Saving configuration", "Generating project files"]) as progress:
+    progress.advance(status="writing config")
+    # perform work
+    progress.advance(status="scaffolding")
+    # perform next step
+```
 
 
 The resulting `.devsynth/project.yaml` is validated against
