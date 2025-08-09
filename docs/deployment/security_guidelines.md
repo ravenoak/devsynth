@@ -27,6 +27,12 @@ The helper scripts perform several checks before taking action:
 - Verify required tooling is available (`docker`, `docker compose`, and
   `curl` for health checks).
 - Abort if a local `.env` file is more permissive than `600`.
+- Validate the requested environment against an allowlist and ensure its
+  `.env.<environment>` file exists with strict `600` permissions.
+- Reject image tags that contain characters outside of `[A-Za-z0-9._-]` to
+  prevent command injection through tag names.
+- Health checks only accept `http` or `https` URLs and refuse any other
+  protocol schemes.
 
 ## Runtime Safeguards
 

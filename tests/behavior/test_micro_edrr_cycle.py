@@ -19,6 +19,7 @@ from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.methodology.base import Phase
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(
@@ -27,14 +28,6 @@ feature_file = os.path.join(
 
 # Load the scenarios from the feature file
 scenarios(feature_file)
-
-
-# Mock the Phase enum
-class Phase:
-    EXPAND = "EXPAND"
-    DIFFERENTIATE = "DIFFERENTIATE"
-    REFINE = "REFINE"
-    RETROSPECT = "RETROSPECT"
 
 
 @pytest.fixture
