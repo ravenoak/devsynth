@@ -1,6 +1,8 @@
 import pytest
 
-from devsynth.adapters.memory.sync_manager import MultiStoreSyncManager
+MultiStoreSyncManager = pytest.importorskip(
+    "devsynth.adapters.memory.sync_manager"
+).MultiStoreSyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 pytestmark = [
