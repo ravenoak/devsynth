@@ -33,12 +33,12 @@ class KuzuAdapter(VectorStore):
     def __init__(
         self, persist_directory: str, collection_name: str = "devsynth_vectors"
     ) -> None:
-        self.persist_directory = os.path.expanduser(persist_directory)
+        # Normalise and redirect the persistence path so tests can run in an
+        # isolated filesystem.  ``ensure_path_exists`` may return a different
+        # path when test isolation is active; use that value for all subsequent
+        # operations.
+        self.persist_directory = os.path.abspath(os.path.expanduser(persist_directory))
         self.collection_name = collection_name
-        # ``ensure_path_exists`` may redirect the path when running in the
-        # isolated test environment.  Use the returned value so the adapter
-        # writes to the correct location and then create the directory to
-        # mirror the behaviour of other vector stores.
         self.persist_directory = settings_module.ensure_path_exists(
             self.persist_directory
         )

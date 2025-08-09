@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import os
-import tempfile
 import shutil
+import tempfile
 import time
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
-from devsynth.domain.interfaces.memory import MemoryStore
-from devsynth.domain.models.memory import MemoryItem, MemoryVector
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.adapters.provider_system import embed, ProviderError
-from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+from devsynth.adapters.provider_system import ProviderError, embed
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.config import settings as settings_module
+from devsynth.domain.interfaces.memory import MemoryStore
+from devsynth.domain.models.memory import MemoryItem, MemoryVector
 from devsynth.exceptions import MemoryStoreError
+from devsynth.logging_setup import DevSynthLogger
 
 try:  # pragma: no cover - optional dependency
     from chromadb.utils import embedding_functions
@@ -80,6 +79,8 @@ class KuzuMemoryStore(MemoryStore):
         current_path = redirected_path
         for _ in range(2):
             try:
+                from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+
                 self._store = KuzuStore(current_path, use_embedded=use_embedded)
                 # ``KuzuStore`` may internally adjust the path; use its final value
                 current_path = self._store.file_path
