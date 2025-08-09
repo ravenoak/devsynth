@@ -210,6 +210,26 @@ Refer to `docs/architecture/agent_system.md` and `docs/architecture/wsde_agent_m
   - Running the full suite requires the `minimal`, `retrieval`, `chromadb`, and
     `gui` extras.
 
+## Test Organization Verification
+
+Run the test organization checker to ensure new or modified tests follow project
+conventions:
+
+```bash
+poetry run python tests/verify_test_organization.py
+```
+
+If the checker reports problems:
+
+1. Add missing `__init__.py` files to any test directories.
+2. Rename files to match the required patterns:
+   - `tests/unit/<module_path>/test_<module_name>.py`
+   - `tests/integration/<feature_area>/test_<feature_name>.py`
+   - `tests/behavior/features/<feature_area>/<feature_name>.feature`
+   - `tests/behavior/steps/test_<feature_name>_steps.py`
+3. Remove any `__init__` constructors from test classes; use pytest fixtures instead.
+4. Rerun the checker until it exits without errors.
+
 ## Pull Request (PR) Guidelines
 
 - Follow the process in `CONTRIBUTING.md` and `docs/developer_guides/cross_functional_review_process.md`.
