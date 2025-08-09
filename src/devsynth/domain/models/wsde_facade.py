@@ -165,6 +165,49 @@ def _simple_assign_roles_for_phase(self: WSDETeam, phase, task):
 WSDETeam.assign_roles_for_phase = _simple_assign_roles_for_phase
 
 
+def _get_worker(self: WSDETeam):
+    """Return the current worker if assigned."""
+
+    return self.roles.get("worker")
+
+
+def _get_supervisor(self: WSDETeam):
+    """Return the current supervisor if assigned."""
+
+    return self.roles.get("supervisor")
+
+
+def _get_designer(self: WSDETeam):
+    """Return the current designer if assigned."""
+
+    return self.roles.get("designer")
+
+
+def _get_evaluator(self: WSDETeam):
+    """Return the current evaluator if assigned."""
+
+    return self.roles.get("evaluator")
+
+
+def _get_agent(self: WSDETeam, name: str):
+    """Retrieve an agent by name."""
+
+    for agent in self.agents:
+        agent_name = getattr(agent, "name", None) or getattr(
+            getattr(agent, "config", None), "name", None
+        )
+        if agent_name == name:
+            return agent
+    return None
+
+
+WSDETeam.get_worker = _get_worker
+WSDETeam.get_supervisor = _get_supervisor
+WSDETeam.get_designer = _get_designer
+WSDETeam.get_evaluator = _get_evaluator
+WSDETeam.get_agent = _get_agent
+
+
 def _simple_conduct_peer_review(
     self: WSDETeam,
     work_product,
