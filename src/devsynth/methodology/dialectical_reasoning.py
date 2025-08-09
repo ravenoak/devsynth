@@ -8,9 +8,10 @@ from devsynth.domain.models.wsde_dialectical import (
     apply_dialectical_reasoning as _apply_dialectical_reasoning,
 )
 from devsynth.exceptions import ConsensusError
-from devsynth.logger import get_logger, log_consensus_failure
+from devsynth.logger import log_consensus_failure
+from devsynth.logging_setup import DevSynthLogger
 
-logger = get_logger(__name__)
+logger = DevSynthLogger(__name__)
 
 
 def reasoning_loop(
