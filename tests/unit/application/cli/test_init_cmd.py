@@ -187,6 +187,39 @@ def test_init_cmd_defaults_non_interactive_skips_prompts(tmp_path, monkeypatch):
 
 
 @pytest.mark.medium
+def test_init_cmd_env_non_interactive_skips_prompts(tmp_path, monkeypatch):
+    """Environment variables trigger non-interactive defaults."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DEVSYNTH_NONINTERACTIVE", "1")
+    monkeypatch.setenv("DEVSYNTH_AUTO_CONFIRM", "1")
+
+    bridge = CLIUXBridge()
+    bridge.ask_question = MagicMock()
+    bridge.confirm_choice = MagicMock()
+
+    printed: list[str] = []
+    monkeypatch.setattr(
+        "rich.console.Console.print",
+        lambda self, msg="", *a, **k: printed.append(str(msg)),
+    )
+
+    init_cmd(bridge=bridge)
+
+    cfg_file = tmp_path / ".devsynth" / "project.yaml"
+    data = _load_config(cfg_file)
+
+    assert data["project_root"] == str(tmp_path)
+    assert data["language"] == "python"
+    assert data["goals"] == ""
+    assert data["memory_store_type"] == "memory"
+    assert data["offline_mode"] is False
+    bridge.ask_question.assert_not_called()
+    bridge.confirm_choice.assert_not_called()
+    assert any("Initialization complete" in msg for msg in printed)
+
+
+@pytest.mark.medium
 def test_cli_help_lists_renamed_commands_succeeds(capsys, monkeypatch):
     """``devsynth --help`` lists renamed commands and omits old ones."""
 

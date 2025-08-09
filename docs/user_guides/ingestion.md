@@ -25,6 +25,12 @@ Disable prompts when automating workflows by running:
 devsynth ingest --non-interactive --yes
 ```
 
+The `--defaults` flag combines both options:
+
+```bash
+devsynth ingest --defaults
+```
+
 Setting `DEVSYNTH_INGEST_NONINTERACTIVE=1` enables non-interactive mode by default. Pair with `DEVSYNTH_AUTO_CONFIRM=1` or `--yes` to auto-approve prompts.
 
 ## Implementation Status

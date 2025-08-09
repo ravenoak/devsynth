@@ -693,6 +693,10 @@ DevSynth uses the following environment variables:
 | `DEVSYNTH_INGEST_DRY_RUN` | Set to `1` to enable `--dry-run` by default | 0 |
 | `DEVSYNTH_INGEST_VERBOSE` | Set to `1` to enable verbose ingestion output | 0 |
 | `DEVSYNTH_INGEST_VALIDATE_ONLY` | Set to `1` to run only manifest validation | 0 |
+| `DEVSYNTH_INGEST_PRIORITY` | Persist project priority without prompting | None |
+| `DEVSYNTH_INGEST_AUTO_PHASE_TRANSITIONS` | Set to `0` to require manual EDRR phase transitions | 1 |
+| `DEVSYNTH_INGEST_NONINTERACTIVE` | Set to `1` to disable prompts during ingestion | 0 |
+| `DEVSYNTH_AUTO_CONFIRM` | Auto-approve prompts across commands | 0 |
 
 ## Configuration File
 
