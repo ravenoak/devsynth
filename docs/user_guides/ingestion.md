@@ -35,4 +35,6 @@ Setting `DEVSYNTH_INGEST_NONINTERACTIVE=1` enables non-interactive mode by defau
 
 ## Implementation Status
 
-.
+Non-interactive CLI ingestion is fully implemented. Use `--non-interactive` or
+`--defaults` to bypass prompts, or set `DEVSYNTH_INGEST_NONINTERACTIVE=1` to
+enable non-interactive mode by default.

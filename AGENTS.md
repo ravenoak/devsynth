@@ -27,15 +27,15 @@ poetry run pre-commit run --files path/to/file1.py [path/to/file2.py ...]
 ### Tests
 
 ```bash
-poetry run pytest
+poetry run pytest -m "not memory_intensive"
 ```
 
-Running hooks and tests through `poetry run` ensures they execute inside the project's virtual environment and prevents missing-package errors. Always invoke the pre-commit hooks on the files you are about to commit using the `--files` option shown above.
+Use the `-m "not memory_intensive"` marker to skip memory-heavy tests during quick runs. Running hooks and tests through `poetry run` ensures they execute inside the project's virtual environment and prevents missing-package errors. Always invoke the pre-commit hooks on the files you are about to commit using the `--files` option shown above.
 All linting and test commands must be executed via `poetry run`; running them
 without the prefix may result in missing dependencies. If `poetry run pytest`
 reports missing packages, rerun `scripts/codex_setup.sh` or
 `poetry install --with dev --extras tests` to install the required
-dependencies.
+dependencies before running the full suite without the marker.
 
 ## Dependency Validation
 

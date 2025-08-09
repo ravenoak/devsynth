@@ -640,6 +640,32 @@ completion
 mvu
 ```
 
+### ingest
+
+Run the Expand, Differentiate, Refine, Retrospect pipeline for a project.
+
+```bash
+devsynth ingest [MANIFEST] [--non-interactive] [--yes] [--defaults] [--priority PRIORITY]
+```
+
+**Options:**
+
+- `MANIFEST` (optional): Path to the project manifest. Defaults to `.devsynth/project.yaml` or `DEVSYNTH_MANIFEST_PATH`.
+- `--non-interactive`: Run without prompts.
+- `--yes`, `--auto-confirm`: Automatically approve confirmations.
+- `--defaults`: Apply sensible defaults and skip prompts (implies `--non-interactive` and `--yes`).
+- `--priority`: Set project priority.
+
+**Examples:**
+
+```bash
+# Ingest using defaults and no prompts
+devsynth ingest --defaults
+
+# Non-interactive ingestion with explicit manifest and high priority
+devsynth ingest manifest.yaml --non-interactive --yes --priority high
+```
+
 ### completion
 
 Generate or install shell completion scripts for the DevSynth CLI.
