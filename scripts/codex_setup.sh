@@ -24,17 +24,19 @@ poetry env use "$(command -v python3.12 || command -v python3.11)"
 # Verify that the virtual environment was created
 poetry env info --path >/dev/null
 
-# Install all extras required for the test suite. Large GPU packages provided by
-# the `offline` extra are intentionally excluded to keep setup fast. Add the
+# Install development dependencies and test extras. Large GPU packages provided
+# by the `offline` extra are intentionally excluded to keep setup fast. Add the
 # `offline` extra manually if GPU features are needed.
 poetry install \
-  --with dev,docs \
-  --all-extras \
+  --with dev \
+  --extras tests \
   --no-interaction
 
-# Ensure pytest-bdd is available after installation
-poetry run python -c "import pytest_bdd"
-poetry run pip list | grep pytest-bdd >/dev/null
+# Ensure prometheus-client is available after installation
+poetry run python -c "import prometheus_client"
+# Handle normalized package names with underscores
+poetry run pip list | grep prometheus-client >/dev/null || \
+  poetry run pip list | grep prometheus_client >/dev/null
 
 # Install the DevSynth CLI with pipx and verify it works. On subsequent
 # runs, skip the installation step to avoid network access.

@@ -44,11 +44,11 @@ confirm that dependencies are consistent and that test extras are present:
 
 ```bash
 poetry run pip check
-poetry run pip list | grep pytest-bdd
+poetry run pip list | grep prometheus-client
 ```
 
-These commands surface version conflicts and verify that the `pytest-bdd` plugin
-needed for behavior-driven tests is installed.
+These commands surface version conflicts and verify that the `prometheus-client`
+library required for metrics is installed.
 
 ## Troubleshooting Test Collection Failures
 
@@ -58,7 +58,7 @@ plugin import errors), rerun the setup script to reinstall dependencies:
 ```bash
 bash scripts/codex_setup.sh
 poetry run pip check
-poetry run pip list | grep pytest-bdd
+poetry run pip list | grep prometheus-client
 poetry run pytest --maxfail=1
 ```
 
@@ -101,8 +101,8 @@ if [ -f CODEX_ENVIRONMENT_SETUP_FAILED ]; then bash scripts/codex_setup.sh; fi
 Fix the script and rerun it offline to finish provisioning:
 
 1. Review and update `scripts/codex_setup.sh` so it installs all project
-   dependencies with `poetry install --with dev,docs --all-extras` (or the
-   `--minimal` variant) and verifies key packages such as `pytest-bdd` are
+   dependencies with `poetry install --with dev --extras tests` (or the
+   `--minimal` variant) and verifies key packages such as `prometheus-client` are
    available.
 2. Run `bash scripts/codex_setup.sh` (without network access) until it completes
    without errors. After it finishes, verify the environment, dependencies,
@@ -131,7 +131,7 @@ for pkg in (
 ):
     importlib.import_module(pkg)
 EOF
-  poetry run pip list | grep pytest-bdd
+  poetry run pip list | grep prometheus-client
   ```
 3. Remove the failure marker with `rm CODEX_ENVIRONMENT_SETUP_FAILED`.
 4. Execute `poetry run pytest --maxfail=1` to verify the environment quickly.
