@@ -4,10 +4,15 @@ The `devsynth ingest` command runs the Expand, Differentiate, Refine, and Retros
 
 ## Non-interactive usage
 
-Use the `--yes` flag to auto-confirm prompts and `--priority` to set a project priority without manual input:
+Use `--non-interactive` to bypass prompts. Combine it with `--yes` or the
+`DEVSYNTH_AUTO_CONFIRM=1` environment variable to auto-approve confirmations.
+You can also set defaults such as project priority with `--priority` or by
+using `DEVSYNTH_INGEST_PRIORITY`.
 
 ```bash
-devsynth ingest manifest.yaml --yes --priority high
+devsynth ingest manifest.yaml --non-interactive --yes --priority high
 ```
 
-These options are useful in scripts or CI environments where no user interaction is available.
+Setting `DEVSYNTH_INGEST_NONINTERACTIVE=1` enables non-interactive mode by
+default. These options are useful in scripts or CI environments where no user
+interaction is available.
