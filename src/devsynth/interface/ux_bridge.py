@@ -40,8 +40,20 @@ class ProgressIndicator(ABC):
         self.complete()
 
     @abstractmethod
-    def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
-        """Advance the progress indicator."""
+    def update(
+        self,
+        *,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
+        """Advance the progress indicator.
+
+        Args:
+            advance: Amount to advance the progress.
+            description: Optional new description for the task.
+            status: Optional short status message.
+        """
 
     @abstractmethod
     def complete(self) -> None:
@@ -112,7 +124,11 @@ class UXBridge(ABC):
 
         class _DummyProgress(ProgressIndicator):
             def update(
-                self, *, advance: float = 1, description: Optional[str] = None
+                self,
+                *,
+                advance: float = 1,
+                description: Optional[str] = None,
+                status: Optional[str] = None,
             ) -> None:  # pragma: no cover - simple no-op
                 pass
 

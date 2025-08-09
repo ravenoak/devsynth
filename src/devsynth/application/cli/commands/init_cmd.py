@@ -80,7 +80,7 @@ def init_cmd(
         *,
         choices: Optional[List[str]] = None,
     ) -> str:
-        """Prompt the user unless running in auto-confirm mode."""
+        """Prompt the user only when interaction is required."""
 
         if auto_confirm:
             return default
@@ -96,9 +96,10 @@ def init_cmd(
             SetupWizard(bridge).run()
             return
 
-        if _find_config_path(Path.cwd()) is not None:
+        existing_cfg = _find_config_path(Path.cwd())
+        if existing_cfg is not None:
             bridge.display_result(
-                "[yellow]Project already initialized[/yellow]",
+                f"[yellow]Project already initialized at {existing_cfg}[/yellow]",
                 message_type="warning",
             )
             return
@@ -106,7 +107,11 @@ def init_cmd(
         config = UnifiedConfigLoader.load().config
 
         root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
-        root = root or _ask("Project root directory", str(Path.cwd()))
+        if not root and not auto_confirm:
+            root = bridge.ask_question(
+                "Project root directory", default=str(Path.cwd())
+            )
+        root = root or str(Path.cwd())
 
         root_path = Path(root)
         if root_path.exists() and not root_path.is_dir():
@@ -119,29 +124,33 @@ def init_cmd(
                 _handle_error(bridge, exc)
                 return
 
-        language = (
-            language
-            or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
-            or _ask("Primary language", "python")
-        )
+        language = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
+        if not language and not auto_confirm:
+            language = bridge.ask_question("Primary language", default="python")
+        language = language or "python"
 
         goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS", "")
-        if not goals:
-            goals = _ask("Project goals", "")
+        if not goals and not auto_confirm:
+            goals = bridge.ask_question("Project goals", default="")
 
         memory_backend = memory_backend or os.environ.get(
             "DEVSYNTH_INIT_MEMORY_BACKEND"
         )
-        memory_backend = memory_backend or _ask(
-            "Memory backend",
-            "memory",
-            choices=["memory", "file", "kuzu", "chromadb"],
-        )
+        if not memory_backend and not auto_confirm:
+            memory_backend = bridge.ask_question(
+                "Memory backend",
+                default="memory",
+                choices=["memory", "file", "kuzu", "chromadb"],
+            )
+        memory_backend = memory_backend or "memory"
 
         valid_backends = {"memory", "file", "kuzu", "chromadb"}
         if memory_backend not in valid_backends:
             _handle_error(
-                bridge, ValueError(f"Invalid memory backend: {memory_backend}")
+                bridge,
+                ValueError(
+                    f"Invalid memory backend '{memory_backend}'. Choose from: {', '.join(sorted(valid_backends))}."
+                ),
             )
             return
 
@@ -161,7 +170,7 @@ def init_cmd(
             raw_features = features if features is not None else env_feats
             features_map = _parse_features(raw_features) if raw_features else {}
         except Exception as exc:
-            _handle_error(bridge, exc)
+            _handle_error(bridge, ValueError(f"Invalid feature specification: {exc}"))
             return
 
         config.project_root = root
@@ -173,14 +182,18 @@ def init_cmd(
 
         progress = bridge.create_progress("Initializing project", total=2)
         try:
-            progress.update(description="Saving configuration", advance=0)
+            progress.update(
+                description="Saving configuration", status="writing config", advance=0
+            )
             save_config(
                 ConfigModel(**config.as_dict()),
                 use_pyproject=(Path("pyproject.toml").exists()),
             )
-            progress.update(advance=1)
+            progress.update(advance=1, status="config saved")
 
-            progress.update(description="Generating project files", advance=0)
+            progress.update(
+                description="Generating project files", status="scaffolding", advance=0
+            )
             init_project(
                 root=root,
                 structure=config.structure,
@@ -190,7 +203,7 @@ def init_cmd(
                 offline_mode=offline_mode,
                 features=features_map,
             )
-            progress.update(advance=1)
+            progress.update(advance=1, status="done")
             progress.complete()
             bridge.display_result(
                 "[green]Initialization complete[/green]",

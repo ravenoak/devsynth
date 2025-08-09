@@ -58,6 +58,7 @@ This document provides a comprehensive reference for the DevSynth Command Line I
   - [ingest](#ingest)
   - [apispec](#apispec)
   - [serve](#serve)
+  - [completion](#completion)
   - [mvu](#mvu)
 - [Environment Variables](#environment-variables)
 - [Configuration File](#configuration-file)
@@ -124,8 +125,9 @@ test-metrics
 generate-docs
 ingest
 apispec
-mvu
 serve
+completion
+mvu
 ```
 
 ### help
@@ -183,7 +185,7 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 - `--wizard`: Launch the guided setup wizard even outside a detected project
 
 
-This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `project.yaml`. Use the `--wizard` flag to start the wizard explicitly in any directory.
+This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `project.yaml`. Use the `--wizard` flag to start the wizard explicitly in any directory. The command uses provided options and `DEVSYNTH_INIT_*` environment variables directly, prompting only for missing values. Supplying `--defaults` or `--non-interactive` skips prompts entirely.
 The wizard reads configuration using the [Unified Config Loader](../implementation/config_loader_workflow.md),
 which prefers the `[tool.devsynth]` table in `pyproject.toml` when both files are present.
 During the wizard you will:
@@ -618,8 +620,33 @@ test-metrics
 generate-docs
 ingest
 apispec
-mvu
 serve
+completion
+mvu
+```
+
+### completion
+
+Generate or install shell completion scripts for the DevSynth CLI.
+
+```bash
+devsynth completion [--shell bash|zsh|fish] [--install] [--output PATH]
+```
+
+**Options:**
+
+- `--shell`: Target shell. Defaults to the current shell.
+- `--install`: Install the completion script into the user's shell configuration.
+- `--output`: Write the generated script to a file instead of printing.
+
+**Examples:**
+
+```bash
+# Show the completion script for your current shell
+devsynth completion
+
+# Install zsh completions
+devsynth completion --shell zsh --install
 ```
 
 ### mvu

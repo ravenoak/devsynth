@@ -10,8 +10,8 @@ PyGUI event loop and uses safe text handling utilities provided by the
 project.
 """
 
-from typing import Any, Callable, Optional, Sequence
 import threading
+from typing import Any, Callable, Optional, Sequence
 
 try:  # pragma: no cover - dearpygui may not be installed during tests
     import dearpygui.dearpygui as dpg
@@ -34,18 +34,45 @@ class DearPyGUIProgressIndicator(ProgressIndicator):
         self._window = dpg.window(label=sanitize_output(description))
         with self._window:
             self._bar_id = dpg.add_progress_bar(default_value=0.0)
+            self._status_id = dpg.add_text("Starting...")
             if cancellable:
                 dpg.add_button(label="Cancel", callback=self.cancel)
 
-    def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+    def update(
+        self,
+        *,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         self._current += advance
         if description is not None:
             dpg.set_item_label(self._window, sanitize_output(str(description)))
+
+        if status is not None:
+            dpg.set_value(self._status_id, sanitize_output(str(status)))
+        else:
+            pct = self._current / self._total if self._total else 0
+            if pct >= 1:
+                msg = "Complete"
+            elif pct >= 0.99:
+                msg = "Finalizing..."
+            elif pct >= 0.75:
+                msg = "Almost done..."
+            elif pct >= 0.5:
+                msg = "Halfway there..."
+            elif pct >= 0.25:
+                msg = "Processing..."
+            else:
+                msg = "Starting..."
+            dpg.set_value(self._status_id, msg)
+
         dpg.set_value(self._bar_id, min(self._current / self._total, 1.0))
         dpg.render_dearpygui_frame()
 
     def complete(self) -> None:
         dpg.set_value(self._bar_id, 1.0)
+        dpg.set_value(self._status_id, "Complete")
         dpg.render_dearpygui_frame()
         dpg.delete_item(self._window)
 

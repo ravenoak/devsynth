@@ -6,23 +6,24 @@ provided by the UXBridge abstraction with more detailed and visually appealing
 progress indicators.
 """
 
-from typing import Optional, Dict, Any, List, Callable
-from rich.console import Console
-from rich.progress import (
-    Progress,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-    TimeRemainingColumn,
-    SpinnerColumn,
-)
-from rich.panel import Panel
-from rich.table import Table
-from rich.markdown import Markdown
+from typing import Any, Callable, Dict, List, Optional
 
-from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeRemainingColumn,
+)
+from rich.table import Table
+
 from devsynth.interface.cli import CLIProgressIndicator
 from devsynth.interface.progress_utils import run_with_progress
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 
 
 class EnhancedProgressIndicator(CLIProgressIndicator):
@@ -85,7 +86,9 @@ class EnhancedProgressIndicator(CLIProgressIndicator):
         self._subtasks[desc] = task_id
         return desc
 
-    def update_subtask(self, subtask_id: str, advance: float = 1, description: Optional[str] = None) -> None:
+    def update_subtask(
+        self, subtask_id: str, advance: float = 1, description: Optional[str] = None
+    ) -> None:
         """Update a subtask's progress.
 
         Args:
@@ -107,7 +110,9 @@ class EnhancedProgressIndicator(CLIProgressIndicator):
                     desc = "<description>"
 
                 formatted_desc = f"  ↳ {desc}"
-                self._progress.update(task_id, advance=advance, description=formatted_desc)
+                self._progress.update(
+                    task_id, advance=advance, description=formatted_desc
+                )
 
                 # Update the subtask ID in the dictionary if the description has changed
                 if desc != subtask_id:
@@ -126,25 +131,34 @@ class EnhancedProgressIndicator(CLIProgressIndicator):
             task_id = self._subtasks[subtask_id]
             self._progress.update(task_id, completed=True)
 
-    def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+    def update(
+        self,
+        *,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
         """Update the progress indicator.
 
         Args:
             advance: The amount to advance the progress
             description: The new description of the task
+            status: Status message to display
         """
-        # If a new description is provided, sanitize it
+        update_kwargs: Dict[str, Any] = {"advance": advance}
+
         if description is not None:
             try:
                 desc_str = str(description)
                 desc = desc_str
             except Exception:
-                # Fallback for objects that can't be safely converted to string
                 desc = "<description>"
+            update_kwargs["description"] = desc
 
-            self._progress.update(self._task, advance=advance, description=desc)
-        else:
-            self._progress.update(self._task, advance=advance)
+        if status is not None:
+            update_kwargs["status"] = status
+
+        self._progress.update(self._task, **update_kwargs)
 
     def complete(self) -> None:
         """Mark the task as complete."""
@@ -173,7 +187,9 @@ class ProgressManager:
         self.bridge = bridge
         self.indicators: Dict[str, ProgressIndicator] = {}
 
-    def create_progress(self, task_id: str, description: str, total: int = 100) -> ProgressIndicator:
+    def create_progress(
+        self, task_id: str, description: str, total: int = 100
+    ) -> ProgressIndicator:
         """Create a progress indicator for a task.
 
         Args:
@@ -199,7 +215,9 @@ class ProgressManager:
         """
         return self.indicators.get(task_id)
 
-    def update_progress(self, task_id: str, advance: float = 1, description: Optional[str] = None) -> None:
+    def update_progress(
+        self, task_id: str, advance: float = 1, description: Optional[str] = None
+    ) -> None:
         """Update the progress indicator for a task.
 
         Args:
@@ -223,7 +241,9 @@ class ProgressManager:
             del self.indicators[task_id]
 
 
-def create_enhanced_progress(console: Console, description: str, total: int = 100) -> EnhancedProgressIndicator:
+def create_enhanced_progress(
+    console: Console, description: str, total: int = 100
+) -> EnhancedProgressIndicator:
     """Create an enhanced progress indicator.
 
     Args:
@@ -254,13 +274,15 @@ def create_task_table(tasks: List[Dict[str, Any]], title: str = "Tasks") -> Tabl
 
     for task in tasks:
         status = task.get("status", "Pending")
-        status_style = "green" if status == "Complete" else "yellow" if status == "In Progress" else "red"
+        status_style = (
+            "green"
+            if status == "Complete"
+            else "yellow" if status == "In Progress" else "red"
+        )
         table.add_row(
             task.get("name", ""),
             f"[{status_style}]{status}[/{status_style}]",
-            task.get("description", "")
+            task.get("description", ""),
         )
 
     return table
-
-

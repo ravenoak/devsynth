@@ -145,11 +145,11 @@ from devsynth.interface.ux_bridge import UXBridge, ProgressIndicator, sanitize_o
 
 class MinimalUXBridge(UXBridge):
     """A minimal UXBridge implementation."""
-    
+
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         """Display a message to the user."""
         print(sanitize_output(message))
-    
+
     def ask_question(
         self,
         message: str,
@@ -165,7 +165,7 @@ class MinimalUXBridge(UXBridge):
         if default and show_default:
             print(f"Default: {default}")
         return input("> ") or default or ""
-    
+
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
         """Ask for confirmation and return a boolean."""
         print(sanitize_output(message))
@@ -174,10 +174,10 @@ class MinimalUXBridge(UXBridge):
         if not response:
             return default
         return response.startswith("y")
-    
+
     class _MinimalProgress(ProgressIndicator):
         """A minimal progress indicator."""
-        
+
         def __init__(self, description: str, total: int) -> None:
             """Initialize with a description and total steps."""
             self.description = description
@@ -185,19 +185,28 @@ class MinimalUXBridge(UXBridge):
             self.current = 0
             self.subtasks = {}
             print(f"Starting: {description} (0/{total})")
-        
-        def update(self, *, advance: float = 1, description: Optional[str] = None) -> None:
+
+        def update(
+            self,
+            *,
+            advance: float = 1,
+            description: Optional[str] = None,
+            status: Optional[str] = None,
+        ) -> None:
             """Update progress by the specified amount."""
             self.current += advance
             if description:
                 self.description = description
-            print(f"Progress: {self.description} ({self.current}/{self.total})")
-        
+            status_msg = status or ""
+            print(
+                f"Progress: {self.description} ({self.current}/{self.total}) {status_msg}"
+            )
+
         def complete(self) -> None:
             """Mark the progress as complete."""
             self.current = self.total
             print(f"Completed: {self.description}")
-        
+
         def add_subtask(self, description: str, total: int = 100) -> str:
             """Add a subtask with its own progress tracking."""
             task_id = f"subtask_{len(self.subtasks)}"
@@ -208,30 +217,30 @@ class MinimalUXBridge(UXBridge):
             }
             print(f"Subtask started: {description} (0/{total})")
             return task_id
-        
+
         def update_subtask(
             self, task_id: str, advance: float = 1, description: Optional[str] = None
         ) -> None:
             """Update a subtask's progress."""
             if task_id not in self.subtasks:
                 raise ValueError(f"Unknown subtask ID: {task_id}")
-            
+
             subtask = self.subtasks[task_id]
             subtask["current"] += advance
             if description:
                 subtask["description"] = description
-            
+
             print(f"Subtask progress: {subtask['description']} ({subtask['current']}/{subtask['total']})")
-        
+
         def complete_subtask(self, task_id: str) -> None:
             """Mark a subtask as complete."""
             if task_id not in self.subtasks:
                 raise ValueError(f"Unknown subtask ID: {task_id}")
-            
+
             subtask = self.subtasks[task_id]
             subtask["current"] = subtask["total"]
             print(f"Subtask completed: {subtask['description']}")
-    
+
     def create_progress(
         self, description: str, *, total: int = 100
     ) -> ProgressIndicator:
