@@ -95,7 +95,8 @@ def request_peer_review(
     """Create and track a peer review cycle."""
     try:  # pragma: no cover - external dependency best effort
         from devsynth.application.collaboration.peer_review import PeerReview
-    except Exception:  # pragma: no cover - peer review unavailable
+    except Exception as exc:  # pragma: no cover - peer review unavailable
+        logger.warning("Peer review failed: %s", exc)
         return None
 
     review = PeerReview(
