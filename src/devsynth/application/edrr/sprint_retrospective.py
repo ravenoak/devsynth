@@ -8,6 +8,10 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+# EDRR phase associated with sprint retrospectives, stored as a string to
+# keep imports lightweight.
+SPRINT_RETROSPECTIVE_PHASE = "retrospect"
+
 
 def map_retrospective_to_summary(
     retrospective: Dict[str, Any], sprint: int

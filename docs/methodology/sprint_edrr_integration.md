@@ -2,6 +2,13 @@
 
 This guide explains how the `SprintAdapter` connects traditional sprint practices with DevSynth's Expand, Differentiate, Refine, Retrospect (EDRR) methodology.
 
+## Phase Alignment
+
+Sprint ceremonies map directly to EDRR phases:
+
+- **Sprint Planning** → **Expand**. Requirement analysis during the Expand phase produces the inputs for the upcoming sprint plan.
+- **Sprint Retrospective** → **Retrospect**. Outputs from the Retrospect phase are summarized into actionable retrospective insights.
+
 ## Requirement Analysis
 
 During the **Expand** phase, requirement analysis results feed directly into sprint planning. After each cycle, the adapter updates the upcoming sprint plan and records the actual scope delivered.
