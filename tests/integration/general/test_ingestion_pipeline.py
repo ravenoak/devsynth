@@ -17,6 +17,7 @@ import yaml
 
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.application.cli.commands.ingest_cmd import ingest_cmd as cli_ingest_cmd
 from devsynth.application.cli.ingest_cmd import ingest_cmd
 from devsynth.application.ingestion import (
     ArtifactStatus,
@@ -112,6 +113,18 @@ def test_ingest_cmd_non_interactive_priority_persists(
 
     cfg = UnifiedConfigLoader.load(temp_project_dir)
     assert cfg.config.priority == "high"
+
+
+@patch("devsynth.application.cli.commands.ingest_cmd._ingest_cmd")
+def test_cli_ingest_respects_env_non_interactive(mock_ingest, monkeypatch):
+    """CLI wrapper defaults to non-interactive from environment."""
+
+    monkeypatch.setenv("DEVSYNTH_INGEST_NONINTERACTIVE", "1")
+    monkeypatch.setenv("DEVSYNTH_AUTO_CONFIRM", "1")
+
+    cli_ingest_cmd(manifest_path="manifest.yaml")
+
+    assert mock_ingest.call_args.kwargs["non_interactive"] is True
 
 
 class TestIngestionMetrics:
