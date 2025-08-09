@@ -9,6 +9,10 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+# EDRR phase associated with sprint planning. Stored as a string to avoid
+# circular import issues with the methodology package.
+SPRINT_PLANNING_PHASE = "expand"
+
 
 def map_requirements_to_plan(requirement_results: Dict[str, Any]) -> Dict[str, Any]:
     """Return sprint planning information derived from requirement analysis.

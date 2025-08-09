@@ -1,5 +1,8 @@
 import pytest
 
+from devsynth.application.edrr.sprint_planning import SPRINT_PLANNING_PHASE
+from devsynth.application.edrr.sprint_retrospective import SPRINT_RETROSPECTIVE_PHASE
+from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint import SprintAdapter
 
 
@@ -26,6 +29,12 @@ def test_requirements_analysis_updates_sprint_plan():
     assert adapter.sprint_plan["objectives"] == ["obj"]
     assert adapter.metrics["planned_scope"][0] == ["feature"]
     assert adapter.metrics["actual_scope"][0] == ["feature"]
+
+
+def test_sprint_ceremonies_mapped_to_edrr_phases():
+    """Sprint ceremonies align with their corresponding EDRR phases."""
+    assert SPRINT_PLANNING_PHASE == Phase.EXPAND.value
+    assert SPRINT_RETROSPECTIVE_PHASE == Phase.RETROSPECT.value
 
 
 def test_retrospective_evaluation_logged():
