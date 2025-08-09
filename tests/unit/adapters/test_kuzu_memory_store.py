@@ -1,14 +1,15 @@
 """Tests for :class:`KuzuMemoryStore`."""
 
 import importlib.util
-from pathlib import Path
 import sys
+from pathlib import Path
 from types import ModuleType
 from unittest.mock import patch
 
 import pytest
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.exceptions import MemoryStoreError
 
 ROOT = Path(__file__).resolve().parents[3]
 KUZU_STORE_PATH = ROOT / "src/devsynth/application/memory/kuzu_store.py"
@@ -90,3 +91,38 @@ def test_create_ephemeral_embedded(KuzuMemoryStoreClass, monkeypatch):
         assert not store._store._use_fallback
     finally:
         store.cleanup()
+
+
+def test_store_failure_raises_memory_store_error(tmp_path, KuzuMemoryStoreClass):
+    store = KuzuMemoryStoreClass(
+        persist_directory=str(tmp_path), use_provider_system=False
+    )
+    item = MemoryItem(id="fail", content="oops", memory_type=MemoryType.WORKING)
+    with (
+        patch.object(store.vector, "store_vector", side_effect=OSError("disk failure")),
+        patch.object(
+            store.vector, "delete_vector", side_effect=OSError("cleanup error")
+        ) as del_mock,
+        patch.object(
+            store._store, "delete", side_effect=OSError("cleanup error")
+        ) as store_del_mock,
+    ):
+        with pytest.raises(MemoryStoreError):
+            store.store(item)
+        assert del_mock.called
+        assert store_del_mock.called
+
+
+def test_delete_returns_false_on_error(tmp_path, KuzuMemoryStoreClass):
+    store = KuzuMemoryStoreClass(
+        persist_directory=str(tmp_path), use_provider_system=False
+    )
+    item = MemoryItem(id="t1", content="hi", memory_type=MemoryType.WORKING)
+    store.store(item)
+    with (
+        patch.object(store.vector, "delete_vector", return_value=True) as vec_del,
+        patch.object(store._store, "delete", side_effect=OSError("fail")) as store_del,
+    ):
+        assert not store.delete(item.id)
+        vec_del.assert_called_once_with(item.id)
+        store_del.assert_called_once_with(item.id)

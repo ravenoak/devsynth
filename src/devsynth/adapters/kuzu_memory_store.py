@@ -18,7 +18,7 @@ from devsynth.logging_setup import DevSynthLogger
 
 try:  # pragma: no cover - optional dependency
     from chromadb.utils import embedding_functions
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     embedding_functions = None
 
 logger = DevSynthLogger(__name__)
@@ -32,7 +32,7 @@ def _is_kuzu_available() -> bool:
         import kuzu  # noqa: F401
 
         return True
-    except Exception:
+    except ImportError:
         return False
 
 
@@ -86,7 +86,7 @@ class KuzuMemoryStore(MemoryStore):
                 current_path = self._store.file_path
                 self.vector = KuzuAdapter(current_path, collection_name)
                 break
-            except Exception as exc:
+            except (ImportError, MemoryStoreError, OSError) as exc:
                 logger.warning(
                     f"Initialization error for Kuzu memory at {current_path}: {exc}"
                 )
@@ -106,7 +106,7 @@ class KuzuMemoryStore(MemoryStore):
                 self.embedder = embedding_functions.DefaultEmbeddingFunction()
             else:
                 self.embedder = lambda x: [0.0] * 5
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             logger.warning(f"Error initializing embedder: {e}. Using fallback.")
             self.embedder = lambda x: [0.0] * 5
 
@@ -185,16 +185,16 @@ class KuzuMemoryStore(MemoryStore):
                 item_id = self._store.store(item)
                 return item_id
 
-        except Exception as e:
+        except (MemoryStoreError, OSError) as e:
             logger.error(f"Error storing item {item.id}: {e}")
             # Try to clean up any partial storage
             try:
                 self.vector.delete_vector(item.id)
-            except Exception:
+            except (MemoryStoreError, OSError):
                 pass
             try:
                 self._store.delete(item.id)
-            except Exception:
+            except (MemoryStoreError, OSError):
                 pass
             raise MemoryStoreError(f"Failed to store item {item.id}: {e}") from e
 
@@ -254,7 +254,7 @@ class KuzuMemoryStore(MemoryStore):
                 # Return True if either was deleted
                 return vector_deleted or item_deleted
 
-        except Exception as e:
+        except (MemoryStoreError, OSError) as e:
             logger.error(f"Error deleting item {item_id}: {e}")
             # Don't raise here to maintain backward compatibility
             # Just log and return False
@@ -296,7 +296,7 @@ class KuzuMemoryStore(MemoryStore):
         try:
             if hasattr(self, "_store") and hasattr(self._store, "close"):
                 self._store.close()
-        except Exception as e:
+        except (MemoryStoreError, OSError) as e:
             logger.warning(f"Error closing Kuzu store: {e}")
 
         # Clean up vector store files
@@ -306,7 +306,7 @@ class KuzuMemoryStore(MemoryStore):
                 try:
                     os.remove(vector_data_file)
                     logger.debug(f"Removed vector data file: {vector_data_file}")
-                except Exception as e:
+                except OSError as e:
                     logger.warning(f"Failed to remove vector data file: {e}")
 
             # Also try to remove any temporary files
@@ -315,9 +315,9 @@ class KuzuMemoryStore(MemoryStore):
                 try:
                     os.remove(vector_temp_file)
                     logger.debug(f"Removed vector temp file: {vector_temp_file}")
-                except Exception:
+                except OSError:
                     pass
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"Error during vector store cleanup: {e}")
 
         # Finally, remove the temporary directory
@@ -328,7 +328,7 @@ class KuzuMemoryStore(MemoryStore):
                 time.sleep(0.1)
                 shutil.rmtree(temp_dir)
                 logger.debug(f"Removed temporary directory: {temp_dir}")
-            except Exception as exc:
+            except OSError as exc:
                 logger.warning(f"Failed to clean up temporary Kuzu directory: {exc}")
                 # Try to remove individual files as a fallback
                 try:
@@ -336,19 +336,19 @@ class KuzuMemoryStore(MemoryStore):
                         for file in files:
                             try:
                                 os.remove(os.path.join(root, file))
-                            except Exception:
+                            except OSError:
                                 pass
                         for dir in dirs:
                             try:
                                 os.rmdir(os.path.join(root, dir))
-                            except Exception:
+                            except OSError:
                                 pass
                     # Try to remove the root directory again
                     try:
                         os.rmdir(temp_dir)
-                    except Exception:
+                    except OSError:
                         pass
-                except Exception:
+                except OSError:
                     pass
 
         if temp_dir:
