@@ -62,9 +62,9 @@ def requirements_wizard(
         ("constraints", "Constraints (comma separated, optional)", None, ""),
     ]
 
-    # Seed responses with any provided values so they act as defaults when
-    # prompting or allow fully non-interactive operation.
-    responses: dict[str, str] = {}
+    # Seed responses with step defaults so navigation preserves previous
+    # answers.  Provided values override these defaults.
+    responses: dict[str, str] = {key: (default or "") for key, _, _, default in steps}
     if title is not None:
         responses["title"] = title
     if description is not None:

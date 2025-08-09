@@ -871,7 +871,8 @@ def wizard_cmd(
         or CLIConfig.from_env()
     )
 
-    responses: dict[str, str] = {}
+    # Pre-populate responses with defaults so moving backward retains values.
+    responses: dict[str, str] = {key: (default or "") for key, _, _, default in steps}
     if title is not None:
         responses["title"] = title
     if description is not None:
