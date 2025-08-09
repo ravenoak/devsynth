@@ -72,9 +72,12 @@ class ChromaDBVectorAdapter(VectorStore):
         # Storage for active transactions - maps transaction ID to snapshot
         self._active_transactions: Dict[str, Dict[str, MemoryVector]] = {}
 
+    # ------------------------------------------------------------------
     def begin_transaction(self, transaction_id: Optional[str] = None) -> str:
         """Begin a transaction by taking a snapshot of current vectors."""
         transaction_id = transaction_id or str(uuid.uuid4())
+        if transaction_id in self._active_transactions:
+            raise ValueError(f"Transaction {transaction_id} already active")
         snapshot = {v.id: deepcopy(v) for v in self.get_all_vectors()}
         self._active_transactions[transaction_id] = snapshot
         logger.debug("Began ChromaDB transaction %s", transaction_id)
@@ -117,6 +120,10 @@ class ChromaDBVectorAdapter(VectorStore):
                 "Error rolling back ChromaDB transaction %s: %s", transaction_id, e
             )
             return False
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` if the given transaction is currently active."""
+        return transaction_id in self._active_transactions
 
     @contextmanager
     def transaction(self, transaction_id: Optional[str] = None):
