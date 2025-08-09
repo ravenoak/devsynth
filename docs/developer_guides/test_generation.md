@@ -25,10 +25,13 @@ This guide describes how automatically generated tests should be reviewed and in
 ## Workflow
 
 1. **Generate tests** – run the test agent or related tooling to create initial tests.
-2. **Scaffold integration tests** – use the integration test scaffolder to create placeholder files when coverage is missing.
+2. **Scaffold integration tests** – use `devsynth.testing.generation.scaffold_integration_tests`
+   to create placeholder files when coverage is missing.
 3. **Manual review** – examine generated tests for correctness and completeness.
 4. **Replace placeholders** – implement real assertions and remove `assert False` markers.
-5. **Submit for review** – open a pull request and follow cross-functional review guidelines.
+5. **Lint and run tests** – execute `poetry run pre-commit run --files` on changed files
+   and `poetry run pytest` to verify behavior.
+6. **Submit for review** – open a pull request and follow cross-functional review guidelines.
 
 ## Review Checklist
 
@@ -42,4 +45,4 @@ Before merging generated tests, ensure reviewers verify the following:
 
 ## Edge Case Templates
 
-Edge case prompt templates live in `src/devsynth/application/prompts/templates/test_generation/`. Use these templates to guide the agent when generating tests for boundary values and error conditions.
+Edge case prompt templates live in `templates/test_generation/`. Use these templates to guide the agent when generating tests for boundary values and error conditions.
