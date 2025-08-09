@@ -43,5 +43,14 @@ def test_rollback_runbook_mentions_scripts():
     runbook = RUNBOOKS_DIR / "rollback.md"
     assert runbook.exists()
     text = runbook.read_text()
-    assert "stop_stack.sh" in text
+    assert "rollback.sh" in text
     assert "publish_image.sh" in text
+
+
+def test_rollback_script_exists_and_redeploys():
+    script = SCRIPTS_DIR / "rollback.sh"
+    assert script.exists()
+    content = script.read_text()
+    assert "docker compose --env-file" in content
+    assert "pull devsynth" in content
+    assert "up -d devsynth" in content

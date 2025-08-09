@@ -1,21 +1,17 @@
 # Rollback Procedure
 
-If a deployment needs to be rolled back, use the following steps:
+If a deployment needs to be rolled back, use the dedicated rollback script.
 
-1. Stop the current stack:
+1. Revert the stack to a previous image tag:
    ```bash
-   scripts/deployment/stop_stack.sh
+   scripts/deployment/rollback.sh <previous_tag> [environment]
    ```
-2. Redeploy the previous image tag:
-   ```bash
-   docker compose pull devsynth:<previous_tag>
-   docker compose up -d
-   ```
-3. Verify services are healthy:
+   This stops the stack, pulls the specified tag, and redeploys the service.
+2. Verify services are healthy:
    ```bash
    scripts/deployment/health_check.sh
    ```
-4. (Optional) Republish the previous image tag as `latest` if the rollback is permanent:
+3. (Optional) Republish the previous image tag as `latest` if the rollback is permanent:
    ```bash
    scripts/deployment/publish_image.sh <previous_tag>
    ```
