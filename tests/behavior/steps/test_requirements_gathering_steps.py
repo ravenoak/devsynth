@@ -105,3 +105,9 @@ def check_file(tmp_project_dir):
     assert data.get("priority") == "high"
     assert data.get("goals") == ["Goal one", "Goal two"]
     assert data.get("constraints") == ["Constraint A", "Constraint B"]
+
+    cfg_path = os.path.join(tmp_project_dir, ".devsynth", "project.yaml")
+    cfg = yaml.safe_load(open(cfg_path))
+    assert cfg.get("priority") == "high"
+    assert cfg.get("goals") == "Goal one,Goal two"
+    assert cfg.get("constraints") == "Constraint A,Constraint B"
