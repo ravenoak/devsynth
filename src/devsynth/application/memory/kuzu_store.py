@@ -8,15 +8,15 @@ layer and version tracking similar to ``ChromaDBStore``.
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import sys
-import importlib
 import tempfile
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -40,14 +40,13 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover - optional dependency
     tiktoken = None
 
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.fallback import retry_with_exponential_backoff
+# Import the settings module so tests can monkeypatch ``ensure_path_exists``
+from devsynth.config import settings as settings_module
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
-
-# Import the settings module so tests can monkeypatch ``ensure_path_exists``
-from devsynth.config import settings as settings_module
+from devsynth.fallback import retry_with_exponential_backoff
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -103,7 +102,11 @@ class KuzuStore(MemoryStore):
         # environment variable overrides that may have been applied after the
         # module was imported.
         raw_embedded = (
-            settings_module.get_settings().kuzu_embedded
+            getattr(
+                settings_module.get_settings(),
+                "kuzu_embedded",
+                getattr(settings_module, "kuzu_embedded", True),
+            )
             if use_embedded is None
             else use_embedded
         )
