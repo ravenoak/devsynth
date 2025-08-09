@@ -36,6 +36,8 @@ class DevSynthLogger(_BaseDevSynthLogger):
     def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
         exc = kwargs.get("exc_info")
         if isinstance(exc, BaseException):
+            # Convert bare exception objects to the tuple form expected by the
+            # standard logging machinery so the traceback is preserved.
             kwargs["exc_info"] = (exc.__class__, exc, exc.__traceback__)
         super()._log(level, msg, *args, **kwargs)
 

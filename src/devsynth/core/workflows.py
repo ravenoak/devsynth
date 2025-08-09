@@ -1,13 +1,14 @@
 """Wrapper functions and utilities for executing workflows."""
 
-from typing import Any, Dict, Optional, Union
-from pathlib import Path
 import json
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
+
 import yaml
 
-from devsynth.interface.ux_bridge import UXBridge
-from devsynth.config import get_project_config, save_config
 from devsynth.agents.critique_agent import CritiqueAgent
+from devsynth.config import get_project_config, save_config
+from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -18,6 +19,7 @@ def _get_workflow_manager():
     from devsynth.application.orchestration.workflow import workflow_manager
 
     return workflow_manager
+
 
 # Expose the singleton so it can be imported directly from this module.
 # Importing the application workflow may require optional dependencies, so we
@@ -112,7 +114,10 @@ def run_pipeline(
 
 
 def update_config(
-    key: Union[str, None] = None, value: Union[str, None] = None, *, list_models: bool = False
+    key: Union[str, None] = None,
+    value: Union[str, None] = None,
+    *,
+    list_models: bool = False,
 ) -> Dict[str, Any]:
     """View or set configuration options."""
     args = filter_args({"key": key, "value": value})
@@ -176,6 +181,7 @@ def gather_requirements(
     cfg.constraints = constraints
     if hasattr(cfg, "priority"):
         setattr(cfg, "priority", priority)
-    save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+    # Persist to .devsynth/project.yaml regardless of pyproject presence.
+    save_config(cfg, use_pyproject=False)
 
     bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")

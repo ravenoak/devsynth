@@ -8,8 +8,8 @@ from typing import Optional, Sequence
 
 import yaml
 
-from devsynth.interface.ux_bridge import UXBridge
 from devsynth.config import get_project_config, save_config
+from devsynth.interface.ux_bridge import UXBridge
 
 
 class RequirementsCollector:
@@ -121,7 +121,8 @@ def gather_requirements(
     cfg.constraints = responses["constraints"]
     if hasattr(cfg, "priority"):
         setattr(cfg, "priority", responses["priority"])
-    save_config(cfg, use_pyproject=(Path("pyproject.toml").exists()))
+    # Always write to .devsynth/project.yaml so gathered data is centralized.
+    save_config(cfg, use_pyproject=False)
 
     bridge.display_result(f"[green]Requirements saved to {output_file}[/green]")
 

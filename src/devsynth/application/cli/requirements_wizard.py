@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from typing import Optional, Sequence
 
+from devsynth.config import get_project_config, save_config
 from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import UXBridge
@@ -115,6 +116,12 @@ def requirements_wizard(
     output_path = Path(out_dir) / path.name
     with open(output_path, "w", encoding="utf-8") as fh:
         json.dump(result, fh, indent=2)
+
+    cfg = get_project_config(Path("."))
+    cfg.priority = responses.get("priority", RequirementPriority.MEDIUM.value)
+    cfg.constraints = responses.get("constraints", "")
+    # Always persist to .devsynth/project.yaml to mirror gather flows.
+    save_config(cfg, use_pyproject=False)
 
     bridge.display_result(f"[green]Requirements saved to {output_path}[/green]")
 

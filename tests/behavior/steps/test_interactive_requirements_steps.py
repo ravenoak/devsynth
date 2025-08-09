@@ -1,10 +1,12 @@
 import json
 import os
-import sys
-from unittest.mock import MagicMock
 
 import pytest
+import yaml
 from pytest_bdd import given, scenarios, then, when
+
+from devsynth.application.cli.config import CLIConfig
+from devsynth.application.cli.requirements_wizard import requirements_wizard
 
 scenarios("../features/general/interactive_requirements.feature")
 
@@ -17,19 +19,22 @@ def cli_installed():
 
 @pytest.mark.medium
 @when("I run the interactive requirements wizard")
-def run_wizard(tmp_project_dir, monkeypatch):
-    monkeypatch.setitem(sys.modules, "chromadb", MagicMock())
-    monkeypatch.setitem(sys.modules, "uvicorn", MagicMock())
-    from devsynth.application.cli.config import CLIConfig
-    from devsynth.application.cli.requirements_commands import wizard_cmd
+def run_wizard(tmp_project_dir):
+    class Bridge:
+        def display_result(self, *a, **k):
+            pass
 
     output = os.path.join(tmp_project_dir, "requirements_wizard.json")
-    monkeypatch.setenv("DEVSYNTH_REQ_TITLE", "Sample title")
-    monkeypatch.setenv("DEVSYNTH_REQ_DESCRIPTION", "Sample description")
-    monkeypatch.setenv("DEVSYNTH_REQ_TYPE", "functional")
-    monkeypatch.setenv("DEVSYNTH_REQ_PRIORITY", "medium")
-    monkeypatch.setenv("DEVSYNTH_REQ_CONSTRAINTS", "")
-    wizard_cmd(output_file=output, config=CLIConfig(non_interactive=True))
+    requirements_wizard(
+        Bridge(),
+        output_file=output,
+        title="Sample title",
+        description="Sample description",
+        req_type="functional",
+        priority="medium",
+        constraints="",
+        config=CLIConfig(non_interactive=True),
+    )
 
 
 @pytest.mark.medium
@@ -40,3 +45,8 @@ def check_file(tmp_project_dir):
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     assert data.get("title") == "Sample title"
+
+    cfg_path = os.path.join(tmp_project_dir, ".devsynth", "project.yaml")
+    cfg = yaml.safe_load(open(cfg_path))
+    assert cfg.get("priority") == "medium"
+    assert cfg.get("constraints") == ""

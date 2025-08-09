@@ -91,3 +91,8 @@ def test_requirements_wizard_persists_priority_succeeds(tmp_path, monkeypatch):
     assert data["priority"] == "high"
     assert data["title"] == "My Title"
     assert data["description"] == "A description"
+
+    cfg_path = tmp_path / ".devsynth" / "project.yaml"
+    cfg = yaml.safe_load(open(cfg_path, encoding="utf-8"))
+    assert cfg.get("priority") == "high"
+    assert cfg.get("constraints") == "c1,c2"
