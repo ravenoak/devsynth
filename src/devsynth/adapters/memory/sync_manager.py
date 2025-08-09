@@ -22,6 +22,8 @@ from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
+__all__ = ["MultiStoreSyncManager"]
+
 
 class MultiStoreSyncManager:
     """Adapter that coordinates LMDB, FAISS and Kuzu stores.
@@ -43,6 +45,7 @@ class MultiStoreSyncManager:
 
     def __init__(self, base_path: str, *, vector_dimension: int = 5) -> None:
         base = Path(base_path)
+        base.mkdir(parents=True, exist_ok=True)
 
         # Some of the backend stores declare abstract methods which can
         # interfere with instantiation in tests.  Clear the abstract method

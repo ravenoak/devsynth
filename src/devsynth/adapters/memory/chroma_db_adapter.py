@@ -2,8 +2,8 @@
 ChromaDB adapter for vector storage.
 """
 
-import os
 import json
+import os
 import uuid
 
 try:
@@ -12,15 +12,18 @@ except ImportError as e:  # pragma: no cover - optional dependency
     raise ImportError(
         "ChromaDBAdapter requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
     ) from e
-import numpy as np
-from typing import Any, Dict, List, Optional, Union
-from ...domain.interfaces.memory import VectorStore
-from ...domain.models.memory import MemoryVector
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+
+from devsynth.exceptions import DevSynthError, MemoryItemNotFoundError, MemoryStoreError
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.exceptions import DevSynthError, MemoryStoreError, MemoryItemNotFoundError
+
+from ...domain.interfaces.memory import VectorStore
+from ...domain.models.memory import MemoryVector
 
 logger = DevSynthLogger(__name__)
 
@@ -47,6 +50,12 @@ class ChromaDBAdapter(VectorStore):
         """
         self.persist_directory = persist_directory
         self.collection_name = collection_name
+        # Track snapshots for basic transaction support. Each transaction
+        # ID maps to a dictionary of vector data that can be restored if a
+        # rollback is requested.  This lightweight approach keeps the adapter
+        # self-contained while providing predictable behaviour during
+        # synchronization tests where transactions are required.
+        self._snapshots: Dict[str, Dict[str, Any]] = {}
 
         os.makedirs(persist_directory, exist_ok=True)
 
@@ -75,6 +84,84 @@ class ChromaDBAdapter(VectorStore):
             except Exception as e:
                 logger.error(f"Failed to create ChromaDB collection: {e}")
                 raise MemoryStoreError(f"Failed to create ChromaDB collection: {e}")
+
+    # ------------------------------------------------------------------
+    # Transaction helpers
+    # ------------------------------------------------------------------
+    def begin_transaction(self, transaction_id: Optional[str] = None) -> str:
+        """Begin a new transaction and return its identifier.
+
+        ChromaDB does not expose native transactional semantics, so we
+        implement a simple snapshot mechanism.  When a transaction starts we
+        capture all existing vectors so that they can be restored on rollback.
+
+        Parameters
+        ----------
+        transaction_id:
+            Optional identifier supplied by the caller.  If not provided a new
+            UUID is generated.
+        """
+
+        tx_id = transaction_id or str(uuid.uuid4())
+        try:
+            snapshot: Dict[str, Any] = {}
+            result = self.collection.get(include=["embeddings", "metadatas"])
+            for vid, emb, meta in zip(
+                result.get("ids", []),
+                result.get("embeddings", []),
+                result.get("metadatas", []),
+            ):
+                snapshot[vid] = {"embedding": emb, "metadata": meta}
+            self._snapshots[tx_id] = snapshot
+            logger.debug("Began ChromaDB transaction %s", tx_id)
+        except Exception as e:  # pragma: no cover - defensive
+            logger.error("Error beginning ChromaDB transaction %s: %s", tx_id, e)
+            raise MemoryStoreError(f"Error beginning transaction {tx_id}: {e}")
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a previously started transaction."""
+
+        removed = self._snapshots.pop(transaction_id, None) is not None
+        if removed:
+            logger.debug("Committed ChromaDB transaction %s", transaction_id)
+        else:
+            logger.warning(
+                "Commit requested for unknown ChromaDB transaction %s", transaction_id
+            )
+        return removed
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a transaction and restore the snapshot."""
+
+        snapshot = self._snapshots.pop(transaction_id, None)
+        if snapshot is None:
+            logger.warning(
+                "Rollback requested for unknown ChromaDB transaction %s", transaction_id
+            )
+            return False
+        try:
+            current = self.collection.get()
+            if current.get("ids"):
+                self.collection.delete(ids=current["ids"])
+            if snapshot:
+                self.collection.upsert(
+                    ids=list(snapshot.keys()),
+                    embeddings=[v["embedding"] for v in snapshot.values()],
+                    metadatas=[v["metadata"] for v in snapshot.values()],
+                )
+            logger.debug("Rolled back ChromaDB transaction %s", transaction_id)
+            return True
+        except Exception as e:  # pragma: no cover - defensive
+            logger.error(
+                "Error rolling back ChromaDB transaction %s: %s", transaction_id, e
+            )
+            return False
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` if ``transaction_id`` has an active snapshot."""
+
+        return transaction_id in self._snapshots
 
     def _serialize_metadata(self, vector: MemoryVector) -> Dict[str, Any]:
         """
