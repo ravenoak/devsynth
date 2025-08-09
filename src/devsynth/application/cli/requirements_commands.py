@@ -42,14 +42,9 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.ports.llm_port import LLMPort
 
-# When running automated tests, DEVSYNTH_NONINTERACTIVE may be set to disable
-# any interactive prompts.  Commands should fall back to sensible defaults or
-# environment variables in this mode.
-NON_INTERACTIVE = os.environ.get("DEVSYNTH_NONINTERACTIVE", "0").lower() in {
-    "1",
-    "true",
-    "yes",
-}
+from .config import CLIConfig
+
+CLI_CONFIG = CLIConfig.from_env()
 
 
 # Create a Typer app for requirements management
@@ -58,17 +53,17 @@ requirements_app = typer.Typer(help="Requirements management commands")
 
 @requirements_app.callback()
 def main(
+    ctx: typer.Context,
     non_interactive: bool = typer.Option(
-        NON_INTERACTIVE,
+        CLI_CONFIG.non_interactive,
         "--non-interactive/--interactive",
         help="Run without interactive prompts",
         envvar="DEVSYNTH_NONINTERACTIVE",
-    )
+    ),
 ):
     """Configure global options for the requirements commands."""
 
-    global NON_INTERACTIVE
-    NON_INTERACTIVE = non_interactive
+    ctx.obj = CLIConfig(non_interactive=non_interactive)
 
 
 # Console for rich output
@@ -192,12 +187,12 @@ def show_requirement(requirement_id: str):
 def create_requirement(
     title: Optional[str] = typer.Option(
         None,
-        prompt=not NON_INTERACTIVE,
+        prompt=not CLI_CONFIG.non_interactive,
         help="Title of the requirement",
     ),
     description: Optional[str] = typer.Option(
         None,
-        prompt=not NON_INTERACTIVE,
+        prompt=not CLI_CONFIG.non_interactive,
         help="Description of the requirement",
     ),
     status: str = typer.Option(
@@ -287,7 +282,7 @@ def update_requirement(
     ),
     reason: Optional[str] = typer.Option(
         None,
-        prompt=not NON_INTERACTIVE,
+        prompt=not CLI_CONFIG.non_interactive,
         help="Reason for the update",
     ),
     user_id: str = typer.Option(
@@ -383,7 +378,7 @@ def delete_requirement(
     requirement_id: str = typer.Option(..., help="ID of the requirement to delete"),
     reason: Optional[str] = typer.Option(
         None,
-        prompt=not NON_INTERACTIVE,
+        prompt=not CLI_CONFIG.non_interactive,
         help="Reason for the deletion",
     ),
     user_id: str = typer.Option(
@@ -511,7 +506,7 @@ def reject_change(
     change_id: str = typer.Option(..., help="ID of the change to reject"),
     comment: Optional[str] = typer.Option(
         None,
-        prompt=not NON_INTERACTIVE,
+        prompt=not CLI_CONFIG.non_interactive,
         help="Comment explaining the rejection",
     ),
     user_id: str = typer.Option("admin", help="ID of the user rejecting the change"),
@@ -811,6 +806,8 @@ def wizard_cmd(
     ),
     *,
     bridge: UXBridge = CLIUXBridge(),
+    config: Optional[CLIConfig] = None,
+    ctx: Optional[typer.Context] = None,
 ) -> None:
     """Run the interactive requirements wizard.
 
@@ -868,6 +865,12 @@ def wizard_cmd(
         ),
     ]
 
+    cfg = (
+        config
+        or (ctx.obj if ctx and getattr(ctx, "obj", None) else None)
+        or CLIConfig.from_env()
+    )
+
     responses: dict[str, str] = {}
     if title is not None:
         responses["title"] = title
@@ -884,7 +887,7 @@ def wizard_cmd(
     while index < len(steps):
         key, message, choices, default = steps[index]
         default_val = responses.get(key, default)
-        if NON_INTERACTIVE:
+        if cfg.non_interactive:
             reply = default_val or ""
         else:
             prefix = f"Step {index + 1}/{len(steps)}: "

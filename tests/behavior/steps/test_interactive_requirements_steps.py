@@ -1,11 +1,10 @@
-import os
 import json
+import os
 import sys
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
-
+from pytest_bdd import given, scenarios, then, when
 
 scenarios("../features/general/interactive_requirements.feature")
 
@@ -21,6 +20,7 @@ def cli_installed():
 def run_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(sys.modules, "chromadb", MagicMock())
     monkeypatch.setitem(sys.modules, "uvicorn", MagicMock())
+    from devsynth.application.cli.config import CLIConfig
     from devsynth.application.cli.requirements_commands import wizard_cmd
 
     output = os.path.join(tmp_project_dir, "requirements_wizard.json")
@@ -29,8 +29,7 @@ def run_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_REQ_TYPE", "functional")
     monkeypatch.setenv("DEVSYNTH_REQ_PRIORITY", "medium")
     monkeypatch.setenv("DEVSYNTH_REQ_CONSTRAINTS", "")
-    monkeypatch.setenv("DEVSYNTH_NONINTERACTIVE", "1")
-    wizard_cmd(output_file=output)
+    wizard_cmd(output_file=output, config=CLIConfig(non_interactive=True))
 
 
 @pytest.mark.medium
