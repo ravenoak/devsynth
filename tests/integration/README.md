@@ -73,3 +73,5 @@ When adding new integration tests:
 3. Write test functions that verify the integration between different components
 4. Use pytest fixtures to set up and tear down test resources
 5. Document any special requirements or setup needed to run the tests
+6. Start from `templates/integration/test_integration_template.py` and replace
+   all placeholders with concrete assertions before committing.
