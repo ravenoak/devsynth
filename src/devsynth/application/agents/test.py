@@ -28,11 +28,23 @@ class TestAgent(BaseAgent):
         Returns:
             Dictionary mapping filenames to placeholder test content.
         """
-        template = (
-            '"""Placeholder integration test for {name}."""\n\n'
-            "def test_{name}():\n"
-            '    """TODO: implement integration test for {name}."""\n'
-            '    assert False, "Integration test not yet implemented"\n'
+        import textwrap
+
+        template = textwrap.dedent(
+            '''
+            """Scaffold integration test for {name}."""
+
+            import pytest
+
+            pytestmark = pytest.mark.skip(
+                reason="Integration test for {name} not yet implemented"
+            )
+
+
+            def test_{name}():
+                """Integration test scaffold for {name}."""
+                pass
+            '''
         )
 
         placeholders: Dict[str, str] = {}
