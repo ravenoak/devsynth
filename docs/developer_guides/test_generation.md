@@ -27,11 +27,12 @@ This guide describes how automatically generated tests should be reviewed and in
 1. **Generate tests** – run the test agent or related tooling to create initial tests.
 2. **Scaffold integration tests** – use `devsynth.testing.generation.scaffold_integration_tests`
    to create placeholder files when coverage is missing.
-3. **Manual review** – examine generated tests for correctness and completeness.
-4. **Replace placeholders** – implement real assertions and remove `assert False` markers.
-5. **Lint and run tests** – execute `poetry run pre-commit run --files` on changed files
+3. **Manual refinement** – examine generated tests for correctness, add coverage for
+   edge cases (invalid inputs, async flows, and error conditions), and replace any
+   assertions used as placeholders with skipped scaffolds.
+4. **Lint and run tests** – execute `poetry run pre-commit run --files` on changed files
    and `poetry run pytest` to verify behavior.
-6. **Submit for review** – open a pull request and follow cross-functional review guidelines.
+5. **Peer review** – open a pull request and follow cross-functional review guidelines.
 
 ## Review Checklist
 
@@ -42,6 +43,12 @@ Before merging generated tests, ensure reviewers verify the following:
 - **Style compliance** – code follows project linting and naming conventions.
 - **Integration templates referenced** – new modules leverage templates from
   `tests/integration/templates/` when scaffolding tests.
+
+- **Edge case prompts** – when necessary, developers use prompt templates in
+  `templates/test_generation/` to generate tests for boundary values and error
+  conditions.
+- **Skipped scaffolds** – unfinished integration tests are marked with
+  `pytest.mark.skip` rather than failing assertions.
 
 ## Edge Case Templates
 
