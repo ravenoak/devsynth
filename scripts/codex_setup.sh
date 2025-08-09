@@ -75,27 +75,42 @@ required = [
     "yaml",
     "typer",
     "tiktoken",
-    "chromadb",
     "fastapi",
     "streamlit",
-    "lmstudio",
     "tinydb",
     "duckdb",
     "lmdb",
+    "astor",
+    "httpx",
+    "prometheus_client",
+]
+optional = [
     "kuzu",
     "faiss",
-    "prometheus_client",
-    "httpx",
     "dearpygui",
+    "chromadb",
+    "lmstudio",
 ]
+
 missing = []
 for pkg in required:
     try:
         importlib.import_module(pkg)
     except Exception:
         missing.append(pkg)
+
+optional_missing = []
+for pkg in optional:
+    try:
+        importlib.import_module(pkg)
+    except Exception:
+        optional_missing.append(pkg)
+
 if missing:
     sys.exit("Missing packages: " + ", ".join(missing))
+
+for pkg in optional_missing:
+    print(f"[warning] optional package {pkg} is not installed", file=sys.stderr)
 EOF
 
 # Ensure dependency tree is healthy after installing extras
