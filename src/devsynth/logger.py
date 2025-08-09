@@ -15,12 +15,30 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Dict
 
+from devsynth.logging_setup import DevSynthLogger as _BaseDevSynthLogger
 from devsynth.logging_setup import (
-    DevSynthLogger,
     JSONFormatter,
     clear_request_context,
     set_request_context,
 )
+
+
+class DevSynthLogger(_BaseDevSynthLogger):
+    """Project-level logger that normalizes ``exc_info`` values.
+
+    Some callers pass exception instances directly via ``exc_info`` which the
+    standard :mod:`logging` package expects as a boolean or a ``(type, value,
+    traceback)`` tuple.  This wrapper converts exception objects into the tuple
+    form before delegating to the base implementation so stack traces are
+    recorded correctly.
+    """
+
+    def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
+        exc = kwargs.get("exc_info")
+        if isinstance(exc, BaseException):
+            kwargs["exc_info"] = (exc.__class__, exc, exc.__traceback__)
+        super()._log(level, msg, *args, **kwargs)
+
 
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 LOG_DIR = Path("logs")
