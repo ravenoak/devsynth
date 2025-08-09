@@ -25,6 +25,9 @@ logger = DevSynthLogger(__name__)
 class MultiStoreSyncManager:
     """Adapter that coordinates LMDB, FAISS and Kuzu stores.
 
+    Defining ``__slots__`` keeps the adapter lightweight while it wires multiple
+    backends together for synchronization tests.
+
     Parameters
     ----------
     base_path:
@@ -34,6 +37,8 @@ class MultiStoreSyncManager:
     vector_dimension:
         Dimension of FAISS vectors; defaults to ``5`` to match test fixtures.
     """
+
+    __slots__ = ("lmdb", "faiss", "kuzu", "manager", "sync_manager")
 
     def __init__(self, base_path: str, *, vector_dimension: int = 5) -> None:
         base = Path(base_path)

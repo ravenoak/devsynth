@@ -13,7 +13,27 @@ import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
 
-from prometheus_client import Counter
+# ``fallback`` is used in a number of tests where the optional
+# ``prometheus_client`` dependency may not be installed.  To keep those tests
+# runnable in minimal environments we degrade gracefully to a no-op counter
+# implementation when the import fails.
+try:  # pragma: no cover - import guarded for optional dependency
+    from prometheus_client import Counter
+except Exception:  # pragma: no cover - fallback for minimal environments
+
+    class Counter:  # type: ignore[override]
+        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
+            pass
+
+        def labels(self, *args: object, **kwargs: object) -> "Counter":
+            return self
+
+        def inc(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def clear(self) -> None:
+            pass
+
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
@@ -24,9 +44,9 @@ from .metrics import (
     inc_retry,
     inc_retry_count,
     inc_retry_error,
+    retry_error_counter,
     retry_event_counter,
     retry_function_counter,
-    retry_error_counter,
 )
 
 # Type variables for generic functions

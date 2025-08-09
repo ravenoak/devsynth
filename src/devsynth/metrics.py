@@ -11,7 +11,34 @@ from __future__ import annotations
 from collections import Counter as DictCounter
 from typing import Dict
 
-from prometheus_client import Counter
+# Attempt to import Prometheus metrics, falling back to no-op counters when the
+# optional dependency is unavailable.  This allows the core system and tests to
+# run in minimal environments where ``prometheus_client`` isn't installed.
+try:  # pragma: no cover - import guarded for optional dependency
+    from prometheus_client import Counter
+except Exception:  # pragma: no cover - fallback for minimal environments
+
+    class Counter:  # type: ignore[override]
+        """Lightweight stand-in for :class:`prometheus_client.Counter`.
+
+        The dummy implementation exposes the ``labels``, ``inc`` and ``clear``
+        methods used throughout the codebase but performs no operations.  Using
+        this class keeps metric calls lightweight when Prometheus support isn't
+        installed without requiring additional conditionals at call sites.
+        """
+
+        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
+            pass
+
+        def labels(self, *args: object, **kwargs: object) -> "Counter":
+            return self
+
+        def inc(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def clear(self) -> None:
+            pass
+
 
 # ---------------------------------------------------------------------------
 # In-memory counters used by tests and internal introspection
@@ -33,9 +60,7 @@ _memory_counter = Counter(
 _provider_counter = Counter(
     "devsynth_provider_operations_total", "Provider operations", ["op"]
 )
-retry_event_counter = Counter(
-    "devsynth_retry_events_total", "Retry events", ["status"]
-)
+retry_event_counter = Counter("devsynth_retry_events_total", "Retry events", ["status"])
 retry_function_counter = Counter(
     "devsynth_retry_function_total", "Retry attempts per function", ["function"]
 )
@@ -112,4 +137,3 @@ def reset_metrics() -> None:
     retry_event_counter.clear()
     retry_function_counter.clear()
     retry_error_counter.clear()
-

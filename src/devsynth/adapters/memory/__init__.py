@@ -6,6 +6,10 @@ from devsynth.logging_setup import DevSynthLogger
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
-from .sync_manager import MultiStoreSyncManager
+try:  # pragma: no cover - optional dependency
+    from .sync_manager import MultiStoreSyncManager
+except Exception as exc:  # pragma: no cover - graceful fallback
+    logger.debug("Sync manager unavailable: %s", exc)
+    MultiStoreSyncManager = None  # type: ignore[assignment]
 
 __all__ = ["MultiStoreSyncManager"]

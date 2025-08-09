@@ -11,7 +11,26 @@ import time
 from functools import wraps
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, cast
 
-from prometheus_client import Counter
+# ``prometheus_client`` is an optional dependency.  Import it lazily and
+# degrade to no-op metrics when unavailable so that memory logic remains
+# functional in lightweight environments.
+try:  # pragma: no cover - import guarded for optional dependency
+    from prometheus_client import Counter
+except Exception:  # pragma: no cover - fallback for minimal environments
+
+    class Counter:  # type: ignore[override]
+        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
+            pass
+
+        def labels(self, *args: object, **kwargs: object) -> "Counter":
+            return self
+
+        def inc(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def clear(self) -> None:
+            pass
+
 
 from devsynth.application.memory.circuit_breaker import (
     CircuitBreaker,
