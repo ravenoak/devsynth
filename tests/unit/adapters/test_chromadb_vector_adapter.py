@@ -14,7 +14,10 @@ pytest.importorskip("chromadb")
 import chromadb
 from chromadb.api.models.Collection import Collection
 
-pytestmark = pytest.mark.requires_resource("chromadb")
+pytestmark = [
+    pytest.mark.requires_resource("chromadb"),
+    pytest.mark.memory_intensive,
+]
 
 
 @pytest.fixture
