@@ -4723,10 +4723,9 @@ virtualenv = ">=20.10.0"
 name = "prometheus-client"
 version = "0.20.0"
 description = "Python client for the Prometheus monitoring system."
-optional = true
+optional = false
 python-versions = ">=3.8"
-groups = ["main"]
-markers = "extra == \"api\""
+groups = ["main", "dev"]
 files = [
     {file = "prometheus_client-0.20.0-py3-none-any.whl", hash = "sha256:cde524a85bce83ca359cc837f28b8c0db5cac7aa653a588fd7e84ba061c329e7"},
     {file = "prometheus_client-0.20.0.tar.gz", hash = "sha256:287629d00b147a32dcb2be0b9df905da599b2d82f80377083ec8463309a4bb89"},
@@ -7979,4 +7978,4 @@ webui = ["streamlit"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.12"
-content-hash = "b79335e7689cd2856d5ccb5da3de290be18d40987e49f6ff4ff35026066a9565"
+content-hash = "260fa71bfe7dcee35e3cc9cfd4b69e7fb4f6b4cc227f524598ea9514184d27c2"
