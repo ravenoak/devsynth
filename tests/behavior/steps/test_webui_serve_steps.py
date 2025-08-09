@@ -1,10 +1,10 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import webui_context, given_webui_initialized
+from .test_webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
-scenarios("../features/webui_serve.feature")
+scenarios("../features/webui/serve.feature")
 
 
 @pytest.mark.medium
@@ -152,7 +152,11 @@ def check_server_logs_displayed(webui_context):
 def check_logs_update_realtime(webui_context):
     # Check that the logs update in real-time
     # This is a simplified check since real-time updates would require more complex testing
-    assert webui_context["st"].empty.called if hasattr(webui_context["st"], "empty") else True
+    assert (
+        webui_context["st"].empty.called
+        if hasattr(webui_context["st"], "empty")
+        else True
+    )
 
 
 @pytest.mark.medium
@@ -174,7 +178,11 @@ def check_server_metrics_displayed(webui_context):
 def check_metrics_update_realtime(webui_context):
     # Check that the metrics update in real-time
     # This is a simplified check since real-time updates would require more complex testing
-    assert webui_context["st"].empty.called if hasattr(webui_context["st"], "empty") else True
+    assert (
+        webui_context["st"].empty.called
+        if hasattr(webui_context["st"], "empty")
+        else True
+    )
 
 
 @pytest.mark.medium

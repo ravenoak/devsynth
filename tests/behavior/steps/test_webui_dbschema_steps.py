@@ -1,10 +1,10 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import webui_context, given_webui_initialized
+from .test_webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
-scenarios("../features/webui_dbschema.feature")
+scenarios("../features/webui/dbschema.feature")
 
 
 @pytest.mark.medium
@@ -45,7 +45,9 @@ def click_import_schema_button(webui_context):
 @when("I select a schema file to import")
 def select_schema_file(webui_context):
     # Mock the file uploader
-    webui_context["st"].file_uploader = pytest.MagicMock(return_value={"name": "schema.sql"})
+    webui_context["st"].file_uploader = pytest.MagicMock(
+        return_value={"name": "schema.sql"}
+    )
 
 
 @pytest.mark.medium

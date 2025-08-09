@@ -1,41 +1,40 @@
 import pytest
 from pytest_bdd import scenarios
 
-
 # Skip these high-level integration scenarios until fully implemented
 pytest.skip("Integration scenarios are unstable", allow_module_level=True)
 
 # Import step definitions explicitly to avoid unhashable type errors
-from .steps.webui_integration_steps import (
-    webui_context,
-    webui_initialized,
-    run_long_operation,
-    check_progress_indicator,
-    check_time_remaining,
-    check_subtasks,
-    run_output_command,
-    check_success_messages,
-    check_warning_messages,
-    check_error_messages,
-    check_info_messages,
-    run_error_command,
+from .steps.test_webui_integration_steps import (
+    check_accessibility,
+    check_all_commands,
+    check_cli_consistency,
+    check_dedicated_interfaces,
     check_detailed_error,
-    check_error_suggestions,
     check_error_docs,
-    view_help,
-    check_help_text,
+    check_error_messages,
+    check_error_suggestions,
     check_help_examples,
     check_help_options,
-    interact_with_webui,
-    check_uxbridge_abstraction,
-    check_cli_consistency,
-    resize_browser,
-    check_responsive_design,
-    check_accessibility,
-    navigate_pages,
-    check_all_commands,
-    check_dedicated_interfaces,
+    check_help_text,
+    check_info_messages,
     check_interface_consistency,
+    check_progress_indicator,
+    check_responsive_design,
+    check_subtasks,
+    check_success_messages,
+    check_time_remaining,
+    check_uxbridge_abstraction,
+    check_warning_messages,
+    interact_with_webui,
+    navigate_pages,
+    resize_browser,
+    run_error_command,
+    run_long_operation,
+    run_output_command,
+    view_help,
+    webui_context,
+    webui_initialized,
 )
 
 # Load scenarios from the feature file. The `bdd_features_base_dir` option in

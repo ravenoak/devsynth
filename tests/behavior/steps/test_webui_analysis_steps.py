@@ -3,9 +3,9 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-scenarios("../features/webui_analysis.feature")
+scenarios("../features/webui/analysis.feature")
 
 
 @pytest.fixture
@@ -139,9 +139,10 @@ def webui_context(monkeypatch):
     cli_stub.inspect_code_cmd = analyze_stub.inspect_code_cmd
 
     # Mock the load_project_config function to return a valid ProjectUnifiedConfig object
+    from pathlib import Path
+
     from devsynth.config import ProjectUnifiedConfig
     from devsynth.config.loader import ConfigModel
-    from pathlib import Path
 
     mock_config = ConfigModel(project_root="/mock/project/root", offline_mode=False)
     mock_project_config = ProjectUnifiedConfig(
@@ -178,6 +179,7 @@ def webui_context(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.config.settings", settings_stub)
 
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -217,6 +219,7 @@ def given_webui_initialized(webui_context):
 @given("I have a valid project directory")
 def given_valid_project_directory(webui_context, monkeypatch):
     from pathlib import Path
+
     monkeypatch.setattr(Path, "exists", lambda _self: True)
     monkeypatch.setattr(Path, "is_dir", lambda _self: True)
     return webui_context
@@ -253,7 +256,11 @@ def enter_custom_path(webui_context):
 @pytest.mark.medium
 @when("I select specific analysis options")
 def select_analysis_options(webui_context):
-    webui_context["st"].checkbox.side_effect = [True, False, True]  # Custom option pattern
+    webui_context["st"].checkbox.side_effect = [
+        True,
+        False,
+        True,
+    ]  # Custom option pattern
 
 
 @pytest.mark.medium
@@ -267,6 +274,7 @@ def submit_analysis_form(webui_context):
 @when("I enter an invalid path for analysis")
 def enter_invalid_path(webui_context, monkeypatch):
     from pathlib import Path
+
     webui_context["st"].text_input.return_value = "/invalid/path"
     monkeypatch.setattr(Path, "exists", lambda _self: False)
 
@@ -336,4 +344,7 @@ def can_correct_and_resubmit(webui_context):
 @then("I should see the analysis page with preserved state")
 def see_analysis_with_preserved_state(webui_context):
     # Check that session state preserves values
-    assert "analysis_path" in webui_context["st"].session_state or webui_context["st"].text_input.called
+    assert (
+        "analysis_path" in webui_context["st"].session_state
+        or webui_context["st"].text_input.called
+    )

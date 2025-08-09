@@ -913,7 +913,7 @@ def final_solution_reflects_dialectical_process(context):
 
 
 # ---------------------------------------------------------------------------
-# Voting result summary steps reused from wsde_peer_review_steps
+# Voting result summary steps reused from test_wsde_peer_review_steps
 
 
 @pytest.mark.medium
