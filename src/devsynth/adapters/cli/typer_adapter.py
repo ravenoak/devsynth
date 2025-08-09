@@ -246,7 +246,7 @@ def build_app() -> typer.Typer:
             "Only the embedded ChromaDB backend is currently supported.",
             "Use 'devsynth <command> --help' for more information on a specific command.",
             "Configuration can be managed with 'devsynth config' commands.",
-            "Pre-built shell completion scripts live in 'scripts/completions'.",
+            "Shell completion is available via '--install-completion' or the 'completion' command.",
             "Long-running commands display progress indicators for better feedback.",
         ],
     )
@@ -284,6 +284,14 @@ def build_app() -> typer.Typer:
             typer.echo(ctx.get_help())
             raise typer.Exit()
 
+    # Enable Typer's built-in completion if available
+    if hasattr(app, "add_completion"):
+        app.add_completion()
+    else:  # pragma: no cover - compatibility for older Typer versions
+        try:
+            app._add_completion()  # type: ignore[attr-defined]
+        except Exception:
+            pass
     return app
 
 

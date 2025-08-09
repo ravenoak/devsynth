@@ -30,6 +30,15 @@ def test_provider_and_retry_metrics():
     assert metrics.get_retry_error_metrics() == {}
 
 
+def test_dashboard_metrics():
+    metrics.reset_metrics()
+    metrics.inc_dashboard("view")
+    metrics.inc_dashboard("view")
+    assert metrics.get_dashboard_metrics() == {"view": 2}
+    metrics.reset_metrics()
+    assert metrics.get_dashboard_metrics() == {}
+
+
 def test_inc_memory_unhashable_raises_type_error():
     metrics.reset_metrics()
     with pytest.raises(TypeError):

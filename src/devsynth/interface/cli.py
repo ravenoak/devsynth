@@ -1,31 +1,29 @@
 """CLI implementation of the UXBridge using Typer and Rich."""
 
-from typing import Optional, Sequence, Dict, Any, Union
-
 import os
+from typing import Any, Dict, Optional, Sequence, Union
+
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
-    BarColumn,
+    TimeElapsedColumn,
     TimeRemainingColumn,
 )
 from rich.prompt import Confirm, Prompt
 from rich.style import Style
-from rich.theme import Theme
 from rich.text import Text
-from rich.markdown import Markdown
+from rich.theme import Theme
 
-from devsynth.interface.ux_bridge import (
-    UXBridge,
-    ProgressIndicator,
-    sanitize_output,
-)
-from devsynth.interface.shared_bridge import SharedBridgeMixin
-from devsynth.interface.output_formatter import OutputFormatter
 from devsynth.interface.error_handler import EnhancedErrorHandler
+from devsynth.interface.output_formatter import OutputFormatter
+from devsynth.interface.shared_bridge import SharedBridgeMixin
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.security import validate_safe_input
 
@@ -159,8 +157,10 @@ class CLIProgressIndicator(ProgressIndicator):
             SpinnerColumn(),
             TextColumn("[bold blue]{task.description}[/bold blue]"),
             BarColumn(complete_style="green", finished_style="bold green"),
+            MofNCompleteColumn(),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             TextColumn("[cyan]{task.fields[status]}[/cyan]"),
+            TimeElapsedColumn(),
             TimeRemainingColumn(),
             console=console,
             expand=True,
