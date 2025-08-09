@@ -115,7 +115,8 @@ def log_consensus_failure(
     data: Dict[str, Any] = {"error": str(error)}
     if extra:
         data.update(extra)
-    logger.error("Consensus failure", extra=data)
+    # Include the original exception so that stack traces are preserved.
+    logger.error("Consensus failure", exc_info=error, extra=data)
 
 
 __all__ = [
