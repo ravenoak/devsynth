@@ -147,7 +147,7 @@ class Settings(BaseSettings):
             ),
             "kuzu_db_path": lambda s: os.environ.get("DEVSYNTH_KUZU_DB_PATH", None),
             "kuzu_embedded": lambda s: _parse_bool_env(
-                os.environ.get("DEVSYNTH_KUZU_EMBEDDED", s.kuzu_embedded),
+                os.environ.get("DEVSYNTH_KUZU_EMBEDDED", str(s.kuzu_embedded)),
                 "kuzu_embedded",
             ),
             "openai_api_key": lambda s: os.environ.get("OPENAI_API_KEY", None),

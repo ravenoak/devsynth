@@ -268,7 +268,13 @@ class KuzuMemoryStore(MemoryStore):
         provider_type: Optional[str] = None,
         collection_name: str = "devsynth_artifacts",
     ) -> "KuzuMemoryStore":
-        """Create an ephemeral ``KuzuMemoryStore`` for tests."""
+        """Create an ephemeral ``KuzuMemoryStore`` for tests.
+
+        The settings are reloaded so that environment-variable overrides are
+        respected during store initialization.
+        """
+        # Ensure fresh settings in case tests modified environment variables
+        settings_module.get_settings(reload=True)
         temp_dir = tempfile.mkdtemp(prefix="kuzu_")
         store = cls(
             persist_directory=temp_dir,
