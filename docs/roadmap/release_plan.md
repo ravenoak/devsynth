@@ -31,27 +31,15 @@ git tag v0.1.0-alpha.1
 git push origin v0.1.0-alpha.1
 ```
 
-- MVUU engine prototype for Minimum Viable Utility Units
-- Atomic-Rewrite workflow baseline
-- MVUU JSON schema finalization
-- Commit-linter enforcement
-- Traceability automation and ticket linkage
-- Automatic issue comments for commit traceability
-- Baseline Dear PyGui parity tasks:
-  - Wizard forms
-  - Progress UI
-  - CLI mapping
-
-### 0.1.0-alpha.1
 - Refresh system architecture diagrams under `docs/architecture/`.
 - Standardize metadata headers across all project documentation.
 - Publish the consolidated release plan for team-wide alignment.
-- MVUU engine refinement
-- Atomic-Rewrite workflow integration
-- MVUU JSON schema finalization
-- Commit-linter enforcement
-- Traceability automation and ticket linkage
-- Automatic issue comments for commit traceability
+- MVUU engine prototype and refinement for Minimum Viable Utility Units.
+- Atomic-Rewrite workflow baseline and integration.
+- MVUU JSON schema finalization.
+- Commit-linter enforcement.
+- Traceability automation and ticket linkage.
+- Automatic issue comments for commit traceability.
 - Baseline Dear PyGui parity tasks:
   - Wizard forms
   - Progress UI
