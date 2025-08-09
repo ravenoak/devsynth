@@ -20,26 +20,48 @@ logger = DevSynthLogger(__name__)
 
 
 def init_cmd(
-    wizard: bool = False,
+    wizard: Annotated[
+        bool, typer.Option(help="Run in interactive wizard mode")
+    ] = False,
     *,
-    root: Optional[str] = None,
-    language: Optional[str] = None,
-    goals: Optional[str] = None,
-    memory_backend: Optional[str] = None,
-    offline_mode: Optional[bool] = None,
+    root: Annotated[Optional[str], typer.Option(help="Project root directory")] = None,
+    language: Annotated[
+        Optional[str], typer.Option(help="Primary project language")
+    ] = None,
+    goals: Annotated[
+        Optional[str], typer.Option(help="Project goals or description")
+    ] = None,
+    memory_backend: Annotated[
+        Optional[str],
+        typer.Option(help="Memory backend (memory, file, kuzu, chromadb)"),
+    ] = None,
+    offline_mode: Annotated[
+        Optional[bool],
+        typer.Option("--offline-mode/--no-offline-mode", help="Enable offline mode"),
+    ] = None,
     features: Optional[List[str]] = typer.Option(
         None,
         help=(
             "Features to enable. Provide multiple --features options or a JSON mapping string."
         ),
     ),
-    auto_confirm: Optional[bool] = None,
+    auto_confirm: Annotated[
+        Optional[bool],
+        typer.Option("--auto-confirm/--no-auto-confirm", help="Skip confirmations"),
+    ] = None,
     defaults: Annotated[
         bool, typer.Option("--defaults", help="Use default values for all prompts")
     ] = False,
     non_interactive: Annotated[
         bool,
         typer.Option("--non-interactive", help="Run without interactive prompts"),
+    ] = False,
+    metrics_dashboard: Annotated[
+        bool,
+        typer.Option(
+            "--metrics-dashboard",
+            help="Show how to launch the optional MVUU metrics dashboard",
+        ),
     ] = False,
     bridge: Optional[UXBridge] = None,
 ) -> None:
@@ -75,13 +97,16 @@ def init_cmd(
             return
 
         if _find_config_path(Path.cwd()) is not None:
-            bridge.display_result("[yellow]Project already initialized[/yellow]")
+            bridge.display_result(
+                "[yellow]Project already initialized[/yellow]",
+                message_type="warning",
+            )
             return
 
         config = UnifiedConfigLoader.load().config
 
         root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
-        root = root or _ask("Project root directory?", str(Path.cwd()))
+        root = root or _ask("Project root directory", str(Path.cwd()))
 
         root_path = Path(root)
         if root_path.exists() and not root_path.is_dir():
@@ -97,18 +122,18 @@ def init_cmd(
         language = (
             language
             or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
-            or _ask("Primary language?", "python")
+            or _ask("Primary language", "python")
         )
 
         goals = goals or os.environ.get("DEVSYNTH_INIT_GOALS", "")
         if not goals:
-            goals = _ask("Project goals?", "")
+            goals = _ask("Project goals", "")
 
         memory_backend = memory_backend or os.environ.get(
             "DEVSYNTH_INIT_MEMORY_BACKEND"
         )
         memory_backend = memory_backend or _ask(
-            "Select memory backend",
+            "Memory backend",
             "memory",
             choices=["memory", "file", "kuzu", "chromadb"],
         )
@@ -128,7 +153,7 @@ def init_cmd(
                 offline_mode = False
             else:
                 offline_mode = bridge.confirm_choice(
-                    "Enable offline mode?", default=False
+                    "Enable offline mode", default=False
                 )
 
         try:
@@ -146,11 +171,16 @@ def init_cmd(
         config.offline_mode = offline_mode
         config.features = features_map or {}
 
+        progress = bridge.create_progress("Initializing project", total=2)
         try:
+            progress.update(description="Saving configuration", advance=0)
             save_config(
                 ConfigModel(**config.as_dict()),
                 use_pyproject=(Path("pyproject.toml").exists()),
             )
+            progress.update(advance=1)
+
+            progress.update(description="Generating project files", advance=0)
             init_project(
                 root=root,
                 structure=config.structure,
@@ -160,11 +190,24 @@ def init_cmd(
                 offline_mode=offline_mode,
                 features=features_map,
             )
+            progress.update(advance=1)
+            progress.complete()
             bridge.display_result(
                 "[green]Initialization complete[/green]",
                 highlight=True,
+                message_type="success",
             )
+            if metrics_dashboard:
+                bridge.display_result(
+                    "Launch the MVUU traceability dashboard with 'devsynth mvuu-dashboard'.",
+                    message_type="info",
+                )
+                bridge.display_result(
+                    "Enable it by adding to your configuration:\nfeatures:\n  gui: true\n  mvuu_dashboard: true",
+                    message_type="info",
+                )
         except Exception as save_err:  # pragma: no cover - defensive
+            progress.complete()
             _handle_error(bridge, save_err)
     except Exception as err:  # pragma: no cover - defensive
         _handle_error(bridge, err)

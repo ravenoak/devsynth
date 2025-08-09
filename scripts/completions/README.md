@@ -2,6 +2,12 @@
 
 This directory contains shell completion scripts for the DevSynth CLI. These scripts provide tab completion for DevSynth commands and options in various shells.
 
+You can install completions automatically with the built-in command:
+
+```bash
+devsynth completion --install
+```
+
 For additional details on enabling completion in the CLI, see the [CLI UX guide](../../docs/user_guides/cli_ux.md#installing-shell-completion).
 
 ## Available Completion Scripts

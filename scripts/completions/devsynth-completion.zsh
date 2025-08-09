@@ -11,7 +11,7 @@ _devsynth() {
         'spec:Generate specifications from requirements'
         'test:Generate tests from specifications'
         'code:Generate code from tests'
-        'run:Execute the generated code'
+        'run-pipeline:Run the generated pipeline'
         'config:Configure DevSynth settings'
         'gather:Gather project requirements interactively'
         'refactor:Suggest code refactoring'
@@ -20,18 +20,26 @@ _devsynth() {
         'serve:Start the DevSynth API server'
         'dbschema:Generate database schema'
         'doctor:Check DevSynth environment'
+        'completion:Generate shell completion scripts'
         'help:Show help information'
     )
 
     # Command-specific options
     local -a init_opts spec_opts test_opts code_opts run_opts config_opts
-    local -a gather_opts refactor_opts inspect_opts webapp_opts serve_opts dbschema_opts doctor_opts
+    local -a gather_opts refactor_opts inspect_opts webapp_opts serve_opts dbschema_opts doctor_opts completion_opts
 
     init_opts=(
-        '--path=[Path to initialize project]:directory:_files -/'
-        '--template=[Project template to use]:template:(basic advanced webapp api)'
-        '--force[Force initialization even if directory exists]'
-        '--verbose[Enable verbose output]'
+        '--wizard[Run in interactive wizard mode]'
+        '--root=[Project root directory]:directory:_files -/'
+        '--language=[Primary project language]'
+        '--goals=[Project goals or description]'
+        '--memory-backend=[Memory backend]:backend:(memory file kuzu chromadb)'
+        '--offline-mode[Enable offline mode]'
+        '--features=[Features to enable]:features:'
+        '--auto-confirm[Skip confirmations]'
+        '--defaults[Use default prompt values]'
+        '--non-interactive[Run without prompts]'
+        '--metrics-dashboard[Show metrics dashboard hint]'
     )
 
     spec_opts=(
@@ -103,6 +111,11 @@ _devsynth() {
         '--fix[Attempt to fix issues]'
         '--verbose[Enable verbose output]'
     )
+    completion_opts=(
+        '--shell=[Target shell]:shell:(bash zsh fish)'
+        '--install[Install completion script]'
+        '--output=[Write completion script to path]:file:_files'
+    )
 
     _arguments -C \
         '1: :->command' \
@@ -126,7 +139,7 @@ _devsynth() {
                 code)
                     _arguments -s : $code_opts
                     ;;
-                run)
+                run-pipeline)
                     _arguments -s : $run_opts
                     ;;
                 config)
@@ -152,6 +165,9 @@ _devsynth() {
                     ;;
                 doctor)
                     _arguments -s : $doctor_opts
+                    ;;
+                completion)
+                    _arguments -s : $completion_opts
                     ;;
                 help)
                     _describe -t commands 'DevSynth commands' commands
