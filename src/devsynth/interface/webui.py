@@ -36,14 +36,14 @@ from pathlib import Path
 from typing import Any, Callable, Optional, Sequence, TypeVar
 from unittest.mock import MagicMock
 
-from devsynth.interface.webui_bridge import WebUIBridge
-from devsynth.logging_setup import DevSynthLogger
+import streamlit as st
+
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
-from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.interface.progress_utils import run_with_progress
-
-import streamlit as st
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
+from devsynth.interface.webui_bridge import WebUIBridge
+from devsynth.logging_setup import DevSynthLogger
 
 # Module level logger
 logger = DevSynthLogger(__name__)
@@ -68,8 +68,8 @@ except ImportError:
 
 
 try:
-    from devsynth.application.cli import init_cmd, spec_cmd
     import devsynth.application.cli.utils as cli_utils
+    from devsynth.application.cli import init_cmd, spec_cmd
 except Exception:  # pragma: no cover
     init_cmd = None
     spec_cmd = None
@@ -574,6 +574,7 @@ class WebUI(UXBridge):
             self._description = description
             self._total = total
             self._current = 0
+            self._status = "Starting..."
             self._subtasks = {}
             empty_fn = getattr(st, "empty", lambda: MagicMock())
             progress_fn = getattr(st, "progress", lambda *_, **__: MagicMock())
@@ -622,8 +623,11 @@ class WebUI(UXBridge):
                         else:
                             eta_text = f"ETA: {int(eta_seconds / 3600)} hours, {int((eta_seconds % 3600) / 60)} minutes"
 
-            # Update status text with description and percentage
-            status_text = f"**{self._description}** - {int(progress_pct * 100)}%"
+            # Update status text with description, status and percentage
+            status_text = (
+                f"**{self._description}** - {int(progress_pct * 100)}%"
+                f" ({self._status})"
+            )
             self._status_container.markdown(status_text)
 
             # Update ETA text
@@ -636,17 +640,39 @@ class WebUI(UXBridge):
             self._bar_container.progress(progress_pct)
 
         def update(
-            self, *, advance: float = 1, description: Optional[str] = None
+            self,
+            *,
+            advance: float = 1,
+            description: Optional[str] = None,
+            status: Optional[str] = None,
         ) -> None:
             """Update the progress indicator."""
             self._current += advance
             if description:
                 self._description = sanitize_output(description)
+
+            if status is not None:
+                self._status = sanitize_output(status)
+            else:
+                if self._current >= self._total:
+                    self._status = "Complete"
+                elif self._current >= 0.99 * self._total:
+                    self._status = "Finalizing..."
+                elif self._current >= 0.75 * self._total:
+                    self._status = "Almost done..."
+                elif self._current >= 0.5 * self._total:
+                    self._status = "Halfway there..."
+                elif self._current >= 0.25 * self._total:
+                    self._status = "Processing..."
+                else:
+                    self._status = "Starting..."
+
             self._update_display()
 
         def complete(self) -> None:
             """Mark the progress indicator as complete."""
             self._current = self._total
+            self._status = "Complete"
             self._update_display()
 
             # Mark all subtasks as complete

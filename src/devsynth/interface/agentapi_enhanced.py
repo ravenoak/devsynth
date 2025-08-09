@@ -10,22 +10,18 @@ This module extends the existing Agent API with:
 
 from __future__ import annotations
 
+import datetime
 import os
 import time
-import datetime
-from typing import Optional, Sequence, List, Dict, Any
+from typing import Any, Dict, List, Optional, Sequence
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status, Header, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from devsynth.api import verify_token
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.interface.ux_bridge import (
-    UXBridge,
-    ProgressIndicator,
-    sanitize_output,
-)
 
 # Configure logging
 logger = DevSynthLogger(__name__)
@@ -96,14 +92,31 @@ class APIBridge(UXBridge):
             self.messages.append(f"Starting: {description} (0/{total})")
 
         def update(
-            self, *, advance: float = 1, description: Optional[str] = None
+            self,
+            *,
+            advance: float = 1,
+            description: Optional[str] = None,
+            status: Optional[str] = None,
         ) -> None:
             """Update the progress and optionally change the description."""
             self.current += advance
             if description:
                 self.description = description
+            if status is None:
+                if self.current >= self.total:
+                    status = "Complete"
+                elif self.current >= 0.99 * self.total:
+                    status = "Finalizing..."
+                elif self.current >= 0.75 * self.total:
+                    status = "Almost done..."
+                elif self.current >= 0.5 * self.total:
+                    status = "Halfway there..."
+                elif self.current >= 0.25 * self.total:
+                    status = "Processing..."
+                else:
+                    status = "Starting..."
             self.messages.append(
-                f"Progress: {self.description} ({self.current}/{self.total})"
+                f"Progress: {self.description} ({self.current}/{self.total}) - {status}"
             )
 
         def complete(self) -> None:
