@@ -1,36 +1,11 @@
+import json
 import os
-import sys
-from types import ModuleType
 
+import pytest
 import yaml
 
 # Ensures gather_requirements persists priority, goals, and constraints
-
-# Stub optional heavy dependencies for test isolation
-for _name in [
-    "langgraph",
-    "langgraph.checkpoint",
-    "langgraph.checkpoint.base",
-    "langgraph.graph",
-    "tiktoken",
-    "duckdb",
-    "lmdb",
-    "faiss",
-    "httpx",
-]:
-    if _name not in sys.modules:
-        _mod = ModuleType(_name)
-        if _name == "langgraph.checkpoint.base":
-            _mod.BaseCheckpointSaver = object
-            _mod.empty_checkpoint = object()
-        if _name == "langgraph.graph":
-            _mod.END = None
-            _mod.StateGraph = object
-        if _name == "tiktoken":
-            _mod.encoding_for_model = lambda *a, **k: None
-        sys.modules[_name] = _mod
-
-import json
+pytestmark = pytest.mark.usefixtures("stub_optional_deps")
 
 from devsynth.application.cli.requirements_wizard import requirements_wizard
 from devsynth.application.requirements.interactions import gather_requirements
