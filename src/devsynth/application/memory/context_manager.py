@@ -1,21 +1,26 @@
-
-from typing import Any, Dict, List, Optional
-from ...domain.interfaces.memory import MemoryStore, ContextManager
-from ...domain.models.memory import MemoryItem, MemoryType
 import uuid
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from ...domain.interfaces.memory import ContextManager, MemoryStore
+from ...domain.models.memory import MemoryItem, MemoryType
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class InMemoryStore(MemoryStore):
     """In-memory implementation of MemoryStore."""
 
     def __init__(self):
         self.items = {}
+        # Simple transaction support: map tx_id -> snapshot of items
+        # This lightweight approach avoids heavy copy-on-write mechanisms
+        # while satisfying the MemoryStore protocol required by tests.
+        self._transactions: Dict[str, Dict[str, MemoryItem]] = {}
 
     def store(self, item: MemoryItem) -> str:
         """Store an item in memory and return its ID."""
@@ -60,6 +65,32 @@ class InMemoryStore(MemoryStore):
             return True
         return False
 
+    # ------------------------------------------------------------------
+    # Transaction management
+    # ------------------------------------------------------------------
+    def begin_transaction(self) -> str:
+        """Begin a new transaction and return its ID."""
+        tx_id = str(uuid.uuid4())
+        # Store a shallow copy of current items as the transaction snapshot
+        self._transactions[tx_id] = self.items.copy()
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a transaction, discarding its snapshot."""
+        return self._transactions.pop(transaction_id, None) is not None
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a transaction, restoring its snapshot."""
+        snapshot = self._transactions.pop(transaction_id, None)
+        if snapshot is None:
+            return False
+        self.items = snapshot
+        return True
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return True if the transaction is still active."""
+        return transaction_id in self._transactions
+
     def get_item(self, item_id: str) -> Optional[MemoryItem]:
         """
         Get an item from memory by ID.
@@ -88,6 +119,7 @@ class InMemoryStore(MemoryStore):
             return False
         self.items[item.id] = item
         return True
+
 
 class SimpleContextManager(ContextManager):
     """Simple implementation of ContextManager."""

@@ -1,16 +1,14 @@
 """Tests for configuration validation via ``doctor_cmd``."""
 
+import importlib
 from pathlib import Path
 from textwrap import dedent
+from types import SimpleNamespace
 from unittest.mock import patch
 
-import importlib
 import pytest
 
-
-doctor_cmd = importlib.import_module(
-    "devsynth.application.cli.commands.doctor_cmd"
-)
+doctor_cmd = importlib.import_module("devsynth.application.cli.commands.doctor_cmd")
 
 
 @pytest.mark.medium
@@ -33,13 +31,15 @@ def test_config_warnings_succeeds(tmp_path, monkeypatch):
         path = Path(__file__).parents[4] / "scripts" / "validate_config.py"
         return real_spec(name, path, *args, **kwargs)
 
-    with patch.object(
-        doctor_cmd.importlib.util,
-        "spec_from_file_location",
-        side_effect=fake_spec,
-    ), patch.object(doctor_cmd, "load_config"), patch.object(
-        doctor_cmd.bridge, "print"
-    ) as mock_print:
+    with (
+        patch.object(
+            doctor_cmd.importlib.util,
+            "spec_from_file_location",
+            side_effect=fake_spec,
+        ),
+        patch.object(doctor_cmd, "load_config"),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
         assert "Configuration issues detected" in output
@@ -105,14 +105,22 @@ def test_config_success_succeeds(tmp_path, monkeypatch):
         path = Path(__file__).parents[4] / "scripts" / "validate_config.py"
         return real_spec(name, path, *args, **kwargs)
 
-    with patch.object(
-        doctor_cmd.importlib.util,
-        "spec_from_file_location",
-        side_effect=fake_spec,
-    ), patch.object(doctor_cmd, "load_config"), patch.object(
-        doctor_cmd, "_find_project_config", return_value=tmp_path
-    ), patch.object(doctor_cmd.bridge, "print") as mock_print:
+    with (
+        patch.object(
+            doctor_cmd.importlib.util,
+            "spec_from_file_location",
+            side_effect=fake_spec,
+        ),
+        patch.object(
+            doctor_cmd,
+            "load_config",
+            return_value=SimpleNamespace(
+                features={"wsde_collaboration": False}, memory_store_type="memory"
+            ),
+        ),
+        patch.object(doctor_cmd, "_find_project_config", return_value=tmp_path),
+        patch.object(doctor_cmd.bridge, "print") as mock_print,
+    ):
         doctor_cmd.doctor_cmd(str(config_dir))
         output = "".join(str(c.args[0]) for c in mock_print.call_args_list)
         assert "All configuration files are valid" in output
-

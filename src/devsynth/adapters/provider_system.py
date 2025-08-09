@@ -1489,13 +1489,18 @@ def complete(
     """
     provider = get_provider(provider_type=provider_type, fallback=fallback)
     inc_provider("complete")
-    return provider.complete(
-        prompt=prompt,
-        system_prompt=system_prompt,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        parameters=parameters,
-    )
+    # Only pass ``parameters`` if explicitly provided to keep the mocked
+    # call signatures simple in unit tests and avoid provider implementations
+    # receiving ``parameters=None``.
+    call_args = {
+        "prompt": prompt,
+        "system_prompt": system_prompt,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if parameters is not None:
+        call_args["parameters"] = parameters
+    return provider.complete(**call_args)
 
 
 def embed(
