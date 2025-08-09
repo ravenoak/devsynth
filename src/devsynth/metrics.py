@@ -50,6 +50,8 @@ _retry_metrics: DictCounter[str] = DictCounter()
 _retry_count_metrics: DictCounter[str] = DictCounter()
 # Per-exception retry metrics
 _retry_error_metrics: DictCounter[str] = DictCounter()
+# Per-condition retry abort metrics
+_retry_condition_metrics: DictCounter[str] = DictCounter()
 
 # ---------------------------------------------------------------------------
 # Prometheus counters
@@ -66,6 +68,11 @@ retry_function_counter = Counter(
 )
 retry_error_counter = Counter(
     "devsynth_retry_errors_total", "Retry events grouped by exception", ["error_type"]
+)
+retry_condition_counter = Counter(
+    "devsynth_retry_conditions_total",
+    "Retry aborts grouped by failed condition",
+    ["condition"],
 )
 
 
@@ -99,6 +106,12 @@ def inc_retry_error(error_name: str) -> None:
     retry_error_counter.labels(error_type=error_name).inc()
 
 
+def inc_retry_condition(condition_name: str) -> None:
+    """Increment retry counter for a specific condition name."""
+    _retry_condition_metrics[condition_name] += 1
+    retry_condition_counter.labels(condition=condition_name).inc()
+
+
 def get_memory_metrics() -> Dict[str, int]:
     """Return memory operation counters."""
     return dict(_memory_metrics)
@@ -124,6 +137,11 @@ def get_retry_error_metrics() -> Dict[str, int]:
     return dict(_retry_error_metrics)
 
 
+def get_retry_condition_metrics() -> Dict[str, int]:
+    """Return retry counts grouped by failed condition name."""
+    return dict(_retry_condition_metrics)
+
+
 def reset_metrics() -> None:
     """Reset all metrics counters."""
     _memory_metrics.clear()
@@ -131,9 +149,11 @@ def reset_metrics() -> None:
     _retry_metrics.clear()
     _retry_count_metrics.clear()
     _retry_error_metrics.clear()
+    _retry_condition_metrics.clear()
 
     _memory_counter.clear()
     _provider_counter.clear()
     retry_event_counter.clear()
     retry_function_counter.clear()
     retry_error_counter.clear()
+    retry_condition_counter.clear()

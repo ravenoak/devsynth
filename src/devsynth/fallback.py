@@ -38,12 +38,15 @@ except Exception:  # pragma: no cover - fallback for minimal environments
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
 from .metrics import (
+    get_retry_condition_metrics,
     get_retry_count_metrics,
     get_retry_error_metrics,
     get_retry_metrics,
     inc_retry,
+    inc_retry_condition,
     inc_retry_count,
     inc_retry_error,
+    retry_condition_counter,
     retry_error_counter,
     retry_event_counter,
     retry_function_counter,
@@ -69,6 +72,7 @@ def reset_prometheus_metrics() -> None:
     retry_event_counter.clear()
     retry_function_counter.clear()
     retry_error_counter.clear()
+    retry_condition_counter.clear()
     circuit_breaker_state_counter.clear()
 
 
@@ -80,10 +84,12 @@ __all__ = [
     "Bulkhead",
     "get_retry_metrics",
     "get_retry_count_metrics",
+    "get_retry_condition_metrics",
     "get_retry_error_metrics",
     "retry_event_counter",
     "retry_function_counter",
     "retry_error_counter",
+    "retry_condition_counter",
     "circuit_breaker_state_counter",
     "reset_prometheus_metrics",
 ]
@@ -98,7 +104,12 @@ def retry_with_exponential_backoff(
     retryable_exceptions: Tuple[Exception, ...] = (Exception,),
     on_retry: Optional[Callable[[Exception, int, float], None]] = None,
     should_retry: Optional[Callable[[Exception], bool]] = None,
-    retry_conditions: Optional[List[Union[Callable[[Exception], bool], str]]] = None,
+    retry_conditions: Optional[
+        Union[
+            List[Union[Callable[[Exception], bool], str]],
+            Dict[str, Union[Callable[[Exception], bool], str]],
+        ]
+    ] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
@@ -127,11 +138,14 @@ def retry_with_exponential_backoff(
     should_retry : Optional[Callable[[Exception], bool]]
         Optional function that determines if a caught exception should trigger
         another retry. If it returns ``False`` the exception is re-raised.
-    retry_conditions : Optional[List[Union[Callable[[Exception], bool], str]]]
+    retry_conditions : Optional[Union[List[Union[Callable[[Exception], bool], str]],
+                                     Dict[str, Union[Callable[[Exception], bool], str]]]]
         Additional per-exception conditions that must all evaluate to ``True``
-        for the retry to continue. If any condition returns ``False`` the
-        exception is re-raised. String entries are treated as substrings that
-        must appear in the exception message.
+        for the retry to continue. ``retry_conditions`` may be either a list or
+        a dictionary. When a dictionary is provided the keys name each
+        condition and metrics are recorded for any condition that fails. String
+        entries are treated as substrings that must appear in the exception
+        message.
     condition_callbacks : Optional[List[Callable[[Exception, int], bool]]]
         Callbacks invoked with the exception and current retry attempt. All
         callbacks must return ``True`` for the retry loop to continue.
@@ -163,17 +177,33 @@ def retry_with_exponential_backoff(
             # Initialize variables
             num_retries = 0
             delay = initial_delay
-            compiled_conditions: List[Callable[[Exception], bool]] = []
+            anonymous_conditions: List[Callable[[Exception], bool]] = []
+            named_conditions: List[Tuple[str, Callable[[Exception], bool]]] = []
             if retry_conditions:
-                for cond in retry_conditions:
-                    if callable(cond):
-                        compiled_conditions.append(cond)
-                    elif isinstance(cond, str):
-                        compiled_conditions.append(
-                            lambda exc, substr=cond: substr in str(exc)
-                        )
-                    else:  # pragma: no cover - defensive
-                        raise TypeError("retry_conditions must be callables or strings")
+                if isinstance(retry_conditions, dict):
+                    for name, cond in retry_conditions.items():
+                        if callable(cond):
+                            named_conditions.append((name, cond))
+                        elif isinstance(cond, str):
+                            named_conditions.append(
+                                (name, lambda exc, substr=cond: substr in str(exc))
+                            )
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "retry_conditions values must be callables or strings"
+                            )
+                else:
+                    for cond in retry_conditions:
+                        if callable(cond):
+                            anonymous_conditions.append(cond)
+                        elif isinstance(cond, str):
+                            anonymous_conditions.append(
+                                lambda exc, substr=cond: substr in str(exc)
+                            )
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "retry_conditions must be callables or strings"
+                            )
             cb_list: List[Callable[[Exception, int], bool]] = condition_callbacks or []
 
             # Loop until max retries reached
@@ -243,8 +273,21 @@ def retry_with_exponential_backoff(
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
                         raise
-                    if compiled_conditions and not all(
-                        cond(e) for cond in compiled_conditions
+                    for name, cond in named_conditions:
+                        if not cond(e):
+                            logger.warning(
+                                f"Not retrying {func.__name__} due to retry_conditions policy",
+                                error=e,
+                                function=func.__name__,
+                                condition=name,
+                            )
+                            if track_metrics:
+                                inc_retry("abort")
+                                inc_retry_error(e.__class__.__name__)
+                                inc_retry_condition(name)
+                            raise
+                    if anonymous_conditions and not all(
+                        cond(e) for cond in anonymous_conditions
                     ):
                         logger.warning(
                             f"Not retrying {func.__name__} due to retry_conditions policy",
