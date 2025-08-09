@@ -138,8 +138,13 @@ class WSDETeam:
         self.roles["primus"] = primus
 
     def get_primus(self) -> Optional[Any]:
-        """Return the current primus agent, if any."""
-        return self.roles.get("primus")
+        """Return the current primus agent, assigning a default if needed."""
+
+        primus = self.roles.get("primus")
+        if primus is None and self.agents:
+            primus = self.agents[0]
+            self.roles["primus"] = primus
+        return primus
 
     def get_agent_by_role(self, role: str):
         """Get an agent with the specified role."""
