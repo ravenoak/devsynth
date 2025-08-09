@@ -81,3 +81,15 @@ def test_run_tests_cli_full_invocation() -> None:
             50,  # segment_size
         )
         assert "Tests completed successfully" in result.output
+
+
+def test_run_tests_cli_help() -> None:
+    """The ``--help`` flag should render without Typer runtime errors."""
+
+    runner = CliRunner()
+    app = typer.Typer()
+    app.command(name="run-tests")(module.run_tests_cmd)
+    result = runner.invoke(app, ["run-tests", "--help"])
+
+    assert result.exit_code == 0
+    assert "Run DevSynth test suites." in result.output
