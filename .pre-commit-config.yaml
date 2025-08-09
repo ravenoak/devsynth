@@ -45,6 +45,16 @@ repos:
       language: system
       stages: [commit-msg]
       pass_filenames: true
+    - id: bandit
+      name: bandit security check
+      entry: bandit -q -r src --exit-zero
+      language: system
+      pass_filenames: false
+    - id: safety
+      name: safety vulnerability check
+      entry: safety check --full-report
+      language: system
+      pass_filenames: false
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
   hooks:
