@@ -33,6 +33,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
+from devsynth.methodology.dialectical_reasoning import reasoning_loop
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -316,6 +317,32 @@ class EDRRCoordinator:
         except Exception as e:
             logger.error(f"Failed to retrieve memory item with EDRR phase: {e}")
             return {}
+
+    def apply_dialectical_reasoning(
+        self,
+        task: Dict[str, Any],
+        critic_agent: Any,
+        memory_integration: Optional[Any] = None,
+    ) -> Dict[str, Any]:
+        """Apply the dialectical reasoning loop and handle consensus failures."""
+
+        logger.info("EDRRCoordinator invoking dialectical reasoning")
+        results = reasoning_loop(self.wsde_team, task, critic_agent, memory_integration)
+        if self.memory_manager is not None:
+            try:
+                self.memory_manager.flush_updates()
+            except Exception:  # pragma: no cover - defensive
+                logger.debug("Memory flush failed", exc_info=True)
+        if not results:
+            logger.warning(
+                "Consensus failure during dialectical reasoning",
+                extra={"cycle_id": self.cycle_id},
+            )
+            self.performance_metrics.setdefault("consensus_failures", []).append(
+                {"method": "dialectical_reasoning", "cycle_id": self.cycle_id}
+            )
+            return {}
+        return results[-1]
 
     def _execute_peer_review(
         self, phase: Phase, work_product: Dict[str, Any]
