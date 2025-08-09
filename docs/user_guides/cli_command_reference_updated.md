@@ -56,10 +56,13 @@ devsynth init [OPTIONS]
 | `--root TEXT` | Root directory of the project (default: current directory) |
 | `--language TEXT` | Primary programming language for the project |
 | `--goals TEXT` | High-level goals or description of the project |
-| `--memory-backend TEXT` | Memory backend to use (default: from config) |
+| `--memory-backend [memory\|file\|kuzu\|chromadb]` | Memory backend to use |
 | `--offline-mode / --no-offline-mode` | Enable or disable offline mode |
 | `--features JSON` | Features to enable or disable (JSON format) |
-| `--auto-confirm / --no-auto-confirm` | Automatically confirm prompts (default: False) |
+| `--auto-confirm / --no-auto-confirm` | Automatically confirm prompts |
+| `--defaults` | Use default values for all prompts |
+| `--non-interactive` | Run without interactive prompts |
+| `--metrics-dashboard` | Print instructions for launching metrics dashboards |
 
 **Examples:**
 
@@ -76,6 +79,8 @@ devsynth init --goals "A CLI tool for managing tasks"
 # Initialize a project with the interactive wizard
 devsynth init --wizard
 ```
+
+During initialization, DevSynth shows progress indicators and enhanced error messages. Optional metrics dashboards can be explored with `devsynth mvuu-dashboard`.
 
 ### spec
 
@@ -221,6 +226,33 @@ devsynth config provider
 
 # List available configuration models
 devsynth config --list-models
+```
+
+### completion
+
+Generate or install shell completion scripts.
+
+**Usage:**
+
+```bash
+devsynth completion [OPTIONS]
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--shell [bash\|zsh\|fish]` | Target shell (auto-detected by default) |
+| `--install` | Install completion for the selected shell |
+| `--output TEXT` | Write completion script to a file |
+
+**Examples:**
+
+```bash
+# Install completion for the current shell
+devsynth completion --install
+
+# Generate zsh completion script to a file
+devsynth completion --shell zsh --output devsynth.zsh
 ```
 
 ## Advanced Commands

@@ -6,12 +6,12 @@ _devsynth_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    
+
     # Main commands
-    commands="init spec test code run config gather refactor inspect webapp serve dbschema doctor help"
-    
+    commands="init spec test code run-pipeline config gather inspect refactor webapp serve dbschema doctor completion help"
+
     # Options for specific commands
-    init_opts="--path --template --force --verbose"
+    init_opts="--wizard --root --language --goals --memory-backend --offline-mode --features --auto-confirm --defaults --non-interactive --metrics-dashboard"
     spec_opts="--requirements-file --output-file --verbose"
     test_opts="--spec-file --output-file --verbose"
     code_opts="--test-file --output-dir --language --verbose"
@@ -24,14 +24,15 @@ _devsynth_completion() {
     serve_opts="--host --port --verbose"
     dbschema_opts="--input-file --output-file --verbose"
     doctor_opts="--fix --verbose"
-    
+    completion_opts="--shell --install --output"
+
     # Handle command-specific options
     if [[ ${COMP_CWORD} -eq 1 ]]; then
         # Completing the command
         COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
         return 0
     fi
-    
+
     # Handle options for specific commands
     case "${COMP_WORDS[1]}" in
         init)
@@ -73,14 +74,17 @@ _devsynth_completion() {
         doctor)
             COMPREPLY=( $(compgen -W "${doctor_opts}" -- "${cur}") )
             ;;
+        completion)
+            COMPREPLY=( $(compgen -W "${completion_opts}" -- "${cur}") )
+            ;;
         help)
             COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
             ;;
     esac
-    
+
     # Handle option arguments
     case "${prev}" in
-        --path|--output-dir|--output-file|--requirements-file|--spec-file|--test-file|--file|--input-file)
+        --path|--root|--output-dir|--output-file|--requirements-file|--spec-file|--test-file|--file|--input-file|--output)
             # File/directory completion
             COMPREPLY=( $(compgen -f -- "${cur}") )
             return 0
@@ -93,6 +97,11 @@ _devsynth_completion() {
         --language)
             # Language options
             COMPREPLY=( $(compgen -W "python javascript typescript java csharp go rust" -- "${cur}") )
+            return 0
+            ;;
+        --memory-backend)
+            # Memory backend options
+            COMPREPLY=( $(compgen -W "memory file kuzu chromadb" -- "${cur}") )
             return 0
             ;;
         --framework)
@@ -110,8 +119,13 @@ _devsynth_completion() {
             COMPREPLY=( $(compgen -W "model provider offline_mode memory_backend log_level" -- "${cur}") )
             return 0
             ;;
+        --shell)
+            # Shell options
+            COMPREPLY=( $(compgen -W "bash zsh fish" -- "${cur}") )
+            return 0
+            ;;
     esac
-    
+
     return 0
 }
 

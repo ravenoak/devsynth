@@ -5,9 +5,10 @@ and their arguments. It uses Typer's autocompletion mechanism to provide
 suggestions as the user types.
 """
 
-from typing import List, Optional, Any
-import typer
 from pathlib import Path
+from typing import Any, List, Optional
+
+import typer
 
 # List of all available commands
 COMMANDS = [
@@ -27,6 +28,7 @@ COMMANDS = [
     "doctor",
     "edrr-cycle",
     "webui",
+    "completion",
 ]
 
 # Command descriptions for help text
@@ -47,6 +49,7 @@ COMMAND_DESCRIPTIONS = {
     "doctor": "Run diagnostics on the current environment",
     "edrr-cycle": "Run an EDRR cycle",
     "webui": "Launch the Streamlit WebUI",
+    "completion": "Generate or install shell completion scripts",
 }
 
 # Command examples for help text
@@ -110,25 +113,31 @@ COMMAND_EXAMPLES = {
     "webui": [
         "devsynth webui",
     ],
+    "completion": [
+        "devsynth completion --install",
+        "devsynth completion --shell zsh --output devsynth.zsh",
+    ],
 }
+
 
 def get_completions(incomplete: str) -> List[str]:
     """Get command completion suggestions based on the incomplete input.
-    
+
     Args:
         incomplete: The incomplete command string
-        
+
     Returns:
         A list of command suggestions that match the incomplete string
     """
     return [cmd for cmd in COMMANDS if cmd.startswith(incomplete)]
 
+
 def complete_command(incomplete: str) -> str:
     """Complete a command based on the incomplete input.
-    
+
     Args:
         incomplete: The incomplete command string
-        
+
     Returns:
         The completed command if there's a unique match, otherwise the incomplete string
     """
@@ -137,94 +146,94 @@ def complete_command(incomplete: str) -> str:
         return matches[0]
     return incomplete
 
+
 def command_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
     """Provide autocompletion for DevSynth commands.
-    
+
     This function is used by Typer to provide command autocompletion.
-    
+
     Args:
         ctx: The Typer context
         incomplete: The incomplete command string
-        
+
     Returns:
         A list of command suggestions that match the incomplete string
     """
     return get_completions(incomplete)
 
+
 def file_path_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
     """Provide autocompletion for file paths.
-    
+
     Args:
         ctx: The Typer context
         incomplete: The incomplete file path
-        
+
     Returns:
         A list of file path suggestions that match the incomplete string
     """
     # Get the current directory
     current_dir = Path.cwd()
-    
+
     # If incomplete is empty, return all files and directories in the current directory
     if not incomplete:
         return [str(p) for p in current_dir.iterdir()]
-    
+
     # If incomplete contains a path separator, get the parent directory
     if "/" in incomplete or "\\" in incomplete:
         parent_dir = Path(incomplete).parent
         if not parent_dir.is_absolute():
             parent_dir = current_dir / parent_dir
-        
+
         # Get the incomplete filename
         incomplete_name = Path(incomplete).name
-        
+
         # Return all files and directories in the parent directory that match the incomplete name
         return [
-            str(p)
-            for p in parent_dir.iterdir()
-            if p.name.startswith(incomplete_name)
+            str(p) for p in parent_dir.iterdir() if p.name.startswith(incomplete_name)
         ]
-    
+
     # Return all files and directories in the current directory that match the incomplete name
-    return [
-        str(p)
-        for p in current_dir.iterdir()
-        if p.name.startswith(incomplete)
-    ]
+    return [str(p) for p in current_dir.iterdir() if p.name.startswith(incomplete)]
+
 
 def get_command_help(command: str) -> str:
     """Get detailed help text for a command.
-    
+
     Args:
         command: The command name
-        
+
     Returns:
         Detailed help text for the command, including description and examples
     """
     description = COMMAND_DESCRIPTIONS.get(command, "No description available")
     examples = COMMAND_EXAMPLES.get(command, [])
-    
+
     help_text = f"Command: {command}\n\n"
     help_text += f"Description:\n  {description}\n\n"
-    
+
     if examples:
         help_text += "Examples:\n"
         for example in examples:
             help_text += f"  {example}\n"
-    
+
     return help_text
+
 
 def get_all_commands_help() -> str:
     """Get help text for all available commands.
-    
+
     Returns:
         Help text for all available commands
     """
     help_text = "Available Commands:\n\n"
-    
+
     for command in sorted(COMMANDS):
         description = COMMAND_DESCRIPTIONS.get(command, "No description available")
         help_text += f"{command:15} {description}\n"
-    
-    help_text += "\nUse 'devsynth <command> --help' for more information about a command."
-    
+
+    help_text += (
+        "\nUse 'devsynth <command> --help' for more information about a command."
+    )
+
     return help_text
