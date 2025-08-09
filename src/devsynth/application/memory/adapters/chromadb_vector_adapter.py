@@ -1,16 +1,14 @@
-"""
-ChromaDB Vector Adapter Module
+"""ChromaDB vector adapter module.
 
-This module provides a memory adapter that handles vector-based operations
-for similarity search using ChromaDB as the backend.
-"""
+This module implements a :class:`VectorStore` backed by ChromaDB. It
+persists and retrieves ``MemoryVector`` objects from a ChromaDB collection
+and supports similarity search as well as basic CRUD operations.
 
-"""
-Adapter for using ChromaDB as a simple vector store.
+Typical usage::
 
-The previous implementation only stored vectors in a local dictionary.  This
-update provides real interactions with ChromaDB using its client API so that
-vectors are persisted and retrieved from a ChromaDB collection.
+    adapter = ChromaDBVectorAdapter(collection_name="demo")
+    adapter.store_vector(memory_vector)
+
 """
 
 import uuid
