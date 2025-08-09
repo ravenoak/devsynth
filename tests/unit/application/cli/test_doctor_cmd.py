@@ -58,6 +58,8 @@ commands_pkg = ModuleType("devsynth.application.cli.commands")
 commands_pkg.__path__ = []
 cli_commands_stub = ModuleType("devsynth.application.cli.cli_commands")
 cli_commands_stub._check_services = lambda bridge: True
+utils_stub = ModuleType("devsynth.application.cli.utils")
+utils_stub._check_services = lambda bridge: True
 align_stub = ModuleType("devsynth.application.cli.commands.align_cmd")
 align_stub.check_alignment = lambda *a, **k: []
 align_stub.display_issues = lambda *a, **k: None
@@ -79,6 +81,7 @@ def _load_doctor_cmd():
             "devsynth.application.cli": cli_pkg,
             "devsynth.application.cli.commands": commands_pkg,
             "devsynth.application.cli.cli_commands": cli_commands_stub,
+            "devsynth.application.cli.utils": utils_stub,
             "devsynth.application.cli.commands.align_cmd": align_stub,
         },
     ):
@@ -158,15 +161,23 @@ def test_doctor_cmd_success_is_valid(tmp_path, monkeypatch):
     monkeypatch.setattr(doctor_cmd.sys, "version_info", (3, 11, 0))
     monkeypatch.setenv("OPENAI_API_KEY", "1")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.cli_commands", cli_commands_stub
+    )
+    monkeypatch.chdir(tmp_path)
     config_dir = tmp_path / "cfg"
     config_dir.mkdir()
     for env in ["default", "development", "testing", "staging", "production"]:
         (config_dir / f"{env}.yml").write_text(VALID_CONFIG)
+    # Create expected project directories to avoid warnings
+    for name in ("src", "tests", "docs"):
+        (tmp_path / name).mkdir()
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
     with (
         _patch_validation_loader(),
         patch.object(doctor_cmd, "load_config", return_value=cfg),
+        patch.object(doctor_cmd, "_find_project_config", return_value=tmp_path),
         patch.object(doctor_cmd.bridge, "print") as mock_print,
     ):
         doctor_cmd.doctor_cmd(str(config_dir))
@@ -336,7 +347,9 @@ def test_check_cmd_alias_succeeds(monkeypatch):
     ReqID: N/A"""
     from devsynth.application.cli.cli_commands import check_cmd
 
-    with patch("devsynth.application.cli.cli_commands.doctor_cmd") as mock_doc:
+    with patch(
+        "devsynth.application.cli.commands.diagnostics_cmds.doctor_cmd"
+    ) as mock_doc:
         check_cmd("config")
         mock_doc.assert_called_once_with(config_dir="config", quick=False)
 
@@ -349,10 +362,8 @@ def test_doctor_cmd_invokes_service_check(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "1")
     cfg = SimpleNamespace()
     cfg.exists = lambda: True
-    stub = ModuleType("devsynth.application.cli.cli_commands")
     chk = MagicMock(return_value=True)
-    stub._check_services = chk
-    monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", stub)
+    monkeypatch.setattr(doctor_cmd, "_check_services", chk)
     with (
         _patch_validation_loader(),
         patch.object(doctor_cmd, "load_config", return_value=cfg),
