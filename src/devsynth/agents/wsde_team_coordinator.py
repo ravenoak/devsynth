@@ -44,6 +44,15 @@ class WSDETeamCoordinatorAgent:
         summary = map_retrospective_to_summary(aggregated, sprint)
         if hasattr(self._team, "record_retrospective"):
             self._team.record_retrospective(summary)
+            memory_manager = getattr(self._team, "memory_manager", None)
+            if memory_manager and hasattr(memory_manager, "flush_updates"):
+                try:
+                    memory_manager.flush_updates()
+                except Exception:  # pragma: no cover - defensive
+                    logger.debug(
+                        "Memory synchronization failed during retrospective",
+                        exc_info=True,
+                    )
         else:  # pragma: no cover - defensive
             logger.debug("Team object lacks 'record_retrospective' method")
         return summary

@@ -278,6 +278,23 @@ def test_peer_review_integration_in_edrr_workflow_succeeds(coordinator):
             mock_flush.assert_called()
 
 
+def test_retrospective_phase_synchronizes_memory(coordinator):
+    """Ensure retrospective phase flushes memory updates."""
+
+    with patch.object(coordinator.memory_manager, "flush_updates") as mock_flush:
+        task = {
+            "description": "Sum two numbers",
+            "language": "python",
+            "domain": "math",
+        }
+        coordinator.start_cycle(task)
+        for phase in [Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
+            coordinator.progress_to_phase(phase)
+            coordinator.execute_current_phase()
+
+        mock_flush.assert_called()
+
+
 def test_memory_sync_hook_captures_events_during_team_sync():
     """Ensure memory synchronization hooks capture memory updates."""
 
