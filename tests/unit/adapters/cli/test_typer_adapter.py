@@ -1,81 +1,96 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 import typer
-from devsynth.adapters.cli.typer_adapter import build_app, _warn_if_features_disabled, show_help, parse_args, run_cli
-from devsynth.application.cli.requirements_commands import requirements_app
+
+from devsynth.adapters.cli.typer_adapter import (
+    _warn_if_features_disabled,
+    build_app,
+    completion_cmd,
+    parse_args,
+    run_cli,
+    show_help,
+)
 from devsynth.application.cli import config_app
-from devsynth.core.config_loader import load_config
+from devsynth.application.cli.requirements_commands import requirements_app
+
 
 @pytest.mark.medium
 def test_build_app_returns_expected_result():
     """Test that build_app returns a Typer application with commands registered.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     app = build_app()
     assert isinstance(app, typer.Typer)
     command_names = [cmd.name for cmd in app.registered_commands]
-    assert 'init' in command_names
-    assert 'spec' in command_names
-    assert 'test' in command_names
-    assert 'code' in command_names
-    assert 'run-pipeline' in command_names
-    assert hasattr(app, 'callback')
+    assert "init" in command_names
+    assert "spec" in command_names
+    assert "test" in command_names
+    assert "code" in command_names
+    assert "run-pipeline" in command_names
+    assert hasattr(app, "callback")
     app_help = app.info.help
-    assert 'DevSynth CLI' in app_help
-    with patch('typer.Typer.add_typer') as mock_add_typer:
+    assert "DevSynth CLI" in app_help
+    with patch("typer.Typer.add_typer") as mock_add_typer:
         test_app = build_app()
         assert mock_add_typer.call_count >= 2
-        mock_add_typer.assert_any_call(requirements_app, name='requirements')
-        mock_add_typer.assert_any_call(config_app, name='config', help='Manage configuration settings')
+        mock_add_typer.assert_any_call(requirements_app, name="requirements")
+        mock_add_typer.assert_any_call(
+            config_app, name="config", help="Manage configuration settings"
+        )
+
 
 @pytest.mark.medium
-@patch('devsynth.adapters.cli.typer_adapter.load_config')
-@patch('devsynth.adapters.cli.typer_adapter.typer.echo')
+@patch("devsynth.adapters.cli.typer_adapter.load_config")
+@patch("devsynth.adapters.cli.typer_adapter.typer.echo")
 def test_warn_if_features_disabled_all_disabled_succeeds(mock_echo, mock_load_config):
     """Test that _warn_if_features_disabled shows a warning when all features are disabled.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     mock_config = MagicMock()
-    mock_config.features = {'feature1': False, 'feature2': False}
+    mock_config.features = {"feature1": False, "feature2": False}
     mock_load_config.return_value = mock_config
     _warn_if_features_disabled()
     mock_echo.assert_called_once()
-    assert 'All optional features are disabled' in mock_echo.call_args[0][0]
+    assert "All optional features are disabled" in mock_echo.call_args[0][0]
+
 
 @pytest.mark.medium
-@patch('devsynth.adapters.cli.typer_adapter.load_config')
-@patch('devsynth.adapters.cli.typer_adapter.typer.echo')
+@patch("devsynth.adapters.cli.typer_adapter.load_config")
+@patch("devsynth.adapters.cli.typer_adapter.typer.echo")
 def test_warn_if_features_disabled_some_enabled_succeeds(mock_echo, mock_load_config):
     """Test that _warn_if_features_disabled doesn't show a warning when some features are enabled.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     mock_config = MagicMock()
-    mock_config.features = {'feature1': True, 'feature2': False}
+    mock_config.features = {"feature1": True, "feature2": False}
     mock_load_config.return_value = mock_config
     _warn_if_features_disabled()
     mock_echo.assert_not_called()
 
+
 @pytest.mark.medium
-@patch('devsynth.adapters.cli.typer_adapter.load_config')
-@patch('devsynth.adapters.cli.typer_adapter.typer.echo')
+@patch("devsynth.adapters.cli.typer_adapter.load_config")
+@patch("devsynth.adapters.cli.typer_adapter.typer.echo")
 def test_warn_if_features_disabled_exception_raises_error(mock_echo, mock_load_config):
     """Test that _warn_if_features_disabled handles exceptions gracefully.
 
-ReqID: N/A"""
-    mock_load_config.side_effect = Exception('Config error')
+    ReqID: N/A"""
+    mock_load_config.side_effect = Exception("Config error")
     _warn_if_features_disabled()
     mock_echo.assert_not_called()
 
+
 @pytest.mark.medium
-@patch('devsynth.adapters.cli.typer_adapter.Console')
-@patch('devsynth.adapters.cli.typer_adapter.build_app')
+@patch("devsynth.adapters.cli.typer_adapter.Console")
+@patch("devsynth.adapters.cli.typer_adapter.build_app")
 def test_show_help_succeeds(mock_build_app, mock_console):
     """Test that show_help displays the CLI help message.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     mock_app = MagicMock()
     mock_app.info = MagicMock()
-    mock_app.info.help = 'Test help text'
+    mock_app.info.help = "Test help text"
     mock_app.registered_commands = []
     mock_app.registered_groups = []
     mock_build_app.return_value = mock_app
@@ -85,28 +100,52 @@ ReqID: N/A"""
     assert mock_console_instance.print.call_count > 0
     mock_build_app.assert_called_once()
 
+
 @pytest.mark.medium
-@patch('devsynth.adapters.cli.typer_adapter._warn_if_features_disabled')
-@patch('devsynth.adapters.cli.typer_adapter.build_app')
+@patch("devsynth.adapters.cli.typer_adapter._warn_if_features_disabled")
+@patch("devsynth.adapters.cli.typer_adapter.build_app")
 def test_parse_args_has_expected(mock_build_app, mock_warn):
     """Test that parse_args calls the app with the provided arguments.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     mock_app = MagicMock()
     mock_build_app.return_value = mock_app
-    parse_args(['init', '--path', './test'])
+    parse_args(["init", "--path", "./test"])
     mock_warn.assert_called_once()
-    mock_app.assert_called_once_with(['init', '--path', './test'])
+    mock_app.assert_called_once_with(["init", "--path", "./test"])
+
 
 @pytest.mark.medium
-@patch('devsynth.adapters.cli.typer_adapter._warn_if_features_disabled')
-@patch('devsynth.adapters.cli.typer_adapter.build_app')
+@patch("devsynth.adapters.cli.typer_adapter._warn_if_features_disabled")
+@patch("devsynth.adapters.cli.typer_adapter.build_app")
 def test_run_cli_succeeds(mock_build_app, mock_warn):
     """Test that run_cli calls the app.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     mock_app = MagicMock()
     mock_build_app.return_value = mock_app
     run_cli()
     mock_warn.assert_called_once()
     mock_app.assert_called_once_with()
+
+
+@pytest.mark.medium
+@patch("devsynth.adapters.cli.typer_adapter.build_app")
+@patch("click.shell_completion.get_completion_class")
+def test_completion_cmd_displays_script(mock_get_completion_class, mock_build_app):
+    """Test that completion_cmd shows generated script."""
+
+    mock_comp_cls = MagicMock()
+    mock_comp = MagicMock()
+    mock_comp.source.return_value = "script"
+    mock_comp_cls.return_value = mock_comp
+    mock_get_completion_class.return_value = mock_comp_cls
+    bridge = MagicMock()
+    progress = MagicMock()
+    bridge.create_progress.return_value = progress
+
+    completion_cmd(shell="bash", install=False, bridge=bridge)
+
+    bridge.create_progress.assert_called_once()
+    bridge.show_completion.assert_called_once_with("script")
+    progress.complete.assert_called_once()
