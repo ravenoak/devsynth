@@ -8,6 +8,10 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
+- `scripts/codex_setup.sh` sets up your environment pior to being handed off to you; update it as appropriate and according to best-practices.
+- Update this file, your instructions and initial context, as appropriate and according to best-practices.
+- Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
+- Documents in `docs/external_research_papers/` are copies of academic papers and can be referenced using best-practices.
 
 ## Quick Start
 

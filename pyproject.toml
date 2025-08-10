@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "devsynth"
-version = "0.1.0-alpha.1"
+version = "0.1.0a1"
 description = "DevSynth project"
 authors = ["DevSynth Team"]
 readme = "README.md"
