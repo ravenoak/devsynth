@@ -1,7 +1,6 @@
-"""
-Test agent for the DevSynth system.
-"""
+"""Test agent for the DevSynth system."""
 
+from pathlib import Path
 from typing import Any, Dict, List
 
 # Create a logger for this module
@@ -19,11 +18,15 @@ class TestAgent(BaseAgent):
     # Avoid pytest collecting this agent class as a test case
     __test__ = False
 
-    def scaffold_integration_tests(self, test_names: List[str]) -> Dict[str, str]:
-        """Create placeholder integration test modules.
+    def scaffold_integration_tests(
+        self, test_names: List[str], output_dir: Path | None = None
+    ) -> Dict[str, str]:
+        """Create placeholder integration test modules and optionally write them.
 
         Args:
             test_names: List of base names for integration tests.
+            output_dir: Directory where test scaffolds should be written. If
+                ``None`` the scaffolds are only returned.
 
         Returns:
             Dictionary mapping filenames to placeholder test content.
@@ -49,10 +52,15 @@ class TestAgent(BaseAgent):
 
         placeholders: Dict[str, str] = {}
         names = test_names or ["placeholder"]
+        if output_dir:
+            output_dir.mkdir(parents=True, exist_ok=True)
         for name in names:
             safe_name = name.strip().lower().replace(" ", "_")
             filename = f"test_{safe_name}.py"
-            placeholders[filename] = template.format(name=safe_name)
+            content = template.format(name=safe_name)
+            placeholders[filename] = content
+            if output_dir:
+                (output_dir / filename).write_text(content)
         return placeholders
 
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -85,7 +93,10 @@ class TestAgent(BaseAgent):
 
         # Scaffold placeholder integration tests if names are provided
         integration_names = inputs.get("integration_test_names", [])
-        integration_tests = self.scaffold_integration_tests(integration_names)
+        output_dir = Path("tests/integration/generated_tests")
+        integration_tests = self.scaffold_integration_tests(
+            integration_names, output_dir=output_dir
+        )
 
         # Create a WSDE with the tests
         test_wsde = None
