@@ -84,6 +84,10 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         Returns:
             The dialectical reasoning result.
         """
+        logger.info(
+            "Evaluating change",
+            extra={"change_id": str(change.id), "event": "evaluation_start"},
+        )
         # Check if reasoning already exists for this change
         existing_reasoning = self.reasoning_repository.get_reasoning_for_change(
             change.id
@@ -120,18 +124,27 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         except ConsensusError as exc:
             logger.error(
                 "Consensus evaluation failed",  # pragma: no cover - log path
-                extra={"change_id": str(change.id), "error": str(exc)},
+                extra={
+                    "change_id": str(change.id),
+                    "error": str(exc),
+                    "event": "consensus_check_error",
+                },
             )
+            self._store_reasoning_in_memory(reasoning, edrr_phase="RETROSPECT")
             raise
 
         if not consensus_reached:
             logger.error(
                 "Consensus not reached for change",  # pragma: no cover - log path
-                extra={"change_id": str(change.id)},
+                extra={"change_id": str(change.id), "event": "consensus_failed"},
             )
+            self._store_reasoning_in_memory(reasoning, edrr_phase="RETROSPECT")
             raise ConsensusError("Consensus not reached")
 
-        logger.info("Consensus reached for change", extra={"change_id": str(change.id)})
+        logger.info(
+            "Consensus reached for change",
+            extra={"change_id": str(change.id), "event": "consensus_reached"},
+        )
 
         # Save and persist the reasoning
         saved = self.reasoning_repository.save_reasoning(reasoning)
@@ -263,7 +276,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
         return saved_assessment
 
-    def _store_reasoning_in_memory(self, reasoning: DialecticalReasoning) -> None:
+    def _store_reasoning_in_memory(
+        self, reasoning: DialecticalReasoning, edrr_phase: str = "REFINE"
+    ) -> None:
         """Persist dialectical reasoning to the memory manager if available."""
         manager = getattr(self, "memory_manager", None)
         if manager is None:
@@ -272,7 +287,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             manager.store_with_edrr_phase(
                 asdict(reasoning),
                 memory_type=MemoryType.DIALECTICAL_REASONING,
-                edrr_phase="REFINE",
+                edrr_phase=edrr_phase,
                 metadata={"change_id": str(reasoning.change_id)},
             )
         except Exception:
