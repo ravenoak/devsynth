@@ -280,10 +280,10 @@ poetry shell
 For a lightweight setup that skips GPU/LLM libraries use:
 
 ```bash
-poetry install --with dev --extras tests
+poetry install --with dev --extras tests retrieval chromadb api
 ```
 
-Optional backends such as **ChromaDB**, **FAISS**, or **LMDB** require extra packages:
+Optional backends such as **FAISS** or **LMDB** may require additional extras:
 
 ```bash
 poetry install --extras retrieval

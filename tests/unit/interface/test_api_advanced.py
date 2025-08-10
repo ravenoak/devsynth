@@ -1,28 +1,36 @@
 import pytest
+
+pytest.importorskip("fastapi")
+from unittest.mock import MagicMock, patch
+
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+
 from devsynth.api import app
 from devsynth.interface.agentapi import (
-    init_endpoint,
-    gather_endpoint,
-    synthesize_endpoint,
-    spec_endpoint,
-    test_endpoint,
-    code_endpoint,
-    doctor_endpoint,
-    edrr_cycle_endpoint,
-    status_endpoint,
-    InitRequest,
-    GatherRequest,
-    SynthesizeRequest,
-    SpecRequest,
-    TestSpecRequest as APITestSpecRequest,
+    LATEST_MESSAGES,
     CodeRequest,
     DoctorRequest,
     EDRRCycleRequest,
-    LATEST_MESSAGES,
-)  # Uncommented closing parenthesis
+    GatherRequest,
+    InitRequest,
+    SpecRequest,
+    SynthesizeRequest,
+)
+from devsynth.interface.agentapi import (
+    TestSpecRequest as APITestSpecRequest,  # Uncommented closing parenthesis
+)
+from devsynth.interface.agentapi import (
+    code_endpoint,
+    doctor_endpoint,
+    edrr_cycle_endpoint,
+    gather_endpoint,
+    init_endpoint,
+    spec_endpoint,
+    status_endpoint,
+    synthesize_endpoint,
+    test_endpoint,
+)
 
 
 @pytest.fixture

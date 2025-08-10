@@ -6,6 +6,8 @@ import os
 
 import pytest
 
+pytest.importorskip("chromadb")
+
 chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
     "0",
     "false",

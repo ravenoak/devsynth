@@ -1,16 +1,23 @@
 import sys
+
 import pytest
+
+pytest.importorskip("chromadb")
 
 LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
 FAISSStore = pytest.importorskip("devsynth.application.memory.faiss_store").FAISSStore
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.application.memory.kuzu_store import KuzuStore
-ChromaDBStore = pytest.importorskip("devsynth.application.memory.chromadb_store").ChromaDBStore
-ChromaDBAdapter = pytest.importorskip("devsynth.adapters.memory.chroma_db_adapter").ChromaDBAdapter
+
+ChromaDBStore = pytest.importorskip(
+    "devsynth.application.memory.chromadb_store"
+).ChromaDBStore
+ChromaDBAdapter = pytest.importorskip(
+    "devsynth.adapters.memory.chroma_db_adapter"
+).ChromaDBAdapter
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
-from devsynth.domain.models.memory import MemoryItem, MemoryVector, MemoryType
-
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 pytestmark = [
     pytest.mark.requires_resource("lmdb"),

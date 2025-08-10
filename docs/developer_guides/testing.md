@@ -272,17 +272,12 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 
 ## Running Tests
 
-Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Running the **full** suite requires the `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb` extras. Environment provisioning is handled automatically in Codex environments. For manual setups run `poetry install`.
+Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Running the **full** suite requires the `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb` extras. Environment provisioning is handled automatically in Codex environments. For manual setups run:
 
 ```bash
-poetry install --with dev,docs
-poetry sync --all-extras --all-groups
+poetry install --with dev --extras tests retrieval chromadb api
+```
 
-# The Codex environment runs a similar command automatically
-poetry install \
-  --with dev,docs \
-  --all-extras \
-  --no-interaction
 
 # Verify that pytest can start without import errors
 
@@ -290,14 +285,16 @@ poetry run pytest -q
 
 # pip commands are for installing from PyPI only
 
-```
+```text
 Always run tests with `poetry run pytest`. If `pytest` reports missing packages, run `poetry install` to restore them.
 
 ## Running All Tests
 
 ```bash
+
 poetry run pytest
-```
+
+```text
 
 ### Using `devsynth run-pipeline`
 
@@ -306,6 +303,7 @@ entire suite or selected groups of tests. It also supports generating HTML
 reports with `pytest-html`.
 
 ```bash
+
 # Run the full suite (unit tests)
 devsynth run-pipeline --target unit-tests
 
@@ -314,7 +312,8 @@ devsynth run-pipeline --target integration-tests
 
 # Produce an HTML report in `test_reports/`
 devsynth run-pipeline --target unit-tests --report
-```
+
+```text
 
 Combine options (for example, integration tests with a report) as needed.
 
@@ -341,13 +340,16 @@ poetry run pytest tests/integration/
 # Run unit tests
 
 poetry run pytest tests/unit/
-```
+
+```text
 
 ## Running a Specific Test File
 
 ```bash
+
 poetry run pytest tests/behavior/test_chromadb_integration.py
-```
+
+```text
 
 ### Running Tests with Provider Selection
 
@@ -360,7 +362,8 @@ DEVSYNTH_PROVIDER=openai poetry run pytest
 # Use LM Studio provider
 
 DEVSYNTH_PROVIDER=lmstudio poetry run pytest
-```
+
+```text
 
 ## Review Workflow
 
@@ -370,19 +373,19 @@ All test changes should undergo a brief review cycle before merging:
 
    ```bash
    poetry run pre-commit run --files <file1> [<file2> ...]
-   ```
+   ```text
 
 2. Verify the project test layout:
 
    ```bash
    poetry run python tests/verify_test_organization.py
-   ```
+   ```text
 
 3. Execute the relevant test suites, typically:
 
    ```bash
    poetry run pytest -m "not memory_intensive"
-   ```
+   ```text
 
 4. Request peer review and ensure reviewers confirm meaningful assertions and
    adequate coverage. See
@@ -415,7 +418,8 @@ export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
 # Run the entire test suite
 
 poetry run pytest
-```
+
+```text
 
 Make sure LM Studio is running in API mode on the endpoint above and the
 `devsynth` CLI is installed in your path. When these variables are set, the
@@ -429,9 +433,11 @@ They are disabled by default. Enable them by setting `formalVerification.propert
 `DEVSYNTH_PROPERTY_TESTING` environment variable:
 
 ```bash
+
 devsynth config formalVerification.propertyTesting true
 export DEVSYNTH_PROPERTY_TESTING=true  # optional override
 poetry run pytest tests/property/
+
 ```
 
 When the flag is `false`, tests marked with `@pytest.mark.property` are automatically skipped.
