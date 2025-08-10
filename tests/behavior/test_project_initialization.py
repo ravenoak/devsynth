@@ -8,7 +8,7 @@ import pytest
 from pytest_bdd import scenarios
 
 # Import step definitions
-from .steps.test_cli_commands_steps import *
+from .steps.cli_commands_steps import *
 from .steps.test_project_init_steps import *
 
 # Get the absolute path to the feature file

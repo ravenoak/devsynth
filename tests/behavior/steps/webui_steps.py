@@ -1,15 +1,11 @@
 """Common WebUI step implementations using shared test utilities."""
 
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
 pytest_plugins = ["tests.fixtures.webui_test_utils"]
 
-from tests.fixtures.webui_test_utils import (
-    webui_context,
-    simulate_form_submission,
-)
-
+from tests.fixtures.webui_test_utils import simulate_form_submission, webui_context
 
 scenarios("../features/general/webui.feature")
 
@@ -178,4 +174,3 @@ def check_ingest(webui_context):
 @then("the apispec command should be executed")
 def check_apispec(webui_context):
     assert webui_context["cli"].apispec_cmd.called
-

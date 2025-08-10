@@ -3,7 +3,7 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
-from .steps.test_cli_commands_steps import *  # noqa: F401,F403
+from .steps.cli_commands_steps import *  # noqa: F401,F403
 from .steps.test_validate_metadata_command_steps import *  # noqa: F401,F403
 
 pytestmark = pytest.mark.requires_resource("cli")

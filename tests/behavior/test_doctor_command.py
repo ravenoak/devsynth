@@ -3,7 +3,7 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
-from .steps.test_cli_commands_steps import *  # noqa: F401,F403
+from .steps.cli_commands_steps import *  # noqa: F401,F403
 from .steps.test_devsynth_doctor_steps import *  # noqa: F401,F403
 from .steps.test_doctor_command_steps import *  # noqa: F401,F403
 

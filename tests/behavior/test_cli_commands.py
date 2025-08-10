@@ -7,7 +7,7 @@ import os
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from .steps.test_cli_commands_steps import *
+from .steps.cli_commands_steps import *
 from .steps.test_delegate_task_steps import *
 from .steps.test_doctor_command_steps import *
 from .steps.test_edrr_cycle_steps import *
