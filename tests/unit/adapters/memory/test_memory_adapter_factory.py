@@ -6,7 +6,11 @@ from devsynth.application.memory.context_manager import (
     SimpleContextManager,
 )
 
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
+pytestmark = [
+    pytest.mark.requires_resource("memory"),
+    pytest.mark.memory_intensive,
+    pytest.mark.isolation,
+]
 
 
 @pytest.mark.medium
