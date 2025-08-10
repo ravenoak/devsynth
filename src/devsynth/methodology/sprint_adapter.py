@@ -16,7 +16,9 @@ from .base import Phase
 # Mapping of common sprint ceremonies to EDRR phases. Keys are stored in
 # lower-case to allow case-insensitive lookups.
 CEREMONY_PHASE_MAP: Dict[str, Optional[Phase]] = {
-    "planning": Phase.RETROSPECT,
+    # Sprint planning occurs before the Expand phase and prepares the scope
+    # for the upcoming cycle.
+    "planning": Phase.EXPAND,
     "review": Phase.REFINE,
     "retrospective": Phase.RETROSPECT,
     # Daily standups track progress but are not tied to a specific phase.

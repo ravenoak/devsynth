@@ -12,7 +12,10 @@ from devsynth.application.sprint.planning import map_requirements_to_plan
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
-from devsynth.methodology.sprint_adapter import map_ceremony_to_phase
+from devsynth.methodology.sprint_adapter import (
+    CEREMONY_PHASE_MAP,
+    map_ceremony_to_phase,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -66,8 +69,9 @@ class SprintAdapter(BaseMethodologyAdapter):
             "retrospective_reviews": [],
         }
 
-        # Map sprint ceremonies to their corresponding EDRR phases
-        self.ceremony_phase_map = {}
+        # Map sprint ceremonies to their corresponding EDRR phases. Start with
+        # default mappings and allow configuration to override them.
+        self.ceremony_phase_map = dict(CEREMONY_PHASE_MAP)
         ceremony_mapping = self.sprint_settings.get("ceremonyMapping", {})
         for ceremony, target in ceremony_mapping.items():
             self.ceremony_phase_map[ceremony] = self._extract_phase_from_mapping(target)
@@ -487,7 +491,11 @@ class SprintAdapter(BaseMethodologyAdapter):
         Returns:
             ``Phase`` enum if the ceremony maps to a known phase, otherwise ``None``.
         """
-        return self.ceremony_phase_map.get(ceremony)
+        phase = self.ceremony_phase_map.get(ceremony)
+        if phase is not None:
+            return phase
+        # Fallback to helper for any ceremony not explicitly configured.
+        return map_ceremony_to_phase(ceremony)
 
     def _extract_phase_from_mapping(self, mapping: str) -> Optional[Phase]:
         """Extract an EDRR phase from a ceremony mapping string.

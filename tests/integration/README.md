@@ -64,6 +64,12 @@ The `test_graph_memory_edrr_integration.py` file contains tests that verify the 
 
 The `test_end_to_end_workflow.py` file contains tests that simulate a complete development workflow from requirements to code.
 
+### Sprint EDRR Alignment Tests
+
+The `sprint_edrr` directory verifies that sprint ceremonies correspond to the correct
+EDRR phases. The tests confirm that sprint planning maps to the Expand phase and
+retrospectives map to the Retrospect phase.
+
 ## Adding New Integration Tests
 
 When adding new integration tests:

@@ -9,6 +9,12 @@ Sprint ceremonies map directly to EDRR phases:
 - **Sprint Planning** → **Expand**. Requirement analysis during the Expand phase produces the inputs for the upcoming sprint plan.
 - **Sprint Retrospective** → **Retrospect**. Outputs from the Retrospect phase are summarized into actionable retrospective insights.
 
+## Integration Steps
+
+1. **Expand to Plan** – Requirement analysis during the Expand phase is translated into the upcoming sprint plan, including scope, objectives, and success criteria.
+2. **Retrospect to Improve** – After the Retrospect phase, evaluation metrics, positives, improvements, and action items are consolidated into sprint retrospective summaries.
+3. **Ceremony Mapping** – `SprintAdapter.get_ceremony_phase()` maps common ceremonies to the correct EDRR phases, ensuring planning aligns with Expand and retrospectives align with Retrospect.
+
 ## Requirement Analysis
 
 During the **Expand** phase, requirement analysis results feed directly into sprint planning. After each cycle, the adapter updates the upcoming sprint plan and records the actual scope delivered.
