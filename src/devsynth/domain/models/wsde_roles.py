@@ -6,13 +6,24 @@ including role assignment, expertise calculation, and role rotation.
 """
 
 from typing import Any, Dict, List, Optional
-from devsynth.methodology.base import Phase
-from devsynth.logging_setup import DevSynthLogger
 
 # Import the base WSDETeam class for type hints
 from devsynth.domain.models.wsde_base import WSDETeam
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
+
+
+def _update_agent_role(self: WSDETeam, agent: Any, role: str) -> None:
+    """Update role tracking attributes for ``agent``."""
+    if agent is None:
+        return
+    setattr(agent, "previous_role", getattr(agent, "current_role", None))
+    setattr(agent, "current_role", role.capitalize())
+    if role == "primus" and agent in self.agents:
+        self.primus_index = self.agents.index(agent)
+        setattr(agent, "has_been_primus", True)
 
 
 def assign_roles(self: WSDETeam, role_mapping: Optional[Dict[str, Any]] = None):
@@ -26,10 +37,15 @@ def assign_roles(self: WSDETeam, role_mapping: Optional[Dict[str, Any]] = None):
     Returns:
         Dictionary mapping role names to assigned agents
     """
+    for agent in self.agents:
+        setattr(agent, "previous_role", getattr(agent, "current_role", None))
+        setattr(agent, "current_role", None)
+
     if role_mapping:
         self._validate_role_mapping(role_mapping)
         for role, agent in role_mapping.items():
             self.roles[role] = agent
+            _update_agent_role(self, agent, role)
     else:
         self._auto_assign_roles()
 
@@ -74,7 +90,10 @@ def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: Dict[str, A
     Returns:
         Dictionary mapping role names to assigned agents
     """
-    # Reset all roles
+    # Reset all roles and track previous assignments
+    for agent in self.agents:
+        setattr(agent, "previous_role", getattr(agent, "current_role", None))
+        setattr(agent, "current_role", None)
     for role in self.roles:
         self.roles[role] = None
 
@@ -167,37 +186,57 @@ def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: Dict[str, A
     if phase_name == "expand":
         # In Expand phase, the most creative agent should be Primus
         if sorted_agents:
-            self.roles["primus"] = sorted_agents[0]
-            self.roles["worker"] = sorted_agents[min(1, len(sorted_agents) - 1)]
-            self.roles["designer"] = sorted_agents[min(2, len(sorted_agents) - 1)]
-            self.roles["supervisor"] = sorted_agents[min(3, len(sorted_agents) - 1)]
-            self.roles["evaluator"] = sorted_agents[min(4, len(sorted_agents) - 1)]
+            assignments = {
+                "primus": sorted_agents[0],
+                "worker": sorted_agents[min(1, len(sorted_agents) - 1)],
+                "designer": sorted_agents[min(2, len(sorted_agents) - 1)],
+                "supervisor": sorted_agents[min(3, len(sorted_agents) - 1)],
+                "evaluator": sorted_agents[min(4, len(sorted_agents) - 1)],
+            }
+            for role_name, agent in assignments.items():
+                self.roles[role_name] = agent
+                _update_agent_role(self, agent, role_name)
 
     elif phase_name == "differentiate":
         # In Differentiate phase, the most analytical agent should be Primus
         if sorted_agents:
-            self.roles["primus"] = sorted_agents[0]
-            self.roles["evaluator"] = sorted_agents[min(1, len(sorted_agents) - 1)]
-            self.roles["supervisor"] = sorted_agents[min(2, len(sorted_agents) - 1)]
-            self.roles["worker"] = sorted_agents[min(3, len(sorted_agents) - 1)]
-            self.roles["designer"] = sorted_agents[min(4, len(sorted_agents) - 1)]
+            assignments = {
+                "primus": sorted_agents[0],
+                "evaluator": sorted_agents[min(1, len(sorted_agents) - 1)],
+                "supervisor": sorted_agents[min(2, len(sorted_agents) - 1)],
+                "worker": sorted_agents[min(3, len(sorted_agents) - 1)],
+                "designer": sorted_agents[min(4, len(sorted_agents) - 1)],
+            }
+            for role_name, agent in assignments.items():
+                self.roles[role_name] = agent
+                _update_agent_role(self, agent, role_name)
 
     elif phase_name == "refine":
         # In Refine phase, the most detail-oriented agent should be Primus
         if sorted_agents:
-            self.roles["primus"] = sorted_agents[0]
-            self.roles["worker"] = sorted_agents[min(1, len(sorted_agents) - 1)]
-            self.roles["designer"] = sorted_agents[min(2, len(sorted_agents) - 1)]
-            self.roles["evaluator"] = sorted_agents[min(3, len(sorted_agents) - 1)]
-            self.roles["supervisor"] = sorted_agents[min(4, len(sorted_agents) - 1)]
+            assignments = {
+                "primus": sorted_agents[0],
+                "worker": sorted_agents[min(1, len(sorted_agents) - 1)],
+                "designer": sorted_agents[min(2, len(sorted_agents) - 1)],
+                "evaluator": sorted_agents[min(3, len(sorted_agents) - 1)],
+                "supervisor": sorted_agents[min(4, len(sorted_agents) - 1)],
+            }
+            for role_name, agent in assignments.items():
+                self.roles[role_name] = agent
+                _update_agent_role(self, agent, role_name)
 
     elif phase_name == "reflect":
         # In Reflect phase, the most reflective agent should be Primus
         if sorted_agents:
-            self.roles["primus"] = sorted_agents[0]
-            self.roles["evaluator"] = sorted_agents[min(1, len(sorted_agents) - 1)]
-            self.roles["supervisor"] = sorted_agents[min(2, len(sorted_agents) - 1)]
-            self.roles["designer"] = sorted_agents[min(3, len(sorted_agents) - 1)]
+            assignments = {
+                "primus": sorted_agents[0],
+                "evaluator": sorted_agents[min(1, len(sorted_agents) - 1)],
+                "supervisor": sorted_agents[min(2, len(sorted_agents) - 1)],
+                "designer": sorted_agents[min(3, len(sorted_agents) - 1)],
+            }
+            for role_name, agent in assignments.items():
+                self.roles[role_name] = agent
+                _update_agent_role(self, agent, role_name)
             self.roles["worker"] = sorted_agents[min(4, len(sorted_agents) - 1)]
 
     # Log the role assignments
@@ -240,7 +279,10 @@ def _auto_assign_roles(self: WSDETeam):
         self.logger.warning("Cannot auto-assign roles: no agents in team")
         return
 
-    # Reset all roles
+    # Reset all roles and agent attributes
+    for agent in self.agents:
+        setattr(agent, "previous_role", getattr(agent, "current_role", None))
+        setattr(agent, "current_role", None)
     for role in self.roles:
         self.roles[role] = None
 
@@ -282,8 +324,10 @@ def _auto_assign_roles(self: WSDETeam):
         self.agents, key=lambda a: agent_expertise[a]["primus"], reverse=True
     )
     if primus_candidates:
-        self.roles["primus"] = primus_candidates[0]
-        assigned_agents.add(primus_candidates[0])
+        primus_agent = primus_candidates[0]
+        self.roles["primus"] = primus_agent
+        _update_agent_role(self, primus_agent, "primus")
+        assigned_agents.add(primus_agent)
 
     # Then assign other roles to remaining agents based on expertise
     for role in ["worker", "supervisor", "designer", "evaluator"]:
@@ -293,8 +337,10 @@ def _auto_assign_roles(self: WSDETeam):
             reverse=True,
         )
         if candidates:
-            self.roles[role] = candidates[0]
-            assigned_agents.add(candidates[0])
+            agent = candidates[0]
+            self.roles[role] = agent
+            _update_agent_role(self, agent, role)
+            assigned_agents.add(agent)
 
     # Log the role assignments
     role_assignments = {
@@ -509,6 +555,7 @@ def select_primus_by_expertise(self: WSDETeam, task: Dict[str, Any]):
 
     # Assign the selected agent as primus
     self.roles["primus"] = best_agent
+    _update_agent_role(self, best_agent, "primus")
     self.logger.info(
         f"Selected {best_agent.name} as primus based on expertise for task"
     )
@@ -540,6 +587,11 @@ def rotate_roles(self: WSDETeam):
         self._auto_assign_roles()
         return self.roles
 
+    # Track previous roles before rotation
+    for agent in self.agents:
+        setattr(agent, "previous_role", getattr(agent, "current_role", None))
+        setattr(agent, "current_role", None)
+
     # Create a list of agents in role order
     role_order = ["primus", "worker", "supervisor", "designer", "evaluator"]
     agents_in_order = [
@@ -557,7 +609,9 @@ def rotate_roles(self: WSDETeam):
         # Assign rotated agents to roles
         for i, role in enumerate(role_order):
             if i < len(rotated_agents):
-                self.roles[role] = rotated_agents[i]
+                agent = rotated_agents[i]
+                self.roles[role] = agent
+                _update_agent_role(self, agent, role)
 
     # Log the role rotation
     role_assignments = {
