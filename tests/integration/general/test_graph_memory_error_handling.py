@@ -4,11 +4,15 @@ Integration tests for error handling in GraphMemoryAdapter.
 
 import os
 import tempfile
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.exceptions import MemoryStoreError, MemoryItemNotFoundError
+from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
+
+pytestmark = pytest.mark.memory_intensive
 
 
 class TestGraphMemoryErrorHandling:
