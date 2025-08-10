@@ -2,6 +2,13 @@
 
 This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`. Follow the steps below when contributing.
 
+DevSynth values clarity, collaboration, and dependable automation. Keep these principles in mind and see [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
+
+## Environment Expectations
+
+- Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
+- Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
+
 ## Quick Start
 
 1. Install dependencies:
@@ -28,14 +35,18 @@ This repository implements agent services under `src/devsynth/` and supporting s
    poetry run pip check
    ```
 
+## Pre-PR Checks
+
+Before opening a pull request, run:
+
+```bash
+poetry run python scripts/run_all_tests.py
+poetry run python tests/verify_test_organization.py
+```
+
 ## Automation
 
 - Most CLI commands accept `--non-interactive` or `--defaults` to bypass prompts.
-- Ensure new tests follow project conventions:
-
-  ```bash
-  poetry run python tests/verify_test_organization.py
-  ```
 
 ## Further Reading
 
