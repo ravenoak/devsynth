@@ -43,3 +43,20 @@ def test_exc_info_passes_through_succeeds(caplog, monkeypatch):
     logging.getLogger().removeHandler(handler)
     record = handler.records[0]
     assert record.exc_info and record.exc_info[0] is ValueError
+
+
+def test_exc_info_true_uses_current_exception(monkeypatch):
+    """Passing exc_info=True attaches the active exception."""
+
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    configure_logging(create_dir=False)
+    logger = get_logger(__name__)
+    handler = LogCaptureHandler()
+    logging.getLogger().addHandler(handler)
+    try:
+        1 / 0
+    except ZeroDivisionError:  # pragma: no cover - demonstration
+        logger.error("boom", exc_info=True)
+    logging.getLogger().removeHandler(handler)
+    record = handler.records[0]
+    assert record.exc_info and record.exc_info[0] is ZeroDivisionError

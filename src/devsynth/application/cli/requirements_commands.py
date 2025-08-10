@@ -830,8 +830,20 @@ def wizard_cmd(
     title = title or os.environ.get("DEVSYNTH_REQ_TITLE")
     description = description or os.environ.get("DEVSYNTH_REQ_DESCRIPTION")
     req_type = req_type or os.environ.get("DEVSYNTH_REQ_TYPE")
-    priority = priority or os.environ.get("DEVSYNTH_REQ_PRIORITY")
-    constraints = constraints or os.environ.get("DEVSYNTH_REQ_CONSTRAINTS")
+
+    project_cfg = get_project_config(Path("."))
+    priority = (
+        priority
+        or os.environ.get("DEVSYNTH_REQ_PRIORITY")
+        or project_cfg.priority
+        or RequirementPriority.MEDIUM.value
+    )
+    constraints = (
+        constraints
+        or os.environ.get("DEVSYNTH_REQ_CONSTRAINTS")
+        or project_cfg.constraints
+        or ""
+    )
 
     steps = [
         (
@@ -856,13 +868,13 @@ def wizard_cmd(
             "priority",
             "Requirement priority",
             [p.value for p in RequirementPriority],
-            RequirementPriority.MEDIUM.value,
+            priority,
         ),
         (
             "constraints",
             "Constraints (comma separated, optional)",
             None,
-            "",
+            constraints,
         ),
     ]
 
