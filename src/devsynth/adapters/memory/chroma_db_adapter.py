@@ -103,6 +103,8 @@ class ChromaDBAdapter(VectorStore):
         """
 
         tx_id = transaction_id or str(uuid.uuid4())
+        if tx_id in self._snapshots:
+            raise MemoryStoreError(f"Transaction {tx_id} already active")
         try:
             snapshot: Dict[str, Any] = {}
             result = self.collection.get(include=["embeddings", "metadatas"])
@@ -122,24 +124,22 @@ class ChromaDBAdapter(VectorStore):
     def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a previously started transaction."""
 
-        removed = self._snapshots.pop(transaction_id, None) is not None
-        if removed:
-            logger.debug("Committed ChromaDB transaction %s", transaction_id)
-        else:
-            logger.warning(
-                "Commit requested for unknown ChromaDB transaction %s", transaction_id
+        if transaction_id not in self._snapshots:
+            raise MemoryStoreError(
+                f"Commit requested for unknown ChromaDB transaction {transaction_id}"
             )
-        return removed
+        self._snapshots.pop(transaction_id, None)
+        logger.debug("Committed ChromaDB transaction %s", transaction_id)
+        return True
 
     def rollback_transaction(self, transaction_id: str) -> bool:
         """Rollback a transaction and restore the snapshot."""
 
         snapshot = self._snapshots.pop(transaction_id, None)
         if snapshot is None:
-            logger.warning(
-                "Rollback requested for unknown ChromaDB transaction %s", transaction_id
+            raise MemoryStoreError(
+                f"Rollback requested for unknown ChromaDB transaction {transaction_id}"
             )
-            return False
         try:
             current = self.collection.get()
             if current.get("ids"):
@@ -156,12 +156,36 @@ class ChromaDBAdapter(VectorStore):
             logger.error(
                 "Error rolling back ChromaDB transaction %s: %s", transaction_id, e
             )
-            return False
+            raise MemoryStoreError(
+                f"Error rolling back transaction {transaction_id}: {e}"
+            )
 
     def is_transaction_active(self, transaction_id: str) -> bool:
         """Return ``True`` if ``transaction_id`` has an active snapshot."""
 
         return transaction_id in self._snapshots
+
+    def prepare_commit(self, transaction_id: str) -> bool:
+        """Validate that a transaction is ready to commit.
+
+        The adapter maintains all write operations eagerly, so preparing a
+        commit simply verifies that the transaction is active.
+
+        Args:
+            transaction_id: The transaction identifier to validate
+
+        Returns:
+            bool: ``True`` if the transaction is active
+
+        Raises:
+            MemoryStoreError: If no transaction with ``transaction_id`` exists
+        """
+
+        if not self.is_transaction_active(transaction_id):
+            raise MemoryStoreError(
+                f"Prepare requested for unknown ChromaDB transaction {transaction_id}"
+            )
+        return True
 
     def _serialize_metadata(self, vector: MemoryVector) -> Dict[str, Any]:
         """

@@ -550,25 +550,27 @@ class SyncManager:
     # ------------------------------------------------------------------
     # Explicit transaction methods to support peer review workflow
 
-    def begin_transaction(self, transaction_id: str) -> None:
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
         """
-        Begin a new transaction with the given ID.
+        Begin a new transaction and return its identifier.
 
-        This method starts a transaction that can be committed or rolled back later.
-        It's designed to support the peer review workflow and other components that
-        expect explicit transaction methods rather than the context manager pattern.
+        The transaction ID may be supplied by the caller or generated
+        automatically. This method starts a transaction that can later be
+        committed or rolled back via :meth:`commit_transaction` or
+        :meth:`rollback_transaction`.
 
         Args:
-            transaction_id: A unique identifier for the transaction
+            transaction_id: Optional unique identifier for the transaction
 
-        Raises:
-            ValueError: If a transaction with the given ID already exists
+        Returns:
+            str: The transaction identifier
         """
-        if transaction_id in self._active_transactions:
-            logger.warning(f"Transaction {transaction_id} already exists")
-            return
+        tx_id = transaction_id or str(uuid.uuid4())
+        if tx_id in self._active_transactions:
+            logger.warning(f"Transaction {tx_id} already exists")
+            return tx_id
 
-        logger.debug(f"Beginning transaction {transaction_id}")
+        logger.debug(f"Beginning transaction {tx_id}")
 
         # Get all store names
         stores = list(self.memory_manager.adapters.keys())
@@ -594,13 +596,15 @@ class SyncManager:
                 }
 
         # Store transaction state
-        self._active_transactions[transaction_id] = {
+        self._active_transactions[tx_id] = {
             "stores": stores,
             "snapshots": snapshots,
             "contexts": contexts,
             "txns": txns,
             "started_at": datetime.now(),
         }
+
+        return tx_id
 
     def commit_transaction(self, transaction_id: str) -> None:
         """
