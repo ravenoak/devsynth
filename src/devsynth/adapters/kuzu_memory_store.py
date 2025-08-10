@@ -56,10 +56,13 @@ class KuzuMemoryStore(MemoryStore):
         """
         self._temp_dir: Optional[str] = None
 
+        # Refresh settings to ensure environment overrides are respected
+        current_settings = settings_module.get_settings()
+
         # Determine the base directory path with proper fallbacks
         base_directory = (
             persist_directory
-            or settings_module.kuzu_db_path
+            or getattr(current_settings, "kuzu_db_path", settings_module.kuzu_db_path)
             or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
         )
 
@@ -71,7 +74,7 @@ class KuzuMemoryStore(MemoryStore):
         # the settings module may not expose ``kuzu_embedded`` directly, so use
         # ``getattr`` with a sensible default.
         use_embedded = getattr(
-            settings_module.get_settings(),
+            current_settings,
             "kuzu_embedded",
             getattr(
                 settings_module,
