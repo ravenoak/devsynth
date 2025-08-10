@@ -10,6 +10,11 @@ from typing import Any, Dict, Optional
 
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.domain.models.memory import MemoryType
+from devsynth.exceptions import ConsensusError
+from devsynth.logger import log_consensus_failure
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
 
 
 class EDRRCoordinator:
@@ -58,6 +63,11 @@ class EDRRCoordinator:
 
         self._store_phase_result(results, MemoryType.KNOWLEDGE, "REFINE")
         return results
+
+    def record_consensus_failure(self, error: ConsensusError) -> None:
+        """Log a consensus failure for later analysis."""
+
+        log_consensus_failure(logger, error)
 
     def automate_retrospective_review(
         self, retrospective: Dict[str, Any], sprint: int
