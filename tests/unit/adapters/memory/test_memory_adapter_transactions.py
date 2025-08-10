@@ -5,7 +5,7 @@ import types
 
 import pytest
 
-pytestmark = pytest.mark.isolation
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
 
 def _import_adapter():
