@@ -9,7 +9,11 @@ import pytest
 # These tests exercise multiple backend implementations and can consume
 # significant memory when run in parallel. Mark them for isolation so
 # they execute sequentially and avoid xdist resource contention.
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
+pytestmark = [
+    pytest.mark.requires_resource("memory"),
+    pytest.mark.memory_intensive,
+    pytest.mark.isolation,
+]
 
 # Import duckdb safely
 try:
@@ -73,8 +77,9 @@ class TestMemorySystemAdapter:
 
     @pytest.fixture
     def temp_dir(self, tmp_path):
-        """Create a temporary directory for testing."""
-        return str(tmp_path)
+        """Provide a temporary directory for testing and ensure cleanup."""
+        path = tmp_path
+        yield str(path)
 
     @pytest.mark.medium
     def test_init_with_file_storage_succeeds(self, temp_dir):
