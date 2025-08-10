@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from devsynth.application.edrr.sprint_retrospective import map_retrospective_to_summary
+from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)

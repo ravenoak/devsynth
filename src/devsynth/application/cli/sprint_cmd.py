@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from devsynth.application.edrr.sprint_planning import map_requirements_to_plan
-from devsynth.application.edrr.sprint_retrospective import map_retrospective_to_summary
+from devsynth.application.sprint.planning import map_requirements_to_plan
+from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
