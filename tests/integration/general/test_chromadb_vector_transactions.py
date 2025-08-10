@@ -29,8 +29,20 @@ def test_transaction_commit_and_rollback(tmp_path, monkeypatch):
     adapter.commit_transaction(tid)
     assert adapter.retrieve_vector("v1") is not None
 
-    tid = adapter.begin_transaction()
-    adapter.delete_vector("v1")
-    adapter.rollback_transaction(tid)
-    assert adapter.retrieve_vector("v1") is not None
-    assert not adapter.is_transaction_active(tid)
+    # Re-instantiate to verify persistence across sessions
+    adapter2 = ChromaDBVectorAdapter(
+        collection_name="txn", persist_directory=str(tmp_path)
+    )
+    assert adapter2.retrieve_vector("v1") is not None
+
+    tid = adapter2.begin_transaction()
+    adapter2.delete_vector("v1")
+    adapter2.rollback_transaction(tid)
+    assert adapter2.retrieve_vector("v1") is not None
+    assert not adapter2.is_transaction_active(tid)
+
+    # Ensure data remains after reopening once more
+    adapter3 = ChromaDBVectorAdapter(
+        collection_name="txn", persist_directory=str(tmp_path)
+    )
+    assert adapter3.retrieve_vector("v1") is not None
