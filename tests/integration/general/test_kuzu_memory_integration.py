@@ -1,6 +1,7 @@
 import os
 import sys
 import types
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -113,6 +114,18 @@ def test_ephemeral_store_cleanup(no_kuzu):
     assert store._store._use_fallback
     store.cleanup()
     assert not os.path.exists(path)
+
+
+def test_configured_path_usage(fake_kuzu):
+    """Store initialises at configured path when provided."""
+    project_dir = Path(os.environ["DEVSYNTH_PROJECT_DIR"])
+    config_path = project_dir / "configured"
+    config_path.mkdir()
+    store = KuzuMemoryStore(str(config_path))
+    try:
+        assert store.persist_directory == str(config_path)
+    finally:
+        store.cleanup()
 
 
 def test_provider_fallback_on_empty_embedding(tmp_path, no_kuzu):
