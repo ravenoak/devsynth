@@ -63,6 +63,23 @@ services:
     networks:
       - devsynth-network
 
+  # CI utilities
+  publish:
+    build:
+      context: .
+      target: production
+    entrypoint: ["/bin/bash", "scripts/deployment/publish_image.sh", "${DEVSYNTH_IMAGE_TAG:-latest}"]
+    profiles:
+      - ci
+
+  rollback:
+    build:
+      context: .
+      target: production
+    entrypoint: ["/bin/bash", "scripts/deployment/rollback.sh", "${DEVSYNTH_ROLLBACK_TAG:-latest}", "production"]
+    profiles:
+      - ci
+
 volumes:
   grafana-data:
     name: devsynth-grafana-data

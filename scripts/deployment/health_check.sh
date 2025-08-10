@@ -13,6 +13,11 @@ if [[ "$EUID" -eq 0 ]]; then
   exit 1
 fi
 
+if ! command -v curl >/dev/null 2>&1; then
+  echo "curl is required but could not be found in PATH." >&2
+  exit 1
+fi
+
 for url in "$API_URL" "$GRAFANA_URL"; do
   if [[ ! "$url" =~ ^https?:// ]]; then
     echo "Invalid URL: $url" >&2
