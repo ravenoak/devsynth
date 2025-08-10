@@ -11,6 +11,8 @@ from devsynth.exceptions import ConsensusError
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
+from .edrr_coordinator import EDRRCoordinator
+
 logger = DevSynthLogger(__name__)
 
 
@@ -20,6 +22,7 @@ def reasoning_loop(
     critic_agent: Any,
     memory_integration: Optional[Any] = None,
     max_iterations: int = 3,
+    coordinator: Optional[EDRRCoordinator] = None,
 ) -> List[Dict[str, Any]]:
     """Iteratively apply dialectical reasoning until completion or failure."""
     results: List[Dict[str, Any]] = []
@@ -31,8 +34,13 @@ def reasoning_loop(
                 wsde_team, current_task, critic_agent, memory_integration
             )
         except ConsensusError as exc:  # pragma: no cover - logging path
-            log_consensus_failure(logger, exc)
+            if coordinator is not None:
+                coordinator.record_consensus_failure(exc)
+            else:
+                log_consensus_failure(logger, exc)
             break
+        if coordinator is not None:
+            coordinator.record_refine_results(result)
         results.append(result)
         if result.get("status") == "completed":
             break
