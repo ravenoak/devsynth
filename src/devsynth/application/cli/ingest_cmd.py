@@ -48,6 +48,7 @@ def ingest_cmd(
     bridge: Optional[UXBridge] = None,
     auto_phase_transitions: bool = True,
     non_interactive: bool = False,
+    defaults: bool = False,
 ) -> None:
     """Ingest a project into DevSynth.
 
@@ -66,6 +67,8 @@ def ingest_cmd(
         priority: Project priority to persist without prompting.
         auto_phase_transitions: If True, EDRR phases advance automatically.
         non_interactive: If True, disable interactive prompts for automation.
+        defaults: If True, use default responses and imply ``yes`` and
+            ``non_interactive``.
     """
     bridge = bridge or DEFAULT_BRIDGE
 
@@ -106,6 +109,11 @@ def ingest_cmd(
             non_interactive = os.environ.get(
                 "DEVSYNTH_INGEST_NONINTERACTIVE", "0"
             ).lower() in {"1", "true", "yes"}
+
+        if defaults:
+            yes = True
+            non_interactive = True
+
         if non_interactive:
             os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
 
@@ -440,7 +448,11 @@ def differentiate_phase(
     )
     trade_offs = wsde_team.analyze_trade_offs(evaluated_options)
     decision_criteria = wsde_team.formulate_decision_criteria(
-        manifest.get("metadata", {}), evaluated_options, trade_offs, False, analyzer
+        manifest.get("metadata", {}),
+        evaluated_options,
+        trade_offs,
+        contextualize_with_code=False,
+        code_analyzer=analyzer,
     )
 
     if verbose:
