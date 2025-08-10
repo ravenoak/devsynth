@@ -29,6 +29,11 @@ version: "0.1.0-alpha.1"
 **Priority Classification:** Critical, High, Medium, Low
 **Implementation Timeline:** Immediate (0-3 months), Short-term (3-6 months), Medium-term (6-12 months), Long-term (12+ months)
 
+## Recent Updates
+
+- Deployment security hardening utilities are now available in `src/devsynth/security`.
+- EDRR coordination steps now capture results from the Expand, Differentiate and Refine phases.
+
 ## Critical Issues Requiring Immediate Action
 
 ### 1. Implementation-Documentation Misalignment [CRITICAL]

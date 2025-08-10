@@ -3,6 +3,12 @@
 from .audit import audit_event
 from .authentication import authenticate, hash_password, verify_password
 from .authorization import is_authorized
+from .deployment import (
+    apply_secure_umask,
+    check_required_env_vars,
+    harden_runtime,
+    require_non_root_user,
+)
 from .encryption import decrypt_bytes, encrypt_bytes, generate_key
 from .review import is_review_due, next_review_date
 from .sanitization import sanitize_input, validate_safe_input
@@ -32,4 +38,8 @@ __all__ = [
     "TLSConfig",
     "is_review_due",
     "next_review_date",
+    "harden_runtime",
+    "require_non_root_user",
+    "check_required_env_vars",
+    "apply_secure_umask",
 ]
