@@ -117,10 +117,10 @@ def test_get_session_value_with_exception(clean_state):
     # Create a custom mock class that raises an exception when attributes are accessed
     class ExceptionSessionState:
         def __getattr__(self, name):
-            raise Exception("Test error")
+            raise AttributeError("Test error")
 
-        def __getitem__(self, key):
-            raise Exception("Test error")
+        def get(self, key, default=None):
+            raise TypeError("Test error")
 
     session_state = ExceptionSessionState()
 
@@ -197,7 +197,7 @@ def test_set_session_value_with_attribute_exception(clean_state):
                 object.__setattr__(self, name, value)
             else:
                 # Raise exception for other attributes
-                raise Exception("Test error")
+                raise AttributeError("Test error")
 
         def __setitem__(self, key, value):
             # Allow item access to succeed
@@ -245,7 +245,7 @@ def test_set_session_value_with_dict_exception(clean_state):
             )
 
         def __setitem__(self, key, value):
-            raise Exception("Test error")
+            raise TypeError("Test error")
 
     session_state = DictExceptionSessionState()
 
@@ -270,10 +270,10 @@ def test_set_session_value_with_both_exceptions(clean_state):
     # Create a custom mock class that raises exceptions for both attribute and item access
     class BothExceptionsSessionState:
         def __setattr__(self, name, value):
-            raise Exception("Attribute error")
+            raise AttributeError("Attribute error")
 
         def __setitem__(self, key, value):
-            raise Exception("Item error")
+            raise TypeError("Item error")
 
     session_state = BothExceptionsSessionState()
 
