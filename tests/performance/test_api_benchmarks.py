@@ -1,5 +1,8 @@
 """Benchmarks for API endpoints. ReqID: PERF-03"""
 
+import pytest
+
+pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient
 
 from devsynth.api import app

@@ -1,5 +1,7 @@
 import pytest
 
+pytest.importorskip("chromadb")
+
 ChromaDBAdapter = pytest.importorskip(
     "devsynth.adapters.memory.chroma_db_adapter"
 ).ChromaDBAdapter

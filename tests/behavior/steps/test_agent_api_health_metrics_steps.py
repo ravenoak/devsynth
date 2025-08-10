@@ -1,13 +1,15 @@
 """Steps for testing the Agent API health and metrics endpoints."""
 
-from types import ModuleType
-from unittest.mock import MagicMock
 import importlib
 import sys
+from types import ModuleType
+from unittest.mock import MagicMock
 
 import pytest
+
+pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("../features/general/agent_api_health_metrics.feature")
 
@@ -22,8 +24,9 @@ def api_context(monkeypatch):
 
     # Import and reload the API module to apply the mocked settings
     import devsynth.interface.agentapi_enhanced as agentapi
+
     importlib.reload(agentapi)
-    
+
     client = TestClient(agentapi.app)
     return {
         "client": client,
@@ -65,7 +68,7 @@ def get_health_with_valid_token(api_context):
     """Send a GET request to the health endpoint with a valid token."""
     response = api_context["client"].get(
         "/health",
-        headers={"Authorization": f"Bearer {api_context['settings'].access_token}"}
+        headers={"Authorization": f"Bearer {api_context['settings'].access_token}"},
     )
     api_context["last_response"] = response
 
@@ -75,8 +78,7 @@ def get_health_with_valid_token(api_context):
 def get_health_with_invalid_token(api_context):
     """Send a GET request to the health endpoint with an invalid token."""
     response = api_context["client"].get(
-        "/health",
-        headers={"Authorization": "Bearer invalid_token"}
+        "/health", headers={"Authorization": "Bearer invalid_token"}
     )
     api_context["last_response"] = response
 
@@ -95,7 +97,7 @@ def get_metrics_with_valid_token(api_context):
     """Send a GET request to the metrics endpoint with a valid token."""
     response = api_context["client"].get(
         "/metrics",
-        headers={"Authorization": f"Bearer {api_context['settings'].access_token}"}
+        headers={"Authorization": f"Bearer {api_context['settings'].access_token}"},
     )
     api_context["last_response"] = response
 
@@ -105,8 +107,7 @@ def get_metrics_with_valid_token(api_context):
 def get_metrics_with_invalid_token(api_context):
     """Send a GET request to the metrics endpoint with an invalid token."""
     response = api_context["client"].get(
-        "/metrics",
-        headers={"Authorization": "Bearer invalid_token"}
+        "/metrics", headers={"Authorization": "Bearer invalid_token"}
     )
     api_context["last_response"] = response
 

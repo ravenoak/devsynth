@@ -1,3 +1,6 @@
+import pytest
+
+pytest.importorskip("chromadb")
 from tests.lightweight_imports import apply_lightweight_imports
 
 

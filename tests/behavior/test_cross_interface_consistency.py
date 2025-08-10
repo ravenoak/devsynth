@@ -11,6 +11,8 @@ from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+pytest.importorskip("fastapi")
 from pytest_bdd import given, scenarios, then, when
 
 # Import step definitions implemented for FR-67

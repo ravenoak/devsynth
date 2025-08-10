@@ -1,5 +1,7 @@
 import pytest
 
+pytest.importorskip("chromadb")
+
 MultiStoreSyncManager = pytest.importorskip(
     "devsynth.adapters.memory.sync_manager"
 ).MultiStoreSyncManager

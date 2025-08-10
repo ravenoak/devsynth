@@ -11,10 +11,10 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 
 ## Quick Start
 
-1. Install dependencies:
+1. Install dependencies (including test extras):
 
    ```bash
-   poetry install
+   poetry install --with dev --extras tests retrieval chromadb api
    ```
 
 2. Lint changed files:
