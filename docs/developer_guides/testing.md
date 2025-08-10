@@ -362,6 +362,33 @@ DEVSYNTH_PROVIDER=openai poetry run pytest
 DEVSYNTH_PROVIDER=lmstudio poetry run pytest
 ```
 
+## Review Workflow
+
+All test changes should undergo a brief review cycle before merging:
+
+1. Format and lint the affected files:
+
+   ```bash
+   poetry run pre-commit run --files <file1> [<file2> ...]
+   ```
+
+2. Verify the project test layout:
+
+   ```bash
+   poetry run python tests/verify_test_organization.py
+   ```
+
+3. Execute the relevant test suites, typically:
+
+   ```bash
+   poetry run pytest -m "not memory_intensive"
+   ```
+
+4. Request peer review and ensure reviewers confirm meaningful assertions and
+   adequate coverage. See
+   [cross_functional_review_process.md](cross_functional_review_process.md)
+   for expectations.
+
 ## Enabling Resource-Dependent Tests
 
 Some tests require external services such as LM Studio or the DevSynth CLI. By

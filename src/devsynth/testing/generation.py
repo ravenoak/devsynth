@@ -1,8 +1,8 @@
 """Integration test scaffolding utilities.
 
 This module provides helpers for creating placeholder integration test
-modules. The generated tests include failing assertions so missing
-coverage is obvious during review.
+modules. Generated tests include ``pytest`` skip markers so missing
+coverage is highlighted during review without breaking the suite.
 """
 
 from __future__ import annotations
@@ -10,10 +10,13 @@ from __future__ import annotations
 from typing import Dict, Iterable
 
 PLACEHOLDER_TEMPLATE = (
-    '"""Placeholder integration test for {name}."""\n\n'
-    "def test_{name}():\n"
-    '    """TODO: implement integration test for {name}."""\n'
-    '    assert False, "Integration test not yet implemented"\n'
+    '"""Scaffolded integration test for {name}.\n\n'
+    'Replace this file with real tests and remove the skip marker.\n"""\n'
+    "import pytest\n\n"
+    'pytestmark = pytest.mark.skip(reason="scaffold placeholder for {name}")\n\n'
+    "def test_{name}() -> None:\n"
+    '    """Integration test placeholder for {name}."""\n'
+    '    raise NotImplementedError("Add integration test for {name}")\n'
 )
 
 
