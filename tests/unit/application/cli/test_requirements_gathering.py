@@ -1,0 +1,37 @@
+import logging
+
+from _pytest.logging import LogCaptureHandler
+
+from devsynth.application.cli import requirements_commands as rc
+from devsynth.application.cli.errors import handle_error_enhanced
+from devsynth.logging_setup import configure_logging
+
+
+class DummyBridge:
+    """Minimal bridge implementing only display_result."""
+
+    def display_result(self, *_a, **_k):
+        pass
+
+
+def test_gather_cmd_logging_exc_info_succeeds(monkeypatch):
+    """gather_requirements_cmd should log exceptions with tuple exc_info."""
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    configure_logging(create_dir=False)
+    handler = LogCaptureHandler()
+    logging.getLogger().addHandler(handler)
+
+    def boom(*_a, **_k):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("devsynth.core.workflows.gather_requirements", boom)
+
+    bridge = DummyBridge()
+    try:
+        rc.gather_requirements_cmd(bridge=bridge)
+    except RuntimeError as err:
+        handle_error_enhanced(bridge, err)
+
+    logging.getLogger().removeHandler(handler)
+    record = next(rec for rec in handler.records if rec.exc_info)
+    assert record.exc_info[0] is RuntimeError
