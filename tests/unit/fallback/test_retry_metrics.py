@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from devsynth.fallback import retry_with_exponential_backoff
-from devsynth.metrics import get_retry_metrics, reset_metrics, get_retry_error_metrics
+from devsynth.metrics import get_retry_error_metrics, get_retry_metrics, reset_metrics
 
 
 @pytest.mark.medium

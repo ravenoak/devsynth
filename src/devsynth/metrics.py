@@ -54,6 +54,8 @@ _retry_error_metrics: DictCounter[str] = DictCounter()
 _retry_condition_metrics: DictCounter[str] = DictCounter()
 # Dashboard metrics
 _dashboard_metrics: DictCounter[str] = DictCounter()
+# Circuit breaker state metrics
+_circuit_breaker_metrics: DictCounter[str] = DictCounter()
 
 # ---------------------------------------------------------------------------
 # Prometheus counters
@@ -79,6 +81,12 @@ retry_condition_counter = Counter(
 # Dashboard events counter
 dashboard_event_counter = Counter(
     "devsynth_dashboard_events_total", "Dashboard events", ["event"]
+)
+# Circuit breaker state transitions counter
+circuit_breaker_state_counter = Counter(
+    "devsynth_circuit_breaker_state_total",
+    "Circuit breaker state transitions",
+    ["function", "state"],
 )
 
 
@@ -118,6 +126,21 @@ def inc_retry_condition(condition_name: str) -> None:
     retry_condition_counter.labels(condition=condition_name).inc()
 
 
+def inc_circuit_breaker_state(func_name: str, state: str) -> None:
+    """Increment circuit breaker state transition metrics.
+
+    Parameters
+    ----------
+    func_name : str
+        Name of the protected function.
+    state : str
+        Circuit breaker state being recorded.
+    """
+    key = f"{func_name}:{state}"
+    _circuit_breaker_metrics[key] += 1
+    circuit_breaker_state_counter.labels(function=func_name, state=state).inc()
+
+
 def inc_dashboard(event: str) -> None:
     """Increment dashboard event counter."""
     _dashboard_metrics[event] += 1
@@ -154,6 +177,11 @@ def get_retry_condition_metrics() -> Dict[str, int]:
     return dict(_retry_condition_metrics)
 
 
+def get_circuit_breaker_state_metrics() -> Dict[str, int]:
+    """Return circuit breaker state transition counts."""
+    return dict(_circuit_breaker_metrics)
+
+
 def get_dashboard_metrics() -> Dict[str, int]:
     """Return dashboard event counters."""
     return dict(_dashboard_metrics)
@@ -168,6 +196,7 @@ def reset_metrics() -> None:
     _retry_error_metrics.clear()
     _retry_condition_metrics.clear()
     _dashboard_metrics.clear()
+    _circuit_breaker_metrics.clear()
 
     _memory_counter.clear()
     _provider_counter.clear()
@@ -176,3 +205,4 @@ def reset_metrics() -> None:
     retry_error_counter.clear()
     retry_condition_counter.clear()
     dashboard_event_counter.clear()
+    circuit_breaker_state_counter.clear()
