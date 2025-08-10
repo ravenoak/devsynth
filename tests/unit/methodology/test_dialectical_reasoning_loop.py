@@ -41,3 +41,24 @@ def test_reasoning_loop_logs_consensus_failure(monkeypatch, caplog):
     with caplog.at_level(logging.ERROR):
         assert reasoning_loop(MagicMock(), {"solution": "initial"}, MagicMock()) == []
     assert "Consensus failure" in caplog.text
+    # ``log_consensus_failure`` should include the error type in the log record.
+    assert caplog.records[0].error_type == "DummyConsensusError"
+
+
+def test_reasoning_loop_respects_max_iterations(monkeypatch):
+    calls = []
+
+    def fake_apply(team, task, critic, memory):
+        calls.append(1)
+        return {"status": "in_progress"}
+
+    monkeypatch.setattr(
+        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        fake_apply,
+    )
+
+    results = reasoning_loop(
+        MagicMock(), {"solution": "initial"}, MagicMock(), max_iterations=2
+    )
+    assert len(results) == 2
+    assert len(calls) == 2

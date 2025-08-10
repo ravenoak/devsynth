@@ -123,16 +123,25 @@ def setup_logging(name: str, log_level: int | str | None = None) -> DevSynthLogg
 
 
 def log_consensus_failure(
-    logger: DevSynthLogger, error: Exception, extra: Dict[str, Any] | None = None
+    logger: DevSynthLogger,
+    error: Exception,
+    extra: Dict[str, Any] | None = None,
 ) -> None:
     """Log a consensus failure using ``logger``.
+
+    The log record captures both the string representation of ``error`` and its
+    class name under ``error_type`` so downstream consumers can easily
+    differentiate failure categories.
 
     Args:
         logger: Logger instance to emit the log.
         error: The exception that triggered the failure.
         extra: Optional additional context for the log record.
     """
-    data: Dict[str, Any] = {"error": str(error)}
+    data: Dict[str, Any] = {
+        "error": str(error),
+        "error_type": error.__class__.__name__,
+    }
     if extra:
         data.update(extra)
     # Include the original exception so that stack traces are preserved.
