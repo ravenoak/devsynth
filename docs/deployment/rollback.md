@@ -17,7 +17,18 @@
 
 This guide describes how to revert the DevSynth stack to a previous release.
 
-## Steps
+## Quick Rollback
+
+Use the helper script to stop the current stack, pull the specified image tag,
+restart services, and verify their health:
+
+```bash
+scripts/deployment/rollback.sh <previous_tag> [environment]
+```
+
+If you prefer to perform the steps manually, follow the process below.
+
+## Manual Steps
 
 1. Stop the current stack:
 
@@ -40,7 +51,7 @@ This guide describes how to revert the DevSynth stack to a previous release.
 4. Verify service health:
 
    ```bash
-   scripts/deployment/health_check.sh
+   deployment/health_check.sh
    ```
 
 ## Tests
@@ -49,7 +60,7 @@ After performing a rollback, validate the environment:
 
 ```bash
 poetry run pytest tests/unit/deployment
-scripts/deployment/health_check.sh
+deployment/health_check.sh
 ```
 
 These checks confirm that the core services and deployment scripts operate as expected.
