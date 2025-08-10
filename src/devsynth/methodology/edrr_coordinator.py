@@ -6,13 +6,23 @@ using sprint integration helpers.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
+from devsynth.domain.models.memory import MemoryType
 
 
 class EDRRCoordinator:
     """Coordinate simple EDRR routines for methodology adapters."""
+
+    def __init__(self, memory_manager: Optional[Any] = None) -> None:
+        """Initialize the coordinator.
+
+        Args:
+            memory_manager: Optional memory manager used for synchronization.
+        """
+
+        self.memory_manager = memory_manager
 
     def automate_retrospective_review(
         self, retrospective: Dict[str, Any], sprint: int
@@ -27,4 +37,13 @@ class EDRRCoordinator:
             Dictionary summarizing positives, improvements and action items.
         """
 
-        return map_retrospective_to_summary(retrospective, sprint)
+        summary = map_retrospective_to_summary(retrospective, sprint)
+        if self.memory_manager is not None:
+            try:
+                self.memory_manager.store_with_edrr_phase(
+                    summary, MemoryType.PEER_REVIEW, "RETROSPECT"
+                )
+                self.memory_manager.flush_updates()
+            except Exception:
+                pass
+        return summary
