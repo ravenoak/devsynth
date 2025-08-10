@@ -39,6 +39,7 @@ This document serves as the central index and navigation point for all Software 
 | **Privacy** | [Privacy Policy](privacy.md) | Data handling and user privacy commitments | Implemented |
 | **Data Retention** | [Data Retention Policy](data_retention.md) | How long different data types are stored | Implemented |
 | **Alignment** | [Continuous Alignment Process](continuous_alignment_process.md) | Processes, checks, and metrics for maintaining alignment between SDLC artifacts | Implemented |
+| **Periodic Review** | [Periodic Review Process](periodic_review.md) | Schedule and responsibilities for recurring policy reviews | Implemented |
 
 ## Implementation Guides
 

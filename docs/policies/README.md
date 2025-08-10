@@ -31,6 +31,7 @@ This directory contains policies and best practices for each phase of the Softwa
 - [Deployment Policy](deployment.md)
 - [Maintenance Policy](maintenance.md)
 - [Cross-Cutting Concerns](cross_cutting.md)
+- [Periodic Review Process](periodic_review.md)
 
 
 Refer to these policies before starting work in any SDLC phase. For a summary, see the [Documentation Home](../index.md) and [Contributing Guide](../developer_guides/contributing.md).
