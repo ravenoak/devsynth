@@ -30,7 +30,9 @@ class DevSynthLogger(_BaseDevSynthLogger):
     standard :mod:`logging` package expects as a boolean or a ``(type, value,
     traceback)`` tuple.  This wrapper converts exception objects into the tuple
     form before delegating to the base implementation so stack traces are
-    recorded correctly.
+    recorded correctly.  It also resolves ``exc_info=True`` to the active
+    exception via :func:`sys.exc_info` to provide a consistent tuple for the
+    base logger.
     """
 
     def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
@@ -39,6 +41,10 @@ class DevSynthLogger(_BaseDevSynthLogger):
             # Convert bare exception objects to the tuple form expected by the
             # standard logging machinery so the traceback is preserved.
             kwargs["exc_info"] = (exc.__class__, exc, exc.__traceback__)
+        elif exc is True:
+            # ``True`` means "use the current exception"; normalize to a tuple
+            # to keep behaviour consistent with our exception-object handling.
+            kwargs["exc_info"] = sys.exc_info()
         super()._log(level, msg, *args, **kwargs)
 
 
