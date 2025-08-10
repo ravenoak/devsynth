@@ -200,6 +200,13 @@ tasks:
     cmds:
       - docker compose logs -f
 
+  docker:publish:
+    desc: Build and push the DevSynth image
+    vars:
+      TAG: latest
+    cmds:
+      - scripts/deployment/publish_image.sh {{.TAG}}
+
   security:audit:
     desc: Run security audit checks
     cmds:
