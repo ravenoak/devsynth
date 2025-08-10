@@ -52,6 +52,8 @@ _retry_count_metrics: DictCounter[str] = DictCounter()
 _retry_error_metrics: DictCounter[str] = DictCounter()
 # Per-condition retry abort metrics
 _retry_condition_metrics: DictCounter[str] = DictCounter()
+# Per-function retry outcome metrics
+_retry_stat_metrics: DictCounter[str] = DictCounter()
 # Dashboard metrics
 _dashboard_metrics: DictCounter[str] = DictCounter()
 # Circuit breaker state metrics
@@ -126,6 +128,12 @@ def inc_retry_condition(condition_name: str) -> None:
     retry_condition_counter.labels(condition=condition_name).inc()
 
 
+def inc_retry_stat(func_name: str, status: str) -> None:
+    """Record the outcome of a retry attempt for a function."""
+    key = f"{func_name}:{status}"
+    _retry_stat_metrics[key] += 1
+
+
 def inc_circuit_breaker_state(func_name: str, state: str) -> None:
     """Increment circuit breaker state transition metrics.
 
@@ -177,6 +185,11 @@ def get_retry_condition_metrics() -> Dict[str, int]:
     return dict(_retry_condition_metrics)
 
 
+def get_retry_stat_metrics() -> Dict[str, int]:
+    """Return retry outcome metrics grouped by function and status."""
+    return dict(_retry_stat_metrics)
+
+
 def get_circuit_breaker_state_metrics() -> Dict[str, int]:
     """Return circuit breaker state transition counts."""
     return dict(_circuit_breaker_metrics)
@@ -195,6 +208,7 @@ def reset_metrics() -> None:
     _retry_count_metrics.clear()
     _retry_error_metrics.clear()
     _retry_condition_metrics.clear()
+    _retry_stat_metrics.clear()
     _dashboard_metrics.clear()
     _circuit_breaker_metrics.clear()
 
