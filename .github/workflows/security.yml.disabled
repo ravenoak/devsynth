@@ -1,8 +1,10 @@
+# This workflow is disabled by default. Rename to `security.yml` to enable.
 name: Security Checks
 
-# This workflow is disabled and runs only when manually triggered.
-
 on:
+  push:
+    branches: ["main"]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -18,6 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --with dev --all-extras
-      - name: Run security checks
-        run: |
-          poetry run pre-commit run --all-files bandit safety
+      - name: Run static analysis
+        run: poetry run pre-commit run --all-files bandit
+      - name: Enforce security policy
+        run: poetry run python scripts/security_audit.py
