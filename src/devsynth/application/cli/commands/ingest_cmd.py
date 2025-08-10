@@ -39,7 +39,9 @@ def ingest_cmd(
     defaults: bool = typer.Option(
         False, "--defaults", help="Use default values and skip prompts"
     ),
-    non_interactive: Optional[bool] = None,
+    non_interactive: Optional[bool] = typer.Option(
+        None, "--non-interactive", help="Run without interactive prompts"
+    ),
     bridge: Optional[UXBridge] = typer.Option(None, hidden=True),
 ) -> None:
     """Ingest a project into DevSynth."""
@@ -86,6 +88,7 @@ def ingest_cmd(
         bridge=bridge,
         auto_phase_transitions=auto_phase_transitions,
         non_interactive=non_interactive or False,
+        defaults=defaults,
     )
 
 

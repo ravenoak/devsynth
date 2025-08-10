@@ -1,5 +1,6 @@
 """Tests for the ``init`` CLI command and related help output."""
 
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -152,6 +153,39 @@ def test_init_cmd_reports_progress(tmp_path, monkeypatch):
     assert progress.calls[1]["description"] == "Generating project files"
     assert progress.calls[1]["status"] == "scaffolding"
     assert progress.completed
+
+
+@pytest.mark.medium
+def test_init_cmd_non_interactive_flag_skips_prompts(tmp_path, monkeypatch):
+    """``--non-interactive`` skips prompts and uses defaults."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("DEVSYNTH_NONINTERACTIVE", raising=False)
+
+    bridge = CLIUXBridge()
+    bridge.ask_question = MagicMock()
+    bridge.confirm_choice = MagicMock()
+
+    printed: list[str] = []
+    monkeypatch.setattr(
+        "rich.console.Console.print",
+        lambda self, msg="", *a, **k: printed.append(str(msg)),
+    )
+
+    init_cmd(non_interactive=True, bridge=bridge)
+
+    cfg_file = tmp_path / ".devsynth" / "project.yaml"
+    data = _load_config(cfg_file)
+
+    assert data["project_root"] == str(tmp_path)
+    assert data["language"] == "python"
+    assert data["goals"] == ""
+    assert data["memory_store_type"] == "memory"
+    assert data["offline_mode"] is False
+    bridge.ask_question.assert_not_called()
+    bridge.confirm_choice.assert_not_called()
+    assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
+    assert any("Initialization complete" in msg for msg in printed)
 
 
 @pytest.mark.medium
