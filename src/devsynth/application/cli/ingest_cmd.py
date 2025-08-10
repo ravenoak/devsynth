@@ -115,6 +115,7 @@ def ingest_cmd(
             non_interactive = True
 
         if non_interactive:
+            yes = True
             os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
 
         if not yes:
