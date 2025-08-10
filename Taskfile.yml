@@ -203,4 +203,15 @@ tasks:
   security:audit:
     desc: Run security audit checks
     cmds:
-      - poetry run python scripts/security_audit.py --skip-static
+      - poetry run python scripts/security_audit.py
+
+  policy:gate:
+    desc: Enforce security policy checks before deployment
+    cmds:
+      - task: security:audit
+
+  deploy:production:
+    desc: Deploy to production with policy gate
+    cmds:
+      - task: policy:gate
+      - bash deployment/deploy_production.sh

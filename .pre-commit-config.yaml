@@ -47,12 +47,12 @@ repos:
       pass_filenames: true
     - id: bandit
       name: bandit security check
-      entry: bandit -q -r src --exit-zero
+      entry: poetry run bandit -q -r src
       language: system
       pass_filenames: false
     - id: safety
       name: safety vulnerability check
-      entry: safety check --full-report
+      entry: poetry run safety check --full-report
       language: system
       pass_filenames: false
 - repo: https://github.com/pre-commit/pre-commit-hooks
