@@ -42,7 +42,31 @@ def main() -> int:
         else:
             args.append(arg)
 
-    result = subprocess.run(["devsynth", "run-tests", *args])
+    # Disable xdist by default to avoid KeyError crashes from ``-n auto``.
+    if "--no-parallel" not in args:
+        args.append("--no-parallel")
+
+    result = subprocess.run(
+        ["devsynth", "run-tests", *args], capture_output=True, text=True
+    )
+
+    # Echo the output from the underlying command
+    sys.stdout.write(result.stdout)
+    sys.stderr.write(result.stderr)
+
+    if result.returncode != 0:
+        failing = sorted(
+            {
+                line[line.find("tests/") :].split("::", 1)[0].split()[0]
+                for line in result.stdout.splitlines()
+                if "tests/" in line and (" FAILED" in line or " ERROR" in line)
+            }
+        )
+        if failing:
+            print("Failing modules:")
+            for module in failing:
+                print(f"- {module}")
+
     return result.returncode
 
 
