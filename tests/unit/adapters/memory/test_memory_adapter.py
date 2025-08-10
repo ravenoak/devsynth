@@ -7,9 +7,9 @@ import numpy as np
 import pytest
 
 # These tests exercise multiple backend implementations and can consume
-# significant memory when run in parallel.  Mark them so they can be
-# executed with reduced concurrency when needed.
-pytestmark = [pytest.mark.memory_intensive]
+# significant memory when run in parallel. Mark them for isolation so
+# they execute sequentially and avoid xdist resource contention.
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
 # Import duckdb safely
 try:
@@ -344,14 +344,39 @@ class TestMemorySystemAdapter:
 
     @pytest.mark.medium
     @pytest.mark.requires_resource("lmdb")
-    @pytest.mark.requires_resource("faiss")
     @pytest.mark.isolation
-    def test_sync_manager_coordinated_backends(self, tmp_path, monkeypatch):
-        """SyncManager should propagate between LMDB, FAISS and Kuzu."""
+    def test_lmdb_synchronizes_to_kuzu(self, tmp_path, monkeypatch):
+        """LMDB store should propagate items to Kuzu."""
 
         LMDBStore = pytest.importorskip(
             "devsynth.application.memory.lmdb_store"
         ).LMDBStore
+        from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+        from devsynth.application.memory.memory_manager import MemoryManager
+        from devsynth.application.memory.sync_manager import SyncManager
+
+        monkeypatch.delitem(sys.modules, "kuzu", raising=False)
+        kuzu_store = KuzuMemoryStore.create_ephemeral(use_provider_system=False)
+        lmdb_store = LMDBStore(str(tmp_path / "lmdb"))
+        try:
+            manager = MemoryManager(adapters={"lmdb": lmdb_store, "kuzu": kuzu_store})
+            manager.sync_manager = SyncManager(manager)
+
+            item = MemoryItem(id="y", content="hi", memory_type=MemoryType.CODE)
+            lmdb_store.store(item)
+
+            manager.synchronize("lmdb", "kuzu")
+            assert kuzu_store.retrieve("y") is not None
+        finally:
+            lmdb_store.close()
+            kuzu_store.cleanup()
+
+    @pytest.mark.medium
+    @pytest.mark.requires_resource("faiss")
+    @pytest.mark.isolation
+    def test_faiss_vectors_synchronize_to_kuzu(self, tmp_path, monkeypatch):
+        """FAISS vectors should propagate to Kuzu."""
+
         FAISSStore = pytest.importorskip(
             "devsynth.application.memory.faiss_store"
         ).FAISSStore
@@ -364,29 +389,19 @@ class TestMemorySystemAdapter:
         monkeypatch.setattr(
             ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5)
         )
-        for cls in (KuzuMemoryStore, LMDBStore, FAISSStore, KuzuStore):
-            if cls is not None:
-                try:
-                    cls.__abstractmethods__ = frozenset()
-                except Exception:
-                    pass
-        lmdb_store = LMDBStore(str(tmp_path / "lmdb"))
-        faiss_store = FAISSStore(str(tmp_path / "faiss"))
         kuzu_store = KuzuMemoryStore.create_ephemeral(use_provider_system=False)
+        faiss_store = FAISSStore(str(tmp_path / "faiss"))
+        try:
+            manager = MemoryManager(adapters={"faiss": faiss_store, "kuzu": kuzu_store})
+            manager.sync_manager = SyncManager(manager)
 
-        manager = MemoryManager(
-            adapters={"lmdb": lmdb_store, "faiss": faiss_store, "kuzu": kuzu_store}
-        )
-        manager.sync_manager = SyncManager(manager)
+            vector = MemoryVector(
+                id="y", content="hi", embedding=[0.2] * 5, metadata={}
+            )
+            faiss_store.store_vector(vector)
 
-        item = MemoryItem(id="y", content="hi", memory_type=MemoryType.CODE)
-        vector = MemoryVector(id="y", content="hi", embedding=[0.2] * 5, metadata={})
-
-        lmdb_store.store(item)
-        faiss_store.store_vector(vector)
-
-        manager.synchronize("lmdb", "kuzu")
-        manager.synchronize("faiss", "kuzu")
-
-        assert kuzu_store.retrieve("y") is not None
-        assert kuzu_store.vector.retrieve_vector("y") is not None
+            manager.synchronize("faiss", "kuzu")
+            assert kuzu_store.vector.retrieve_vector("y") is not None
+        finally:
+            del faiss_store
+            kuzu_store.cleanup()
