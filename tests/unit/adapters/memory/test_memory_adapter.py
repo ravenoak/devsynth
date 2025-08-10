@@ -96,6 +96,7 @@ class TestMemorySystemAdapter:
         assert adapter.vector_store is None
 
     @pytest.mark.medium
+    @pytest.mark.slow
     def test_init_with_tinydb_storage_succeeds(self, temp_dir):
         """Test initialization with TinyDB storage.
 
@@ -115,6 +116,7 @@ class TestMemorySystemAdapter:
         assert adapter.vector_store is None
 
     @pytest.mark.medium
+    @pytest.mark.slow
     def test_init_with_duckdb_storage_succeeds(self, temp_dir, monkeypatch):
         """Test initialization with DuckDB storage.
 
@@ -151,6 +153,7 @@ class TestMemorySystemAdapter:
             assert adapter.vector_store is adapter.memory_store
 
     @pytest.mark.medium
+    @pytest.mark.slow
     @pytest.mark.requires_resource("lmdb")
     def test_init_with_lmdb_storage_succeeds(self, temp_dir):
         """Test initialization with LMDB storage.
