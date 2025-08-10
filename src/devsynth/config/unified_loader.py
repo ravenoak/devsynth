@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import toml
 
-from .loader import ConfigModel, load_config, save_config, _find_config_path
+from .loader import ConfigModel, _find_config_path, load_config, save_config
 
 
 @dataclass
@@ -36,6 +36,10 @@ class UnifiedConfig:
 
     def set_goals(self, goals: str) -> None:
         self.config.goals = goals
+
+    def set_kuzu_embedded(self, embedded: bool) -> None:
+        """Enable or disable the embedded Kuzu backend."""
+        self.config.kuzu_embedded = embedded
 
     def save(self) -> Path:
         return save_config(

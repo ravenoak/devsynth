@@ -3,17 +3,17 @@ from __future__ import annotations
 """Unified configuration loader for DevSynth projects."""
 
 import os
+from dataclasses import field
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+import toml
+import yaml
+from pydantic.dataclasses import dataclass
 
 from devsynth import __version__ as project_version
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import ConfigurationError
-
-import yaml
-import toml
-from pydantic.dataclasses import dataclass
-from dataclasses import field
+from devsynth.logging_setup import DevSynthLogger
 
 
 @dataclass
@@ -54,6 +54,7 @@ class ConfigModel:
         }
     )
     memory_store_type: str = "memory"
+    kuzu_embedded: bool = True
     offline_mode: bool = False
     resources: Dict[str, Any] | None = None
     edrr_settings: Dict[str, Any] = field(
@@ -102,6 +103,7 @@ class ConfigModel:
             "directories": self.directories,
             "features": self.features,
             "memory_store_type": self.memory_store_type,
+            "kuzu_embedded": self.kuzu_embedded,
             "offline_mode": self.offline_mode,
             "resources": self.resources or {},
             "edrr_settings": self.edrr_settings,

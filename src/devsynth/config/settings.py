@@ -19,6 +19,9 @@ from devsynth.exceptions import ConfigurationError, DevSynthError
 
 from .loader import load_config
 
+# Default settings
+DEFAULT_KUZU_EMBEDDED = True
+
 
 def _parse_bool_env(value: Any, field: str) -> bool:
     """Parse a boolean environment variable securely."""
@@ -187,7 +190,7 @@ class Settings(BaseSettings):
     # falls back to a lightweight in-memory implementation. The value can be
     # overridden via the ``DEVSYNTH_KUZU_EMBEDDED`` environment variable.
     kuzu_embedded: bool = Field(
-        default=True,
+        default=DEFAULT_KUZU_EMBEDDED,
         description="Use embedded KuzuDB backend instead of in-memory fallback",
         json_schema_extra={"env": "DEVSYNTH_KUZU_EMBEDDED"},
     )
