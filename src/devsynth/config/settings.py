@@ -183,12 +183,13 @@ class Settings(BaseSettings):
     kuzu_db_path: Optional[str] = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_KUZU_DB_PATH"}
     )
-    # Enable or disable the embedded KuzuDB backend.  When set to ``False`` the
-    # system always falls back to the lightweight in-memory implementation.  The
-    # value can be overridden via the ``DEVSYNTH_KUZU_EMBEDDED`` environment
-    # variable.
+    # Enable or disable the embedded KuzuDB backend. When ``False`` the system
+    # falls back to a lightweight in-memory implementation. The value can be
+    # overridden via the ``DEVSYNTH_KUZU_EMBEDDED`` environment variable.
     kuzu_embedded: bool = Field(
-        default=True, json_schema_extra={"env": "DEVSYNTH_KUZU_EMBEDDED"}
+        default=True,
+        description="Use embedded KuzuDB backend instead of in-memory fallback",
+        json_schema_extra={"env": "DEVSYNTH_KUZU_EMBEDDED"},
     )
     max_context_size: int = Field(
         default=1000, json_schema_extra={"env": "DEVSYNTH_MAX_CONTEXT_SIZE"}

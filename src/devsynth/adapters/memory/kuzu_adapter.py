@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import tempfile
 import uuid
 from typing import Any, Dict, List, Optional
 
@@ -47,6 +49,9 @@ class KuzuAdapter(VectorStore):
             self.persist_directory, f"{collection_name}.json"
         )
         self._store: Dict[str, MemoryVector] = {}
+        # Track temporary directories created via ``create_ephemeral`` so they
+        # can be removed in :meth:`cleanup`.
+        self._temp_dir: Optional[str] = None
         self._load()
 
     # ------------------------------------------------------------------
@@ -150,3 +155,33 @@ class KuzuAdapter(VectorStore):
             "embedding_dimension": dim,
             "persist_directory": self.persist_directory,
         }
+
+    # ------------------------------------------------------------------
+    @classmethod
+    def create_ephemeral(
+        cls, collection_name: str = "devsynth_vectors"
+    ) -> "KuzuAdapter":
+        """Create an ephemeral adapter backed by a temporary directory.
+
+        The directory is created using :func:`tempfile.mkdtemp` and tracked so
+        that :meth:`cleanup` can remove it after tests complete.
+        """
+
+        temp_dir = tempfile.mkdtemp(prefix="kuzu_adapter_")
+        adapter = cls(temp_dir, collection_name)
+        adapter._temp_dir = adapter.persist_directory
+        return adapter
+
+    def cleanup(self) -> None:
+        """Remove any temporary directory created by ``create_ephemeral``."""
+
+        if not self._temp_dir:
+            return
+        try:
+            shutil.rmtree(self._temp_dir, ignore_errors=True)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning(
+                "Failed to remove temporary directory %s: %s", self._temp_dir, exc
+            )
+        finally:
+            self._temp_dir = None
