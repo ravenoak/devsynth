@@ -68,7 +68,8 @@ def ingest_cmd(
         auto_phase_transitions: If True, EDRR phases advance automatically.
         non_interactive: If True, disable interactive prompts for automation.
         defaults: If True, use default responses and imply ``yes`` and
-            ``non_interactive``.
+            ``non_interactive``. These flags mirror ``--non-interactive`` and
+            ``--defaults`` on the CLI.
     """
     bridge = bridge or DEFAULT_BRIDGE
 
@@ -117,6 +118,7 @@ def ingest_cmd(
         if non_interactive:
             yes = True
             os.environ["DEVSYNTH_NONINTERACTIVE"] = "1"
+            os.environ["DEVSYNTH_INGEST_NONINTERACTIVE"] = "1"
 
         if not yes:
             yes = os.environ.get("DEVSYNTH_AUTO_CONFIRM", "0").lower() in {
