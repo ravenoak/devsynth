@@ -29,6 +29,7 @@ from devsynth.application.requirements.dialectical_reasoner import (
     DialecticalReasonerService,
 )
 from devsynth.application.requirements.requirement_service import RequirementService
+from devsynth.config import get_project_config, save_config
 from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import (
     ChangeType,
@@ -921,6 +922,11 @@ def wizard_cmd(
     output_path = Path(out_dir) / path.name
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
+
+    cfg = get_project_config(Path("."))
+    cfg.priority = responses.get("priority", RequirementPriority.MEDIUM.value)
+    cfg.constraints = responses.get("constraints", "")
+    save_config(cfg, use_pyproject=False)
 
     bridge.display_result(f"[green]Requirements saved to {output_path}[/green]")
 
