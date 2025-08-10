@@ -674,7 +674,7 @@ def get_settings(reload: bool = False, **kwargs) -> Settings:
     Returns:
         Settings: The settings instance
     """
-    global _settings_instance
+    global _settings_instance, kuzu_db_path, kuzu_embedded, KUZU_EMBEDDED
 
     # Try to load environment variables from .env file
     load_dotenv()
@@ -688,6 +688,11 @@ def get_settings(reload: bool = False, **kwargs) -> Settings:
         # update the existing instance with the provided values
         for key, value in kwargs.items():
             setattr(_settings_instance, key, value)
+
+    # Expose mutable values at module level for tests that import them
+    kuzu_db_path = _settings_instance.kuzu_db_path
+    kuzu_embedded = _settings_instance.kuzu_embedded
+    KUZU_EMBEDDED = kuzu_embedded
 
     return _settings_instance
 
