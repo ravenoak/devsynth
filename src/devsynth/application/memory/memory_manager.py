@@ -749,9 +749,19 @@ class MemoryManager:
         self._notify_sync_hooks(item)
 
     def flush_updates(self) -> None:
-        """Flush queued updates synchronously."""
+        """Flush queued updates synchronously and persist adapters."""
 
         self.sync_manager.flush_queue()
+        for adapter in self.adapters.values():
+            try:
+                if hasattr(adapter, "flush"):
+                    adapter.flush()
+                elif hasattr(adapter, "memory_store") and hasattr(
+                    adapter.memory_store, "flush"
+                ):
+                    adapter.memory_store.flush()
+            except Exception:
+                logger.debug("Adapter flush failed", exc_info=True)
         self._notify_sync_hooks(None)
 
     async def flush_updates_async(self) -> None:
