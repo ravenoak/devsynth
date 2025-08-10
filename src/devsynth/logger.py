@@ -36,16 +36,16 @@ class DevSynthLogger(_BaseDevSynthLogger):
     """
 
     def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
-        exc = kwargs.get("exc_info")
+        exc = kwargs.pop("exc_info", None)
         if isinstance(exc, BaseException):
             # Convert bare exception objects to the tuple form expected by the
             # standard logging machinery so the traceback is preserved.
-            kwargs["exc_info"] = (exc.__class__, exc, exc.__traceback__)
+            exc = (exc.__class__, exc, exc.__traceback__)
         elif exc is True:
             # ``True`` means "use the current exception"; normalize to a tuple
             # to keep behaviour consistent with our exception-object handling.
-            kwargs["exc_info"] = sys.exc_info()
-        super()._log(level, msg, *args, **kwargs)
+            exc = sys.exc_info()
+        super()._log(level, msg, *args, exc_info=exc, **kwargs)
 
 
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

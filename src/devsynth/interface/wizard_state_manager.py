@@ -6,8 +6,10 @@ ensuring consistency between WebUIBridge and WizardState.
 """
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, Optional, Sequence
 
+from devsynth.config import get_project_config, save_config
 from devsynth.interface.state_access import get_session_value, set_session_value
 from devsynth.interface.webui_state import WizardState
 from devsynth.logging_setup import DevSynthLogger
@@ -219,7 +221,17 @@ class WizardStateManager:
             The value from the wizard state or the default value
         """
         wizard_state = self.get_wizard_state()
-        return wizard_state.get(key, default)
+        value = wizard_state.get(key, default)
+        if key == "priority":
+            try:
+                cfg = get_project_config(Path("."))
+                cfg.priority = value
+                save_config(cfg, use_pyproject=False)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(
+                    "Error persisting priority for %s: %s", self.wizard_name, str(exc)
+                )
+        return value
 
     def set_value(self, key: str, value: Any) -> bool:
         """Set a value in the wizard state.
