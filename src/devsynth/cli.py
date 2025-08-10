@@ -4,7 +4,8 @@
 This module primarily delegates to the Typer based CLI defined in
 ``devsynth.adapters.cli.typer_adapter``.  A lightweight ``--analyze-repo``
 option is provided for invoking the :class:`RepoAnalyzer` directly from the
-command line without loading the full CLI stack.
+command line without loading the full CLI stack.  The Typer application
+exposes shell completion installation via ``--install-completion``.
 """
 
 from __future__ import annotations
@@ -41,8 +42,14 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps(result, indent=2))
     else:
         from devsynth.adapters.cli.typer_adapter import run_cli
+        from devsynth.application.cli.errors import handle_error
+        from devsynth.interface.cli import CLIUXBridge
 
-        run_cli()
+        try:
+            run_cli()
+        except Exception as err:  # pragma: no cover - defensive
+            handle_error(CLIUXBridge(), err)
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":  # pragma: no cover - tested via integration test

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
-import importlib.util
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from typer.models import OptionInfo
 
@@ -23,6 +23,29 @@ def _resolve_bridge(b: Optional[UXBridge]) -> UXBridge:
     """Return the provided bridge or fall back to the module default."""
 
     return b if b is not None else bridge
+
+
+def prompt(
+    message: str,
+    *,
+    choices: Optional[Sequence[str]] = None,
+    default: Optional[str] = None,
+    bridge: Optional[UXBridge] = None,
+) -> str:
+    """Ask the user a question via the active bridge."""
+    return _resolve_bridge(bridge).ask_question(
+        message, choices=choices, default=default
+    )
+
+
+def confirm(
+    message: str,
+    *,
+    default: bool = False,
+    bridge: Optional[UXBridge] = None,
+) -> bool:
+    """Ask the user to confirm an action via the active bridge."""
+    return _resolve_bridge(bridge).confirm_choice(message, default=default)
 
 
 def _env_flag(name: str) -> Optional[bool]:
@@ -143,10 +166,11 @@ def _validate_file_path(path: str, must_exist: bool = True) -> Optional[str]:
 __all__ = [
     "bridge",
     "_resolve_bridge",
+    "prompt",
+    "confirm",
     "_env_flag",
     "_parse_features",
     "_check_services",
     "_handle_error",
     "_validate_file_path",
 ]
-

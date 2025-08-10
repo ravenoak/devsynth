@@ -43,6 +43,12 @@ devsynth completion --install
 
 Run the above command to install completion for your current shell or pass `--shell zsh` to target a specific shell. Omit `--install` to print the script instead of saving it.
 
+Alternatively, Typer's built-in option can be used:
+
+```bash
+devsynth --install-completion
+```
+
 ## Initialize a Project
 
 Start by creating a new DevSynth project:

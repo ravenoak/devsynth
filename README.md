@@ -118,6 +118,16 @@ You can install DevSynth in a few different ways:
    devsynth dpg
    ```
 
+### Shell Completion
+
+Enable tab completion for DevSynth commands:
+
+```bash
+devsynth --install-completion
+# or
+devsynth completion --install
+```
+
 Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).

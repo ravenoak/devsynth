@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+from typer.testing import CliRunner
 
 from devsynth.adapters.cli import typer_adapter
 
@@ -22,3 +23,11 @@ def test_completion_cmd_installs_script(tmp_path):
     typer_adapter.completion_cmd(shell="bash", install=True, path=target, bridge=bridge)
     assert target.exists()
     bridge.show_completion.assert_called_once_with(str(target))
+
+
+@pytest.mark.medium
+def test_cli_supports_install_completion():
+    """The Typer app exposes the --install-completion option."""
+    runner = CliRunner()
+    result = runner.invoke(typer_adapter.build_app(), ["--install-completion", "bash"])
+    assert result.exit_code == 0

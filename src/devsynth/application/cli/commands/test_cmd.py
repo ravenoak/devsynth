@@ -11,7 +11,6 @@ from rich.table import Table
 from devsynth.core.workflows import filter_args, generate_tests
 from devsynth.interface.ux_bridge import UXBridge
 
-from ..progress import create_enhanced_progress
 from ..utils import (
     _check_services,
     _env_flag,
@@ -70,75 +69,29 @@ def test_cmd(
             else:
                 return
 
-        # Define subtasks for the test generation process
-        subtasks = [
-            {"name": "Analyzing specifications", "total": 25},
-            {"name": "Identifying test cases", "total": 25},
-            {"name": "Generating unit tests", "total": 20},
-            {"name": "Generating integration tests", "total": 15},
-            {"name": "Generating behavior tests", "total": 15},
+        # Simple progress indicator with four logical steps
+        steps = [
+            "Analyzing specifications",
+            "Identifying test cases",
+            "Generating tests",
+            "Finishing",
         ]
+        progress = bridge.create_progress("Generating tests", total=len(steps))
 
-        # Create a function to run with progress tracking
-        def generate_tests_with_progress():
-            # Create progress indicator for the main task
-            progress = create_enhanced_progress(console, "Generating tests", 100)
+        try:
+            progress.update(description=steps[0])
+            args = filter_args({"spec_file": spec_file})
 
-            try:
-                # Add subtasks
-                for subtask in subtasks:
-                    progress.add_subtask(subtask["name"], subtask["total"])
+            progress.update(description=steps[1])
 
-                # Update progress for first subtask
-                progress.update_subtask(
-                    "Analyzing specifications",
-                    advance=15,
-                    description="Parsing specification file",
-                )
+            progress.update(description=steps[2])
+            result = generate_tests(**args)
 
-                # Generate tests
-                args = filter_args({"spec_file": spec_file})
+            progress.update(description=steps[3])
+        finally:
+            progress.complete()
 
-                # Update progress for first subtask completion
-                progress.update_subtask("Analyzing specifications", advance=10)
-                progress.complete_subtask("Analyzing specifications")
-
-                # Update progress for second subtask
-                progress.update_subtask(
-                    "Identifying test cases",
-                    advance=15,
-                    description="Extracting testable requirements",
-                )
-                progress.update_subtask(
-                    "Identifying test cases",
-                    advance=10,
-                    description="Defining test boundaries",
-                )
-                progress.complete_subtask("Identifying test cases")
-
-                # Update progress for remaining subtasks
-                progress.update_subtask("Generating unit tests", advance=20)
-                progress.complete_subtask("Generating unit tests")
-
-                progress.update_subtask("Generating integration tests", advance=15)
-                progress.complete_subtask("Generating integration tests")
-
-                progress.update_subtask("Generating behavior tests", advance=15)
-                progress.complete_subtask("Generating behavior tests")
-
-                # Call the actual generate_tests function
-                result = generate_tests(**args)
-
-                # Update main task progress
-                progress.update(advance=100)
-
-                return result
-            finally:
-                # Ensure progress is completed even if an error occurs
-                progress.complete()
-
-        # Run the test generation with progress tracking
-        result = generate_tests_with_progress()
+        result = result if isinstance(result, dict) else {}
 
         # Handle result
         if result.get("success"):

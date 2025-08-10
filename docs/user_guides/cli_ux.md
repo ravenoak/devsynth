@@ -235,6 +235,9 @@ devsynth completion --install
 
 # Install shell completion for a specific shell
 devsynth completion --shell bash --install
+
+# Use Typer's built-in helper
+devsynth --install-completion
 ```
 
 ### Using Shell Completion
