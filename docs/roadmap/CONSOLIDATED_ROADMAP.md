@@ -159,7 +159,7 @@ The EDRRCoordinator orchestrates expand/differentiate/refine cycles. The `edrr-c
 
 ## Current Test Summary
 
-Recent CI reports collected thousands of tests. The latest run reported **348** failures, **921** passing tests, **100** skipped, and **3** errors due to `chromadb_store` missing during collection. See the [development status](development_status.md#test-failure-summary) document for details.
+Recent CI reports collected thousands of tests. The latest run reported **46** failures, **114** passing tests, **10** skipped, and **3** errors due to missing dependencies. See the [development status](development_status.md#test-failure-summary) document for details.
 
 To publish `0.1.0-alpha.1`, the project must:
 
