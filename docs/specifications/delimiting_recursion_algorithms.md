@@ -57,6 +57,13 @@ the system balances exploration with cost and quality constraints.
 
 These heuristics are implemented in `EDRRCoordinator.should_terminate_recursion`
 and referenced in the [Recursive EDRR Pseudocode](recursive_edrr_pseudocode.md).
+
+## Security Considerations
+
+Configuration values for recursion limits and thresholds are validated. Invalid or
+out-of-range settings fall back to safe defaults, preventing attempts to bypass
+recursion controls.
+
 ## Implementation Status
 
 This feature is **implemented**. The heuristics are available in `src/devsynth/application/edrr/coordinator.py`.

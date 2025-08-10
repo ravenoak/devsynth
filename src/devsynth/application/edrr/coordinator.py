@@ -94,6 +94,51 @@ class EDRRCoordinator:
     DEFAULT_DIMINISHING_RETURNS_THRESHOLD = 0.3
     DEFAULT_MEMORY_USAGE_LIMIT = 0.9
 
+    @staticmethod
+    def _sanitize_positive_int(value: Any, default: int, max_value: int = 10) -> int:
+        """Return a safe positive integer within bounds."""
+        try:
+            value = int(value)
+        except (TypeError, ValueError):  # pragma: no cover - defensive
+            logger.warning(
+                "Invalid integer value '%s'; using default %s", value, default
+            )
+            return default
+        if value <= 0 or value > max_value:
+            logger.warning(
+                "Integer value '%s' outside allowed range (1-%s); using default %s",
+                value,
+                max_value,
+                default,
+            )
+            return default
+        return value
+
+    @staticmethod
+    def _sanitize_threshold(
+        value: Any,
+        default: float,
+        *,
+        min_value: float = 0.0,
+        max_value: float = 1.0,
+    ) -> float:
+        """Return a safe float threshold within bounds."""
+        try:
+            value = float(value)
+        except (TypeError, ValueError):  # pragma: no cover - defensive
+            logger.warning("Invalid threshold '%s'; using default %s", value, default)
+            return default
+        if not min_value <= value <= max_value:
+            logger.warning(
+                "Threshold '%s' outside allowed range (%s-%s); using default %s",
+                value,
+                min_value,
+                max_value,
+                default,
+            )
+            return default
+        return value
+
     def __init__(
         self,
         memory_manager: MemoryManager,
@@ -162,8 +207,9 @@ class EDRRCoordinator:
         self.recursion_depth = recursion_depth
         self.parent_phase = parent_phase
         self.child_cycles = []
-        self.max_recursion_depth = edrr_cfg.get(
-            "max_recursion_depth", self.DEFAULT_MAX_RECURSION_DEPTH
+        self.max_recursion_depth = self._sanitize_positive_int(
+            edrr_cfg.get("max_recursion_depth", self.DEFAULT_MAX_RECURSION_DEPTH),
+            self.DEFAULT_MAX_RECURSION_DEPTH,
         )
 
         # Micro-cycle monitoring hooks
@@ -966,22 +1012,33 @@ class EDRRCoordinator:
         thresholds = recursion_cfg.get("thresholds", {})
 
         # Extract thresholds with defaults
-        granularity_threshold = thresholds.get(
-            "granularity", self.DEFAULT_GRANULARITY_THRESHOLD
+        granularity_threshold = self._sanitize_threshold(
+            thresholds.get("granularity"), self.DEFAULT_GRANULARITY_THRESHOLD
         )
-        cost_benefit_ratio = thresholds.get(
-            "cost_benefit", self.DEFAULT_COST_BENEFIT_RATIO
+        cost_benefit_ratio = self._sanitize_threshold(
+            thresholds.get("cost_benefit"),
+            self.DEFAULT_COST_BENEFIT_RATIO,
+            max_value=10.0,
         )
-        quality_threshold = thresholds.get("quality", self.DEFAULT_QUALITY_THRESHOLD)
-        resource_limit = thresholds.get("resource", self.DEFAULT_RESOURCE_LIMIT)
-        complexity_threshold = thresholds.get(
-            "complexity", self.DEFAULT_COMPLEXITY_THRESHOLD
+        quality_threshold = self._sanitize_threshold(
+            thresholds.get("quality"), self.DEFAULT_QUALITY_THRESHOLD
         )
-        convergence_threshold = thresholds.get(
-            "convergence", self.DEFAULT_CONVERGENCE_THRESHOLD
+        resource_limit = self._sanitize_threshold(
+            thresholds.get("resource"), self.DEFAULT_RESOURCE_LIMIT
         )
-        diminishing_returns = thresholds.get(
-            "diminishing_returns", self.DEFAULT_DIMINISHING_RETURNS_THRESHOLD
+        complexity_threshold = self._sanitize_threshold(
+            thresholds.get("complexity"), self.DEFAULT_COMPLEXITY_THRESHOLD
+        )
+        convergence_threshold = self._sanitize_threshold(
+            thresholds.get("convergence"), self.DEFAULT_CONVERGENCE_THRESHOLD
+        )
+        diminishing_returns = self._sanitize_threshold(
+            thresholds.get("diminishing_returns"),
+            self.DEFAULT_DIMINISHING_RETURNS_THRESHOLD,
+        )
+        memory_limit = self._sanitize_threshold(
+            recursion_cfg.get("memory_limit", self.DEFAULT_MEMORY_USAGE_LIMIT),
+            self.DEFAULT_MEMORY_USAGE_LIMIT,
         )
 
         # Initialize termination factors dictionary to track all potential termination reasons
@@ -1260,12 +1317,6 @@ class EDRRCoordinator:
         # Check memory usage
         if "memory_usage" in task:
             memory_usage = task["memory_usage"]
-            memory_limit = (
-                self.config.get("edrr", {})
-                .get("recursion", {})
-                .get("memory_limit", self.DEFAULT_MEMORY_USAGE_LIMIT)
-            )
-
             if memory_usage > memory_limit:
                 termination_factors["memory_limit"] = {
                     "usage": memory_usage,
