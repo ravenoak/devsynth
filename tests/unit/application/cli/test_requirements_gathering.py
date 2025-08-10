@@ -3,14 +3,17 @@ import logging
 from _pytest.logging import LogCaptureHandler
 
 from devsynth.application.cli import requirements_commands as rc
-from devsynth.application.cli.errors import handle_error_enhanced
+from devsynth.application.cli.errors import handle_error
 from devsynth.logging_setup import configure_logging
 
 
 class DummyBridge:
-    """Minimal bridge implementing only display_result."""
+    """Minimal bridge implementing bridge methods used in tests."""
 
     def display_result(self, *_a, **_k):
+        pass
+
+    def handle_error(self, *_a, **_k):
         pass
 
 
@@ -30,7 +33,7 @@ def test_gather_cmd_logging_exc_info_succeeds(monkeypatch):
     try:
         rc.gather_requirements_cmd(bridge=bridge)
     except RuntimeError as err:
-        handle_error_enhanced(bridge, err)
+        handle_error(bridge, err)
 
     logging.getLogger().removeHandler(handler)
     record = next(rec for rec in handler.records if rec.exc_info)

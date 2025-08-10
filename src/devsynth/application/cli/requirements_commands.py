@@ -44,6 +44,7 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.ports.llm_port import LLMPort
 
 from .config import CLIConfig
+from .utils import prompt
 
 CLI_CONFIG = CLIConfig.from_env()
 
@@ -905,10 +906,11 @@ def wizard_cmd(
             reply = default_val or ""
         else:
             prefix = f"Step {index + 1}/{len(steps)}: "
-            reply = bridge.ask_question(
+            reply = prompt(
                 prefix + message + " (type 'back' to go back)",
                 choices=choices,
                 default=default_val,
+                bridge=bridge,
             )
         if reply.lower() == "back":
             if index > 0:

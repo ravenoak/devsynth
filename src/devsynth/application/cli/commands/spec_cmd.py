@@ -10,7 +10,6 @@ from rich.console import Console
 from devsynth.core.workflows import filter_args, generate_specs
 from devsynth.interface.ux_bridge import UXBridge
 
-from ..progress import create_enhanced_progress
 from ..utils import (
     _check_services,
     _env_flag,
@@ -46,8 +45,6 @@ def spec_cmd(
         devsynth spec --requirements-file custom_requirements.md
         ```
     """
-    from devsynth.interface.progress_utils import run_with_progress
-
     console = Console()
     bridge = _resolve_bridge(bridge)
     auto_confirm = (
@@ -72,74 +69,30 @@ def spec_cmd(
             else:
                 return
 
-        # Define subtasks for the specification generation process
-        subtasks = [
-            {"name": "Analyzing requirements", "total": 30},
-            {"name": "Extracting key concepts", "total": 20},
-            {"name": "Generating specifications", "total": 40},
-            {"name": "Validating output", "total": 10},
+        # Simple progress indicator with four logical steps
+        steps = [
+            "Analyzing requirements",
+            "Generating specifications",
+            "Validating output",
+            "Finishing",
         ]
+        progress = bridge.create_progress("Generating specifications", total=len(steps))
 
-        # Create a function to run with progress tracking
-        def generate_specs_with_progress():
-            # Create progress indicator for the main task
-            progress = create_enhanced_progress(
-                console, "Generating specifications", 100
-            )
+        try:
+            progress.update(description=steps[0])
+            args = filter_args({"requirements_file": requirements_file})
 
-            try:
-                # Add subtasks
-                for subtask in subtasks:
-                    progress.add_subtask(subtask["name"], subtask["total"])
+            progress.update(description=steps[1])
+            result = generate_specs(**args)
 
-                # Update progress for first subtask
-                progress.update_subtask(
-                    "Analyzing requirements",
-                    advance=15,
-                    description="Parsing requirements file",
-                )
+            progress.update(description=steps[2])
 
-                # Generate specifications
-                args = filter_args({"requirements_file": requirements_file})
+            progress.update(description=steps[3])
+        finally:
+            progress.complete()
 
-                # Update progress for first subtask completion
-                progress.update_subtask("Analyzing requirements", advance=15)
-                progress.complete_subtask("Analyzing requirements")
-
-                # Update progress for second subtask
-                progress.update_subtask("Extracting key concepts", advance=20)
-                progress.complete_subtask("Extracting key concepts")
-
-                # Update progress for third subtask
-                progress.update_subtask(
-                    "Generating specifications",
-                    advance=20,
-                    description="Creating specification structure",
-                )
-                progress.update_subtask(
-                    "Generating specifications",
-                    advance=20,
-                    description="Writing specification details",
-                )
-
-                # Call the actual generate_specs function
-                result = generate_specs(**args)
-
-                # Update progress for remaining subtasks
-                progress.complete_subtask("Generating specifications")
-                progress.update_subtask("Validating output", advance=10)
-                progress.complete_subtask("Validating output")
-
-                # Update main task progress
-                progress.update(advance=100)
-
-                return result
-            finally:
-                # Ensure progress is completed even if an error occurs
-                progress.complete()
-
-        # Run the specification generation with progress tracking
-        result = generate_specs_with_progress()
+        # Handle result
+        result = result if isinstance(result, dict) else {}
 
         # Handle result
         if result.get("success"):
