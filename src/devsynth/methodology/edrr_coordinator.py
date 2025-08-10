@@ -24,6 +24,41 @@ class EDRRCoordinator:
 
         self.memory_manager = memory_manager
 
+    def _store_phase_result(
+        self, data: Dict[str, Any], memory_type: MemoryType, phase: str
+    ) -> None:
+        """Persist phase data with the configured memory manager.
+
+        Any exceptions raised by the memory layer are swallowed to keep
+        coordination lightweight.
+        """
+
+        if self.memory_manager is None:
+            return
+        try:  # pragma: no cover - defensive: memory layer may be unreliable
+            self.memory_manager.store_with_edrr_phase(data, memory_type, phase)
+            self.memory_manager.flush_updates()
+        except Exception:
+            pass
+
+    def record_expand_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """Record results from the Expand phase."""
+
+        self._store_phase_result(results, MemoryType.KNOWLEDGE, "EXPAND")
+        return results
+
+    def record_differentiate_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """Record results from the Differentiate phase."""
+
+        self._store_phase_result(results, MemoryType.KNOWLEDGE, "DIFFERENTIATE")
+        return results
+
+    def record_refine_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """Record results from the Refine phase."""
+
+        self._store_phase_result(results, MemoryType.KNOWLEDGE, "REFINE")
+        return results
+
     def automate_retrospective_review(
         self, retrospective: Dict[str, Any], sprint: int
     ) -> Dict[str, Any]:
@@ -38,12 +73,5 @@ class EDRRCoordinator:
         """
 
         summary = map_retrospective_to_summary(retrospective, sprint)
-        if self.memory_manager is not None:
-            try:
-                self.memory_manager.store_with_edrr_phase(
-                    summary, MemoryType.PEER_REVIEW, "RETROSPECT"
-                )
-                self.memory_manager.flush_updates()
-            except Exception:
-                pass
+        self._store_phase_result(summary, MemoryType.PEER_REVIEW, "RETROSPECT")
         return summary
