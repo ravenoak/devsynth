@@ -237,3 +237,49 @@ def get_all_commands_help() -> str:
     )
 
     return help_text
+
+
+def generate_completion_script(
+    shell: str = "bash", install: bool = False, path: Optional[Path] = None
+) -> str:
+    """Generate a shell completion script for the DevSynth CLI.
+
+    Args:
+        shell: Target shell type (``bash``, ``zsh``, ``fish``).
+        install: If ``True`` write the script to ``path`` or a default location.
+        path: Optional output path when ``install`` is ``True``.
+
+    Returns:
+        The generated completion script or the installation path when
+        ``install`` is ``True``.
+    """
+
+    from click.shell_completion import get_completion_class
+
+    from devsynth.adapters.cli.typer_adapter import build_app
+
+    app = build_app()
+    completion_cls = get_completion_class(shell)
+    comp = completion_cls(app, {}, "devsynth", "_DEVSYNTH_COMPLETE")
+    script = comp.source()
+
+    if install:
+        target = path or Path.home() / f".devsynth-completion.{shell}"
+        target.write_text(script)
+        return str(target)
+
+    return script
+
+
+__all__ = [
+    "COMMANDS",
+    "COMMAND_DESCRIPTIONS",
+    "COMMAND_EXAMPLES",
+    "get_completions",
+    "complete_command",
+    "command_autocomplete",
+    "file_path_autocomplete",
+    "get_command_help",
+    "get_all_commands_help",
+    "generate_completion_script",
+]

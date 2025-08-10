@@ -256,36 +256,34 @@ class WebUI(UXBridge):
                 message_type="info",
             )
             return None
-        except Exception as e:
+        except KeyError as e:
             self.display_result(
-                f"ERROR: {error_message}: {str(e)}",
+                f"ERROR: Missing key: {str(e)}", highlight=False, message_type="error"
+            )
+            self.display_result(
+                "Verify that the referenced key exists and is spelled correctly.",
+                highlight=False,
+                message_type="info",
+            )
+            return None
+        except TypeError as e:
+            self.display_result(
+                f"ERROR: Type error: {str(e)}", highlight=False, message_type="error"
+            )
+            self.display_result(
+                "Check that all inputs are of the expected type.",
+                highlight=False,
+                message_type="info",
+            )
+            return None
+        except Exception as e:
+            formatted = self._format_error_message(e)
+            self.display_result(
+                f"ERROR: {error_message}: {formatted}",
                 highlight=False,
                 message_type="error",
             )
-            # Get the traceback for debugging
             tb = traceback.format_exc()
-            # Display a more user-friendly message
-            self.display_result(
-                "An unexpected error occurred. Here are some suggestions:",
-                highlight=False,
-                message_type="info",
-            )
-            self.display_result(
-                "1. Check your input values and try again",
-                highlight=False,
-                message_type="info",
-            )
-            self.display_result(
-                "2. Make sure all required files exist",
-                highlight=False,
-                message_type="info",
-            )
-            self.display_result(
-                "3. Check the logs for more details",
-                highlight=False,
-                message_type="info",
-            )
-            # Add a collapsible section with the full traceback for debugging
             with st.expander("Technical Details (for debugging)"):
                 st.code(tb, language="python")
             return None
@@ -418,6 +416,18 @@ class WebUI(UXBridge):
         else:
             st.write(message)
 
+    def _format_error_message(self, error: Exception) -> str:
+        """Create a concise, user-friendly error string.
+
+        Args:
+            error: The exception to format.
+
+        Returns:
+            A string combining the exception type and message.
+        """
+
+        return f"{error.__class__.__name__}: {error}".strip()
+
     def _get_error_type(self, message: str) -> str:
         """Extract the error type from an error message.
 
@@ -435,6 +445,10 @@ class WebUI(UXBridge):
             return "invalid_parameter"
         elif "Invalid format" in message:
             return "invalid_format"
+        elif "Missing key" in message or "KeyError" in message:
+            return "key_error"
+        elif "Type error" in message or "TypeError" in message:
+            return "type_error"
         elif "Configuration error" in message:
             return "config_error"
         elif "Connection error" in message:
@@ -479,6 +493,14 @@ class WebUI(UXBridge):
                 "Check that the file format is supported",
                 "Verify that the file content matches the expected format",
                 "Try using a different format option if available",
+            ],
+            "key_error": [
+                "Ensure the specified key exists in the data structure",
+                "Check for typos in configuration keys",
+            ],
+            "type_error": [
+                "Verify that values match the expected types",
+                "Convert inputs to the correct type before passing them",
             ],
             "config_error": [
                 "Check your configuration file for errors",
@@ -540,6 +562,12 @@ class WebUI(UXBridge):
             "invalid_format": {
                 "Supported Formats": f"{base_url}/user_guides/file_formats.html",
                 "Format Conversion": f"{base_url}/user_guides/format_conversion.html",
+            },
+            "key_error": {
+                "Configuration Keys": f"{base_url}/user_guides/configuration.html#available-keys",
+            },
+            "type_error": {
+                "Type Hints": f"{base_url}/developer_guides/type_hints.html",
             },
             "config_error": {
                 "Configuration Guide": f"{base_url}/user_guides/configuration.html",
