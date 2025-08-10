@@ -1,5 +1,6 @@
 """Tests for the doctor_tool."""
 
+import sys
 from types import ModuleType
 from unittest.mock import patch
 
