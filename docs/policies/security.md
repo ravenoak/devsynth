@@ -16,10 +16,6 @@ review_cadence: quarterly
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Security Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Security Policy
-</div>
-
 # Security Policy
 
 This policy outlines security design principles and operational guidelines for DevSynth.
@@ -64,13 +60,32 @@ export DEVSYNTH_ACCESS_TOKEN=my-secret-token
 
 DevSynth automates routine security checks to prevent regressions:
 
+- CI runs Bandit static analysis for every push and pull request.
 - The `security-audit` CLI command performs dependency vulnerability scans,
   Bandit static analysis, and verifies required security environment variables
-  such as `DEVSYNTH_ACCESS_TOKEN`.
+  such as `DEVSYNTH_ACCESS_TOKEN`. The deployment workflow invokes this command
+  to enforce policy compliance before publishing artifacts.
 - The command exits with a non‑zero status if any check fails, which blocks CI
   pipelines and deployment.
 - Developers should run `devsynth security-audit` locally before committing
   changes to catch issues early.
+
+## Periodic Security Reviews
+
+Security policies and configurations are reviewed on a quarterly basis. The
+`devsynth.security.review` module assists with scheduling and determining when a
+review is due. For example:
+
+```python
+from datetime import date
+from devsynth.security.review import is_review_due
+
+if is_review_due(date(2024, 1, 1)):
+    print("Security review required")
+```
+
+Teams should schedule a follow‑up review using `next_review_date` after each
+assessment and ensure findings are tracked to completion.
 
 ## Incident Response Procedures
 
