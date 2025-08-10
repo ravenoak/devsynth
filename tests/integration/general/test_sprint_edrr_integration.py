@@ -1,7 +1,7 @@
 import pytest
 
-from devsynth.application.edrr.sprint_planning import SPRINT_PLANNING_PHASE
-from devsynth.application.edrr.sprint_retrospective import SPRINT_RETROSPECTIVE_PHASE
+from devsynth.application.sprint.planning import SPRINT_PLANNING_PHASE
+from devsynth.application.sprint.retrospective import SPRINT_RETROSPECTIVE_PHASE
 from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint import SprintAdapter
 

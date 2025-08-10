@@ -97,6 +97,13 @@ Additional alias phases—Analysis, Implementation, and Refinement—are now sup
 
 **Overall Integration Completeness**: 90%
 
+### Recent Integration Updates
+
+- Sprint planning helpers are now centralized in
+  `devsynth.application.sprint.planning`.
+- Retrospective reviews can be automated through
+  `devsynth.methodology.edrr_coordinator.EDRRCoordinator`.
+
 ## Current Status
 
 The EDRR framework is now feature complete. Phase transition logic, context

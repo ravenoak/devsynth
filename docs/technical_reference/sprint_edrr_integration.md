@@ -117,8 +117,8 @@ The Retrospect phase naturally aligns with sprint retrospectives:
 DevSynth's `SprintAdapter` now automatically converts requirement
 analysis outputs from the Expand phase into a structured sprint plan and
 summarizes Retrospect phase results for sprint metrics. These mappings are
-implemented in `devsynth.application.edrr.sprint_planning` and
-`devsynth.application.edrr.sprint_retrospective`.
+implemented in `devsynth.application.sprint.planning` and
+`devsynth.application.sprint.retrospective`.
 
 
 ## 3. Time-Boxing EDRR Cycles

@@ -1,39 +1,12 @@
-"""Sprint retrospective adapter for EDRR integration.
+"""Backward-compatible sprint retrospective utilities.
 
-Utilities in this module convert raw retrospective results from the
-Retrospect phase into summaries suitable for sprint metrics.
+This module re-exports helpers from
+:mod:`devsynth.application.sprint.retrospective`.
 """
 
-from __future__ import annotations
+from devsynth.application.sprint.retrospective import (
+    SPRINT_RETROSPECTIVE_PHASE,
+    map_retrospective_to_summary,
+)
 
-from typing import Any, Dict
-
-# EDRR phase associated with sprint retrospectives, stored as a string to
-# keep imports lightweight.
-SPRINT_RETROSPECTIVE_PHASE = "retrospect"
-
-
-def map_retrospective_to_summary(
-    retrospective: Dict[str, Any], sprint: int
-) -> Dict[str, Any]:
-    """Return summarized retrospective information.
-
-    Args:
-        retrospective: Results produced by the Retrospect phase.
-        sprint: Current sprint number.
-
-    Returns:
-        Summary dictionary containing positives, improvements and action
-        items. If no retrospective data is provided an empty dict is
-        returned.
-    """
-
-    if not retrospective:
-        return {}
-
-    return {
-        "positives": retrospective.get("positives", []),
-        "improvements": retrospective.get("improvements", []),
-        "action_items": retrospective.get("action_items", []),
-        "sprint": sprint,
-    }
+__all__ = ["SPRINT_RETROSPECTIVE_PHASE", "map_retrospective_to_summary"]
