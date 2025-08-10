@@ -67,7 +67,7 @@ Each feature is scored on two dimensions:
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
 | Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
-| Methodology Integration Framework | Complete | src/devsynth/methodology | 4 | 4 | None | | Sprint, Kanban, Milestone and AdHoc adapters implemented |
+| Methodology Integration Framework | Complete | src/devsynth/methodology | 4 | 4 | None | | Sprint, Kanban, Milestone and AdHoc adapters implemented. Base adapter now exposes default hooks for analysis, implementation and refinement phases |
 | Sprint-EDRR Integration | Complete | src/devsynth/methodology/sprint.py | 4 | 3 | Methodology Integration Framework | | Sprint planning aligned with requirement analysis and retrospectives automatically reviewed. Tracked in [issue 107](../../issues/107.md) |
 | **User-Facing Features** |
 | CLI Interface | Partial | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested. Additional polish in [issue 102](../../issues/102.md) |
@@ -81,7 +81,7 @@ Each feature is scored on two dimensions:
 | Docker Containerization | Complete | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
 | Configuration Management | Complete | src/devsynth/config, config/ | 4 | 3 | None | | Environment-specific templates available |
 | Unified Configuration Loader | Complete | src/devsynth/config/loader.py | 3 | 2 | Configuration Management | | Supports YAML and TOML with autocompletion |
-| Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows. Tracked in [issue 109](../../issues/109.md) |
+| Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows with hardened scripts that enforce non-root execution and secure env file permissions. Tracked in [issue 109](../../issues/109.md) |
 | Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
 | Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
 | Metrics Commands | Complete | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, test_metrics_cmd.py | 3 | 2 | None | | `alignment_metrics` and `test_metrics` commands available |
@@ -240,4 +240,3 @@ Implementation tasks are tracked in `docs/architecture/cli_webui_mapping.md` lin
 
 - Q4 2025: initial support for Python and JavaScript
 - Q1 2026: additional languages and configuration options
-
