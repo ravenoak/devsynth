@@ -37,6 +37,26 @@ reports missing packages, rerun `scripts/codex_setup.sh` or
 `poetry install --with dev --extras tests` to install the required
 dependencies before running the full suite without the marker.
 
+### Non-Interactive Ingestion
+
+Ingestion-related CLI commands accept `--non-interactive` or `--defaults` to bypass prompts and use default values. These flags enable fully automated project ingestion in scripts and tests.
+
+### Coverage Badge Update
+
+After running tests with coverage:
+
+```bash
+poetry run pytest --cov
+```
+
+Capture the reported coverage percentage and update the coverage shield in `README.md`:
+
+```markdown
+![Coverage](https://img.shields.io/badge/coverage-XX%25-brightgreen.svg)
+```
+
+Replace `XX` with the percentage from the test output and adjust the badge color if needed.
+
 ## Dependency Validation
 
 After setting up the environment with `scripts/codex_setup.sh` or `poetry install`,
