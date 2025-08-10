@@ -73,7 +73,11 @@ class KuzuMemoryStore(MemoryStore):
         use_embedded = getattr(
             settings_module.get_settings(),
             "kuzu_embedded",
-            getattr(settings_module, "kuzu_embedded", True),
+            getattr(
+                settings_module,
+                "kuzu_embedded",
+                settings_module.DEFAULT_KUZU_EMBEDDED,
+            ),
         )
         if not _is_kuzu_available():
             logger.info("Kuzu not available; using in-memory fallback store")
@@ -83,6 +87,7 @@ class KuzuMemoryStore(MemoryStore):
         # same usable path.  If initialisation fails (e.g. due to filesystem
         # permissions) fall back to a temporary directory and retry once.
         current_path = redirected_path
+        temp_dir = None
         for _ in range(2):
             try:
                 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
@@ -97,11 +102,14 @@ class KuzuMemoryStore(MemoryStore):
                     f"Initialization error for Kuzu memory at {current_path}: {exc}"
                 )
                 current_path = tempfile.mkdtemp(prefix="kuzu_store_")
+                temp_dir = current_path
         else:
             raise MemoryStoreError("Failed to initialise Kuzu memory store")
 
         # Persist the final path used by both backends
         self.persist_directory = current_path
+        if temp_dir:
+            self._temp_dir = self.persist_directory
 
         self.use_provider_system = use_provider_system
         self.provider_type = provider_type
