@@ -221,3 +221,33 @@ class BaseMethodologyAdapter(ABC):
     ) -> Dict[str, Any]:
         """Actions after the Retrospect phase."""
         return results
+
+    def before_analysis(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Actions before the Analysis phase."""
+        return context
+
+    def after_analysis(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Actions after the Analysis phase."""
+        return results
+
+    def before_implementation(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Actions before the Implementation phase."""
+        return context
+
+    def after_implementation(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Actions after the Implementation phase."""
+        return results
+
+    def before_refinement(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Actions before the Refinement phase."""
+        return context
+
+    def after_refinement(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Actions after the Refinement phase."""
+        return results

@@ -37,6 +37,8 @@ The EDRR framework is a structured approach to problem-solving that guides the D
 3. **Refine**: Convergent thinking to elaborate details and optimize solutions
 4. **Retrospect**: Reflective analysis to extract learning and improve future performance
 
+Additional alias phases—Analysis, Implementation, and Refinement—are now supported in the base methodology adapter through default hooks, enabling custom workflows to integrate seamlessly.
+
 
 ## Implementation Status by Phase
 
