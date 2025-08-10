@@ -561,6 +561,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
             # Update the phase results in the coordinator
             self.results[self.current_phase.name] = results
+            # Refresh aggregate outputs so peer review data is included in
+            # subsequent phase reports and final summaries.
+            self._aggregate_results()
 
         # Collect metrics for the phase execution
         phase = self.current_phase
