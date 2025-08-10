@@ -418,7 +418,8 @@ class DocumentationIngestionManager:
 
         # Create a unique ID based on content and source
         source = metadata.get("source", "unknown")
-        content_hash = hashlib.md5(content.encode()).hexdigest()
+        # Use SHA-256 for a more secure and collision-resistant hash
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
         doc_id = f"doc_{source}_{content_hash}"
 
         # Record the documentation type in metadata for easier querying.
