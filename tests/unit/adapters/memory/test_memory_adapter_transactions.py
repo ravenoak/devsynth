@@ -5,6 +5,8 @@ import types
 
 import pytest
 
+pytestmark = pytest.mark.isolation
+
 
 def _import_adapter():
     """Import ``memory_adapter`` with heavy dependencies patched out."""
@@ -50,8 +52,8 @@ def _import_adapter():
         sys.modules.setdefault(name, module)
 
     from devsynth.adapters.memory.memory_adapter import (  # type: ignore
-        MemorySystemAdapter,
         MemoryStoreError,
+        MemorySystemAdapter,
     )
 
     return MemorySystemAdapter, MemoryStoreError
