@@ -109,7 +109,8 @@ Additional alias phases—Analysis, Implementation, and Refinement—are now sup
 The EDRR framework is now feature complete. Phase transition logic, context
 persistence, and recursion limits are implemented in the coordinator. Advanced
 collaboration features can be toggled with feature flags, but the base workflow
-is stable and ready for production use. See the
+is stable and ready for production use. Configuration values for recursion are
+sanitized to prevent misconfiguration attacks. See the
 [Feature Status Matrix](feature_status_matrix.md) for ongoing enhancements.
 
 ## Critical Gaps and Priorities
