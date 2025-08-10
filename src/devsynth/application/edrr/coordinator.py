@@ -620,6 +620,14 @@ class EDRRCoordinator:
                 # Start tracking the phase
                 self.manifest_parser.start_phase(phase)
 
+            # Ensure any pending memory operations are flushed before transitioning
+            try:
+                self.memory_manager.flush_updates()
+            except Exception as flush_error:  # pragma: no cover - defensive
+                logger.debug(
+                    f"Failed to flush memory updates before phase transition: {flush_error}"
+                )
+
             # Rotate Primus after the first phase
             previous_phase = self.current_phase
             if previous_phase is not None:
@@ -690,70 +698,9 @@ class EDRRCoordinator:
                     }
                 )
 
-            # Execute the phase
-            if phase == Phase.EXPAND:
-                results = self._execute_expand_phase({})
-            elif phase == Phase.DIFFERENTIATE:
-                results = self._execute_differentiate_phase({})
-            elif phase == Phase.REFINE:
-                results = self._execute_refine_phase({})
-            elif phase == Phase.RETROSPECT:
-                results = self._execute_retrospect_phase({})
-
-            end_time = datetime.now()
-            duration = (end_time - start_time).total_seconds()
-            perf = self.performance_metrics.setdefault(phase.name, {})
-            perf["duration"] = duration
-            perf["memory_usage"] = len(str(results))
-            perf.setdefault(
-                "component_calls",
-                {
-                    "wsde_team": 1,
-                    "code_analyzer": 1,
-                    "prompt_manager": 1,
-                    "documentation_manager": 1,
-                },
-            )
-            if "duration_adjustment_factor" in perf:
-                perf["original_duration"] = duration
-                perf["adjusted_duration"] = (
-                    duration * perf["duration_adjustment_factor"]
-                )
-
-            if self._enable_enhanced_logging:
-                self._execution_history.append(
-                    {
-                        "timestamp": end_time.isoformat(),
-                        "phase": phase.value,
-                        "action": "end",
-                        "details": {"duration": duration},
-                    }
-                )
-
-            # Attach preserved context to results for reference
-            if hasattr(self, "_preserved_context"):
-                results["context"] = {
-                    "previous_phases": copy.deepcopy(self._preserved_context)
-                }
-
-            # Save results
-            self.results[phase.name] = results
-            # Refresh aggregated results
-            self._aggregate_results()
-
-            # Complete tracking the phase if using a manifest
-            if self.manifest is not None and self.manifest_parser:
-                self.manifest_parser.complete_phase(phase, self.results.get(phase))
-
             logger.info(
-                f"Progressed to and completed {phase.value} phase for task: {self.task.get('description', 'Unknown')}"
+                f"Transitioned to {phase.value} phase for task: {self.task.get('description', 'Unknown')}"
             )
-
-            # Persist context for future phases
-            self._persist_context_snapshot(phase)
-
-            # Automatically transition to next phase if enabled
-            self._maybe_auto_progress()
         except ManifestParseError as e:
             logger.error(f"Failed to progress to phase {phase.value}: {e}")
             raise EDRRCoordinatorError(
@@ -2272,7 +2219,46 @@ class EDRRCoordinator:
             )
 
         try:
+            try:
+                self.memory_manager.flush_updates()
+            except Exception as flush_error:  # pragma: no cover - defensive
+                logger.debug(
+                    f"Failed to flush memory updates before phase execution: {flush_error}"
+                )
+
+            start_time = datetime.now()
             results = executor(context)
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+
+            perf = self.performance_metrics.setdefault(self.current_phase.name, {})
+            perf["duration"] = duration
+            perf["memory_usage"] = len(str(results))
+            perf.setdefault(
+                "component_calls",
+                {
+                    "wsde_team": 1,
+                    "code_analyzer": 1,
+                    "prompt_manager": 1,
+                    "documentation_manager": 1,
+                },
+            )
+            if "duration_adjustment_factor" in perf:
+                perf["original_duration"] = duration
+                perf["adjusted_duration"] = (
+                    duration * perf["duration_adjustment_factor"]
+                )
+
+            if self._enable_enhanced_logging:
+                self._execution_history.append(
+                    {
+                        "timestamp": end_time.isoformat(),
+                        "phase": self.current_phase.value,
+                        "action": "end",
+                        "details": {"duration": duration},
+                    }
+                )
+
             self.results[self.current_phase.name] = results
 
             # Optional peer review for the phase results
@@ -2283,6 +2269,38 @@ class EDRRCoordinator:
             # Run additional micro-cycles until quality thresholds are met
             results = self._run_micro_cycles(self.current_phase, results)
             self.results[self.current_phase.name] = results
+
+            if hasattr(self, "_preserved_context"):
+                results.setdefault("context", {})["previous_phases"] = copy.deepcopy(
+                    self._preserved_context
+                )
+
+            # Refresh aggregated results
+            self._aggregate_results()
+
+            # Complete tracking the phase if using a manifest
+            if self.manifest is not None and self.manifest_parser:
+                self.manifest_parser.complete_phase(
+                    self.current_phase, self.results.get(self.current_phase)
+                )
+
+            # Persist context for future phases
+            self._persist_context_snapshot(self.current_phase)
+
+            try:
+                self.memory_manager.flush_updates()
+            except Exception as flush_error:  # pragma: no cover - defensive
+                logger.debug(
+                    f"Failed to flush memory updates after phase execution: {flush_error}"
+                )
+
+            logger.info(
+                f"Completed {self.current_phase.value} phase for task: {self.task.get('description', 'Unknown')}"
+            )
+
+            # Automatically transition to next phase if enabled
+            self._maybe_auto_progress()
+
             return results.get("aggregated_results", results)
         except Exception as e:
             logger.error(f"Error executing phase {self.current_phase.value}: {str(e)}")

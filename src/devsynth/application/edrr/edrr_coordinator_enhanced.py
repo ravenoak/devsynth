@@ -120,35 +120,8 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             # Record the start of the phase in metrics
             self.phase_metrics.start_phase(phase)
 
-            # Call the parent implementation
+            # Call the parent implementation (handles role transitions and memory syncing)
             super().progress_to_phase(phase)
-
-            # Collect metrics for the phase
-            phase_results = self.results.get(phase.name, {})
-            metrics = collect_phase_metrics(phase, phase_results)
-
-            # Record the end of the phase in metrics
-            self.phase_metrics.end_phase(phase, metrics)
-
-            # Store the metrics in memory
-            metrics_metadata = {"cycle_id": self.cycle_id, "type": "PHASE_METRICS"}
-            self._safe_store_with_edrr_phase(
-                metrics, MemoryType.EPISODIC, phase.value, metrics_metadata
-            )
-
-            # Log the metrics
-            logger.info(f"Phase {phase.name} metrics: {metrics}")
-            if self.performance_metrics.get("consensus_failures"):
-                logger.warning(
-                    "Consensus failures detected during phase progression",
-                    extra={
-                        "cycle_id": self.cycle_id,
-                        "failures": self.performance_metrics["consensus_failures"],
-                    },
-                )
-
-            # Automatically transition to next phase if enabled and conditions are met
-            self._enhanced_maybe_auto_progress()
         except Exception as e:
             logger.error(f"Failed to progress to phase {phase.value}: {e}")
             raise EDRRCoordinatorError(
@@ -522,8 +495,11 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         Raises:
             EDRRCoordinatorError: If no phase is currently active
         """
-        # Execute the phase using the parent implementation
+        # Temporarily disable automatic transitions while executing the parent logic
+        original_auto = self.auto_phase_transitions
+        self.auto_phase_transitions = False
         results = super().execute_current_phase(context)
+        self.auto_phase_transitions = original_auto
 
         # Skip peer review if the phase execution failed
         if "error" in results:
@@ -585,6 +561,30 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
             # Update the phase results in the coordinator
             self.results[self.current_phase.name] = results
+
+        # Collect metrics for the phase execution
+        phase = self.current_phase
+        phase_results = self.results.get(phase.name, {})
+        metrics = collect_phase_metrics(phase, phase_results)
+        self.phase_metrics.end_phase(phase, metrics)
+
+        metrics_metadata = {"cycle_id": self.cycle_id, "type": "PHASE_METRICS"}
+        self._safe_store_with_edrr_phase(
+            metrics, MemoryType.EPISODIC, phase.value, metrics_metadata
+        )
+
+        logger.info(f"Phase {phase.name} metrics: {metrics}")
+        if self.performance_metrics.get("consensus_failures"):
+            logger.warning(
+                "Consensus failures detected during phase progression",
+                extra={
+                    "cycle_id": self.cycle_id,
+                    "failures": self.performance_metrics["consensus_failures"],
+                },
+            )
+
+        # Automatically transition to next phase if enabled and conditions are met
+        self._enhanced_maybe_auto_progress()
 
         return results
 
