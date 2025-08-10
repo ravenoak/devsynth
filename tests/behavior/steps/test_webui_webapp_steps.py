@@ -1,7 +1,7 @@
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import given_webui_initialized, webui_context
+from .webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
 scenarios("../features/webui/webapp.feature")

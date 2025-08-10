@@ -1,7 +1,7 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from .test_webui_steps import webui_context, given_webui_initialized
+from .webui_steps import given_webui_initialized, webui_context
 
 # Import the scenarios from the feature file
 scenarios("../features/general/webui_doctor.feature")
@@ -80,7 +80,11 @@ def check_system_check_runs(webui_context):
     # Check that the system check runs
     # This could be implemented by checking that the check function was called
     # or by checking that a progress indicator is displayed
-    assert webui_context["st"].spinner.called if hasattr(webui_context["st"], "spinner") else True
+    assert (
+        webui_context["st"].spinner.called
+        if hasattr(webui_context["st"], "spinner")
+        else True
+    )
 
 
 @pytest.mark.medium
@@ -94,7 +98,11 @@ def check_system_check_results_displayed(webui_context):
 @then("the comprehensive system check should run")
 def check_comprehensive_system_check_runs(webui_context):
     # Check that the comprehensive system check runs
-    assert webui_context["st"].spinner.called if hasattr(webui_context["st"], "spinner") else True
+    assert (
+        webui_context["st"].spinner.called
+        if hasattr(webui_context["st"], "spinner")
+        else True
+    )
 
 
 @pytest.mark.medium
@@ -108,7 +116,11 @@ def check_detailed_system_check_results_displayed(webui_context):
 @then("the system should attempt to fix the issues")
 def check_system_attempts_to_fix_issues(webui_context):
     # Check that the system attempts to fix the issues
-    assert webui_context["st"].spinner.called if hasattr(webui_context["st"], "spinner") else True
+    assert (
+        webui_context["st"].spinner.called
+        if hasattr(webui_context["st"], "spinner")
+        else True
+    )
 
 
 @pytest.mark.medium
@@ -143,7 +155,11 @@ def check_system_check_report_exported(webui_context):
 @then("the component check should run")
 def check_component_check_runs(webui_context):
     # Check that the component check runs
-    assert webui_context["st"].spinner.called if hasattr(webui_context["st"], "spinner") else True
+    assert (
+        webui_context["st"].spinner.called
+        if hasattr(webui_context["st"], "spinner")
+        else True
+    )
 
 
 @pytest.mark.medium

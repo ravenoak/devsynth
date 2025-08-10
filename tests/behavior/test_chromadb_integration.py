@@ -18,8 +18,8 @@ if not chromadb_enabled:
 from pytest_bdd import scenarios
 
 pytestmark = pytest.mark.requires_resource("chromadb")
+from .steps.cli_commands_steps import *
 from .steps.test_chromadb_steps import *
-from .steps.test_cli_commands_steps import *
 
 
 def test_chromadb_scenarios_succeeds():

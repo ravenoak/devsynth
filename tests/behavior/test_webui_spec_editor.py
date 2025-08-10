@@ -3,7 +3,7 @@ import os
 from pytest_bdd import scenarios
 
 from .steps.test_webui_spec_editor_steps import *  # noqa: F401,F403
-from .steps.test_webui_steps import *  # noqa: F401,F403
+from .steps.webui_steps import *  # noqa: F401,F403
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(

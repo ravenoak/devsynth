@@ -2,40 +2,42 @@
 Step definitions for CLI Command Execution feature.
 """
 
+import logging
 import os
 import sys
-import logging
-import pytest
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock, ANY
 from io import StringIO
+from unittest.mock import ANY, MagicMock, patch
+
+import pytest
+from pytest_bdd import given, parsers, then, when
 
 # Import the CLI modules
 from typer.testing import CliRunner
+
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.cli_commands import (
-    init_cmd,
-    run_pipeline_cmd,
     config_cmd,
+    dbschema_cmd,
     edrr_cycle_cmd,
+    gather_cmd,
+    init_cmd,
     inspect_cmd,
     refactor_cmd,
+    run_pipeline_cmd,
     serve_cmd,
-    gather_cmd,
     webapp_cmd,
-    dbschema_cmd,
-)
-from devsynth.application.cli.commands.validate_manifest_cmd import (
-    validate_manifest_cmd,
-)
-from devsynth.application.cli.commands.validate_metadata_cmd import (
-    validate_metadata_cmd,
 )
 from devsynth.application.cli.commands.alignment_metrics_cmd import (
     alignment_metrics_cmd,
 )
 from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
+from devsynth.application.cli.commands.validate_manifest_cmd import (
+    validate_manifest_cmd,
+)
+from devsynth.application.cli.commands.validate_metadata_cmd import (
+    validate_metadata_cmd,
+)
 
 
 @pytest.mark.medium
@@ -200,7 +202,9 @@ def check_generate_tests(mock_workflow_manager):
 
 
 @pytest.mark.medium
-@then(    parsers.parse("the system should generate {output_type} based on the {input_type}"))
+@then(
+    parsers.parse("the system should generate {output_type} based on the {input_type}")
+)
 def check_generation(output_type, input_type, mock_workflow_manager, command_context):
     """
     Verify that the system generated the expected output based on the input.
@@ -389,9 +393,7 @@ def output_mentions_missing_vars(command_context):
 @then("the system should gather requirements interactively")
 def check_gather_requirements_interactively(mock_workflow_manager):
     """Verify that the system gathered requirements interactively."""
-    mock_workflow_manager.execute_command.assert_any_call(
-        "gather", ANY
-    )
+    mock_workflow_manager.execute_command.assert_any_call("gather", ANY)
 
 
 @pytest.mark.medium
@@ -412,7 +414,7 @@ def check_generate_flask_application(path, mock_workflow_manager):
     parts = path.split("/")
     name = parts[-1]
     path = "/".join(parts[:-1])
-    
+
     mock_workflow_manager.execute_command.assert_any_call(
         "webapp", {"framework": "flask", "name": name, "path": path, "force": False}
     )
@@ -426,7 +428,7 @@ def check_generate_fastapi_application(path, mock_workflow_manager):
     parts = path.split("/")
     name = parts[-1]
     path = "/".join(parts[:-1])
-    
+
     mock_workflow_manager.execute_command.assert_any_call(
         "webapp", {"framework": "fastapi", "name": name, "path": path, "force": False}
     )
@@ -458,7 +460,7 @@ def check_generate_sqlite_schema(path, mock_workflow_manager):
     parts = path.split("/")
     name = parts[-1].replace("_schema", "")
     path = "/".join(parts[:-1])
-    
+
     mock_workflow_manager.execute_command.assert_any_call(
         "dbschema", {"db_type": "sqlite", "name": name, "path": path, "force": False}
     )
@@ -472,7 +474,7 @@ def check_generate_mysql_schema(path, mock_workflow_manager):
     parts = path.split("/")
     name = parts[-1].replace("_schema", "")
     path = "/".join(parts[:-1])
-    
+
     mock_workflow_manager.execute_command.assert_any_call(
         "dbschema", {"db_type": "mysql", "name": name, "path": path, "force": False}
     )
@@ -486,7 +488,7 @@ def check_generate_mongodb_schema(path, mock_workflow_manager):
     parts = path.split("/")
     name = parts[-1].replace("_schema", "")
     path = "/".join(parts[:-1])
-    
+
     mock_workflow_manager.execute_command.assert_any_call(
         "dbschema", {"db_type": "mongodb", "name": name, "path": path, "force": False}
     )

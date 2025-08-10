@@ -2,7 +2,7 @@ import os
 
 from pytest_bdd import scenarios
 
-from .steps.test_cli_commands_steps import *
+from .steps.cli_commands_steps import *
 from .steps.test_devsynth_doctor_steps import *
 
 # Get the absolute path to the feature file

@@ -19,7 +19,7 @@ from devsynth.application.cli.cli_commands import webui_cmd
 scenarios("../features/webui/command.feature")
 
 # Reuse existing step definitions
-from .test_cli_commands_steps import (
+from .cli_commands_steps import (
     devsynth_cli_installed,
     run_command,
     valid_devsynth_project,

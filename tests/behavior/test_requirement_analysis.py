@@ -7,7 +7,7 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
-from .steps.test_cli_commands_steps import *
+from .steps.cli_commands_steps import *
 
 # Import the step definitions
 from .steps.test_requirement_analysis_steps import *
