@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Bootstrap the local DevSynth environment.
-# Builds and starts DevSynth along with monitoring stack.
+# Bootstrap a DevSynth environment with monitoring.
+# Usage: bootstrap_env.sh [environment]
+#   environment: development (default), staging, production, testing
+
+ENVIRONMENT=${1:-development}
 
 # Refuse to run as root
 if [[ "$EUID" -eq 0 ]]; then
   echo "Please run this script as a non-root user." >&2
+  exit 1
+fi
+
+# Allow only known environments
+ALLOWED_ENVIRONMENTS=(development staging production testing)
+if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
+  echo "Invalid environment: ${ENVIRONMENT}" >&2
   exit 1
 fi
 
@@ -16,4 +26,13 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.monitoring.yml up -d --build
+ENV_FILE=".env.${ENVIRONMENT}"
+if [[ -f "$ENV_FILE" ]] && [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
+  echo "Environment file $ENV_FILE must have 600 permissions" >&2
+  exit 1
+fi
+
+docker compose --env-file "$ENV_FILE" --profile "${ENVIRONMENT}" --profile monitoring up -d --build
+
+# Verify services are responsive
+"$(dirname "$0")/health_check.sh"
