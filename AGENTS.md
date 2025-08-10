@@ -56,6 +56,7 @@ Capture the reported coverage percentage and update the coverage shield in `READ
 ```
 
 Replace `XX` with the percentage from the test output and adjust the badge color if needed.
+The badge reflects coverage from the last successful test run and must be updated whenever coverage changes.
 
 ## Dependency Validation
 
