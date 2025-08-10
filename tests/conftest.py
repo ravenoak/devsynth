@@ -5,21 +5,21 @@ This module provides fixtures for ensuring all tests are hermetic (isolated from
 and don't pollute the developer's environment, file system, or depend on external services.
 """
 
-import os
-import sys
 import logging
-import pytest
-import tempfile
+import os
 import shutil
-import uuid
 import socket
-import yaml
+import sys
+import tempfile
+import uuid
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from devsynth.config.settings import ensure_path_exists
+import pytest
+import yaml
 
+from devsynth.config.settings import ensure_path_exists
 
 # Add a marker for tests requiring external resources
 requires_resource = pytest.mark.requires_resource
@@ -384,9 +384,9 @@ def reset_global_state():
     # Implementation will reset specific global variables in the codebase
     # Store original state
     from devsynth.logging_setup import (
-        _logging_configured,
         _configured_log_dir,
         _configured_log_file,
+        _logging_configured,
     )
 
     orig_logging_configured = _logging_configured
@@ -466,27 +466,39 @@ def is_chromadb_available() -> bool:
     # Check environment variable override first
     if os.environ.get("DEVSYNTH_FORCE_CHROMADB_AVAILABLE", "false").lower() == "true":
         return True
-    
+
     # Check if chromadb is installed
     try:  # pragma: no cover - simple import check
         import chromadb  # noqa: F401
+
         return True
     except ImportError:
         # Print a clear error message
-        print("\n\033[91mWARNING: chromadb package is not installed but is required for memory integration tests.\033[0m")
-        print("\033[93mTo install chromadb, run: poetry install --extras chromadb\033[0m")
-        print("\033[93mOr to install all memory dependencies: poetry install --extras memory\033[0m")
-        print("\033[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false\033[0m\n")
-        
+        print(
+            "\n\033[91mWARNING: chromadb package is not installed but is required for memory integration tests.\033[0m"
+        )
+        print(
+            "\033[93mTo install chromadb, run: poetry install --extras chromadb\033[0m"
+        )
+        print(
+            "\033[93mOr to install all memory dependencies: poetry install --extras memory\033[0m"
+        )
+        print(
+            "\033[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false\033[0m\n"
+        )
+
         # Check if we're running in CI environment
         if os.environ.get("CI", "false").lower() == "true":
             # In CI, we want to fail rather than skip
             return True
-        
+
         # For local development, respect the resource availability flag
-        if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower() == "false":
+        if (
+            os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower()
+            == "false"
+        ):
             return False
-            
+
         # Default behavior: return False to skip tests requiring chromadb
         return False
 
@@ -536,6 +548,21 @@ def is_lmdb_available() -> bool:
         return False
 
 
+def is_anthropic_available() -> bool:
+    """Check if the anthropic package and API key are available."""
+    if (
+        os.environ.get("DEVSYNTH_RESOURCE_ANTHROPIC_AVAILABLE", "true").lower()
+        == "false"
+    ):
+        return False
+    try:  # pragma: no cover - simple import check
+        import anthropic  # noqa: F401
+
+    except Exception:
+        return False
+    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+
+
 def is_resource_available(resource: str) -> bool:
     """
     Check if a resource is available.
@@ -552,6 +579,7 @@ def is_resource_available(resource: str) -> bool:
     """
     # Map resource names to checker functions
     checker_map = {
+        "anthropic": is_anthropic_available,
         "lmstudio": is_lmstudio_available,
         "codebase": is_codebase_available,
         "cli": is_cli_available,
