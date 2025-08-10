@@ -13,35 +13,15 @@ import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
 
-# ``fallback`` is used in a number of tests where the optional
-# ``prometheus_client`` dependency may not be installed.  To keep those tests
-# runnable in minimal environments we degrade gracefully to a no-op counter
-# implementation when the import fails.
-try:  # pragma: no cover - import guarded for optional dependency
-    from prometheus_client import Counter
-except Exception:  # pragma: no cover - fallback for minimal environments
-
-    class Counter:  # type: ignore[override]
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
-            pass
-
-        def labels(self, *args: object, **kwargs: object) -> "Counter":
-            return self
-
-        def inc(self, *args: object, **kwargs: object) -> None:
-            pass
-
-        def clear(self) -> None:
-            pass
-
-
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
 from .metrics import (
+    circuit_breaker_state_counter,
     get_retry_condition_metrics,
     get_retry_count_metrics,
     get_retry_error_metrics,
     get_retry_metrics,
+    inc_circuit_breaker_state,
     inc_retry,
     inc_retry_condition,
     inc_retry_count,
@@ -58,13 +38,6 @@ R = TypeVar("R")
 
 # Create a logger for this module
 logger = DevSynthLogger("fallback")
-
-# Prometheus counter for circuit breaker metrics
-circuit_breaker_state_counter = Counter(
-    "devsynth_circuit_breaker_state_total",
-    "Circuit breaker state transitions",
-    ["function", "state"],
-)
 
 
 def reset_prometheus_metrics() -> None:
@@ -536,18 +509,14 @@ class CircuitBreaker:
                 with self.lock:
                     self.state = self.HALF_OPEN
                     self.test_calls_remaining = self.test_calls
-                circuit_breaker_state_counter.labels(
-                    function=func.__name__, state=self.HALF_OPEN
-                ).inc()
+                inc_circuit_breaker_state(func.__name__, self.HALF_OPEN)
                 self.logger.info(
                     f"Circuit breaker for {func.__name__} transitioned from OPEN to HALF_OPEN",
                     function=func.__name__,
                     state=self.state,
                 )
             else:
-                circuit_breaker_state_counter.labels(
-                    function=func.__name__, state=self.OPEN
-                ).inc()
+                inc_circuit_breaker_state(func.__name__, self.OPEN)
                 self.logger.warning(
                     f"Circuit breaker for {func.__name__} is OPEN, failing fast",
                     function=func.__name__,
@@ -575,9 +544,7 @@ class CircuitBreaker:
                     if self.test_calls_remaining <= 0:
                         self.state = self.CLOSED
                         self.failure_count = 0
-                        circuit_breaker_state_counter.labels(
-                            function=func.__name__, state=self.CLOSED
-                        ).inc()
+                        inc_circuit_breaker_state(func.__name__, self.CLOSED)
                         self.logger.info(
                             f"Circuit breaker for {func.__name__} transitioned from HALF_OPEN to CLOSED",
                             function=func.__name__,
@@ -594,9 +561,7 @@ class CircuitBreaker:
                     and self.failure_count >= self.failure_threshold
                 ):
                     self.state = self.OPEN
-                    circuit_breaker_state_counter.labels(
-                        function=func.__name__, state=self.OPEN
-                    ).inc()
+                    inc_circuit_breaker_state(func.__name__, self.OPEN)
                     self.logger.warning(
                         f"Circuit breaker for {func.__name__} transitioned to OPEN due to failure",
                         error=e,

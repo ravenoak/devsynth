@@ -1,6 +1,7 @@
-import pytest
-from unittest.mock import Mock, patch
 import time
+from unittest.mock import Mock
+
+import pytest
 
 from devsynth.fallback import retry_with_exponential_backoff
 
@@ -137,8 +138,8 @@ def test_exponential_backoff(monkeypatch):
 @pytest.mark.medium
 def test_fallback_provider_order():
     from devsynth.adapters.provider_system import (
-        FallbackProvider,
         BaseProvider,
+        FallbackProvider,
         ProviderError,
     )
 
