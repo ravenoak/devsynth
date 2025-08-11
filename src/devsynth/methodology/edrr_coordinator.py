@@ -83,5 +83,12 @@ class EDRRCoordinator:
         """
 
         summary = map_retrospective_to_summary(retrospective, sprint)
+        if not summary:
+            return {}
+
+        summary["positive_count"] = len(summary.get("positives", []))
+        summary["improvement_count"] = len(summary.get("improvements", []))
+        summary["action_item_count"] = len(summary.get("action_items", []))
+
         self._store_phase_result(summary, MemoryType.PEER_REVIEW, "RETROSPECT")
         return summary
