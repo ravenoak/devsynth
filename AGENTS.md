@@ -9,7 +9,8 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
 - Run `scripts/codex_setup.sh` before beginning any development to provision the environment. Update the script as appropriate and according to best practices.
-- References to this file or `scripts/codex_setup.sh` must not appear elsewhere in the repository.
+- References to this file or `scripts/codex_setup.sh` must not appear elsewhere in the repository. Outside these files, refer to it generically as the environment provisioning script.
+- Keep optional extras in `pyproject.toml` synchronized with the cache list in `scripts/codex_setup.sh` so offline setups remain reproducible.
 - Update this file, your instructions and initial context, as appropriate and according to best-practices.
 - Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
 - Documents in `docs/external_research_papers/` are copies of academic papers and can be referenced using best-practices.
@@ -34,10 +35,10 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
    poetry run pytest -m "not memory_intensive"
    ```
 
-4. Verify dependencies:
+4. Verify dependencies offline:
 
    ```bash
-   poetry run pip check
+   PIP_NO_INDEX=1 poetry run pip check
    ```
 
 ## Pre-PR Checks
