@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 
 def test_chromadb_transaction_commit_and_rollback(tmp_path, monkeypatch):
-    """Vectors added within a transaction should rollback correctly."""
+    """Vectors added within a transaction should rollback correctly. ReqID: FR-60"""
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
     # Avoid network calls by supplying a no-op embedding function
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))

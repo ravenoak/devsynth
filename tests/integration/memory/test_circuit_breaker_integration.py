@@ -1,10 +1,12 @@
 import time
+
 import pytest
 
 from devsynth.application.memory.circuit_breaker import CircuitBreaker
 
 
 def test_circuit_breaker_resets_after_timeout():
+    """Circuit breaker transitions to CLOSED after timeout. ReqID: FR-60"""
     breaker = CircuitBreaker("demo", failure_threshold=1, reset_timeout=0.1)
 
     def boom():
