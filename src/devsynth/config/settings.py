@@ -148,7 +148,10 @@ class Settings(BaseSettings):
             "memory_store_type": lambda s: os.environ.get(
                 "DEVSYNTH_MEMORY_STORE", "memory"
             ),
-            "kuzu_db_path": lambda s: os.environ.get("DEVSYNTH_KUZU_DB_PATH", None),
+            # Expose configurable Kuzu settings with environment overrides
+            "kuzu_db_path": lambda s: os.environ.get(
+                "DEVSYNTH_KUZU_DB_PATH", s.kuzu_db_path
+            ),
             "kuzu_embedded": lambda s: _parse_bool_env(
                 os.environ.get("DEVSYNTH_KUZU_EMBEDDED", str(s.kuzu_embedded)),
                 "kuzu_embedded",

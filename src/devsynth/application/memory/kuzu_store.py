@@ -57,22 +57,24 @@ class KuzuStore(MemoryStore):
     def __init__(
         self, file_path: Union[str, None] = None, use_embedded: Union[bool, None] = None
     ) -> None:
+        # Load the latest configuration to honour environment variable
+        # overrides that may have been applied after module import.  Rely on
+        # the settings object rather than module-level constants so changes are
+        # consistently respected.
+        settings = settings_module.get_settings()
+
         # ``ensure_path_exists`` handles path redirection and optional
         # directory creation based on the test environment.  Use the returned
         # path so tests that set ``DEVSYNTH_PROJECT_DIR`` are respected and
         # avoid manual ``os.makedirs`` which would ignore the
-        # ``DEVSYNTH_NO_FILE_LOGGING`` setting.
-        # ``ensure_path_exists`` may redirect the path when running under the
-        # test isolation fixtures.  Use the returned path so the database is
-        # created in the correct location rather than the original argument
-        # which may be outside the temporary test directory.
-        base_path = os.path.abspath(
-            settings_module.ensure_path_exists(
-                file_path
-                or settings_module.kuzu_db_path
-                or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
-            )
+        # ``DEVSYNTH_NO_FILE_LOGGING`` setting.  ``ensure_path_exists`` may
+        # redirect the path when running under the test isolation fixtures.
+        base_directory = (
+            file_path
+            or getattr(settings, "kuzu_db_path", settings_module.kuzu_db_path)
+            or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
         )
+        base_path = os.path.abspath(settings_module.ensure_path_exists(base_directory))
         try:
             os.makedirs(base_path, exist_ok=True)
             self.file_path = base_path
@@ -101,15 +103,7 @@ class KuzuStore(MemoryStore):
         # explicit value is provided, consult the live settings to honour any
         # environment variable overrides that may have been applied after the
         # module was imported.
-        raw_embedded = (
-            getattr(
-                settings_module.get_settings(),
-                "kuzu_embedded",
-                getattr(settings_module, "kuzu_embedded", True),
-            )
-            if use_embedded is None
-            else use_embedded
-        )
+        raw_embedded = settings.kuzu_embedded if use_embedded is None else use_embedded
         if isinstance(raw_embedded, str):
             raw_embedded = raw_embedded.lower() in {"1", "true", "yes"}
         self.use_embedded = bool(raw_embedded)
