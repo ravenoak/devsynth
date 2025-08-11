@@ -46,3 +46,56 @@ def test_multi_store_sync_and_persistence(tmp_path, monkeypatch):
     assert manager2.kuzu.retrieve("alpha") is not None
     assert manager2.kuzu.vector.retrieve_vector("alpha") is not None
     manager2.cleanup()
+
+
+def test_multi_store_transaction_persistence(tmp_path, monkeypatch):
+    """Transactions should commit and rollback across all stores with persistence."""
+
+    ef = pytest.importorskip("chromadb.utils.embedding_functions")
+    monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
+
+    manager = MultiStoreSyncManager(str(tmp_path))
+
+    item = MemoryItem(id="alpha", content="persist", memory_type=MemoryType.CODE)
+    vector = MemoryVector(
+        id="alpha",
+        content="persist",
+        embedding=[0.2] * manager.faiss.dimension,
+        metadata={},
+    )
+
+    # Commit a transaction that adds data to LMDB and FAISS
+    with manager.transaction():
+        manager.lmdb.store(item)
+        manager.faiss.store_vector(vector)
+
+    # Propagate to Kuzu after transaction commit
+    manager.synchronize_all()
+
+    assert manager.kuzu.retrieve("alpha") is not None
+    assert manager.faiss.retrieve_vector("alpha") is not None
+
+    # Start another transaction and roll it back
+    tid = manager.begin_transaction()
+    manager.lmdb.store(MemoryItem(id="beta", content="x", memory_type=MemoryType.CODE))
+    manager.faiss.store_vector(
+        MemoryVector(
+            id="beta",
+            content="x",
+            embedding=[0.1] * manager.faiss.dimension,
+            metadata={},
+        )
+    )
+    manager.rollback_transaction(tid)
+
+    manager.synchronize_all()
+
+    assert manager.lmdb.retrieve("beta") is None
+    assert manager.kuzu.retrieve("beta") is None
+
+    # Recreate manager to verify persistence
+    manager.cleanup()
+    manager2 = MultiStoreSyncManager(str(tmp_path))
+    assert manager2.lmdb.retrieve("alpha") is not None
+    assert manager2.lmdb.retrieve("beta") is None
+    manager2.cleanup()
