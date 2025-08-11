@@ -4,19 +4,19 @@ This module extends the basic error handler with more specific error patterns
 and suggestions, as well as improved formatting for error messages.
 """
 
-from typing import Dict, List, Optional, Union, Any, Tuple
-import re
 import inspect
-import traceback
+import re
 import sys
+import traceback
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from rich.panel import Panel
-from rich.text import Text
 from rich.console import Console
 from rich.markdown import Markdown
-from rich.table import Table
+from rich.panel import Panel
 from rich.syntax import Syntax
+from rich.table import Table
+from rich.text import Text
 
 from devsynth.interface.error_handler import EnhancedErrorHandler, ErrorSuggestion
 from devsynth.logging_setup import DevSynthLogger
@@ -58,26 +58,26 @@ class ActionableErrorSuggestion(ErrorSuggestion):
     def __str__(self) -> str:
         """Return a string representation of the suggestion."""
         parts = [self.suggestion]
-        
+
         if self.actionable_steps:
             parts.append("\nActionable steps:")
             for i, step in enumerate(self.actionable_steps, 1):
                 parts.append(f"{i}. {step}")
-        
+
         if self.documentation_link:
             parts.append(f"\nDocumentation: {self.documentation_link}")
-        
+
         if self.command_example:
             parts.append(f"\nExample command: {self.command_example}")
-        
+
         if self.code_example:
             parts.append(f"\nExample code:\n{self.code_example}")
-        
+
         if self.related_errors:
             parts.append("\nRelated errors:")
             for error in self.related_errors:
                 parts.append(f"- {error}")
-        
+
         return "\n".join(parts)
 
 
@@ -97,7 +97,7 @@ class ImprovedErrorHandler(EnhancedErrorHandler):
                     "Check that all memory stores are properly configured",
                     "Verify that the memory synchronization service is running",
                     "Check the memory integration logs for errors",
-                    "Try restarting the memory synchronization service"
+                    "Try restarting the memory synchronization service",
                 ],
                 code_example="""
 # Example of proper memory store configuration
@@ -112,8 +112,8 @@ memory_manager = MemoryManager(
                 related_errors=[
                     "MemorySyncError",
                     "CrossStoreIntegrationError",
-                    "MemoryAdapterNotFoundError"
-                ]
+                    "MemoryAdapterNotFoundError",
+                ],
             ),
         ),
         # WSDE peer review errors
@@ -127,7 +127,7 @@ memory_manager = MemoryManager(
                     "Verify that the WSDE team is properly configured",
                     "Check that all required roles are assigned",
                     "Ensure that the peer review workflow is enabled",
-                    "Check the WSDE logs for errors"
+                    "Check the WSDE logs for errors",
                 ],
                 code_example="""
 # Example of proper WSDE team configuration
@@ -143,8 +143,8 @@ wsde_team = WSDETeam(
                 related_errors=[
                     "WSPEPeerReviewError",
                     "WorkflowConfigurationError",
-                    "MissingTeamMemberError"
-                ]
+                    "MissingTeamMemberError",
+                ],
             ),
         ),
         # Test failures
@@ -153,12 +153,12 @@ wsde_team = WSDETeam(
             ActionableErrorSuggestion(
                 "There may be issues with the tests.",
                 "https://devsynth.readthedocs.io/en/latest/developer_guides/testing.html",
-                "python scripts/run_all_tests.py --report",
+                "devsynth run-tests --report",
                 actionable_steps=[
                     "Run the tests with the --verbose flag to get more information",
                     "Check the test logs for specific error messages",
                     "Verify that the test environment is properly configured",
-                    "Try running the failing tests individually"
+                    "Try running the failing tests individually",
                 ],
                 code_example="""
 # Example of running specific tests
@@ -170,8 +170,8 @@ python -m pytest -m "fast" -v
                 related_errors=[
                     "AssertionError",
                     "TestSetupError",
-                    "TestEnvironmentError"
-                ]
+                    "TestEnvironmentError",
+                ],
             ),
         ),
         # CLI UX errors
@@ -185,7 +185,7 @@ python -m pytest -m "fast" -v
                     "Check that the terminal supports Rich formatting",
                     "Verify that the CLI UX bridge is properly configured",
                     "Try running with the --no-color flag if terminal formatting is causing issues",
-                    "Check the CLI logs for errors"
+                    "Check the CLI logs for errors",
                 ],
                 code_example="""
 # Example of proper CLI UX bridge configuration
@@ -195,8 +195,8 @@ bridge.display_result("Message", message_type="info")
                 related_errors=[
                     "CLIUXBridgeError",
                     "OutputFormattingError",
-                    "TerminalCompatibilityError"
-                ]
+                    "TerminalCompatibilityError",
+                ],
             ),
         ),
         # Web UI errors
@@ -210,7 +210,7 @@ bridge.display_result("Message", message_type="info")
                     "Check that Streamlit is properly installed and configured",
                     "Verify that the WebUI state is properly initialized",
                     "Check the WebUI logs for errors",
-                    "Try restarting the WebUI server"
+                    "Try restarting the WebUI server",
                 ],
                 code_example="""
 # Example of proper WebUI state initialization
@@ -222,8 +222,8 @@ if 'wizard_state' not in st.session_state:
                 related_errors=[
                     "WebUIStateError",
                     "StreamlitError",
-                    "WizardStateError"
-                ]
+                    "WizardStateError",
+                ],
             ),
         ),
         # Shell completion errors
@@ -237,7 +237,7 @@ if 'wizard_state' not in st.session_state:
                     "Verify that the shell completion script is installed",
                     "Check that the shell completion script is sourced in your shell configuration",
                     "Try reinstalling the shell completion script",
-                    "Check that your shell supports completion scripts"
+                    "Check that your shell supports completion scripts",
                 ],
                 code_example="""
 # Add to ~/.bashrc or ~/.bash_profile for Bash
@@ -251,8 +251,8 @@ compinit
                 related_errors=[
                     "ShellCompletionError",
                     "CompletionScriptNotFoundError",
-                    "ShellConfigurationError"
-                ]
+                    "ShellConfigurationError",
+                ],
             ),
         ),
         # Command output formatting errors
@@ -266,7 +266,7 @@ compinit
                     "Check that the output formatter is properly configured",
                     "Verify that the terminal supports the requested output format",
                     "Try using a different output format (--format=text)",
-                    "Check the output formatter logs for errors"
+                    "Check the output formatter logs for errors",
                 ],
                 code_example="""
 # Example of proper output formatter configuration
@@ -276,8 +276,8 @@ formatter.format_command_output(data, format_name="rich")
                 related_errors=[
                     "OutputFormattingError",
                     "UnsupportedFormatError",
-                    "TerminalCompatibilityError"
-                ]
+                    "TerminalCompatibilityError",
+                ],
             ),
         ),
     ]
@@ -289,13 +289,15 @@ formatter.format_command_output(data, format_name="rich")
             console: Optional Rich console for output
         """
         super().__init__(console)
-        
+
         # Combine the base error patterns with the additional ones
         self.ERROR_PATTERNS = self.ERROR_PATTERNS + self.ADDITIONAL_ERROR_PATTERNS
-        
+
         logger.debug("Initialized ImprovedErrorHandler with additional error patterns")
 
-    def _find_suggestions(self, error_message: str) -> List[Union[ErrorSuggestion, ActionableErrorSuggestion]]:
+    def _find_suggestions(
+        self, error_message: str
+    ) -> List[Union[ErrorSuggestion, ActionableErrorSuggestion]]:
         """Find suggestions for an error message.
 
         This method overrides the base method to provide more specific suggestions
@@ -308,51 +310,57 @@ formatter.format_command_output(data, format_name="rich")
             A list of suggestions
         """
         suggestions = super()._find_suggestions(error_message)
-        
+
         # Add context-specific suggestions based on the current state of the system
         try:
             # Check if this is a test-related error
             if "pytest" in sys.modules or "unittest" in sys.modules:
-                suggestions.append(ActionableErrorSuggestion(
-                    "This error occurred during test execution.",
-                    "https://devsynth.readthedocs.io/en/latest/developer_guides/testing.html",
-                    "python scripts/run_all_tests.py --verbose",
-                    actionable_steps=[
-                        "Check the test logs for more information",
-                        "Try running the test with increased verbosity",
-                        "Verify that the test environment is properly configured"
-                    ]
-                ))
-            
+                suggestions.append(
+                    ActionableErrorSuggestion(
+                        "This error occurred during test execution.",
+                        "https://devsynth.readthedocs.io/en/latest/developer_guides/testing.html",
+                        "devsynth run-tests --verbose",
+                        actionable_steps=[
+                            "Check the test logs for more information",
+                            "Try running the test with increased verbosity",
+                            "Verify that the test environment is properly configured",
+                        ],
+                    )
+                )
+
             # Check if this is a CLI-related error
             if "devsynth.interface.cli" in sys.modules:
-                suggestions.append(ActionableErrorSuggestion(
-                    "This error occurred in the CLI interface.",
-                    "https://devsynth.readthedocs.io/en/latest/user_guides/cli_reference.html",
-                    "devsynth --help",
-                    actionable_steps=[
-                        "Check the command syntax",
-                        "Verify that all required parameters are provided",
-                        "Try running with the --verbose flag for more information"
-                    ]
-                ))
-            
+                suggestions.append(
+                    ActionableErrorSuggestion(
+                        "This error occurred in the CLI interface.",
+                        "https://devsynth.readthedocs.io/en/latest/user_guides/cli_reference.html",
+                        "devsynth --help",
+                        actionable_steps=[
+                            "Check the command syntax",
+                            "Verify that all required parameters are provided",
+                            "Try running with the --verbose flag for more information",
+                        ],
+                    )
+                )
+
             # Check if this is a WebUI-related error
             if "streamlit" in sys.modules or "devsynth.interface.webui" in sys.modules:
-                suggestions.append(ActionableErrorSuggestion(
-                    "This error occurred in the Web UI.",
-                    "https://devsynth.readthedocs.io/en/latest/user_guides/webui.html",
-                    "devsynth webui --debug",
-                    actionable_steps=[
-                        "Check the WebUI logs for more information",
-                        "Try restarting the WebUI server",
-                        "Verify that Streamlit is properly configured"
-                    ]
-                ))
+                suggestions.append(
+                    ActionableErrorSuggestion(
+                        "This error occurred in the Web UI.",
+                        "https://devsynth.readthedocs.io/en/latest/user_guides/webui.html",
+                        "devsynth webui --debug",
+                        actionable_steps=[
+                            "Check the WebUI logs for more information",
+                            "Try restarting the WebUI server",
+                            "Verify that Streamlit is properly configured",
+                        ],
+                    )
+                )
         except Exception as e:
             # Don't let errors in suggestion generation prevent the main error from being displayed
             logger.warning(f"Error while generating context-specific suggestions: {e}")
-        
+
         return suggestions
 
     def _format_rich_error(
@@ -360,7 +368,7 @@ formatter.format_command_output(data, format_name="rich")
         error_message: str,
         error_type: str,
         error_traceback: str,
-        suggestions: List[Union[ErrorSuggestion, ActionableErrorSuggestion]]
+        suggestions: List[Union[ErrorSuggestion, ActionableErrorSuggestion]],
     ) -> Panel:
         """Format an error with Rich formatting.
 
@@ -379,16 +387,17 @@ formatter.format_command_output(data, format_name="rich")
         error_table = Table(show_header=False, box=None)
         error_table.add_column("Key", style="bold red")
         error_table.add_column("Value")
-        
+
         # Add error type and message
         error_table.add_row("Error Type:", error_type)
         error_table.add_row("Message:", error_message)
-        
+
         # Add timestamp
         from datetime import datetime
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         error_table.add_row("Timestamp:", timestamp)
-        
+
         # Add traceback if available
         if error_traceback:
             syntax = Syntax(
@@ -399,71 +408,76 @@ formatter.format_command_output(data, format_name="rich")
                 word_wrap=True,
             )
             error_table.add_row("Traceback:", "")
-            
+
         # Create a table for the suggestions
         if suggestions:
             suggestion_table = Table(title="Suggestions", show_header=False, box=None)
             suggestion_table.add_column("Suggestion", style="bold green")
-            
+
             for suggestion in suggestions:
                 if isinstance(suggestion, ActionableErrorSuggestion):
                     # Format actionable suggestion
                     suggestion_text = Text()
-                    suggestion_text.append(f"{suggestion.suggestion}\n\n", style="bold green")
-                    
+                    suggestion_text.append(
+                        f"{suggestion.suggestion}\n\n", style="bold green"
+                    )
+
                     if suggestion.actionable_steps:
                         suggestion_text.append("Actionable steps:\n", style="bold")
                         for i, step in enumerate(suggestion.actionable_steps, 1):
                             suggestion_text.append(f"{i}. {step}\n", style="green")
                         suggestion_text.append("\n")
-                    
+
                     if suggestion.documentation_link:
                         suggestion_text.append(f"Documentation: ", style="bold")
                         suggestion_text.append(f"{suggestion.documentation_link}\n\n")
-                    
+
                     if suggestion.command_example:
                         suggestion_text.append(f"Example command: ", style="bold")
                         suggestion_text.append(f"{suggestion.command_example}\n\n")
-                    
+
                     if suggestion.code_example:
                         suggestion_text.append(f"Example code:\n", style="bold")
                         suggestion_text.append(f"{suggestion.code_example}\n\n")
-                    
+
                     if suggestion.related_errors:
                         suggestion_text.append(f"Related errors:\n", style="bold")
                         for error in suggestion.related_errors:
                             suggestion_text.append(f"- {error}\n")
-                    
+
                     suggestion_table.add_row(suggestion_text)
                 else:
                     # Format basic suggestion
                     suggestion_table.add_row(str(suggestion))
-        
+
         # Combine the tables into a panel
         content = Text()
-        content.append("An error occurred while executing the command.\n\n", style="bold red")
-        
+        content.append(
+            "An error occurred while executing the command.\n\n", style="bold red"
+        )
+
         # Add the error table
         from rich.console import Console
+
         console = Console(file=None)
         with console.capture() as capture:
             console.print(error_table)
         content.append(capture.get())
-        
+
         # Add the traceback if available
         if error_traceback:
             content.append("\nTraceback:\n", style="bold red")
             with console.capture() as capture:
                 console.print(syntax)
             content.append(capture.get())
-        
+
         # Add the suggestion table if available
         if suggestions:
             content.append("\nSuggestions:\n", style="bold green")
             with console.capture() as capture:
                 console.print(suggestion_table)
             content.append(capture.get())
-        
+
         # Create the panel
         return Panel(
             content,
@@ -487,7 +501,7 @@ formatter.format_command_output(data, format_name="rich")
         """
         # Use the base implementation for the basic formatting
         formatted_error = super().format_error(error)
-        
+
         # Add additional context if available
         if isinstance(formatted_error, Panel):
             # Add a footer with additional help information
@@ -495,8 +509,11 @@ formatter.format_command_output(data, format_name="rich")
             footer.append("\nFor more help, run: ", style="dim")
             footer.append("devsynth doctor", style="bold blue")
             footer.append(" or visit: ", style="dim")
-            footer.append("https://devsynth.readthedocs.io/en/latest/user_guides/troubleshooting.html", style="bold blue")
-            
+            footer.append(
+                "https://devsynth.readthedocs.io/en/latest/user_guides/troubleshooting.html",
+                style="bold blue",
+            )
+
             # Create a new panel with the footer
             new_panel = Panel(
                 formatted_error.renderable,
@@ -505,9 +522,9 @@ formatter.format_command_output(data, format_name="rich")
                 border_style=formatted_error.border_style,
                 expand=formatted_error.expand,
             )
-            
+
             return new_panel
-        
+
         return formatted_error
 
 

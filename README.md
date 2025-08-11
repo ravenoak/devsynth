@@ -346,6 +346,16 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 - `docs/specifications/` – Current and archived specifications
 - `deployment/` – Deployment scripts and configuration
 
+## Testing
+
+Run the full test suite with:
+
+```bash
+poetry run devsynth run-tests
+```
+
+The legacy `scripts/run_all_tests.py` wrapper remains for backward compatibility but will be removed in a future release.
+
 ## Current Limitations
 
 DevSynth is under active development. Collaborative WSDE features, dialectical reasoning,

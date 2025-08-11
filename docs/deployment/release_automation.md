@@ -46,5 +46,5 @@ The `rollback` utility executes `scripts/deployment/rollback.sh` and validates s
 Run deployment tests after publishing or rolling back:
 
 ```bash
-poetry run python scripts/run_all_tests.py
+poetry run devsynth run-tests
 ```

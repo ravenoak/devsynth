@@ -45,7 +45,7 @@ The following legacy scripts are deprecated and will be removed in v1.0
 |-------------------|---------------------|-----------------|
 | `scripts/alignment_check.py` | `devsynth align` | v1.0 |
 | `scripts/validate_manifest.py` | `devsynth validate-manifest` | v1.0 |
-| `scripts/run_all_tests.py` | `devsynth run-pipeline` | v1.0 |
+| `scripts/run_all_tests.py` | `devsynth run-tests` | v1.0 |
 | `scripts/run_tests.sh` | `devsynth run-pipeline` | v1.0 |
 | `scripts/validate_config.py` | `devsynth inspect-config` | v1.0 |
 | `scripts/test_metrics.py` | `devsynth test-metrics` | v1.0 |

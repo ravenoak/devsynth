@@ -4,29 +4,30 @@ This directory contains scripts for comprehensive testing of the DevSynth projec
 
 ## Available Scripts
 
-### 1. Run All Tests (`run_all_tests.py`)
+### 1. Run Tests (`devsynth run-tests`)
 
 This script executes all unit, integration, and behavior tests and generates a comprehensive report of the results.
 
 ```bash
 # Run all tests
-./scripts/run_all_tests.py
+poetry run devsynth run-tests
 
 # Run only unit tests
-./scripts/run_all_tests.py --target unit-tests
+poetry run devsynth run-tests --target unit-tests
 
 # Run only integration tests
-./scripts/run_all_tests.py --target integration-tests
+poetry run devsynth run-tests --target integration-tests
 
 # Run only behavior tests
-./scripts/run_all_tests.py --target behavior-tests
+poetry run devsynth run-tests --target behavior-tests
 
 # Generate HTML report
-./scripts/run_all_tests.py --report
+poetry run devsynth run-tests --report
 
 # Show verbose output
-./scripts/run_all_tests.py --verbose
+poetry run devsynth run-tests --verbose
 ```
+
 
 ### 2. Manual CLI Testing (`manual_cli_testing.py`)
 
@@ -168,7 +169,7 @@ jobs:
         poetry install
     - name: Run all tests
       run: |
-        ./scripts/run_all_tests.py --report
+        poetry run devsynth run-tests --report
     - name: Upload test report
       uses: actions/upload-artifact@v2
       with:

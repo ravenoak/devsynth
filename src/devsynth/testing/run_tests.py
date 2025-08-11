@@ -2,8 +2,7 @@
 
 This module provides a :func:`run_tests` function that executes pytest with
 options compatible with DevSynth's CLI test commands. It is intended to be
-reused by helper scripts such as ``scripts/run_all_tests.py`` and
-``scripts/manual_cli_testing.py``.
+intended for use by helper scripts such as ``scripts/manual_cli_testing.py``.
 """
 
 from __future__ import annotations

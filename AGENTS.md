@@ -45,7 +45,7 @@ Before opening a pull request, run:
 
 ```bash
 poetry run pre-commit run --files <changed>
-poetry run python scripts/run_all_tests.py
+poetry run devsynth run-tests
 poetry run python tests/verify_test_organization.py
 ```
 
