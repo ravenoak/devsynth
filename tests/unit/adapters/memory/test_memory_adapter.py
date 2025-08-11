@@ -122,6 +122,7 @@ class TestMemorySystemAdapter:
 
     @pytest.mark.medium
     @pytest.mark.slow
+    @pytest.mark.skipif(duckdb is None, reason="duckdb not installed")
     def test_init_with_duckdb_storage_succeeds(self, temp_dir, monkeypatch):
         """Test initialization with DuckDB storage.
 

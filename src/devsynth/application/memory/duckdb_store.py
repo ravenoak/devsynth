@@ -6,31 +6,31 @@ to store and retrieve memory items and vectors. It also supports HNSW indexing
 for faster vector similarity search.
 """
 
-import os
 import json
+import os
 import uuid
-import tiktoken
+
 import numpy as np
+import tiktoken
 
 try:  # pragma: no cover - optional dependency
-    import duckdb
-except ImportError as e:  # pragma: no cover - if duckdb is missing tests skip
-    raise ImportError(
-        "DuckDBStore requires the 'duckdb' package. Install it with 'pip install duckdb' or use the dev extras."
-    ) from e
-from typing import Dict, List, Any, Optional, Union, Tuple
+    import duckdb  # type: ignore
+except Exception:  # pragma: no cover - gracefully handle missing duckdb
+    duckdb = None  # type: ignore[assignment]
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ...domain.interfaces.memory import MemoryStore, VectorStore
-from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from devsynth.logging_setup import DevSynthLogger
+from devsynth.core import feature_flags
 from devsynth.exceptions import (
     DevSynthError,
     MemoryError,
-    MemoryStoreError,
     MemoryItemNotFoundError,
+    MemoryStoreError,
 )
-from devsynth.core import feature_flags
+from devsynth.logging_setup import DevSynthLogger
+
+from ...domain.interfaces.memory import MemoryStore, VectorStore
+from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -62,6 +62,11 @@ class DuckDBStore(MemoryStore, VectorStore):
                 - efConstruction: Size of the dynamic list for nearest neighbors during index construction (default: 100)
                 - efSearch: Size of the dynamic list for nearest neighbors during search (default: 50)
         """
+        if duckdb is None:  # pragma: no cover - runtime check for optional dep
+            raise ImportError(
+                "DuckDBStore requires the 'duckdb' package. Install it with 'pip install duckdb' or use the dev extras."
+            )
+
         self.base_path = base_path
         self.db_file = os.path.join(self.base_path, "memory.duckdb")
         self.token_count = 0
@@ -566,7 +571,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                         # Create HNSW index on the embedding column
                         self.conn.execute(
                             """
-                            CREATE INDEX IF NOT EXISTS memory_vectors_hnsw_idx 
+                            CREATE INDEX IF NOT EXISTS memory_vectors_hnsw_idx
                             ON memory_vectors USING HNSW(embedding);
                         """
                         )
