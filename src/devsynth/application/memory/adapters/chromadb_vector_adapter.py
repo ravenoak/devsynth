@@ -83,21 +83,18 @@ class ChromaDBVectorAdapter(VectorStore):
 
     def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a transaction by discarding its snapshot."""
-        if transaction_id in self._active_transactions:
-            self._active_transactions.pop(transaction_id, None)
-            logger.debug("Committed ChromaDB transaction %s", transaction_id)
-            return True
-        logger.warning("Attempted to commit unknown transaction %s", transaction_id)
-        return False
+        if transaction_id not in self._active_transactions:
+            raise ValueError(f"Unknown transaction {transaction_id}")
+
+        self._active_transactions.pop(transaction_id, None)
+        logger.debug("Committed ChromaDB transaction %s", transaction_id)
+        return True
 
     def rollback_transaction(self, transaction_id: str) -> bool:
         """Rollback a transaction by restoring the snapshot of vectors."""
         snapshot = self._active_transactions.pop(transaction_id, None)
         if snapshot is None:
-            logger.warning(
-                "Attempted to rollback unknown transaction %s", transaction_id
-            )
-            return False
+            raise ValueError(f"Unknown transaction {transaction_id}")
         try:
             existing = self.collection.get(include=[])
             ids = existing.get("ids", []) if existing else []

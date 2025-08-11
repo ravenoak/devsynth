@@ -34,7 +34,15 @@ class DummyTransactionContext:
     def __enter__(self):
         """Begin the transaction."""
         if hasattr(self.adapter, "begin_transaction"):
-            result = self.adapter.begin_transaction()
+            begin = getattr(self.adapter, "begin_transaction")
+            try:
+                if "transaction_id" in begin.__code__.co_varnames:
+                    result = begin(self.transaction_id)
+                else:
+                    result = begin()
+            except TypeError:
+                result = begin()
+
             # If begin_transaction returns a context manager, use it
             if hasattr(result, "__enter__") and hasattr(result, "__exit__"):
                 self.context = result
@@ -379,15 +387,28 @@ class SyncManager:
         results: Dict[str, int] = {}
         adapters = self.memory_manager.adapters
 
-        # All coordination is centred around the Kuzu store when present.
+        # Ensure Kuzu is available as the central store
         if "kuzu" not in adapters:
             return results
 
+        stores: List[str] = ["kuzu"]
         if "lmdb" in adapters:
-            results.update(self.synchronize("lmdb", "kuzu"))
-
+            stores.append("lmdb")
         if "faiss" in adapters:
-            results.update(self.synchronize("faiss", "kuzu"))
+            stores.append("faiss")
+
+        with self.transaction(stores):
+            if "lmdb" in adapters:
+                forward = self._sync_one_way(adapters["lmdb"], adapters["kuzu"])
+                results["lmdb_to_kuzu"] = forward
+            if "faiss" in adapters:
+                forward = self._sync_one_way(adapters["faiss"], adapters["kuzu"])
+                results["faiss_to_kuzu"] = forward
+
+        try:
+            self.memory_manager._notify_sync_hooks(None)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Peer review failed: %s", exc)
 
         return results
 
@@ -586,7 +607,7 @@ class SyncManager:
             if not adapter:
                 continue
             if hasattr(adapter, "begin_transaction"):
-                ctx = adapter.begin_transaction()
+                ctx = DummyTransactionContext(adapter, tx_id)
                 txns[name] = ctx.__enter__()
                 contexts[name] = ctx
             else:
