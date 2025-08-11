@@ -79,10 +79,12 @@ def mock_embed():
         yield
 
 
-def test_kuzu_memory_vector_integration_succeeds(kuzu_store):
+@pytest.mark.parametrize("store_fixture", ["kuzu_store", "kuzu_store_embedded"])
+def test_kuzu_memory_vector_integration_succeeds(request, store_fixture):
+    store = request.getfixturevalue(store_fixture)
     config = {
         "memory_store_type": "kuzu",
-        "memory_file_path": kuzu_store.persist_directory,
+        "memory_file_path": store.persist_directory,
         "vector_store_enabled": True,
     }
     adapter = MemorySystemAdapter(config=config)
@@ -98,9 +100,11 @@ def test_kuzu_memory_vector_integration_succeeds(kuzu_store):
     assert results[0].id == item_id
 
 
-def test_create_for_testing_with_kuzu(kuzu_store):
+@pytest.mark.parametrize("store_fixture", ["kuzu_store", "kuzu_store_embedded"])
+def test_create_for_testing_with_kuzu(request, store_fixture):
+    store = request.getfixturevalue(store_fixture)
     adapter = MemorySystemAdapter.create_for_testing(
-        storage_type="kuzu", memory_path=kuzu_store.persist_directory
+        storage_type="kuzu", memory_path=store.persist_directory
     )
     assert adapter.storage_type == "kuzu"
     assert adapter.memory_store is not None
@@ -141,13 +145,14 @@ def test_create_ephemeral_embedded_mode(kuzu_store_embedded):
     assert not kuzu_store_embedded._store._use_fallback
 
 
-def test_kuzu_embedded_env_setting(monkeypatch):
+@pytest.mark.parametrize("embedded", [True, False])
+def test_kuzu_embedded_env_setting(monkeypatch, embedded):
     from devsynth.config import settings as settings_module
 
-    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "false")
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", str(embedded).lower())
     s = settings_module.get_settings(reload=True)
-    assert s.kuzu_embedded is False
-    assert s["kuzu_embedded"] is False
+    assert s.kuzu_embedded is embedded
+    assert s["kuzu_embedded"] is embedded
 
 
 def test_kuzu_adapter_ephemeral_cleanup(monkeypatch, tmp_path, no_kuzu):

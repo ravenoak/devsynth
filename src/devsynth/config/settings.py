@@ -22,6 +22,12 @@ from .loader import load_config
 # Default settings
 DEFAULT_KUZU_EMBEDDED = True
 
+# Module-level defaults for Kuzu integration
+kuzu_db_path: Optional[str] = None
+kuzu_embedded: bool = DEFAULT_KUZU_EMBEDDED
+# Backward-compatible constant for older imports
+KUZU_EMBEDDED = kuzu_embedded
+
 
 def _parse_bool_env(value: Any, field: str) -> bool:
     """Parse a boolean environment variable securely."""
@@ -817,4 +823,6 @@ __all__ = [
     "is_devsynth_managed_project",
     "ensure_path_exists",
     "DEFAULT_KUZU_EMBEDDED",
+    "kuzu_embedded",
+    "KUZU_EMBEDDED",
 ]
