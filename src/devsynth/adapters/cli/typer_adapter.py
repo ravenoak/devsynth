@@ -1,3 +1,4 @@
+import importlib
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -8,6 +9,7 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
+from typer import completion as typer_completion
 
 from devsynth.application.cli import config_app
 from devsynth.application.cli.registry import COMMAND_REGISTRY
@@ -16,6 +18,7 @@ from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME, CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.metrics import register_dashboard_hook
 
 
 def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None:
@@ -66,22 +69,28 @@ def completion_cmd(
 
     bridge = bridge or CLIUXBridge()
     progress = bridge.create_progress("Generating completion script", total=2)
-    app = build_app()
-    from click.shell_completion import get_completion_class
 
     shell_name = shell or "bash"
-    completion_cls = get_completion_class(shell_name)
-    comp = completion_cls(app, {}, "devsynth", "_DEVSYNTH_COMPLETE")
-    script = comp.source()
-    progress.update(status="Script generated", advance=1)
+    prog_name = "devsynth"
+    complete_var = f"_{prog_name}_COMPLETE".replace("-", "_").upper()
+    script = typer_completion.get_completion_script(
+        prog_name=prog_name, complete_var=complete_var, shell=shell_name
+    )
+    progress.update(status="script generated", advance=1)
 
     if install:
-        target = path or Path.home() / f".devsynth-completion.{shell_name}"
-        target.write_text(script)
-        bridge.show_completion(str(target))
+        if path is None:
+            _, target_path = typer_completion.install(
+                shell=shell_name, prog_name=prog_name, complete_var=complete_var
+            )
+        else:
+            target_path = path
+            target_path.write_text(script)
+        bridge.show_completion(str(target_path))
     else:
         bridge.show_completion(script)
 
+    progress.update(status="done", advance=1)
     progress.complete()
 
 
@@ -248,6 +257,7 @@ def build_app() -> typer.Typer:
             "Configuration can be managed with 'devsynth config' commands.",
             "Shell completion is available via '--install-completion' or the 'completion' command.",
             "Long-running commands display progress indicators for better feedback.",
+            "Dashboard metric hooks can be registered with '--dashboard-hook module:function'.",
         ],
     )
 
@@ -279,7 +289,23 @@ def build_app() -> typer.Typer:
         completion_cmd(shell=shell, install=install, path=path)
 
     @app.callback(invoke_without_command=True)
-    def main(ctx: typer.Context):
+    def main(
+        ctx: typer.Context,
+        dashboard_hook: Optional[str] = typer.Option(
+            None,
+            "--dashboard-hook",
+            help="Python path to function receiving dashboard metric events",
+        ),
+    ) -> None:
+        if dashboard_hook:
+            try:
+                module_name, func_name = dashboard_hook.split(":", 1)
+                hook = getattr(importlib.import_module(module_name), func_name)
+                register_dashboard_hook(hook)
+            except Exception:
+                typer.echo(
+                    f"Failed to load dashboard hook '{dashboard_hook}'", err=True
+                )
         if ctx.invoked_subcommand is None:
             typer.echo(ctx.get_help())
             raise typer.Exit()

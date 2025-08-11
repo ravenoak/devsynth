@@ -114,7 +114,7 @@ _devsynth() {
     completion_opts=(
         '--shell=[Target shell]:shell:(bash zsh fish)'
         '--install[Install completion script]'
-        '--output=[Write completion script to path]:file:_files'
+        '--path=[Write completion script to path]:file:_files'
     )
 
     _arguments -C \
