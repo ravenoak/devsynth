@@ -17,7 +17,7 @@ def validate_int_range(
     field: str,
     *,
     min_value: Union[int, None] = None,
-    max_value: Union[int, None] = None
+    max_value: Union[int, None] = None,
 ) -> int:
     """Validate that a value is an int within an optional range."""
     try:
@@ -78,3 +78,15 @@ def parse_bool_env(var: str, default: bool = False) -> bool:
     if val in {"0", "false", "no"}:
         return False
     raise ValidationError("Invalid boolean", field=var, value=value)
+
+
+def require_pre_deploy_checks() -> None:
+    """Ensure mandatory pre-deployment policy checks have passed.
+
+    The ``DEVSYNTH_PRE_DEPLOY_APPROVED`` environment variable must evaluate to
+    ``true`` according to :func:`parse_bool_env`. A ``RuntimeError`` is raised
+    otherwise.
+    """
+
+    if not parse_bool_env("DEVSYNTH_PRE_DEPLOY_APPROVED", False):
+        raise RuntimeError("Pre-deploy policy checks have not been approved")
