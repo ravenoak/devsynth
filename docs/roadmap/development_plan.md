@@ -49,6 +49,14 @@ This document presents a comprehensive plan for continuing the development of De
 The project roadmap is broken into progressive phases. A consolidated list of phases and version milestones is available in the [Release Plan](release_plan.md).
 
 
+## Workflow Steps
+
+The development workflow for each sprint follows these steps:
+
+1. **Sprint Planning Alignment** – Map upcoming work to the appropriate EDRR phase so planning outputs feed the Expand phase.
+2. **Phase Execution** – Carry out the Expand, Differentiate, Refine and Retrospect phases to process and refine artifacts.
+3. **Retrospective Review** – Summarize outcomes, capture lessons learned and feed action items into the next planning cycle.
+
 ## Implementation Plan for Phase 1: Foundation Stabilization
 
 ### Strategic Framework
