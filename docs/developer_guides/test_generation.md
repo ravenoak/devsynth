@@ -1,5 +1,5 @@
 ---
-last_reviewed: "2025-08-17"
+last_reviewed: "2025-08-11"
 status: draft
 tags:
   - testing
@@ -33,6 +33,19 @@ This guide describes how automatically generated tests should be reviewed and in
 4. **Lint and run tests** – execute `poetry run pre-commit run --files` on changed files
    and `poetry run pytest` to verify behavior.
 5. **Peer review** – open a pull request and follow cross-functional review guidelines.
+
+## Review Workflow
+
+1. **Open a pull request** containing the generated or updated tests.
+2. **Inspect scaffolds** – ensure placeholder integration tests created with
+   `devsynth.testing.generation` use `pytest.mark.skip` and do not fail the
+   suite.
+3. **Validate edge cases** – confirm boundary value and error condition
+   templates have been applied where appropriate.
+4. **Run checks** – verify `poetry run pre-commit run --files` and the test
+   suite pass before approval.
+5. **Finalize** – address reviewer feedback and merge once all checklist items
+   are satisfied.
 
 ## Review Checklist
 

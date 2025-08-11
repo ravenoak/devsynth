@@ -1,3 +1,3 @@
 # Error Conditions Edge Case Template
 
-Prompt the model to generate tests that simulate error conditions and verify appropriate exceptions or error messages are produced.
+Encourage the model to generate tests that simulate invalid inputs, missing resources, permission issues, and network failures. Each scenario should assert the exact exception type and message or error code returned.

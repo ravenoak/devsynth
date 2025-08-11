@@ -10,6 +10,8 @@ from .base import BaseAgent
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+from devsynth.testing.generation import scaffold_integration_tests as generate_scaffolds
+from devsynth.testing.generation import write_scaffolded_tests
 
 
 class TestAgent(BaseAgent):
@@ -29,39 +31,16 @@ class TestAgent(BaseAgent):
                 ``None`` the scaffolds are only returned.
 
         Returns:
-            Dictionary mapping filenames to placeholder test content.
+            Dictionary mapping filenames to placeholder test content. When
+            ``output_dir`` is provided, the mapping keys are file names rather
+            than full paths.
         """
-        import textwrap
 
-        template = textwrap.dedent(
-            '''
-            """Scaffold integration test for {name}."""
-
-            import pytest
-
-            pytestmark = pytest.mark.skip(
-                reason="Integration test for {name} not yet implemented"
-            )
-
-
-            def test_{name}():
-                """Integration test scaffold for {name}."""
-                pass
-            '''
-        )
-
-        placeholders: Dict[str, str] = {}
         names = test_names or ["placeholder"]
-        if output_dir:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        for name in names:
-            safe_name = name.strip().lower().replace(" ", "_")
-            filename = f"test_{safe_name}.py"
-            content = template.format(name=safe_name)
-            placeholders[filename] = content
-            if output_dir:
-                (output_dir / filename).write_text(content)
-        return placeholders
+        if output_dir is not None:
+            written = write_scaffolded_tests(output_dir, names)
+            return {path.name: content for path, content in written.items()}
+        return generate_scaffolds(names)
 
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce tests."""
