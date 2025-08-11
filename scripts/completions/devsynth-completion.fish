@@ -17,7 +17,7 @@ set -l webapp_opts --framework --output-dir --verbose
 set -l serve_opts --host --port --verbose
 set -l dbschema_opts --input-file --output-file --verbose
 set -l doctor_opts --fix --verbose
-set -l completion_opts --shell --install --output
+set -l completion_opts --shell --install --path
 
 # Define option arguments
 set -l languages python javascript typescript java csharp go rust
@@ -118,7 +118,7 @@ complete -c devsynth -n "__fish_seen_subcommand_from doctor" -l verbose -d "Enab
 # completion command
 complete -c devsynth -n "__fish_seen_subcommand_from completion" -l shell -d "Target shell" -r -a "bash zsh fish"
 complete -c devsynth -n "__fish_seen_subcommand_from completion" -l install -d "Install completion script"
-complete -c devsynth -n "__fish_seen_subcommand_from completion" -l output -d "Path to write completion script" -r
+complete -c devsynth -n "__fish_seen_subcommand_from completion" -l path -d "Path to write completion script" -r
 
 # help command
 complete -c devsynth -n "__fish_seen_subcommand_from help" -a "$commands" -d "Show help for command"

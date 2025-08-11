@@ -9,7 +9,7 @@ runtime scraping.
 from __future__ import annotations
 
 from collections import Counter as DictCounter
-from typing import Dict
+from typing import Callable, Dict, Optional
 
 # Attempt to import Prometheus metrics, falling back to no-op counters when the
 # optional dependency is unavailable.  This allows the core system and tests to
@@ -58,6 +58,8 @@ _retry_stat_metrics: DictCounter[str] = DictCounter()
 _dashboard_metrics: DictCounter[str] = DictCounter()
 # Circuit breaker state metrics
 _circuit_breaker_metrics: DictCounter[str] = DictCounter()
+# Optional external dashboard hook
+_dashboard_hook: Optional[Callable[[str], None]] = None
 
 # ---------------------------------------------------------------------------
 # Prometheus counters
@@ -153,6 +155,23 @@ def inc_dashboard(event: str) -> None:
     """Increment dashboard event counter."""
     _dashboard_metrics[event] += 1
     dashboard_event_counter.labels(event=event).inc()
+    if _dashboard_hook is not None:  # pragma: no branch - simple callback
+        try:
+            _dashboard_hook(event)
+        except Exception:  # pragma: no cover - hooks should not break metrics
+            pass
+
+
+def register_dashboard_hook(hook: Callable[[str], None]) -> None:
+    """Register a callback to receive dashboard metric events."""
+    global _dashboard_hook
+    _dashboard_hook = hook
+
+
+def clear_dashboard_hook() -> None:
+    """Remove any previously registered dashboard hook."""
+    global _dashboard_hook
+    _dashboard_hook = None
 
 
 def get_memory_metrics() -> Dict[str, int]:

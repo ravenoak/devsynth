@@ -94,6 +94,7 @@ These options can be used with any command:
 | `--quiet`, `-q` | Suppress all output except errors | False |
 | `--config-file` | Path to configuration file | ~/.devsynth/config.yaml |
 | `--log-level` | Set logging level (debug, info, warning, error) | info |
+| `--dashboard-hook` | Python path to function receiving dashboard metric events | - |
 | `--help`, `-h` | Show help message and exit | - |
 
 ## Command Reference
@@ -187,6 +188,7 @@ devsynth init [--path PATH] [--template TEMPLATE] [--project-root ROOT] [--langu
 
 
 This command detects existing projects and launches an interactive wizard when run inside a directory containing `pyproject.toml` or `project.yaml`. Use the `--wizard` flag to start the wizard explicitly in any directory. The command uses provided options and `DEVSYNTH_INIT_*` environment variables directly, prompting only for missing values. Supplying `--defaults` or `--non-interactive` skips prompts entirely.
+The wizard presents a streamlined, step-by-step flow with progress indicators and optional quick presets (`minimal`, `standard`, `advanced`).
 Progress messages show when configuration is saved and when scaffolding files are generated.
 The wizard reads configuration using the [Unified Config Loader](../implementation/config_loader_workflow.md),
 which prefers the `[tool.devsynth]` table in `pyproject.toml` when both files are present.
@@ -668,17 +670,19 @@ devsynth ingest manifest.yaml --non-interactive --yes --priority high
 
 ### completion
 
-Generate or install shell completion scripts for the DevSynth CLI.
+Generate or install shell completion scripts for the DevSynth CLI. Typer's
+built-in completion support is also available via the global
+`--install-completion` and `--show-completion` flags.
 
 ```bash
-devsynth completion [--shell bash|zsh|fish] [--install] [--output PATH]
+devsynth completion [--shell bash|zsh|fish] [--install] [--path PATH]
 ```
 
 **Options:**
 
 - `--shell`: Target shell. Defaults to the current shell.
 - `--install`: Install the completion script into the user's shell configuration.
-- `--output`: Write the generated script to a file instead of printing.
+- `--path`: Write the generated script to a file instead of printing.
 
 **Examples:**
 
@@ -688,6 +692,9 @@ devsynth completion
 
 # Install zsh completions
 devsynth completion --shell zsh --install
+
+# Write script to file
+devsynth completion --shell bash --path ~/.devsynth-completion.bash
 ```
 
 ### mvu

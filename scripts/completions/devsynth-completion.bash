@@ -24,7 +24,7 @@ _devsynth_completion() {
     serve_opts="--host --port --verbose"
     dbschema_opts="--input-file --output-file --verbose"
     doctor_opts="--fix --verbose"
-    completion_opts="--shell --install --output"
+    completion_opts="--shell --install --path"
 
     # Handle command-specific options
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -84,7 +84,7 @@ _devsynth_completion() {
 
     # Handle option arguments
     case "${prev}" in
-        --path|--root|--output-dir|--output-file|--requirements-file|--spec-file|--test-file|--file|--input-file|--output)
+        --path|--root|--output-dir|--output-file|--requirements-file|--spec-file|--test-file|--file|--input-file)
             # File/directory completion
             COMPREPLY=( $(compgen -f -- "${cur}") )
             return 0

@@ -33,12 +33,23 @@ class ProgressManager:
         return self.indicators.get(task_id)
 
     def update_progress(
-        self, task_id: str, advance: float = 1, description: Optional[str] = None
+        self,
+        task_id: str,
+        advance: float = 1,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
     ) -> None:
-        """Update the indicator associated with ``task_id``."""
+        """Update the indicator associated with ``task_id``.
+
+        Args:
+            task_id: Identifier of the progress task to update.
+            advance: Amount to advance the indicator.
+            description: Optional new description for the task.
+            status: Optional short status message.
+        """
         indicator = self.indicators.get(task_id)
         if indicator is not None:
-            indicator.update(advance=advance, description=description)
+            indicator.update(advance=advance, description=description, status=status)
 
     def complete_progress(self, task_id: str) -> None:
         """Complete and remove the indicator for ``task_id``."""

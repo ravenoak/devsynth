@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import typer
+from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import (
     _warn_if_features_disabled,
@@ -13,6 +14,10 @@ from devsynth.adapters.cli.typer_adapter import (
 )
 from devsynth.application.cli import config_app
 from devsynth.application.cli.requirements_commands import requirements_app
+
+
+def dummy_hook(event: str) -> None:  # pragma: no cover - used for hook registration
+    pass
 
 
 @pytest.mark.medium
@@ -130,16 +135,11 @@ def test_run_cli_succeeds(mock_build_app, mock_warn):
 
 
 @pytest.mark.medium
-@patch("devsynth.adapters.cli.typer_adapter.build_app")
-@patch("click.shell_completion.get_completion_class")
-def test_completion_cmd_displays_script(mock_get_completion_class, mock_build_app):
+@patch("devsynth.adapters.cli.typer_adapter.typer_completion.get_completion_script")
+def test_completion_cmd_displays_script(mock_get_script):
     """Test that completion_cmd shows generated script."""
 
-    mock_comp_cls = MagicMock()
-    mock_comp = MagicMock()
-    mock_comp.source.return_value = "script"
-    mock_comp_cls.return_value = mock_comp
-    mock_get_completion_class.return_value = mock_comp_cls
+    mock_get_script.return_value = "script"
     bridge = MagicMock()
     progress = MagicMock()
     bridge.create_progress.return_value = progress
@@ -149,3 +149,14 @@ def test_completion_cmd_displays_script(mock_get_completion_class, mock_build_ap
     bridge.create_progress.assert_called_once()
     bridge.show_completion.assert_called_once_with("script")
     progress.complete.assert_called_once()
+
+
+@pytest.mark.medium
+@patch("devsynth.adapters.cli.typer_adapter.register_dashboard_hook")
+def test_dashboard_hook_option_registers(mock_reg):
+    """Global --dashboard-hook registers provided callback."""
+    runner = CliRunner()
+    path = "tests.unit.adapters.cli.test_typer_adapter:dummy_hook"
+    result = runner.invoke(build_app(), ["--dashboard-hook", path])
+    assert result.exit_code == 0
+    mock_reg.assert_called_once()

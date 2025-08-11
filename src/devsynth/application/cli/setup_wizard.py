@@ -123,7 +123,8 @@ class SetupWizard:
     def __init__(self, bridge: Optional[UXBridge] = None) -> None:
         self.bridge = bridge or CLIUXBridge()
         self.console = Console()
-        self.total_steps = 4  # Basic, Project, Memory, Features
+        # Basic, Project, Memory, Features, Finalize
+        self.total_steps = 5
         self.current_step = 0
         self.progress_manager = ProgressManager(self.bridge)
         self._progress_id = "wizard"
@@ -131,12 +132,12 @@ class SetupWizard:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
-    def _show_progress(self, description: str) -> None:
-        """Show the current progress in the wizard."""
+    def _show_progress(self, description: str, status: str = None) -> None:
+        """Advance the wizard progress indicator with an optional status."""
         self.current_step += 1
         desc = f"Step {self.current_step}/{self.total_steps}: {description}"
         self.progress_manager.update_progress(
-            self._progress_id, advance=1, description=desc
+            self._progress_id, advance=1, description=desc, status=status
         )
         self.bridge.display_result(f"[bold blue]{desc}[/bold blue]")
 
@@ -172,7 +173,7 @@ class SetupWizard:
         result: Dict[str, bool] = {}
         features = features or {}
 
-        self._show_progress("Configure Features")
+        self._show_progress("Configure Features", status="selection")
         self.bridge.display_result(
             "[italic]Configure which features to enable in your DevSynth project.[/italic]"
         )
@@ -293,9 +294,13 @@ class SetupWizard:
             features = preset_config["features"]
 
             # Still need to ask for these basic settings
-            self._show_progress("Basic Settings")
+            self._show_progress("Basic Settings", status="preset applied")
+            # Mark remaining sections as satisfied by preset
+            self._show_progress("Project Configuration", status="preset")
+            self._show_progress("Memory Configuration", status="preset")
+            self._show_progress("Feature Selection", status="preset")
         else:
-            self._show_progress("Basic Settings")
+            self._show_progress("Basic Settings", status="collecting")
 
         # Basic settings (always ask for these)
         root = root or os.environ.get("DEVSYNTH_INIT_ROOT")
@@ -310,7 +315,7 @@ class SetupWizard:
 
         # Project settings
         if not quick_setup:
-            self._show_progress("Project Configuration")
+            self._show_progress("Project Configuration", status="collecting")
 
             structure = structure or os.environ.get("DEVSYNTH_INIT_STRUCTURE")
             if structure is None:
@@ -348,7 +353,7 @@ class SetupWizard:
                     )
 
             # Memory settings
-            self._show_progress("Memory Configuration")
+            self._show_progress("Memory Configuration", status="configuring")
 
             memory_backend = memory_backend or os.environ.get(
                 "DEVSYNTH_INIT_MEMORY_BACKEND"
@@ -370,7 +375,7 @@ class SetupWizard:
                         "Enable offline mode?", default=cfg.config.offline_mode
                     )
 
-            # Feature settings
+            # Feature settings (progress handled within _prompt_features)
             features = self._prompt_features(cfg, features, auto_confirm)
 
         # Summary and confirmation
@@ -405,6 +410,9 @@ class SetupWizard:
             )
             self.progress_manager.complete_progress(self._progress_id)
             return cfg
+
+        # Finalization step
+        self._show_progress("Finalizing Setup", status="writing config")
 
         # Show progress during initialization
         with Progress(
