@@ -15,16 +15,16 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 
 ## Quick Start
 
-1. Install dependencies (including test extras):
+1. Install dependencies with development and test extras:
 
    ```bash
    poetry install --with dev --extras tests retrieval chromadb api
    ```
 
-2. Lint changed files:
+2. Lint changed files before committing:
 
    ```bash
-   poetry run pre-commit run --files path/to/file.py [path/to/other.py]
+   poetry run pre-commit run --files <changed>
    ```
 
 3. Run tests:
@@ -44,13 +44,14 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 Before opening a pull request, run:
 
 ```bash
+poetry run pre-commit run --files <changed>
 poetry run python scripts/run_all_tests.py
 poetry run python tests/verify_test_organization.py
 ```
 
 ## Automation
 
-- Most CLI commands accept `--non-interactive` or `--defaults` to bypass prompts.
+- Most DevSynth CLI commands accept `--non-interactive` and `--defaults` to bypass prompts.
 
 ## Further Reading
 
