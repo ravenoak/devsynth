@@ -8,11 +8,22 @@ set -exo pipefail
 # without network access.
 if ! command -v pipx >/dev/null; then
   if command -v apt-get >/dev/null; then
-    if ! (apt-get update && apt-get install -y pipx); then
-      echo "[warning] failed to install pipx" >&2
+    for _ in 1 2 3; do
+      if apt-get update && apt-get install -y pipx; then
+        break
+      else
+        sleep 5
+      fi
+    done
+    if ! command -v pipx >/dev/null; then
+      echo "[warning] failed to install pipx with apt-get" >&2
+      python3 -m pip install --user pipx || \
+        echo "[warning] pip install pipx failed" >&2
     fi
   else
-    echo "[warning] apt-get unavailable; pipx not installed" >&2
+    echo "[warning] apt-get unavailable; attempting pip install of pipx" >&2
+    python3 -m pip install --user pipx || \
+      echo "[warning] pip install pipx failed" >&2
   fi
 fi
 export PATH="$HOME/.local/bin:$PATH"
@@ -29,8 +40,14 @@ poetry env info --path >/dev/null
 # `offline` extra manually if GPU features are needed.
 poetry install \
   --with dev \
-  --extras tests \
+  --extras "tests retrieval chromadb api" \
   --no-interaction
+
+# Cache optional extras to avoid repeated downloads
+poetry run pip download \
+  kuzu faiss-cpu dearpygui chromadb lmstudio \
+  -d "${PIP_CACHE_DIR:-$HOME/.cache/pip}" >/dev/null || \
+  echo "[warning] failed to cache optional extras" >&2
 
 # Ensure prometheus-client is available after installation
 poetry run python -c "import prometheus_client"
@@ -40,12 +57,14 @@ poetry run pip list | grep prometheus-client >/dev/null || \
 
 # Install the DevSynth CLI with pipx and verify it works. On subsequent
 # runs, skip the installation step to avoid network access.
-if ! command -v devsynth >/dev/null; then
+if command -v devsynth >/dev/null; then
+  echo "[info] devsynth CLI already installed; skipping pipx install"
+else
   pipx install --editable . --force
+  poetry run pip freeze > /tmp/devsynth-requirements.txt
+  pipx runpip devsynth install -r /tmp/devsynth-requirements.txt || \
+    echo "[warning] pipx runpip devsynth failed" >&2
 fi
-poetry run pip freeze > /tmp/devsynth-requirements.txt
-pipx runpip devsynth install -r /tmp/devsynth-requirements.txt || \
-  echo "[warning] pipx runpip devsynth failed" >&2
 command -v devsynth >/dev/null
 devsynth --version || echo "[warning] devsynth --version failed"
 
