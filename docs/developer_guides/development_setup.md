@@ -67,7 +67,7 @@ Before setting up the development environment, ensure you have the following ins
 
 ## Development Environment Setup
 
-Follow the steps below to configure a working development environment. This process installs dependencies and sets up local tooling without relying on any automated setup scripts.
+Ensure the development environment is fully bootstrapped before beginning work. Unless otherwise noted, prefix commands with `poetry run` to ensure they execute inside the project's virtual environment.
 
 ### 1. Clone the Repository
 
@@ -134,6 +134,7 @@ Ensure your setup is working correctly by running the tests:
 ```bash
 poetry run pytest
 ```
+
 Running plain `pytest` outside of Poetry may fail because required plugins are installed only in the Poetry-managed virtual environment.
 
 

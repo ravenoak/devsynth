@@ -246,7 +246,7 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 
 4. **Traceability**: Tests should be traceable to requirements.
    - Name tests to clearly indicate the feature/requirement they validate.
-   - Add comments linking to requirement IDs where appropriate.
+   - Include the requirement ID in the test's docstring using the format `ReqID: <ID>`.
 
 
 ### Adding a New BDD Test
@@ -287,6 +287,16 @@ poetry run pytest -q
 
 ```text
 Always run tests with `poetry run pytest`. If `pytest` reports missing packages, run `poetry install` to restore them.
+
+Skip resource-heavy tests during routine development by excluding the `memory_intensive` marker:
+
+```bash
+
+poetry run pytest -m "not memory_intensive"
+
+```text
+
+Mark such tests with `@pytest.mark.memory_intensive`. For optional services, use resource markers such as `@pytest.mark.requires_resource("lmstudio")` and set `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=false` to skip them when unavailable.
 
 ## Running All Tests
 
