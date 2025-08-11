@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   devsynth-api:
+    image: ghcr.io/devsynth/devsynth:${DEVSYNTH_IMAGE_TAG:-latest}
     build:
       context: .
       target: production
@@ -25,6 +26,7 @@ services:
       start_period: 5s
 
   devsynth-cli:
+    image: ghcr.io/devsynth/devsynth-cli:${DEVSYNTH_IMAGE_TAG:-latest}
     build:
       context: .
       target: production
@@ -68,7 +70,9 @@ services:
     build:
       context: .
       target: production
-    entrypoint: ["/bin/bash", "scripts/deployment/publish_image.sh", "${DEVSYNTH_IMAGE_TAG:-latest}"]
+    entrypoint: ["/bin/bash", "scripts/deployment/publish_image.sh", "${DEVSYNTH_IMAGE_TAG:-latest}", "devsynth-api"]
+    environment:
+      - COMPOSE_FILE=docker-compose.production.yml
     profiles:
       - ci
 
