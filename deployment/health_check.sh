@@ -34,6 +34,12 @@ if [[ -f .env ]]; then
   fi
 fi
 
+# Ensure required security token is present.
+if [[ -z "${DEVSYNTH_ACCESS_TOKEN:-}" ]]; then
+  echo "DEVSYNTH_ACCESS_TOKEN must be set." >&2
+  exit 1
+fi
+
 curl -fsS --max-time 10 http://localhost:8000/health > /dev/null
 curl -fsS --max-time 10 http://localhost:3000/api/health > /dev/null
 

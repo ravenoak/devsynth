@@ -40,6 +40,7 @@ This policy is reviewed quarterly by the DevSynth team to ensure it remains curr
 - Encryption in transit can be enforced with `DEVSYNTH_ENCRYPTION_IN_TRANSIT`.
 - TLS verification and certificates are configured using `DEVSYNTH_TLS_VERIFY`, `DEVSYNTH_TLS_CERT_FILE`, `DEVSYNTH_TLS_KEY_FILE` and `DEVSYNTH_TLS_CA_FILE`.
 - Store API keys and secrets in environment variables or a secrets manager; never commit them to the repository.
+- Deployment scripts verify `DEVSYNTH_ACCESS_TOKEN` is set and ensure any `.env` file has restrictive permissions and is not a symlink.
 - Report suspected security issues or vulnerabilities through the issue tracker.
 - Review security settings as part of routine cross‑cutting concern audits.
 - Maintain logs for security relevant events and restrict access to them.

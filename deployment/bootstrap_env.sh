@@ -40,4 +40,10 @@ if [[ -f .env ]]; then
   fi
 fi
 
+# Ensure required security token is present.
+if [[ -z "${DEVSYNTH_ACCESS_TOKEN:-}" ]]; then
+  echo "DEVSYNTH_ACCESS_TOKEN must be set." >&2
+  exit 1
+fi
+
 docker compose -f deployment/docker-compose.yml -f deployment/docker-compose.monitoring.yml up -d --build --pull=always
