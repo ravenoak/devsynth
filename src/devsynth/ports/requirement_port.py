@@ -1,6 +1,7 @@
 """
 Ports for the requirements management system.
 """
+
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Union
 from uuid import UUID
@@ -315,12 +316,15 @@ class DialecticalReasonerPort(ABC):
     """Port for dialectical reasoner."""
 
     @abstractmethod
-    def evaluate_change(self, change: RequirementChange) -> DialecticalReasoning:
+    def evaluate_change(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> DialecticalReasoning:
         """
         Evaluate a requirement change using dialectical reasoning.
 
         Args:
             change: The requirement change to evaluate.
+            edrr_phase: The EDRR phase context for memory storage.
 
         Returns:
             The dialectical reasoning result.
@@ -361,12 +365,15 @@ class DialecticalReasonerPort(ABC):
         return ChatSession(user_id=user_id, change_id=change_id)
 
     @abstractmethod
-    def assess_impact(self, change: RequirementChange) -> ImpactAssessment:
+    def assess_impact(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> ImpactAssessment:
         """
         Assess the impact of a requirement change.
 
         Args:
             change: The requirement change to assess.
+            edrr_phase: The EDRR phase context for memory storage.
 
         Returns:
             The impact assessment.

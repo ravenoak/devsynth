@@ -9,8 +9,10 @@ from uuid import uuid4
 
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
+from .exceptions import ConsensusError
 from .message_protocol import MessageType
 
 logger = DevSynthLogger(__name__)
@@ -408,6 +410,17 @@ class PeerReview:
             if self.team and hasattr(self.team, "build_consensus"):
                 try:
                     self.consensus_result = self.team.build_consensus(task_context)
+                    if not self.consensus_result:
+                        log_consensus_failure(
+                            logger,
+                            ConsensusError("Consensus not reached"),
+                            extra={"review_id": self.review_id},
+                        )
+                except ConsensusError as exc:
+                    log_consensus_failure(
+                        logger, exc, extra={"review_id": self.review_id}
+                    )
+                    self.consensus_result = {}
                 except Exception as e:
                     logger.warning(f"Error building consensus: {str(e)}")
                     self.consensus_result = {}

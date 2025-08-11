@@ -156,7 +156,9 @@ class ChatRepositoryInterface:
 class DialecticalReasonerInterface:
     """Base dialectical reasoner implementation."""
 
-    def evaluate_change(self, change: RequirementChange) -> DialecticalReasoning:
+    def evaluate_change(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> DialecticalReasoning:
         reasoning = DialecticalReasoning(change_id=change.id)
         reasoning.thesis = f"Proposed change {change.id}"
         reasoning.antithesis = "Opposing view"
@@ -175,7 +177,9 @@ class DialecticalReasonerInterface:
     ) -> ChatSession:
         return ChatSession(user_id=user_id, change_id=change_id)
 
-    def assess_impact(self, change: RequirementChange) -> ImpactAssessment:
+    def assess_impact(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> ImpactAssessment:
         return ImpactAssessment(change_id=change.id, analysis="")
 
 
