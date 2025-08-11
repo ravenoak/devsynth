@@ -232,6 +232,8 @@ class KuzuAdapter(VectorStore):
 
         temp_dir = tempfile.mkdtemp(prefix="kuzu_adapter_")
         adapter = cls(temp_dir, collection_name)
+        if adapter.persist_directory != temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)
         adapter._temp_dir = adapter.persist_directory
         return adapter
 

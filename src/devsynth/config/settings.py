@@ -192,6 +192,7 @@ class Settings(BaseSettings):
     kuzu_embedded: bool = Field(
         default=DEFAULT_KUZU_EMBEDDED,
         description="Use embedded KuzuDB backend instead of in-memory fallback",
+        validation_alias="DEVSYNTH_KUZU_EMBEDDED",
         json_schema_extra={"env": "DEVSYNTH_KUZU_EMBEDDED"},
     )
     max_context_size: int = Field(
