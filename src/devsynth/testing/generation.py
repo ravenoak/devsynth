@@ -7,6 +7,7 @@ coverage is highlighted during review without breaking the suite.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Dict, Iterable
 
 PLACEHOLDER_TEMPLATE = (
@@ -18,6 +19,8 @@ PLACEHOLDER_TEMPLATE = (
     '    """Integration test placeholder for {name}."""\n'
     '    raise NotImplementedError("Add integration test for {name}")\n'
 )
+
+__all__ = ["scaffold_integration_tests", "write_scaffolded_tests"]
 
 
 def scaffold_integration_tests(names: Iterable[str]) -> Dict[str, str]:
@@ -36,3 +39,29 @@ def scaffold_integration_tests(names: Iterable[str]) -> Dict[str, str]:
         filename = f"test_{name}.py"
         placeholders[filename] = PLACEHOLDER_TEMPLATE.format(name=name)
     return placeholders
+
+
+def write_scaffolded_tests(directory: Path, names: Iterable[str]) -> Dict[Path, str]:
+    """Write placeholder integration tests to ``directory``.
+
+    This helper builds on :func:`scaffold_integration_tests` by emitting the
+    generated placeholder test files to disk. Each file is created with a
+    ``pytest.mark.skip`` marker so the suite remains green until the
+    placeholder is replaced.
+
+    Args:
+        directory: Destination folder for the scaffolded tests.
+        names: Iterable of base names for the tests.
+
+    Returns:
+        Mapping of file paths to the content written.
+    """
+
+    directory.mkdir(parents=True, exist_ok=True)
+    generated = scaffold_integration_tests(names)
+    written: Dict[Path, str] = {}
+    for filename, content in generated.items():
+        path = directory / filename
+        path.write_text(content)
+        written[path] = content
+    return written
