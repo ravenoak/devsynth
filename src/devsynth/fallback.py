@@ -33,6 +33,7 @@ from .metrics import (
     retry_error_counter,
     retry_event_counter,
     retry_function_counter,
+    retry_stat_counter,
 )
 
 # Type variables for generic functions
@@ -70,6 +71,7 @@ __all__ = [
     "retry_function_counter",
     "retry_error_counter",
     "retry_condition_counter",
+    "retry_stat_counter",
     "circuit_breaker_state_counter",
     "get_circuit_breaker_state_metrics",
     "ANONYMOUS_CONDITION",
@@ -377,6 +379,13 @@ def with_fallback(
     exceptions_to_catch: Tuple[Exception, ...] = (Exception,),
     should_fallback: Optional[Callable[[Exception], bool]] = None,
     log_original_error: bool = True,
+    fallback_conditions: Optional[
+        Union[
+            List[Union[Callable[[Exception], bool], str]],
+            Dict[str, Union[Callable[[Exception], bool], str]],
+        ]
+    ] = None,
+    circuit_breaker: Optional["CircuitBreaker"] = None,
 ) -> Callable[[Callable[..., R]], Callable[..., R]]:
     """
     Decorator for providing a fallback function when the primary function fails.
@@ -391,6 +400,12 @@ def with_fallback(
         Optional function to determine if fallback should be used for a given exception
     log_original_error : bool
         Whether to log the original error (default: True)
+    fallback_conditions : Optional[Union[List[Union[Callable[[Exception], bool], str]], Dict[str, Union[Callable[[Exception], bool], str]]]]
+        Additional conditions that must evaluate to ``True`` for the fallback to
+        execute. String entries are treated as substrings that must appear in the
+        exception message.
+    circuit_breaker : Optional["CircuitBreaker"]
+        Circuit breaker instance used to guard the primary function.
 
     Returns
     -------
@@ -399,16 +414,66 @@ def with_fallback(
     """
 
     def decorator(func: Callable[..., R]) -> Callable[..., R]:
+        wrapped_func = circuit_breaker(func) if circuit_breaker else func
+
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> R:
             try:
-                return func(*args, **kwargs)
+                return wrapped_func(*args, **kwargs)
             except exceptions_to_catch as e:
-                # Check if we should use the fallback
                 if should_fallback and not should_fallback(e):
                     raise
 
-                # Log the original error
+                anonymous_conditions: List[Callable[[Exception], bool]] = []
+                named_conditions: List[Tuple[str, Callable[[Exception], bool]]] = []
+                if fallback_conditions:
+                    if isinstance(fallback_conditions, dict):
+                        for name, cond in fallback_conditions.items():
+                            if callable(cond):
+                                named_conditions.append((name, cond))
+                            elif isinstance(cond, str):
+                                named_conditions.append(
+                                    (name, lambda exc, substr=cond: substr in str(exc))
+                                )
+                            else:  # pragma: no cover - defensive
+                                raise TypeError(
+                                    "fallback_conditions values must be callables or strings"
+                                )
+                    else:
+                        for cond in fallback_conditions:
+                            if callable(cond):
+                                anonymous_conditions.append(cond)
+                            elif isinstance(cond, str):
+                                anonymous_conditions.append(
+                                    lambda exc, substr=cond: substr in str(exc)
+                                )
+                            else:  # pragma: no cover - defensive
+                                raise TypeError(
+                                    "fallback_conditions must be callables or strings"
+                                )
+
+                for name, cond in named_conditions:
+                    if not cond(e):
+                        if log_original_error:
+                            logger.warning(
+                                f"Skipping fallback for {func.__name__} due to condition {name}",
+                                error=e,
+                                function=func.__name__,
+                                condition=name,
+                            )
+                        raise
+
+                if anonymous_conditions and not all(
+                    cond(e) for cond in anonymous_conditions
+                ):
+                    if log_original_error:
+                        logger.warning(
+                            f"Skipping fallback for {func.__name__} due to fallback_conditions policy",
+                            error=e,
+                            function=func.__name__,
+                        )
+                    raise
+
                 if log_original_error:
                     logger.warning(
                         f"Using fallback for {func.__name__} due to error: {str(e)}",
@@ -417,7 +482,6 @@ def with_fallback(
                         fallback_function=fallback_function.__name__,
                     )
 
-                # Call the fallback function
                 return fallback_function(*args, **kwargs)
 
         return wrapper

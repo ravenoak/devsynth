@@ -9,7 +9,9 @@ from devsynth.fallback import (
     CircuitBreaker,
     circuit_breaker_state_counter,
     reset_prometheus_metrics,
+    retry_stat_counter,
     retry_with_exponential_backoff,
+    with_fallback,
 )
 
 
@@ -70,4 +72,57 @@ def test_circuit_breaker_opens_and_records_metrics() -> None:
             function="func", state=CircuitBreaker.OPEN
         )._value.get()
         == 2
+    )
+
+
+@pytest.mark.medium
+def test_retry_stat_prometheus_metrics_recorded() -> None:
+    """Retry stat metrics are exposed via Prometheus counters."""
+
+    reset_prometheus_metrics()
+
+    func = Mock(side_effect=[Exception("boom"), "ok"])
+    func.__name__ = "func"
+
+    wrapped = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        jitter=False,
+    )(func)
+
+    assert wrapped() == "ok"
+    assert (
+        retry_stat_counter.labels(function="func", status="attempt")._value.get() == 1
+    )
+    assert (
+        retry_stat_counter.labels(function="func", status="success")._value.get() == 1
+    )
+
+
+@pytest.mark.medium
+def test_with_fallback_conditions_and_circuit_breaker() -> None:
+    """Fallback honors conditions and integrates with circuit breaker."""
+
+    reset_prometheus_metrics()
+    breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=60)
+
+    primary = Mock(side_effect=Exception("boom"))
+    primary.__name__ = "primary"
+    fallback = Mock(return_value="fallback")
+
+    wrapped = with_fallback(
+        fallback_function=fallback,
+        fallback_conditions=[lambda exc: "retry" in str(exc)],
+        circuit_breaker=breaker,
+    )(primary)
+
+    with pytest.raises(Exception):
+        wrapped()
+
+    assert fallback.call_count == 0
+    assert (
+        circuit_breaker_state_counter.labels(
+            function="primary", state=CircuitBreaker.OPEN
+        )._value.get()
+        == 1
     )
