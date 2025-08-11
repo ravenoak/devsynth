@@ -82,6 +82,11 @@ retry_condition_counter = Counter(
     "Retry aborts grouped by failed condition",
     ["condition"],
 )
+retry_stat_counter = Counter(
+    "devsynth_retry_stat_total",
+    "Retry outcomes grouped by function and status",
+    ["function", "status"],
+)
 # Dashboard events counter
 dashboard_event_counter = Counter(
     "devsynth_dashboard_events_total", "Dashboard events", ["event"]
@@ -134,6 +139,7 @@ def inc_retry_stat(func_name: str, status: str) -> None:
     """Record the outcome of a retry attempt for a function."""
     key = f"{func_name}:{status}"
     _retry_stat_metrics[key] += 1
+    retry_stat_counter.labels(function=func_name, status=status).inc()
 
 
 def inc_circuit_breaker_state(func_name: str, state: str) -> None:
@@ -237,5 +243,6 @@ def reset_metrics() -> None:
     retry_function_counter.clear()
     retry_error_counter.clear()
     retry_condition_counter.clear()
+    retry_stat_counter.clear()
     dashboard_event_counter.clear()
     circuit_breaker_state_counter.clear()
