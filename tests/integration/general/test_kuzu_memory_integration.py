@@ -1,5 +1,6 @@
 import os
 import sys
+import tempfile
 import types
 from pathlib import Path
 from unittest.mock import patch
@@ -138,3 +139,39 @@ def test_provider_fallback_on_empty_embedding(tmp_path, no_kuzu):
 
 def test_create_ephemeral_embedded_mode(kuzu_store_embedded):
     assert not kuzu_store_embedded._store._use_fallback
+
+
+def test_kuzu_embedded_env_setting(monkeypatch):
+    from devsynth.config import settings as settings_module
+
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "false")
+    s = settings_module.get_settings(reload=True)
+    assert s.kuzu_embedded is False
+    assert s["kuzu_embedded"] is False
+
+
+def test_kuzu_adapter_ephemeral_cleanup(monkeypatch, tmp_path, no_kuzu):
+    from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    created: list[str] = []
+
+    real_mkdtemp = tempfile.mkdtemp
+
+    def fake_mkdtemp(prefix: str):
+        d = real_mkdtemp(prefix=prefix)
+        created.append(d)
+        return d
+
+    monkeypatch.setattr(tempfile, "mkdtemp", fake_mkdtemp)
+
+    adapter = KuzuAdapter.create_ephemeral()
+    original_dir = created[0]
+    redirected_dir = adapter.persist_directory
+    try:
+        assert redirected_dir.startswith(str(tmp_path))
+    finally:
+        adapter.cleanup()
+
+    assert not os.path.exists(original_dir)
+    assert not os.path.exists(redirected_dir)
