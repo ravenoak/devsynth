@@ -15,6 +15,25 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 - Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
 - Documents in `docs/external_research_papers/` are copies of academic papers and can be referenced using best-practices.
 
+## Test Environment
+
+- `tests/conftest.py` provides an autouse `global_test_isolation` fixture that resets
+  environment variables, the working directory, and logging configuration to keep
+  tests hermetic. Because modules import before this fixture runs, **do not set
+  environment variables at import time**—use `monkeypatch.setenv()` or set them
+  inside the test body instead.
+- Common environment variables:
+  - `DEVSYNTH_ACCESS_TOKEN` – token used for authenticated API calls. Set it in
+    a test with `monkeypatch` or export it before running the suite.
+  - `DEVSYNTH_NO_FILE_LOGGING` – disabling file logging when set to `1` (the
+    default under `global_test_isolation`). Override to `0` to allow log files.
+  - `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` – gates tests that rely on optional
+    resources such as `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`. Set to `true` or
+    `false` to force-enable or disable a resource.
+- `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and
+  `slow` markers and adds a `--speed` option so you can run only tests of a
+  given runtime, e.g. `poetry run pytest --speed=fast`.
+
 ## Quick Start
 
 1. Install dependencies with development and test extras:
