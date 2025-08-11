@@ -50,11 +50,13 @@ repos:
       entry: poetry run bandit -q -r src
       language: system
       pass_filenames: false
+      stages: [push]
     - id: safety
       name: safety vulnerability check
       entry: poetry run safety check --full-report
       language: system
       pass_filenames: false
+      stages: [push]
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
   hooks:
