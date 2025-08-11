@@ -20,3 +20,23 @@ jobs:
           poetry install --with dev --extras tests retrieval chromadb api
       - name: Run security checks
         run: poetry run pre-commit run --all-files bandit safety
+
+  publish-image:
+    needs: security
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish image
+        run: scripts/deployment/publish_image.sh ${{ github.sha }}

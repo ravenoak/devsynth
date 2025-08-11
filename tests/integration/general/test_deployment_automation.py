@@ -45,6 +45,7 @@ def test_rollback_runbook_mentions_scripts():
     text = runbook.read_text()
     assert "rollback.sh" in text
     assert "publish_image.sh" in text
+    assert "health_check.sh" in text
 
 
 def test_rollback_script_exists_and_redeploys():
