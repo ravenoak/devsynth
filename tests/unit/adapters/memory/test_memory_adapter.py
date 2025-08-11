@@ -89,7 +89,8 @@ class TestMemorySystemAdapter:
         config = {
             "memory_store_type": "file",
             "memory_file_path": temp_dir,
-            "max_context_size": 1000,
+            # Use a small context size to keep memory usage low during tests
+            "max_context_size": 10,
             "context_expiration_days": 1,
             "vector_store_enabled": False,
         }
@@ -109,7 +110,8 @@ class TestMemorySystemAdapter:
         config = {
             "memory_store_type": "tinydb",
             "memory_file_path": temp_dir,
-            "max_context_size": 1000,
+            # Smaller context prevents large preallocation during TinyDB tests
+            "max_context_size": 10,
             "context_expiration_days": 1,
             "vector_store_enabled": False,
         }
@@ -146,7 +148,8 @@ class TestMemorySystemAdapter:
             config = {
                 "memory_store_type": "duckdb",
                 "memory_file_path": temp_dir,
-                "max_context_size": 1000,
+                # Minimize context to reduce memory footprint in DuckDB tests
+                "max_context_size": 10,
                 "context_expiration_days": 1,
                 "vector_store_enabled": True,
             }
@@ -168,7 +171,8 @@ class TestMemorySystemAdapter:
         config = {
             "memory_store_type": "lmdb",
             "memory_file_path": temp_dir,
-            "max_context_size": 1000,
+            # Small context size keeps tests lightweight
+            "max_context_size": 10,
             "context_expiration_days": 1,
             "vector_store_enabled": False,
         }
@@ -191,7 +195,8 @@ class TestMemorySystemAdapter:
         config = {
             "memory_store_type": "kuzu",
             "memory_file_path": temp_dir,
-            "max_context_size": 1000,
+            # Limit context size for lightweight RDFLib tests
+            "max_context_size": 10,
             "context_expiration_days": 1,
             "vector_store_enabled": True,
         }
@@ -215,7 +220,8 @@ class TestMemorySystemAdapter:
         config = {
             "memory_store_type": "faiss",
             "memory_file_path": temp_dir,
-            "max_context_size": 1000,
+            # Ensure minimal context allocation for vector store tests
+            "max_context_size": 10,
             "context_expiration_days": 1,
             "vector_store_enabled": True,
         }
@@ -241,7 +247,8 @@ class TestMemorySystemAdapter:
             config = {
                 "memory_store_type": "faiss",
                 "memory_file_path": temp_dir,
-                "max_context_size": 1000,
+                # Reduce context size to avoid large in-memory structures
+                "max_context_size": 10,
                 "context_expiration_days": 1,
                 "vector_store_enabled": True,
             }
@@ -283,7 +290,8 @@ class TestMemorySystemAdapter:
             config = {
                 "memory_store_type": "faiss",
                 "memory_file_path": temp_dir,
-                "max_context_size": 1000,
+                # Keep context small for Kuzu adapter tests
+                "max_context_size": 10,
                 "context_expiration_days": 1,
                 "vector_store_enabled": True,
             }
@@ -325,7 +333,8 @@ class TestMemorySystemAdapter:
         config = {
             "memory_store_type": "rdflib",
             "memory_file_path": temp_dir,
-            "max_context_size": 1000,
+            # Smaller context suffices for in-memory store tests
+            "max_context_size": 10,
             "context_expiration_days": 1,
             "vector_store_enabled": True,
         }

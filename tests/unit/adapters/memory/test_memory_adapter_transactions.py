@@ -16,7 +16,8 @@ def _import_adapter():
             get_settings=lambda: types.SimpleNamespace(
                 memory_store_type="file",
                 memory_file_path="/tmp",
-                max_context_size=100,
+                # Keep test lightweight by restricting context size
+                max_context_size=10,
                 context_expiration_days=1,
                 vector_store_enabled=False,
                 provider_type=None,
