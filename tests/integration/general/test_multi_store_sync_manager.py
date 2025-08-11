@@ -32,8 +32,10 @@ def test_multi_store_sync_and_persistence(tmp_path, monkeypatch):
 
     manager.lmdb.store(item)
     manager.faiss.store_vector(vector)
-    manager.synchronize_all()
+    result = manager.synchronize_all()
 
+    assert result.get("lmdb_to_kuzu", 0) >= 1
+    assert "faiss_to_kuzu" in result
     assert manager.kuzu.retrieve("alpha") is not None
     assert manager.kuzu.vector.retrieve_vector("alpha") is not None
 
@@ -42,7 +44,9 @@ def test_multi_store_sync_and_persistence(tmp_path, monkeypatch):
     manager2 = MultiStoreSyncManager(str(tmp_path))
     assert manager2.lmdb.retrieve("alpha") is not None
     assert manager2.faiss.retrieve_vector("alpha") is not None
-    manager2.synchronize_all()
+    result2 = manager2.synchronize_all()
+    assert result2.get("lmdb_to_kuzu", 0) >= 1
+    assert "faiss_to_kuzu" in result2
     assert manager2.kuzu.retrieve("alpha") is not None
     assert manager2.kuzu.vector.retrieve_vector("alpha") is not None
     manager2.cleanup()
@@ -70,8 +74,10 @@ def test_multi_store_transaction_persistence(tmp_path, monkeypatch):
         manager.faiss.store_vector(vector)
 
     # Propagate to Kuzu after transaction commit
-    manager.synchronize_all()
+    result = manager.synchronize_all()
 
+    assert result.get("lmdb_to_kuzu", 0) >= 1
+    assert "faiss_to_kuzu" in result
     assert manager.kuzu.retrieve("alpha") is not None
     assert manager.faiss.retrieve_vector("alpha") is not None
 
@@ -88,8 +94,10 @@ def test_multi_store_transaction_persistence(tmp_path, monkeypatch):
     )
     manager.rollback_transaction(tid)
 
-    manager.synchronize_all()
+    result = manager.synchronize_all()
 
+    assert result.get("lmdb_to_kuzu", 0) >= 1
+    assert "faiss_to_kuzu" in result
     assert manager.lmdb.retrieve("beta") is None
     assert manager.kuzu.retrieve("beta") is None
 
