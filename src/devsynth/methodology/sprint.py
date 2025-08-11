@@ -204,26 +204,21 @@ class SprintAdapter(BaseMethodologyAdapter):
         )
 
         expand_results = results.get("expand", {})
-        req_analysis = expand_results.get("requirements_analysis")
-        if req_analysis:
-            self.sprint_plan = map_requirements_to_plan(req_analysis)
-            self.metrics["planned_scope"].append(self.sprint_plan["planned_scope"])
-
         # Track actual scope delivered during the sprint
         self.metrics["actual_scope"].append(
             expand_results.get("processed_artifacts", [])
         )
 
-        retrospect_results = results.get("retrospect", {})
-        summary = map_retrospective_to_summary(
-            retrospect_results, self.current_sprint_number
-        )
-        if summary:
-            self.metrics["retrospective_reviews"].append(summary)
+        # Fallback: capture planning if after_expand was skipped
+        if not getattr(self, "sprint_plan", None):
+            req_analysis = expand_results.get("requirements_analysis")
+            if req_analysis:
+                self.sprint_plan = map_requirements_to_plan(req_analysis)
+                self.metrics["planned_scope"].append(
+                    self.sprint_plan.get("planned_scope", [])
+                )
 
-        evaluation = retrospect_results.get("evaluation")
-        if evaluation is not None:
-            self.metrics["quality_metrics"][self.current_sprint_number] = evaluation
+        retrospect_results = results.get("retrospect", {})
 
         # Generate retrospective report
         self._generate_retrospective_report(results)
@@ -250,6 +245,18 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return context
 
+    def after_expand(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Align sprint planning with requirement analysis results."""
+        req_analysis = results.get("requirements_analysis")
+        if req_analysis:
+            self.sprint_plan = map_requirements_to_plan(req_analysis)
+            self.metrics["planned_scope"].append(
+                self.sprint_plan.get("planned_scope", [])
+            )
+        return results
+
     def after_retrospect(
         self, context: Dict[str, Any], results: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -274,6 +281,14 @@ class SprintAdapter(BaseMethodologyAdapter):
                 "success_criteria", []
             ),
         }
+
+        summary = map_retrospective_to_summary(results, self.current_sprint_number)
+        if summary:
+            self.metrics["retrospective_reviews"].append(summary)
+
+        evaluation = results.get("evaluation")
+        if evaluation is not None:
+            self.metrics["quality_metrics"][self.current_sprint_number] = evaluation
 
         return results
 
