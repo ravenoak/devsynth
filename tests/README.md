@@ -105,7 +105,14 @@ Tests are grouped by runtime using pytest markers:
 - `@pytest.mark.medium` – completes in under **5 seconds**
 - `@pytest.mark.slow` – takes **5 seconds or more**
 
-These markers make it easy to select subsets of the suite. For example:
+`tests/conftest_extensions.py` automatically applies these markers and adds a
+`--speed` option so you can filter tests by runtime:
+
+```bash
+poetry run pytest --speed=fast
+```
+
+You can also use helper commands:
 
 ```bash
 poetry run devsynth run-tests --fast --medium
@@ -207,7 +214,25 @@ Running plain `pytest` may fail because required plugins are installed only in t
 
 ### Environment Variables for Tests
 
-Most tests run with mocked providers and do not require any external services. The `global_test_isolation` fixture automatically sets `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false` so LM Studio dependent tests are skipped. To enable them, provide the endpoint and set the variable to `true`:
+The autouse `global_test_isolation` fixture in `tests/conftest.py` restores the
+environment and working directory for each test. Because it runs after modules
+import, **do not set environment variables at import time**. Instead, export
+them before invoking the test suite or set them within a test using
+`monkeypatch.setenv()`.
+
+Common environment variables:
+
+- `DEVSYNTH_ACCESS_TOKEN` – token for authenticated API calls. Override by
+  exporting it or using `monkeypatch.setenv("DEVSYNTH_ACCESS_TOKEN", "token")`.
+- `DEVSYNTH_NO_FILE_LOGGING` – prevents creation of log files when set to `1`.
+  The isolation fixture sets this to `1` by default; set to `0` to enable
+  logging.
+- `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` – controls optional resource-dependent
+  tests such as `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`. Set to `true` or `false`
+  to force-enable or disable a resource.
+
+Most tests run with mocked providers and do not require external services. To
+enable LM Studio tests, provide an endpoint and set the variable to `true`:
 
 ```bash
 export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
@@ -222,8 +247,8 @@ export LM_STUDIO_ENDPOINT=http://localhost:1234
 - `DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE` and `DEVSYNTH_RESOURCE_CLI_AVAILABLE`
   default to `true`.
 
-Other variables such as `DEVSYNTH_PROJECT_DIR` and `DEVSYNTH_NO_FILE_LOGGING`
-are automatically configured during the tests.
+Other variables such as `DEVSYNTH_PROJECT_DIR` are automatically configured
+during tests.
 
 ### Adding New Resources
 
