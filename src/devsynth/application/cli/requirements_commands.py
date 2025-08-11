@@ -921,11 +921,15 @@ def wizard_cmd(
         responses[key] = reply
         index += 1
 
+    # Use the last provided priority or fall back to ``MEDIUM``.  Empty strings
+    # should not override the default value in the resulting plan or project
+    # configuration.
+    priority_value = responses.get("priority") or RequirementPriority.MEDIUM.value
     result = {
         "title": responses.get("title", ""),
         "description": responses.get("description", ""),
         "type": responses.get("type", RequirementType.FUNCTIONAL.value),
-        "priority": responses.get("priority", RequirementPriority.MEDIUM.value),
+        "priority": priority_value,
         "constraints": [
             c.strip() for c in responses.get("constraints", "").split(",") if c.strip()
         ],
@@ -938,7 +942,7 @@ def wizard_cmd(
         json.dump(result, f, indent=2)
 
     cfg = get_project_config(Path("."))
-    cfg.priority = responses.get("priority", RequirementPriority.MEDIUM.value)
+    cfg.priority = priority_value
     cfg.constraints = responses.get("constraints", "")
     save_config(cfg, use_pyproject=False)
 

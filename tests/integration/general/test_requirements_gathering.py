@@ -4,6 +4,8 @@ import os
 import pytest
 import yaml
 
+# ``json`` is used to verify the wizard's output file contents
+
 # Ensures gather_requirements persists priority, goals, and constraints
 pytestmark = pytest.mark.usefixtures("stub_optional_deps")
 
