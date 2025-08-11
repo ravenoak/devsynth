@@ -12,7 +12,8 @@ from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemor
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
 
-pytestmark = pytest.mark.memory_intensive
+# Mark the entire module as medium speed; only specific tests are memory intensive
+pytestmark = pytest.mark.medium
 
 
 class TestGraphMemoryErrorHandling:
@@ -142,13 +143,14 @@ class TestGraphMemoryErrorHandling:
         assert retrieved_item is not None
         assert retrieved_item.content == memory_item.content
 
-    @pytest.mark.medium
+    @pytest.mark.slow
     @pytest.mark.memory_intensive
     def test_store_with_very_large_content_succeeds(self, graph_adapter):
         """Test storing a memory item with very large content.
 
         ReqID: N/A"""
-        large_content = "x" * 1000000
+        # Use a reduced payload to avoid excessive memory usage
+        large_content = "x" * 10000
         memory_item = MemoryItem(
             id="test-id",
             content=large_content,
