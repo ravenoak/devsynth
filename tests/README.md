@@ -1,6 +1,6 @@
 # DevSynth Test Framework
 
-This directory contains tests for the DevSynth project, organized into different types:
+This directory contains tests for the DevSynth project, organized into different types. Always run test and lint commands through `poetry run` to ensure the correct environment is used, and include the requirement ID in each test's docstring (e.g., `ReqID: FR-09`) for traceability:
 
 - **Unit Tests**: Tests for individual components in isolation (`tests/unit/`)
 - **Integration Tests**: Tests for interactions between components (`tests/integration/`)
@@ -88,6 +88,14 @@ poetry run pytest
 
 Running `pytest` directly may fail because required plugins (for example
 `pytest-bdd`) are installed only in the Poetry virtual environment.
+
+During development, skip memory-intensive tests by default:
+
+```bash
+poetry run pytest -m "not memory_intensive"
+```
+
+Tests that require significant memory must be marked with `@pytest.mark.memory_intensive`. Optional external services are gated with resource markers such as `@pytest.mark.requires_resource("lmstudio")` and will be skipped automatically when the corresponding resource is unavailable.
 
 ## Test Speed Categories
 
