@@ -36,7 +36,15 @@ class DevSynthLogger(_BaseDevSynthLogger):
     """
 
     def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
-        """Normalize ``exc_info`` and delegate to the base logger."""
+        """Normalize ``exc_info`` and delegate to the base logger.
+
+        The standard :mod:`logging` API expects ``exc_info`` to either be a
+        boolean or a ``(type, value, traceback)`` tuple.  Some callers pass
+        exception instances or other arbitrary objects which can trigger
+        ``TypeError`` when the logging framework processes them.  This method
+        converts known safe forms and drops everything else so logging never
+        crashes due to malformed ``exc_info`` values.
+        """
 
         exc = kwargs.pop("exc_info", None)
         if isinstance(exc, BaseException):
@@ -47,6 +55,13 @@ class DevSynthLogger(_BaseDevSynthLogger):
             # ``True`` means "use the current exception"; normalize to a tuple
             # to keep behaviour consistent with our exception-object handling.
             exc = sys.exc_info()
+        elif exc not in (None, False):
+            # Guard against unsupported ``exc_info`` types (e.g. strings or
+            # improperly formed tuples) which would otherwise raise exceptions
+            # when the base logger tries to format the record.
+            if not (isinstance(exc, tuple) and len(exc) == 3):
+                exc = None
+
         super()._log(level, msg, *args, exc_info=exc, **kwargs)
 
 

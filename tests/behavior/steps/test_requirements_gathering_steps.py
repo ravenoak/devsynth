@@ -11,6 +11,9 @@ from devsynth.interface.ux_bridge import UXBridge
 
 from .webui_steps import webui_context
 
+# These steps exercise both CLI and WebUI flows for requirements gathering
+
+
 pytest_plugins = ["tests.fixtures.webui_test_utils"]
 
 
