@@ -45,7 +45,8 @@ poetry install \
 
 # Cache optional extras to avoid repeated downloads
 poetry run pip download \
-  kuzu faiss-cpu dearpygui chromadb lmstudio \
+  astor chromadb dearpygui duckdb faiss-cpu fastapi httpx \
+  kuzu lmdb lmstudio prometheus-client tinydb tiktoken \
   -d "${PIP_CACHE_DIR:-$HOME/.cache/pip}" >/dev/null || \
   echo "[warning] failed to cache optional extras" >&2
 
