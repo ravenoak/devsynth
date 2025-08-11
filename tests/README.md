@@ -100,7 +100,7 @@ Tests are grouped by runtime using pytest markers:
 These markers make it easy to select subsets of the suite. For example:
 
 ```bash
-poetry run python scripts/run_all_tests.py --fast --medium
+poetry run devsynth run-tests --fast --medium
 ```
 
 ## Conditional Test Execution
@@ -311,16 +311,16 @@ To see which tests would be skipped due to missing resources:
 poetry run pytest --collect-only -v
 ```
 
-### Using `run_all_tests.py`
+### Using `devsynth run-tests`
 
-The helper script `scripts/run_all_tests.py` wraps `pytest` and expects all
-required plugins to be installed via Poetry. Invoke it from the Poetry
-environment to run the full suite or selected groups:
+The `devsynth run-tests` CLI wraps `pytest` and expects all
+required plugins to be installed via Poetry.
+Invoke the command from the Poetry environment to run the full suite or selected groups:
 
 ```bash
-poetry run python scripts/run_all_tests.py                     # run all tests
-poetry run python scripts/run_all_tests.py --target unit-tests  # run only unit tests
-poetry run python scripts/run_all_tests.py --report             # generate HTML report under test_reports/
+poetry run devsynth run-tests                     # run all tests
+poetry run devsynth run-tests --target unit-tests  # run only unit tests
+poetry run devsynth run-tests --report             # generate HTML report under test_reports/
 ```
 
 For additional utilities like flaky-test fixes and incremental categorization, see [Test Stabilization Tools](../docs/developer_guides/test_stabilization_tools.md).
