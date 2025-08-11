@@ -74,12 +74,15 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         self.llm_service = llm_service
         self.memory_manager = memory_manager
 
-    def evaluate_change(self, change: RequirementChange) -> DialecticalReasoning:
+    def evaluate_change(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> DialecticalReasoning:
         """
         Evaluate a requirement change using dialectical reasoning.
 
         Args:
             change: The requirement change to evaluate.
+            edrr_phase: The EDRR phase context for memory storage.
 
         Returns:
             The dialectical reasoning result.
@@ -148,7 +151,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
         # Save and persist the reasoning
         saved = self.reasoning_repository.save_reasoning(reasoning)
-        self._store_reasoning_in_memory(saved)
+        self._store_reasoning_in_memory(saved, edrr_phase=edrr_phase)
         return saved
 
     def process_message(
@@ -222,12 +225,15 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         # Save and return the session
         return self.chat_repository.save_session(session)
 
-    def assess_impact(self, change: RequirementChange) -> ImpactAssessment:
+    def assess_impact(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> ImpactAssessment:
         """
         Assess the impact of a requirement change.
 
         Args:
             change: The requirement change to assess.
+            edrr_phase: The EDRR phase context for memory storage.
 
         Returns:
             The impact assessment.
@@ -274,6 +280,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         # Send notification
         self.notification_service.notify_impact_assessment_completed(saved_assessment)
 
+        # Persist impact assessment with EDRR phase context
+        self._store_impact_in_memory(saved_assessment, edrr_phase=edrr_phase)
+
         return saved_assessment
 
     def _store_reasoning_in_memory(
@@ -289,6 +298,24 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 memory_type=MemoryType.DIALECTICAL_REASONING,
                 edrr_phase=edrr_phase,
                 metadata={"change_id": str(reasoning.change_id)},
+            )
+        except Exception:
+            # Memory persistence failures should not interrupt flow
+            pass
+
+    def _store_impact_in_memory(
+        self, assessment: ImpactAssessment, edrr_phase: str = "REFINE"
+    ) -> None:
+        """Persist impact assessment to the memory manager if available."""
+        manager = getattr(self, "memory_manager", None)
+        if manager is None:
+            return
+        try:
+            manager.store_with_edrr_phase(
+                asdict(assessment),
+                memory_type=MemoryType.DOCUMENTATION,
+                edrr_phase=edrr_phase,
+                metadata={"change_id": str(assessment.change_id)},
             )
         except Exception:
             # Memory persistence failures should not interrupt flow
