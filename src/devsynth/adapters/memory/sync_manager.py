@@ -77,6 +77,48 @@ class MultiStoreSyncManager:
 
         return self.manager.synchronize_core_stores()
 
+    # ------------------------------------------------------------------
+    # transactional helpers -------------------------------------------------
+
+    def transaction(self, stores: list[str] | None = None):
+        """Return a transaction context spanning ``stores``.
+
+        Parameters
+        ----------
+        stores:
+            Optional list of store names to include.  When omitted all
+            configured stores participate in the transaction.
+
+        Returns
+        -------
+        Context manager
+            The context manager yielded by :class:`SyncManager` which will
+            commit on successful exit and roll back if an exception occurs.
+        """
+
+        stores = stores or list(self.manager.adapters.keys())
+        return self.sync_manager.transaction(stores)
+
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin an explicit transaction across all stores."""
+
+        return self.sync_manager.begin_transaction(transaction_id)
+
+    def commit_transaction(self, transaction_id: str) -> None:
+        """Commit a previously started transaction."""
+
+        self.sync_manager.commit_transaction(transaction_id)
+
+    def rollback_transaction(self, transaction_id: str) -> None:
+        """Rollback a previously started transaction."""
+
+        self.sync_manager.rollback_transaction(transaction_id)
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` if ``transaction_id`` is active."""
+
+        return transaction_id in self.sync_manager._active_transactions
+
     def cleanup(self) -> None:
         """Release resources held by the underlying stores."""
         for store in (self.lmdb, self.faiss):

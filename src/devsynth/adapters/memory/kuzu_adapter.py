@@ -13,6 +13,8 @@ import os
 import shutil
 import tempfile
 import uuid
+from contextlib import contextmanager
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 try:  # pragma: no cover - optional dependency
@@ -24,6 +26,7 @@ except Exception:  # pragma: no cover - optional dependency
 from devsynth.config import settings as settings_module
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
+from devsynth.exceptions import MemoryStoreError
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -49,6 +52,10 @@ class KuzuAdapter(VectorStore):
             self.persist_directory, f"{collection_name}.json"
         )
         self._store: Dict[str, MemoryVector] = {}
+        # Track snapshots for basic transaction support.  Each transaction
+        # ID maps to a complete copy of the current store which can be
+        # restored if a rollback is requested.
+        self._snapshots: Dict[str, Dict[str, MemoryVector]] = {}
         # Track temporary directories created via ``create_ephemeral`` so they
         # can be removed in :meth:`cleanup`.
         self._temp_dir: Optional[str] = None
@@ -99,7 +106,8 @@ class KuzuAdapter(VectorStore):
         if not vector.id:
             vector.id = str(uuid.uuid4())
         self._store[vector.id] = vector
-        self._persist()
+        if not self._snapshots:
+            self._persist()
         return vector.id
 
     def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
@@ -136,7 +144,7 @@ class KuzuAdapter(VectorStore):
 
     def delete_vector(self, vector_id: str) -> bool:
         existed = self._store.pop(vector_id, None) is not None
-        if existed:
+        if existed and not self._snapshots:
             self._persist()
         return existed
 
@@ -155,6 +163,61 @@ class KuzuAdapter(VectorStore):
             "embedding_dimension": dim,
             "persist_directory": self.persist_directory,
         }
+
+    # ------------------------------------------------------------------
+    # transactional helpers -------------------------------------------------
+
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a new transaction and return its identifier."""
+
+        tx_id = transaction_id or str(uuid.uuid4())
+        if tx_id in self._snapshots:
+            raise MemoryStoreError(f"Transaction {tx_id} already active")
+        self._snapshots[tx_id] = {
+            vid: deepcopy(vec) for vid, vec in self._store.items()
+        }
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a previously started transaction."""
+
+        if transaction_id not in self._snapshots:
+            raise MemoryStoreError(
+                f"Commit requested for unknown transaction {transaction_id}"
+            )
+        self._snapshots.pop(transaction_id, None)
+        self._persist()
+        return True
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a transaction to its starting snapshot."""
+
+        snapshot = self._snapshots.pop(transaction_id, None)
+        if snapshot is None:
+            raise MemoryStoreError(
+                f"Rollback requested for unknown transaction {transaction_id}"
+            )
+        self._store = {vid: deepcopy(vec) for vid, vec in snapshot.items()}
+        self._persist()
+        return True
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` if ``transaction_id`` is active."""
+
+        return transaction_id in self._snapshots
+
+    @contextmanager
+    def transaction(self, transaction_id: str | None = None):
+        """Context manager providing transactional semantics."""
+
+        tx_id = self.begin_transaction(transaction_id)
+        try:
+            yield tx_id
+        except Exception:
+            self.rollback_transaction(tx_id)
+            raise
+        else:
+            self.commit_transaction(tx_id)
 
     # ------------------------------------------------------------------
     @classmethod

@@ -5,6 +5,7 @@ ChromaDB adapter for vector storage.
 import json
 import os
 import uuid
+from contextlib import contextmanager
 
 try:
     import chromadb
@@ -186,6 +187,32 @@ class ChromaDBAdapter(VectorStore):
                 f"Prepare requested for unknown ChromaDB transaction {transaction_id}"
             )
         return True
+
+    # ------------------------------------------------------------------
+    @contextmanager
+    def transaction(self, transaction_id: Optional[str] = None):
+        """Context manager providing transactional semantics.
+
+        Parameters
+        ----------
+        transaction_id:
+            Optional identifier supplied by the caller. When ``None`` a
+            UUID-based identifier is generated.
+
+        Yields
+        ------
+        str
+            The transaction identifier for the active transaction.
+        """
+
+        tx_id = self.begin_transaction(transaction_id)
+        try:
+            yield tx_id
+        except Exception:
+            self.rollback_transaction(tx_id)
+            raise
+        else:
+            self.commit_transaction(tx_id)
 
     def _serialize_metadata(self, vector: MemoryVector) -> Dict[str, Any]:
         """
