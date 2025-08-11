@@ -1,6 +1,5 @@
 import os
 import sys
-from types import ModuleType
 from typing import Optional, Sequence
 from unittest.mock import MagicMock
 

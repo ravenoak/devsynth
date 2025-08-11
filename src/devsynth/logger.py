@@ -36,6 +36,8 @@ class DevSynthLogger(_BaseDevSynthLogger):
     """
 
     def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
+        """Normalize ``exc_info`` and delegate to the base logger."""
+
         exc = kwargs.pop("exc_info", None)
         if isinstance(exc, BaseException):
             # Convert bare exception objects to the tuple form expected by the
