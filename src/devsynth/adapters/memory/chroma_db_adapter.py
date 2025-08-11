@@ -440,6 +440,15 @@ class ChromaDBAdapter(VectorStore):
             logger.error(f"Failed to delete vector from ChromaDB: {e}")
             raise MemoryStoreError(f"Failed to delete vector from ChromaDB: {e}")
 
+    def flush(self) -> None:
+        """Flush pending changes to the persistence layer."""
+
+        try:
+            if hasattr(self.client, "persist"):
+                self.client.persist()
+        except Exception:
+            logger.debug("ChromaDB flush failed", exc_info=True)
+
     def get_collection_stats(self) -> Dict[str, Any]:
         """
         Get statistics about the vector store collection.

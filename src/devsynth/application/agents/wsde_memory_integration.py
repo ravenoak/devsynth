@@ -143,6 +143,11 @@ class WSDEMemoryIntegration:
             if stored_item:
                 stored_item.metadata["edrr_phase"] = edrr_phase
                 memory_store.update_item(stored_item)
+                if hasattr(memory_store, "flush"):
+                    try:
+                        memory_store.flush()
+                    except Exception:
+                        logger.debug("Memory store flush failed", exc_info=True)
 
         logger.info(f"Stored agent solution in memory with ID {item_id}")
         return item_id
@@ -169,15 +174,20 @@ class WSDEMemoryIntegration:
                 if hasattr(store, "items"):
                     items = list(store.items.values())  # type: ignore[assignment]
                 elif hasattr(store, "search"):
-                    try:
-                        items = store.search({"memory_type": MemoryType.SOLUTION})
-                    except Exception:
+                    items = []
+                    query_variants = [
+                        {"type": MemoryType.SOLUTION},
+                        {"type": MemoryType.SOLUTION.value},
+                        {"memory_type": MemoryType.SOLUTION},
+                        {"memory_type": MemoryType.SOLUTION.value},
+                    ]
+                    for query in query_variants:
                         try:
-                            items = store.search(
-                                {"memory_type": MemoryType.SOLUTION.value}
-                            )
+                            items = store.search(query)
+                            if items:
+                                break
                         except Exception:
-                            items = []
+                            continue
                 for item in items:
                     if (
                         item.memory_type == MemoryType.SOLUTION
