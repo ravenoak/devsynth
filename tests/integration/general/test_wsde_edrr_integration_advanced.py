@@ -248,5 +248,4 @@ def test_memory_sync_hook_handles_wsde_events():
     mm.update_item("tinydb" if "tinydb" in mm.adapters else "default", item)
     mm.flush_updates()
 
-    assert events[0] == "adv-item"
-    assert events[-1] is None
+    assert events == ["adv-item", None]

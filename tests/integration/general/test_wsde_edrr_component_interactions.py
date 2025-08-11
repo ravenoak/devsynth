@@ -305,5 +305,4 @@ class TestWSDEEDRRComponentInteractions:
         memory_manager.update_item("default", item)
         memory_manager.flush_updates()
 
-        assert events[0] == "test-item"
-        assert events[-1] is None
+        assert events == ["test-item", None]

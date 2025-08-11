@@ -161,7 +161,6 @@ class MemoryManager:
 
         # Use the sync manager to propagate to all stores
         self.sync_manager.update_item(primary_store, memory_item)
-        self._notify_sync_hooks(memory_item)
         return memory_item.id
 
     def retrieve_with_edrr_phase(
@@ -737,16 +736,12 @@ class MemoryManager:
     def update_item(self, store: str, item: MemoryItem) -> bool:
         """Update an item and propagate to other stores."""
 
-        result = self.sync_manager.update_item(store, item)
-        if result:
-            self._notify_sync_hooks(item)
-        return result
+        return self.sync_manager.update_item(store, item)
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
         """Queue an update for asynchronous propagation."""
 
         self.sync_manager.queue_update(store, item)
-        self._notify_sync_hooks(item)
 
     def flush_updates(self) -> None:
         """Flush queued updates synchronously and persist adapters."""
@@ -762,13 +757,11 @@ class MemoryManager:
                     adapter.memory_store.flush()
             except Exception:
                 logger.debug("Adapter flush failed", exc_info=True)
-        self._notify_sync_hooks(None)
 
     async def flush_updates_async(self) -> None:
         """Flush queued updates asynchronously."""
 
         await self.sync_manager.flush_queue_async()
-        self._notify_sync_hooks(None)
 
     async def wait_for_sync(self) -> None:
         """Wait for asynchronous sync tasks to complete."""
