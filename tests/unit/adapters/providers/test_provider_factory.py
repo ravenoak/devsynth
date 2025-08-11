@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = [pytest.mark.memory_intensive]
+
 from devsynth.adapters.providers.provider_factory import (
     LMStudioProvider,
     OpenAIProvider,

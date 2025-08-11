@@ -361,6 +361,10 @@ class TestMemorySystemAdapter:
         from devsynth.application.memory.sync_manager import SyncManager
 
         monkeypatch.delitem(sys.modules, "kuzu", raising=False)
+        ef = pytest.importorskip("chromadb.utils.embedding_functions")
+        monkeypatch.setattr(
+            ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5)
+        )
         kuzu_store = KuzuMemoryStore.create_ephemeral(use_provider_system=False)
         lmdb_store = LMDBStore(str(tmp_path / "lmdb"))
         try:
