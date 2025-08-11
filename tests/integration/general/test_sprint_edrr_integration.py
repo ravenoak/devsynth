@@ -23,6 +23,7 @@ def test_requirements_analysis_updates_sprint_plan():
         "retrospect": {},
     }
 
+    adapter.after_expand({}, results["expand"])
     adapter.after_cycle(results)
 
     assert adapter.sprint_plan["planned_scope"] == ["feature"]
@@ -50,6 +51,7 @@ def test_retrospective_evaluation_logged():
     }
     results = {"expand": {}, "retrospect": retro_results}
 
+    adapter.after_retrospect({}, retro_results)
     adapter.after_cycle(results)
 
     assert adapter.metrics["retrospective_reviews"][0]["action_items"] == ["fix"]
