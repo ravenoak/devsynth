@@ -2321,6 +2321,13 @@ class EDRRCoordinator:
             results = self._run_micro_cycles(self.current_phase, results)
             self.results[self.current_phase.name] = results
 
+            # Evaluate phase quality and completion status
+            assessment = self._assess_phase_quality(self.current_phase)
+            results["quality_score"] = assessment["quality"]
+            results["phase_complete"] = assessment["can_progress"]
+            results["quality_metrics"] = assessment["metrics"]
+            self.results[self.current_phase.name] = results
+
             if hasattr(self, "_preserved_context"):
                 results.setdefault("context", {})["previous_phases"] = copy.deepcopy(
                     self._preserved_context

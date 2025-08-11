@@ -15,6 +15,12 @@ if [[ ! -f pyproject.toml ]]; then
   exit 1
 fi
 
+# Ensure required security token is present.
+if [[ -z "${DEVSYNTH_ACCESS_TOKEN:-}" ]]; then
+  echo "DEVSYNTH_ACCESS_TOKEN must be set." >&2
+  exit 1
+fi
+
 # Build and start services, then run health checks.
 ./deployment/bootstrap_env.sh
 ./deployment/health_check.sh

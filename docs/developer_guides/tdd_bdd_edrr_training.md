@@ -95,6 +95,10 @@ The Retrospect phase evaluates outcomes and plans for the next iteration. During
 - Identify lessons learned
 - Plan for the next iteration
 
+Each phase records a `quality_score` and sets `phase_complete` when predefined
+thresholds are met. These markers enable the coordinator to transition between
+phases automatically while preserving quality metrics for later review.
+
 ## 3. Integration Principles
 
 The integration of TDD/BDD with EDRR is guided by the following principles:
@@ -301,7 +305,7 @@ Feature: Methodology Adapters Integration
 
 **Pitfall**: Writing tests after implementing the code defeats the purpose of TDD/BDD.
 
-**Solution**: 
+**Solution**:
 - Use pre-commit hooks to enforce test-first development
 - Track test-first metrics to monitor adherence
 - Pair programming with a TDD/BDD advocate
