@@ -383,6 +383,22 @@ class MemorySystemAdapter:
             "total_tokens": store_tokens + context_tokens,
         }
 
+    def flush(self) -> None:
+        """Flush underlying memory components to ensure persistence."""
+
+        for component in (self.memory_store, self.context_manager, self.vector_store):
+            if component is None:
+                continue
+            if hasattr(component, "flush"):
+                try:
+                    component.flush()
+                except Exception:
+                    logger.debug(
+                        "Component %s flush failed",
+                        type(component).__name__,
+                        exc_info=True,
+                    )
+
     def store(self, memory_item: Any) -> str:
         """
         Store a memory item in the memory store.

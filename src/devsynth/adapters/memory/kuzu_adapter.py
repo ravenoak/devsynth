@@ -102,6 +102,11 @@ class KuzuAdapter(VectorStore):
         except Exception as exc:  # pragma: no cover - defensive
             logger.error("Failed to persist vectors: %s", exc)
 
+    def flush(self) -> None:
+        """Flush pending vector updates to disk."""
+
+        self._persist()
+
     def store_vector(self, vector: MemoryVector) -> str:
         if not vector.id:
             vector.id = str(uuid.uuid4())
