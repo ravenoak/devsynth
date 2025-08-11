@@ -430,9 +430,14 @@ def is_lmstudio_available() -> bool:
 
     try:
         import requests
+    except Exception:
+        return False
 
-        response = requests.get(f"{endpoint.rstrip('/')}/v1/models", timeout=2)
+    try:
+        response = requests.get(f"{endpoint.rstrip('/')}/v1/models", timeout=0.2)
         return response.status_code == 200
+    except requests.Timeout:
+        return False
     except Exception:
         return False
 
