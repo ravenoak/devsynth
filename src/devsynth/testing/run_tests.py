@@ -61,6 +61,11 @@ def collect_tests_with_cache(
 
     os.makedirs(COLLECTION_CACHE_DIR, exist_ok=True)
 
+    marker_expr = "not memory_intensive"
+    category_expr = marker_expr
+    if speed_category:
+        category_expr = f"{speed_category} and {marker_expr}"
+
     collect_cmd = [
         sys.executable,
         "-m",
@@ -68,17 +73,35 @@ def collect_tests_with_cache(
         test_path,
         "--collect-only",
         "-q",
+        "-m",
+        category_expr,
     ]
 
     if target == "behavior-tests" and speed_category:
-        check_cmd = collect_cmd + ["-m", speed_category]
+        check_cmd = [
+            sys.executable,
+            "-m",
+            "pytest",
+            test_path,
+            "--collect-only",
+            "-q",
+            "-m",
+            category_expr,
+        ]
         check_result = subprocess.run(
             check_cmd, check=False, capture_output=True, text=True
         )
-        if "no tests ran" not in check_result.stdout and check_result.stdout.strip():
-            collect_cmd.extend(["-m", speed_category])
-    elif speed_category:
-        collect_cmd.extend(["-m", speed_category])
+        if "no tests ran" in check_result.stdout or not check_result.stdout.strip():
+            collect_cmd = [
+                sys.executable,
+                "-m",
+                "pytest",
+                test_path,
+                "--collect-only",
+                "-q",
+                "-m",
+                marker_expr,
+            ]
 
     try:
         collect_result = subprocess.run(
@@ -151,7 +174,7 @@ def run_tests(
         print(f"Report will be saved to {report_dir}/report.html")
 
     if not speed_categories:
-        cmd = base_cmd + report_options
+        cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
         try:
             result = subprocess.run(cmd, check=False, capture_output=True, text=True)
             output = result.stdout + result.stderr
@@ -169,8 +192,9 @@ def run_tests(
 
     for speed in speed_categories:
         print(f"\nRunning {speed} tests...")
+        marker_expr = f"{speed} and not memory_intensive"
         if target == "behavior-tests":
-            check_cmd = base_cmd + ["-m", speed, "--collect-only", "-q"]
+            check_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
             check_result = subprocess.run(
                 check_cmd, check=False, capture_output=True, text=True
             )
@@ -178,11 +202,11 @@ def run_tests(
                 print(
                     f"No behavior tests found with {speed} marker. Running all behavior tests..."
                 )
-                speed_cmd = base_cmd + report_options
+                speed_cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
             else:
-                speed_cmd = base_cmd + ["-m", speed] + report_options
+                speed_cmd = base_cmd + ["-m", marker_expr] + report_options
         else:
-            speed_cmd = base_cmd + ["-m", speed] + report_options
+            speed_cmd = base_cmd + ["-m", marker_expr] + report_options
 
         if segment:
             test_list = collect_tests_with_cache(target, speed)
@@ -199,7 +223,7 @@ def run_tests(
                 print(
                     f"\nRunning batch {i // segment_size + 1}/{(len(test_list) + segment_size - 1) // segment_size}..."
                 )
-                batch_cmd = base_cmd + ["-m", speed] + batch + report_options
+                batch_cmd = base_cmd + ["-m", marker_expr] + batch + report_options
                 batch_result = subprocess.run(
                     batch_cmd, check=False, capture_output=True, text=True
                 )
