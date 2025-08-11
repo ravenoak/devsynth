@@ -17,6 +17,7 @@ from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
 from .metrics import (
     circuit_breaker_state_counter,
+    get_circuit_breaker_state_metrics,
     get_retry_condition_metrics,
     get_retry_count_metrics,
     get_retry_error_metrics,
@@ -40,6 +41,9 @@ R = TypeVar("R")
 
 # Create a logger for this module
 logger = DevSynthLogger("fallback")
+
+# Placeholder name used for metrics when anonymous retry conditions fail
+ANONYMOUS_CONDITION = "<anonymous>"
 
 
 def reset_prometheus_metrics() -> None:
@@ -67,6 +71,8 @@ __all__ = [
     "retry_error_counter",
     "retry_condition_counter",
     "circuit_breaker_state_counter",
+    "get_circuit_breaker_state_metrics",
+    "ANONYMOUS_CONDITION",
     "reset_prometheus_metrics",
 ]
 
@@ -280,6 +286,7 @@ def retry_with_exponential_backoff(
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
+                            inc_retry_condition(ANONYMOUS_CONDITION)
                             inc_retry_stat(func.__name__, "abort")
                         raise
                     if (
