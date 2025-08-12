@@ -62,8 +62,8 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 
 ## Specification-First Workflow
 
-- Draft a specification for any new functionality under `docs/specifications/`.
-- Add a failing BDD feature under `tests/behavior/features/` before writing code.
+- Always draft a specification for any new functionality in `docs/specifications/` (see the [specification index](docs/specifications/index.md)) **before** implementation.
+- Always add a failing BDD feature under `tests/behavior/features/` prior to writing code.
 - Use this Socratic checklist when preparing specs and tests:
   - What is the problem?
   - What proofs confirm the solution?
@@ -85,14 +85,18 @@ poetry run python scripts/verify_requirements_traceability.py
    - **Key Questions**
      - What files or version bumps did the command produce?
      - Did the command complete without errors?
-2. Tag the release with `git tag -a <version>` and push the tag.
+2. Run `poetry run python scripts/dialectical_audit.py` to produce a dialectical audit log. See the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
    - **Key Questions**
-     - Does the tag follow semantic versioning?
-     - Have the tag and release notes been pushed to the remote?
+     - What inconsistencies or open questions did the audit uncover?
+     - Are these items resolved or tracked?
 3. Conduct a dialectical review with at least one other contributor.
    - **Key Questions**
      - What assumptions underlie the release changes?
      - What counterarguments or alternative perspectives have been considered?
+4. Tag the release with `git tag -a <version>` and push the tag.
+   - **Key Questions**
+     - Does the tag follow semantic versioning?
+     - Have the tag and release notes been pushed to the remote?
 
 ## Automation
 
