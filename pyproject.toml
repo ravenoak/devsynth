@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "devsynth"
-version = "0.1.0a1"
+version = "0.1.0-alpha.1"
 description = "DevSynth project"
 authors = ["DevSynth Team"]
 readme = "README.md"
 packages = [{include = "devsynth", from = "src"}]
+classifiers = ["Development Status :: 3 - Alpha"]
 
 [tool.poetry.dependencies]
 python = "<3.13,>=3.12"

@@ -7,7 +7,7 @@ tags:
   - "overview"
   - "documentation"
   - "readme"
-status: "published"
+status: "draft"
 author: "DevSynth Team"
 last_reviewed: "2025-08-05"
 ---

@@ -22,7 +22,7 @@ DevSynth has not yet reached an official release. Versions in the `0.1.x` range
 represent pre-release milestones leading up to the first stable release. No
 version has been published yet.
 
-## [0.1.0] - Unreleased
+## [0.1.0-alpha.1] - Unreleased
 
 ### Added
 - Modular, hexagonal architecture
@@ -48,19 +48,16 @@ version has been published yet.
 - Renamed CLI commands: `adaptive`→`refactor`, `analyze`→`inspect`, `run`→`run-pipeline`, `replay`→`retrace`
 - Synchronized feature status reports with latest implementation
 - Stabilized pre-release references to maintain version `0.1.0-alpha.1` across configuration and documentation
-
-### Fixed
-- Improved error handling in the EDRR coordinator
-
-## [Unreleased]
-### Changed
 - Updated documentation to reflect implementation of WebUI, CLI overhaul,
   hybrid memory architecture, and basic metrics system.
+
 ### Deprecated
 - `scripts/alignment_check.py` and `scripts/validate_manifest.py` replaced by
   CLI commands `devsynth align` and `devsynth validate-manifest`. These scripts
   will be removed in v1.0 per the deprecation policy.
+
 ### Fixed
+- Improved error handling in the EDRR coordinator
 - Optional tiktoken dependency no longer breaks Kuzu memory initialization
 - Added missing step definitions for enhanced memory scenarios
 - Linked remaining alpha tasks (WebUI, Kuzu memory, WSDE collaboration, CLI ingestion) to milestone `0.1.0-alpha.1` and updated development status.
