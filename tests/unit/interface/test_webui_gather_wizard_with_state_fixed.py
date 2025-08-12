@@ -11,10 +11,10 @@ from tests.fixtures.webui_wizard_state_fixture import (
 
 
 @pytest.fixture
-def mock_gather_requirements(monkeypatch):
+def mock_gather_requirements():
     """Mock the gather_requirements function."""
-    gather_mock = MagicMock()
-    return gather_mock
+    with patch("devsynth.interface.webui.gather_requirements") as gather_mock:
+        yield gather_mock
 
 
 @pytest.fixture
@@ -61,7 +61,6 @@ def test_gather_wizard_navigation_with_state(
 ):
     """Test navigation through gather wizard steps with WizardState."""
     # Import the WebUI class after the streamlit module is patched
-    import devsynth.interface.webui as webui
     from devsynth.interface.webui import WebUI
 
     state, mock_st = gather_wizard_state
@@ -129,7 +128,6 @@ def test_gather_wizard_data_persistence_with_state(
 ):
     """Test that data persists between gather wizard steps with WizardState."""
     # Import the WebUI class after the streamlit module is patched
-    import devsynth.interface.webui as webui
     from devsynth.interface.webui import WebUI
 
     state, mock_st = gather_wizard_state
@@ -207,14 +205,12 @@ def test_gather_wizard_completion_with_state(
     gather_wizard_state, mock_gather_requirements, clean_state
 ):
     """Test completing the gather wizard with WizardState."""
-    import devsynth.interface.webui as webui
     from devsynth.interface.webui import WebUI
 
     def mock_gather_fn(webui_instance):
         return True
 
     mock_gather_requirements.side_effect = mock_gather_fn
-    webui.gather_requirements = mock_gather_requirements
 
     state, mock_st = gather_wizard_state
     webui_instance = WebUI()
@@ -240,14 +236,12 @@ def test_gather_wizard_completion_with_state(
     webui_instance._gather_wizard()
 
     mock_gather_requirements.assert_called_with(webui_instance)
-    webui.gather_requirements = mock_gather_requirements
 
 
 @pytest.mark.medium
 def test_gather_wizard_error_handling_with_state(gather_wizard_state, clean_state):
     """Test error handling in the gather wizard with WizardState."""
     # Import the WebUI class after the streamlit module is patched
-    import devsynth.interface.webui as webui
     from devsynth.interface.webui import WebUI
 
     state, mock_st = gather_wizard_state
@@ -313,7 +307,6 @@ def test_gather_wizard_cancel_with_state(
 ):
     """Test canceling the gather wizard with WizardState."""
     # Import the WebUI class after the streamlit module is patched
-    import devsynth.interface.webui as webui
     from devsynth.interface.webui import WebUI
 
     state, mock_st = gather_wizard_state
@@ -375,7 +368,6 @@ def test_gather_wizard_validation_with_state(
 ):
     """Test validation in the gather wizard with WizardState."""
     # Import the WebUI class after the streamlit module is patched
-    import devsynth.interface.webui as webui
     from devsynth.interface.webui import WebUI
 
     state, mock_st = gather_wizard_state
