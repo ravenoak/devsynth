@@ -43,12 +43,37 @@ poetry install \
   --extras "tests retrieval chromadb api" \
   --no-interaction
 
-# Cache optional extras to avoid repeated downloads
-poetry run pip download \
-  astor chromadb dearpygui duckdb faiss-cpu fastapi httpx \
-  kuzu lmdb lmstudio prometheus-client tinydb tiktoken \
-  -d "${PIP_CACHE_DIR:-$HOME/.cache/pip}" >/dev/null || \
-  echo "[warning] failed to cache optional extras" >&2
+# Cache optional extras to avoid repeated downloads. Parse the extras from
+# `pyproject.toml` so the cache stays in sync automatically. Heavy GPU packages
+# like torch, transformers, and nvidia-* wheels are skipped to keep setup fast.
+optional_pkgs=$(poetry run python - <<'PY'
+import re
+import sys
+import tomllib
+
+heavy = {"torch", "transformers"}
+heavy_prefixes = ("nvidia-",)
+
+with open("pyproject.toml", "rb") as f:
+    data = tomllib.load(f)
+
+pkgs = set()
+for deps in data.get("tool", {}).get("poetry", {}).get("extras", {}).values():
+    for dep in deps:
+        pkg = re.split(r"[\s\[<>=]", dep, 1)[0]
+        if pkg in heavy or any(pkg.startswith(p) for p in heavy_prefixes):
+            continue
+        pkgs.add(pkg)
+
+print(" ".join(sorted(pkgs)))
+PY
+)
+
+if [ -n "$optional_pkgs" ]; then
+  poetry run pip download $optional_pkgs \
+    -d "${PIP_CACHE_DIR:-$HOME/.cache/pip}" >/dev/null || \
+    echo "[warning] failed to cache optional extras" >&2
+fi
 
 # Ensure prometheus-client is available after installation
 poetry run python -c "import prometheus_client"
