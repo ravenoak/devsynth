@@ -11,6 +11,19 @@ from datetime import datetime
 from threading import Lock, RLock
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
 
+try:  # pragma: no cover - optional dependencies
+    from .lmdb_store import LMDBStore
+except Exception:  # pragma: no cover - optional dependency
+    LMDBStore = None
+try:  # pragma: no cover - optional dependencies
+    from .faiss_store import FAISSStore
+except Exception:  # pragma: no cover - optional dependency
+    FAISSStore = None
+try:  # pragma: no cover - optional dependencies
+    from ...adapters.kuzu_memory_store import KuzuMemoryStore
+except Exception:  # pragma: no cover - optional dependency
+    KuzuMemoryStore = None
+
 from ...domain.models.memory import MemoryItem
 from ...logging_setup import DevSynthLogger
 from .tiered_cache import TieredCache
@@ -72,6 +85,115 @@ class DummyTransactionContext:
 logger = DevSynthLogger(__name__)
 
 
+class LMDBTransactionContext:
+    """Transaction context for :class:`LMDBStore`."""
+
+    def __init__(self, adapter: Any) -> None:
+        self.adapter = adapter
+        self._context = None
+
+    def __enter__(self):
+        ctx = self.adapter.begin_transaction()
+        if hasattr(ctx, "__enter__"):
+            self._context = ctx
+            return ctx.__enter__()
+        self._context = None
+        return ctx
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._context and hasattr(self._context, "__exit__"):
+            return self._context.__exit__(exc_type, exc_val, exc_tb)
+        return False
+
+
+class FAISSTransactionContext:
+    """Snapshot-based transaction context for :class:`FAISSStore`."""
+
+    def __init__(self, adapter: Any) -> None:
+        self.adapter = adapter
+        self._snapshot: Dict[str, Any] = {}
+
+    def __enter__(self):
+        vectors = (
+            self.adapter.get_all_vectors()
+            if hasattr(self.adapter, "get_all_vectors")
+            else []
+        )
+        self._snapshot = {v.id: deepcopy(v) for v in vectors}
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            current = (
+                self.adapter.get_all_vectors()
+                if hasattr(self.adapter, "get_all_vectors")
+                else []
+            )
+            current_ids = {v.id for v in current}
+            snap_ids = set(self._snapshot.keys())
+            for vid in current_ids - snap_ids:
+                if hasattr(self.adapter, "delete_vector"):
+                    self.adapter.delete_vector(vid)
+            for vec in self._snapshot.values():
+                if hasattr(self.adapter, "store_vector"):
+                    self.adapter.store_vector(vec)
+        return False
+
+
+class KuzuTransactionContext:
+    """Snapshot-based transaction context for :class:`KuzuMemoryStore`."""
+
+    def __init__(self, adapter: Any) -> None:
+        self.adapter = adapter
+        self._items: Dict[str, MemoryItem] = {}
+        self._vectors: Dict[str, Any] = {}
+
+    def __enter__(self):
+        items = (
+            self.adapter.get_all_items()
+            if hasattr(self.adapter, "get_all_items")
+            else []
+        )
+        vectors = (
+            self.adapter.get_all_vectors()
+            if hasattr(self.adapter, "get_all_vectors")
+            else []
+        )
+        self._items = {i.id: deepcopy(i) for i in items}
+        self._vectors = {v.id: deepcopy(v) for v in vectors}
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            current_items = (
+                self.adapter.get_all_items()
+                if hasattr(self.adapter, "get_all_items")
+                else []
+            )
+            current_ids = {i.id for i in current_items}
+            snap_ids = set(self._items.keys())
+            for item_id in current_ids - snap_ids:
+                if hasattr(self.adapter, "delete"):
+                    self.adapter.delete(item_id)
+            for item in self._items.values():
+                if hasattr(self.adapter, "store"):
+                    self.adapter.store(item)
+            current_vectors = (
+                self.adapter.get_all_vectors()
+                if hasattr(self.adapter, "get_all_vectors")
+                else []
+            )
+            current_vec_ids = {v.id for v in current_vectors}
+            snap_vec_ids = set(self._vectors.keys())
+            for vec_id in current_vec_ids - snap_vec_ids:
+                if hasattr(self.adapter, "delete_vector"):
+                    self.adapter.delete_vector(vec_id)
+            for vec in self._vectors.values():
+                if hasattr(self.adapter, "store_vector"):
+                    self.adapter.store_vector(vec)
+        return False
+
+
 class SyncManager:
     """Synchronize memory items between different stores."""
 
@@ -104,6 +226,19 @@ class SyncManager:
         if hasattr(adapter, "get_all_vectors"):
             return adapter.get_all_vectors()
         return []
+
+    def _get_transaction_context(self, adapter: Any, transaction_id: str):
+        """Return an adapter-specific transaction context if supported."""
+
+        if LMDBStore and isinstance(adapter, LMDBStore):
+            return LMDBTransactionContext(adapter)
+        if FAISSStore and isinstance(adapter, FAISSStore):
+            return FAISSTransactionContext(adapter)
+        if KuzuMemoryStore and isinstance(adapter, KuzuMemoryStore):
+            return KuzuTransactionContext(adapter)
+        if hasattr(adapter, "begin_transaction") or hasattr(adapter, "transaction"):
+            return DummyTransactionContext(adapter, transaction_id)
+        return None
 
     # ------------------------------------------------------------------
     def _detect_conflict(self, existing: MemoryItem, incoming: MemoryItem) -> bool:
@@ -175,9 +310,8 @@ class SyncManager:
             added_items[name] = set()
 
             try:
-                if hasattr(adapter, "begin_transaction"):
-                    # Use DummyTransactionContext to handle adapters that don't return a context manager
-                    ctx = DummyTransactionContext(adapter, transaction_id)
+                ctx = self._get_transaction_context(adapter, transaction_id)
+                if ctx is not None:
                     txns[name] = ctx.__enter__()
                     contexts[name] = ctx
                 else:
