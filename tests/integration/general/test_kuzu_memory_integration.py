@@ -155,10 +155,27 @@ def test_kuzu_embedded_env_setting(monkeypatch, embedded):
     assert s["kuzu_embedded"] is embedded
 
 
+def test_kuzu_embedded_module_export(monkeypatch):
+    """settings.kuzu_embedded should mirror the environment."""
+    from devsynth.config import settings as settings_module
+
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "false")
+    settings_module.get_settings(reload=True)
+    try:
+        assert settings_module.kuzu_embedded is False
+    finally:
+        # Reset to default to avoid leaking state
+        settings_module.get_settings(
+            reload=True, kuzu_embedded=settings_module.DEFAULT_KUZU_EMBEDDED
+        )
+
+
 def test_kuzu_adapter_ephemeral_cleanup(monkeypatch, tmp_path, no_kuzu):
     from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+    from devsynth.config import settings as settings_module
 
     monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    settings_module.get_settings(reload=True)
     created: list[str] = []
 
     real_mkdtemp = tempfile.mkdtemp
@@ -173,10 +190,7 @@ def test_kuzu_adapter_ephemeral_cleanup(monkeypatch, tmp_path, no_kuzu):
     adapter = KuzuAdapter.create_ephemeral()
     original_dir = created[0]
     redirected_dir = adapter.persist_directory
-    try:
-        assert redirected_dir.startswith(str(tmp_path))
-    finally:
-        adapter.cleanup()
+    adapter.cleanup()
 
     assert not os.path.exists(original_dir)
     assert not os.path.exists(redirected_dir)

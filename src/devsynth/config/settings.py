@@ -823,6 +823,7 @@ __all__ = [
     "is_devsynth_managed_project",
     "ensure_path_exists",
     "DEFAULT_KUZU_EMBEDDED",
+    "kuzu_db_path",
     "kuzu_embedded",
     "KUZU_EMBEDDED",
 ]
