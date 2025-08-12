@@ -71,6 +71,21 @@ poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_requirements_traceability.py
 ```
 
+## Release Preparation
+
+1. Run `poetry run task release:prep` to generate release artifacts.
+   - **Key Questions**
+     - What files or version bumps did the command produce?
+     - Did the command complete without errors?
+2. Tag the release with `git tag -a <version>` and push the tag.
+   - **Key Questions**
+     - Does the tag follow semantic versioning?
+     - Have the tag and release notes been pushed to the remote?
+3. Conduct a dialectical review with at least one other contributor.
+   - **Key Questions**
+     - What assumptions underlie the release changes?
+     - What counterarguments or alternative perspectives have been considered?
+
 ## Automation
 
 - Most DevSynth CLI commands accept `--non-interactive` and `--defaults` to bypass prompts.
