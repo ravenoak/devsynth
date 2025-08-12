@@ -380,10 +380,13 @@ class DevSynthLogger:
         stacklevel = kwargs.pop("stacklevel", None)
         extra = kwargs.pop("extra", None)
 
-        if isinstance(exc, BaseException):
-            exc = (exc.__class__, exc, exc.__traceback__)
-        elif exc is True:
-            exc = sys.exc_info()
+        if exc:
+            if isinstance(exc, BaseException):
+                exc = (exc.__class__, exc, exc.__traceback__)
+            elif exc is True:
+                exc = sys.exc_info()
+            elif not isinstance(exc, tuple):
+                exc = sys.exc_info()
 
         if kwargs:
             RESERVED = {
