@@ -298,6 +298,17 @@ poetry run pytest -m "not memory_intensive"
 
 Mark such tests with `@pytest.mark.memory_intensive`. For optional services, use resource markers such as `@pytest.mark.requires_resource("lmstudio")` and set `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=false` to skip them when unavailable.
 
+### Mocking LM Studio and other optional services
+
+When the `lmstudio` package or its server is unavailable, tests should
+gracefully skip or mock the dependency. Guard direct imports with
+`pytest.importorskip("lmstudio")` to avoid import errors. For unit tests,
+stub network interactions using `unittest.mock` or libraries like
+`responses` so that code paths remain deterministic. Integration tests that
+genuinely exercise LM Studio should be marked with
+`@pytest.mark.requires_resource("lmstudio")` and executed only when
+`DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true`.
+
 ## Running All Tests
 
 ```bash
