@@ -21,16 +21,24 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 1. **Fork and clone** the repository
 2. **Set up** your development environment with Poetry
 3. **Create a branch** for your changes
-4. **Write tests** before implementing functionality (TDD/BDD approach)
+4. **Draft a specification** in `docs/specifications/` and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist before writing code
 5. **Implement** your changes following our coding standards
 6. **Submit** a pull request with a clear description
 
 ## Key Guidelines
 
 - Follow the **test-first development approach** (TDD/BDD)
+- For new functionality, include a spec and failing BDD feature before implementation
 - Adhere to our [coding standards](docs/developer_guides/code_style.md)
 - Update documentation for any changes
 - Ensure all tests pass before submitting a pull request
+
+## Socratic Checklist
+
+When drafting specifications and tests, confirm:
+
+- What is the problem?
+- What proofs confirm the solution?
 
 ## Development Environment
 

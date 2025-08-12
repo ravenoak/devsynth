@@ -60,6 +60,14 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
    PIP_NO_INDEX=1 poetry run pip check
    ```
 
+## Specification-First Workflow
+
+- Draft a specification for any new functionality under `docs/specifications/`.
+- Add a failing BDD feature under `tests/behavior/features/` before writing code.
+- Use this Socratic checklist when preparing specs and tests:
+  - What is the problem?
+  - What proofs confirm the solution?
+
 ## Pre-PR Checks
 
 Before opening a pull request, run:
