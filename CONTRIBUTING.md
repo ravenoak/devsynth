@@ -1,7 +1,7 @@
 ---
 title: "Contributing to DevSynth"
 date: "2025-05-30"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "devsynth"
   - "contributing"
@@ -94,6 +94,7 @@ poetry run pre-commit run --files <changed>
 poetry run devsynth run-tests
 poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_requirements_traceability.py
+poetry run python scripts/verify_version_sync.py
 ```
 
 ## Pull Request Process
