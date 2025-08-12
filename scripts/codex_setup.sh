@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -exo pipefail
 
 # NOTE: This script provisions the Codex testing environment only. It is not
@@ -92,7 +93,7 @@ else
     echo "[warning] pipx runpip devsynth failed" >&2
 fi
 command -v devsynth >/dev/null
-devsynth --version || echo "[warning] devsynth --version failed"
+devsynth --help >/dev/null || echo "[warning] devsynth --help failed"
 
 # Validate dependency installation
 poetry run pip check
