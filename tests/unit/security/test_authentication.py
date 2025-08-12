@@ -12,7 +12,7 @@ from devsynth.security.authentication import (
 def test_hash_and_verify_password_succeeds():
     """Test that hash and verify password succeeds.
 
-    ReqID: N/A"""
+    ReqID: FR-61"""
     password = "Secret123!"
     hashed = hash_password(password)
     assert password not in hashed
@@ -24,7 +24,7 @@ def test_hash_and_verify_password_succeeds():
 def test_authenticate_success_succeeds():
     """Test that authenticate success succeeds.
 
-    ReqID: N/A"""
+    ReqID: FR-61"""
     pwd = "password"
     creds = {"alice": hash_password(pwd)}
     assert authenticate("alice", pwd, creds)
@@ -34,7 +34,7 @@ def test_authenticate_success_succeeds():
 def test_authenticate_failure_succeeds():
     """Test that authenticate failure succeeds.
 
-    ReqID: N/A"""
+    ReqID: FR-61"""
     creds = {"bob": hash_password("password")}
     try:
         authenticate("bob", "bad", creds)
