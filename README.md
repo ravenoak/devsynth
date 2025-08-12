@@ -143,6 +143,15 @@ poetry run pre-commit run --files <files>
 poetry run pytest
 ```
 
+### Virtual Environment Best Practices
+
+- Create the environment with `poetry install` rather than using the system
+  interpreter.
+- Prefix commands with `poetry run` or start an interactive session with
+  `poetry shell`.
+- Avoid installing packages with the global `pip`; rely on Poetry for
+  dependency management.
+
 ## Optional Dependencies
 
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
