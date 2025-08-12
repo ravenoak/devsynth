@@ -27,8 +27,8 @@ from devsynth.interface.agentapi import (
     spec_endpoint,
     status_endpoint,
     synthesize_endpoint,
-    test_endpoint,
 )
+from devsynth.interface.agentapi import test_endpoint as api_test_endpoint
 
 
 @pytest.fixture
@@ -301,15 +301,22 @@ def test_status_endpoint_returns_messages_returns_expected_result(clean_state):
     assert response.messages == ["Status: running"]
 
 
-@pytest.mark.skip(
-    reason="This test is redundant with test_test_endpoint_generates_tests and causes naming conflicts"
-)
 @pytest.mark.slow
-def test_endpoint_succeeds(mock_cli_commands, clean_state):
-    """This test is skipped because it's redundant with test_test_endpoint_generates_tests.
+def test_test_endpoint_generates_tests_from_spec_succeeds(
+    mock_cli_commands, clean_state
+):
+    """Test that the test endpoint generates tests from a specification file.
 
-    ReqID: N/A"""
-    pass
+    ReqID: FR-17"""
+    request = APITestSpecRequest(spec_file="specs.md", output_dir=None)
+    response = api_test_endpoint(request, token=None)
+    assert response.messages == ["Test successful"]
+
+    mock_cli_commands["test_cmd"].assert_called_once_with(
+        spec_file="specs.md",
+        output_dir=None,
+        bridge=mock_cli_commands["test_cmd"].call_args[1]["bridge"],
+    )
 
 
 @pytest.mark.slow
