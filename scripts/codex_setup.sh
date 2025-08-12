@@ -128,12 +128,13 @@ required = [
     "astor",
     "httpx",
     "prometheus_client",
+    "chromadb",
+    "numpy",
 ]
 optional = [
     "kuzu",
     "faiss",
     "dearpygui",
-    "chromadb",
     "lmstudio",
 ]
 
