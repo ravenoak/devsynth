@@ -329,6 +329,24 @@ def _simple_conduct_peer_review(
 WSDETeam.conduct_peer_review = _simple_conduct_peer_review
 
 # ---------------------------------------------------------------------------
+# Memory coordination helpers
+# ---------------------------------------------------------------------------
+
+
+def _flush_updates(self: WSDETeam) -> None:
+    """Flush pending memory updates if a manager is attached."""
+
+    mem = getattr(self, "memory_manager", None)
+    if mem is not None:
+        try:
+            mem.flush_updates()
+        except Exception:
+            pass
+
+
+WSDETeam.flush_updates = _flush_updates
+
+# ---------------------------------------------------------------------------
 # Dialectical reasoning
 # ---------------------------------------------------------------------------
 WSDETeam.apply_dialectical_reasoning = wsde_dialectical.apply_dialectical_reasoning
