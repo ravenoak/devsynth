@@ -24,6 +24,9 @@ DEFAULT_KUZU_EMBEDDED = True
 
 # Module-level defaults for Kuzu integration
 kuzu_db_path: Optional[str] = None
+# Whether to use the embedded KuzuDB backend by default. Tests and runtime
+# environments may override this via the ``DEVSYNTH_KUZU_EMBEDDED``
+# environment variable.
 kuzu_embedded: bool = DEFAULT_KUZU_EMBEDDED
 # Backward-compatible constant for older imports
 KUZU_EMBEDDED = kuzu_embedded
