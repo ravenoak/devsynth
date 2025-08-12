@@ -30,6 +30,9 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
   - `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` – gates tests that rely on optional
     resources such as `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`. Set to `true` or
     `false` to force-enable or disable a resource.
+- When optional services like LM Studio are unavailable, guard imports with
+  `pytest.importorskip("lmstudio")` and use mocks or HTTP stubs to simulate
+  responses so unit tests remain deterministic.
 - `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and
 `slow` markers and adds a `--speed` option so you can run only tests of a
  given runtime, e.g. `poetry run pytest --speed=fast`. Due to
