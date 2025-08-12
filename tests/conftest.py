@@ -568,6 +568,18 @@ def is_anthropic_available() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 
+def is_llm_provider_available() -> bool:
+    """Check if a real LLM provider is configured."""
+    if (
+        os.environ.get("DEVSYNTH_RESOURCE_LLM_PROVIDER_AVAILABLE", "true").lower()
+        == "false"
+    ):
+        return False
+    return bool(
+        os.environ.get("OPENAI_API_KEY") or os.environ.get("LM_STUDIO_ENDPOINT")
+    )
+
+
 def is_resource_available(resource: str) -> bool:
     """
     Check if a resource is available.
@@ -585,6 +597,7 @@ def is_resource_available(resource: str) -> bool:
     # Map resource names to checker functions
     checker_map = {
         "anthropic": is_anthropic_available,
+        "llm_provider": is_llm_provider_available,
         "lmstudio": is_lmstudio_available,
         "codebase": is_codebase_available,
         "cli": is_cli_available,

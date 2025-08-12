@@ -5,7 +5,6 @@ This test uses real LLM providers from the provider system to test the EDRR cycl
 It requires valid API keys or endpoints to be configured in environment variables.
 """
 
-import os
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -30,10 +29,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-@pytest.mark.skipif(
-    not os.environ.get("OPENAI_API_KEY") and not os.environ.get("LM_STUDIO_ENDPOINT"),
-    reason="No LLM provider configured. Set OPENAI_API_KEY or LM_STUDIO_ENDPOINT.",
-)
+@pytest.mark.requires_resource("llm_provider")
 def test_edrr_cycle_with_real_llm_has_expected(tmp_path):
     """Test EDRR cycle with a real LLM provider and verify memory integration.
 
@@ -107,10 +103,7 @@ def test_edrr_cycle_with_real_llm_has_expected(tmp_path):
     print(f"Memory integration verified with GraphMemoryAdapter")
 
 
-@pytest.mark.skipif(
-    not os.environ.get("OPENAI_API_KEY") and not os.environ.get("LM_STUDIO_ENDPOINT"),
-    reason="No LLM provider configured. Set OPENAI_API_KEY or LM_STUDIO_ENDPOINT.",
-)
+@pytest.mark.requires_resource("llm_provider")
 def test_edrr_cycle_with_real_project_succeeds(tmp_path):
     """Test EDRR cycle with a real LLM provider on a more complex project.
 
