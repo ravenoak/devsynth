@@ -29,3 +29,13 @@ Feature: Ingest Command
     When I run the command "devsynth ingest non_existent_manifest.yaml"
     Then the command should fail
     And the system should display an error message indicating the file does not exist
+
+  Scenario: Ingest a project in non-interactive mode
+    When I run the command "devsynth ingest manifest.yaml --non-interactive"
+    Then the command should execute successfully
+    And the ingest command should run in non-interactive mode
+
+  Scenario: Ingest a project using defaults
+    When I run the command "devsynth ingest manifest.yaml --defaults"
+    Then the command should execute successfully
+    And the ingest command should apply defaults and run non-interactively

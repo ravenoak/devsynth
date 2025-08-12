@@ -415,6 +415,13 @@ class MemorySystemAdapter:
             raise ValueError("Memory store is not initialized")
         return self.memory_store.store(memory_item)
 
+    def write(self, memory_item: Any) -> str:
+        """Write a memory item to the underlying store.
+
+        This is a convenience wrapper around ``store`` used by tests.
+        """
+        return self.store(memory_item)
+
     def query_by_type(self, memory_type: Any) -> List[Any]:
         """
         Query memory items by type.
@@ -510,6 +517,13 @@ class MemorySystemAdapter:
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
         return self.memory_store.retrieve(item_id)
+
+    def read(self, item_id: str) -> Any:
+        """Read a memory item from the underlying store.
+
+        This mirrors ``retrieve`` to provide a symmetric API for tests.
+        """
+        return self.retrieve(item_id)
 
     def get_all(self) -> List[Any]:
         """

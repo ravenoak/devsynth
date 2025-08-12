@@ -1,0 +1,42 @@
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+scenarios("../features/memory/memory_operations.feature")
+
+
+@pytest.fixture
+def context():
+    class Context:
+        adapter: MemorySystemAdapter
+        item_id: str
+        retrieved: MemoryItem
+
+    return Context()
+
+
+@pytest.mark.fast
+@given("a memory system adapter")
+def given_adapter(context):
+    context.adapter = MemorySystemAdapter.create_for_testing()
+
+
+@pytest.mark.fast
+@when(parsers.parse('I write "{content}" to memory'))
+def write_memory(context, content):
+    item = MemoryItem(id="", content=content, memory_type=MemoryType.CONTEXT)
+    context.item_id = context.adapter.write(item)
+
+
+@pytest.mark.fast
+@when("I read the item from memory")
+def read_memory(context):
+    context.retrieved = context.adapter.read(context.item_id)
+
+
+@pytest.mark.fast
+@then(parsers.parse('the retrieved content should be "{content}"'))
+def check_content(context, content):
+    assert context.retrieved.content == content
