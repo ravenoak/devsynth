@@ -31,8 +31,10 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
     resources such as `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`. Set to `true` or
     `false` to force-enable or disable a resource.
 - `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and
-  `slow` markers and adds a `--speed` option so you can run only tests of a
-  given runtime, e.g. `poetry run pytest --speed=fast`.
+`slow` markers and adds a `--speed` option so you can run only tests of a
+ given runtime, e.g. `poetry run pytest --speed=fast`. Due to
+ [Issue 119](issues/119.md), this option is currently unrecognized; use
+ marker expressions like `-m "not memory_intensive"` until resolved.
 
 ## Quick Start
 
