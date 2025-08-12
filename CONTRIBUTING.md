@@ -21,7 +21,7 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 1. **Fork and clone** the repository
 2. **Set up** your development environment with Poetry
 3. **Create a branch** for your changes
-4. **Draft a specification** in `docs/specifications/` and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist before writing code
+4. **Draft a specification** in [docs/specifications/](docs/specifications/index.md) and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist **before** writing code
 5. **Implement** your changes following our coding standards
 6. **Submit** a pull request with a clear description
 
@@ -105,11 +105,11 @@ poetry run python scripts/verify_requirements_traceability.py
 
 ## Release Process
 
-Maintainers preparing a tagged release should build distributable artifacts and
-run a quick smoke test before tagging:
+Maintainers preparing a tagged release should build distributable artifacts, run a dialectical audit (see the [Dialectical Audit Policy](docs/policies/dialectical_audit.md)), and run a quick smoke test before tagging:
 
 ```bash
-task release:prep
+poetry run task release:prep
+poetry run python scripts/dialectical_audit.py
 git tag v0.1.0-alpha.1
 git push origin v0.1.0-alpha.1
 ```
