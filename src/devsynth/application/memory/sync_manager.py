@@ -436,6 +436,9 @@ class SyncManager:
             self.memory_manager._notify_sync_hooks(item)
         except Exception as exc:
             logger.warning("Peer review failed: %s", exc)
+        # Memory contents have changed; invalidate any cached queries so
+        # subsequent cross-store lookups see the update immediately.
+        self.clear_cache()
         return True
 
     def queue_update(self, store: str, item: MemoryItem) -> None:
@@ -448,6 +451,8 @@ class SyncManager:
             self.memory_manager._notify_sync_hooks(item)
         except Exception as exc:
             logger.warning("Peer review failed: %s", exc)
+        # Queueing a new update means cached query results may be stale.
+        self.clear_cache()
 
     def flush_queue(self) -> None:
         """Propagate all queued updates."""
@@ -463,6 +468,9 @@ class SyncManager:
             self.memory_manager._notify_sync_hooks(None)
         except Exception as exc:
             logger.warning("Peer review failed: %s", exc)
+        # After the queue is flushed the cache no longer reflects previous
+        # state, so clear it to force fresh queries.
+        self.clear_cache()
 
     async def flush_queue_async(self) -> None:
         """Asynchronously propagate queued updates."""
@@ -479,6 +487,8 @@ class SyncManager:
             self.memory_manager._notify_sync_hooks(None)
         except Exception as exc:
             logger.warning("Peer review failed: %s", exc)
+        # Keep cache coherent with the underlying stores.
+        self.clear_cache()
 
     def schedule_flush(self, delay: float = 0.1) -> None:
         async def _delayed():
@@ -658,6 +668,8 @@ class SyncManager:
             self.flush_queue()
             if self.async_mode:
                 asyncio.run(self.wait_for_async())
+            # Flush underlying adapters so cross-store updates are durable
+            self.memory_manager.flush_updates()
         except Exception as e:
             logger.error(
                 f"Error flushing updates for transaction {transaction_id}: {e}"
@@ -665,6 +677,8 @@ class SyncManager:
 
         # Remove transaction state
         del self._active_transactions[transaction_id]
+        # Any cached query results are now stale
+        self.clear_cache()
 
     def rollback_transaction(self, transaction_id: str) -> None:
         """
@@ -721,3 +735,10 @@ class SyncManager:
         # Clear any queued updates that shouldn't be applied
         with self._queue_lock:
             self._queue = []
+        # Ensure adapters reflect the rolled back state and no stale cache
+        # entries remain.
+        try:
+            self.memory_manager.flush_updates()
+        except Exception:
+            logger.debug("Adapter flush after rollback failed", exc_info=True)
+        self.clear_cache()

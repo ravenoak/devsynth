@@ -55,7 +55,12 @@ class TestWSDEEDRRComponentInteractions:
     @pytest.fixture
     def memory_manager(self, memory_adapter):
         """Create a memory manager for testing."""
-        return MemoryManager(adapters={"default": memory_adapter})
+        mm = MemoryManager(adapters={"default": memory_adapter})
+        try:
+            yield mm
+        finally:
+            # Ensure any queued updates are written to the adapter
+            mm.flush_updates()
 
     @pytest.fixture
     def wsde_team(self):
