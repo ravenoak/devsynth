@@ -40,6 +40,7 @@ This document serves as the central index and navigation point for all Software 
 | **Data Retention** | [Data Retention Policy](data_retention.md) | How long different data types are stored | Implemented |
 | **Alignment** | [Continuous Alignment Process](continuous_alignment_process.md) | Processes, checks, and metrics for maintaining alignment between SDLC artifacts | Implemented |
 | **Periodic Review** | [Periodic Review Process](periodic_review.md) | Schedule and responsibilities for recurring policy reviews | Implemented |
+| **Dialectical Audit** | [Dialectical Audit Policy](dialectical_audit.md) | Socratic dialogue procedures for resolving inconsistencies | Implemented |
 
 ## Implementation Guides
 
