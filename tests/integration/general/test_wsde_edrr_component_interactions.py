@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
+from devsynth.agents.wsde_team_coordinator import WSDETeamCoordinatorAgent
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -306,3 +307,29 @@ class TestWSDEEDRRComponentInteractions:
         memory_manager.flush_updates()
 
         assert events == ["test-item", None]
+
+    def test_retrospective_flushes_pending_memory_without_record(self, memory_manager):
+        """Ensure retrospective flushes memory even without record method.
+
+        ReqID: N/A"""
+
+        team = WSDETeam(name="FlushTeam")
+        team.memory_manager = memory_manager
+        coordinator_agent = WSDETeamCoordinatorAgent(team)
+
+        memory_manager.queue_update(
+            "default",
+            MemoryItem(
+                id="queued-item",
+                content={},
+                memory_type=MemoryType.TEAM_STATE,
+            ),
+        )
+        assert memory_manager.sync_manager._queue  # ensure queue populated
+
+        coordinator_agent.run_retrospective(
+            [{"positives": [], "improvements": [], "action_items": []}],
+            sprint=1,
+        )
+
+        assert memory_manager.sync_manager._queue == []
