@@ -79,6 +79,14 @@ cross-store synchronization.
 
 ## Implementation Details
 
+### Conflict Resolution and Transactions
+
+`SyncManager` keeps multiple stores consistent by detecting conflicts and
+resolving them in favour of the newest item. Cross-store transactions span
+LMDB, FAISS, and Kuzu adapters using store-specific context managers. If any
+operation fails, changes are rolled back across all participating stores using a
+mix of native transactions and snapshot restoration.
+
 ### Domain Models
 
 #### Memory Types
