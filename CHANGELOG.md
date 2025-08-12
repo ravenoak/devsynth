@@ -8,7 +8,7 @@ tags:
   - "version history"
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-12"
 ---
 
 # Changelog
