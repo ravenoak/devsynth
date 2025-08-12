@@ -99,6 +99,16 @@ poetry shell
 These commands install all required packages and activate the Poetry-managed
 virtual environment. Once complete, proceed to configure environment variables.
 
+### Virtual environment best practices
+
+- Avoid installing packages globally; rely on the Poetry-managed environment.
+- Prefix commands with `poetry run` or work inside `poetry shell` to ensure the
+  correct interpreter is active.
+- Rerun the environment provisioning script whenever dependencies change so
+  cached optional extras stay in sync.
+- Exclude any `.venv` directories or other environment artifacts from version
+  control.
+
 ## 3. Set Up Environment Variables
 
 Create a `.env` file in the project root with the following variables:
