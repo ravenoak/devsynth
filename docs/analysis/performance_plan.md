@@ -55,3 +55,13 @@ The baseline benchmark run produced the following timings, all within the define
 | TieredCache put 1000 items | 1.24 | < 10 |
 | TieredCache get cached item | 0.0012 | < 1 |
 
+## Coverage Trend
+
+Recent coverage sampling shows varied results across test speeds:
+
+| Speed | Line Coverage |
+|-------|---------------|
+| Fast  | 19.61% |
+| Medium | Coverage collection blocked by failing test `tests/behavior/steps/test_code_generation_steps.py::tests_passed` |
+
+These values are tracked in CI to monitor adherence to coverage thresholds for each speed category.
