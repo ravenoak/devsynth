@@ -79,6 +79,10 @@ poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_requirements_traceability.py
 ```
 
+*Note*: `devsynth run-tests` may hang due to [Issue 118](issues/118.md). Until
+it is resolved, run `poetry run pytest -m "not memory_intensive"` as a
+temporary fallback to execute the suite.
+
 ## Release Preparation
 
 1. Run `poetry run task release:prep` to generate release artifacts.
