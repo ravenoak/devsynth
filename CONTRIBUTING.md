@@ -77,6 +77,17 @@ poetry run pytest --cov=src --cov-report=term-missing
 
 Good documentation is essential. Please update relevant documentation for any changes and ensure your code includes proper docstrings.
 
+## Pre-PR Checks
+
+Before opening a pull request, run:
+
+```bash
+poetry run pre-commit run --files <changed>
+poetry run devsynth run-tests
+poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_requirements_traceability.py
+```
+
 ## Pull Request Process
 
 1. Ensure your fork is up to date with the main repository

@@ -34,6 +34,13 @@
   entry: python scripts/verify_mvuu_references.py
   language: system
   pass_filenames: false
+- id: verify-requirements-traceability
+  name: verify requirements traceability
+  description: "Ensure requirements traceability matrix links requirements to code and tests"
+  entry: poetry run python scripts/verify_requirements_traceability.py
+  language: system
+  pass_filenames: false
+  files: ^docs/requirements_traceability.md$
 - id: update-traceability
   name: update traceability
   description: "Update traceability data"
