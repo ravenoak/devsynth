@@ -36,8 +36,9 @@ Welcome to the DevSynth project! This comprehensive guide will help you set up y
 5. [Development Workflow](#development-workflow)
 6. [Running Tests](#running-tests)
 7. [Common Development Tasks](#common-development-tasks)
-8. [Communication and Getting Help](#communication-and-getting-help)
-9. [Next Steps](#next-steps)
+8. [Release Preparation](#release-preparation)
+9. [Communication and Getting Help](#communication-and-getting-help)
+10. [Next Steps](#next-steps)
 
 
 ## Project Overview
@@ -336,6 +337,21 @@ mkdocs build
 
 mkdocs serve
 ```
+
+## Release Preparation
+
+1. Run `poetry run task release:prep` to generate release artifacts.
+   - **Key Questions**
+     - What files or version updates did the command produce?
+     - Did any errors occur during execution?
+2. Tag the release with `git tag -a <version>` and push the tag.
+   - **Key Questions**
+     - Does the tag follow semantic versioning?
+     - Have you pushed the tag and associated notes to the remote?
+3. Conduct a dialectical review with a collaborator.
+   - **Key Questions**
+     - Which assumptions about the release have been examined?
+     - What alternative viewpoints or counterarguments were considered?
 
 ## Communication and Getting Help
 
