@@ -17,16 +17,17 @@ Options:
     --html             Generate an HTML report in addition to JSON
 """
 
+import argparse
+import datetime
+import json
 import os
 import re
-import json
-import argparse
 import subprocess
-import datetime
-import time
 import sys
+import time
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Any
+from typing import Any, Dict, List, Set, Tuple
+
 import psutil
 
 # Import common test collector
@@ -44,6 +45,7 @@ TEST_CATEGORIES = {
 
 # Speed categories
 SPEED_CATEGORIES = ["fast", "medium", "slow"]
+COVERAGE_THRESHOLDS = {"fast": 8.0, "medium": 8.0}
 
 
 def parse_args():
@@ -443,20 +445,14 @@ def identify_failing_tests(
     return failing_tests, memory_usage
 
 
-def calculate_coverage() -> Dict[str, float]:
-    """
-    Calculate test coverage metrics.
-
-    Returns:
-        Dictionary with coverage metrics.
-    """
+def calculate_coverage(speed: str | None = None) -> Dict[str, float]:
+    """Calculate test coverage metrics for an optional speed selection."""
     coverage = {
         "line_coverage": 0.0,
         "branch_coverage": 0.0,
         "uncovered_modules": [],
     }
 
-    # Run pytest with coverage
     cmd = [
         "python",
         "-m",
@@ -464,11 +460,13 @@ def calculate_coverage() -> Dict[str, float]:
         "--cov=src/devsynth",
         "--cov-report=term-missing",
     ]
+    marker_expr = "not memory_intensive"
+    if speed:
+        marker_expr = f"{speed} and not memory_intensive"
+    cmd.extend(["-m", marker_expr])
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
-
-        # Parse the output to get coverage metrics and modules with 0% coverage
         for line in result.stdout.split("\n"):
             if "TOTAL" in line:
                 parts = line.split()
@@ -569,7 +567,7 @@ def generate_html_report(report: Dict[str, Any], filename: str):
     </head>
     <body>
         <h1>DevSynth Test Metrics Report</h1>
-        
+
         <div class="summary">
             <h2>Summary</h2>
             <div class="metric">
@@ -589,7 +587,7 @@ def generate_html_report(report: Dict[str, Any], filename: str):
                 <span class="metric-value {'good' if report['summary']['line_coverage'] > 80 else 'warning' if report['summary']['line_coverage'] > 60 else 'bad'}">{report['summary']['line_coverage']:.2f}%</span>
             </div>
         </div>
-        
+
         <h2>Test Counts by Category</h2>
         <table>
             <tr>
@@ -610,7 +608,7 @@ def generate_html_report(report: Dict[str, Any], filename: str):
 
     html += f"""
         </table>
-        
+
         <h2>Test Counts by Speed</h2>
         <table>
             <tr>
@@ -674,6 +672,32 @@ def clear_cache():
         print("No cache directory found.")
 
 
+def create_issues_for_failing_tests(failing_tests: Dict[str, List[str]]) -> List[Path]:
+    """Create issue files for failing tests when their total count is below 50."""
+    total = sum(len(t) for t in failing_tests.values())
+    if total == 0 or total >= 50:
+        return []
+
+    issue_dir = Path("issues")
+    issue_dir.mkdir(exist_ok=True)
+    existing = [int(p.stem) for p in issue_dir.glob("*.md") if p.stem.isdigit()]
+    next_number = max(existing) + 1 if existing else 1
+    created: List[Path] = []
+    for tests in failing_tests.values():
+        for test in tests:
+            issue_path = issue_dir / f"{next_number}.md"
+            content = (
+                f"# Issue {next_number}: Fix failing test {test}\n\n"
+                "Milestone: 0.1.0-alpha.1\n\n"
+                f"The test `{test}` is failing. Investigate and resolve.\n"
+            )
+            with open(issue_path, "w") as f:
+                f.write(content)
+            created.append(issue_path)
+            next_number += 1
+    return created
+
+
 def generate_report(args) -> Dict[str, Any]:
     """
     Generate a comprehensive test metrics report based on command-line arguments.
@@ -713,15 +737,13 @@ def generate_report(args) -> Dict[str, Any]:
             speed_counts = {args.speed: 0}
 
     # Identify failing tests if requested
-    failing_tests = {}
-    memory_usage = {}
+    failing_tests: Dict[str, List[str]] = {}
+    memory_usage: Dict[str, Any] = {}
     if args.run_tests:
-        # Determine execution parameters
         parallel = not args.no_parallel
         segment = args.segment
         segment_size = args.segment_size
 
-        # Run tests to identify failures
         failing_tests, memory_usage = identify_failing_tests(
             parallel=parallel,
             segment=segment,
@@ -729,18 +751,30 @@ def generate_report(args) -> Dict[str, Any]:
             use_cache=use_cache,
         )
 
-        # Filter by category if specified
         if args.category != "all":
             if args.category in failing_tests:
                 failing_tests = {args.category: failing_tests[args.category]}
             else:
                 failing_tests = {args.category: []}
 
-    # Calculate coverage if not skipped
+    created_issues: List[Path] = []
+    if failing_tests:
+        created_issues = create_issues_for_failing_tests(failing_tests)
+
     coverage = {"line_coverage": 0.0, "branch_coverage": 0.0}
+    coverage_by_speed: Dict[str, float] = {}
+    coverage_failures: List[str] = []
     if not args.skip_coverage:
         print("Calculating coverage metrics...")
         coverage = calculate_coverage()
+        for speed_name in ["fast", "medium"]:
+            speed_cov = calculate_coverage(speed_name)["line_coverage"]
+            coverage_by_speed[speed_name] = speed_cov
+            threshold = COVERAGE_THRESHOLDS.get(speed_name, 0)
+            if speed_cov < threshold:
+                coverage_failures.append(
+                    f"{speed_name} ({speed_cov:.2f}% < {threshold}%)"
+                )
 
     # Build the report
     report = {
@@ -764,6 +798,9 @@ def generate_report(args) -> Dict[str, Any]:
         "failing_tests": failing_tests,
         "memory_usage": memory_usage,
         "coverage": coverage,
+        "coverage_by_speed": coverage_by_speed,
+        "created_issues": [str(p) for p in created_issues],
+        "coverage_failures": coverage_failures,
     }
 
     # Calculate summary metrics
@@ -779,6 +816,7 @@ def generate_report(args) -> Dict[str, Any]:
             (total_tests - total_failing) / total_tests * 100 if total_tests > 0 else 0
         ),
         "line_coverage": coverage["line_coverage"],
+        "coverage_by_speed": coverage_by_speed,
     }
 
     return report
@@ -827,9 +865,12 @@ def print_summary(report, args, execution_time):
 
     if not args.skip_coverage:
         print(f"- Line Coverage: {report['summary']['line_coverage']:.2f}%")
-        if report["summary"]["uncovered_modules"]:
+        for speed, value in report["summary"]["coverage_by_speed"].items():
+            print(f"  - {speed}: {value:.2f}%")
+        uncovered = report["coverage"].get("uncovered_modules", [])
+        if uncovered:
             print("- Modules with 0% coverage:")
-            for mod in report["summary"]["uncovered_modules"]:
+            for mod in uncovered:
                 print(f"  - {mod}")
 
     print(
@@ -871,6 +912,9 @@ def main():
 
     # Generate the report
     report = generate_report(args)
+    if report.get("coverage_failures"):
+        print("Coverage below threshold for: " + ", ".join(report["coverage_failures"]))
+        sys.exit(1)
 
     # Save the report
     save_json_report(report, args.output)
