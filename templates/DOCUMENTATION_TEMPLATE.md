@@ -1,7 +1,7 @@
 ---
 title: "Document Title"
 date: "YYYY-MM-DD"
-version: "0.1.0"
+version: "0.1.0-alpha.1"
 tags:
   - "tag1"
   - "tag2"
