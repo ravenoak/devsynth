@@ -161,6 +161,7 @@ tasks:
       - task: lint
       - task: test:coverage
       - poetry run python scripts/update_traceability.py
+      - poetry run python scripts/dialectical_audit.py
       - task: docs:build
 
   # Python-specific tasks
