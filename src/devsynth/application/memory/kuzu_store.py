@@ -61,7 +61,7 @@ class KuzuStore(MemoryStore):
         # overrides that may have been applied after module import.  Rely on
         # the settings object rather than module-level constants so changes are
         # consistently respected.
-        settings = settings_module.get_settings()
+        settings = settings_module.get_settings(reload=True)
 
         # ``ensure_path_exists`` handles path redirection and optional
         # directory creation based on the test environment.  Use the returned
@@ -103,7 +103,11 @@ class KuzuStore(MemoryStore):
         # explicit value is provided, consult the live settings to honour any
         # environment variable overrides that may have been applied after the
         # module was imported.
-        raw_embedded = settings.kuzu_embedded if use_embedded is None else use_embedded
+        raw_embedded = (
+            getattr(settings, "kuzu_embedded", settings_module.kuzu_embedded)
+            if use_embedded is None
+            else use_embedded
+        )
         if isinstance(raw_embedded, str):
             raw_embedded = raw_embedded.lower() in {"1", "true", "yes"}
         self.use_embedded = bool(raw_embedded)
