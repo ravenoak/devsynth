@@ -41,7 +41,11 @@ def main() -> None:
         description="Verify requirements traceability matrix"
     )
     parser.add_argument(
-        "matrix", type=pathlib.Path, help="Path to requirements_traceability.md"
+        "matrix",
+        nargs="?",
+        type=pathlib.Path,
+        default=pathlib.Path("docs/requirements_traceability.md"),
+        help="Path to requirements_traceability.md",
     )
     args = parser.parse_args()
     sys.exit(verify_traceability(args.matrix))

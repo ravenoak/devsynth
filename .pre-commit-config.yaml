@@ -32,6 +32,12 @@ repos:
       language: system
       pass_filenames: false
       stages: [push]
+    - id: verify-requirements-traceability
+      name: verify requirements traceability
+      entry: poetry run python scripts/verify_requirements_traceability.py
+      language: system
+      pass_filenames: false
+      files: ^docs/requirements_traceability.md$
     - id: update-traceability
       name: update traceability
       entry: python scripts/update_traceability.py
