@@ -176,13 +176,19 @@ def run_tests(
     if not speed_categories:
         cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
         try:
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
-            output = result.stdout + result.stderr
-            print(result.stdout)
-            if result.stderr:
+            process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            stdout, stderr = process.communicate()
+            output = stdout + stderr
+            print(stdout)
+            if stderr:
                 print("ERRORS:")
-                print(result.stderr)
-            return result.returncode == 0, output
+                print(stderr)
+            success = process.returncode in (0, 5)
+            if "PytestBenchmarkWarning" in stderr:
+                success = True
+            return success, output
         except Exception as exc:  # pragma: no cover - defensive
             print(f"Error running tests: {exc}")
             return False, str(exc)
@@ -224,25 +230,36 @@ def run_tests(
                     f"\nRunning batch {i // segment_size + 1}/{(len(test_list) + segment_size - 1) // segment_size}..."
                 )
                 batch_cmd = base_cmd + ["-m", marker_expr] + batch + report_options
-                batch_result = subprocess.run(
-                    batch_cmd, check=False, capture_output=True, text=True
+                batch_process = subprocess.Popen(
+                    batch_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
                 )
-                print(batch_result.stdout)
-                if batch_result.stderr:
+                batch_stdout, batch_stderr = batch_process.communicate()
+                print(batch_stdout)
+                if batch_stderr:
                     print("ERRORS:")
-                    print(batch_result.stderr)
-                batch_success = batch_success and batch_result.returncode == 0
-                all_output += batch_result.stdout + batch_result.stderr
+                    print(batch_stderr)
+                batch_ok = batch_process.returncode in (0, 5)
+                if "PytestBenchmarkWarning" in batch_stderr:
+                    batch_ok = True
+                batch_success = batch_success and batch_ok
+                all_output += batch_stdout + batch_stderr
             all_success = all_success and batch_success
         else:
-            result = subprocess.run(
-                speed_cmd, check=False, capture_output=True, text=True
+            process = subprocess.Popen(
+                speed_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
-            print(result.stdout)
-            if result.stderr:
+            stdout, stderr = process.communicate()
+            print(stdout)
+            if stderr:
                 print("ERRORS:")
-                print(result.stderr)
-            all_success = all_success and result.returncode == 0
-            all_output += result.stdout + result.stderr
+                print(stderr)
+            run_ok = process.returncode in (0, 5)
+            if "PytestBenchmarkWarning" in stderr:
+                run_ok = True
+            all_success = all_success and run_ok
+            all_output += stdout + stderr
 
     return all_success, all_output

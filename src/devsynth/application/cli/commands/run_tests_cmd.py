@@ -83,7 +83,7 @@ def run_tests_cmd(
     if feature_map:
         logger.debug("Feature flags: %s", feature_map)
 
-    success, _ = run_tests(
+    success, output = run_tests(
         target,
         speed_categories,
         verbose,
@@ -92,6 +92,9 @@ def run_tests_cmd(
         segment,
         segment_size,
     )
+
+    if output:
+        ux_bridge.print(output)
 
     if success:
         ux_bridge.print("[green]Tests completed successfully[/green]")
