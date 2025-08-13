@@ -18,8 +18,10 @@ class TestRepoAnalyzer:
     """Unit tests for :class:`RepoAnalyzer`."""
 
     @pytest.mark.medium
-    def test_analyze_maps_dependencies_and_structure(self) -> None:
+    def test_analyze_maps_dependencies_and_structure(self, monkeypatch) -> None:
         """Ensure dependencies and structure are correctly mapped."""
+
+        monkeypatch.setenv("DEVSYNTH_ACCESS_TOKEN", "token")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -51,17 +53,12 @@ class TestRepoAnalyzer:
         with tempfile.TemporaryDirectory() as tmpdir:
             argv = ["devsynth", "--analyze-repo", tmpdir]
             buf = io.StringIO()
+            monkeypatch.setenv("DEVSYNTH_ACCESS_TOKEN", "token")
+            monkeypatch.setattr(sys, "argv", argv)
             with contextlib.redirect_stdout(buf):
-                old_argv = sys.argv
-                sys.argv = argv
-                try:
+                with contextlib.suppress(SystemExit):
                     runpy.run_module("devsynth.cli", run_name="__main__")
-                except SystemExit:
-                    pass
-                finally:
-                    sys.argv = old_argv
 
         assert "devsynth.adapters.cli.typer_adapter" not in sys.modules
         analyze_mock.assert_called_once()
         assert json.loads(buf.getvalue()) == fake_result
-

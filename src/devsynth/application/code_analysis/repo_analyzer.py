@@ -12,10 +12,9 @@ from __future__ import annotations
 import ast
 import os
 from pathlib import Path
-from typing import Dict, List, Set, Any
+from typing import Any, Dict, List, Set
 
 from devsynth.logging_setup import DevSynthLogger
-
 
 logger = DevSynthLogger(__name__)
 
@@ -37,7 +36,11 @@ class RepoAnalyzer:
             root_path: Path to the repository root that should be analysed.
         """
 
-        self.root_path = Path(root_path)
+        # ``os`` and ``pathlib`` functions require matching path types on some
+        # Python versions.  Converting to ``Path`` and resolving eagerly avoids
+        # surprises when ``os.walk`` or ``os.path.relpath`` receive mixed
+        # ``str``/``Path`` inputs, which became stricter in Python 3.12.
+        self.root_path = Path(root_path).resolve()
 
     # ------------------------------------------------------------------
     def analyze(self) -> Dict[str, Any]:
@@ -58,7 +61,7 @@ class RepoAnalyzer:
         dependencies: Dict[str, Set[str]] = {}
         for file_path in self._find_python_files():
             imports = self._parse_imports(file_path)
-            rel_path = os.path.relpath(file_path, self.root_path)
+            rel_path = os.path.relpath(os.fspath(file_path), os.fspath(self.root_path))
             dependencies[rel_path] = sorted(imports)
             logger.debug("%s depends on %s", rel_path, dependencies[rel_path])
         return dependencies
@@ -68,8 +71,9 @@ class RepoAnalyzer:
         """Build a simple representation of the directory structure."""
 
         structure: Dict[str, List[str]] = {}
-        for dirpath, dirnames, filenames in os.walk(self.root_path):
-            rel = os.path.relpath(dirpath, self.root_path)
+        root_str = os.fspath(self.root_path)
+        for dirpath, dirnames, filenames in os.walk(root_str):
+            rel = os.path.relpath(dirpath, root_str)
             structure[rel] = sorted(dirnames + filenames)
             logger.debug("Indexed directory %s: %s", rel, structure[rel])
         return structure
@@ -79,7 +83,8 @@ class RepoAnalyzer:
         """Return a list of all Python files under the root path."""
 
         files: List[Path] = []
-        for dirpath, _, filenames in os.walk(self.root_path):
+        root_str = os.fspath(self.root_path)
+        for dirpath, _, filenames in os.walk(root_str):
             for name in filenames:
                 if name.endswith(".py"):
                     files.append(Path(dirpath) / name)
@@ -114,4 +119,3 @@ class RepoAnalyzer:
 
 
 __all__ = ["RepoAnalyzer"]
-
