@@ -101,7 +101,6 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is None
 
-    @pytest.mark.medium
     @pytest.mark.slow
     def test_init_with_tinydb_storage_succeeds(self, temp_dir):
         """Test initialization with TinyDB storage.
@@ -121,8 +120,8 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.memory_store, TinyDBStore)
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is None
+        del adapter
 
-    @pytest.mark.medium
     @pytest.mark.slow
     @pytest.mark.skipif(duckdb is None, reason="duckdb not installed")
     def test_init_with_duckdb_storage_succeeds(self, temp_dir, monkeypatch):
@@ -160,8 +159,8 @@ class TestMemorySystemAdapter:
             assert isinstance(adapter.context_manager, PersistentContextManager)
             assert adapter.vector_store is not None
             assert adapter.vector_store is adapter.memory_store
+            del adapter
 
-    @pytest.mark.medium
     @pytest.mark.slow
     @pytest.mark.requires_resource("lmdb")
     def test_init_with_lmdb_storage_succeeds(self, temp_dir):
@@ -185,6 +184,7 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.memory_store, LMDBStore)
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is None
+        del adapter
 
     @pytest.mark.medium
     @pytest.mark.requires_resource("kuzu")
@@ -207,6 +207,7 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is not None
         assert isinstance(adapter.vector_store, KuzuAdapter)
+        del adapter
 
     @pytest.mark.medium
     @pytest.mark.requires_resource("faiss")
@@ -232,6 +233,7 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is not None
         assert isinstance(adapter.vector_store, FAISSStore)
+        del adapter
 
     @pytest.mark.medium
     @pytest.mark.requires_resource("faiss")
@@ -344,6 +346,7 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.memory_store, RDFLibStore)
         assert isinstance(adapter.context_manager, PersistentContextManager)
         assert adapter.vector_store is adapter.memory_store
+        del adapter
 
     @pytest.mark.medium
     def test_init_with_in_memory_storage_succeeds(self):
@@ -356,6 +359,7 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.memory_store, InMemoryStore)
         assert isinstance(adapter.context_manager, SimpleContextManager)
         assert adapter.vector_store is None
+        del adapter
 
     @pytest.mark.medium
     @pytest.mark.requires_resource("lmdb")
