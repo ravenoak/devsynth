@@ -45,6 +45,9 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
             memory_manager.flush_updates()
     except Exception:  # pragma: no cover - defensive
         logger.debug("Flush failed", exc_info=True)
+    finally:
+        if hasattr(memory_manager, "sync_manager"):
+            getattr(memory_manager.sync_manager, "_queue", []).clear()
     return queue
 
 

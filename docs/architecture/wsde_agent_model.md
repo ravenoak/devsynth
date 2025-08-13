@@ -326,6 +326,13 @@ final = team.build_consensus(task)
 print(final["consensus"])
 ```
 
+Role assignments are accessible through `WSDE.get_role_assignments()`, which
+returns a mapping of agent identifiers to their active roles. Identifiers are
+generated when agents join the team. When the workflow advances, the
+`progress_roles` helper from `domain.wsde.workflow` reassigns roles for the new
+EDRR phase and invokes `flush_memory_queue` to commit pending memory updates
+before proceeding.
+
 The methods used in this example are implemented across
 `src/devsynth/domain/models/wsde_core.py` and
 `src/devsynth/domain/models/wsde_facade.py` and tested in
