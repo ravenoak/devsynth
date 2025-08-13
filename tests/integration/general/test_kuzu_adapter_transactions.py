@@ -1,9 +1,12 @@
 import pytest
 
+pytest.importorskip("kuzu")
+
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.domain.models.memory import MemoryVector
 
-pytestmark = [pytest.mark.requires_resource("kuzu")]
+# Transactions require kuzu and run a bit longer than unit tests
+pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.medium]
 
 
 def test_kuzu_adapter_transaction_persistence(tmp_path):

@@ -79,6 +79,7 @@ Before opening a pull request, run:
 poetry run pre-commit run --files <changed>
 poetry run devsynth run-tests
 poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_test_markers.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
 ```

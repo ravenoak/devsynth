@@ -12,6 +12,9 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+# These integration tests interact with multiple storage backends
+pytestmark = [pytest.mark.medium]
+
 
 @pytest.fixture
 def no_kuzu(monkeypatch):

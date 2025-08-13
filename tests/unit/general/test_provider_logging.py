@@ -3,11 +3,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from devsynth.application.llm.offline_provider import OfflineProvider
+pytest.importorskip("lmstudio")
+
+# These unit tests execute quickly
+pytestmark = [pytest.mark.fast]
+
 from devsynth.application.llm.lmstudio_provider import (
-    LMStudioProvider,
     LMStudioConnectionError,
+    LMStudioProvider,
 )
+from devsynth.application.llm.offline_provider import OfflineProvider
 from devsynth.exceptions import DevSynthError
 from devsynth.metrics import get_retry_metrics, reset_metrics
 
