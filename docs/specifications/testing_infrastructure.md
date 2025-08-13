@@ -57,20 +57,20 @@ The unit testing framework will be expanded to cover all new components:
 ```python
 class LLMMock:
     """Mock for LLM providers to enable deterministic testing."""
-    
+
     def __init__(self, responses: Dict[str, str] = None):
         """Initialize with predefined responses."""
         self.responses = responses or {}
         self.requests = []
-    
+
     def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
         """Mock generation that returns predefined responses or follows patterns."""
         self.requests.append((prompt, parameters))
-        
+
         # Return predefined response if available
         if prompt in self.responses:
             return self.responses[prompt]
-            
+
         # Otherwise generate a deterministic response based on the prompt
         return f"Mock response for: {prompt[:30]}..."
 ```
@@ -111,10 +111,10 @@ def test_analyzer_indexer_integration(code_analyzer, project_indexer):
     """Test integration between CodeAnalyzer and ProjectIndexer."""
     # Analyze code
     analysis = code_analyzer.analyze_directory("test_data/sample_project")
-    
+
     # Index the project
     index = project_indexer.index_project("test_data/sample_project")
-    
+
     # Verify that analysis and index are consistent
     assert len(analysis.files) == len(index.files)
     assert analysis.symbols.keys() == index.symbols.keys()
@@ -129,13 +129,13 @@ def test_self_analysis_workflow():
     analyzer = CodeAnalyzer()
     indexer = ProjectIndexer()
     memory = MemorySystem()
-    
+
     # Execute workflow
     analysis = analyzer.analyze_directory("test_data/sample_project")
     index = indexer.index_project("test_data/sample_project")
     memory.store_analysis(analysis)
     memory.store_index(index)
-    
+
     # Verify results
     assert memory.get_analysis("test_data/sample_project") is not None
     assert memory.get_index("test_data/sample_project") is not None
@@ -174,6 +174,11 @@ Feature: Multi-Agent Collaboration
     And the output should contain "Collaboration complete"
     And implementation files should be created
 ```
+
+Additional behavior coverage ensures the test runner operates correctly. The
+`tests/behavior/features/general/run_tests.feature` file exercises the
+`devsynth run-tests` command for successful runs, empty selections, and failing
+tests, providing confidence in the testing workflow.
 
 #### Step Definitions
 
@@ -229,11 +234,11 @@ def test_code_analyzer_with_random_files(file_contents):
         for i, content in enumerate(file_contents):
             with open(os.path.join(temp_dir, f"file_{i}.py"), 'w') as f:
                 f.write(content)
-        
+
         # Analyze the files
         analyzer = CodeAnalyzer()
         analysis = analyzer.analyze_directory(temp_dir)
-        
+
         # Verify basic properties
         assert len(analysis.files) == len(file_contents)
         assert analysis.is_valid()
@@ -262,18 +267,18 @@ def test_self_analysis():
     """Test DevSynth's ability to analyze its own codebase."""
     # Get the project root
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    
+
     # Create a DevSynth instance
     devsynth = DevSynth()
-    
+
     # Analyze the DevSynth codebase
     analysis = devsynth.analyze_project(project_root)
-    
+
     # Verify that the analysis includes key components
     assert "CodeAnalyzer" in analysis.classes
     assert "ProjectIndexer" in analysis.classes
     assert "AgentOrchestrator" in analysis.classes
-    
+
     # Verify that the analysis is consistent with the actual codebase
     assert len(analysis.files) == len(list(Path(project_root).rglob("*.py")))
 ```
@@ -296,14 +301,14 @@ test_data/
     tests/
       test_core.py
       test_utils.py
-  
+
   sample_spec.md            # A sample specification for testing
-  
+
   code_snippets/            # Code snippets for testing code analysis
     good_practices/         # Examples of good coding practices
     code_smells/            # Examples of code smells
     design_patterns/        # Examples of design patterns
-  
+
   test_workflows/           # Complete workflows for testing
     simple_project/         # Simple project workflow
     complex_project/        # Complex project workflow
@@ -316,39 +321,39 @@ Tools will be developed to generate test data:
 ```python
 class TestDataGenerator:
     """Generates test data for testing DevSynth."""
-    
+
     def generate_python_project(self, path: str, complexity: str = "medium") -> None:
         """Generate a Python project with the specified complexity."""
         # Create project structure
         os.makedirs(os.path.join(path, "src", "project"), exist_ok=True)
         os.makedirs(os.path.join(path, "tests"), exist_ok=True)
-        
+
         # Create pyproject.toml
         with open(os.path.join(path, "pyproject.toml"), 'w') as f:
             f.write(self._generate_pyproject_toml())
-        
+
         # Create source files
         num_modules = {"simple": 2, "medium": 5, "complex": 10}[complexity]
         for i in range(num_modules):
             with open(os.path.join(path, "src", "project", f"module_{i}.py"), 'w') as f:
                 f.write(self._generate_module(f"module_{i}", complexity))
-        
+
         # Create __init__.py
         with open(os.path.join(path, "src", "project", "__init__.py"), 'w') as f:
             f.write(self._generate_init(num_modules))
-        
+
         # Create test files
         for i in range(num_modules):
             with open(os.path.join(path, "tests", f"test_module_{i}.py"), 'w') as f:
                 f.write(self._generate_test(f"module_{i}"))
-    
+
     def _generate_pyproject_toml(self) -> str:
         """Generate a pyproject.toml file."""
         return """
         [build-system]
         requires = ["setuptools>=42", "wheel"]
         build-backend = "setuptools.build_meta"
-        
+
         [project]
         name = "test-project"
         version = "0.1.0"
@@ -356,17 +361,17 @@ class TestDataGenerator:
         readme = "README.md"
         requires-python = ">=3.8"
         """
-    
+
     def _generate_module(self, name: str, complexity: str) -> str:
         """Generate a Python module with the specified complexity."""
         # Implementation details...
         pass
-    
+
     def _generate_init(self, num_modules: int) -> str:
         """Generate an __init__.py file."""
         # Implementation details...
         pass
-    
+
     def _generate_test(self, module_name: str) -> str:
         """Generate a test file for the specified module."""
         # Implementation details...
@@ -493,48 +498,48 @@ A custom test runner will be implemented to manage the execution of all tests:
 ```python
 class TestRunner:
     """Runs all tests for DevSynth."""
-    
+
     def run_all_tests(self) -> TestResults:
         """Run all tests and return the results."""
         results = TestResults()
-        
+
         # Run unit tests
         results.unit_test_results = self.run_unit_tests()
-        
+
         # Run integration tests
         results.integration_test_results = self.run_integration_tests()
-        
+
         # Run behavior tests
         results.behavior_test_results = self.run_behavior_tests()
-        
+
         # Run property-based tests
         results.property_test_results = self.run_property_tests()
-        
+
         # Run self-tests
         results.self_test_results = self.run_self_tests()
-        
+
         return results
-    
+
     def run_unit_tests(self) -> UnitTestResults:
         """Run unit tests and return the results."""
         # Implementation details...
         pass
-    
+
     def run_integration_tests(self) -> IntegrationTestResults:
         """Run integration tests and return the results."""
         # Implementation details...
         pass
-    
+
     def run_behavior_tests(self) -> BehaviorTestResults:
         """Run behavior tests and return the results."""
         # Implementation details...
         pass
-    
+
     def run_property_tests(self) -> PropertyTestResults:
         """Run property-based tests and return the results."""
         # Implementation details...
         pass
-    
+
     def run_self_tests(self) -> SelfTestResults:
         """Run self-tests and return the results."""
         # Implementation details...
@@ -548,7 +553,7 @@ Comprehensive test reports will be generated to provide insights into test resul
 ```python
 class TestReportGenerator:
     """Generates test reports from test results."""
-    
+
     def generate_report(self, results: TestResults, format: str = "html") -> str:
         """Generate a test report in the specified format."""
         if format == "html":
@@ -559,17 +564,17 @@ class TestReportGenerator:
             return self.generate_json_report(results)
         else:
             raise ValueError(f"Unsupported format: {format}")
-    
+
     def generate_html_report(self, results: TestResults) -> str:
         """Generate an HTML test report."""
         # Implementation details...
         pass
-    
+
     def generate_markdown_report(self, results: TestResults) -> str:
         """Generate a Markdown test report."""
         # Implementation details...
         pass
-    
+
     def generate_json_report(self, results: TestResults) -> str:
         """Generate a JSON test report."""
         # Implementation details...
