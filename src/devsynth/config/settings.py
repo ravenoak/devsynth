@@ -20,6 +20,8 @@ from devsynth.exceptions import ConfigurationError, DevSynthError
 from .loader import load_config
 
 # Default settings
+# Ephemeral memory stores should prefer the embedded backend, so make that
+# behaviour explicit via a shared constant.
 DEFAULT_KUZU_EMBEDDED = True
 
 # Module-level defaults for Kuzu integration

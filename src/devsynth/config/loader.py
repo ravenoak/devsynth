@@ -15,6 +15,10 @@ from devsynth import __version__ as project_version
 from devsynth.exceptions import ConfigurationError
 from devsynth.logging_setup import DevSynthLogger
 
+# Mirror the default defined in ``devsynth.config.settings`` to avoid import
+# cycles while keeping a single source of truth for ephemeral defaults.
+DEFAULT_KUZU_EMBEDDED = True
+
 
 @dataclass
 class ConfigModel:
@@ -54,7 +58,7 @@ class ConfigModel:
         }
     )
     memory_store_type: str = "memory"
-    kuzu_embedded: bool = True
+    kuzu_embedded: bool = DEFAULT_KUZU_EMBEDDED
     offline_mode: bool = False
     resources: Dict[str, Any] | None = None
     edrr_settings: Dict[str, Any] = field(

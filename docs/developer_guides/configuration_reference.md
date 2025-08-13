@@ -43,3 +43,15 @@ if feature_flags.experimental_enabled():
 
 After changing flag values, call :func:`feature_flags.refresh` to reload the
 cached configuration.
+
+## Kuzu Configuration
+
+The memory subsystem can store data using the [Kuzu](https://kuzudb.com/) graph
+database. When the optional ``kuzu`` package is installed the system uses the
+embedded engine by default. This behaviour is controlled through the
+``kuzu_embedded`` setting, which can also be toggled via the
+``DEVSYNTH_KUZU_EMBEDDED`` environment variable.
+
+Environment provisioning detects whether the ``kuzu`` package is available and
+sets ``DEVSYNTH_RESOURCE_KUZU_AVAILABLE`` accordingly so that tests depending on
+Kuzu can be skipped when the dependency is missing.
