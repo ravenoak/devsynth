@@ -176,6 +176,8 @@ poetry run pip check
 if ! poetry run python -c "import kuzu" >/dev/null 2>&1; then
   echo "[warning] kuzu package not installed; kuzu tests will be skipped"
   export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false
+else
+  export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
 fi
 
 # Run a smoke test to catch failures early
