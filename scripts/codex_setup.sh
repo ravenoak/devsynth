@@ -36,20 +36,24 @@ poetry env use "$(command -v python3.12 || command -v python3.11)"
 # Verify that the virtual environment was created
 poetry env info --path >/dev/null
 
-# Install development dependencies and test extras. Large GPU packages provided
-# by the `offline` extra are intentionally excluded to keep setup fast. Add the
-# `offline` extra manually if GPU features are needed.
-poetry install \
-  --with dev \
-  --extras "tests retrieval chromadb api" \
-  --no-interaction
+# Dialectical checkpoints
+echo "DIALECTICAL CHECKPOINT: What dependencies are truly required?"
+echo "DIALECTICAL CHECKPOINT: How do we verify the cache reproduces identical environments?"
 
-# Cache optional extras to avoid repeated downloads. Parse the extras from
-# `pyproject.toml` so the cache stays in sync automatically. Heavy GPU packages
-# like torch, transformers, and nvidia-* wheels are skipped to keep setup fast.
+EXPECTED_VERSION="0.1.0-alpha.1"
+CURRENT_VERSION="$(poetry version -s)"
+if [[ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]]; then
+  echo "Project version $CURRENT_VERSION does not match $EXPECTED_VERSION" >&2
+  exit 1
+fi
+
+EXTRAS="tests retrieval chromadb api"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/devsynth"
+WHEEL_DIR="$CACHE_DIR/wheels"
+mkdir -p "$WHEEL_DIR"
+
 optional_pkgs=$(poetry run python - <<'PY'
 import re
-import sys
 import tomllib
 
 heavy = {"torch", "transformers"}
@@ -70,11 +74,16 @@ print(" ".join(sorted(pkgs)))
 PY
 )
 
-if [ -n "$optional_pkgs" ]; then
-  poetry run pip download $optional_pkgs \
-    -d "${PIP_CACHE_DIR:-$HOME/.cache/pip}" >/dev/null || \
+if [[ "${PIP_NO_INDEX:-0}" != "1" && -n "$optional_pkgs" ]]; then
+  poetry run pip wheel $optional_pkgs -w "$WHEEL_DIR" >/dev/null || \
     echo "[warning] failed to cache optional extras" >&2
 fi
+
+export PIP_FIND_LINKS="$WHEEL_DIR"
+poetry install \
+  --with dev \
+  --extras "$EXTRAS" \
+  --no-interaction
 
 # Ensure prometheus-client is available after installation
 poetry run python -c "import prometheus_client"
@@ -175,7 +184,7 @@ poetry run pytest tests/behavior/steps/test_alignment_metrics_steps.py --maxfail
 # Use the CLI to run a fast, non-interactive test sweep. The timeout prevents
 # hangs while the log aids in diagnosing failures.
 # What evidence shows the CLI can run tests non-interactively?
-timeout 15m poetry run devsynth run-tests --speed=fast --non-interactive --defaults | tee devsynth_cli_tests.log
+timeout 15m poetry run devsynth run-tests --speed=fast | tee devsynth_cli_tests.log
 
 # Run the dialectical audit and surface any unanswered questions.
 poetry run python scripts/dialectical_audit.py || true
