@@ -20,6 +20,8 @@ The WebUI requirements wizard has been refactored into smaller helper methods to
 maintainability and testing. The `WebUI` class now delegates specific tasks to the
 following private helpers:
 
+Logging behavior is covered in the [Requirements Wizard Logging feature](../features/requirements_wizard_logging.md).
+
 - `_validate_requirements_step` – ensures required fields are provided for each step.
 - `_handle_requirements_navigation` – manages navigation buttons and orchestrates saving.
 - `_save_requirements` – writes collected requirements to `requirements_wizard.json` and resets state.
