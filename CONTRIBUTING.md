@@ -34,6 +34,12 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 - Update documentation for any changes
 - Ensure all tests pass before submitting a pull request
 
+## Specification and BDD Features
+
+- Draft specifications in [`docs/specifications/`](docs/specifications/index.md) answering the Socratic checklist before coding.
+- Capture expected behaviour with a failing BDD feature in `tests/behavior/features/` to drive implementation.
+- Keep specs and features updated alongside code to maintain traceability.
+
 ## Socratic Checklist
 
 When drafting specifications and tests, confirm:
