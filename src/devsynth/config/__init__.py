@@ -3,16 +3,16 @@ Configuration module for DevSynth.
 """
 
 import os
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Union
 
-import yaml
 import toml
+import yaml
 
 from .loader import ConfigModel, config_key_autocomplete, load_config, save_config
-from .unified_loader import UnifiedConfig, UnifiedConfigLoader
 from .settings import _settings, get_llm_settings, get_settings, load_dotenv
+from .unified_loader import UnifiedConfig, UnifiedConfigLoader
 
 _PROJECT_CONFIG: ConfigModel = load_config()
 PROJECT_CONFIG = _PROJECT_CONFIG
@@ -43,12 +43,32 @@ ENABLE_CHROMADB = _settings.enable_chromadb
 # LLM settings
 LLM_PROVIDER = _settings.provider_type
 LLM_API_BASE = _settings.lm_studio_endpoint
-LLM_MODEL = os.environ.get("DEVSYNTH_LLM_MODEL", "gpt-3.5-turbo")
-LLM_MAX_TOKENS = int(os.environ.get("DEVSYNTH_LLM_MAX_TOKENS", "2000"))
-LLM_TEMPERATURE = float(os.environ.get("DEVSYNTH_LLM_TEMPERATURE", "0.7"))
-LLM_AUTO_SELECT_MODEL = os.environ.get(
-    "DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true"
-).lower() in ["true", "1", "yes"]
+# Default values that can be overridden via ``configure_llm_settings``
+LLM_MODEL = "gpt-3.5-turbo"
+LLM_MAX_TOKENS = 2000
+LLM_TEMPERATURE = 0.7
+LLM_AUTO_SELECT_MODEL = True
+
+
+def configure_llm_settings() -> None:
+    """Configure LLM settings from environment variables.
+
+    This helper defers all environment variable reads until explicitly
+    invoked, preventing environment leakage at import time and enabling
+    tests to control values via ``monkeypatch``.
+    """
+
+    global LLM_MODEL, LLM_MAX_TOKENS, LLM_TEMPERATURE, LLM_AUTO_SELECT_MODEL
+
+    LLM_MODEL = os.environ.get("DEVSYNTH_LLM_MODEL", LLM_MODEL)
+    LLM_MAX_TOKENS = int(os.environ.get("DEVSYNTH_LLM_MAX_TOKENS", str(LLM_MAX_TOKENS)))
+    LLM_TEMPERATURE = float(
+        os.environ.get("DEVSYNTH_LLM_TEMPERATURE", str(LLM_TEMPERATURE))
+    )
+    LLM_AUTO_SELECT_MODEL = os.environ.get(
+        "DEVSYNTH_LLM_AUTO_SELECT_MODEL", "true"
+    ).lower() in {"true", "1", "yes"}
+
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -85,6 +105,7 @@ class ProjectUnifiedConfig(UnifiedConfig):
         )
         try:
             import json
+
             import jsonschema
 
             with open(schema_file, "r", encoding="utf-8") as sf:
