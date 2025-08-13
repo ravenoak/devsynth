@@ -30,6 +30,16 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 pipx ensurepath
 
+# Run commands and exit with a clear message on failure
+run_check() {
+  local desc="$1"
+  shift
+  if ! "$@"; then
+    echo "$desc failed" >&2
+    exit 1
+  fi
+}
+
 # Use Python 3.12 if available, otherwise fall back to Python 3.11
 poetry env use "$(command -v python3.12 || command -v python3.11)"
 
@@ -203,6 +213,11 @@ if questions:
         print(f'- {q}')
 PY
 fi
+
+run_check "Test organization verification" poetry run python tests/verify_test_organization.py
+run_check "Test marker verification" poetry run python scripts/verify_test_markers.py
+run_check "Requirements traceability verification" poetry run python scripts/verify_requirements_traceability.py
+run_check "Version synchronization verification" poetry run python scripts/verify_version_sync.py
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
