@@ -52,6 +52,12 @@ The DevSynth documentation is organized into the following directories:
 
 Each directory should contain an `index.md` file that provides an overview of the contents and links to the individual documents.
 
+## Specification and Test Alignment
+
+- Draft a specification in `docs/specifications/` before implementing changes.
+- Add a failing BDD feature in `tests/behavior/features/` prior to writing code.
+- Keep documentation, specifications, and tests synchronized as the project evolves.
+
 ## Detailed Policy Areas
 
 DevSynth maintains detailed policies for specific aspects of documentation:
