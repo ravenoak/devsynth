@@ -84,13 +84,15 @@ def test_environment(tmp_path, monkeypatch):
     with open(devsynth_dir / "project.yaml", "w") as f:
         f.write("language: python\n")
 
-    # Return the environment information
-    return {
+    # Provide the environment information to tests
+    env_info = {
         "project_dir": project_dir,
         "logs_dir": logs_dir,
         "memory_dir": memory_dir,
         "devsynth_dir": devsynth_dir,
     }
+    yield env_info
+    # Temporary directories created under tmp_path are cleaned up automatically
 
 
 @pytest.fixture
