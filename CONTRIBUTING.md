@@ -79,6 +79,9 @@ poetry run pytest
 
 # Run with coverage
 poetry run pytest --cov=src --cov-report=term-missing
+
+# Run only fast tests
+poetry run pytest --speed=fast -m fast
 ```
 
 ## Documentation

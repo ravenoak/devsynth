@@ -5,6 +5,8 @@ This module provides fixtures for ensuring all tests are hermetic (isolated from
 and don't pollute the developer's environment, file system, or depend on external services.
 """
 
+pytest_plugins = ["tests.conftest_extensions"]
+
 import logging
 import os
 import shutil
