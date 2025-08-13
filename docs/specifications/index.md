@@ -28,6 +28,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md)**: The current authoritative specification for DevSynth.
 - **[EDRR Specification](edrr_cycle_specification.md)**: Specification for the EDRR cycle.
 - **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
+- **[WSDE-EDRR Collaboration Specification](wsde_edrr_collaboration.md)**: Expected phase progression, memory flush behavior, and peer-review mapping.
 - **[Hybrid Memory Architecture](hybrid_memory_architecture.md)**: Specification for DevSynth's hybrid memory architecture.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
