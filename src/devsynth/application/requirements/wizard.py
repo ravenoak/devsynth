@@ -11,6 +11,7 @@ from devsynth.config import get_project_config, save_config
 from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import UXBridge
+from devsynth.utils.logging import DevSynthLogger
 
 
 def requirements_wizard(
@@ -33,6 +34,7 @@ def requirements_wizard(
     """
 
     config = config or CLIConfig.from_env()
+    logger = DevSynthLogger(__name__)
 
     steps: Sequence[tuple[str, str, Optional[Sequence[str]], str]] = [
         ("title", "Requirement title", None, ""),
@@ -85,6 +87,7 @@ def requirements_wizard(
                 bridge.display_result("[yellow]Already at first step.[/yellow]")
             continue
         responses[key] = reply
+        logger.info("wizard_step", step=key, value=reply)
         index += 1
 
     result = {
@@ -108,7 +111,12 @@ def requirements_wizard(
     cfg.priority = responses.get("priority", RequirementPriority.MEDIUM.value)
     cfg.constraints = responses.get("constraints", "")
     # Always persist to .devsynth/project.yaml to mirror gather flows.
-    save_config(cfg, use_pyproject=False)
+    try:
+        save_config(cfg, use_pyproject=False)
+        logger.info("requirements_saved", priority=cfg.priority)
+    except Exception as exc:  # pragma: no cover - unexpected
+        logger.error("requirements_save_failed", exc_info=exc)
+        raise
 
     bridge.display_result(f"[green]Requirements saved to {output_path}[/green]")
 

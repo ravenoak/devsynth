@@ -34,6 +34,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Memory Module Handles Missing TinyDB Dependency](memory_optional_tinydb_dependency.md)**: Import behavior when `tinydb` is absent.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
+- **[Requirements Wizard](requirements_wizard.md)**: Logging and priority persistence for the requirements wizard.
 - **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.
 
 ## Implementation Plans
