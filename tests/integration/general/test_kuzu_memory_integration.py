@@ -124,6 +124,20 @@ def test_ephemeral_store_cleanup(no_kuzu):
     assert not os.path.exists(path)
 
 
+def test_ephemeral_store_startup_respects_env(monkeypatch, no_kuzu):
+    """Explicitly disabling embedded mode still allows startup."""
+    from devsynth.config import settings as settings_module
+
+    monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "false")
+    settings_module.get_settings(reload=True)
+
+    store = KuzuMemoryStore.create_ephemeral()
+    try:
+        assert store._store._use_fallback
+    finally:
+        store.cleanup()
+
+
 def test_configured_path_usage(fake_kuzu):
     """Store initialises at configured path when provided."""
     project_dir = Path(os.environ["DEVSYNTH_PROJECT_DIR"])

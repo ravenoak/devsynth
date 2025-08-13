@@ -26,10 +26,10 @@ DEFAULT_KUZU_EMBEDDED = True
 kuzu_db_path: Optional[str] = None
 # Whether to use the embedded KuzuDB backend by default. Tests and runtime
 # environments may override this via the ``DEVSYNTH_KUZU_EMBEDDED``
-# environment variable.
+# environment variable. ``KUZU_EMBEDDED`` mirrors ``kuzu_embedded`` and
+# is maintained for backward compatibility.
 kuzu_embedded: bool = DEFAULT_KUZU_EMBEDDED
-# Backward-compatible constant for older imports
-KUZU_EMBEDDED = kuzu_embedded
+KUZU_EMBEDDED: bool = DEFAULT_KUZU_EMBEDDED
 
 
 def _parse_bool_env(value: Any, field: str) -> bool:
