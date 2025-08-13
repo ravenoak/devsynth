@@ -7,6 +7,8 @@ status: draft
 
 # Summary
 
+See [Kuzu Memory Integration feature](../features/kuzu_memory_integration.md) for usage overview.
+
 ## Socratic Checklist
 - What is the problem?
 - What proofs confirm the solution?

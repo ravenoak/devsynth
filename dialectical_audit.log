@@ -43,13 +43,13 @@
     "Feature 'Interactive Requirements Flow WebUI' has tests but is not documented.",
     "Feature 'Interactive Requirements Wizard' has tests but is not documented.",
     "Feature 'Invalid configuration handling' has tests but is not documented.",
-    "Feature 'Kuzu memory integration' has tests but is not documented.",
     "Feature 'MVU Command Execution' has tests but is not documented.",
     "Feature 'Memory Adapter Integration' has tests but is not documented.",
     "Feature 'Memory Backend Integration' has tests but is not documented.",
     "Feature 'Memory Manager and Adapters' has tests but is not documented.",
     "Feature 'Memory adapter read and write operations' has tests but is not documented.",
     "Feature 'Memory and Context System' has tests but is not documented.",
+    "Feature 'Memory module handles missing TinyDB dependency' has tests but is not documented.",
     "Feature 'Micro EDRR Cycle' has tests but is not documented.",
     "Feature 'Multi-Layered Memory System and Tiered Cache Strategy' has tests but is not documented.",
     "Feature 'Multi-agent task delegation' has tests but is not documented.",
@@ -67,8 +67,8 @@
     "Feature 'Requirements Gathering Wizard' has tests but is not documented.",
     "Feature 'Requirements Management' has tests but is not documented.",
     "Feature 'Requirements Wizard' has tests but is not documented.",
-    "Feature 'Requirements Wizard Logging' has tests but is not documented.",
     "Feature 'Requirements Wizard Navigation' has tests but is not documented.",
+    "Feature 'Requirements wizard logging and priority persistence' has tests but is not documented.",
     "Feature 'Retry Mechanism with Exponential Backoff' has tests but is not documented.",
     "Feature 'Run Pipeline Command' has tests but is not documented.",
     "Feature 'Run tests from the CLI' has tests but is not documented.",
@@ -94,6 +94,7 @@
     "Feature 'WSDE Peer Review Workflow' has tests but is not documented.",
     "Feature 'WSDE Voting Mechanisms for Critical Decisions' has tests but is not documented.",
     "Feature 'WSDE and EDRR collaboration' has tests but is not documented.",
+    "Feature 'WSDE collaboration flow' has tests but is not documented.",
     "Feature 'WSDE-EDRR Integration' has tests but is not documented.",
     "Feature 'Web Application Generation' has tests but is not documented.",
     "Feature 'WebUI APISpec Page' has tests but is not documented.",
@@ -180,6 +181,7 @@
     "Feature 'Memory Manager and Adapters' is referenced in docs or tests but not in code.",
     "Feature 'Memory adapter read and write operations' is referenced in docs or tests but not in code.",
     "Feature 'Memory and Context System' is referenced in docs or tests but not in code.",
+    "Feature 'Memory module handles missing TinyDB dependency' is referenced in docs or tests but not in code.",
     "Feature 'Methodology Adapters Integration' is referenced in docs or tests but not in code.",
     "Feature 'Micro EDRR Cycle' is referenced in docs or tests but not in code.",
     "Feature 'Multi-Agent Collaboration' is referenced in docs or tests but not in code.",
@@ -203,6 +205,7 @@
     "Feature 'Requirements Wizard' is referenced in docs or tests but not in code.",
     "Feature 'Requirements Wizard Logging' is referenced in docs or tests but not in code.",
     "Feature 'Requirements Wizard Navigation' is referenced in docs or tests but not in code.",
+    "Feature 'Requirements wizard logging and priority persistence' is referenced in docs or tests but not in code.",
     "Feature 'Retry Mechanism with Exponential Backoff' is referenced in docs or tests but not in code.",
     "Feature 'Run Pipeline Command' is referenced in docs or tests but not in code.",
     "Feature 'Run tests from the CLI' is referenced in docs or tests but not in code.",
@@ -229,6 +232,7 @@
     "Feature 'WSDE Peer Review Workflow' is referenced in docs or tests but not in code.",
     "Feature 'WSDE Voting Mechanisms for Critical Decisions' is referenced in docs or tests but not in code.",
     "Feature 'WSDE and EDRR collaboration' is referenced in docs or tests but not in code.",
+    "Feature 'WSDE collaboration flow' is referenced in docs or tests but not in code.",
     "Feature 'WSDE-EDRR Integration' is referenced in docs or tests but not in code.",
     "Feature 'Web Application Generation' is referenced in docs or tests but not in code.",
     "Feature 'WebUI APISpec Page' is referenced in docs or tests but not in code.",
@@ -259,9 +263,5 @@
     "Feature 'Workflow Execution' is referenced in docs or tests but not in code.",
     "Feature 'devsynth run-tests command' is referenced in docs or tests but not in code."
   ],
-  "resolved": [
-    "Simple Addition feature documented and implemented in code.",
-    "Doctor command features documented and annotated in tools module.",
-    "Template and duplicate features removed; rationale in docs/rationales/feature_pruning.md."
-  ]
+  "resolved": []
 }

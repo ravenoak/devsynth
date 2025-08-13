@@ -50,6 +50,8 @@ _This index lists all documentation files, their status, and release phase. It i
 | docs/architecture/wsde_agent_model.md | WSDE Agent Model: WSDE | active | foundation |
 | docs/architecture/wsde_edrr_integration.md | WSDE-EDRR Integration Architecture | published | foundation |
 | docs/developer_guides/* | Developer guides and code style | published | development |
+| docs/features/kuzu_memory_integration.md | Kuzu Memory Integration | draft | development |
+| docs/features/requirements_wizard_logging.md | Requirements Wizard Logging | draft | development |
 | docs/implementation/* | Implementation examples and pseudocode | draft | implementation |
 | docs/policies/* | SDLC and project policies | published | governance |
 | docs/roadmap/FINAL_SUMMARY.md | DevSynth Repository Harmonization Final Summary | published | roadmap |

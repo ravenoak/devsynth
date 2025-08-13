@@ -9,6 +9,8 @@ status: draft
 
 Defines expected logging behaviour for the requirements wizard, including structured JSON fields and persistence rules.
 
+See [Requirements Wizard Logging feature](../features/requirements_wizard_logging.md) for an overview.
+
 ## Socratic Checklist
 - What is the problem?
 - What proofs confirm the solution?

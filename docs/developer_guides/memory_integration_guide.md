@@ -14,6 +14,8 @@ last_reviewed: "2025-08-05"
 
 This guide provides detailed information on the DevSynth memory integration system, including its architecture, common issues, and best practices for implementing robust cross-store operations.
 
+See [Kuzu Memory Integration feature](../features/kuzu_memory_integration.md) for details on the Kuzu backend.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -168,26 +170,26 @@ To address these limitations, we need to implement comprehensive transaction sup
    import uuid
    import time
    from typing import Dict, List, Any, Optional
-   
+
    class MemoryRetrievalError(Exception):
        """Exception raised when memory retrieval fails."""
        pass
-       
+
    class MemoryStorageError(Exception):
        """Exception raised when memory storage fails."""
        pass
-       
+
    class CircuitBreakerOpenError(Exception):
        """Exception raised when circuit breaker is open."""
        pass
-   
+
    class TransactionContext:
        def __init__(self, adapters):
            self.adapters = adapters
            self.transaction_id = str(uuid.uuid4())
            self.snapshots = {}
            self.operations = []
-           
+
        def __enter__(self):
            # Begin transaction on all adapters
            for adapter in self.adapters:
@@ -198,7 +200,7 @@ To address these limitations, we need to implement comprehensive transaction sup
                    # take a snapshot of the current state
                    self.snapshots[adapter.id] = adapter.snapshot()
            return self
-           
+
        def __exit__(self, exc_type, exc_val, exc_tb):
            if exc_type is None:
                # Commit transaction on all adapters
@@ -206,7 +208,7 @@ To address these limitations, we need to implement comprehensive transaction sup
            else:
                # Rollback transaction on all adapters
                self._rollback()
-               
+
        def _commit(self):
            # Two-phase commit
            # Phase 1: Prepare
@@ -221,12 +223,12 @@ To address these limitations, we need to implement comprehensive transaction sup
                for adapter in prepared:
                    adapter.rollback(self.transaction_id)
                raise e
-               
+
            # Phase 2: Commit
            for adapter in self.adapters:
                if hasattr(adapter, 'commit'):
                    adapter.commit(self.transaction_id)
-                   
+
        def _rollback(self):
            # Rollback transaction on all adapters
            for adapter in self.adapters:
@@ -248,28 +250,28 @@ To address these limitations, we need to implement comprehensive transaction sup
    class MemoryManager:
        def __init__(self, adapters=None):
            self.adapters = adapters or {}
-           
+
        def with_transaction(self, stores=None):
            """Context manager for transactions across multiple stores."""
            if stores is None:
                stores = list(self.adapters.keys())
-               
+
            adapters = [self.adapters[store] for store in stores]
            return TransactionContext(adapters)
-   
+
    # Usage example:
    from devsynth.domain.models.memory import MemoryItem, MemoryType
-   
+
    # Initialize memory manager
    memory_manager = MemoryManager({
        'graph': GraphMemoryAdapter(),
        'tinydb': TinyDBMemoryAdapter()
    })
-   
+
    # Create memory items
    graph_item = MemoryItem(id="graph_item_1", content="Graph content", memory_type=MemoryType.KNOWLEDGE_GRAPH)
    tinydb_item = MemoryItem(id="tinydb_item_1", content="TinyDB content", memory_type=MemoryType.DOCUMENTATION)
-   
+
    # Use transaction context
    with memory_manager.with_transaction(['graph', 'tinydb']):
        memory_manager.adapters['graph'].store(graph_item)
@@ -287,7 +289,7 @@ Robust error handling and recovery mechanisms are essential for maintaining data
    def cross_store_operation(self, stores):
        # Create snapshots for rollback
        snapshots = {store: self._create_snapshot(store) for store in stores}
-       
+
        try:
            # Perform operations
            for store in stores:
@@ -312,7 +314,7 @@ Robust error handling and recovery mechanisms are essential for maintaining data
            self.reset_timeout = reset_timeout
            self.last_failure_time = 0
            self.state = "CLOSED"  # CLOSED, OPEN, HALF-OPEN
-           
+
        def execute(self, func, *args, **kwargs):
            if self.state == "OPEN":
                # Check if reset timeout has elapsed
@@ -320,24 +322,24 @@ Robust error handling and recovery mechanisms are essential for maintaining data
                    self.state = "HALF-OPEN"
                else:
                    raise CircuitBreakerOpenError("Circuit breaker is open")
-                   
+
            try:
                result = func(*args, **kwargs)
-               
+
                # Success, reset failure count
                if self.state == "HALF-OPEN":
                    self.state = "CLOSED"
                    self.failure_count = 0
-                   
+
                return result
            except Exception as e:
                # Failure, increment failure count
                self.failure_count += 1
                self.last_failure_time = time.time()
-               
+
                if self.failure_count >= self.failure_threshold:
                    self.state = "OPEN"
-                   
+
                raise e
    ```
 
@@ -348,7 +350,7 @@ Robust error handling and recovery mechanisms are essential for maintaining data
            def wrapper(*args, **kwargs):
                retries = 0
                backoff = initial_backoff
-               
+
                while retries < max_retries:
                    try:
                        return func(*args, **kwargs)
@@ -356,7 +358,7 @@ Robust error handling and recovery mechanisms are essential for maintaining data
                        retries += 1
                        if retries >= max_retries:
                            raise e
-                           
+
                        # Wait with exponential backoff
                        time.sleep(backoff)
                        backoff *= backoff_multiplier
@@ -391,9 +393,9 @@ def get_with_fallback(self, item_id, stores=None):
     """Get an item with fallback to other stores."""
     if stores is None:
         stores = self.store_priorities
-        
+
     errors = {}
-    
+
     for store in stores:
         try:
             item = self.adapters[store].retrieve(item_id)
@@ -402,7 +404,7 @@ def get_with_fallback(self, item_id, stores=None):
         except Exception as e:
             errors[store] = str(e)
             continue
-            
+
     # If we get here, all stores failed or returned None
     raise MemoryRetrievalError(f"Failed to retrieve item {item_id} from any store: {errors}")
 ```
@@ -418,7 +420,7 @@ def get_with_cache(self, item_id):
     item = self.cache.get(item_id)
     if item is not None:
         return item
-        
+
     # Cache miss, try to get from primary store
     try:
         item = self.primary_store.retrieve(item_id)
@@ -429,7 +431,7 @@ def get_with_cache(self, item_id):
     except Exception as e:
         # Primary store failed, log error
         self.logger.error(f"Primary store failed: {e}")
-        
+
     # Try fallback stores
     for store in self.fallback_stores:
         try:
@@ -441,7 +443,7 @@ def get_with_cache(self, item_id):
         except Exception as e:
             # Fallback store failed, log error
             self.logger.error(f"Fallback store failed: {e}")
-            
+
     # All stores failed
     return None
 ```
@@ -454,7 +456,7 @@ Define degraded mode operations that can continue with reduced functionality whe
 def store_with_degraded_mode(self, item):
     """Store an item with degraded mode support."""
     primary_success = False
-    
+
     # Try to store in primary store
     try:
         self.primary_store.store(item)
@@ -462,7 +464,7 @@ def store_with_degraded_mode(self, item):
     except Exception as e:
         # Primary store failed, log error
         self.logger.error(f"Primary store failed: {e}")
-        
+
     # If primary store succeeded, try to store in secondary stores
     if primary_success:
         for store in self.secondary_stores:
@@ -472,7 +474,7 @@ def store_with_degraded_mode(self, item):
                 # Secondary store failed, log error
                 self.logger.error(f"Secondary store failed: {e}")
                 # Continue with other secondary stores
-                
+
     # If primary store failed, try to store in fallback store
     elif self.fallback_store is not None:
         try:
