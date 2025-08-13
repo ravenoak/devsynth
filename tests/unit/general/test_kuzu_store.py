@@ -2,10 +2,15 @@
 
 import importlib
 import os
+
 import pytest
+
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-pytestmark = pytest.mark.requires_resource("kuzu")
+pytest.importorskip("kuzu")
+
+# Kuzu store operations are relatively quick but require the dependency
+pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.medium]
 
 KuzuStore = importlib.import_module("devsynth.application.memory.kuzu_store").KuzuStore
 

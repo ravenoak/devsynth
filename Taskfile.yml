@@ -161,6 +161,7 @@ tasks:
       - task: manifest:validate
       - task: lint
       - task: test:coverage
+      - poetry run python scripts/verify_test_markers.py
       - poetry run python scripts/update_traceability.py
       - poetry run python scripts/dialectical_audit.py
       - task: docs:build
