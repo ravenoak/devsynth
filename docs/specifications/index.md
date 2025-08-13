@@ -31,6 +31,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[WSDE-EDRR Collaboration Specification](wsde_edrr_collaboration.md)**: Expected phase progression, memory flush behavior, and peer-review mapping.
 - **[Hybrid Memory Architecture](hybrid_memory_architecture.md)**: Specification for DevSynth's hybrid memory architecture.
 - **[Kuzu Memory Integration](kuzu_memory_integration.md)**: Environment-variable overrides and fallback behaviour for the Kuzu-backed memory store.
+- **[Memory Module Handles Missing TinyDB Dependency](memory_optional_tinydb_dependency.md)**: Import behavior when `tinydb` is absent.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
 - **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.

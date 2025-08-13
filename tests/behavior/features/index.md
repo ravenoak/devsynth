@@ -111,6 +111,7 @@ This index lists all feature files for easy navigation.
 - [general/wsde_message_passing_peer_review.feature](./general/wsde_message_passing_peer_review.feature)
 - [general/wsde_voting_mechanisms.feature](./general/wsde_voting_mechanisms.feature)
 - [memory/memory_operations.feature](./memory/memory_operations.feature)
+- [memory/optional_tinydb_dependency.feature](./memory/optional_tinydb_dependency.feature)
 - [mvu/commands.feature](./mvu/commands.feature)
 - [template/feature_template.feature](./template/feature_template.feature)
 - [webui/alignment_metrics.feature](./webui/alignment_metrics.feature)
