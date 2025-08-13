@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Sequence
 import os
+from typing import Any, Callable, Dict, Optional, Sequence
 
 from devsynth.agents.sandbox import sandboxed
-
+from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.testing.run_tests import run_tests
-from devsynth.interface.ux_bridge import UXBridge
 
 logger = DevSynthLogger(__name__)
 
@@ -254,6 +253,10 @@ def security_audit_tool(
         }
 
 
+# Feature: Doctor command
+# Feature: DevSynth Doctor
+# Feature: Doctor Command
+# Feature: Doctor command with missing environment variables
 def doctor_tool(config_dir: str = "config", quick: bool = False) -> Dict[str, Any]:
     """Validate configuration files and environment setup."""
 
