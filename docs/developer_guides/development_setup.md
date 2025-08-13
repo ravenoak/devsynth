@@ -70,7 +70,16 @@ Before setting up the development environment, ensure you have the following ins
 
 Ensure the development environment is fully bootstrapped before beginning work. Unless otherwise noted, prefix commands with `poetry run` to ensure they execute inside the project's virtual environment.
 
-Use the environment provisioning script in the `scripts/` directory to prepare the environment and cache optional extras for offline development. It installs development and test extras in one pass, caches those extras to a local wheel directory, and prompts two dialectical checkpoints: *What dependencies are truly required?* and *How do we verify the cache reproduces identical environments?* The script runs a non-interactive fast test sweep, performs a dialectical audit that writes `dialectical_audit.log`, and echoes any unanswered Socratic questions. After it completes, you can revalidate dependencies offline:
+Use the environment provisioning script in the `scripts/` directory to prepare the environment and cache optional extras for offline development. It installs development and test extras in one pass, caches those extras to a local wheel directory, and prompts two dialectical checkpoints: *What dependencies are truly required?* and *How do we verify the cache reproduces identical environments?* The script runs a non-interactive fast test sweep, performs a dialectical audit that writes `dialectical_audit.log`, and echoes any unanswered Socratic questions. It also executes several verification checks:
+
+```bash
+poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_test_markers.py
+poetry run python scripts/verify_requirements_traceability.py
+poetry run python scripts/verify_version_sync.py
+```
+
+After it completes, you can revalidate dependencies offline:
 
 ```bash
 PIP_NO_INDEX=1 poetry run pip check
