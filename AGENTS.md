@@ -8,8 +8,8 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
-- Run `scripts/codex_setup.sh` before beginning any development to provision the environment. Update the script as appropriate and according to best practices.
-- References to this file or `scripts/codex_setup.sh` must not appear elsewhere in the repository. Outside these files, refer to it generically as the environment provisioning script.
+- Run the environment provisioning script before beginning any development to provision the environment. Update the script as appropriate and according to best practices.
+- References to this file or the script's path must not appear elsewhere in the repository. Outside these files, refer to it generically as the environment provisioning script.
 - Optional extras in `pyproject.toml` are automatically cached by the environment provisioning script, keeping them synchronized with the project configuration while skipping heavy GPU packages.
 - Update this file, your instructions and initial context, as appropriate and according to best-practices.
 - Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
