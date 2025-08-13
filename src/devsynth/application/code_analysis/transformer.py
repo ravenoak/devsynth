@@ -4,18 +4,41 @@ AST-based code transformation module.
 This module provides components for transforming Python code using AST (Abstract Syntax Tree)
 manipulations, enabling automated refactoring, optimization, and other code transformations.
 """
-import ast
-import astor
-import re
-import os
-from typing import Dict, List, Any, Optional, Callable, Union, Type
 
-from devsynth.domain.interfaces.code_analysis import CodeTransformationProvider, TransformationResult
-from devsynth.domain.models.code_analysis import CodeTransformation
+import ast
+import os
+import re
+from typing import Any, Callable, Dict, List, Optional, Type, Union
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.domain.interfaces.code_analysis import (
+    CodeTransformationProvider,
+    TransformationResult,
+)
+from devsynth.domain.models.code_analysis import CodeTransformation
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# ``ast.unparse`` became available in Python 3.9.  When running on 3.9+ we
+# prefer it over ``astor`` so that environments without the extra dependency do
+# not fail.  ``astor`` is imported lazily only when required.
+# ---------------------------------------------------------------------------
+if hasattr(ast, "unparse"):
+
+    def _to_source(tree: ast.AST) -> str:
+        """Convert an AST back to source code using ``ast.unparse``."""
+
+        return ast.unparse(tree)
+
+else:  # pragma: no cover - exercised on older Python versions
+    import astor  # type: ignore[import]
+
+    def _to_source(tree: ast.AST) -> str:
+        """Fallback to ``astor`` when ``ast.unparse`` is unavailable."""
+
+        return astor.to_source(tree)
 
 
 class AstTransformer(ast.NodeTransformer):
@@ -28,16 +51,16 @@ class AstTransformer(ast.NodeTransformer):
 
     def record_change(self, node, description):
         """Record a change made to the AST."""
-        if hasattr(node, 'lineno'):
-            self.changes.append({
-                "line": node.lineno,
-                "col": getattr(node, 'col_offset', 0),
-                "description": description
-            })
+        if hasattr(node, "lineno"):
+            self.changes.append(
+                {
+                    "line": node.lineno,
+                    "col": getattr(node, "col_offset", 0),
+                    "description": description,
+                }
+            )
         else:
-            self.changes.append({
-                "description": description
-            })
+            self.changes.append({"description": description})
 
 
 class UnusedImportRemover(AstTransformer):
@@ -76,8 +99,11 @@ class UnusedImportRemover(AstTransformer):
         for name in node.names:
             # Check if the imported name is used
             import_name = f"{node.module}.{name.name}" if node.module else name.name
-            if (name.name in self.symbol_usage and self.symbol_usage[name.name] > 0) or \
-               (import_name in self.symbol_usage and self.symbol_usage[import_name] > 0):
+            if (
+                name.name in self.symbol_usage and self.symbol_usage[name.name] > 0
+            ) or (
+                import_name in self.symbol_usage and self.symbol_usage[import_name] > 0
+            ):
                 new_names.append(name)
             else:
                 self.record_change(node, f"Removed unused import: {import_name}")
@@ -97,26 +123,39 @@ class RedundantAssignmentRemover(AstTransformer):
     def visit_Assign(self, node):
         """Visit an Assign node and remove redundant assignments."""
         # Check if this is a self-assignment (x = x)
-        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and \
-           isinstance(node.value, ast.Name) and node.targets[0].id == node.value.id:
-            self.record_change(node, f"Removed redundant self-assignment: {node.targets[0].id} = {node.value.id}")
+        if (
+            len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and isinstance(node.value, ast.Name)
+            and node.targets[0].id == node.value.id
+        ):
+            self.record_change(
+                node,
+                f"Removed redundant self-assignment: {node.targets[0].id} = {node.value.id}",
+            )
             return None
 
         # Check if this is a redundant assignment in a function (result = a + b followed by return result)
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
             # Get the parent node (function body)
-            parent = getattr(node, 'parent', None)
+            parent = getattr(node, "parent", None)
             if parent and isinstance(parent, list):
                 # Find this node's index in the parent list
                 try:
                     idx = parent.index(node)
                     # Check if the next node is a return statement returning the assigned variable
-                    if idx < len(parent) - 1 and isinstance(parent[idx + 1], ast.Return) and \
-                       isinstance(parent[idx + 1].value, ast.Name) and \
-                       parent[idx + 1].value.id == node.targets[0].id:
+                    if (
+                        idx < len(parent) - 1
+                        and isinstance(parent[idx + 1], ast.Return)
+                        and isinstance(parent[idx + 1].value, ast.Name)
+                        and parent[idx + 1].value.id == node.targets[0].id
+                    ):
                         # Replace the return statement with a return of the original expression
                         parent[idx + 1].value = node.value
-                        self.record_change(node, f"Simplified redundant assignment: {node.targets[0].id} = <expr> followed by return {node.targets[0].id}")
+                        self.record_change(
+                            node,
+                            f"Simplified redundant assignment: {node.targets[0].id} = <expr> followed by return {node.targets[0].id}",
+                        )
                         # Remove this assignment
                         return None
                 except ValueError:
@@ -128,7 +167,7 @@ class RedundantAssignmentRemover(AstTransformer):
         """Visit a FunctionDef node and set parent references."""
         # Set parent reference for all nodes in the function body
         for child in node.body:
-            setattr(child, 'parent', node.body)
+            setattr(child, "parent", node.body)
         return self.generic_visit(node)
 
 
@@ -151,14 +190,18 @@ class UnusedVariableRemover(AstTransformer):
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
             var_name = node.targets[0].id
             # Debug: Print the symbol usage for this variable
-            logger.debug(f"Variable: {var_name}, Usage count: {self.symbol_usage.get(var_name, 'Not in dictionary')}")
+            logger.debug(
+                f"Variable: {var_name}, Usage count: {self.symbol_usage.get(var_name, 'Not in dictionary')}"
+            )
             logger.debug(f"Symbol usage dictionary: {self.symbol_usage}")
 
             # Check if the variable is truly unused (usage count is 0)
             if var_name in self.symbol_usage and self.symbol_usage[var_name] == 0:
                 # Check if the value has side effects (calls, etc.)
                 if not self._has_side_effects(node.value):
-                    self.record_change(node, f"Removed unused variable assignment: {var_name}")
+                    self.record_change(
+                        node, f"Removed unused variable assignment: {var_name}"
+                    )
                     return None
 
         return self.generic_visit(node)
@@ -184,11 +227,13 @@ class StringLiteralOptimizer(AstTransformer):
         """Visit a Constant node and optimize string literals."""
         if isinstance(node.value, str):
             # Convert multiple spaces to a single space
-            if '  ' in node.value:
+            if "  " in node.value:
                 old_value = node.value
-                new_value = re.sub(r'\s+', ' ', node.value)
+                new_value = re.sub(r"\s+", " ", node.value)
                 if old_value != new_value:
-                    self.record_change(node, f"Optimized string literal: removed extra whitespace")
+                    self.record_change(
+                        node, f"Optimized string literal: removed extra whitespace"
+                    )
                     node.value = new_value
 
         return node
@@ -196,13 +241,15 @@ class StringLiteralOptimizer(AstTransformer):
     # For Python < 3.8 compatibility
     def visit_Str(self, node):
         """Visit a Str node and optimize string literals (Python < 3.8)."""
-        if hasattr(ast, 'Str') and isinstance(node, getattr(ast, 'Str')):
+        if hasattr(ast, "Str") and isinstance(node, getattr(ast, "Str")):
             # Convert multiple spaces to a single space
-            if '  ' in node.s:
+            if "  " in node.s:
                 old_value = node.s
-                new_value = re.sub(r'\s+', ' ', node.s)
+                new_value = re.sub(r"\s+", " ", node.s)
                 if old_value != new_value:
-                    self.record_change(node, f"Optimized string literal: removed extra whitespace")
+                    self.record_change(
+                        node, f"Optimized string literal: removed extra whitespace"
+                    )
                     node.s = new_value
 
         return node
@@ -218,7 +265,9 @@ class CodeStyleTransformer(AstTransformer):
             docstring = f'"""{node.name} function."""'
             docstring_expr = ast.Expr(value=ast.Constant(value=docstring))
             node.body.insert(0, docstring_expr)
-            self.record_change(node, f"Added missing docstring to function: {node.name}")
+            self.record_change(
+                node, f"Added missing docstring to function: {node.name}"
+            )
 
         return self.generic_visit(node)
 
@@ -247,16 +296,17 @@ class CodeTransformer(CodeTransformationProvider):
             "unused_variables": UnusedVariableRemover,
             "string_optimization": StringLiteralOptimizer,
             "code_style": CodeStyleTransformer,
-
             # Aliases used in tests
             "remove_unused_imports": UnusedImportRemover,
             "remove_redundant_assignments": RedundantAssignmentRemover,
             "remove_unused_variables": UnusedVariableRemover,
             "optimize_string_literals": StringLiteralOptimizer,
-            "improve_code_style": CodeStyleTransformer
+            "improve_code_style": CodeStyleTransformer,
         }
 
-    def transform_code(self, code: str, transformations: List[str] = None) -> TransformationResult:
+    def transform_code(
+        self, code: str, transformations: List[str] = None
+    ) -> TransformationResult:
         """
         Transform the given code using the specified transformations.
 
@@ -314,22 +364,22 @@ class CodeTransformer(CodeTransformationProvider):
                     changes.extend(transformer.changes)
 
             # Generate the transformed code
-            transformed_code = astor.to_source(tree)
+            transformed_code = _to_source(tree)
 
             return CodeTransformation(
-                original_code=code,
-                transformed_code=transformed_code,
-                changes=changes
+                original_code=code, transformed_code=transformed_code, changes=changes
             )
         except Exception as e:
             logger.error(f"Error transforming code: {str(e)}")
             return CodeTransformation(
                 original_code=code,
                 transformed_code=code,
-                changes=[{"description": f"Error: {str(e)}"}]
+                changes=[{"description": f"Error: {str(e)}"}],
             )
 
-    def transform_file(self, file_path: str, transformations: List[str] = None) -> TransformationResult:
+    def transform_file(
+        self, file_path: str, transformations: List[str] = None
+    ) -> TransformationResult:
         """
         Transform the code in the given file using the specified transformations.
 
@@ -341,8 +391,9 @@ class CodeTransformer(CodeTransformationProvider):
             A TransformationResult object containing the transformed code and changes made
         """
         try:
+            file_path = os.fspath(file_path)
             # Read the file content
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 code = f.read()
 
             # Transform the code
@@ -354,11 +405,12 @@ class CodeTransformer(CodeTransformationProvider):
             return CodeTransformation(
                 original_code="",
                 transformed_code="",
-                changes=[{"description": f"Error: {str(e)}"}]
+                changes=[{"description": f"Error: {str(e)}"}],
             )
 
-    def transform_directory(self, dir_path: str, recursive: bool = True, 
-                           transformations: List[str] = None) -> Dict[str, TransformationResult]:
+    def transform_directory(
+        self, dir_path: str, recursive: bool = True, transformations: List[str] = None
+    ) -> Dict[str, TransformationResult]:
         """
         Transform all Python files in the given directory using the specified transformations.
 
@@ -370,6 +422,7 @@ class CodeTransformer(CodeTransformationProvider):
         Returns:
             A dictionary mapping file paths to TransformationResult objects
         """
+        dir_path = os.fspath(dir_path)
         results = {}
 
         # Find all Python files in the directory
@@ -385,7 +438,7 @@ class CodeTransformer(CodeTransformationProvider):
                 results[file_path] = CodeTransformation(
                     original_code="",
                     transformed_code="",
-                    changes=[{"description": f"Error: {str(e)}"}]
+                    changes=[{"description": f"Error: {str(e)}"}],
                 )
 
         return results
@@ -393,15 +446,16 @@ class CodeTransformer(CodeTransformationProvider):
     def _find_python_files(self, dir_path: str, recursive: bool) -> List[str]:
         """Find all Python files in a directory."""
         python_files = []
+        dir_path = os.fspath(dir_path)
 
         if recursive:
             for root, _, files in os.walk(dir_path):
                 for file in files:
-                    if file.endswith('.py'):
+                    if file.endswith(".py"):
                         python_files.append(os.path.join(root, file))
         else:
             for file in os.listdir(dir_path):
-                if file.endswith('.py'):
+                if file.endswith(".py"):
                     python_files.append(os.path.join(dir_path, file))
 
         return python_files
@@ -455,7 +509,10 @@ class SymbolUsageCounter(ast.NodeVisitor):
 
             if full_name in self.symbol_usage:
                 self.symbol_usage[full_name] += 1
-            if module_name in self.symbol_usage and module_name not in self.being_assigned:
+            if (
+                module_name in self.symbol_usage
+                and module_name not in self.being_assigned
+            ):
                 self.symbol_usage[module_name] += 1
 
         self.generic_visit(node)
