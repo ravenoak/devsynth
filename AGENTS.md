@@ -2,18 +2,22 @@
 
 This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`. Follow the steps below when contributing.
 
-DevSynth values clarity, collaboration, and dependable automation. All work follows a **specification-first workflow**: draft a specification and a failing BDD feature before writing code. Keep these principles in mind and see [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
+DevSynth values clarity, collaboration, and dependable automation. All work follows a **specification-first BDD workflow** and is subject to [dialectical audits](docs/policies/dialectical_audit.md). Begin each task with the Socratic checklist:
+
+- What is the problem?
+- What proofs confirm the solution?
+
+See [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
 
 ## Environment Expectations
 
+- Run the environment provisioning script before beginning any development to provision the environment. Always refer to it generically as **the environment provisioning script** and update it according to best practices; do not mention its filename or path elsewhere in the repository.
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
-- Run the environment provisioning script before beginning any development to provision the environment. Update the script as appropriate and according to best practices.
-- Always refer to it generically as **the environment provisioning script**; do not mention its filename or path elsewhere in the repository.
 - Optional extras in `pyproject.toml` are automatically cached by the environment provisioning script, keeping them synchronized with the project configuration while skipping heavy GPU packages.
-- Update this file, your instructions and initial context, as appropriate and according to best-practices.
+- Update this file, your instructions and initial context, as appropriate and according to best practices.
 - Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
-- Documents in `docs/external_research_papers/` are copies of academic papers and can be referenced using best-practices.
+- Documents in `docs/external_research_papers/` are copies of academic papers and can be referenced using best practices.
 
 ## Test Environment
 
@@ -93,6 +97,8 @@ poetry run python scripts/verify_version_sync.py
 ```
 
 ## Release Preparation
+
+The `0.1.0-alpha.1` release process is documented in [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md). Follow these steps:
 
 1. Run `poetry run task release:prep` to generate release artifacts.
    - **Key Questions**
