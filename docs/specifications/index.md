@@ -31,6 +31,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Hybrid Memory Architecture](hybrid_memory_architecture.md)**: Specification for DevSynth's hybrid memory architecture.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
+- **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.
 
 ## Implementation Plans
 
