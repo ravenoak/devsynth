@@ -16,6 +16,10 @@ from devsynth.agents.wsde_team_coordinator import WSDETeamCoordinatorAgent
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.collaboration.collaboration_memory_utils import (
+    flush_memory_queue,
+)
+from devsynth.application.collaboration.WSDE import WSDE
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
@@ -28,7 +32,6 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
@@ -65,7 +68,7 @@ class TestWSDEEDRRComponentInteractions:
     @pytest.fixture
     def wsde_team(self):
         """Create a WSDE team with mock agents for testing."""
-        team = WSDETeam(name="TestWsdeEdrrComponentInteractionsTeam")
+        team = WSDE(name="TestWsdeEdrrComponentInteractionsTeam")
         explorer = UnifiedAgent()
         explorer.initialize(
             AgentConfig(
@@ -309,7 +312,7 @@ class TestWSDEEDRRComponentInteractions:
             metadata={},
         )
         memory_manager.update_item("default", item)
-        memory_manager.flush_updates()
+        flush_memory_queue(memory_manager)
 
         assert events == ["test-item", None]
 
@@ -318,7 +321,7 @@ class TestWSDEEDRRComponentInteractions:
 
         ReqID: N/A"""
 
-        team = WSDETeam(name="FlushTeam")
+        team = WSDE(name="FlushTeam")
         team.memory_manager = memory_manager
         coordinator_agent = WSDETeamCoordinatorAgent(team)
 
@@ -338,3 +341,16 @@ class TestWSDEEDRRComponentInteractions:
         )
 
         assert memory_manager.sync_manager._queue == []
+
+    def test_role_assignment_mapping_is_accessible(self, coordinator):
+        """WSDE wrapper exposes current role assignments."""
+
+        task = {
+            "description": "Create a Python function to calculate factorial",
+            "language": "python",
+            "domain": "code_generation",
+        }
+        coordinator.start_cycle(task)
+        roles = coordinator.wsde_team.get_role_assignments()
+        assert roles
+        assert set(roles.keys()) == {agent.id for agent in coordinator.wsde_team.agents}

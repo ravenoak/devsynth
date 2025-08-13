@@ -12,6 +12,7 @@ import pytest
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.collaboration.WSDE import WSDE
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
@@ -20,7 +21,6 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
@@ -55,7 +55,7 @@ class ExpertAgent(UnifiedAgent):
 @pytest.fixture
 def coordinator():
     """Create an EnhancedEDRRCoordinator with a team of agents with different expertise."""
-    team = WSDETeam(name="TestWsdeEdrrIntegrationEndToEndTeam")
+    team = WSDE(name="TestWsdeEdrrIntegrationEndToEndTeam")
     team.add_agents(
         [
             ExpertAgent(
@@ -111,6 +111,8 @@ def test_wsde_edrr_integration_end_to_end_succeeds(coordinator):
     assert coordinator.current_phase == Phase.EXPAND
     primus = coordinator.wsde_team.get_primus()
     assert primus is not None
+    role_map = coordinator.wsde_team.get_role_assignments()
+    assert role_map
     assert "exploration" in primus.expertise or "brainstorming" in primus.expertise
     for phase in [Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
         coordinator.progress_to_phase(phase)

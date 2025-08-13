@@ -22,6 +22,51 @@ if TYPE_CHECKING:
 logger = DevSynthLogger(__name__)
 
 
+def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
+    """Flush queued memory updates and return flushed items.
+
+    This helper captures the current sync queue, performs a flush, and returns
+    the queued operations so callers may requeue them if a rollback is needed.
+
+    Args:
+        memory_manager: The memory manager instance coordinating updates.
+
+    Returns:
+        List of ``(store, MemoryItem)`` tuples that were flushed.
+    """
+
+    if not memory_manager or not hasattr(memory_manager, "sync_manager"):
+        return []
+    queue: List[tuple[str, MemoryItem]] = list(
+        getattr(memory_manager.sync_manager, "_queue", [])
+    )
+    try:
+        if hasattr(memory_manager, "flush_updates"):
+            memory_manager.flush_updates()
+    except Exception:  # pragma: no cover - defensive
+        logger.debug("Flush failed", exc_info=True)
+    return queue
+
+
+def restore_memory_queue(
+    memory_manager: Any, queued_items: List[tuple[str, MemoryItem]]
+) -> None:
+    """Requeue memory updates previously returned by :func:`flush_memory_queue`.
+
+    Args:
+        memory_manager: The memory manager handling updates.
+        queued_items: Items to requeue in their original order.
+    """
+
+    if not memory_manager or not queued_items:
+        return
+    for store, item in queued_items:
+        try:
+            memory_manager.queue_update(store, item)
+        except Exception:  # pragma: no cover - best effort
+            logger.debug("Requeue failed", exc_info=True)
+
+
 def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
     """
     Convert a collaboration entity to a memory item.

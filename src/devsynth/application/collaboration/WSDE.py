@@ -20,3 +20,8 @@ class WSDE(WSDETeam):
         if not decision or result.get("status") != "completed":
             result["consensus"] = self.build_consensus(task)
         return result
+
+    def get_role_assignments(self) -> Dict[str, str]:
+        """Return a mapping of agent identifiers to their assigned roles."""
+
+        return self.get_role_map()

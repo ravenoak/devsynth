@@ -13,6 +13,7 @@ import pytest
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.collaboration.WSDE import WSDE
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
@@ -21,7 +22,6 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
@@ -57,7 +57,7 @@ class ExpertAgent(UnifiedAgent):
 @pytest.fixture
 def enhanced_coordinator():
     """Create an EnhancedEDRRCoordinator with a team of agents with different expertise."""
-    team = WSDETeam(name="TestWsdeEdrrIntegrationAdvancedTeam")
+    team = WSDE(name="TestWsdeEdrrIntegrationAdvancedTeam")
     expand_agent = ExpertAgent(
         "expand_agent", ["brainstorming", "exploration", "creativity", "ideation"]
     )
@@ -115,6 +115,8 @@ def test_phase_specific_role_assignment_has_expected(enhanced_coordinator):
     enhanced_coordinator.start_cycle(task)
     expand_primus = enhanced_coordinator.wsde_team.get_primus()
     assert expand_primus is not None
+    role_map = enhanced_coordinator.wsde_team.get_role_assignments()
+    assert role_map
     assert any(
         skill in ["analysis", "evaluation", "brainstorming"]
         for skill in expand_primus.expertise
