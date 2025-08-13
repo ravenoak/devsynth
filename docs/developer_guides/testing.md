@@ -286,13 +286,12 @@ poetry run pytest -q
 # pip commands are for installing from PyPI only
 
 ```text
-Always run tests with `poetry run pytest`. If `pytest` reports missing packages, run `poetry install` to restore them.
+Always run tests with `poetry run devsynth run-tests --speed=<cat>`. If `pytest` reports missing packages, run `poetry install` to restore them.
 
-Skip resource-heavy tests during routine development by excluding the `memory_intensive` marker:
+Skip resource-heavy tests during routine development by running only fast tests:
 
 ```bash
-
-poetry run pytest -m "not memory_intensive"
+poetry run devsynth run-tests --speed=fast
 
 ```text
 
@@ -405,7 +404,7 @@ All test changes should undergo a brief review cycle before merging:
 3. Execute the relevant test suites, typically:
 
    ```bash
-   poetry run pytest -m "not memory_intensive"
+   poetry run devsynth run-tests --speed=<cat>
    ```text
 
 4. Request peer review and ensure reviewers confirm meaningful assertions and

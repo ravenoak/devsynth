@@ -23,7 +23,8 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 3. **Create a branch** for your changes
 4. **Draft a specification** in [docs/specifications/](docs/specifications/index.md) and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist **before** writing code
 5. **Implement** your changes following our coding standards
-6. **Submit** a pull request with a clear description
+6. **Run tests** with `poetry run devsynth run-tests --speed=<cat>`
+7. **Submit** a pull request with a clear description
 
 ## Key Guidelines
 
@@ -74,14 +75,14 @@ For examples of additional hooks, including link checking and formatting, see [p
 # Ensure the project is installed in editable mode
 poetry install --all-extras --with dev,docs
 
-# Run all tests
-poetry run pytest
+# Preferred: run tests by speed
+poetry run devsynth run-tests --speed=all
+
+# Run only fast tests
+poetry run devsynth run-tests --speed=fast
 
 # Run with coverage
 poetry run pytest --cov=src --cov-report=term-missing
-
-# Run only fast tests
-poetry run pytest --speed=fast -m fast
 ```
 
 ## Documentation
@@ -94,7 +95,7 @@ Before opening a pull request, run:
 
 ```bash
 poetry run pre-commit run --files <changed>
-poetry run devsynth run-tests
+poetry run devsynth run-tests --speed=<cat>
 poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
