@@ -35,9 +35,7 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
   responses so unit tests remain deterministic.
 - `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and
 `slow` markers and adds a `--speed` option so you can run only tests of a
- given runtime, e.g. `poetry run pytest --speed=fast`. Due to
- [Issue 119](issues/119.md), this option is currently unrecognized; use
- marker expressions like `-m "not memory_intensive"` until resolved.
+ given runtime, e.g. `poetry run pytest --speed=fast -m fast`.
 
 ## Quick Start
 
