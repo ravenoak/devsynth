@@ -68,6 +68,8 @@ If you're new to DevSynth's specifications, we recommend starting with the [DevS
 - [Architecture](../architecture/index.md) - Overview of DevSynth's architecture
 - [Technical Reference](../technical_reference/index.md) - Technical reference documentation
 - [Developer Guides](../developer_guides/index.md) - Information for developers contributing to DevSynth
+- [Code Analysis Guide](../developer_guides/code_analysis.md) - Overview of repository analysis and AST-based transformations
+
 ## Implementation Status
 
 Most specifications correspond to implemented modules under `src/devsynth`. Refer to each document for specific paths and implementation details.
