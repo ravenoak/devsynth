@@ -54,14 +54,21 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
 3. Run tests:
 
    ```bash
-   poetry run pytest -m "not memory_intensive"
+   poetry run devsynth run-tests --speed=fast
    ```
+
+   Use `--speed=<cat>` to select the desired runtime category.
 
 4. Verify dependencies offline:
 
    ```bash
    PIP_NO_INDEX=1 poetry run pip check
    ```
+
+Before implementing changes, draft a specification and a failing test guided by the Socratic checklist:
+
+- What is the problem?
+- What proofs confirm the solution?
 
 ## Specification-First Workflow
 
@@ -77,16 +84,12 @@ Before opening a pull request, run:
 
 ```bash
 poetry run pre-commit run --files <changed>
-poetry run devsynth run-tests
+poetry run devsynth run-tests --speed=<cat>
 poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_test_markers.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
 ```
-
-*Note*: `devsynth run-tests` may hang due to [Issue 118](issues/118.md). Until
-it is resolved, run `poetry run pytest -m "not memory_intensive"` as a
-temporary fallback to execute the suite.
 
 ## Release Preparation
 

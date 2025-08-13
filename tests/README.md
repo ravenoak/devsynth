@@ -83,16 +83,16 @@ Unit tests for interface components including CLI, API, and web UI.
 To execute the entire suite run:
 
 ```bash
-poetry run pytest
+poetry run devsynth run-tests --speed=all
 ```
 
 Running `pytest` directly may fail because required plugins (for example
 `pytest-bdd`) are installed only in the Poetry virtual environment.
 
-During development, skip memory-intensive tests by default:
+During development, run only fast tests (memory-intensive tests are skipped automatically):
 
 ```bash
-poetry run pytest -m "not memory_intensive"
+poetry run devsynth run-tests --speed=fast
 ```
 
 Tests that require significant memory must be marked with `@pytest.mark.memory_intensive`. Optional external services are gated with resource markers such as `@pytest.mark.requires_resource("lmstudio")` and will be skipped automatically when the corresponding resource is unavailable.
