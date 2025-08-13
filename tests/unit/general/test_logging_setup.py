@@ -60,3 +60,18 @@ def test_exc_info_true_uses_current_exception(monkeypatch):
     logging.getLogger().removeHandler(handler)
     record = handler.records[0]
     assert record.exc_info and record.exc_info[0] is ZeroDivisionError
+
+
+def test_extra_kwargs_and_reserved_keys_safely_handled(monkeypatch):
+    """Reserved keys in kwargs or extra should not raise errors."""
+
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    configure_logging(create_dir=False)
+    logger = get_logger(__name__)
+    handler = LogCaptureHandler()
+    logging.getLogger().addHandler(handler)
+    logger.info("hello", module="fake", extra={"module": "fake", "foo": "bar"})
+    logging.getLogger().removeHandler(handler)
+    record = handler.records[0]
+    assert getattr(record, "foo") == "bar"
+    assert record.module != "fake"
