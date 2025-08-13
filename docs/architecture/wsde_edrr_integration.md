@@ -145,6 +145,11 @@ The integration between the WSDE model and the EDRR framework occurs at several 
 
 The EDRR Coordinator assigns different roles to the WSDE team members based on the current phase of the EDRR. This ensures that the team composition is optimized for the specific requirements of each phase.
 
+Role assignments are keyed by agent identifiers rather than names. When the
+coordinator advances to a new phase, the `progress_roles` helper updates these
+mappings and calls `flush_memory_queue` so queued memory operations are written
+before the next phase begins.
+
 ```python
 
 # In EnhancedEDRRCoordinator
@@ -163,7 +168,7 @@ def progress_to_phase(self, phase: Phase) -> None:
     if phase == Phase.EXPAND:
         # For Expand phase, prioritize creative and exploratory roles
         self.wsde_team.assign_roles_for_phase(
-            phase, 
+            phase,
             self.task,
             role_priorities={
                 "explorer": 0.9,
@@ -176,7 +181,7 @@ def progress_to_phase(self, phase: Phase) -> None:
     elif phase == Phase.DIFFERENTIATE:
         # For Differentiate phase, prioritize analytical and critical roles
         self.wsde_team.assign_roles_for_phase(
-            phase, 
+            phase,
             self.task,
             role_priorities={
                 "critic": 0.9,
@@ -189,7 +194,7 @@ def progress_to_phase(self, phase: Phase) -> None:
     elif phase == Phase.REFINE:
         # For Refine phase, prioritize implementation and optimization roles
         self.wsde_team.assign_roles_for_phase(
-            phase, 
+            phase,
             self.task,
             role_priorities={
                 "implementer": 0.9,
@@ -202,7 +207,7 @@ def progress_to_phase(self, phase: Phase) -> None:
     elif phase == Phase.RETROSPECT:
         # For Retrospect phase, prioritize evaluation and learning roles
         self.wsde_team.assign_roles_for_phase(
-            phase, 
+            phase,
             self.task,
             role_priorities={
                 "evaluator": 0.9,
@@ -298,8 +303,8 @@ The WSDE team applies dialectical reasoning to refine solutions, particularly in
 # In WSDETeam
 
 def apply_enhanced_dialectical_reasoning(
-    self, 
-    task: str, 
+    self,
+    task: str,
     solution: Dict[str, Any],
     critic_agent: Optional[Agent] = None
 ) -> Dict[str, Any]:
@@ -453,8 +458,8 @@ The WSDE team retrieves relevant knowledge from the memory system to enhance dia
 # In WSDETeam
 
 def apply_enhanced_dialectical_reasoning_with_knowledge(
-    self, 
-    task: str, 
+    self,
+    task: str,
     solution: Dict[str, Any],
     critic_agent: Optional[Agent] = None
 ) -> Dict[str, Any]:
@@ -489,7 +494,7 @@ def apply_enhanced_dialectical_reasoning_with_knowledge(
     Relevant Knowledge:
     {json.dumps(relevant_knowledge, indent=2)}
 
-    Using both your expertise and the provided knowledge, identify weaknesses, 
+    Using both your expertise and the provided knowledge, identify weaknesses,
     potential issues, edge cases not handled, and areas for improvement.
     Focus on substantive issues rather than stylistic concerns.
     Provide specific examples where possible.
@@ -569,8 +574,8 @@ def _retrieve_relevant_knowledge(self, task: str, solution: Dict[str, Any]) -> L
 
     # Search semantic memory for general principles and patterns
     semantic_items = self.memory_manager.search(
-        query, 
-        "EDRR_INSIGHTS", 
+        query,
+        "EDRR_INSIGHTS",
         limit=5,
         memory_type="semantic"
     )
@@ -578,8 +583,8 @@ def _retrieve_relevant_knowledge(self, task: str, solution: Dict[str, Any]) -> L
 
     # Search episodic memory for similar past experiences
     episodic_items = self.memory_manager.search(
-        query, 
-        "EDRR_PHASE_RESULTS", 
+        query,
+        "EDRR_PHASE_RESULTS",
         limit=3,
         memory_type="episodic"
     )
@@ -587,8 +592,8 @@ def _retrieve_relevant_knowledge(self, task: str, solution: Dict[str, Any]) -> L
 
     # Search short-term memory for current cycle context
     short_term_items = self.memory_manager.search(
-        query, 
-        "EDRR_PHASE_RESULTS", 
+        query,
+        "EDRR_PHASE_RESULTS",
         limit=2,
         memory_type="short_term"
     )

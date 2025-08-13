@@ -94,6 +94,8 @@ class WSDETeam:
         """Add an agent to the team."""
         if not hasattr(agent, "has_been_primus"):
             agent.has_been_primus = False
+        if not hasattr(agent, "id"):
+            agent.id = str(uuid4())
         self.agents.append(agent)
         self.logger.info(
             "Added agent %s to team %s",

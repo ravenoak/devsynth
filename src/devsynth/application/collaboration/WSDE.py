@@ -3,6 +3,7 @@
 from typing import Any, Dict
 
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.domain.wsde.workflow import progress_roles as _progress_roles
 from devsynth.methodology.base import Phase
 
 
@@ -24,4 +25,19 @@ class WSDE(WSDETeam):
     def get_role_assignments(self) -> Dict[str, str]:
         """Return a mapping of agent identifiers to their assigned roles."""
 
-        return self.get_role_map()
+        name_map = self.get_role_map()
+        assignments: Dict[str, str] = {}
+        for agent in self.agents:
+            agent_id = getattr(agent, "id", None) or getattr(agent, "name", None)
+            role = name_map.get(getattr(agent, "name", None)) or getattr(
+                agent, "current_role", None
+            )
+            assignments[agent_id] = role
+        return assignments
+
+    def progress_roles(
+        self, phase: Phase, memory_manager: object | None = None
+    ) -> Dict[str, str]:
+        """Advance roles for the given phase and flush memory."""
+
+        return _progress_roles(self, phase, memory_manager)
