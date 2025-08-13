@@ -172,5 +172,10 @@ fi
 # Run a smoke test to catch failures early
 poetry run pytest tests/behavior/steps/test_alignment_metrics_steps.py --maxfail=1
 
+# Use the CLI to run a fast, non-interactive test sweep. The timeout prevents
+# hangs while the log aids in diagnosing failures.
+# What evidence shows the CLI can run tests non-interactively?
+timeout 15m poetry run devsynth run-tests --speed=fast --no-parallel | tee devsynth_cli_tests.log
+
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
