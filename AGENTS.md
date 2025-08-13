@@ -2,14 +2,14 @@
 
 This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`. Follow the steps below when contributing.
 
-DevSynth values clarity, collaboration, and dependable automation. Keep these principles in mind and see [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
+DevSynth values clarity, collaboration, and dependable automation. All work follows a **specification-first workflow**: draft a specification and a failing BDD feature before writing code. Keep these principles in mind and see [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
 
 ## Environment Expectations
 
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
 - Run the environment provisioning script before beginning any development to provision the environment. Update the script as appropriate and according to best practices.
-- References to this file or the script's path must not appear elsewhere in the repository. Outside these files, refer to it generically as the environment provisioning script.
+- Always refer to it generically as **the environment provisioning script**; do not mention its filename or path elsewhere in the repository.
 - Optional extras in `pyproject.toml` are automatically cached by the environment provisioning script, keeping them synchronized with the project configuration while skipping heavy GPU packages.
 - Update this file, your instructions and initial context, as appropriate and according to best-practices.
 - Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
@@ -34,8 +34,9 @@ DevSynth values clarity, collaboration, and dependable automation. Keep these pr
   `pytest.importorskip("lmstudio")` and use mocks or HTTP stubs to simulate
   responses so unit tests remain deterministic.
 - `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and
-`slow` markers and adds a `--speed` option so you can run only tests of a
- given runtime, e.g. `poetry run pytest --speed=fast -m fast`.
+  `slow` markers. Each test must include exactly one of these speed markers.
+  Use the `--speed` option to select a category, e.g. `poetry run pytest --speed=fast -m fast`.
+- Combine speed markers with context markers like `memory_intensive` when needed.
 
 ## Quick Start
 
