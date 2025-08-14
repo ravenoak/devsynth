@@ -3,13 +3,7 @@ author: DevSynth Team
 date: '2025-06-01'
 last_reviewed: "2025-07-27"
 status: active
-tags:
-
-- implementation
-- status
-- audit
-- foundation-stabilization
-
+tags: [implementation, status, audit, foundation-stabilization]
 title: DevSynth Feature Status Matrix
 version: "0.1.0-alpha.1"
 ---
