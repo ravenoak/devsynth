@@ -6,7 +6,7 @@ from devsynth.application.memory.vector_providers import (
 from devsynth.domain.interfaces.memory import MemoryVector, VectorStore
 from devsynth.exceptions import ValidationError
 
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation, pytest.mark.medium]
 
 
 class StubStore(VectorStore):

@@ -27,6 +27,7 @@ from chromadb.api.models.Collection import Collection
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.memory_intensive,
+    pytest.mark.medium,
 ]
 
 

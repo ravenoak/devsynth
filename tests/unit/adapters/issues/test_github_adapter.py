@@ -1,8 +1,11 @@
 """Tests for the GitHubIssueAdapter."""
 
+import pytest
 import responses
 
 from devsynth.adapters.issues import GitHubIssueAdapter
+
+pytestmark = [pytest.mark.fast]
 
 
 @responses.activate

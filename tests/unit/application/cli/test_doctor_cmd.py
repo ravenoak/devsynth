@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytestmark = [pytest.mark.memory_intensive]
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.medium]
 
 # Create minimal stubs to avoid importing heavy dependencies when loading doctor_cmd
 devsynth_pkg = ModuleType("devsynth")

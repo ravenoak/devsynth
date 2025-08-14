@@ -3,7 +3,11 @@
 from types import ModuleType
 from unittest.mock import patch
 
+import pytest
+
 from devsynth.agents.tools import alignment_metrics_tool, get_tool_registry
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_alignment_metrics_tool_returns_structure() -> None:

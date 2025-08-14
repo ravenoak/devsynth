@@ -5,9 +5,12 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+import pytest
 import responses
 
 from devsynth.core import mvu
+
+pytestmark = [pytest.mark.medium]
 
 
 def _init_repo(path: Path) -> None:

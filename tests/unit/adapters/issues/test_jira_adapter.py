@@ -1,8 +1,11 @@
 """Tests for the JiraIssueAdapter."""
 
+import pytest
 import responses
 
 from devsynth.adapters.issues import JiraIssueAdapter
+
+pytestmark = [pytest.mark.fast]
 
 
 @responses.activate
