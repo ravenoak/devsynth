@@ -17,8 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Import common test collector
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import common_test_collector
+from . import common_test_collector
 
 # Cache directories
 TEST_CACHE_DIR = ".test_cache"
