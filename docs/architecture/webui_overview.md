@@ -8,7 +8,7 @@ tags:
 - architecture
 - webui
 - ux
-- streamlit
+- nicegui
 - interface
 
 title: WebUI Architecture Overview
@@ -27,7 +27,7 @@ version: "0.1.0-alpha.1"
 
 ## Introduction
 
-The DevSynth WebUI provides a browser-based graphical interface to the DevSynth platform, making it accessible to users who prefer visual interfaces over command-line tools. Built with Streamlit, the WebUI maintains feature parity with the CLI by reusing the same underlying logic through the `UXBridge` abstraction.
+The DevSynth WebUI provides a browser-based graphical interface to the DevSynth platform, making it accessible to users who prefer visual interfaces over command-line tools. Built with NiceGUI, the WebUI maintains feature parity with the CLI by reusing the same underlying logic through the `UXBridge` abstraction.
 
 ## Architecture Principles
 
@@ -87,10 +87,10 @@ flowchart TD
 
 #### Core Components
 
-1. **WebUI Interface**: The main entry point for the web interface, implemented as a Streamlit application. It handles page rendering, navigation, and user interactions.
+1. **WebUI Interface**: The main entry point for the web interface, implemented as a NiceGUI application. It handles page rendering, navigation, and user interactions.
    - **Implementation**: `WebUI` class in `adapters/cli/webui.py`
    - **Responsibilities**: Page rendering, navigation, session state management
-   - **Dependencies**: Streamlit, UXBridge
+   - **Dependencies**: NiceGUI, UXBridge
 
 2. **UXBridge Implementation**: The WebUI implements the UXBridge interface to ensure consistent functionality with the CLI.
    - **Implementation**: `WebUI` class implements `UXBridge` interface
@@ -98,9 +98,9 @@ flowchart TD
    - **Dependencies**: UXBridge interface, Core DevSynth Logic
 
 3. **Session State Management**: Manages persistent state between page reloads and user interactions.
-   - **Implementation**: Uses Streamlit's `st.session_state`
+   - **Implementation**: Uses NiceGUI's `st.session_state`
    - **Responsibilities**: Storing project data, user preferences, process state
-   - **Dependencies**: Streamlit
+   - **Dependencies**: NiceGUI
 
 
 #### UI Pages
@@ -153,12 +153,12 @@ The WebUI uses custom components to enhance the user experience:
    - **Key Features**: Percentage display, step labeling, completion indication
 
 3. **File Uploader**: Component for uploading files to the system.
-   - **Implementation**: Uses Streamlit's `st.file_uploader` with custom handling
+   - **Implementation**: Uses NiceGUI's `st.file_uploader` with custom handling
    - **Responsibilities**: File upload, file validation, file processing
    - **Key Features**: Multiple file support, file type filtering, drag-and-drop
 
 4. **Visualizations**: Components for data visualization.
-   - **Implementation**: Various visualization classes using Streamlit's plotting capabilities
+   - **Implementation**: Various visualization classes using NiceGUI's plotting capabilities
    - **Responsibilities**: Data visualization, metric display
    - **Key Features**: Charts, graphs, tables, interactive elements
 
@@ -181,7 +181,7 @@ The WebUI uses custom components to enhance the user experience:
    - **Key Features**: User-friendly error messages, error categorization, recovery suggestions
 
 4. **Notification System**: System for displaying notifications to the user.
-   - **Implementation**: Notification functions using Streamlit's message components
+   - **Implementation**: Notification functions using NiceGUI's message components
    - **Responsibilities**: Notification display, notification timing
    - **Key Features**: Success messages, warning messages, error messages, info messages
 
@@ -194,7 +194,7 @@ The `WebUI` class implements the `UXBridge` interface, which defines methods for
 
 ```python
 class WebUI(UXBridge):
-    """Streamlit-based web interface for DevSynth."""
+    """NiceGUI-based web interface for DevSynth."""
 
     def __init__(self, config_path: Optional[str] = None):
         """Initialize the WebUI with optional configuration."""
@@ -203,7 +203,7 @@ class WebUI(UXBridge):
         self.initialize_session_state()
 
     def initialize_session_state(self):
-        """Initialize Streamlit session state variables."""
+        """Initialize NiceGUI session state variables."""
         if 'project_path' not in self.session_state:
             self.session_state.project_path = ""
         if 'messages' not in self.session_state:
@@ -439,7 +439,7 @@ sequenceDiagram
 
 ## State Management
 
-The WebUI uses Streamlit's session state to maintain state between user interactions. This is crucial for providing a seamless user experience despite Streamlit's stateless nature where the script is re-run on each interaction.
+The WebUI uses NiceGUI's session state to maintain state between user interactions. This is crucial for providing a seamless user experience despite NiceGUI's stateless nature where the script is re-run on each interaction.
 
 ### Session State Architecture
 
@@ -499,7 +499,7 @@ The WebUI initializes the session state when the application starts:
 
 ```python
 def initialize_session_state(self):
-    """Initialize Streamlit session state variables with proper structure."""
+    """Initialize NiceGUI session state variables with proper structure."""
     # Project state
     if 'project_path' not in st.session_state:
         st.session_state.project_path = ""
@@ -765,7 +765,7 @@ async def get_status():
 
 ```python
 class WebUI(UXBridge):
-    """Streamlit-based web interface for DevSynth."""
+    """NiceGUI-based web interface for DevSynth."""
 
     def __init__(self, config_path: Optional[str] = None):
         """Initialize the WebUI with optional configuration."""
@@ -857,20 +857,20 @@ flowchart TD
     Deploy -->|option 1| Local[Local Development]
     Deploy -->|option 2| Docker[Docker Container]
     Deploy -->|option 3| Cloud[Cloud Deployment]
-    Deploy -->|option 4| StreamlitCloud[Streamlit Cloud]
+    Deploy -->|option 4| NiceGUICloud[NiceGUI Cloud]
 
     Local -->|uses| LocalPython[Local Python Environment]
     Docker -->|uses| DockerContainer[Containerized Environment]
     Cloud -->|uses| CloudService[Cloud Service Provider]
-    StreamlitCloud -->|uses| StreamlitHosting[Streamlit Hosting Service]
+    NiceGUICloud -->|uses| NiceGUIHosting[NiceGUI Hosting Service]
 
     LocalPython -->|requires| Dependencies[Python Dependencies]
     DockerContainer -->|packages| Dependencies
     CloudService -->|provisions| CloudResources[Cloud Resources]
-    StreamlitHosting -->|manages| StreamlitResources[Streamlit Resources]
+    NiceGUIHosting -->|manages| NiceGUIResources[NiceGUI Resources]
 
     Dependencies -->|includes| Core[DevSynth Core]
-    Dependencies -->|includes| Streamlit[Streamlit Library]
+    Dependencies -->|includes| NiceGUI[NiceGUI Library]
     Dependencies -->|includes| LLMProviders[Provider Libraries]
 
     CloudResources -->|includes| Compute[Compute Resources]
@@ -878,7 +878,7 @@ flowchart TD
     CloudResources -->|includes| Networking[Networking Resources]
 
     Core -->|uses| LLMProviders
-    Streamlit -->|renders| WebUI[WebUI Interface]
+    NiceGUI -->|renders| WebUI[WebUI Interface]
 ```
 
 ![WebUI Diagram 5](diagrams/webui_overview-5.svg)
@@ -985,7 +985,7 @@ RUN poetry install --no-dev --no-interaction --no-ansi
 
 COPY . .
 
-# Expose Streamlit port
+# Expose NiceGUI port
 
 EXPOSE 8501
 
@@ -1072,7 +1072,7 @@ Deploying the WebUI to cloud platforms provides scalability, reliability, and ac
 1. Create a `Procfile` in the project root:
 
    ```text
-   web: streamlit run devsynth/adapters/cli/webui.py --server.port=$PORT --server.headless=true
+   web: nicegui run devsynth/adapters/cli/webui.py --server.port=$PORT --server.headless=true
    ```
 
 2. Create a `requirements.txt` file:
@@ -1166,14 +1166,14 @@ Deploying the WebUI to cloud platforms provides scalability, reliability, and ac
      --environment-variables DEVSYNTH_PROVIDER=openai OPENAI_API_KEY=your-api-key
    ```
 
-### 4. Streamlit Cloud Deployment
+### 4. NiceGUI Cloud Deployment
 
-Streamlit Cloud provides a simple way to deploy Streamlit applications without managing infrastructure.
+NiceGUI Cloud provides a simple way to deploy NiceGUI applications without managing infrastructure.
 
 #### Requirements
 
 - GitHub repository with the DevSynth code
-- Streamlit Cloud account
+- NiceGUI Cloud account
 
 
 #### Deployment Steps
@@ -1184,11 +1184,11 @@ Streamlit Cloud provides a simple way to deploy Streamlit applications without m
    git push origin main
    ```
 
-2. Log in to Streamlit Cloud (https://streamlit.io/cloud)
+2. Log in to NiceGUI Cloud (https://nicegui.io/cloud)
 
 3. Click "New app" and select your GitHub repository, branch, and the main file path (`devsynth/adapters/cli/webui.py`)
 
-4. Configure environment variables in the Streamlit Cloud dashboard:
+4. Configure environment variables in the NiceGUI Cloud dashboard:
    - `DEVSYNTH_PROVIDER`: openai
    - `OPENAI_API_KEY`: your-api-key
 
@@ -1210,7 +1210,7 @@ When deploying the WebUI, consider the following security best practices:
 
 To optimize the performance of the WebUI deployment:
 
-1. **Caching**: Configure Streamlit's caching mechanisms to improve response times
+1. **Caching**: Configure NiceGUI's caching mechanisms to improve response times
 2. **Resource Allocation**: Allocate appropriate CPU and memory resources based on expected usage
 3. **Content Delivery Network**: Use a CDN for static assets in production deployments
 4. **Database Connection Pooling**: Implement connection pooling for database interactions

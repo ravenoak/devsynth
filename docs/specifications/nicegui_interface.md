@@ -15,7 +15,7 @@ last_reviewed: "2025-02-14"
 # NiceGUI Interface
 
 ## What is the problem?
-The project currently offers a Streamlit-based interface. Some environments prefer a framework with server-side rendering and richer component model. A NiceGUI alternative is needed while maintaining existing navigation and bridge logic.
+The project previously offered a Streamlit-based interface. Some environments prefer a framework with server-side rendering and richer component model. A NiceGUI implementation is now provided while maintaining existing navigation and bridge logic.
 
 ## What proofs confirm the solution?
 - NiceGUI application with navigation for core pages.
@@ -24,7 +24,7 @@ The project currently offers a Streamlit-based interface. Some environments pref
 
 ## Specification
 - Provide a `NiceGUIBridge` implementing `UXBridge` using NiceGUI widgets.
-- Mirror the Streamlit WebUI navigation with NiceGUI pages.
+- Mirror the previous Streamlit WebUI navigation with NiceGUI pages.
 - Persist navigation selection using `app.storage.user`.
 - Expose an entry point to launch the NiceGUI application.
 

@@ -27,7 +27,7 @@ $ devsynth mvu report --output traceability.json
 ```
 
 The `mvuu-dashboard` command runs this step automatically and then launches a
-Streamlit application that reads `traceability.json` and displays TraceIDs,
+NiceGUI application that reads `traceability.json` and displays TraceIDs,
 affected files, and related issues:
 
 ```bash

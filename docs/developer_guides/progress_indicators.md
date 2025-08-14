@@ -51,7 +51,7 @@ def my_command(self):
         for i in range(100):
             # Do some work
             process_file(i)
-            
+
             # Update the progress indicator
             progress.update(advance=1)
 ```
@@ -68,7 +68,7 @@ from devsynth.interface.progress_utils import track_progress
 def process_files(self, files):
     # Create a tracked list that updates progress as items are accessed
     tracked_files = track_progress(self, files, "Processing files")
-    
+
     # Process each file - progress will be updated automatically
     for file in tracked_files:
         process_file(file)
@@ -101,7 +101,7 @@ from devsynth.interface.progress_utils import create_progress_manager
 def complex_operation(self):
     # Create a progress manager
     manager = create_progress_manager(self)
-    
+
     # Create a progress indicator for the overall operation
     with manager.progress("Complex operation", total=3, key="main") as main_progress:
         # Phase 1
@@ -110,25 +110,25 @@ def complex_operation(self):
             for i in range(100):
                 collect_data(i)
                 phase1_progress.update(advance=1)
-        
+
         # Update the main progress
         main_progress.update(advance=1, description="Phase 2: Data processing")
-        
+
         # Phase 2
         with manager.progress("Processing data", total=100, key="phase2") as phase2_progress:
             for i in range(100):
                 process_data(i)
                 phase2_progress.update(advance=1)
-        
+
         # Update the main progress
         main_progress.update(advance=1, description="Phase 3: Data analysis")
-        
+
         # Phase 3
         with manager.progress("Analyzing data", total=100, key="phase3") as phase3_progress:
             for i in range(100):
                 analyze_data(i)
                 phase3_progress.update(advance=1)
-        
+
         # Update the main progress
         main_progress.update(advance=1, description="Operation complete")
 ```
@@ -147,7 +147,7 @@ def process_data_stream(self, stream):
     with progress_indicator(self, "Processing data stream") as indicator:
         # Create a progress tracker with unknown total
         tracker = ProgressTracker(indicator, total=None)
-        
+
         # Process the stream, updating progress as you go
         with tracker:
             for chunk in stream:
@@ -171,13 +171,13 @@ In the CLI, progress indicators are implemented using the Rich library's Progres
 
 Example CLI progress indicator:
 
-```
+```text
 ⠹ Processing files [████████████████████████████████████████] 100% Complete   0:00:00
 ```
 
 ### WebUI Progress Indicators
 
-In the WebUI, progress indicators are implemented using Streamlit's progress bar component, which provides a simple progress bar with percentage.
+In the WebUI, progress indicators are implemented using NiceGUI's progress bar component, which provides a simple progress bar with percentage.
 
 ### API Progress Indicators
 
@@ -261,13 +261,13 @@ When writing tests for code that uses progress indicators, you can use the `_Dum
 def test_my_function():
     # Create a mock bridge
     bridge = MagicMock(spec=UXBridge)
-    
+
     # Set up the mock to return a dummy progress indicator
     dummy_progress = bridge.create_progress.return_value
-    
+
     # Call the function being tested
     my_function(bridge)
-    
+
     # Verify that the progress indicator was created and updated
     bridge.create_progress.assert_called_once_with("Expected description", total=100)
     dummy_progress.update.assert_called()

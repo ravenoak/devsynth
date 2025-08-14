@@ -223,7 +223,7 @@ Primary users are individual software developers who:
 - [FR-69] The system shall load configuration from either YAML or TOML using a unified parser. The loader shall combine values from `project.yaml` or `[tool.devsynth]` in `pyproject.toml` into a single configuration object.
 - [FR-70] The system shall expose a bridge interface to enable future WebUI integration
 - [FR-71] The system shall provide a `doctor` command (alias `check`) for environment diagnostics
-- [FR-72] The system shall provide a Streamlit-based WebUI for running workflows
+- [FR-72] The system shall provide a NiceGUI-based WebUI for running workflows
 - [FR-73] The system shall offer an interactive requirement-gathering workflow
 - [FR-74] The system shall expose an HTTP API for agent operations with the following endpoints:
   - `POST /init`

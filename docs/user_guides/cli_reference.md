@@ -521,7 +521,7 @@ devsynth webapp --framework flask --name demo --path ./apps
 
 ### webui
 
-Launch the Streamlit based graphical interface.
+Launch the NiceGUI-based graphical interface.
 
 ```bash
 devsynth webui

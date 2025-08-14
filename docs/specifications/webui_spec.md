@@ -22,7 +22,7 @@ version: "0.1.0-alpha.1"
 # WebUI Specification
 
 This specification describes the initial graphical interface for
-DevSynth. The WebUI is implemented using Streamlit and communicates
+DevSynth. The WebUI is implemented using NiceGUI and communicates
 with the core workflows through the `UXBridge` abstraction. The goal is
 to offer a simple alternative to the CLI while reusing the same
 orchestration logic.

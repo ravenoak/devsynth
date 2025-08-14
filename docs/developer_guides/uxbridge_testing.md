@@ -30,7 +30,7 @@ This guide provides comprehensive information on testing the UXBridge abstractio
 The UXBridge abstraction is a core component of DevSynth's hexagonal architecture, providing a consistent interface for user interactions across different UI implementations:
 
 - **CLIUXBridge**: Command-line interface implementation
-- **WebUI**: Streamlit-based web interface implementation
+- **WebUI**: NiceGUI-based web interface implementation
 - **APIBridge**: HTTP API implementation for agent integration
 
 All implementations share the same core methods:
@@ -70,17 +70,17 @@ def test_ask_question_with_choices(monkeypatch):
     """Test asking a question with choices."""
     # Mock user input
     monkeypatch.setattr('builtins.input', lambda _: "2")
-    
+
     # Create bridge
     bridge = CLIUXBridge()
-    
+
     # Test with choices
     result = bridge.ask_question(
-        "Select an option:", 
+        "Select an option:",
         choices=["Option 1", "Option 2", "Option 3"],
         default="Option 1"
     )
-    
+
     # Verify result
     assert result == "Option 2"
 ```
@@ -156,16 +156,19 @@ with patch('rich.progress.Progress.update') as mock_update:
 
 ## Testing WebUI Implementation
 
-Testing the Streamlit-based WebUI requires mocking Streamlit components:
+Testing the NiceGUI-based WebUI can use NiceGUI's testing utilities:
 
 ```python
 
-# Mock Streamlit components
+# Example NiceGUI component test
+from nicegui.testing import TestClient
 
-with patch('streamlit.text_input', return_value="user input") as mock_input:
-    result = webui.ask_question("Test question?")
-    assert result == "user input"
-    mock_input.assert_called_once()
+def test_prompt_rendering():
+    from devsynth.interface.nicegui_webui import main
+
+    with TestClient(main) as client:
+        client.open('/')
+        assert client.find('Welcome')
 ```
 
 ## Testing Agent API Implementation
@@ -188,7 +191,7 @@ assert result3 == "42"
 
 ## Best Practices
 
-1. **Mock External Dependencies**: Always mock external dependencies like console input/output, Streamlit components, and HTTP requests.
+1. **Mock External Dependencies**: Always mock external dependencies like console input/output, NiceGUI components, and HTTP requests.
 
 2. **Test Edge Cases**: Test with empty inputs, long inputs, special characters, etc.
 
@@ -235,7 +238,7 @@ def invoke_command_all_interfaces(cross_interface_context, command):
 
 - [UXBridge Interface Documentation](../technical_reference/api_reference/uxbridge.md)
 - [Pytest-BDD Documentation](https://pytest-bdd.readthedocs.io/)
-- [Streamlit Testing Guide](https://docs.streamlit.io/library/advanced-features/testing)
+- [NiceGUI Testing Guide](https://nicegui.io/docs/testing)
 ## Implementation Status
 
 .

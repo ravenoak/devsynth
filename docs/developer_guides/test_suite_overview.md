@@ -151,7 +151,7 @@ Currently, there are **348 failing tests** out of 2,794 total tests (12.5%). The
 1. **Memory Integration Issues**: Tests that fail due to cross-store memory synchronization issues
 2. **WebUI State Persistence**: Tests that fail due to issues with WebUI wizard state persistence
 3. **WSDE Peer Review Workflow**: Tests that fail due to incomplete workflow implementation
-4. **Mocking Issues**: Tests that fail due to issues with mocking Streamlit and properly simulating UI interactions
+4. **Mocking Issues**: Tests that fail due to issues with mocking NiceGUI and properly simulating UI interactions
 
 ## Running Tests
 

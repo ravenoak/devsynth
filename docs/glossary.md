@@ -163,7 +163,7 @@ A database optimized for storing and retrieving vector embeddings, used in DevSy
 ## W
 
 ### WebUI
-A graphical user interface for DevSynth based on Streamlit, providing an alternative to the CLI.
+A graphical user interface for DevSynth based on NiceGUI, providing an alternative to the CLI.
 
 ### WSDE (Worker Self-Directed Enterprise) Model
 A sophisticated multi-agent collaboration framework in DevSynth with role management, dialectical reasoning, consensus building, and knowledge integration capabilities.

@@ -23,7 +23,7 @@ version: "0.1.0-alpha.1"
 
 # WebUI Pseudocode
 
-The following pseudocode outlines the structure of the Streamlit pages and how data flows through the `UXBridge` abstraction.
+The following pseudocode outlines the structure of the NiceGUI pages and how data flows through the `UXBridge` abstraction.
 
 ```python
 
@@ -74,10 +74,10 @@ def config_page(bridge):
 
 # data flow
 
-User -> Streamlit Widget -> UXBridge -> Workflow -> UXBridge -> Streamlit
+User -> NiceGUI Widget -> UXBridge -> Workflow -> UXBridge -> NiceGUI
 ```
 
 This design keeps the presentation layer thin while core logic remains reusable across CLI and WebUI interfaces.
 ## Implementation Status
 
-This feature is **implemented**. See the Streamlit implementation in `src/devsynth/interface/webui.py`.
+This feature is **implemented**. See the NiceGUI implementation in `src/devsynth/interface/webui.py`.

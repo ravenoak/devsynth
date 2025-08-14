@@ -111,16 +111,17 @@ With these items and the WSDE peer review implementation confirmed in the [Featu
     *(Implement step defs that invoke `spec_cmd` and verify file output.)*
   * **UX Flow Diagrams:** Document CLI flowcharts, e.g.:
 
-    ```
+    ```json
     [User Input] --devsynth init--> [init_cmd prompts] --> [init_project executes] --> [Write project.yaml] --> [Feature flags toggled]
     ```
 
     (Refer to the UXBridge diagram for shared flow.)
   * **CLI Improvements:** Add any missing prompts or validations.  E.g. the `doctor` command (from key features) should check services (like `_check_services` does) and be accessible via CLI.  Write tests for the `doctor_cmd` (e.g. missing API keys triggers a warning).
 
-* **Web UI (Streamlit) Integration:** Based on the **WebUI Architecture** spec:
 
-  * Implement a `WebUI` class that inherits `UXBridge`, using Streamlit pages (“Onboarding”, “Requirements”, “Analysis”, “Synthesis”, “Config”) as outlined.  Each page should call the same CLI workflows under the hood.
+* **Web UI (NiceGUI) Integration:** Based on the **WebUI Architecture** spec:
+
+  * Implement a `WebUI` class that inherits `UXBridge`, using NiceGUI pages (“Onboarding”, “Requirements”, “Analysis”, “Synthesis”, “Config”) as outlined.  Each page should call the same CLI workflows under the hood.
   * **Pseudocode** (in docs) shows the navigation logic; code tasks include wiring up each page (calling `init_cmd`, `gather_cmd`, etc.).  *BDD example:*
 
     ```gherkin
@@ -131,7 +132,7 @@ With these items and the WSDE peer review implementation confirmed in the [Featu
         And the same prompts from `devsynth init` are displayed
     ```
 
-    *(Step defs would simulate Streamlit UI selection and assert pages call underlying workflows.)*
+    *(Step defs would simulate NiceGUI UI selection and assert pages call underlying workflows.)*
   * **Agent Interface:** Ensure the Agent API endpoints (per `agentapi.py`) are fully implemented and tested: `/init`, `/gather`, `/synthesize`, `/status`.  For example, write an integration test that calls `POST /init` and checks that `LATEST_MESSAGES` reflects the `init_cmd` output.  *User story:* “As an external agent, I can invoke DevSynth workflows via HTTP.”
   * **Bridging CLI and WebUI:** Use the same `UXBridge` for both interfaces.  Tests should verify that both CLI commands and HTTP API produce identical effects (e.g. project files) when given the same input.
 

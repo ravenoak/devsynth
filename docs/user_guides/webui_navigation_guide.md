@@ -23,7 +23,7 @@ last_reviewed: "2025-07-10"
 
 ## Introduction
 
-The DevSynth Web User Interface (WebUI) provides a user-friendly way to interact with DevSynth's powerful features through your web browser. This guide will help you navigate the WebUI and understand the functionality available on each page.
+The DevSynth Web User Interface (WebUI) is built with NiceGUI and provides a user-friendly way to interact with DevSynth's powerful features through your web browser. This guide will help you navigate the WebUI and understand the functionality available on each page.
 
 ![DevSynth WebUI Overview](../images/webui/webui_overview.png)
 
@@ -35,7 +35,7 @@ To launch the DevSynth WebUI, use the following command:
 devsynth webui
 ```
 
-This will start the Streamlit-based WebUI and open it in your default web browser. If it doesn't open automatically, you can access it at http://localhost:8501.
+This will start the NiceGUI-based WebUI and open it in your default web browser. If it doesn't open automatically, you can access it at http://localhost:8080.
 
 ![WebUI Launch Screen](../images/webui/webui_launch.png)
 
@@ -514,6 +514,7 @@ For more detailed information about specific features, refer to the DevSynth doc
 ```bash
 devsynth help
 ```
+
 ## Implementation Status
 
 This feature is **implemented** and available for use. The WebUI can be launched using the `devsynth webui` command as described in this guide.

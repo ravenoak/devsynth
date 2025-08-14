@@ -30,7 +30,7 @@ This section provides detailed information about the architecture of DevSynth, i
 - **[Init Workflow](init_workflow.md)**: Sequence diagram for the interactive initialization process.
 - **[UXBridge](uxbridge.md)**: How CLI modules are decoupled from the UI and reused by the future WebUI.
 - **[Phase 1 Overhaul](phase1_overhaul.md)**: Summary of the CLI refactor, unified configuration, and UXBridge pattern.
-- **[WebUI Overview](webui_overview.md)**: Layout of the Streamlit interface and its use of UXBridge.
+- **[WebUI Overview](webui_overview.md)**: Layout of the NiceGUI interface and its use of UXBridge.
 
 ## System Components
 
@@ -74,7 +74,7 @@ If you're new to DevSynth's architecture, we recommend starting with the [Overvi
 - [Technical Reference](../technical_reference/index.md) - Technical reference documentation
 - [Specifications](../specifications/index.md) - Detailed specifications for DevSynth components
 - [CLI Overhaul Pseudocode](../specifications/cli_overhaul_pseudocode.md) - Design reference for the updated initialization command
-- [WebUI Reference](../user_guides/webui_reference.md) - How to use the Streamlit interface
+- [WebUI Reference](../user_guides/webui_reference.md) - How to use the NiceGUI interface
 - [Agent API Reference](../user_guides/api_reference.md) - Programmatic endpoints for automating DevSynth
 ## Implementation Status
 
