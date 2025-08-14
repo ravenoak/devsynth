@@ -105,14 +105,23 @@ poetry run pip list | grep prometheus-client >/dev/null || \
 # runs, skip the installation step to avoid network access.
 if command -v devsynth >/dev/null; then
   echo "[info] devsynth CLI already installed; skipping pipx install"
+elif [[ "${PIP_NO_INDEX:-0}" == "1" ]]; then
+  echo "[warning] offline mode detected; skipping pipx install" >&2
 else
-  pipx install --editable . --force
-  poetry run pip freeze > /tmp/devsynth-requirements.txt
-  pipx runpip devsynth install -r /tmp/devsynth-requirements.txt || \
-    echo "[warning] pipx runpip devsynth failed" >&2
+  if ! pipx install --editable . --force; then
+    echo "[warning] pipx install failed" >&2
+  else
+    poetry run pip freeze > /tmp/devsynth-requirements.txt
+    pipx runpip devsynth install -r /tmp/devsynth-requirements.txt || \
+      echo "[warning] pipx runpip devsynth failed" >&2
+  fi
 fi
-command -v devsynth >/dev/null
-devsynth --help >/dev/null || echo "[warning] devsynth --help failed"
+
+if command -v devsynth >/dev/null; then
+  devsynth --help >/dev/null || echo "[warning] devsynth --help failed"
+else
+  echo "[warning] devsynth CLI unavailable; skipping CLI checks" >&2
+fi
 
 # Validate dependency installation
 poetry run pip check
