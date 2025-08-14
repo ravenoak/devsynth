@@ -221,7 +221,7 @@ def verify_file_markers(
                 str(file_path),
                 f"-m={marker_type}",
                 "--collect-only",
-                "-v",  # Use verbose output for better parsing
+                "-q",  # Use quiet output for reliable parsing
             ]
 
             try:
@@ -238,8 +238,9 @@ def verify_file_markers(
                 collected_tests = []
 
                 # Parse the output to count collected tests and identify which tests were collected
+                rel_path = os.path.relpath(file_path)
                 for line in collect_result.stdout.split("\n"):
-                    if str(file_path) in line:
+                    if str(file_path) in line or rel_path in line:
                         collected_count += 1
                         # Extract the test name from the output
                         test_parts = line.strip().split("::")
