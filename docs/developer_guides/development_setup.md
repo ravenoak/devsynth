@@ -66,7 +66,7 @@ Before setting up the development environment, ensure you have the following ins
 
 Ensure the development environment is fully bootstrapped before beginning work. Unless otherwise noted, prefix commands with `poetry run` to ensure they execute inside the project's virtual environment.
 
-Use the environment provisioning script to prepare the environment and cache optional extras for offline development. It installs development and test extras in one pass, caches those extras to a local wheel directory, and prompts two dialectical checkpoints: *What dependencies are truly required?* and *How do we verify the cache reproduces identical environments?* The script runs a non-interactive fast test sweep, performs a dialectical audit that writes `dialectical_audit.log`, and echoes any unanswered Socratic questions. It also executes several verification checks:
+Use `deployment/bootstrap_env.sh` to prepare the environment and cache optional extras for offline development. It installs development and test extras in one pass, caches those extras to a local wheel directory, and prompts two dialectical checkpoints: *What dependencies are truly required?* and *How do we verify the cache reproduces identical environments?* The script runs a non-interactive fast test sweep, performs a dialectical audit that writes `dialectical_audit.log`, and echoes any unanswered Socratic questions. It also executes several verification checks:
 
 ```bash
 poetry run python tests/verify_test_organization.py
@@ -109,7 +109,7 @@ virtual environment. Once complete, proceed to configure environment variables.
 - Avoid installing packages globally; rely on the Poetry-managed environment.
 - Prefix commands with `poetry run` or work inside `poetry shell` to ensure the
   correct interpreter is active.
-- Rerun the environment provisioning script whenever dependencies change so
+- Rerun `deployment/bootstrap_env.sh` whenever dependencies change so
   cached optional extras stay in sync.
 - Exclude any `.venv` directories or other environment artifacts from version
   control.
