@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
-# Install DevSynth with all optional extras and development dependencies using Poetry
-poetry install --with dev --all-extras
+set -euo pipefail
+
+# Install DevSynth with development dependencies and required extras
+poetry install --with dev --extras tests retrieval chromadb api
