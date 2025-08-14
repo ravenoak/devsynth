@@ -22,7 +22,7 @@ from devsynth.logging_setup import configure_logging
 def test_gather_updates_config_succeeds(tmp_path, monkeypatch):
     """Test that gather updates config succeeds.
 
-    ReqID: N/A"""
+    ReqID: FR-81"""
     os.chdir(tmp_path)
     monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
     os.makedirs(".devsynth", exist_ok=True)
