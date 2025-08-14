@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
 
 
 def get_staged_files() -> list[str]:
@@ -20,7 +19,12 @@ def get_staged_files() -> list[str]:
 
 def main() -> int:
     staged = get_staged_files()
-    code_changes = [f for f in staged if f.startswith("src/") and f.endswith(".py")]
+    code_dirs = ("src/", "scripts/")
+    code_changes = [
+        f
+        for f in staged
+        if f.endswith(".py") and any(f.startswith(d) for d in code_dirs)
+    ]
     if not code_changes:
         return 0
     spec_or_test = [

@@ -41,6 +41,12 @@
   language: system
   pass_filenames: false
   files: ^docs/requirements_traceability.md$
+- id: spec-or-test-updates
+  name: warn on missing spec or test updates
+  description: "Ensure code changes include specification or test updates"
+  entry: python scripts/check_spec_or_test_updates.py
+  language: system
+  pass_filenames: false
 - id: update-traceability
   name: update traceability
   description: "Update traceability data"

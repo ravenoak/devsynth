@@ -1,9 +1,26 @@
 ---
-title: SPEC_TITLE
 author: AUTHOR_NAME
 date: YYYY-MM-DD
+last_reviewed: YYYY-MM-DD
 status: draft
+tags:
+
+- specification
+
+title: SPEC_TITLE
+version: 0.1.0-alpha.1
 ---
+
+<!--
+Required metadata fields:
+- author: document author
+- date: creation date
+- last_reviewed: last review date
+- status: draft | review | published
+- tags: search keywords
+- title: short descriptive name
+- version: specification version
+-->
 
 # Summary
 

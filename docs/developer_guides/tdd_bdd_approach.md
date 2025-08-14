@@ -224,13 +224,13 @@ def agent_creates_promise(context, agent_id, capability, table):
     agent = context.agents[agent_id]
     parameters = {row['parameter']: row['value'] for row in table}
     promise_type = getattr(PromiseType, capability)
-    
+
     promise = agent.create_promise(
         type=promise_type,
         parameters=parameters,
         context_id="test_context"
     )
-    
+
     context.promises[f"{agent_id}:{capability}"] = promise
 
 @then("a new promise should be created")
@@ -253,6 +253,17 @@ def promise_has_parameters(context):
     assert "language" in promise.parameters, "Promise parameters should include language"
     assert "description" in promise.parameters, "Promise parameters should include description"
 ```
+
+## 5. Specification and Test Traceability
+
+DevSynth follows a specification-first workflow to maintain strong links between requirements, tests, and implementation:
+
+1. Draft or update a specification in `docs/specifications/` using `spec_template.md`. Fill in all required metadata (`author`, `date`, `last_reviewed`, `status`, `tags`, `title`, `version`) and address the Socratic questions:
+   - What is the problem?
+   - What proofs confirm the solution?
+2. Add or update tests in `tests/` that initially fail and validate the desired behavior.
+
+A pre-commit hook (`scripts/check_spec_or_test_updates.py`) enforces this policy by rejecting commits that modify code in `src/` or `scripts/` without accompanying specification or test changes.
 
 ## 6. Dialectical Reasoning in Testing
 
