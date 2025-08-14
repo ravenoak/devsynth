@@ -7,11 +7,21 @@ DevSynth values clarity, collaboration, and dependable automation. All work foll
 - What is the problem?
 - What proofs confirm the solution?
 
+When introducing new features, revisit these questions and follow the specification-first BDD workflow: draft a specification in `docs/specifications/` and a failing BDD feature under `tests/behavior/features/` before implementation.
+
 See [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
 
 ## Environment Expectations
 
 - Run the environment provisioning script before beginning any development to provision the environment. Always refer to it generically as **the environment provisioning script** and update it according to best practices; do not mention its filename or path elsewhere in the repository.
+- It runs verification commands to ensure project consistency:
+
+  ```bash
+  poetry run python tests/verify_test_organization.py
+  poetry run python scripts/verify_test_markers.py
+  poetry run python scripts/verify_requirements_traceability.py
+  poetry run python scripts/verify_version_sync.py
+  ```
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
 - Optional extras in `pyproject.toml` are automatically cached by the environment provisioning script, keeping them synchronized with the project configuration while skipping heavy GPU packages.
@@ -70,7 +80,7 @@ See [`docs/policies/documentation_policies.md`](docs/policies/documentation_poli
    PIP_NO_INDEX=1 poetry run pip check
    ```
 
-Before implementing changes, draft a specification and a failing test guided by the Socratic checklist:
+Before implementing changes—especially when introducing new features—draft a specification and a failing test guided by the Socratic checklist:
 
 - What is the problem?
 - What proofs confirm the solution?
