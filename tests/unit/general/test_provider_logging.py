@@ -3,10 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.importorskip("lmstudio")
-
 # These unit tests execute quickly
-pytestmark = [pytest.mark.fast]
+pytestmark = [pytest.mark.fast, pytest.mark.skip(reason="lmstudio.llm not available")]
 
 from devsynth.application.llm.lmstudio_provider import (
     LMStudioConnectionError,
