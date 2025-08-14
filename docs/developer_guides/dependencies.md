@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Dependency Strategy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Dependency Strategy
-</div>
-
 # Dependency Strategy
 
 This document describes how DevSynth manages Python package dependencies and optional features.
@@ -60,7 +56,7 @@ poetry install --without dev --without docs
 For contributing to DevSynth a lightweight setup is often sufficient:
 
 ```bash
-poetry install --with dev --extras minimal
+poetry install --with dev --extras "tests retrieval chromadb api"
 ```
 
 From PyPI you can simply run:
@@ -77,4 +73,4 @@ Run `python scripts/dependency_safety_check.py` to scan for vulnerabilities. CI 
 
 ## Implementation Status
 
-.
+- Status: documentation upkeep ongoing

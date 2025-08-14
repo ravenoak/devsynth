@@ -105,8 +105,8 @@ You can install DevSynth in a few different ways:
 4. **From Source for Development** – use Poetry
 
    ```bash
-   # Install development and documentation dependencies
-   poetry install --with dev,docs
+   # Install development and documentation dependencies with required extras
+   poetry install --with dev,docs --extras "tests retrieval chromadb api"
    # Optionally include all extras
    poetry sync --all-extras --all-groups
    ```
@@ -115,8 +115,8 @@ You can install DevSynth in a few different ways:
 
    ```bash
    pip install 'devsynth[gui]'
-   devsynth dpg
-   ```
+devsynth dpg
+  ```
 
 ### Shell Completion
 
@@ -131,6 +131,17 @@ devsynth completion --install
 Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
+
+## Environment Provisioning Verification
+
+The environment provisioning script bootstraps the project and runs verification commands to ensure consistency:
+
+```bash
+poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_test_markers.py
+poetry run python scripts/verify_requirements_traceability.py
+poetry run python scripts/verify_version_sync.py
+```
 
 ## Development Workflow
 
@@ -157,7 +168,7 @@ poetry run pytest
 Certain features use additional backends that are not installed by default. Install them if you need these capabilities:
 
 ```bash
-poetry install --extras retrieval --extras memory --extras llm --extras api --extras webui --extras gui
+poetry install --extras retrieval --extras chromadb --extras memory --extras llm --extras api --extras webui --extras gui
 # Install GPU support if you plan to run local models
 # poetry install --extras gpu
 # or install from PyPI
@@ -193,7 +204,7 @@ devsynth test
 devsynth code
 
 # Install development dependencies
-poetry install --with dev --extras minimal
+poetry install --with dev --extras "tests retrieval chromadb api"
 # Enable GPU support if desired
 # poetry install --extras gpu
 # Install every optional feature and group (required for the full test suite)
@@ -236,16 +247,16 @@ Before running the test suite manually, you **must** install DevSynth with its d
 
 ```bash
 # Minimal setup for contributors
-poetry install --with dev --extras minimal
+poetry install --with dev --extras "tests retrieval chromadb api"
 
 # Enable GPU support if needed
 # poetry install --extras gpu
 ```
 
-Running the **full** test suite additionally requires the optional extras `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, `chromadb`, and `gui`:
+Running the **full** test suite additionally requires the optional extras `tests`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, `chromadb`, and `gui`:
 
 ```bash
-  poetry install --extras minimal --extras retrieval --extras memory \
+  poetry install --extras tests --extras retrieval --extras memory \
     --extras llm --extras api --extras webui --extras lmstudio \
     --extras chromadb --extras gui
 ```
@@ -257,7 +268,7 @@ poetry install --all-extras --all-groups
 To set up a complete development environment run:
 
 ```bash
-poetry install --with dev,docs --all-extras
+poetry install --with dev,docs --extras "tests retrieval chromadb api" --all-extras
 ```
 
 The test suite runs entirely in isolated temporary directories.  Ingestion and

@@ -19,10 +19,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Development Setup and Onboarding Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Development Setup and Onboarding Guide
-</div>
-
 # DevSynth Development Setup and Onboarding Guide
 
 Welcome to the DevSynth project! This comprehensive guide will help you set up your development environment and get familiar with the project's structure, workflows, and key concepts.
@@ -70,7 +66,7 @@ Before setting up the development environment, ensure you have the following ins
 
 Ensure the development environment is fully bootstrapped before beginning work. Unless otherwise noted, prefix commands with `poetry run` to ensure they execute inside the project's virtual environment.
 
-Use the environment provisioning script in the `scripts/` directory to prepare the environment and cache optional extras for offline development. It installs development and test extras in one pass, caches those extras to a local wheel directory, and prompts two dialectical checkpoints: *What dependencies are truly required?* and *How do we verify the cache reproduces identical environments?* The script runs a non-interactive fast test sweep, performs a dialectical audit that writes `dialectical_audit.log`, and echoes any unanswered Socratic questions. It also executes several verification checks:
+Use the environment provisioning script to prepare the environment and cache optional extras for offline development. It installs development and test extras in one pass, caches those extras to a local wheel directory, and prompts two dialectical checkpoints: *What dependencies are truly required?* and *How do we verify the cache reproduces identical environments?* The script runs a non-interactive fast test sweep, performs a dialectical audit that writes `dialectical_audit.log`, and echoes any unanswered Socratic questions. It also executes several verification checks:
 
 ```bash
 poetry run python tests/verify_test_organization.py
@@ -95,8 +91,8 @@ cd devsynth
 ### 2. Install Dependencies
 
 ```bash
-# Install development dependencies with the minimal runtime extras
-poetry install --with dev --extras minimal
+# Install development dependencies and required extras
+poetry install --with dev --extras "tests retrieval chromadb api"
 
 # Enable GPU support if needed
 # poetry install --extras gpu
@@ -399,4 +395,4 @@ mkdocs serve
 *This document is a living guide and will be updated as the project evolves.*
 ## Implementation Status
 
-.
+- Status: documentation upkeep ongoing
