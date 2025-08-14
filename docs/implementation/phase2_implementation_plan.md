@@ -40,15 +40,15 @@ class ProgressIndicator:
         self.total = total
         self.desc = desc
         self.indicator_type = indicator_type
-        
+
     def start(self):
         # Initialize the progress indicator
         pass
-        
+
     def update(self, n=1):
         # Update progress
         pass
-        
+
     def finish(self):
         # Complete the progress indicator
         pass
@@ -65,15 +65,15 @@ class ProgressIndicator:
 def format_error_message(error, context=None, suggestions=None):
     """Format an error message with context and suggestions."""
     message = f"ERROR: {str(error)}"
-    
+
     if context:
         message += f"\nContext: {context}"
-        
+
     if suggestions:
         message += "\nSuggestions:"
         for suggestion in suggestions:
             message += f"\n  - {suggestion}"
-            
+
     return message
 ```
 
@@ -102,24 +102,24 @@ def format_error_message(error, context=None, suggestions=None):
 def requirements_wizard():
     # Initialize the wizard state
     wizard_state = WizardState("requirements_wizard", steps=3)
-    
+
     # Handle each step
     current_step = wizard_state.get_current_step()
-    
+
     if current_step == 1:
         handle_step_1(wizard_state)
     elif current_step == 2:
         handle_step_2(wizard_state)
     elif current_step == 3:
         handle_step_3(wizard_state)
-        
+
     # Navigation controls
     handle_navigation(wizard_state)
 ```
 
 #### Test Infrastructure Updates
 
-- Develop a robust mocking strategy for Streamlit components
+- Develop a robust mocking strategy for NiceGUI components
 - Create reusable test fixtures for WebUI components
 - Implement proper handling of experimental_rerun in tests
 
@@ -127,15 +127,15 @@ def requirements_wizard():
 # Example test fixture
 @pytest.fixture
 def mock_streamlit_wizard():
-    """Create a mock Streamlit environment for testing wizards."""
+    """Create a mock NiceGUI environment for testing wizards."""
     with patch("streamlit.button") as mock_button, \
          patch("streamlit.text_input") as mock_text_input, \
          patch("streamlit.experimental_rerun") as mock_rerun:
-        
+
         # Configure the mocks
         mock_button.return_value = False
         mock_text_input.return_value = ""
-        
+
         yield {
             "button": mock_button,
             "text_input": mock_text_input,

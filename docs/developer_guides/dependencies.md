@@ -33,7 +33,7 @@ Some features rely on additional packages. These dependencies are grouped using 
 - **`offline`** – Enables deterministic offline mode. Combine with `gpu` to load local models.
 - **`gpu`** – Installs `torch` and NVIDIA libraries for hardware acceleration.
 - **`api`** – Enables the FastAPI server and Prometheus metrics.
-  - **`webui`** – Installs the Streamlit-based WebUI.
+  - **`webui`** – Installs the NiceGUI-based WebUI.
   - **`gui`** – Installs the Dear PyGui-based desktop UI.
 - **`lmstudio`** – Adds the LM Studio provider integration.
 - **`dev`** and **`docs`** – Development and documentation tooling.

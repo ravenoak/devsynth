@@ -21,11 +21,11 @@ author: "DevSynth Team"
 
 # WebUI Detailed Specification
 
-This document details the features, constraints and interaction flow for the Streamlit based WebUI. The interface builds upon the `UXBridge` abstraction to reuse the same workflow functions as the CLI.
+This document details the features, constraints and interaction flow for the NiceGUI based WebUI. The interface builds upon the `UXBridge` abstraction to reuse the same workflow functions as the CLI.
 
 ## Design Choices
 
-- **Streamlit Framework** – Chosen for its rapid prototyping capability and
+- **NiceGUI Framework** – Chosen for its rapid prototyping capability and
   simple state management.
 - **Bridge-Centric** – All workflow calls pass through `UXBridge` so new
   interfaces (e.g., the Agent API) behave identically.
@@ -45,6 +45,7 @@ This document details the features, constraints and interaction flow for the Str
 - Interaction through the `UXBridge` ensures parity with CLI commands.
 
 <!-- Diagram: WebUI page selection flow -->
+
 ```mermaid
 flowchart TD
     Sidebar -->|select page| Page
@@ -61,6 +62,7 @@ flowchart TD
 ## Interaction Flow
 
 <!-- Diagram: WebUI interaction sequence -->
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -83,4 +85,4 @@ sequenceDiagram
 - Multi‑project dashboard view.
 ## Implementation Status
 
-This feature is **implemented**. The Streamlit UI resides in `src/devsynth/interface/webui.py`.
+This feature is **implemented**. The NiceGUI UI resides in `src/devsynth/interface/webui.py`.

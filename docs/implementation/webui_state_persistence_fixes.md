@@ -15,7 +15,7 @@ last_reviewed: "2025-08-05"
 
 The WebUI wizard state persistence issues are caused by inconsistencies in how state is managed between different components of the system:
 
-1. **Inconsistent State Access Patterns**: WebUIBridge and webui_state.py use different patterns to access Streamlit's session_state.
+1. **Inconsistent State Access Patterns**: WebUIBridge and webui_state.py use different patterns to access NiceGUI's session state.
 2. **Error Handling Differences**: The components handle errors differently, leading to silent failures.
 3. **Session State Availability**: Inconsistent checks for session state availability.
 4. **Success Tracking**: The success flag from WebUIBridge.set_session_value isn't used effectively.
@@ -48,15 +48,15 @@ logger = logging.getLogger(__name__)
 
 def get_session_value(session_state, key: str, default: Any = None) -> Any:
     """Get a value from session state consistently.
-    
+
     This function handles different implementations of session state
     and provides robust error handling.
-    
+
     Args:
         session_state: The session state object
         key: The key to retrieve from session state
         default: The default value to return if the key is not found
-        
+
     Returns:
         The value from session state or the default value
     """
@@ -64,44 +64,44 @@ def get_session_value(session_state, key: str, default: Any = None) -> Any:
         if session_state is None:
             logger.warning(f"Session state not available, returning default for {key}")
             return default
-            
+
         # First try attribute access (common in production)
         value = getattr(session_state, key, None)
-        
+
         # If not found and session_state is dict-like, try dict access (common in tests)
         if value is None and hasattr(session_state, "get"):
             value = session_state.get(key, default)
-            
+
         # If still None but not explicitly set to None, return default
         if value is None and key not in dir(session_state) and (
             not hasattr(session_state, "get") or key not in session_state
         ):
             return default
-            
+
         return value
     except Exception as e:
         # Log the error for debugging
         logger.warning(f"Error accessing session state key '{key}': {str(e)}")
         return default
-        
+
 def set_session_value(session_state, key: str, value: Any) -> bool:
     """Set a value in session state consistently.
-    
+
     This function handles different implementations of session state
     and provides robust error handling.
-    
+
     Args:
         session_state: The session state object
         key: The key to set in session state
         value: The value to set
-        
+
     Returns:
         True if the value was set successfully, False otherwise
     """
     if session_state is None:
         logger.warning(f"Session state not available, cannot set {key}")
         return False
-        
+
     success = False
     try:
         # Try attribute access first (common in production)
@@ -109,7 +109,7 @@ def set_session_value(session_state, key: str, value: Any) -> bool:
         success = True
     except Exception as e:
         logger.warning(f"Error setting session state key '{key}' via attribute: {str(e)}")
-        
+
     try:
         # Also try dict-like access (common in tests)
         if hasattr(session_state, "__setitem__"):
@@ -117,7 +117,7 @@ def set_session_value(session_state, key: str, value: Any) -> bool:
             success = True
     except Exception as e:
         logger.warning(f"Error setting session state key '{key}' via item: {str(e)}")
-        
+
     return success
 ```
 
@@ -130,11 +130,11 @@ from devsynth.interface.state_access import set_session_value as _set_session_va
 def get_session_value(key: str, default: Any = None) -> Any:
     """
     Get a value from the session state with error handling.
-    
+
     Args:
         key: The key to retrieve from the session state
         default: The default value to return if the key is not found
-        
+
     Returns:
         The value from the session state or the default value
     """
@@ -144,11 +144,11 @@ def get_session_value(key: str, default: Any = None) -> Any:
 def set_session_value(key: str, value: Any) -> bool:
     """
     Set a value in the session state with error handling.
-    
+
     Args:
         key: The key to set in the session state
         value: The value to set
-        
+
     Returns:
         True if the value was set successfully, False otherwise
     """
@@ -166,7 +166,7 @@ from devsynth.interface.state_access import set_session_value as _set_session_va
 def get_session_value(session_state, key, default=None):
     """Get a value from session state consistently."""
     return _get_session_value(session_state, key, default)
-    
+
 @staticmethod
 def set_session_value(session_state, key, value):
     """Set a value in session state consistently."""
@@ -186,7 +186,7 @@ def set_session_value(session_state, key, value):
 ```python
 def handle_state_error(operation: str, key: str, error: Exception) -> None:
     """Handle errors in state operations consistently.
-    
+
     Args:
         operation: The operation being performed (get, set, etc.)
         key: The key being accessed
@@ -224,10 +224,10 @@ def set_session_value(session_state, key: str, value: Any) -> bool:
 ```python
 def is_session_state_available(session_state) -> bool:
     """Check if session state is available and usable.
-    
+
     Args:
         session_state: The session state object to check
-        
+
     Returns:
         True if session state is available and usable, False otherwise
     """
@@ -263,11 +263,11 @@ def set_session_value(session_state, key: str, value: Any) -> bool:
 def set(self, key: str, value: Any) -> bool:
     """
     Set a value in the page state.
-    
+
     Args:
         key: The key to set
         value: The value to set
-        
+
     Returns:
         True if the value was set successfully, False otherwise
     """
@@ -283,13 +283,13 @@ def set(self, key: str, value: Any) -> bool:
 ```python
 def next_step(self) -> bool:
     """Move to the next step if possible.
-    
+
     Returns:
         True if the step was changed successfully, False otherwise
     """
     current = self.get_current_step()
     total = self.get_total_steps()
-    
+
     if current < total:
         success = self.set('current_step', current + 1)
         if success:
@@ -314,16 +314,16 @@ def next_step(self) -> bool:
 ```python
 class WizardStateManager:
     """Manager for coordinating wizard state across components.
-    
+
     This class provides a centralized way to manage wizard state,
     ensuring consistency between WebUIBridge and WizardState.
     """
-    
-    def __init__(self, session_state, wizard_name: str, steps: int, 
+
+    def __init__(self, session_state, wizard_name: str, steps: int,
                  initial_state: Optional[Dict[str, Any]] = None):
         """
         Initialize the wizard state manager.
-        
+
         Args:
             session_state: The session state object
             wizard_name: Name of the wizard
@@ -334,10 +334,10 @@ class WizardStateManager:
         self.wizard_name = wizard_name
         self.steps = steps
         self.initial_state = initial_state or {}
-        
+
     def get_wizard_state(self) -> WizardState:
         """Get the WizardState instance for this wizard.
-        
+
         Returns:
             A WizardState instance
         """
@@ -348,7 +348,7 @@ class WizardStateManager:
         else:
             # Use the existing WizardState instance
             wizard_state = WizardState(self.wizard_name, self.steps)
-            
+
             # Validate the state to ensure it's not corrupted
             if not self.validate_wizard_state(wizard_state):
                 # State is corrupted, reset it
@@ -357,34 +357,34 @@ class WizardStateManager:
                 # Re-initialize with default values
                 for key, value in self.initial_state.items():
                     wizard_state.set(key, value)
-                    
+
         return wizard_state
-        
+
     def has_wizard_state(self) -> bool:
         """Check if wizard state exists for this wizard.
-        
+
         Returns:
             True if wizard state exists, False otherwise
         """
         key = f"{self.wizard_name}_current_step"
         return get_session_value(self.session_state, key) is not None
-        
+
     def validate_wizard_state(self, wizard_state: WizardState) -> bool:
         """Validate the wizard state to ensure it's not corrupted.
-        
+
         Args:
             wizard_state: The WizardState instance to validate
-            
+
         Returns:
             True if the state is valid, False otherwise
         """
         # Get the expected keys for this wizard
         expected_keys = list(self.initial_state.keys()) + ["current_step", "total_steps", "completed"]
-        
+
         # Get the actual keys for this wizard
-        actual_keys = [k.split('_', 1)[1] for k in dir(self.session_state) 
+        actual_keys = [k.split('_', 1)[1] for k in dir(self.session_state)
                       if k.startswith(f"{self.wizard_name}_")]
-        
+
         # Check if all expected keys are present
         return all(key in actual_keys for key in expected_keys)
 ```
@@ -398,7 +398,7 @@ def _requirements_wizard(self) -> None:
         # Import WizardState for state management
         from devsynth.interface.webui_state import WizardState
         from devsynth.interface.wizard_state_manager import WizardStateManager
-        
+
         # Initialize the wizard state manager
         wizard_name = "requirements_wizard"
         steps = 5  # ["Title", "Description", "Type", "Priority", "Constraints"]
@@ -410,13 +410,13 @@ def _requirements_wizard(self) -> None:
             "constraints": os.environ.get("DEVSYNTH_REQ_CONSTRAINTS", ""),
             "wizard_started": True  # Requirements wizard is always started (no start button)
         }
-        
+
         # Create the wizard state manager
         wizard_manager = WizardStateManager(st.session_state, wizard_name, steps, initial_state)
-        
+
         # Get the wizard state
         wizard_state = wizard_manager.get_wizard_state()
-        
+
         # Rest of the wizard implementation...
     except Exception as e:
         # Handle any errors gracefully

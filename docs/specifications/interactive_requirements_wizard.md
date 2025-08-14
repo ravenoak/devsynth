@@ -24,7 +24,7 @@ author: "DevSynth Team"
 
 This specification describes the guided workflow for collecting
 requirements and constraints. The wizard runs in both the CLI and the
-Streamlit WebUI through the `UXBridge` interface.
+NiceGUI WebUI through the `UXBridge` interface.
 
 ## Workflow Overview
 

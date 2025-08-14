@@ -7,7 +7,7 @@ tags:
 - architecture
 - webui
 - ux
-- streamlit
+- nicegui
 - interface
 - responsive design
 - styling
@@ -47,10 +47,10 @@ function updateScreenWidth() {
         width: width,
         height: window.innerHeight
     };
-    
-    // Use Streamlit's setComponentValue to update session state
-    if (window.parent.streamlit) {
-        window.parent.streamlit.setComponentValue(data);
+
+    // Use NiceGUI's setComponentValue to update session state
+    if (window.parent.nicegui) {
+        window.parent.nicegui.setComponentValue(data);
     }
 }
 
@@ -61,7 +61,7 @@ updateScreenWidth();
 window.addEventListener('resize', updateScreenWidth);
 ```
 
-This JavaScript code is injected into the page using Streamlit's `st.components.v1.html` function, allowing the WebUI to respond to changes in the browser window size.
+This JavaScript code is injected into the page using NiceGUI's `st.components.v1.html` function, allowing the WebUI to respond to changes in the browser window size.
 
 ### Layout Configuration
 
@@ -70,13 +70,13 @@ The WebUI uses a `get_layout_config` method to return layout configuration param
 ```python
 def get_layout_config(self) -> dict:
     """Get layout configuration based on screen size.
-    
+
     Returns:
         A dictionary with layout configuration parameters.
     """
     # Get screen width from session state or use default
     screen_width = getattr(st.session_state, "screen_width", 1200)
-    
+
     # Define layout configurations for different screen sizes
     if screen_width < 768:  # Mobile
         return {
@@ -115,17 +115,17 @@ The layout configuration is applied in the `run` method of the WebUI class:
 
 ```python
 def run(self) -> None:
-    """Run the Streamlit application."""
+    """Run the NiceGUI application."""
     st.set_page_config(page_title="DevSynth WebUI", layout="wide")
-    
+
     # Get screen dimensions from component value
     if "screen_width" not in st.session_state:
         st.session_state.screen_width = 1200
         st.session_state.screen_height = 800
-    
+
     # Apply layout configuration based on screen size
     layout_config = self.get_layout_config()
-    
+
     # Apply custom CSS for responsive layout
     custom_css = f"""
     <style>
@@ -142,7 +142,7 @@ def run(self) -> None:
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
-    
+
     # Rest of the run method...
 ```
 
@@ -242,10 +242,10 @@ The WebUI includes a method to extract the error type from an error message:
 ```python
 def _get_error_type(self, message: str) -> str:
     """Extract the error type from an error message.
-    
+
     Args:
         message: The error message
-        
+
     Returns:
         The error type, or an empty string if no type could be determined
     """
@@ -282,10 +282,10 @@ The WebUI includes a method to get suggestions for fixing an error based on its 
 ```python
 def _get_error_suggestions(self, error_type: str) -> list[str]:
     """Get suggestions for fixing an error.
-    
+
     Args:
         error_type: The type of error
-        
+
     Returns:
         A list of suggestions
     """
@@ -302,7 +302,7 @@ def _get_error_suggestions(self, error_type: str) -> list[str]:
         ],
         # Other error types...
     }
-    
+
     return suggestions.get(error_type, [])
 ```
 
@@ -315,10 +315,10 @@ The WebUI includes a method to get documentation links for an error based on its
 ```python
 def _get_documentation_links(self, error_type: str) -> dict[str, str]:
     """Get documentation links for an error.
-    
+
     Args:
         error_type: The type of error
-        
+
     Returns:
         A dictionary mapping link titles to URLs
     """
@@ -334,7 +334,7 @@ def _get_documentation_links(self, error_type: str) -> dict[str, str]:
         },
         # Other error types...
     }
-    
+
     return links.get(error_type, {})
 ```
 
@@ -367,7 +367,7 @@ def display_result(self, message: str, *, highlight: bool = False) -> None:
     elif message.startswith("ERROR") or message.startswith("FAILED"):
         # Display error message
         st.error(message)
-        
+
         # Add suggestions and documentation links for common errors
         error_type = self._get_error_type(message)
         if error_type:
@@ -377,7 +377,7 @@ def display_result(self, message: str, *, highlight: bool = False) -> None:
                 st.markdown("**Suggestions:**")
                 for suggestion in suggestions:
                     st.markdown(f"- {suggestion}")
-            
+
             # Add documentation links
             doc_links = self._get_documentation_links(error_type)
             if doc_links:

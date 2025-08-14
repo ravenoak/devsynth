@@ -175,7 +175,7 @@ poetry install --extras retrieval --extras chromadb --extras memory --extras llm
 pip install 'devsynth[retrieval,memory,llm,api,webui,gui]'
 ```
 
-These extras enable optional vector stores such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with Prometheus metrics, the Streamlit WebUI, and the Dear PyGui interface. ChromaDB runs in embedded mode by default.
+These extras enable optional vector stores such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with Prometheus metrics, the NiceGUI WebUI, and the Dear PyGui interface. ChromaDB runs in embedded mode by default.
 
 ### Offline Mode
 

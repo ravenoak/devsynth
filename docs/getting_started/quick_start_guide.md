@@ -83,13 +83,14 @@ This launches the DevSynth API, ChromaDB, and the optional Prometheus and Grafan
 
 ### Launch the WebUI
 
-After installation you can optionally use the Streamlit-based WebUI instead of the CLI. Start it with:
+After installation you can optionally use the NiceGUI-based WebUI instead of the CLI. Start it with:
 
 ```bash
 devsynth webui
 ```
 
 The interface mirrors the CLI workflows and provides pages for onboarding, requirements, analysis, synthesis, and configuration.
+It runs at http://localhost:8080 by default.
 
 ## Using the Dev Container
 

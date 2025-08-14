@@ -60,7 +60,7 @@ The `ProgressIndicator` abstract base class defines the interface for progress t
 DevSynth includes several concrete implementations of the UXBridge:
 
 1. **CLIUXBridge**: Implementation for the command-line interface
-2. **WebUI**: Implementation for the Streamlit-based web interface
+2. **WebUI**: Implementation for the NiceGUI-based web interface
 3. **APIBridge**: Implementation for the FastAPI-based API
 
 
@@ -112,9 +112,9 @@ The CLI implementation uses the Rich library to provide colorful, formatted outp
 
 ### WebUI
 
-The WebUI implementation uses Streamlit to render the user interface in a web browser. It includes:
+The WebUI implementation uses NiceGUI to render the user interface in a web browser. It includes:
 
-- Streamlit components for displaying messages
+- NiceGUI components for displaying messages
 - Form inputs for questions
 - Checkboxes for confirmations
 - Progress bars with subtask support

@@ -37,7 +37,7 @@ Refactor existing components to register and emit metrics via the central regist
 ### User-Facing Features
 
 - CLI `devsynth metrics` command for on-demand reporting
-- Streamlit-based metrics dashboard in WebUI
+- NiceGUI-based metrics dashboard in WebUI
 - `/metrics/{category}` API endpoints for programmatic access
 
 ## Implementation Roadmap

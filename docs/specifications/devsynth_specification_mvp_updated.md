@@ -433,6 +433,7 @@ interfaces can share the same workflows. The CLI, WebUI and Agent API all
 communicate with the orchestration layer through this bridge.
 
 <!-- Diagram: Unified interface through UXBridge -->
+
 ```mermaid
 flowchart TD
     CLI("CLI") --> Bridge
@@ -782,7 +783,7 @@ Continuous learning features will be deferred to a future version.
 
 ### 4.8 User Interface Extensions
 
-- **FR-72**: Provide a Streamlit-based WebUI for executing DevSynth workflows.
+- **FR-72**: Provide a NiceGUI-based WebUI for executing DevSynth workflows.
 - **FR-73**: Implement interactive requirement gathering available from both CLI and WebUI.
 - **FR-74**: Offer an HTTP Agent API stub exposing `/init`, `/gather`, `/synthesize` and `/status` endpoints.
 - **FR-75**: Organize WebUI pages in a sidebar for onboarding, requirements, analysis, synthesis and config.
@@ -1150,7 +1151,7 @@ class Project:
     config: ProjectConfig
     metadata: Dict[str, Any]
     token_usage: TokenUsage
-    
+
 class ProjectConfig:
     template: str
     python_version: str
@@ -1194,7 +1195,7 @@ class Requirement:
     source: str
     created_at: datetime
     token_count: int
-    
+
 class RequirementSet:
     requirements: List[Requirement]
     metadata: Dict[str, Any]
@@ -1230,7 +1231,7 @@ class TestCase:
     setup_code: Optional[str]
     teardown_code: Optional[str]
     token_count: int
-    
+
 class TestSuite:
     name: str
     test_cases: List[TestCase]
@@ -1263,7 +1264,7 @@ class Agent:
     capabilities: List[str]
     system_prompt: str
     token_usage: TokenUsage
-    
+
 class AgentTask:
     id: str
     agent_id: str

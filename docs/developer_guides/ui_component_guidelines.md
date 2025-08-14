@@ -84,45 +84,30 @@ def create_cli_progress(description, total):
 
 When creating WebUI components:
 
-1. **Use Streamlit**: Use Streamlit components for consistency with the existing WebUI.
-2. **Layout**: Use Streamlit's layout options (columns, expanders, etc.) for organized content.
-3. **Forms**: Use Streamlit forms for collecting user input.
-4. **Progress**: Use Streamlit progress bars and spinners for long-running operations.
-5. **State Management**: Use Streamlit's session state for managing component state.
+1. **Use NiceGUI**: Use NiceGUI components for consistency with the existing WebUI.
+2. **Layout**: Use NiceGUI's layout options (rows, columns, cards) for organized content.
+3. **Forms**: Use NiceGUI form elements for collecting user input.
+4. **Progress**: Use NiceGUI progress bars and spinners for long-running operations.
+5. **State Management**: Use NiceGUI's storage utilities for managing component state.
 6. **Responsive Design**: Ensure components work well on different screen sizes.
 
 
 ### Example: WebUI Form
 
 ```python
-import streamlit as st
+from nicegui import ui
 
 def create_webui_form(title, fields, submit_label="Submit"):
     """Create a WebUI form with the given title, fields, and submit label."""
-    with st.form(title.lower().replace(" ", "_")):
-        st.header(title)
-        values = {}
+    values = {}
+    with ui.form() as form:
+        ui.label(title)
         for field in fields:
-            field_id = field["id"]
-            field_type = field.get("type", "text")
-            field_label = field.get("label", field_id)
-            field_default = field.get("default", "")
-            field_help = field.get("help", "")
-            
-            if field_type == "text":
-                values[field_id] = st.text_input(field_label, field_default, help=field_help)
-            elif field_type == "textarea":
-                values[field_id] = st.text_area(field_label, field_default, help=field_help)
-            elif field_type == "number":
-                values[field_id] = st.number_input(field_label, value=field_default, help=field_help)
-            elif field_type == "checkbox":
-                values[field_id] = st.checkbox(field_label, field_default, help=field_help)
-            elif field_type == "selectbox":
-                options = field.get("options", [])
-                values[field_id] = st.selectbox(field_label, options, index=options.index(field_default) if field_default in options else 0, help=field_help)
-        
-        submitted = st.form_submit_button(submit_label)
-        return values, submitted
+            fid = field["id"]
+            default = field.get("default", "")
+            values[fid] = ui.input(field.get("label", fid), value=default).value
+        submit = ui.button(submit_label)
+    return values, submit
 ```
 
 ## API Components
@@ -148,7 +133,7 @@ router = APIRouter()
 
 class ExampleRequest(BaseModel):
     """Request model for the example endpoint."""
-    
+
     name: str = Field(
         description="Name parameter for the example",
         example="John Doe"
@@ -161,7 +146,7 @@ class ExampleRequest(BaseModel):
 
 class ExampleResponse(BaseModel):
     """Response model for the example endpoint."""
-    
+
     message: str = Field(
         description="Message returned by the example endpoint",
         example="Hello, John Doe! Count: 5"
@@ -183,14 +168,14 @@ async def example_endpoint(
     token: None = Depends(verify_token)
 ) -> ExampleResponse:
     """Example endpoint that demonstrates API component guidelines.
-    
+
     Args:
         request: The example request parameters
         token: Authentication token (injected by FastAPI)
-    
+
     Returns:
         A response containing a message
-    
+
     Raises:
         HTTPException: If authentication fails
     """
@@ -248,17 +233,17 @@ from devsynth.interface.cli import CLIUXBridge
 def test_cli_display_result():
     """Test that CLIUXBridge.display_result renders messages correctly."""
     bridge = CLIUXBridge()
-    
+
     # Mock the Rich Console
     with patch("rich.console.Console.print") as mock_print:
         # Test normal message
         bridge.display_result("Test message")
         mock_print.assert_called_with("Test message", highlight=False)
-        
+
         # Test highlighted message
         bridge.display_result("Highlighted message", highlight=True)
         mock_print.assert_called_with("Highlighted message", highlight=True)
-        
+
         # Test message with special characters
         bridge.display_result("<script>alert('XSS')</script>")
         mock_print.assert_called_with("&lt;script&gt;alert('XSS')&lt;/script&gt;", highlight=False)

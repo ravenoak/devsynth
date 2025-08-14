@@ -59,7 +59,7 @@ git push origin v0.1.0-alpha.1
 - Iterate on memory system scalability and performance.
 
 ### MVUU Dashboard (Completed)
-Streamlit MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
+NiceGUI MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
 
 ### 0.2.0+ (Future Features)
 - Implement feature flags for experimental modules.

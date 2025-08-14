@@ -60,7 +60,7 @@ Launch the MVUU traceability dashboard to explore commit links:
 devsynth mvuu-dashboard
 ```
 
-The dashboard uses Streamlit to visualize traceability information.
+The dashboard uses NiceGUI to visualize traceability information.
 
 Enable the dashboard and desktop client by setting feature flags in your configuration:
 

@@ -26,7 +26,7 @@ version: "0.1.0-alpha.1"
 # UXBridge Abstraction
 
 The **UXBridge** is a thin interface that decouples DevSynth's workflow logic from
-any specific user interface framework. CLI commands, the Streamlit‑based WebUI,
+any specific user interface framework. CLI commands, the NiceGUI‑based WebUI,
 and the Dear PyGUI desktop interface invoke workflow functions through this
 common layer, allowing the same code in `src/devsynth/core` to be reused across
 different front‑ends.
@@ -44,6 +44,7 @@ different front‑ends.
 
 
 <!-- Diagram: Interfaces connected through UXBridge -->
+
 ```mermaid
 graph LR
     CLI[CLI Modules] --> Bridge[UXBridge]
@@ -75,17 +76,18 @@ api.init(path=".")
 
 The WebUI implements the `UXBridge` interface so it can call the existing
 workflow functions without modification. CLI modules in `src/devsynth/core` and
-the WebUI therefore share the same orchestration code. A basic Streamlit
+the WebUI therefore share the same orchestration code. A basic NiceGUI
 implementation is available in `src/devsynth/interface/webui.py`.
 It presents a sidebar with collapsible sections for onboarding, requirements,
 analysis, synthesis, and configuration. By adhering to the `UXBridge`
 interface, the WebUI can provide richer interactivity while leveraging the same
 logic already used by the CLI.
 
-<!-- Diagram: Streamlit pages using UXBridge -->
+<!-- Diagram: NiceGUI pages using UXBridge -->
+
 ```mermaid
 graph LR
-    ST[Streamlit Pages] --> Bridge[UXBridge]
+    NG[NiceGUI Pages] --> Bridge[UXBridge]
     Bridge --> WF[Workflow Functions]
 ```
 
@@ -107,6 +109,7 @@ Launching the module starts the Dear PyGUI event loop and binds common
 DevSynth workflows to buttons.
 
 <!-- Diagram: Dear PyGUI layout using UXBridge -->
+
 ```mermaid
 graph TD
     Window[Dear PyGUI Window] -->|buttons| Bridge[UXBridge]
@@ -180,7 +183,7 @@ interfaces can be found in:
   how each CLI command corresponds to WebUI pages and Dear PyGUI windows using
   the `UXBridge` layer.
 - **[WebUI Architecture Overview](webui_overview.md)** – details how the
-  Streamlit interface implements `UXBridge` for feature parity with the CLI.
+  NiceGUI interface implements `UXBridge` for feature parity with the CLI.
 
 
 The UXBridge ensures these components remain loosely coupled, enabling a smooth

@@ -423,7 +423,7 @@ devsynth config --key uxbridge_settings.default_interface --value webui
 
 ## WebUI Configuration
 
-The WebUI interface is built using Streamlit and provides a graphical interface for DevSynth. To enable the WebUI interface, you need to enable the `uxbridge_webui` feature flag:
+The WebUI interface is built using NiceGUI and provides a graphical interface for DevSynth. To enable the WebUI interface, you need to enable the `uxbridge_webui` feature flag:
 
 ```bash
 

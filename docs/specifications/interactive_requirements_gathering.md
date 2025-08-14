@@ -23,7 +23,7 @@ version: "0.1.0-alpha.1"
 
 # Interactive Requirements Gathering
 
-This specification defines the prompts, data model and storage format for a guided wizard that collects project goals, constraints and priority rankings. The wizard is available from both the CLI and the Streamlit WebUI via the `UXBridge` abstraction.
+This specification defines the prompts, data model and storage format for a guided wizard that collects project goals, constraints and priority rankings. The wizard is available from both the CLI and the NiceGUI WebUI via the `UXBridge` abstraction.
 
 ## Prompts
 
@@ -66,6 +66,7 @@ Responses are written to `requirements_plan.yaml` (or `.json`) in the project ro
 ## User Flow
 
 <!-- Diagram: Wizard flowchart -->
+
 ```mermaid
 flowchart TD
     Start --> Goals
@@ -76,6 +77,7 @@ flowchart TD
 ```
 
 <!-- Diagram: Wizard interaction sequence -->
+
 ```mermaid
 sequenceDiagram
     participant User
