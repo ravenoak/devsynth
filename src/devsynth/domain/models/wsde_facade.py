@@ -18,6 +18,7 @@ from devsynth.domain.models.wsde_utils import (
     conduct_peer_review,
     get_messages,
     request_peer_review,
+    run_basic_workflow,
     send_message,
 )
 
@@ -30,6 +31,7 @@ WSDETeam.get_messages = get_messages
 WSDETeam.request_peer_review = request_peer_review
 WSDETeam.conduct_peer_review = conduct_peer_review
 WSDETeam.add_solution = add_solution
+WSDETeam.run_basic_workflow = run_basic_workflow
 
 # ---------------------------------------------------------------------------
 # Role management
@@ -40,6 +42,7 @@ WSDETeam.dynamic_role_reassignment = wsde_roles.dynamic_role_reassignment
 WSDETeam._validate_role_mapping = wsde_roles._validate_role_mapping
 WSDETeam._auto_assign_roles = wsde_roles._auto_assign_roles
 WSDETeam.get_role_map = wsde_roles.get_role_map
+WSDETeam.get_role_assignments = wsde_roles.get_role_assignments
 WSDETeam._calculate_expertise_score = wsde_roles._calculate_expertise_score
 WSDETeam._calculate_phase_expertise_score = wsde_roles._calculate_phase_expertise_score
 WSDETeam.select_primus_by_expertise = wsde_roles.select_primus_by_expertise

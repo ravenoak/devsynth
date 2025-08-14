@@ -181,6 +181,7 @@ class TestWSDEEDRRComponentInteractions:
             config={"edrr": {"quality_based_transitions": True}},
         )
 
+    @pytest.mark.medium
     def test_wsde_team_role_assignment_in_edrr_phases_has_expected(self, coordinator):
         """Test that WSDE team roles are assigned appropriately for each EDRR phase.
 
@@ -207,6 +208,7 @@ class TestWSDEEDRRComponentInteractions:
         assert primus is not None
         assert primus in coordinator.wsde_team.agents
 
+    @pytest.mark.medium
     def test_wsde_method_calls_in_edrr_phases_has_expected(self, coordinator):
         """Test that appropriate WSDE methods are called in each EDRR phase.
 
@@ -233,6 +235,7 @@ class TestWSDEEDRRComponentInteractions:
         assert coordinator.wsde_team._team.perform_quality_assurance.call_count >= 1
         assert coordinator.wsde_team._team.extract_learnings.call_count >= 1
 
+    @pytest.mark.medium
     def test_memory_integration_in_edrr_wsde_workflow_succeeds(
         self, coordinator, memory_manager
     ):
@@ -278,6 +281,7 @@ class TestWSDEEDRRComponentInteractions:
         assert Phase.REFINE.name in report["phases"]
         assert Phase.RETROSPECT.name in report["phases"]
 
+    @pytest.mark.medium
     def test_error_handling_in_edrr_wsde_integration_raises_error(self, coordinator):
         """Test error handling in the EDRR-WSDE integration.
 
@@ -297,6 +301,7 @@ class TestWSDEEDRRComponentInteractions:
             coordinator.execute_current_phase()
         assert "Test error in evaluate_options" in str(exc_info.value)
 
+    @pytest.mark.medium
     def test_memory_sync_hook_receives_events(self, memory_manager):
         """Ensure memory sync hooks capture memory updates."""
 
@@ -316,6 +321,7 @@ class TestWSDEEDRRComponentInteractions:
 
         assert events == ["test-item", None]
 
+    @pytest.mark.medium
     def test_retrospective_flushes_pending_memory_without_record(self, memory_manager):
         """Ensure retrospective flushes memory even without record method.
 
@@ -342,6 +348,7 @@ class TestWSDEEDRRComponentInteractions:
 
         assert memory_manager.sync_manager._queue == []
 
+    @pytest.mark.medium
     def test_role_assignment_mapping_is_accessible(self, coordinator):
         """WSDE wrapper exposes current role assignments."""
 

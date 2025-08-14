@@ -370,6 +370,18 @@ def get_role_map(self: WSDETeam):
     return agent_to_role
 
 
+def get_role_assignments(self: WSDETeam) -> Dict[str, str]:
+    """Map agent IDs to their current role names."""
+
+    assignments: Dict[str, str] = {}
+    for role, agent in self.roles.items():
+        if agent is None:
+            continue
+        agent_id = getattr(agent, "id", None) or getattr(agent, "name", None)
+        assignments[agent_id] = role.capitalize()
+    return assignments
+
+
 def dynamic_role_reassignment(self: WSDETeam, task: Dict[str, Any]):
     """
     Dynamically reassign roles based on the current task.
