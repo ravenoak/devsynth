@@ -354,6 +354,7 @@ Invoke the command from the Poetry environment to run the full suite or selected
 poetry run devsynth run-tests                     # run all tests
 poetry run devsynth run-tests --target unit-tests  # run only unit tests
 poetry run devsynth run-tests --report             # generate HTML report under test_reports/
+poetry run devsynth run-tests --maxfail 1          # stop after the first failure
 ```
 
 For additional utilities like flaky-test fixes and incremental categorization, see [Test Stabilization Tools](../docs/developer_guides/test_stabilization_tools.md).

@@ -37,6 +37,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
 - **[Requirements Wizard](requirements_wizard.md)**: Logging and priority persistence for the requirements wizard.
 - **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.
+- **[Run Tests Maxfail Option](run_tests_maxfail_option.md)**: CLI flag to limit failures during test runs.
 
 ## Implementation Plans
 

@@ -286,11 +286,12 @@ poetry run pytest -q
 # pip commands are for installing from PyPI only
 
 ```text
-Always run tests with `poetry run devsynth run-tests --speed=<cat>`. If `pytest` reports missing packages, run `poetry install` to restore them.
+Always run tests with `poetry run devsynth run-tests --speed=<cat>`. Use `--maxfail <n>` to exit after a set number of failures. If `pytest` reports missing packages, run `poetry install` to restore them.
 
 Skip resource-heavy tests during routine development by running only fast tests:
 
 ```bash
+
 poetry run devsynth run-tests --speed=fast
 
 ```text

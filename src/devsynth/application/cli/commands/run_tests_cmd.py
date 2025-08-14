@@ -66,6 +66,9 @@ def run_tests_cmd(
     segment_size: int = typer.Option(
         50, "--segment-size", help="Number of tests per batch when segmenting"
     ),
+    maxfail: Optional[int] = typer.Option(
+        None, "--maxfail", help="Exit after this many failures"
+    ),
     features: List[str] = typer.Option(
         [],
         "--feature",
@@ -91,6 +94,7 @@ def run_tests_cmd(
         not no_parallel,
         segment,
         segment_size,
+        maxfail,
     )
 
     if output:
