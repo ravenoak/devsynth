@@ -6,7 +6,11 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Load scenarios from the static feature file
-scenarios(os.path.join(os.path.dirname(__file__), "simple_addition.feature"))
+scenarios(
+    os.path.join(
+        os.path.dirname(__file__), "features", "examples", "simple_addition.feature"
+    )
+)
 
 
 @pytest.fixture
