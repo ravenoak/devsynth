@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
 from typing import List
 
@@ -41,8 +42,16 @@ class CritiqueAgent:
             issues.append("Found TODO marker indicating unfinished work.")
         if "fail" in lower or "error" in lower:
             issues.append("Test failures or errors detected.")
-        if "def " in content and '"""' not in content:
-            issues.append("Function missing docstring.")
+
+        try:
+            tree = ast.parse(content)
+        except SyntaxError:
+            logger.debug("Skipping docstring check; invalid syntax")
+        else:
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if ast.get_docstring(node) is None:
+                        issues.append(f"Function '{node.name}' missing docstring.")
 
         logger.debug("Critique issues: %s", issues)
         return Critique(approved=not issues, issues=issues)
