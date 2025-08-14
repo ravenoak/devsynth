@@ -61,8 +61,9 @@ class DevSynthLogger(_BaseDevSynthLogger):
             # when the base logger tries to format the record.
             if not (isinstance(exc, tuple) and len(exc) == 3):
                 exc = None
-
-        super()._log(level, msg, *args, exc_info=exc, **kwargs)
+        if exc is not None:
+            kwargs["exc_info"] = exc
+        super()._log(level, msg, *args, **kwargs)
 
 
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

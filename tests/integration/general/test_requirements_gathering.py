@@ -9,7 +9,7 @@ from _pytest.logging import LogCaptureHandler
 # ``json`` is used to verify the wizard's output file contents
 
 # Ensures gather_requirements persists priority, goals, and constraints
-pytestmark = pytest.mark.usefixtures("stub_optional_deps")
+pytestmark = [pytest.mark.usefixtures("stub_optional_deps"), pytest.mark.medium]
 
 from devsynth.application.cli import requirements_commands as rc
 from devsynth.application.cli.config import CLIConfig
