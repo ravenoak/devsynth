@@ -105,7 +105,8 @@ Tests are grouped by runtime using pytest markers:
 - `@pytest.mark.medium` – completes in under **5 seconds**
 - `@pytest.mark.slow` – takes **5 seconds or more**
 
-`tests/conftest_extensions.py` automatically applies these markers and adds a
+Each test **must include exactly one** of these markers. The
+`tests/conftest_extensions.py` plugin enforces this requirement and provides a
 `--speed` option so you can filter tests by runtime:
 
 ```bash
