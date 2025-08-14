@@ -44,17 +44,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Import test utilities
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 try:
-    import common_test_collector
-    import test_utils
-    import test_utils_extended
+    from . import common_test_collector, test_utils, test_utils_extended
 
     EXTENDED_UTILS_AVAILABLE = True
 except ImportError:
     print("Warning: test_utils_extended.py not found. Using original implementation.")
-    import common_test_collector
-    import test_utils
+    from . import common_test_collector, test_utils
 
     EXTENDED_UTILS_AVAILABLE = False
 
