@@ -372,6 +372,7 @@ Run the full test suite with:
 
 ```bash
 poetry run devsynth run-tests
+poetry run devsynth run-tests --maxfail 1  # optional early exit
 ```
 
 The legacy `scripts/run_all_tests.py` wrapper remains for backward compatibility but will be removed in a future release.

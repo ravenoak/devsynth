@@ -79,6 +79,7 @@ def test_run_tests_cli_full_invocation() -> None:
             True,  # parallel
             False,  # segment
             50,  # segment_size
+            None,  # maxfail
         )
         assert "Tests completed successfully" in result.output
 
@@ -93,3 +94,30 @@ def test_run_tests_cli_help() -> None:
 
     assert result.exit_code == 0
     assert "Run DevSynth test suites." in result.output
+
+
+def test_run_tests_cli_maxfail_option() -> None:
+    """``--maxfail`` forwards the value to the runner."""
+
+    runner = CliRunner()
+    with patch(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        return_value=(True, ""),
+    ) as mock_run:
+        app = build_app()
+        result = runner.invoke(
+            app,
+            ["run-tests", "--target", "unit-tests", "--maxfail", "2"],
+        )
+
+        assert result.exit_code == 0
+        mock_run.assert_called_once_with(
+            "unit-tests",
+            None,
+            False,
+            False,
+            True,
+            False,
+            50,
+            2,
+        )

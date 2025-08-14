@@ -40,6 +40,29 @@ def invoke_run_tests(command_result: Dict[str, str]) -> None:
     command_result["output"] = result.stdout + result.stderr
 
 
+@when(
+    'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1"'
+)
+def invoke_run_tests_maxfail(command_result: Dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--target",
+        "unit-tests",
+        "--speed=fast",
+        "--no-parallel",
+        "--maxfail=1",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
+
+
 @then("the command should succeed")
 def command_succeeds(command_result: Dict[str, str]) -> None:
     assert command_result.get("exit_code") == 0

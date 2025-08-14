@@ -131,6 +131,7 @@ def run_tests(
     parallel: bool = True,
     segment: bool = False,
     segment_size: int = 50,
+    maxfail: Optional[int] = None,
 ) -> Tuple[bool, str]:
     """Execute pytest for the specified target.
 
@@ -144,6 +145,7 @@ def run_tests(
         parallel: Run tests in parallel using ``pytest-xdist``.
         segment: Run tests in smaller batches for large suites.
         segment_size: Number of tests per batch when ``segment`` is ``True``.
+        maxfail: Stop after this many failures.
 
     Returns:
         A tuple of ``(success, output)`` where ``success`` indicates whether all
@@ -154,6 +156,8 @@ def run_tests(
     print(f"{'=' * 80}")
 
     base_cmd = [sys.executable, "-m", "pytest"]
+    if maxfail is not None:
+        base_cmd.append(f"--maxfail={maxfail}")
     test_path = TARGET_PATHS.get(target, TARGET_PATHS["all-tests"])
     base_cmd.append(test_path)
 

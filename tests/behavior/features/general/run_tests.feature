@@ -18,3 +18,8 @@ Feature: devsynth run-tests command
     Given the environment variable "PYTEST_ADDOPTS" is "-k test_provider_logging"
     When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel"
     Then the command should fail
+
+  Scenario: Maxfail option exits after first failure
+    Given the environment variable "PYTEST_ADDOPTS" is "-k test_provider_logging"
+    When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1"
+    Then the command should fail
