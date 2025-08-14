@@ -58,7 +58,7 @@ nvidia-nvtx-cu12 = {version = "12.6.77", optional = true, markers = "platform_sy
 pyyaml = "6.0.2"
 tqdm = "4.67.1"
 lmstudio = {version = "1.4.1", optional = true}
-hypothesis = "==6.136.7"
+hypothesis = "^6.136.7"
 filelock = "==3.18.0"
 cachetools = "==6.1.0"
 gitpython = "==3.1.43"
@@ -86,7 +86,6 @@ uvicorn = "^0.35.0"
 pytest-html = "^4.1.1"
 bandit = "^1.8.6"
 safety = "^3.2.3"
-hypothesis = "^6.100.0"
 prometheus-client = "0.20.0"
 
 [tool.poetry.group.docs]
