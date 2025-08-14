@@ -1,8 +1,11 @@
 """Tests for sprint planning helpers."""
 
+import pytest
+
 from devsynth.application.sprint.planning import map_requirements_to_plan
 
 
+@pytest.mark.fast
 def test_map_requirements_to_plan_extracts_fields() -> None:
     """It maps requirement analysis results to a plan structure."""
     requirements = {
