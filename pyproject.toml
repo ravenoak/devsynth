@@ -62,6 +62,7 @@ hypothesis = "^6.136.7"
 filelock = "==3.18.0"
 cachetools = "==6.1.0"
 gitpython = "==3.1.43"
+nicegui = "2.22.2"
 
 [tool.poetry.group.dev.dependencies]
 responses = "^0.25.7"
