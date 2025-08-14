@@ -15,6 +15,16 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
+def _flush_team_memory(team: Any) -> None:
+    """Flush pending memory updates for ``team`` if available."""
+    memory_manager = getattr(team, "memory_manager", None)
+    if memory_manager and hasattr(memory_manager, "flush_updates"):
+        try:  # pragma: no cover - best effort
+            memory_manager.flush_updates()
+        except Exception:  # pragma: no cover - defensive
+            logger.debug("Memory flush failed", exc_info=True)
+
+
 # ---------------------------------------------------------------------------
 # Message protocol helpers
 # ---------------------------------------------------------------------------
@@ -109,6 +119,7 @@ def request_peer_review(
     )
     review.assign_reviews()
     team.peer_reviews.append(review)
+    _flush_team_memory(team)
     return review
 
 
@@ -122,7 +133,9 @@ def conduct_peer_review(
     review.collect_reviews()
     feedback = review.aggregate_feedback()
     review.status = "completed"
-    return {"review": review, "feedback": feedback}
+    result = {"review": review, "feedback": feedback}
+    _flush_team_memory(team)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -138,7 +151,48 @@ def add_solution(team: Any, task: Dict[str, Any], solution: Dict[str, Any]):
     for hook in getattr(team, "dialectical_hooks", []):
         hook(task, team.solutions[task_id])
     logger.info("Added solution for task %s", task_id)
+    _flush_team_memory(team)
     return solution
+
+
+def run_basic_workflow(team: Any, task: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute a minimal WSDE workflow and flush memory between steps."""
+
+    results: Dict[str, Any] = {}
+
+    ideas = getattr(team, "generate_diverse_ideas", lambda *a, **k: [])(task)
+    results["ideas"] = ideas
+    _flush_team_memory(team)
+
+    evaluations = getattr(team, "evaluate_options", lambda *a, **k: [])(ideas)
+    results["evaluations"] = evaluations
+    _flush_team_memory(team)
+
+    best = getattr(team, "select_best_option", lambda *a, **k: {})(evaluations)
+    results["best_option"] = best
+    _flush_team_memory(team)
+
+    details = getattr(team, "elaborate_details", lambda *a, **k: [])(best)
+    results["details"] = details
+    _flush_team_memory(team)
+
+    plan = getattr(team, "create_implementation_plan", lambda *a, **k: {})(details)
+    results["implementation_plan"] = plan
+    _flush_team_memory(team)
+
+    optimized = getattr(team, "optimize_implementation", lambda *a, **k: {})(plan)
+    results["optimized_implementation"] = optimized
+    _flush_team_memory(team)
+
+    qa = getattr(team, "perform_quality_assurance", lambda *a, **k: {})(optimized)
+    results["quality_assurance"] = qa
+    _flush_team_memory(team)
+
+    learnings = getattr(team, "extract_learnings", lambda *a, **k: [])(qa)
+    results["learnings"] = learnings
+    _flush_team_memory(team)
+
+    return results
 
 
 __all__ = [
@@ -148,4 +202,5 @@ __all__ = [
     "request_peer_review",
     "conduct_peer_review",
     "add_solution",
+    "run_basic_workflow",
 ]
