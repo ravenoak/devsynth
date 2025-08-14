@@ -32,22 +32,21 @@ Options:
     --use-history         Use historical execution times for load balancing
 """
 
-import os
-import sys
-import json
-import time
 import argparse
-import subprocess
+import json
 import multiprocessing
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Tuple, Any, Optional, Set
+import os
+import subprocess
+import sys
+import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Import enhanced test utilities
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 try:
-    import test_utils_extended as test_utils_ext
+    from . import test_utils_extended as test_utils_ext
 except ImportError:
     print("Warning: test_utils_extended.py not found. Using fallback implementation.")
     # Fallback implementation if test_utils_extended.py is not available
@@ -69,6 +68,7 @@ SPEED_CATEGORIES = ["fast", "medium", "slow"]
 CACHE_DIR = Path(".distributed_test_cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
+
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -78,94 +78,81 @@ def parse_args():
         "--workers",
         type=int,
         default=0,
-        help="Number of worker processes to use (default: auto)"
+        help="Number of worker processes to use (default: auto)",
     )
     parser.add_argument(
         "--test-dir",
         default="tests",
-        help="Directory containing tests to run (default: tests)"
+        help="Directory containing tests to run (default: tests)",
     )
     parser.add_argument(
         "--category",
         choices=list(TEST_CATEGORIES.keys()) + ["all"],
         default="all",
-        help="Test category to run (default: all)"
+        help="Test category to run (default: all)",
     )
     parser.add_argument(
         "--speed",
         choices=SPEED_CATEGORIES + ["all", "unmarked"],
         default="all",
-        help="Test speed category (default: all)"
+        help="Test speed category (default: all)",
     )
     parser.add_argument(
         "--output",
         default="distributed_test_results.json",
-        help="Output file for results (default: distributed_test_results.json)"
+        help="Output file for results (default: distributed_test_results.json)",
     )
     parser.add_argument(
         "--timeout",
         type=int,
         default=300,
-        help="Timeout for each test batch in seconds (default: 300)"
+        help="Timeout for each test batch in seconds (default: 300)",
     )
     parser.add_argument(
         "--batch-size",
         type=int,
         default=20,
-        help="Number of tests per batch (default: 20)"
+        help="Number of tests per batch (default: 20)",
     )
     parser.add_argument(
         "--max-retries",
         type=int,
         default=2,
-        help="Maximum number of retries for failed batches (default: 2)"
+        help="Maximum number of retries for failed batches (default: 2)",
+    )
+    parser.add_argument("--html", action="store_true", help="Generate HTML report")
+    parser.add_argument(
+        "--fail-fast", action="store_true", help="Stop on first failure"
     )
     parser.add_argument(
-        "--html",
-        action="store_true",
-        help="Generate HTML report"
+        "--clear-cache", action="store_true", help="Clear cache before running"
     )
-    parser.add_argument(
-        "--fail-fast",
-        action="store_true",
-        help="Stop on first failure"
-    )
-    parser.add_argument(
-        "--clear-cache",
-        action="store_true",
-        help="Clear cache before running"
-    )
-    parser.add_argument(
-        "--no-cache",
-        action="store_true",
-        help="Don't use cache"
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Verbose output"
-    )
+    parser.add_argument("--no-cache", action="store_true", help="Don't use cache")
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
     parser.add_argument(
         "--balance-load",
         action="store_true",
-        help="Balance test load based on complexity"
+        help="Balance test load based on complexity",
     )
     parser.add_argument(
         "--use-history",
         action="store_true",
-        help="Use historical execution times for load balancing"
+        help="Use historical execution times for load balancing",
     )
     return parser.parse_args()
 
-def collect_tests(category: str, speed: str = "all", use_cache: bool = True) -> List[str]:
+
+def collect_tests(
+    category: str, speed: str = "all", use_cache: bool = True
+) -> List[str]:
     """
     Collect tests to run based on category and speed.
-    
+
     Args:
         category: Test category (unit, integration, behavior, etc.)
         speed: Test speed category (fast, medium, slow, all)
         use_cache: Whether to use cached test collection results
-        
+
     Returns:
         List of test paths
     """
@@ -174,74 +161,84 @@ def collect_tests(category: str, speed: str = "all", use_cache: bool = True) -> 
     if not os.path.exists(test_dir):
         print(f"Test directory not found: {test_dir}")
         return []
-    
+
     # Use test_utils_extended if available
     if test_utils_ext is not None:
         if category == "behavior":
             return test_utils_ext.collect_behavior_tests(test_dir, use_cache)
         else:
             return test_utils_ext.test_utils.collect_tests(test_dir, speed, use_cache)
-    
+
     # Fallback implementation
     # Build the pytest command
     cmd = [
-        "python", "-m", "pytest",
+        "python",
+        "-m",
+        "pytest",
         test_dir,
         "--collect-only",
         "-q",  # quiet mode
     ]
-    
+
     # Add speed marker if specified
     if speed != "all" and speed != "unmarked":
         cmd.extend(["-m", speed])
     elif speed == "unmarked":
         # Collect all tests, then filter out marked tests later
         pass
-    
+
     # Run pytest to collect tests
     try:
         result = subprocess.run(cmd, check=False, capture_output=True, text=True)
-        
+
         # Parse the output to get the list of tests
         test_list = []
         for line in result.stdout.split("\n"):
             if line.startswith(test_dir):
                 test_list.append(line.strip())
-        
+
         # If we're looking for unmarked tests, we need to filter out marked tests
         if speed == "unmarked":
             # Collect all marked tests
             marked_tests = set()
             for marker in SPEED_CATEGORIES:
                 marker_cmd = [
-                    "python", "-m", "pytest",
+                    "python",
+                    "-m",
+                    "pytest",
                     test_dir,
                     "--collect-only",
                     "-q",  # quiet mode
-                    "-m", marker,
+                    "-m",
+                    marker,
                 ]
-                marker_result = subprocess.run(marker_cmd, check=False, capture_output=True, text=True)
+                marker_result = subprocess.run(
+                    marker_cmd, check=False, capture_output=True, text=True
+                )
                 for line in marker_result.stdout.split("\n"):
                     if line.startswith(test_dir):
                         marked_tests.add(line.strip())
-            
+
             # Filter out marked tests
             test_list = [test for test in test_list if test not in marked_tests]
-        
+
         return test_list
     except Exception as e:
         print(f"Error collecting tests: {e}")
         return []
 
-def collect_all_tests(categories: List[str], speed: str = "all", use_cache: bool = True) -> Dict[str, List[str]]:
+
+def collect_all_tests(
+    categories: List[str], speed: str = "all", use_cache: bool = True
+) -> Dict[str, List[str]]:
     """
     Collect tests from multiple categories.
-    
+
     Args:
         categories: List of test categories
         speed: Test speed category
         use_cache: Whether to use cached test collection results
-        
+
     Returns:
         Dictionary mapping categories to lists of tests
     """
@@ -252,39 +249,42 @@ def collect_all_tests(categories: List[str], speed: str = "all", use_cache: bool
             all_tests[category] = tests
     return all_tests
 
+
 def get_test_complexity(test_path: str, use_history: bool = False) -> float:
     """
     Estimate the complexity of a test based on various factors.
-    
+
     Args:
         test_path: Path to the test
         use_history: Whether to use historical execution times
-        
+
     Returns:
         Complexity score (higher means more complex)
     """
     # Check if we have historical execution time
     if use_history:
-        history_file = CACHE_DIR / f"{test_path.replace('/', '_').replace(':', '_')}_history.json"
+        history_file = (
+            CACHE_DIR / f"{test_path.replace('/', '_').replace(':', '_')}_history.json"
+        )
         if history_file.exists():
             try:
-                with open(history_file, 'r') as f:
+                with open(history_file, "r") as f:
                     history = json.load(f)
                 return history.get("average_time", 1.0)
             except (json.JSONDecodeError, KeyError):
                 pass
-    
+
     # Estimate complexity based on test category and other factors
     complexity = 1.0
-    
+
     # Behavior tests are typically more complex
     if test_path.startswith("tests/behavior"):
         complexity *= 2.0
-    
+
     # Integration tests are more complex than unit tests
     elif test_path.startswith("tests/integration"):
         complexity *= 1.5
-    
+
     # Check for speed markers in the test file
     if test_utils_ext is not None:
         has_marker, marker_type = test_utils_ext.check_test_has_marker(test_path)
@@ -294,18 +294,21 @@ def get_test_complexity(test_path: str, use_history: bool = False) -> float:
             elif marker_type == "medium":
                 complexity *= 1.5
             # fast tests keep default complexity
-    
+
     return complexity
 
-def create_balanced_batches(tests_by_category: Dict[str, List[str]], batch_size: int, use_history: bool = False) -> List[List[str]]:
+
+def create_balanced_batches(
+    tests_by_category: Dict[str, List[str]], batch_size: int, use_history: bool = False
+) -> List[List[str]]:
     """
     Create balanced batches of tests for distributed execution.
-    
+
     Args:
         tests_by_category: Dictionary mapping categories to lists of tests
         batch_size: Target number of tests per batch
         use_history: Whether to use historical execution times for balancing
-        
+
     Returns:
         List of test batches
     """
@@ -313,17 +316,19 @@ def create_balanced_batches(tests_by_category: Dict[str, List[str]], batch_size:
     all_tests = []
     for category, tests in tests_by_category.items():
         all_tests.extend(tests)
-    
+
     # Calculate complexity for each test
-    test_complexities = [(test, get_test_complexity(test, use_history)) for test in all_tests]
-    
+    test_complexities = [
+        (test, get_test_complexity(test, use_history)) for test in all_tests
+    ]
+
     # Sort tests by complexity (descending)
     test_complexities.sort(key=lambda x: x[1], reverse=True)
-    
+
     # Create balanced batches using a greedy algorithm
     batches = []
     batch_complexities = []
-    
+
     for test, complexity in test_complexities:
         # Find the batch with the lowest total complexity
         if not batches:
@@ -331,53 +336,55 @@ def create_balanced_batches(tests_by_category: Dict[str, List[str]], batch_size:
             batch_complexities.append(complexity)
         else:
             # If any batch is below the target size, add to the least complex one
-            below_target = [i for i, batch in enumerate(batches) if len(batch) < batch_size]
+            below_target = [
+                i for i, batch in enumerate(batches) if len(batch) < batch_size
+            ]
             if below_target:
-                min_complexity_idx = min(below_target, key=lambda i: batch_complexities[i])
+                min_complexity_idx = min(
+                    below_target, key=lambda i: batch_complexities[i]
+                )
                 batches[min_complexity_idx].append(test)
                 batch_complexities[min_complexity_idx] += complexity
             else:
                 # All batches are at or above target size, create a new batch
                 batches.append([test])
                 batch_complexities.append(complexity)
-    
+
     return batches
+
 
 def run_test_batch(batch: List[str], timeout: int, batch_id: int) -> Dict[str, Any]:
     """
     Run a batch of tests.
-    
+
     Args:
         batch: List of tests to run
         timeout: Timeout in seconds
         batch_id: Batch identifier
-        
+
     Returns:
         Dictionary with test results
     """
     start_time = time.time()
-    
+
     # Build the pytest command
     cmd = [
-        "python", "-m", "pytest",
+        "python",
+        "-m",
+        "pytest",
         *batch,
         "-v",  # verbose mode
     ]
-    
+
     # Run the tests
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
-        
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
         # Parse the output to get test results
         passed = []
         failed = []
         skipped = []
-        
+
         for line in result.stdout.split("\n"):
             if "PASSED" in line:
                 match = line.split(" ")[0]
@@ -391,14 +398,14 @@ def run_test_batch(batch: List[str], timeout: int, batch_id: int) -> Dict[str, A
                 match = line.split(" ")[0]
                 if match:
                     skipped.append(match)
-        
+
         # Calculate execution time
         execution_time = time.time() - start_time
-        
+
         # Update test history
         for test in batch:
             update_test_history(test, test in passed, execution_time / len(batch))
-        
+
         return {
             "batch_id": batch_id,
             "tests": batch,
@@ -440,46 +447,59 @@ def run_test_batch(batch: List[str], timeout: int, batch_id: int) -> Dict[str, A
             "timeout": False,
         }
 
+
 def update_test_history(test_path: str, passed: bool, execution_time: float):
     """
     Update the execution history for a test.
-    
+
     Args:
         test_path: Path to the test
         passed: Whether the test passed
         execution_time: Execution time in seconds
     """
-    history_file = CACHE_DIR / f"{test_path.replace('/', '_').replace(':', '_')}_history.json"
-    
+    history_file = (
+        CACHE_DIR / f"{test_path.replace('/', '_').replace(':', '_')}_history.json"
+    )
+
     # Load existing history or create new
     if history_file.exists():
         try:
-            with open(history_file, 'r') as f:
+            with open(history_file, "r") as f:
                 history = json.load(f)
         except (json.JSONDecodeError, KeyError):
             history = {"executions": [], "pass_rate": 0.0, "average_time": 0.0}
     else:
         history = {"executions": [], "pass_rate": 0.0, "average_time": 0.0}
-    
+
     # Add new execution
-    history["executions"].append({
-        "timestamp": datetime.now().isoformat(),
-        "passed": passed,
-        "execution_time": execution_time
-    })
-    
+    history["executions"].append(
+        {
+            "timestamp": datetime.now().isoformat(),
+            "passed": passed,
+            "execution_time": execution_time,
+        }
+    )
+
     # Keep only the last 10 executions
     if len(history["executions"]) > 10:
         history["executions"] = history["executions"][-10:]
-    
+
     # Update statistics
     pass_count = sum(1 for e in history["executions"] if e["passed"])
-    history["pass_rate"] = pass_count / len(history["executions"]) if history["executions"] else 0.0
-    history["average_time"] = sum(e["execution_time"] for e in history["executions"]) / len(history["executions"]) if history["executions"] else 0.0
-    
+    history["pass_rate"] = (
+        pass_count / len(history["executions"]) if history["executions"] else 0.0
+    )
+    history["average_time"] = (
+        sum(e["execution_time"] for e in history["executions"])
+        / len(history["executions"])
+        if history["executions"]
+        else 0.0
+    )
+
     # Save updated history
-    with open(history_file, 'w') as f:
+    with open(history_file, "w") as f:
         json.dump(history, f, indent=2)
+
 
 def run_distributed_tests(
     batches: List[List[str]],
@@ -487,11 +507,11 @@ def run_distributed_tests(
     timeout: int,
     max_retries: int,
     fail_fast: bool,
-    verbose: bool
+    verbose: bool,
 ) -> List[Dict[str, Any]]:
     """
     Run tests in a distributed manner across multiple processes.
-    
+
     Args:
         batches: List of test batches
         num_workers: Number of worker processes
@@ -499,35 +519,35 @@ def run_distributed_tests(
         max_retries: Maximum number of retries for failed batches
         fail_fast: Whether to stop on first failure
         verbose: Whether to print verbose output
-        
+
     Returns:
         List of batch results
     """
     if num_workers <= 0:
         # Auto-detect number of workers
         num_workers = multiprocessing.cpu_count()
-    
+
     print(f"Running {len(batches)} test batches with {num_workers} workers")
-    
+
     # Set up the process pool
     results = []
     failed_batches = []
     retry_counts = {}
-    
+
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         # Submit all batches
         future_to_batch = {
             executor.submit(run_test_batch, batch, timeout, i): (i, batch)
             for i, batch in enumerate(batches)
         }
-        
+
         # Process results as they complete
         for future in as_completed(future_to_batch):
             batch_id, batch = future_to_batch[future]
             try:
                 result = future.result()
                 results.append(result)
-                
+
                 # Print progress
                 if verbose:
                     print(f"Batch {batch_id+1}/{len(batches)} completed:")
@@ -536,56 +556,60 @@ def run_distributed_tests(
                     print(f"  Skipped: {len(result['skipped'])}")
                     print(f"  Time: {result['execution_time']:.2f}s")
                 else:
-                    status = "✓" if not result['failed'] else "✗"
-                    print(f"Batch {batch_id+1}/{len(batches)} {status} - "
-                          f"P: {len(result['passed'])}, "
-                          f"F: {len(result['failed'])}, "
-                          f"S: {len(result['skipped'])}, "
-                          f"T: {result['execution_time']:.2f}s")
-                
+                    status = "✓" if not result["failed"] else "✗"
+                    print(
+                        f"Batch {batch_id+1}/{len(batches)} {status} - "
+                        f"P: {len(result['passed'])}, "
+                        f"F: {len(result['failed'])}, "
+                        f"S: {len(result['skipped'])}, "
+                        f"T: {result['execution_time']:.2f}s"
+                    )
+
                 # Check if we need to retry this batch
-                if result['failed'] and retry_counts.get(batch_id, 0) < max_retries:
+                if result["failed"] and retry_counts.get(batch_id, 0) < max_retries:
                     failed_batches.append((batch_id, batch))
-                
+
                 # Stop on first failure if requested
-                if fail_fast and result['failed']:
+                if fail_fast and result["failed"]:
                     print("Stopping on first failure")
                     executor.shutdown(wait=False)
                     break
             except Exception as e:
                 print(f"Error processing batch {batch_id}: {e}")
-                results.append({
-                    "batch_id": batch_id,
-                    "tests": batch,
-                    "passed": [],
-                    "failed": batch,  # Consider all tests as failed
-                    "skipped": [],
-                    "execution_time": 0,
-                    "returncode": -1,
-                    "stdout": "",
-                    "stderr": str(e),
-                    "timeout": False,
-                })
-    
+                results.append(
+                    {
+                        "batch_id": batch_id,
+                        "tests": batch,
+                        "passed": [],
+                        "failed": batch,  # Consider all tests as failed
+                        "skipped": [],
+                        "execution_time": 0,
+                        "returncode": -1,
+                        "stdout": "",
+                        "stderr": str(e),
+                        "timeout": False,
+                    }
+                )
+
     # Retry failed batches
     if failed_batches and not fail_fast:
         print(f"Retrying {len(failed_batches)} failed batches")
-        
+
         for batch_id, batch in failed_batches:
             retry_count = retry_counts.get(batch_id, 0) + 1
             retry_counts[batch_id] = retry_count
-            
+
             print(f"Retry {retry_count}/{max_retries} for batch {batch_id+1}")
-            
+
             # Run the batch directly (not in a separate process)
             result = run_test_batch(batch, timeout, batch_id)
-            
+
             # Update the result in the results list
             for i, r in enumerate(results):
                 if r["batch_id"] == batch_id:
                     results[i] = result
                     break
-            
+
             # Print progress
             if verbose:
                 print(f"Batch {batch_id+1} retry completed:")
@@ -594,22 +618,25 @@ def run_distributed_tests(
                 print(f"  Skipped: {len(result['skipped'])}")
                 print(f"  Time: {result['execution_time']:.2f}s")
             else:
-                status = "✓" if not result['failed'] else "✗"
-                print(f"Batch {batch_id+1} retry {status} - "
-                      f"P: {len(result['passed'])}, "
-                      f"F: {len(result['failed'])}, "
-                      f"S: {len(result['skipped'])}, "
-                      f"T: {result['execution_time']:.2f}s")
-    
+                status = "✓" if not result["failed"] else "✗"
+                print(
+                    f"Batch {batch_id+1} retry {status} - "
+                    f"P: {len(result['passed'])}, "
+                    f"F: {len(result['failed'])}, "
+                    f"S: {len(result['skipped'])}, "
+                    f"T: {result['execution_time']:.2f}s"
+                )
+
     return results
+
 
 def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Aggregate results from multiple batches.
-    
+
     Args:
         batch_results: List of batch results
-        
+
     Returns:
         Aggregated results
     """
@@ -624,7 +651,7 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         "batches": len(batch_results),
         "batch_results": batch_results,
     }
-    
+
     # Aggregate results
     for result in batch_results:
         aggregated["total_tests"] += len(result["tests"])
@@ -632,24 +659,33 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         aggregated["failed"].extend(result["failed"])
         aggregated["skipped"].extend(result["skipped"])
         aggregated["total_execution_time"] += result["execution_time"]
-    
+
     # Calculate summary metrics
     aggregated["summary"] = {
         "total_tests": aggregated["total_tests"],
         "total_passed": len(aggregated["passed"]),
         "total_failed": len(aggregated["failed"]),
         "total_skipped": len(aggregated["skipped"]),
-        "pass_rate": len(aggregated["passed"]) / aggregated["total_tests"] * 100 if aggregated["total_tests"] > 0 else 0,
+        "pass_rate": (
+            len(aggregated["passed"]) / aggregated["total_tests"] * 100
+            if aggregated["total_tests"] > 0
+            else 0
+        ),
         "total_execution_time": aggregated["total_execution_time"],
-        "average_execution_time": aggregated["total_execution_time"] / len(batch_results) if batch_results else 0,
+        "average_execution_time": (
+            aggregated["total_execution_time"] / len(batch_results)
+            if batch_results
+            else 0
+        ),
     }
-    
+
     return aggregated
+
 
 def save_results(results: Dict[str, Any], filename: str):
     """
     Save results to a file.
-    
+
     Args:
         results: Results to save
         filename: Output filename
@@ -658,10 +694,11 @@ def save_results(results: Dict[str, Any], filename: str):
         json.dump(results, f, indent=2)
     print(f"Results saved to {filename}")
 
+
 def generate_html_report(results: Dict[str, Any], filename: str):
     """
     Generate an HTML report from the results.
-    
+
     Args:
         results: Test results
         filename: Output filename
@@ -705,7 +742,7 @@ def generate_html_report(results: Dict[str, Any], filename: str):
     </head>
     <body>
         <h1>Enhanced Distributed Test Results</h1>
-        
+
         <div class="summary">
             <h2>Summary</h2>
             <div class="metric">
@@ -738,9 +775,9 @@ def generate_html_report(results: Dict[str, Any], filename: str):
             </div>
         </div>
     """
-    
+
     # Add failed tests section if there are any
-    if results['failed']:
+    if results["failed"]:
         html += """
         <h2>Failed Tests</h2>
         <table>
@@ -749,38 +786,38 @@ def generate_html_report(results: Dict[str, Any], filename: str):
                 <th>Batch</th>
             </tr>
         """
-        
-        for test in results['failed']:
+
+        for test in results["failed"]:
             # Find the batch that contains this test
             batch_id = None
-            for batch in results['batch_results']:
-                if test in batch['failed']:
-                    batch_id = batch['batch_id']
+            for batch in results["batch_results"]:
+                if test in batch["failed"]:
+                    batch_id = batch["batch_id"]
                     break
-            
+
             html += f"""
             <tr>
                 <td>{test}</td>
                 <td>{batch_id + 1 if batch_id is not None else 'Unknown'}</td>
             </tr>
             """
-        
+
         html += "</table>"
-    
+
     # Add batch details
     html += """
         <h2>Batch Details</h2>
     """
-    
-    for batch in results['batch_results']:
-        status = "✓" if not batch['failed'] else "✗"
+
+    for batch in results["batch_results"]:
+        status = "✓" if not batch["failed"] else "✗"
         html += f"""
         <div class="batch">
             <div class="batch-header" onclick="toggleBatch({batch['batch_id']})">
-                Batch {batch['batch_id'] + 1} {status} - 
-                Passed: {len(batch['passed'])}, 
-                Failed: {len(batch['failed'])}, 
-                Skipped: {len(batch['skipped'])}, 
+                Batch {batch['batch_id'] + 1} {status} -
+                Passed: {len(batch['passed'])},
+                Failed: {len(batch['failed'])},
+                Skipped: {len(batch['skipped'])},
                 Time: {batch['execution_time']:.2f}s
                 {' (Timeout)' if batch['timeout'] else ''}
             </div>
@@ -788,23 +825,23 @@ def generate_html_report(results: Dict[str, Any], filename: str):
                 <h3>Tests</h3>
                 <ul>
         """
-        
-        for test in batch['tests']:
-            if test in batch['passed']:
+
+        for test in batch["tests"]:
+            if test in batch["passed"]:
                 html += f'<li class="good">{test} - PASSED</li>'
-            elif test in batch['failed']:
+            elif test in batch["failed"]:
                 html += f'<li class="bad">{test} - FAILED</li>'
-            elif test in batch['skipped']:
-                html += f'<li>{test} - SKIPPED</li>'
+            elif test in batch["skipped"]:
+                html += f"<li>{test} - SKIPPED</li>"
             else:
-                html += f'<li>{test} - UNKNOWN</li>'
-        
+                html += f"<li>{test} - UNKNOWN</li>"
+
         html += """
                 </ul>
             </div>
         </div>
         """
-    
+
     html += f"""
         <div class="timestamp">
             Generated on: {results['timestamp']}
@@ -812,22 +849,23 @@ def generate_html_report(results: Dict[str, Any], filename: str):
     </body>
     </html>
     """
-    
+
     with open(filename, "w") as f:
         f.write(html)
     print(f"HTML report saved to {filename}")
 
+
 def print_summary(results: Dict[str, Any], execution_time: float):
     """
     Print a summary of the results.
-    
+
     Args:
         results: Test results
         execution_time: Total execution time
     """
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("SUMMARY:")
-    print("="*80)
+    print("=" * 80)
     print(f"Total Tests: {results['summary']['total_tests']}")
     print(f"Passed Tests: {results['summary']['total_passed']}")
     print(f"Failed Tests: {results['summary']['total_failed']}")
@@ -836,18 +874,21 @@ def print_summary(results: Dict[str, Any], execution_time: float):
     print(f"Total Execution Time: {results['summary']['total_execution_time']:.2f}s")
     print(f"Average Batch Time: {results['summary']['average_execution_time']:.2f}s")
     print(f"Total Wall Clock Time: {execution_time:.2f}s")
-    print(f"Speedup Factor: {results['summary']['total_execution_time'] / execution_time:.2f}x")
-    print("="*80)
-    
-    if results['failed']:
+    print(
+        f"Speedup Factor: {results['summary']['total_execution_time'] / execution_time:.2f}x"
+    )
+    print("=" * 80)
+
+    if results["failed"]:
         print("\nFailed Tests:")
-        for test in results['failed'][:10]:  # Show only the first 10 failures
+        for test in results["failed"][:10]:  # Show only the first 10 failures
             print(f"  {test}")
-        
-        if len(results['failed']) > 10:
+
+        if len(results["failed"]) > 10:
             print(f"  ... and {len(results['failed']) - 10} more")
-    
-    print("\n" + "="*80)
+
+    print("\n" + "=" * 80)
+
 
 def clear_cache():
     """Clear the cache directory."""
@@ -856,41 +897,46 @@ def clear_cache():
             file.unlink()
         print(f"Cleared cache directory: {CACHE_DIR}")
 
+
 def main():
     """Main function."""
     start_time = time.time()
     args = parse_args()
-    
+
     # Clear cache if requested
     if args.clear_cache:
         clear_cache()
-    
+
     # Determine test categories
-    categories = list(TEST_CATEGORIES.keys()) if args.category == "all" else [args.category]
-    
+    categories = (
+        list(TEST_CATEGORIES.keys()) if args.category == "all" else [args.category]
+    )
+
     # Collect tests
     print(f"Collecting tests for categories: {', '.join(categories)}")
     tests_by_category = collect_all_tests(categories, args.speed, not args.no_cache)
-    
+
     # Create test batches
     if args.balance_load:
         print("Creating balanced test batches...")
-        batches = create_balanced_batches(tests_by_category, args.batch_size, args.use_history)
+        batches = create_balanced_batches(
+            tests_by_category, args.batch_size, args.use_history
+        )
     else:
         batches = []
         all_tests = []
         for category, tests in tests_by_category.items():
             all_tests.extend(tests)
-        
+
         # Create batches
         for i in range(0, len(all_tests), args.batch_size):
-            batch = all_tests[i:i+args.batch_size]
+            batch = all_tests[i : i + args.batch_size]
             batches.append(batch)
-    
+
     if not batches:
         print("No tests found")
         return
-    
+
     # Run tests
     batch_results = run_distributed_tests(
         batches,
@@ -898,25 +944,26 @@ def main():
         args.timeout,
         args.max_retries,
         args.fail_fast,
-        args.verbose
+        args.verbose,
     )
-    
+
     # Aggregate results
     results = aggregate_results(batch_results)
-    
+
     # Save results
     save_results(results, args.output)
-    
+
     # Generate HTML report if requested
     if args.html:
         html_filename = args.output.replace(".json", ".html")
         generate_html_report(results, html_filename)
-    
+
     # Calculate total execution time
     execution_time = time.time() - start_time
-    
+
     # Print summary
     print_summary(results, execution_time)
+
 
 if __name__ == "__main__":
     main()
