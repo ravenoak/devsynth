@@ -5,31 +5,31 @@ This implementation uses LMDB (Lightning Memory-Mapped Database) to store
 and retrieve memory items with transaction support.
 """
 
-import os
 import json
+import os
 import uuid
+
 import tiktoken
 
-try:
-    import lmdb
-except ImportError as e:  # pragma: no cover - optional dependency
-    raise ImportError(
-        "LMDBStore requires the 'lmdb' package. Install it with 'pip install lmdb' or use the dev extras."
-    ) from e
-from typing import Dict, List, Any, Optional, ContextManager, Union
-from datetime import datetime
+try:  # pragma: no cover - optional dependency
+    import lmdb  # type: ignore[import]
+except Exception:  # pragma: no cover - graceful fallback
+    lmdb = None  # type: ignore[assignment]
 from contextlib import contextmanager
+from datetime import datetime
+from typing import Any, ContextManager, Dict, List, Optional, Union
 
-from ...domain.interfaces.memory import MemoryStore
-from ...domain.models.memory import MemoryItem, MemoryType
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import (
     DevSynthError,
     MemoryError,
-    MemoryStoreError,
     MemoryItemNotFoundError,
+    MemoryStoreError,
 )
-from devsynth.security.encryption import encrypt_bytes, decrypt_bytes
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
+
+from ...domain.interfaces.memory import MemoryStore
+from ...domain.models.memory import MemoryItem, MemoryType
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -59,6 +59,11 @@ class LMDBStore(MemoryStore):
             base_path: Base path for storing the LMDB database
             map_size: Maximum size database may grow to (default: 10MB)
         """
+        if lmdb is None:
+            raise ImportError(
+                "LMDBStore requires the 'lmdb' package. Install it with 'pip install lmdb' or use the dev extras."
+            )
+
         self.base_path = base_path
         self.db_path = os.path.join(self.base_path, "memory.lmdb")
         self.token_count = 0
