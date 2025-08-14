@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Contributing Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Contributing Guide
-</div>
-
 # Contributing Guide
 
 Thank you for your interest in contributing to DevSynth! This document provides guidelines and instructions for contributing to the project.
@@ -88,8 +84,8 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 1. Install dependencies using Poetry:
 
    ```bash
-   # Recommended minimal install for contributors
-   poetry install --with dev --extras minimal
+   # Install development dependencies and required extras
+   poetry install --with dev --extras "tests retrieval chromadb api"
 
    # Enable GPU features if required
    # poetry install --extras gpu
@@ -405,4 +401,4 @@ If you have any questions about contributing, please open an issue or reach out 
 Thank you for contributing to DevSynth!
 ## Implementation Status
 
-.
+- Status: documentation upkeep ongoing
