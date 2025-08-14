@@ -1,6 +1,6 @@
 import pytest
 
-pytestmark = [pytest.mark.memory_intensive]
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.medium]
 
 from devsynth.adapters.providers.provider_factory import (
     LMStudioProvider,

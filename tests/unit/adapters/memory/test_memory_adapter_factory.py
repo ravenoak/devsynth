@@ -2,13 +2,17 @@ import pytest
 
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-from devsynth.application.memory.context_manager import InMemoryStore, SimpleContextManager
+from devsynth.application.memory.context_manager import (
+    InMemoryStore,
+    SimpleContextManager,
+)
 from devsynth.application.memory.kuzu_store import KuzuStore
 
 pytestmark = [
     pytest.mark.requires_resource("memory"),
     pytest.mark.memory_intensive,
     pytest.mark.isolation,
+    pytest.mark.medium,
 ]
 
 

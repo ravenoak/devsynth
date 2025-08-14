@@ -19,6 +19,7 @@ pytestmark = [
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.requires_resource("memory"),
     pytest.mark.memory_intensive,
+    pytest.mark.medium,
 ]
 
 

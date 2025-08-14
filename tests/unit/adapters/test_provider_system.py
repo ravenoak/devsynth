@@ -19,6 +19,8 @@ from devsynth.adapters.provider_system import (
 )
 from devsynth.fallback import retry_with_exponential_backoff
 
+pytestmark = [pytest.mark.memory_intensive]
+
 
 @pytest.mark.medium
 def test_embed_success_succeeds():
