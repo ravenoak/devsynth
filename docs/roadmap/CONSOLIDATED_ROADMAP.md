@@ -8,7 +8,7 @@ tags:
   - "milestones"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-02"
+last_reviewed: "2025-08-15"
 ---
 
 <div class="breadcrumbs">
@@ -27,7 +27,7 @@ This document serves as the canonical source for all roadmap information, consol
 
 ## Current Status
 
-As of August 2, 2025, the project is finalizing Phase 1 (Foundation Stabilization) with `0.1.0-alpha.1` as the current target. Achievements to date include:
+As of August 15, 2025, the project is finalizing Phase 1 (Foundation Stabilization) with `0.1.0-alpha.1` as the current target. Achievements to date include:
 
 - **Test Stabilization**:
   - Fixed pytest import issues in multiple test files
@@ -159,7 +159,7 @@ The EDRRCoordinator orchestrates expand/differentiate/refine cycles. The `edrr-c
 
 ## Current Test Summary
 
-Recent CI reports collected thousands of tests. The latest run reported **46** failures, **114** passing tests, **10** skipped, and **3** errors due to missing dependencies. See the [development status](development_status.md#test-failure-summary) document for details.
+Recent metrics identify **5,842** tests across the suite—**3,884** unit, **1,184** integration, **656** behavior, **82** performance, and **36** property. A focused fast run of the requirements wizard scenario produced **0** failing tests, **1** passing test, and **14** skipped tests with **14%** coverage. See the [development status](development_status.md#test-failure-summary) document for details.
 
 To publish `0.1.0-alpha.1`, the project must:
 
@@ -186,7 +186,7 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
 
 ---
 
-_Last updated: August 2, 2025_
+_Last updated: August 15, 2025_
 
 ## Historical Information
 
