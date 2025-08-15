@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-07-07'
-last_reviewed: "2025-08-07"
+last_reviewed: "2025-08-15"
 status: published
 tags:
 
@@ -72,6 +72,23 @@ DevSynth automates routine security checks to prevent regressions:
   pipelines and deployment.
 - Developers should run `devsynth security-audit` locally before committing
   changes to catch issues early.
+
+### Enforceable Audit Criteria
+
+The following settings must be configured for deployments and are verified by
+`scripts/verify_security_policy.py`:
+
+- `DEVSYNTH_AUTHENTICATION_ENABLED` is set to `true`.
+- `DEVSYNTH_AUTHORIZATION_ENABLED` is set to `true`.
+- `DEVSYNTH_SANITIZATION_ENABLED` is set to `true`.
+- `DEVSYNTH_ENCRYPTION_AT_REST` is set to `true`.
+- `DEVSYNTH_ENCRYPTION_IN_TRANSIT` is set to `true`.
+- `DEVSYNTH_TLS_VERIFY` is set to `true`.
+- `DEVSYNTH_ACCESS_TOKEN` is non-empty.
+- `DEVSYNTH_PRE_DEPLOY_APPROVED` is set to `true`.
+
+Run `poetry run python scripts/verify_security_policy.py` to enforce these
+criteria; the script exits with status `1` if any requirement is unmet.
 
 ## Periodic Security Reviews
 
