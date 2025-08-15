@@ -5,19 +5,21 @@ Step definitions for advanced_graph_memory_features.feature
 import os
 import tempfile
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+pytest.importorskip("chromadb.api")
+
+from devsynth.application.memory.adapters.chromadb_vector_adapter import (
+    ChromaDBVectorAdapter,
+)
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
-from devsynth.application.memory.adapters.chromadb_vector_adapter import (
-    ChromaDBVectorAdapter,
-)
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 # Register scenarios
 scenarios("../features/general/advanced_graph_memory_features.feature")
@@ -217,9 +219,10 @@ def check_rdf_triples(context):
 
     # Check that triples exist for this item
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
         RDF,
     )
 
@@ -250,7 +253,11 @@ def check_metadata_intact(context):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        "I add memory volatility controls with decay rate {decay_rate:f} and threshold {threshold:f}"    ))
+@when(
+    parsers.parse(
+        "I add memory volatility controls with decay rate {decay_rate:f} and threshold {threshold:f}"
+    )
+)
 def add_memory_volatility_controls(context, decay_rate, threshold):
     """Add memory volatility controls with the specified decay rate and threshold."""
     # Store some items first
@@ -275,9 +282,10 @@ def add_memory_volatility_controls(context, decay_rate, threshold):
 def check_confidence_values(context):
     """Check that all memory items have confidence values."""
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     for item_id in context.memory_items.keys():
@@ -294,9 +302,10 @@ def check_confidence_values(context):
 def check_decay_rates(context):
     """Check that all memory items have decay rates."""
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     for item_id in context.memory_items.keys():
@@ -310,9 +319,10 @@ def check_decay_rates(context):
 def check_confidence_thresholds(context):
     """Check that all memory items have confidence thresholds."""
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     for item_id in context.memory_items.keys():
@@ -373,10 +383,11 @@ def store_items_with_different_access_patterns(context):
     )
 
     # Simulate different access patterns by updating metadata
-    from rdflib import URIRef, Literal
+    from rdflib import Literal, URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     item_ids = list(context.memory_items.keys())
@@ -431,9 +442,10 @@ def apply_advanced_memory_decay(context):
 def check_access_frequency_decay(context):
     """Check that items accessed less frequently decay faster."""
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     item_ids = list(context.memory_items.keys())[:3]
@@ -458,9 +470,10 @@ def check_access_frequency_decay(context):
 def check_relationship_decay(context):
     """Check that items with more relationships decay slower."""
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     item_ids = list(context.memory_items.keys())
@@ -489,9 +502,10 @@ def check_relationship_decay(context):
 def check_time_based_decay(context):
     """Items with older access times should have lower confidence."""
     from rdflib import URIRef
+
     from devsynth.application.memory.adapters.graph_memory_adapter import (
-        MEMORY,
         DEVSYNTH,
+        MEMORY,
     )
 
     item_ids = list(context.memory_items.keys())
@@ -532,7 +546,11 @@ def have_chromadb_adapter(context):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        'I integrate the GraphMemoryAdapter with the TinyDBMemoryAdapter in "{mode}" mode'    ))
+@when(
+    parsers.parse(
+        'I integrate the GraphMemoryAdapter with the TinyDBMemoryAdapter in "{mode}" mode'
+    )
+)
 def integrate_with_tinydb(context, mode):
     """Integrate the GraphMemoryAdapter with the TinyDBMemoryAdapter."""
     # Store some items in the graph adapter
@@ -562,7 +580,11 @@ def integrate_with_tinydb(context, mode):
 
 
 @pytest.mark.medium
-@when(    parsers.parse(        'I integrate the GraphMemoryAdapter with the ChromaDBVectorStore in "{mode}" mode'    ))
+@when(
+    parsers.parse(
+        'I integrate the GraphMemoryAdapter with the ChromaDBVectorStore in "{mode}" mode'
+    )
+)
 def integrate_with_chromadb(context, mode):
     """Integrate the GraphMemoryAdapter with the ChromaDBVectorStore."""
     # Store some items in the graph adapter
@@ -591,7 +613,9 @@ def integrate_with_chromadb(context, mode):
 
 
 @pytest.mark.medium
-@then(    "memory items from the GraphMemoryAdapter should be exported to the TinyDBMemoryAdapter")
+@then(
+    "memory items from the GraphMemoryAdapter should be exported to the TinyDBMemoryAdapter"
+)
 def check_graph_to_tinydb_export(context):
     """Check that memory items from the GraphMemoryAdapter were exported to the TinyDBMemoryAdapter."""
     for i in range(3):
@@ -606,7 +630,9 @@ def check_graph_to_tinydb_export(context):
 
 
 @pytest.mark.medium
-@then(    "memory items from the TinyDBMemoryAdapter should be imported to the GraphMemoryAdapter")
+@then(
+    "memory items from the TinyDBMemoryAdapter should be imported to the GraphMemoryAdapter"
+)
 def check_tinydb_to_graph_import(context):
     """Check that memory items from the TinyDBMemoryAdapter were imported to the GraphMemoryAdapter."""
     for i in range(3):

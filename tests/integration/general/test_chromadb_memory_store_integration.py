@@ -4,11 +4,11 @@ from unittest.mock import patch
 
 import pytest
 
+pytest.importorskip("chromadb.api")
+import chromadb  # noqa: F401
+
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-pytest.importorskip("chromadb")
-import chromadb  # noqa: F401
 
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
