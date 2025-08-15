@@ -15,7 +15,7 @@ last_reviewed: "2025-08-05"
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
 
 # DevSynth
-![Coverage](https://img.shields.io/badge/coverage-0%25-red.svg)
+![Coverage](https://img.shields.io/badge/coverage-9%25-red.svg)
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
