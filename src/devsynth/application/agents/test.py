@@ -5,13 +5,36 @@ from typing import Any, Dict, List
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.testing.generation import (
+    scaffold_integration_tests as _scaffold_integration_tests,
+)
+from devsynth.testing.generation import (
+    write_scaffolded_tests as _write_scaffolded_tests,
+)
 
 from .base import BaseAgent
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
-from devsynth.testing.generation import scaffold_integration_tests as generate_scaffolds
-from devsynth.testing.generation import write_scaffolded_tests
+
+__all__ = ["TestAgent", "scaffold_integration_tests", "write_scaffolded_tests"]
+
+
+def scaffold_integration_tests(test_names: List[str]) -> Dict[str, str]:
+    """Public hook for generating placeholder integration test modules.
+
+    This function re-exports :func:`devsynth.testing.generation.scaffold_integration_tests`
+    so callers can generate integration test scaffolds without instantiating
+    :class:`TestAgent`.
+    """
+
+    return _scaffold_integration_tests(test_names)
+
+
+def write_scaffolded_tests(directory: Path, test_names: List[str]) -> Dict[Path, str]:
+    """Public hook for writing placeholder integration test modules to disk."""
+
+    return _write_scaffolded_tests(directory, test_names)
 
 
 class TestAgent(BaseAgent):
@@ -40,7 +63,7 @@ class TestAgent(BaseAgent):
         if output_dir is not None:
             written = write_scaffolded_tests(output_dir, names)
             return {path.name: content for path, content in written.items()}
-        return generate_scaffolds(names)
+        return _scaffold_integration_tests(names)
 
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce tests."""
@@ -72,7 +95,10 @@ class TestAgent(BaseAgent):
 
         # Scaffold placeholder integration tests if names are provided
         integration_names = inputs.get("integration_test_names", [])
-        output_dir = Path("tests/integration/generated_tests")
+        output_dir_input = inputs.get(
+            "integration_output_dir", "tests/integration/generated_tests"
+        )
+        output_dir = Path(output_dir_input)
         integration_tests = self.scaffold_integration_tests(
             integration_names, output_dir=output_dir
         )
