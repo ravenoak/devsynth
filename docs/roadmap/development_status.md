@@ -406,7 +406,7 @@ The completion of Phase 1 produced several key artifacts:
 7. **Metrics Commands Implemented**:
    - Added `alignment_metrics` and `test_metrics` CLI commands
    - Commands generate alignment and test-first development reports
-   - Latest coverage run reports approximately **25%** line coverage across the codebase, and CI now enforces a minimum 25% coverage threshold via `pytest.ini`.
+   - Latest coverage run reports approximately **9%** line coverage across the codebase, and CI now enforces a minimum 25% coverage threshold via `pytest.ini`.
 
 ### Remaining Test Failures
 
@@ -415,7 +415,7 @@ Most failures occur in the Web UI requirements wizard and the Kuzu-backed memory
 
 ### Test Failure Summary
 
-The latest run executed **1,031** tests: **584** passed, **355** failed, and **89** were skipped. Test collection triggered **3** errors. WSDE collaboration and memory integration tests continue to fail and will be tracked in upcoming sprint reports.
+The latest run executed **1** test: **1** passed, **0** failed, and **0** were skipped. Test collection triggered **0** errors. WSDE collaboration and memory integration tests continue to fail and will be tracked in upcoming sprint reports.
 
 
 ## Maintenance Strategy

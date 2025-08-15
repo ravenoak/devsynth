@@ -39,7 +39,6 @@ def check_workflow_success(command_context):
     assert command_context.get("exit_code", 1) == 0
 
 
-@pytest.mark.medium
 @given("alignment metrics calculation fails")
 def metrics_fail(command_context):
     """Simulate a failure in the alignment metrics command."""
@@ -47,7 +46,6 @@ def metrics_fail(command_context):
     command_context["force_error"] = True
 
 
-@pytest.mark.medium
 @then("the system should display alignment metrics")
 def check_metrics_output(command_context):
     """Verify that alignment metrics were printed."""
