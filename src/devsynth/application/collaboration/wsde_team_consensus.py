@@ -13,8 +13,13 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
+from devsynth.application.edrr.edrr_phase_transitions import (
+    MetricType,
+    calculate_enhanced_quality_score,
+)
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.methodology.base import Phase
 
 if TYPE_CHECKING:  # pragma: no cover - for type hints only
     from devsynth.domain.models.wsde_facade import WSDETeam
@@ -28,12 +33,15 @@ class ConsensusBuildingMixin:
     generating conflict resolution synthesis, and tracking decisions.
     """
 
-    def build_consensus(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def build_consensus(
+        self, task: Dict[str, Any], phase: Optional[Phase] = None
+    ) -> Dict[str, Any]:
         """
         Build consensus among team members for a given task.
 
         Args:
             task: The task to build consensus for
+            phase: Optional EDRR phase providing context for transition metrics
 
         Returns:
             The consensus result
@@ -92,6 +100,7 @@ class ConsensusBuildingMixin:
 
         # Identify conflicts in opinions
         conflicts = self._identify_conflicts(task)
+        conflict_count = len(conflicts)
 
         # Generate consensus result
         if conflicts:
@@ -101,7 +110,8 @@ class ConsensusBuildingMixin:
             consensus_result = {
                 "task_id": task["id"],
                 "method": "conflict_resolution_synthesis",
-                "conflicts_identified": len(conflicts),
+                "conflicts": conflicts,
+                "conflicts_identified": conflict_count,
                 "synthesis": synthesis,
                 "agent_opinions": agent_opinions,
                 "timestamp": datetime.now().isoformat(),
@@ -119,6 +129,8 @@ class ConsensusBuildingMixin:
                 "method": "majority_opinion",
                 "majority_opinion": majority_opinion,
                 "agent_opinions": agent_opinions,
+                "conflicts": conflicts,
+                "conflicts_identified": conflict_count,
                 "timestamp": datetime.now().isoformat(),
             }
 
@@ -128,6 +140,19 @@ class ConsensusBuildingMixin:
         # Generate stakeholder explanation
         explanation = self._generate_stakeholder_explanation(task, consensus_result)
         consensus_result["stakeholder_explanation"] = explanation
+
+        # Update phase transition metrics if available
+        if (
+            phase is not None
+            and hasattr(self, "phase_metrics")
+            and self.phase_metrics is not None
+        ):
+            existing = self.phase_metrics.get_phase_metrics(phase) or {}
+            existing[MetricType.CONFLICTS.value] = conflict_count
+            existing[MetricType.QUALITY.value] = calculate_enhanced_quality_score(
+                consensus_result
+            )
+            self.phase_metrics.metrics[phase.name] = existing
 
         return consensus_result
 
