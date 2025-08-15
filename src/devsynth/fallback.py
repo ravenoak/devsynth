@@ -306,17 +306,35 @@ def retry_with_exponential_backoff(
                             inc_retry_stat(func.__name__, "abort")
                         raise
 
-                    if cb_list and not all(cb(e, num_retries) for cb in cb_list):
-                        logger.warning(
-                            f"Not retrying {func.__name__} due to condition callback policy",
-                            error=e,
-                            function=func.__name__,
-                        )
-                        if track_metrics:
-                            inc_retry("abort")
-                            inc_retry_error(e.__class__.__name__)
-                            inc_retry_stat(func.__name__, "abort")
-                        raise
+                    if cb_list:
+                        cb_results: List[bool] = []
+                        for cb in cb_list:
+                            try:
+                                result = cb(e, num_retries)
+                            except Exception as cb_error:
+                                logger.warning(
+                                    f"Error in condition callback {getattr(cb, '__name__', ANONYMOUS_CONDITION)}: {cb_error}",
+                                    error=cb_error,
+                                    function=func.__name__,
+                                )
+                                result = False
+                            if not result and track_metrics:
+                                inc_retry_condition(
+                                    getattr(cb, "__name__", ANONYMOUS_CONDITION)
+                                )
+                            cb_results.append(result)
+
+                        if not all(cb_results):
+                            logger.warning(
+                                f"Not retrying {func.__name__} due to condition callback policy",
+                                error=e,
+                                function=func.__name__,
+                            )
+                            if track_metrics:
+                                inc_retry("abort")
+                                inc_retry_error(e.__class__.__name__)
+                                inc_retry_stat(func.__name__, "abort")
+                            raise
 
                     num_retries += 1
                     if num_retries > max_retries:

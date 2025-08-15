@@ -9,7 +9,18 @@ import logging
 import random
 import time
 from functools import wraps
-from typing import Any, Callable, List, Optional, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 # ``prometheus_client`` is an optional dependency.  Import it lazily and
 # degrade to no-op metrics when unavailable so that memory logic remains
@@ -52,6 +63,9 @@ __all__ = [
     "retry_event_counter",
     "retry_function_counter",
     "retry_error_counter",
+    "retry_condition_counter",
+    "retry_stat_counter",
+    "ANONYMOUS_CONDITION",
     "reset_memory_retry_metrics",
 ]
 
@@ -89,12 +103,28 @@ retry_error_counter = Counter(
     ["error_type"],
 )
 
+retry_condition_counter = Counter(
+    "devsynth_memory_retry_conditions_total",
+    "Memory retry events grouped by failed condition name",
+    ["condition"],
+)
+
+retry_stat_counter = Counter(
+    "devsynth_memory_retry_stat_total",
+    "Memory retry outcomes grouped by function and status",
+    ["function", "status"],
+)
+
+ANONYMOUS_CONDITION = "<anonymous>"
+
 
 def reset_memory_retry_metrics() -> None:
     """Reset Prometheus counters for memory retries."""
     retry_event_counter.clear()
     retry_function_counter.clear()
     retry_error_counter.clear()
+    retry_condition_counter.clear()
+    retry_stat_counter.clear()
 
 
 def retry_with_backoff(
@@ -106,6 +136,12 @@ def retry_with_backoff(
     exceptions_to_retry: Optional[List[Type[Exception]]] = None,
     logger: Optional[logging.Logger] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    retry_conditions: Optional[
+        Union[
+            List[Union[Callable[[Exception], bool], str]],
+            Dict[str, Union[Callable[[Exception], bool], str]],
+        ]
+    ] = None,
     track_metrics: bool = True,
     circuit_breaker_name: Optional[str] = None,
     circuit_breaker_failure_threshold: int = 3,
@@ -124,6 +160,9 @@ def retry_with_backoff(
         logger: Optional logger instance
         condition_callbacks: Optional list of callbacks invoked after each
             exception to determine if retry should continue
+        retry_conditions: Optional list or dict of additional conditions that
+            must evaluate to ``True`` for retries to continue. String entries
+            are treated as substrings that must appear in the exception message.
         track_metrics: Whether to track Prometheus metrics
         circuit_breaker_name: Name of circuit breaker to use for protecting the
             wrapped function. If provided, retries abort when the circuit
@@ -148,6 +187,33 @@ def retry_with_backoff(
             backoff = initial_backoff
             last_exception: Optional[Exception] = None
             callbacks = condition_callbacks or []
+            anonymous_conditions: List[Callable[[Exception], bool]] = []
+            named_conditions: List[Tuple[str, Callable[[Exception], bool]]] = []
+            if retry_conditions:
+                if isinstance(retry_conditions, dict):
+                    for name, cond in retry_conditions.items():
+                        if callable(cond):
+                            named_conditions.append((name, cond))
+                        elif isinstance(cond, str):
+                            named_conditions.append(
+                                (name, lambda exc, substr=cond: substr in str(exc))
+                            )
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "retry_conditions values must be callables or strings"
+                            )
+                else:
+                    for cond in retry_conditions:
+                        if callable(cond):
+                            anonymous_conditions.append(cond)
+                        elif isinstance(cond, str):
+                            anonymous_conditions.append(
+                                lambda exc, substr=cond: substr in str(exc)
+                            )
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "retry_conditions must be callables or strings"
+                            )
             cb: Optional[CircuitBreaker] = None
             if circuit_breaker_name:
                 registry = get_circuit_breaker_registry()
@@ -169,6 +235,9 @@ def retry_with_backoff(
                         result = func(*args, **kwargs)
                     if track_metrics:
                         retry_event_counter.labels(status="success").inc()
+                        retry_stat_counter.labels(
+                            function=func_name, status="success"
+                        ).inc()
                     return result
                 except CircuitBreakerOpenError as e:
                     logger.warning(
@@ -177,30 +246,96 @@ def retry_with_backoff(
                     if track_metrics:
                         retry_event_counter.labels(status="abort").inc()
                         retry_error_counter.labels(error_type=type(e).__name__).inc()
+                        retry_stat_counter.labels(
+                            function=func_name, status="abort"
+                        ).inc()
                     raise
                 except Exception as e:
-                    # Check if we should retry this exception
                     if exceptions_to_retry is not None and not any(
                         isinstance(e, exc) for exc in exceptions_to_retry
                     ):
                         logger.warning(
-                            f"Exception {type(e).__name__} not in retry list, re-raising"
+                            f"Exception {type(e).__name__} not in retry list, re-raising",
                         )
                         if track_metrics:
                             retry_event_counter.labels(status="abort").inc()
                             retry_error_counter.labels(
                                 error_type=type(e).__name__
                             ).inc()
+                            retry_stat_counter.labels(
+                                function=func_name, status="abort"
+                            ).inc()
                         raise
 
-                    if callbacks and not all(cb(e, retry_count) for cb in callbacks):
+                    for name, cond in named_conditions:
+                        if not cond(e):
+                            logger.warning(
+                                f"Not retrying {func_name} due to retry_conditions policy",
+                                error=e,
+                                function=func_name,
+                                condition=name,
+                            )
+                            if track_metrics:
+                                retry_event_counter.labels(status="abort").inc()
+                                retry_error_counter.labels(
+                                    error_type=type(e).__name__
+                                ).inc()
+                                retry_condition_counter.labels(condition=name).inc()
+                                retry_stat_counter.labels(
+                                    function=func_name, status="abort"
+                                ).inc()
+                            raise
+
+                    if anonymous_conditions and not all(
+                        cond(e) for cond in anonymous_conditions
+                    ):
+                        logger.warning(
+                            f"Not retrying {func_name} due to retry_conditions policy",
+                            error=e,
+                            function=func_name,
+                        )
                         if track_metrics:
                             retry_event_counter.labels(status="abort").inc()
                             retry_error_counter.labels(
                                 error_type=type(e).__name__
                             ).inc()
+                            retry_condition_counter.labels(
+                                condition=ANONYMOUS_CONDITION
+                            ).inc()
+                            retry_stat_counter.labels(
+                                function=func_name, status="abort"
+                            ).inc()
                         raise
 
+                    if callbacks:
+                        cb_results: List[bool] = []
+                        for cb_fn in callbacks:
+                            try:
+                                res = cb_fn(e, retry_count)
+                            except Exception as cb_error:
+                                logger.warning(
+                                    f"Error in condition callback {getattr(cb_fn, '__name__', ANONYMOUS_CONDITION)}: {cb_error}",
+                                    error=cb_error,
+                                    function=func_name,
+                                )
+                                res = False
+                            if not res and track_metrics:
+                                retry_condition_counter.labels(
+                                    condition=getattr(
+                                        cb_fn, "__name__", ANONYMOUS_CONDITION
+                                    )
+                                ).inc()
+                            cb_results.append(res)
+                        if not all(cb_results):
+                            if track_metrics:
+                                retry_event_counter.labels(status="abort").inc()
+                                retry_error_counter.labels(
+                                    error_type=type(e).__name__
+                                ).inc()
+                                retry_stat_counter.labels(
+                                    function=func_name, status="abort"
+                                ).inc()
+                            raise
                     last_exception = e
                     retry_count += 1
 
@@ -212,6 +347,9 @@ def retry_with_backoff(
                             retry_event_counter.labels(status="failure").inc()
                             retry_error_counter.labels(
                                 error_type=type(e).__name__
+                            ).inc()
+                            retry_stat_counter.labels(
+                                function=func_name, status="failure"
                             ).inc()
                         break
 
@@ -230,6 +368,9 @@ def retry_with_backoff(
                         retry_event_counter.labels(status="attempt").inc()
                         retry_function_counter.labels(function=func_name).inc()
                         retry_error_counter.labels(error_type=type(e).__name__).inc()
+                        retry_stat_counter.labels(
+                            function=func_name, status="attempt"
+                        ).inc()
 
                     # Wait before retrying
                     time.sleep(actual_backoff)
@@ -245,6 +386,7 @@ def retry_with_backoff(
                 retry_error_counter.labels(
                     error_type=type(last_exception).__name__
                 ).inc()
+                retry_stat_counter.labels(function=func_name, status="failure").inc()
             raise RetryError(error_message, last_exception)
 
         return cast(Callable[..., T], wrapper)
@@ -262,6 +404,12 @@ def retry_operation(
     exceptions_to_retry: Optional[List[Type[Exception]]] = None,
     logger: Optional[logging.Logger] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    retry_conditions: Optional[
+        Union[
+            List[Union[Callable[[Exception], bool], str]],
+            Dict[str, Union[Callable[[Exception], bool], str]],
+        ]
+    ] = None,
     track_metrics: bool = True,
     circuit_breaker_name: Optional[str] = None,
     circuit_breaker_failure_threshold: int = 3,
@@ -280,6 +428,7 @@ def retry_operation(
         exceptions_to_retry=exceptions_to_retry,
         logger=logger,
         condition_callbacks=condition_callbacks,
+        retry_conditions=retry_conditions,
         track_metrics=track_metrics,
         circuit_breaker_name=circuit_breaker_name,
         circuit_breaker_failure_threshold=circuit_breaker_failure_threshold,
@@ -300,6 +449,12 @@ class RetryConfig:
         jitter: bool = True,
         exceptions_to_retry: Optional[List[Type[Exception]]] = None,
         condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+        retry_conditions: Optional[
+            Union[
+                List[Union[Callable[[Exception], bool], str]],
+                Dict[str, Union[Callable[[Exception], bool], str]],
+            ]
+        ] = None,
         circuit_breaker_name: Optional[str] = None,
         circuit_breaker_failure_threshold: int = 3,
         circuit_breaker_reset_timeout: float = 60.0,
@@ -315,6 +470,8 @@ class RetryConfig:
             jitter: Whether to add random jitter to backoff time
             exceptions_to_retry: List of exception types to retry on (defaults to all exceptions)
             condition_callbacks: Optional list of callbacks to determine if retry should continue
+            retry_conditions: Optional list or dict of additional conditions that must evaluate
+                to ``True`` for retries to continue
             circuit_breaker_name: Optional name of circuit breaker to use
             circuit_breaker_failure_threshold: Failures allowed before opening circuit breaker
             circuit_breaker_reset_timeout: Seconds before circuit breaker tries to close
@@ -326,6 +483,7 @@ class RetryConfig:
         self.jitter = jitter
         self.exceptions_to_retry = exceptions_to_retry
         self.condition_callbacks = condition_callbacks
+        self.retry_conditions = retry_conditions
         self.circuit_breaker_name = circuit_breaker_name
         self.circuit_breaker_failure_threshold = circuit_breaker_failure_threshold
         self.circuit_breaker_reset_timeout = circuit_breaker_reset_timeout
@@ -407,6 +565,7 @@ def with_retry(
         jitter=config.jitter,
         exceptions_to_retry=config.exceptions_to_retry,
         condition_callbacks=config.condition_callbacks,
+        retry_conditions=config.retry_conditions,
         circuit_breaker_name=config.circuit_breaker_name,
         circuit_breaker_failure_threshold=config.circuit_breaker_failure_threshold,
         circuit_breaker_reset_timeout=config.circuit_breaker_reset_timeout,
