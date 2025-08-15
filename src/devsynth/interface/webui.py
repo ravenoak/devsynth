@@ -1019,14 +1019,16 @@ class WebUI(UXBridge):
         current_step = wizard_state.get_current_step()
         col1, col2, col3 = st.columns(3)
 
-        if current_step > 1 and col1.button("Previous", key="previous_button"):
+        if current_step > 1 and col1.button(
+            "Previous", key=f"previous_button_{current_step}"
+        ):
             if not wizard_manager.previous_step():
                 self.display_result(
                     "Error navigating to previous step", message_type="error"
                 )
 
         if current_step < wizard_state.get_total_steps():
-            if col2.button("Next", key="next_button"):
+            if col2.button("Next", key=f"next_button_{current_step}"):
                 if self._validate_requirements_step(wizard_state, current_step):
                     if not wizard_manager.next_step():
                         self.display_result(
@@ -1038,14 +1040,14 @@ class WebUI(UXBridge):
                     )
 
         if current_step == wizard_state.get_total_steps():
-            if col2.button("Save Requirements", key="save_button"):
+            if col2.button("Save Requirements", key=f"save_button_{current_step}"):
                 if self._validate_requirements_step(wizard_state, current_step):
                     return self._save_requirements(wizard_manager, temp_keys)
                 self.display_result(
                     "Please fill in all required fields", message_type="error"
                 )
 
-        if col3.button("Cancel", key="cancel_button"):
+        if col3.button("Cancel", key=f"cancel_button_{current_step}"):
             if not wizard_manager.reset_wizard_state():
                 logger.warning("Failed to reset requirements_wizard wizard state")
             logger.debug("Reset requirements_wizard wizard state")

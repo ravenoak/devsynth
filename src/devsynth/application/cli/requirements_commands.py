@@ -918,6 +918,24 @@ def wizard_cmd(
             else:
                 bridge.display_result("[yellow]Already at first step.[/yellow]")
             continue
+        if key in {"title", "description"} and not reply.strip():
+            if cfg.non_interactive:
+                bridge.display_result(
+                    f"[red]{message} is required.[/red]", message_type="error"
+                )
+                return
+            bridge.display_result(
+                "[red]This field is required.[/red]", message_type="error"
+            )
+            continue
+        if choices and reply not in choices:
+            bridge.display_result(
+                f"[red]Invalid choice. Options: {', '.join(choices)}[/red]",
+                message_type="error",
+            )
+            if cfg.non_interactive:
+                return
+            continue
         responses[key] = reply
         index += 1
 
