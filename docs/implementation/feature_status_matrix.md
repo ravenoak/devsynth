@@ -51,7 +51,7 @@ Each feature is scored on two dimensions:
 | Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration are stable. Micro-cycle helpers and recovery hooks added. Remaining tasks are tracked in [issue 104](../../issues/104.md).
+| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration are stable. Recovery hooks and threshold helpers now validated by unit tests. Remaining tasks are tracked in [issue 104](../../issues/104.md).
 | WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting validated with dynamic role reassignment. Summary utilities for voting results implemented. Coordination with the EDRR cycle is still under review (see [issue 104](../../issues/104.md)).  |
 | Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented. Tracked in [issue 105](../../issues/105.md) |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |

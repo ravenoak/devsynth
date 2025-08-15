@@ -5,11 +5,11 @@ This module provides enhanced phase transition logic, quality scoring, and metri
 collection for the EDRR (Expand, Differentiate, Refine, Reflect) framework.
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union, Set
 import re
 import statistics
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from devsynth.core import CoreValues, check_report_for_value_conflicts
 from devsynth.exceptions import DevSynthError
@@ -21,11 +21,13 @@ logger = DevSynthLogger(__name__)
 
 class PhaseTransitionError(DevSynthError):
     """Error raised when there's an issue with phase transitions."""
+
     pass
 
 
 class QualityThreshold(Enum):
     """Quality thresholds for phase transitions."""
+
     LOW = 0.3
     MEDIUM = 0.5
     HIGH = 0.7
@@ -34,6 +36,7 @@ class QualityThreshold(Enum):
 
 class MetricType(Enum):
     """Types of metrics collected during phase transitions."""
+
     QUALITY = "quality"
     COMPLETENESS = "completeness"
     CONSISTENCY = "consistency"
@@ -88,6 +91,7 @@ class PhaseTransitionMetrics:
         }
         self.start_times = {}
         self.history = []
+        self.recovery_hooks = {phase: [] for phase in self.metrics}
 
     def start_phase(self, phase: Phase) -> None:
         """
@@ -97,12 +101,14 @@ class PhaseTransitionMetrics:
             phase: The phase that is starting
         """
         self.start_times[phase.name] = datetime.now()
-        self.history.append({
-            "timestamp": datetime.now().isoformat(),
-            "phase": phase.name,
-            "action": "start",
-            "metrics": {},
-        })
+        self.history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "phase": phase.name,
+                "action": "start",
+                "metrics": {},
+            }
+        )
 
     def end_phase(self, phase: Phase, metrics: Dict[str, Any]) -> None:
         """
@@ -121,12 +127,14 @@ class PhaseTransitionMetrics:
 
         self.metrics[phase.name] = metrics
 
-        self.history.append({
-            "timestamp": end_time.isoformat(),
-            "phase": phase.name,
-            "action": "end",
-            "metrics": metrics,
-        })
+        self.history.append(
+            {
+                "timestamp": end_time.isoformat(),
+                "phase": phase.name,
+                "action": "end",
+                "metrics": metrics,
+            }
+        )
 
     def get_phase_metrics(self, phase: Phase) -> Dict[str, Any]:
         """
@@ -158,6 +166,67 @@ class PhaseTransitionMetrics:
         """
         return self.history
 
+    def register_recovery_hook(self, phase: Phase, hook: Any) -> None:
+        """Register a recovery hook for ``phase``.
+
+        Hooks receive the metrics dictionary for the phase and may mutate it
+        in-place.  A hook should return a dictionary. If ``{"recovered": True}``
+        is returned, no further hooks will be executed.
+        """
+
+        self.recovery_hooks.setdefault(phase.name, []).append(hook)
+
+    def _check_thresholds(
+        self, metrics: Dict[str, Any], thresholds: Dict[str, Any]
+    ) -> Tuple[bool, Dict[str, Any]]:
+        reasons: Dict[str, Any] = {}
+        all_met = True
+        for metric_type, threshold in thresholds.items():
+            if metric_type not in metrics:
+                reasons[metric_type] = "Missing metric"
+                all_met = False
+                continue
+
+            metric_value = metrics[metric_type]
+            if metric_type == MetricType.CONFLICTS.value:
+                if metric_value > threshold:
+                    reasons[metric_type] = (
+                        f"Too many conflicts: {metric_value} > {threshold}"
+                    )
+                    all_met = False
+                else:
+                    reasons[metric_type] = (
+                        f"Conflicts within threshold: {metric_value} <= {threshold}"
+                    )
+            else:
+                if metric_value < threshold:
+                    reasons[metric_type] = (
+                        f"Below threshold: {metric_value} < {threshold}"
+                    )
+                    all_met = False
+                else:
+                    reasons[metric_type] = (
+                        f"Meets threshold: {metric_value} >= {threshold}"
+                    )
+        return all_met, reasons
+
+    def _execute_recovery_hooks(self, phase: Phase) -> Dict[str, Any]:
+        hooks = self.recovery_hooks.get(phase.name, [])
+        metrics = self.metrics.get(phase.name, {})
+        info: Dict[str, Any] = {"recovered": False}
+        for hook in hooks:
+            try:
+                result = hook(metrics)
+                if isinstance(result, dict):
+                    metrics.update(result.get("metrics", {}))
+                    info.update({k: v for k, v in result.items() if k != "metrics"})
+                    if result.get("recovered"):
+                        info["recovered"] = True
+                        break
+            except Exception as e:  # pragma: no cover - defensive
+                logger.debug(f"Recovery hook failed: {e}")
+        return info
+
     def should_transition(self, phase: Phase) -> Tuple[bool, Dict[str, Any]]:
         """
         Determine if a phase should transition to the next phase based on metrics.
@@ -173,37 +242,20 @@ class PhaseTransitionMetrics:
         if phase.name not in self.metrics:
             return False, {"reason": "No metrics available for phase"}
 
-        phase_metrics = self.metrics[phase.name]
-        phase_thresholds = self.thresholds[phase.name]
+        metrics = self.metrics[phase.name]
+        thresholds = self.thresholds[phase.name]
+        all_met, reasons = self._check_thresholds(metrics, thresholds)
+        if all_met:
+            return True, reasons
 
-        # Check if all required metrics meet their thresholds
-        reasons = {}
-        all_thresholds_met = True
+        recovery_info = self._execute_recovery_hooks(phase)
+        if recovery_info.get("recovered"):
+            all_met, reasons = self._check_thresholds(metrics, thresholds)
+            reasons["recovery"] = "metrics recovered"
+            return all_met, reasons
 
-        for metric_type, threshold in phase_thresholds.items():
-            if metric_type not in phase_metrics:
-                reasons[metric_type] = "Missing metric"
-                all_thresholds_met = False
-                continue
-
-            metric_value = phase_metrics[metric_type]
-
-            # For conflicts, lower is better
-            if metric_type == MetricType.CONFLICTS.value:
-                if metric_value > threshold:
-                    reasons[metric_type] = f"Too many conflicts: {metric_value} > {threshold}"
-                    all_thresholds_met = False
-                else:
-                    reasons[metric_type] = f"Conflicts within threshold: {metric_value} <= {threshold}"
-            # For other metrics, higher is better
-            else:
-                if metric_value < threshold:
-                    reasons[metric_type] = f"Below threshold: {metric_value} < {threshold}"
-                    all_thresholds_met = False
-                else:
-                    reasons[metric_type] = f"Meets threshold: {metric_value} >= {threshold}"
-
-        return all_thresholds_met, reasons
+        reasons["recovery"] = "recovery hooks did not recover"
+        return False, reasons
 
 
 def calculate_enhanced_quality_score(result: Any) -> float:
@@ -262,10 +314,10 @@ def calculate_enhanced_quality_score(result: Any) -> float:
 
         # Combine scores with appropriate weights
         weighted_score = (
-            completeness_weight * completeness_score +
-            consistency_weight * consistency_score +
-            core_values_weight * core_values_score +
-            explicit_weight * explicit_score
+            completeness_weight * completeness_score
+            + consistency_weight * consistency_score
+            + core_values_weight * core_values_score
+            + explicit_weight * explicit_score
         )
 
         # Apply error penalty
@@ -305,7 +357,9 @@ def _calculate_completeness_score(result: Dict[str, Any]) -> float:
     # Normalize and combine these factors
     keys_score = min(1.0, num_keys / 20)  # Normalize to 0-1 range, max at 20 keys
     depth_score = min(1.0, max_depth / 5)  # Normalize to 0-1 range, max at depth 5
-    length_score = min(1.0, content_length / 10000)  # Normalize to 0-1 range, max at 10000 chars
+    length_score = min(
+        1.0, content_length / 10000
+    )  # Normalize to 0-1 range, max at 10000 chars
 
     # Combine scores with weights
     return 0.4 * keys_score + 0.3 * depth_score + 0.3 * length_score
@@ -384,7 +438,9 @@ def _calculate_consistency_score(result: Dict[str, Any]) -> float:
     for key1, key2 in important_key_pairs:
         if key1 in result and key2 in result:
             # Calculate similarity between the two values
-            similarity = _calculate_text_similarity(str(result[key1]), str(result[key2]))
+            similarity = _calculate_text_similarity(
+                str(result[key1]), str(result[key2])
+            )
             consistency_scores.append(similarity)
 
     # If we have no consistency scores, return a default value
@@ -407,8 +463,8 @@ def _calculate_text_similarity(text1: str, text2: str) -> float:
         A similarity score between 0 and 1
     """
     # Extract words from both texts
-    words1 = set(re.findall(r'\b\w+\b', text1.lower()))
-    words2 = set(re.findall(r'\b\w+\b', text2.lower()))
+    words1 = set(re.findall(r"\b\w+\b", text1.lower()))
+    words2 = set(re.findall(r"\b\w+\b", text2.lower()))
 
     # Calculate Jaccard similarity
     if not words1 and not words2:
@@ -449,8 +505,12 @@ def _calculate_core_values_score(result: Dict[str, Any]) -> float:
         for value in core_values:
             try:
                 # Check how many times the value is mentioned
-                value_name = getattr(value, 'name', str(value)).lower()
-                mentions = len(re.findall(r'\b' + re.escape(value_name) + r'\b', result_str.lower()))
+                value_name = getattr(value, "name", str(value)).lower()
+                mentions = len(
+                    re.findall(
+                        r"\b" + re.escape(value_name) + r"\b", result_str.lower()
+                    )
+                )
 
                 # Check for conflicts with this value
                 try:
@@ -460,7 +520,9 @@ def _calculate_core_values_score(result: Dict[str, Any]) -> float:
 
                 # Calculate a score for this value
                 if conflicts:
-                    core_value_scores[value_name] = max(0.0, 0.5 - (0.1 * len(conflicts)))
+                    core_value_scores[value_name] = max(
+                        0.0, 0.5 - (0.1 * len(conflicts))
+                    )
                 else:
                     core_value_scores[value_name] = min(1.0, 0.5 + (0.1 * mentions))
             except Exception as e:
@@ -699,8 +761,12 @@ def _calculate_categorization_quality(results: Dict[str, Any]) -> float:
         return 0.5  # Default score if no categories found
 
     # Calculate score based on number of categories and items
-    category_count_score = min(1.0, len(categories) / 5)  # Normalize to 0-1, max at 5 categories
-    items_per_category_score = min(1.0, items_in_categories / (len(categories) * 3))  # Aim for 3 items per category
+    category_count_score = min(
+        1.0, len(categories) / 5
+    )  # Normalize to 0-1, max at 5 categories
+    items_per_category_score = min(
+        1.0, items_in_categories / (len(categories) * 3)
+    )  # Aim for 3 items per category
 
     return 0.6 * category_count_score + 0.4 * items_per_category_score
 
@@ -738,23 +804,44 @@ def _calculate_code_quality(results: Dict[str, Any]) -> float:
         # Check for common code quality indicators
 
         # 1. Comments
-        comment_lines = len(re.findall(r'^\s*#.*$|^\s*""".*?"""$|^\s*\'\'\'.*?\'\'\'$', code, re.MULTILINE | re.DOTALL))
-        total_lines = len(code.split('\n'))
-        comment_ratio = min(1.0, comment_lines / max(1, total_lines) * 3)  # Aim for 1/3 comments
+        comment_lines = len(
+            re.findall(
+                r'^\s*#.*$|^\s*""".*?"""$|^\s*\'\'\'.*?\'\'\'$',
+                code,
+                re.MULTILINE | re.DOTALL,
+            )
+        )
+        total_lines = len(code.split("\n"))
+        comment_ratio = min(
+            1.0, comment_lines / max(1, total_lines) * 3
+        )  # Aim for 1/3 comments
 
         # 2. Function/method length
-        function_lengths = [len(m.group(0).split('\n')) for m in re.finditer(r'def\s+\w+\s*\(.*?\):\s*\n(?:\s+.*?\n)+', code, re.DOTALL)]
+        function_lengths = [
+            len(m.group(0).split("\n"))
+            for m in re.finditer(
+                r"def\s+\w+\s*\(.*?\):\s*\n(?:\s+.*?\n)+", code, re.DOTALL
+            )
+        ]
         if function_lengths:
             avg_function_length = statistics.mean(function_lengths)
-            function_length_score = max(0.0, 1.0 - (avg_function_length - 15) / 50)  # Penalize functions longer than 15 lines
+            function_length_score = max(
+                0.0, 1.0 - (avg_function_length - 15) / 50
+            )  # Penalize functions longer than 15 lines
         else:
             function_length_score = 0.5
 
         # 3. Error handling
-        error_handling_score = min(1.0, len(re.findall(r'try\s*:|except\s+\w+\s*:|finally\s*:', code)) / 5)
+        error_handling_score = min(
+            1.0, len(re.findall(r"try\s*:|except\s+\w+\s*:|finally\s*:", code)) / 5
+        )
 
         # Combine scores
-        code_quality_score = 0.3 * comment_ratio + 0.4 * function_length_score + 0.3 * error_handling_score
+        code_quality_score = (
+            0.3 * comment_ratio
+            + 0.4 * function_length_score
+            + 0.3 * error_handling_score
+        )
         quality_scores.append(code_quality_score)
 
     return statistics.mean(quality_scores)
@@ -822,7 +909,9 @@ def _calculate_retrospective_quality(results: Dict[str, Any]) -> float:
     # Calculate score based on presence and quantity of retrospective elements
     element_scores = []
     for element, count in retrospective_elements.items():
-        element_scores.append(min(1.0, count / 3))  # Normalize to 0-1, max at 3 items per element
+        element_scores.append(
+            min(1.0, count / 3)
+        )  # Normalize to 0-1, max at 3 items per element
 
     if not element_scores:
         return 0.5  # Default score if no retrospective elements found

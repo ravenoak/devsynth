@@ -117,11 +117,19 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             EDRRCoordinatorError: If the phase dependencies are not met
         """
         try:
-            # Record the start of the phase in metrics
-            self.phase_metrics.start_phase(phase)
+            if self.current_phase is not None:
+                prev_phase = self.current_phase
+                phase_results = self.results.get(prev_phase.name, {})
+                metrics = collect_phase_metrics(prev_phase, phase_results)
+                self.phase_metrics.end_phase(prev_phase, metrics)
+                metadata = {"cycle_id": self.cycle_id, "type": "PHASE_METRICS"}
+                self._safe_store_with_edrr_phase(
+                    metrics, MemoryType.EPISODIC, prev_phase.value, metadata
+                )
 
-            # Call the parent implementation (handles role transitions and memory syncing)
+            self.phase_metrics.start_phase(phase)
             super().progress_to_phase(phase)
+            self._enhanced_maybe_auto_progress()
         except Exception as e:
             logger.error(f"Failed to progress to phase {phase.value}: {e}")
             raise EDRRCoordinatorError(
