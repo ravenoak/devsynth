@@ -26,6 +26,7 @@ This section contains the official specifications for the DevSynth project, outl
 ## Core Specifications
 
 - **[DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md)**: The current authoritative specification for DevSynth.
+- **[Dialectical Reasoning Persists Results to Memory](dialectical_reasoning_memory_persistence.md)**: Dialectical reasoning results stored with EDRR phases.
 - **[EDRR Specification](edrr_cycle_specification.md)**: Specification for the EDRR cycle.
 - **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
 - **[WSDE-EDRR Collaboration Specification](wsde_edrr_collaboration.md)**: Expected phase progression, memory flush behavior, and peer-review mapping.

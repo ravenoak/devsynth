@@ -27,6 +27,7 @@ This index lists all feature files for easy navigation.
 - [general/dbschema_generation.feature](./general/dbschema_generation.feature)
 - [general/delegate_task.feature](./general/delegate_task.feature)
 - [general/delegate_task_consensus.feature](./general/delegate_task_consensus.feature)
+- [general/dialectical_reasoning_memory_persistence.feature](./general/dialectical_reasoning_memory_persistence.feature)
 - [general/devsynth_doctor.feature](./general/devsynth_doctor.feature)
 - [general/docs_fetch.feature](./general/docs_fetch.feature)
 - [general/doctor.feature](./general/doctor.feature)

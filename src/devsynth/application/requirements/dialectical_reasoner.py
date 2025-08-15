@@ -336,7 +336,21 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             response = self.llm_service.query(prompt)
         except Exception as exc:  # pragma: no cover - defensive
             raise ConsensusError(f"Consensus check failed: {exc}") from exc
-        return response.strip().lower().startswith("yes")
+
+        if not isinstance(response, str):
+            raise ConsensusError("Consensus check returned non-textual response")
+
+        normalized = response.strip().lower()
+        if normalized.startswith("yes"):
+            return True
+        if normalized.startswith("no"):
+            return False
+
+        logger.error(
+            "Unexpected consensus response",  # pragma: no cover - log path
+            extra={"response": response, "event": "consensus_unexpected_response"},
+        )
+        raise ConsensusError(f"Invalid consensus response: {response}")
 
     def _generate_thesis(self, change: RequirementChange) -> str:
         """
