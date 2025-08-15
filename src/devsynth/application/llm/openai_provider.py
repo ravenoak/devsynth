@@ -3,21 +3,28 @@ OpenAI Provider implementation for DevSynth.
 This provider connects to the OpenAI API for model inference.
 """
 
-import os
-import json
 import asyncio
+import json
+import os
 import types
-from typing import Any, Dict, List, Optional, Tuple, AsyncGenerator
-from openai import OpenAI, AsyncOpenAI
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
-from ..utils.token_tracker import TokenTracker, TokenLimitExceededError
-from ...domain.interfaces.llm import LLMProvider, StreamingLLMProvider
-from ...config.settings import get_llm_settings
+from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+
+try:  # pragma: no cover - optional dependency
+    from openai import AsyncOpenAI, OpenAI
+    from openai.types.chat import ChatCompletion, ChatCompletionChunk
+except Exception:  # pragma: no cover - graceful fallback
+    OpenAI = AsyncOpenAI = object
+    ChatCompletion = ChatCompletionChunk = object
+
+from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.metrics import inc_provider
+
+from ...config.settings import get_llm_settings
+from ...domain.interfaces.llm import LLMProvider, StreamingLLMProvider
+from ..utils.token_tracker import TokenLimitExceededError, TokenTracker
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
