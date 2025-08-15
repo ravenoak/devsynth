@@ -16,8 +16,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-# Import common test collector
-from . import common_test_collector
+# Import common test collector. Allow execution as a standalone script by
+# falling back to a direct import if relative imports fail.
+try:  # pragma: no cover - import resolution
+    from . import common_test_collector
+except ImportError:  # pragma: no cover - script execution
+    import pathlib
+    import sys
+
+    sys.path.append(str(pathlib.Path(__file__).resolve().parent))
+    import common_test_collector
 
 # Cache directories
 TEST_CACHE_DIR = ".test_cache"

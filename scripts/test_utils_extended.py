@@ -19,7 +19,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 # Import original test_utils and common test collector
-from . import common_test_collector, test_utils
+# Import original test_utils and common test collector. When the module is
+# executed outside a package context, fall back to direct imports.
+try:  # pragma: no cover - import resolution
+    from . import common_test_collector, test_utils
+except ImportError:  # pragma: no cover - script execution
+    import pathlib
+    import sys
+
+    sys.path.append(str(pathlib.Path(__file__).resolve().parent))
+    import common_test_collector
+    import test_utils
 
 # Constants
 PROGRESS_FILE = ".test_categorization_progress.json"

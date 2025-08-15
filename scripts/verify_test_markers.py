@@ -30,8 +30,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-# Import enhanced test utilities
-from . import test_utils_extended as test_utils_ext
+# Import enhanced test utilities. Allow running as a script by falling back to a
+# direct import when relative imports fail.
+try:  # pragma: no cover - import resolution
+    from . import test_utils_extended as test_utils_ext
+except ImportError:  # pragma: no cover - script execution
+    import pathlib
+    import sys
+
+    sys.path.append(str(pathlib.Path(__file__).resolve().parent))
+    import test_utils_extended as test_utils_ext
 
 # Regex patterns for finding and updating markers
 MARKER_PATTERN = re.compile(r"@pytest\.mark\.(fast|medium|slow|isolation)")
