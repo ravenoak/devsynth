@@ -17,9 +17,12 @@ Options:
     --fix                 Fix marker issues automatically
     --report              Generate a report of marker issues
     --report-file FILE    File to save the report to (default: test_markers_report.json)
+    --timeout SECONDS     Timeout for subprocess calls (default: 30)
+    --workers N           Number of concurrent workers for file verification
 """
 
 import argparse
+import concurrent.futures
 import json
 import os
 import re
@@ -81,6 +84,18 @@ def parse_args():
         "--report-file",
         default="test_markers_report.json",
         help="File to save the report to (default: test_markers_report.json)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        help="Timeout for subprocess calls in seconds (default: 30)",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="Number of concurrent workers for file verification",
     )
     return parser.parse_args()
 
@@ -544,6 +559,7 @@ def verify_directory_markers(
     verbose: bool = False,
     progress_interval: int = 50,
     timeout: Optional[int] = 30,
+    max_workers: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Verify markers in all test files in a directory.
@@ -579,32 +595,41 @@ def verify_directory_markers(
     }
 
     start = time.time()
-    for idx, file_path in enumerate(test_files, 1):
-        file_results = verify_file_markers(file_path, verbose, timeout=timeout)
 
-        # Update overall results
-        results["total_test_functions"] += file_results["test_functions"]
-        results["total_markers"] += file_results["tests_with_markers"]
-        results["total_misaligned_markers"] += len(file_results["misaligned_markers"])
-        results["total_duplicate_markers"] += len(file_results["duplicate_markers"])
+    def process(file_path: Path) -> Tuple[Path, Dict[str, Any]]:
+        return file_path, verify_file_markers(file_path, verbose, timeout=timeout)
 
-        # Update marker counts
-        for marker_type, count in file_results.get("recognized_markers", {}).items():
-            results["marker_counts"][marker_type] = (
-                results["marker_counts"].get(marker_type, 0) + count["file_count"]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(process, fp): fp for fp in test_files}
+        for idx, future in enumerate(concurrent.futures.as_completed(futures), 1):
+            file_path, file_results = future.result()
+
+            results["total_test_functions"] += file_results["test_functions"]
+            results["total_markers"] += file_results["tests_with_markers"]
+            results["total_misaligned_markers"] += len(
+                file_results["misaligned_markers"]
             )
-            if not count.get("recognized", False):
-                results["total_unrecognized_markers"] += count["file_count"]
+            results["total_duplicate_markers"] += len(file_results["duplicate_markers"])
 
-        # Check if file has issues
-        if file_results["issues"]:
-            results["files_with_issues"] += 1
-            results["files"][str(file_path)] = file_results
+            for marker_type, count in file_results.get(
+                "recognized_markers", {}
+            ).items():
+                results["marker_counts"][marker_type] = (
+                    results["marker_counts"].get(marker_type, 0) + count["file_count"]
+                )
+                if not count.get("recognized", False):
+                    results["total_unrecognized_markers"] += count["file_count"]
 
-        if idx % progress_interval == 0:
-            elapsed = time.time() - start
-            print(f"Processed {idx}/{len(test_files)} files ({elapsed:.1f}s elapsed)")
-            start = time.time()
+            if file_results["issues"]:
+                results["files_with_issues"] += 1
+                results["files"][str(file_path)] = file_results
+
+            if idx % progress_interval == 0:
+                elapsed = time.time() - start
+                print(
+                    f"Processed {idx}/{len(test_files)} files ({elapsed:.1f}s elapsed)"
+                )
+                start = time.time()
 
     return results
 
@@ -702,7 +727,12 @@ def main():
     directory = args.module if args.module else args.directory
 
     # Verify markers
-    verification_results = verify_directory_markers(directory, args.verbose)
+    verification_results = verify_directory_markers(
+        directory,
+        args.verbose,
+        timeout=args.timeout,
+        max_workers=args.workers,
+    )
 
     # Print verification summary
     print("\nVerification Summary:")
