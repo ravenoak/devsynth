@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-07-27"
+last_reviewed: "2025-08-15"
 status: active
 tags: [implementation, status, audit, foundation-stabilization]
 title: DevSynth Feature Status Matrix
@@ -122,7 +122,7 @@ Each feature is scored on two dimensions:
 3. Prioritize incomplete features based on user impact and implementation complexity
 4. Develop detailed implementation plans for high-priority features
 
-Current partial implementations include the EDRR framework, WSDE agent collaboration, memory synchronization utilities, deployment automation, the retry mechanism, and the SDLC security policy. Recent CI runs report **0** failing tests and **1** passing test with **0** skipped. Test collection triggered **0** errors. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of failures, blocking `0.1.0-alpha.1`.
+Current partial implementations include the EDRR framework, WSDE agent collaboration, memory synchronization utilities, deployment automation, the retry mechanism, and the SDLC security policy. A recent targeted run of the requirements wizard scenario produced **0** failing tests, **1** passing test, and **14** skipped tests with **0** collection errors. Test metrics identify **5,842** tests across the suite—**3,884** unit, **1,184** integration, **656** behavior, **82** performance, and **36** property—with overall coverage at **14%**. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of failures, blocking `0.1.0-alpha.1`.
 
 
 ## Release Milestones and Coverage Goals
