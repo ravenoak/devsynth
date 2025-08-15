@@ -12,17 +12,17 @@ from unittest.mock import MagicMock, create_autospec, patch
 
 import pytest
 
+pytest.importorskip("chromadb.api")
+import chromadb
+from chromadb.api import ClientAPI
+from chromadb.api.models.Collection import Collection
+
 from devsynth.adapters.chromadb_memory_store import (
     ChromaDBMemoryStore,
     _cleanup_chromadb_clients,
 )
 from devsynth.adapters.provider_system import ProviderError
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-pytest.importorskip("chromadb")
-import chromadb
-from chromadb.api import ClientAPI
-from chromadb.api.models.Collection import Collection
 
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),

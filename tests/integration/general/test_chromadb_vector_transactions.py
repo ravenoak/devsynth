@@ -1,6 +1,6 @@
 import pytest
 
-pytest.importorskip("chromadb")
+pytest.importorskip("chromadb.api")
 
 from devsynth.application.memory.adapters.chromadb_vector_adapter import (
     ChromaDBVectorAdapter,
