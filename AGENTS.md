@@ -48,8 +48,9 @@ See [`docs/policies/documentation_policies.md`](docs/policies/documentation_poli
   `pytest.importorskip("lmstudio")` and use mocks or HTTP stubs to simulate
   responses so unit tests remain deterministic.
 - `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and
-  `slow` markers. Each test must include exactly one of these speed markers.
-  Use the `--speed` option to select a category, e.g. `poetry run pytest --speed=fast -m fast`.
+  `slow` markers. Unmarked tests default to the `medium` category, but authors
+  should explicitly include exactly one speed marker. Use the `--speed` option to
+  select a category, e.g. `poetry run pytest --speed=fast -m fast`.
 - Combine speed markers with context markers like `memory_intensive` when needed.
 
 ## Quick Start

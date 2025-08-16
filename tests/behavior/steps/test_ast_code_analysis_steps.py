@@ -5,15 +5,18 @@ This module implements the step definitions for the AST-based code analysis and 
 feature file, testing the integration between AST-based code analysis and the EDRR workflow.
 """
 
-import pytest
-import uuid
 import logging
-from pytest_bdd import given, when, then, parsers, scenarios
+import uuid
+
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 logger = logging.getLogger(__name__)
 
 # Import the feature file
 scenarios("../features/general/ast_code_analysis.feature")
+
+pytestmark = [pytest.mark.medium]
 
 # Import the modules needed for the steps
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
@@ -22,7 +25,7 @@ from devsynth.application.code_analysis.ast_workflow_integration import (
     AstWorkflowIntegration,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryType, MemoryItem
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.methodology.base import Phase as EDRRPhase
 
 
@@ -578,7 +581,9 @@ class Calculator:
 
 
 @pytest.mark.medium
-@then(    "the system should use AST analysis in the Expand phase to explore implementation options")
+@then(
+    "the system should use AST analysis in the Expand phase to explore implementation options"
+)
 def system_uses_ast_analysis_in_expand_phase(context):
     """Verify that the system uses AST analysis in the Expand phase to explore implementation options."""
     # Use the AST workflow integration to explore implementation options
@@ -590,16 +595,18 @@ def system_uses_ast_analysis_in_expand_phase(context):
 
     # Verify that implementation options were generated
     assert context.implementation_options is not None
-    
+
     # Log the type and content of implementation_options for debugging
     logger.debug(f"Implementation options type: {type(context.implementation_options)}")
     logger.debug(f"Implementation options content: {context.implementation_options}")
-    
+
     # Check if implementation_options is a string (which would cause the TypeError)
     if isinstance(context.implementation_options, str):
         # Convert the string to a list with a single dictionary for compatibility
-        context.implementation_options = [{"name": "current_implementation", "code": context.implementation_options}]
-    
+        context.implementation_options = [
+            {"name": "current_implementation", "code": context.implementation_options}
+        ]
+
     # Verify that implementation options were generated
     assert len(context.implementation_options) > 0
 
@@ -611,7 +618,9 @@ def system_uses_ast_analysis_in_expand_phase(context):
 
 
 @pytest.mark.medium
-@then(    "the system should use AST analysis in the Differentiate phase to evaluate code quality")
+@then(
+    "the system should use AST analysis in the Differentiate phase to evaluate code quality"
+)
 def system_uses_ast_analysis_in_differentiate_phase(context):
     """Verify that the system uses AST analysis in the Differentiate phase to evaluate code quality."""
     # Use the AST workflow integration to evaluate implementation quality
@@ -632,7 +641,9 @@ def system_uses_ast_analysis_in_differentiate_phase(context):
 
 
 @pytest.mark.medium
-@then(    "the system should use AST transformations in the Refine phase to improve the code")
+@then(
+    "the system should use AST transformations in the Refine phase to improve the code"
+)
 def system_uses_ast_transformations_in_refine_phase(context):
     """Verify that the system uses AST transformations in the Refine phase to improve the code."""
     # Use the AST workflow integration to refine the implementation
@@ -650,7 +661,9 @@ def system_uses_ast_transformations_in_refine_phase(context):
 
 
 @pytest.mark.medium
-@then(    "the system should use AST analysis in the Retrospect phase to verify code quality")
+@then(
+    "the system should use AST analysis in the Retrospect phase to verify code quality"
+)
 def system_uses_ast_analysis_in_retrospect_phase(context):
     """Verify that the system uses AST analysis in the Retrospect phase to verify code quality."""
     # Use the AST workflow integration to perform a retrospective
@@ -674,7 +687,9 @@ def system_uses_ast_analysis_in_retrospect_phase(context):
 
 
 @pytest.mark.medium
-@then(    "the memory system should store AST analysis results with appropriate EDRR phase tags")
+@then(
+    "the memory system should store AST analysis results with appropriate EDRR phase tags"
+)
 def memory_system_stores_results_with_edrr_tags(context):
     """Verify that the memory system stores AST analysis results with appropriate EDRR phase tags."""
     # In a real implementation, we would query the memory system for items with EDRR phase tags
