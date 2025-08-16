@@ -35,6 +35,8 @@ from devsynth.methodology.base import Phase
 # Initialize logger
 logger = get_logger(__name__)
 
+# Helper implementations for ingestion phases
+
 
 class ArtifactType(Enum):
     """Types of artifacts that can be discovered during ingestion."""
@@ -476,138 +478,16 @@ class Ingestion:
         return retrospective
 
     def _run_expand_phase(self, dry_run: bool, verbose: bool) -> None:
-        """
-        Run the Expand phase of EDRR: Bottom-up discovery of all artifacts.
+        """Run the Expand phase of EDRR."""
+        from . import phases as ingestion_phases
 
-        This phase discovers all artifacts in the project by scanning the filesystem,
-        parsing code, and extracting metadata.
-        """
-        self.metrics.start_phase(IngestionPhase.EXPAND)
-
-        if verbose:
-            logger.info("Starting Expand phase: Bottom-up discovery of all artifacts")
-
-        try:
-            # 1. Build the project model from the manifest
-            from devsynth.domain.models.project import ProjectModel
-
-            if self.manifest_data is None:
-                # For testing purposes, initialize with an empty dict if not loaded
-                self.manifest_data = {}
-                logger.warning("Manifest data is not loaded. Using empty dictionary.")
-            project_model = ProjectModel(self.project_root, self.manifest_data)
-            project_model.build_model()
-
-            # 2. Store the discovered artifacts
-            model_dict = project_model.to_dict()
-            self.artifacts = model_dict["artifacts"]
-
-            # 3. Update the project graph with the model's graph
-            for relationship in model_dict["relationships"]:
-                source = relationship["source"]
-                target = relationship["target"]
-                metadata = relationship.get("metadata", {})
-
-                self.project_graph.add_node(source)
-                self.project_graph.add_node(target)
-                self.project_graph.add_edge(source, target, **metadata)
-
-            # 4. Update metrics
-            self.metrics.artifacts_discovered = len(self.artifacts)
-
-            # Count artifacts by type
-            for artifact_data in self.artifacts.values():
-                artifact_type_str = artifact_data.get("type", "UNKNOWN")
-                try:
-                    artifact_type = ArtifactType[artifact_type_str]
-                    self.metrics.artifacts_by_type[artifact_type] += 1
-                except (KeyError, ValueError):
-                    # If the type is not recognized, count it as UNKNOWN
-                    self.metrics.artifacts_by_type[ArtifactType.UNKNOWN] += 1
-
-            # 5. Set all artifacts as NEW for the first ingestion
-            for artifact_path in self.artifacts:
-                self.artifacts[artifact_path]["status"] = ArtifactStatus.NEW.name
-                self.metrics.artifacts_by_status[ArtifactStatus.NEW] += 1
-
-            if verbose:
-                logger.info(
-                    f"Discovered {self.metrics.artifacts_discovered} artifacts during Expand phase"
-                )
-                for artifact_type, count in self.metrics.artifacts_by_type.items():
-                    if count > 0:
-                        logger.info(f"  - {artifact_type.name}: {count}")
-
-        except Exception as e:
-            logger.error(f"Error during Expand phase: {e}")
-            self.metrics.errors_encountered += 1
-            raise IngestionError(f"Failed to complete Expand phase: {e}")
+        ingestion_phases.run_expand_phase(self, dry_run, verbose)
 
     def _run_differentiate_phase(self, dry_run: bool, verbose: bool) -> None:
-        """
-        Run the Differentiate phase of EDRR: Validation against manifest and expected structures.
+        """Run the Differentiate phase of EDRR."""
+        from . import phases as ingestion_phases
 
-        This phase validates the discovered artifacts against the manifest and expected
-        project structures, identifying discrepancies and potential issues.
-        """
-        self.metrics.start_phase(IngestionPhase.DIFFERENTIATE)
-
-        if verbose:
-            logger.info(
-                "Starting Differentiate phase: Validation against manifest and expected structures"
-            )
-
-        try:
-            # 1. Check for required directories from manifest
-            if self.manifest_data is None:
-                # For testing purposes, initialize with an empty dict if not loaded
-                self.manifest_data = {}
-                logger.warning("Manifest data is not loaded. Using empty dictionary.")
-            structure = self.manifest_data.get("structure", {})
-            directories = structure.get("directories", {})
-
-            # Check source directories
-            source_dirs = directories.get("source", [])
-            for src_dir in source_dirs:
-                src_path = self.project_root / src_dir
-                if not src_path.exists():
-                    logger.warning(
-                        f"Source directory specified in manifest does not exist: {src_path}"
-                    )
-                    self.metrics.warnings_generated += 1
-
-            # 2. Check for expected artifacts based on project structure type
-            project_structure = self.project_structure
-
-            if project_structure == ProjectStructureType.STANDARD:
-                # For standard projects, check for basic structure
-                self._validate_standard_structure(verbose)
-            elif project_structure == ProjectStructureType.MONOREPO:
-                # For monorepo projects, check for packages
-                self._validate_monorepo_structure(verbose)
-            elif project_structure == ProjectStructureType.FEDERATED:
-                # For federated projects, check for repositories
-                self._validate_federated_structure(verbose)
-            elif project_structure == ProjectStructureType.CUSTOM:
-                # For custom projects, check against custom rules
-                self._validate_custom_structure(verbose)
-
-            # 3. Check for consistency between code, tests, and documentation
-            self._check_code_test_consistency(verbose)
-
-            # 4. Update artifact statuses based on previous state if available
-            if self.previous_state:
-                self._update_artifact_statuses(verbose)
-
-            if verbose:
-                logger.info(
-                    f"Completed Differentiate phase with {self.metrics.warnings_generated} warnings"
-                )
-
-        except Exception as e:
-            logger.error(f"Error during Differentiate phase: {e}")
-            self.metrics.errors_encountered += 1
-            raise IngestionError(f"Failed to complete Differentiate phase: {e}")
+        ingestion_phases.run_differentiate_phase(self, dry_run, verbose)
 
     def _validate_standard_structure(self, verbose: bool) -> None:
         """Validate the structure of a standard single-package project."""
@@ -812,52 +692,10 @@ class Ingestion:
         return current.get("metadata", {}) != previous.get("metadata", {})
 
     def _run_refine_phase(self, dry_run: bool, verbose: bool) -> None:
-        """
-        Run the Refine phase of EDRR: Integration of findings into the project model.
+        """Run the Refine phase of EDRR."""
+        from . import phases as ingestion_phases
 
-        This phase integrates the findings from the previous phases into the project model,
-        updating the knowledge graph and preparing for the retrospect phase.
-        """
-        self.metrics.start_phase(IngestionPhase.REFINE)
-
-        if verbose:
-            logger.info(
-                "Starting Refine phase: Integration of findings into the project model"
-            )
-
-        try:
-            # 1. Resolve conflicts and inconsistencies
-            self._resolve_conflicts(verbose)
-
-            # 2. Update artifact metadata with additional information
-            self._enrich_artifact_metadata(verbose)
-
-            # 3. Identify relationships between artifacts
-            self._identify_relationships(verbose)
-
-            # 4. Prepare data for persistence
-            refined_data = {
-                "project_root": str(self.project_root),
-                "manifest_path": str(self.manifest_path),
-                "project_structure": (
-                    self.project_structure.name if self.project_structure else None
-                ),
-                "artifacts": self.artifacts,
-                "metrics": self.metrics.get_summary(),
-                "timestamp": datetime.now().isoformat(),
-            }
-
-            # 5. Save the refined data if not in dry run mode
-            if not dry_run:
-                self._save_refined_data(refined_data, verbose)
-
-            if verbose:
-                logger.info("Completed Refine phase successfully")
-
-        except Exception as e:
-            logger.error(f"Error during Refine phase: {e}")
-            self.metrics.errors_encountered += 1
-            raise IngestionError(f"Failed to complete Refine phase: {e}")
+        ingestion_phases.run_refine_phase(self, dry_run, verbose)
 
     def _resolve_conflicts(self, verbose: bool) -> None:
         """Resolve conflicts and inconsistencies in the artifact data."""
@@ -1021,51 +859,10 @@ class Ingestion:
             self.metrics.errors_encountered += 1
 
     def _run_retrospect_phase(self, dry_run: bool, verbose: bool) -> None:
-        """
-        Run the Retrospect phase of EDRR: Evaluation and planning for next iteration.
+        """Run the Retrospect phase of EDRR."""
+        from . import phases as ingestion_phases
 
-        This phase evaluates the ingestion process, identifies areas for improvement,
-        and plans for the next iteration.
-        """
-        self.metrics.start_phase(IngestionPhase.RETROSPECT)
-
-        if verbose:
-            logger.info(
-                "Starting Retrospect phase: Evaluation and planning for next iteration"
-            )
-
-        try:
-            # 1. Evaluate the ingestion process
-            evaluation = self._evaluate_ingestion_process(verbose)
-
-            # 2. Identify areas for improvement
-            improvements = self._identify_improvement_areas(verbose)
-
-            # 3. Generate recommendations for next iteration
-            recommendations = self._generate_recommendations(verbose)
-
-            # 4. Generate a retrospective report
-            retrospective = {
-                "timestamp": datetime.now().isoformat(),
-                "project_root": str(self.project_root),
-                "manifest_path": str(self.manifest_path),
-                "metrics": self.metrics.get_summary(),
-                "evaluation": evaluation,
-                "improvements": improvements,
-                "recommendations": recommendations,
-            }
-
-            # 5. Save the retrospective report if not in dry run mode
-            if not dry_run:
-                self._save_retrospective(retrospective, verbose)
-
-            if verbose:
-                logger.info("Completed Retrospect phase successfully")
-
-        except Exception as e:
-            logger.error(f"Error during Retrospect phase: {e}")
-            self.metrics.errors_encountered += 1
-            raise IngestionError(f"Failed to complete Retrospect phase: {e}")
+        ingestion_phases.run_retrospect_phase(self, dry_run, verbose)
 
     def _evaluate_ingestion_process(self, verbose: bool) -> Dict[str, Any]:
         """
