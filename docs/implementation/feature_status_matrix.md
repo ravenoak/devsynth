@@ -52,7 +52,7 @@ Each feature is scored on two dimensions:
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
 | EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration are stable. Recovery hooks and threshold helpers now validated by unit tests. Remaining tasks are tracked in [issue 104](../../issues/Critical-recommendations-follow-up.md).
-| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting validated with dynamic role reassignment. Summary utilities for voting results implemented. Coordination with the EDRR cycle is still under review (see [issue 104](../../issues/Critical-recommendations-follow-up.md)).  |
+| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting validated with dynamic role reassignment. Voting summaries now integrated across EDRR phases (see [issue 104](../../issues/Critical-recommendations-follow-up.md)). |
 | Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented. Tracked in [issue 105](../../issues/Finalize-dialectical-reasoning.md) |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Workflow implemented with revision cycles and integration tests |
