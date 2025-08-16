@@ -2,6 +2,8 @@
 
 Milestone: 0.1.0-alpha.1
 Status: open
+Priority: high
+Dependencies: None
 
 
 Running `deployment/bootstrap_env.sh` followed by
@@ -19,6 +21,7 @@ failing tests, particularly in the code analysis pipeline.
 - Previous runs also reported failures in `test_repo_analyzer` and `test_transformer`.
 - `pip check` confirms no broken requirements.
 - Latest `devsynth run-tests --speed=fast` run produced five errors, including a failure in `tests/behavior/requirements_wizard/test_logging_and_priority_steps.py`.
+- Current fast test run reports a single failure in `tests/unit/interface/test_nicegui_bridge.py::test_session_storage_roundtrip` due to missing session initialization.
 
 ## References
 

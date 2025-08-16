@@ -1,6 +1,8 @@
 # Issue 128: Normalize and verify test markers
 Milestone: 0.1.0-alpha.1
 Status: open
+Priority: high
+Dependencies: [scripts/verify_test_markers.py](../scripts/verify_test_markers.py)
 
 
 The test suite must ensure each test file contains exactly one speed marker (`fast`, `medium`, or `slow`). Some tests may lack markers, have duplicates, or include outdated placement. High-memory tests must be gated with `memory_intensive`.
@@ -28,6 +30,7 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 - A second run after provisioning also hung and required manual interruption.
 - Third attempt after refining the environment provisioning to avoid heavy GPU extras still hung, indicating an internal issue with `verify_test_markers.py`.
 - Updated `verify_test_markers.py` and supporting utilities to handle direct script execution, but verification still hangs and requires manual interruption ([dcc3a755](../commit/dcc3a755)).
+- Latest run with `--workers 1` continues to hang and needs manual termination.
 
 ## References
 
