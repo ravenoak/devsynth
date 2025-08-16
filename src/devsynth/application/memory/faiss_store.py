@@ -4,11 +4,14 @@ FAISS implementation of VectorStore.
 This implementation uses FAISS for efficient vector similarity search.
 """
 
-import os
 import json
+import os
 import uuid
-import tiktoken
+from contextlib import contextmanager
+from copy import deepcopy
+
 import numpy as np
+import tiktoken
 
 try:
     import faiss
@@ -16,19 +19,20 @@ except ImportError as e:  # pragma: no cover - optional dependency
     raise ImportError(
         "FAISSStore requires the 'faiss' package. Install it with 'pip install faiss-cpu' or use the dev extras."
     ) from e
-from typing import Dict, List, Any, Optional, Union, Tuple
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ...domain.interfaces.memory import VectorStore
-from ...domain.models.memory import MemoryVector
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import (
     DevSynthError,
     MemoryError,
-    MemoryStoreError,
     MemoryItemNotFoundError,
+    MemoryStoreError,
 )
+from devsynth.logging_setup import DevSynthLogger
+
+from ...domain.interfaces.memory import VectorStore
+from ...domain.models.memory import MemoryVector
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -69,6 +73,11 @@ class FAISSStore(VectorStore):
 
         # Initialize FAISS index and metadata
         self._initialize_store()
+
+        # Track transaction snapshots.  Each active transaction stores a
+        # cloned FAISS index and metadata dictionary so that rollback can
+        # restore the previous state if an error occurs.
+        self._snapshots: Dict[str, Dict[str, Any]] = {}
 
     def _initialize_store(self):
         """Initialize the FAISS index and metadata store."""
@@ -176,6 +185,66 @@ class FAISSStore(VectorStore):
                 result[key] = value
         return result
 
+    # ------------------------------------------------------------------
+    # Transaction management
+
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a new transaction and return its identifier."""
+
+        tx_id = transaction_id or str(uuid.uuid4())
+        if tx_id in self._snapshots:
+            raise MemoryStoreError(f"Transaction {tx_id} already active")
+        # Clone index and metadata for rollback
+        try:
+            index_clone = faiss.deserialize_index(faiss.serialize_index(self.index))
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error(f"Failed to snapshot FAISS index: {exc}")
+            raise MemoryStoreError("Failed to snapshot FAISS index")
+        self._snapshots[tx_id] = {
+            "index": index_clone,
+            "metadata": deepcopy(self.metadata),
+        }
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a previously started transaction."""
+
+        if transaction_id not in self._snapshots:
+            raise MemoryStoreError(
+                f"Commit requested for unknown transaction {transaction_id}"
+            )
+        self._snapshots.pop(transaction_id, None)
+        self._save_index()
+        self._save_metadata()
+        return True
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback to the snapshot captured at transaction start."""
+
+        snap = self._snapshots.pop(transaction_id, None)
+        if snap is None:
+            raise MemoryStoreError(
+                f"Rollback requested for unknown transaction {transaction_id}"
+            )
+        self.index = snap["index"]
+        self.metadata = snap["metadata"]
+        self._save_index()
+        self._save_metadata()
+        return True
+
+    @contextmanager
+    def transaction(self, transaction_id: str | None = None):
+        """Context manager providing transactional semantics."""
+
+        tx_id = self.begin_transaction(transaction_id)
+        try:
+            yield tx_id
+        except Exception:
+            self.rollback_transaction(tx_id)
+            raise
+        else:
+            self.commit_transaction(tx_id)
+
     def store_vector(self, vector: MemoryVector) -> str:
         """
         Store a vector in the vector store and return its ID.
@@ -233,10 +302,10 @@ class FAISSStore(VectorStore):
                 "index": idx,
                 "is_deleted": False,
             }
-
-            # Save the index and metadata
-            self._save_index()
-            self._save_metadata()
+            # Persist immediately only when not inside a transaction
+            if not self._snapshots:
+                self._save_index()
+                self._save_metadata()
 
             logger.info(f"Stored vector with ID {vector.id} in FAISS")
             return vector.id
@@ -439,7 +508,8 @@ class FAISSStore(VectorStore):
             self.metadata[vector_id]["is_deleted"] = True
 
             # Save the metadata
-            self._save_metadata()
+            if not self._snapshots:
+                self._save_metadata()
 
             logger.info(f"Marked vector with ID {vector_id} as deleted in FAISS")
             return True
