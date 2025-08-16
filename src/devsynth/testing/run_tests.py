@@ -8,12 +8,15 @@ intended for use by helper scripts such as ``scripts/manual_cli_testing.py``.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
+
+from devsynth.logging_setup import DevSynthLogger
 
 # Cache directory for test collection
 COLLECTION_CACHE_DIR = ".test_collection_cache"
@@ -25,6 +28,8 @@ TARGET_PATHS = {
     "behavior-tests": "tests/behavior/",
     "all-tests": "tests/",
 }
+
+logger = DevSynthLogger(__name__)
 
 
 def collect_tests_with_cache(
@@ -52,8 +57,10 @@ def collect_tests_with_cache(
                 cached_data = json.load(f)
             cache_time = datetime.fromisoformat(cached_data["timestamp"])
             if (datetime.now() - cache_time).total_seconds() < 3600:
-                print(
-                    f"Using cached test collection for {target} ({speed_category or 'all'})"
+                logger.info(
+                    "Using cached test collection for %s (%s)",
+                    target,
+                    speed_category or "all",
                 )
                 return cached_data["tests"]
         except (json.JSONDecodeError, KeyError):
@@ -119,7 +126,7 @@ def collect_tests_with_cache(
 
         return test_list
     except Exception as exc:  # pragma: no cover - defensive
-        print(f"Error collecting tests: {exc}")
+        logger.error("Error collecting tests: %s", exc)
         return []
 
 
@@ -151,9 +158,15 @@ def run_tests(
         A tuple of ``(success, output)`` where ``success`` indicates whether all
         tests passed and ``output`` contains combined stdout/stderr.
     """
-    print(f"\n{'=' * 80}")
-    print(f"Running {target} with speed categories: {speed_categories or 'all'}...")
-    print(f"{'=' * 80}")
+    log_level = logging.INFO if verbose else logging.WARNING
+    logger.logger.setLevel(log_level)
+    logger.info("\n%s", "=" * 80)
+    logger.info(
+        "Running %s with speed categories: %s...",
+        target,
+        speed_categories or "all",
+    )
+    logger.info("%s", "=" * 80)
 
     base_cmd = [sys.executable, "-m", "pytest"]
     if maxfail is not None:
@@ -175,7 +188,7 @@ def run_tests(
             f"--html={report_dir}/report.html",
             "--self-contained-html",
         ]
-        print(f"Report will be saved to {report_dir}/report.html")
+        logger.info("Report will be saved to %s/report.html", report_dir)
 
     if not speed_categories:
         cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
@@ -185,23 +198,23 @@ def run_tests(
             )
             stdout, stderr = process.communicate()
             output = stdout + stderr
-            print(stdout)
+            logger.info(stdout)
             if stderr:
-                print("ERRORS:")
-                print(stderr)
+                logger.error("ERRORS:")
+                logger.error(stderr)
             success = process.returncode in (0, 5)
             if "PytestBenchmarkWarning" in stderr:
                 success = True
             return success, output
         except Exception as exc:  # pragma: no cover - defensive
-            print(f"Error running tests: {exc}")
+            logger.error("Error running tests: %s", exc)
             return False, str(exc)
 
     all_success = True
     all_output = ""
 
     for speed in speed_categories:
-        print(f"\nRunning {speed} tests...")
+        logger.info("\nRunning %s tests...", speed)
         marker_expr = f"{speed} and not memory_intensive"
         if target == "behavior-tests":
             check_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
@@ -209,8 +222,9 @@ def run_tests(
                 check_cmd, check=False, capture_output=True, text=True
             )
             if "no tests ran" in check_result.stdout or not check_result.stdout.strip():
-                print(
-                    f"No behavior tests found with {speed} marker. Running all behavior tests..."
+                logger.info(
+                    "No behavior tests found with %s marker. Running all behavior tests...",
+                    speed,
                 )
                 speed_cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
             else:
@@ -221,17 +235,22 @@ def run_tests(
         if segment:
             test_list = collect_tests_with_cache(target, speed)
             if not test_list:
-                print(f"No {speed} tests found for {target}")
+                logger.info("No %s tests found for %s", speed, target)
                 continue
 
-            print(
-                f"Found {len(test_list)} {speed} tests, running in batches of {segment_size}..."
+            logger.info(
+                "Found %d %s tests, running in batches of %d...",
+                len(test_list),
+                speed,
+                segment_size,
             )
             batch_success = True
             for i in range(0, len(test_list), segment_size):
                 batch = test_list[i : i + segment_size]
-                print(
-                    f"\nRunning batch {i // segment_size + 1}/{(len(test_list) + segment_size - 1) // segment_size}..."
+                logger.info(
+                    "\nRunning batch %d/%d...",
+                    i // segment_size + 1,
+                    (len(test_list) + segment_size - 1) // segment_size,
                 )
                 batch_cmd = base_cmd + ["-m", marker_expr] + batch + report_options
                 batch_process = subprocess.Popen(
@@ -241,10 +260,10 @@ def run_tests(
                     text=True,
                 )
                 batch_stdout, batch_stderr = batch_process.communicate()
-                print(batch_stdout)
+                logger.info(batch_stdout)
                 if batch_stderr:
-                    print("ERRORS:")
-                    print(batch_stderr)
+                    logger.error("ERRORS:")
+                    logger.error(batch_stderr)
                 batch_ok = batch_process.returncode in (0, 5)
                 if "PytestBenchmarkWarning" in batch_stderr:
                     batch_ok = True
@@ -256,10 +275,10 @@ def run_tests(
                 speed_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             stdout, stderr = process.communicate()
-            print(stdout)
+            logger.info(stdout)
             if stderr:
-                print("ERRORS:")
-                print(stderr)
+                logger.error("ERRORS:")
+                logger.error(stderr)
             run_ok = process.returncode in (0, 5)
             if "PytestBenchmarkWarning" in stderr:
                 run_ok = True
