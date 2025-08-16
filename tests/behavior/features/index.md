@@ -3,6 +3,7 @@
 This index lists all feature files for easy navigation.
 
 - [examples/simple_addition.feature](./examples/simple_addition.feature)
+- [integration/generated_tests_fail.feature](./integration/generated_tests_fail.feature)
 - [integration/test_scaffolding.feature](./integration/test_scaffolding.feature)
 - [general/additional_storage_backends.feature](./general/additional_storage_backends.feature)
 - [general/advanced_graph_memory_features.feature](./general/advanced_graph_memory_features.feature)

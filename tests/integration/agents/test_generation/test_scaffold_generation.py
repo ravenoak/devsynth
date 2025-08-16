@@ -15,7 +15,7 @@ def test_scaffold_hook_creates_placeholder(tmp_path: Path) -> None:
     file_path = tmp_path / "test_sample.py"
     assert file_path in written
     content = file_path.read_text()
-    assert "pytestmark = pytest.mark.skip" in content
+    assert "NotImplementedError" in content
     assert content == written[file_path]
 
 
@@ -50,4 +50,4 @@ def test_process_generates_tests_and_scaffolds(
     assert "test_alpha.py" in result["integration_tests"]
     scaffold = tmp_path / "test_alpha.py"
     assert scaffold.exists()
-    assert "pytestmark = pytest.mark.skip" in scaffold.read_text()
+    assert "NotImplementedError" in scaffold.read_text()
