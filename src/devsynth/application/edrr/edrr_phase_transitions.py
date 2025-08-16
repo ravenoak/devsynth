@@ -47,51 +47,68 @@ class MetricType(Enum):
 
 
 class PhaseTransitionMetrics:
-    """
-    Collects and analyzes metrics for phase transitions.
+    """Collect and analyze metrics for phase transitions."""
 
-    This class is responsible for collecting, storing, and analyzing metrics
-    related to phase transitions in the EDRR framework.
-    """
+    def __init__(self, thresholds: Optional[Dict[str, Dict[str, float]]] = None):
+        """Initialize the metrics collection.
 
-    def __init__(self):
-        """Initialize the metrics collection."""
+        Args:
+            thresholds: Optional dictionary to override default thresholds.
+        """
         self.metrics = {
             Phase.EXPAND.name: {},
             Phase.DIFFERENTIATE.name: {},
             Phase.REFINE.name: {},
             Phase.RETROSPECT.name: {},
         }
-        self.thresholds = {
+        default_thresholds = {
             Phase.EXPAND.name: {
                 MetricType.QUALITY.value: QualityThreshold.MEDIUM.value,
                 MetricType.COMPLETENESS.value: QualityThreshold.MEDIUM.value,
                 MetricType.CONSISTENCY.value: QualityThreshold.MEDIUM.value,
-                MetricType.CONFLICTS.value: 3,  # Maximum number of conflicts allowed
+                MetricType.CONFLICTS.value: 3,
             },
             Phase.DIFFERENTIATE.name: {
                 MetricType.QUALITY.value: QualityThreshold.MEDIUM.value,
                 MetricType.COMPLETENESS.value: QualityThreshold.MEDIUM.value,
                 MetricType.CONSISTENCY.value: QualityThreshold.HIGH.value,
-                MetricType.CONFLICTS.value: 2,  # Maximum number of conflicts allowed
+                MetricType.CONFLICTS.value: 2,
             },
             Phase.REFINE.name: {
                 MetricType.QUALITY.value: QualityThreshold.HIGH.value,
                 MetricType.COMPLETENESS.value: QualityThreshold.HIGH.value,
                 MetricType.CONSISTENCY.value: QualityThreshold.HIGH.value,
                 MetricType.COVERAGE.value: QualityThreshold.MEDIUM.value,
-                MetricType.CONFLICTS.value: 1,  # Maximum number of conflicts allowed
+                MetricType.CONFLICTS.value: 1,
             },
             Phase.RETROSPECT.name: {
                 MetricType.QUALITY.value: QualityThreshold.HIGH.value,
                 MetricType.COMPLETENESS.value: QualityThreshold.VERY_HIGH.value,
                 MetricType.CONSISTENCY.value: QualityThreshold.VERY_HIGH.value,
-                MetricType.CONFLICTS.value: 0,  # No conflicts allowed
+                MetricType.CONFLICTS.value: 0,
             },
         }
-        self.start_times = {}
-        self.history = []
-        self.recovery_hooks = {phase: [] for phase in self.metrics}
+        if thresholds:
+            for phase_name, values in thresholds.items():
+                phase_key = phase_name.upper()
+                if phase_key in default_thresholds:
+                    default_thresholds[phase_key].update(values)
+        self.thresholds = default_thresholds
+
+        self.start_times: Dict[str, datetime] = {}
+        self.history: List[Dict[str, Any]] = []
+        self.recovery_hooks: Dict[str, List[Any]] = {
+            phase: [] for phase in self.metrics
+        }
+        self.failure_hooks: Dict[str, List[Any]] = {phase: [] for phase in self.metrics}
+
+    def configure_thresholds(self, phase: Phase, thresholds: Dict[str, float]) -> None:
+        """Override thresholds for ``phase``."""
+        self.thresholds.setdefault(phase.name, {}).update(thresholds)
+
+    def register_failure_hook(self, phase: Phase, hook: Any) -> None:
+        """Register a hook executed when a phase fails to meet thresholds."""
+        self.failure_hooks.setdefault(phase.name, []).append(hook)
 
     def start_phase(self, phase: Phase) -> None:
         """
@@ -227,6 +244,16 @@ class PhaseTransitionMetrics:
                 logger.debug(f"Recovery hook failed: {e}")
         return info
 
+    def _execute_failure_hooks(self, phase: Phase) -> None:
+        """Run hooks when a phase fails to meet thresholds."""
+        hooks = self.failure_hooks.get(phase.name, [])
+        metrics = self.metrics.get(phase.name, {})
+        for hook in hooks:
+            try:
+                hook(metrics)
+            except Exception as e:  # pragma: no cover - defensive
+                logger.debug(f"Failure hook failed: {e}")
+
     def should_transition(self, phase: Phase) -> Tuple[bool, Dict[str, Any]]:
         """
         Determine if a phase should transition to the next phase based on metrics.
@@ -254,6 +281,7 @@ class PhaseTransitionMetrics:
             reasons["recovery"] = "metrics recovered"
             return all_met, reasons
 
+        self._execute_failure_hooks(phase)
         reasons["recovery"] = "recovery hooks did not recover"
         return False, reasons
 

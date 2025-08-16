@@ -135,6 +135,26 @@ class TestPhaseTransitionMetrics:
         assert "Too many conflicts" in reasons[MetricType.CONFLICTS.value]
 
     @pytest.mark.medium
+    def test_configure_thresholds_override(self):
+        """Custom thresholds affect transition decisions.
+
+        ReqID: N/A"""
+        phase = Phase.EXPAND
+        metrics = {
+            MetricType.QUALITY.value: 0.85,
+            MetricType.COMPLETENESS.value: 0.9,
+            MetricType.CONSISTENCY.value: 0.9,
+            MetricType.CONFLICTS.value: 0,
+        }
+        self.metrics.metrics[phase.name] = metrics
+        self.metrics.configure_thresholds(phase, {MetricType.QUALITY.value: 0.9})
+        should_transition, _ = self.metrics.should_transition(phase)
+        assert should_transition is False
+        self.metrics.configure_thresholds(phase, {MetricType.QUALITY.value: 0.8})
+        should_transition, _ = self.metrics.should_transition(phase)
+        assert should_transition is True
+
+    @pytest.mark.medium
     def test_should_transition_recovery_hook_recovers(self):
         """Recovery hooks adjust metrics to allow transition.",
 
@@ -178,6 +198,33 @@ class TestPhaseTransitionMetrics:
         should_transition, reasons = self.metrics.should_transition(phase)
         assert should_transition is False
         assert reasons["recovery"] == "recovery hooks did not recover"
+
+    @pytest.mark.medium
+    def test_failure_hook_invoked_on_unrecovered_failure(self):
+        """Failure hooks run when recovery does not resolve issues.
+
+        ReqID: N/A"""
+        phase = Phase.EXPAND
+        metrics = {
+            MetricType.QUALITY.value: QualityThreshold.MEDIUM.value - 0.2,
+            MetricType.COMPLETENESS.value: QualityThreshold.MEDIUM.value + 0.1,
+            MetricType.CONSISTENCY.value: QualityThreshold.MEDIUM.value + 0.1,
+            MetricType.CONFLICTS.value: 1,
+        }
+        self.metrics.metrics[phase.name] = metrics
+
+        self.metrics.register_recovery_hook(phase, lambda _m: {"recovered": False})
+        called = {}
+
+        def failure_hook(m):
+            called["metrics"] = m.copy()
+
+        self.metrics.register_failure_hook(phase, failure_hook)
+        self.metrics.should_transition(phase)
+        assert (
+            called["metrics"][MetricType.QUALITY.value]
+            == metrics[MetricType.QUALITY.value]
+        )
 
 
 class TestQualityScoring:
