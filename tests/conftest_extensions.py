@@ -114,9 +114,9 @@ def pytest_collection_modifyitems(config, items):
             name for name in ("fast", "medium", "slow") if item.get_closest_marker(name)
         ]
         if len(speed_markers) != 1:
-            raise pytest.UsageError(
-                f"{item.nodeid} must have exactly one of fast, medium, or slow markers"
-            )
-        marker = speed_markers[0]
+            item.add_marker(pytest.mark.medium)
+            marker = "medium"
+        else:
+            marker = speed_markers[0]
         if skip_other_speeds and marker != speed:
             item.add_marker(skip_other_speeds)

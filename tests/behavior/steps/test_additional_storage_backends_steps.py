@@ -5,16 +5,18 @@ This file implements step definitions for testing TinyDB, DuckDB, LMDB, and FAIS
 """
 
 import os
-import pytest
+from unittest.mock import MagicMock, patch
+
 import numpy as np
-from pytest_bdd import given, when, then, parsers, scenarios
-from unittest.mock import patch, MagicMock
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
+from devsynth.application.memory.duckdb_store import DuckDBStore
+from devsynth.application.memory.lmdb_store import LMDBStore
+from devsynth.application.memory.tinydb_store import TinyDBStore
 
 # Import the necessary modules
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from devsynth.application.memory.tinydb_store import TinyDBStore
-from devsynth.application.memory.duckdb_store import DuckDBStore
-from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.ports.memory_port import MemoryPort
 
 pytestmark = [
@@ -24,6 +26,7 @@ pytestmark = [
     pytest.mark.skip(
         reason="Skipping FAISS tests due to known issues with FAISS library"
     ),
+    pytest.mark.medium,
 ]
 
 # Register the scenarios from the feature file

@@ -1,11 +1,10 @@
 """BDD steps for the ``apispec`` command."""
 
+import importlib
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
-
-import importlib
+from pytest_bdd import given, scenarios, then, when
 
 
 @pytest.fixture
@@ -20,6 +19,8 @@ def apispec_context(monkeypatch):
 
 
 scenarios("../features/general/apispec_generation.feature")
+
+pytestmark = [pytest.mark.medium]
 
 
 @pytest.mark.medium

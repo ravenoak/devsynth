@@ -5,10 +5,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Skip the entire module if chromadb isn't installed before importing adapter
+# Skip the entire module if chromadb or its API models aren't installed
 pytest.importorskip("chromadb")
+pytest.importorskip("chromadb.api.models")
 import chromadb
-from chromadb.api.models.Collection import Collection
+from chromadb.api.models import Collection
 
 from devsynth.application.memory.adapters.chromadb_vector_adapter import (
     ChromaDBVectorAdapter,

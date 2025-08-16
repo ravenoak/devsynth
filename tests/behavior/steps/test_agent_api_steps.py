@@ -11,6 +11,8 @@ pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.medium]
+
 scenarios("../features/general/agent_api_interactions.feature")
 
 

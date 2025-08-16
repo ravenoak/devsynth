@@ -1,12 +1,14 @@
+import importlib
+import sys
 from types import ModuleType
 from unittest.mock import MagicMock
-import sys
-import importlib
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, scenarios, then, when
 
 scenarios("../features/general/api_stub_usage.feature")
+
+pytestmark = [pytest.mark.medium]
 
 
 @pytest.fixture
@@ -15,6 +17,7 @@ def api_context(monkeypatch):
     cli_stub.init_cmd = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
     import devsynth.interface.agentapi as agentapi
+
     importlib.reload(agentapi)
     ctx = {"api": agentapi, "cli": cli_stub}
     return ctx
@@ -37,4 +40,3 @@ def call_init(api_context):
 @then("the init command should be executed through the bridge")
 def check_called(api_context):
     assert api_context["cli"].init_cmd.called
-
