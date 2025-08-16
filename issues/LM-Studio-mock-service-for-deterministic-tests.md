@@ -1,6 +1,8 @@
 # Issue 121: LM Studio mock service for deterministic tests
 
 Milestone: 0.1.0-alpha.1
+Status: open
+
 
 Tests referencing the LM Studio provider currently rely on the optional
 `lmstudio` package and a running LM Studio server. When these are absent,
@@ -22,4 +24,7 @@ it.
 - Documented best practices for mocking optional services in
   `docs/developer_guides/testing.md`.
 - Running `tests/integration/general/test_lmstudio_provider.py` with `lmstudio` absent skips all tests and triggers coverage failure (`FAIL Required test coverage of 8% not reached`).
-- Status: open
+
+## References
+
+- None

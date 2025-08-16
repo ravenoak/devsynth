@@ -1,6 +1,8 @@
 # Issue 123: Document API reference generation feature
 
 Milestone: 0.1.0-alpha.1
+Status: open
+
 
 Behavior tests cover an "API Reference Documentation Generation" feature, but no user-facing documentation explains how to generate API reference docs.
 
@@ -13,4 +15,7 @@ Add a user guide or section describing how to generate API reference documentati
 
 ## Progress
 - Confirmed presence of behavior tests for API reference documentation generation without corresponding documentation.
-- Status: open
+
+## References
+
+- None

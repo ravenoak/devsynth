@@ -1,5 +1,7 @@
 # Issue 110: Enhance retry mechanism
 Milestone: 0.2.0
+Status: open
+
 
 The fallback module implements exponential backoff but lacks metrics and conditional logic.
 
@@ -9,4 +11,8 @@ The fallback module implements exponential backoff but lacks metrics and conditi
 
 ## Progress
 
-- Status: open
+- No progress yet
+
+## References
+
+- None

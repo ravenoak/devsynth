@@ -1,5 +1,7 @@
 # Issue 106: Complete memory system integration
 Milestone: 0.1.0-alpha.1
+Status: open
+
 
 The memory subsystem supports multiple backends but remains unstable.
 
@@ -10,4 +12,8 @@ The memory subsystem supports multiple backends but remains unstable.
 
 ## Progress
 
-- Status: open
+- No progress yet
+
+## References
+
+- None

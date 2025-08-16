@@ -1,5 +1,7 @@
 # Issue 109: Improve deployment automation
 Milestone: 0.2.0
+Status: open
+
 
 Current Docker Compose workflows require manual steps.
 
@@ -10,4 +12,8 @@ Current Docker Compose workflows require manual steps.
 
 ## Progress
 
-- Status: open
+- No progress yet
+
+## References
+
+- None

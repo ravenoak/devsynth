@@ -1,5 +1,7 @@
 # Issue 108: Expand test generation capabilities
 Milestone: 0.2.0
+Status: open
+
 
 Automated unit test generation works but integration coverage is lacking.
 
@@ -9,4 +11,7 @@ Automated unit test generation works but integration coverage is lacking.
 
 ## Progress
 - Tracked by [c07240c1](../commit/c07240c1).
-- Status: open
+
+## References
+
+- None

@@ -1,5 +1,7 @@
 # Issue 111: Implement SDLC security audits
 Milestone: 0.3.0
+Status: open
+
 
 Security policy flags exist but automation is missing.
 
@@ -9,4 +11,8 @@ Security policy flags exist but automation is missing.
 
 ## Progress
 
-- Status: open
+- No progress yet
+
+## References
+
+- None

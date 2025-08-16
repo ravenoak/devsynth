@@ -1,5 +1,7 @@
 # Issue 105: Finalize dialectical reasoning
 Milestone: 0.1.0-alpha.1
+Status: open
+
 
 This issue tracks tasks needed to finish the dialectical reasoning framework.
 
@@ -11,4 +13,7 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 ## Progress
 
 - [x] Behavior tests confirm reasoning results persist to memory ([2b3f12f7](../commit/2b3f12f7)).
-- Status: open
+
+## References
+
+- None
