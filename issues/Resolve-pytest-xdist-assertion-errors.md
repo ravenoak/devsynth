@@ -1,4 +1,4 @@
-# Issue 131: Resolve pytest-xdist assertion errors
+# Resolve pytest-xdist assertion errors
 Milestone: 0.1.0-alpha.1
 Status: open
 

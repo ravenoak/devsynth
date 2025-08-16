@@ -1,4 +1,4 @@
-# Issue 112: WSDE collaboration test failures
+# WSDE collaboration test failures
 Milestone: 0.1.0-alpha.1
 Status: open
 

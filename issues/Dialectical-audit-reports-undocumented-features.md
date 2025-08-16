@@ -1,4 +1,4 @@
-# Issue 125: Dialectical audit reports undocumented features
+# Dialectical audit reports undocumented features
 
 Milestone: 0.1.0-alpha.1
 Status: open

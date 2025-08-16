@@ -1,4 +1,4 @@
-# Issue 109: Improve deployment automation
+# Improve deployment automation
 Milestone: 0.2.0
 Status: open
 

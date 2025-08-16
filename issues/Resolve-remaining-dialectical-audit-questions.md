@@ -1,4 +1,4 @@
-# Issue 127: Resolve remaining dialectical audit questions
+# Resolve remaining dialectical audit questions
 
 Milestone: 0.1.0-alpha.1
 Status: open

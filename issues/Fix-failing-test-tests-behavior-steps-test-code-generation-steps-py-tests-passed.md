@@ -1,4 +1,4 @@
-# Issue 126: Fix failing test tests/behavior/steps/test_code_generation_steps.py::tests_passed
+# Fix failing test tests/behavior/steps/test_code_generation_steps.py::tests_passed
 
 Milestone: 0.1.0-alpha.1
 Status: open

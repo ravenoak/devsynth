@@ -1,4 +1,4 @@
-# Issue 108: Expand test generation capabilities
+# Expand test generation capabilities
 Milestone: 0.2.0
 Status: open
 

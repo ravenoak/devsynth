@@ -1,4 +1,4 @@
-# Issue 107: Complete Sprint-EDRR integration
+# Complete Sprint-EDRR integration
 Milestone: 0.2.0
 Status: open
 

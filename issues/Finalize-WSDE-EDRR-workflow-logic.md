@@ -1,4 +1,4 @@
-# Issue 130: Finalize WSDE/EDRR workflow logic
+# Finalize WSDE/EDRR workflow logic
 Milestone: 0.1.0-alpha.1
 Status: open
 

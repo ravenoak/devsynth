@@ -1,4 +1,4 @@
-# Issue <number>: <title>
+# <title>
 Milestone: <milestone>
 Status: <status>
 Priority: <priority>

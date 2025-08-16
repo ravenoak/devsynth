@@ -89,9 +89,10 @@ Before implementing changes—especially when introducing new features—draft a
 ## Issue Tracking
 
 - Use the in-repo issue tracker under `issues/` (see [issues/README.md](issues/README.md)).
+- The first line of each ticket must be `# <title>`.
 - Create new tickets by copying `issues/TEMPLATE.md` and renaming it using a slug of its title.
 - Include `Priority` and `Dependencies` fields along with the standard sections.
-- When a ticket is resolved, move its file to `issues/archived/<slug>.md` and leave it immutable.
+- When a ticket is resolved, move its file to `issues/archived/<slug>.md` and leave it immutable. Archived tickets retain the legacy format `# Issue <number>: <title>`.
 
 ## Specification-First Workflow
 
