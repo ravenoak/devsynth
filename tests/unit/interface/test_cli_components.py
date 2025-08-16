@@ -1,9 +1,11 @@
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
+
 import pytest
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
-from devsynth.interface.cli import CLIUXBridge, CLIProgressIndicator
+
+from devsynth.interface.cli import CLIProgressIndicator, CLIUXBridge
 
 
 @pytest.mark.medium
@@ -35,21 +37,30 @@ def clean_state():
 
 
 @pytest.mark.slow
-def test_cliprogressindicator_update_succeeds(clean_state):
+def test_CLIProgressIndicator_update_succeeds(clean_state):
     """Test the update method of CLIProgressIndicator.
 
     ReqID: N/A"""
     console = MagicMock()
-    progress_mock = MagicMock(spec=ClassName)
-    with patch("rich.progress.Progress", return_value=progress_mock):
+    progress_mock = MagicMock()
+    progress_mock.add_task.return_value = "task_id"
+    progress_mock.tasks = {"task_id": MagicMock(completed=False, percentage=0)}
+    with patch("devsynth.interface.cli.Progress", return_value=progress_mock):
         indicator = CLIProgressIndicator(console, "Main task", 100)
         indicator.update(advance=5)
         progress_mock.update.assert_called_with(
-            indicator._task, advance=5, description=None
+            "task_id", advance=5, description=None, status="Starting..."
         )
-        indicator.update(advance=10, description="Updated task")
+        indicator.update(
+            advance=10,
+            description="Updated task",
+            status="Processing",
+        )
         progress_mock.update.assert_called_with(
-            indicator._task, advance=10, description="Updated task"
+            "task_id",
+            advance=10,
+            description="Updated task",
+            status="Processing",
         )
 
 
@@ -66,19 +77,25 @@ def test_cliprogressindicator_sanitize_output_succeeds(clean_state):
 
     ReqID: N/A"""
     console = MagicMock()
-    progress_mock = MagicMock(spec=ClassName)
-    with patch("rich.progress.Progress", return_value=progress_mock):
+    progress_mock = MagicMock()
+    with patch("devsynth.interface.cli.Progress", return_value=progress_mock):
         with patch(
             "devsynth.interface.cli.sanitize_output",
             side_effect=lambda x: f"sanitized-{x}",
         ):
             indicator = CLIProgressIndicator(console, "Main task", 100)
-            progress_mock.add_task.assert_called_with("sanitized-Main task", total=100)
-            indicator.update(description="<script>alert('xss')</script>")
+            progress_mock.add_task.assert_called_with(
+                "sanitized-Main task", total=100, status="Starting..."
+            )
+            indicator.update(
+                description="<script>alert('xss')</script>",
+                status="<status>",
+            )
             progress_mock.update.assert_called_with(
                 indicator._task,
                 advance=1,
                 description="sanitized-<script>alert('xss')</script>",
+                status="sanitized-<status>",
             )
             progress_mock.add_task.reset_mock()
             progress_mock.add_task.return_value = "subtask1"
@@ -87,12 +104,15 @@ def test_cliprogressindicator_sanitize_output_succeeds(clean_state):
                 "  ↳ sanitized-<img src=x onerror=alert('xss')>", total=50
             )
             indicator.update_subtask(
-                subtask_id, description="<iframe src=javascript:alert('xss')>"
+                subtask_id,
+                description="<iframe src=javascript:alert('xss')>",
+                status="<status>",
             )
             progress_mock.update.assert_called_with(
                 subtask_id,
                 advance=1,
                 description="  ↳ sanitized-<iframe src=javascript:alert('xss')>",
+                status="sanitized-<status>",
             )
 
 
@@ -109,8 +129,8 @@ def test_cliprogressindicator_multiple_subtasks_succeeds(clean_state):
 
     ReqID: N/A"""
     console = MagicMock()
-    progress_mock = MagicMock(spec=ClassName)
-    with patch("rich.progress.Progress", return_value=progress_mock):
+    progress_mock = MagicMock()
+    with patch("devsynth.interface.cli.Progress", return_value=progress_mock):
         indicator = CLIProgressIndicator(console, "Main task", 100)
         progress_mock.add_task.side_effect = ["subtask1", "subtask2", "subtask3"]
         subtask1 = indicator.add_subtask("Subtask 1", 30)

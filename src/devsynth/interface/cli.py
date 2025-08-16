@@ -217,8 +217,7 @@ class CLIProgressIndicator(ProgressIndicator):
         # Handle status safely
         if status is not None:
             try:
-                status_str = str(status)
-                status_msg = sanitize_output(status_str)
+                status_msg = str(status)
             except (TypeError, ValueError) as exc:
                 logger.warning(
                     "Failed to sanitize task status",
@@ -241,6 +240,17 @@ class CLIProgressIndicator(ProgressIndicator):
                 status_msg = "Processing..."
             else:
                 status_msg = "Starting..."
+
+        # Sanitize the status message regardless of source
+        try:
+            status_msg = sanitize_output(status_msg)
+        except (TypeError, ValueError) as exc:
+            logger.warning(
+                "Failed to sanitize task status",
+                exc_info=exc,
+                extra={"status": status_msg},
+            )
+            status_msg = "In progress..."
 
         self._progress.update(
             self._task, advance=advance, description=desc, status=status_msg
