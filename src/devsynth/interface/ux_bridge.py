@@ -63,10 +63,11 @@ class ProgressIndicator(ABC):
 class UXBridge(ABC):
     """Protocol defining basic user interaction methods.
 
-    The original interface exposed ``prompt``, ``confirm`` and ``print``.  This
-    version adds the more descriptive ``ask_question``, ``confirm_choice`` and
-    ``display_result`` methods.  The legacy method names remain for backward
-    compatibility and simply delegate to the new ones.
+    The original interface exposed the terse ``prompt``, ``confirm`` and
+    ``print`` helpers.  The modern API uses the more explicit
+    ``ask_question``, ``confirm_choice`` and ``display_result`` methods.  The
+    old method names remain available as thin wrappers around the new API so
+    existing front‑ends continue to work during the transition.
     """
 
     # ------------------------------------------------------------------
@@ -149,7 +150,11 @@ class UXBridge(ABC):
         default: Optional[str] = None,
         show_default: bool = True,
     ) -> str:
-        """Alias for :meth:`ask_question`."""
+        """Backward compatible alias for :meth:`ask_question`.
+
+        Parameters mirror those of :meth:`ask_question` so callers using the
+        legacy name automatically benefit from the new behaviour.
+        """
         return self.ask_question(
             message,
             choices=choices,
@@ -158,12 +163,25 @@ class UXBridge(ABC):
         )
 
     def confirm(self, message: str, *, default: bool = False) -> bool:
-        """Alias for :meth:`confirm_choice`."""
+        """Backward compatible alias for :meth:`confirm_choice`."""
         return self.confirm_choice(message, default=default)
 
-    def print(self, message: str, *, highlight: bool = False) -> None:
-        """Alias for :meth:`display_result`."""
-        self.display_result(message, highlight=highlight)
+    def print(
+        self,
+        message: str,
+        *,
+        highlight: bool = False,
+        message_type: str | None = None,
+    ) -> None:
+        """Backward compatible alias for :meth:`display_result`.
+
+        Args:
+            message: Message to display to the user.
+            highlight: Whether to emphasise the message.
+            message_type: Optional semantic type forwarded to
+                :meth:`display_result`.
+        """
+        self.display_result(message, highlight=highlight, message_type=message_type)
 
 
 __all__ = ["UXBridge", "ProgressIndicator", "sanitize_output"]
