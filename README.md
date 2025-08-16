@@ -15,7 +15,7 @@ last_reviewed: "2025-08-05"
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
 
 # DevSynth
-![Coverage](https://img.shields.io/badge/coverage-9%25-red.svg)
+![Coverage](https://img.shields.io/badge/coverage-21%25-red.svg)
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
@@ -377,6 +377,22 @@ poetry run devsynth run-tests --maxfail 1  # optional early exit
 ```
 
 The legacy `scripts/run_all_tests.py` wrapper remains for backward compatibility but will be removed in a future release.
+
+### Updating the coverage badge
+
+Run tests with coverage to determine the current percentage:
+
+```bash
+poetry run pytest --speed=fast --cov=src/devsynth --cov-report=term
+```
+
+Take the reported percentage and update the badge at the top of this README using a Shields.io URL such as:
+
+```markdown
+![Coverage](https://img.shields.io/badge/coverage-<percentage>%25-<color>.svg)
+```
+
+Replace `<percentage>` with the rounded coverage value and choose an appropriate `<color>` (e.g., red, yellow, or green).
 
 ## Current Limitations
 
