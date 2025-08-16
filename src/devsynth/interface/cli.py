@@ -171,8 +171,12 @@ class CLIProgressIndicator(ProgressIndicator):
         try:
             desc_str = str(description)
             desc = sanitize_output(desc_str)
-        except Exception:
-            # Fallback for objects that can't be safely converted to string
+        except (TypeError, ValueError) as exc:
+            logger.warning(
+                "Failed to sanitize main task description",
+                exc_info=exc,
+                extra={"description": description},
+            )
             desc = "<main task>"
 
         self._task = self._progress.add_task(desc, total=total, status="Starting...")
@@ -200,8 +204,12 @@ class CLIProgressIndicator(ProgressIndicator):
             try:
                 desc_str = str(description)
                 desc = sanitize_output(desc_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
+            except (TypeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to sanitize task description",
+                    exc_info=exc,
+                    extra={"description": description},
+                )
                 desc = "<description>"
         else:
             desc = None
@@ -211,8 +219,12 @@ class CLIProgressIndicator(ProgressIndicator):
             try:
                 status_str = str(status)
                 status_msg = sanitize_output(status_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
+            except (TypeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to sanitize task status",
+                    exc_info=exc,
+                    extra={"status": status},
+                )
                 status_msg = "In progress..."
         else:
             # If no status is provided, use a default based on progress
@@ -267,8 +279,12 @@ class CLIProgressIndicator(ProgressIndicator):
             desc_str = str(description)
             desc = sanitize_output(desc_str)
             formatted_desc = f"  ↳ {desc}"
-        except Exception:
-            # Fallback for objects that can't be safely converted to string
+        except (TypeError, ValueError) as exc:
+            logger.warning(
+                "Failed to sanitize subtask description",
+                exc_info=exc,
+                extra={"description": description},
+            )
             formatted_desc = "  ↳ <subtask>"
 
         # Add the task without the status parameter to be compatible with the test mock
@@ -314,8 +330,12 @@ class CLIProgressIndicator(ProgressIndicator):
                 desc_str = str(description)
                 desc = sanitize_output(desc_str)
                 formatted_desc = f"  ↳ {desc}"
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
+            except (TypeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to sanitize subtask update description",
+                    exc_info=exc,
+                    extra={"description": description},
+                )
                 formatted_desc = "  ↳ <description>"
         else:
             formatted_desc = None
@@ -325,8 +345,12 @@ class CLIProgressIndicator(ProgressIndicator):
             try:
                 status_str = str(status)
                 status_msg = sanitize_output(status_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
+            except (TypeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to sanitize subtask status",
+                    exc_info=exc,
+                    extra={"status": status},
+                )
                 status_msg = "In progress..."
         else:
             # If no status is provided, use a default based on progress
@@ -402,8 +426,12 @@ class CLIProgressIndicator(ProgressIndicator):
             desc_str = str(description)
             desc = sanitize_output(desc_str)
             formatted_desc = f"    ↳ {desc}"
-        except Exception:
-            # Fallback for objects that can't be safely converted to string
+        except (TypeError, ValueError) as exc:
+            logger.warning(
+                "Failed to sanitize nested subtask description",
+                exc_info=exc,
+                extra={"description": description},
+            )
             formatted_desc = "    ↳ <nested subtask>"
 
         task_id = self._progress.add_task(formatted_desc, total=total, status=status)
@@ -439,8 +467,12 @@ class CLIProgressIndicator(ProgressIndicator):
                 desc_str = str(description)
                 desc = sanitize_output(desc_str)
                 formatted_desc = f"    ↳ {desc}"
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
+            except (TypeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to sanitize nested subtask update description",
+                    exc_info=exc,
+                    extra={"description": description},
+                )
                 formatted_desc = "    ↳ <description>"
         else:
             formatted_desc = None
@@ -450,8 +482,12 @@ class CLIProgressIndicator(ProgressIndicator):
             try:
                 status_str = str(status)
                 status_msg = sanitize_output(status_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
+            except (TypeError, ValueError) as exc:
+                logger.warning(
+                    "Failed to sanitize nested subtask status",
+                    exc_info=exc,
+                    extra={"status": status},
+                )
                 status_msg = "In progress..."
         else:
             # If no status is provided, use a default based on progress
