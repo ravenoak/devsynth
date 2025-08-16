@@ -10,30 +10,9 @@ pytestmark = pytest.mark.requires_resource("webui")
 
 
 @pytest.mark.medium
-@pytest.fixture
-def clean_state():
-    # Set up clean state
-    yield
-    # Clean up state
-
-
-@pytest.mark.slow
-def test_function(clean_state):
-    # Test with clean state
+def test_webui_setup_wizard_runs(monkeypatch):
     bridge = MagicMock(spec=UXBridge)
-    run_called = {}
-
-    def fake_run(self):
-        run_called["called"] = True
-
-    original = module_name
-    try:
-        monkeypatch.setattr(target_module, mock_function)
-        # Test code here
-    finally:
-        # Restore original if needed for cleanup
-        pass
-
-        wizard = WebUISetupWizard(bridge)
-        wizard.run()
-        assert run_called.get("called") is True
+    run_mock = MagicMock()
+    monkeypatch.setattr(SetupWizard, "run", run_mock)
+    WebUISetupWizard(bridge).run()
+    run_mock.assert_called_once()
