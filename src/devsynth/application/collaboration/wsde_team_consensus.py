@@ -18,7 +18,7 @@ from devsynth.application.edrr.edrr_phase_transitions import (
     calculate_enhanced_quality_score,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.methodology.base import Phase
 
 if TYPE_CHECKING:  # pragma: no cover - for type hints only
@@ -26,87 +26,78 @@ if TYPE_CHECKING:  # pragma: no cover - for type hints only
 
 
 class ConsensusBuildingMixin:
-    """
-    Mixin class providing consensus building functionality for CollaborativeWSDETeam.
-
-    This mixin adds methods for building consensus, identifying conflicts,
-    generating conflict resolution synthesis, and tracking decisions.
-    """
+    """Mixin class providing consensus building functionality."""
 
     def build_consensus(
         self, task: Dict[str, Any], phase: Optional[Phase] = None
     ) -> Dict[str, Any]:
-        """
-        Build consensus among team members for a given task.
+        """Build consensus among team members with transactional safety."""
 
-        Args:
-            task: The task to build consensus for
-            phase: Optional EDRR phase providing context for transition metrics
+        stores: List[str] = []
+        if hasattr(self, "memory_manager") and isinstance(
+            self.memory_manager, MemoryManager
+        ):
+            stores = [
+                s
+                for s in ("lmdb", "faiss", "kuzu")
+                if s in self.memory_manager.adapters
+            ]
 
-        Returns:
-            The consensus result
-        """
-        # Ensure task has an ID
+        if stores:
+            with self.memory_manager.begin_transaction(stores):
+                return self._build_consensus_inner(task, phase)
+        return self._build_consensus_inner(task, phase)
+
+    def _build_consensus_inner(
+        self, task: Dict[str, Any], phase: Optional[Phase] = None
+    ) -> Dict[str, Any]:
+        """Internal implementation of consensus building."""
         if "id" not in task:
             task["id"] = str(uuid.uuid4())
 
-        # Log the consensus building
         self.logger.info(
             f"Building consensus for task {task['id']}: {task.get('title', 'Untitled')}"
         )
 
-        # Get all agents' opinions
-        agent_opinions = {}
+        agent_opinions: Dict[str, Dict[str, Any]] = {}
         for agent in self.agents:
-            # Get messages from this agent related to the task
             messages = self.get_messages(
                 agent=agent.name,
                 filters={"metadata.task_id": task["id"], "type": "opinion"},
             )
 
             if messages:
-                # Use the latest opinion
                 latest_message = max(messages, key=lambda m: m["timestamp"])
                 opinion = latest_message["content"].get("opinion", "")
                 rationale = latest_message["content"].get("rationale", "")
-
                 agent_opinions[agent.name] = {
                     "opinion": opinion,
                     "rationale": rationale,
                     "timestamp": latest_message["timestamp"],
                 }
 
-        # If no opinions, try to generate them
         if not agent_opinions:
             self._generate_agent_opinions(task)
-
-            # Try again to get opinions
             for agent in self.agents:
                 messages = self.get_messages(
                     agent=agent.name,
                     filters={"metadata.task_id": task["id"], "type": "opinion"},
                 )
-
                 if messages:
                     latest_message = max(messages, key=lambda m: m["timestamp"])
                     opinion = latest_message["content"].get("opinion", "")
                     rationale = latest_message["content"].get("rationale", "")
-
                     agent_opinions[agent.name] = {
                         "opinion": opinion,
                         "rationale": rationale,
                         "timestamp": latest_message["timestamp"],
                     }
 
-        # Identify conflicts in opinions
         conflicts = self._identify_conflicts(task)
         conflict_count = len(conflicts)
 
-        # Generate consensus result
         if conflicts:
-            # If there are conflicts, generate a synthesis
             synthesis = self._generate_conflict_resolution_synthesis(task, conflicts)
-
             consensus_result = {
                 "task_id": task["id"],
                 "method": "conflict_resolution_synthesis",
@@ -117,13 +108,11 @@ class ConsensusBuildingMixin:
                 "timestamp": datetime.now().isoformat(),
             }
         else:
-            # If no conflicts, use weighted majority opinion with tie breaking
             task_text = task.get("description", "") + " " + task.get("title", "")
             keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
             majority_opinion = self._identify_weighted_majority_opinion(
                 agent_opinions, keywords
             )
-
             consensus_result = {
                 "task_id": task["id"],
                 "method": "majority_opinion",
@@ -134,14 +123,10 @@ class ConsensusBuildingMixin:
                 "timestamp": datetime.now().isoformat(),
             }
 
-        # Track the decision
         self._track_decision(task, consensus_result)
-
-        # Generate stakeholder explanation
         explanation = self._generate_stakeholder_explanation(task, consensus_result)
         consensus_result["stakeholder_explanation"] = explanation
 
-        # Update phase transition metrics if available
         if (
             phase is not None
             and hasattr(self, "phase_metrics")
@@ -590,13 +575,20 @@ class ConsensusBuildingMixin:
         decision_id = f"decision_{task['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
         # Create decision record
+        formatted_opinions = {}
+        for agent, data in consensus_result["agent_opinions"].items():
+            ts = data.get("timestamp")
+            if isinstance(ts, datetime):
+                data = {**data, "timestamp": ts.isoformat()}
+            formatted_opinions[agent] = data
+
         decision = {
             "id": decision_id,
             "task_id": task["id"],
             "task_title": task.get("title", "Untitled"),
             "task_description": task.get("description", ""),
             "consensus_method": consensus_result["method"],
-            "agent_opinions": consensus_result["agent_opinions"],
+            "agent_opinions": formatted_opinions,
             "timestamp": datetime.now().isoformat(),
             "implemented": False,
             "implementation_details": None,
@@ -614,9 +606,11 @@ class ConsensusBuildingMixin:
         self.tracked_decisions[decision_id] = decision
 
         if hasattr(self, "memory_manager") and self.memory_manager is not None:
+            import json
+
             item = MemoryItem(
                 id=decision_id,
-                content=decision,
+                content=json.dumps(decision),
                 memory_type=MemoryType.TEAM_STATE,
                 metadata={"type": "CONSENSUS_DECISION"},
             )
@@ -636,14 +630,25 @@ class ConsensusBuildingMixin:
                     summary_text = self.summarize_consensus_result(consensus_result)
                     summary_item = MemoryItem(
                         id=f"{decision_id}_summary",
-                        content={
-                            "decision_id": decision_id,
-                            "summary": summary_text,
-                        },
+                        content=json.dumps(
+                            {"decision_id": decision_id, "summary": summary_text}
+                        ),
                         memory_type=MemoryType.TEAM_STATE,
                         metadata={"type": "CONSENSUS_SUMMARY"},
                     )
                     self.memory_manager.update_item(primary, summary_item)
+                    if "faiss" in self.memory_manager.adapters:
+                        try:
+                            embedding = self.memory_manager._embed_text(summary_text)
+                            vector = MemoryVector(
+                                id=decision_id,
+                                content=summary_text,
+                                embedding=embedding,
+                                metadata={"type": "CONSENSUS_VECTOR"},
+                            )
+                            self.memory_manager.adapters["faiss"].store_vector(vector)
+                        except Exception:
+                            pass
                     try:
                         self.memory_manager.flush_updates()
                     except Exception:
