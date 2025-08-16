@@ -128,7 +128,23 @@ class AgentCoordinatorImpl(AgentCoordinator):
 
         # Critical decisions use the WSDE voting mechanism
         if task.get("type") == "critical_decision" and task.get("is_critical", False):
-            return self.team.vote_on_critical_decision(task)
+            voting_result = self.team.vote_on_critical_decision(task)
+            phase_name = task.get("phase")
+            if phase_name:
+                voting_result["phase"] = phase_name
+            summary_input = {
+                "status": voting_result.get("status"),
+                "result": {
+                    "method": voting_result.get("method"),
+                    "winner": voting_result.get("result"),
+                    "tie_broken": voting_result.get("tie_broken", False),
+                    "tie_breaker_method": voting_result.get("tie_breaker_method"),
+                },
+                "vote_counts": voting_result.get("vote_counts", {}),
+                "vote_weights": voting_result.get("vote_weights", {}),
+            }
+            voting_result["summary"] = self.team.summarize_voting_result(summary_input)
+            return voting_result
 
         # Assign roles to team members
         phase_name = task.get("phase")
