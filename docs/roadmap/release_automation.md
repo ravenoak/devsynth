@@ -53,4 +53,4 @@ By following this process, DevSynth maintains a consistent release mechanism tha
 ## Implementation Status
 
 Release automation is **planned**. The workflow remains disabled until the tasks
-in [issue 103](../../issues/103.md) are complete.
+in [issue 103](../../issues/archived/Integration-and-performance-work.md) are complete.

@@ -51,23 +51,23 @@ Each feature is scored on two dimensions:
 | Feature | Status | Modules | User Impact (1-5) | Implementation Complexity (1-5) | Dependencies | Owner | Notes |
 |---------|--------|---------|-------------------|--------------------------------|-------------|------|------|
 | **Core Framework** |
-| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration are stable. Recovery hooks and threshold helpers now validated by unit tests. Remaining tasks are tracked in [issue 104](../../issues/104.md).
-| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting validated with dynamic role reassignment. Summary utilities for voting results implemented. Coordination with the EDRR cycle is still under review (see [issue 104](../../issues/104.md)).  |
-| Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented. Tracked in [issue 105](../../issues/105.md) |
+| EDRR Framework | Partial | src/devsynth/application/EDRR | 5 | 4 | Agent Orchestration | | Phase transition logic, recursion handling, and CLI integration are stable. Recovery hooks and threshold helpers now validated by unit tests. Remaining tasks are tracked in [issue 104](../../issues/Critical-recommendations-follow-up.md).
+| WSDE Agent Collaboration | Partial | src/devsynth/application/collaboration | 4 | 5 | Memory System | | Consensus voting validated with dynamic role reassignment. Summary utilities for voting results implemented. Coordination with the EDRR cycle is still under review (see [issue 104](../../issues/Critical-recommendations-follow-up.md)).  |
+| Dialectical Reasoning | Partial | src/devsynth/application/requirements/dialectical_reasoner.py | 4 | 3 | WSDE Model | | Hooks integrated in WSDETeam, framework largely implemented. Tracked in [issue 105](../../issues/Finalize-dialectical-reasoning.md) |
 | Message Passing Protocol | Complete | src/devsynth/application/collaboration/message_protocol.py | 4 | 2 | WSDE Model | | Enables structured agent communication |
 | Peer Review Mechanism | Complete | src/devsynth/application/collaboration/peer_review.py | 4 | 3 | WSDE Model | | Workflow implemented with revision cycles and integration tests |
-| Memory System | Complete | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter hardened and a transactional SyncManager now coordinates LMDB, FAISS, and Kuzu stores. Tracked in [issue 106](../../issues/106.md) |
+| Memory System | Complete | src/devsynth/application/memory | 5 | 4 | None | | ChromaDB adapter hardened and a transactional SyncManager now coordinates LMDB, FAISS, and Kuzu stores. Tracked in [issue 106](../../issues/Complete-memory-system-integration.md) |
 | Provider System | Complete | src/devsynth/application/llm | 5 | 3 | None | | LM Studio, OpenAI, Anthropic, and Local providers fully implemented and tested |
 | LM Studio Integration | Complete | src/devsynth/application/llm/lmstudio_provider.py | 4 | 3 | Provider System | | Local provider stable; remote support experimental |
 | Code Analysis | Complete | src/devsynth/application/code_analysis | 4 | 4 | None | | AST visitor and project state analyzer implemented |
 | Knowledge Graph Utilities | Complete | src/devsynth/application/memory/knowledge_graph_utils.py | 3 | 3 | Memory System | | Basic querying available |
 | Methodology Integration Framework | Complete | src/devsynth/methodology | 4 | 4 | None | | Sprint, Kanban, Milestone and AdHoc adapters implemented. Base adapter now exposes default hooks for analysis, implementation and refinement phases |
-| Sprint-EDRR Integration | Complete | src/devsynth/methodology/sprint.py | 4 | 3 | Methodology Integration Framework | | Sprint planning aligned with requirement analysis and retrospectives automatically reviewed. Tracked in [issue 107](../../issues/107.md) |
+| Sprint-EDRR Integration | Complete | src/devsynth/methodology/sprint.py | 4 | 3 | Methodology Integration Framework | | Sprint planning aligned with requirement analysis and retrospectives automatically reviewed. Tracked in [issue 107](../../issues/Complete-Sprint-EDRR-integration.md) |
 | **User-Facing Features** |
-| CLI Interface | Partial | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested. Additional polish in [issue 102](../../issues/102.md) |
+| CLI Interface | Partial | src/devsynth/cli.py, src/devsynth/application/cli | 5 | 2 | None | | All commands implemented and tested. Additional polish in [issue 102](../../issues/archived/CLI-and-UI-improvements.md) |
 | Project Initialization | Complete | src/devsynth/application/orchestration/workflow.py, src/devsynth/application/agents/unified_agent.py | 5 | 2 | None | | Complete with configuration options |
 | Code Generation | Complete | src/devsynth/application/agents/code.py | 5 | 5 | AST Analysis | | Basic generation working, advanced features pending |
-| Test Generation | Partial | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending. Tracked in [issue 108](../../issues/108.md) |
+| Test Generation | Partial | src/devsynth/application/agents/test.py | 4 | 4 | Code Generation | | Unit test generation working, integration tests pending. Tracked in [issue 108](../../issues/Expand-test-generation-capabilities.md) |
 | Documentation Generation | Complete | src/devsynth/application/agents/documentation.py | 3 | 3 | Code Analysis | | Basic documentation generation implemented |
 | Documentation Ingestion | Complete | src/devsynth/application/documentation/ingestion.py | 3 | 3 | Memory System | | Project configuration controls offline ingestion |
 | Requirements Gathering | Complete | src/devsynth/application/cli/requirements_commands.py, src/devsynth/interface/webui.py | 5 | 2 | CLI Interface | | Wizard persists goals, constraints and priority |
@@ -75,19 +75,19 @@ Each feature is scored on two dimensions:
 | Docker Containerization | Complete | Dockerfile, docker-compose.yml | 4 | 3 | None | | Dockerfile and Compose provided |
 | Configuration Management | Complete | src/devsynth/config, config/ | 4 | 3 | None | | Environment-specific templates available |
 | Unified Configuration Loader | Complete | src/devsynth/config/loader.py | 3 | 2 | Configuration Management | | Supports YAML and TOML with autocompletion |
-| Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows with hardened scripts that enforce non-root execution and secure env file permissions. Tracked in [issue 109](../../issues/109.md) |
+| Deployment Automation | Partial | docker-compose.yml, scripts/deployment | 3 | 3 | Docker | | Basic Docker Compose workflows with hardened scripts that enforce non-root execution and secure env file permissions. Tracked in [issue 109](../../issues/Improve-deployment-automation.md) |
 | Security Framework | Complete | src/devsynth/security | 4 | 4 | None | | Environment validation, security policies, and Fernet-based encryption implemented |
 | Dependency Management | Complete | pyproject.toml | 3 | 2 | None | | Basic management implemented, optimization pending |
 | Metrics Commands | Complete | src/devsynth/application/cli/commands/alignment_metrics_cmd.py, test_metrics_cmd.py | 3 | 2 | None | | `alignment_metrics` and `test_metrics` commands available |
-| Retry Mechanism | Partial | src/devsynth/fallback.py | 3 | 2 | Providers | | Exponential backoff implemented; conditional retries and metrics planned. Tracked in [issue 110](../../issues/110.md) |
-| SDLC Security Policy | Partial | docs/policies/security.md | 3 | 2 | Security Framework | | Configuration flags exist, automated audits planned. Tracked in [issue 111](../../issues/111.md) |
+| Retry Mechanism | Partial | src/devsynth/fallback.py | 3 | 2 | Providers | | Exponential backoff implemented; conditional retries and metrics planned. Tracked in [issue 110](../../issues/Enhance-retry-mechanism.md) |
+| SDLC Security Policy | Partial | docs/policies/security.md | 3 | 2 | Security Framework | | Configuration flags exist, automated audits planned. Tracked in [issue 111](../../issues/Implement-SDLC-security-audits.md) |
 | Documentation Policies | Complete | docs/policies/documentation_policies.md | 2 | 1 | None | | Policies implemented across documentation |
 | **Planned/Unimplemented Features** |
 | Core Values Subsystem | Complete | src/devsynth/core/values.py | 2 | 3 | None | | Helper methods added for value management and report validation |
 | Guided Setup Wizard | Complete | src/devsynth/application/cli/setup_wizard.py | 3 | 3 | None | | Wizard implemented with tests |
 | Offline Fallback Mode | Complete | src/devsynth/application/llm/offline_provider.py | 3 | 4 | LLM Providers | | Deterministic local provider selected when `offline_mode` is enabled. Verified by unit tests. |
 | Prompt Auto-Tuning | Complete | src/devsynth/application/prompts/auto_tuning.py | 2 | 4 | None | | Feature and tests implemented |
-| Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented. Wizard navigation fixes applied; gather wizard tests still intermittently fail (see [issue 102](../../issues/102.md)) |
+| Extended WebUI Pages | Complete | src/devsynth/interface/webui.py | 2 | 2 | WebUI | | Pages for commands such as `EDRR-cycle` and `align` implemented. Wizard navigation fixes applied; gather wizard tests still intermittently fail (see [issue 102](../../issues/archived/CLI-and-UI-improvements.md)) |
 | Multi-Language Code Generation | Complete | src/devsynth/application/agents/multi_language_code.py | 4 | 5 | Code Generation | | Supports Python, JavaScript, Go, Rust, Haskell and more |
 
 ## Current Limitations and Workarounds

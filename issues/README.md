@@ -4,15 +4,15 @@ This directory contains the active ticketing system for DevSynth. It does not in
 
 ## Naming Conventions
 
-- Each ticket is named `<number>.md` in ascending order (e.g., `132.md`).
+- Each ticket filename is a slug of its title (e.g., `CLI-and-UI-improvements.md`).
 - The first line must follow `# Issue <number>: <title>`.
 
 ## Ticket Template
 
-- Start new tickets by copying `TEMPLATE.md` and renaming it to the next number.
+- Start new tickets by copying `TEMPLATE.md` and renaming it to a slug of its title.
 - Populate the Summary, Tasks, and References sections.
 
 ## Archive Policy
 
-- When a ticket is closed, move it to `archive/<number>.md`.
+- When a ticket is closed, move it to `archived/<slug>.md`.
 - Archived files are immutable; open new tickets for follow-up work.

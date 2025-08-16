@@ -399,4 +399,4 @@ The project's success will ultimately depend on its ability to synthesize these 
 ## Implementation Status
 
 The dialectical evaluation is complete, but several recommended features remain
-**partially implemented**. See [issue 104](../../issues/104.md) for progress tracking.
+**partially implemented**. See [issue 104](../../issues/Critical-recommendations-follow-up.md) for progress tracking.

@@ -47,7 +47,7 @@ graph TD
   `tests/integration/general/test_multi_agent_roles_and_voting.py`.
 - Integration with the EDRR cycle and enhanced dialectical reasoning hooks
   remain in progress and are tracked in
-  [issue 104](../../issues/104.md).
+  [issue 104](../../issues/Critical-recommendations-follow-up.md).
 
 ## Core Principles
 

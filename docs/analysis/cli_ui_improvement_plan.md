@@ -118,7 +118,8 @@ graph LR
     WebUI --> Bridge
     Bridge --> Workflows[Core Workflows]
 ```
+
 ## Implementation Status
 
 This improvement plan is **implemented**. Ongoing enhancements are tracked in
-[issue 102](../../issues/102.md).
+[issue 102](../../issues/archived/CLI-and-UI-improvements.md).

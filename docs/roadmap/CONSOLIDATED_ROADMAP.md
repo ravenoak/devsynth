@@ -126,7 +126,7 @@ The project will transition to Phase 2 (Production Readiness) after publishing `
 ## Version Milestones
 
 - **0.1.0-alpha.1** (CURRENT TARGET): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
-- **0.1.0-alpha.1** (PLANNED): WSDE peer review workflow targeted for completion (see [issue 104](../../issues/104.md)), Web UI preview available, and major tests passing.
+- **0.1.0-alpha.1** (PLANNED): WSDE peer review workflow targeted for completion (see [issue 104](../../issues/Critical-recommendations-follow-up.md)), Web UI preview available, and major tests passing.
 - **0.1.0-rc.1** (PLANNED): Documentation freeze and full test suite passing as the release candidate for version 0.1.0.
 - **0.2.0–0.6.0** (PLANNED): Incremental releases adding collaboration, Web UI, and testing improvements.
 - **0.2.x** (PLANNED): Multi-language code generation support.

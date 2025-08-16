@@ -88,8 +88,8 @@ Before implementing changes—especially when introducing new features—draft a
 ## Issue Tracking
 
 - Use the in-repo issue tracker under `issues/` (see [issues/README.md](issues/README.md)).
-- Create new tickets by copying `issues/TEMPLATE.md` to the next available number.
-- When a ticket is resolved, move its file to `issues/archive/<number>.md` and leave it immutable.
+- Create new tickets by copying `issues/TEMPLATE.md` and renaming it using a slug of its title.
+- When a ticket is resolved, move its file to `issues/archived/<slug>.md` and leave it immutable.
 
 ## Specification-First Workflow
 

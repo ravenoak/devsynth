@@ -308,4 +308,4 @@ The DevSynth codebase provides a solid foundation for building a powerful AI dev
 ## Implementation Status
 
 The codebase enhancements are **partially implemented**. Ongoing integration and
-performance work is tracked in [issue 103](../../issues/103.md).
+performance work is tracked in [issue 103](../../issues/archived/Integration-and-performance-work.md).

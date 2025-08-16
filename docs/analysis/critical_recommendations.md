@@ -489,5 +489,5 @@ Success depends on disciplined execution of the phased implementation strategy, 
 
 These recommendations are **partially implemented**. Recent updates harden
 deployment security (non-root builds and mandatory image pulls) and complete
-EDRR testing gaps, as tracked in [issue 104](../../issues/104.md). Remaining
+EDRR testing gaps, as tracked in [issue 104](../../issues/Critical-recommendations-follow-up.md). Remaining
 work is documented in related tracking issues.

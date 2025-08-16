@@ -25,7 +25,7 @@ version: "0.1.0-alpha.1"
 
 This document outlines DevSynth's approach to supporting multiple development methodologies while maintaining its core "Expand, Differentiate, Refine, Retrospect" (EDRR) process. Rather than prescribing a specific workflow, DevSynth provides an adaptable framework that can integrate with any team's preferred way of working.
 
-**Implementation Status:** The Sprint adapter integrates basic EDRR phase progression and retrospective metrics, but deeper automation and tooling are still pending. Outstanding tasks are documented in [issue 104](../../issues/104.md).
+**Implementation Status:** The Sprint adapter integrates basic EDRR phase progression and retrospective metrics, but deeper automation and tooling are still pending. Outstanding tasks are documented in [issue 104](../../issues/Critical-recommendations-follow-up.md).
 
 ## Core Design Principles
 
@@ -117,7 +117,7 @@ The project's methodology preferences are specified in the `.devsynth/project.ya
 methodologyConfiguration:
   # Choose from: "sprint", "kanban", "milestone", "adhoc", or "custom"
   type: "sprint"
-  
+
   # General settings (available for all methodologies)
   phases:
     expand:
@@ -130,7 +130,7 @@ methodologyConfiguration:
     retrospect:
       skipable: false
       customHooks: ["lessons-learned-template.md"]
-  
+
   # Methodology-specific settings
   settings:
     # Sprint-specific settings (when type is "sprint")
@@ -140,14 +140,14 @@ methodologyConfiguration:
       dailyStandup: "phase_progression_tracking"
       review: "refine.outputs_review"
       retrospective: "retrospect.process_evaluation"
-    
+
     # Kanban-specific settings (when type is "kanban")
     wipLimits:
       expand: 3
       differentiate: 2
       refine: 2
       retrospect: 1
-    
+
     # Milestone-specific settings (when type is "milestone")
     approvalRequired:
       afterExpand: true
@@ -155,7 +155,7 @@ methodologyConfiguration:
       afterRefine: true
       afterRetrospect: false
     approvers: ["tech-lead", "product-owner"]
-    
+
     # Custom settings (when type is "custom")
     customAdapterPath: "./custom_methodology_adapter.py"
     customAdapterSettings:
@@ -198,21 +198,21 @@ from devsynth.methodology.base import BaseMethodologyAdapter
 
 class MyTeamMethodologyAdapter(BaseMethodologyAdapter):
     """Custom methodology adapter for my team's workflow."""
-    
+
     def __init__(self, config):
         super().__init__(config)
         # Initialize any custom state
-        
+
     def before_expand(self, context):
         # Custom logic before entering Expand phase
         pass
-        
+
     def after_expand(self, context, results):
         # Custom logic after completing Expand phase
         pass
-        
+
     # Implement other phase hooks...
-    
+
     def should_progress_to_next_phase(self, current_phase, context, results):
         # Custom logic to determine if ready to move to next phase
         return True

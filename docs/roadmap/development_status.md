@@ -442,14 +442,14 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - ~~Finalize unit tests for the `MemoryType` enum and resolve any remaining failures.~~
 - ~~Verify that the EDRR coordinator and AST code analysis features fully match their BDD scenarios.~~
 - ~~Complete WSDE agent collaboration capabilities.~~
-- [Issue 102](../../issues/102.md): refine WebUI and interactive CLI flows, resolving requirements wizard navigation bugs.
-- [Issue 113](../../issues/113.md): stabilize Kuzu-backed memory initialization and related tests.
-- [Issue 112](../../issues/112.md): complete WSDE collaboration with memory synchronization.
-- [Issue 117](../../issues/117.md): remove interactive prompts from CLI ingestion to support automation.
+- [Issue 102](../../issues/archived/CLI-and-UI-improvements.md): refine WebUI and interactive CLI flows, resolving requirements wizard navigation bugs.
+- [Issue 113](../../issues/archived/Kuzu-memory-integration-errors.md): stabilize Kuzu-backed memory initialization and related tests.
+- [Issue 112](../../issues/WSDE-collaboration-test-failures.md): complete WSDE collaboration with memory synchronization.
+- [Issue 117](../../issues/archived/CLI-ingestion-remains-interactive.md): remove interactive prompts from CLI ingestion to support automation.
 
 For updated scheduling, see the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
 ## Implementation Status
 
 Development is **in progress** with outstanding tasks tracked in
-[issue 102](../../issues/102.md) and related issues. Repository harmonization is
+[issue 102](../../issues/archived/CLI-and-UI-improvements.md) and related issues. Repository harmonization is
 complete and efforts are focused on delivering the `0.1.0-alpha.1` milestone. Work toward `0.1.0-alpha.1` will begin after its release.
