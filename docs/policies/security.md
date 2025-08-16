@@ -63,9 +63,9 @@ DevSynth automates routine security checks to prevent regressions:
 
 - A GitHub Actions workflow can be manually dispatched to run Bandit static
   analysis and Safety dependency scans via pre-commit.
-- The `security-audit` CLI command performs dependency vulnerability scans,
-  Bandit static analysis, and verifies required security environment variables
-  such as `DEVSYNTH_ACCESS_TOKEN`. Deployment pipelines must set
+- The `security-audit` CLI command validates required security configuration
+  flags using `scripts/verify_security_policy.py` before performing dependency
+  vulnerability scans and Bandit static analysis. Deployment pipelines must set
   `DEVSYNTH_PRE_DEPLOY_APPROVED=true` before invoking this command to enforce
   policy compliance prior to publishing artifacts.
 - The command exits with a non‑zero status if any check fails, which blocks CI

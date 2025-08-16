@@ -9,6 +9,8 @@ from __future__ import annotations
 import subprocess
 import sys
 
+import verify_security_policy
+
 from devsynth.logger import setup_logging
 from devsynth.security import audit
 from devsynth.security.validation import require_pre_deploy_checks
@@ -17,8 +19,10 @@ logger = setup_logging(__name__)
 
 
 def run(argv: list[str] | None = None) -> None:
-    """Execute Bandit and Safety security checks."""
+    """Validate security flags then execute Bandit and Safety checks."""
     require_pre_deploy_checks()
+    if verify_security_policy.main() != 0:
+        raise subprocess.CalledProcessError(1, "verify_security_policy")
     audit.main(argv)
 
 

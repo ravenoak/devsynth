@@ -1,26 +1,37 @@
-"""Tests for the dependency safety check script."""
+"""Tests for the security audit script."""
 
+import subprocess
 import sys
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 sys.path.append("scripts")
 
-import dependency_safety_check  # type: ignore
+import security_audit  # type: ignore
 
 
-@patch("dependency_safety_check.run_safety")
-@patch("dependency_safety_check.run_bandit")
-def test_main_runs_all_checks(mock_bandit, mock_safety) -> None:
-    """The script should execute Bandit and Safety by default."""
-    dependency_safety_check.main([])
-    mock_bandit.assert_called_once()
-    mock_safety.assert_called_once()
+@patch("security_audit.audit.main")
+@patch("security_audit.verify_security_policy.main", return_value=0)
+@patch("security_audit.require_pre_deploy_checks")
+@pytest.mark.fast
+def test_run_executes_policy_and_audit(
+    mock_pre: MagicMock, mock_policy: MagicMock, mock_audit: MagicMock
+) -> None:
+    """The script should validate flags and run dependency checks."""
+    security_audit.run([])
+    mock_pre.assert_called_once_with()
+    mock_policy.assert_called_once_with()
+    mock_audit.assert_called_once_with([])
 
 
-@patch("dependency_safety_check.run_safety")
-@patch("dependency_safety_check.run_bandit")
-def test_main_respects_skip_flags(mock_bandit, mock_safety) -> None:
-    """Skip flags should prevent running the associated tools."""
-    dependency_safety_check.main(["--skip-bandit", "--skip-safety"])
-    mock_bandit.assert_not_called()
-    mock_safety.assert_not_called()
+@patch("security_audit.audit.main")
+@patch("security_audit.verify_security_policy.main", return_value=1)
+@patch("security_audit.require_pre_deploy_checks")
+@pytest.mark.fast
+def test_run_raises_on_policy_failure(
+    mock_pre: MagicMock, mock_policy: MagicMock, mock_audit: MagicMock
+) -> None:
+    """A non-zero policy result should raise an error."""
+    with pytest.raises(subprocess.CalledProcessError):
+        security_audit.run([])
