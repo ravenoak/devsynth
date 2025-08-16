@@ -11,6 +11,7 @@ from devsynth.testing.generation import (
 from devsynth.testing.generation import (
     write_scaffolded_tests as _write_scaffolded_tests,
 )
+from devsynth.testing.run_tests import run_tests as _run_tests
 
 from .base import BaseAgent
 
@@ -160,6 +161,29 @@ class TestAgent(BaseAgent):
             "role": self.current_role,
             "integration_tests": integration_tests,
         }
+
+    def run_tests(self, target: str, speed: str | None = None) -> str:
+        """Execute tests and raise if they fail.
+
+        Args:
+            target: Test target to run, such as ``unit-tests`` or
+                ``integration-tests``.
+            speed: Optional speed marker (``fast``, ``medium``, ``slow``).
+
+        Returns:
+            Combined stdout and stderr from the test run.
+
+        Raises:
+            DevSynthError: If any tests fail.
+        """
+
+        speed_categories = [speed] if speed else None
+        success, output = _run_tests(
+            target, speed_categories=speed_categories, parallel=False
+        )
+        if not success:
+            raise DevSynthError("Generated tests failed")
+        return output
 
     def get_capabilities(self) -> List[str]:
         """Get the capabilities of this agent."""
