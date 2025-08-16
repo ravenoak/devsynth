@@ -103,6 +103,7 @@ services:
       - chromadb-data:/chroma
     environment:
       - IS_PERSISTENT=TRUE
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8001:8000"
     networks:
@@ -129,6 +130,7 @@ services:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
+    user: "${UID:-1000}:${GID:-1000}"
     networks:
       - devsynth-network
     healthcheck:
@@ -154,6 +156,7 @@ services:
       - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
+    user: "${UID:-1000}:${GID:-1000}"
     networks:
       - devsynth-network
     healthcheck:
@@ -175,6 +178,7 @@ services:
       context: .
       target: production
     entrypoint: ["/bin/bash", "scripts/deployment/publish_image.sh", "${DEVSYNTH_IMAGE_TAG:-latest}"]
+    user: "${UID:-1000}:${GID:-1000}"
     profiles:
       - ci
 
@@ -183,6 +187,7 @@ services:
       context: .
       target: production
     entrypoint: ["/bin/bash", "scripts/deployment/rollback.sh", "${DEVSYNTH_ROLLBACK_TAG:-latest}", "development"]
+    user: "${UID:-1000}:${GID:-1000}"
     profiles:
       - ci
 
