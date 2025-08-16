@@ -3,20 +3,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# These unit tests execute quickly
-pytestmark = [pytest.mark.fast, pytest.mark.skip(reason="lmstudio.llm not available")]
-
-from devsynth.application.llm.lmstudio_provider import (
-    LMStudioConnectionError,
-    LMStudioProvider,
-)
 from devsynth.application.llm.offline_provider import OfflineProvider
 from devsynth.exceptions import DevSynthError
 from devsynth.metrics import get_retry_metrics, reset_metrics
 
+# These unit tests execute quickly
+pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("lmstudio")]
 
-def test_provider_logging_cleanup(capsys):
+
+def test_provider_logging_cleanup(lmstudio_mock, capsys):
     """Providers should not log after logging.shutdown."""
+    from devsynth.application.llm.lmstudio_provider import LMStudioProvider
+
     OfflineProvider().generate("hello")
     with (
         patch("devsynth.application.llm.lmstudio_provider.lmstudio.llm") as mock_llm,
@@ -39,8 +37,13 @@ def test_provider_logging_cleanup(capsys):
     assert "I/O operation on closed file" not in capsys.readouterr().err
 
 
-def test_lmstudio_retry_metrics_and_circuit_breaker():
+def test_lmstudio_retry_metrics_and_circuit_breaker(lmstudio_mock):
     """Failures increment retry metrics and open the circuit breaker."""
+    from devsynth.application.llm.lmstudio_provider import (
+        LMStudioConnectionError,
+        LMStudioProvider,
+    )
+
     reset_metrics()
     with (
         patch("devsynth.application.llm.lmstudio_provider.lmstudio.llm") as mock_llm,
