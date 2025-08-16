@@ -3,6 +3,7 @@
 This index lists all feature files for easy navigation.
 
 - [examples/simple_addition.feature](./examples/simple_addition.feature)
+- [test_generation.feature](./test_generation.feature)
 - [general/additional_storage_backends.feature](./general/additional_storage_backends.feature)
 - [general/advanced_graph_memory_features.feature](./general/advanced_graph_memory_features.feature)
 - [general/agent_api_health_metrics.feature](./general/agent_api_health_metrics.feature)
