@@ -10,25 +10,28 @@ the terminal or WebUI.
 
 from __future__ import annotations
 
+import datetime
 import os
 import time
-import datetime
-from typing import Optional, Sequence, List, Dict, Any
+from typing import Any, Dict, List, Optional, Sequence
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status, Header, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from devsynth.api import verify_token
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.interface.ux_bridge import (
-    UXBridge,
-    ProgressIndicator,
-    sanitize_output,
-)
 
 logger = DevSynthLogger(__name__)
 router = APIRouter()
+
+
+def _verify_token(authorization: str = Header(None)) -> None:
+    """Lazy import to avoid circular dependency during FastAPI setup."""
+    from devsynth.api import verify_token as _verify
+
+    return _verify(authorization)
+
 
 # Store the latest messages from the API
 LATEST_MESSAGES: List[str] = []
@@ -401,7 +404,7 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
 
 class InitRequest(BaseModel):
     __test__ = False
-    path: str = "."
+    path: Optional[str] = "."
     project_root: Optional[str] = None
     language: Optional[str] = None
     goals: Optional[str] = None
@@ -409,9 +412,9 @@ class InitRequest(BaseModel):
 
 class GatherRequest(BaseModel):
     __test__ = False
-    goals: str
-    constraints: str
-    priority: str = "medium"
+    goals: Optional[str] = None
+    constraints: Optional[str] = None
+    priority: Optional[str] = "medium"
 
 
 class SynthesizeRequest(BaseModel):
@@ -421,11 +424,11 @@ class SynthesizeRequest(BaseModel):
 
 class SpecRequest(BaseModel):
     __test__ = False
-    requirements_file: str = "requirements.md"
+    requirements_file: Optional[str] = "requirements.md"
 
 
 class TestSpecRequest(BaseModel):
-    spec_file: str = "specs.md"
+    spec_file: Optional[str] = "specs.md"
     output_dir: Optional[str] = None
 
     # Prevent pytest from collecting this model as a test class
@@ -445,7 +448,7 @@ class DoctorRequest(BaseModel):
 
 class EDRRCycleRequest(BaseModel):
     __test__ = False
-    prompt: str
+    prompt: Optional[str] = None
     context: Optional[str] = None
     max_iterations: int = 3
 
@@ -584,9 +587,14 @@ class AgentAPI:
 
 @router.post("/init", response_model=WorkflowResponse)
 def init_endpoint(
-    request: InitRequest, token: None = Depends(verify_token)
+    request: InitRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Initialize or onboard a project."""
+    if request.path is None:
+        raise HTTPException(status_code=400, detail="path is required")
+    if request.path == "":
+        raise HTTPException(status_code=400, detail="path cannot be empty")
+
     bridge = APIBridge()
     try:
         from devsynth.application.cli import init_cmd
@@ -610,9 +618,14 @@ def init_endpoint(
 
 @router.post("/gather", response_model=WorkflowResponse)
 def gather_endpoint(
-    request: GatherRequest, token: None = Depends(verify_token)
+    request: GatherRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Gather project goals and constraints via the interactive wizard."""
+    if request.goals is None:
+        raise HTTPException(status_code=400, detail="goals are required")
+    if request.goals == "":
+        raise HTTPException(status_code=400, detail="goals cannot be empty")
+
     try:
         answers = [request.goals, request.constraints, request.priority]
         bridge = APIBridge(answers)
@@ -631,9 +644,28 @@ def gather_endpoint(
 
 @router.post("/synthesize", response_model=WorkflowResponse)
 def synthesize_endpoint(
-    request: SynthesizeRequest, token: None = Depends(verify_token)
+    request: SynthesizeRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Execute the synthesis pipeline."""
+    if request.target is None:
+        raise HTTPException(status_code=400, detail="target is required")
+    if request.target == "":
+        raise HTTPException(status_code=400, detail="target cannot be empty")
+    valid_targets = {
+        "unit",
+        "unit-tests",
+        "integration",
+        "integration-tests",
+        "behavior",
+        "behavior-tests",
+        "all",
+    }
+    if request.target not in valid_targets:
+        raise HTTPException(
+            status_code=400,
+            detail="target must be one of " + ", ".join(sorted(valid_targets)),
+        )
+
     try:
         bridge = APIBridge()
         from devsynth.application.cli import run_pipeline_cmd
@@ -651,9 +683,14 @@ def synthesize_endpoint(
 
 @router.post("/spec", response_model=WorkflowResponse)
 def spec_endpoint(
-    request: SpecRequest, token: None = Depends(verify_token)
+    request: SpecRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Generate specifications from requirements."""
+    if request.requirements_file is None:
+        raise HTTPException(status_code=400, detail="requirements_file is required")
+    if request.requirements_file == "":
+        raise HTTPException(status_code=400, detail="requirements_file cannot be empty")
+
     try:
         bridge = APIBridge()
         from devsynth.application.cli import spec_cmd
@@ -671,9 +708,14 @@ def spec_endpoint(
 
 @router.post("/test", response_model=WorkflowResponse)
 def test_endpoint(
-    request: TestSpecRequest, token: None = Depends(verify_token)
+    request: TestSpecRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Generate tests from specifications."""
+    if request.spec_file is None:
+        raise HTTPException(status_code=400, detail="spec_file is required")
+    if request.spec_file == "":
+        raise HTTPException(status_code=400, detail="spec_file cannot be empty")
+
     try:
         bridge = APIBridge()
         from devsynth.application.cli import test_cmd
@@ -691,9 +733,13 @@ def test_endpoint(
         )
 
 
+# Prevent pytest from collecting the router function as a test
+test_endpoint.__test__ = False
+
+
 @router.post("/code", response_model=WorkflowResponse)
 def code_endpoint(
-    request: CodeRequest, token: None = Depends(verify_token)
+    request: CodeRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Generate code from tests."""
     try:
@@ -713,7 +759,7 @@ def code_endpoint(
 
 @router.post("/doctor", response_model=WorkflowResponse)
 def doctor_endpoint(
-    request: DoctorRequest, token: None = Depends(verify_token)
+    request: DoctorRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Run diagnostics."""
     try:
@@ -733,9 +779,16 @@ def doctor_endpoint(
 
 @router.post("/edrr-cycle", response_model=WorkflowResponse)
 def edrr_cycle_endpoint(
-    request: EDRRCycleRequest, token: None = Depends(verify_token)
+    request: EDRRCycleRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
     """Run EDRR cycle."""
+    if request.prompt is None:
+        raise HTTPException(status_code=400, detail="prompt is required")
+    if request.prompt == "":
+        raise HTTPException(status_code=400, detail="prompt cannot be empty")
+    if request.max_iterations <= 0:
+        raise HTTPException(status_code=400, detail="max_iterations must be positive")
+
     try:
         bridge = APIBridge()
         from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
@@ -757,7 +810,7 @@ def edrr_cycle_endpoint(
 
 
 @router.get("/status", response_model=WorkflowResponse)
-def status_endpoint(token: None = Depends(verify_token)) -> WorkflowResponse:
+def status_endpoint(token: None = Depends(_verify_token)) -> WorkflowResponse:
     """Return messages from the most recent workflow invocation."""
     return WorkflowResponse(messages=LATEST_MESSAGES)
 
@@ -774,7 +827,7 @@ def status_endpoint(token: None = Depends(verify_token)) -> WorkflowResponse:
     description="Check if the API is healthy and responding to requests.",
 )
 def health_endpoint(
-    request: Request, token: None = Depends(verify_token)
+    request: Request, token: None = Depends(_verify_token)
 ) -> JSONResponse:
     """Check if the API is healthy.
 
@@ -814,7 +867,7 @@ def health_endpoint(
     description="Get metrics about API usage and performance.",
 )
 def metrics_endpoint(
-    request: Request, token: None = Depends(verify_token)
+    request: Request, token: None = Depends(_verify_token)
 ) -> PlainTextResponse:
     """Get API metrics.
 

@@ -3,6 +3,8 @@ import uuid
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.responses import Response
 
+from devsynth.interface.agentapi import router as agent_router
+
 # Prometheus metrics are optional; fall back to lightweight stubs when the
 # dependency isn't available.  This keeps the API usable in stripped-down test
 # environments where the monitoring stack is absent.
@@ -65,6 +67,9 @@ REQUEST_LATENCY = Histogram(
 )
 
 app = FastAPI(title="DevSynth API")
+
+# Expose workflow endpoints under the `/api` namespace.
+app.include_router(agent_router, prefix="/api")
 
 
 @app.middleware("http")
