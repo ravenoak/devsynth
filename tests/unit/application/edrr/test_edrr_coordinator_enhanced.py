@@ -11,6 +11,7 @@ from devsynth.application.documentation.documentation_manager import (
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.application.edrr.edrr_phase_transitions import MetricType
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.memory import MemoryType
@@ -266,6 +267,28 @@ class TestEnhancedEDRRCoordinator:
             enhanced_coordinator.results[Phase.EXPAND.name] = {"phase_complete": False}
             next_phase = enhanced_coordinator._enhanced_decide_next_phase()
             assert next_phase is None
+
+    @pytest.mark.medium
+    def test_phase_failure_hook_called(self, enhanced_coordinator):
+        """Failure hooks run when phase cannot transition."""
+        task = {"name": "t"}
+        enhanced_coordinator.start_cycle(task)
+        metrics = {
+            MetricType.QUALITY.value: 0.2,
+            MetricType.COMPLETENESS.value: 0.6,
+            MetricType.CONSISTENCY.value: 0.6,
+            MetricType.CONFLICTS.value: 0,
+        }
+        enhanced_coordinator.phase_metrics.metrics[Phase.EXPAND.name] = metrics
+        called = {}
+
+        def hook(m):
+            called["called"] = True
+
+        enhanced_coordinator.register_phase_failure_hook(Phase.EXPAND, hook)
+        next_phase = enhanced_coordinator._enhanced_decide_next_phase()
+        assert called.get("called") is True
+        assert next_phase is None
 
     @pytest.mark.medium
     def test_enhanced_maybe_auto_progress_succeeds(self, enhanced_coordinator):

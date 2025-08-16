@@ -83,7 +83,10 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         )
 
         # Initialize phase transition metrics
-        self.phase_metrics = PhaseTransitionMetrics()
+        thresholds_cfg = (
+            (config or {}).get("phase_transitions", {}).get("thresholds", {})
+        )
+        self.phase_metrics = PhaseTransitionMetrics(thresholds=thresholds_cfg)
 
         # Enhanced configuration
         self.config = config or {}
@@ -105,6 +108,10 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             "quality_threshold", 0.7
         )
         self.max_revision_cycles = peer_review_config.get("max_revision_cycles", 2)
+
+    def register_phase_failure_hook(self, phase: Phase, hook: Any) -> None:
+        """Register a hook for phase transition failures."""
+        self.phase_metrics.register_failure_hook(phase, hook)
 
     def progress_to_phase(self, phase: Phase) -> None:
         """
