@@ -299,9 +299,15 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 edrr_phase=edrr_phase,
                 metadata={"change_id": str(reasoning.change_id)},
             )
-        except Exception:
-            # Memory persistence failures should not interrupt flow
-            pass
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning(
+                "Failed to persist dialectical reasoning in memory",  # pragma: no cover - log path
+                extra={
+                    "change_id": str(reasoning.change_id),
+                    "event": "reasoning_memory_persist_failed",
+                },
+                exc_info=True,
+            )
 
     def _store_impact_in_memory(
         self, assessment: ImpactAssessment, edrr_phase: str = "REFINE"
@@ -317,9 +323,15 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 edrr_phase=edrr_phase,
                 metadata={"change_id": str(assessment.change_id)},
             )
-        except Exception:
-            # Memory persistence failures should not interrupt flow
-            pass
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning(
+                "Failed to persist impact assessment in memory",  # pragma: no cover - log path
+                extra={
+                    "change_id": str(assessment.change_id),
+                    "event": "impact_memory_persist_failed",
+                },
+                exc_info=True,
+            )
 
     def _evaluate_consensus(self, reasoning: DialecticalReasoning) -> bool:
         """Use the LLM to determine if consensus was achieved."""
