@@ -391,4 +391,4 @@ These additions outline how DevSynth will evolve after its MVP release. By imple
 ## Implementation Status
 
 This roadmap is **planned** for post-MVP work. Progress will be tracked in
-[issue 103](../../issues/103.md) and subsequent issues.
+[issue 103](../../issues/archived/Integration-and-performance-work.md) and subsequent issues.

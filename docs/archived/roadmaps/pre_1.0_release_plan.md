@@ -164,4 +164,4 @@ See [Release Plan](release_plan.md) for the consolidated roadmap and version mil
 ## Implementation Status
 
 This pre-1.0 plan is **in progress**. Outstanding tasks are tracked in
-[issue 102](../../issues/102.md).
+[issue 102](../../issues/archived/CLI-and-UI-improvements.md).

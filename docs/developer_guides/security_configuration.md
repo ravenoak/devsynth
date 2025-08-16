@@ -26,7 +26,7 @@ version: "0.1.0-alpha.1"
 This guide describes recommended security settings for deploying DevSynth in production.
 It complements the secure coding guidance and addresses outstanding recommendations
 from the [critical recommendations report](../analysis/critical_recommendations.md).
-See [issue 104](../../issues/104.md) for background.
+See [issue 104](../../issues/Critical-recommendations-follow-up.md) for background.
 
 ## Container Security
 

@@ -314,7 +314,7 @@ Configuration examples are provided for optional vector stores such as **ChromaD
  - [x] Docker deployment working on major platforms
  - [ ] EDRR and WSDE frameworks partially functional (see
    [Feature Status Matrix](../implementation/feature_status_matrix.md) and
-   [issue 104](../../issues/104.md))
+   [issue 104](../../issues/Critical-recommendations-follow-up.md))
  - [x] UXBridge abstraction implemented to support future WebUI
  - [x] Dependency count reduced by 30% with improved security
 - [x] Basic security measures implemented and tested
@@ -1100,4 +1100,4 @@ The roadmap balances ambitious goals with practical implementation steps, ensuri
 ## Implementation Status
 
 Execution of this roadmap is **in progress**. Key deliverables are tracked in
-[issue 102](../../issues/102.md) and related issues.
+[issue 102](../../issues/archived/CLI-and-UI-improvements.md) and related issues.

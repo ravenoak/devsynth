@@ -59,7 +59,7 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
 - **0.1.0-alpha.1**: Core architecture in place with Anthropic and offline
   providers, baseline CLI commands, and initial EDRR/WSDE integration.
 - **0.1.0-alpha.1**: WSDE peer review workflow targeted for completion
-  (see [issue 104](../../issues/104.md)), Web UI preview available, and major
+  (see [issue 104](../../issues/Critical-recommendations-follow-up.md)), Web UI preview available, and major
   tests passing.
 - **0.1.0-rc.1**: Documentation freeze and full test suite passing as the
   release candidate for version 0.1.0.
@@ -76,7 +76,7 @@ For a detailed breakdown of feature implementation progress, see the
 [Feature Status Matrix](../implementation/feature_status_matrix.md).
 
 ## Implementation Status
-Execution of this release plan is **in progress** with milestones tracked in [issue 104](../../issues/104.md). The repository harmonization effort has concluded, the **0.1.0-alpha.1** milestone is complete, and preparations for `0.1.0-alpha.1` are underway.
+Execution of this release plan is **in progress** with milestones tracked in [issue 104](../../issues/Critical-recommendations-follow-up.md). The repository harmonization effort has concluded, the **0.1.0-alpha.1** milestone is complete, and preparations for `0.1.0-alpha.1` are underway.
 
 ### Current Test Summary
 

@@ -46,7 +46,7 @@ graph TD
 
 - The `EDRRCoordinator` orchestrates phase transitions with manifest parser
   integration, but several coordination behaviors and step definitions are still
-  incomplete. See [issue 104](../../issues/104.md) for outstanding tasks.
+  incomplete. See [issue 104](../../issues/Critical-recommendations-follow-up.md) for outstanding tasks.
 - Integration with `MemoryManager` and `WSDETeam` is functional but requires
   additional testing. `AstTransformer` and advanced documentation features remain
   in progress.

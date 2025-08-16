@@ -321,5 +321,5 @@ The comprehensive SDLC artifact coverage and sophisticated agent-based architect
 ## Implementation Status
 
 The documented components are **partially implemented**. Further validation and
-testing tasks are tracked in [issue 103](../../issues/103.md)
-and [issue 104](../../issues/104.md).
+testing tasks are tracked in [issue 103](../../issues/archived/Integration-and-performance-work.md)
+and [issue 104](../../issues/Critical-recommendations-follow-up.md).
