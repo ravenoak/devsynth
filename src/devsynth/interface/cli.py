@@ -649,10 +649,9 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         else:
             logger.debug(f"Displaying message: {message}")
 
-        # Check if the message contains Rich markup
+        # Check if the message contains Rich markup. Sanitize while preserving markup
         if "[" in message and "]" in message:
-            # For Rich markup, pass the message directly with the highlight parameter
-            self.console.print(message, highlight=highlight)
+            self.console.print(sanitize_output(message), highlight=highlight)
             return
 
         # Format the message using the shared formatter

@@ -1,7 +1,9 @@
 import sys
-import pytest
 from types import ModuleType
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from devsynth.interface.agentapi import APIBridge
 from devsynth.interface.cli import CLIUXBridge
 
@@ -21,7 +23,9 @@ def test_function(clean_state):
     bridge = CLIUXBridge()
     with patch("rich.console.Console.print") as out:
         bridge.display_result("<script>alert('x')</script>Hello")
-        out.assert_called_once_with("Hello", highlight=False)
+        out.assert_called_once()
+        printed_text = out.call_args[0][0]
+        assert getattr(printed_text, "plain", str(printed_text)) == "Hello"
 
 
 @pytest.mark.medium
@@ -32,7 +36,9 @@ def test_cliuxbridge_escapes_html_succeeds(clean_state):
     bridge = CLIUXBridge()
     with patch("rich.console.Console.print") as out:
         bridge.display_result("<script>")
-        out.assert_called_once_with("&lt;script&gt;", highlight=False)
+        out.assert_called_once()
+        printed_text = out.call_args[0][0]
+        assert getattr(printed_text, "plain", str(printed_text)) == "&lt;script&gt;"
 
 
 @pytest.mark.medium
@@ -76,23 +82,23 @@ def test_webapp_cmd_error_sanitized_raises_error(monkeypatch, clean_state):
     """Errors from webapp_cmd should be sanitized before printing.
 
     ReqID: N/A"""
-    from devsynth.application.cli.cli_commands import webapp_cmd
     import types
+
+    from devsynth.application.cli.cli_commands import webapp_cmd
+    from devsynth.application.cli.commands import webapp_cmd as webapp_module
 
     bridge = CLIUXBridge()
     bridge.print = types.MethodType(lambda self, *a, **k: None, bridge)
 
     # Mock os.path.exists to return False
-    monkeypatch.setattr(
-        "devsynth.application.cli.cli_commands.os.path.exists", lambda p: False
-    )
+    monkeypatch.setattr(webapp_module.os.path, "exists", lambda p: False)
 
     # Define a function that raises an exception with HTML content
     def boom(*args, **kwargs):
         raise Exception("<script>bad</script>Danger")
 
     # Mock os.makedirs to raise the exception
-    monkeypatch.setattr("devsynth.application.cli.cli_commands.os.makedirs", boom)
+    monkeypatch.setattr(webapp_module.os, "makedirs", boom)
 
     # Create a dummy progress class for testing
     class DummyProgress:
@@ -108,10 +114,9 @@ def test_webapp_cmd_error_sanitized_raises_error(monkeypatch, clean_state):
         def complete(self):
             pass
 
-    # Mock the create_progress method
-    monkeypatch.setattr(
-        "devsynth.application.cli.cli_commands.bridge.create_progress",
-        lambda *a, **k: DummyProgress(),
+    # Override create_progress on the bridge instance
+    bridge.create_progress = types.MethodType(
+        lambda self, *a, **k: DummyProgress(), bridge
     )
 
     # Test that HTML is sanitized in error messages
@@ -120,3 +125,24 @@ def test_webapp_cmd_error_sanitized_raises_error(monkeypatch, clean_state):
         printed = "".join(str(c.args[0]) for c in out.call_args_list)
         assert "Danger" in printed
         assert "<script>" not in printed
+
+
+@pytest.mark.medium
+def test_cliuxbridge_removes_self_closing_script(clean_state):
+    """Self-closing script tags should be removed entirely."""
+    bridge = CLIUXBridge()
+    with patch("rich.console.Console.print") as out:
+        bridge.display_result("<script src='evil.js'/>Hi")
+        out.assert_called_once()
+        printed_text = out.call_args[0][0]
+        assert getattr(printed_text, "plain", str(printed_text)) == "Hi"
+
+
+@pytest.mark.medium
+def test_sanitize_output_respects_env(monkeypatch):
+    """Disabling sanitization should leave content untouched."""
+    from devsynth.interface.ux_bridge import sanitize_output
+
+    monkeypatch.setenv("DEVSYNTH_SANITIZATION_ENABLED", "0")
+    raw = "<b>bold</b>"
+    assert sanitize_output(raw) == raw

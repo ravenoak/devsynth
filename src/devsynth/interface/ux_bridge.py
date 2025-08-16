@@ -11,6 +11,8 @@ import html
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Sequence, Union
 
+from devsynth.security.validation import parse_bool_env
+
 try:  # pragma: no cover - import guarded for optional deps
     # Import directly from the sanitization module to avoid initializing the
     # entire security package, which may have optional dependencies.
@@ -23,8 +25,15 @@ except ImportError:  # pragma: no cover - graceful degradation
 
 
 def sanitize_output(text: str) -> str:
-    """Sanitize and escape user provided text for safe display."""
+    """Sanitize and escape user provided text for safe display.
+
+    Respects the ``DEVSYNTH_SANITIZATION_ENABLED`` environment variable so that
+    projects can disable all sanitization/escaping in trusted contexts.
+    """
+
     sanitized = sanitize_input(text)
+    if not parse_bool_env("DEVSYNTH_SANITIZATION_ENABLED", True):
+        return sanitized
     return html.escape(sanitized)
 
 

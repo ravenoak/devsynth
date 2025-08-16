@@ -1,10 +1,16 @@
 """Input sanitization helpers for DevSynth."""
 
 import re
+
 from devsynth.exceptions import InputSanitizationError
+
 from .validation import parse_bool_env
 
-_SCRIPT_TAG_RE = re.compile(r"<script.*?>.*?</script>", re.IGNORECASE | re.DOTALL)
+# Match both standard and self-closing script tags as well as stray closing tags
+_SCRIPT_TAG_RE = re.compile(
+    r"<script[^>]*>.*?</script>|<script[^>]*/>|</script>",
+    re.IGNORECASE | re.DOTALL,
+)
 _CONTROL_CHAR_RE = re.compile(r"[\x00-\x1f\x7f]")
 
 
