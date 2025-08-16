@@ -1,6 +1,6 @@
 import sys
 from types import ModuleType
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
@@ -41,6 +41,7 @@ def clean_state():
 @pytest.mark.medium
 def test_requirements_wizard_initialization(stub_streamlit, clean_state):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -55,6 +56,7 @@ def test_requirements_wizard_initialization(stub_streamlit, clean_state):
 @pytest.mark.medium
 def test_requirements_wizard_step_navigation_succeeds(stub_streamlit, clean_state):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -73,6 +75,7 @@ def test_requirements_wizard_step_navigation_succeeds(stub_streamlit, clean_stat
 @pytest.mark.medium
 def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, clean_state):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -148,3 +151,56 @@ def test_save_requirements_writes_file(stub_streamlit):
     assert result["title"] == "Req"
     manager.set_completed.assert_called_once_with(True)
     manager.reset_wizard_state.assert_called_once()
+
+
+@pytest.mark.medium
+def test_priority_persists_through_navigation(stub_streamlit):
+    """Priority selection should persist when navigating steps."""
+    import importlib
+
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    st = stub_streamlit
+    ui = WebUI()
+
+    # Initialize wizard
+    ui._requirements_wizard()
+
+    # Simulate priority selection and navigation
+    st.session_state["requirements_wizard_priority"] = "high"
+    st.session_state["requirements_wizard_current_step"] = 5
+    ui._requirements_wizard()
+    st.session_state["requirements_wizard_current_step"] = 4
+    ui._requirements_wizard()
+
+    assert st.session_state["requirements_wizard_priority"] == "high"
+
+
+@pytest.mark.medium
+def test_title_and_description_persist(stub_streamlit):
+    """Title and description should persist across navigation."""
+    import importlib
+
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    st = stub_streamlit
+    ui = WebUI()
+
+    st.text_input.return_value = "My Title"
+    ui._requirements_wizard()  # step 1
+
+    # Simulate description being set on step 2
+    st.session_state["requirements_wizard_description"] = "My Description"
+
+    # Return to step 1 and ensure values persist
+    st.session_state["requirements_wizard_current_step"] = 1
+    ui._requirements_wizard()
+
+    assert st.session_state["requirements_wizard_title"] == "My Title"
+    assert st.session_state["requirements_wizard_description"] == "My Description"
