@@ -7,13 +7,15 @@ invoked similarly to ``streamlit run`` to start the application.
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Optional, Sequence
+from typing import Any, Callable, Dict, Optional, Sequence
 
 from nicegui import app, ui
 
 from devsynth.interface.progress_utils import run_with_progress
 from devsynth.interface.shared_bridge import SharedBridgeMixin
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
+
+_session_store: Dict[str, Any] = {}
 
 
 class NiceGUIProgressIndicator(ProgressIndicator):
@@ -78,11 +80,17 @@ class NiceGUIBridge(SharedBridgeMixin, UXBridge):
 
     @staticmethod
     def get_session_value(key: str, default=None):
-        return app.storage.user.get(key, default)
+        try:
+            return app.storage.user.get(key, default)
+        except RuntimeError:
+            return _session_store.get(key, default)
 
     @staticmethod
     def set_session_value(key: str, value) -> None:
-        app.storage.user[key] = value
+        try:
+            app.storage.user[key] = value
+        except RuntimeError:
+            _session_store[key] = value
 
 
 # ---------------------------------------------------------------------------
