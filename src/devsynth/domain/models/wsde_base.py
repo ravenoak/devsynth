@@ -5,15 +5,15 @@ This module contains the base WSDE class and core WSDETeam functionality
 including initialization, agent management, and messaging.
 """
 
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Callable, Iterable
-from datetime import datetime
-from uuid import uuid4
 import re
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Callable, Dict, Iterable, List, Optional
+from uuid import uuid4
 
-from devsynth.methodology.base import Phase
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.exceptions import DevSynthError
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
 
@@ -84,6 +84,10 @@ class WSDETeam:
             "evaluator": None,
         }
         self.messages = []
+        # Message protocol is initialised lazily to avoid heavy imports when not
+        # required. The attribute is declared here so that callers may inspect
+        # or replace it even before the first message is sent.
+        self.message_protocol = None
         self.solutions = []
         self.dialectical_hooks = []
         self.voting_history = []
@@ -141,6 +145,9 @@ class WSDETeam:
         if not hasattr(self, "standards"):
             self.standards = None
 
+        if not hasattr(self, "message_protocol"):
+            self.message_protocol = None
+
     def add_agent(self, agent: Any):
         """
         Add an agent to the team.
@@ -194,16 +201,49 @@ class WSDETeam:
             content: The content of the message
             metadata: Optional metadata for the message
         """
-        message = {
-            "id": str(uuid4()),
-            "timestamp": datetime.now(),
-            "sender": sender,
-            "recipients": recipients,
-            "type": message_type,
-            "subject": subject,
-            "content": content,
-            "metadata": metadata or {},
-        }
+        # Delegate to the shared message protocol if available. This ensures
+        # messages are persisted and optionally synchronised with the memory
+        # manager.  The protocol is initialised lazily by the utility helper so
+        # importing here avoids a hard dependency during module import.
+        try:
+            from . import wsde_utils as _utils
+
+            proto_msg = _utils.send_message(
+                self,
+                sender,
+                recipients,
+                message_type,
+                subject,
+                content,
+                metadata,
+            )
+        except Exception:  # pragma: no cover - best effort fallback
+            proto_msg = None
+
+        if proto_msg is not None:
+            message = {
+                "id": proto_msg.message_id,
+                "timestamp": proto_msg.timestamp,
+                "sender": proto_msg.sender,
+                "recipients": proto_msg.recipients,
+                "type": proto_msg.message_type.value,
+                "subject": proto_msg.subject,
+                "content": proto_msg.content,
+                "metadata": proto_msg.metadata,
+            }
+        else:
+            # Fallback to in-memory message if the protocol is unavailable.
+            message = {
+                "id": str(uuid4()),
+                "timestamp": datetime.now(),
+                "sender": sender,
+                "recipients": recipients,
+                "type": message_type,
+                "subject": subject,
+                "content": content,
+                "metadata": metadata or {},
+            }
+
         self.messages.append(message)
         self.logger.debug(f"Message sent from {sender} to {recipients}: {subject}")
         return message
@@ -304,7 +344,9 @@ class WSDETeam:
 
         # Send messages to reviewers
         for reviewer in reviewer_agents:
-            reviewer_name = getattr(reviewer, "name", getattr(reviewer, "id", "unknown"))
+            reviewer_name = getattr(
+                reviewer, "name", getattr(reviewer, "id", "unknown")
+            )
             self.send_message(
                 sender=author_name,
                 recipients=[reviewer_name],
@@ -355,7 +397,9 @@ class WSDETeam:
 
         current_primus_index = -1
         if self.roles["primus"] is not None:
-            current_name = getattr(self.roles["primus"], "name", getattr(self.roles["primus"], "id", None))
+            current_name = getattr(
+                self.roles["primus"], "name", getattr(self.roles["primus"], "id", None)
+            )
             for i, agent in enumerate(self.agents):
                 agent_name = getattr(agent, "name", getattr(agent, "id", None))
                 if agent_name == current_name:
@@ -364,7 +408,9 @@ class WSDETeam:
 
         next_primus_index = (current_primus_index + 1) % len(self.agents)
         self.roles["primus"] = self.agents[next_primus_index]
-        primus_name = getattr(self.roles["primus"], "name", getattr(self.roles["primus"], "id", "unknown"))
+        primus_name = getattr(
+            self.roles["primus"], "name", getattr(self.roles["primus"], "id", "unknown")
+        )
         self.logger.info(f"Rotated primus role to {primus_name}")
         return self.roles["primus"]
 
