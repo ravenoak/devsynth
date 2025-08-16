@@ -27,6 +27,8 @@ This policy defines best practices for deployment, CI/CD, and operational safety
 - Store deployment docs and scripts in `deployment/` and document the process in `deployment/README.md`.
 - Automate deployment via CI/CD; require all tests to pass and review/approval before production deploys.
 - Use environment variables or secrets management for credentials; never hardcode secrets.
+- Run deployment tooling as a non-root user; scripts fail fast if executed with elevated privileges.
+- Ensure required environment files exist with `600` permissions before starting services.
 - Document rollback and incident response procedures in deployment docs.
 - Require post-deployment verification (smoke tests, monitoring checks).
 - Limit production deployment permissions to authorized roles/agents.
@@ -34,6 +36,7 @@ This policy defines best practices for deployment, CI/CD, and operational safety
 - Provide Docker Compose files for local and production deployments in the
   `deployment/` directory. The monitoring compose file enables Prometheus metrics
   scraping and Grafana dashboards.
+- Containers run using the caller's UID/GID to avoid root inside services.
 
 ## Artifacts
 

@@ -13,6 +13,7 @@ services:
       - ./logs:/var/log/devsynth
     env_file:
       - .env
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8000:8000"
     environment:
@@ -50,6 +51,7 @@ services:
     command: /bin/bash -c "tail -f /dev/null"
     env_file:
       - .env
+    user: "${UID:-1000}:${GID:-1000}"
     networks:
       - devsynth-network
     profiles:
@@ -77,6 +79,7 @@ services:
       - DEVSYNTH_ENV=testing
     env_file:
       - .env
+    user: "${UID:-1000}:${GID:-1000}"
     networks:
       - devsynth-network
     profiles:
