@@ -31,14 +31,15 @@ export DEVSYNTH_IMAGE_TAG="$TAG"
 
 # Ensure environment file permissions
 ENV_FILE=".env.production"
-ENV_ARGS=()
-if [[ -f "$ENV_FILE" ]]; then
-  if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
-    echo "Environment file $ENV_FILE must have 600 permissions" >&2
-    exit 1
-  fi
-  ENV_ARGS=(--env-file "$ENV_FILE")
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing environment file: $ENV_FILE" >&2
+  exit 1
 fi
+if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
+  echo "Environment file $ENV_FILE must have 600 permissions" >&2
+  exit 1
+fi
+ENV_ARGS=(--env-file "$ENV_FILE")
 
 # Build the image with the specified tag
 docker compose "${ENV_ARGS[@]}" -f docker-compose.production.yml build "$SERVICE"
