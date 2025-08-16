@@ -15,7 +15,7 @@ try:  # pragma: no cover - import guarded for optional deps
     # Import directly from the sanitization module to avoid initializing the
     # entire security package, which may have optional dependencies.
     from devsynth.security.sanitization import sanitize_input
-except Exception:  # pragma: no cover - graceful degradation
+except ImportError:  # pragma: no cover - graceful degradation
 
     def sanitize_input(text: str) -> str:  # type: ignore[override]
         """Fallback sanitizer used when security helpers are unavailable."""

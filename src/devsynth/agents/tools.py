@@ -171,7 +171,7 @@ def alignment_metrics_tool(
 
         return {"success": True, "metrics": metrics}
 
-    except Exception as exc:  # pragma: no cover - defensive programming
+    except (ImportError, OSError, ValueError) as exc:  # pragma: no cover - defensive
         logger.error("Error collecting alignment metrics: %s", exc)
         return {"success": False, "error": str(exc)}
 
@@ -244,7 +244,7 @@ def security_audit_tool(
             bridge=bridge,
         )
         return {"success": True, "output": "\n".join(bridge.messages)}
-    except Exception as exc:  # pragma: no cover - defensive programming
+    except (ImportError, RuntimeError) as exc:  # pragma: no cover - defensive
         logger.error("Security audit failed: %s", exc)
         return {
             "success": False,
@@ -273,7 +273,7 @@ def doctor_tool(config_dir: str = "config", quick: bool = False) -> Dict[str, An
             "error": str(exc),
             "output": "\n".join(bridge.messages),
         }
-    except Exception as exc:  # pragma: no cover - defensive programming
+    except (ImportError, RuntimeError) as exc:  # pragma: no cover - defensive
         logger.error("Doctor command failed: %s", exc)
         return {
             "success": False,
