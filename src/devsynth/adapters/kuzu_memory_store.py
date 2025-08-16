@@ -6,6 +6,8 @@ import os
 import shutil
 import tempfile
 import time
+import uuid
+from contextlib import contextmanager
 from typing import Any, Dict, List, Optional
 
 from devsynth.adapters.provider_system import ProviderError, embed
@@ -131,6 +133,10 @@ class KuzuMemoryStore(MemoryStore):
         if hasattr(self._store, "_use_fallback") and self._store._use_fallback:
             logger.info("Kuzu unavailable; using in-memory fallback store")
 
+        # Track active transaction contexts for coordinated commit/rollback
+        # across the underlying item and vector stores.
+        self._txn_contexts: Dict[str, Dict[str, Any]] = {}
+
     def _get_embedding(self, text: str):
         if self.use_provider_system:
             try:
@@ -149,6 +155,80 @@ class KuzuMemoryStore(MemoryStore):
             except ProviderError:
                 logger.warning("Provider embedding failed; falling back to default")
         return self.embedder(text)
+
+    # ------------------------------------------------------------------
+    # Transaction management
+
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a coordinated transaction across item and vector stores."""
+
+        tx_id = transaction_id or str(uuid.uuid4())
+        if tx_id in self._txn_contexts:
+            raise MemoryStoreError(f"Transaction {tx_id} already active")
+
+        ctxs: Dict[str, Any] = {}
+        if hasattr(self._store, "transaction"):
+            ctxs["store"] = self._store.transaction()
+            ctxs["store"].__enter__()
+        if hasattr(self.vector, "transaction"):
+            ctxs["vector"] = self.vector.transaction(tx_id)
+            ctxs["vector"].__enter__()
+        self._txn_contexts[tx_id] = ctxs
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a previously started transaction."""
+
+        ctxs = self._txn_contexts.pop(transaction_id, None)
+        if ctxs is None:
+            raise MemoryStoreError(
+                f"Commit requested for unknown transaction {transaction_id}"
+            )
+        errors = []
+        for ctx in ctxs.values():
+            try:
+                ctx.__exit__(None, None, None)
+            except Exception as exc:  # pragma: no cover - defensive
+                errors.append(exc)
+        if errors:
+            raise MemoryStoreError(
+                f"Error committing transaction {transaction_id}: {errors[0]}"
+            )
+        return True
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a previously started transaction."""
+
+        ctxs = self._txn_contexts.pop(transaction_id, None)
+        if ctxs is None:
+            raise MemoryStoreError(
+                f"Rollback requested for unknown transaction {transaction_id}"
+            )
+        errors = []
+        exc = ValueError("rollback")
+        for ctx in ctxs.values():
+            try:
+                ctx.__exit__(ValueError, exc, exc.__traceback__)
+            except Exception as err:  # pragma: no cover - defensive
+                errors.append(err)
+        if errors:
+            raise MemoryStoreError(
+                f"Error rolling back transaction {transaction_id}: {errors[0]}"
+            )
+        return True
+
+    @contextmanager
+    def transaction(self, transaction_id: str | None = None):
+        """Context manager for transactional operations."""
+
+        tx_id = self.begin_transaction(transaction_id)
+        try:
+            yield tx_id
+        except Exception:
+            self.rollback_transaction(tx_id)
+            raise
+        else:
+            self.commit_transaction(tx_id)
 
     def store(self, item: MemoryItem) -> str:
         """Store a memory item and its vector representation.

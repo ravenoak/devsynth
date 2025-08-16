@@ -96,6 +96,12 @@ class LMDBStore(MemoryStore):
             )
             self.tokenizer = None
 
+        # Track explicit transactions so SyncManager can manage commit and
+        # rollback even when the context manager form isn't used. Each entry
+        # maps a transaction identifier to the underlying LMDB transaction
+        # object.
+        self._transactions: Dict[str, lmdb.Transaction] = {}
+
     def close(self):
         """Close the LMDB environment."""
         if hasattr(self, "env") and self.env:
@@ -108,18 +114,49 @@ class LMDBStore(MemoryStore):
         self.close()
 
     @contextmanager
-    def begin_transaction(self, write: bool = True) -> ContextManager:
-        """
-        Begin a transaction.
+    def begin_transaction(
+        self, write: bool = True, transaction_id: str | None = None
+    ) -> ContextManager:
+        """Begin a transaction and optionally register it by ``transaction_id``."""
 
-        Args:
-            write: Whether the transaction is for writing (default: True)
-
-        Yields:
-            An LMDB transaction object
-        """
-        with self.env.begin(write=write) as txn:
+        txn = self.env.begin(write=write)
+        if transaction_id:
+            self._transactions[transaction_id] = txn
+        try:
             yield txn
+            txn.commit()
+        except Exception:
+            txn.abort()
+            raise
+        finally:
+            if transaction_id:
+                self._transactions.pop(transaction_id, None)
+
+    def commit_transaction(self, transaction_id: str) -> None:
+        """Commit a previously started explicit transaction."""
+
+        txn = self._transactions.pop(transaction_id, None)
+        if txn is None:
+            logger.warning(f"No transaction {transaction_id} to commit")
+            return
+        try:
+            txn.commit()
+        except Exception as exc:
+            logger.error(f"LMDB commit failed for {transaction_id}: {exc}")
+            raise
+
+    def rollback_transaction(self, transaction_id: str) -> None:
+        """Abort a previously started explicit transaction."""
+
+        txn = self._transactions.pop(transaction_id, None)
+        if txn is None:
+            logger.warning(f"No transaction {transaction_id} to roll back")
+            return
+        try:
+            txn.abort()
+        except Exception as exc:
+            logger.error(f"LMDB rollback failed for {transaction_id}: {exc}")
+            raise
 
     def _count_tokens(self, text: str) -> int:
         """
