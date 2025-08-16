@@ -1,5 +1,7 @@
 # Issue 107: Complete Sprint-EDRR integration
 Milestone: 0.2.0
+Status: open
+
 
 Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplete.
 
@@ -9,4 +11,8 @@ Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplet
 
 ## Progress
 
-- Status: open
+- No progress yet
+
+## References
+
+- None

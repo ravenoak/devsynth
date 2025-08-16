@@ -1,5 +1,7 @@
 # Issue 112: WSDE collaboration test failures
 Milestone: 0.1.0-alpha.1
+Status: open
+
 
 Recent test runs show multiple failures in the WSDE/EDRR integration suites:
 - [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../tests/integration/general/test_wsde_edrr_component_interactions.py)
@@ -14,4 +16,7 @@ These failures indicate unfinished collaboration workflows and memory synchronis
 - Added minimal WSDE decision-making and role assignment stubs enabling basic phase progression.
 - Introduced peer review result mapping so review status and quality metrics surface in phase results.
 - Speed markers are now present, yet running [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../tests/integration/general/test_wsde_edrr_component_interactions.py) hangs in collaboration memory utilities, indicating workflow logic remains incomplete ([Issue 130](130.md)).
-- Status: open
+
+## References
+
+- None

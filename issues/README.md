@@ -9,8 +9,8 @@ This directory contains the active ticketing system for DevSynth. It does not in
 
 ## Ticket Template
 
-- Start new tickets by copying `TEMPLATE.md` and renaming it to a slug of its title.
-- Populate the Summary, Tasks, and References sections.
+- Start new tickets by copying `ISSUE_TEMPLATE.md` and renaming it to a slug of its title.
+- Populate the Title, Milestone, Status, Progress, and References sections.
 
 ## Archive Policy
 

@@ -1,6 +1,8 @@
 # Issue 124: Dialectical audit reports missing WebUI Diagnostics Page
 
 Milestone: 0.1.0-alpha.1
+Status: open
+
 
 The dialectical audit lists "WebUI Diagnostics Page" as referenced in docs or tests but not in code. However, the WebUI implementation includes a `diagnostics_page` view. The audit may be misconfigured or missing detection logic.
 
@@ -15,4 +17,7 @@ Update the dialectical audit configuration to recognize the existing diagnostics
 ## Progress
 - Confirmed audit report persists even though `diagnostics_page` is implemented.
 - Diagnostics page added in [c7eb4fda](../commit/c7eb4fda); audit config still unresolved.
-- Status: open
+
+## References
+
+- None
