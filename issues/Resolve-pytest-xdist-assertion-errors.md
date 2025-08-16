@@ -17,7 +17,7 @@ Running `devsynth run-tests` across speed categories triggers internal pytest-xd
 
 ## Progress
 
-- No progress yet
+- Attempted `devsynth run-tests --speed=fast`; after initial output the process hung and required manual interruption, indicating ongoing runner issues.
 
 ## References
 
