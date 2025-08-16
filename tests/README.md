@@ -107,7 +107,9 @@ Tests are grouped by runtime using pytest markers:
 
 Each test **must include exactly one** of these markers. The
 `tests/conftest_extensions.py` plugin enforces this requirement and provides a
-`--speed` option so you can filter tests by runtime:
+`--speed` option so you can filter tests by runtime. Apply runtime markers
+directly above each test function; module-level `pytestmark` assignments are
+not recognized and will cause verification failures:
 
 ```bash
 poetry run pytest --speed=fast

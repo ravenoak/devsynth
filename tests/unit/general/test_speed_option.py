@@ -2,7 +2,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
+
+@pytest.mark.fast
 def test_speed_option_recognized():
     repo_root = Path(__file__).resolve().parents[3]
     test_file = repo_root / "tests" / "tmp_speed_dummy.py"

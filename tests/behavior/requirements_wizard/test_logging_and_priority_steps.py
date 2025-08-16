@@ -33,7 +33,6 @@ class DummyBridge(UXBridge):
 scenarios(str(Path(__file__).with_name("logging_and_priority.feature")))
 
 
-@pytest.mark.fast
 @given("logging is configured for the requirements wizard")
 def logging_configured(tmp_path, monkeypatch):
     import os
@@ -43,7 +42,6 @@ def logging_configured(tmp_path, monkeypatch):
     configure_logging("INFO")
 
 
-@pytest.mark.fast
 @when('I run the requirements wizard with priority "high"')
 def run_wizard(caplog):
     answers = ["Title", "Desc", "functional", "high", ""]
@@ -52,7 +50,6 @@ def run_wizard(caplog):
         requirements_wizard(bridge, output_file="req.json")
 
 
-@pytest.mark.fast
 @then('the log should include the priority "high"')
 def log_contains_priority(caplog):
     assert any(
@@ -62,7 +59,6 @@ def log_contains_priority(caplog):
     )
 
 
-@pytest.mark.fast
 @then('the configuration file should record priority "high"')
 def config_has_priority(tmp_path):
     cfg = yaml.safe_load((tmp_path / ".devsynth" / "project.yaml").read_text())
