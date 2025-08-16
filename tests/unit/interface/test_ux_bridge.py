@@ -1,8 +1,10 @@
 import importlib
 import sys
-import pytest
 from types import ModuleType
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from devsynth.interface.agentapi import APIBridge
 from devsynth.interface.cli import CLIUXBridge
 
@@ -37,7 +39,7 @@ def clean_state():
 
 
 @pytest.mark.slow
-def test_function(clean_state):
+def test_function(clean_state, monkeypatch):
     # Test with clean state
     """Test that bridge methods succeeds.
 
@@ -61,12 +63,9 @@ def test_function(clean_state):
     api_prog.complete()
     _stub_streamlit(monkeypatch)
 
-    import importlib
     from devsynth.interface import webui
 
     # Reload the module to ensure clean state
-    importlib.reload(module_2)
-
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
