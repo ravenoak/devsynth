@@ -1,7 +1,7 @@
-# Fix failing test tests/behavior/steps/test_code_generation_steps.py::tests_passed
+# Issue 137: Fix failing test tests/behavior/steps/test_code_generation_steps.py::tests_passed
 
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: closed
 
 Priority: high
 Dependencies: [tests/behavior/steps/test_code_generation_steps.py](../tests/behavior/steps/test_code_generation_steps.py)
@@ -13,9 +13,10 @@ The test `tests/behavior/steps/test_code_generation_steps.py::tests_passed` fail
 1. Run `poetry run pytest tests/behavior/steps/test_code_generation_steps.py::tests_passed`
 
 ## Progress
-- Reproduced on 2025-08-16; test still fails with AttributeError.
-- Test re-run still fails with `AttributeError: 'NoneType' object has no attribute 'execute_command'`.
-- Running the environment provisioning script followed by the same test run continues to raise the `AttributeError` with `mock_manager` being `None`.
+- Reproduced on 2025-08-16; test failed with `AttributeError: 'NoneType' object has no attribute 'execute_command'`.
+- Renamed the step function to avoid unintended Pytest collection.
+- Updated the step to ensure the mock workflow manager is available, resolving the failure.
+- Status: closed
 
 ## References
 
