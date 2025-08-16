@@ -1,6 +1,10 @@
 import time
-from devsynth.interface.webui_bridge import WebUIProgressIndicator
+
 import pytest
+
+from devsynth.interface.webui_bridge import WebUIProgressIndicator
+
+pytestmark = pytest.mark.requires_resource("webui")
 
 
 @pytest.mark.medium

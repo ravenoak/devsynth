@@ -651,12 +651,16 @@ class WebUI(UXBridge):
                         else:
                             eta_text = f"ETA: {int(eta_seconds / 3600)} hours, {int((eta_seconds % 3600) / 60)} minutes"
 
-            # Update status text with description, status and percentage
-            status_text = (
-                f"**{self._description}** - {int(progress_pct * 100)}%"
-                f" ({self._status})"
-            )
+            # Update status text with description and percentage only
+            status_text = f"**{self._description}** - {int(progress_pct * 100)}%"
             self._status_container.markdown(status_text)
+            logger.debug(
+                "Progress update for '%s': %s/%s status=%s",
+                self._description,
+                self._current,
+                self._total,
+                self._status,
+            )
 
             # Update ETA text
             if eta_text:

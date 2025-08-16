@@ -470,6 +470,15 @@ def is_cli_available() -> bool:
         return False
 
 
+def is_webui_available() -> bool:
+    """Check if the WebUI is available."""
+    return os.environ.get("DEVSYNTH_RESOURCE_WEBUI_AVAILABLE", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
 def is_chromadb_available() -> bool:
     """Check if the chromadb package is installed."""
     # Check environment variable override first
@@ -609,6 +618,7 @@ def is_resource_available(resource: str) -> bool:
         "faiss": is_faiss_available,
         "kuzu": is_kuzu_available,
         "lmdb": is_lmdb_available,
+        "webui": is_webui_available,
     }
 
     # Get the checker function for the resource

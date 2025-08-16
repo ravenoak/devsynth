@@ -1,9 +1,12 @@
 from unittest.mock import MagicMock
 
-from devsynth.interface.webui_setup import WebUISetupWizard
+import pytest
+
 from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.interface.ux_bridge import UXBridge
-import pytest
+from devsynth.interface.webui_setup import WebUISetupWizard
+
+pytestmark = pytest.mark.requires_resource("webui")
 
 
 @pytest.mark.medium
