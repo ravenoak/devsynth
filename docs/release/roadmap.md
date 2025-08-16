@@ -1,14 +1,14 @@
 ---
 title: "DevSynth Release Roadmap"
-date: "2025-08-15"
+date: "2025-08-16"
 version: "0.1.0-alpha.1"
 tags:
   - "devsynth"
   - "roadmap"
   - "release"
-status: "draft"
+status: "active"
 author: "DevSynth Team"
-last_reviewed: "2025-08-15"
+last_reviewed: "2025-08-16"
 ---
 
 # DevSynth Release Roadmap
@@ -31,5 +31,10 @@ This roadmap outlines planned milestones and targeted features following the `0.
 - Deliver fully tested release with reproducible builds.
 - Harden security policies and release automation.
 - Conduct full dialectical audit and cross-functional review.
+
+### 0.2.0
+- Expand plugin ecosystem and marketplace support.
+- Enable multi-agent orchestration and cross-platform integration.
+- Optimize performance and telemetry for production environments.
 
 For a comprehensive project roadmap and historical context, see [CONSOLIDATED_ROADMAP.md](../roadmap/CONSOLIDATED_ROADMAP.md).
