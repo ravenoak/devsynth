@@ -88,6 +88,7 @@ def _make_dpg(monkeypatch):
     dpg_mod.is_viewport_created = MagicMock(return_value=True)
     dpg_mod.window = lambda *a, **k: DummyCtx()
     dpg_mod.add_progress_bar = MagicMock(return_value=MagicMock())
+    dpg_mod.add_text = MagicMock()
     dpg_mod.set_item_label = MagicMock()
     dpg_mod.set_value = MagicMock()
     dpg_mod.render_dearpygui_frame = MagicMock()
