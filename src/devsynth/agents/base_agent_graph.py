@@ -5,17 +5,18 @@ This provides a template for creating agentic workflows with state management.
 
 # ``langgraph`` may be stubbed by tests. Import with fallback support.
 try:  # pragma: no cover - import guard
-    from langgraph.graph import StateGraph, END
-except Exception:  # pragma: no cover - stubbed in tests
+    from langgraph.graph import END, StateGraph
+except ImportError:  # pragma: no cover - stubbed in tests
     StateGraph = None  # type: ignore
     END = None  # type: ignore
 from typing import Any, Dict, List, Optional
 
+from devsynth.adapters.provider_system import ProviderError
+from devsynth.adapters.provider_system import (
+    complete as llm_complete,  # Renamed to avoid conflict
+)
 from devsynth.agents.graph_state import AgentState
 from devsynth.agents.tools import get_tool_registry
-from devsynth.adapters.provider_system import (
-    complete as llm_complete,
-)  # Renamed to avoid conflict
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -75,9 +76,9 @@ def llm_call_node(state: AgentState) -> AgentState:
         )
         logger.info(f"LLM response received: {response[:100]}...")
         return {**state, "llm_response": response}
-    except Exception as e:
-        logger.error(f"LLM call failed: {e}")
-        return {**state, "error": f"LLM call failed: {str(e)}"}
+    except ProviderError as e:
+        logger.error("LLM call failed: %s", e)
+        return {**state, "error": f"LLM call failed: {e}"}
 
 
 def parse_output_node(state: AgentState) -> AgentState:
@@ -151,7 +152,7 @@ if __name__ == "__main__":
                 str(value)[:500],
                 "..." if len(str(value)) > 500 else "",
             )
-    except Exception as e:
+    except ProviderError as e:
         logger.exception("Error invoking graph: %s", e)
         logger.error(
             "Please ensure your LLM provider (OpenAI or LM Studio) is configured correctly."

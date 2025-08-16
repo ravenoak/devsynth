@@ -13,7 +13,7 @@ try:  # pragma: no cover - import guarded for optional dependency
         Histogram,
         generate_latest,
     )
-except Exception:  # pragma: no cover - fallback for minimal environments
+except ImportError:  # pragma: no cover - fallback for minimal environments
 
     class _NoopMetric:  # type: ignore[override]
         def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401

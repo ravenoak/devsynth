@@ -52,7 +52,7 @@ class WSDETeamCoordinatorAgent:
         if memory_manager and hasattr(memory_manager, "flush_updates"):
             try:
                 memory_manager.flush_updates()
-            except Exception:  # pragma: no cover - defensive
+            except (RuntimeError, OSError):  # pragma: no cover - defensive
                 logger.debug(
                     "Memory synchronization failed during retrospective",
                     exc_info=True,
