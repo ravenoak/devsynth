@@ -268,7 +268,13 @@ def retry_with_backoff(
                         raise
 
                     for name, cond in named_conditions:
-                        if not cond(e):
+                        cond_result = cond(e)
+                        if track_metrics:
+                            outcome = "trigger" if cond_result else "suppress"
+                            retry_condition_counter.labels(
+                                condition=f"{name}:{outcome}"
+                            ).inc()
+                        if not cond_result:
                             logger.warning(
                                 f"Not retrying {func_name} due to retry_conditions policy",
                                 error=e,
@@ -280,32 +286,34 @@ def retry_with_backoff(
                                 retry_error_counter.labels(
                                     error_type=type(e).__name__
                                 ).inc()
-                                retry_condition_counter.labels(condition=name).inc()
                                 retry_stat_counter.labels(
                                     function=func_name, status="abort"
                                 ).inc()
                             raise
 
-                    if anonymous_conditions and not all(
-                        cond(e) for cond in anonymous_conditions
-                    ):
-                        logger.warning(
-                            f"Not retrying {func_name} due to retry_conditions policy",
-                            error=e,
-                            function=func_name,
-                        )
+                    if anonymous_conditions:
+                        anon_results = [cond(e) for cond in anonymous_conditions]
                         if track_metrics:
-                            retry_event_counter.labels(status="abort").inc()
-                            retry_error_counter.labels(
-                                error_type=type(e).__name__
-                            ).inc()
-                            retry_condition_counter.labels(
-                                condition=ANONYMOUS_CONDITION
-                            ).inc()
-                            retry_stat_counter.labels(
-                                function=func_name, status="abort"
-                            ).inc()
-                        raise
+                            for res in anon_results:
+                                outcome = "trigger" if res else "suppress"
+                                retry_condition_counter.labels(
+                                    condition=f"{ANONYMOUS_CONDITION}:{outcome}"
+                                ).inc()
+                        if not all(anon_results):
+                            logger.warning(
+                                f"Not retrying {func_name} due to retry_conditions policy",
+                                error=e,
+                                function=func_name,
+                            )
+                            if track_metrics:
+                                retry_event_counter.labels(status="abort").inc()
+                                retry_error_counter.labels(
+                                    error_type=type(e).__name__
+                                ).inc()
+                                retry_stat_counter.labels(
+                                    function=func_name, status="abort"
+                                ).inc()
+                            raise
 
                     if callbacks:
                         cb_results: List[bool] = []
@@ -319,11 +327,10 @@ def retry_with_backoff(
                                     function=func_name,
                                 )
                                 res = False
-                            if not res and track_metrics:
+                            if track_metrics:
+                                outcome = "trigger" if res else "suppress"
                                 retry_condition_counter.labels(
-                                    condition=getattr(
-                                        cb_fn, "__name__", ANONYMOUS_CONDITION
-                                    )
+                                    condition=f"{getattr(cb_fn, '__name__', ANONYMOUS_CONDITION)}:{outcome}"
                                 ).inc()
                             cb_results.append(res)
                         if not all(cb_results):

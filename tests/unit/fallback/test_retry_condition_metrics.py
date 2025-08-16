@@ -27,8 +27,11 @@ def test_named_retry_condition_records_metrics_on_abort() -> None:
         wrapped()
 
     assert func.call_count == 1
-    assert metrics.get_retry_condition_metrics() == {"needs_retry": 1}
-    assert retry_condition_counter.labels(condition="needs_retry")._value.get() == 1
+    assert metrics.get_retry_condition_metrics() == {"needs_retry:suppress": 1}
+    assert (
+        retry_condition_counter.labels(condition="needs_retry:suppress")._value.get()
+        == 1
+    )
 
 
 @pytest.mark.medium
@@ -51,4 +54,4 @@ def test_named_retry_condition_allows_retry() -> None:
 
     assert result == "ok"
     assert func.call_count == 2
-    assert metrics.get_retry_condition_metrics() == {}
+    assert metrics.get_retry_condition_metrics() == {"needs_retry:trigger": 1}

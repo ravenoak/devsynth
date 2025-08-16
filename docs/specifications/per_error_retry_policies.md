@@ -1,0 +1,29 @@
+---
+author: DevSynth Team
+date: '2025-07-30'
+last_reviewed: '2025-07-30'
+status: draft
+tags:
+- specification
+- retry
+- error-handling
+title: Per-Error Retry Policies
+version: "0.1.0-alpha.1"
+---
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Per-Error Retry Policies
+</div>
+
+# Per-Error Retry Policies
+
+## Problem
+
+Global retry settings cannot accommodate exceptions that require custom retry
+limits or disabling retries altogether.
+
+## Proof
+
+Implement a mapping of exception types to per-error policies consumed by
+``retry_with_exponential_backoff``. Policies may specify ``max_retries`` and a
+``retry`` flag that overrides the global behaviour. Metrics should record when
+named conditions permit or suppress retries for observability.
