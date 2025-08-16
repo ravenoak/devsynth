@@ -11,6 +11,7 @@ The test `tests/behavior/steps/test_code_generation_steps.py::tests_passed` fail
 
 ## Progress
 - Test re-run still fails with `AttributeError: 'NoneType' object has no attribute 'execute_command'`.
+- Running the environment provisioning script followed by the same test run continues to raise the `AttributeError` with `mock_manager` being `None`.
 
 ## References
 
