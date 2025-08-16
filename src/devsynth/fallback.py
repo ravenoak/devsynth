@@ -95,6 +95,12 @@ def retry_with_exponential_backoff(
         ]
     ] = None,
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    retry_predicates: Optional[
+        Union[
+            List[Union[Callable[[T], bool], int]],
+            Dict[str, Union[Callable[[T], bool], int]],
+        ]
+    ] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
     error_retry_map: Optional[
@@ -135,6 +141,12 @@ def retry_with_exponential_backoff(
     condition_callbacks : Optional[List[Callable[[Exception, int], bool]]]
         Callbacks invoked with the exception and current retry attempt. All
         callbacks must return ``True`` for the retry loop to continue.
+    retry_predicates : Optional[Union[List[Union[Callable[[T], bool], int]],
+                                      Dict[str, Union[Callable[[T], bool], int]]]]
+        Predicates evaluated on successful results. If any predicate returns
+        ``True`` the result is treated as a failure and retried. Integer entries
+        are interpreted as HTTP status codes and compared to a ``status_code``
+        attribute on the result if present.
     retry_on_result : Optional[Callable[[T], bool]]
         Predicate executed on successful results. If it returns ``True`` a
         retry is triggered as if an exception had been raised.
@@ -199,12 +211,68 @@ def retry_with_exponential_backoff(
                             )
             cb_list: List[Callable[[Exception, int], bool]] = condition_callbacks or []
 
+            anonymous_predicates: List[Callable[[T], bool]] = []
+            named_predicates: List[Tuple[str, Callable[[T], bool]]] = []
+            if retry_predicates:
+                if isinstance(retry_predicates, dict):
+                    for name, pred in retry_predicates.items():
+                        if callable(pred):
+                            named_predicates.append((name, pred))
+                        elif isinstance(pred, int):
+                            named_predicates.append(
+                                (
+                                    name,
+                                    lambda res, code=pred: getattr(
+                                        res, "status_code", None
+                                    )
+                                    == code,
+                                )
+                            )
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "retry_predicates values must be callables or ints"
+                            )
+                else:
+                    for pred in retry_predicates:
+                        if callable(pred):
+                            anonymous_predicates.append(pred)
+                        elif isinstance(pred, int):
+                            anonymous_predicates.append(
+                                lambda res, code=pred: getattr(res, "status_code", None)
+                                == code
+                            )
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "retry_predicates must be callables or ints"
+                            )
+
             # Loop until max retries reached
             while True:
                 try:
                     result = wrapped_func(*args, **kwargs)
                     if retry_on_result and retry_on_result(result):
                         raise ValueError("retry_on_result triggered")
+                    if named_predicates or anonymous_predicates:
+                        pred_results: List[bool] = []
+                        for name, pred in named_predicates:
+                            res = pred(result)
+                            pred_results.append(res)
+                            if track_metrics:
+                                outcome = "trigger" if res else "suppress"
+                                inc_retry_condition(f"predicate:{name}:{outcome}")
+                        if anonymous_predicates:
+                            anon_results = [
+                                pred(result) for pred in anonymous_predicates
+                            ]
+                            if track_metrics:
+                                for res in anon_results:
+                                    outcome = "trigger" if res else "suppress"
+                                    inc_retry_condition(
+                                        f"predicate:{ANONYMOUS_CONDITION}:{outcome}"
+                                    )
+                            pred_results.extend(anon_results)
+                        if any(pred_results):
+                            raise ValueError("retry_predicate triggered")
                     if track_metrics:
                         inc_retry("success")
                         inc_retry_stat(func.__name__, "success")
@@ -252,6 +320,37 @@ def retry_with_exponential_backoff(
                             delay = min(max_delay, delay * exponential_base)
                         logger.warning(
                             f"Retrying due to invalid result {num_retries}/{policy_max_retries} after {delay:.2f}s",
+                            function=func.__name__,
+                            retry_attempt=num_retries,
+                            delay=delay,
+                        )
+                        time.sleep(delay)
+                        continue
+
+                    if (
+                        isinstance(e, ValueError)
+                        and str(e) == "retry_predicate triggered"
+                    ):
+                        num_retries += 1
+                        if num_retries > policy_max_retries:
+                            if track_metrics:
+                                inc_retry("failure")
+                                inc_retry_error("RetryPredicate")
+                                inc_retry_stat(func.__name__, "failure")
+                            raise
+                        if track_metrics:
+                            inc_retry("predicate")
+                            inc_retry_error("RetryPredicate")
+                            inc_retry_stat(func.__name__, "attempt")
+                        if jitter:
+                            delay = min(
+                                max_delay,
+                                delay * exponential_base * (0.5 + random.random()),
+                            )
+                        else:
+                            delay = min(max_delay, delay * exponential_base)
+                        logger.warning(
+                            f"Retrying due to predicate failure {num_retries}/{policy_max_retries} after {delay:.2f}s",
                             function=func.__name__,
                             retry_attempt=num_retries,
                             delay=delay,
