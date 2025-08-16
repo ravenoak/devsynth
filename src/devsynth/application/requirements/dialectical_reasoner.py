@@ -4,7 +4,7 @@ Dialectical reasoner for requirements management.
 
 from dataclasses import asdict
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
 from devsynth.application.collaboration.exceptions import (
@@ -73,6 +73,46 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         self.notification_service = notification_service
         self.llm_service = llm_service
         self.memory_manager = memory_manager
+        # Hooks mirror the WSDETeam's dialectical hooks, allowing external
+        # collaborators (e.g. a WSDETeam instance) to observe evaluation
+        # results.  Each hook receives the ``DialecticalReasoning`` instance and
+        # a boolean indicating whether consensus was reached.
+        self.evaluation_hooks: List[Callable[[DialecticalReasoning, bool], None]] = []
+
+    # ------------------------------------------------------------------
+    # Hook registration
+    # ------------------------------------------------------------------
+    def register_evaluation_hook(self, hook):
+        """Register a callback to run after evaluating a change.
+
+        The signature mirrors ``WSDETeam.register_dialectical_hook`` so team
+        components can cross-reference requirement evaluations.  Hooks should
+        accept ``(reasoning, consensus)`` and should not raise, though any
+        exception will be logged and suppressed.
+        """
+
+        if not hasattr(self, "evaluation_hooks"):
+            self.evaluation_hooks = []
+        self.evaluation_hooks.append(hook)
+
+    def _run_evaluation_hooks(
+        self, reasoning: DialecticalReasoning, consensus: bool
+    ) -> None:
+        """Execute registered evaluation hooks.
+
+        Hooks are best-effort; any exception is logged and suppressed so that
+        evaluation proceeds unaffected.
+        """
+
+        for hook in getattr(self, "evaluation_hooks", []):
+            try:
+                hook(reasoning, consensus)
+            except Exception:  # pragma: no cover - defensive
+                logger.warning(
+                    "Evaluation hook failed",  # pragma: no cover - log path
+                    extra={"event": "evaluation_hook_failed"},
+                    exc_info=True,
+                )
 
     def evaluate_change(
         self, change: RequirementChange, edrr_phase: str = "REFINE"
@@ -125,6 +165,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         try:
             consensus_reached = self._evaluate_consensus(reasoning)
         except ConsensusError as exc:
+            self._run_evaluation_hooks(reasoning, False)
             logger.error(
                 "Consensus evaluation failed",  # pragma: no cover - log path
                 extra={
@@ -136,6 +177,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             self._store_reasoning_in_memory(reasoning, edrr_phase="RETROSPECT")
             raise
 
+        self._run_evaluation_hooks(reasoning, consensus_reached)
         if not consensus_reached:
             logger.error(
                 "Consensus not reached for change",  # pragma: no cover - log path
