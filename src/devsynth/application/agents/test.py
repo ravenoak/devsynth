@@ -1,5 +1,7 @@
 """Test agent for the DevSynth system."""
 
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -86,6 +88,32 @@ class TestAgent(BaseAgent):
             else:
                 names.append(str(scenario))
         return self.scaffold_integration_tests(names, output_dir=output_dir)
+
+    def run_generated_tests(self, directory: Path) -> str:
+        """Run tests in ``directory`` and raise on failures.
+
+        This helper executes the scaffolded tests so unmet requirements
+        surface as errors.
+
+        Args:
+            directory: Location of the tests to run.
+
+        Returns:
+            Combined stdout and stderr from the test run.
+
+        Raises:
+            DevSynthError: If the tests fail.
+        """
+
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", str(directory)],
+            capture_output=True,
+            text=True,
+        )
+        output = result.stdout + result.stderr
+        if result.returncode != 0:
+            raise DevSynthError(output)
+        return output
 
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce tests."""

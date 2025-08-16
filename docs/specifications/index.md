@@ -42,6 +42,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Run Tests Maxfail Option](run_tests_maxfail_option.md)**: CLI flag to limit failures during test runs.
 - **[Integration Test Scenario Generation](integration_test_generation.md)**: Scenario-based scaffolding for integration tests.
 - **[Retry Predicates Specification](retry_predicates.md)**: Support conditional retry logic and metrics.
+- **[Generated Test Execution Failure](generated_test_execution_failure.md)**: Scaffolded tests fail until implemented.
 
 ## Implementation Plans
 
