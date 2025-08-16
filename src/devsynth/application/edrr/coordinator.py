@@ -139,6 +139,27 @@ class EDRRCoordinator:
             return default
         return value
 
+    def _get_phase_quality_threshold(self, phase: Phase) -> Optional[float]:
+        """Fetch configured quality threshold for a phase."""
+
+        thresholds = (
+            self.config.get("edrr", {})
+            .get("phase_transitions", {})
+            .get("quality_thresholds", {})
+        )
+        value = thresholds.get(phase.value.lower())
+        if value is None:
+            return None
+        return self._sanitize_threshold(value, 0.7)
+
+    def _get_micro_cycle_config(self) -> Tuple[int, float]:
+        """Return sanitized micro-cycle iteration count and quality threshold."""
+
+        cfg = self.config.get("edrr", {}).get("micro_cycles", {})
+        max_it = self._sanitize_positive_int(cfg.get("max_iterations", 1), 1)
+        q_threshold = self._sanitize_threshold(cfg.get("quality_threshold", 0.7), 0.7)
+        return max_it, q_threshold
+
     def __init__(
         self,
         memory_manager: MemoryManager,
@@ -215,6 +236,9 @@ class EDRRCoordinator:
         # Micro-cycle monitoring hooks
         self._micro_cycle_hooks: Dict[str, List] = {"start": [], "end": []}
 
+        # Error recovery hooks keyed by phase name. "GLOBAL" applies to all phases.
+        self._recovery_hooks: Dict[str, List] = {"GLOBAL": []}
+
         self.manifest_parser = ManifestParser()
         self._manifest_parser = None
         self.current_phase = None
@@ -271,6 +295,42 @@ class EDRRCoordinator:
                 hook(info)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("Micro-cycle hook error: %s", exc)
+
+    # ------------------------------------------------------------------
+    def register_recovery_hook(self, phase: Optional[Phase], hook: Any) -> None:
+        """Register an error recovery hook.
+
+        Args:
+            phase: Phase to bind the hook to or ``None`` for all phases.
+            hook: Callable receiving ``error`` and ``phase`` keyword arguments.
+        """
+
+        key = phase.name if phase else "GLOBAL"
+        self._recovery_hooks.setdefault(key, []).append(hook)
+
+    def _execute_recovery_hooks(self, error: Exception, phase: Phase) -> Dict[str, Any]:
+        """Execute registered recovery hooks for ``phase`` and global hooks."""
+
+        hooks = self._recovery_hooks.get("GLOBAL", []) + self._recovery_hooks.get(
+            phase.name, []
+        )
+        info: Dict[str, Any] = {"recovered": False}
+        for hook in hooks:
+            try:
+                result = hook(error=error, phase=phase, coordinator=self)
+                if isinstance(result, dict):
+                    # Allow hooks to inject results into phase data
+                    if "results" in result:
+                        self.results.setdefault(phase.name, {}).update(
+                            result["results"]
+                        )
+                    info.update({k: v for k, v in result.items() if k != "results"})
+                    if result.get("recovered"):
+                        info["recovered"] = True
+                        break
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug("Recovery hook failed: %s", exc)
+        return info
 
     def _safe_store_with_edrr_phase(
         self,
@@ -804,12 +864,7 @@ class EDRRCoordinator:
 
         phase_results = self.results.get(self.current_phase.name, {})
         # Respect quality thresholds before transitioning
-        thresholds = (
-            self.config.get("edrr", {})
-            .get("phase_transitions", {})
-            .get("quality_thresholds", {})
-        )
-        q_threshold = thresholds.get(self.current_phase.value.lower())
+        q_threshold = self._get_phase_quality_threshold(self.current_phase)
         if (
             q_threshold is not None
             and phase_results.get("quality_score", 1.0) < q_threshold
@@ -3478,7 +3533,7 @@ class EDRRCoordinator:
             return {"quality": 0.0, "can_progress": False, "metrics": {}}
         results = self.results.get(phase.name, {})
         quality = self._assess_result_quality(results)
-        threshold = 0.7
+        threshold = self._get_phase_quality_threshold(phase) or 0.7
         return {
             "quality": quality,
             "can_progress": quality >= threshold,
@@ -3493,12 +3548,10 @@ class EDRRCoordinator:
         self, phase: Phase, iteration: int, results: Dict[str, Any]
     ) -> bool:
         """Determine whether additional micro-cycles are required."""
-        cfg = self.config.get("edrr", {}).get("micro_cycles", {})
-        max_it = cfg.get("max_iterations", 1)
+        max_it, threshold = self._get_micro_cycle_config()
         if iteration >= max_it:
             return False
         quality = self._assess_result_quality(results)
-        threshold = cfg.get("quality_threshold", 0.7)
         return quality < threshold
 
     def _execute_phase(
@@ -3520,12 +3573,21 @@ class EDRRCoordinator:
     def _attempt_recovery(self, error: Exception, phase: Phase) -> Dict[str, Any]:
         """Attempt a simple recovery strategy after errors."""
         logger.warning("Attempting recovery from %s in phase %s", error, phase)
+
+        info = self._execute_recovery_hooks(error, phase)
+        if info.get("recovered"):
+            return info
+
         try:
-            self._execute_phase(phase)
-            return {"recovered": True}
+            results = self._execute_phase(phase)
+            if isinstance(results, dict):
+                self.results.setdefault(phase.name, {}).update(results)
+            info.update({"recovered": True, "strategy": "retry"})
+            return info
         except Exception as exc:
             logger.error("Recovery failed: %s", exc)
-            return {"recovered": False, "reason": str(exc)}
+            info.update({"recovered": False, "reason": str(exc)})
+            return info
 
     def _run_micro_cycles(
         self, phase: Phase, base_results: Dict[str, Any]
