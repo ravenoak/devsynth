@@ -72,6 +72,7 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
         args = args[1:]
 
     command_context["command"] = command
+    command_context["mock_manager"] = mock_workflow_manager
 
     runner = CliRunner()
 
