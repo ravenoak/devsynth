@@ -35,10 +35,10 @@ class DummyNotification:
 
 
 class DummyLLM:
-    def __init__(self, response: str):
+    def __init__(self, response):
         self.response = response
 
-    def query(self, prompt: str) -> str:
+    def query(self, prompt: str):
         return self.response
 
 
@@ -120,6 +120,55 @@ def test_evaluate_change_failure_stores_retrospect():
 
     assert memory.calls
     assert memory.calls[0][2] == "RETROSPECT"
+
+
+def test_evaluation_hook_receives_consensus():
+    service = _build_service("yes")
+    change = RequirementChange(requirement_id=uuid4(), created_by="eve")
+
+    called = {}
+
+    def hook(reasoning, consensus):
+        called["consensus"] = consensus
+        called["id"] = reasoning.change_id
+
+    service.register_evaluation_hook(hook)
+    service.evaluate_change(change)
+
+    assert called["consensus"] is True
+    assert called["id"] == change.id
+
+
+def test_evaluation_hook_runs_on_failure():
+    service = _build_service("no")
+    change = RequirementChange(requirement_id=uuid4(), created_by="frank")
+
+    called = {}
+
+    def hook(reasoning, consensus):
+        called["consensus"] = consensus
+
+    service.register_evaluation_hook(hook)
+    with pytest.raises(ConsensusError):
+        service.evaluate_change(change)
+
+    assert called["consensus"] is False
+
+
+def test_evaluate_change_non_text_response_errors():
+    service = _build_service({"answer": "yes"})
+    change = RequirementChange(requirement_id=uuid4(), created_by="grace")
+
+    with pytest.raises(ConsensusError):
+        service.evaluate_change(change)
+
+
+def test_evaluate_change_invalid_response_errors():
+    service = _build_service("maybe")
+    change = RequirementChange(requirement_id=uuid4(), created_by="heidi")
+
+    with pytest.raises(ConsensusError):
+        service.evaluate_change(change)
 
 
 def test_assess_impact_stores_with_phase():
