@@ -9,4 +9,4 @@ Dependencies: None
 - `poetry run devsynth run-tests --speed=medium` raised KeyError `<WorkerController gw2>` with 889 failing tests and 104 errors.
 
 ## References
-- None
+- [scripts/run_tests.sh](../scripts/run_tests.sh)

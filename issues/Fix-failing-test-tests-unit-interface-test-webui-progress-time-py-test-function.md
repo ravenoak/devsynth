@@ -6,7 +6,8 @@ Priority: medium
 Dependencies: None
 
 ## Progress
-- NameError: module_name not defined.
+- Test skipped (requires webui resource); underlying code raises NameError for module_name.
 
 ## References
-- None
+- [tests/unit/interface/test_webui_progress_time.py](../tests/unit/interface/test_webui_progress_time.py)
+- [src/devsynth/interface/webui_bridge.py](../src/devsynth/interface/webui_bridge.py)
