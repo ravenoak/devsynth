@@ -146,4 +146,5 @@ The latest dialectical audit identified unresolved features lacking documentatio
 
 ## References
 
-- None
+- [dialectical_audit.log](../dialectical_audit.log)
+- [scripts/dialectical_audit.py](../scripts/dialectical_audit.py)

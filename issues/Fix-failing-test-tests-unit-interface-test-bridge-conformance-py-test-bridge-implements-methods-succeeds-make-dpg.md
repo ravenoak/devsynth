@@ -6,7 +6,8 @@ Priority: medium
 Dependencies: None
 
 ## Progress
-- RuntimeError in bridge implementation.
+- Reproduced on 2025-08-16: AttributeError indicates missing dpg add_text.
 
 ## References
-- None
+- [tests/unit/interface/test_bridge_conformance.py](../tests/unit/interface/test_bridge_conformance.py)
+- [src/devsynth/interface/dpg_bridge.py](../src/devsynth/interface/dpg_bridge.py)

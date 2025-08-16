@@ -6,7 +6,8 @@ Priority: medium
 Dependencies: None
 
 ## Progress
-- NameError: module_name not defined.
+- Test skipped (requires webui resource); NameError for module_name persists.
 
 ## References
-- None
+- [tests/unit/interface/test_webui_setup.py](../tests/unit/interface/test_webui_setup.py)
+- [src/devsynth/interface/webui_bridge.py](../src/devsynth/interface/webui_bridge.py)

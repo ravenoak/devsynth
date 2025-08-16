@@ -23,4 +23,5 @@ Update the dialectical audit configuration to recognize the existing diagnostics
 
 ## References
 
-- None
+- [scripts/dialectical_audit.py](../scripts/dialectical_audit.py)
+- [src/devsynth/interface/webui.py](../src/devsynth/interface/webui.py)

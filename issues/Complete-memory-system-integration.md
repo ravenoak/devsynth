@@ -19,4 +19,5 @@ The memory subsystem supports multiple backends but remains unstable.
 
 ## References
 
-- None
+- [src/devsynth/adapters/memory](../src/devsynth/adapters/memory)
+- [tests/integration](../tests/integration)

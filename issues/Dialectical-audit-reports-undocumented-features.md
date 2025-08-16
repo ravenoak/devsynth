@@ -22,4 +22,5 @@ Review each question in the audit log and update documentation, tests, or code a
 
 ## References
 
-- None
+- [dialectical_audit.log](../dialectical_audit.log)
+- [scripts/dialectical_audit.py](../scripts/dialectical_audit.py)

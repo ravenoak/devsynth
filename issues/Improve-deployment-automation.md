@@ -19,4 +19,5 @@ Current Docker Compose workflows require manual steps.
 
 ## References
 
-- None
+- [docker-compose.yml](../docker-compose.yml)
+- [scripts/deployment](../scripts/deployment)
