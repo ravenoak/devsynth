@@ -33,6 +33,7 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 - Latest run with `--workers 1` continues to hang and needs manual termination.
 - Recent attempt after environment preparation still hung after several minutes and required manual interruption.
 - Marker normalization blocks [Resolve pytest-xdist assertion errors](Resolve-pytest-xdist-assertion-errors.md).
+- Reproduced the hang on a minimal test set by running `poetry run python scripts/verify_test_markers.py --workers 1 tests/unit/interface/test_bridge_conformance.py`; logging revealed blocking during the `pytest --collect-only` subprocess call, so the script now logs subprocess start/end and exits non-zero when issues persist.
 
 ## References
 

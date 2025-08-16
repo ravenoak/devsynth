@@ -27,6 +27,7 @@ deadlocks during verification.
 import argparse
 import concurrent.futures
 import json
+import logging
 import os
 import re
 import subprocess
@@ -155,6 +156,8 @@ def verify_file_markers(
     Returns:
         Dictionary containing verification results
     """
+    logger = logging.getLogger(__name__)
+    logger.debug("Starting verification for %s", file_path)
     if verbose:
         print(f"Verifying markers in {file_path}...")
 
@@ -273,12 +276,19 @@ def verify_file_markers(
             ]
 
             try:
+                logger.debug("Running subprocess: %s", " ".join(cmd))
+                start_time = time.time()
                 collect_result = subprocess.run(
                     cmd,
                     check=False,
                     capture_output=True,
                     text=True,
                     timeout=timeout,
+                )
+                logger.debug(
+                    "Subprocess finished in %.2fs with return code %s",
+                    time.time() - start_time,
+                    collect_result.returncode,
                 )
 
                 # Count tests collected with this marker
@@ -314,6 +324,7 @@ def verify_file_markers(
                     "uncollected_tests": uncollected_tests,
                 }
             except subprocess.TimeoutExpired:
+                logger.debug("Subprocess timed out after %s seconds", timeout)
                 recognized_markers[marker_type] = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -324,7 +335,8 @@ def verify_file_markers(
                     "error": "subprocess timeout",
                     "uncollected_tests": [],
                 }
-            except Exception as e:
+            except Exception as e:  # pragma: no cover - defensive
+                logger.debug("Subprocess raised unexpected error: %s", e)
                 recognized_markers[marker_type] = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -793,6 +805,10 @@ def generate_report(
 def main():
     """Main function."""
     args = parse_args()
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
 
     # Determine the directory to verify
     directory = args.module if args.module else args.directory
@@ -805,26 +821,31 @@ def main():
         max_workers=normalize_workers(args.workers),
     )
 
-    # Print verification summary
-    print("\nVerification Summary:")
-    print(f"  Total files: {verification_results['total_files']}")
-    print(f"  Files with issues: {verification_results['files_with_issues']}")
-    print(f"  Total test functions: {verification_results['total_test_functions']}")
-    print(
-        f"  Functions with markers: {verification_results['total_markers']} ({verification_results['total_markers']/verification_results['total_test_functions']*100:.1f}%)"
-    )
-    print(f"  Misaligned markers: {verification_results['total_misaligned_markers']}")
-    print(f"  Duplicate markers: {verification_results['total_duplicate_markers']}")
-    print(
-        f"  Unrecognized markers: {verification_results['total_unrecognized_markers']}"
-    )
-    print(f"  Marker counts:")
-    print(f"    - Fast: {verification_results['marker_counts'].get('fast', 0)}")
-    print(f"    - Medium: {verification_results['marker_counts'].get('medium', 0)}")
-    print(f"    - Slow: {verification_results['marker_counts'].get('slow', 0)}")
-    print(
-        f"    - Isolation: {verification_results['marker_counts'].get('isolation', 0)}"
-    )
+    if verification_results.get("success") is False:
+        print(verification_results.get("error", "verification failed"), file=sys.stderr)
+    else:
+        # Print verification summary
+        print("\nVerification Summary:")
+        print(f"  Total files: {verification_results['total_files']}")
+        print(f"  Files with issues: {verification_results['files_with_issues']}")
+        print(f"  Total test functions: {verification_results['total_test_functions']}")
+        print(
+            f"  Functions with markers: {verification_results['total_markers']} ({verification_results['total_markers']/verification_results['total_test_functions']*100:.1f}%)"
+        )
+        print(
+            f"  Misaligned markers: {verification_results['total_misaligned_markers']}"
+        )
+        print(f"  Duplicate markers: {verification_results['total_duplicate_markers']}")
+        print(
+            f"  Unrecognized markers: {verification_results['total_unrecognized_markers']}"
+        )
+        print(f"  Marker counts:")
+        print(f"    - Fast: {verification_results['marker_counts'].get('fast', 0)}")
+        print(f"    - Medium: {verification_results['marker_counts'].get('medium', 0)}")
+        print(f"    - Slow: {verification_results['marker_counts'].get('slow', 0)}")
+        print(
+            f"    - Isolation: {verification_results['marker_counts'].get('isolation', 0)}"
+        )
 
     # Fix issues if requested
     fix_results = None
@@ -850,7 +871,13 @@ def main():
     if args.report:
         generate_report(verification_results, fix_results, args.report_file)
 
-    return 0
+    exit_code = 0
+    if (
+        verification_results.get("success") is False
+        or verification_results.get("files_with_issues", 0) > 0
+    ):
+        exit_code = 1
+    return exit_code
 
 
 if __name__ == "__main__":
