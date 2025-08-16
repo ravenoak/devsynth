@@ -73,6 +73,11 @@ DevSynth automates routine security checks to prevent regressions:
 - Developers should run `devsynth security-audit` locally before committing
   changes to catch issues early.
 
+```bash
+DEVSYNTH_PRE_DEPLOY_APPROVED=true poetry run python scripts/security_audit.py
+```
+
+
 ### Enforceable Audit Criteria
 
 The following settings must be configured for deployments and are verified by
