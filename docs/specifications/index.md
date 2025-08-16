@@ -41,6 +41,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.
 - **[Run Tests Maxfail Option](run_tests_maxfail_option.md)**: CLI flag to limit failures during test runs.
 - **[Integration Test Scenario Generation](integration_test_generation.md)**: Scenario-based scaffolding for integration tests.
+- **[Retry Predicates Specification](retry_predicates.md)**: Support conditional retry logic and metrics.
 
 ## Implementation Plans
 
