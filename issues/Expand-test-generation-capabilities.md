@@ -14,6 +14,7 @@ Automated unit test generation works but integration coverage is lacking.
 
 ## Progress
 - Tracked by [c07240c1](../commit/c07240c1).
+- Expanded scenario scaffolding [ce68098d](../commit/ce68098d).
 
 ## References
 

@@ -65,6 +65,28 @@ class TestAgent(BaseAgent):
             return {path.name: content for path, content in written.items()}
         return _scaffold_integration_tests(names)
 
+    def scaffold_integration_scenarios(
+        self, scenarios: List[Any], output_dir: Path | None = None
+    ) -> Dict[str, str]:
+        """Create placeholder tests for the given integration scenarios.
+
+        Args:
+            scenarios: Scenario descriptors or names.
+            output_dir: Directory where test scaffolds should be written. If
+                ``None`` the scaffolds are only returned.
+
+        Returns:
+            Mapping of file names to placeholder test content.
+        """
+
+        names: List[str] = []
+        for scenario in scenarios or ["placeholder"]:
+            if isinstance(scenario, dict):
+                names.append(str(scenario.get("name", "scenario")))
+            else:
+                names.append(str(scenario))
+        return self.scaffold_integration_tests(names, output_dir=output_dir)
+
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce tests."""
         # Get role-specific prompt
@@ -93,15 +115,28 @@ class TestAgent(BaseAgent):
         # Generate the tests using the LLM port
         tests = self.generate_text(prompt)
 
-        # Scaffold placeholder integration tests if names are provided
+        # Scaffold placeholder integration tests if names or scenarios are provided
         integration_names = inputs.get("integration_test_names", [])
+        scenarios = inputs.get("integration_scenarios", [])
         output_dir_input = inputs.get(
             "integration_output_dir", "tests/integration/generated_tests"
         )
         output_dir = Path(output_dir_input)
-        integration_tests = self.scaffold_integration_tests(
-            integration_names, output_dir=output_dir
-        )
+        integration_tests: Dict[str, str] = {}
+        if integration_names:
+            integration_tests.update(
+                self.scaffold_integration_tests(
+                    integration_names, output_dir=output_dir
+                )
+            )
+        if scenarios:
+            integration_tests.update(
+                self.scaffold_integration_scenarios(scenarios, output_dir=output_dir)
+            )
+        if not integration_tests:
+            integration_tests = self.scaffold_integration_tests(
+                [], output_dir=output_dir
+            )
 
         # Create a WSDE with the tests
         test_wsde = None
