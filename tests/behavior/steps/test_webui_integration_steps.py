@@ -3,8 +3,9 @@ from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_bdd import given, when, then, scenarios, parsers
-import streamlit as st
+from pytest_bdd import given, parsers, scenarios, then, when
+
+pytest.importorskip("streamlit")
 
 # Register the feature scenarios to ensure step discovery
 scenarios("../features/general/webui_integration.feature")

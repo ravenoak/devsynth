@@ -1,7 +1,10 @@
 import json
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
+import pytest
+
+pytest.importorskip("streamlit")
 from streamlit.testing.v1 import AppTest
 
 

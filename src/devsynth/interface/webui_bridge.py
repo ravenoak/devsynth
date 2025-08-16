@@ -3,7 +3,10 @@ from __future__ import annotations
 import time
 from typing import Any, Dict, List, Optional, Sequence
 
-import streamlit as st
+try:  # pragma: no cover - optional dependency
+    import streamlit as st
+except ModuleNotFoundError:  # pragma: no cover - streamlit is optional
+    st = None  # type: ignore[assignment]
 
 from devsynth.interface.state_access import get_session_value as _get_session_value
 from devsynth.interface.state_access import set_session_value as _set_session_value
@@ -15,6 +18,19 @@ from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 # Module level logger
 logger = DevSynthLogger(__name__)
+
+
+def _require_streamlit() -> None:
+    """Ensure the ``streamlit`` package is available.
+
+    Raises:
+        RuntimeError: If ``streamlit`` is not installed.
+    """
+    if st is None:  # pragma: no cover - error path
+        raise RuntimeError(
+            "The 'streamlit' package is required for WebUI functionality."
+            " Please install it to use the WebUI interface."
+        )
 
 
 class WebUIProgressIndicator(ProgressIndicator):
@@ -450,6 +466,7 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         self, message: str, *, highlight: bool = False, message_type: str = None
     ) -> None:
         """Display a message to the user with Streamlit styling."""
+        _require_streamlit()
 
         if message_type == "error":
             logger.error(f"WebUI displaying error: {message}")

@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.importorskip("fastapi")
+pytest.importorskip("streamlit")
 from fastapi.testclient import TestClient
 
 from devsynth.interface.agentapi import WorkflowResponse

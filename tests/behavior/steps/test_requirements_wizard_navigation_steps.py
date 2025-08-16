@@ -1,11 +1,12 @@
+import importlib
+import sys
 from types import ModuleType
 from unittest.mock import MagicMock
-import sys
-import importlib
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, scenarios, then, when
 
+pytest.importorskip("streamlit")
 from devsynth.interface.webui import WebUI
 
 scenarios("../features/general/requirements_wizard_navigation.feature")
