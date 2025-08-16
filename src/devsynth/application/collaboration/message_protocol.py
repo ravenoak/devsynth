@@ -206,11 +206,7 @@ class MessageProtocol:
                     primary = None
 
                 if primary:
-                    self.memory_manager.update_item(primary, item)
-                    try:
-                        self.memory_manager.flush_updates()
-                    except Exception:
-                        pass
+                    self.memory_manager.queue_update(primary, item)
             except Exception:
                 pass
         return message
