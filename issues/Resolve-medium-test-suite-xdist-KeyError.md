@@ -1,7 +1,6 @@
 # Resolve medium test suite xdist KeyError
 Milestone: 0.1.0-alpha.1
 Status: open
-
 Priority: high
 Dependencies: None
 
