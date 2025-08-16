@@ -3,7 +3,6 @@ LM Studio Provider implementation for DevSynth.
 This provider connects to a local LM Studio server running on localhost.
 """
 
-import os
 from urllib.parse import urlparse
 
 try:  # pragma: no cover - optional dependency
@@ -12,15 +11,17 @@ except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
     raise ImportError(
         "LMStudioProvider requires the 'lmstudio' package. Install it with 'pip install lmstudio' or use the 'lmstudio' extra."
     ) from e
-from typing import Any, Dict, List, Optional, Tuple
-from ..utils.token_tracker import TokenTracker, TokenLimitExceededError
-from ...domain.interfaces.llm import LLMProvider
-from ...config import get_llm_settings
+from typing import Any, Dict, List
+
+from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.metrics import inc_provider
+
+from ...config import get_llm_settings
+from ..utils.token_tracker import TokenLimitExceededError, TokenTracker
+from .providers import BaseLLMProvider
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -36,30 +37,6 @@ class LMStudioModelError(DevSynthError):
     """Exception raised when there's an issue with LM Studio models."""
 
     pass
-
-
-class BaseLLMProvider:
-    """Base class for LLM providers."""
-
-    def __init__(self, config: Dict[str, Any] = None):
-        self.config = config or {}
-
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
-        """Generate text from a prompt."""
-        raise NotImplementedError("Subclasses must implement this method")
-
-    def generate_with_context(
-        self,
-        prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
-    ) -> str:
-        """Generate text from a prompt with conversation context."""
-        raise NotImplementedError("Subclasses must implement this method")
-
-    def get_embedding(self, text: str) -> List[float]:
-        """Get an embedding vector for the given text."""
-        raise NotImplementedError("Subclasses must implement this method")
 
 
 class LMStudioProvider(BaseLLMProvider):
