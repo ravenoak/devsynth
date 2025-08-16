@@ -1,7 +1,7 @@
 # Issue 120: Failing unit tests after environment setup
 
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: closed
 Priority: high
 Dependencies: None
 
@@ -23,6 +23,7 @@ failing tests, particularly in the code analysis pipeline.
 - Latest `devsynth run-tests --speed=fast` run produced five errors, including a failure in `tests/behavior/requirements_wizard/test_logging_and_priority_steps.py`.
 - Current fast test run reports a single failure in `tests/unit/interface/test_nicegui_bridge.py::test_session_storage_roundtrip` due to missing session initialization.
 - After running the environment provisioning script, `devsynth run-tests --speed=fast` still fails: `tests/unit/interface/test_nicegui_bridge.py::test_session_storage_roundtrip` raises `RuntimeError: app.storage.user can only be used with page builder functions`.
+- Resolved by adding fallback session storage to `NiceGUIBridge`; `devsynth run-tests --speed=fast` now passes.
 
 ## References
 
