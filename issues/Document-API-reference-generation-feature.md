@@ -4,7 +4,7 @@ Milestone: 0.1.0-alpha.1
 Status: open
 
 Priority: medium
-Dependencies: None
+Dependencies: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)
 
 
 Behavior tests cover an "API Reference Documentation Generation" feature, but no user-facing documentation explains how to generate API reference docs.
@@ -18,7 +18,8 @@ Add a user guide or section describing how to generate API reference documentati
 
 ## Progress
 - Confirmed presence of behavior tests for API reference documentation generation without corresponding documentation.
+- Linked with [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md).
 
 ## References
 
-- None
+- Related: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)

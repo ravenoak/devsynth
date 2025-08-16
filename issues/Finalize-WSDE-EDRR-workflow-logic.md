@@ -3,7 +3,7 @@ Milestone: 0.1.0-alpha.1
 Status: open
 
 Priority: medium
-Dependencies: None
+Dependencies: [WSDE collaboration test failures](WSDE-collaboration-test-failures.md)
 
 
 Integration tests for WSDE and EDRR now hang within collaboration memory utilities after the initial cases, indicating that the workflow logic is incomplete.
@@ -17,8 +17,8 @@ Integration tests for WSDE and EDRR now hang within collaboration memory utiliti
 
 ## Progress
 
-- No progress yet
+- Pending fixes from [WSDE collaboration test failures](WSDE-collaboration-test-failures.md).
 
 ## References
 
-- None
+- Related: [Complete Sprint-EDRR integration](Complete-Sprint-EDRR-integration.md)

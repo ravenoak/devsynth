@@ -32,7 +32,9 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 - Updated `verify_test_markers.py` and supporting utilities to handle direct script execution, but verification still hangs and requires manual interruption ([dcc3a755](../commit/dcc3a755)).
 - Latest run with `--workers 1` continues to hang and needs manual termination.
 - Recent attempt after environment preparation still hung after several minutes and required manual interruption.
+- Marker normalization blocks [Resolve pytest-xdist assertion errors](Resolve-pytest-xdist-assertion-errors.md).
 
 ## References
 
-- None
+- Related: [Resolve pytest-xdist assertion errors](Resolve-pytest-xdist-assertion-errors.md)
+- Related: [Expand test generation capabilities](Expand-test-generation-capabilities.md)

@@ -14,8 +14,8 @@ Security policy flags exist but automation is missing.
 
 ## Progress
 
-- No progress yet
+- Pending alignment with [Critical recommendations follow-up](Critical-recommendations-follow-up.md).
 
 ## References
 
-- None
+- Related: [Critical recommendations follow-up](Critical-recommendations-follow-up.md)
