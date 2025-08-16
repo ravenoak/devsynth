@@ -30,7 +30,7 @@ def test_named_retry_condition_aborts_and_records_metrics():
     stats = get_retry_stat_metrics()
     condition_stats = get_retry_condition_metrics()
     assert stats["always_fail:abort"] == 1
-    assert condition_stats["always_false"] == 1
+    assert condition_stats["always_false:suppress"] == 1
 
 
 def test_circuit_breaker_open_records_abort_metrics():

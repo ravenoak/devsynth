@@ -46,7 +46,7 @@ def test_anonymous_retry_condition_records_metrics() -> None:
     assert retry_metrics.get("abort") == 1
 
     condition_metrics = get_retry_condition_metrics()
-    assert condition_metrics.get(ANONYMOUS_CONDITION) == 1
+    assert condition_metrics.get(f"{ANONYMOUS_CONDITION}:suppress") == 1
     assert (
         circuit_breaker_state_counter.labels(
             function="func", state=CircuitBreaker.OPEN

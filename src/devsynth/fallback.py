@@ -97,7 +97,9 @@ def retry_with_exponential_backoff(
     condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
     retry_on_result: Optional[Callable[[T], bool]] = None,
     track_metrics: bool = True,
-    error_retry_map: Optional[Dict[type, bool]] = None,
+    error_retry_map: Optional[
+        Dict[type, Union[bool, Dict[str, Union[int, bool]]]]
+    ] = None,
     circuit_breaker: Optional["CircuitBreaker"] = None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
@@ -139,10 +141,17 @@ def retry_with_exponential_backoff(
     track_metrics : bool
         When ``True`` retry attempts are recorded via
         :mod:`devsynth.metrics` and Prometheus counters.
-    error_retry_map : Optional[Dict[type, bool]]
-        Mapping of exception types to a boolean indicating if they should be
-        retried regardless of ``retryable_exceptions``. ``False`` aborts the
-        retry loop when that error is encountered.
+    error_retry_map : Optional[Dict[type, Union[bool, Dict[str, Union[int, bool]]]]]
+        Mapping of exception types to retry policies. Values may be either a
+        boolean or a dictionary. ``False`` aborts the retry loop when that error
+        is encountered while ``True`` forces a retry even if the exception is not
+        listed in ``retryable_exceptions``. When a dictionary is provided the
+        following keys are recognized:
+
+        ``retry``: ``bool``
+            Whether retries are permitted (defaults to ``True``).
+        ``max_retries``: ``int``
+            Maximum retries for this error type overriding ``max_retries``.
     circuit_breaker : Optional["CircuitBreaker"]
         Circuit breaker instance used to guard function calls. If provided,
         each retry attempt is executed through the circuit breaker.
@@ -201,12 +210,30 @@ def retry_with_exponential_backoff(
                         inc_retry_stat(func.__name__, "success")
                     return result
                 except Exception as e:
+                    policy_max_retries = max_retries
+                    policy_retry: Optional[bool] = None
+                    if error_retry_map and type(e) in error_retry_map:
+                        policy = error_retry_map[type(e)]
+                        if isinstance(policy, dict):
+                            policy_retry = cast(bool, policy.get("retry", True))
+                            policy_max_retries = cast(
+                                int, policy.get("max_retries", max_retries)
+                            )
+                        else:
+                            policy_retry = bool(policy)
+
+                    retry_allowed = (
+                        isinstance(e, retryable_exceptions)
+                        if policy_retry is None
+                        else policy_retry
+                    )
+
                     if (
                         isinstance(e, ValueError)
                         and str(e) == "retry_on_result triggered"
                     ):
                         num_retries += 1
-                        if num_retries > max_retries:
+                        if num_retries > policy_max_retries:
                             if track_metrics:
                                 inc_retry("failure")
                                 inc_retry_error("InvalidResult")
@@ -224,7 +251,7 @@ def retry_with_exponential_backoff(
                         else:
                             delay = min(max_delay, delay * exponential_base)
                         logger.warning(
-                            f"Retrying due to invalid result {num_retries}/{max_retries} after {delay:.2f}s",
+                            f"Retrying due to invalid result {num_retries}/{policy_max_retries} after {delay:.2f}s",
                             function=func.__name__,
                             retry_attempt=num_retries,
                             delay=delay,
@@ -232,7 +259,7 @@ def retry_with_exponential_backoff(
                         time.sleep(delay)
                         continue
 
-                    if not isinstance(e, retryable_exceptions):
+                    if not retry_allowed:
                         if track_metrics:
                             inc_retry("abort")
                             inc_retry_error(e.__class__.__name__)
@@ -264,7 +291,11 @@ def retry_with_exponential_backoff(
                             inc_retry_stat(func.__name__, "abort")
                         raise
                     for name, cond in named_conditions:
-                        if not cond(e):
+                        cond_result = cond(e)
+                        if track_metrics:
+                            outcome = "trigger" if cond_result else "suppress"
+                            inc_retry_condition(f"{name}:{outcome}")
+                        if not cond_result:
                             logger.warning(
                                 f"Not retrying {func.__name__} due to retry_conditions policy",
                                 error=e,
@@ -274,37 +305,25 @@ def retry_with_exponential_backoff(
                             if track_metrics:
                                 inc_retry("abort")
                                 inc_retry_error(e.__class__.__name__)
-                                inc_retry_condition(name)
                                 inc_retry_stat(func.__name__, "abort")
                             raise
-                    if anonymous_conditions and not all(
-                        cond(e) for cond in anonymous_conditions
-                    ):
-                        logger.warning(
-                            f"Not retrying {func.__name__} due to retry_conditions policy",
-                            error=e,
-                            function=func.__name__,
-                        )
+                    if anonymous_conditions:
+                        anon_results = [cond(e) for cond in anonymous_conditions]
                         if track_metrics:
-                            inc_retry("abort")
-                            inc_retry_error(e.__class__.__name__)
-                            inc_retry_condition(ANONYMOUS_CONDITION)
-                            inc_retry_stat(func.__name__, "abort")
-                        raise
-                    if (
-                        error_retry_map is not None
-                        and error_retry_map.get(type(e)) is False
-                    ):
-                        logger.warning(
-                            f"Not retrying {func.__name__} due to error_retry_map policy",
-                            error=e,
-                            function=func.__name__,
-                        )
-                        if track_metrics:
-                            inc_retry("abort")
-                            inc_retry_error(e.__class__.__name__)
-                            inc_retry_stat(func.__name__, "abort")
-                        raise
+                            for res in anon_results:
+                                outcome = "trigger" if res else "suppress"
+                                inc_retry_condition(f"{ANONYMOUS_CONDITION}:{outcome}")
+                        if not all(anon_results):
+                            logger.warning(
+                                f"Not retrying {func.__name__} due to retry_conditions policy",
+                                error=e,
+                                function=func.__name__,
+                            )
+                            if track_metrics:
+                                inc_retry("abort")
+                                inc_retry_error(e.__class__.__name__)
+                                inc_retry_stat(func.__name__, "abort")
+                            raise
 
                     if cb_list:
                         cb_results: List[bool] = []
@@ -318,9 +337,10 @@ def retry_with_exponential_backoff(
                                     function=func.__name__,
                                 )
                                 result = False
-                            if not result and track_metrics:
+                            if track_metrics:
+                                outcome = "trigger" if result else "suppress"
                                 inc_retry_condition(
-                                    getattr(cb, "__name__", ANONYMOUS_CONDITION)
+                                    f"{getattr(cb, '__name__', ANONYMOUS_CONDITION)}:{outcome}"
                                 )
                             cb_results.append(result)
 
@@ -337,12 +357,12 @@ def retry_with_exponential_backoff(
                             raise
 
                     num_retries += 1
-                    if num_retries > max_retries:
+                    if num_retries > policy_max_retries:
                         logger.error(
-                            f"Maximum retry attempts ({max_retries}) exceeded",
+                            f"Maximum retry attempts ({policy_max_retries}) exceeded",
                             error=e,
                             function=func.__name__,
-                            max_retries=max_retries,
+                            max_retries=policy_max_retries,
                         )
                         if track_metrics:
                             inc_retry("failure")
@@ -361,11 +381,11 @@ def retry_with_exponential_backoff(
 
                     # Log retry attempt
                     logger.warning(
-                        f"Retry attempt {num_retries}/{max_retries} after {delay:.2f}s delay",
+                        f"Retry attempt {num_retries}/{policy_max_retries} after {delay:.2f}s delay",
                         error=e,
                         function=func.__name__,
                         retry_attempt=num_retries,
-                        max_retries=max_retries,
+                        max_retries=policy_max_retries,
                         delay=delay,
                     )
                     if track_metrics:

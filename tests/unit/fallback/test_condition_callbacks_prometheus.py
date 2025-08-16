@@ -102,8 +102,11 @@ def test_condition_callback_records_metrics():
     with pytest.raises(Exception):
         wrapped()
 
-    assert metrics.get_retry_condition_metrics() == {cb.__name__: 1}
-    assert retry_condition_counter.labels(condition=cb.__name__)._value.get() == 1
+    assert metrics.get_retry_condition_metrics() == {f"{cb.__name__}:suppress": 1}
+    assert (
+        retry_condition_counter.labels(condition=f"{cb.__name__}:suppress")._value.get()
+        == 1
+    )
 
 
 @pytest.mark.medium
@@ -126,7 +129,10 @@ def test_memory_condition_callback_records_metrics():
         wrapped()
 
     assert (
-        memory_retry_condition_counter.labels(condition=cb.__name__)._value.get() == 1
+        memory_retry_condition_counter.labels(
+            condition=f"{cb.__name__}:suppress"
+        )._value.get()
+        == 1
     )
 
 
@@ -146,5 +152,8 @@ def test_memory_retry_condition_records_metrics() -> None:
         wrapped()
 
     assert (
-        memory_retry_condition_counter.labels(condition="needs_retry")._value.get() == 1
+        memory_retry_condition_counter.labels(
+            condition="needs_retry:suppress"
+        )._value.get()
+        == 1
     )
