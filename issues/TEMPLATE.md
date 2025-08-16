@@ -1,11 +1,11 @@
 # Issue <number>: <title>
+Milestone: <milestone>
+Status: <status>
+Priority: <priority>
+Dependencies: <dependencies>
 
-## Summary
-- describe the problem or goal
-
-## Tasks
-- [ ] task 1
-- [ ] task 2
+## Progress
+- <progress updates>
 
 ## References
-- related links or files
+- <links or notes>

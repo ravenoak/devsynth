@@ -2,6 +2,9 @@
 Milestone: 0.2.0
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 Automated unit test generation works but integration coverage is lacking.
 

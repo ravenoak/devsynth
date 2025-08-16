@@ -2,6 +2,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 The memory subsystem supports multiple backends but remains unstable.
 

@@ -2,6 +2,9 @@
 Milestone: 0.3.0
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 Security policy flags exist but automation is missing.
 
