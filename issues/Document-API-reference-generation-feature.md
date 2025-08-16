@@ -3,6 +3,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 Behavior tests cover an "API Reference Documentation Generation" feature, but no user-facing documentation explains how to generate API reference docs.
 

@@ -2,6 +2,9 @@
 Milestone: 0.2.0
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplete.
 

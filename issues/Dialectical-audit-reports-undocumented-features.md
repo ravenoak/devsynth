@@ -3,6 +3,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 The latest dialectical audit found numerous features referenced in tests or documentation without corresponding documentation or code. See `dialectical_audit.log` for the full list of open questions.
 

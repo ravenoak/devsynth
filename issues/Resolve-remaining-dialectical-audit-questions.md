@@ -3,6 +3,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 The latest dialectical audit identified unresolved features lacking documentation or implementation. Track and address each item:
 

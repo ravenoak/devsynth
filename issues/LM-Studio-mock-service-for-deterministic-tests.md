@@ -3,6 +3,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 Tests referencing the LM Studio provider currently rely on the optional
 `lmstudio` package and a running LM Studio server. When these are absent,

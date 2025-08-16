@@ -2,6 +2,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: high
+Dependencies: None
+
 
 This issue captures remaining work from the critical recommendations report.
 

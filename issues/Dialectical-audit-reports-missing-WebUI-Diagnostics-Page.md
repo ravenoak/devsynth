@@ -3,6 +3,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 The dialectical audit lists "WebUI Diagnostics Page" as referenced in docs or tests but not in code. However, the WebUI implementation includes a `diagnostics_page` view. The audit may be misconfigured or missing detection logic.
 

@@ -2,6 +2,9 @@
 Milestone: 0.2.0
 Status: open
 
+Priority: medium
+Dependencies: None
+
 
 The fallback module implements exponential backoff but lacks metrics and conditional logic.
 

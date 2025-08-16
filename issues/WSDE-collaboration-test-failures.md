@@ -2,6 +2,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: high
+Dependencies: None
+
 
 Recent test runs show multiple failures in the WSDE/EDRR integration suites:
 - [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../tests/integration/general/test_wsde_edrr_component_interactions.py)

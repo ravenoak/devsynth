@@ -3,6 +3,9 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 
+Priority: high
+Dependencies: [tests/behavior/steps/test_code_generation_steps.py](../tests/behavior/steps/test_code_generation_steps.py)
+
 
 The test `tests/behavior/steps/test_code_generation_steps.py::tests_passed` fails with `AttributeError: 'NoneType' object has no attribute 'execute_command'`. Investigate and resolve the failure.
 
