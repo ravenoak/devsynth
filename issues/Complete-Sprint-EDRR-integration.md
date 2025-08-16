@@ -3,7 +3,7 @@ Milestone: 0.2.0
 Status: open
 
 Priority: medium
-Dependencies: None
+Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
 
 
 Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplete.
@@ -14,8 +14,8 @@ Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplet
 
 ## Progress
 
-- No progress yet
+- Awaiting resolution of [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md).
 
 ## References
 
-- None
+- Related: [WSDE collaboration test failures](WSDE-collaboration-test-failures.md)

@@ -4,7 +4,7 @@ Milestone: 0.1.0-alpha.1
 Status: open
 
 Priority: medium
-Dependencies: None
+Dependencies: [Expand test generation capabilities](Expand-test-generation-capabilities.md)
 
 
 Tests referencing the LM Studio provider currently rely on the optional
@@ -27,7 +27,8 @@ it.
 - Documented best practices for mocking optional services in
   `docs/developer_guides/testing.md`.
 - Running `tests/integration/general/test_lmstudio_provider.py` with `lmstudio` absent skips all tests and triggers coverage failure (`FAIL Required test coverage of 8% not reached`).
+- Mock service will support [Expand test generation capabilities](Expand-test-generation-capabilities.md).
 
 ## References
 
-- None
+- Related: [Expand test generation capabilities](Expand-test-generation-capabilities.md)

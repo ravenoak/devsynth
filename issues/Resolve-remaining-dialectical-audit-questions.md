@@ -12,7 +12,7 @@ The latest dialectical audit identified unresolved features lacking documentatio
 ## Progress
 - Initial audit captured in [f505a68f](../commit/f505a68f).
 
-- API Reference Documentation Generation
+ - [Document API reference generation feature](Document-API-reference-generation-feature.md)
 - API Specification Generation
 - AST-Based Code Analysis and Transformation
 - Additional Storage Backends
@@ -42,7 +42,7 @@ The latest dialectical audit identified unresolved features lacking documentatio
 - EDRR cycle command
 - Enable optional features
 - Enhanced ChromaDB Integration
-- Enhanced Dialectical Reasoning
+ - [Finalize dialectical reasoning](Finalize-dialectical-reasoning.md)
 - Enhanced EDRR Memory Integration
 - Enhanced EDRR Phase Transitions
 - Enhanced EDRR Recursion Handling
@@ -88,7 +88,7 @@ The latest dialectical audit identified unresolved features lacking documentatio
 - Requirements Wizard
 - Requirements Wizard Logging
 - Requirements Wizard Navigation
-- Retry Mechanism with Exponential Backoff
+ - [Enhance retry mechanism](Enhance-retry-mechanism.md)
 - Run Pipeline Command
 - Run tests from the CLI
 - Self Analysis
@@ -97,7 +97,7 @@ The latest dialectical audit identified unresolved features lacking documentatio
 - Shared UXBridge across CLI and WebUI
 - Spec Command
 - Streamlit WebUI Navigation
-- Test Generation
+ - [Expand test generation capabilities](Expand-test-generation-capabilities.md)
 - Test Metrics
 - Training Materials for TDD/BDD-EDRR Integration
 - UXBridge Interface
@@ -113,8 +113,8 @@ The latest dialectical audit identified unresolved features lacking documentatio
 - WSDE Model and Memory System Integration
 - WSDE Peer Review Workflow
 - WSDE Voting Mechanisms for Critical Decisions
-- WSDE and EDRR collaboration
-- WSDE-EDRR Integration
+ - [WSDE collaboration test failures](WSDE-collaboration-test-failures.md)
+ - [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
 - Web Application Generation
 - WebUI APISpec Page
 - WebUI Alignment Metrics Page

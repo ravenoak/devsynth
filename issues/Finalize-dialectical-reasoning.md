@@ -3,7 +3,7 @@ Milestone: 0.1.0-alpha.1
 Status: open
 
 Priority: medium
-Dependencies: None
+Dependencies: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)
 
 
 This issue tracks tasks needed to finish the dialectical reasoning framework.
@@ -16,7 +16,8 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 ## Progress
 
 - [x] Behavior tests confirm reasoning results persist to memory ([2b3f12f7](../commit/2b3f12f7)).
+- Pending resolution of [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md).
 
 ## References
 
-- None
+- Related: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)
