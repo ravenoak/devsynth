@@ -16,11 +16,10 @@ from devsynth.security.validation import require_pre_deploy_checks
 logger = setup_logging(__name__)
 
 
-def run() -> None:
+def run(argv: list[str] | None = None) -> None:
     """Execute Bandit and Safety security checks."""
     require_pre_deploy_checks()
-    audit.run_bandit()
-    audit.run_safety()
+    audit.main(argv)
 
 
 if __name__ == "__main__":

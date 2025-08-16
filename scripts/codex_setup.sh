@@ -227,6 +227,7 @@ run_check "Test organization verification" poetry run python tests/verify_test_o
 run_check "Test marker verification" poetry run python scripts/verify_test_markers.py
 run_check "Requirements traceability verification" poetry run python scripts/verify_requirements_traceability.py
 run_check "Version synchronization verification" poetry run python scripts/verify_version_sync.py
+run_check "Security audit" DEVSYNTH_PRE_DEPLOY_APPROVED=true poetry run python scripts/security_audit.py
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
