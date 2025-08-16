@@ -1,4 +1,4 @@
-# Issue 123: Document API reference generation feature
+# Document API reference generation feature
 
 Milestone: 0.1.0-alpha.1
 Status: open

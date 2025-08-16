@@ -1,4 +1,4 @@
-# Issue 105: Finalize dialectical reasoning
+# Finalize dialectical reasoning
 Milestone: 0.1.0-alpha.1
 Status: open
 

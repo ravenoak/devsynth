@@ -1,4 +1,4 @@
-# Issue 111: Implement SDLC security audits
+# Implement SDLC security audits
 Milestone: 0.3.0
 Status: open
 

@@ -1,4 +1,4 @@
-# Issue 104: Critical recommendations follow-up
+# Critical recommendations follow-up
 Milestone: 0.1.0-alpha.1
 Status: open
 

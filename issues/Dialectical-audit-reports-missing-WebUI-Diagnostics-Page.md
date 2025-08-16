@@ -1,4 +1,4 @@
-# Issue 124: Dialectical audit reports missing WebUI Diagnostics Page
+# Dialectical audit reports missing WebUI Diagnostics Page
 
 Milestone: 0.1.0-alpha.1
 Status: open

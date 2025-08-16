@@ -1,4 +1,4 @@
-# Issue 110: Enhance retry mechanism
+# Enhance retry mechanism
 Milestone: 0.2.0
 Status: open
 

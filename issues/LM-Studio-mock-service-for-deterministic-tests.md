@@ -1,4 +1,4 @@
-# Issue 121: LM Studio mock service for deterministic tests
+# LM Studio mock service for deterministic tests
 
 Milestone: 0.1.0-alpha.1
 Status: open

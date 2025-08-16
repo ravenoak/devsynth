@@ -1,4 +1,4 @@
-# Issue 128: Normalize and verify test markers
+# Normalize and verify test markers
 Milestone: 0.1.0-alpha.1
 Status: open
 Priority: high
