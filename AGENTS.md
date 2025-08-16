@@ -85,6 +85,12 @@ Before implementing changes—especially when introducing new features—draft a
 - What is the problem?
 - What proofs confirm the solution?
 
+## Issue Tracking
+
+- Use the in-repo issue tracker under `issues/` (see [issues/README.md](issues/README.md)).
+- Create new tickets by copying `issues/TEMPLATE.md` to the next available number.
+- When a ticket is resolved, move its file to `issues/archive/<number>.md` and leave it immutable.
+
 ## Specification-First Workflow
 
 - Always draft a specification for any new functionality in `docs/specifications/` (see the [specification index](docs/specifications/index.md)) **before** implementation.

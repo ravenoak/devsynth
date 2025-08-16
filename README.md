@@ -364,6 +364,7 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 - `docs/policies/` – SDLC, security, and cross-cutting policies
 - `docs/roadmap/` – Roadmaps and improvement plans
 - `docs/specifications/` – Current and archived specifications
+- `issues/` – In-repo issue tracker with `archive/` for closed tickets ([issues/README.md](issues/README.md))
 - `deployment/` – Deployment scripts and configuration
 
 ## Testing
