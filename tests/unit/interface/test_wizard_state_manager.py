@@ -77,7 +77,7 @@ def clean_state(mock_session_state):
         mock_session_state[key] = value
 
 
-@pytestdef test_wizard_state_manager_initialization(wizard_state_manager, clean_state):
+def test_wizard_state_manager_initialization(wizard_state_manager, clean_state):
     """Test that the wizard state manager is properly initialized."""
     manager, mock_session = wizard_state_manager
 
@@ -92,7 +92,7 @@ def clean_state(mock_session_state):
     }
 
 
-@pytestdef test_get_wizard_state_new(mock_session_state, clean_state):
+def test_get_wizard_state_new(mock_session_state, clean_state):
     """Test get_wizard_state when no wizard state exists."""
     # Create a manager with a clean session state
     manager = WizardStateManager(
@@ -125,7 +125,7 @@ def clean_state(mock_session_state):
         )
 
 
-@pytestdef test_get_wizard_state_existing(wizard_state_manager, clean_state):
+def test_get_wizard_state_existing(wizard_state_manager, clean_state):
     """Test get_wizard_state when a wizard state already exists."""
     manager, mock_session = wizard_state_manager
 
@@ -160,7 +160,7 @@ def clean_state(mock_session_state):
         )
 
 
-@pytestdef test_has_wizard_state(wizard_state_manager, clean_state):
+def test_has_wizard_state(wizard_state_manager, clean_state):
     """Test has_wizard_state method."""
     manager, mock_session = wizard_state_manager
 
@@ -174,7 +174,7 @@ def clean_state(mock_session_state):
     assert manager.has_wizard_state() is True
 
 
-@pytestdef test_validate_wizard_state_valid(wizard_state_manager, clean_state):
+def test_validate_wizard_state_valid(wizard_state_manager, clean_state):
     """Test validate_wizard_state with a valid state."""
     manager, mock_session = wizard_state_manager
 
@@ -190,7 +190,7 @@ def clean_state(mock_session_state):
     assert manager.validate_wizard_state(wizard_state) is True
 
 
-@pytestdef test_validate_wizard_state_missing_key(wizard_state_manager, clean_state):
+def test_validate_wizard_state_missing_key(wizard_state_manager, clean_state):
     """Test validate_wizard_state with a missing key."""
     manager, mock_session = wizard_state_manager
 
@@ -213,7 +213,7 @@ def clean_state(mock_session_state):
         )
 
 
-@pytestdef test_validate_wizard_state_invalid_step(wizard_state_manager, clean_state):
+def test_validate_wizard_state_invalid_step(wizard_state_manager, clean_state):
     """Test validate_wizard_state with an invalid step."""
     manager, mock_session = wizard_state_manager
 
@@ -234,7 +234,7 @@ def clean_state(mock_session_state):
         )
 
 
-@pytestdef test_validate_wizard_state_mismatched_steps(wizard_state_manager, clean_state):
+def test_validate_wizard_state_mismatched_steps(wizard_state_manager, clean_state):
     """Test validate_wizard_state with mismatched total steps."""
     manager, mock_session = wizard_state_manager
 
@@ -255,7 +255,7 @@ def clean_state(mock_session_state):
         )
 
 
-@pytestdef test_reset_wizard_state(wizard_state_manager, clean_state):
+def test_reset_wizard_state(wizard_state_manager, clean_state):
     """Test reset_wizard_state method."""
     manager, mock_session = wizard_state_manager
 
@@ -287,7 +287,7 @@ def clean_state(mock_session_state):
     assert wizard_state.get("step3_data") == ""
 
 
-@pytestdef test_reset_wizard_state_error(wizard_state_manager, clean_state):
+def test_reset_wizard_state_error(wizard_state_manager, clean_state):
     """Test reset_wizard_state method with an error."""
     manager, mock_session = wizard_state_manager
 
@@ -310,7 +310,7 @@ def clean_state(mock_session_state):
             )
 
 
-@pytestdef test_get_current_step(wizard_state_manager, clean_state):
+def test_get_current_step(wizard_state_manager, clean_state):
     """Test get_current_step method."""
     manager, mock_session = wizard_state_manager
 
@@ -322,7 +322,7 @@ def clean_state(mock_session_state):
     assert manager.get_current_step() == 2
 
 
-@pytestdef test_go_to_step(wizard_state_manager, clean_state):
+def test_go_to_step(wizard_state_manager, clean_state):
     """Test go_to_step method."""
     manager, mock_session = wizard_state_manager
 
@@ -339,7 +339,7 @@ def clean_state(mock_session_state):
         mock_go_to_step.assert_called_once_with(2)
 
 
-@pytestdef test_next_step(wizard_state_manager, clean_state):
+def test_next_step(wizard_state_manager, clean_state):
     """Test next_step method."""
     manager, mock_session = wizard_state_manager
 
@@ -356,7 +356,7 @@ def clean_state(mock_session_state):
         mock_next_step.assert_called_once()
 
 
-@pytestdef test_previous_step(wizard_state_manager, clean_state):
+def test_previous_step(wizard_state_manager, clean_state):
     """Test previous_step method."""
     manager, mock_session = wizard_state_manager
 
@@ -373,7 +373,7 @@ def clean_state(mock_session_state):
         mock_previous_step.assert_called_once()
 
 
-@pytestdef test_set_completed(wizard_state_manager, clean_state):
+def test_set_completed(wizard_state_manager, clean_state):
     """Test set_completed method."""
     manager, mock_session = wizard_state_manager
 
@@ -390,7 +390,7 @@ def clean_state(mock_session_state):
         mock_set_completed.assert_called_once_with(True)
 
 
-@pytestdef test_is_completed(wizard_state_manager, clean_state):
+def test_is_completed(wizard_state_manager, clean_state):
     """Test is_completed method."""
     manager, mock_session = wizard_state_manager
 
@@ -402,7 +402,7 @@ def clean_state(mock_session_state):
     assert manager.is_completed() is True
 
 
-@pytestdef test_get_value(wizard_state_manager, clean_state):
+def test_get_value(wizard_state_manager, clean_state):
     """Test get_value method."""
     manager, mock_session = wizard_state_manager
 
@@ -415,7 +415,7 @@ def clean_state(mock_session_state):
     assert manager.get_value("missing_key", "default") == "default"
 
 
-@pytestdef test_set_value(wizard_state_manager, clean_state):
+def test_set_value(wizard_state_manager, clean_state):
     """Test set_value method."""
     manager, mock_session = wizard_state_manager
 
@@ -432,7 +432,7 @@ def clean_state(mock_session_state):
         mock_set.assert_called_once_with("step1_data", "Step 1 Value")
 
 
-@pytestdef test_simulate_wizard_manager_navigation(wizard_state_manager, clean_state):
+def test_simulate_wizard_manager_navigation(wizard_state_manager, clean_state):
     """Test the simulate_wizard_manager_navigation helper function."""
     manager, mock_session = wizard_state_manager
 
@@ -447,7 +447,7 @@ def clean_state(mock_session_state):
     assert manager.get_current_step() == 2
 
 
-@pytestdef test_set_wizard_manager_data(wizard_state_manager, clean_state):
+def test_set_wizard_manager_data(wizard_state_manager, clean_state):
     """Test the set_wizard_manager_data helper function."""
     manager, mock_session = wizard_state_manager
 
@@ -467,7 +467,7 @@ def clean_state(mock_session_state):
     assert manager.get_value("step3_data") == "Step 3 Value"
 
 
-@pytestdef test_gather_wizard_state_manager(gather_wizard_state_manager, clean_state):
+def test_gather_wizard_state_manager(gather_wizard_state_manager, clean_state):
     """Test the gather_wizard_state_manager fixture."""
     manager, mock_session = gather_wizard_state_manager
 
@@ -496,7 +496,7 @@ def clean_state(mock_session_state):
     assert isinstance(wizard_state.get("resource_metadata"), dict)
 
 
-@pytestdef test_gather_wizard_workflow(gather_wizard_state_manager, clean_state):
+def test_gather_wizard_workflow(gather_wizard_state_manager, clean_state):
     """Test a complete gather wizard workflow with state persistence."""
     manager, mock_session = gather_wizard_state_manager
 
