@@ -19,6 +19,9 @@ Options:
     --report-file FILE    File to save the report to (default: test_markers_report.json)
     --timeout SECONDS     Timeout for subprocess calls (default: 30)
     --workers N           Number of concurrent workers for file verification
+
+The script applies timeouts to both subprocess calls and thread pools to avoid
+deadlocks during verification.
 """
 
 import argparse
@@ -98,6 +101,28 @@ def parse_args():
         help="Number of concurrent workers for file verification",
     )
     return parser.parse_args()
+
+
+def normalize_workers(workers: Optional[int]) -> Optional[int]:
+    """Validate and normalize worker count for thread pools.
+
+    Args:
+        workers: Requested number of workers or ``None``.
+
+    Returns:
+        ``None`` when the default should be used or a positive integer for the
+        desired worker count. Invalid values are logged and fall back to the
+        default.
+    """
+    if workers is None:
+        return None
+    if workers <= 0:
+        print(
+            f"Invalid worker count {workers!r}; using default worker settings",
+            file=sys.stderr,
+        )
+        return None
+    return workers
 
 
 def find_test_files(directory: str, max_depth: int = 5) -> List[Path]:
@@ -287,6 +312,17 @@ def verify_file_markers(
                         marker_type, False
                     ),
                     "uncollected_tests": uncollected_tests,
+                }
+            except subprocess.TimeoutExpired:
+                recognized_markers[marker_type] = {
+                    "file_count": marker_count,
+                    "pytest_count": 0,
+                    "recognized": False,
+                    "registered_in_pytest_ini": markers_registered.get(
+                        marker_type, False
+                    ),
+                    "error": "subprocess timeout",
+                    "uncollected_tests": [],
                 }
             except Exception as e:
                 recognized_markers[marker_type] = {
@@ -599,37 +635,72 @@ def verify_directory_markers(
     def process(file_path: Path) -> Tuple[Path, Dict[str, Any]]:
         return file_path, verify_file_markers(file_path, verbose, timeout=timeout)
 
+    pool_timeout = (timeout or 0) * len(test_files) if timeout else None
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(process, fp): fp for fp in test_files}
-        for idx, future in enumerate(concurrent.futures.as_completed(futures), 1):
-            file_path, file_results = future.result()
+        completed: Set[concurrent.futures.Future] = set()
+        try:
+            for idx, future in enumerate(
+                concurrent.futures.as_completed(futures, timeout=pool_timeout),
+                1,
+            ):
+                completed.add(future)
+                file_path, file_results = future.result()
 
-            results["total_test_functions"] += file_results["test_functions"]
-            results["total_markers"] += file_results["tests_with_markers"]
-            results["total_misaligned_markers"] += len(
-                file_results["misaligned_markers"]
+                results["total_test_functions"] += file_results["test_functions"]
+                results["total_markers"] += file_results["tests_with_markers"]
+                results["total_misaligned_markers"] += len(
+                    file_results["misaligned_markers"]
+                )
+                results["total_duplicate_markers"] += len(
+                    file_results["duplicate_markers"]
+                )
+
+                for marker_type, count in file_results.get(
+                    "recognized_markers", {}
+                ).items():
+                    results["marker_counts"][marker_type] = (
+                        results["marker_counts"].get(marker_type, 0)
+                        + count["file_count"]
+                    )
+                    if not count.get("recognized", False):
+                        results["total_unrecognized_markers"] += count["file_count"]
+
+                if file_results["issues"]:
+                    results["files_with_issues"] += 1
+                    results["files"][str(file_path)] = file_results
+
+                if idx % progress_interval == 0:
+                    elapsed = time.time() - start
+                    print(
+                        f"Processed {idx}/{len(test_files)} files ({elapsed:.1f}s elapsed)"
+                    )
+                    start = time.time()
+
+        except concurrent.futures.TimeoutError:
+            print(
+                f"Thread pool timed out after {pool_timeout} seconds",
+                file=sys.stderr,
             )
-            results["total_duplicate_markers"] += len(file_results["duplicate_markers"])
-
-            for marker_type, count in file_results.get(
-                "recognized_markers", {}
-            ).items():
-                results["marker_counts"][marker_type] = (
-                    results["marker_counts"].get(marker_type, 0) + count["file_count"]
-                )
-                if not count.get("recognized", False):
-                    results["total_unrecognized_markers"] += count["file_count"]
-
-            if file_results["issues"]:
-                results["files_with_issues"] += 1
-                results["files"][str(file_path)] = file_results
-
-            if idx % progress_interval == 0:
-                elapsed = time.time() - start
-                print(
-                    f"Processed {idx}/{len(test_files)} files ({elapsed:.1f}s elapsed)"
-                )
-                start = time.time()
+            for future, file_path in futures.items():
+                if future not in completed:
+                    future.cancel()
+                    results["files"][str(file_path)] = {
+                        "file_path": str(file_path),
+                        "test_functions": 0,
+                        "markers": {},
+                        "tests_with_markers": 0,
+                        "tests_without_markers": 0,
+                        "misaligned_markers": [],
+                        "duplicate_markers": [],
+                        "recognized_markers": {},
+                        "issues": [
+                            {
+                                "type": "thread_timeout",
+                                "message": "verification timed out",
+                            }
+                        ],
+                    }
 
     return results
 
@@ -731,7 +802,7 @@ def main():
         directory,
         args.verbose,
         timeout=args.timeout,
-        max_workers=args.workers,
+        max_workers=normalize_workers(args.workers),
     )
 
     # Print verification summary
