@@ -27,7 +27,11 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 ENV_FILE=".env.${ENVIRONMENT}"
-if [[ -f "$ENV_FILE" ]] && [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing environment file: $ENV_FILE" >&2
+  exit 1
+fi
+if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
   echo "Environment file $ENV_FILE must have 600 permissions" >&2
   exit 1
 fi
