@@ -1,17 +1,17 @@
 {
-  "timestamp": "2025-08-17T04:40:30.779496",
+  "timestamp": "2025-08-17T05:58:15.610261",
   "verification": {
     "directory": "tests/unit/domain/test_memory_type.py",
     "total_files": 1,
     "files_with_issues": 1,
     "total_test_functions": 4,
-    "total_markers": 3,
+    "total_markers": 4,
     "total_misaligned_markers": 0,
-    "total_duplicate_markers": 0,
-    "total_unrecognized_markers": 3,
+    "total_duplicate_markers": 1,
+    "total_unrecognized_markers": 4,
     "marker_counts": {
       "fast": 0,
-      "medium": 3,
+      "medium": 4,
       "slow": 0,
       "isolation": 0
     },
@@ -22,16 +22,22 @@
         "test_functions": 4,
         "markers": {
           "test_memory_type_serialization_deserialization": "medium",
+          "test_working_memory_alias": "medium",
           "test_memory_type_members_complete": "medium",
           "test_memory_type_lookup_by_value": "medium"
         },
-        "tests_with_markers": 3,
-        "tests_without_markers": 1,
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
         "misaligned_markers": [],
-        "duplicate_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_memory_type_members_complete",
+            "marker_count": 2
+          }
+        ],
         "recognized_markers": {
           "medium": {
-            "file_count": 3,
+            "file_count": 4,
             "pytest_count": 25,
             "recognized": false,
             "registered_in_pytest_ini": true,
@@ -42,8 +48,12 @@
         },
         "issues": [
           {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
             "type": "unrecognized_markers",
-            "message": "medium markers are not recognized by pytest (3 in file, 25 recognized)"
+            "message": "medium markers are not recognized by pytest (4 in file, 25 recognized)"
           }
         ]
       }
