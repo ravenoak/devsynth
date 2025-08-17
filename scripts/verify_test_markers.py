@@ -276,56 +276,79 @@ def verify_file_markers(
                 "-q",  # Use quiet output for reliable parsing
             ]
 
+            logger.debug("Spawning subprocess: %s", " ".join(cmd))
+            start_time = time.time()
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+
             try:
-                logger.debug("Running subprocess: %s", " ".join(cmd))
-                start_time = time.time()
-                collect_result = subprocess.run(
-                    cmd,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
-                )
+                stdout, stderr = proc.communicate(timeout=timeout)
                 logger.debug(
-                    "Subprocess finished in %.2fs with return code %s",
+                    "Subprocess %s finished in %.2fs with return code %s",
+                    proc.pid,
                     time.time() - start_time,
-                    collect_result.returncode,
+                    proc.returncode,
                 )
 
-                # Count tests collected with this marker
-                collected_count = 0
-                collected_tests = []
+                if proc.returncode != 0:
+                    logger.warning(
+                        "Subprocess %s exited with %s", proc.pid, proc.returncode
+                    )
+                    recognized_markers[marker_type] = {
+                        "file_count": marker_count,
+                        "pytest_count": 0,
+                        "recognized": False,
+                        "registered_in_pytest_ini": markers_registered.get(
+                            marker_type, False
+                        ),
+                        "error": f"subprocess error: {proc.returncode}",
+                        "uncollected_tests": [],
+                    }
+                else:
+                    # Count tests collected with this marker
+                    collected_count = 0
+                    collected_tests = []
 
-                # Parse the output to count collected tests and identify which tests were collected
-                rel_path = os.path.relpath(file_path)
-                for line in collect_result.stdout.split("\n"):
-                    if str(file_path) in line or rel_path in line:
-                        collected_count += 1
-                        # Extract the test name from the output
-                        test_parts = line.strip().split("::")
-                        if len(test_parts) >= 2:
-                            test_name = test_parts[-1]
-                            if "(" in test_name:  # Handle parameterized tests
-                                test_name = test_name.split("(")[0]
-                            collected_tests.append(test_name)
+                    # Parse the output to count collected tests and identify which tests were collected
+                    rel_path = os.path.relpath(file_path)
+                    for line in stdout.split("\n"):
+                        if str(file_path) in line or rel_path in line:
+                            collected_count += 1
+                            # Extract the test name from the output
+                            test_parts = line.strip().split("::")
+                            if len(test_parts) >= 2:
+                                test_name = test_parts[-1]
+                                if "(" in test_name:  # Handle parameterized tests
+                                    test_name = test_name.split("(")[0]
+                                collected_tests.append(test_name)
 
-                # Identify which tests have the marker but weren't collected
-                uncollected_tests = []
-                for test_name, marker in markers.items():
-                    if marker == marker_type and test_name not in collected_tests:
-                        uncollected_tests.append(test_name)
+                    # Identify which tests have the marker but weren't collected
+                    uncollected_tests = []
+                    for test_name, marker in markers.items():
+                        if marker == marker_type and test_name not in collected_tests:
+                            uncollected_tests.append(test_name)
 
-                recognized_markers[marker_type] = {
-                    "file_count": marker_count,
-                    "pytest_count": collected_count,
-                    "recognized": collected_count == marker_count,
-                    "registered_in_pytest_ini": markers_registered.get(
-                        marker_type, False
-                    ),
-                    "uncollected_tests": uncollected_tests,
-                }
+                    recognized_markers[marker_type] = {
+                        "file_count": marker_count,
+                        "pytest_count": collected_count,
+                        "recognized": collected_count == marker_count,
+                        "registered_in_pytest_ini": markers_registered.get(
+                            marker_type, False
+                        ),
+                        "uncollected_tests": uncollected_tests,
+                    }
             except subprocess.TimeoutExpired:
-                logger.debug("Subprocess timed out after %s seconds", timeout)
+                logger.warning(
+                    "Subprocess %s timed out after %s seconds; terminating",
+                    proc.pid,
+                    timeout,
+                )
+                proc.kill()
+                stdout, stderr = proc.communicate()
                 recognized_markers[marker_type] = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -337,20 +360,8 @@ def verify_file_markers(
                     "uncollected_tests": [],
                     "timeout": True,
                 }
-            except subprocess.CalledProcessError as e:
-                logger.debug("Subprocess returned non-zero exit code %s", e.returncode)
-                recognized_markers[marker_type] = {
-                    "file_count": marker_count,
-                    "pytest_count": 0,
-                    "recognized": False,
-                    "registered_in_pytest_ini": markers_registered.get(
-                        marker_type, False
-                    ),
-                    "error": f"subprocess error: {e.returncode}",
-                    "uncollected_tests": [],
-                }
             except Exception as e:  # pragma: no cover - defensive
-                logger.debug("Subprocess raised unexpected error: %s", e)
+                logger.warning("Subprocess %s raised unexpected error: %s", proc.pid, e)
                 recognized_markers[marker_type] = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -634,6 +645,10 @@ def verify_directory_markers(
         Dictionary containing verification results
     """
     print(f"Verifying markers in {directory}...")
+    logger = logging.getLogger(__name__)
+    logger.debug(
+        "Starting ThreadPoolExecutor with max_workers=%s", max_workers or "default"
+    )
 
     # Find all test files
     test_files = find_test_files(directory)
@@ -660,7 +675,10 @@ def verify_directory_markers(
     start = time.time()
 
     def process(file_path: Path) -> Tuple[Path, Dict[str, Any]]:
-        return file_path, verify_file_markers(file_path, verbose, timeout=timeout)
+        logger.debug("Worker spawned for %s", file_path)
+        result = verify_file_markers(file_path, verbose, timeout=timeout)
+        logger.debug("Worker completed for %s", file_path)
+        return file_path, result
 
     pool_timeout = (timeout or 0) * len(test_files) if timeout else None
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -707,12 +725,14 @@ def verify_directory_markers(
                     start = time.time()
 
         except concurrent.futures.TimeoutError:
+            logger.warning("Thread pool timed out after %s seconds", pool_timeout)
             print(
                 f"Thread pool timed out after {pool_timeout} seconds",
                 file=sys.stderr,
             )
             for future, file_path in futures.items():
                 if future not in completed:
+                    logger.debug("Cancelling worker for %s", file_path)
                     future.cancel()
                     results["files"][str(file_path)] = {
                         "file_path": str(file_path),
@@ -730,6 +750,7 @@ def verify_directory_markers(
                             }
                         ],
                     }
+    logger.debug("ThreadPoolExecutor shutdown for %s", directory)
 
     return results
 
