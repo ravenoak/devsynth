@@ -896,7 +896,7 @@ class EDRRCoordinator:
             self.wsde_team, "elaborate_details"
         ):
             return
-        while True:
+        for _ in range(10):  # safety bound against infinite loops
             next_phase = self._decide_next_phase()
             if not next_phase:
                 break
