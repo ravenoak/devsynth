@@ -1,17 +1,18 @@
-import pytest
 from uuid import uuid4
+
+import pytest
 
 from devsynth.application.requirements.dialectical_reasoner import (
     DialecticalReasonerService,
 )
 from devsynth.domain.interfaces.requirement import (
-    RequirementRepositoryInterface,
+    ChatRepositoryInterface,
     DialecticalReasoningRepositoryInterface,
     ImpactAssessmentRepositoryInterface,
-    ChatRepositoryInterface,
+    RequirementRepositoryInterface,
 )
-from devsynth.domain.models.requirement import RequirementChange
 from devsynth.domain.models.memory import MemoryType
+from devsynth.domain.models.requirement import RequirementChange
 
 
 class DummyNotification:
@@ -72,6 +73,7 @@ def test_evaluate_change_persists_reasoning_to_memory():
     assert memory.calls[0][1] == MemoryType.DIALECTICAL_REASONING
 
 
+@pytest.mark.medium
 def test_create_session_adds_welcome_message():
     service = DialecticalReasonerService(
         requirement_repository=RequirementRepositoryInterface(),
@@ -90,6 +92,7 @@ def test_create_session_adds_welcome_message():
     assert session.messages[0].sender == "system"
 
 
+@pytest.mark.medium
 def test_process_message_records_conversation():
     chat_repo = ChatRepositoryInterface()
     service = DialecticalReasonerService(

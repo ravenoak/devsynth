@@ -6,6 +6,7 @@ import pytest
 from devsynth.fallback import retry_with_exponential_backoff
 
 
+@pytest.mark.medium
 def test_should_retry_prevents_retry():
     """Retry decorator should not retry when ``should_retry`` returns False.
 
