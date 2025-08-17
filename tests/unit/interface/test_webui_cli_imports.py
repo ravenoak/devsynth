@@ -4,7 +4,7 @@ from types import ModuleType
 
 import pytest
 
-from tests.unit.interface.test_streamlit_mocks import make_streamlit_mock
+from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
 
 @pytest.fixture(autouse=True)
