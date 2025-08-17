@@ -15,21 +15,12 @@ from typing import Optional
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.security import audit
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
 REQUIRED_ENV_VARS = ["DEVSYNTH_ACCESS_TOKEN"]
-
-
-def run_safety() -> None:
-    """Run dependency vulnerability scan using safety."""
-    subprocess.check_call(["python", "scripts/dependency_safety_check.py"])
-
-
-def run_bandit() -> None:
-    """Run Bandit static analysis over the src directory."""
-    subprocess.check_call(["bandit", "-r", "src", "-ll"])
 
 
 def run_secrets_scan() -> None:
@@ -109,9 +100,9 @@ def security_audit_cmd(
     bridge.display_result("[blue]Running security audit checks...[/blue]")
     check_required_env()
     if not skip_safety:
-        run_safety()
+        audit.run_safety()
     if not skip_static:
-        run_bandit()
+        audit.run_bandit()
     if not skip_secrets:
         run_secrets_scan()
     if not skip_owasp:
