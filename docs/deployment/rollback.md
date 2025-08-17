@@ -51,7 +51,7 @@ If you prefer to perform the steps manually, follow the process below.
 4. Verify service health:
 
    ```bash
-   deployment/health_check.sh
+   scripts/deployment/health_check.sh
    ```
 
 ## Tests
@@ -59,8 +59,8 @@ If you prefer to perform the steps manually, follow the process below.
 After performing a rollback, validate the environment:
 
 ```bash
-poetry run pytest tests/unit/deployment
-deployment/health_check.sh
+scripts/deployment/health_check.sh
+poetry run pytest tests/unit/deployment/test_health_check_smoke.py
 ```
 
-These checks confirm that the core services and deployment scripts operate as expected.
+These smoke tests confirm that the core services and deployment scripts operate as expected.

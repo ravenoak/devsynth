@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -28,14 +29,22 @@ def test_bootstrap_env_refuses_root(scripts_dir):
 
 @pytest.mark.fast
 def test_health_check_validates_url(scripts_dir):
-    cmd = f"bash {scripts_dir / 'health_check.sh'} https://example.com invalid-url"
-    result = subprocess.run(
-        ["su", "nobody", "-s", "/bin/bash", "-c", cmd],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode != 0
-    assert "Invalid URL" in result.stderr
+    workdir = Path(tempfile.mkdtemp())
+    workdir.chmod(0o755)
+    try:
+        env_file = workdir / ".env"
+        env_file.write_text("DEVSYNTH_ENV=testing\n")
+        env_file.chmod(0o600)
+        cmd = f"cd '{workdir}' && bash {scripts_dir / 'health_check.sh'} https://example.com invalid-url https://example.com"
+        result = subprocess.run(
+            ["su", "nobody", "-s", "/bin/bash", "-c", cmd],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert "Invalid URL" in result.stderr
+    finally:
+        shutil.rmtree(workdir)
 
 
 @pytest.mark.fast

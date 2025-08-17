@@ -20,9 +20,13 @@ if [[ ! " ${ALLOWED_ENVIRONMENTS[*]} " =~ " ${ENVIRONMENT} " ]]; then
   exit 1
 fi
 
-# Ensure Docker is available before continuing
+# Ensure Docker and docker compose are available before continuing
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is required but could not be found in PATH." >&2
+  exit 1
+fi
+if ! docker compose version >/dev/null 2>&1; then
+  echo "docker compose is required but unavailable." >&2
   exit 1
 fi
 
