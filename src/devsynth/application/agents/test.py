@@ -1,5 +1,6 @@
 """Test agent for the DevSynth system."""
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -115,6 +116,34 @@ class TestAgent(BaseAgent):
             raise DevSynthError(output)
         return output
 
+    @staticmethod
+    def _names_from_context(context: str) -> List[str]:
+        """Derive integration test names from project context.
+
+        The helper searches for tokens following ``module``, ``service``, or
+        ``component`` keywords and returns the matched identifiers. This keeps
+        heuristics lightweight while allowing callers to provide natural project
+        descriptions.
+
+        Args:
+            context: Free-form project description.
+
+        Returns:
+            List of extracted identifiers suitable for scaffolding.
+        """
+
+        pattern = re.compile(
+            r"([A-Za-z_][A-Za-z0-9_]*)\s*(?:module|service|component)|"
+            r"(?:module|service|component)\s+([A-Za-z_][A-Za-z0-9_]*)",
+            re.IGNORECASE,
+        )
+        names: List[str] = []
+        for before, after in pattern.findall(context):
+            candidate = before or after
+            if candidate:
+                names.append(candidate)
+        return names
+
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce tests."""
         # Get role-specific prompt
@@ -143,8 +172,13 @@ class TestAgent(BaseAgent):
         # Generate the tests using the LLM port
         tests = self.generate_text(prompt)
 
-        # Scaffold placeholder integration tests if names or scenarios are provided
+        # Scaffold placeholder integration tests if names, scenarios, or context are provided
         integration_names = inputs.get("integration_test_names", [])
+        context_names = self._names_from_context(inputs.get("context", ""))
+        if context_names:
+            integration_names.extend(
+                name for name in context_names if name not in integration_names
+            )
         scenarios = inputs.get("integration_scenarios", [])
         output_dir_input = inputs.get(
             "integration_output_dir", "tests/integration/generated_tests"
