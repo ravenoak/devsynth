@@ -3,7 +3,11 @@
 from typing import Any, Callable, Dict, List, Optional
 
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 from devsynth.methodology.dialectical_reasoning import reasoning_loop
+from devsynth.methodology.edrr_coordinator import (
+    EDRRCoordinator as MethodologyEDRRCoordinator,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -68,6 +72,14 @@ class EDRRCoordinator:
             Result from :func:`apply_dialectical_reasoning`.
         """
         logger.info("EDRRCoordinator invoking dialectical reasoning")
-        results = reasoning_loop(self.wsde_team, task, critic_agent, memory_integration)
+        coordinator = MethodologyEDRRCoordinator(self.memory_manager)
+        results = reasoning_loop(
+            self.wsde_team,
+            task,
+            critic_agent,
+            memory_integration,
+            phase=Phase.REFINE,
+            coordinator=coordinator,
+        )
         self._sync_memory()
         return results[-1] if results else {}

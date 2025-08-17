@@ -11,6 +11,7 @@ from devsynth.exceptions import ConsensusError
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import Phase
 from .edrr_coordinator import EDRRCoordinator
 
 logger = DevSynthLogger(__name__)
@@ -21,6 +22,8 @@ def reasoning_loop(
     task: Dict[str, Any],
     critic_agent: Any,
     memory_integration: Optional[Any] = None,
+    *,
+    phase: Phase = Phase.REFINE,
     max_iterations: int = 3,
     coordinator: Optional[EDRRCoordinator] = None,
 ) -> List[Dict[str, Any]]:
@@ -40,7 +43,12 @@ def reasoning_loop(
                 log_consensus_failure(logger, exc)
             break
         if coordinator is not None:
-            coordinator.record_refine_results(result)
+            record_map = {
+                Phase.EXPAND: coordinator.record_expand_results,
+                Phase.DIFFERENTIATE: coordinator.record_differentiate_results,
+                Phase.REFINE: coordinator.record_refine_results,
+            }
+            record_map.get(phase, coordinator.record_refine_results)(result)
         results.append(result)
         if result.get("status") == "completed":
             break

@@ -5,6 +5,10 @@ import pytest
 from devsynth.application.collaboration.exceptions import ConsensusError
 from devsynth.application.orchestration.dialectical_reasoner import DialecticalReasoner
 from devsynth.application.orchestration.edrr_coordinator import EDRRCoordinator
+from devsynth.methodology.base import Phase
+from devsynth.methodology.edrr_coordinator import (
+    EDRRCoordinator as MethodologyEDRRCoordinator,
+)
 
 
 class DummyConsensusError(ConsensusError):
@@ -23,7 +27,11 @@ def test_edrr_coordinator_delegates_to_helper():
         return_value=[{"ok": True}],
     ) as helper:
         result = coordinator.apply_dialectical_reasoning(task, critic)
-    helper.assert_called_once_with(team, task, critic, None)
+    helper.assert_called_once()
+    args, kwargs = helper.call_args
+    assert args[:4] == (team, task, critic, None)
+    assert kwargs["phase"] == Phase.REFINE
+    assert isinstance(kwargs["coordinator"], MethodologyEDRRCoordinator)
     assert result == {"ok": True}
 
 

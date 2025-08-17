@@ -34,6 +34,9 @@ from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 from devsynth.methodology.dialectical_reasoning import reasoning_loop
+from devsynth.methodology.edrr_coordinator import (
+    EDRRCoordinator as MethodologyEDRRCoordinator,
+)
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -433,12 +436,15 @@ class EDRRCoordinator:
         """Apply the dialectical reasoning loop and handle consensus failures."""
 
         logger.info("EDRRCoordinator invoking dialectical reasoning")
-        results = reasoning_loop(self.wsde_team, task, critic_agent, memory_integration)
-        if self.memory_manager is not None:
-            try:
-                self.memory_manager.flush_updates()
-            except Exception:  # pragma: no cover - defensive
-                logger.debug("Memory flush failed", exc_info=True)
+        coordinator = MethodologyEDRRCoordinator(self.memory_manager)
+        results = reasoning_loop(
+            self.wsde_team,
+            task,
+            critic_agent,
+            memory_integration,
+            phase=Phase.REFINE,
+            coordinator=coordinator,
+        )
         if not results:
             logger.warning(
                 "Consensus failure during dialectical reasoning",
