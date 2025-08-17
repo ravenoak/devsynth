@@ -55,3 +55,38 @@ def test_named_retry_condition_allows_retry() -> None:
     assert result == "ok"
     assert func.call_count == 2
     assert metrics.get_retry_condition_metrics() == {"needs_retry:trigger": 1}
+
+
+@pytest.mark.medium
+def test_exception_class_condition_records_metrics() -> None:
+    """Exception type conditions record metrics for trigger and suppress."""
+    metrics.reset_metrics()
+    reset_prometheus_metrics()
+
+    func = Mock(side_effect=[ValueError("boom"), "ok"])
+    func.__name__ = "func"
+
+    wrapped = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_conditions={"value_error": ValueError},
+        track_metrics=True,
+    )(func)
+
+    result = wrapped()
+
+    assert result == "ok"
+    assert func.call_count == 2
+    assert metrics.get_retry_condition_metrics() == {"value_error:trigger": 1}
+
+    func_fail = Mock(side_effect=TypeError("boom"))
+    func_fail.__name__ = "func_fail"
+    wrapped_fail = retry_with_exponential_backoff(
+        max_retries=1,
+        initial_delay=0,
+        retry_conditions={"value_error": ValueError},
+        track_metrics=True,
+    )(func_fail)
+    with pytest.raises(TypeError):
+        wrapped_fail()
+    assert metrics.get_retry_condition_metrics().get("value_error:suppress") == 1
