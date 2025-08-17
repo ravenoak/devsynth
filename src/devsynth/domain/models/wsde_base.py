@@ -412,24 +412,29 @@ class WSDETeam:
             self.logger.warning("Cannot rotate primus: no agents in team")
             return None
 
-        current_primus_index = -1
-        if self.roles["primus"] is not None:
-            current_name = getattr(
-                self.roles["primus"], "name", getattr(self.roles["primus"], "id", None)
-            )
-            for i, agent in enumerate(self.agents):
-                agent_name = getattr(agent, "name", getattr(agent, "id", None))
-                if agent_name == current_name:
-                    current_primus_index = i
-                    break
+        current = self.roles.get("primus")
+        if current in self.agents:
+            idx = self.agents.index(current)
+        else:
+            idx = -1
 
-        next_primus_index = (current_primus_index + 1) % len(self.agents)
-        self.roles["primus"] = self.agents[next_primus_index]
-        primus_name = getattr(
-            self.roles["primus"], "name", getattr(self.roles["primus"], "id", "unknown")
-        )
+        next_idx = (idx + 1) % len(self.agents)
+        next_agent = self.agents[next_idx]
+        self.roles["primus"] = next_agent
+
+        from devsynth.domain.models import wsde_roles
+
+        wsde_roles._update_agent_role(self, next_agent, "primus")
+        setattr(next_agent, "has_been_primus", True)
+
+        if all(getattr(a, "has_been_primus", False) for a in self.agents):
+            for a in self.agents:
+                if a is not next_agent:
+                    setattr(a, "has_been_primus", False)
+
+        primus_name = getattr(next_agent, "name", getattr(next_agent, "id", "unknown"))
         self.logger.info(f"Rotated primus role to {primus_name}")
-        return self.roles["primus"]
+        return next_agent
 
     def get_primus(self):
         """
