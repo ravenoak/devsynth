@@ -42,6 +42,8 @@ EDRR results.
    so callers may re-queue them to roll back the state if necessary.
 3. A companion **restore_memory_queue** function accepts the returned items and re-queues them in their original order.
 4. Retrospective phases MUST flush any remaining updates before reporting.
+5. If flushing fails or no memory manager is configured, the coordinator emits a final
+   sync hook with ``None`` so observers are not left waiting for state propagation.
 
 ## 4. Peer-Review Result Mapping
 

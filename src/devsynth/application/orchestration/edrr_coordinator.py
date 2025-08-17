@@ -39,11 +39,17 @@ class EDRRCoordinator:
         """Flush memory updates and notify hooks."""
 
         if self.memory_manager is None:
+            # Even without a memory manager, downstream hooks expect a sync
+            # notification so observers can advance their state.
+            self._invoke_sync_hooks(None)
             return
         try:
             self.memory_manager.flush_updates()
         except Exception:
             logger.debug("Memory flush failed", exc_info=True)
+            # On failure, still notify hooks so callers are not left waiting
+            # for a sync event that never occurs.
+            self._invoke_sync_hooks(None)
 
     def apply_dialectical_reasoning(
         self,
