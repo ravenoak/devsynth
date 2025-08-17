@@ -1,7 +1,7 @@
-# Document API reference generation feature
+# Issue 148: Document API reference generation feature
 
-Milestone: 0.1.0-alpha.1
-Status: blocked
+Milestone: 0.1.0-alpha.1 (completed 2025-08-17)
+Status: closed
 
 Priority: medium
 Dependencies: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)
@@ -20,6 +20,7 @@ Add a user guide or section describing how to generate API reference documentati
 - 2025-02-19: documentation still missing; blocked on audit questions.
 - Confirmed presence of behavior tests for API reference documentation generation without corresponding documentation.
 - Linked with [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md).
+- 2025-08-17: API reference generation guide added. Issue resolved.
 
 ## References
 
