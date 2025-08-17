@@ -14,6 +14,17 @@ if [[ "$EUID" -eq 0 ]]; then
   exit 1
 fi
 
+# Require a local environment file and enforce strict permissions
+ENV_FILE=${ENV_FILE:-.env}
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing environment file: $ENV_FILE" >&2
+  exit 1
+fi
+if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
+  echo "Environment file $ENV_FILE must have 600 permissions" >&2
+  exit 1
+fi
+
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required but could not be found in PATH." >&2
   exit 1
