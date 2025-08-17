@@ -6,8 +6,6 @@ from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.interface.webui_setup import WebUISetupWizard
 
-pytestmark = pytest.mark.requires_resource("webui")
-
 
 @pytest.mark.medium
 def test_webui_setup_wizard_runs(monkeypatch):
