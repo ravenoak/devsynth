@@ -1,6 +1,7 @@
 from types import ModuleType
 from unittest.mock import MagicMock
 
+
 class DummyContext:
     """Simple context manager used for streamlit forms/spinners."""
 
@@ -15,6 +16,7 @@ class DummyContext:
 
     def form_submit_button(self, *_args, **_kwargs):
         return self.submitted
+
 
 def make_streamlit_mock(submitted: bool = True) -> ModuleType:
     """Return a mocked ``streamlit`` module with common APIs used in WebUI."""
@@ -41,8 +43,12 @@ def make_streamlit_mock(submitted: bool = True) -> ModuleType:
     st.form = lambda *_a, **_k: DummyContext(submitted)
     st.spinner = lambda *_a, **_k: DummyContext(submitted)
     st.divider = MagicMock()
-    st.columns = MagicMock( return_value=(MagicMock(button=lambda *a, **k: False), MagicMock(button=lambda *a, **k: False))
-)
+    st.columns = MagicMock(
+        return_value=(
+            MagicMock(button=lambda *a, **k: False),
+            MagicMock(button=lambda *a, **k: False),
+        )
+    )
     st.progress = MagicMock()
     st.write = MagicMock()
     st.markdown = MagicMock()
@@ -52,7 +58,9 @@ def make_streamlit_mock(submitted: bool = True) -> ModuleType:
     st.success = MagicMock()
     st.warning = MagicMock()
     st.set_page_config = MagicMock()
-    st.empty = MagicMock(return_value=MagicMock(markdown=MagicMock(), empty=MagicMock()))
+    st.empty = MagicMock(
+        return_value=MagicMock(markdown=MagicMock(), empty=MagicMock())
+    )
     st.container = lambda *_a, **_k: DummyContext(submitted)
     st.components = ModuleType("components")
     st.components.v1 = ModuleType("v1")

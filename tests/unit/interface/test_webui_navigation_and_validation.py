@@ -1,12 +1,13 @@
 import importlib
 import sys
+from pathlib import Path
 from types import ModuleType
 from unittest.mock import MagicMock
-from pathlib import Path
 
 import pytest
 
-from tests.unit.interface.test_streamlit_mocks import make_streamlit_mock
+from tests.fixtures.streamlit_mocks import make_streamlit_mock
+
 
 @pytest.fixture
 def stub_streamlit(monkeypatch):
@@ -14,15 +15,19 @@ def stub_streamlit(monkeypatch):
     monkeypatch.setitem(sys.modules, "streamlit", st)
     return st
 
+
 def _reload_webui():
-    
+
     import importlib
+
     from devsynth.interface import webui
+
     # Reload the module to ensure clean state
     importlib.reload(module_2)
 
     importlib.reload(webui)
     return webui
+
 
 @pytest.mark.medium
 def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
@@ -54,6 +59,7 @@ def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
     assert stub_streamlit.session_state.wizard_step == 1
     assert stub_streamlit.session_state.nav == "Requirements"
 
+
 @pytest.mark.medium
 def test_analysis_page_invalid_path_shows_error(monkeypatch, stub_streamlit):
     """Invalid analysis path should trigger an error message."""
@@ -71,5 +77,6 @@ def test_analysis_page_invalid_path_shows_error(monkeypatch, stub_streamlit):
 
     # ensure the command was not executed and an error message shown
     cmd.assert_not_called()
-    assert any( "not found" in call[0][0] for call in stub_streamlit.error.call_args_list )
-
+    assert any(
+        "not found" in call[0][0] for call in stub_streamlit.error.call_args_list
+    )
