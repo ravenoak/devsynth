@@ -1,7 +1,7 @@
 # Dialectical audit reports undocumented features
 
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: in progress
 
 Priority: medium
 Dependencies: None
@@ -17,6 +17,7 @@ The latest dialectical audit found numerous features referenced in tests or docu
 Review each question in the audit log and update documentation, tests, or code accordingly. Split this issue if needed to track individual features.
 
 ## Progress
+- 2025-02-19: audit log triaged; documentation gaps queued.
 - Pending review of audit log entries
 - Dialectical audit tooling added in [f505a68f](../commit/f505a68f).
 

@@ -1,6 +1,6 @@
 # Complete Sprint-EDRR integration
 Milestone: 0.2.0
-Status: open
+Status: blocked
 
 Priority: medium
 Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
@@ -13,6 +13,7 @@ Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplet
 - Document integration steps and add tests
 
 ## Progress
+- 2025-02-19: waiting on workflow logic finalization; no integration updates.
 
 - Awaiting resolution of [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md).
 

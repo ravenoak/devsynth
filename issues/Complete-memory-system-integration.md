@@ -1,6 +1,6 @@
 # Complete memory system integration
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: blocked
 
 Priority: medium
 Dependencies: None
@@ -14,6 +14,7 @@ The memory subsystem supports multiple backends but remains unstable.
 - Handle missing LMDB dependency more gracefully
 
 ## Progress
+- 2025-02-19: backends remain unstable; integration still pending.
 
 - No progress yet
 

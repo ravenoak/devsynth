@@ -1,6 +1,6 @@
 # Implement SDLC security audits
 Milestone: 0.3.0
-Status: open
+Status: in progress
 
 Priority: medium
 Dependencies: None
@@ -13,6 +13,7 @@ Security policy flags exist but automation is missing.
 - Document procedure for periodic security reviews
 
 ## Progress
+- 2025-02-19: coordinating with critical recommendations follow-up.
 
 - Pending alignment with [Critical recommendations follow-up](Critical-recommendations-follow-up.md).
 
