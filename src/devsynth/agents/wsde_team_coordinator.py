@@ -52,6 +52,14 @@ class WSDETeamCoordinatorAgent:
         if memory_manager and hasattr(memory_manager, "flush_updates"):
             try:
                 memory_manager.flush_updates()
+                wait = getattr(memory_manager, "wait_for_sync", None)
+                if callable(wait):
+                    import asyncio
+                    import inspect
+
+                    result = wait()
+                    if inspect.isawaitable(result):  # pragma: no cover - requires loop
+                        asyncio.run(result)
             except (RuntimeError, OSError):  # pragma: no cover - defensive
                 logger.debug(
                     "Memory synchronization failed during retrospective",
