@@ -2,7 +2,7 @@
 Milestone: 0.1.0-alpha.1
 Status: open
 Priority: high
-Dependencies: [scripts/verify_test_markers.py](../scripts/verify_test_markers.py)
+Dependencies: None
 
 
 The test suite must ensure each test file contains exactly one speed marker (`fast`, `medium`, or `slow`). Some tests may lack markers, have duplicates, or include outdated placement. High-memory tests must be gated with `memory_intensive`.
