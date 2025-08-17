@@ -1,6 +1,8 @@
 import importlib
 import sys
 
+import pytest
+
 # Import MVU modules to satisfy coverage requirements.
 import devsynth.core.mvu.api  # noqa: F401
 import devsynth.core.mvu.atomic_rewrite  # noqa: F401
@@ -52,10 +54,11 @@ _EXPECTED_COMMANDS = {
 }
 
 
-def test_command_modules_register_commands_and_build_app():
+@pytest.mark.fast
+def test_command_modules_register_commands_and_build_app(monkeypatch):
     """Each command module registers its commands and build_app loads them."""
-    registry.COMMAND_REGISTRY.clear()
-    modules = getattr(registry, "MODULES", list(_EXPECTED_COMMANDS))
+    monkeypatch.setattr(registry, "COMMAND_REGISTRY", {})
+    modules = list(_EXPECTED_COMMANDS)
     for module_path in modules:
         if module_path in sys.modules:
             importlib.reload(sys.modules[module_path])
