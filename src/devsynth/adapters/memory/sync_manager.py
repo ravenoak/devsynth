@@ -10,7 +10,7 @@ Kuzu store.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict
 
 from ...logging_setup import DevSynthLogger
 
@@ -128,10 +128,41 @@ class MultiStoreSyncManager:
         Context manager
             The context manager yielded by :class:`SyncManager` which will
             commit on successful exit and roll back if an exception occurs.
+
+        Raises
+        ------
+        KeyError
+            If any requested store name is not configured.
         """
 
         stores = stores or list(self.manager.adapters.keys())
+        missing = set(stores) - set(self.manager.adapters.keys())
+        if missing:  # pragma: no cover - defensive
+            raise KeyError(f"Unknown stores requested: {', '.join(sorted(missing))}")
         return self.sync_manager.transaction(stores)
+
+    def cross_store_query(self, query: str, stores: list[str] | None = None):
+        """Run ``query`` across multiple stores.
+
+        This is a small convenience wrapper around
+        :meth:`SyncManager.cross_store_query` that defaults to all configured
+        stores when ``stores`` is ``None``.
+
+        Parameters
+        ----------
+        query:
+            Query string to execute.
+        stores:
+            Optional list of store names that should participate.
+
+        Returns
+        -------
+        dict[str, list[Any]]
+            Mapping of store name to query results.
+        """
+
+        stores = stores or list(self.manager.adapters.keys())
+        return self.sync_manager.cross_store_query(query, stores)
 
     def begin_transaction(self, transaction_id: str | None = None) -> str:
         """Begin an explicit transaction across all stores."""
