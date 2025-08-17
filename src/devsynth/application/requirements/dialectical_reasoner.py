@@ -82,15 +82,19 @@ class DialecticalReasonerService(DialecticalReasonerPort):
     # ------------------------------------------------------------------
     # Hook registration
     # ------------------------------------------------------------------
-    def register_evaluation_hook(self, hook):
+    def register_evaluation_hook(
+        self, hook: Callable[[DialecticalReasoning, bool], None]
+    ) -> None:
         """Register a callback to run after evaluating a change.
 
         The signature mirrors ``WSDETeam.register_dialectical_hook`` so team
-        components can cross-reference requirement evaluations.  Hooks should
-        accept ``(reasoning, consensus)`` and should not raise, though any
-        exception will be logged and suppressed.
+        components can cross-reference requirement evaluations. Hooks must
+        accept ``(reasoning, consensus)`` and should not raise. Any exception
+        raised by a hook will later be logged and suppressed.
         """
 
+        if not callable(hook):
+            raise TypeError("hook must be callable")
         if not hasattr(self, "evaluation_hooks"):
             self.evaluation_hooks = []
         self.evaluation_hooks.append(hook)
