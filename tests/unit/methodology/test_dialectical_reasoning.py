@@ -1,6 +1,8 @@
 """Tests for the dialectical reasoning utilities."""
 
+from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import ConsensusError
+from devsynth.methodology.base import Phase
 from devsynth.methodology.dialectical_reasoning import reasoning_loop
 from devsynth.methodology.edrr_coordinator import EDRRCoordinator
 
@@ -40,3 +42,21 @@ def test_reasoning_loop_logs_consensus_failure(mocker) -> None:
 
     assert output == []
     coordinator.record_consensus_failure.assert_called_once()
+
+
+def test_reasoning_loop_persists_phase_results(mocker) -> None:
+    """It stores results using the memory manager."""
+
+    memory_manager = mocker.Mock()
+    coordinator = EDRRCoordinator(memory_manager)
+    result = {"status": "completed"}
+    mocker.patch(
+        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        return_value=result,
+    )
+
+    reasoning_loop(None, {}, None, coordinator=coordinator, phase=Phase.DIFFERENTIATE)
+
+    memory_manager.store_with_edrr_phase.assert_called_once_with(
+        result, MemoryType.KNOWLEDGE, "DIFFERENTIATE"
+    )
