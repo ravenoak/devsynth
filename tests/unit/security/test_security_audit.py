@@ -88,3 +88,19 @@ def test_report_records_failure(
         security_audit.run(["--report", str(report)])
     data = json.loads(report.read_text())
     assert data == {"bandit": "failed", "safety": "skipped"}
+
+
+@patch("security_audit.audit.run_bandit")
+@patch("security_audit.audit.run_safety")
+@patch("security_audit.verify_security_policy.main", return_value=0)
+@pytest.mark.fast
+def test_run_requires_pre_deploy(
+    mock_policy: MagicMock,
+    mock_safety: MagicMock,
+    mock_bandit: MagicMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The audit aborts if pre-deploy approval is missing."""
+    monkeypatch.delenv("DEVSYNTH_PRE_DEPLOY_APPROVED", raising=False)
+    with pytest.raises(RuntimeError):
+        security_audit.run([])

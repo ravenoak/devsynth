@@ -20,6 +20,16 @@ jobs:
         env:
           DEVSYNTH_PRE_DEPLOY_APPROVED: "true"
         run: poetry run task policy:gate
+      - name: Run security audit
+        env:
+          DEVSYNTH_PRE_DEPLOY_APPROVED: "true"
+        run: |
+          poetry run python scripts/security_audit.py --report security_audit.json
+      - name: Upload security audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security_audit
+          path: security_audit.json
       - name: Run dialectical audit
         run: |
           poetry run python scripts/dialectical_audit.py || true
