@@ -8,6 +8,7 @@ Running `poetry run devsynth run-tests` occasionally hangs with xdist workers ti
 
 ## Progress
 - 2025-02-19: timeout reproduced during `scripts/verify_test_markers.py` run; root cause undetermined.
+- 2025-08-17: `poetry run python scripts/verify_test_markers.py --workers 1` still hung after processing 50 of 700 files (~76s), indicating worker timeouts remain unresolved.
 
 ## References
 - [scripts/verify_test_markers.py](../scripts/verify_test_markers.py)
