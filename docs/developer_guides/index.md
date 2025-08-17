@@ -34,6 +34,7 @@ This section is for developers contributing to the DevSynth project or those loo
 - **[Dependency Strategy](dependencies.md)**: Overview of optional extras and CI checks.
 - **[Repository Structure](../repo_structure.md)**: An overview of how the DevSynth repository is organized.
 - **[Requirements Wizard Structure](requirements_wizard_structure.md)**: Overview of the requirements wizard helpers.
+- **[Sprint–EDRR Ceremony Alignment](sprint_edrr_ceremony_alignment.md)**: Map sprint ceremonies to EDRR phases.
 - **[Agent Tools](agent_tools.md)**: Overview of the tool registry and how to add new tools.
 - **[Code Analysis Guide](code_analysis.md)**: Overview of repository analysis and AST transformation utilities.
 

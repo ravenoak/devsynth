@@ -2,9 +2,9 @@
 
 This module provides utilities for working with Agile sprint ceremonies
 within DevSynth's EDRR methodology. The primary helper maps common
-ceremonies such as planning or review to their corresponding EDRR
-:class:`~devsynth.methodology.base.Phase` values so that sprint adapters
-can automatically link ceremonies with EDRR phases.
+ceremonies such as planning, standups, review, or retrospective to their
+corresponding EDRR :class:`~devsynth.methodology.base.Phase` values so
+that sprint adapters can automatically link ceremonies with EDRR phases.
 """
 
 from __future__ import annotations
@@ -19,10 +19,12 @@ CEREMONY_PHASE_MAP: Dict[str, Optional[Phase]] = {
     # Sprint planning occurs before the Expand phase and prepares the scope
     # for the upcoming cycle.
     "planning": Phase.EXPAND,
+    # Daily standups surface blockers and progress checks during the
+    # Differentiate phase.
+    "dailystandup": Phase.DIFFERENTIATE,
+    "standup": Phase.DIFFERENTIATE,
     "review": Phase.REFINE,
     "retrospective": Phase.RETROSPECT,
-    # Daily standups track progress but are not tied to a specific phase.
-    "dailystandup": None,
 }
 
 
