@@ -11,8 +11,8 @@ from devsynth.exceptions import ConsensusError
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
-from .base import Phase
-from .edrr_coordinator import EDRRCoordinator
+from ..base import Phase
+from .coordinator import EDRRCoordinator
 
 logger = DevSynthLogger(__name__)
 

@@ -2,7 +2,7 @@ import logging
 from unittest.mock import MagicMock
 
 from devsynth.exceptions import ConsensusError
-from devsynth.methodology.dialectical_reasoning import reasoning_loop
+from devsynth.methodology.edrr import reasoning_loop
 
 
 class DummyConsensusError(ConsensusError):
@@ -20,7 +20,7 @@ def test_reasoning_loop_runs_until_complete(monkeypatch):
         return {"status": "completed", "synthesis": "final"}
 
     monkeypatch.setattr(
-        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         fake_apply,
     )
 
@@ -34,7 +34,7 @@ def test_reasoning_loop_logs_consensus_failure(monkeypatch, caplog):
         raise DummyConsensusError("no consensus")
 
     monkeypatch.setattr(
-        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         fail_apply,
     )
 
@@ -53,7 +53,7 @@ def test_reasoning_loop_respects_max_iterations(monkeypatch):
         return {"status": "in_progress"}
 
     monkeypatch.setattr(
-        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         fake_apply,
     )
 

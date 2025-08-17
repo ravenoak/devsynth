@@ -3,8 +3,7 @@
 from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
-from devsynth.methodology.dialectical_reasoning import reasoning_loop
-from devsynth.methodology.edrr_coordinator import EDRRCoordinator
+from devsynth.methodology.edrr import EDRRCoordinator, reasoning_loop
 
 
 def test_reasoning_loop_records_results(mocker) -> None:
@@ -13,7 +12,7 @@ def test_reasoning_loop_records_results(mocker) -> None:
     coordinator = mocker.create_autospec(EDRRCoordinator, instance=True)
     result = {"status": "completed"}
     mocker.patch(
-        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         return_value=result,
     )
 
@@ -34,7 +33,7 @@ def test_reasoning_loop_logs_consensus_failure(mocker) -> None:
             Exception.__init__(self, message)
 
     mocker.patch(
-        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         side_effect=DummyConsensusError("no consensus"),
     )
 
@@ -51,7 +50,7 @@ def test_reasoning_loop_persists_phase_results(mocker) -> None:
     coordinator = EDRRCoordinator(memory_manager)
     result = {"status": "completed"}
     mocker.patch(
-        "devsynth.methodology.dialectical_reasoning._apply_dialectical_reasoning",
+        "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         return_value=result,
     )
 

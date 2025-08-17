@@ -6,9 +6,7 @@ from devsynth.application.collaboration.exceptions import ConsensusError
 from devsynth.application.orchestration.dialectical_reasoner import DialecticalReasoner
 from devsynth.application.orchestration.edrr_coordinator import EDRRCoordinator
 from devsynth.methodology.base import Phase
-from devsynth.methodology.edrr_coordinator import (
-    EDRRCoordinator as MethodologyEDRRCoordinator,
-)
+from devsynth.methodology.edrr import EDRRCoordinator as MethodologyEDRRCoordinator
 
 
 class DummyConsensusError(ConsensusError):

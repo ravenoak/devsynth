@@ -28,7 +28,7 @@ last_reviewed: "2025-07-10"
 
 This document describes DevSynth's four-phase iterative approach that serves as the core methodology for all system processes. Originally developed for project ingestion, this dialectical methodology has evolved into DevSynth's fundamental approach for any task requiring iterative improvement and multi-disciplinary reasoning.
 
-**Implementation Status:** The EDRR framework is partially implemented. Phase behaviors, automation hooks, and recursion controls are now part of the core system.
+**Implementation Status:** The EDRR framework is partially implemented. Phase behaviors, automation hooks, and recursion controls are now part of the core system. A dialectical `reasoning_loop` records phase-specific outcomes and logs consensus failures through the `EDRRCoordinator`, ensuring reasoning artifacts persist to configured memory backends.
 
 The methodology enables DevSynth to tackle complex problems through a systematic cycle of bottom-up discovery, top-down validation, synthesis, and learning. While this document initially describes the process in the context of project ingestion, the principles apply universally across all DevSynth operations.
 
@@ -180,8 +180,8 @@ The four phases form a continuous cycle, with each phase building on the previou
 │        │         ┌─────────────────────────────────────────┐           │
 │        │         │                                         │           │
 │        └─────────┤             PLANNING BRIDGE             │◀──────────┘
-│                  │                                         │            
-│                  └─────────────────────────────────────────┘            
+│                  │                                         │
+│                  └─────────────────────────────────────────┘
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -221,8 +221,8 @@ Rather than treating planning as a separate, distinct phase, planning in DevSynt
 │        │         ┌─────────────────────────────────────────────┐                │
 │        │         │                                             │                │
 │        └─────────┤             PLANNING BRIDGE                 │◀──────────────┘
-│                  │                                             │                 
-│                  └─────────────────────────────────────────────┘                 
+│                  │                                             │
+│                  └─────────────────────────────────────────────┘
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
