@@ -23,3 +23,4 @@ Transient HTTP failures are currently detected only through exceptions. Response
 
 - A unit test mocks an HTTP response returning status code 503 followed by 200 and verifies the retry predicate triggers a retry and increments Prometheus metrics.
 - A behavior-driven test demonstrates that functions using retry predicates eventually succeed after transient server errors.
+- A unit test passes an exception type as a retry condition and confirms trigger and suppress metrics are recorded.

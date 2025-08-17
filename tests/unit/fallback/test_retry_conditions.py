@@ -115,6 +115,34 @@ def test_string_condition_aborts_when_missing():
 
 
 @pytest.mark.medium
+def test_class_condition_allows_retry():
+    mock_func = Mock(side_effect=[ValueError("bad"), "ok"])
+    mock_func.__name__ = "mock_func"
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_conditions=[ValueError],
+    )(mock_func)
+    result = decorated()
+    assert result == "ok"
+    assert mock_func.call_count == 2
+
+
+@pytest.mark.medium
+def test_class_condition_aborts_on_mismatch():
+    mock_func = Mock(side_effect=TypeError("boom"))
+    mock_func.__name__ = "mock_func"
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        retry_conditions=[ValueError],
+    )(mock_func)
+    with pytest.raises(TypeError):
+        decorated()
+    assert mock_func.call_count == 1
+
+
+@pytest.mark.medium
 def test_exponential_backoff(monkeypatch):
     delays = []
     monkeypatch.setattr(time, "sleep", lambda d: delays.append(round(d, 2)))

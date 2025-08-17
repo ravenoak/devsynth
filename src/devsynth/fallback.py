@@ -130,14 +130,15 @@ def retry_with_exponential_backoff(
     should_retry : Optional[Callable[[Exception], bool]]
         Optional function that determines if a caught exception should trigger
         another retry. If it returns ``False`` the exception is re-raised.
-    retry_conditions : Optional[Union[List[Union[Callable[[Exception], bool], str]],
-                                     Dict[str, Union[Callable[[Exception], bool], str]]]]
+    retry_conditions : Optional[Union[List[Union[Callable[[Exception], bool], str, type]],
+                                     Dict[str, Union[Callable[[Exception], bool], str, type]]]]
         Additional per-exception conditions that must all evaluate to ``True``
         for the retry to continue. ``retry_conditions`` may be either a list or
         a dictionary. When a dictionary is provided the keys name each
-        condition and metrics are recorded for any condition that fails. String
-        entries are treated as substrings that must appear in the exception
-        message.
+        condition and metrics are recorded for any condition that fails.
+        String entries are treated as substrings that must appear in the
+        exception message. Exception classes are matched using
+        ``isinstance`` against the raised exception.
     condition_callbacks : Optional[List[Callable[[Exception, int], bool]]]
         Callbacks invoked with the exception and current retry attempt. All
         callbacks must return ``True`` for the retry loop to continue.
@@ -189,27 +190,35 @@ def retry_with_exponential_backoff(
             if retry_conditions:
                 if isinstance(retry_conditions, dict):
                     for name, cond in retry_conditions.items():
-                        if callable(cond):
-                            named_conditions.append((name, cond))
+                        if isinstance(cond, type) and issubclass(cond, BaseException):
+                            named_conditions.append(
+                                (name, lambda exc, cls=cond: isinstance(exc, cls))
+                            )
                         elif isinstance(cond, str):
                             named_conditions.append(
                                 (name, lambda exc, substr=cond: substr in str(exc))
                             )
+                        elif callable(cond):
+                            named_conditions.append((name, cond))
                         else:  # pragma: no cover - defensive
                             raise TypeError(
-                                "retry_conditions values must be callables or strings"
+                                "retry_conditions values must be callables, strings, or exception types"
                             )
                 else:
                     for cond in retry_conditions:
-                        if callable(cond):
-                            anonymous_conditions.append(cond)
+                        if isinstance(cond, type) and issubclass(cond, BaseException):
+                            anonymous_conditions.append(
+                                lambda exc, cls=cond: isinstance(exc, cls)
+                            )
                         elif isinstance(cond, str):
                             anonymous_conditions.append(
                                 lambda exc, substr=cond: substr in str(exc)
                             )
+                        elif callable(cond):
+                            anonymous_conditions.append(cond)
                         else:  # pragma: no cover - defensive
                             raise TypeError(
-                                "retry_conditions must be callables or strings"
+                                "retry_conditions must be callables, strings, or exception types"
                             )
             cb_list: List[Callable[[Exception, int], bool]] = condition_callbacks or []
 
