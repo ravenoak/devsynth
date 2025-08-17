@@ -1,7 +1,11 @@
 import os
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
+
+pytestmark = pytest.mark.fast
 
 
 def test_bootstrap_script_exists():
