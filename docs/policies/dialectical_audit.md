@@ -30,6 +30,11 @@ This policy defines how Socratic dialogues support audits that seek consensus be
 - Use automated tools to surface inconsistencies among docs, code, and tests.
 - Convert inconsistencies into open questions that challenge assumptions.
 
+## Continuous Integration
+
+- The dialectical audit script runs in continuous integration.
+- Its output is written to `dialectical_audit.log` and archived with CI artifacts.
+
 ## Dialogue Procedure
 
 1. Present each question to all relevant contributors.
