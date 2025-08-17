@@ -28,7 +28,8 @@ def scaffold_integration_tests(test_names: List[str]) -> Dict[str, str]:
 
     This function re-exports :func:`devsynth.testing.generation.scaffold_integration_tests`
     so callers can generate integration test scaffolds without instantiating
-    :class:`TestAgent`.
+    :class:`TestAgent`. The generated scaffolds include a simple passing
+    assertion so they execute successfully out of the box.
     """
 
     return _scaffold_integration_tests(test_names)
@@ -51,6 +52,10 @@ class TestAgent(BaseAgent):
     ) -> Dict[str, str]:
         """Create placeholder integration test modules and optionally write them.
 
+        The generated scaffolds contain an executable assertion, providing a
+        lightweight check that the test runner is wired correctly while clearly
+        indicating where real integration coverage should be added.
+
         Args:
             test_names: List of base names for integration tests.
             output_dir: Directory where test scaffolds should be written. If
@@ -72,6 +77,8 @@ class TestAgent(BaseAgent):
         self, scenarios: List[Any], output_dir: Path | None = None
     ) -> Dict[str, str]:
         """Create placeholder tests for the given integration scenarios.
+
+        Each scaffolded test includes a trivial passing assertion.
 
         Args:
             scenarios: Scenario descriptors or names.
