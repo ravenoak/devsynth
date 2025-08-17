@@ -179,6 +179,11 @@ services:
       target: production
     entrypoint: ["/bin/bash", "scripts/deployment/publish_image.sh", "${DEVSYNTH_IMAGE_TAG:-latest}"]
     user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - .env.production
+    volumes:
+      - .:/opt/pysetup
+      - ./.env.production:/opt/pysetup/.env.production:ro
     profiles:
       - ci
 
@@ -188,6 +193,11 @@ services:
       target: production
     entrypoint: ["/bin/bash", "scripts/deployment/rollback.sh", "${DEVSYNTH_ROLLBACK_TAG:-latest}", "development"]
     user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - .env.development
+    volumes:
+      - .:/opt/pysetup
+      - ./.env.development:/opt/pysetup/.env.development:ro
     profiles:
       - ci
 
