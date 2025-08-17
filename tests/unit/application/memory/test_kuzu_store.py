@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
@@ -32,3 +33,40 @@ def test_store_and_retrieve_succeeds(tmp_path):
     got = store.retrieve("a")
     assert got is not None
     assert got.content == "hello"
+
+
+@pytest.mark.medium
+def test_transaction_rollback_restores_snapshot(tmp_path):
+    store = KuzuStore(str(tmp_path))
+    original = MemoryItem(id="a", content="init", memory_type=MemoryType.WORKING)
+    store.store(original)
+
+    with pytest.raises(RuntimeError):
+        with store.transaction():
+            store.store(
+                MemoryItem(id="a", content="updated", memory_type=MemoryType.WORKING)
+            )
+            raise RuntimeError("boom")
+
+    retrieved = store.retrieve("a")
+    assert retrieved is not None
+    assert retrieved.content == "init"
+
+
+@pytest.mark.medium
+def test_concurrent_transactions(tmp_path):
+    store = KuzuStore(str(tmp_path))
+
+    def write(idx: int) -> None:
+        with store.transaction():
+            store.store(
+                MemoryItem(
+                    id=f"{idx}", content=f"c{idx}", memory_type=MemoryType.WORKING
+                )
+            )
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        list(executor.map(write, range(10)))
+
+    for i in range(10):
+        assert store.retrieve(str(i)) is not None

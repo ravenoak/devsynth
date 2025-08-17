@@ -13,6 +13,7 @@ import json
 import os
 import sys
 import tempfile
+import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
@@ -91,7 +92,7 @@ class KuzuStore(MemoryStore):
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
         self._token_usage = 0
-        self._transaction_stack: List[Dict[str, MemoryItem]] = []
+        self._transactions: Dict[str, Dict[str, MemoryItem]] = {}
 
         # tokenizer for token usage
         try:
@@ -178,35 +179,52 @@ class KuzuStore(MemoryStore):
         )
 
     # transactional support ---------------------------------------------------
-    @contextmanager
-    def transaction(self):
-        """Provide a simple transaction context with rollback."""
-        snapshot = None
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a transaction and capture a snapshot if needed."""
+        tx_id = transaction_id or str(uuid.uuid4())
+        snapshot: Dict[str, MemoryItem] | None = None
         if self._use_fallback:
-            snapshot = deepcopy(self._store)
+            snapshot = deepcopy(getattr(self, "_store", {}))
         else:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("BEGIN TRANSACTION")
             except Exception:
                 pass
-        self._transaction_stack.append(snapshot)
+        self._transactions[tx_id] = snapshot or {}
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        """Commit a previously started transaction."""
+        self._transactions.pop(transaction_id, None)
+        if not self._use_fallback:  # pragma: no cover - requires kuzu
+            try:
+                self.conn.execute("COMMIT")
+            except Exception:
+                pass
+        return True
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        """Rollback a transaction restoring its snapshot."""
+        snapshot = self._transactions.pop(transaction_id, None)
+        if self._use_fallback:
+            if snapshot is not None:
+                self._store = snapshot
+        else:  # pragma: no cover - requires kuzu
+            try:
+                self.conn.execute("ROLLBACK")
+            except Exception:
+                pass
+        return True
+
+    @contextmanager
+    def transaction(self, transaction_id: str | None = None):
+        """Context manager that wraps begin/commit/rollback."""
+        tx_id = self.begin_transaction(transaction_id)
         try:
             yield
-            self._transaction_stack.pop()
-            if not self._use_fallback:
-                try:
-                    self.conn.execute("COMMIT")
-                except Exception:
-                    pass
+            self.commit_transaction(tx_id)
         except Exception:
-            snap = self._transaction_stack.pop()
-            if self._use_fallback and snap is not None:
-                self._store = snap
-            else:  # pragma: no cover - requires kuzu
-                try:
-                    self.conn.execute("ROLLBACK")
-                except Exception:
-                    pass
+            self.rollback_transaction(tx_id)
             raise
 
     # core operations ----------------------------------------------------------------
