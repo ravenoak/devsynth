@@ -449,7 +449,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         prompt = self._create_arguments_prompt(change, thesis, antithesis)
         arguments_text = self.llm_service.query(prompt).strip()
 
-        # Parse the arguments into a structured format
+        # Parse the arguments and their counterarguments into a structured format
         arguments = []
         current_argument = {}
 
@@ -464,8 +464,14 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                     and "position" in current_argument
                     and "content" in current_argument
                 ):
+                    # Ensure counterargument key exists even if empty
+                    current_argument.setdefault("counterargument", "")
                     arguments.append(current_argument)
-                current_argument = {"position": ""}
+                current_argument = {
+                    "position": "",
+                    "content": "",
+                    "counterargument": "",
+                }
             elif ":" in line:
                 key, value = line.split(":", 1)
                 key = key.strip().lower()
@@ -473,8 +479,10 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
                 if key == "position":
                     current_argument["position"] = value
-                elif key == "content" or key == "argument":
+                elif key in ("content", "argument"):
                     current_argument["content"] = value
+                elif key == "counterargument":
+                    current_argument["counterargument"] = value
 
         # Add the last argument if it exists
         if (
@@ -482,6 +490,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             and "position" in current_argument
             and "content" in current_argument
         ):
+            current_argument.setdefault("counterargument", "")
             arguments.append(current_argument)
 
         return arguments
@@ -866,7 +875,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         prompt = (
             "You are a requirements analyst evaluating a proposed change to a requirement. "
             "Please generate a list of arguments for and against the proposed change. "
-            "For each argument, specify whether it supports the thesis or antithesis, and provide a clear explanation. "
+            "For each argument, specify whether it supports the thesis or antithesis, provide a clear explanation, "
+            "and then offer a counterargument that challenges the original point. "
             "\n\nProposed change:\n"
         )
 
@@ -889,9 +899,15 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         prompt += f"Antithesis: {antithesis}\n\n"
         prompt += (
             "Please generate at least 3 arguments for the thesis and 3 arguments for the antithesis. "
-            "Format each argument as follows:\n\n"
-            "Argument 1:\nPosition: [Thesis/Antithesis]\nContent: [Argument content]\n\n"
-            "Argument 2:\nPosition: [Thesis/Antithesis]\nContent: [Argument content]\n\n"
+            "Format each argument and counterargument cycle as follows:\n\n"
+            "Argument 1:\n"
+            "Position: [Thesis/Antithesis]\n"
+            "Content: [Argument content]\n"
+            "Counterargument: [Counterargument content]\n\n"
+            "Argument 2:\n"
+            "Position: [Thesis/Antithesis]\n"
+            "Content: [Argument content]\n"
+            "Counterargument: [Counterargument content]\n\n"
             "And so on."
         )
 

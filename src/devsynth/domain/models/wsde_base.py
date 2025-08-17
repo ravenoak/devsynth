@@ -91,6 +91,8 @@ class WSDETeam:
         self.solutions = []
         self.dialectical_hooks = []
         self.voting_history = []
+        # Stores results from requirement dialectical evaluations
+        self.requirement_reasoning_results = []
         self.knowledge_graph = None
         self.standards = None
         self.created_at = datetime.now()
@@ -136,6 +138,9 @@ class WSDETeam:
         if not hasattr(self, "voting_history"):
             self.voting_history = []
 
+        if not hasattr(self, "requirement_reasoning_results"):
+            self.requirement_reasoning_results = []
+
         if not hasattr(self, "team_id"):
             self.team_id = str(uuid4())
 
@@ -180,6 +185,18 @@ class WSDETeam:
         """
         self.dialectical_hooks.append(hook)
         self.logger.info(f"Registered dialectical hook in team {self.name}")
+
+    def requirement_evaluation_hook(self, reasoning: Any, consensus: bool) -> None:
+        """Record requirement dialectical reasoning results.
+
+        Args:
+            reasoning: The ``DialecticalReasoning`` object produced by the
+                evaluator.
+            consensus: Whether the evaluation reached consensus.
+        """
+        self.requirement_reasoning_results.append(
+            {"reasoning": reasoning, "consensus": consensus}
+        )
 
     def send_message(
         self,
