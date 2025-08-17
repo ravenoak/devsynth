@@ -31,7 +31,7 @@ class LMStudioMockServer:
 
 
 @pytest.fixture
-def lmstudio_mock(monkeypatch) -> LMStudioMockServer:
+def lmstudio_service(monkeypatch) -> LMStudioMockServer:
     """Provide a mocked LM Studio HTTP API with streaming responses."""
 
     lmstudio = pytest.importorskip("lmstudio")
@@ -138,11 +138,14 @@ def lmstudio_mock(monkeypatch) -> LMStudioMockServer:
         def _reset_default_client(self) -> None:  # pragma: no cover
             return None
 
-    monkeypatch.setattr(lmstudio, "llm", lambda model: MockLLM(model))
+    monkeypatch.setattr(lmstudio, "llm", lambda model: MockLLM(model), raising=False)
     monkeypatch.setattr(
-        lmstudio, "embedding_model", lambda model: MockEmbeddingModel(model)
+        lmstudio,
+        "embedding_model",
+        lambda model: MockEmbeddingModel(model),
+        raising=False,
     )
-    monkeypatch.setattr(lmstudio, "sync_api", MockSyncAPI())
+    monkeypatch.setattr(lmstudio, "sync_api", MockSyncAPI(), raising=False)
 
     try:
         yield server

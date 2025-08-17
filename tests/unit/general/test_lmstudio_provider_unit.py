@@ -9,12 +9,12 @@ pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
 
 
 @pytest.fixture()
-def provider(lmstudio_stub):
+def provider(lmstudio_service):
     from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 
     return LMStudioProvider(
         {
-            "api_base": f"{lmstudio_stub.base_url}/v1",
+            "api_base": f"{lmstudio_service.base_url}/v1",
             "model": "test-model",
             "auto_select_model": False,
         }
@@ -74,13 +74,13 @@ def test_get_embedding_succeeds(provider):
     assert result == [0.1, 0.2, 0.3, 0.4, 0.5]
 
 
-def test_api_error_handling_raises_error(provider, lmstudio_stub):
-    lmstudio_stub.trigger_error()
+def test_api_error_handling_raises_error(provider, lmstudio_service):
+    lmstudio_service.trigger_error()
     with tracker_patches(), pytest.raises(Exception):
         provider.generate("Test prompt")
 
 
-def test_circuit_breaker_opens_after_failures_fails(lmstudio_stub):
+def test_circuit_breaker_opens_after_failures_fails(lmstudio_service):
     from devsynth.application.llm.lmstudio_provider import (
         LMStudioConnectionError,
         LMStudioProvider,
@@ -100,7 +100,7 @@ def test_circuit_breaker_opens_after_failures_fails(lmstudio_stub):
 
         provider = LMStudioProvider(
             {
-                "api_base": f"{lmstudio_stub.base_url}/v1",
+                "api_base": f"{lmstudio_service.base_url}/v1",
                 "model": "test-model",
                 "auto_select_model": False,
                 "max_retries": 2,

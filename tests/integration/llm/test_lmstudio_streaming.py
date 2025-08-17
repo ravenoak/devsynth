@@ -17,16 +17,16 @@ def _import_provider():
 
 
 class TestLMStudioStreaming:
-    """Tests for LMStudioProvider using the streaming mock."""
+    """Tests for LMStudioProvider using the mock service."""
 
-    def test_generate_streaming_returns_expected(self, lmstudio_mock):
+    def test_generate_streaming_returns_expected(self, lmstudio_service):
         """Ensure generate handles streaming responses."""
         LMStudioProvider = _import_provider()
         with patch(
             "devsynth.application.llm.lmstudio_provider.get_llm_settings"
         ) as mock_settings:
             mock_settings.return_value = {
-                "api_base": f"{lmstudio_mock.base_url}/v1",
+                "api_base": f"{lmstudio_service.base_url}/v1",
                 "model": "test-model",
                 "max_tokens": 1024,
                 "temperature": 0.7,
@@ -36,14 +36,14 @@ class TestLMStudioStreaming:
         result = provider.generate("Hello")
         assert result == "This is a test"
 
-    def test_generate_with_context_streaming_returns_expected(self, lmstudio_mock):
+    def test_generate_with_context_streaming_returns_expected(self, lmstudio_service):
         """Ensure generate_with_context handles streaming responses."""
         LMStudioProvider = _import_provider()
         with patch(
             "devsynth.application.llm.lmstudio_provider.get_llm_settings"
         ) as mock_settings:
             mock_settings.return_value = {
-                "api_base": f"{lmstudio_mock.base_url}/v1",
+                "api_base": f"{lmstudio_service.base_url}/v1",
                 "model": "test-model",
                 "max_tokens": 1024,
                 "temperature": 0.7,

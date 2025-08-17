@@ -310,8 +310,8 @@ genuinely exercise LM Studio should be marked with
 `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true`.
 
 The repository provides a lightweight HTTP stub in
-`tests/fixtures/lmstudio_mock/` that mimics the LM Studio API. Tests can
-use the `lmstudio_mock` fixture to patch the `lmstudio` client and route
+`tests/fixtures/lmstudio_service/` that mimics the LM Studio API. Tests can
+use the `lmstudio_service` fixture to patch the `lmstudio` client and route
 requests to the stub server, enabling deterministic runs when the real
 service is unavailable.
 
