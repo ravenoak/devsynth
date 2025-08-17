@@ -137,9 +137,16 @@ def retry_with_exponential_backoff(
         String entries are treated as substrings that must appear in the
         exception message. Exception classes are matched using
         ``isinstance`` against the raised exception.
-    condition_callbacks : Optional[List[Callable[[Exception, int], bool]]]
-        Callbacks invoked with the exception and current retry attempt. All
-        callbacks must return ``True`` for the retry loop to continue.
+    condition_callbacks : Optional[
+        Union[
+            List[Callable[[Exception, int], bool]],
+            Dict[str, Callable[[Exception, int], bool]],
+        ]
+    ]
+        Callbacks invoked with the exception and current retry attempt. When a
+        dictionary is supplied the keys name each callback for metric
+        reporting. All callbacks must return ``True`` for the retry loop to
+        continue.
     retry_predicates : Optional[Union[List[Union[Callable[[T], bool], int]],
                                       Dict[str, Union[Callable[[T], bool], int]]]]
         Predicates evaluated on successful results. If any predicate returns
@@ -218,7 +225,19 @@ def retry_with_exponential_backoff(
                             raise TypeError(
                                 "retry_conditions must be callables, strings, or exception types"
                             )
-            cb_list: List[Callable[[Exception, int], bool]] = condition_callbacks or []
+            cb_named: List[Tuple[str, Callable[[Exception, int], bool]]] = []
+            cb_anon: List[Callable[[Exception, int], bool]] = []
+            if condition_callbacks:
+                if isinstance(condition_callbacks, dict):
+                    for name, cb in condition_callbacks.items():
+                        if callable(cb):
+                            cb_named.append((name, cb))
+                        else:  # pragma: no cover - defensive
+                            raise TypeError(
+                                "condition_callbacks values must be callables"
+                            )
+                else:
+                    cb_anon = list(condition_callbacks)
 
             anonymous_predicates: List[Callable[[T], bool]] = []
             named_predicates: List[Tuple[str, Callable[[T], bool]]] = []
@@ -440,23 +459,36 @@ def retry_with_exponential_backoff(
                                 inc_retry_stat(func.__name__, "abort")
                             raise
 
-                    if cb_list:
+                    if cb_named or cb_anon:
                         cb_results: List[bool] = []
-                        for cb in cb_list:
+                        for name, cb in cb_named:
                             try:
                                 result = cb(e, num_retries)
                             except Exception as cb_error:
                                 logger.warning(
-                                    f"Error in condition callback {getattr(cb, '__name__', ANONYMOUS_CONDITION)}: {cb_error}",
+                                    f"Error in condition callback {name}: {cb_error}",
                                     error=cb_error,
                                     function=func.__name__,
                                 )
                                 result = False
                             if track_metrics:
                                 outcome = "trigger" if result else "suppress"
-                                inc_retry_condition(
-                                    f"{getattr(cb, '__name__', ANONYMOUS_CONDITION)}:{outcome}"
+                                inc_retry_condition(f"{name}:{outcome}")
+                            cb_results.append(result)
+                        for cb in cb_anon:
+                            cb_name = getattr(cb, "__name__", ANONYMOUS_CONDITION)
+                            try:
+                                result = cb(e, num_retries)
+                            except Exception as cb_error:
+                                logger.warning(
+                                    f"Error in condition callback {cb_name}: {cb_error}",
+                                    error=cb_error,
+                                    function=func.__name__,
                                 )
+                                result = False
+                            if track_metrics:
+                                outcome = "trigger" if result else "suppress"
+                                inc_retry_condition(f"{cb_name}:{outcome}")
                             cb_results.append(result)
 
                         if not all(cb_results):
@@ -793,6 +825,9 @@ class CircuitBreaker:
         recovery_timeout: float = 60.0,
         test_calls: int = 1,
         exception_types: Tuple[Exception, ...] = (Exception,),
+        on_open: Optional[Callable[[str], None]] = None,
+        on_close: Optional[Callable[[str], None]] = None,
+        on_half_open: Optional[Callable[[str], None]] = None,
     ):
         """
         Initialize a circuit breaker.
@@ -807,11 +842,20 @@ class CircuitBreaker:
             Number of test calls allowed in HALF_OPEN state (default: 1)
         exception_types : Tuple[Exception, ...]
             Types of exceptions that count as failures (default: (Exception,))
+        on_open : Optional[Callable[[str], None]]
+            Hook executed when the breaker transitions to OPEN.
+        on_close : Optional[Callable[[str], None]]
+            Hook executed when the breaker transitions to CLOSED.
+        on_half_open : Optional[Callable[[str], None]]
+            Hook executed when the breaker transitions to HALF_OPEN.
         """
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.test_calls = test_calls
         self.exception_types = exception_types
+        self.on_open = on_open
+        self.on_close = on_close
+        self.on_half_open = on_half_open
 
         # State variables
         self.state = self.CLOSED
@@ -884,6 +928,7 @@ class CircuitBreaker:
                     function=func.__name__,
                     state=self.state,
                 )
+                self._safe_hook(self.on_half_open, func.__name__)
             else:
                 inc_circuit_breaker_state(func.__name__, self.OPEN)
                 self.logger.warning(
@@ -893,15 +938,15 @@ class CircuitBreaker:
                     recovery_time_remaining=self.recovery_timeout
                     - (time.time() - last_failure_time),
                 )
-                raise DevSynthError(
-                    f"Circuit breaker for {func.__name__} is open",
-                    error_code="CIRCUIT_OPEN",
-                    details={
-                        "function": func.__name__,
-                        "recovery_time_remaining": self.recovery_timeout
-                        - (time.time() - last_failure_time),
-                    },
-                )
+            raise DevSynthError(
+                f"Circuit breaker for {func.__name__} is open",
+                error_code="CIRCUIT_OPEN",
+                details={
+                    "function": func.__name__,
+                    "recovery_time_remaining": self.recovery_timeout
+                    - (time.time() - last_failure_time),
+                },
+            )
 
         # Call the function
         try:
@@ -919,6 +964,7 @@ class CircuitBreaker:
                             function=func.__name__,
                             state=self.state,
                         )
+                        self._safe_hook(self.on_close, func.__name__)
 
             return result
         except self.exception_types as e:
@@ -938,6 +984,7 @@ class CircuitBreaker:
                         state=self.state,
                         failure_count=self.failure_count,
                     )
+                    self._safe_hook(self.on_open, func.__name__)
 
             # Re-raise the exception
             raise
@@ -949,6 +996,19 @@ class CircuitBreaker:
         self.last_failure_time = 0
         self.test_calls_remaining = 0
         self.logger.info("Circuit breaker reset to initial state")
+
+    def _safe_hook(self, hook: Optional[Callable[[str], None]], func_name: str) -> None:
+        """Execute a hook safely without propagating errors."""
+        if hook is None:
+            return
+        try:
+            hook(func_name)
+        except Exception as hook_error:  # pragma: no cover - defensive
+            self.logger.warning(
+                f"Error in circuit breaker hook for {func_name}: {hook_error}",
+                error=hook_error,
+                function=func_name,
+            )
 
 
 class Bulkhead:
