@@ -1,6 +1,6 @@
 # Normalize and verify test markers
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: in progress
 Priority: high
 Dependencies: None
 
@@ -25,6 +25,7 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
    - Track progress in issue updates.
 
 ## Progress
+- 2025-02-19: script still hangs around 150 files; investigation continuing.
 
 - Initial verification attempt timed out; needs further investigation.
 - A second run after provisioning also hung and required manual interruption.

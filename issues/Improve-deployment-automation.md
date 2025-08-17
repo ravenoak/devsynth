@@ -14,6 +14,7 @@ Current Docker Compose workflows require manual steps.
 - Enforce non-root execution and strict `.env` permissions in deployment scripts with smoke tests
 
 ## Progress
+- 2025-02-19: no automation scripts added yet.
 
 - No progress yet
 

@@ -1,6 +1,6 @@
 # WSDE collaboration test failures
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: in progress
 
 Priority: high
 Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md), [Complete Sprint-EDRR integration](Complete-Sprint-EDRR-integration.md)
@@ -14,6 +14,7 @@ Recent test runs show multiple failures in the WSDE/EDRR integration suites:
 These failures indicate unfinished collaboration workflows and memory synchronisation. Investigate component interactions and finalise the workflow logic so these tests pass.
 
 ## Progress
+- 2025-02-19: tests still hang after memory flush; workflow logic incomplete.
 
 - Implemented robust flushing in collaboration memory utilities to ensure queued updates persist ([e7edc56f](../commit/e7edc56f)).
 - Added minimal WSDE decision-making and role assignment stubs enabling basic phase progression.

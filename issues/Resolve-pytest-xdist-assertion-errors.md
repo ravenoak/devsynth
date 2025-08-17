@@ -1,6 +1,6 @@
 # Resolve pytest-xdist assertion errors
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: in progress
 
 Priority: high
 Dependencies: [Normalize and verify test markers](Normalize-and-verify-test-markers.md)
@@ -16,6 +16,7 @@ Running `devsynth run-tests` across speed categories triggers internal pytest-xd
 
 
 ## Progress
+- 2025-02-19: fast suite passes without assertions; medium and slow remain unverified.
 
 - Attempted `devsynth run-tests --speed=fast`; after initial output the process hung and required manual interruption, indicating ongoing runner issues.
 - Blocked by [Normalize and verify test markers](Normalize-and-verify-test-markers.md).
