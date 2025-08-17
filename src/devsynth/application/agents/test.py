@@ -192,6 +192,19 @@ class TestAgent(BaseAgent):
         )
         output_dir = Path(output_dir_input)
         integration_tests: Dict[str, str] = {}
+
+        # Handle multi-module projects by creating a scaffolded test for each module.
+        modules = inputs.get("modules", [])
+        for module in modules:
+            module_path = Path(str(module).replace(".", "/"))
+            module_dir = output_dir / module_path
+            written = self.scaffold_integration_tests(
+                [module_path.name], output_dir=module_dir
+            )
+            integration_tests.update(
+                {str(module_path / name): content for name, content in written.items()}
+            )
+
         if integration_names:
             integration_tests.update(
                 self.scaffold_integration_tests(
