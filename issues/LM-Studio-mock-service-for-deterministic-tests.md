@@ -28,6 +28,7 @@ it.
   `docs/developer_guides/testing.md`.
 - Running `tests/integration/general/test_lmstudio_provider.py` with `lmstudio` absent skips all tests and triggers coverage failure (`FAIL Required test coverage of 8% not reached`).
 - Mock service will support [Expand test generation capabilities](Expand-test-generation-capabilities.md).
+- Implemented a streaming LM Studio mock and updated integration tests to use it.
 
 ## References
 
