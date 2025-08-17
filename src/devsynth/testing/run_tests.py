@@ -177,7 +177,11 @@ def run_tests(
     if verbose:
         base_cmd.append("-v")
     if parallel:
-        base_cmd += ["-n", "auto"]
+        # ``pytest-cov`` interacts poorly with ``pytest-xdist`` when workers
+        # terminate unexpectedly, leading to internal ``KeyError`` exceptions
+        # during teardown. Disabling coverage collection in parallel runs avoids
+        # these worker teardown issues.
+        base_cmd += ["-n", "auto", "--no-cov"]
 
     report_options: List[str] = []
     if report:
