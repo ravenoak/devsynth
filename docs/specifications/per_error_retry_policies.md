@@ -25,5 +25,9 @@ limits or disabling retries altogether.
 
 Implement a mapping of exception types to per-error policies consumed by
 ``retry_with_exponential_backoff``. Policies may specify ``max_retries`` and a
-``retry`` flag that overrides the global behaviour. Metrics should record when
-named conditions permit or suppress retries for observability.
+``retry`` flag that overrides the global behaviour. Policies match against
+subclasses of the configured exception types so that a ``ValueError`` entry also
+governs ``FileNotFoundError``.
+
+When metrics are enabled, use ``prometheus_client`` counters to record when
+named policies permit or suppress retries for observability.

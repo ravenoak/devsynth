@@ -2,8 +2,17 @@ from unittest.mock import Mock
 
 import pytest
 
-from devsynth.fallback import retry_with_exponential_backoff
-from devsynth.metrics import get_retry_error_metrics, get_retry_metrics, reset_metrics
+from devsynth.fallback import (
+    reset_prometheus_metrics,
+    retry_condition_counter,
+    retry_with_exponential_backoff,
+)
+from devsynth.metrics import (
+    get_retry_condition_metrics,
+    get_retry_error_metrics,
+    get_retry_metrics,
+    reset_metrics,
+)
 
 
 @pytest.mark.medium
@@ -103,6 +112,7 @@ def test_retry_error_metrics():
 @pytest.mark.medium
 def test_retry_error_map_prevents_retry():
     reset_metrics()
+    reset_prometheus_metrics()
     mock_func = Mock(side_effect=ValueError("boom"))
     mock_func.__name__ = "mock_func"
     decorated = retry_with_exponential_backoff(
@@ -115,5 +125,40 @@ def test_retry_error_map_prevents_retry():
         decorated()
     metrics = get_retry_metrics()
     err_metrics = get_retry_error_metrics()
+    cond_metrics = get_retry_condition_metrics()
     assert metrics.get("abort") == 1
     assert err_metrics.get("ValueError") == 1
+    assert cond_metrics.get("policy:ValueError:suppress") == 1
+    assert (
+        retry_condition_counter.labels(
+            condition="policy:ValueError:suppress"
+        )._value.get()
+        == 1
+    )
+
+
+@pytest.mark.medium
+def test_retry_error_map_matches_subclass():
+    reset_metrics()
+    reset_prometheus_metrics()
+    mock_func = Mock(side_effect=ValueError("boom"))
+    mock_func.__name__ = "mock_func"
+    decorated = retry_with_exponential_backoff(
+        max_retries=3,
+        initial_delay=0,
+        track_metrics=True,
+        error_retry_map={Exception: {"max_retries": 1}},
+    )(mock_func)
+    with pytest.raises(ValueError):
+        decorated()
+    metrics = get_retry_metrics()
+    cond_metrics = get_retry_condition_metrics()
+    assert mock_func.call_count == 2
+    assert metrics.get("attempt") == 1
+    assert cond_metrics.get("policy:Exception:trigger") == 2
+    assert (
+        retry_condition_counter.labels(
+            condition="policy:Exception:trigger"
+        )._value.get()
+        == 2
+    )
