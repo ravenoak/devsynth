@@ -210,10 +210,24 @@ tasks:
     cmds:
       - scripts/deployment/publish_image.sh {{.TAG}}
 
+  security:bandit:
+    desc: Run Bandit static analysis
+    cmds:
+      - poetry run bandit -q -r src
+
+  security:safety:
+    desc: Run Safety dependency scan
+    cmds:
+      - poetry export --without-hashes -f requirements.txt -o /tmp/requirements.txt
+      - poetry run safety check --file /tmp/requirements.txt --full-report
+      - rm /tmp/requirements.txt
+
   security:audit:
     desc: Run security audit checks
     cmds:
-      - poetry run python scripts/security_audit.py
+      - task: security:bandit
+      - task: security:safety
+      - poetry run python scripts/security_audit.py --skip-bandit --skip-safety
 
   policy:gate:
     desc: Enforce security policy checks before deployment
