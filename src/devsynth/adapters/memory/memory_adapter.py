@@ -10,7 +10,6 @@ from devsynth.logging_setup import DevSynthLogger
 from ...application.memory.context_manager import InMemoryStore, SimpleContextManager
 from ...application.memory.duckdb_store import DuckDBStore
 from ...application.memory.json_file_store import JSONFileStore
-from ...application.memory.lmdb_store import LMDBStore
 from ...application.memory.tinydb_store import TinyDBStore
 from ...domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
 
@@ -21,6 +20,14 @@ try:  # pragma: no cover - optional dependency
 except Exception as exc:  # pragma: no cover - graceful fallback
     logger.debug("FAISSStore unavailable: %s", exc)
     FAISSStore = None  # type: ignore[assignment]
+
+try:  # pragma: no cover - optional dependency
+    from ...application.memory.lmdb_store import LMDBStore
+except Exception as exc:  # pragma: no cover - graceful fallback
+    logger.debug("LMDBStore unavailable: %s", exc)
+    LMDBStore = None  # type: ignore[assignment]
+    _LMDB_ERROR = exc
+
 
 try:  # pragma: no cover - optional dependency
     from ...application.memory.rdflib_store import RDFLibStore
@@ -295,6 +302,10 @@ class MemorySystemAdapter:
             else:
                 self.vector_store = None
         elif self.storage_type == "lmdb":
+            if LMDBStore is None:  # pragma: no cover - simple guard
+                raise ImportError(
+                    "LMDB storage requires the 'lmdb' package"
+                ) from _LMDB_ERROR
             self.memory_store = LMDBStore(
                 self.memory_path,
                 encryption_enabled=self.encryption_at_rest,

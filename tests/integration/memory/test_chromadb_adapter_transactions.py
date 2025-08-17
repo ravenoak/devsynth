@@ -10,6 +10,7 @@ from devsynth.domain.models.memory import MemoryVector
 pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 
+@pytest.mark.medium
 def test_chromadb_transaction_commit_and_rollback(tmp_path, monkeypatch):
     """Vectors added within a transaction should rollback correctly. ReqID: FR-60"""
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
@@ -22,16 +23,21 @@ def test_chromadb_transaction_commit_and_rollback(tmp_path, monkeypatch):
     adapter.store_vector(base_vec)
 
     tx = adapter.begin_transaction()
+    assert adapter.is_transaction_active(tx)
     temp_vec = MemoryVector(id="v2", content="temp", embedding=[0.2] * 5, metadata={})
     adapter.store_vector(temp_vec)
     adapter.rollback_transaction(tx)
+    assert not adapter.is_transaction_active(tx)
     assert adapter.retrieve_vector("v2") is None
     assert adapter.retrieve_vector("v1") is not None
 
     tx2 = adapter.begin_transaction()
+    assert adapter.is_transaction_active(tx2)
     persist_vec = MemoryVector(
         id="v3", content="keep", embedding=[0.3] * 5, metadata={}
     )
     adapter.store_vector(persist_vec)
+    adapter.prepare_commit(tx2)
     adapter.commit_transaction(tx2)
+    assert not adapter.is_transaction_active(tx2)
     assert adapter.retrieve_vector("v3") is not None
