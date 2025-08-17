@@ -53,7 +53,7 @@ To clarify milestone quality and communicate expectations during the long pre-1.
 extends the standard `MAJOR.MINOR.PATCH` format with an optional stability
 segment and a plus sign for build metadata. The overall pattern is:
 
-```
+```text
 MAJOR.MINOR.PATCH[-STABILITY][+BUILD]
 ```
 

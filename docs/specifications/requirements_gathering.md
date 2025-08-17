@@ -29,6 +29,7 @@ interfaces.
 ## Sequence Diagram
 
 <!-- Diagram: Requirements collection sequence -->
+
 ```mermaid
 sequenceDiagram
     participant User

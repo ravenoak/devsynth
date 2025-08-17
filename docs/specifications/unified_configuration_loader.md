@@ -59,6 +59,7 @@ _complete_devsynth_config_keys() {
 }
 complete -F _complete_devsynth_config_keys devsynth
 ```
+
 ## Implementation Status
 
 This feature is **implemented**. See `src/devsynth/config/loader.py` for the

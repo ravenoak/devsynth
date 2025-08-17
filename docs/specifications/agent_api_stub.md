@@ -153,6 +153,7 @@ Example response:
 ## Sequence Diagram
 
 <!-- Diagram: API initialization sequence -->
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -182,6 +183,7 @@ function handle_request(path, body):
         pass  # messages already collected in bridge
     return {"messages": bridge.messages}
 ```
+
 ## Implementation Status
 
 This feature is **implemented**. The API routes are defined in `src/devsynth/interface/agentapi.py` and expose the CLI workflows over HTTP.

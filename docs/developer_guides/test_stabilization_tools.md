@@ -45,6 +45,7 @@ python scripts/fix_pytest_imports.py [directory]
 This script scans test files for usage of pytest decorators without corresponding imports and adds the necessary import statements. If no directory is specified, it will scan the `tests` directory.
 
 Example:
+
 ```bash
 python scripts/fix_pytest_imports.py tests/unit
 ```
@@ -58,6 +59,7 @@ python scripts/fix_test_method_signatures.py [directory]
 This script identifies test classes with inconsistent use of 'self' parameter and adds 'self' to methods that are missing it. If no directory is specified, it will scan the `tests` directory.
 
 Example:
+
 ```bash
 python scripts/fix_test_method_signatures.py tests/unit/interface
 ```
@@ -77,6 +79,7 @@ This script identifies and fixes common syntax errors in test files, such as:
 If no directory is specified, it will scan the `tests` directory.
 
 Example:
+
 ```bash
 python scripts/fix_test_syntax_errors.py tests/behavior/steps
 ```

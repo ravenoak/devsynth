@@ -42,7 +42,7 @@ Basic progress indicators are suitable for most operations and provide a simple 
 
 Example:
 
-```
+```text
 [######################] 100% Complete
 ```
 
@@ -59,7 +59,7 @@ For operations that take a long time to complete, DevSynth provides enhanced pro
 
 Example:
 
-```
+```text
 Main task [######################] 100% 10/10 0:00:00 Complete
   ↳ Subtask 1 [######################] 100% Complete
   ↳ Subtask 2 [######################] 100% Complete
@@ -146,7 +146,7 @@ Actionable error suggestions provide specific steps that users can take to resol
 
 Example:
 
-```
+```text
 Error: MemorySyncError
 
 An error occurred while executing the command.

@@ -30,6 +30,7 @@ This document summarizes the key lessons learned during the process of stabilizi
 - Always provide specs when creating mocks to ensure proper behavior
 
 **Example:**
+
 ```python
 # Problematic approach
 session_state = MagicMock()
@@ -61,6 +62,7 @@ session_state = ExceptionSessionState()
 - Use temporary directories for file operations
 
 **Example:**
+
 ```python
 @pytest.fixture
 def temp_dir() -> Generator[str, None, None]:
@@ -89,6 +91,7 @@ def temp_dir() -> Generator[str, None, None]:
 - Use proper state isolation techniques
 
 **Example:**
+
 ```python
 @pytest.fixture
 def clean_state():
