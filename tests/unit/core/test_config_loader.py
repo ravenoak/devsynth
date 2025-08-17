@@ -5,6 +5,7 @@ import pytest
 from devsynth.config import load_config, load_project_config
 
 
+@pytest.mark.medium
 def test_load_from_dev_synth_yaml_succeeds(tmp_path, monkeypatch):
     """Load configuration from .devsynth/project.yaml.
 

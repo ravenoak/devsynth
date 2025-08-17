@@ -7,8 +7,9 @@ ACL = {"admin": ["read", "write"], "user": ["read"], "superuser": ["*"]}
 EMPTY_ACL = {}
 CASE_SENSITIVE_ACL = {"Admin": ["Read", "Write"], "user": ["read"]}
 
+pytestmark = pytest.mark.medium
 
-@pytest.mark.medium
+
 def test_is_authorized_true_returns_expected_result():
     """Test that is_authorized returns True when the user has the required role.
 
