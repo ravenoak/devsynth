@@ -1,3 +1,4 @@
+# Reference: docs/user_guides/api_reference_generation.md
 Feature: API Reference Documentation Generation
   As a developer using DevSynth
   I want to generate API reference documentation

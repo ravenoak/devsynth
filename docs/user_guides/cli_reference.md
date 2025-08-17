@@ -642,6 +642,21 @@ completion
 mvu
 ```
 
+### generate-docs
+
+Generate API reference documentation for the current project.
+
+```bash
+devsynth generate-docs [--path PATH] [--output-dir DIR]
+```
+
+**Options:**
+
+- `--path PATH`: Project directory to analyze (defaults to the current directory).
+- `--output-dir DIR`: Directory for generated documentation (defaults to `docs/api_reference`).
+
+See the [API Reference Generation Guide](api_reference_generation.md) for usage and examples.
+
 ### ingest
 
 Run the Expand, Differentiate, Refine, Retrospect pipeline for a project.
