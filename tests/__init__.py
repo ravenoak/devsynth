@@ -84,5 +84,6 @@ pytest_plugins = [
     "tests.fixtures.kuzu",
     "tests.fixtures.state_access_fixture",
     "tests.fixtures.webui_wizard_state_fixture",
+    "tests.fixtures.lmstudio_mock",
     "tests.fixtures.optional_deps",
 ]
