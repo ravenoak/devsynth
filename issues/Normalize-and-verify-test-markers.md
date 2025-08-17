@@ -37,6 +37,7 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 - Reproduced the hang on a minimal test set by running `poetry run python scripts/verify_test_markers.py --workers 1 tests/unit/interface/test_bridge_conformance.py`; logging revealed blocking during the `pytest --collect-only` subprocess call, so the script now logs subprocess start/end and exits non-zero when issues persist.
 - 2025-08-16: Re-running `poetry run python scripts/verify_test_markers.py` after executing the environment provisioning script still hangs and requires manual interruption.
 - 2025-08-16: Latest attempt processed 150 of 679 files (~18s) before hanging, confirming persistent blocking in `pytest --collect-only`.
+- 2025-08-17: Running `poetry run python scripts/verify_test_markers.py --workers 1` processed 50 of 700 files (~76s) before hanging and required manual interruption.
 
 ## References
 
