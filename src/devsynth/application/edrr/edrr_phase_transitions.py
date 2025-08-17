@@ -106,6 +106,10 @@ class PhaseTransitionMetrics:
         """Override thresholds for ``phase``."""
         self.thresholds.setdefault(phase.name, {}).update(thresholds)
 
+    def get_thresholds(self, phase: Phase) -> Dict[str, float]:
+        """Return configured thresholds for ``phase``."""
+        return self.thresholds.get(phase.name, {})
+
     def register_failure_hook(self, phase: Phase, hook: Any) -> None:
         """Register a hook executed when a phase fails to meet thresholds."""
         self.failure_hooks.setdefault(phase.name, []).append(hook)
