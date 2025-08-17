@@ -1,8 +1,11 @@
 import json
+
 import pytest
+
 from devsynth.domain.models.memory import MemoryType
 
 
+@pytest.mark.medium
 def test_memory_type_serialization_deserialization():
     """Ensure all MemoryType members serialize and deserialize correctly."""
     for name, member in MemoryType.__members__.items():
@@ -17,6 +20,7 @@ def test_working_memory_alias():
     assert MemoryType.WORKING_MEMORY is MemoryType.WORKING
 
 
+@pytest.mark.medium
 def test_memory_type_members_complete():
     """Verify that all expected memory types are present."""
     expected = [
