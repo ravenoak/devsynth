@@ -13,7 +13,7 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock
 
 import yaml
@@ -30,6 +30,7 @@ from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.core import CoreValues, check_report_for_value_conflicts
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.domain.wsde import workflow as wsde_workflow
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
@@ -208,6 +209,13 @@ class EDRRCoordinator:
         self.auto_phase_transitions = feature_cfg.get(
             "automatic_phase_transitions", pt_cfg.get("auto", True)
         )
+
+        self._sync_hooks: List[Callable[[Optional[Any]], None]] = []
+        if self.memory_manager is not None:
+            try:
+                self.memory_manager.register_sync_hook(self._invoke_sync_hooks)
+            except Exception:  # pragma: no cover - defensive
+                logger.debug("Could not register memory sync hook", exc_info=True)
         self.phase_transition_timeout = pt_cfg.get("timeout", 600)
         self._enable_enhanced_logging = enable_enhanced_logging
         self._execution_traces = {} if enable_enhanced_logging else None
@@ -252,6 +260,32 @@ class EDRRCoordinator:
         logger.info(
             f"EDRR coordinator initialized (recursion depth: {recursion_depth})"
         )
+
+    def register_sync_hook(self, hook: Callable[[Optional[Any]], None]) -> None:
+        """Register a callback invoked after memory synchronization."""
+
+        self._sync_hooks.append(hook)
+
+    def _invoke_sync_hooks(self, item: Optional[Any]) -> None:
+        """Invoke registered synchronization hooks with ``item``."""
+
+        for hook in list(self._sync_hooks):
+            try:
+                hook(item)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(f"Sync hook failed: {exc}")
+
+    def _sync_memory(self) -> None:
+        """Flush memory updates and notify hooks."""
+
+        if self.memory_manager is None:
+            self._invoke_sync_hooks(None)
+            return
+        try:
+            self.memory_manager.flush_updates()
+        except Exception:  # pragma: no cover - defensive
+            logger.debug("Memory flush failed", exc_info=True)
+            self._invoke_sync_hooks(None)
 
     def set_manual_phase_override(self, phase: Optional[Phase]) -> None:
         """Manually override the next phase transition."""
@@ -363,12 +397,7 @@ class EDRRCoordinator:
             item_id = self.memory_manager.store_with_edrr_phase(
                 content, memory_type, edrr_phase, metadata
             )
-            try:
-                self.memory_manager.flush_updates()
-            except Exception as flush_error:
-                logger.debug(
-                    f"Failed to flush memory updates for {memory_type}: {flush_error}"
-                )
+            self._sync_memory()
             return item_id
         except Exception as e:
             logger.error(f"Failed to store memory item with EDRR phase: {e}")
@@ -434,11 +463,7 @@ class EDRRCoordinator:
 
         logger.info("EDRRCoordinator invoking dialectical reasoning")
         results = reasoning_loop(self.wsde_team, task, critic_agent, memory_integration)
-        if self.memory_manager is not None:
-            try:
-                self.memory_manager.flush_updates()
-            except Exception:  # pragma: no cover - defensive
-                logger.debug("Memory flush failed", exc_info=True)
+        self._sync_memory()
         if not results:
             logger.warning(
                 "Consensus failure during dialectical reasoning",
@@ -727,12 +752,7 @@ class EDRRCoordinator:
                 self.manifest_parser.start_phase(phase)
 
             # Ensure any pending memory operations are flushed before transitioning
-            try:
-                self.memory_manager.flush_updates()
-            except Exception as flush_error:  # pragma: no cover - defensive
-                logger.debug(
-                    f"Failed to flush memory updates before phase transition: {flush_error}"
-                )
+            self._sync_memory()
 
             # Rotate Primus after the first phase
             previous_phase = self.current_phase
@@ -753,6 +773,8 @@ class EDRRCoordinator:
 
             # Dynamic role assignment for the new phase
             self.wsde_team.assign_roles_for_phase(phase, self.task)
+            if self.memory_manager is not None:
+                wsde_workflow.flush_memory_queue(self.memory_manager)
             role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
             self._safe_store_with_edrr_phase(
                 self.wsde_team.get_role_map(),
@@ -2325,12 +2347,7 @@ class EDRRCoordinator:
             )
 
         try:
-            try:
-                self.memory_manager.flush_updates()
-            except Exception as flush_error:  # pragma: no cover - defensive
-                logger.debug(
-                    f"Failed to flush memory updates before phase execution: {flush_error}"
-                )
+            self._sync_memory()
 
             start_time = datetime.now()
             results = executor(context)
@@ -2400,12 +2417,7 @@ class EDRRCoordinator:
             # Persist context for future phases
             self._persist_context_snapshot(self.current_phase)
 
-            try:
-                self.memory_manager.flush_updates()
-            except Exception as flush_error:  # pragma: no cover - defensive
-                logger.debug(
-                    f"Failed to flush memory updates after phase execution: {flush_error}"
-                )
+            self._sync_memory()
 
             logger.info(
                 f"Completed {self.current_phase.value} phase for task: {self.task.get('description', 'Unknown')}"
