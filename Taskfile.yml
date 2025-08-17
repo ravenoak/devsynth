@@ -146,6 +146,7 @@ tasks:
       - task: build:wheel
       - task: build:sdist
       - task: test:smoke
+      - task: security:audit
       - poetry run python scripts/dialectical_audit.py
 
   # Development workflow tasks
