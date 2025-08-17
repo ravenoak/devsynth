@@ -12,13 +12,32 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 
-from ...adapters.kuzu_memory_store import KuzuMemoryStore
-from ...application.memory.faiss_store import FAISSStore
-from ...application.memory.kuzu_store import KuzuStore
-from ...application.memory.lmdb_store import LMDBStore
+from ...logging_setup import DevSynthLogger
+
+# Optional backend imports -------------------------------------------------
+# These stores depend on optional system libraries. Import them lazily so the
+# module can be imported even when the dependencies are missing, providing a
+# clearer error message when an adapter is instantiated.
+try:  # pragma: no cover - optional dependency
+    from ...adapters.kuzu_memory_store import KuzuMemoryStore
+except Exception as exc:  # pragma: no cover - graceful fallback
+    KuzuMemoryStore = None  # type: ignore[assignment]
+    _KUZU_ERROR = exc
+
+try:  # pragma: no cover - optional dependency
+    from ...application.memory.faiss_store import FAISSStore
+except Exception as exc:  # pragma: no cover - graceful fallback
+    FAISSStore = None  # type: ignore[assignment]
+    _FAISS_ERROR = exc
+
+try:  # pragma: no cover - optional dependency
+    from ...application.memory.lmdb_store import LMDBStore
+except Exception as exc:  # pragma: no cover - graceful fallback
+    LMDBStore = None  # type: ignore[assignment]
+    _LMDB_ERROR = exc
+
 from ...application.memory.memory_manager import MemoryManager
 from ...application.memory.sync_manager import SyncManager
-from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -47,10 +66,25 @@ class MultiStoreSyncManager:
         base = Path(base_path)
         base.mkdir(parents=True, exist_ok=True)
 
+        # Validate optional dependencies before proceeding so the caller gets a
+        # clear error rather than an AttributeError later on.
+        if LMDBStore is None:  # pragma: no cover - simple guard
+            raise ImportError(
+                "MultiStoreSyncManager requires the 'lmdb' extras to be installed"
+            ) from _LMDB_ERROR
+        if FAISSStore is None:  # pragma: no cover - simple guard
+            raise ImportError(
+                "MultiStoreSyncManager requires the 'faiss-cpu' package"
+            ) from _FAISS_ERROR
+        if KuzuMemoryStore is None:  # pragma: no cover - simple guard
+            raise ImportError(
+                "MultiStoreSyncManager requires the 'kuzu' package"
+            ) from _KUZU_ERROR
+
         # Some of the backend stores declare abstract methods which can
         # interfere with instantiation in tests.  Clear the abstract method
         # sets so they behave like concrete classes.
-        for cls in (LMDBStore, FAISSStore, KuzuStore, KuzuMemoryStore):
+        for cls in (LMDBStore, FAISSStore, KuzuMemoryStore):
             try:  # pragma: no cover - defensive
                 cls.__abstractmethods__ = frozenset()
             except Exception:
@@ -116,8 +150,7 @@ class MultiStoreSyncManager:
 
     def is_transaction_active(self, transaction_id: str) -> bool:
         """Return ``True`` if ``transaction_id`` is active."""
-
-        return transaction_id in self.sync_manager._active_transactions
+        return self.sync_manager.is_transaction_active(transaction_id)
 
     def cleanup(self) -> None:
         """Release resources held by the underlying stores."""
