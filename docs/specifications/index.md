@@ -46,6 +46,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Generated Test Execution Failure](generated_test_execution_failure.md)**: Scaffolded tests fail until implemented.
 - **[Security Audit Reporting Specification](security_audit_reporting.md)**: JSON reporting for security audits.
 - **[Policy Audit Script](policy_audit.md)**: Scans configs and code for policy violations.
+- **[WebUI Diagnostics Audit Logs](webui_diagnostics_audit_logs.md)**: Display dialectical audit logs on the diagnostics page.
 
 ## Implementation Plans
 
