@@ -247,6 +247,19 @@ class SyncManager:
 
             logger.debug(f"Transaction {transaction_id} committed successfully")
 
+            # Ensure all changes are persisted across stores
+            try:
+                self.flush_queue()
+                if self.async_mode:
+                    asyncio.run(self.wait_for_async())
+                self.memory_manager.flush_updates()
+            except Exception as e:  # pragma: no cover - defensive
+                logger.error(
+                    f"Error flushing updates for transaction {transaction_id}: {e}"
+                )
+            # Cached queries may now be stale
+            self.clear_cache()
+
         except Exception as exc:
             # Roll back all transactions
             logger.error(f"Transaction {transaction_id} failed: {exc}")
@@ -329,6 +342,17 @@ class SyncManager:
             logger.error(f"Errors during transaction rollback: {rollback_errors}")
 
         logger.error(f"Transaction rolled back due to error: {exc}")
+
+        # Clear any queued updates that shouldn't be applied and flush adapters
+        with self._queue_lock:
+            self._queue = []
+        try:
+            # Ensure adapters reflect the rolled back state
+            self.memory_manager.flush_updates()
+        except Exception:  # pragma: no cover - defensive
+            logger.debug("Adapter flush after rollback failed", exc_info=True)
+        # Any cached query results are now stale
+        self.clear_cache()
 
     def _sync_one_way(self, source_adapter: Any, target_adapter: Any) -> int:
         """Synchronize data from ``source_adapter`` to ``target_adapter``.
