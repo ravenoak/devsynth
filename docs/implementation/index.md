@@ -25,6 +25,7 @@ This section provides documentation on the implementation details of DevSynth, i
 - **[Feature Status Matrix](feature_status_matrix.md)**: A matrix showing the status of various features in DevSynth.
 - **[Phase 1 Month 1 Summary](phase1_month1_summary.md)**: A summary of the first month of Phase 1 implementation.
 - **[WSDE Validation](wsde_validation.md)**: Validation of the Wide Sweep, Deep Exploration (WSDE) agent model implementation.
+- **[WSDE-EDRR Workflow](wsde_edrr_workflow.md)**: Finalized phase transition and memory synchronization behavior.
 - **[CLI Overhaul Pseudocode](../specifications/cli_overhaul_pseudocode.md)**: Pseudocode for the refactored `init` command and UXBridge abstraction.
 - **[Init Workflow](../architecture/init_workflow.md)**: Detailed sequence for project initialization.
 - **[UXBridge Interaction Flow](uxbridge_interaction_pseudocode.md)**: How the CLI and WebUI use the shared bridge.
