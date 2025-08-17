@@ -13,7 +13,7 @@ from devsynth.metrics import get_retry_metrics, reset_metrics
 pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("lmstudio")]
 
 
-def test_provider_logging_cleanup(lmstudio_stub, capsys):
+def test_provider_logging_cleanup(lmstudio_service, capsys):
     """Providers should not log after logging.shutdown."""
     from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 
@@ -39,7 +39,7 @@ def test_provider_logging_cleanup(lmstudio_stub, capsys):
     assert "I/O operation on closed file" not in capsys.readouterr().err
 
 
-def test_lmstudio_retry_metrics_and_circuit_breaker(lmstudio_stub):
+def test_lmstudio_retry_metrics_and_circuit_breaker(lmstudio_service):
     """Failures increment retry metrics and open the circuit breaker."""
     from devsynth.application.llm.lmstudio_provider import (
         LMStudioConnectionError,

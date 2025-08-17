@@ -85,6 +85,5 @@ pytest_plugins = [
     "tests.fixtures.state_access_fixture",
     "tests.fixtures.webui_wizard_state_fixture",
     "tests.fixtures.optional_deps",
-    "tests.fixtures.lmstudio_mock",
-    "tests.unit.fakes.test_lmstudio_stub",
+    "tests.fixtures.lmstudio_service",
 ]

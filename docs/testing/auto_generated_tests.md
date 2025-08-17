@@ -22,9 +22,9 @@ This process ensures that auto-generated tests receive human oversight and evolv
 
 ## Mocking Optional Services
 
-Some providers, such as LM Studio, may be unavailable during local testing.  Use
+Some providers, such as LM Studio, may be unavailable during local testing. Use
 `pytest.importorskip("lmstudio")` to skip tests when the optional SDK is not
-installed and rely on the `lmstudio_stub` fixture to emulate the HTTP API.  The
-fixture lives under `tests/unit/fakes/` and returns deterministic responses for
+installed and rely on the `lmstudio_service` fixture to emulate the HTTP API. The
+fixture lives under `tests/fixtures/` and returns deterministic responses for
 model listing, text generation, and embeddings so tests can run without a real
 LM Studio instance.
