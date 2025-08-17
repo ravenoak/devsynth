@@ -60,6 +60,7 @@ This section is for developers contributing to the DevSynth project or those loo
 
 - **[Cross-Functional Review Process](cross_functional_review_process.md)**: Information about the cross-functional review process.
 - **[Secure Coding](secure_coding.md)**: Guidelines for secure coding practices.
+- **[Security Audit Guide](security_audits.md)**: How to run and interpret automated security audits.
 
 ## Overview
 

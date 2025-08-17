@@ -43,6 +43,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Integration Test Scenario Generation](integration_test_generation.md)**: Scenario-based scaffolding for integration tests.
 - **[Retry Predicates Specification](retry_predicates.md)**: Support conditional retry logic and metrics.
 - **[Generated Test Execution Failure](generated_test_execution_failure.md)**: Scaffolded tests fail until implemented.
+- **[Security Audit Reporting Specification](security_audit_reporting.md)**: JSON reporting for security audits.
 
 ## Implementation Plans
 
