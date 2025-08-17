@@ -1,9 +1,11 @@
 import runpy
 from unittest.mock import patch
+
 import click
+import pytest
 import typer
 import typer.main
-import pytest
+
 from devsynth.interface.ux_bridge import UXBridge
 
 
@@ -22,6 +24,7 @@ def patch_typer_types(monkeypatch):
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
+@pytest.mark.fast
 def test_cli_entry_invokes_run_cli():
     """Ensure the CLI module calls run_cli when executed as __main__."""
     with patch("devsynth.adapters.cli.typer_adapter.run_cli") as mock_run:

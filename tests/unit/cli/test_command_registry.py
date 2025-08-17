@@ -1,9 +1,11 @@
+import pytest
 import typer
 from typer.testing import CliRunner
 
 import devsynth.adapters.cli.typer_adapter as adapter
 
 
+@pytest.mark.fast
 def test_build_app_registers_commands_from_registry(monkeypatch):
     """Commands in COMMAND_REGISTRY should be registered with the CLI."""
     called = {}
@@ -22,6 +24,7 @@ def test_build_app_registers_commands_from_registry(monkeypatch):
     assert called.get("ran")
 
 
+@pytest.mark.fast
 def test_enable_feature_not_top_level():
     """The enable-feature command is managed under config and not at top level."""
     app = adapter.build_app()

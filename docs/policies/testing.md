@@ -72,6 +72,13 @@ This document defines the testing policy for the DevSynth project, establishing 
    - Should verify properties across a range of inputs
 
 
+### Test Categorization and Markers
+
+1. **Speed Markers**: Each test must include exactly one of `fast`, `medium`, or `slow`.
+   - Unmarked tests default to `medium` but should still be explicitly marked.
+2. **Isolation Marker**: Add the `isolation` marker when a test requires dedicated resources or cleans up global state.
+
+
 ### Test Isolation and Cleanliness
 
 1. **Temporary Resources**: Tests must use temporary directories for all artifacts.
