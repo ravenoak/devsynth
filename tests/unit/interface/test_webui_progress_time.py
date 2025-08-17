@@ -5,7 +5,7 @@ from pytest import MonkeyPatch
 
 from devsynth.interface.webui_bridge import WebUIProgressIndicator
 
-pytestmark = [pytest.mark.requires_resource("webui"), pytest.mark.fast]
+pytestmark = pytest.mark.fast
 
 
 def test_update_records_time(monkeypatch: MonkeyPatch) -> None:
