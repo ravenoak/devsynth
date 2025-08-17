@@ -6,6 +6,9 @@ FROM python:3.12-slim AS base
 ARG USERNAME=dev
 ARG USER_UID=1000
 
+# Disallow building with root user
+RUN if [ "$USERNAME" = "root" ]; then echo "USERNAME must be non-root" >&2; exit 1; fi
+
 ENV PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PYTHONDONTWRITEBYTECODE=1 \
