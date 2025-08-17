@@ -70,7 +70,8 @@ tasks:
   docs:build:
     desc: Build documentation
     cmds:
-      - poetry run mkdocs build
+      - task: docs:gen-api
+      - poetry run mkdocs build --strict
 
   # Manifest validation and API doc generation
   manifest:validate:

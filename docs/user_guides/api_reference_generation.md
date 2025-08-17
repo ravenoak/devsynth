@@ -7,8 +7,6 @@ tags:
   - "documentation"
   - "api"
   - "reference"
-
-status: "draft"
 author: "DevSynth Team"
 last_reviewed: "2025-08-08"
 ---
@@ -18,7 +16,7 @@ last_reviewed: "2025-08-08"
 
 # API Reference Generation
 
-This guide explains how to generate API reference pages for DevSynth using the `scripts/gen_ref_pages.py` command. The script scans project source directories, creates a navigation tree, and writes Markdown files under `api_reference/` for inclusion in the documentation site.
+This guide explains how to generate API reference pages for DevSynth using the `scripts/gen_ref_pages.py` command. The script scans project source directories, creates a navigation tree, and writes Markdown files under `docs/api_reference/` for inclusion in the documentation site.
 
 ## Usage
 
@@ -28,7 +26,7 @@ This guide explains how to generate API reference pages for DevSynth using the `
    ```bash
    poetry run python scripts/gen_ref_pages.py
    ```
-3. Build the documentation site to include the generated pages:
+3. Validate by building the documentation site, which reruns the generator via the MkDocs build pipeline:
 
    ```bash
    poetry run mkdocs build --strict
@@ -44,8 +42,8 @@ INFO     -  Building documentation...
 INFO     -  Documentation built in "site"
 ```
 
-Open `site/index.html` in a browser to browse the full reference. The script reads project structure from `manifest.yaml` if available and defaults to `src/` otherwise.
+Open `site/index.html` in a browser to browse the full reference. Example generated pages are provided under `docs/api_reference/`. The script reads project structure from `manifest.yaml` if available and defaults to `src/` otherwise.
 
 ## Implementation Status
 
-The generation script is integrated with MkDocs through the `gen-files` plugin, ensuring API pages regenerate during each build.
+The generation script is integrated with MkDocs through the `gen-files` plugin and invoked automatically during documentation builds, ensuring API pages regenerate during each build and are validated with the `--strict` flag.
