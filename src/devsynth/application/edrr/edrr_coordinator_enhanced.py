@@ -5,6 +5,7 @@ This module extends the EDRRCoordinator class with enhanced phase transition
 logic, quality scoring, and metrics collection.
 """
 
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -367,6 +368,16 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             parent_phase=parent_phase,
             config=self.config,
         )
+        # Sync phase metrics configuration with parent
+        micro_cycle.phase_metrics.thresholds = deepcopy(self.phase_metrics.thresholds)
+        micro_cycle.phase_metrics.recovery_hooks = {
+            phase: list(hooks)
+            for phase, hooks in self.phase_metrics.recovery_hooks.items()
+        }
+        micro_cycle.phase_metrics.failure_hooks = {
+            phase: list(hooks)
+            for phase, hooks in self.phase_metrics.failure_hooks.items()
+        }
 
         # Start the micro cycle
         micro_cycle.start_cycle(task)
