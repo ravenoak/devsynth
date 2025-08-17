@@ -33,6 +33,7 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 - Adhere to our [coding standards](docs/developer_guides/code_style.md)
 - Update documentation for any changes
 - Ensure all tests pass before submitting a pull request
+- Mark every test with exactly one of `@pytest.mark.fast`, `@pytest.mark.medium`, or `@pytest.mark.slow`; gate high-memory tests with `@pytest.mark.memory_intensive`.
 
 ## Specification and BDD Features
 
@@ -103,6 +104,7 @@ Before opening a pull request, run:
 poetry run pre-commit run --files <changed>
 poetry run devsynth run-tests --speed=<cat>
 poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_test_markers.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
 poetry run python scripts/dialectical_audit.py
