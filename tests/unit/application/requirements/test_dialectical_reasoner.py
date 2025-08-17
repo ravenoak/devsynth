@@ -18,6 +18,7 @@ from devsynth.domain.models.requirement import (
     Requirement,
     RequirementChange,
 )
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class DummyNotification:
@@ -74,6 +75,17 @@ def _build_service(
         "recommendation",
     )
     return service
+
+
+def _build_service_for_arguments(llm_response: str) -> DialecticalReasonerService:
+    return DialecticalReasonerService(
+        requirement_repository=RequirementRepositoryInterface(),
+        reasoning_repository=DialecticalReasoningRepositoryInterface(),
+        impact_repository=ImpactAssessmentRepositoryInterface(),
+        chat_repository=ChatRepositoryInterface(),
+        notification_service=DummyNotification(),
+        llm_service=DummyLLM(llm_response),
+    )
 
 
 def test_evaluate_change_reaches_consensus():
@@ -187,3 +199,85 @@ def test_assess_impact_stores_with_phase():
     assert memory.calls
     assert memory.calls[0][1] == MemoryType.DOCUMENTATION
     assert memory.calls[0][2] == "RETROSPECT"
+
+
+def test_generate_arguments_parses_counterarguments():
+    response = (
+        "Argument 1:\n"
+        "Position: Thesis\n"
+        "Content: Improve UX\n"
+        "Counterargument: Increases complexity\n\n"
+        "Argument 2:\n"
+        "Position: Antithesis\n"
+        "Content: Maintain simplicity\n"
+        "Counterargument: Misses UX gains"
+    )
+    service = _build_service_for_arguments(response)
+    change = RequirementChange(requirement_id=uuid4(), created_by="mallory")
+    args = service._generate_arguments(change, "thesis", "antithesis")
+
+    assert args == [
+        {
+            "position": "Thesis",
+            "content": "Improve UX",
+            "counterargument": "Increases complexity",
+        },
+        {
+            "position": "Antithesis",
+            "content": "Maintain simplicity",
+            "counterargument": "Misses UX gains",
+        },
+    ]
+
+
+def test_generate_arguments_handles_missing_counterargument():
+    response = (
+        "Argument 1:\n"
+        "Position: Thesis\n"
+        "Content: Example argument\n\n"
+        "Argument 2:\n"
+        "Position: Antithesis\n"
+        "Content: Another argument"
+    )
+    service = _build_service_for_arguments(response)
+    change = RequirementChange(requirement_id=uuid4(), created_by="nina")
+    args = service._generate_arguments(change, "thesis", "antithesis")
+
+    assert args == [
+        {
+            "position": "Thesis",
+            "content": "Example argument",
+            "counterargument": "",
+        },
+        {
+            "position": "Antithesis",
+            "content": "Another argument",
+            "counterargument": "",
+        },
+    ]
+
+
+def test_wsde_team_hook_positive_path():
+    team = WSDETeam("test")
+    service = _build_service("yes")
+    service.register_evaluation_hook(team.requirement_evaluation_hook)
+    change = RequirementChange(requirement_id=uuid4(), created_by="oliver")
+    reasoning = service.evaluate_change(change)
+
+    assert team.requirement_reasoning_results
+    record = team.requirement_reasoning_results[0]
+    assert record["consensus"] is True
+    assert record["reasoning"].id == reasoning.id
+
+
+def test_wsde_team_hook_negative_path():
+    team = WSDETeam("test")
+    service = _build_service("no")
+    service.register_evaluation_hook(team.requirement_evaluation_hook)
+    change = RequirementChange(requirement_id=uuid4(), created_by="peggy")
+
+    with pytest.raises(ConsensusError):
+        service.evaluate_change(change)
+
+    assert team.requirement_reasoning_results
+    assert team.requirement_reasoning_results[0]["consensus"] is False
