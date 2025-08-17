@@ -20,6 +20,14 @@ jobs:
           poetry install --with dev --extras tests retrieval chromadb api
       - name: Run security checks
         run: poetry run pre-commit run --all-files bandit safety
+      - name: Run dialectical audit
+        run: poetry run python scripts/dialectical_audit.py
+      - name: Upload dialectical audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dialectical_audit
+          path: dialectical_audit.log
 
   publish-image:
     needs: security
