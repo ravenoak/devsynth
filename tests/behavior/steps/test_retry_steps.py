@@ -1,6 +1,7 @@
-from pytest_bdd import given, when, then, parsers
 from unittest.mock import Mock, patch
+
 import pytest
+from pytest_bdd import given, parsers, then, when
 
 # Import the function to test
 # Update the import path if needed
@@ -19,6 +20,19 @@ def step_function_fails_then_succeeds(context):
         side_effect=[ValueError("Test error"), ValueError("Test error"), "success"]
     )
     mock.__name__ = "mock_function"
+    context["mock_function"] = mock
+
+
+@pytest.mark.medium
+@given("an HTTP request function that returns status 503 then 200")
+def step_http_request_function(context):
+    class Response:
+        def __init__(self, status_code: int) -> None:
+            self.status_code = status_code
+
+    responses = [Response(503), Response(200)]
+    mock = Mock(side_effect=lambda: responses.pop(0))
+    mock.__name__ = "http_call"
     context["mock_function"] = mock
 
 
@@ -46,7 +60,11 @@ def step_function_raises_different_exceptions(context):
 
 
 @pytest.mark.medium
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d} and initial_delay={initial_delay:f}"))
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d} and initial_delay={initial_delay:f}"
+    )
+)
 def step_apply_retry_decorator(context, max_retries, initial_delay):
     context["decorated_function"] = retry_with_exponential_backoff(
         max_retries=max_retries, initial_delay=initial_delay
@@ -54,7 +72,11 @@ def step_apply_retry_decorator(context, max_retries, initial_delay):
 
 
 @pytest.mark.medium
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and jitter={jitter}"))
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and jitter={jitter}"
+    )
+)
 def step_apply_retry_decorator_with_jitter(context, max_retries, initial_delay, jitter):
     # Convert string "True"/"False" to boolean
     jitter_bool = jitter.lower() == "true"
@@ -75,7 +97,11 @@ def step_apply_retry_decorator_with_jitter(context, max_retries, initial_delay, 
 
 
 @pytest.mark.medium
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and a callback function"))
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and a callback function"
+    )
+)
 def step_apply_retry_decorator_with_callback(context, max_retries, initial_delay):
     # Create a mock callback function
     context["callback_mock"] = Mock()
@@ -92,23 +118,44 @@ def step_apply_retry_decorator_with_callback(context, max_retries, initial_delay
 
 
 @pytest.mark.medium
-@when(parsers.parse("I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and retryable_exceptions={exceptions}"))
-def step_apply_retry_decorator_with_exceptions(context, max_retries, initial_delay, exceptions):
+@when(
+    parsers.parse(
+        "I apply the retry decorator with max_retries={max_retries:d}, initial_delay={initial_delay:f}, and retryable_exceptions={exceptions}"
+    )
+)
+def step_apply_retry_decorator_with_exceptions(
+    context, max_retries, initial_delay, exceptions
+):
     # Parse the exceptions string to get the actual exception types
     # For now, we only support ValueError
     if "ValueError" in exceptions:
         retryable_exceptions = (ValueError,)
     else:
         retryable_exceptions = (Exception,)
-    
+
     # Mock sleep to avoid waiting
     context["sleep_patch"] = patch("time.sleep")
     context["sleep_mock"] = context["sleep_patch"].start()
-    
+
     context["decorated_function"] = retry_with_exponential_backoff(
         max_retries=max_retries,
         initial_delay=initial_delay,
         retryable_exceptions=retryable_exceptions,
+    )(context["mock_function"])
+
+
+@pytest.mark.medium
+@when("I apply the retry decorator with a predicate for status>=500 and jitter=False")
+def step_apply_retry_decorator_with_predicate(context):
+    context["sleep_patch"] = patch("time.sleep")
+    context["sleep_mock"] = context["sleep_patch"].start()
+
+    context["decorated_function"] = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=1,
+        jitter=False,
+        retry_predicates={"server_error": lambda r: r.status_code >= 500},
+        track_metrics=True,
     )(context["mock_function"])
 
 
@@ -136,7 +183,11 @@ def step_check_call_count(context, call_count):
 @then("the final result should be successful")
 def step_check_successful_result(context):
     assert context["exception"] is None
-    assert context["result"] == "success"
+    result = context["result"]
+    if hasattr(result, "status_code"):
+        assert result.status_code == 200
+    else:
+        assert result == "success"
 
 
 @pytest.mark.medium
