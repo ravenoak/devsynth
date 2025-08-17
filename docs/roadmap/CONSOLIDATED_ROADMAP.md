@@ -43,6 +43,10 @@ As of August 15, 2025, the project is finalizing Phase 1 (Foundation Stabilizati
   - Documented lessons learned and best practices in flaky_test_lessons.md
   - Created test stabilization tools and scripts
 
+- **Methodology Integration**:
+  - Extended sprint adapter to cover all EDRR phase hooks
+  - Added behavior tests for the sprint EDRR cycle
+
 The project will transition to Phase 2 (Production Readiness) after publishing `0.1.0-alpha.1`.
 
 ## Phased Roadmap

@@ -67,6 +67,8 @@ class SprintAdapter(BaseMethodologyAdapter):
             "quality_metrics": {},
             "velocity": [],
             "retrospective_reviews": [],
+            "inconsistencies_detected": [],
+            "relationships_modeled": [],
         }
 
         # Map sprint ceremonies to their corresponding EDRR phases. Start with
@@ -256,6 +258,60 @@ class SprintAdapter(BaseMethodologyAdapter):
                 self.sprint_plan.get("planned_scope", [])
             )
         return results
+
+    def before_differentiate(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Sprint-specific setup before the Differentiate phase.
+
+        Args:
+            context: The current context.
+
+        Returns:
+            Updated context with phase start timestamp.
+        """
+        context["phase_start_time"] = datetime.datetime.now()
+        return context
+
+    def after_differentiate(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Record metrics after the Differentiate phase."""
+        inconsistencies = results.get("inconsistencies")
+        if inconsistencies is not None:
+            self.metrics["inconsistencies_detected"].append(inconsistencies)
+        return results
+
+    def before_refine(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Sprint-specific setup before the Refine phase.
+
+        Args:
+            context: The current context.
+
+        Returns:
+            Updated context with phase start timestamp.
+        """
+        context["phase_start_time"] = datetime.datetime.now()
+        return context
+
+    def after_refine(
+        self, context: Dict[str, Any], results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Record metrics after the Refine phase."""
+        relationships = results.get("relationships")
+        if relationships is not None:
+            self.metrics["relationships_modeled"].append(relationships)
+        return results
+
+    def before_retrospect(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Sprint-specific setup before the Retrospect phase.
+
+        Args:
+            context: The current context.
+
+        Returns:
+            Updated context with phase start timestamp.
+        """
+        context["phase_start_time"] = datetime.datetime.now()
+        return context
 
     def after_retrospect(
         self, context: Dict[str, Any], results: Dict[str, Any]
