@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+pytestmark = pytest.mark.requires_resource("webui")
+
 
 def _setup_streamlit(monkeypatch, button_return=False, toggle_return=False):
     st = ModuleType("streamlit")
