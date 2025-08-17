@@ -23,10 +23,13 @@ logger = DevSynthLogger(__name__)
 
 
 def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
-    """Flush queued memory updates and return flushed items.
+    """Flush queued memory updates and return flushed items deterministically.
 
-    This helper captures the current sync queue, performs a flush, and returns
-    the queued operations so callers may requeue them if a rollback is needed.
+    The sync manager maintains an internal queue protected by ``_queue_lock``.
+    This helper snapshots the queue under that lock, performs a flush, waits for
+    any asynchronous synchronization to finish, and *does not* clear the queue
+    again afterwards. Clearing is handled by the sync manager itself during the
+    flush to avoid races with new updates being queued concurrently.
 
     Args:
         memory_manager: The memory manager instance coordinating updates.
@@ -37,9 +40,17 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
 
     if not memory_manager or not hasattr(memory_manager, "sync_manager"):
         return []
-    queue: List[tuple[str, MemoryItem]] = list(
-        getattr(memory_manager.sync_manager, "_queue", [])
-    )
+
+    sync_manager = memory_manager.sync_manager
+    lock = getattr(sync_manager, "_queue_lock", None)
+    if lock:
+        with lock:
+            queue: List[tuple[str, MemoryItem]] = list(
+                getattr(sync_manager, "_queue", [])
+            )
+    else:
+        queue = list(getattr(sync_manager, "_queue", []))
+
     try:
         if hasattr(memory_manager, "flush_updates"):
             memory_manager.flush_updates()
@@ -53,9 +64,7 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
                 asyncio.run(result)
     except Exception:  # pragma: no cover - defensive
         logger.debug("Flush failed", exc_info=True)
-    finally:
-        if hasattr(memory_manager, "sync_manager"):
-            getattr(memory_manager.sync_manager, "_queue", []).clear()
+
     return queue
 
 

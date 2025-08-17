@@ -382,7 +382,7 @@ class EDRRCoordinatorCore:
         if not auto_progress:
             return
 
-        while True:
+        for _ in range(10):  # safety bound against infinite loops
             next_phase = self._decide_next_phase()
             if next_phase is None:
                 break

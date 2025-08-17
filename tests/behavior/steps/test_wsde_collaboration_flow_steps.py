@@ -28,7 +28,7 @@ def wsde_team_with_pending_memory(context):
     mm = MagicMock()
     mm.sync_manager = MagicMock()
     mm.sync_manager._queue = [("default", MagicMock())]
-    mm.flush_updates = MagicMock()
+    mm.flush_updates = MagicMock(side_effect=lambda: mm.sync_manager._queue.clear())
     context.memory_manager = mm
 
 

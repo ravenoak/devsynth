@@ -302,6 +302,33 @@ class TestWSDEEDRRComponentInteractions:
         assert "Test error in evaluate_options" in str(exc_info.value)
 
     @pytest.mark.medium
+    def test_phase_progression_flushes_memory_queue(self, coordinator, memory_manager):
+        """Phase transitions should flush pending memory updates to avoid hangs."""
+
+        task = {
+            "description": "Create a Python function to calculate factorial",
+            "language": "python",
+            "domain": "code_generation",
+        }
+        coordinator.start_cycle(task)
+
+        memory_manager.queue_update(
+            "default",
+            MemoryItem(
+                id="queued-phase", content={}, memory_type=MemoryType.TEAM_STATE
+            ),
+        )
+        assert memory_manager.sync_manager._queue
+
+        with patch(
+            "devsynth.domain.wsde.workflow.flush_memory_queue", wraps=flush_memory_queue
+        ) as flush_mock:
+            coordinator.progress_to_phase(Phase.DIFFERENTIATE)
+            flush_mock.assert_called_once_with(memory_manager)
+
+        assert memory_manager.sync_manager._queue == []
+
+    @pytest.mark.medium
     def test_memory_sync_hook_receives_events(self, memory_manager):
         """Ensure memory sync hooks capture memory updates."""
 
