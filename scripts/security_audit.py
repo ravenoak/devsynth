@@ -21,8 +21,12 @@ from devsynth.security.validation import require_pre_deploy_checks
 logger = setup_logging(__name__)
 
 
-def run(argv: list[str] | None = None) -> None:
-    """Validate security flags then execute Bandit and Safety checks."""
+def run(argv: list[str] | None = None) -> dict[str, str]:
+    """Validate security flags then execute Bandit and Safety checks.
+
+    Returns a mapping of each check to its status (`passed`, `failed`, or
+    `skipped`).
+    """
     parser = argparse.ArgumentParser(
         description="Run Bandit static analysis and Safety dependency scan.",
     )
@@ -69,6 +73,8 @@ def run(argv: list[str] | None = None) -> None:
     finally:
         if args.report:
             args.report.write_text(json.dumps(results, indent=2))
+
+    return results
 
 
 if __name__ == "__main__":

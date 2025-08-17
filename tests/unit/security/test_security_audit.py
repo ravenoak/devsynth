@@ -25,11 +25,12 @@ def test_run_executes_checks(
     mock_bandit: MagicMock,
 ) -> None:
     """The script should validate flags and run Bandit and Safety."""
-    security_audit.run([])
+    results = security_audit.run([])
     mock_pre.assert_called_once_with()
     mock_policy.assert_called_once_with()
     mock_bandit.assert_called_once_with()
     mock_safety.assert_called_once_with()
+    assert results == {"bandit": "passed", "safety": "passed"}
 
 
 @patch("security_audit.audit.run_bandit")
@@ -62,8 +63,9 @@ def test_report_writes_results(
 ) -> None:
     """Running with --report should write a JSON summary."""
     report = tmp_path / "audit.json"
-    security_audit.run(["--report", str(report)])
+    results = security_audit.run(["--report", str(report)])
     data = json.loads(report.read_text())
+    assert results == {"bandit": "passed", "safety": "passed"}
     assert data == {"bandit": "passed", "safety": "passed"}
 
 

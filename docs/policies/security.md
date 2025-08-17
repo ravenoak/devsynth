@@ -91,6 +91,16 @@ DEVSYNTH_PRE_DEPLOY_APPROVED=true poetry run python scripts/security_audit.py
 ```
 
 
+### Audit Checklist
+
+1. Verify required security flags:
+   `poetry run python scripts/verify_security_policy.py`.
+2. Run the combined Bandit and Safety scan:
+   `poetry run python scripts/security_audit.py --report security_audit.json`.
+3. Review the generated report and address any failures.
+4. Archive the report with release artifacts.
+
+
 ### Enforceable Audit Criteria
 
 The following settings must be configured for deployments and are verified by
