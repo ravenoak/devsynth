@@ -52,6 +52,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Delimiting Recursion Algorithms](delimiting_recursion_algorithms.md)**: Heuristics for ending recursive cycles.
 - **[Documentation Plan](documentation_plan.md)**: Comprehensive plan for DevSynth's documentation structure and organization.
 - **[Testing Infrastructure](testing_infrastructure.md)**: Specification for DevSynth's testing infrastructure.
+- **[End-to-End Deployment Script](end_to_end_deployment.md)**: Unified deployment with environment validation.
 
 ## Historical and Planning Documents
 
