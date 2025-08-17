@@ -135,6 +135,16 @@ if is_review_due(date(2024, 1, 1)):
 Teams should schedule a follow‑up review using `next_review_date` after each
 assessment and ensure findings are tracked to completion.
 
+### Review Process
+
+1. At the start of each quarter, run the combined Bandit and Safety scan:
+   `poetry run python scripts/security_audit.py --report security_audit.json`.
+2. Record the generated report in the issue tracker. A sample failing report is
+   provided at `examples/security_audit_failure_report.json`.
+3. Use `devsynth.security.review.next_review_date` to schedule the next
+   assessment.
+4. Track all remediation tasks to closure before the next review cycle.
+
 ## Incident Response Procedures
 
 The [Incident Response Runbook](../deployment/runbooks/incident_response.md)
