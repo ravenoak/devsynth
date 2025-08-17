@@ -4,7 +4,8 @@ Script to verify that test markers are correctly applied and recognized by pytes
 
 This script builds on fix_test_markers.py to verify that markers are correctly applied
 and recognized by pytest. It provides detailed reporting of marker issues and can
-fix common issues automatically.
+fix common issues automatically. The script exits with status code ``1`` when
+verification issues are found and ``2`` when subprocesses exceed the timeout.
 
 Usage:
     python -m scripts.verify_test_markers [options]
@@ -280,7 +281,7 @@ def verify_file_markers(
                 start_time = time.time()
                 collect_result = subprocess.run(
                     cmd,
-                    check=False,
+                    check=True,
                     capture_output=True,
                     text=True,
                     timeout=timeout,
@@ -333,6 +334,19 @@ def verify_file_markers(
                         marker_type, False
                     ),
                     "error": "subprocess timeout",
+                    "uncollected_tests": [],
+                    "timeout": True,
+                }
+            except subprocess.CalledProcessError as e:
+                logger.debug("Subprocess returned non-zero exit code %s", e.returncode)
+                recognized_markers[marker_type] = {
+                    "file_count": marker_count,
+                    "pytest_count": 0,
+                    "recognized": False,
+                    "registered_in_pytest_ini": markers_registered.get(
+                        marker_type, False
+                    ),
+                    "error": f"subprocess error: {e.returncode}",
                     "uncollected_tests": [],
                 }
             except Exception as e:  # pragma: no cover - defensive
@@ -640,6 +654,7 @@ def verify_directory_markers(
         "total_unrecognized_markers": 0,
         "marker_counts": {"fast": 0, "medium": 0, "slow": 0, "isolation": 0},
         "files": {},
+        "subprocess_timeouts": 0,
     }
 
     start = time.time()
@@ -677,6 +692,8 @@ def verify_directory_markers(
                     )
                     if not count.get("recognized", False):
                         results["total_unrecognized_markers"] += count["file_count"]
+                    if count.get("timeout"):
+                        results["subprocess_timeouts"] += 1
 
                 if file_results["issues"]:
                     results["files_with_issues"] += 1
@@ -846,6 +863,7 @@ def main():
         print(
             f"    - Isolation: {verification_results['marker_counts'].get('isolation', 0)}"
         )
+        print(f"  Subprocess timeouts: {verification_results['subprocess_timeouts']}")
 
     # Fix issues if requested
     fix_results = None
@@ -872,11 +890,13 @@ def main():
         generate_report(verification_results, fix_results, args.report_file)
 
     exit_code = 0
+    if verification_results.get("subprocess_timeouts", 0) > 0:
+        exit_code = 2
     if (
         verification_results.get("success") is False
         or verification_results.get("files_with_issues", 0) > 0
     ):
-        exit_code = 1
+        exit_code = max(exit_code, 1)
     return exit_code
 
 
