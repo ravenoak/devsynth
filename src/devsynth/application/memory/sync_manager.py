@@ -776,3 +776,9 @@ class SyncManager:
         except Exception:
             logger.debug("Adapter flush after rollback failed", exc_info=True)
         self.clear_cache()
+
+    # ------------------------------------------------------------------
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` if ``transaction_id`` is currently active."""
+
+        return transaction_id in self._active_transactions
