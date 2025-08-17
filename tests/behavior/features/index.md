@@ -139,3 +139,4 @@ This index lists all feature files for easy navigation.
 - [webui/validate_metadata.feature](./webui/validate_metadata.feature)
 - [webui/webapp.feature](./webui/webapp.feature)
 - [wsde/peer_review.feature](./wsde/peer_review.feature)
+- [sprint_edrr/ceremony_alignment.feature](./sprint_edrr/ceremony_alignment.feature)
