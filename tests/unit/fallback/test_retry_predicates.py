@@ -2,7 +2,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from devsynth.fallback import reset_prometheus_metrics, retry_with_exponential_backoff
+from devsynth.fallback import (
+    ANONYMOUS_CONDITION,
+    reset_prometheus_metrics,
+    retry_with_exponential_backoff,
+)
 from devsynth.metrics import get_retry_condition_metrics, get_retry_metrics
 
 
@@ -34,3 +38,28 @@ def test_retry_predicate_triggers_retry() -> None:
     assert retry_metrics.get("success") == 1
     assert cond_metrics.get("predicate:server_error:trigger") == 1
     assert cond_metrics.get("predicate:server_error:suppress") == 1
+
+
+@pytest.mark.fast
+def test_integer_predicate_records_metrics() -> None:
+    reset_prometheus_metrics()
+    responses = [Response(500), Response(200)]
+    func = Mock(side_effect=lambda: responses.pop(0))
+    func.__name__ = "http_call"
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=1,
+        jitter=False,
+        retry_predicates=[500],
+        track_metrics=True,
+    )(func)
+    with patch("time.sleep") as sleep_mock:
+        result = decorated()
+    assert result.status_code == 200
+    sleep_mock.assert_called_once_with(2)
+    retry_metrics = get_retry_metrics()
+    cond_metrics = get_retry_condition_metrics()
+    assert retry_metrics.get("predicate") == 1
+    assert retry_metrics.get("success") == 1
+    assert cond_metrics.get(f"predicate:{ANONYMOUS_CONDITION}:trigger") == 1
+    assert cond_metrics.get(f"predicate:{ANONYMOUS_CONDITION}:suppress") == 1

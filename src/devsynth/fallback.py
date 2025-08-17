@@ -29,6 +29,7 @@ from .metrics import (
     inc_retry_count,
     inc_retry_error,
     inc_retry_stat,
+    reset_metrics,
     retry_condition_counter,
     retry_error_counter,
     retry_event_counter,
@@ -48,12 +49,8 @@ ANONYMOUS_CONDITION = "<anonymous>"
 
 
 def reset_prometheus_metrics() -> None:
-    """Reset all Prometheus retry counters."""
-    retry_event_counter.clear()
-    retry_function_counter.clear()
-    retry_error_counter.clear()
-    retry_condition_counter.clear()
-    circuit_breaker_state_counter.clear()
+    """Reset all retry metrics and Prometheus counters."""
+    reset_metrics()
 
 
 # Export metrics helpers for convenience
