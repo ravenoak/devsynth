@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 import toml
 import yaml
+from pydantic import ValidationError
 from pydantic.dataclasses import dataclass
 
 from devsynth import __version__ as project_version
@@ -178,7 +179,7 @@ def _find_config_path(start: Path) -> Optional[Path]:
             data = toml.load(toml_path)
             if "devsynth" in data.get("tool", {}):
                 return toml_path
-        except Exception as exc:
+        except (OSError, toml.TomlDecodeError) as exc:
             logger.error("Malformed TOML configuration: %s", exc)
             raise ConfigurationError(
                 "Malformed TOML configuration", config_key=str(toml_path)
@@ -218,7 +219,10 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
             try:
                 tdata = toml.load(cfg_path)
                 parsed = tdata.get("tool", {}).get("devsynth", {})
-            except Exception as exc:  # pragma: no cover - toml load errors
+            except (
+                OSError,
+                toml.TomlDecodeError,
+            ) as exc:  # pragma: no cover - toml load errors
                 logger.error("Malformed TOML configuration: %s", exc)
                 raise ConfigurationError(
                     f"Malformed TOML configuration in {cfg_path}. Please check the syntax and formatting.",
@@ -238,7 +242,7 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
     # Validate configuration before creating the model
     try:
         config = ConfigModel(**data)
-    except Exception as exc:
+    except ValidationError as exc:
         logger.error("Invalid configuration values: %s", exc)
         raise ConfigurationError(
             f"Invalid configuration values: {exc}. Please check the configuration documentation for valid options.",
@@ -340,7 +344,7 @@ def save_config(
 
 try:  # pragma: no cover - optional dependency
     import typer
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     typer = None
 
 
