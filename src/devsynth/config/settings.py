@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import toml
+import yaml
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -78,7 +79,7 @@ def is_devsynth_managed_project(project_dir: str = None) -> bool:
         try:
             data = toml.load(toml_path)
             return "devsynth" in data.get("tool", {})
-        except Exception:
+        except (OSError, toml.TomlDecodeError):
             return False
 
     return False
@@ -491,7 +492,7 @@ class Settings(BaseSettings):
                 )
                 if mem_dir:
                     return os.path.join(project_dir, mem_dir)
-            except Exception as e:  # pragma: no cover - defensive
+            except ConfigurationError as e:  # pragma: no cover - defensive
                 logger.error(f"Error reading project config: {e}")
 
             # Fall back to default project path for DevSynth-managed projects
@@ -518,8 +519,6 @@ class Settings(BaseSettings):
         global_config_path = os.path.join(global_config_dir, "global_config.yaml")
         if os.path.exists(global_config_path):
             try:
-                import yaml
-
                 with open(global_config_path, "r") as f:
                     config = yaml.safe_load(f)
                     if (
@@ -535,9 +534,9 @@ class Settings(BaseSettings):
                             f"Using memory path from global config: {memory_path}"
                         )
                         return memory_path
-            except Exception as e:
+            except (OSError, yaml.YAMLError, ImportError) as e:
                 # Log error but continue with default path
-                pass
+                logger.debug(f"Error reading global config: {e}")
 
         # Fall back to global memory path for non-DevSynth-managed projects
         # In test environments with file operations disabled, avoid using home directory
@@ -583,7 +582,7 @@ class Settings(BaseSettings):
                 )
                 if logs_dir:
                     return os.path.join(project_dir, logs_dir)
-            except Exception as e:  # pragma: no cover - defensive
+            except ConfigurationError as e:  # pragma: no cover - defensive
                 logger.error(f"Error reading project config: {e}")
 
             # Fall back to default project path for DevSynth-managed projects
@@ -612,8 +611,6 @@ class Settings(BaseSettings):
         global_config_path = os.path.join(global_config_dir, "global_config.yaml")
         if os.path.exists(global_config_path):
             try:
-                import yaml
-
                 with open(global_config_path, "r") as f:
                     config = yaml.safe_load(f)
                     if (
@@ -627,9 +624,9 @@ class Settings(BaseSettings):
                         )
                         logger.debug(f"Using logs path from global config: {logs_path}")
                         return logs_path
-            except Exception as e:
+            except (OSError, yaml.YAMLError, ImportError) as e:
                 # Log error but continue with default path
-                pass
+                logger.debug(f"Error reading global config: {e}")
 
         # Fall back to global logs path for non-DevSynth-managed projects
         # In test environments with file operations disabled, avoid using home directory

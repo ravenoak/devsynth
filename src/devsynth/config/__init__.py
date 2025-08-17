@@ -2,11 +2,13 @@
 Configuration module for DevSynth.
 """
 
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Union
 
+import jsonschema
 import toml
 import yaml
 
@@ -104,10 +106,6 @@ class ProjectUnifiedConfig(UnifiedConfig):
             Path(__file__).resolve().parent.parent / "schemas" / "project_schema.json"
         )
         try:
-            import json
-
-            import jsonschema
-
             with open(schema_file, "r", encoding="utf-8") as sf:
                 schema = json.load(sf)
 
@@ -119,7 +117,11 @@ class ProjectUnifiedConfig(UnifiedConfig):
             raise DevSynthError(
                 "Configuration issues detected. Run 'devsynth init' to generate defaults."
             ) from err
-        except Exception as exc:  # pragma: no cover - defensive
+        except (
+            OSError,
+            json.JSONDecodeError,
+            jsonschema.exceptions.SchemaError,
+        ) as exc:  # pragma: no cover - defensive
             logger.warning("Could not validate project config: %s", exc)
 
         cfg = ConfigModel(project_root=str(root))

@@ -23,7 +23,7 @@ class UnifiedConfig:
                 return False
             try:
                 data = toml.load(self.path)
-            except Exception:
+            except (OSError, toml.TomlDecodeError):
                 return False
             return "devsynth" in data.get("tool", {})
         return self.path.exists()
