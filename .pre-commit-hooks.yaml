@@ -53,3 +53,9 @@
   entry: python scripts/update_traceability.py
   language: system
   pass_filenames: false
+- id: policy-audit
+  name: policy audit
+  description: "Scan configs and code for policy violations"
+  entry: python scripts/policy_audit.py
+  language: system
+  pass_filenames: false

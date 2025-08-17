@@ -49,6 +49,12 @@ repos:
       language: system
       pass_filenames: false
       stages: [post-commit]
+    - id: policy-audit
+      name: policy audit
+      entry: python scripts/policy_audit.py
+      language: system
+      pass_filenames: false
+      stages: [push]
     - id: commit-message-lint
       name: commit message lint
       description: lint commit messages for MVUU compliance

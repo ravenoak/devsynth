@@ -63,6 +63,12 @@ DevSynth automates routine security checks to prevent regressions:
 
 - A GitHub Actions workflow can be manually dispatched to run Bandit static
   analysis and Safety dependency scans via pre-commit.
+- The `policy_audit` script scans configuration and source files for hardcoded
+  secrets or debug flags and is run as part of pre-commit checks:
+
+  ```bash
+  poetry run python scripts/policy_audit.py
+  ```
 - The `security-audit` CLI command validates required security configuration
   flags using `scripts/verify_security_policy.py` before performing dependency
   vulnerability scans and Bandit static analysis. Deployment pipelines must set
