@@ -1,37 +1,34 @@
 import importlib
 import sys
-import pytest
 from types import ModuleType
 
-@pytest.mark.medium
+import pytest
+
+from tests.unit.interface.test_streamlit_mocks import make_streamlit_mock
+
+
+@pytest.fixture(autouse=True)
+def stub_streamlit(monkeypatch):
+    st = make_streamlit_mock()
+    monkeypatch.setitem(sys.modules, "streamlit", st)
+    return st
+
 
 @pytest.fixture
-def clean_state():
-    # Set up clean state
-    yield
-    # Clean up state
-
-def test_with_clean_state(clean_state):
-    """Importing webui should succeed even if CLI commands are missing."""
-
+def stub_empty_cli(monkeypatch):
     cli_module = ModuleType("devsynth.application.cli")
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_module)
-    import devsynth.application
+    yield cli_module
 
-    original = module_name
-    try:
-        monkeypatch.setattr(target_module, mock_function)
-        # Test code here
-    finally:
-        # Restore original if needed for cleanup
-        pass
 
-        import importlib
-        from devsynth.interface import webui
-        # Reload the module to ensure clean state
-        importlib.reload(module)
+@pytest.mark.medium
+def test_webui_import_without_cli_commands_succeeds(stub_empty_cli):
+    """Importing WebUI succeeds without CLI command modules.
 
-        importlib.reload(webui)
+    ReqID: FR-75"""
+    import devsynth.interface.webui as webui
 
-        assert webui.code_cmd is None
-        assert webui.spec_cmd is None
+    importlib.reload(webui)
+
+    assert webui.spec_cmd is None
+    assert webui._cli("code_cmd") is None
