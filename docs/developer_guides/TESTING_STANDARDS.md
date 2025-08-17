@@ -145,7 +145,7 @@ def test_save_user(mock_database, sample_user):
 Use the test data generators to create consistent test data:
 
 ```python
-from tests.fixtures.test_data_generators import generate_test_user
+from tests.fixtures.data_generators import generate_test_user
 
 def test_user_creation():
     """Test creating a user from test data."""
@@ -175,7 +175,7 @@ Tests should be well-documented to explain what they are testing and why:
 def test_user_authentication():
     """
     Test user authentication process.
-    
+
     This test verifies that:
     1. A user can be authenticated with valid credentials
     2. Authentication fails with invalid credentials
@@ -411,6 +411,7 @@ pytest --cov=src/devsynth --cov-report=term-missing
 
 pytest --cov=src/devsynth --cov-report=html
 ```
+
 ## Implementation Status
 
 .

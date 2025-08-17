@@ -1,19 +1,23 @@
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
+
 import pytest
-from tests.unit.interface.test_streamlit_mocks import make_streamlit_mock
+
+from tests.fixtures.streamlit_mocks import make_streamlit_mock
+
 
 @pytest.fixture(autouse=True)
 def stub_streamlit(monkeypatch):
     st = make_streamlit_mock()
     monkeypatch.setitem(sys.modules, "streamlit", st)
-    
+
+
 def mock_function(*args, **kwargs):
     # Implement robust behavior here
-    monkeypatch.setattr('target', mock_function)
-    return 'expected_result'
-    monkeypatch.setattr('target', mock_function)
+    monkeypatch.setattr("target", mock_function)
+    return "expected_result"
+    monkeypatch.setattr("target", mock_function)
 
     cli_stub = ModuleType("devsynth.application.cli")
     for name in [
@@ -61,8 +65,11 @@ def mock_function(*args, **kwargs):
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.apispec", apispec_stub)
     setup_wizard_stub = ModuleType("devsynth.application.cli.setup_wizard")
     setup_wizard_stub.SetupWizard = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.setup_wizard", setup_wizard_stub )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.setup_wizard", setup_wizard_stub
+    )
     yield st
+
 
 def _patch_cmd(monkeypatch, path):
     module_name, attr = path.rsplit(".", 1)
@@ -78,6 +85,7 @@ def _patch_cmd(monkeypatch, path):
     setattr(mod, attr, func)
     return func
 
+
 @pytest.mark.medium
 def test_onboarding_calls_init_succeeds(monkeypatch, stub_streamlit):
     """Test that onboarding calls init succeeds.
@@ -85,6 +93,7 @@ def test_onboarding_calls_init_succeeds(monkeypatch, stub_streamlit):
     ReqID: N/A"""
     init = _patch_cmd(monkeypatch, "devsynth.application.cli.init_cmd")
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -92,6 +101,7 @@ def test_onboarding_calls_init_succeeds(monkeypatch, stub_streamlit):
 
     WebUI().onboarding_page()
     init.assert_called_once()
+
 
 @pytest.mark.medium
 def test_requirements_calls_spec_succeeds(monkeypatch, stub_streamlit):
@@ -101,6 +111,7 @@ def test_requirements_calls_spec_succeeds(monkeypatch, stub_streamlit):
     spec = _patch_cmd(monkeypatch, "devsynth.application.cli.spec_cmd")
     inspect = _patch_cmd(monkeypatch, "devsynth.application.cli.inspect_cmd")
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -110,13 +121,18 @@ def test_requirements_calls_spec_succeeds(monkeypatch, stub_streamlit):
     assert spec.called
     assert inspect.called
 
+
 @pytest.mark.medium
 def test_analysis_calls_analyze_succeeds(monkeypatch, stub_streamlit):
     """Test that analysis calls analyze succeeds.
 
     ReqID: N/A"""
-    analyze = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.inspect_code_cmd.inspect_code_cmd", )
+    analyze = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.inspect_code_cmd.inspect_code_cmd",
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -124,6 +140,7 @@ def test_analysis_calls_analyze_succeeds(monkeypatch, stub_streamlit):
 
     WebUI().analysis_page()
     analyze.assert_called_once()
+
 
 @pytest.mark.medium
 def test_synthesis_buttons_succeeds(monkeypatch, stub_streamlit):
@@ -135,6 +152,7 @@ def test_synthesis_buttons_succeeds(monkeypatch, stub_streamlit):
     run_cmd = _patch_cmd(monkeypatch, "devsynth.application.cli.run_pipeline_cmd")
     stub_streamlit.button = MagicMock(side_effect=[False, False])
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -145,6 +163,7 @@ def test_synthesis_buttons_succeeds(monkeypatch, stub_streamlit):
     code_cmd.assert_not_called()
     run_cmd.assert_not_called()
 
+
 @pytest.mark.medium
 def test_config_update_succeeds(monkeypatch, stub_streamlit):
     """Test that config update succeeds.
@@ -152,21 +171,26 @@ def test_config_update_succeeds(monkeypatch, stub_streamlit):
     ReqID: N/A"""
     cfg = _patch_cmd(monkeypatch, "devsynth.application.cli.config_cmd")
     from pathlib import Path
-    from devsynth.config import ProjectUnifiedConfig, ConfigModel
 
-    mock_config = ProjectUnifiedConfig( config=ConfigModel(offline_mode=False, project_root=".", features={}),
+    from devsynth.config import ConfigModel, ProjectUnifiedConfig
+
+    mock_config = ProjectUnifiedConfig(
+        config=ConfigModel(offline_mode=False, project_root=".", features={}),
         path=Path("."),
         use_pyproject=False,
-)
+    )
 
     def mock_load(cls, path=None):
         return mock_config
 
     monkeypatch.setattr(ProjectUnifiedConfig, "load", classmethod(mock_load))
-    monkeypatch.setattr( "devsynth.interface.webui.load_project_config", MagicMock(return_value=mock_config),
-)
+    monkeypatch.setattr(
+        "devsynth.interface.webui.load_project_config",
+        MagicMock(return_value=mock_config),
+    )
     monkeypatch.setattr("devsynth.interface.webui.save_config", MagicMock())
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -175,13 +199,17 @@ def test_config_update_succeeds(monkeypatch, stub_streamlit):
     WebUI().config_page()
     assert cfg.called
 
+
 @pytest.mark.medium
 def test_diagnostics_runs_doctor_succeeds(monkeypatch, stub_streamlit):
     """Test that diagnostics runs doctor succeeds.
 
     ReqID: N/A"""
-    doc = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.doctor_cmd.doctor_cmd" )
+    doc = _patch_cmd(
+        monkeypatch, "devsynth.application.cli.commands.doctor_cmd.doctor_cmd"
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -190,17 +218,23 @@ def test_diagnostics_runs_doctor_succeeds(monkeypatch, stub_streamlit):
     WebUI().diagnostics_page()
     doc.assert_called_once()
 
+
 @pytest.mark.medium
 def test_edrr_cycle_page_succeeds(monkeypatch, stub_streamlit):
     """Test that edrr cycle page succeeds.
 
     ReqID: N/A"""
-    edrr = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.edrr_cycle_cmd.edrr_cycle_cmd" )
+    edrr = _patch_cmd(
+        monkeypatch, "devsynth.application.cli.commands.edrr_cycle_cmd.edrr_cycle_cmd"
+    )
     module = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")
     module.edrr_cycle_cmd = edrr
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.edrr_cycle_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.edrr_cycle_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -209,17 +243,23 @@ def test_edrr_cycle_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().edrr_cycle_page()
     edrr.assert_called_once()
 
+
 @pytest.mark.medium
 def test_alignment_page_succeeds(monkeypatch, stub_streamlit):
     """Test that alignment page succeeds.
 
     ReqID: N/A"""
-    align = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.align_cmd.align_cmd" )
+    align = _patch_cmd(
+        monkeypatch, "devsynth.application.cli.commands.align_cmd.align_cmd"
+    )
     module = ModuleType("devsynth.application.cli.commands.align_cmd")
     module.align_cmd = align
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.align_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.align_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -228,17 +268,24 @@ def test_alignment_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().alignment_page()
     align.assert_called_once()
 
+
 @pytest.mark.medium
 def test_alignment_metrics_page_succeeds(monkeypatch, stub_streamlit):
     """Test that alignment metrics page succeeds.
 
     ReqID: N/A"""
-    metrics = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.alignment_metrics_cmd.alignment_metrics_cmd", )
+    metrics = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.alignment_metrics_cmd.alignment_metrics_cmd",
+    )
     module = ModuleType("devsynth.application.cli.commands.alignment_metrics_cmd")
     module.alignment_metrics_cmd = metrics
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.alignment_metrics_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.alignment_metrics_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -247,17 +294,24 @@ def test_alignment_metrics_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().alignment_metrics_page()
     metrics.assert_called_once()
 
+
 @pytest.mark.medium
 def test_inspect_config_page_succeeds(monkeypatch, stub_streamlit):
     """Test that inspect config page succeeds.
 
     ReqID: N/A"""
-    inspect = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.inspect_config_cmd.inspect_config_cmd", )
+    inspect = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.inspect_config_cmd.inspect_config_cmd",
+    )
     module = ModuleType("devsynth.application.cli.commands.inspect_config_cmd")
     module.inspect_config_cmd = inspect
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.inspect_config_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.inspect_config_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -266,17 +320,24 @@ def test_inspect_config_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().inspect_config_page()
     inspect.assert_called_once()
 
+
 @pytest.mark.medium
 def test_validate_manifest_page_succeeds(monkeypatch, stub_streamlit):
     """Test that validate manifest page succeeds.
 
     ReqID: N/A"""
-    validate = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.validate_manifest_cmd.validate_manifest_cmd", )
+    validate = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.validate_manifest_cmd.validate_manifest_cmd",
+    )
     module = ModuleType("devsynth.application.cli.commands.validate_manifest_cmd")
     module.validate_manifest_cmd = validate
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.validate_manifest_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.validate_manifest_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -285,17 +346,24 @@ def test_validate_manifest_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().validate_manifest_page()
     validate.assert_called_once()
 
+
 @pytest.mark.medium
 def test_validate_metadata_page_succeeds(monkeypatch, stub_streamlit):
     """Test that validate metadata page succeeds.
 
     ReqID: N/A"""
-    validate = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.validate_metadata_cmd.validate_metadata_cmd", )
+    validate = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.validate_metadata_cmd.validate_metadata_cmd",
+    )
     module = ModuleType("devsynth.application.cli.commands.validate_metadata_cmd")
     module.validate_metadata_cmd = validate
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.validate_metadata_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.validate_metadata_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -304,17 +372,24 @@ def test_validate_metadata_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().validate_metadata_page()
     validate.assert_called_once()
 
+
 @pytest.mark.medium
 def test_test_metrics_page_succeeds(monkeypatch, stub_streamlit):
     """Test that test metrics page succeeds.
 
     ReqID: N/A"""
-    metrics = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.test_metrics_cmd.test_metrics_cmd", )
+    metrics = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.test_metrics_cmd.test_metrics_cmd",
+    )
     module = ModuleType("devsynth.application.cli.commands.test_metrics_cmd")
     module.test_metrics_cmd = metrics
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.test_metrics_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.test_metrics_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -323,17 +398,24 @@ def test_test_metrics_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().test_metrics_page()
     metrics.assert_called_once()
 
+
 @pytest.mark.medium
 def test_docs_generation_page_succeeds(monkeypatch, stub_streamlit):
     """Test that docs generation page succeeds.
 
     ReqID: N/A"""
-    generate = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.generate_docs_cmd.generate_docs_cmd", )
+    generate = _patch_cmd(
+        monkeypatch,
+        "devsynth.application.cli.commands.generate_docs_cmd.generate_docs_cmd",
+    )
     module = ModuleType("devsynth.application.cli.commands.generate_docs_cmd")
     module.generate_docs_cmd = generate
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.generate_docs_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.generate_docs_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -341,6 +423,7 @@ def test_docs_generation_page_succeeds(monkeypatch, stub_streamlit):
 
     WebUI().docs_generation_page()
     generate.assert_called_once()
+
 
 @pytest.mark.medium
 def test_ingestion_page_succeeds(monkeypatch, stub_streamlit):
@@ -353,6 +436,7 @@ def test_ingestion_page_succeeds(monkeypatch, stub_streamlit):
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.ingest_cmd", module)
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -360,6 +444,7 @@ def test_ingestion_page_succeeds(monkeypatch, stub_streamlit):
 
     WebUI().ingestion_page()
     ingest.assert_called_once()
+
 
 @pytest.mark.medium
 def test_apispec_page_succeeds(monkeypatch, stub_streamlit):
@@ -372,6 +457,7 @@ def test_apispec_page_succeeds(monkeypatch, stub_streamlit):
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.apispec", module)
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -380,17 +466,21 @@ def test_apispec_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().apispec_page()
     apispec.assert_called_once()
 
+
 @pytest.mark.medium
 def test_refactor_page_succeeds(monkeypatch, stub_streamlit):
     """Test that refactor page succeeds.
 
     ReqID: N/A"""
-    refactor = _patch_cmd( monkeypatch, "devsynth.application.cli.cli_commands.refactor_cmd" )
+    refactor = _patch_cmd(
+        monkeypatch, "devsynth.application.cli.cli_commands.refactor_cmd"
+    )
     module = ModuleType("devsynth.application.cli.cli_commands")
     module.refactor_cmd = refactor
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", module)
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -398,6 +488,7 @@ def test_refactor_page_succeeds(monkeypatch, stub_streamlit):
 
     WebUI().refactor_page()
     refactor.assert_called_once()
+
 
 @pytest.mark.medium
 def test_webapp_page_succeeds(monkeypatch, stub_streamlit):
@@ -409,6 +500,7 @@ def test_webapp_page_succeeds(monkeypatch, stub_streamlit):
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", module)
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -416,6 +508,7 @@ def test_webapp_page_succeeds(monkeypatch, stub_streamlit):
 
     WebUI().webapp_page()
     webapp.assert_called_once()
+
 
 @pytest.mark.medium
 def test_serve_page_succeeds(monkeypatch, stub_streamlit):
@@ -428,6 +521,7 @@ def test_serve_page_succeeds(monkeypatch, stub_streamlit):
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", module)
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -436,17 +530,21 @@ def test_serve_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().serve_page()
     serve.assert_called_once()
 
+
 @pytest.mark.medium
 def test_dbschema_page_succeeds(monkeypatch, stub_streamlit):
     """Test that dbschema page succeeds.
 
     ReqID: N/A"""
-    schema = _patch_cmd( monkeypatch, "devsynth.application.cli.cli_commands.dbschema_cmd" )
+    schema = _patch_cmd(
+        monkeypatch, "devsynth.application.cli.cli_commands.dbschema_cmd"
+    )
     module = ModuleType("devsynth.application.cli.cli_commands")
     module.dbschema_cmd = schema
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", module)
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -455,17 +553,23 @@ def test_dbschema_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().dbschema_page()
     schema.assert_called_once()
 
+
 @pytest.mark.medium
 def test_doctor_page_succeeds(monkeypatch, stub_streamlit):
     """Test that doctor page succeeds.
 
     ReqID: N/A"""
-    doctor = _patch_cmd( monkeypatch, "devsynth.application.cli.commands.doctor_cmd.doctor_cmd" )
+    doctor = _patch_cmd(
+        monkeypatch, "devsynth.application.cli.commands.doctor_cmd.doctor_cmd"
+    )
     module = ModuleType("devsynth.application.cli.commands.doctor_cmd")
     module.doctor_cmd = doctor
     module.bridge = MagicMock()
-    monkeypatch.setitem( sys.modules, "devsynth.application.cli.commands.doctor_cmd", module )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.commands.doctor_cmd", module
+    )
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -474,12 +578,14 @@ def test_doctor_page_succeeds(monkeypatch, stub_streamlit):
     WebUI().doctor_page()
     doctor.assert_called_once()
 
+
 @pytest.mark.medium
 def test_run_method_renders_pages_succeeds(monkeypatch, stub_streamlit):
     """Test that the run method renders the appropriate page based on navigation.
 
     ReqID: N/A"""
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -499,6 +605,7 @@ def test_run_method_renders_pages_succeeds(monkeypatch, stub_streamlit):
     stub_streamlit.sidebar.radio = MagicMock(return_value="Requirements")
     webui_instance.run()
     webui_instance.requirements_page.assert_called_once()
+
 
 @pytest.mark.medium
 def test_wizard_navigation_helper_clamps_steps():

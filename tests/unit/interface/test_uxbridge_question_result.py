@@ -6,15 +6,14 @@ This covers the roadmap requirement in `pre_1.0_release_plan.md` lines
 
 import importlib
 import sys
-from unittest.mock import MagicMock, call
 from types import ModuleType
+from unittest.mock import MagicMock, call
 
 import pytest
 
-from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.agentapi import APIBridge
-
-from .test_streamlit_mocks import make_streamlit_mock
+from devsynth.interface.cli import CLIUXBridge
+from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
 
 @pytest.fixture
