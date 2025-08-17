@@ -158,7 +158,9 @@ def retry_with_exponential_backoff(
         boolean or a dictionary. ``False`` aborts the retry loop when that error
         is encountered while ``True`` forces a retry even if the exception is not
         listed in ``retryable_exceptions``. When a dictionary is provided the
-        following keys are recognized:
+        following keys are recognized. Policies match subclasses of the mapped
+        exception type and metrics record whether a policy permits or suppresses
+        retries:
 
         ``retry``: ``bool``
             Whether retries are permitted (defaults to ``True``).
@@ -280,21 +282,28 @@ def retry_with_exponential_backoff(
                 except Exception as e:
                     policy_max_retries = max_retries
                     policy_retry: Optional[bool] = None
-                    if error_retry_map and type(e) in error_retry_map:
-                        policy = error_retry_map[type(e)]
-                        if isinstance(policy, dict):
-                            policy_retry = cast(bool, policy.get("retry", True))
-                            policy_max_retries = cast(
-                                int, policy.get("max_retries", max_retries)
-                            )
-                        else:
-                            policy_retry = bool(policy)
+                    policy_name: Optional[str] = None
+                    if error_retry_map:
+                        for exc_type, policy in error_retry_map.items():
+                            if isinstance(e, exc_type):
+                                policy_name = exc_type.__name__
+                                if isinstance(policy, dict):
+                                    policy_retry = cast(bool, policy.get("retry", True))
+                                    policy_max_retries = cast(
+                                        int, policy.get("max_retries", max_retries)
+                                    )
+                                else:
+                                    policy_retry = bool(policy)
+                                break
 
                     retry_allowed = (
                         isinstance(e, retryable_exceptions)
                         if policy_retry is None
                         else policy_retry
                     )
+                    if track_metrics and policy_name is not None:
+                        outcome = "trigger" if retry_allowed else "suppress"
+                        inc_retry_condition(f"policy:{policy_name}:{outcome}")
 
                     if (
                         isinstance(e, ValueError)
