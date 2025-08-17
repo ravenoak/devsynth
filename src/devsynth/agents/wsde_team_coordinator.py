@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from devsynth.application.collaboration.collaboration_memory_utils import (
+    flush_memory_queue,
+)
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.logging_setup import DevSynthLogger
 
@@ -49,18 +52,10 @@ class WSDETeamCoordinatorAgent:
             logger.debug("Team object lacks 'record_retrospective' method")
 
         memory_manager = getattr(self._team, "memory_manager", None)
-        if memory_manager and hasattr(memory_manager, "flush_updates"):
+        if memory_manager:
             try:
-                memory_manager.flush_updates()
-                wait = getattr(memory_manager, "wait_for_sync", None)
-                if callable(wait):
-                    import asyncio
-                    import inspect
-
-                    result = wait()
-                    if inspect.isawaitable(result):  # pragma: no cover - requires loop
-                        asyncio.run(result)
-            except (RuntimeError, OSError):  # pragma: no cover - defensive
+                flush_memory_queue(memory_manager)
+            except Exception:  # pragma: no cover - defensive
                 logger.debug(
                     "Memory synchronization failed during retrospective",
                     exc_info=True,

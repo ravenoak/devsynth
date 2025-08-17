@@ -13,13 +13,16 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock
 
 import yaml
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.collaboration.collaboration_memory_utils import (
+    flush_memory_queue,
+)
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
@@ -239,6 +242,14 @@ class EDRRCoordinator:
         # Micro-cycle monitoring hooks
         self._micro_cycle_hooks: Dict[str, List] = {"start": [], "end": []}
 
+        # Synchronization hooks invoked after memory flushes
+        self._sync_hooks: List[Callable[[Optional[Any]], None]] = []
+        if self.memory_manager is not None:
+            try:
+                self.memory_manager.register_sync_hook(self._invoke_sync_hooks)
+            except Exception:
+                logger.debug("Could not register memory sync hook", exc_info=True)
+
         # Error recovery hooks keyed by phase name. "GLOBAL" applies to all phases.
         self._recovery_hooks: Dict[str, List] = {"GLOBAL": []}
 
@@ -298,6 +309,21 @@ class EDRRCoordinator:
                 hook(info)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("Micro-cycle hook error: %s", exc)
+
+    # ------------------------------------------------------------------
+    def register_sync_hook(self, hook: Callable[[Optional[Any]], None]) -> None:
+        """Register a callback invoked after memory synchronization."""
+
+        self._sync_hooks.append(hook)
+
+    def _invoke_sync_hooks(self, item: Optional[Any]) -> None:
+        """Invoke registered synchronization hooks with ``item``."""
+
+        for hook in list(self._sync_hooks):
+            try:
+                hook(item)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(f"Sync hook failed: {exc}")
 
     # ------------------------------------------------------------------
     def register_recovery_hook(self, phase: Optional[Phase], hook: Any) -> None:
@@ -734,11 +760,15 @@ class EDRRCoordinator:
 
             # Ensure any pending memory operations are flushed before transitioning
             try:
-                self.memory_manager.flush_updates()
+                flush_memory_queue(self.memory_manager)
             except Exception as flush_error:  # pragma: no cover - defensive
                 logger.debug(
                     f"Failed to flush memory updates before phase transition: {flush_error}"
                 )
+                self._invoke_sync_hooks(None)
+            else:
+                if self.memory_manager is None:
+                    self._invoke_sync_hooks(None)
 
             # Rotate Primus after the first phase
             previous_phase = self.current_phase
@@ -757,8 +787,11 @@ class EDRRCoordinator:
                 if isinstance(stored_ctx, dict):
                     self._preserved_context.update(stored_ctx)
 
-            # Dynamic role assignment for the new phase
-            self.wsde_team.assign_roles_for_phase(phase, self.task)
+            # Dynamic role assignment for the new phase with memory synchronization
+            if hasattr(self.wsde_team, "progress_roles"):
+                self.wsde_team.progress_roles(phase, self.memory_manager)
+            else:
+                self.wsde_team.assign_roles_for_phase(phase, self.task)
             role_metadata = {"cycle_id": self.cycle_id, "type": "ROLE_ASSIGNMENT"}
             self._safe_store_with_edrr_phase(
                 self.wsde_team.get_role_map(),

@@ -8,19 +8,22 @@ This is part of an effort to break up the monolithic wsde_team_extended.py
 into smaller, more focused modules.
 """
 
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
-from devsynth.domain.models.wsde_facade import WSDETeam
-from devsynth.application.collaboration.wsde_team_task_management import (
-    TaskManagementMixin,
+from devsynth.application.collaboration.collaboration_memory_utils import (
+    flush_memory_queue,
 )
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
+from devsynth.application.collaboration.wsde_team_task_management import (
+    TaskManagementMixin,
+)
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETeam):
@@ -190,7 +193,7 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         )
         self.memory_manager.update_item(primary, item)
         try:  # Ensure the update is persisted
-            self.memory_manager.flush_updates()
+            flush_memory_queue(self.memory_manager)
         except Exception:
             pass
         return item.id
