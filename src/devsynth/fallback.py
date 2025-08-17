@@ -60,6 +60,7 @@ def reset_prometheus_metrics() -> None:
 __all__ = [
     "retry_with_exponential_backoff",
     "with_fallback",
+    "FallbackHandler",
     "CircuitBreaker",
     "Bulkhead",
     "get_retry_metrics",
@@ -638,6 +639,136 @@ def with_fallback(
                     )
 
                 return fallback_function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def FallbackHandler(
+    fallback_function: Callable[..., R],
+    retry_predicates: Optional[
+        Union[
+            List[Union[Callable[[R], bool], int]],
+            Dict[str, Union[Callable[[R], bool], int]],
+        ]
+    ] = None,
+    track_metrics: bool = True,
+) -> Callable[[Callable[..., R]], Callable[..., R]]:
+    """Decorator that falls back based on predicates and tracks metrics.
+
+    Parameters
+    ----------
+    fallback_function : Callable
+        Function invoked when predicates trigger or the primary raises.
+    retry_predicates : Optional[Union[List[Union[Callable[[R], bool], int]],
+                                      Dict[str, Union[Callable[[R], bool], int]]]]
+        Predicates evaluated on successful results. Integer entries are
+        interpreted as HTTP status codes and compared to a ``status_code``
+        attribute on the result if present.
+    track_metrics : bool
+        When ``True`` retry events are recorded using Prometheus counters.
+    """
+
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+        named_predicates: List[Tuple[str, Callable[[R], bool]]] = []
+        anonymous_predicates: List[Callable[[R], bool]] = []
+        if retry_predicates:
+            if isinstance(retry_predicates, dict):
+                for name, pred in retry_predicates.items():
+                    if callable(pred):
+                        named_predicates.append((name, pred))
+                    elif isinstance(pred, int):
+                        named_predicates.append(
+                            (
+                                name,
+                                lambda res, code=pred: getattr(res, "status_code", None)
+                                == code,
+                            )
+                        )
+                    else:  # pragma: no cover - defensive
+                        raise TypeError(
+                            "retry_predicates values must be callables or ints"
+                        )
+            else:
+                for pred in retry_predicates:
+                    if callable(pred):
+                        anonymous_predicates.append(pred)
+                    elif isinstance(pred, int):
+                        anonymous_predicates.append(
+                            lambda res, code=pred: getattr(res, "status_code", None)
+                            == code
+                        )
+                    else:  # pragma: no cover - defensive
+                        raise TypeError("retry_predicates must be callables or ints")
+
+        def _record_predicates(
+            res: R,
+            named: List[Tuple[str, Callable[[R], bool]]],
+            anon: List[Callable[[R], bool]],
+            metrics: bool,
+        ) -> bool:
+            pred_results: List[bool] = []
+            for name, pred in named:
+                r = pred(res)
+                pred_results.append(r)
+                if metrics:
+                    outcome = "trigger" if r else "suppress"
+                    inc_retry_condition(f"predicate:{name}:{outcome}")
+            if anon:
+                anon_results = [p(res) for p in anon]
+                if metrics:
+                    for r in anon_results:
+                        outcome = "trigger" if r else "suppress"
+                        inc_retry_condition(
+                            f"predicate:{ANONYMOUS_CONDITION}:{outcome}"
+                        )
+                pred_results.extend(anon_results)
+            return any(pred_results)
+
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> R:
+            try:
+                result = func(*args, **kwargs)
+            except Exception as e:
+                if track_metrics:
+                    inc_retry("attempt")
+                    inc_retry_count(func.__name__)
+                    inc_retry_error(e.__class__.__name__)
+                    inc_retry_stat(func.__name__, "attempt")
+                result = fallback_function(*args, **kwargs)
+                if track_metrics:
+                    inc_retry("success")
+                    inc_retry_stat(func.__name__, "success")
+                if named_predicates or anonymous_predicates:
+                    _record_predicates(
+                        result, named_predicates, anonymous_predicates, track_metrics
+                    )
+                return result
+
+            if named_predicates or anonymous_predicates:
+                triggered = _record_predicates(
+                    result, named_predicates, anonymous_predicates, track_metrics
+                )
+                if triggered:
+                    if track_metrics:
+                        inc_retry("predicate")
+                        inc_retry_error("RetryPredicate")
+                        inc_retry_count(func.__name__)
+                        inc_retry_stat(func.__name__, "attempt")
+                    result = fallback_function(*args, **kwargs)
+                    if track_metrics:
+                        inc_retry("success")
+                        inc_retry_stat(func.__name__, "success")
+                    _record_predicates(
+                        result, named_predicates, anonymous_predicates, track_metrics
+                    )
+                    return result
+
+            if track_metrics:
+                inc_retry("success")
+                inc_retry_stat(func.__name__, "success")
+            return result
 
         return wrapper
 
