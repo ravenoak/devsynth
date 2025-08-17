@@ -39,6 +39,9 @@ if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
   echo "Environment file $ENV_FILE must have 600 permissions" >&2
   exit 1
 fi
+
+# Export for docker compose variable substitution
+export ENV_FILE
 ENV_ARGS=(--env-file "$ENV_FILE")
 
 # Build the image with the specified tag

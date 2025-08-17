@@ -43,6 +43,9 @@ if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
   exit 1
 fi
 
+# Export for docker compose variable substitution
+export ENV_FILE
+
 # Stop the current stack
 "$(dirname "$0")/stop_stack.sh" "$ENVIRONMENT"
 

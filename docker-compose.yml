@@ -12,7 +12,7 @@ services:
       - ~/.devsynth:/home/devsynth/.devsynth
       - ./logs:/var/log/devsynth
     env_file:
-      - .env
+      - ${ENV_FILE:-.env}
     user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8000:8000"
@@ -50,7 +50,7 @@ services:
       - .:/opt/pysetup
     command: /bin/bash -c "tail -f /dev/null"
     env_file:
-      - .env
+      - ${ENV_FILE:-.env}
     user: "${UID:-1000}:${GID:-1000}"
     networks:
       - devsynth-network
@@ -78,7 +78,7 @@ services:
     environment:
       - DEVSYNTH_ENV=testing
     env_file:
-      - .env
+      - ${ENV_FILE:-.env}
     user: "${UID:-1000}:${GID:-1000}"
     networks:
       - devsynth-network

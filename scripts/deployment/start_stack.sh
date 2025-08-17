@@ -31,6 +31,9 @@ if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
   exit 1
 fi
 
+# Export for docker compose variable substitution
+export ENV_FILE
+
 # Ensure Docker is available
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is required but could not be found in PATH." >&2
