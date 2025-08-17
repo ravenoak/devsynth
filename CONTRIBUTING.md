@@ -105,7 +105,10 @@ poetry run devsynth run-tests --speed=<cat>
 poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
+poetry run python scripts/dialectical_audit.py
 ```
+
+The CI pipeline runs the same dialectical audit and fails if any questions remain unresolved. The generated `dialectical_audit.log` is uploaded as a workflow artifact for review.
 
 ## Pull Request Process
 
