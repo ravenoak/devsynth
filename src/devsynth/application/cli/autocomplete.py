@@ -106,6 +106,10 @@ COMMAND_EXAMPLES = {
         "devsynth doctor",
         "devsynth doctor --config-dir custom_config",
     ],
+    "check": [
+        "devsynth check",
+        "devsynth check --quick",
+    ],
     "edrr-cycle": [
         "devsynth edrr-cycle",
         "devsynth edrr-cycle --manifest manifest.yaml --auto",

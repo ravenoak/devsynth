@@ -26,9 +26,17 @@ def main(argv: list[str] | None = None) -> None:
     If ``--analyze-repo`` is supplied, the repository at the provided path is
     analysed and the resulting data is printed as JSON.  Otherwise the standard
     Typer CLI is executed.
+
+    Examples:
+        Analyze the current repository::
+
+            devsynth --analyze-repo .
     """
 
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(
+        add_help=False,
+        description="DevSynth command line interface",
+    )
     parser.add_argument(
         "--analyze-repo",
         metavar="PATH",
