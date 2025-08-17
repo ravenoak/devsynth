@@ -9,7 +9,7 @@ tags:
   - "readme"
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-08-05"
+last_reviewed: "2025-08-08"
 ---
 
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
@@ -62,6 +62,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [User Guide](docs/user_guides/user_guide.md)
 - [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
 - [CLI Reference](docs/user_guides/cli_reference.md)
+- [API Reference Generation](docs/user_guides/api_reference_generation.md)
 - [Dear PyGui Guide](docs/user_guides/dearpygui.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Project Analysis](docs/analysis/executive_summary.md)
