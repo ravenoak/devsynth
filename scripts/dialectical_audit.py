@@ -20,6 +20,19 @@ SRC = ROOT / "src"
 LOG_PATH = ROOT / "dialectical_audit.log"
 
 
+# Manual mapping of source locations to feature names.
+#
+# Some features are implemented in code but are not annotated with
+# ``# Feature:`` comments. This mapping allows the audit to recognize
+# those features by checking for the presence of specific functions in a
+# file.
+CODE_FEATURE_MAP = {
+    "src/devsynth/interface/webui.py": {
+        "diagnostics_page": "WebUI Diagnostics Page",
+    }
+}
+
+
 def _extract_features_from_docs() -> Set[str]:
     features: Set[str] = set()
     for path in DOCS.rglob("*.md"):
@@ -51,6 +64,11 @@ def _extract_features_from_code() -> Set[str]:
             match = re.search(r"#\s*Feature:\s*(.+)", line)
             if match:
                 features.add(match.group(1).strip())
+        rel_path = str(path.relative_to(ROOT))
+        if rel_path in CODE_FEATURE_MAP:
+            for func_name, feature_name in CODE_FEATURE_MAP[rel_path].items():
+                if re.search(rf"def\s+{re.escape(func_name)}\s*\(", text):
+                    features.add(feature_name)
     return features
 
 
