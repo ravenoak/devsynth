@@ -125,8 +125,7 @@ The project will transition to Phase 2 (Production Readiness) after publishing `
 
 ## Version Milestones
 
-- **0.1.0-alpha.1** (CURRENT TARGET): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
-- **0.1.0-alpha.1** (PLANNED): WSDE peer review workflow targeted for completion (see [issue 104](../../issues/Critical-recommendations-follow-up.md)), Web UI preview available, and major tests passing.
+- **[0.1.0-alpha.1](../../CHANGELOG.md#010-alpha1---unreleased)** (CURRENT TARGET): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
 - **0.1.0-rc.1** (PLANNED): Documentation freeze and full test suite passing as the release candidate for version 0.1.0.
 - **0.2.0–0.6.0** (PLANNED): Incremental releases adding collaboration, Web UI, and testing improvements.
 - **0.2.x** (PLANNED): Multi-language code generation support.
@@ -163,6 +162,8 @@ Recent metrics identify **5,842** tests across the suite—**3,884** unit, **1,1
 
 To publish `0.1.0-alpha.1`, the project must:
 
+- Run `poetry run task release:prep` to generate release artifacts
+- Run `poetry run python scripts/dialectical_audit.py` and resolve any findings from the audit log
 - Resolve the outstanding WebUI and EDRR coordinator test failures
 - Complete WSDE collaboration integration with the memory system and finalize the peer review workflow
 - Address remaining partial features listed in the [Feature Status Matrix](../implementation/feature_status_matrix.md) such as Methodology Integration and the Retry Mechanism
