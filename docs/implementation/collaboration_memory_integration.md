@@ -301,3 +301,22 @@ class PeerReview:
 3. **End-to-End Tests**: Test complete workflows with memory persistence
 4. **Failure Tests**: Test error handling and recovery mechanisms
 5. **Performance Tests**: Test synchronization performance with large datasets
+
+## 8. Transactional Constraints and Recovery Strategies
+
+Cross-store operations between LMDB, FAISS, and Kuzu rely on snapshot-based
+transactions coordinated by the `SyncManager`.
+
+- **Constraints**
+  - LMDB provides native transactions; FAISS and Kuzu rely on in-memory
+    snapshots to emulate transactional behaviour.
+  - All participating stores must succeed for a transaction to commit.
+  - Cached query results are cleared on commit or rollback to avoid stale reads.
+
+- **Recovery Strategies**
+  - On failure, the `SyncManager` restores snapshots for FAISS and Kuzu and
+    rolls back native transactions in LMDB.
+  - Queued updates are discarded and adapters are flushed to ensure a consistent
+    post-rollback state.
+  - Subsequent synchronizations can be retried once the underlying issue is
+    resolved.
