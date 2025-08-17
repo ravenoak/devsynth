@@ -32,6 +32,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
 - **[WSDE-EDRR Collaboration Specification](wsde_edrr_collaboration.md)**: Expected phase progression, memory flush behavior, and peer-review mapping.
 - **[WSDE Role Progression and Memory Semantics](wsde_role_progression_memory.md)**: Identifier-based role mapping and queue flush guarantees.
+- **[EDRR Phase Recovery and Threshold Helpers](edrr_phase_recovery_threshold_helpers.md)**: Coordinator helpers for recovery hooks and threshold configuration.
 - **[Hybrid Memory Architecture](hybrid_memory_architecture.md)**: Specification for DevSynth's hybrid memory architecture.
 - **[Kuzu Memory Integration](kuzu_memory_integration.md)**: Environment-variable overrides and fallback behaviour for the Kuzu-backed memory store.
 - **[Memory Module Handles Missing TinyDB Dependency](memory_optional_tinydb_dependency.md)**: Import behavior when `tinydb` is absent.

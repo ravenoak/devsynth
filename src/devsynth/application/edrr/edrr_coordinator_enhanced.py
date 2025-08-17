@@ -113,6 +113,16 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         """Register a hook for phase transition failures."""
         self.phase_metrics.register_failure_hook(phase, hook)
 
+    def register_phase_recovery_hook(self, phase: Phase, hook: Any) -> None:
+        """Register a recovery hook for phase transition metrics."""
+        self.phase_metrics.register_recovery_hook(phase, hook)
+
+    def configure_phase_thresholds(
+        self, phase: Phase, thresholds: Dict[str, float]
+    ) -> None:
+        """Configure threshold overrides for ``phase``."""
+        self.phase_metrics.configure_thresholds(phase, thresholds)
+
     def progress_to_phase(self, phase: Phase) -> None:
         """
         Progress to the specified phase with enhanced metrics collection.
