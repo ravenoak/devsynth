@@ -40,9 +40,12 @@ if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
   exit 1
 fi
 
+# Export for docker compose variable substitution
+export ENV_FILE
+
 # Pull latest images and build the compose configuration
-docker compose pull
-docker compose build
+docker compose --env-file "$ENV_FILE" pull
+docker compose --env-file "$ENV_FILE" build
 
 # Start the stack and verify health
 "$(dirname "$0")/start_stack.sh" "$ENVIRONMENT"

@@ -36,6 +36,9 @@ if [[ $(stat -c %a "$ENV_FILE") != "600" ]]; then
   exit 1
 fi
 
+# Export for docker compose variable substitution
+export ENV_FILE
+
 docker compose --env-file "$ENV_FILE" --profile "${ENVIRONMENT}" --profile monitoring up -d --build
 
 # Verify services are responsive
