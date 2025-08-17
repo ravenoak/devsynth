@@ -218,6 +218,11 @@ poetry run pytest --cov=src --cov-report=term-missing
 - New features must include appropriate tests (unit tests and BDD tests for user-facing features)
 - Bug fixes should include tests that reproduce the bug
 - No significant decrease in code coverage
+- Mark each test with exactly one speed marker:
+  - `@pytest.mark.fast` – under 1 second
+  - `@pytest.mark.medium` – under 5 seconds
+  - `@pytest.mark.slow` – 5 seconds or more
+- Gate high-memory tests with `@pytest.mark.memory_intensive`
 - Pre-commit hooks will enforce the test-first approach by checking for test files
 
 
