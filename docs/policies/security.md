@@ -73,6 +73,13 @@ DevSynth automates routine security checks to prevent regressions:
 - Developers should run `devsynth security-audit` locally before committing
   changes to catch issues early.
 
+### Audit Reporting
+
+The `security-audit` command records the outcome of each check and can write a
+machine-readable summary. Passing `--report <file>` generates a JSON document
+with `bandit` and `safety` fields set to `passed`, `failed`, or `skipped`.
+Deployment pipelines can archive this report for traceability.
+
 ```bash
 DEVSYNTH_PRE_DEPLOY_APPROVED=true poetry run python scripts/security_audit.py
 ```
