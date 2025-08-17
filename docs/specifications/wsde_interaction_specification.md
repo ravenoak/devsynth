@@ -170,19 +170,19 @@ class ConsensusDecision:
         self.critiques = []
         self.votes = {}
         self.decision = None
-        
+
     def collect_proposals(self):
         """Collect proposals from all agents."""
         pass
-        
+
     def collect_critiques(self):
         """Collect critiques of each proposal."""
         pass
-        
+
     def conduct_voting(self):
         """Conduct voting on proposals."""
         pass
-        
+
     def synthesize_decision(self):
         """Synthesize final decision based on votes and critiques."""
         pass
@@ -213,15 +213,15 @@ class DialecticalReasoning:
         self.thesis = None
         self.antithesis = None
         self.synthesis = None
-        
+
     def generate_thesis(self, problem_context):
         """Generate initial thesis."""
         pass
-        
+
     def generate_antithesis(self):
         """Generate antithesis in response to thesis."""
         pass
-        
+
     def generate_synthesis(self):
         """Generate synthesis from thesis and antithesis."""
         pass
@@ -252,19 +252,19 @@ class PeerReview:
         self.reviews = {}
         self.revision = None
         self.status = "pending"
-        
+
     def assign_reviews(self):
         """Assign review tasks to reviewers."""
         pass
-        
+
     def collect_reviews(self):
         """Collect reviews from all reviewers."""
         pass
-        
+
     def aggregate_feedback(self):
         """Aggregate feedback from all reviews."""
         pass
-        
+
     def request_revision(self):
         """Request revision from author based on feedback."""
         pass
@@ -293,19 +293,19 @@ class RoleRotation:
         self.task_context = task_context
         self.current_assignments = {}
         self.proposed_assignments = {}
-        
+
     def analyze_task_requirements(self):
         """Analyze task to determine role requirements."""
         pass
-        
+
     def match_capabilities(self):
         """Match agent capabilities to role requirements."""
         pass
-        
+
     def propose_assignments(self):
         """Propose new role assignments."""
         pass
-        
+
     def execute_handover(self):
         """Execute handover of responsibilities."""
         pass
@@ -387,6 +387,17 @@ class RoleRotation:
 - Persistent workflow state
 - Human intervention hooks
 
+### 5.4 Role Rotation and Consensus Workflow
+
+**Purpose**: Distribute leadership while synthesizing group decisions.
+
+**Workflow**:
+
+1. Evaluate agents against task context and choose an unused expert as Primus.
+2. Assign remaining roles to other agents in sequence.
+3. Collect solutions from agents and synthesize a consensus from their contributions.
+4. After each cycle, rotate the Primus role and reset usage flags when all agents have served.
+
 
 ## 6. Integration with Other Components
 
@@ -427,7 +438,7 @@ The WSDE multi-agent system uses the Promise system for capability management:
 ```python
 class WSDATeam:
     """Manages a team of agents using the WSDE model."""
-    
+
     def __init__(self, available_agents=None):
         self.available_agents = available_agents or []
         self.role_assignments = {
@@ -437,7 +448,7 @@ class WSDATeam:
             "designer": None,
             "evaluator": None
         }
-    
+
     def assign_roles(self, role_mapping=None):
         """Assign roles to agents based on mapping or automatically."""
         if role_mapping:
@@ -447,23 +458,23 @@ class WSDATeam:
         else:
             # Auto-assign based on agent capabilities
             self._auto_assign_roles()
-        
+
         return self.role_assignments
-    
+
     def get_agent_by_role(self, role):
         """Get agent(s) assigned to a specific role."""
         return self.role_assignments.get(role)
-    
+
     def rotate_primus(self):
         """Rotate the Primus role among agents."""
         # Implementation details
         pass
-    
+
     def _validate_role_mapping(self, mapping):
         """Validate that role mapping is valid."""
         # Implementation details
         pass
-    
+
     def _auto_assign_roles(self):
         """Automatically assign roles based on agent capabilities."""
         # Implementation details
@@ -475,37 +486,37 @@ class WSDATeam:
 ```python
 class AgentInteractionManager:
     """Manages interactions between agents in the WSDE model."""
-    
+
     def __init__(self, wsda_team, memory_manager):
         self.team = wsda_team
         self.memory_manager = memory_manager
         self.active_interactions = {}
-    
+
     def initiate_consensus_decision(self, topic, context):
         """Initiate a consensus decision process."""
         # Implementation details
         pass
-    
+
     def initiate_dialectical_reasoning(self, problem_context):
         """Initiate a dialectical reasoning process."""
         # Implementation details
         pass
-    
+
     def initiate_peer_review(self, work_product, author_id):
         """Initiate a peer review process."""
         # Implementation details
         pass
-    
+
     def initiate_role_rotation(self, task_context):
         """Initiate a role rotation process."""
         # Implementation details
         pass
-    
+
     def send_message(self, sender_id, recipient_ids, message_type, subject, content, metadata=None):
         """Send a message between agents."""
         # Implementation details
         pass
-    
+
     def get_messages(self, agent_id, filters=None):
         """Get messages for a specific agent."""
         # Implementation details
@@ -525,7 +536,7 @@ The WSDE multi-agent interaction system can be customized through configuration:
 
 ## Current Limitations
 
-Full WSDE collaboration is still under development. Dynamic role assignment and advanced consensus mechanisms remain incomplete. Collaboration features are disabled by default via the `features.wsde_collaboration` flag in `config/default.yml`. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for progress tracking.
+The WSDE collaboration workflow now supports dynamic role rotation and consensus synthesis. These features are activated when the `features.wsde_collaboration` flag in `config/default.yml` is enabled. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for progress tracking.
 
 ## 9. Future Enhancements
 
