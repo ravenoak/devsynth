@@ -1,6 +1,6 @@
 # Investigate xdist worker timeouts
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: blocked
 Priority: medium
 Dependencies: [Resolve pytest-xdist assertion errors](Resolve-pytest-xdist-assertion-errors.md), [Normalize and verify test markers](Normalize-and-verify-test-markers.md)
 
