@@ -54,7 +54,14 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
     try:
         if hasattr(memory_manager, "flush_updates"):
             memory_manager.flush_updates()
+        else:
+            flush = getattr(sync_manager, "flush_queue", None)
+            if callable(flush):
+                flush()
+
         wait = getattr(memory_manager, "wait_for_sync", None)
+        if not callable(wait):
+            wait = getattr(sync_manager, "wait_for_async", None)
         if callable(wait):
             import asyncio
             import inspect
