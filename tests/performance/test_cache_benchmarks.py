@@ -1,8 +1,11 @@
 """Benchmarks for tiered cache operations. ReqID: PERF-04"""
 
+import pytest
+
 from devsynth.application.memory.tiered_cache import TieredCache
 
 
+@pytest.mark.slow
 def test_cache_put_benchmark(benchmark):
     """Benchmark inserting 1000 items. ReqID: PERF-04"""
     cache = TieredCache(max_size=1000)
@@ -14,6 +17,7 @@ def test_cache_put_benchmark(benchmark):
     benchmark(fill_cache)
 
 
+@pytest.mark.slow
 def test_cache_get_benchmark(benchmark):
     """Benchmark retrieving a cached item. ReqID: PERF-04"""
     cache = TieredCache(max_size=1000)

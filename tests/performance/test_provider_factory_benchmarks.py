@@ -1,5 +1,7 @@
 """Benchmarks for provider factory creation. ReqID: PERF-03"""
 
+import pytest
+
 from devsynth.adapters.providers.provider_factory import ProviderFactory, ProviderType
 
 
@@ -27,6 +29,7 @@ def _config_without_openai_key():
     }
 
 
+@pytest.mark.slow
 def test_provider_factory_openai_benchmark(benchmark, monkeypatch):
     """Benchmark OpenAI provider creation. ReqID: PERF-03"""
     monkeypatch.setattr(
@@ -35,6 +38,7 @@ def test_provider_factory_openai_benchmark(benchmark, monkeypatch):
     benchmark(lambda: ProviderFactory.create_provider(ProviderType.OPENAI.value))
 
 
+@pytest.mark.slow
 def test_provider_factory_fallback_benchmark(benchmark, monkeypatch):
     """Benchmark default provider fallback creation. ReqID: PERF-03"""
     monkeypatch.setattr(
