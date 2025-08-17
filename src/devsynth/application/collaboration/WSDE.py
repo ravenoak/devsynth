@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.domain.wsde.workflow import progress_roles as _progress_roles
+from devsynth.logger import log_consensus_failure
 from devsynth.methodology.base import Phase
 
 
@@ -19,6 +20,8 @@ class WSDE(WSDETeam):
         result = self.consensus_vote(task)
         decision = result.get("decision") or result.get("result")
         if not decision or result.get("status") != "completed":
+            error = RuntimeError("Consensus vote failed")
+            log_consensus_failure(self.logger, error, extra={"task_id": task.get("id")})
             result["consensus"] = self.build_consensus(task)
         return result
 
