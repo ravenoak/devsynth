@@ -219,7 +219,7 @@ def patch_settings_paths(monkeypatch, temp_memory_path, temp_log_dir):
 
 
 @pytest.fixture(autouse=True)
-def global_test_isolation(monkeypatch, tmp_path):
+def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
     """
     Global fixture to ensure all tests are properly isolated.
 
@@ -230,14 +230,13 @@ def global_test_isolation(monkeypatch, tmp_path):
     4. Patches paths to use temporary directories
     5. Disables file logging for tests
     6. Patches logging configuration
-    7. Cleans up any artifacts after tests
+    7. Resets project-level globals
+    8. Cleans up any artifacts after tests
 
     By using autouse=True, this fixture applies to ALL tests.
     """
     # Save original environment
     original_env = dict(os.environ)
-    # Save loaded modules so tests can modify sys.modules safely
-    original_modules = dict(sys.modules)
 
     # Save original working directory
     original_cwd = os.getcwd()
@@ -313,9 +312,6 @@ def global_test_isolation(monkeypatch, tmp_path):
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
-    # Restore original modules
-    sys.modules.clear()
-    sys.modules.update(original_modules)
 
     # Undo any monkeypatches from the test before running cleanup logic
     monkeypatch.undo()
@@ -415,6 +411,18 @@ def reset_global_state():
     devsynth.logging_setup._logging_configured = orig_logging_configured
     devsynth.logging_setup._configured_log_dir = orig_log_dir
     devsynth.logging_setup._configured_log_file = orig_log_file
+
+    # Ensure coverage collectors don't leak between tests
+    try:  # pragma: no cover - cleanup best effort
+        import coverage
+        from coverage import collector
+
+        cov = coverage.Coverage.current()
+        if cov:
+            cov.stop()
+        collector._collectors.clear()
+    except Exception:
+        pass
 
     # Reset any other global state across modules
     # Example: devsynth.some_module.global_variable = original_value
