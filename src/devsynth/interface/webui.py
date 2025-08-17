@@ -2135,6 +2135,12 @@ class WebUI(UXBridge):
     def diagnostics_page(self) -> None:
         """Run environment diagnostics via :func:`doctor_cmd`."""
         st.header("Diagnostics")
+        audit_log = Path("dialectical_audit.log")
+        with st.expander("Dialectical Audit Log"):
+            if audit_log.exists():
+                st.code(audit_log.read_text())
+            else:
+                st.write("No audit logs available.")
         with st.form("diagnostics"):
             config_dir = st.text_input("Config Directory", "config")
             submitted = st.form_submit_button("Run Diagnostics")

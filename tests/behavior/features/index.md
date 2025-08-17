@@ -125,6 +125,7 @@ This index lists all feature files for easy navigation.
 - [webui/config.feature](./webui/config.feature)
 - [webui/dbschema.feature](./webui/dbschema.feature)
 - [webui/diagnostics.feature](./webui/diagnostics.feature)
+- [webui/diagnostics_audit.feature](./webui/diagnostics_audit.feature)
 - [webui/docs_generation.feature](./webui/docs_generation.feature)
 - [webui/gather_wizard.feature](./webui/gather_wizard.feature)
 - [webui/ingestion.feature](./webui/ingestion.feature)
