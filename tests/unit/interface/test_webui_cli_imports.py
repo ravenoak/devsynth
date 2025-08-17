@@ -1,37 +1,25 @@
 import importlib
 import sys
-import pytest
 from types import ModuleType
 
-@pytest.mark.medium
+import pytest
+
 
 @pytest.fixture
 def clean_state():
-    # Set up clean state
+    """Set up and tear down a clean state for imports."""
     yield
-    # Clean up state
 
-def test_with_clean_state(clean_state):
-    """Importing webui should succeed even if CLI commands are missing."""
 
+@pytest.mark.medium
+def test_with_clean_state(clean_state, monkeypatch):
+    """[R-WEBUI-CLI-001] Importing webui should succeed even if CLI commands are missing."""
     cli_module = ModuleType("devsynth.application.cli")
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_module)
-    import devsynth.application
 
-    original = module_name
-    try:
-        monkeypatch.setattr(target_module, mock_function)
-        # Test code here
-    finally:
-        # Restore original if needed for cleanup
-        pass
+    from devsynth.interface import webui
 
-        import importlib
-        from devsynth.interface import webui
-        # Reload the module to ensure clean state
-        importlib.reload(module)
+    importlib.reload(webui)
 
-        importlib.reload(webui)
-
-        assert webui.code_cmd is None
-        assert webui.spec_cmd is None
+    assert webui.spec_cmd is None
+    assert webui._cli("code_cmd") is None
