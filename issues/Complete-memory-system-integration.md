@@ -1,6 +1,6 @@
 # Complete memory system integration
 Milestone: 0.1.0-alpha.1
-Status: blocked
+Status: open
 
 Priority: medium
 Dependencies: None
