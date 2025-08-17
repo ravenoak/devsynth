@@ -10,6 +10,7 @@ from devsynth.api import app
 client = TestClient(app)
 
 
+@pytest.mark.slow
 def test_health_endpoint_benchmark(benchmark):
     """Benchmark the /health endpoint. ReqID: PERF-03"""
     benchmark(lambda: client.get("/health"))
