@@ -223,6 +223,7 @@ class ChromaDBAdapter(VectorStore):
             self.rollback_transaction(tx_id)
             raise
         else:
+            self.prepare_commit(tx_id)
             self.commit_transaction(tx_id)
 
     def _serialize_metadata(self, vector: MemoryVector) -> Dict[str, Any]:

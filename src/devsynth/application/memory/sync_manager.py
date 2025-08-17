@@ -578,8 +578,10 @@ class SyncManager:
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
                 continue
-            if name == "vector" and hasattr(adapter, "similarity_search"):
-                embedding = self.memory_manager._embed_text(query)
+            if hasattr(adapter, "similarity_search"):
+                embedding = self.memory_manager._embed_text(
+                    query, getattr(adapter, "dimension", 5)
+                )
                 results[name] = adapter.similarity_search(embedding, top_k=5)
             elif hasattr(adapter, "search"):
                 results[name] = adapter.search({"content": query})
@@ -604,8 +606,10 @@ class SyncManager:
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
                 return name, []
-            if name == "vector" and hasattr(adapter, "similarity_search"):
-                embedding = self.memory_manager._embed_text(query)
+            if hasattr(adapter, "similarity_search"):
+                embedding = self.memory_manager._embed_text(
+                    query, getattr(adapter, "dimension", 5)
+                )
                 result = await asyncio.to_thread(
                     adapter.similarity_search, embedding, top_k=5
                 )

@@ -36,6 +36,11 @@ except Exception as exc:  # pragma: no cover - graceful fallback
     LMDBStore = None  # type: ignore[assignment]
     _LMDB_ERROR = exc
 
+try:  # pragma: no cover - optional dependency
+    from ...application.memory.kuzu_store import KuzuStore
+except Exception:  # pragma: no cover - graceful fallback
+    KuzuStore = None  # type: ignore[assignment]
+
 from ...application.memory.memory_manager import MemoryManager
 from ...application.memory.sync_manager import SyncManager
 
@@ -84,7 +89,9 @@ class MultiStoreSyncManager:
         # Some of the backend stores declare abstract methods which can
         # interfere with instantiation in tests.  Clear the abstract method
         # sets so they behave like concrete classes.
-        for cls in (LMDBStore, FAISSStore, KuzuMemoryStore):
+        for cls in (LMDBStore, FAISSStore, KuzuMemoryStore, KuzuStore):
+            if cls is None:
+                continue
             try:  # pragma: no cover - defensive
                 cls.__abstractmethods__ = frozenset()
             except Exception:
