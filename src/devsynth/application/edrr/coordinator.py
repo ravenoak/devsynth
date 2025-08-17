@@ -36,10 +36,8 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
-from devsynth.methodology.dialectical_reasoning import reasoning_loop
-from devsynth.methodology.edrr_coordinator import (
-    EDRRCoordinator as MethodologyEDRRCoordinator,
-)
+from devsynth.methodology.edrr import EDRRCoordinator as MethodologyEDRRCoordinator
+from devsynth.methodology.edrr import reasoning_loop
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)

@@ -102,7 +102,7 @@ Additional alias phases—Analysis, Implementation, and Refinement—are now sup
 - Sprint planning helpers are now centralized in
   `devsynth.application.sprint.planning`.
 - Retrospective reviews can be automated through
-  `devsynth.methodology.edrr_coordinator.EDRRCoordinator`.
+  `devsynth.methodology.edrr.coordinator.EDRRCoordinator`.
 
 ## Current Status
 
