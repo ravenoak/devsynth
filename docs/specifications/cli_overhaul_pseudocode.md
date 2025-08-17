@@ -79,6 +79,7 @@ class UXBridge:
     confirm = confirm_choice
     print = display_result
 ```
+
 ## Implementation Status
 
 This feature is **implemented**. The CLI now leverages `UXBridge` and the

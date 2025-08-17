@@ -34,7 +34,7 @@ DevSynth uses a comprehensive testing approach that combines multiple testing st
 
 The test directory structure is organized as follows:
 
-```
+```text
 tests/
 ├── conftest.py              # Global test fixtures and configuration
 ├── behavior/                # Behavior-driven (BDD) tests

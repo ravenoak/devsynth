@@ -49,7 +49,7 @@ cd demo
 The command generates a `.devsynth/project.yaml` file and bootstraps a basic
 project layout:
 
-```
+```text
 demo/
 ├── .devsynth/
 │   └── project.yaml

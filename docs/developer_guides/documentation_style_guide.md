@@ -184,10 +184,12 @@ Use fenced code blocks with language specification:
 
 ````markdown
 ```python
+
 def example_function():
     """Example docstring."""
     return True
-```
+
+```text
 ````
 
 ### Inline Code
@@ -204,9 +206,11 @@ For command line examples:
 
 ```markdown
 ```bash
+
 # Create a new project
 devsynth init --path ./my-project
-```
+
+```text
 ```
 
 ## Links and Cross-References
@@ -268,10 +272,12 @@ Example:
 
 ````markdown
 ```mermaid
+
 graph TD
     A[Start] --> B[Process]
     B --> C[End]
-```
+
+```text
 
 The diagram shows a simple flow from Start to Process to End.
 ````

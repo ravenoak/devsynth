@@ -66,6 +66,7 @@ Install the optional `gpu` extra for hardware-accelerated models:
 ```bash
 pipx install devsynth
 ```
+
 ### Fallback Modes
 
 Without the `offline` extra, DevSynth uses a lightweight built-in provider that returns deterministic responses. Install with `poetry install --extras offline` and optionally `--extras gpu` to enable local models via `transformers` and `torch`.

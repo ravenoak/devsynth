@@ -223,22 +223,22 @@ def test_with_data(sample_data):
 ### Debugging Failed Tests
 
 1. Run the failing test in isolation with verbose output:
-   ```
+   ```text
    pytest path/to/test.py::test_name -v
    ```
 
 2. Add print statements or use pytest's `-s` flag to see output:
-   ```
+   ```text
    pytest path/to/test.py::test_name -s
    ```
 
 3. Use pytest's `--pdb` flag to drop into the debugger on failure:
-   ```
+   ```text
    pytest path/to/test.py::test_name --pdb
    ```
 
 4. Check for test interdependencies by running tests in random order:
-   ```
+   ```text
    pytest path/to/test.py --random-order
    ```
 
