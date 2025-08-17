@@ -158,9 +158,11 @@ helpers ensure phase and micro-cycle limits respect safe defaults. See the
 ## Current Limitations
 
 The EDRR framework now includes recursion handling and automatic phase
-transitions in the coordinator. Micro-cycle utilities and error recovery hooks are now implemented. Advanced optimization algorithms and rich
-monitoring tools are still in development. Visualization dashboards and detailed
-metrics remain on the roadmap along with improved manual override workflows.
+transitions in the coordinator. Micro-cycle utilities, phase recovery hooks,
+and threshold helpers are implemented and validated by unit tests. Advanced
+optimization algorithms and rich monitoring tools are still in development.
+Visualization dashboards and detailed metrics remain on the roadmap along with
+improved manual override workflows.
 
 ## Implementation Plan
 

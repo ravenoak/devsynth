@@ -57,17 +57,18 @@ def test_recovery_registration_and_threshold_config(base_dependencies):
 
 
 @pytest.mark.medium
-def test_micro_cycle_recovery_auto_progress(base_dependencies):
+def test_micro_cycle_inherits_recovery_config(base_dependencies):
     mm, team, ca, ast, pm, dm = base_dependencies
     coord = EnhancedEDRRCoordinator(mm, team, ca, ast, pm, dm)
-    coord.start_cycle({"description": "macro"})
-    micro = coord.create_micro_cycle({"description": "micro"}, Phase.EXPAND)
 
     def hook(metrics):
         metrics[MetricType.QUALITY.value] = 1.0
         return {"recovered": True}
 
-    micro.register_phase_recovery_hook(Phase.EXPAND, hook)
+    coord.register_phase_recovery_hook(Phase.EXPAND, hook)
+    coord.configure_phase_thresholds(Phase.EXPAND, {MetricType.QUALITY.value: 0.9})
+    coord.start_cycle({"description": "macro"})
+    micro = coord.create_micro_cycle({"description": "micro"}, Phase.EXPAND)
     micro.phase_metrics.end_phase(
         Phase.EXPAND,
         {
@@ -77,5 +78,12 @@ def test_micro_cycle_recovery_auto_progress(base_dependencies):
             MetricType.CONFLICTS.value: 0,
         },
     )
+    should_transition, reasons = micro.phase_metrics.should_transition(Phase.EXPAND)
+    assert should_transition is True
+    assert reasons["recovery"] == "metrics recovered"
     micro._enhanced_maybe_auto_progress()
     assert micro.current_phase == Phase.DIFFERENTIATE
+    assert (
+        micro.phase_metrics.get_thresholds(Phase.EXPAND)[MetricType.QUALITY.value]
+        == 0.9
+    )
