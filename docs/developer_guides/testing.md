@@ -419,6 +419,22 @@ All test changes should undergo a brief review cycle before merging:
    [cross_functional_review_process.md](cross_functional_review_process.md)
    for expectations.
 
+### Generated Tests
+
+Automatically produced tests require extra scrutiny before they become part of
+the suite:
+
+1. Scaffold missing integration coverage with
+   `devsynth.testing.generation.scaffold_integration_tests` or
+   `write_scaffolded_tests` to create placeholder modules under
+   `tests/integration/generated/`.
+2. Replace placeholder assertions and remove any `pytest.mark.skip` markers once
+   real behavior is verified.
+3. Apply edge-case prompt templates from `templates/test_generation/` to ensure
+   boundary values and error conditions are exercised.
+4. Re-run marker normalization scripts on the new files before executing
+   `poetry run pre-commit run --files` and the relevant test suites.
+
 ## Enabling Resource-Dependent Tests
 
 Some tests require external services such as LM Studio or the DevSynth CLI. By
