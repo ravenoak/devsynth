@@ -28,8 +28,24 @@ This guide explains how to generate API reference pages for DevSynth using the `
    ```bash
    poetry run python scripts/gen_ref_pages.py
    ```
-3. The script reads project structure from `manifest.yaml` if available. Generated pages appear under `docs/api_reference/` and are included in the MkDocs build.
+3. Build the documentation site to include the generated pages:
+
+   ```bash
+   poetry run mkdocs build --strict
+   ```
+
+## End-to-End Example
+
+```bash
+$ poetry run python scripts/gen_ref_pages.py
+Generating API reference for src/devsynth
+$ poetry run mkdocs build --strict
+INFO     -  Building documentation...
+INFO     -  Documentation built in "site"
+```
+
+Open `site/index.html` in a browser to browse the full reference. The script reads project structure from `manifest.yaml` if available and defaults to `src/` otherwise.
 
 ## Implementation Status
 
-.
+The generation script is integrated with MkDocs through the `gen-files` plugin, ensuring API pages regenerate during each build.
