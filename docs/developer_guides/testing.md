@@ -285,16 +285,23 @@ poetry run pytest -q
 
 # pip commands are for installing from PyPI only
 
-```text
 Always run tests with `poetry run devsynth run-tests --speed=<cat>`. Use `--maxfail <n>` to exit after a set number of failures. If `pytest` reports missing packages, run `poetry install` to restore them.
+
+Run each speed category separately to surface any parallel execution issues:
+
+```bash
+poetry run devsynth run-tests --speed=fast
+poetry run devsynth run-tests --speed=medium
+poetry run devsynth run-tests --speed=slow
+```
+
+The test runner automatically disables coverage collection and the `pytest-benchmark` plugin when running in parallel to avoid `pytest-xdist` assertion errors.
 
 Skip resource-heavy tests during routine development by running only fast tests:
 
 ```bash
-
 poetry run devsynth run-tests --speed=fast
-
-```text
+```
 
 Mark such tests with `@pytest.mark.memory_intensive`. For optional services, use resource markers such as `@pytest.mark.requires_resource("lmstudio")` and set `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=false` to skip them when unavailable.
 
