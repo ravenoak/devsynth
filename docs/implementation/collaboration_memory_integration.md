@@ -185,11 +185,11 @@ Use the MemoryManager's transaction support for operations that modify multiple 
 with memory_manager.begin_transaction(["tinydb", "graph"]) as txn:
     # Store task
     task_id = memory_manager.store_item(task_memory_item)
-    
+
     # Store message
     message_memory_item.content["related_task_id"] = task_id
     memory_manager.store_item(message_memory_item)
-    
+
     # Update task with message ID
     task_memory_item.content["messages"].append(message_memory_item.id)
     memory_manager.store_item(task_memory_item)
@@ -249,17 +249,17 @@ class AgentCollaborationSystem:
     def __init__(self, memory_manager=None):
         self.memory_manager = memory_manager
         # ... existing initialization
-        
+
     def create_task(self, task_type, description, inputs, ...):
         task = CollaborationTask(...)
-        
+
         if self.memory_manager:
             # Store task in memory
             task_item = to_memory_item(task, MemoryType.COLLABORATION_TASK)
             self.memory_manager.store_item(task_item)
-        
+
         # ... existing logic
-        
+
         return task
 ```
 
@@ -272,7 +272,7 @@ class PeerReview:
     def __init__(self, work_product, author, reviewers, memory_manager=None, ...):
         self.memory_manager = memory_manager
         # ... existing initialization
-        
+
     def finalize(self, approved=True):
         # ... existing logic
 
