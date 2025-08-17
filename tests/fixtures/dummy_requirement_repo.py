@@ -13,3 +13,9 @@ class DummyRepo(RequirementRepositoryInterface):
 
     def delete_requirement(self, requirement_id):
         raise NotImplementedError
+
+    def get_requirements_by_status(self, status):
+        raise NotImplementedError
+
+    def get_requirements_by_type(self, type_):
+        raise NotImplementedError
