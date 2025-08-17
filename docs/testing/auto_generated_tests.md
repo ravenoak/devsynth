@@ -19,3 +19,12 @@ automatically.
 4. Run `poetry run devsynth run-tests --speed=fast` and `poetry run pre-commit run --files ...` before submitting changes.
 
 This process ensures that auto-generated tests receive human oversight and evolve into reliable integration coverage.
+
+## Mocking Optional Services
+
+Some providers, such as LM Studio, may be unavailable during local testing.  Use
+`pytest.importorskip("lmstudio")` to skip tests when the optional SDK is not
+installed and rely on the `lmstudio_stub` fixture to emulate the HTTP API.  The
+fixture lives under `tests/unit/fakes/` and returns deterministic responses for
+model listing, text generation, and embeddings so tests can run without a real
+LM Studio instance.

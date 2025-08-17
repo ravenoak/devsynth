@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import types
 from dataclasses import dataclass
 from typing import Any, Dict, List
@@ -13,7 +12,7 @@ from fastapi.testclient import TestClient
 
 @dataclass
 class LMStudioMockServer:
-    """Container for the LM Studio mock server state."""
+    """In-memory FastAPI server emulating the LM Studio HTTP API."""
 
     base_url: str
     fail: bool = False
@@ -31,8 +30,10 @@ class LMStudioMockServer:
 
 
 @pytest.fixture
-def lmstudio_mock() -> LMStudioMockServer:
-    """Provide a mocked LM Studio HTTP API and SDK."""
+def lmstudio_stub(monkeypatch) -> LMStudioMockServer:
+    """Provide a mocked LM Studio HTTP API and patch the SDK."""
+
+    lmstudio = pytest.importorskip("lmstudio")
 
     app = FastAPI()
     server = LMStudioMockServer(base_url="")
@@ -123,15 +124,18 @@ def lmstudio_mock() -> LMStudioMockServer:
         def _reset_default_client(self) -> None:  # pragma: no cover - noop
             return None
 
-    mock_module = types.SimpleNamespace(
-        llm=lambda model: MockLLM(model),
-        embedding_model=lambda model: MockEmbeddingModel(model),
-        sync_api=MockSyncAPI(),
+    monkeypatch.setattr(lmstudio, "llm", lambda model: MockLLM(model))
+    monkeypatch.setattr(
+        lmstudio, "embedding_model", lambda model: MockEmbeddingModel(model)
     )
-    sys.modules["lmstudio"] = mock_module
+    monkeypatch.setattr(lmstudio, "sync_api", MockSyncAPI())
 
     try:
         yield server
     finally:
-        sys.modules.pop("lmstudio", None)
         server.reset()
+
+
+def test_lmstudio_stub_fixture_returns_base_url(lmstudio_stub):
+    """Ensure the stub fixture provides a usable base URL."""
+    assert lmstudio_stub.base_url
