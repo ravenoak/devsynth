@@ -413,7 +413,7 @@ project configuration.
 - Changelog and semantic versioning ensure all changes are tracked ([CHANGELOG.md](CHANGELOG.md))
 
 ## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/developer_guides/contributing.md](docs/developer_guides/contributing.md) for guidelines, code style, and development setup. Directory-specific conventions live in [src/AGENTS.md](src/AGENTS.md) and [docs/AGENTS.md](docs/AGENTS.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/developer_guides/contributing.md](docs/developer_guides/contributing.md) for guidelines, code style, and development setup. AI contributor instructions live in [AGENTS.md](AGENTS.md) with directory-specific guidance in [src/AGENTS.md](src/AGENTS.md) and [docs/AGENTS.md](docs/AGENTS.md).
 
 ## License
 DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.

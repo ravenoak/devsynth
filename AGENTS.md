@@ -1,4 +1,7 @@
-# AGENTS
+# AGENTS (AI Contributor Guide)
+
+These instructions are for **AI contributors**. Human developers should see
+`CONTRIBUTING.md` for participation guidelines.
 
 DevSynth uses a specification-first BDD workflow and starts every task with the Socratic checklist:
 
@@ -9,7 +12,7 @@ Key policies:
 - [Dialectical Audit Policy](docs/policies/dialectical_audit.md)
 - [Documentation Policies](docs/policies/documentation_policies.md)
 
-Directory-specific instructions:
+Directory-specific AI instructions:
 - [src/AGENTS.md](src/AGENTS.md) – source code
 - [docs/AGENTS.md](docs/AGENTS.md) – documentation
 
