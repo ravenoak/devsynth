@@ -1,9 +1,15 @@
 {
-  "questions": [],
-  "resolved": [
+  "questions": [
+    "Feature 'MVU Command Execution' has tests but is not documented.",
     "Feature 'MVU shell command execution' has tests but is not documented.",
     "Feature 'Multi-disciplinary dialectical reasoning' has tests but is not documented.",
+    "Feature 'Simple Addition' has tests but is not documented.",
+    "Feature 'Simple addition input validation' has tests but is not documented.",
+    "Feature 'MVU Shell Command Execution' is documented but has no corresponding tests.",
+    "Feature 'Simple Addition Input Validation' is documented but has no corresponding tests.",
     "Feature 'MVU shell command execution' is referenced in docs or tests but not in code.",
-    "Feature 'Multi-disciplinary dialectical reasoning' is referenced in docs or tests but not in code."
-  ]
+    "Feature 'Multi-disciplinary dialectical reasoning' is referenced in docs or tests but not in code.",
+    "Feature 'Simple addition input validation' is referenced in docs or tests but not in code."
+  ],
+  "resolved": []
 }

@@ -71,7 +71,7 @@ Feature: Interactive Requirements Flow WebUI
 Feature: Interactive Requirements Wizard
 Feature: Invalid configuration handling
 Feature: Kuzu memory integration
-Feature: MVU Command Execution
+Feature: MVU Shell Command Execution
 Feature: Memory Adapter Integration
 Feature: Memory Backend Integration
 Feature: Memory Manager and Adapters
@@ -116,7 +116,7 @@ Feature: Self Analysis
 Feature: Serve Command
 Feature: Setup Wizard
 Feature: Shared UXBridge across CLI and WebUI
-Feature: Simple Addition
+Feature: Simple Addition Input Validation
 Feature: Spec Command
 Feature: Sprint ceremonies align with EDRR phases
 Feature: Streamlit WebUI Navigation

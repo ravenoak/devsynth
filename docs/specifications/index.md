@@ -28,6 +28,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md)**: The current authoritative specification for DevSynth.
 - **[Dialectical Reasoning Persists Results to Memory](dialectical_reasoning_memory_persistence.md)**: Dialectical reasoning results stored with EDRR phases.
 - **[Dialectical Reasoner Evaluation Hooks](dialectical_reasoning.md)**: Callbacks observe reasoning outcomes.
+- **[Multi-disciplinary Dialectical Reasoning](multi-disciplinary-dialectical-reasoning.md)**: Tracks disciplinary perspectives during reasoning steps.
 - **[Impact Assessment Persists Results to Memory](dialectical_reasoning_impact_memory_persistence.md)**: Impact assessments stored with EDRR phases.
 - **[EDRR Specification](edrr_cycle_specification.md)**: Specification for the EDRR cycle.
 - **[WSDE Interaction Specification](wsde_interaction_specification.md)**: Specification for the Wide Sweep, Deep Exploration interaction model.
@@ -39,7 +40,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Kuzu Memory Integration](kuzu_memory_integration.md)**: Environment-variable overrides and fallback behaviour for the Kuzu-backed memory store.
 - **[Memory Module Handles Missing TinyDB Dependency](memory_optional_tinydb_dependency.md)**: Import behavior when `tinydb` is absent.
 - **[LM Studio Integration](lmstudio_integration.md)**: Mock server for LM Studio API.
-- **[MVU Command Execution](mvu-command-execution.md)**: Runs shell commands from the MVU CLI.
+- **[MVU Shell Command Execution](mvu-shell-command-execution.md)**: Runs shell commands from the MVU CLI.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
 - **[Requirements Wizard](requirements_wizard.md)**: Logging and priority persistence for the requirements wizard.
@@ -52,7 +53,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Policy Audit Script](policy_audit.md)**: Scans configs and code for policy violations.
 - **[WebUI Diagnostics Audit Logs](webui_diagnostics_audit_logs.md)**: Display dialectical audit logs on the diagnostics page.
 - **[Project Documentation Ingestion](project-documentation-ingestion.md)**: Indexes project documentation for retrieval.
-- **[Simple Addition Input Validation](simple_addition_input_validation.md)**: `add` rejects non-numeric inputs.
+- **[Simple Addition Input Validation](simple-addition-input-validation.md)**: `add` rejects non-numeric inputs.
 
 ## Implementation Plans
 

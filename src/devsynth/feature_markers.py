@@ -343,6 +343,18 @@ def feature_kuzu_memory_integration():
     pass
 
 
+# Feature: MVU Shell Command Execution
+def feature_mvu_shell_command_execution():
+    """Marker function for audit."""
+    pass
+
+
+# Feature: Multi-disciplinary Dialectical Reasoning
+def feature_multi_disciplinary_dialectical_reasoning():
+    """Marker function for audit."""
+    pass
+
+
 # Feature: MVU Command Execution
 def feature_mvu_command_execution():
     """Marker function for audit."""
@@ -613,8 +625,8 @@ def feature_shared_uxbridge_across_cli_and_webui():
     pass
 
 
-# Feature: Simple Addition
-def feature_simple_addition():
+# Feature: Simple Addition Input Validation
+def feature_simple_addition_input_validation():
     """Marker function for audit."""
     pass
 

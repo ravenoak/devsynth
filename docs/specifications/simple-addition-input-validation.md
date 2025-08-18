@@ -31,3 +31,7 @@ The current implementation accepts arbitrary objects and may concatenate strings
 
 - Attempting to add two string values raises a `TypeError`.
 - Adding two numbers continues to return their sum.
+
+## References
+
+- [tests/behavior/features/general/simple_addition_input_validation.feature](../../tests/behavior/features/general/simple_addition_input_validation.feature)

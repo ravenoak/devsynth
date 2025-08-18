@@ -6,14 +6,14 @@ status: draft
 tags:
   - specification
   - mvu
-  - command-execution
-title: MVU Command Execution
+  - shell-command-execution
+title: MVU Shell Command Execution
 version: 0.1.0-alpha.1
 ---
 
 # Summary
 
-The MVU command execution workflow dispatches MVU subcommands through the DevSynth CLI and reports their results.
+The MVU shell command execution workflow dispatches MVU subcommands through the DevSynth CLI and reports their results.
 
 ## Socratic Checklist
 - What is the problem?
@@ -34,3 +34,8 @@ Developers need a dependable way to run MVU-specific commands and capture their 
 - Executing `devsynth mvu exec echo hello` runs the shell command and outputs `hello`.
 - The command exits with code `0` when the underlying command succeeds.
 - Errors return a non-zero exit code and expose the underlying error message.
+
+## References
+
+- [issues/mvu-shell-command-execution.md](../../issues/mvu-shell-command-execution.md)
+- [tests/behavior/features/mvu/command_execution.feature](../../tests/behavior/features/mvu/command_execution.feature)

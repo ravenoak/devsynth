@@ -1,5 +1,5 @@
 ---
-title: "MVU Command Execution"
+title: "MVU Shell Command Execution"
 date: "2025-08-20"
 version: "0.1.0-alpha.1"
 tags:
@@ -11,10 +11,10 @@ last_reviewed: "2025-08-20"
 ---
 
 <div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; MVU Command Execution
+<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; MVU Shell Command Execution
 </div>
 
-# MVU Command Execution
+# MVU Shell Command Execution
 
 Use `devsynth mvu exec` to run arbitrary shell commands within the MVU workflow. The command's `stdout` and `stderr` are combined and displayed, and the CLI exits with the underlying command's return code.
 
