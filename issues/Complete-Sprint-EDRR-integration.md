@@ -19,4 +19,4 @@ Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplet
 
 ## References
 
-- Related: [WSDE collaboration test failures](WSDE-collaboration-test-failures.md)
+- Related: [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
