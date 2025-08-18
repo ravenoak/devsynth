@@ -4,6 +4,13 @@ Status: in progress
 Priority: low
 Dependencies: docs/specifications/multi-disciplinary-dialectical-reasoning.md, tests/behavior/features/dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature
 
+## Problem Statement
+<description>
+
+
+## Action Plan
+- <tasks>
+
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 - 2025-08-18: drafted specification and BDD scenario.

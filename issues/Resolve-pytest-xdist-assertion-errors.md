@@ -5,6 +5,10 @@ Status: in progress
 Priority: high
 Dependencies: [Normalize and verify test markers](Normalize-and-verify-test-markers.md)
 
+## Problem Statement
+<description>
+
+
 
 Running `devsynth run-tests` across speed categories triggers internal pytest-xdist assertion errors, preventing full suite completion.
 
@@ -14,6 +18,9 @@ Running `devsynth run-tests` across speed categories triggers internal pytest-xd
 - Ensure `devsynth run-tests` completes without internal assertion errors across fast, medium, and slow categories.
 
 
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: fast suite passes without assertions; medium and slow remain unverified.

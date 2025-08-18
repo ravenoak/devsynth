@@ -5,11 +5,18 @@ Status: in progress
 Priority: high
 Dependencies: [Implement SDLC security audits](archived/implement-sdlc-security-audits.md), [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 
+## Problem Statement
+<description>
+
+
 This issue captures remaining work from the critical recommendations report.
 
 - Address security improvements for deployment.
 - Refine EDRR coordination behavior and missing step definitions.
 - Update documentation to reflect implemented recommendations.
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: awaiting security audit implementation and audit question resolution.

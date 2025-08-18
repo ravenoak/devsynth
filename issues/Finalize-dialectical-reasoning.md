@@ -5,12 +5,19 @@ Status: in progress
 Priority: medium
 Dependencies: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 
+## Problem Statement
+<description>
+
+
 This issue tracks tasks needed to finish the dialectical reasoning framework.
 
 - Integrate dialectical reasoning loop into EDRR workflow
 - Add consensus failure handling and logging
 - Ensure reasoning results persist to memory
 - Expand unit tests for reasoning modules
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: awaiting resolution of audit questions before finalizing reasoning loop.

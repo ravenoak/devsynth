@@ -5,6 +5,10 @@ Status: blocked
 Priority: medium
 Dependencies: [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
 
+## Problem Statement
+<description>
+
+
 
 Integration tests for WSDE and EDRR now hang within collaboration memory utilities after the initial cases, indicating that the workflow logic is incomplete.
 
@@ -14,6 +18,9 @@ Integration tests for WSDE and EDRR now hang within collaboration memory utiliti
 - Ensure [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../tests/integration/general/test_wsde_edrr_component_interactions.py) and related suites run to completion.
 
 
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: collaboration tests still hang; workflow updates pending.

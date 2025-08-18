@@ -5,12 +5,19 @@ Status: blocked
 Priority: medium
 Dependencies: [Normalize and verify test markers](Normalize-and-verify-test-markers.md), [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md)
 
+## Problem Statement
+<description>
+
+
 
 Automated unit test generation works but integration coverage is lacking.
 
 - Implement integration test scaffolding for generated modules
 - Improve prompt templates for edge cases
 - Document recommended review workflow for generated tests
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: LM Studio mock service completed; awaiting marker normalization.
