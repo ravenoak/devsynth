@@ -283,6 +283,8 @@ def verify_file_markers(
                 "no:cov",
                 "-p",
                 "no:xdist",
+                "--override-ini",
+                "addopts=",
                 f"-m={marker_type}",
                 "--collect-only",
                 "-q",  # Use quiet output for reliable parsing
@@ -775,6 +777,11 @@ def verify_directory_markers(
                         ],
                     }
     logger.debug("ThreadPoolExecutor shutdown for %s", directory)
+
+    results["success"] = (
+        results.get("files_with_issues", 0) == 0
+        and results.get("subprocess_timeouts", 0) == 0
+    )
 
     return results
 
