@@ -1,12 +1,11 @@
 # Test Metrics
 Milestone: 0.1.0-alpha.1
 Status: in progress
-Priority: medium
-Dependencies: None
+Priority: low
+Dependencies: docs/specifications/test-metrics.md, tests/behavior/features/test_metrics.feature
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- Specification: docs/specifications/test-metrics.md
-- BDD Feature: tests/behavior/features/test_metrics.feature
+- None

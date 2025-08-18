@@ -1,12 +1,11 @@
 # Validate Metadata
 Milestone: 0.1.0-alpha.1
 Status: in progress
-Priority: medium
-Dependencies: None
+Priority: low
+Dependencies: docs/specifications/validate-metadata.md, tests/behavior/features/validate_metadata.feature
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- Specification: docs/specifications/validate-metadata.md
-- BDD Feature: tests/behavior/features/validate_metadata.feature
+- None
