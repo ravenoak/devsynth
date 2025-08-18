@@ -2,7 +2,9 @@
 Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
-Dependencies: docs/specifications/project-documentation-ingestion.md, tests/behavior/features/project_documentation_ingestion.feature
+Dependencies:
+- docs/specifications/project-documentation-ingestion.md
+- tests/behavior/features/project_documentation_ingestion/project_documentation_ingestion.feature
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
