@@ -2,7 +2,7 @@
 
 This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`. Follow the steps below when contributing.
 
-DevSynth values clarity, collaboration, and dependable automation. All work follows a **specification-first BDD workflow** and is subject to [dialectical audits](docs/policies/dialectical_audit.md). Begin each task with the Socratic checklist:
+DevSynth values clarity, collaboration, and dependable automation. All work follows a **specification-first BDD workflow** and adheres to the [Dialectical Audit Policy](docs/policies/dialectical_audit.md). Begin each task with the Socratic checklist:
 
 - What is the problem?
 - What proofs confirm the solution?
@@ -14,14 +14,8 @@ See [`docs/policies/documentation_policies.md`](docs/policies/documentation_poli
 ## Environment Expectations
 
 - Run the environment provisioning script before beginning any development to provision the environment. Always refer to it generically as **the environment provisioning script** and update it according to best practices; do not mention its filename or path elsewhere in the repository.
-- It runs verification commands to ensure project consistency:
-
-  ```bash
-  poetry run python tests/verify_test_organization.py
-  poetry run python scripts/verify_test_markers.py
-  poetry run python scripts/verify_requirements_traceability.py
-  poetry run python scripts/verify_version_sync.py
-  ```
+- For release-specific setup, consult the [`0.1.0-alpha.1` release notes](docs/release/0.1.0-alpha.1.md).
+- It runs verification commands to ensure project consistency (see the Pre-PR Checks section for the specific commands).
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
 - Optional extras in `pyproject.toml` are automatically cached by the environment provisioning script, keeping them synchronized with the project configuration while skipping heavy GPU packages.
@@ -81,11 +75,6 @@ See [`docs/policies/documentation_policies.md`](docs/policies/documentation_poli
    PIP_NO_INDEX=1 poetry run pip check
    ```
 
-Before implementing changes—especially when introducing new features—draft a specification and a failing test guided by the Socratic checklist:
-
-- What is the problem?
-- What proofs confirm the solution?
-
 ## Issue Tracking
 
 - Use the in-repo issue tracker under `issues/` (see [issues/README.md](issues/README.md)).
@@ -98,9 +87,7 @@ Before implementing changes—especially when introducing new features—draft a
 
 - Always draft a specification for any new functionality in `docs/specifications/` (see the [specification index](docs/specifications/index.md)) **before** implementation.
 - Always add a failing BDD feature under `tests/behavior/features/` prior to writing code.
-- Use this Socratic checklist when preparing specs and tests:
-  - What is the problem?
-  - What proofs confirm the solution?
+- Use the Socratic checklist above when preparing specs and tests.
 
 ## Pre-PR Checks
 
