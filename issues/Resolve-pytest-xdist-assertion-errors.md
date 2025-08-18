@@ -3,7 +3,7 @@ Milestone: 0.1.0-alpha.1
 Status: in progress
 
 Priority: high
-Dependencies: [Normalize and verify test markers](Normalize-and-verify-test-markers.md)
+Dependencies: None
 
 ## Problem Statement
 <description>
@@ -26,7 +26,7 @@ Running `devsynth run-tests` across speed categories triggers internal pytest-xd
 - 2025-02-19: fast suite passes without assertions; medium and slow remain unverified.
 
 - Attempted `devsynth run-tests --speed=fast`; after initial output the process hung and required manual interruption, indicating ongoing runner issues.
-- Blocked by [Normalize and verify test markers](Normalize-and-verify-test-markers.md).
+- Dependency on marker normalization resolved by [Issue 151](archived/Normalize-and-verify-test-markers.md).
 - 2025-08-16: `poetry run devsynth run-tests --speed=fast` completed with 36 passed and 19 skipped tests, no xdist assertion errors observed; medium and slow categories remain unverified.
 - 2025-08-18: Re-running `poetry run devsynth run-tests --speed=fast` stalled during the CLI import sequence and required manual interruption; medium and slow categories remain unverified.
 - 2025-08-18: `poetry run devsynth run-tests --speed=fast` now fails at `test_execute_a_shell_command_through_mvu` due to the missing `mvu exec` subcommand. No pytest-xdist assertion errors observed. `--speed=medium` produced no output before hanging, and `--speed=slow` reported no tests. Coverage resets from `reset_coverage` appear to prevent collector issues.

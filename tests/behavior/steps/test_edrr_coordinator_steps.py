@@ -1,4 +1,7 @@
-"""Step definitions for the EDRR Coordinator feature."""
+"""Step definitions for the EDRR Coordinator feature.
+
+ReqID: FR-40
+"""
 
 from __future__ import annotations
 
@@ -24,6 +27,8 @@ from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
+
+pytestmark = pytest.mark.medium
 
 
 @pytest.fixture
@@ -131,23 +136,8 @@ def phase_completed(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
-        """Capture stored items for verification."""
+        """Capture stored items for verification. ReqID: FR-40"""
         test_storage.setdefault(edrr_phase, []).append(
             {
                 "data": data,
@@ -242,23 +232,8 @@ def verify_task_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
-        """Capture stored items for verification."""
+        """Capture stored items for verification. ReqID: FR-40"""
         test_storage.setdefault(edrr_phase, []).append(
             {
                 "data": data,
@@ -290,23 +265,8 @@ def verify_phase_transition_stored(context):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
-        """Capture stored items for verification."""
+        """Capture stored items for verification. ReqID: FR-40"""
         test_storage.setdefault(edrr_phase, []).append(
             {
                 "data": data,
@@ -647,21 +607,6 @@ def verify_results_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
 
