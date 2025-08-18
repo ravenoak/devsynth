@@ -340,11 +340,22 @@ def _flush_updates(self: WSDETeam) -> None:
     """Flush pending memory updates if a manager is attached."""
 
     mem = getattr(self, "memory_manager", None)
-    if mem is not None:
-        try:
-            mem.flush_updates()
-        except Exception:
-            pass
+    if mem is None:
+        return
+    notified = False
+    try:
+        mem.flush_updates()
+        notified = True
+    except Exception:
+        pass
+    finally:
+        if not notified:
+            notify = getattr(mem, "_notify_sync_hooks", None)
+            if callable(notify):
+                try:
+                    notify(None)
+                except Exception:
+                    pass
 
 
 WSDETeam.flush_updates = _flush_updates
