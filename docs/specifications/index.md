@@ -49,6 +49,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Security Audit Reporting Specification](security_audit_reporting.md)**: JSON reporting for security audits.
 - **[Policy Audit Script](policy_audit.md)**: Scans configs and code for policy violations.
 - **[WebUI Diagnostics Audit Logs](webui_diagnostics_audit_logs.md)**: Display dialectical audit logs on the diagnostics page.
+- **[Project Documentation Ingestion](project-documentation-ingestion.md)**: Indexes project documentation for retrieval.
 
 ## Implementation Plans
 
