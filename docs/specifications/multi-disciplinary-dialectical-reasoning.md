@@ -2,13 +2,15 @@
 author: DevSynth Team
 date: '2025-08-18'
 last_reviewed: '2025-08-18'
-status: draft
+status: implemented
 tags:
   - specification
   - dialectical-reasoning
 title: Multi-disciplinary Dialectical Reasoning
 version: '0.1.0-alpha.1'
 ---
+
+# Feature: Multi-disciplinary dialectical reasoning
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Multi-disciplinary Dialectical Reasoning
 </div>

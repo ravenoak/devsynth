@@ -7,24 +7,28 @@ disciplinary perspectives, identifying perspective conflicts, and generating
 multi-disciplinary synthesis and evaluation.
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime
-from uuid import uuid4
-import re
+# Feature: Multi-disciplinary dialectical reasoning
 
-from devsynth.logging_setup import DevSynthLogger
+import re
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
 from devsynth.domain.models.wsde_base import WSDETeam
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-def apply_multi_disciplinary_dialectical_reasoning(self: WSDETeam, task: Dict[str, Any], 
-                                                 critic_agent: Any, 
-                                                 disciplinary_knowledge: Dict[str, Any],
-                                                 disciplinary_agents: List[Any],
-                                                 memory_integration: Any = None):
+def apply_multi_disciplinary_dialectical_reasoning(
+    self: WSDETeam,
+    task: Dict[str, Any],
+    critic_agent: Any,
+    disciplinary_knowledge: Dict[str, Any],
+    disciplinary_agents: List[Any],
+    memory_integration: Any = None,
+):
     """
     Apply multi-disciplinary dialectical reasoning to a task.
 
@@ -42,7 +46,9 @@ def apply_multi_disciplinary_dialectical_reasoning(self: WSDETeam, task: Dict[st
         Dictionary containing the multi-disciplinary dialectical reasoning results
     """
     if not task or "solution" not in task:
-        self.logger.warning("Cannot apply multi-disciplinary dialectical reasoning: no solution provided")
+        self.logger.warning(
+            "Cannot apply multi-disciplinary dialectical reasoning: no solution provided"
+        )
         return {"status": "failed", "reason": "no_solution"}
 
     # Extract the thesis solution
@@ -76,7 +82,7 @@ def apply_multi_disciplinary_dialectical_reasoning(self: WSDETeam, task: Dict[st
         "conflicts": conflicts,
         "synthesis": synthesis,
         "evaluation": evaluation,
-        "method": "multi_disciplinary_dialectical_reasoning"
+        "method": "multi_disciplinary_dialectical_reasoning",
     }
 
     # Invoke dialectical hooks if any
@@ -90,10 +96,13 @@ def apply_multi_disciplinary_dialectical_reasoning(self: WSDETeam, task: Dict[st
     return result
 
 
-def _gather_disciplinary_perspectives(self: WSDETeam, solution: Dict[str, Any], 
-                                     task: Dict[str, Any],
-                                     disciplinary_agents: List[Any],
-                                     disciplinary_knowledge: Dict[str, Any]):
+def _gather_disciplinary_perspectives(
+    self: WSDETeam,
+    solution: Dict[str, Any],
+    task: Dict[str, Any],
+    disciplinary_agents: List[Any],
+    disciplinary_knowledge: Dict[str, Any],
+):
     """
     Gather perspectives from different disciplines on a solution.
 
@@ -155,12 +164,12 @@ def _gather_disciplinary_perspectives(self: WSDETeam, solution: Dict[str, Any],
             perspective = {
                 "id": str(uuid4()),
                 "timestamp": datetime.now(),
-                "agent": agent.name if hasattr(agent, 'name') else "unknown",
+                "agent": agent.name if hasattr(agent, "name") else "unknown",
                 "discipline": discipline,
                 "strengths": [],
                 "weaknesses": [],
                 "recommendations": [],
-                "discipline_specific_insights": []
+                "discipline_specific_insights": [],
             }
 
             # Get discipline-specific knowledge
@@ -170,19 +179,25 @@ def _gather_disciplinary_perspectives(self: WSDETeam, solution: Dict[str, Any],
             if "strengths_criteria" in discipline_knowledge:
                 for criterion in discipline_knowledge["strengths_criteria"]:
                     if self._solution_addresses_item(solution, criterion):
-                        perspective["strengths"].append(f"Solution addresses {criterion}")
+                        perspective["strengths"].append(
+                            f"Solution addresses {criterion}"
+                        )
 
             # Generate weaknesses based on discipline
             if "weaknesses_criteria" in discipline_knowledge:
                 for criterion in discipline_knowledge["weaknesses_criteria"]:
                     if not self._solution_addresses_item(solution, criterion):
-                        perspective["weaknesses"].append(f"Solution does not adequately address {criterion}")
+                        perspective["weaknesses"].append(
+                            f"Solution does not adequately address {criterion}"
+                        )
 
             # Generate recommendations based on discipline
             if "best_practices" in discipline_knowledge:
                 for practice in discipline_knowledge["best_practices"]:
                     if not self._solution_addresses_item(solution, practice):
-                        perspective["recommendations"].append(f"Incorporate {practice} into the solution")
+                        perspective["recommendations"].append(
+                            f"Incorporate {practice} into the solution"
+                        )
 
             # Generate discipline-specific insights
             if "key_insights" in discipline_knowledge:
@@ -193,25 +208,25 @@ def _gather_disciplinary_perspectives(self: WSDETeam, solution: Dict[str, Any],
             if not perspective["strengths"]:
                 perspective["strengths"] = [
                     f"The solution demonstrates understanding of basic {discipline} principles",
-                    f"The approach is consistent with {discipline} methodologies"
+                    f"The approach is consistent with {discipline} methodologies",
                 ]
 
             if not perspective["weaknesses"]:
                 perspective["weaknesses"] = [
                     f"The solution could better incorporate {discipline} best practices",
-                    f"The approach lacks depth in {discipline}-specific considerations"
+                    f"The approach lacks depth in {discipline}-specific considerations",
                 ]
 
             if not perspective["recommendations"]:
                 perspective["recommendations"] = [
                     f"Enhance the solution with more {discipline}-specific approaches",
-                    f"Consider {discipline} standards and guidelines more thoroughly"
+                    f"Consider {discipline} standards and guidelines more thoroughly",
                 ]
 
             if not perspective["discipline_specific_insights"]:
                 perspective["discipline_specific_insights"] = [
                     f"From a {discipline} perspective, the solution should focus more on domain-specific requirements",
-                    f"{discipline} approaches typically emphasize different aspects than what is presented"
+                    f"{discipline} approaches typically emphasize different aspects than what is presented",
                 ]
 
             perspectives.append(perspective)
@@ -231,18 +246,52 @@ def _determine_agent_discipline(self: WSDETeam, agent: Any):
     """
     # Define discipline keywords
     discipline_keywords = {
-        "software_engineering": ["software engineering", "programming", "coding", "development", "software design"],
-        "security": ["security", "cybersecurity", "information security", "secure coding", "vulnerability"],
+        "software_engineering": [
+            "software engineering",
+            "programming",
+            "coding",
+            "development",
+            "software design",
+        ],
+        "security": [
+            "security",
+            "cybersecurity",
+            "information security",
+            "secure coding",
+            "vulnerability",
+        ],
         "ux_design": ["user experience", "ux", "ui", "interface design", "usability"],
-        "data_science": ["data science", "machine learning", "statistics", "data analysis", "analytics"],
+        "data_science": [
+            "data science",
+            "machine learning",
+            "statistics",
+            "data analysis",
+            "analytics",
+        ],
         "devops": ["devops", "deployment", "infrastructure", "ci/cd", "operations"],
-        "architecture": ["architecture", "system design", "distributed systems", "scalability"],
-        "quality_assurance": ["quality assurance", "testing", "qa", "quality control", "verification"],
-        "product_management": ["product management", "requirements", "user stories", "roadmap"]
+        "architecture": [
+            "architecture",
+            "system design",
+            "distributed systems",
+            "scalability",
+        ],
+        "quality_assurance": [
+            "quality assurance",
+            "testing",
+            "qa",
+            "quality control",
+            "verification",
+        ],
+        "product_management": [
+            "product management",
+            "requirements",
+            "user stories",
+            "roadmap",
+        ],
     }
 
     # Check agent's expertise against discipline keywords
-    if hasattr(agent, 'expertise') and agent.expertise:
+    if hasattr(agent, "expertise") and agent.expertise:
         discipline_scores = {}
 
         for discipline, keywords in discipline_keywords.items():
@@ -257,7 +306,9 @@ def _determine_agent_discipline(self: WSDETeam, agent: Any):
         # Return discipline with highest score, or "general" if no matches
         max_score = max(discipline_scores.values())
         if max_score > 0:
-            best_disciplines = [d for d, s in discipline_scores.items() if s == max_score]
+            best_disciplines = [
+                d for d, s in discipline_scores.items() if s == max_score
+            ]
             return best_disciplines[0]
 
     # Default to "general" if no specific discipline is found
@@ -318,7 +369,7 @@ def _identify_perspective_conflicts(self: WSDETeam, perspectives: List[Dict[str,
         ("security", "ux_design"),
         ("performance", "quality_assurance"),
         ("software_engineering", "ux_design"),
-        ("architecture", "devops")
+        ("architecture", "devops"),
     ]
 
     # Group perspectives by discipline
@@ -332,95 +383,192 @@ def _identify_perspective_conflicts(self: WSDETeam, perspectives: List[Dict[str,
 
     # Check for conflicts between discipline pairs
     for discipline1, discipline2 in conflicting_disciplines:
-        if discipline1 in discipline_perspectives and discipline2 in discipline_perspectives:
+        if (
+            discipline1 in discipline_perspectives
+            and discipline2 in discipline_perspectives
+        ):
             # Get recommendations from each discipline
             discipline1_recommendations = []
             for perspective in discipline_perspectives[discipline1]:
-                discipline1_recommendations.extend(perspective.get("recommendations", []))
+                discipline1_recommendations.extend(
+                    perspective.get("recommendations", [])
+                )
 
             discipline2_recommendations = []
             for perspective in discipline_perspectives[discipline2]:
-                discipline2_recommendations.extend(perspective.get("recommendations", []))
+                discipline2_recommendations.extend(
+                    perspective.get("recommendations", [])
+                )
 
             # Look for specific conflicting terms
             conflict_found = False
             conflict_details = []
 
             # Security vs Performance conflicts
-            if (discipline1 == "security" and discipline2 == "performance") or (discipline1 == "performance" and discipline2 == "security"):
-                security_recs = discipline1_recommendations if discipline1 == "security" else discipline2_recommendations
-                performance_recs = discipline1_recommendations if discipline1 == "performance" else discipline2_recommendations
+            if (discipline1 == "security" and discipline2 == "performance") or (
+                discipline1 == "performance" and discipline2 == "security"
+            ):
+                security_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "security"
+                    else discipline2_recommendations
+                )
+                performance_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "performance"
+                    else discipline2_recommendations
+                )
 
                 for sec_rec in security_recs:
                     for perf_rec in performance_recs:
-                        if ("encryption" in sec_rec.lower() and "optimization" in perf_rec.lower()) or \
-                           ("authentication" in sec_rec.lower() and "latency" in perf_rec.lower()):
+                        if (
+                            "encryption" in sec_rec.lower()
+                            and "optimization" in perf_rec.lower()
+                        ) or (
+                            "authentication" in sec_rec.lower()
+                            and "latency" in perf_rec.lower()
+                        ):
                             conflict_found = True
-                            conflict_details.append(f"Security recommendation '{sec_rec}' conflicts with performance recommendation '{perf_rec}'")
+                            conflict_details.append(
+                                f"Security recommendation '{sec_rec}' conflicts with performance recommendation '{perf_rec}'"
+                            )
 
             # Security vs UX Design conflicts
-            elif (discipline1 == "security" and discipline2 == "ux_design") or (discipline1 == "ux_design" and discipline2 == "security"):
-                security_recs = discipline1_recommendations if discipline1 == "security" else discipline2_recommendations
-                ux_recs = discipline1_recommendations if discipline1 == "ux_design" else discipline2_recommendations
+            elif (discipline1 == "security" and discipline2 == "ux_design") or (
+                discipline1 == "ux_design" and discipline2 == "security"
+            ):
+                security_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "security"
+                    else discipline2_recommendations
+                )
+                ux_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "ux_design"
+                    else discipline2_recommendations
+                )
 
                 for sec_rec in security_recs:
                     for ux_rec in ux_recs:
-                        if ("authentication" in sec_rec.lower() and "simplify" in ux_rec.lower()) or \
-                           ("validation" in sec_rec.lower() and "user experience" in ux_rec.lower()):
+                        if (
+                            "authentication" in sec_rec.lower()
+                            and "simplify" in ux_rec.lower()
+                        ) or (
+                            "validation" in sec_rec.lower()
+                            and "user experience" in ux_rec.lower()
+                        ):
                             conflict_found = True
-                            conflict_details.append(f"Security recommendation '{sec_rec}' conflicts with UX recommendation '{ux_rec}'")
+                            conflict_details.append(
+                                f"Security recommendation '{sec_rec}' conflicts with UX recommendation '{ux_rec}'"
+                            )
 
             # Performance vs Quality Assurance conflicts
-            elif (discipline1 == "performance" and discipline2 == "quality_assurance") or (discipline1 == "quality_assurance" and discipline2 == "performance"):
-                performance_recs = discipline1_recommendations if discipline1 == "performance" else discipline2_recommendations
-                qa_recs = discipline1_recommendations if discipline1 == "quality_assurance" else discipline2_recommendations
+            elif (
+                discipline1 == "performance" and discipline2 == "quality_assurance"
+            ) or (discipline1 == "quality_assurance" and discipline2 == "performance"):
+                performance_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "performance"
+                    else discipline2_recommendations
+                )
+                qa_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "quality_assurance"
+                    else discipline2_recommendations
+                )
 
                 for perf_rec in performance_recs:
                     for qa_rec in qa_recs:
-                        if ("optimization" in perf_rec.lower() and "test coverage" in qa_rec.lower()) or \
-                           ("efficiency" in perf_rec.lower() and "validation" in qa_rec.lower()):
+                        if (
+                            "optimization" in perf_rec.lower()
+                            and "test coverage" in qa_rec.lower()
+                        ) or (
+                            "efficiency" in perf_rec.lower()
+                            and "validation" in qa_rec.lower()
+                        ):
                             conflict_found = True
-                            conflict_details.append(f"Performance recommendation '{perf_rec}' conflicts with QA recommendation '{qa_rec}'")
+                            conflict_details.append(
+                                f"Performance recommendation '{perf_rec}' conflicts with QA recommendation '{qa_rec}'"
+                            )
 
             # Software Engineering vs UX Design conflicts
-            elif (discipline1 == "software_engineering" and discipline2 == "ux_design") or (discipline1 == "ux_design" and discipline2 == "software_engineering"):
-                se_recs = discipline1_recommendations if discipline1 == "software_engineering" else discipline2_recommendations
-                ux_recs = discipline1_recommendations if discipline1 == "ux_design" else discipline2_recommendations
+            elif (
+                discipline1 == "software_engineering" and discipline2 == "ux_design"
+            ) or (discipline1 == "ux_design" and discipline2 == "software_engineering"):
+                se_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "software_engineering"
+                    else discipline2_recommendations
+                )
+                ux_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "ux_design"
+                    else discipline2_recommendations
+                )
 
                 for se_rec in se_recs:
                     for ux_rec in ux_recs:
-                        if ("architecture" in se_rec.lower() and "user flow" in ux_rec.lower()) or \
-                           ("pattern" in se_rec.lower() and "interface" in ux_rec.lower()):
+                        if (
+                            "architecture" in se_rec.lower()
+                            and "user flow" in ux_rec.lower()
+                        ) or (
+                            "pattern" in se_rec.lower()
+                            and "interface" in ux_rec.lower()
+                        ):
                             conflict_found = True
-                            conflict_details.append(f"Software Engineering recommendation '{se_rec}' conflicts with UX recommendation '{ux_rec}'")
+                            conflict_details.append(
+                                f"Software Engineering recommendation '{se_rec}' conflicts with UX recommendation '{ux_rec}'"
+                            )
 
             # Architecture vs DevOps conflicts
-            elif (discipline1 == "architecture" and discipline2 == "devops") or (discipline1 == "devops" and discipline2 == "architecture"):
-                arch_recs = discipline1_recommendations if discipline1 == "architecture" else discipline2_recommendations
-                devops_recs = discipline1_recommendations if discipline1 == "devops" else discipline2_recommendations
+            elif (discipline1 == "architecture" and discipline2 == "devops") or (
+                discipline1 == "devops" and discipline2 == "architecture"
+            ):
+                arch_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "architecture"
+                    else discipline2_recommendations
+                )
+                devops_recs = (
+                    discipline1_recommendations
+                    if discipline1 == "devops"
+                    else discipline2_recommendations
+                )
 
                 for arch_rec in arch_recs:
                     for devops_rec in devops_recs:
-                        if ("monolithic" in arch_rec.lower() and "containerization" in devops_rec.lower()) or \
-                           ("coupling" in arch_rec.lower() and "deployment" in devops_rec.lower()):
+                        if (
+                            "monolithic" in arch_rec.lower()
+                            and "containerization" in devops_rec.lower()
+                        ) or (
+                            "coupling" in arch_rec.lower()
+                            and "deployment" in devops_rec.lower()
+                        ):
                             conflict_found = True
-                            conflict_details.append(f"Architecture recommendation '{arch_rec}' conflicts with DevOps recommendation '{devops_rec}'")
+                            conflict_details.append(
+                                f"Architecture recommendation '{arch_rec}' conflicts with DevOps recommendation '{devops_rec}'"
+                            )
 
             # If conflict found, add to list
             if conflict_found:
-                conflicts.append({
-                    "discipline1": discipline1,
-                    "discipline2": discipline2,
-                    "details": conflict_details
-                })
+                conflicts.append(
+                    {
+                        "discipline1": discipline1,
+                        "discipline2": discipline2,
+                        "details": conflict_details,
+                    }
+                )
 
     return conflicts
 
 
-def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any], 
-                                          perspectives: List[Dict[str, Any]], 
-                                          conflicts: List[Dict[str, Any]],
-                                          critic_agent: Any):
+def _generate_multi_disciplinary_synthesis(
+    self: WSDETeam,
+    thesis: Dict[str, Any],
+    perspectives: List[Dict[str, Any]],
+    conflicts: List[Dict[str, Any]],
+    critic_agent: Any,
+):
     """
     Generate a synthesis incorporating multiple disciplinary perspectives.
 
@@ -441,7 +589,7 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
         "improvements": [],
         "reasoning": "",
         "content": None,
-        "code": None
+        "code": None,
     }
 
     # Extract content and code from thesis
@@ -475,14 +623,29 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
         if discipline == "software_engineering" and original_code:
             # Apply software engineering improvements to code
             for recommendation in discipline_recommendations:
-                if "modular" in recommendation.lower() or "refactor" in recommendation.lower():
+                if (
+                    "modular" in recommendation.lower()
+                    or "refactor" in recommendation.lower()
+                ):
                     # Simulate improving modularity
-                    improved_code = "# Improved modularity based on software engineering principles\n" + improved_code
-                    synthesis["improvements"].append(f"Enhanced code modularity ({discipline})")
-                elif "pattern" in recommendation.lower() or "design" in recommendation.lower():
+                    improved_code = (
+                        "# Improved modularity based on software engineering principles\n"
+                        + improved_code
+                    )
+                    synthesis["improvements"].append(
+                        f"Enhanced code modularity ({discipline})"
+                    )
+                elif (
+                    "pattern" in recommendation.lower()
+                    or "design" in recommendation.lower()
+                ):
                     # Simulate applying design patterns
-                    improved_code = "# Applied appropriate design patterns\n" + improved_code
-                    synthesis["improvements"].append(f"Applied design patterns ({discipline})")
+                    improved_code = (
+                        "# Applied appropriate design patterns\n" + improved_code
+                    )
+                    synthesis["improvements"].append(
+                        f"Applied design patterns ({discipline})"
+                    )
 
             # Mark perspectives as integrated
             for perspective in discipline_perspectives_list:
@@ -491,14 +654,28 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
         elif discipline == "security" and original_code:
             # Apply security improvements to code
             for recommendation in discipline_recommendations:
-                if "authentication" in recommendation.lower() or "authorization" in recommendation.lower():
+                if (
+                    "authentication" in recommendation.lower()
+                    or "authorization" in recommendation.lower()
+                ):
                     # Simulate improving authentication
-                    improved_code = "# Enhanced authentication and authorization\n" + improved_code
-                    synthesis["improvements"].append(f"Strengthened authentication mechanisms ({discipline})")
-                elif "validation" in recommendation.lower() or "sanitization" in recommendation.lower():
+                    improved_code = (
+                        "# Enhanced authentication and authorization\n" + improved_code
+                    )
+                    synthesis["improvements"].append(
+                        f"Strengthened authentication mechanisms ({discipline})"
+                    )
+                elif (
+                    "validation" in recommendation.lower()
+                    or "sanitization" in recommendation.lower()
+                ):
                     # Simulate improving input validation
-                    improved_code = "# Added input validation and sanitization\n" + improved_code
-                    synthesis["improvements"].append(f"Added comprehensive input validation ({discipline})")
+                    improved_code = (
+                        "# Added input validation and sanitization\n" + improved_code
+                    )
+                    synthesis["improvements"].append(
+                        f"Added comprehensive input validation ({discipline})"
+                    )
 
             # Mark perspectives as integrated
             for perspective in discipline_perspectives_list:
@@ -507,14 +684,29 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
         elif discipline == "ux_design" and original_content:
             # Apply UX improvements to content
             for recommendation in discipline_recommendations:
-                if "user flow" in recommendation.lower() or "experience" in recommendation.lower():
+                if (
+                    "user flow" in recommendation.lower()
+                    or "experience" in recommendation.lower()
+                ):
                     # Simulate improving user flow descriptions
-                    improved_content = "# Enhanced user flow descriptions\n\n" + improved_content
-                    synthesis["improvements"].append(f"Improved user flow documentation ({discipline})")
-                elif "interface" in recommendation.lower() or "design" in recommendation.lower():
+                    improved_content = (
+                        "# Enhanced user flow descriptions\n\n" + improved_content
+                    )
+                    synthesis["improvements"].append(
+                        f"Improved user flow documentation ({discipline})"
+                    )
+                elif (
+                    "interface" in recommendation.lower()
+                    or "design" in recommendation.lower()
+                ):
                     # Simulate improving interface descriptions
-                    improved_content = "# Added detailed interface design considerations\n\n" + improved_content
-                    synthesis["improvements"].append(f"Added interface design details ({discipline})")
+                    improved_content = (
+                        "# Added detailed interface design considerations\n\n"
+                        + improved_content
+                    )
+                    synthesis["improvements"].append(
+                        f"Added interface design details ({discipline})"
+                    )
 
             # Mark perspectives as integrated
             for perspective in discipline_perspectives_list:
@@ -523,13 +715,23 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
         elif discipline == "data_science" and (original_code or original_content):
             # Apply data science improvements
             for recommendation in discipline_recommendations:
-                if "algorithm" in recommendation.lower() or "model" in recommendation.lower():
+                if (
+                    "algorithm" in recommendation.lower()
+                    or "model" in recommendation.lower()
+                ):
                     # Simulate improving algorithms
                     if original_code:
-                        improved_code = "# Optimized algorithms based on data science principles\n" + improved_code
+                        improved_code = (
+                            "# Optimized algorithms based on data science principles\n"
+                            + improved_code
+                        )
                     if original_content:
-                        improved_content = "# Added data model explanations\n\n" + improved_content
-                    synthesis["improvements"].append(f"Enhanced data processing algorithms ({discipline})")
+                        improved_content = (
+                            "# Added data model explanations\n\n" + improved_content
+                        )
+                    synthesis["improvements"].append(
+                        f"Enhanced data processing algorithms ({discipline})"
+                    )
 
             # Mark perspectives as integrated
             for perspective in discipline_perspectives_list:
@@ -548,39 +750,79 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
             "disciplines": [discipline1, discipline2],
             "details": conflict.get("details", []),
             "resolution_approach": f"Balanced {discipline1} and {discipline2} considerations",
-            "resolution_details": []
+            "resolution_details": [],
         }
 
         # Apply specific conflict resolutions
-        if (discipline1 == "security" and discipline2 == "performance") or (discipline1 == "performance" and discipline2 == "security"):
+        if (discipline1 == "security" and discipline2 == "performance") or (
+            discipline1 == "performance" and discipline2 == "security"
+        ):
             # Resolve security vs performance conflict
-            resolution["resolution_details"].append("Prioritized security for critical operations while optimizing non-critical paths")
-            resolution["resolution_details"].append("Implemented selective encryption for sensitive data only")
-            resolution["resolution_details"].append("Used caching for frequently accessed, non-sensitive data")
+            resolution["resolution_details"].append(
+                "Prioritized security for critical operations while optimizing non-critical paths"
+            )
+            resolution["resolution_details"].append(
+                "Implemented selective encryption for sensitive data only"
+            )
+            resolution["resolution_details"].append(
+                "Used caching for frequently accessed, non-sensitive data"
+            )
 
-        elif (discipline1 == "security" and discipline2 == "ux_design") or (discipline1 == "ux_design" and discipline2 == "security"):
+        elif (discipline1 == "security" and discipline2 == "ux_design") or (
+            discipline1 == "ux_design" and discipline2 == "security"
+        ):
             # Resolve security vs UX conflict
-            resolution["resolution_details"].append("Implemented progressive security that scales with sensitivity of operations")
-            resolution["resolution_details"].append("Used secure defaults with clear override options")
-            resolution["resolution_details"].append("Added clear security-related feedback for users")
+            resolution["resolution_details"].append(
+                "Implemented progressive security that scales with sensitivity of operations"
+            )
+            resolution["resolution_details"].append(
+                "Used secure defaults with clear override options"
+            )
+            resolution["resolution_details"].append(
+                "Added clear security-related feedback for users"
+            )
 
-        elif (discipline1 == "performance" and discipline2 == "quality_assurance") or (discipline1 == "quality_assurance" and discipline2 == "performance"):
+        elif (discipline1 == "performance" and discipline2 == "quality_assurance") or (
+            discipline1 == "quality_assurance" and discipline2 == "performance"
+        ):
             # Resolve performance vs QA conflict
-            resolution["resolution_details"].append("Focused performance optimization on measured bottlenecks only")
-            resolution["resolution_details"].append("Maintained comprehensive tests for critical paths")
-            resolution["resolution_details"].append("Implemented performance tests as part of the test suite")
+            resolution["resolution_details"].append(
+                "Focused performance optimization on measured bottlenecks only"
+            )
+            resolution["resolution_details"].append(
+                "Maintained comprehensive tests for critical paths"
+            )
+            resolution["resolution_details"].append(
+                "Implemented performance tests as part of the test suite"
+            )
 
-        elif (discipline1 == "software_engineering" and discipline2 == "ux_design") or (discipline1 == "ux_design" and discipline2 == "software_engineering"):
+        elif (discipline1 == "software_engineering" and discipline2 == "ux_design") or (
+            discipline1 == "ux_design" and discipline2 == "software_engineering"
+        ):
             # Resolve software engineering vs UX conflict
-            resolution["resolution_details"].append("Designed architecture to support key user flows")
-            resolution["resolution_details"].append("Created abstraction layers to separate UI concerns from business logic")
-            resolution["resolution_details"].append("Documented UX considerations in architectural decisions")
+            resolution["resolution_details"].append(
+                "Designed architecture to support key user flows"
+            )
+            resolution["resolution_details"].append(
+                "Created abstraction layers to separate UI concerns from business logic"
+            )
+            resolution["resolution_details"].append(
+                "Documented UX considerations in architectural decisions"
+            )
 
-        elif (discipline1 == "architecture" and discipline2 == "devops") or (discipline1 == "devops" and discipline2 == "architecture"):
+        elif (discipline1 == "architecture" and discipline2 == "devops") or (
+            discipline1 == "devops" and discipline2 == "architecture"
+        ):
             # Resolve architecture vs DevOps conflict
-            resolution["resolution_details"].append("Designed for deployability from the start")
-            resolution["resolution_details"].append("Used microservices where appropriate for deployment flexibility")
-            resolution["resolution_details"].append("Incorporated infrastructure as code principles in architecture")
+            resolution["resolution_details"].append(
+                "Designed for deployability from the start"
+            )
+            resolution["resolution_details"].append(
+                "Used microservices where appropriate for deployment flexibility"
+            )
+            resolution["resolution_details"].append(
+                "Incorporated infrastructure as code principles in architecture"
+            )
 
         resolved_conflicts.append(resolution)
 
@@ -601,21 +843,37 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
     synthesis["disciplinary_integrity"] = {}
     for discipline in discipline_perspectives.keys():
         if discipline == "software_engineering":
-            synthesis["disciplinary_integrity"][discipline] = f"Ensures core software engineering principles are maintained while integrating perspectives from other disciplines."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Ensures core software engineering principles are maintained while integrating perspectives from other disciplines."
         elif discipline == "security":
-            synthesis["disciplinary_integrity"][discipline] = f"Preserves essential security principles and practices while balancing requirements from other disciplines."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Preserves essential security principles and practices while balancing requirements from other disciplines."
         elif discipline == "ux_design":
-            synthesis["disciplinary_integrity"][discipline] = f"Maintains core user experience principles while ensuring compatibility with security and performance requirements."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Maintains core user experience principles while ensuring compatibility with security and performance requirements."
         elif discipline == "data_science":
-            synthesis["disciplinary_integrity"][discipline] = f"Ensures essential data science methodologies are preserved while integrating with software engineering practices."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Ensures essential data science methodologies are preserved while integrating with software engineering practices."
         elif discipline == "performance":
-            synthesis["disciplinary_integrity"][discipline] = f"Maintains core performance principles while balancing requirements from security and accessibility."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Maintains core performance principles while balancing requirements from security and accessibility."
         elif discipline == "accessibility":
-            synthesis["disciplinary_integrity"][discipline] = f"Preserves essential accessibility standards while ensuring compatibility with performance requirements."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Preserves essential accessibility standards while ensuring compatibility with performance requirements."
         elif discipline == "user_experience":
-            synthesis["disciplinary_integrity"][discipline] = f"Ensures core user experience principles are maintained while integrating security requirements."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Ensures core user experience principles are maintained while integrating security requirements."
         else:
-            synthesis["disciplinary_integrity"][discipline] = f"Maintains core principles of {discipline.replace('_', ' ')} while integrating with other disciplinary requirements."
+            synthesis["disciplinary_integrity"][
+                discipline
+            ] = f"Maintains core principles of {discipline.replace('_', ' ')} while integrating with other disciplinary requirements."
 
     # Generate reasoning
     reasoning_parts = []
@@ -623,7 +881,9 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
     # Summarize integrated perspectives
     reasoning_parts.append("## Integrated Disciplinary Perspectives")
     for discipline, discipline_perspectives_list in discipline_perspectives.items():
-        reasoning_parts.append(f"\n### {discipline.replace('_', ' ').title()} Perspective")
+        reasoning_parts.append(
+            f"\n### {discipline.replace('_', ' ').title()} Perspective"
+        )
 
         # Summarize strengths
         strengths = []
@@ -649,8 +909,8 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
     if resolved_conflicts:
         reasoning_parts.append("\n## Conflict Resolutions")
         for resolution in resolved_conflicts:
-            discipline1 = resolution["disciplines"][0].replace('_', ' ').title()
-            discipline2 = resolution["disciplines"][1].replace('_', ' ').title()
+            discipline1 = resolution["disciplines"][0].replace("_", " ").title()
+            discipline2 = resolution["disciplines"][1].replace("_", " ").title()
             reasoning_parts.append(f"\n### {discipline1} vs {discipline2}")
             reasoning_parts.append(f"- Approach: {resolution['resolution_approach']}")
 
@@ -671,9 +931,12 @@ def _generate_multi_disciplinary_synthesis(self: WSDETeam, thesis: Dict[str, Any
     return synthesis
 
 
-def _generate_multi_disciplinary_evaluation(self: WSDETeam, synthesis: Dict[str, Any], 
-                                           perspectives: List[Dict[str, Any]], 
-                                           task: Dict[str, Any]):
+def _generate_multi_disciplinary_evaluation(
+    self: WSDETeam,
+    synthesis: Dict[str, Any],
+    perspectives: List[Dict[str, Any]],
+    task: Dict[str, Any],
+):
     """
     Generate an evaluation of the multi-disciplinary synthesis.
 
@@ -692,7 +955,7 @@ def _generate_multi_disciplinary_evaluation(self: WSDETeam, synthesis: Dict[str,
         "discipline_assessments": {},
         "strengths": [],
         "limitations": [],
-        "future_work": []
+        "future_work": [],
     }
 
     # Group perspectives by discipline
@@ -710,7 +973,7 @@ def _generate_multi_disciplinary_evaluation(self: WSDETeam, synthesis: Dict[str,
         discipline_assessment = {
             "score": 0,  # 0-10 scale
             "strengths": [],
-            "limitations": []
+            "limitations": [],
         }
 
         # Check if discipline's recommendations were integrated
@@ -745,17 +1008,24 @@ def _generate_multi_disciplinary_evaluation(self: WSDETeam, synthesis: Dict[str,
         evaluation["discipline_assessments"][discipline] = discipline_assessment
 
         # Add top strengths to overall evaluation
-        for strength in discipline_assessment["strengths"][:1]:  # Take top 1 from each discipline
+        for strength in discipline_assessment["strengths"][
+            :1
+        ]:  # Take top 1 from each discipline
             if strength not in evaluation["strengths"]:
                 evaluation["strengths"].append(strength)
 
         # Add top limitations to overall evaluation
-        for limitation in discipline_assessment["limitations"][:1]:  # Take top 1 from each discipline
+        for limitation in discipline_assessment["limitations"][
+            :1
+        ]:  # Take top 1 from each discipline
             if limitation not in evaluation["limitations"]:
                 evaluation["limitations"].append(limitation)
 
     # Calculate overall score (average of discipline scores)
-    discipline_scores = [assessment["score"] for assessment in evaluation["discipline_assessments"].values()]
+    discipline_scores = [
+        assessment["score"]
+        for assessment in evaluation["discipline_assessments"].values()
+    ]
     overall_score = sum(discipline_scores) / max(1, len(discipline_scores))
 
     # Generate overall assessment based on score
@@ -772,12 +1042,18 @@ def _generate_multi_disciplinary_evaluation(self: WSDETeam, synthesis: Dict[str,
 
     # Generate future work recommendations
     for discipline, assessment in evaluation["discipline_assessments"].items():
-        if assessment["score"] < 7:  # Only suggest future work for lower-scoring disciplines
-            discipline_name = discipline.replace('_', ' ').title()
-            evaluation["future_work"].append(f"Further integrate {discipline_name} perspectives, particularly addressing: {', '.join(assessment['limitations'][:1])}")
+        if (
+            assessment["score"] < 7
+        ):  # Only suggest future work for lower-scoring disciplines
+            discipline_name = discipline.replace("_", " ").title()
+            evaluation["future_work"].append(
+                f"Further integrate {discipline_name} perspectives, particularly addressing: {', '.join(assessment['limitations'][:1])}"
+            )
 
     # Add general future work recommendation if none specific
     if not evaluation["future_work"]:
-        evaluation["future_work"].append("Continue to refine the integration of disciplinary perspectives as the solution evolves")
+        evaluation["future_work"].append(
+            "Continue to refine the integration of disciplinary perspectives as the solution evolves"
+        )
 
     return evaluation

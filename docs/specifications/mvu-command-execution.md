@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-02-19
-last_reviewed: 2025-08-20
-status: draft
+last_reviewed: 2025-08-18
+status: implemented
 tags:
   - specification
   - mvu
@@ -10,6 +10,8 @@ tags:
 title: MVU Command Execution
 version: 0.1.0-alpha.1
 ---
+
+# Feature: MVU shell command execution
 
 # Summary
 
