@@ -124,7 +124,7 @@ else
 fi
 
 # Validate dependency installation
-poetry run pip check
+PIP_NO_INDEX=1 poetry run pip check
 
 # Prefetch the cl100k_base encoding for tiktoken
 poetry run python - <<'EOF'
@@ -188,8 +188,17 @@ for pkg in optional_missing:
     print(f"[warning] optional package {pkg} is not installed", file=sys.stderr)
 EOF
 
+# Confirm GPU extras remain excluded by default
+poetry run python - <<'EOF'
+import importlib.util, sys
+GPU_PACKAGES = ["torch", "transformers"]
+installed = [pkg for pkg in GPU_PACKAGES if importlib.util.find_spec(pkg)]
+if installed:
+    sys.exit("GPU extras unexpectedly installed: " + ", ".join(installed))
+EOF
+
 # Ensure dependency tree is healthy after installing extras
-poetry run pip check
+PIP_NO_INDEX=1 poetry run pip check
 
 # Kuzu is optional; skip related tests if it's not installed
 if ! poetry run python -c "import kuzu" >/dev/null 2>&1; then
