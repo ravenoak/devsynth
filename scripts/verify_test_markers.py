@@ -31,6 +31,7 @@ import json
 import logging
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -283,6 +284,7 @@ def verify_file_markers(
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                start_new_session=True,
             )
 
             try:
@@ -347,8 +349,17 @@ def verify_file_markers(
                     proc.pid,
                     timeout,
                 )
-                proc.kill()
-                stdout, stderr = proc.communicate()
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except Exception as kill_err:  # pragma: no cover - defensive
+                    logger.debug(
+                        "Failed to kill process group %s: %s", proc.pid, kill_err
+                    )
+                    proc.kill()
+                try:
+                    stdout, stderr = proc.communicate(timeout=5)
+                except Exception:  # pragma: no cover - defensive
+                    stdout, stderr = "", ""
                 recognized_markers[marker_type] = {
                     "file_count": marker_count,
                     "pytest_count": 0,
