@@ -23,7 +23,6 @@ version: "0.1.0-alpha.1"
 Thank you for your interest in contributing to DevSynth! This document provides guidelines and instructions for contributing to the project.
 
 See also: [Development Setup](development_setup.md), [Code Style](code_style.md), [Testing](testing.md), [Documentation Policies](../policies/documentation_policies.md).
-AI contributor guidance is in [../../AGENTS.md](../../AGENTS.md) with directory-specific details in [src/AGENTS.md](../../src/AGENTS.md) and [docs/AGENTS.md](../AGENTS.md).
 
 ## Table of Contents
 

@@ -14,7 +14,7 @@ last_reviewed: "2025-08-04"
 
 # Contributing to DevSynth
 
-Thank you for your interest in contributing to DevSynth! This document provides a quick overview of the contribution process. For detailed guidelines, please refer to the [comprehensive contributing guide](docs/developer_guides/contributing.md). AI contributors should consult [AGENTS.md](AGENTS.md) for general policies and [src/AGENTS.md](src/AGENTS.md) or [docs/AGENTS.md](docs/AGENTS.md) for directory-specific guidance.
+Thank you for your interest in contributing to DevSynth! This document provides a quick overview of the contribution process. For detailed guidelines, please refer to the [comprehensive contributing guide](docs/developer_guides/contributing.md).
 
 ## Quick Start
 
