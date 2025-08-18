@@ -14,7 +14,6 @@ from tests.fixtures.webui_wizard_state_fixture import (
 )
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -23,6 +22,7 @@ def clean_state():
 
 
 @pytest.mark.slow
+@pytest.mark.medium
 def test_function(clean_state, wizard_state):
     """Test that the wizard state is properly initialized."""
     state, mock_st = wizard_state

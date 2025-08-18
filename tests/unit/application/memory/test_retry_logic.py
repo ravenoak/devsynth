@@ -13,7 +13,6 @@ from devsynth.application.memory.retry import (
 )
 
 
-@pytest.mark.medium
 class TestRetryLogic:
     """Tests for retry integration features."""
 
@@ -21,6 +20,7 @@ class TestRetryLogic:
         """Reset metrics before each test."""
         reset_memory_retry_metrics()
 
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_condition_callback_aborts_retry(self) -> None:
         """Ensure condition callbacks can abort further retries."""

@@ -211,9 +211,9 @@ class TestMemoryAgentIntegration:
         assert retrieved_items[0].metadata["confidence"] == metadata["confidence"]
         assert retrieved_items[0].metadata["agent_name"] == "TestAgent"
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("lmdb")
     @pytest.mark.requires_resource("faiss")
+    @pytest.mark.medium
     def test_persistent_sync_across_stores(self, tmp_path, monkeypatch):
         """Ensure LMDB and FAISS persistence with Kuzu resynchronization."""
 

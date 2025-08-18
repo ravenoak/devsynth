@@ -22,8 +22,8 @@ scenarios = pytest.importorskip("pytest_bdd").scenarios(
 )
 
 
-@pytest.mark.medium
 @pytest.fixture
+@pytest.mark.medium
 def test_project_dir(tmp_path):
     """Create a temporary directory with a test project structure."""
     # Create a basic project structure
@@ -108,7 +108,6 @@ def context():
 
 
 # Background steps
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_initialized():
     """Initialize the DevSynth system."""
@@ -116,7 +115,6 @@ def devsynth_initialized():
     pass
 
 
-@pytest.mark.medium
 @given("the self analyzer is configured")
 def self_analyzer_configured(context, test_project_dir):
     """Configure the self analyzer."""
@@ -124,7 +122,6 @@ def self_analyzer_configured(context, test_project_dir):
 
 
 # Scenario: Analyze codebase architecture
-@pytest.mark.medium
 @when("I analyze the DevSynth codebase architecture")
 def analyze_codebase_architecture(context):
     """Analyze the DevSynth codebase architecture."""
@@ -149,7 +146,6 @@ def analyze_codebase_architecture(context):
         context.result = context.analyzer.analyze()
 
 
-@pytest.mark.medium
 @then("the analyzer should detect the architecture pattern used")
 def verify_architecture_detected(context):
     """Verify that the architecture pattern is detected."""
@@ -160,7 +156,6 @@ def verify_architecture_detected(context):
     ), "No architecture type detected"
 
 
-@pytest.mark.medium
 @then("the analyzer should identify architectural layers")
 def verify_layers_identified(context):
     """Verify that architectural layers are identified."""
@@ -171,7 +166,6 @@ def verify_layers_identified(context):
     assert len(layers) > 0, "No layers found"
 
 
-@pytest.mark.medium
 @then("the analyzer should analyze dependencies between layers")
 def verify_dependencies_analyzed(context):
     """Verify that dependencies between layers are analyzed."""
@@ -180,7 +174,6 @@ def verify_dependencies_analyzed(context):
     ), "No dependencies analyzed"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide insights about the architecture")
 def verify_architecture_insights(context):
     """Verify that insights about the architecture are provided."""
@@ -190,7 +183,6 @@ def verify_architecture_insights(context):
 
 
 # Scenario: Detect architecture type
-@pytest.mark.medium
 @then("the analyzer should detect hexagonal architecture with high confidence")
 def verify_hexagonal_detected(context):
     """Verify that hexagonal architecture is detected with high confidence."""
@@ -199,7 +191,6 @@ def verify_hexagonal_detected(context):
     ), "Hexagonal architecture not detected"
 
 
-@pytest.mark.medium
 @then("the analyzer should identify domain, application, and adapters layers")
 def verify_hexagonal_layers(context):
     """Verify that domain, application, and adapters layers are identified."""
@@ -209,7 +200,6 @@ def verify_hexagonal_layers(context):
     assert "adapters" in layers, "Adapters layer not identified"
 
 
-@pytest.mark.medium
 @then("the analyzer should identify ports and adapters")
 def verify_ports_and_adapters(context):
     """Verify that ports and adapters are identified."""
@@ -218,7 +208,6 @@ def verify_ports_and_adapters(context):
     assert "adapters" in layers, "Adapters not identified"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide a confidence score for the detected architecture")
 def verify_architecture_confidence(context):
     """Verify that a confidence score is provided for the detected architecture."""
@@ -230,7 +219,6 @@ def verify_architecture_confidence(context):
 
 
 # Scenario: Identify layers in codebase
-@pytest.mark.medium
 @then(parsers.parse("the analyzer should identify the following layers:\n{table}"))
 def verify_specific_layers(context, table):
     """Verify that specific layers are identified."""
@@ -247,7 +235,6 @@ def verify_specific_layers(context, table):
         assert layer in layers, f"Layer {layer} not identified"
 
 
-@pytest.mark.medium
 @then("the analyzer should categorize files into the appropriate layers")
 def verify_files_categorized(context):
     """Verify that files are categorized into the appropriate layers."""
@@ -260,7 +247,6 @@ def verify_files_categorized(context):
 
 
 # Scenario: Analyze layer dependencies
-@pytest.mark.medium
 @then("the analyzer should verify that domain layer does not depend on other layers")
 def verify_domain_layer_dependencies(context):
     """Verify that domain layer does not depend on other layers."""
@@ -270,7 +256,6 @@ def verify_domain_layer_dependencies(context):
     ), "No dependencies analyzed"
 
 
-@pytest.mark.medium
 @then("the analyzer should verify that application layer depends only on domain layer")
 def verify_application_layer_dependencies(context):
     """Verify that application layer depends only on domain layer."""
@@ -280,7 +265,6 @@ def verify_application_layer_dependencies(context):
     ), "No dependencies analyzed"
 
 
-@pytest.mark.medium
 @then(
     "the analyzer should verify that adapters layer depends on application and domain layers"
 )
@@ -292,7 +276,6 @@ def verify_adapters_layer_dependencies(context):
     ), "No dependencies analyzed"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide a dependency graph of the layers")
 def verify_dependency_graph(context):
     """Verify that a dependency graph of the layers is provided."""
@@ -303,7 +286,6 @@ def verify_dependency_graph(context):
 
 
 # Scenario: Check architecture violations
-@pytest.mark.medium
 @when("I analyze the DevSynth codebase for architecture violations")
 def analyze_architecture_violations(context):
     """Analyze the DevSynth codebase for architecture violations."""
@@ -335,7 +317,6 @@ def analyze_architecture_violations(context):
         context.result = context.analyzer.analyze()
 
 
-@pytest.mark.medium
 @then(
     "the analyzer should identify any violations of hexagonal architecture principles"
 )
@@ -346,7 +327,6 @@ def verify_architecture_violations(context):
     ), "No violations identified"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide details about each violation")
 def verify_violation_details(context):
     """Verify that details about each violation are provided."""
@@ -358,7 +338,6 @@ def verify_violation_details(context):
         assert "location" in violation, "Violation location not provided"
 
 
-@pytest.mark.medium
 @then("the analyzer should suggest ways to fix the violations")
 def verify_violation_suggestions(context):
     """Verify that suggestions to fix the violations are provided."""
@@ -369,7 +348,6 @@ def verify_violation_suggestions(context):
 
 
 # Scenario: Analyze code quality
-@pytest.mark.medium
 @when("I analyze the DevSynth code quality")
 def analyze_code_quality(context):
     """Analyze the DevSynth code quality."""
@@ -444,7 +422,6 @@ def analyze_code_quality(context):
         context.result = context.analyzer.analyze()
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate complexity metrics")
 def verify_complexity_metrics(context):
     """Verify that complexity metrics are calculated."""
@@ -454,7 +431,6 @@ def verify_complexity_metrics(context):
     ), "No complexity metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate readability metrics")
 def verify_readability_metrics(context):
     """Verify that readability metrics are calculated."""
@@ -463,7 +439,6 @@ def verify_readability_metrics(context):
     ), "No readability metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate maintainability metrics")
 def verify_maintainability_metrics(context):
     """Verify that maintainability metrics are calculated."""
@@ -473,7 +448,6 @@ def verify_maintainability_metrics(context):
 
 
 # Scenario: Analyze complexity metrics
-@pytest.mark.medium
 @then("the analyzer should calculate cyclomatic complexity for each function")
 def verify_cyclomatic_complexity(context):
     """Verify that cyclomatic complexity is calculated for each function."""
@@ -486,7 +460,6 @@ def verify_cyclomatic_complexity(context):
     ), "No cyclomatic complexity metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate cognitive complexity for each function")
 def verify_cognitive_complexity(context):
     """Verify that cognitive complexity is calculated for each function."""
@@ -496,7 +469,6 @@ def verify_cognitive_complexity(context):
     ), "No cognitive complexity metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should identify functions with high complexity")
 def verify_high_complexity_functions(context):
     """Verify that functions with high complexity are identified."""
@@ -516,7 +488,6 @@ def verify_high_complexity_functions(context):
     ), "No high complexity functions found"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide an overall complexity score")
 def verify_overall_complexity_score(context):
     """Verify that an overall complexity score is provided."""
@@ -527,7 +498,6 @@ def verify_overall_complexity_score(context):
 
 
 # Scenario: Analyze readability metrics
-@pytest.mark.medium
 @then("the analyzer should calculate docstring coverage")
 def verify_docstring_coverage(context):
     """Verify that docstring coverage is calculated."""
@@ -540,7 +510,6 @@ def verify_docstring_coverage(context):
     ), "No docstring coverage metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate comment-to-code ratio")
 def verify_comment_to_code_ratio(context):
     """Verify that comment-to-code ratio is calculated."""
@@ -550,7 +519,6 @@ def verify_comment_to_code_ratio(context):
     ), "No comment-to-code ratio metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should analyze identifier naming conventions")
 def verify_identifier_naming(context):
     """Verify that identifier naming conventions are analyzed."""
@@ -560,7 +528,6 @@ def verify_identifier_naming(context):
     ), "No identifier naming metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide an overall readability score")
 def verify_overall_readability_score(context):
     """Verify that an overall readability score is provided."""
@@ -571,7 +538,6 @@ def verify_overall_readability_score(context):
 
 
 # Scenario: Analyze maintainability metrics
-@pytest.mark.medium
 @then("the analyzer should calculate code duplication")
 def verify_code_duplication(context):
     """Verify that code duplication is calculated."""
@@ -584,7 +550,6 @@ def verify_code_duplication(context):
     ), "No code duplication metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate function length distribution")
 def verify_function_length(context):
     """Verify that function length distribution is calculated."""
@@ -594,7 +559,6 @@ def verify_function_length(context):
     ), "No function length metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate class cohesion")
 def verify_class_cohesion(context):
     """Verify that class cohesion is calculated."""
@@ -604,7 +568,6 @@ def verify_class_cohesion(context):
     ), "No class cohesion metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide an overall maintainability score")
 def verify_overall_maintainability_score(context):
     """Verify that an overall maintainability score is provided."""
@@ -614,7 +577,6 @@ def verify_overall_maintainability_score(context):
     ), "No overall maintainability score"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide insights about code quality")
 def verify_code_quality_insights(context):
     """Verify that insights about code quality are provided."""
@@ -624,7 +586,6 @@ def verify_code_quality_insights(context):
 
 
 # Scenario: Analyze test coverage
-@pytest.mark.medium
 @when("I analyze the DevSynth test coverage")
 def analyze_test_coverage(context):
     """Analyze the DevSynth test coverage."""
@@ -647,7 +608,6 @@ def analyze_test_coverage(context):
         context.result = context.analyzer.analyze()
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate unit test coverage")
 def verify_unit_test_coverage(context):
     """Verify that unit test coverage is calculated."""
@@ -657,7 +617,6 @@ def verify_unit_test_coverage(context):
     ), "No unit test coverage metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate integration test coverage")
 def verify_integration_test_coverage(context):
     """Verify that integration test coverage is calculated."""
@@ -666,7 +625,6 @@ def verify_integration_test_coverage(context):
     ), "No integration test coverage metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should calculate behavior test coverage")
 def verify_behavior_test_coverage(context):
     """Verify that behavior test coverage is calculated."""
@@ -675,7 +633,6 @@ def verify_behavior_test_coverage(context):
     ), "No behavior test coverage metrics"
 
 
-@pytest.mark.medium
 @then("the analyzer should identify untested components")
 def verify_untested_components(context):
     """Verify that untested components are identified."""
@@ -684,7 +641,6 @@ def verify_untested_components(context):
     ), "No untested components identified"
 
 
-@pytest.mark.medium
 @then("the analyzer should provide an overall test coverage score")
 def verify_overall_test_coverage(context):
     """Verify that an overall test coverage score is provided."""
@@ -694,7 +650,6 @@ def verify_overall_test_coverage(context):
 
 
 # Scenario: Integrate with EDRR workflow
-@pytest.mark.medium
 @given("the EDRR workflow is configured")
 def edrr_workflow_configured(context):
     """Configure the EDRR workflow."""
@@ -702,7 +657,6 @@ def edrr_workflow_configured(context):
     context.edrr_coordinator = MagicMock(spec=EnhancedEDRRCoordinator)
 
 
-@pytest.mark.medium
 @when("I initiate a self-analysis task")
 def initiate_self_analysis_task(context):
     """Initiate a self-analysis task."""
@@ -710,7 +664,6 @@ def initiate_self_analysis_task(context):
     context.result = {"task": "self_analysis", "status": "completed"}
 
 
-@pytest.mark.medium
 @then("the system should use self analysis in the Analysis phase")
 def verify_analysis_phase(context):
     """Verify that self analysis is used in the Analysis phase."""
@@ -719,7 +672,6 @@ def verify_analysis_phase(context):
 
 
 # Scenario: Integrate with WSDE team
-@pytest.mark.medium
 @given("the WSDE team is configured")
 def wsde_team_configured(context):
     """Configure the WSDE team."""
@@ -727,7 +679,6 @@ def wsde_team_configured(context):
     context.wsde_team = MagicMock(spec=WSDETeam)
 
 
-@pytest.mark.medium
 @when("I assign a self-analysis task to the WSDE team")
 def assign_self_analysis_task(context):
     """Assign a self-analysis task to the WSDE team."""
@@ -739,7 +690,6 @@ def assign_self_analysis_task(context):
     }
 
 
-@pytest.mark.medium
 @then("the team should collaborate to analyze different aspects of the codebase")
 def verify_team_collaboration(context):
     """Verify that the team collaborates to analyze different aspects of the codebase."""

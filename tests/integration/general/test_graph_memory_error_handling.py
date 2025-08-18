@@ -143,8 +143,8 @@ class TestGraphMemoryErrorHandling:
         assert retrieved_item is not None
         assert retrieved_item.content == memory_item.content
 
-    @pytest.mark.slow
     @pytest.mark.memory_intensive
+    @pytest.mark.slow
     def test_store_with_very_large_content_succeeds(self, graph_adapter):
         """Test storing a memory item with very large content.
 

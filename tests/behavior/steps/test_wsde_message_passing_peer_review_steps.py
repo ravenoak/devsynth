@@ -31,13 +31,11 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     assert context.team_coordinator is not None
 
 
-@pytest.mark.medium
 @given("a team of agents is configured")
 def team_of_agents_configured(context):
     team_id = "test_team"
@@ -46,13 +44,11 @@ def team_of_agents_configured(context):
     context.teams[team_id] = context.team_coordinator.get_team(team_id)
 
 
-@pytest.mark.medium
 @given("the WSDE model is enabled")
 def wsde_model_enabled(context):
     assert context.teams[context.current_team_id] is not None
 
 
-@pytest.mark.medium
 @given("a team with multiple agents")
 def team_with_multiple_agents(context):
     names = ["primus-1", "worker-1", "supervisor-1", "critic-1"]
@@ -74,7 +70,6 @@ def team_with_multiple_agents(context):
     context.team = context.team_coordinator.get_team(context.current_team_id)
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'agent "{sender}" sends a message to agent "{recipient}" with type "{msg_type}"'
@@ -92,27 +87,23 @@ def send_message(context, sender, recipient, msg_type):
     context.last_message = message
 
 
-@pytest.mark.medium
 @then(parsers.parse('agent "{recipient}" should receive the message'))
 def recipient_receives(context, recipient):
     msgs = context.team.get_messages(recipient)
     assert any(m for m in msgs if recipient in m.recipients)
 
 
-@pytest.mark.medium
 @then("the message should have the correct sender, recipient, and type")
 def message_fields(context):
     m = context.last_message
     assert m.sender and m.recipients and m.message_type
 
 
-@pytest.mark.medium
 @then("the message should be stored in the communication history")
 def stored_in_history(context):
     assert context.last_message in context.team.get_messages()
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'agent "{sender}" sends a broadcast message to all agents with type "{msg_type}"'
@@ -123,7 +114,6 @@ def broadcast_message(context, sender, msg_type):
     context.last_message = message
 
 
-@pytest.mark.medium
 @then("all agents should receive the message")
 def all_receive(context):
     for name in context.agents:
@@ -132,7 +122,6 @@ def all_receive(context):
             assert any(m for m in msgs if m is context.last_message)
 
 
-@pytest.mark.medium
 @then("each message should have the correct sender and type")
 def broadcast_fields(context):
     m = context.last_message
@@ -140,13 +129,11 @@ def broadcast_fields(context):
     assert m.message_type == MessageType.TASK_ASSIGNMENT
 
 
-@pytest.mark.medium
 @then("the broadcast should be recorded as a single communication event")
 def broadcast_single_event(context):
     assert context.team.get_messages()[-1] is context.last_message
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'agent "{sender}" sends a message with priority "{priority}" to agent "{recipient}"'
@@ -164,7 +151,6 @@ def send_priority_message(context, sender, priority, recipient):
     context.last_message = message
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'agent "{recipient}" should receive the message with priority "{priority}"'
@@ -175,20 +161,17 @@ def recipient_priority(context, recipient, priority):
     assert any(m.metadata.get("priority") == priority for m in msgs)
 
 
-@pytest.mark.medium
 @then("high priority messages should be processed before lower priority messages")
 def priority_order(context):
     msgs = context.team.get_messages()
     assert msgs[0].metadata.get("priority") == "high"
 
 
-@pytest.mark.medium
 @then("the message priority should be recorded in the communication history")
 def priority_recorded(context):
     assert context.last_message.metadata.get("priority")
 
 
-@pytest.mark.medium
 @when(parsers.parse('agent "{sender}" sends a message with structured content:'))
 def send_structured(context, sender, table=None):
     if table is None:
@@ -216,7 +199,6 @@ def send_structured(context, sender, table=None):
     context.last_message = message
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'agent "{recipient}" should receive the message with the structured content'
@@ -227,13 +209,11 @@ def check_structured(context, recipient):
     assert any(m.content == context.last_message.content for m in msgs)
 
 
-@pytest.mark.medium
 @then("the structured content should be accessible as a parsed object")
 def structured_parsed(context):
     assert isinstance(context.last_message.content, dict)
 
 
-@pytest.mark.medium
 @then("the message should be queryable by content fields")
 def query_by_fields(context):
     key = next(iter(context.last_message.content))
@@ -241,7 +221,6 @@ def query_by_fields(context):
     assert any(key in m.content for m in msgs)
 
 
-@pytest.mark.medium
 @when('agent "worker-1" submits a work product for peer review')
 def submit_work_product(context):
     work = {"text": "work"}
@@ -252,13 +231,11 @@ def submit_work_product(context):
     context.last_peer_review = review
 
 
-@pytest.mark.medium
 @then("the system should assign reviewers based on expertise")
 def reviewers_assigned(context):
     assert context.last_peer_review.reviewers
 
 
-@pytest.mark.medium
 @then("each reviewer should receive a review request message")
 def reviewers_received_request(context):
     for reviewer in context.last_peer_review.reviewers:
@@ -267,28 +244,24 @@ def reviewers_received_request(context):
         assert any(m.message_type == MessageType.REVIEW_REQUEST for m in msgs)
 
 
-@pytest.mark.medium
 @then("each reviewer should evaluate the work product independently")
 def reviewers_evaluate(context):
     context.last_peer_review.collect_reviews()
     assert context.last_peer_review.reviews
 
 
-@pytest.mark.medium
 @then("each reviewer should submit feedback")
 def reviewers_feedback(context):
     for res in context.last_peer_review.reviews.values():
         assert "feedback" in res
 
 
-@pytest.mark.medium
 @then("the original agent should receive all feedback")
 def author_receives_feedback(context):
     feedback = context.last_peer_review.aggregate_feedback()
     assert feedback["feedback"]
 
 
-@pytest.mark.medium
 @when('agent "worker-1" submits a work product with specific acceptance criteria')
 def submit_with_criteria(context):
     # Define acceptance criteria explicitly
@@ -308,7 +281,6 @@ def submit_with_criteria(context):
     context.last_peer_review = review
 
 
-@pytest.mark.medium
 @then("the peer review request should include the acceptance criteria")
 def review_includes_criteria(context):
     for reviewer in context.last_peer_review.reviewers:
@@ -318,14 +290,12 @@ def review_includes_criteria(context):
         )
 
 
-@pytest.mark.medium
 @then("reviewers should evaluate the work against the criteria")
 def reviewers_eval_against_criteria(context):
     context.last_peer_review.collect_reviews()
     assert context.last_peer_review.reviews
 
 
-@pytest.mark.medium
 @then("the review results should indicate pass/fail for each criterion")
 def review_results_pass_fail(context):
     context.last_peer_review.collect_reviews()
@@ -351,7 +321,6 @@ def review_results_pass_fail(context):
             assert isinstance(result, bool)
 
 
-@pytest.mark.medium
 @then("the overall review should include a final acceptance decision")
 def overall_acceptance(context):
     # Aggregate feedback to get final results
@@ -380,7 +349,6 @@ def overall_acceptance(context):
     assert final_result["approved"] == agg.get("all_criteria_passed", True)
 
 
-@pytest.mark.medium
 @when('agent "worker-1" submits a work product that requires revisions')
 def submit_requires_revision(context):
     # Create a work product with quality metrics
@@ -409,7 +377,6 @@ def submit_requires_revision(context):
     context.last_peer_review = review
 
 
-@pytest.mark.medium
 @when("reviewers provide feedback requiring changes")
 def reviewers_provide_feedback(context):
     # Collect reviews with low quality scores to trigger revision
@@ -434,7 +401,6 @@ def reviewers_provide_feedback(context):
     assert context.last_peer_review.status == "revision_requested"
 
 
-@pytest.mark.medium
 @then('agent "worker-1" should receive the consolidated feedback')
 def author_gets_feedback(context):
     # Get aggregated feedback
@@ -451,13 +417,47 @@ def author_gets_feedback(context):
     assert fb["quality_score"] < 0.7
 
 
-@pytest.mark.medium
 @then('agent "worker-1" should create a revised version')
 def create_revised(context):
     # Create an improved version
     revised_work = {
         "text": "Improved implementation addressing reviewer feedback",
         "code": 'def example():\n    """Example function with proper documentation"""\n    return \'complete\'',
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
         "tests": "def test_example():\n    assert example() == 'complete'",
     }
 
@@ -469,7 +469,6 @@ def create_revised(context):
     assert "tests" in context.last_peer_review.revision
 
 
-@pytest.mark.medium
 @then("the revised version should be submitted for another review cycle")
 def revised_submitted_again(context):
     # Submit the revision for another review cycle
@@ -503,7 +502,6 @@ def revised_submitted_again(context):
     assert new_review.quality_score > 0.7
 
 
-@pytest.mark.medium
 @then("the system should track the revision history")
 def track_history(context):
     # Verify the original review has the revision
@@ -524,7 +522,6 @@ def track_history(context):
     assert final_result["previous_review_id"] == context.last_peer_review.review_id
 
 
-@pytest.mark.medium
 @then("the final accepted version should be marked as approved")
 def final_approved(context):
     # Finalize the new review with approval
@@ -542,7 +539,6 @@ def final_approved(context):
     assert final_result["quality_score"] > 0.7
 
 
-@pytest.mark.medium
 @given("a team with a Critic agent")
 def team_with_critic(context):
     if "critic-1" not in context.agents:
@@ -581,7 +577,6 @@ def team_with_critic(context):
     context.team = context.team_coordinator.get_team(context.current_team_id)
 
 
-@pytest.mark.medium
 @when("a work product is submitted for peer review")
 def critic_review(context):
     # Create a more substantial work product for dialectical analysis
@@ -615,7 +610,6 @@ def authenticate_user(username, password):
     context.last_peer_review = review
 
 
-@pytest.mark.medium
 @then("the Critic agent should apply dialectical analysis")
 def critic_applies(context):
     # Collect reviews from the critic
@@ -647,7 +641,6 @@ def critic_applies(context):
     assert "synthesis" in critic_review
 
 
-@pytest.mark.medium
 @then("the analysis should identify strengths (thesis)")
 def analysis_strengths(context):
     # Get the critic's review
@@ -659,7 +652,6 @@ def analysis_strengths(context):
     assert "correctly" in critic_review.get("thesis")
 
 
-@pytest.mark.medium
 @then("the analysis should identify weaknesses (antithesis)")
 def analysis_weaknesses(context):
     # Get the critic's review
@@ -671,7 +663,6 @@ def analysis_weaknesses(context):
     assert "plaintext" in critic_review.get("antithesis").lower()
 
 
-@pytest.mark.medium
 @then("the analysis should propose improvements (synthesis)")
 def analysis_synthesis(context):
     # Get the critic's review
@@ -683,7 +674,6 @@ def analysis_synthesis(context):
     assert "timing attacks" in critic_review.get("synthesis")
 
 
-@pytest.mark.medium
 @then("the dialectical analysis should be included in the review feedback")
 def analysis_included(context):
     # Get aggregated feedback
@@ -701,7 +691,6 @@ def analysis_included(context):
     assert fb["metrics_results"]["security"] < 0.5  # Security score should be low
 
 
-@pytest.mark.medium
 @given("a team with multiple agents that have exchanged messages")
 def team_with_history(context):
     team_with_multiple_agents(context)
@@ -709,41 +698,35 @@ def team_with_history(context):
     broadcast_message(context, "primus-1", "task_assignment")
 
 
-@pytest.mark.medium
 @given("multiple peer reviews have been conducted")
 def multiple_reviews(context):
     submit_work_product(context)
     reviewers_evaluate(context)
 
 
-@pytest.mark.medium
 @when("I request the communication history for the team")
 def request_history(context):
     context.history = context.team.get_messages()
     context.review_history = context.team.peer_reviews
 
 
-@pytest.mark.medium
 @then("I should receive a chronological record of all messages")
 def chronological_messages(context):
     times = [m.timestamp for m in context.history]
     assert times == sorted(times)
 
 
-@pytest.mark.medium
 @then("I should receive a record of all peer reviews")
 def record_peer_reviews(context):
     assert context.review_history
 
 
-@pytest.mark.medium
 @then("the history should include metadata about senders, recipients, and timestamps")
 def history_metadata(context):
     m = context.history[0]
     assert m.sender and m.recipients and m.timestamp
 
 
-@pytest.mark.medium
 @then("the history should be filterable by message type, agent, and time period")
 def history_filter(context):
     filtered = context.team.get_messages(

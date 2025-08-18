@@ -1,9 +1,11 @@
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
+
 import pytest
-from devsynth.interface.cli import CLIUXBridge
+
 from devsynth.interface.agentapi import APIBridge
+from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import sanitize_output
 
 
@@ -152,6 +154,7 @@ def _web_bridge(monkeypatch):
 
     # Import and reload webui module
     import importlib
+
     from devsynth.interface import webui
 
     # Reload the module to ensure clean state
@@ -182,8 +185,8 @@ def clean_state():
     # Clean up state
 
 
-@pytest.mark.slow
 @pytest.mark.parametrize("factory", [_cli_bridge, _web_bridge, _api_bridge])
+@pytest.mark.slow
 def test_function(factory, monkeypatch, clean_state):
     """Test that bridge contract succeeds.
 

@@ -14,7 +14,6 @@ class DummyConsensusError(ConsensusError):
         Exception.__init__(self, message)
 
 
-@pytest.mark.medium
 def test_edrr_coordinator_delegates_to_helper():
     team = MagicMock()
     coordinator = EDRRCoordinator(team)
@@ -33,7 +32,6 @@ def test_edrr_coordinator_delegates_to_helper():
     assert result == {"ok": True}
 
 
-@pytest.mark.medium
 def test_dialectical_reasoner_returns_result():
     coordinator = MagicMock()
     coordinator.apply_dialectical_reasoning.return_value = {"done": True}
@@ -44,7 +42,6 @@ def test_dialectical_reasoner_returns_result():
     coordinator.apply_dialectical_reasoning.assert_called_once_with(task, critic, None)
 
 
-@pytest.mark.medium
 def test_dialectical_reasoner_logs_consensus_failure(caplog):
     coordinator = MagicMock()
     coordinator.apply_dialectical_reasoning.side_effect = DummyConsensusError(

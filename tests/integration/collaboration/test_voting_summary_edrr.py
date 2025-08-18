@@ -23,11 +23,11 @@ def coordinator():
     return coord
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize(
     "phase",
     [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT],
 )
+@pytest.mark.medium
 def test_voting_summary_in_edrr_phases(coordinator, phase):
     task = {
         "type": "critical_decision",

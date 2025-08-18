@@ -8,7 +8,6 @@ from rich.progress import Progress
 from devsynth.interface.cli import CLIProgressIndicator, CLIUXBridge
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -17,6 +16,7 @@ def clean_state():
 
 
 @pytest.mark.slow
+@pytest.mark.medium
 def test_function(clean_state):
     # Test with clean state
     """Test the create_progress method of CLIUXBridge.
@@ -28,7 +28,6 @@ def test_function(clean_state):
         mock_indicator.assert_called_once_with(bridge.console, "Test progress", 50)
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -37,6 +36,7 @@ def clean_state():
 
 
 @pytest.mark.slow
+@pytest.mark.medium
 def test_CLIProgressIndicator_update_succeeds(clean_state):
     """Test the update method of CLIProgressIndicator.
 
@@ -64,7 +64,6 @@ def test_CLIProgressIndicator_update_succeeds(clean_state):
         )
 
 
-@pytest.mark.slow
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -72,6 +71,7 @@ def clean_state():
     # Clean up state
 
 
+@pytest.mark.slow
 def test_cliprogressindicator_sanitize_output_succeeds(clean_state):
     """Test that CLIProgressIndicator sanitizes output.
 
@@ -116,7 +116,6 @@ def test_cliprogressindicator_sanitize_output_succeeds(clean_state):
             )
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -124,6 +123,7 @@ def clean_state():
     # Clean up state
 
 
+@pytest.mark.medium
 def test_cliprogressindicator_multiple_subtasks_succeeds(clean_state):
     """Test handling of multiple subtasks in CLIProgressIndicator.
 
@@ -165,7 +165,6 @@ def test_cliprogressindicator_multiple_subtasks_succeeds(clean_state):
         assert progress_mock.update.call_args_list[4] == call(subtask2, completed=True)
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -173,6 +172,7 @@ def clean_state():
     # Clean up state
 
 
+@pytest.mark.medium
 def test_cliuxbridge_display_result_heading_levels_succeeds(clean_state):
     """Test handling of different heading levels in display_result.
 
@@ -194,7 +194,6 @@ def test_cliuxbridge_display_result_heading_levels_succeeds(clean_state):
         out.assert_called_with("Level 6 Heading", style="subheading")
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -202,6 +201,7 @@ def clean_state():
     # Clean up state
 
 
+@pytest.mark.medium
 def test_cliuxbridge_display_result_smart_styling_succeeds(clean_state):
     """Test smart styling based on message content in display_result.
 
@@ -224,7 +224,6 @@ def test_cliuxbridge_display_result_smart_styling_succeeds(clean_state):
         out.assert_called_with("This is a regular message", style=None)
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -232,6 +231,7 @@ def clean_state():
     # Clean up state
 
 
+@pytest.mark.medium
 def test_cliuxbridge_display_result_rich_markup_succeeds(clean_state):
     """Test processing of Rich markup in display_result.
 
@@ -250,7 +250,6 @@ def test_cliuxbridge_display_result_rich_markup_succeeds(clean_state):
         )
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -258,6 +257,7 @@ def clean_state():
     # Clean up state
 
 
+@pytest.mark.medium
 def test_cliuxbridge_display_result_highlight_succeeds(clean_state):
     """Test styling based on the highlight flag in display_result.
 

@@ -1,7 +1,7 @@
 import sys
+from pathlib import Path
 from types import ModuleType
 from unittest.mock import MagicMock, patch
-from pathlib import Path
 
 import pytest
 
@@ -58,7 +58,15 @@ def webui_env(monkeypatch):
     st.number_input = MagicMock(return_value=1)
     st.spinner = DummyForm
     st.divider = MagicMock()
-    st.tabs = MagicMock(return_value=[DummyForm(True), DummyForm(True), DummyForm(True), DummyForm(True), DummyForm(True)])
+    st.tabs = MagicMock(
+        return_value=[
+            DummyForm(True),
+            DummyForm(True),
+            DummyForm(True),
+            DummyForm(True),
+            DummyForm(True),
+        ]
+    )
 
     class _CompV1:
         @staticmethod
@@ -166,12 +174,12 @@ def webui_env(monkeypatch):
     from devsynth.config.loader import ConfigModel
 
     mock_config = ConfigModel(
-        project_root="/mock/project/root", 
+        project_root="/mock/project/root",
         offline_mode=False,
         provider_settings={"provider": "openai", "model": "gpt-3.5-turbo"},
         memory_settings={"memory_provider": "chromadb"},
         uxbridge_settings={"default_interface": "cli"},
-        features={"feature1": False, "feature2": False}
+        features={"feature1": False, "feature2": False},
     )
     mock_project_config = ProjectUnifiedConfig(
         config=mock_config,
@@ -207,106 +215,104 @@ def webui_env(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.config.settings", settings_stub)
 
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
     monkeypatch.setattr(webui.WebUI, "_requirements_wizard", lambda self: None)
     monkeypatch.setattr(webui.WebUI, "_gather_wizard", lambda self: None)
     monkeypatch.setattr(Path, "exists", lambda _self: True)
-    
+
     return webui.WebUI(), st, cli_stub
 
 
-@pytest.mark.medium
 def test_analysis_to_synthesis_workflow_succeeds(webui_env):
     """Test a workflow from analysis to synthesis.
-    
+
     This test simulates a user journey where the user:
     1. Navigates to the analysis page
     2. Runs code analysis
     3. Navigates to the synthesis page
     4. Generates tests based on the analysis
-    
+
     ReqID: N/A
     """
     webui, st, cli = webui_env
-    
+
     # Step 1: Navigate to analysis page
     st.sidebar.radio.return_value = "Analysis"
     webui.run()
     st.header.assert_any_call("Code Analysis")
-    
+
     # Step 2: Run code analysis with custom path
     st.text_input.return_value = "/custom/path/to/analyze"
     st.form_submit_button.return_value = True
     webui.analysis_page()
-    
+
     # Verify analysis was executed
     assert cli.inspect_code_cmd.called
-    
+
     # Step 3: Navigate to synthesis page
     st.sidebar.radio.return_value = "Synthesis"
     webui.run()
     st.header.assert_any_call("Code Synthesis")
-    
+
     # Step 4: Generate tests
     cols = st.columns.return_value
     cols[0].button.return_value = True  # Generate Tests button
     cols[1].button.return_value = False
     cols[2].button.return_value = False
     webui.synthesis_page()
-    
+
     # Verify test generation was executed
     assert cli.test_cmd.called
-    
+
     # Verify success message was shown
     assert st.success.called
 
 
-@pytest.mark.medium
 def test_config_to_analysis_workflow_succeeds(webui_env):
     """Test a workflow from configuration to analysis.
-    
+
     This test simulates a user journey where the user:
     1. Navigates to the configuration page
     2. Updates configuration settings
     3. Navigates to the analysis page
     4. Runs code analysis with the new configuration
-    
+
     ReqID: N/A
     """
     webui, st, cli = webui_env
-    
+
     # Step 1: Navigate to configuration page
     st.sidebar.radio.return_value = "Configuration"
     webui.run()
     st.header.assert_any_call("Configuration")
-    
+
     # Step 2: Update offline mode setting
     st.checkbox.return_value = True  # Set offline_mode to True
     st.form_submit_button.return_value = True
     webui.config_page()
-    
+
     # Verify configuration was updated
     assert webui.save_config.called
-    
+
     # Step 3: Navigate to analysis page
     st.sidebar.radio.return_value = "Analysis"
     webui.run()
     st.header.assert_any_call("Code Analysis")
-    
+
     # Step 4: Run code analysis
     st.form_submit_button.return_value = True
     webui.analysis_page()
-    
+
     # Verify analysis was executed with updated configuration
     assert cli.inspect_code_cmd.called
 
 
-@pytest.mark.medium
 def test_complete_e2e_workflow_succeeds(webui_env):
     """Test a complete end-to-end workflow through multiple pages.
-    
+
     This test simulates a comprehensive user journey where the user:
     1. Navigates to the configuration page
     2. Updates configuration settings
@@ -316,79 +322,84 @@ def test_complete_e2e_workflow_succeeds(webui_env):
     6. Generates tests
     7. Generates code
     8. Runs the full pipeline
-    
+
     ReqID: N/A
     """
     webui, st, cli = webui_env
-    
+
     # Step 1: Navigate to configuration page
     st.sidebar.radio.return_value = "Configuration"
     webui.run()
     st.header.assert_any_call("Configuration")
-    
+
     # Step 2: Update provider settings
     # Select Provider Settings tab
-    st.tabs.return_value = [DummyForm(False), DummyForm(True), DummyForm(False), DummyForm(False), DummyForm(False)]
+    st.tabs.return_value = [
+        DummyForm(False),
+        DummyForm(True),
+        DummyForm(False),
+        DummyForm(False),
+        DummyForm(False),
+    ]
     st.selectbox.return_value = "anthropic"  # Change provider to anthropic
     st.form_submit_button.return_value = True
     webui.config_page()
-    
+
     # Verify configuration was updated
     assert webui.save_config.called
-    
+
     # Step 3: Navigate to analysis page
     st.sidebar.radio.return_value = "Analysis"
     webui.run()
     st.header.assert_any_call("Code Analysis")
-    
+
     # Step 4: Run code analysis
     st.text_input.return_value = "/project/src"
     st.form_submit_button.return_value = True
     webui.analysis_page()
-    
+
     # Verify analysis was executed
     assert cli.inspect_code_cmd.called
-    
+
     # Step 5: Navigate to synthesis page
     st.sidebar.radio.return_value = "Synthesis"
     webui.run()
     st.header.assert_any_call("Code Synthesis")
-    
+
     # Step 6: Generate tests
     cols = st.columns.return_value
     cols[0].button.return_value = True  # Generate Tests button
     cols[1].button.return_value = False
     cols[2].button.return_value = False
     webui.synthesis_page()
-    
+
     # Verify test generation was executed
     assert cli.test_cmd.called
-    
+
     # Reset button states
     cols[0].button.return_value = False
-    
+
     # Step 7: Generate code
     cols[1].button.return_value = True  # Generate Code button
     webui.synthesis_page()
-    
+
     # Verify code generation was executed
     assert cli.code_cmd.called
-    
+
     # Reset button states
     cols[1].button.return_value = False
-    
+
     # Step 8: Run full pipeline
     cols[2].button.return_value = True  # Run Pipeline button
     webui.synthesis_page()
-    
+
     # Verify pipeline execution was executed
     assert cli.run_pipeline_cmd.called
 
 
-@pytest.mark.medium
 def test_error_handling_in_workflow_succeeds(webui_env):
     """Test error handling during a workflow.
-    
+
     This test simulates error scenarios during a user journey:
     1. Navigate to the analysis page
     2. Enter an invalid path and attempt analysis
@@ -396,117 +407,118 @@ def test_error_handling_in_workflow_succeeds(webui_env):
     4. Navigate to the synthesis page
     5. Encounter an error during test generation
     6. Retry with different settings
-    
+
     ReqID: N/A
     """
     webui, st, cli = webui_env
-    
+
     # Step 1: Navigate to analysis page
     st.sidebar.radio.return_value = "Analysis"
     webui.run()
     st.header.assert_any_call("Code Analysis")
-    
+
     # Step 2: Enter invalid path and attempt analysis
     st.text_input.return_value = "/invalid/path"
     # Make inspect_code_cmd raise an exception
     cli.inspect_code_cmd.side_effect = ValueError("Invalid path")
     st.form_submit_button.return_value = True
     webui.analysis_page()
-    
+
     # Verify error was shown
     assert st.error.called
-    
+
     # Step 3: Correct the error and retry
     st.error.reset_mock()
     st.text_input.return_value = "/valid/path"
     cli.inspect_code_cmd.side_effect = None  # Remove the error
     st.form_submit_button.return_value = True
     webui.analysis_page()
-    
+
     # Verify analysis was executed successfully
     assert cli.inspect_code_cmd.called
     assert not st.error.called
-    
+
     # Step 4: Navigate to synthesis page
     st.sidebar.radio.return_value = "Synthesis"
     webui.run()
     st.header.assert_any_call("Code Synthesis")
-    
+
     # Step 5: Encounter an error during test generation
     cols = st.columns.return_value
     cols[0].button.return_value = True  # Generate Tests button
     # Make test_cmd raise an exception
     cli.test_cmd.side_effect = RuntimeError("Test generation failed")
     webui.synthesis_page()
-    
+
     # Verify error was shown
     assert st.error.called
-    
+
     # Step 6: Retry with different settings
     st.error.reset_mock()
     cli.test_cmd.side_effect = None  # Remove the error
     webui.synthesis_page()
-    
+
     # Verify test generation was executed successfully
     assert cli.test_cmd.called
     assert not st.error.called
 
 
-@pytest.mark.medium
 def test_state_preservation_in_workflow_succeeds(webui_env):
     """Test state preservation during navigation between pages.
-    
+
     This test verifies that state is preserved when navigating between pages:
     1. Navigate to the analysis page and set options
     2. Navigate to the synthesis page
     3. Navigate back to the analysis page and verify options are preserved
     4. Navigate to the configuration page and set options
     5. Navigate back to the synthesis page and verify state
-    
+
     ReqID: N/A
     """
     webui, st, cli = webui_env
-    
+
     # Step 1: Navigate to analysis page and set options
     st.sidebar.radio.return_value = "Analysis"
     st.text_input.return_value = "/custom/analysis/path"
     st.checkbox.return_value = True
     webui.run()
     webui.analysis_page()
-    
+
     # Store the input value in session state (simulating what the actual code would do)
     st.session_state.analysis_path = "/custom/analysis/path"
     st.session_state.analysis_options = {"option1": True}
-    
+
     # Step 2: Navigate to synthesis page
     st.sidebar.radio.return_value = "Synthesis"
     webui.run()
-    
+
     # Step 3: Navigate back to analysis page and verify options are preserved
     st.sidebar.radio.return_value = "Analysis"
     webui.run()
-    
+
     # Verify the text_input is called with the preserved value
-    st.text_input.assert_any_call("Path to analyze", value="/custom/analysis/path", key="analysis_path")
-    
+    st.text_input.assert_any_call(
+        "Path to analyze", value="/custom/analysis/path", key="analysis_path"
+    )
+
     # Step 4: Navigate to configuration page and set options
     st.sidebar.radio.return_value = "Configuration"
     webui.run()
-    
+
     # Set a configuration option
     st.checkbox.return_value = True  # Set offline_mode to True
     webui.config_page()
-    
+
     # Store the selected tab in session state
     st.session_state.config_tab = 0
-    
+
     # Step 5: Navigate back to synthesis page
     st.sidebar.radio.return_value = "Synthesis"
     webui.run()
-    
+
     # Navigate back to configuration page and verify state is preserved
     st.sidebar.radio.return_value = "Configuration"
     webui.run()
-    
+
     # Verify the tabs function is called with the preserved tab index
     assert "config_tab" in st.session_state

@@ -1,7 +1,8 @@
+import pytest
+
 from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
-import pytest
 
 
 class DummyBridge(UXBridge):
@@ -50,7 +51,6 @@ class RobustDummyBridge(UXBridge):
         self.messages.append(message)
 
 
-@pytest.mark.medium
 def test_setup_wizard_instantiation_succeeds() -> None:
     """Test that setup wizard instantiation succeeds.
 
@@ -59,7 +59,6 @@ def test_setup_wizard_instantiation_succeeds() -> None:
     assert isinstance(wizard.bridge, CLIUXBridge)
 
 
-@pytest.mark.medium
 def test_wizard_prompts_via_cli_bridge_succeeds(tmp_path, monkeypatch) -> None:
     """Ensure the wizard uses CLIUXBridge for prompting.
 
@@ -99,7 +98,6 @@ def test_wizard_prompts_via_cli_bridge_succeeds(tmp_path, monkeypatch) -> None:
     assert asked[0].startswith("Project root")
 
 
-@pytest.mark.medium
 def test_setup_wizard_run_succeeds(tmp_path, monkeypatch) -> None:
     """Test that setup wizard run succeeds.
 
@@ -120,7 +118,6 @@ def test_setup_wizard_run_succeeds(tmp_path, monkeypatch) -> None:
     assert any(("Initialization complete" in msg for msg in bridge.messages))
 
 
-@pytest.mark.medium
 def test_setup_wizard_abort_succeeds(tmp_path, monkeypatch) -> None:
     """Test that setup wizard abort succeeds.
 

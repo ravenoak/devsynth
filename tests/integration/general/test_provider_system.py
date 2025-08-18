@@ -138,8 +138,8 @@ class TestProviderIntegration:
 
     ReqID: N/A"""
 
-    @pytest.mark.medium
     @responses.activate
+    @pytest.mark.medium
     def test_openai_complete_succeeds(self):
         """Test OpenAI completion with mocked response.
 
@@ -156,8 +156,8 @@ class TestProviderIntegration:
         )
         assert response == "Test response"
 
-    @pytest.mark.medium
     @responses.activate
+    @pytest.mark.medium
     def test_lm_studio_complete_succeeds(self):
         """Test LM Studio completion with mocked response.
 

@@ -718,7 +718,6 @@ class TestCLICommands:
         gather_cmd(output_file=str(output), bridge=bridge)
         assert output.exists()
 
-    @pytest.mark.medium
     def test_init_cmd_wizard_runs_wizard(self):
         """Wizard mode should invoke SetupWizard.run."""
 
@@ -727,7 +726,6 @@ class TestCLICommands:
             wiz.assert_called_once()
             wiz.return_value.run.assert_called_once()
 
-    @pytest.mark.medium
     def test_spec_cmd_invalid_file(self, mock_workflow_manager, mock_bridge):
         """Invalid requirements file should not trigger generation."""
 
@@ -741,7 +739,6 @@ class TestCLICommands:
             spec_cmd("missing.md")
         mock_workflow_manager.assert_not_called()
 
-    @pytest.mark.medium
     def test_test_cmd_invalid_file(self, mock_workflow_manager, mock_bridge):
         """Invalid spec file should not trigger generation."""
 
@@ -755,7 +752,6 @@ class TestCLICommands:
             test_cmd("missing.md")
         mock_workflow_manager.assert_not_called()
 
-    @pytest.mark.medium
     def test_code_cmd_no_tests(self, mock_workflow_manager, tmp_path, monkeypatch):
         """code_cmd exits when no tests are present."""
 
@@ -764,7 +760,6 @@ class TestCLICommands:
             code_cmd()
         mock_workflow_manager.assert_not_called()
 
-    @pytest.mark.medium
     def test_run_pipeline_cmd_invalid_target(self, mock_workflow_manager, mock_bridge):
         """run_pipeline_cmd warns on invalid target and aborts when declined."""
 
@@ -772,7 +767,6 @@ class TestCLICommands:
             run_pipeline_cmd("bogus")
         mock_workflow_manager.assert_not_called()
 
-    @pytest.mark.medium
     def test_config_cmd_invalid_key(self, mock_bridge):
         """config_cmd should report errors from workflow."""
 
@@ -786,7 +780,6 @@ class TestCLICommands:
             config_cmd("bad", "value")
             herr.assert_called_once()
 
-    @pytest.mark.medium
     def test_gather_cmd_error_propagates(self):
         """Errors from gather_requirements propagate to caller."""
 
@@ -797,7 +790,6 @@ class TestCLICommands:
             with pytest.raises(FileNotFoundError):
                 gather_cmd(output_file="x")
 
-    @pytest.mark.medium
     def test_refactor_cmd_error(self, mock_bridge):
         """refactor_cmd should display error when workflow fails."""
 
@@ -808,7 +800,6 @@ class TestCLICommands:
             refactor_cmd(path="proj")
         mock_bridge.display_result.assert_any_call("[red]Error:[/red] fail")
 
-    @pytest.mark.medium
     def test_inspect_cmd_failure(self, mock_bridge):
         """inspect_cmd should show error message when workflow fails."""
 
@@ -821,7 +812,6 @@ class TestCLICommands:
             "[red]Error:[/red] bad", highlight=False
         )
 
-    @pytest.mark.medium
     def test_webapp_cmd_invalid_framework(self, tmp_path):
         """Unknown framework raises an error."""
 
@@ -847,7 +837,6 @@ class TestCLICommands:
                 highlight=False,
             )
 
-    @pytest.mark.medium
     def test_serve_cmd_passes_options(self, monkeypatch):
         """serve_cmd forwards host and port to uvicorn."""
 
@@ -859,7 +848,6 @@ class TestCLICommands:
             assert kwargs["host"] == "1.2.3.4"
             assert kwargs["port"] == 1234
 
-    @pytest.mark.medium
     def test_webapp_cmd_flask_succeeds(self, tmp_path):
         """webapp_cmd successfully generates a Flask application."""
 
@@ -902,7 +890,6 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
-    @pytest.mark.medium
     def test_webapp_cmd_fastapi_succeeds(self, tmp_path):
         """webapp_cmd successfully generates a FastAPI application."""
 
@@ -930,7 +917,6 @@ class TestCLICommands:
                 "[green]✓ FastAPI application 'myapi' generated successfully![/green]"
             )
 
-    @pytest.mark.medium
     def test_webapp_cmd_existing_dir_without_force_fails(self, tmp_path):
         """webapp_cmd fails when directory exists and force is False."""
 
@@ -948,7 +934,6 @@ class TestCLICommands:
                 f"[yellow]Directory {os.path.join(tmp_path, 'myapp')} already exists. Use --force to overwrite.[/yellow]"
             )
 
-    @pytest.mark.medium
     def test_webapp_cmd_existing_dir_with_force_succeeds(self, tmp_path):
         """webapp_cmd succeeds when directory exists and force is True."""
 
@@ -977,7 +962,6 @@ class TestCLICommands:
                 "[green]✓ Flask application 'myapp' generated successfully![/green]"
             )
 
-    @pytest.mark.medium
     def test_dbschema_cmd_invalid_type(self, tmp_path):
         """Unknown db type raises an error."""
 
@@ -1003,7 +987,6 @@ class TestCLICommands:
                 highlight=False,
             )
 
-    @pytest.mark.medium
     def test_dbschema_cmd_sqlite_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a SQLite database schema."""
 
@@ -1040,7 +1023,6 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
-    @pytest.mark.medium
     def test_dbschema_cmd_mysql_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a MySQL database schema."""
 
@@ -1077,7 +1059,6 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
-    @pytest.mark.medium
     def test_dbschema_cmd_mongodb_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a MongoDB database schema."""
 
@@ -1114,7 +1095,6 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
-    @pytest.mark.medium
     def test_dbschema_cmd_existing_dir_without_force_fails(self, tmp_path):
         """dbschema_cmd fails when directory exists and force is False."""
 
@@ -1132,7 +1112,6 @@ class TestCLICommands:
                 f"[yellow]Directory {os.path.join(tmp_path, 'mydb_schema')} already exists. Use --force to overwrite.[/yellow]"
             )
 
-    @pytest.mark.medium
     def test_dbschema_cmd_existing_dir_with_force_succeeds(self, tmp_path):
         """dbschema_cmd succeeds when directory exists and force is True."""
 
@@ -1161,7 +1140,6 @@ class TestCLICommands:
                 "[green]✓ SQLite database schema 'mydb' generated successfully![/green]"
             )
 
-    @pytest.mark.medium
     def test_webui_cmd_success_succeeds(self, mock_bridge):
         """webui_cmd successfully launches the WebUI.
 
@@ -1180,7 +1158,6 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
-    @pytest.mark.medium
     def test_webui_cmd_import_error_displays_error(self, mock_bridge):
         """webui_cmd displays an error when the WebUI module is unavailable.
 
@@ -1198,7 +1175,6 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
-    @pytest.mark.medium
     def test_webui_cmd_runtime_error_displays_error(self, mock_bridge):
         """webui_cmd displays an error when the WebUI fails to launch.
 

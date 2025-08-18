@@ -151,10 +151,10 @@ def _api_bridge(monkeypatch):
     return APIBridge(["foo"]), None
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize(
     "factory", [_cli_bridge, _web_bridge, _api_bridge, _dpg_bridge]
 )
+@pytest.mark.medium
 def test_ask_question_and_display_result_consistency(factory, monkeypatch, clean_state):
     """All bridges should return the same answers and sanitized results."""
     bridge, tracker = factory(monkeypatch)

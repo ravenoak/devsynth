@@ -387,8 +387,8 @@ class TestEnhancedEDRRCoordinator:
 
     ReqID: N/A"""
 
-    @pytest.mark.medium
     @patch("devsynth.application.edrr.edrr_coordinator_enhanced.collect_phase_metrics")
+    @pytest.mark.medium
     def test_progress_to_phase_collects_metrics_has_expected(
         self, mock_collect_metrics, mock_coordinator
     ):

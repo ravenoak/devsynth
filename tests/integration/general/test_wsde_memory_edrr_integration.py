@@ -28,7 +28,6 @@ class SimpleStore(InMemoryStore):
         return False
 
 
-@pytest.mark.medium
 def test_store_and_retrieve_solution_by_phase_succeeds(tmp_path):
     """Test that store and retrieve solution by phase succeeds.
 
@@ -48,7 +47,6 @@ def test_store_and_retrieve_solution_by_phase_succeeds(tmp_path):
     assert results[0].metadata.get("edrr_phase") == "Expand"
 
 
-@pytest.mark.medium
 def test_cross_store_sync_and_peer_review_workflow(tmp_path):
     """Verify cross-store synchronization and peer-review persistence."""
     primary = SimpleStore()
@@ -116,7 +114,6 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
     assert has_review(secondary)
 
 
-@pytest.mark.medium
 @pytest.mark.requires_resource("lmdb")
 @pytest.mark.requires_resource("faiss")
 def test_sync_manager_coordinated_backends(tmp_path, monkeypatch):

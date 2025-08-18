@@ -51,8 +51,8 @@ class TestTyperCLI:
         assert "run-pipeline" in result.output
         assert "config" in result.output
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.init_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_init_succeeds(self, mock_init_cmd):
         """Test that cli init succeeds.
 
@@ -62,8 +62,8 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_init_cmd.assert_called_once_with(wizard=False, bridge=None)
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.spec_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_spec_succeeds(self, mock_spec_cmd):
         """Test that cli spec succeeds.
 
@@ -73,8 +73,8 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_spec_cmd.assert_called_once_with("reqs.md", bridge=None)
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.test_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_test_succeeds(self, mock_test_cmd):
         """Test that cli test succeeds.
 
@@ -84,8 +84,8 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_test_cmd.assert_called_once_with("specs.md", bridge=None)
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.code_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_code_succeeds(self, mock_code_cmd):
         """Test that cli code succeeds.
 
@@ -95,8 +95,8 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_code_cmd.assert_called_once_with(bridge=None)
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.run_pipeline_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_run_succeeds(self, mock_run_pipeline_cmd):
         """Test that cli run succeeds.
 
@@ -142,8 +142,8 @@ class TestTyperCLI:
         )
         assert result.exit_code == 0
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.inspect_config_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_inspect_config_update_succeeds(self, mock_cmd):
         """Test that cli inspect config update succeeds.
 
@@ -155,8 +155,8 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_cmd.assert_called_once_with("./proj", True, False)
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.inspect_config_cmd", autospec=True)
+    @pytest.mark.medium
     def test_cli_inspect_config_prune_succeeds(self, mock_cmd):
         """Test that cli inspect config prune succeeds.
 

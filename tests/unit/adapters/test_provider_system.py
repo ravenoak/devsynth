@@ -255,7 +255,6 @@ def test_base_provider_methods_succeeds():
         asyncio.run(provider.aembed("test"))
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize(
     "provider_class,config",
     [
@@ -263,6 +262,7 @@ def test_base_provider_methods_succeeds():
         (LMStudioProvider, {"endpoint": "http://test-endpoint"}),
     ],
 )
+@pytest.mark.medium
 def test_provider_initialization_succeeds(provider_class, config):
     """Test that provider initialization succeeds.
 
@@ -331,8 +331,8 @@ def test_get_provider_config_has_expected():
         assert "model" in config["openai"]
 
 
-@pytest.mark.medium
 @patch("requests.post")
+@pytest.mark.medium
 def test_openai_provider_complete_has_expected(mock_post):
     """Test the complete method of OpenAIProvider.
 
@@ -355,8 +355,8 @@ def test_openai_provider_complete_has_expected(mock_post):
     assert kwargs["json"]["messages"][1]["content"] == "Test prompt"
 
 
-@pytest.mark.medium
 @patch("requests.post")
+@pytest.mark.medium
 def test_openai_provider_complete_error_raises_error(mock_post):
     """Test error handling in the complete method of OpenAIProvider.
 
@@ -371,8 +371,8 @@ def test_openai_provider_complete_error_raises_error(mock_post):
     assert "Bad request" in str(excinfo.value)
 
 
-@pytest.mark.medium
 @patch("requests.post")
+@pytest.mark.medium
 def test_openai_provider_complete_retry_has_expected(mock_post):
     """Test retry mechanism in the complete method of OpenAIProvider.
 
@@ -417,8 +417,8 @@ def test_openai_provider_complete_retry_has_expected(mock_post):
         assert len(retry_calls_with_correct_params) >= 1
 
 
-@pytest.mark.medium
 @patch("httpx.AsyncClient.post")
+@pytest.mark.medium
 def test_openai_provider_acomplete_has_expected(mock_post):
     """Test the acomplete method of OpenAIProvider.
 
@@ -445,8 +445,8 @@ def test_openai_provider_acomplete_has_expected(mock_post):
     asyncio.run(run_test())
 
 
-@pytest.mark.medium
 @patch("requests.post")
+@pytest.mark.medium
 def test_openai_provider_embed_has_expected(mock_post):
     """Test the embed method of OpenAIProvider.
 
@@ -465,8 +465,8 @@ def test_openai_provider_embed_has_expected(mock_post):
     assert kwargs["json"]["input"] == ["Test text"]
 
 
-@pytest.mark.medium
 @patch("requests.post")
+@pytest.mark.medium
 def test_lmstudio_provider_complete_has_expected(mock_post):
     """Test the complete method of LMStudioProvider.
 

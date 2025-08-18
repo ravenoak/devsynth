@@ -92,7 +92,6 @@ class TestCLIWebUIAgentAPIPipeline:
         """Create a WebUI bridge for testing."""
         return WebUI()
 
-    @pytest.mark.medium
     def test_init_command_pipeline_succeeds(
         self, temp_project_dir, api_client, cli_bridge, webui_bridge, monkeypatch
     ):
@@ -113,7 +112,6 @@ class TestCLIWebUIAgentAPIPipeline:
                 args, kwargs = mock_init_cmd.call_args
                 assert kwargs.get("path") == temp_project_dir
 
-    @pytest.mark.medium
     def test_spec_command_pipeline_succeeds(
         self, temp_project_dir, api_client, cli_bridge, webui_bridge, monkeypatch
     ):
@@ -140,7 +138,6 @@ class TestCLIWebUIAgentAPIPipeline:
                     args, kwargs = mock_spec_cmd.call_args
                     assert kwargs.get("requirements_file") == requirements_file
 
-    @pytest.mark.medium
     def test_test_command_pipeline_succeeds(
         self, temp_project_dir, api_client, cli_bridge, monkeypatch
     ):
@@ -165,7 +162,6 @@ class TestCLIWebUIAgentAPIPipeline:
             args, kwargs = mock_test_cmd.call_args
             assert kwargs.get("spec_file") == spec_file
 
-    @pytest.mark.medium
     def test_code_command_pipeline_succeeds(
         self, temp_project_dir, api_client, cli_bridge, monkeypatch
     ):
@@ -186,7 +182,6 @@ class TestCLIWebUIAgentAPIPipeline:
             mock_code_cmd.assert_called_once()
             args, kwargs = mock_code_cmd.call_args
 
-    @pytest.mark.medium
     def test_edrr_cycle_command_pipeline_succeeds(
         self, temp_project_dir, api_client, cli_bridge, monkeypatch
     ):
@@ -213,7 +208,6 @@ class TestCLIWebUIAgentAPIPipeline:
             assert kwargs.get("prompt") == "Improve code"
             assert kwargs.get("max_iterations") == 3
 
-    @pytest.mark.medium
     def test_error_handling_in_pipeline_raises_error(
         self, temp_project_dir, cli_bridge, monkeypatch
     ):
@@ -233,7 +227,6 @@ class TestCLIWebUIAgentAPIPipeline:
                 assert str(e) == "Test error"
             mock_init_cmd.assert_called_once()
 
-    @pytest.mark.medium
     def test_webui_command_pipeline_succeeds(
         self, temp_project_dir, api_client, cli_bridge, monkeypatch
     ):
@@ -257,7 +250,6 @@ class TestCLIWebUIAgentAPIPipeline:
                 # Verify that the run function was called
                 mock_run.assert_called_once()
 
-    @pytest.mark.medium
     def test_webui_command_error_handling_succeeds(
         self, temp_project_dir, cli_bridge, monkeypatch
     ):

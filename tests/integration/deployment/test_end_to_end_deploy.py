@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 
 
-@pytest.mark.slow
 @pytest.mark.docker
+@pytest.mark.slow
 def test_deploy_script_requires_docker(tmp_path):
     if shutil.which("docker") is None:
         pytest.skip("Docker not available")

@@ -83,7 +83,6 @@ class TestMathFunctions(unittest.TestCase):
 
 
 # Step definitions
-@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI is installed."""
@@ -91,7 +90,6 @@ def devsynth_cli_installed():
     pass
 
 
-@pytest.mark.medium
 @given("I have a project with generated code")
 def project_with_generated_code(context, sample_project):
     """Set up a project with generated code for testing."""
@@ -101,7 +99,6 @@ def project_with_generated_code(context, sample_project):
     context.test_file_path = os.path.join(context.tests_path, "test_example.py")
 
 
-@pytest.mark.medium
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(context, command, mock_run_pipeline_cmd):
     """Run a DevSynth CLI command."""
@@ -247,7 +244,6 @@ def run_command(context, command, mock_run_pipeline_cmd):
             context.error_message = str(e)
 
 
-@pytest.mark.medium
 @then("the command should execute successfully")
 def command_successful(context):
     """Verify that the command executed successfully."""
@@ -256,14 +252,12 @@ def command_successful(context):
     ), f"Command failed with error: {context.error_message}"
 
 
-@pytest.mark.medium
 @then("the command should fail")
 def command_failed(context):
     """Verify that the command failed."""
     assert context.result == "failure", "Command succeeded but was expected to fail"
 
 
-@pytest.mark.medium
 @then("the system should run the unit tests")
 def run_unit_tests(context, mock_run_pipeline_cmd):
     """Verify that the system ran the unit tests."""
@@ -271,7 +265,6 @@ def run_unit_tests(context, mock_run_pipeline_cmd):
     mock_run_pipeline_cmd.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the system should run the integration tests")
 def run_integration_tests(context, mock_run_pipeline_cmd):
     """Verify that the system ran the integration tests."""
@@ -281,7 +274,6 @@ def run_integration_tests(context, mock_run_pipeline_cmd):
     mock_run_pipeline_cmd.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the system should run the behavior tests")
 def run_behavior_tests(context, mock_run_pipeline_cmd):
     """Verify that the system ran the behavior tests."""
@@ -289,7 +281,6 @@ def run_behavior_tests(context, mock_run_pipeline_cmd):
     mock_run_pipeline_cmd.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the system should run all tests")
 def run_all_tests(context, mock_run_pipeline_cmd):
     """Verify that the system ran all tests."""
@@ -297,7 +288,6 @@ def run_all_tests(context, mock_run_pipeline_cmd):
     mock_run_pipeline_cmd.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the system should display test results")
 def display_test_results(context):
     """Verify that test results were displayed."""
@@ -307,7 +297,6 @@ def display_test_results(context):
     assert "details" in context.test_results, "Test results do not include details"
 
 
-@pytest.mark.medium
 @then("the system should display detailed test results")
 def display_detailed_test_results(context):
     """Verify that detailed test results were displayed."""
@@ -321,7 +310,6 @@ def display_detailed_test_results(context):
             ), "Failed test detail does not include traceback"
 
 
-@pytest.mark.medium
 @then("the system should run the specified test file")
 def run_specified_test_file(context, mock_run_pipeline_cmd):
     """Verify that the system ran the specified test file."""
@@ -329,7 +317,6 @@ def run_specified_test_file(context, mock_run_pipeline_cmd):
     mock_run_pipeline_cmd.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the system should display test results for that file")
 def display_file_specific_test_results(context):
     """Verify that test results for the specified file were displayed."""
@@ -339,7 +326,6 @@ def display_file_specific_test_results(context):
     # For this mock, we'll just check that we have results
 
 
-@pytest.mark.medium
 @then("the system should display an error message about the invalid target")
 def invalid_target_error_displayed(context):
     """Verify that an error message about an invalid target was displayed."""

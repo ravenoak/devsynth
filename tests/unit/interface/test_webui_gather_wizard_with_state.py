@@ -199,8 +199,8 @@ def test_gather_wizard_data_persistence_with_state(
     assert state.get("resource_metadata") == metadata
 
 
-@pytest.mark.medium
 @pytest.mark.skip(reason="completion flow covered by other tests")
+@pytest.mark.medium
 def test_gather_wizard_completion_with_state(
     gather_wizard_state, mock_gather_requirements, clean_state
 ):
@@ -300,8 +300,8 @@ def test_gather_wizard_error_handling_with_state(gather_wizard_state, clean_stat
             assert state.is_completed() is False
 
 
-@pytest.mark.medium
 @pytest.mark.skip(reason="cancel flow covered by other tests")
+@pytest.mark.medium
 def test_gather_wizard_cancel_with_state(
     gather_wizard_state, mock_gather_requirements, clean_state
 ):

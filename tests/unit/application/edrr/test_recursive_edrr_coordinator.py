@@ -366,7 +366,6 @@ class TestRecursiveEDRRCoordinator:
         assert should_terminate == False
         assert reason is None
 
-    @pytest.mark.medium
     @pytest.mark.parametrize(
         "micro_task",
         [
@@ -374,6 +373,7 @@ class TestRecursiveEDRRCoordinator:
             {"description": "Too costly", "cost_score": 0.9, "benefit_score": 0.2},
         ],
     )
+    @pytest.mark.medium
     def test_create_micro_cycle_termination_succeeds(self, coordinator, micro_task):
         """create_micro_cycle should abort when delimiting principles trigger.
 

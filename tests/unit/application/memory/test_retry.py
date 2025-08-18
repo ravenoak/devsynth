@@ -20,16 +20,16 @@ from devsynth.application.memory.retry import (
 )
 
 
-@pytest.mark.medium
 class TestRetryWithBackoff:
     """Tests for the retry_with_backoff decorator."""
 
     @pytest.mark.medium
+    @pytest.mark.medium
     def test_successful_execution(self):
         """Test that the decorator returns the result when the function succeeds."""
 
-        @pytest.mark.medium
         @retry_with_backoff(max_retries=3)
+        @pytest.mark.medium
         def test_func(arg1, arg2=None):
             return f"{arg1}-{arg2}"
 
@@ -115,10 +115,10 @@ class TestRetryWithBackoff:
             assert mock_sleep.call_args_list[2][0][0] == 5.0
 
 
-@pytest.mark.medium
 class TestRetryOperation:
     """Tests for the retry_operation function."""
 
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_successful_execution(self):
         """Test that retry_operation returns the result when the function succeeds."""
@@ -163,10 +163,10 @@ class TestRetryOperation:
         assert mock_func.call_count == 3
 
 
-@pytest.mark.medium
 class TestRetryConfig:
     """Tests for the RetryConfig class and predefined configurations."""
 
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_retry_config_initialization(self):
         """Test that RetryConfig initializes with expected values."""
@@ -228,10 +228,10 @@ class TestRetryConfig:
         assert OSError in NETWORK_RETRY_CONFIG.exceptions_to_retry
 
 
-@pytest.mark.medium
 class TestWithRetry:
     """Tests for the with_retry decorator."""
 
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_with_retry_default_config(self):
         """Test that with_retry uses DEFAULT_RETRY_CONFIG by default."""
@@ -240,8 +240,8 @@ class TestWithRetry:
         ) as mock_retry:
             mock_retry.return_value = lambda f: f
 
-            @pytest.mark.medium
             @with_retry()
+            @pytest.mark.medium
             def test_func(self):
                 return "success"
 
@@ -274,8 +274,8 @@ class TestWithRetry:
         ) as mock_retry:
             mock_retry.return_value = lambda f: f
 
-            @pytest.mark.medium
             @with_retry(custom_config)
+            @pytest.mark.medium
             def test_func(self):
                 return "success"
 
