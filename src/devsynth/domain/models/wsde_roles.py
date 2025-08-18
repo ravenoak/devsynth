@@ -399,6 +399,10 @@ def select_primus_by_expertise(self: WSDETeam, task: Dict[str, Any]):
             setattr(a, "has_been_primus", False)
         unused_agents = self.agents
 
+    current_primus = self.roles.get("primus")
+    if current_primus and current_primus not in unused_agents:
+        unused_agents.append(current_primus)
+
     candidates = unused_agents
     best_agent = max(candidates, key=lambda a: expertise_scores.get(a, 0))
 

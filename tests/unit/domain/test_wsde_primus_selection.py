@@ -49,6 +49,23 @@ def test_rotation_resets_after_all_have_served_succeeds():
     assert not other.has_been_primus
 
 
+def test_current_primus_considered_in_selection_succeeds():
+    """Current primus remains candidate when reselection occurs.
+
+    This prevents ``select_primus_by_expertise`` from skipping the
+    existing primus simply because they've served once."""
+
+    team = WSDETeam(name="PrimusReselectionTeam")
+    py = _agent("py", ["python"])
+    js = _agent("js", ["javascript"])
+    team.add_agents([py, js])
+
+    team.assign_roles()
+    team.select_primus_by_expertise({"language": "python"})
+
+    assert team.get_primus() is py
+
+
 def test_documentation_tasks_prefer_doc_experts_succeeds():
     """Test that documentation tasks prefer doc experts succeeds.
 
