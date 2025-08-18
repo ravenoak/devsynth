@@ -1,14 +1,14 @@
 ---
 title: "DevSynth Changelog"
-date: "2025-05-30"
+date: "2025-08-16"
 version: "0.1.0-alpha.1"
 tags:
   - "devsynth"
   - "changelog"
   - "version history"
-status: "draft"
+status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-12"
+last_reviewed: "2025-08-16"
 ---
 
 # Changelog
@@ -18,11 +18,11 @@ All notable changes to the DevSynth project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-DevSynth has not yet reached an official release. Versions in the `0.1.x` range
-represent pre-release milestones leading up to the first stable release. No
-version has been published yet.
+DevSynth's pre-release milestones in the `0.1.x` range lead up to the first
+stable release. Version `0.1.0-alpha.1` marks the project's initial published
+milestone.
 
-## [0.1.0-alpha.1] - Unreleased
+## [0.1.0-alpha.1] - 2025-08-16
 
 ### Added
 - Modular, hexagonal architecture
