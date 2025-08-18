@@ -33,7 +33,8 @@ This policy defines how Socratic dialogues support audits that seek consensus be
 ## Continuous Integration
 
 - The dialectical audit script runs in continuous integration.
-- Its output is written to `dialectical_audit.log` and archived with CI artifacts.
+- The build fails if `dialectical_audit.log` contains unanswered questions.
+- The log is archived as a workflow artifact for review.
 
 ## Dialogue Procedure
 
