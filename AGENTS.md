@@ -13,8 +13,8 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
 
 ## Environment
 
-- Run the environment provisioning script before beginning development. Refer to it only as **the environment provisioning script** and update it according to best practices.
-- The environment provisioning script installs pre-commit hooks, caches optional extras from `pyproject.toml`, and runs verification commands to ensure project consistency.
+- Run the environment provisioning script before development. Refer to it only as **the environment provisioning script**.
+- It installs pre-commit hooks, caches optional extras from `pyproject.toml`, and runs verification commands to ensure project consistency.
 - Run **all** commands through `poetry run` to use the correct virtual environment.
 - Install dependencies with development and test extras:
 
