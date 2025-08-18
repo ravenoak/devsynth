@@ -14,6 +14,7 @@ See [`docs/policies/documentation_policies.md`](docs/policies/documentation_poli
 ## Environment Expectations
 
 - Run the environment provisioning script before beginning any development to provision the environment. Always refer to it generically as **the environment provisioning script** and update it according to best practices; do not mention its filename or path elsewhere in the repository.
+- The environment provisioning script installs pre-commit hooks to enable consistent repository checks.
 - For release-specific setup, consult the [`0.1.0-alpha.1` release notes](docs/release/0.1.0-alpha.1.md).
 - It runs verification commands to ensure project consistency (see the Pre-PR Checks section for the specific commands).
 - Run **all** commands through `poetry run` to ensure the correct virtual environment is used.
