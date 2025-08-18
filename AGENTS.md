@@ -110,7 +110,7 @@ The `0.1.0-alpha.1` release process is documented in [docs/release/0.1.0-alpha.1
    - **Key Questions**
      - What files or version bumps did the command produce?
      - Did the command complete without errors?
-2. Run `poetry run python scripts/dialectical_audit.py` to produce a dialectical audit log. See the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
+2. Run `poetry run python scripts/dialectical_audit.py` to produce a dialectical audit log, or trigger the `Dialectical Audit` workflow in GitHub Actions which runs the same command and uploads the log as an artifact. See the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
    - **Key Questions**
      - What inconsistencies or open questions did the audit uncover?
      - Are these items resolved or tracked?
