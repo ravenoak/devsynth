@@ -2,6 +2,7 @@
 
 import os
 import pathlib
+import shutil
 import subprocess
 
 import pytest
@@ -10,6 +11,10 @@ import pytest
 @pytest.mark.fast
 def test_docs_build(tmp_path):
     """Docs build without errors using MkDocs."""
+    pytest.importorskip("mkdocs")
+    if shutil.which("mkdocs") is None:
+        pytest.skip("mkdocs command not found")
+
     repo_root = pathlib.Path(__file__).resolve().parents[2]
     env = os.environ.copy()
     env["PYTHONPATH"] = str(repo_root / "src")

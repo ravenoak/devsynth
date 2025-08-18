@@ -9,11 +9,14 @@ import pytest
 @pytest.mark.fast
 def test_gen_ref_pages_matches_examples(tmp_path: Path) -> None:
     """gen_ref_pages should reproduce example output."""
+    pytest.importorskip("mkdocs_gen_files")
     # Setup minimal project structure
     scripts_dir = tmp_path / "scripts"
     scripts_dir.mkdir()
     repo_root = Path(__file__).resolve().parents[3]
-    shutil.copy(repo_root / "scripts" / "gen_ref_pages.py", scripts_dir / "gen_ref_pages.py")
+    shutil.copy(
+        repo_root / "scripts" / "gen_ref_pages.py", scripts_dir / "gen_ref_pages.py"
+    )
 
     src_pkg = tmp_path / "src" / "devsynth"
     src_pkg.mkdir(parents=True)
