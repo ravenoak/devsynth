@@ -14,6 +14,7 @@ class DummyAgent:
         self.process = lambda task: {"solution": f"{name} solution"}
 
 
+@pytest.mark.medium
 def test_assign_roles_sets_roles():
     team = WSDETeam(name="t")
     agents = [DummyAgent(f"a{i}", ["skill"]) for i in range(5)]

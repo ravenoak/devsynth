@@ -1,8 +1,10 @@
-from types import ModuleType
-from unittest.mock import MagicMock
 import importlib
 import sys
+from types import ModuleType
+from unittest.mock import MagicMock
+
 import pytest
+
 from devsynth.interface import agentapi
 
 
@@ -25,6 +27,7 @@ def _setup(monkeypatch):
     def spec_cmd(requirements_file="requirements.md", *, bridge):
         bridge.display_result(f"spec:{requirements_file}")
 
+    @pytest.mark.medium
     def test_cmd_succeeds(spec_file="specs.md", output_dir=None, *, bridge):
         bridge.display_result(f"test:{spec_file}:{output_dir}")
 

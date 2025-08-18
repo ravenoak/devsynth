@@ -60,6 +60,7 @@ class TestMemoryAgentIntegration:
         """Create an agent memory integration for testing."""
         return AgentMemoryIntegration(memory_manager, agent)
 
+    @pytest.mark.medium
     def test_agent_can_store_and_retrieve_memory_succeeds(self, agent_memory):
         """Test that an agent can store and retrieve memory.
 
@@ -77,6 +78,7 @@ class TestMemoryAgentIntegration:
         assert retrieved_item.metadata["confidence"] == metadata["confidence"]
         assert retrieved_item.metadata["agent_name"] == "TestAgent"
 
+    @pytest.mark.medium
     def test_agent_can_search_memory_succeeds(self, agent_memory):
         """Test that an agent can search memory.
 
@@ -97,6 +99,7 @@ class TestMemoryAgentIntegration:
         search_results = agent_memory.search_memory({"agent_name": "TestAgent"})
         assert len(search_results) == 5
 
+    @pytest.mark.medium
     def test_agent_can_update_memory_succeeds(self, agent_memory):
         """Test that an agent can update memory.
 
@@ -116,6 +119,7 @@ class TestMemoryAgentIntegration:
         assert retrieved_item.metadata["confidence"] == updated_metadata["confidence"]
         assert retrieved_item.metadata["agent_name"] == "TestAgent"
 
+    @pytest.mark.medium
     def test_agent_can_delete_memory_succeeds(self, agent_memory):
         """Test that an agent can delete memory.
 
@@ -130,6 +134,7 @@ class TestMemoryAgentIntegration:
         retrieved_item = agent_memory.retrieve_memory(memory_id)
         assert retrieved_item is None
 
+    @pytest.mark.medium
     def test_multiple_agents_can_share_memory_succeeds(self, memory_manager):
         """Test that multiple agents can share memory.
 
@@ -159,6 +164,7 @@ class TestMemoryAgentIntegration:
         assert retrieved_item.metadata["agent_name"] == "Agent1"
         assert retrieved_item.metadata["shared"] == True
 
+    @pytest.mark.medium
     def test_agent_memory_isolation_succeeds(self, memory_manager):
         """Test that agent memory can be isolated.
 
@@ -184,6 +190,7 @@ class TestMemoryAgentIntegration:
         retrieved_item = agent2_memory.retrieve_memory(memory_id)
         assert retrieved_item is None or retrieved_item.metadata.get("private") != True
 
+    @pytest.mark.medium
     def test_agent_memory_with_context_succeeds(self, agent_memory):
         """Test that an agent can store and retrieve memory with context.
 
@@ -285,6 +292,7 @@ class TestMemoryAgentIntegration:
         assert kuzu2.retrieve("persist") is not None
         assert kuzu2.vector.retrieve_vector("persist") is not None
 
+    @pytest.mark.medium
     def test_sync_manager_transaction_rolls_back_succeeds(self, temp_dir):
         """Ensure multi-store transactions roll back on error."""
 

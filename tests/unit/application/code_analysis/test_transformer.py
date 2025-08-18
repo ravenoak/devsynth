@@ -33,6 +33,7 @@ def sample_code():
     return '\nimport os\nimport sys\nimport re  # This import is unused\n\ndef calculate_sum(a, b):\n    # Redundant assignment\n    result = a + b\n    return result\n\ndef main():\n    x = 5\n    y = 10\n    z = 15  # This variable is unused\n\n    # String concatenation that could be optimized\n    greeting = "Hello, " + "world!"\n\n    total = calculate_sum(x, y)\n    print(f"The sum is {total}")\n'
 
 
+@pytest.mark.medium
 @pytest.fixture
 def test_file_path_succeeds():
     """Create a temporary file with sample code for testing.
@@ -50,6 +51,7 @@ def test_file_path_succeeds():
         os.unlink(temp_path)
 
 
+@pytest.mark.medium
 @pytest.fixture
 def test_directory_succeeds():
     """Create a temporary directory with Python files for testing.

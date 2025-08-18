@@ -5,22 +5,24 @@ These tests verify the provider system can connect to both OpenAI and LM Studio,
 with proper fallback and selection logic.
 """
 
-import os
-import pytest
-from unittest.mock import patch, MagicMock
-import responses
 import json
+import os
+from unittest.mock import MagicMock, patch
+
+import pytest
+import responses
+
 from devsynth.adapters.provider_system import (
-    get_provider_config,
-    ProviderFactory,
-    OpenAIProvider,
-    LMStudioProvider,
     FallbackProvider,
-    get_provider,
+    LMStudioProvider,
+    OpenAIProvider,
+    ProviderError,
+    ProviderFactory,
+    ProviderType,
     complete,
     embed,
-    ProviderType,
-    ProviderError,
+    get_provider,
+    get_provider_config,
 )
 
 
@@ -53,6 +55,7 @@ class TestProviderFactory:
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     def test_create_openai_provider_has_expected(self):
         """Test OpenAI provider creation.
 
@@ -77,6 +80,7 @@ class TestProviderFactory:
                 assert isinstance(provider, OpenAIProvider)
                 assert provider.api_key == "test-api-key"
 
+    @pytest.mark.medium
     def test_create_lm_studio_provider_has_expected(self):
         """Test LM Studio provider creation.
 
@@ -101,6 +105,7 @@ class TestProviderFactory:
             assert provider.endpoint == "http://test-endpoint:1234"
             assert provider.model == "test-model"
 
+    @pytest.mark.medium
     def test_fallback_to_lm_studio_succeeds(self):
         """Test fallback to LM Studio if OpenAI API key is missing.
 
@@ -133,6 +138,7 @@ class TestProviderIntegration:
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     @responses.activate
     def test_openai_complete_succeeds(self):
         """Test OpenAI completion with mocked response.
@@ -150,6 +156,7 @@ class TestProviderIntegration:
         )
         assert response == "Test response"
 
+    @pytest.mark.medium
     @responses.activate
     def test_lm_studio_complete_succeeds(self):
         """Test LM Studio completion with mocked response.
@@ -175,6 +182,7 @@ class TestFallbackProvider:
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     def test_fallback_provider_complete_has_expected(self):
         """Test fallback provider tries each provider in sequence.
 
@@ -191,6 +199,7 @@ class TestFallbackProvider:
         mock_provider2.complete.assert_called_once()
         assert response == "Response from provider 2"
 
+    @pytest.mark.medium
     def test_fallback_provider_all_fail_fails(self):
         """Test fallback provider raises error if all providers fail.
 
@@ -211,6 +220,7 @@ class TestSimplifiedAPI:
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     def test_get_provider_has_expected(self):
         """Test get_provider function.
 
@@ -226,6 +236,7 @@ class TestSimplifiedAPI:
             )
             mock_create.assert_called_once_with(ProviderType.OPENAI.value)
 
+    @pytest.mark.medium
     def test_complete_function_succeeds(self):
         """Test complete function.
 
@@ -240,6 +251,7 @@ class TestSimplifiedAPI:
             assert response == "Test response"
             mock_provider.complete.assert_called_once()
 
+    @pytest.mark.medium
     def test_embed_function_succeeds(self):
         """Test embed function.
 

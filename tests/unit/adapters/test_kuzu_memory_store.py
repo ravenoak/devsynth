@@ -61,6 +61,7 @@ def test_store_and_search_succeeds(tmp_path, KuzuMemoryStoreClass, monkeypatch):
     assert results[0].id == "t1"
 
 
+@pytest.mark.medium
 def test_create_ephemeral_fallback(KuzuMemoryStoreClass, monkeypatch):
     monkeypatch.setitem(sys.modules, "kuzu", None)
     store = KuzuMemoryStoreClass.create_ephemeral()
@@ -70,6 +71,7 @@ def test_create_ephemeral_fallback(KuzuMemoryStoreClass, monkeypatch):
         store.cleanup()
 
 
+@pytest.mark.medium
 def test_create_ephemeral_embedded(KuzuMemoryStoreClass, monkeypatch):
     class Database:
         def __init__(self, path):
@@ -93,6 +95,7 @@ def test_create_ephemeral_embedded(KuzuMemoryStoreClass, monkeypatch):
         store.cleanup()
 
 
+@pytest.mark.medium
 def test_store_failure_raises_memory_store_error(tmp_path, KuzuMemoryStoreClass):
     store = KuzuMemoryStoreClass(
         persist_directory=str(tmp_path), use_provider_system=False
@@ -113,6 +116,7 @@ def test_store_failure_raises_memory_store_error(tmp_path, KuzuMemoryStoreClass)
         assert store_del_mock.called
 
 
+@pytest.mark.medium
 def test_delete_returns_false_on_error(tmp_path, KuzuMemoryStoreClass):
     store = KuzuMemoryStoreClass(
         persist_directory=str(tmp_path), use_provider_system=False

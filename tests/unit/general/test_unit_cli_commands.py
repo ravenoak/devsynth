@@ -1,25 +1,27 @@
-from unittest.mock import patch, mock_open, MagicMock
 import os
-import yaml
-from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.core import feature_flags
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
+import yaml
+
 from devsynth.application.cli import cli_commands
 from devsynth.application.cli.cli_commands import (
     code_cmd,
     config_cmd,
-    init_cmd,
-    run_pipeline_cmd,
-    spec_cmd,
-    test_cmd,
-    inspect_cmd,
-    refactor_cmd,
-    webapp_cmd,
     dbschema_cmd,
     gather_cmd,
+    init_cmd,
+    inspect_cmd,
+    refactor_cmd,
+    run_pipeline_cmd,
     serve_cmd,
+    spec_cmd,
+    test_cmd,
+    webapp_cmd,
     webui_cmd,
 )
+from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.core import feature_flags
 
 ORIG_CHECK_SERVICES = cli_commands._check_services
 
@@ -48,6 +50,7 @@ class TestCLICommands:
         with patch("devsynth.application.cli.cli_commands.bridge") as mock:
             yield mock
 
+    @pytest.mark.medium
     def test_init_cmd_success_succeeds(self, mock_bridge):
         """Project initializes when no config exists.
 
@@ -73,6 +76,7 @@ class TestCLICommands:
             for c in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_init_cmd_already_initialized_succeeds(self, mock_bridge):
         """init_cmd exits when config exists.
 
@@ -85,6 +89,7 @@ class TestCLICommands:
             init_cmd()
         mock_bridge.display_result.assert_any_call("Project already initialized")
 
+    @pytest.mark.medium
     def test_init_cmd_exception_raises_error(self, mock_bridge):
         """Errors are reported via the bridge.
 
@@ -98,6 +103,7 @@ class TestCLICommands:
             "boom" in c.args[0] for c in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_spec_cmd_success_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test successful spec generation.
 
@@ -118,6 +124,7 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_test_cmd_success_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test successful test generation.
 
@@ -134,6 +141,7 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_code_cmd_success_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test successful code generation.
 
@@ -150,6 +158,7 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_run_pipeline_cmd_success_with_target_succeeds(
         self, mock_workflow_manager, mock_bridge
     ):
@@ -168,6 +177,7 @@ class TestCLICommands:
             "[green]Executed target: unit-tests[/green]"
         )
 
+    @pytest.mark.medium
     def test_run_pipeline_cmd_success_without_target_succeeds(
         self, mock_workflow_manager, mock_bridge
     ):
@@ -186,6 +196,7 @@ class TestCLICommands:
             "[green]Execution complete.[/green]"
         )
 
+    @pytest.mark.medium
     def test_config_cmd_set_value_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test setting a configuration value.
 
@@ -202,6 +213,7 @@ class TestCLICommands:
             "[green]Configuration updated: model = gpt-4[/green]"
         )
 
+    @pytest.mark.medium
     def test_config_cmd_get_value_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test getting a configuration value.
 
@@ -213,6 +225,7 @@ class TestCLICommands:
         )
         mock_bridge.display_result.assert_called_once_with("[blue]model:[/blue] gpt-4")
 
+    @pytest.mark.medium
     def test_config_cmd_list_all_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test listing all configuration values.
 
@@ -227,6 +240,7 @@ class TestCLICommands:
         )
         assert mock_bridge.display_result.call_count == 4
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_succeeds(self, tmp_path, mock_bridge):
         """enable_feature_cmd should toggle a flag in project.yaml.
 
@@ -248,6 +262,7 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_config_cmd_updates_yaml_succeeds(self, tmp_path, mock_bridge):
         """Test that config cmd updates yaml succeeds.
 
@@ -278,6 +293,7 @@ class TestCLICommands:
         cfg_loaded = UnifiedConfigLoader.load(tmp_path).config
         assert cfg_loaded.language == "javascript"
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_yaml_succeeds(self, tmp_path, mock_bridge):
         """Test that enable feature cmd yaml succeeds.
 
@@ -295,6 +311,7 @@ class TestCLICommands:
         cfg_loaded = UnifiedConfigLoader.load(tmp_path).config
         assert cfg_loaded.features["code_generation"] is True
 
+    @pytest.mark.medium
     def test_config_cmd_uses_loader_succeeds(self, mock_workflow_manager, mock_bridge):
         """Test that config cmd uses loader succeeds.
 
@@ -309,6 +326,7 @@ class TestCLICommands:
             cli_commands.config_cmd("language", "javascript")
         mock_load.assert_called_once()
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_loader_succeeds(self, mock_bridge):
         """Test that enable feature cmd loader succeeds.
 
@@ -321,6 +339,7 @@ class TestCLICommands:
             cli_commands.enable_feature_cmd("code_generation")
         mock_load.assert_called_once()
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_load_error_displays_error(self, mock_bridge):
         """enable_feature_cmd should display an error when loading the configuration fails.
 
@@ -336,6 +355,7 @@ class TestCLICommands:
             "[red]Error:[/red] Failed to load configuration", highlight=False
         )
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_save_error_displays_error(self, mock_bridge):
         """enable_feature_cmd should display an error when saving the configuration fails.
 
@@ -362,6 +382,7 @@ class TestCLICommands:
             "[red]Error:[/red] Failed to save configuration", highlight=False
         )
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_nonexistent_feature_creates_feature(self, mock_bridge):
         """enable_feature_cmd should create a new feature if it doesn't exist.
 
@@ -387,6 +408,7 @@ class TestCLICommands:
             "Feature 'new_feature' enabled."
         )
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_already_enabled_feature_succeeds(self, mock_bridge):
         """enable_feature_cmd should succeed when enabling an already enabled feature.
 
@@ -412,6 +434,7 @@ class TestCLICommands:
             "Feature 'code_generation' enabled."
         )
 
+    @pytest.mark.medium
     def test_enable_feature_cmd_persists_existing_flags(self, tmp_path, mock_bridge):
         """Enabling one feature should not disable existing flags.
 
@@ -435,6 +458,7 @@ class TestCLICommands:
         assert cfg.features["code_generation"] is True
         assert cfg.features["test_generation"] is True
 
+    @pytest.mark.medium
     def test_init_creates_config_and_commands_use_loader_succeeds(
         self, tmp_path, mock_bridge
     ):
@@ -481,6 +505,7 @@ class TestCLICommands:
         mock_load.assert_called()
         assert spy_load.path == cfg_path
 
+    @pytest.mark.medium
     def test_inspect_cmd_file_succeeds(self, mock_workflow_manager, mock_bridge):
         """Inspect command with input file.
 
@@ -491,6 +516,7 @@ class TestCLICommands:
             "inspect", {"input": "requirements.md", "interactive": False}
         )
 
+    @pytest.mark.medium
     def test_inspect_cmd_interactive_succeeds(self, mock_workflow_manager, mock_bridge):
         """Inspect command in interactive mode.
 
@@ -499,6 +525,7 @@ class TestCLICommands:
         inspect_cmd(interactive=True)
         mock_workflow_manager.assert_called_once_with("inspect", {"interactive": True})
 
+    @pytest.mark.medium
     def test_spec_cmd_missing_openai_key_succeeds(
         self, mock_workflow_manager, mock_bridge
     ):
@@ -530,6 +557,7 @@ class TestCLICommands:
                 for call in mock_bridge.display_result.call_args_list
             )
 
+    @pytest.mark.medium
     def test_spec_cmd_missing_chromadb_package_succeeds(
         self, mock_workflow_manager, mock_bridge
     ):
@@ -566,6 +594,7 @@ class TestCLICommands:
                 for call in mock_bridge.display_result.call_args_list
             )
 
+    @pytest.mark.medium
     def test_spec_cmd_missing_kuzu_package_succeeds(
         self, mock_workflow_manager, mock_bridge
     ):
@@ -601,6 +630,7 @@ class TestCLICommands:
                 for call in mock_bridge.display_result.call_args_list
             )
 
+    @pytest.mark.medium
     def test_config_key_autocomplete_succeeds(self, tmp_path, monkeypatch):
         """Test that config key autocomplete succeeds.
 
@@ -612,6 +642,7 @@ class TestCLICommands:
         result = cli_commands.config_key_autocomplete(None, "l")
         assert "language" in result
 
+    @pytest.mark.medium
     def test_check_services_warns_succeeds(self, monkeypatch, capsys):
         """Test that check services warns succeeds.
 
@@ -631,6 +662,7 @@ class TestCLICommands:
         assert res is False
         assert "OPENAI_API_KEY" in output
 
+    @pytest.mark.medium
     def test_doctor_cmd_invokes_loader_succeeds(self):
         """Test that doctor cmd invokes loader succeeds.
 
@@ -656,6 +688,7 @@ class TestCLICommands:
             cli_commands.check_cmd("config")
             mock_doctor.assert_called_once_with("config")
 
+    @pytest.mark.medium
     def test_gather_cmd_creates_file_succeeds(self, tmp_path):
         """Test that gather cmd creates file succeeds.
 
@@ -685,6 +718,7 @@ class TestCLICommands:
         gather_cmd(output_file=str(output), bridge=bridge)
         assert output.exists()
 
+    @pytest.mark.medium
     def test_init_cmd_wizard_runs_wizard(self):
         """Wizard mode should invoke SetupWizard.run."""
 
@@ -693,6 +727,7 @@ class TestCLICommands:
             wiz.assert_called_once()
             wiz.return_value.run.assert_called_once()
 
+    @pytest.mark.medium
     def test_spec_cmd_invalid_file(self, mock_workflow_manager, mock_bridge):
         """Invalid requirements file should not trigger generation."""
 
@@ -706,6 +741,7 @@ class TestCLICommands:
             spec_cmd("missing.md")
         mock_workflow_manager.assert_not_called()
 
+    @pytest.mark.medium
     def test_test_cmd_invalid_file(self, mock_workflow_manager, mock_bridge):
         """Invalid spec file should not trigger generation."""
 
@@ -719,6 +755,7 @@ class TestCLICommands:
             test_cmd("missing.md")
         mock_workflow_manager.assert_not_called()
 
+    @pytest.mark.medium
     def test_code_cmd_no_tests(self, mock_workflow_manager, tmp_path, monkeypatch):
         """code_cmd exits when no tests are present."""
 
@@ -727,6 +764,7 @@ class TestCLICommands:
             code_cmd()
         mock_workflow_manager.assert_not_called()
 
+    @pytest.mark.medium
     def test_run_pipeline_cmd_invalid_target(self, mock_workflow_manager, mock_bridge):
         """run_pipeline_cmd warns on invalid target and aborts when declined."""
 
@@ -734,6 +772,7 @@ class TestCLICommands:
             run_pipeline_cmd("bogus")
         mock_workflow_manager.assert_not_called()
 
+    @pytest.mark.medium
     def test_config_cmd_invalid_key(self, mock_bridge):
         """config_cmd should report errors from workflow."""
 
@@ -747,6 +786,7 @@ class TestCLICommands:
             config_cmd("bad", "value")
             herr.assert_called_once()
 
+    @pytest.mark.medium
     def test_gather_cmd_error_propagates(self):
         """Errors from gather_requirements propagate to caller."""
 
@@ -757,6 +797,7 @@ class TestCLICommands:
             with pytest.raises(FileNotFoundError):
                 gather_cmd(output_file="x")
 
+    @pytest.mark.medium
     def test_refactor_cmd_error(self, mock_bridge):
         """refactor_cmd should display error when workflow fails."""
 
@@ -767,6 +808,7 @@ class TestCLICommands:
             refactor_cmd(path="proj")
         mock_bridge.display_result.assert_any_call("[red]Error:[/red] fail")
 
+    @pytest.mark.medium
     def test_inspect_cmd_failure(self, mock_bridge):
         """inspect_cmd should show error message when workflow fails."""
 
@@ -779,6 +821,7 @@ class TestCLICommands:
             "[red]Error:[/red] bad", highlight=False
         )
 
+    @pytest.mark.medium
     def test_webapp_cmd_invalid_framework(self, tmp_path):
         """Unknown framework raises an error."""
 
@@ -804,6 +847,7 @@ class TestCLICommands:
                 highlight=False,
             )
 
+    @pytest.mark.medium
     def test_serve_cmd_passes_options(self, monkeypatch):
         """serve_cmd forwards host and port to uvicorn."""
 
@@ -815,6 +859,7 @@ class TestCLICommands:
             assert kwargs["host"] == "1.2.3.4"
             assert kwargs["port"] == 1234
 
+    @pytest.mark.medium
     def test_webapp_cmd_flask_succeeds(self, tmp_path):
         """webapp_cmd successfully generates a Flask application."""
 
@@ -857,6 +902,7 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
+    @pytest.mark.medium
     def test_webapp_cmd_fastapi_succeeds(self, tmp_path):
         """webapp_cmd successfully generates a FastAPI application."""
 
@@ -884,6 +930,7 @@ class TestCLICommands:
                 "[green]✓ FastAPI application 'myapi' generated successfully![/green]"
             )
 
+    @pytest.mark.medium
     def test_webapp_cmd_existing_dir_without_force_fails(self, tmp_path):
         """webapp_cmd fails when directory exists and force is False."""
 
@@ -901,6 +948,7 @@ class TestCLICommands:
                 f"[yellow]Directory {os.path.join(tmp_path, 'myapp')} already exists. Use --force to overwrite.[/yellow]"
             )
 
+    @pytest.mark.medium
     def test_webapp_cmd_existing_dir_with_force_succeeds(self, tmp_path):
         """webapp_cmd succeeds when directory exists and force is True."""
 
@@ -929,6 +977,7 @@ class TestCLICommands:
                 "[green]✓ Flask application 'myapp' generated successfully![/green]"
             )
 
+    @pytest.mark.medium
     def test_dbschema_cmd_invalid_type(self, tmp_path):
         """Unknown db type raises an error."""
 
@@ -954,6 +1003,7 @@ class TestCLICommands:
                 highlight=False,
             )
 
+    @pytest.mark.medium
     def test_dbschema_cmd_sqlite_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a SQLite database schema."""
 
@@ -990,6 +1040,7 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
+    @pytest.mark.medium
     def test_dbschema_cmd_mysql_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a MySQL database schema."""
 
@@ -1026,6 +1077,7 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
+    @pytest.mark.medium
     def test_dbschema_cmd_mongodb_succeeds(self, tmp_path):
         """dbschema_cmd successfully generates a MongoDB database schema."""
 
@@ -1062,6 +1114,7 @@ class TestCLICommands:
             # Check that open was called for each expected file
             assert mock_file.call_count >= len(expected_files)
 
+    @pytest.mark.medium
     def test_dbschema_cmd_existing_dir_without_force_fails(self, tmp_path):
         """dbschema_cmd fails when directory exists and force is False."""
 
@@ -1079,6 +1132,7 @@ class TestCLICommands:
                 f"[yellow]Directory {os.path.join(tmp_path, 'mydb_schema')} already exists. Use --force to overwrite.[/yellow]"
             )
 
+    @pytest.mark.medium
     def test_dbschema_cmd_existing_dir_with_force_succeeds(self, tmp_path):
         """dbschema_cmd succeeds when directory exists and force is True."""
 
@@ -1107,6 +1161,7 @@ class TestCLICommands:
                 "[green]✓ SQLite database schema 'mydb' generated successfully![/green]"
             )
 
+    @pytest.mark.medium
     def test_webui_cmd_success_succeeds(self, mock_bridge):
         """webui_cmd successfully launches the WebUI.
 
@@ -1125,6 +1180,7 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_webui_cmd_import_error_displays_error(self, mock_bridge):
         """webui_cmd displays an error when the WebUI module is unavailable.
 
@@ -1142,6 +1198,7 @@ class TestCLICommands:
             for call in mock_bridge.display_result.call_args_list
         )
 
+    @pytest.mark.medium
     def test_webui_cmd_runtime_error_displays_error(self, mock_bridge):
         """webui_cmd displays an error when the WebUI fails to launch.
 
