@@ -21,10 +21,11 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 1. **Fork and clone** the repository
 2. **Set up** your development environment with Poetry
 3. **Create a branch** for your changes
-4. **Draft a specification** in [docs/specifications/](docs/specifications/index.md) and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist **before** writing code
-5. **Implement** your changes following our coding standards
-6. **Run tests** with `poetry run devsynth run-tests --speed=<cat>`
-7. **Submit** a pull request with a clear description
+4. **Review directory-specific guidelines** before making changes
+5. **Draft a specification** in [docs/specifications/](docs/specifications/index.md) and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist **before** writing code
+6. **Implement** your changes following our coding standards
+7. **Run tests** with `poetry run devsynth run-tests --speed=<cat>`
+8. **Submit** a pull request with a clear description
 
 ## Key Guidelines
 
