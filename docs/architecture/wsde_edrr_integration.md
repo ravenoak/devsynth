@@ -147,10 +147,11 @@ The EDRR Coordinator assigns different roles to the WSDE team members based on t
 
 Role assignments are keyed by agent identifiers rather than names. When the
 coordinator advances to a new phase, the `progress_roles` helper updates these
-mappings and calls `flush_memory_queue` so queued memory operations are written
-before the next phase begins. If no memory manager is configured the
-coordinator still emits a terminal sync event to keep downstream observers in
-step.
+mappings and the coordinator flushes the memory queue *before and after* role
+assignment. This double flush ensures any pending updates from the previous
+phase are written and prevents deadlocks caused by new writes during the
+transition. If no memory manager is configured the coordinator still emits a
+terminal sync event to keep downstream observers in step.
 
 ```python
 

@@ -21,6 +21,9 @@ These failures indicate unfinished collaboration workflows and memory synchronis
 - Introduced peer review result mapping so review status and quality metrics surface in phase results.
 - Speed markers are now present, yet running [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../tests/integration/general/test_wsde_edrr_component_interactions.py) hangs in collaboration memory utilities, indicating workflow logic remains incomplete ([Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)).
 
+- 2025-02-22: Added coordinated pre/post memory flushes in `WSDEEDRRCoordinator`
+  to eliminate deadlocks; all `test_wsde_edrr_*` suites now pass.
+
 ## References
 
 - Related: [Complete Sprint-EDRR integration](Complete-Sprint-EDRR-integration.md)

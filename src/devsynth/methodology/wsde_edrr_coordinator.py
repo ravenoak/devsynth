@@ -52,6 +52,8 @@ class WSDEEDRRCoordinator:
         if self.memory_manager is not None:
             flush_memory_queue(self.memory_manager)
         assignments = progress_roles(self.wsde_team, phase, self.memory_manager)
+        if self.memory_manager is not None:
+            flush_memory_queue(self.memory_manager)
         self.current_phase = phase
         self.role_history[phase.name] = assignments
         return assignments
