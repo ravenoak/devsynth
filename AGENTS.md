@@ -9,7 +9,7 @@ DevSynth values clarity, collaboration, and dependable automation. All work foll
 
 When introducing new features, revisit these questions and follow the specification-first BDD workflow: draft a specification in `docs/specifications/` and a failing BDD feature under `tests/behavior/features/` before implementation.
 
-See [`docs/policies/documentation_policies.md`](docs/policies/documentation_policies.md) for comprehensive documentation standards.
+Directory-specific instructions live in scoped AGENTS guidelines within directories like `src/` and `docs/`.
 
 ## Environment Expectations
 
@@ -21,8 +21,6 @@ See [`docs/policies/documentation_policies.md`](docs/policies/documentation_poli
 - Pytest markers such as `memory_intensive` gate resource-heavy tests; skip them unless specifically required.
 - Optional extras in `pyproject.toml` are automatically cached by the environment provisioning script, keeping them synchronized with the project configuration while skipping heavy GPU packages.
 - Update this file, your instructions and initial context, as appropriate and according to best practices.
-- Documents in `docs/inspirational_docs/` are for inspiration only and must not be directly referenced; use these documents for inspiration.
-- Documents in `docs/external_research_papers/` are copies of academic papers and can be referenced using best practices.
 
 ## Test Environment
 
