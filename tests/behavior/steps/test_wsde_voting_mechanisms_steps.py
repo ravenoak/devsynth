@@ -1,18 +1,9 @@
-"""
-Step Definitions for WSDE Voting Mechanisms BDD Tests
+"""Step definitions for WSDE voting mechanisms."""
 
-This file implements the step definitions for the WSDE voting mechanisms
-feature file, testing the voting mechanisms for critical decisions in the WSDE model.
-"""
-
-import pytest
-
-pytest.skip(
-    "Advanced WSDE collaboration features not implemented", allow_module_level=True
-)
-
+import logging
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
