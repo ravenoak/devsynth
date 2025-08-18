@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
+from devsynth.application.collaboration.collaboration_memory_utils import (
+    flush_memory_queue,
+)
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.domain.wsde.workflow import progress_roles
 from devsynth.methodology.base import Phase
@@ -46,6 +49,8 @@ class WSDEEDRRCoordinator:
             Mapping of agent identifiers to their assigned roles for the phase.
         """
 
+        if self.memory_manager is not None:
+            flush_memory_queue(self.memory_manager)
         assignments = progress_roles(self.wsde_team, phase, self.memory_manager)
         self.current_phase = phase
         self.role_history[phase.name] = assignments
