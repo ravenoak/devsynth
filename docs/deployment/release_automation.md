@@ -15,17 +15,11 @@ tags:
 
 # Release Automation
 
-This guide describes automated image publishing and rollback for DevSynth.
+This guide describes manual image publishing and rollback for DevSynth.
 
 ## Publishing images
 
-Use the CI profile to build and push the production image:
-
-```bash
-docker compose -f docker-compose.production.yml --profile ci run --rm publish
-```
-
-This command invokes `scripts/deployment/publish_image.sh` and pushes the `devsynth-api` image to the configured registry.
+Manually dispatch the **Publish Docker Image** workflow from the Actions tab to build and push the production image. The workflow invokes `scripts/deployment/publish_image.sh` and pushes the `devsynth-api` image to the configured registry.
 
 ## Rollback
 
