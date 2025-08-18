@@ -276,27 +276,6 @@ def test_user_owns_project(user_and_project):
 
 ### Behavior Test Example
 
-```gherkin
-
-# tests/behavior/features/user_authentication.feature
-
-Feature: User Authentication
-  As a user
-  I want to authenticate with the system
-  So that I can access my account
-
-  Scenario: Successful authentication
-    Given I am a registered user
-    When I enter my correct credentials
-    Then I should be authenticated
-    And I should see my dashboard
-
-  Scenario: Failed authentication
-    Given I am a registered user
-    When I enter incorrect credentials
-    Then I should not be authenticated
-    And I should see an error message
-```
 
 ```python
 
