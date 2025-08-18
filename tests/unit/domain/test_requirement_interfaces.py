@@ -1,23 +1,23 @@
-import pytest
-
 import unittest
 from uuid import uuid4
 
+import pytest
+
 from devsynth.domain.interfaces.requirement import (
-    InMemoryRequirementRepository,
     InMemoryChangeRepository,
-    InMemoryImpactAssessmentRepository,
-    InMemoryDialecticalReasoningRepository,
     InMemoryChatRepository,
-    SimpleDialecticalReasoner,
+    InMemoryDialecticalReasoningRepository,
+    InMemoryImpactAssessmentRepository,
+    InMemoryRequirementRepository,
     PrintNotificationService,
+    SimpleDialecticalReasoner,
 )
 from devsynth.domain.models.requirement import (
+    ImpactAssessment,
     Requirement,
     RequirementChange,
     RequirementStatus,
     RequirementType,
-    ImpactAssessment,
 )
 
 
@@ -58,13 +58,20 @@ class TestRequirementInterfaces(unittest.TestCase):
     @pytest.mark.medium
     def test_inmemory_requirement_repository_filters(self) -> None:
         repo = InMemoryRequirementRepository()
-        req1 = Requirement(title="r1", status=RequirementStatus.PROPOSED, type=RequirementType.FUNCTIONAL)
-        req2 = Requirement(title="r2", status=RequirementStatus.APPROVED, type=RequirementType.BUSINESS)
+        req1 = Requirement(
+            title="r1",
+            status=RequirementStatus.PROPOSED,
+            type=RequirementType.FUNCTIONAL,
+        )
+        req2 = Requirement(
+            title="r2", status=RequirementStatus.APPROVED, type=RequirementType.BUSINESS
+        )
         repo.save_requirement(req1)
         repo.save_requirement(req2)
         self.assertEqual(repo.get_requirements_by_status("proposed"), [req1])
         self.assertEqual(repo.get_requirements_by_type("business"), [req2])
 
+    @pytest.mark.medium
     def test_dialectical_reasoner_creates_session_and_message(self) -> None:
         chat_repo = InMemoryChatRepository()
         reasoner = SimpleDialecticalReasoner(chat_repo)

@@ -149,6 +149,7 @@ def phase_completed(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
         test_storage.setdefault(edrr_phase, []).append(
@@ -248,6 +249,7 @@ def verify_task_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
         test_storage.setdefault(edrr_phase, []).append(
@@ -282,6 +284,7 @@ def verify_phase_transition_stored(context):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
         test_storage.setdefault(edrr_phase, []).append(
@@ -638,6 +641,7 @@ def verify_results_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
 
@@ -1359,6 +1363,7 @@ def verify_metrics_stored_in_memory(context):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
 
@@ -1518,6 +1523,7 @@ def verify_quality_metrics_in_transition_metadata(context):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
 
@@ -1711,6 +1717,7 @@ def verify_metadata_references_historical_data(context):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
 

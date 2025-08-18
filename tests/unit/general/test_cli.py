@@ -1,9 +1,11 @@
 from unittest.mock import patch
+
 import click
+import pytest
 import typer
 import typer.main
 from typer.testing import CliRunner
-import pytest
+
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.interface.ux_bridge import UXBridge
 
@@ -49,6 +51,7 @@ class TestTyperCLI:
         assert "run-pipeline" in result.output
         assert "config" in result.output
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.init_cmd", autospec=True)
     def test_cli_init_succeeds(self, mock_init_cmd):
         """Test that cli init succeeds.
@@ -59,6 +62,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_init_cmd.assert_called_once_with(wizard=False, bridge=None)
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.spec_cmd", autospec=True)
     def test_cli_spec_succeeds(self, mock_spec_cmd):
         """Test that cli spec succeeds.
@@ -69,6 +73,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_spec_cmd.assert_called_once_with("reqs.md", bridge=None)
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.test_cmd", autospec=True)
     def test_cli_test_succeeds(self, mock_test_cmd):
         """Test that cli test succeeds.
@@ -79,6 +84,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_test_cmd.assert_called_once_with("specs.md", bridge=None)
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.code_cmd", autospec=True)
     def test_cli_code_succeeds(self, mock_code_cmd):
         """Test that cli code succeeds.
@@ -89,6 +95,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_code_cmd.assert_called_once_with(bridge=None)
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.run_pipeline_cmd", autospec=True)
     def test_cli_run_succeeds(self, mock_run_pipeline_cmd):
         """Test that cli run succeeds.
@@ -101,6 +108,7 @@ class TestTyperCLI:
             target="unit-tests", report=None, bridge=None
         )
 
+    @pytest.mark.medium
     def test_cli_config_succeeds(self):
         """Test that cli config succeeds.
 
@@ -112,6 +120,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         assert "Configuration updated" in result.output
 
+    @pytest.mark.medium
     def test_cli_enable_feature_succeeds(self):
         """Test that cli enable feature succeeds.
 
@@ -122,6 +131,7 @@ class TestTyperCLI:
         )
         assert result.exit_code == 0
 
+    @pytest.mark.medium
     def test_cli_edrr_cycle_succeeds(self):
         """Test that cli edrr cycle succeeds.
 
@@ -132,6 +142,7 @@ class TestTyperCLI:
         )
         assert result.exit_code == 0
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.inspect_config_cmd", autospec=True)
     def test_cli_inspect_config_update_succeeds(self, mock_cmd):
         """Test that cli inspect config update succeeds.
@@ -144,6 +155,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         mock_cmd.assert_called_once_with("./proj", True, False)
 
+    @pytest.mark.medium
     @patch("devsynth.adapters.cli.typer_adapter.inspect_config_cmd", autospec=True)
     def test_cli_inspect_config_prune_succeeds(self, mock_cmd):
         """Test that cli inspect config prune succeeds.
@@ -161,6 +173,7 @@ class TestTyperCLI:
         "devsynth.application.cli.cli_commands.generate_specs",
         side_effect=FileNotFoundError("missing"),
     )
+    @pytest.mark.medium
     def test_cli_spec_invalid_file_succeeds(self, *_):
         """Test that cli spec invalid file succeeds.
 
@@ -177,6 +190,7 @@ class TestTyperCLI:
         "devsynth.application.cli.cli_commands.workflows.execute_command",
         return_value={"success": False, "message": "config missing"},
     )
+    @pytest.mark.medium
     def test_cli_config_missing_succeeds(self, *_):
         """Test that cli config missing succeeds.
 
@@ -186,6 +200,7 @@ class TestTyperCLI:
         assert result.exit_code == 0
         assert "config missing" in result.output
 
+    @pytest.mark.medium
     def test_parse_args_help_has_new_commands_succeeds(self, capsys, monkeypatch):
         """Test that parse args help has new commands succeeds.
 

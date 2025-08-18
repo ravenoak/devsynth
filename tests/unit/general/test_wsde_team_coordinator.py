@@ -52,6 +52,7 @@ class TestWSDETeamCoordinator:
         self.agent4.config.name = "agent4"
         self.agent4.config.parameters = {"expertise": ["validation", "security"]}
 
+    @pytest.mark.medium
     def test_create_team_succeeds(self):
         """Test creating a team.
 
@@ -62,6 +63,7 @@ class TestWSDETeamCoordinator:
         assert self.coordinator.teams["test_team"] == team
         assert self.coordinator.current_team_id == "test_team"
 
+    @pytest.mark.medium
     def test_add_agent_succeeds(self):
         """Test adding an agent to the coordinator.
 
@@ -86,6 +88,7 @@ class TestWSDETeamCoordinator:
         assert result["result"] == "Feature plan created"
         self.agent1.process.assert_called_once_with(task)
 
+    @pytest.mark.medium
     def test_delegate_task_multi_agent_consensus_succeeds(self):
         """Test delegating a task with multiple agents using consensus-based decision making.
 
@@ -126,6 +129,7 @@ class TestWSDETeamCoordinator:
         self.agent4.process.assert_called_once_with(task)
         team.build_consensus.assert_called_once()
 
+    @pytest.mark.medium
     def test_delegate_task_critical_decision_succeeds(self):
         """Ensure critical decisions trigger team voting.
 
@@ -146,6 +150,7 @@ class TestWSDETeamCoordinator:
         assert result["result"]["winner"] == "a"
         team.vote_on_critical_decision.assert_called_once_with(task)
 
+    @pytest.mark.medium
     def test_delegate_task_agent_failure_continues_fails(self):
         """If one agent fails, others still contribute to the result.
 
@@ -174,6 +179,7 @@ class TestWSDETeamCoordinator:
         self.agent2.process.assert_called_once_with(task)
         self.agent3.process.assert_called_once_with(task)
 
+    @pytest.mark.medium
     def test_delegate_task_propagates_agent_execution_error_raises_error(self):
         """Errors from agents bubble up to the caller.
 
@@ -186,6 +192,7 @@ class TestWSDETeamCoordinator:
         with pytest.raises(AgentExecutionError):
             self.coordinator.delegate_task(task)
 
+    @pytest.mark.medium
     def test_delegate_task_coverage_succeeds(self):
         """Test that delegate task coverage succeeds.
 
@@ -240,6 +247,7 @@ class TestWSDETeamCoordinator:
         coverage_percent = len(set(executable) & executed) / len(executable) * 100
         assert coverage_percent >= 80
 
+    @pytest.mark.medium
     def test_delegate_task_no_team_succeeds(self):
         """Test delegating a task with no active team.
 
@@ -248,6 +256,7 @@ class TestWSDETeamCoordinator:
         with pytest.raises(ValidationError):
             self.coordinator.delegate_task(task)
 
+    @pytest.mark.medium
     def test_delegate_task_no_agents_succeeds(self):
         """Test delegating a task with no agents in the team.
 
@@ -257,6 +266,7 @@ class TestWSDETeamCoordinator:
         with pytest.raises(ValidationError):
             self.coordinator.delegate_task(task)
 
+    @pytest.mark.medium
     def test_get_team_succeeds(self):
         """Test getting a team by ID.
 
@@ -265,6 +275,7 @@ class TestWSDETeamCoordinator:
         result = self.coordinator.get_team("test_team")
         assert result == team
 
+    @pytest.mark.medium
     def test_set_current_team_succeeds(self):
         """Test setting the current active team.
 
@@ -274,6 +285,7 @@ class TestWSDETeamCoordinator:
         self.coordinator.set_current_team("team2")
         assert self.coordinator.current_team_id == "team2"
 
+    @pytest.mark.medium
     def test_set_current_team_nonexistent_succeeds(self):
         """Test setting a nonexistent team as the current team.
 

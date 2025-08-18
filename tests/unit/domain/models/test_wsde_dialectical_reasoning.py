@@ -161,6 +161,7 @@ class TestWSDEDialecticalReasoning:
         modified_code = resolution["code_change"](test_code)
         assert "Security and performance balance" in modified_code
 
+    @pytest.mark.medium
     def test_resolve_content_improvement_conflict_succeeds(self):
         """Test resolving conflicts between content improvements from different domains.
 
@@ -186,6 +187,7 @@ class TestWSDEDialecticalReasoning:
         assert "content_change" in resolution
         assert callable(resolution["content_change"])
 
+    @pytest.mark.medium
     def test_check_code_standards_compliance_succeeds(self):
         """Test checking if code complies with standards and best practices.
 
@@ -240,6 +242,7 @@ def authenticate(username, password):
         assert compliant_result["details"]["error_handling"] == True
         assert non_compliant_result["details"]["security_best_practices"] == False
 
+    @pytest.mark.medium
     def test_check_content_standards_compliance_succeeds(self):
         """Test checking if content complies with standards and best practices.
 
@@ -283,6 +286,7 @@ Always use HTTPS and implement rate limiting.
         assert compliant_result["details"]["examples"] == True
         assert compliant_result["details"]["structure"] == True
 
+    @pytest.mark.medium
     def test_check_pep8_compliance_succeeds(self):
         """Test checking if code complies with PEP 8 style guide.
 
@@ -320,6 +324,7 @@ def authenticate( username,password ):
         assert compliant_result == True
         assert non_compliant_result == False
 
+    @pytest.mark.medium
     def test_check_security_best_practices_succeeds(self):
         """Test checking if code follows security best practices.
 
@@ -365,6 +370,7 @@ def authenticate(username, password):
         assert secure_result == True
         assert insecure_result == False
 
+    @pytest.mark.medium
     def test_balance_security_and_performance_succeeds(self):
         """Test balancing security and performance in code.
 
@@ -376,6 +382,7 @@ def authenticate(username, password):
         assert "Implementing security checks at critical points only" in balanced_code
         assert "Using cached results where appropriate" in balanced_code
 
+    @pytest.mark.medium
     def test_balance_security_and_usability_succeeds(self):
         """Test balancing security and usability in code.
 
@@ -387,6 +394,7 @@ def authenticate(username, password):
         assert "Using clear error messages for security issues" in balanced_code
         assert "Providing helpful guidance for users" in balanced_code
 
+    @pytest.mark.medium
     def test_balance_performance_and_maintainability_succeeds(self):
         """Test balancing performance and maintainability in code.
 
@@ -404,6 +412,7 @@ def authenticate(username, password):
             in balanced_code
         )
 
+    @pytest.mark.medium
     def test_generate_detailed_synthesis_reasoning_succeeds(self):
         """Test generating detailed reasoning about the synthesis process.
 

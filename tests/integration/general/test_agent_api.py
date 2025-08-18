@@ -28,6 +28,7 @@ def _setup(monkeypatch):
     def spec_cmd(requirements_file="requirements.md", *, bridge):
         bridge.display_result(f"spec:{requirements_file}")
 
+    @pytest.mark.medium
     def test_cmd(spec_file="specs.md", output_dir=None, *, bridge):
         """Test that cmd succeeds.
 
@@ -73,6 +74,7 @@ def _setup(monkeypatch):
     }
 
 
+@pytest.mark.medium
 def test_init_route_succeeds(monkeypatch):
     """Test that init route.
 

@@ -1,11 +1,11 @@
 import pytest
 
-from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.adapters.vector_memory_adapter import (
     VectorMemoryAdapter,
 )
-from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.interfaces.memory import MemoryStore
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 
 class InMemoryStore(MemoryStore):
@@ -65,6 +65,7 @@ class TestQueryRouterIntegration:
             MemoryItem(id="d1", content="apple document", memory_type=MemoryType.CODE)
         )
 
+    @pytest.mark.medium
     def test_direct_query(self, manager):
         self._populate(manager)
         results = manager.route_query("apple", store="vector", strategy="direct")
@@ -72,6 +73,7 @@ class TestQueryRouterIntegration:
         assert results[0].content == "apple vector"
         assert results[0].metadata.get("source_store") == "vector"
 
+    @pytest.mark.medium
     def test_cross_store_query(self, manager):
         self._populate(manager)
         results = manager.route_query("apple", strategy="cross")
@@ -80,6 +82,7 @@ class TestQueryRouterIntegration:
             for item in items:
                 assert item.metadata.get("source_store") == store
 
+    @pytest.mark.medium
     def test_cross_store_query_subset(self, manager):
         self._populate(manager)
         results = manager.route_query(

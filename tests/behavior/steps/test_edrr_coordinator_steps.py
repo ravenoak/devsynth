@@ -139,6 +139,7 @@ def phase_completed(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
         test_storage.setdefault(edrr_phase, []).append(
@@ -238,6 +239,7 @@ def verify_task_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
         test_storage.setdefault(edrr_phase, []).append(
@@ -272,6 +274,7 @@ def verify_phase_transition_stored(context):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
         test_storage.setdefault(edrr_phase, []).append(
@@ -628,6 +631,7 @@ def verify_results_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
 

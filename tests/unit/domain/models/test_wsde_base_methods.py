@@ -27,6 +27,7 @@ class TestWSDEBaseMethods:
         self.agent3.current_role = None
         self.agent3.parameters = {"expertise": ["documentation", "markdown"]}
 
+    @pytest.mark.medium
     def test_add_agents_succeeds(self):
         """Test adding multiple agents at once.
 
@@ -45,6 +46,7 @@ class TestWSDEBaseMethods:
         ReqID: N/A"""
         hook_called = False
 
+        @pytest.mark.medium
         def test_hook_succeeds(self, thesis, antitheses):
             """Test that hook succeeds.
 

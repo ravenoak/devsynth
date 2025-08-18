@@ -35,6 +35,7 @@ def _setup(monkeypatch):
     return cli_stub, agentapi
 
 
+@pytest.mark.medium
 def test_init_route_succeeds(monkeypatch):
     """Test that init route succeeds.
 
