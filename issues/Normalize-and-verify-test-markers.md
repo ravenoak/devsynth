@@ -41,6 +41,8 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 - 2025-08-17: Executed `standardize_marker_placement.py`, which updated hundreds of files but introduced syntax errors, so changes were reverted; marker verification still hangs.
 - 2025-08-18: Full-suite `poetry run python scripts/verify_test_markers.py` still hangs after initial output and must be manually interrupted, while verifying a single module completes successfully.
 
+- 2025-08-19: Latest verification reports 423 files with issues and 1,559 unrecognized markers. After running standardize_marker_placement.py twice, re-run shows 399 files with misaligned markers and 1,429 unrecognized markers. apply_speed_markers.py fails due to missing timing data, so many tests remain untagged.
+
 ## References
 
 - Related: [Resolve pytest-xdist assertion errors](Resolve-pytest-xdist-assertion-errors.md)
