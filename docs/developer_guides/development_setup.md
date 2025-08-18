@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-18"
 status: published
 tags:
 
@@ -94,10 +94,15 @@ poetry install --with dev --extras "tests retrieval chromadb api"
 
 # Activate the virtual environment
 poetry shell
+
+# Confirm key tools are available
+poetry run pre-commit --version
+poetry run pytest --version
 ```
 
-These commands install all required packages and activate the Poetry-managed
-virtual environment. Once complete, proceed to configure environment variables.
+These commands install all required packages, activate the Poetry-managed
+virtual environment, and verify that pre-commit and pytest are available. Once
+complete, proceed to configure environment variables.
 
 ### Virtual environment best practices
 
