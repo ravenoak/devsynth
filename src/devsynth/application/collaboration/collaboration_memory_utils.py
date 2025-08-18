@@ -51,13 +51,16 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
     else:
         queue = list(getattr(sync_manager, "_queue", []))
 
+    notified = False
     try:
         if hasattr(memory_manager, "flush_updates"):
             memory_manager.flush_updates()
+            notified = True
         else:
             flush = getattr(sync_manager, "flush_queue", None)
             if callable(flush):
                 flush()
+                notified = True
 
         wait = getattr(memory_manager, "wait_for_sync", None)
         if not callable(wait):
@@ -71,6 +74,14 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
                 asyncio.run(result)
     except Exception:  # pragma: no cover - defensive
         logger.debug("Flush failed", exc_info=True)
+    finally:
+        if not notified:
+            notify = getattr(memory_manager, "_notify_sync_hooks", None)
+            if callable(notify):
+                try:
+                    notify(None)
+                except Exception:  # pragma: no cover - defensive
+                    logger.debug("Sync hook notification failed", exc_info=True)
 
     return queue
 
