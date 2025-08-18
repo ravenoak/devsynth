@@ -19,13 +19,13 @@ from devsynth.application.prompts.auto_tuning import (
 class TestPromptVariant:
     """Tests for the PromptVariant class.
 
-    ReqID: N/A"""
+    ReqID: FR-56"""
 
     @pytest.mark.medium
     def test_initialization_succeeds(self):
         """Test initialization of a PromptVariant.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template = "This is a test template."
         variant = PromptVariant(template)
         assert variant.template == template
@@ -40,7 +40,7 @@ class TestPromptVariant:
     def test_success_rate_succeeds(self):
         """Test success rate calculation.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         variant = PromptVariant("Test template")
         assert variant.success_rate == 0.0
         variant.record_usage(success=True)
@@ -54,7 +54,7 @@ class TestPromptVariant:
     def test_average_feedback_score_succeeds(self):
         """Test average feedback score calculation.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         variant = PromptVariant("Test template")
         assert variant.average_feedback_score == 0.0
         variant.record_usage(feedback_score=0.8)
@@ -66,7 +66,7 @@ class TestPromptVariant:
     def test_performance_score_succeeds(self):
         """Test performance score calculation.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         variant = PromptVariant("Test template")
         assert variant.performance_score == 0.0
         variant.record_usage(success=True, feedback_score=0.8)
@@ -77,7 +77,7 @@ class TestPromptVariant:
     def test_record_usage_succeeds(self):
         """Test recording usage.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         variant = PromptVariant("Test template")
         variant.record_usage()
         assert variant.usage_count == 1
@@ -100,7 +100,7 @@ class TestPromptVariant:
     def test_to_dict_and_from_dict_succeeds(self):
         """Test conversion to and from dictionary.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template = "Test template"
         variant = PromptVariant(template, "test-id")
         variant.record_usage(success=True, feedback_score=0.8)
@@ -125,7 +125,7 @@ class TestPromptVariant:
 class TestPromptAutoTuner:
     """Tests for the PromptAutoTuner class.
 
-    ReqID: N/A"""
+    ReqID: FR-56"""
 
     @pytest.fixture
     def auto_tuner(self):
@@ -136,7 +136,7 @@ class TestPromptAutoTuner:
     def test_initialization_succeeds(self, auto_tuner):
         """Test initialization of a PromptAutoTuner.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         assert auto_tuner.prompt_variants == {}
         assert auto_tuner.selection_strategy == "performance"
         assert auto_tuner.exploration_rate == 0.2
@@ -145,7 +145,7 @@ class TestPromptAutoTuner:
     def test_register_template_succeeds(self, auto_tuner):
         """Test registering a prompt template.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template_id = "test-template"
         template = "This is a test template."
         auto_tuner.register_template(template_id, template)
@@ -157,7 +157,7 @@ class TestPromptAutoTuner:
     def test_select_variant_single_succeeds(self, auto_tuner):
         """Test selecting a variant when there's only one.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template_id = "test-template"
         template = "This is a test template."
         auto_tuner.register_template(template_id, template)
@@ -169,7 +169,7 @@ class TestPromptAutoTuner:
     def test_select_variant_error_succeeds(self, auto_tuner):
         """Test selecting a variant for an unregistered template.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         with pytest.raises(PromptAutoTuningError):
             auto_tuner.select_variant("nonexistent-template")
 
@@ -177,7 +177,7 @@ class TestPromptAutoTuner:
     def test_select_variant_performance_succeeds(self, auto_tuner):
         """Test selecting a variant based on performance.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template_id = "test-template"
         auto_tuner.register_template(template_id, "Variant 1")
         auto_tuner.prompt_variants[template_id].append(PromptVariant("Variant 2"))
@@ -193,7 +193,7 @@ class TestPromptAutoTuner:
     def test_record_feedback_succeeds(self, auto_tuner):
         """Test recording feedback for a variant.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template_id = "test-template"
         auto_tuner.register_template(template_id, "Test template")
         variant = auto_tuner.prompt_variants[template_id][0]
@@ -207,7 +207,7 @@ class TestPromptAutoTuner:
     def test_record_feedback_error_succeeds(self, auto_tuner):
         """Test recording feedback for an unregistered template or variant.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         with pytest.raises(PromptAutoTuningError):
             auto_tuner.record_feedback("nonexistent-template", "nonexistent-variant")
         auto_tuner.register_template("test-template", "Test template")
@@ -219,7 +219,7 @@ class TestPromptAutoTuner:
     def test_generate_variants_succeeds(self, mock_mutate, auto_tuner):
         """Test generating new variants.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template_id = "test-template"
         auto_tuner.register_template(template_id, "Test template")
         variant = auto_tuner.prompt_variants[template_id][0]
@@ -235,7 +235,7 @@ class TestPromptAutoTuner:
     def test_mutation_methods_succeeds(self, auto_tuner):
         """Test the mutation methods.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         template = "This is a test template.\n\nIt has multiple sections.\n\nPlease use it carefully."
         mutated = auto_tuner._add_detail(template)
         assert len(mutated.split("\n")) > len(template.split("\n"))
@@ -255,7 +255,7 @@ class TestPromptAutoTuner:
     def test_storage_succeeds(self):
         """Test loading and saving variants to storage.
 
-        ReqID: N/A"""
+        ReqID: FR-56"""
         with tempfile.TemporaryDirectory() as temp_dir:
             auto_tuner = PromptAutoTuner(storage_path=temp_dir)
             auto_tuner.register_template("test-template", "Test template")
