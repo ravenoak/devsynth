@@ -12,6 +12,7 @@ import pytest
 def test_docs_build(tmp_path):
     """Docs build without errors using MkDocs."""
     pytest.importorskip("mkdocs")
+    pytest.importorskip("material")
     if shutil.which("mkdocs") is None:
         pytest.skip("mkdocs command not found")
 
