@@ -27,7 +27,7 @@ def test_deploy_script_requires_docker(tmp_path):
             f"{repo_root}:/repo",
             "-v",
             f"{env_file}:/repo/.env.development",
-            "python:3.11",
+            "python:3.12",
             "bash",
             "-lc",
             "cd /repo && scripts/deployment/deploy.sh development",

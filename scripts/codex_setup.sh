@@ -40,8 +40,25 @@ run_check() {
   fi
 }
 
-# Use Python 3.12 if available, otherwise fall back to Python 3.11
-poetry env use "$(command -v python3.12 || command -v python3.11)"
+# Ensure Python 3.12 is installed and selected
+if ! command -v python3.12 >/dev/null; then
+  if command -v apt-get >/dev/null; then
+    for _ in 1 2 3; do
+      if apt-get update && apt-get install -y python3.12 python3.12-venv python3.12-dev; then
+        break
+      else
+        sleep 5
+      fi
+    done
+  fi
+  if ! command -v python3.12 >/dev/null; then
+    echo "Python 3.12 is required but could not be installed" >&2
+    exit 1
+  fi
+fi
+
+# Use Python 3.12
+poetry env use "$(command -v python3.12)"
 
 # Verify that the virtual environment was created
 poetry env info --path >/dev/null
