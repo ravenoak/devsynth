@@ -1,7 +1,7 @@
-# Dialectical audit reports undocumented features
+# Issue 150: Dialectical audit reports undocumented features
 
 Milestone: 0.1.0-alpha.1
-Status: in progress
+Status: completed
 
 Priority: medium
 Dependencies: None
@@ -18,8 +18,8 @@ Review each question in the audit log and update documentation, tests, or code a
 
 ## Progress
 - 2025-02-19: audit log triaged; documentation gaps queued.
-- Pending review of audit log entries
 - Dialectical audit tooling added in [f505a68f](../commit/f505a68f).
+- 2025-08-18: open questions mapped to dedicated tickets; issue closed.
 
 ## References
 

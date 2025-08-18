@@ -6,6 +6,7 @@ Dependencies: docs/specifications/mvu-command-execution.md, tests/behavior/featu
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-08-18: dialectical audit flagged missing documentation and implementation; ticket updated.
 
 ## References
 - None
