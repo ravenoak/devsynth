@@ -1,5 +1,7 @@
 """CLI command to execute shell commands in the MVU workflow."""
 
+# Feature: MVU shell command execution
+
 from __future__ import annotations
 
 import subprocess

@@ -52,6 +52,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Policy Audit Script](policy_audit.md)**: Scans configs and code for policy violations.
 - **[WebUI Diagnostics Audit Logs](webui_diagnostics_audit_logs.md)**: Display dialectical audit logs on the diagnostics page.
 - **[Project Documentation Ingestion](project-documentation-ingestion.md)**: Indexes project documentation for retrieval.
+- **[Multi-disciplinary Dialectical Reasoning](multi-disciplinary-dialectical-reasoning.md)**: WSDE teams gather perspectives across disciplines.
 - **[Simple Addition Input Validation](simple_addition_input_validation.md)**: `add` rejects non-numeric inputs.
 
 ## Implementation Plans
