@@ -444,7 +444,7 @@ All phases of the DevSynth Repository Harmonization Plan have been successfully 
 - ~~Complete WSDE agent collaboration capabilities.~~
 - [Issue 102](../../issues/archived/CLI-and-UI-improvements.md): refine WebUI and interactive CLI flows, resolving requirements wizard navigation bugs.
 - [Issue 113](../../issues/archived/Kuzu-memory-integration-errors.md): stabilize Kuzu-backed memory initialization and related tests.
-- [Issue 112](../../issues/WSDE-collaboration-test-failures.md): complete WSDE collaboration with memory synchronization.
+- [Issue 112](../../issues/archived/WSDE-collaboration-test-failures.md): complete WSDE collaboration with memory synchronization.
 - [Issue 117](../../issues/archived/CLI-ingestion-remains-interactive.md): remove interactive prompts from CLI ingestion to support automation.
 
 For updated scheduling, see the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md).
