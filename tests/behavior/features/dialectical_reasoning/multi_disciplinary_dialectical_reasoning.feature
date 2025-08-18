@@ -10,3 +10,8 @@ Feature: Multi-disciplinary dialectical reasoning
     When a complex problem is evaluated
     Then the reasoner should request input from at least two disciplines
     And the gathered perspectives should be tracked with their disciplines
+
+  Scenario: WSDE workflow applies multi-disciplinary reasoning
+    Given a WSDE team with multi-disciplinary reasoning support
+    When the team executes a basic decision workflow
+    Then the workflow output should include a multi-disciplinary evaluation

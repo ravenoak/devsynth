@@ -168,6 +168,17 @@ def run_basic_workflow(team: Any, task: Dict[str, Any]) -> Dict[str, Any]:
     results["evaluations"] = evaluations
     _flush_team_memory(team)
 
+    multi = getattr(team, "apply_multi_disciplinary_dialectical_reasoning", None)
+    if callable(multi):
+        results["multi_disciplinary_evaluation"] = multi(
+            task,
+            critic_agent=None,
+            disciplinary_knowledge={},
+            disciplinary_agents=[],
+            memory_integration=None,
+        )
+        _flush_team_memory(team)
+
     best = getattr(team, "select_best_option", lambda *a, **k: {})(evaluations)
     results["best_option"] = best
     _flush_team_memory(team)

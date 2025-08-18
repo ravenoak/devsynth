@@ -26,9 +26,11 @@ The project lacks a clear specification for how dialectical reasoning should inc
 - A dialectical reasoning session MAY involve agents with distinct disciplinary expertise.
 - Each agent MUST contribute a perspective labeled with its discipline.
 - The reasoning system MUST track disciplinary context for each perspective and synthesis step.
+- The WSDETeam interface SHALL expose a multi-disciplinary dialectical reasoning function.
+- Decision loops like `run_basic_workflow` SHOULD invoke this function when available.
 
 ## Acceptance Criteria
-- Drafted BDD scenario exercises multi-disciplinary reasoning without implementation.
+- BDD scenarios cover gathering disciplinary perspectives and workflow integration.
 
 ## References
 - [issues/multi-disciplinary-dialectical-reasoning.md](../../issues/multi-disciplinary-dialectical-reasoning.md)

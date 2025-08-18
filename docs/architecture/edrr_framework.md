@@ -102,7 +102,7 @@ The Expand phase focuses on divergent thinking and comprehensive exploration of 
 
 #### Integration Points
 
-- **WSDE Team**: Engages in collaborative brainstorming
+- **WSDE Team**: Engages in collaborative brainstorming using multi-disciplinary reasoning
 - **AST Analyzer**: Analyzes existing code structures
 - **Prompt Manager**: Provides templates for exploration
 - **Documentation Manager**: Retrieves relevant documentation
@@ -141,7 +141,7 @@ The Differentiate phase focuses on critical evaluation and comparison of the app
 
 #### Integration Points
 
-- **WSDE Team**: Evaluates and compares approaches
+- **WSDE Team**: Evaluates and compares approaches with multi-disciplinary reasoning
 - **AST Analyzer**: Evaluates code quality of potential implementations
 - **Prompt Manager**: Provides templates for evaluation
 - **Documentation Manager**: Retrieves best practices documentation

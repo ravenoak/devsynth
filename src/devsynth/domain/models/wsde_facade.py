@@ -10,7 +10,12 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from devsynth.domain.models import wsde_dialectical, wsde_roles, wsde_voting
+from devsynth.domain.models import (
+    wsde_dialectical,
+    wsde_multidisciplinary,
+    wsde_roles,
+    wsde_voting,
+)
 from devsynth.domain.models.wsde_core import WSDE, WSDETeam
 from devsynth.domain.models.wsde_utils import (
     add_solution,
@@ -386,6 +391,25 @@ WSDETeam._check_content_standards_compliance = (
 )
 WSDETeam._generate_detailed_synthesis_reasoning = (
     wsde_dialectical._generate_detailed_synthesis_reasoning
+)
+
+# ---------------------------------------------------------------------------
+# Multi-disciplinary reasoning
+# ---------------------------------------------------------------------------
+WSDETeam.apply_multi_disciplinary_dialectical_reasoning = (
+    wsde_multidisciplinary.apply_multi_disciplinary_dialectical_reasoning
+)
+WSDETeam._gather_disciplinary_perspectives = (
+    wsde_multidisciplinary._gather_disciplinary_perspectives
+)
+WSDETeam._identify_perspective_conflicts = (
+    wsde_multidisciplinary._identify_perspective_conflicts
+)
+WSDETeam._generate_multi_disciplinary_synthesis = (
+    wsde_multidisciplinary._generate_multi_disciplinary_synthesis
+)
+WSDETeam._generate_multi_disciplinary_evaluation = (
+    wsde_multidisciplinary._generate_multi_disciplinary_evaluation
 )
 
 __all__ = [
