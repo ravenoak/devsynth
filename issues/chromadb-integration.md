@@ -1,12 +1,11 @@
 # ChromaDB Integration
 Milestone: 0.1.0-alpha.1
 Status: in progress
-Priority: medium
-Dependencies: None
+Priority: low
+Dependencies: docs/specifications/chromadb-integration.md, tests/behavior/features/chromadb_integration.feature
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- Specification: docs/specifications/chromadb-integration.md
-- BDD Feature: tests/behavior/features/chromadb_integration.feature
+- None

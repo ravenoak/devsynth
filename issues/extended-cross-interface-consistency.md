@@ -1,12 +1,11 @@
 # Extended Cross-Interface Consistency
 Milestone: 0.1.0-alpha.1
 Status: in progress
-Priority: medium
-Dependencies: None
+Priority: low
+Dependencies: docs/specifications/extended-cross-interface-consistency.md, tests/behavior/features/extended_cross_interface_consistency.feature
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- Specification: docs/specifications/extended-cross-interface-consistency.md
-- BDD Feature: tests/behavior/features/extended_cross_interface_consistency.feature
+- None
