@@ -55,6 +55,13 @@ The synthesis process in MDDR integrates insights from multiple disciplines whil
 - **Trade-off Documentation**: Explicitly documenting the reasoning behind trade-offs made between disciplinary requirements.
 
 
+## WSDE Integration
+
+The `WSDETeam` interface exposes multi-disciplinary reasoning helpers such as
+`apply_multi_disciplinary_dialectical_reasoning`. Decision loops, including
+`run_basic_workflow`, invoke these helpers when available so that disciplinary
+perspectives are synthesized throughout collaborative problem solving.
+
 ## Implementation Architecture
 
 ### WSDE Team Configuration

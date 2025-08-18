@@ -30,6 +30,10 @@ This document describes DevSynth's four-phase iterative approach that serves as 
 
 **Implementation Status:** The EDRR framework is partially implemented. Phase behaviors, automation hooks, and recursion controls are now part of the core system. A dialectical `reasoning_loop` records phase-specific outcomes and logs consensus failures through the `EDRRCoordinator`, ensuring reasoning artifacts persist to configured memory backends.
 
+Multi-disciplinary dialectical reasoning is exposed via the `WSDETeam` interface and
+invoked within decision loops so that each phase can synthesize diverse disciplinary
+perspectives.
+
 The methodology enables DevSynth to tackle complex problems through a systematic cycle of bottom-up discovery, top-down validation, synthesis, and learning. While this document initially describes the process in the context of project ingestion, the principles apply universally across all DevSynth operations.
 
 > **Note**: While EDRR provides a logical progression for complex problem-solving, DevSynth does not require teams to adopt any specific workflow or timing for these phases. See the [Methodology Integration Framework](./methodology_integration_framework.md) for details on how to adapt EDRR to your team's preferred way of working.
