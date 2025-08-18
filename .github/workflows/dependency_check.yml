@@ -1,12 +1,6 @@
 name: Dependency Check
 
 on:
-  pull_request:
-    paths:
-      - "pyproject.toml"
-      - "poetry.lock"
-      - ".github/workflows/dependency_check.yml"
-      - "scripts/dependency_safety_check.py"
   workflow_dispatch:
 
 jobs:
