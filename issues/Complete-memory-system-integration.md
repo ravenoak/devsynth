@@ -5,6 +5,10 @@ Status: open
 Priority: medium
 Dependencies: None
 
+## Problem Statement
+<description>
+
+
 
 The memory subsystem supports multiple backends but remains unstable.
 
@@ -12,6 +16,9 @@ The memory subsystem supports multiple backends but remains unstable.
 - Harden ChromaDB adapter and transactional semantics
 - Expand integration tests covering persistence and retrieval
 - Handle missing LMDB dependency more gracefully
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: backends remain unstable; integration still pending.

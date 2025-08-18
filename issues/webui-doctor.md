@@ -4,6 +4,13 @@ Status: in progress
 Priority: low
 Dependencies: docs/specifications/webui-doctor.md, tests/behavior/features/webui_doctor.feature
 
+## Problem Statement
+<description>
+
+
+## Action Plan
+- <tasks>
+
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 

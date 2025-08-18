@@ -4,6 +4,13 @@ Status: in progress
 Priority: low
 Dependencies: docs/specifications/extended-cross-interface-consistency.md, tests/behavior/features/extended_cross_interface_consistency.feature
 
+## Problem Statement
+<description>
+
+
+## Action Plan
+- <tasks>
+
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 

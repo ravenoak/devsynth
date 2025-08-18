@@ -4,6 +4,13 @@ Status: in progress
 Priority: low
 Dependencies: docs/specifications/refactor-command.md, tests/behavior/features/refactor_command.feature
 
+## Problem Statement
+<description>
+
+
+## Action Plan
+- <tasks>
+
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 

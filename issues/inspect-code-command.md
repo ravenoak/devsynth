@@ -4,6 +4,13 @@ Status: in progress
 Priority: low
 Dependencies: docs/specifications/inspect-code-command.md, tests/behavior/features/inspect_code_command.feature
 
+## Problem Statement
+<description>
+
+
+## Action Plan
+- <tasks>
+
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 

@@ -5,12 +5,19 @@ Status: blocked
 Priority: medium
 Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
 
+## Problem Statement
+<description>
+
+
 
 Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplete.
 
 - Align sprint planning with requirement analysis phase
 - Automate review of sprint retrospectives in EDRR evaluation
 - Document integration steps and add tests
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: waiting on workflow logic finalization; no integration updates.

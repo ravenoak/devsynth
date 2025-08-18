@@ -4,6 +4,10 @@ Status: in progress
 Priority: high
 Dependencies: None
 
+## Problem Statement
+<description>
+
+
 
 The test suite must ensure each test file contains exactly one speed marker (`fast`, `medium`, or `slow`). Some tests may lack markers, have duplicates, or include outdated placement. High-memory tests must be gated with `memory_intensive`.
 
@@ -23,6 +27,9 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 5. Document:
    - Update contributing guidelines if marker requirements change.
    - Track progress in issue updates.
+
+## Action Plan
+- <tasks>
 
 ## Progress
 - 2025-02-19: script still hangs around 150 files; investigation continuing.
