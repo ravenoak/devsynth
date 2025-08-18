@@ -1,10 +1,9 @@
 # Finalize dialectical reasoning
 Milestone: 0.1.0-alpha.1
-Status: blocked
+Status: in progress
 
 Priority: medium
-Dependencies: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)
-
+Dependencies: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 
 This issue tracks tasks needed to finish the dialectical reasoning framework.
 
@@ -15,10 +14,8 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 
 ## Progress
 - 2025-02-19: awaiting resolution of audit questions before finalizing reasoning loop.
-
 - [x] Behavior tests confirm reasoning results persist to memory ([2b3f12f7](../commit/2b3f12f7)).
-- Pending resolution of [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md).
+- 2025-08-17: dependencies resolved; finalizing reasoning loop.
 
 ## References
-
-- Related: [Resolve remaining dialectical audit questions](Resolve-remaining-dialectical-audit-questions.md)
+- Related: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
