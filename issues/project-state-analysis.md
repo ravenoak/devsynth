@@ -9,4 +9,4 @@ Dependencies: None
 
 ## References
 - Specification: docs/specifications/project-state-analysis.md
-- BDD Feature: tests/behavior/features/project_state_analysis.feature
+- BDD Feature: tests/behavior/features/general/project_state_analysis.feature

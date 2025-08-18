@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-18"
 status: published
 tags:
 - specifications
@@ -44,6 +44,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.
 - **[Run Tests Maxfail Option](run_tests_maxfail_option.md)**: CLI flag to limit failures during test runs.
 - **[Integration Test Scenario Generation](integration_test_generation.md)**: Scenario-based scaffolding for integration tests.
+- **[Project State Analysis](project-state-analysis.md)**: Analyze project structure, architecture, and alignment.
 - **[Retry Predicates Specification](retry_predicates.md)**: Support conditional retry logic and metrics.
 - **[Generated Test Execution Failure](generated_test_execution_failure.md)**: Scaffolded tests fail until implemented.
 - **[Security Audit Reporting Specification](security_audit_reporting.md)**: JSON reporting for security audits.
