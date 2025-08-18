@@ -11,12 +11,13 @@ The latest dialectical audit identified unresolved features lacking documentatio
 
 ## Progress
 - 2025-02-19: outstanding feature list reviewed; follow-up tickets pending.
+- 2025-02-19: documented API reference generation feature and archived Issue 148.
 - Initial audit captured in [f505a68f](../commit/f505a68f).
 
- - [Document API reference generation feature](Document-API-reference-generation-feature.md)
 - API Specification Generation
 - AST-Based Code Analysis and Transformation
 - Additional Storage Backends
+ - [Implement API reference documentation generation feature](Implement-API-reference-documentation-generation-feature.md)
 - Advanced Graph Memory Features
 - Agent API Health and Metrics
 - Agent API Interactions

@@ -18,6 +18,7 @@ Review each question in the audit log and update documentation, tests, or code a
 
 ## Progress
 - 2025-02-19: audit log triaged; documentation gaps queued.
+- 2025-02-19: API reference documentation generation feature documented (Issue 148).
 - Pending review of audit log entries
 - Dialectical audit tooling added in [f505a68f](../commit/f505a68f).
 
