@@ -147,33 +147,7 @@ The behavior testing framework will be expanded to cover new user workflows:
 
 #### New Feature Files
 
-```gherkin
-Feature: Code Analysis
-  As a developer
-  I want DevSynth to analyze my codebase
-  So that it can understand the structure and generate improvements
 
-  Scenario: Analyze Python project
-    Given I have a Python project at "test_data/sample_project"
-    When I run "devsynth inspect --path test_data/sample_project"
-    Then the command should succeed
-    And the output should contain "Analysis complete"
-    And an analysis report should be created at "test_data/sample_project/.devsynth/analysis.json"
-```
-
-```gherkin
-Feature: Multi-Agent Collaboration
-  As a developer
-  I want DevSynth to use multiple specialized agents
-  So that it can handle complex tasks more effectively
-
-  Scenario: Generate code with architecture and implementation agents
-    Given I have a specification at "test_data/sample_spec.md"
-    When I run "devsynth refactor --spec test_data/sample_spec.md --agents architecture,implementation"
-    Then the command should succeed
-    And the output should contain "Collaboration complete"
-    And implementation files should be created
-```
 
 Additional behavior coverage ensures the test runner operates correctly. The
 `tests/behavior/features/general/run_tests.feature` file exercises the

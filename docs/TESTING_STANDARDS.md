@@ -140,7 +140,7 @@ def test_memory_provider_integration():
     # Set up components
     memory_system = MultiLayeredMemorySystem()
     provider = ProviderFactory.create_provider("openai")
-    
+
     # Execute operations involving both components
     memory_item = MemoryItem(
         id="test-1",
@@ -149,11 +149,11 @@ def test_memory_provider_integration():
         metadata={"key": "value"}
     )
     memory_system.store(memory_item)
-    
+
     # Use provider to generate content based on memory
     retrieved_item = memory_system.retrieve("test-1")
     result = provider.complete(f"Summarize this: {retrieved_item.content}")
-    
+
     # Verify interaction
     assert result is not None
     assert len(result) > 0
@@ -174,7 +174,7 @@ Feature files should follow this structure:
 ### Example Feature File
 
 ```gherkin
-Feature: Multi-Layered Memory System
+Feature: Multi-Layered Memory System and Tiered Cache Strategy
   As a developer
   I want to store and retrieve memory items in different layers
   So that I can manage different types of information efficiently
