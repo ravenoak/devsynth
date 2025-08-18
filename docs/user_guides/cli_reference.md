@@ -724,6 +724,14 @@ Scaffold `.devsynth/mvu.yml` with default schema path and storage settings.
 devsynth mvu init
 ```
 
+#### exec
+
+Run a shell command within the MVU workflow and forward its output and exit code.
+
+```bash
+devsynth mvu exec echo hello
+```
+
 ## Environment Variables
 
 DevSynth uses the following environment variables:

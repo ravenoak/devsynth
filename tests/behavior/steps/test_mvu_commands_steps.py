@@ -1,9 +1,12 @@
 from pathlib import Path
+from typing import List
 
+import typer
 from pytest_bdd import given, parsers, scenarios, then, when
 from typer import Typer
 from typer.testing import CliRunner
 
+from devsynth.application.cli.commands.mvu_exec_cmd import mvu_exec_cmd
 from devsynth.application.cli.commands.mvu_init_cmd import mvu_init_cmd
 from devsynth.application.cli.commands.mvu_lint_cmd import mvu_lint_cmd
 from devsynth.application.cli.commands.mvu_report_cmd import mvu_report_cmd
@@ -34,10 +37,15 @@ def _app() -> Typer:
             target_path=target_path, branch_name=branch_name, dry_run=dry_run
         )
 
+    def _exec_wrapper(command: List[str] = typer.Argument(..., allow_dash=True)):
+        code = mvu_exec_cmd(command)
+        raise typer.Exit(code)
+
     mvu.command("init")(_init_wrapper)
     mvu.command("lint")(_lint_wrapper)
     mvu.command("report")(_report_wrapper)
     mvu.command("rewrite")(_rewrite_wrapper)
+    mvu.command("exec")(_exec_wrapper)
     app.add_typer(mvu, name="mvu")
     return app
 

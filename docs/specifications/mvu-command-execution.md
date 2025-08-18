@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: 2025-02-19
-last_reviewed: 2025-02-19
+last_reviewed: 2025-08-20
 status: draft
 tags:
   - specification
@@ -26,8 +26,8 @@ Developers need a dependable way to run MVU-specific commands and capture their 
 ## Specification
 
 - A command `devsynth mvu exec <command>` runs `<command>` within the MVU context.
-- The workflow returns the executed command's exit code and combined output.
-- Failures propagate non-zero exit codes and error messages.
+- The workflow captures both `stdout` and `stderr` and returns the combined output with the command's exit code.
+- Failures propagate non-zero exit codes and the associated error output.
 
 ## Acceptance Criteria
 

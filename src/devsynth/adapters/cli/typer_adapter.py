@@ -12,6 +12,7 @@ from rich.table import Table
 from typer import completion as typer_completion
 
 from devsynth.application.cli import config_app
+from devsynth.application.cli.mvu_commands import mvu_app
 from devsynth.application.cli.registry import COMMAND_REGISTRY
 from devsynth.application.cli.requirements_commands import requirements_app
 from devsynth.core.config_loader import load_config
@@ -273,6 +274,7 @@ def build_app() -> typer.Typer:
         app.command(name)(override)
 
     app.add_typer(requirements_app, name="requirements")
+    app.add_typer(mvu_app, name="mvu")
     app.add_typer(config_app, name="config", help="Manage configuration settings")
 
     @app.command(

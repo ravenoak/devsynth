@@ -38,6 +38,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Kuzu Memory Integration](kuzu_memory_integration.md)**: Environment-variable overrides and fallback behaviour for the Kuzu-backed memory store.
 - **[Memory Module Handles Missing TinyDB Dependency](memory_optional_tinydb_dependency.md)**: Import behavior when `tinydb` is absent.
 - **[LM Studio Integration](lmstudio_integration.md)**: Mock server for LM Studio API.
+- **[MVU Command Execution](mvu-command-execution.md)**: Runs shell commands from the MVU CLI.
 - **[Interactive Requirements Wizard](interactive_requirements_wizard.md)**: Guided collection of requirements via CLI and WebUI.
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
 - **[Requirements Wizard](requirements_wizard.md)**: Logging and priority persistence for the requirements wizard.
