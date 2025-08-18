@@ -80,7 +80,6 @@ class DemoTeam(CollaborativeWSDETeam):
         return "because we agree"
 
 
-@pytest.mark.medium
 def test_consensus_syncs_across_stores():
     memory_manager = MemoryManager(adapters={"s1": SimpleStore(), "s2": SimpleStore()})
     team = DemoTeam(memory_manager)

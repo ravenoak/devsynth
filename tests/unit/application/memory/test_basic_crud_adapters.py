@@ -25,10 +25,10 @@ def _make_store(store_cls, tmp_path, monkeypatch):
     raise ValueError(store_cls)
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize(
     "store_cls", [TinyDBStore, LMDBStore, KuzuStore, ChromaDBStore]
 )
+@pytest.mark.medium
 def test_basic_crud_lifecycle(store_cls, tmp_path, monkeypatch):
     store = _make_store(store_cls, tmp_path, monkeypatch)
     try:

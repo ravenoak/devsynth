@@ -123,8 +123,8 @@ class TestChromaDBMemoryStore:
         assert memory_store.use_provider_system is False
         assert hasattr(memory_store, "embedder")
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.chromadb_memory_store.embed")
+    @pytest.mark.medium
     def test_initialization_with_provider_system_has_expected(
         self, mock_embed, temp_dir, collection_name, request, mock_chromadb_client
     ):
@@ -154,8 +154,8 @@ class TestChromaDBMemoryStore:
             )
             assert embedding == [0.1, 0.2, 0.3, 0.4, 0.5]
 
-    @pytest.mark.medium
     @patch("devsynth.adapters.chromadb_memory_store.embed")
+    @pytest.mark.medium
     def test_fallback_to_default_embedder_when_provider_fails(
         self, mock_embed, temp_dir, collection_name, request, mock_chromadb_client
     ):

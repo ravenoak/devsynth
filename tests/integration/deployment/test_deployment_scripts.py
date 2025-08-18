@@ -59,8 +59,8 @@ def test_prometheus_exporter_refuses_root(scripts_dir):
     assert "Please run this script as a non-root user." in result.stderr
 
 
-@pytest.mark.fast
 @pytest.mark.parametrize("script", ["start_stack.sh", "stop_stack.sh"])
+@pytest.mark.fast
 def test_stack_scripts_env_permissions(tmp_path, scripts_dir, script):
     env_file = tmp_path / ".env.development"
     env_file.write_text("DEVSYNTH_ENV=development")

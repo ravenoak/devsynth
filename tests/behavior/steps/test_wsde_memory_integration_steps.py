@@ -48,7 +48,6 @@ def context():
 # Background steps
 
 
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
@@ -56,7 +55,6 @@ def devsynth_system_initialized(context):
     assert context.team_coordinator is not None
 
 
-@pytest.mark.medium
 @given("a team of agents is configured")
 def team_of_agents_configured(context):
     """Configure a team of agents."""
@@ -67,7 +65,6 @@ def team_of_agents_configured(context):
     context.teams[team_id] = context.team_coordinator.get_team(team_id)
 
 
-@pytest.mark.medium
 @given("the WSDE model is enabled")
 def wsde_model_enabled(context):
     """Enable the WSDE model."""
@@ -75,7 +72,6 @@ def wsde_model_enabled(context):
     assert context.teams[context.current_team_id] is not None
 
 
-@pytest.mark.medium
 @given("a team with multiple agents")
 def given_team_with_multiple_agents(context):
     """Create a team with multiple agents."""
@@ -101,7 +97,6 @@ def given_team_with_multiple_agents(context):
         context.team_coordinator.add_agent(agent)
 
 
-@pytest.mark.medium
 @given("the memory system is configured with a test backend")
 def memory_system_configured(context):
     """Configure the memory system with a test backend."""
@@ -120,7 +115,6 @@ def memory_system_configured(context):
 # Scenario: Store and retrieve WSDE team state
 
 
-@pytest.mark.medium
 @when("I create a team with multiple agents")
 def create_team_with_multiple_agents(context):
     """Create a team with multiple agents."""
@@ -146,7 +140,6 @@ def create_team_with_multiple_agents(context):
         context.team_coordinator.add_agent(agent)
 
 
-@pytest.mark.medium
 @when("I store the team state in memory")
 def store_team_state_in_memory(context):
     """Store the team state in memory."""
@@ -172,7 +165,6 @@ def store_team_state_in_memory(context):
     context.memory_manager.store_item(memory_item)
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the team state from memory")
 def retrieve_team_state_from_memory(context):
     """Retrieve the team state from memory."""
@@ -189,7 +181,6 @@ def retrieve_team_state_from_memory(context):
     context.retrieved_team_state = team_state_item.content
 
 
-@pytest.mark.medium
 @then("the retrieved team state should match the original state")
 def verify_team_state_matches(context):
     """Verify that the retrieved team state matches the original state."""
@@ -218,7 +209,6 @@ def verify_team_state_matches(context):
 # Scenario: Store and retrieve solutions with EDRR phase tagging
 
 
-@pytest.mark.medium
 @when(parsers.parse("a solution is proposed for a task"))
 def solution_proposed_for_task(context):
     """Propose a solution for a task."""
@@ -242,7 +232,6 @@ def solution_proposed_for_task(context):
     team.add_solution(task, solution)
 
 
-@pytest.mark.medium
 @when(parsers.parse('the solution is stored in memory with EDRR phase "{phase}"'))
 def store_solution_with_edrr_phase(context, phase):
     """Store the solution in memory with the specified EDRR phase."""
@@ -266,7 +255,6 @@ def store_solution_with_edrr_phase(context, phase):
     context.memory_manager.store_item(memory_item)
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the solution by EDRR phase")
 def retrieve_solution_by_edrr_phase(context):
     """Retrieve the solution by EDRR phase."""
@@ -286,7 +274,6 @@ def retrieve_solution_by_edrr_phase(context):
     context.retrieved_solution = solution_item.content
 
 
-@pytest.mark.medium
 @then("the solution should have the correct EDRR phase tag")
 def verify_solution_edrr_phase(context):
     """Verify that the solution has the correct EDRR phase tag."""
@@ -306,7 +293,6 @@ def verify_solution_edrr_phase(context):
 # Scenario: Store and retrieve dialectical reasoning results
 
 
-@pytest.mark.medium
 @given("a team with a Critic agent")
 def team_with_critic_agent(context):
     """Create a team with a Critic agent."""
@@ -324,7 +310,6 @@ def team_with_critic_agent(context):
     context.team_coordinator.add_agent(agent)
 
 
-@pytest.mark.medium
 @when("a solution is proposed")
 def solution_proposed(context):
     """Propose a solution."""
@@ -336,7 +321,6 @@ def solution_proposed(context):
     }
 
 
-@pytest.mark.medium
 @when("the Critic agent applies dialectical reasoning")
 def critic_applies_dialectical_reasoning(context):
     """Apply dialectical reasoning to the proposed solution."""
@@ -358,7 +342,6 @@ def critic_applies_dialectical_reasoning(context):
     context.dialectical_results["auth_solution"] = dialectical_result
 
 
-@pytest.mark.medium
 @when("the dialectical reasoning results are stored in memory")
 def store_dialectical_results(context):
     """Store the dialectical reasoning results in memory."""
@@ -381,7 +364,6 @@ def store_dialectical_results(context):
     context.memory_manager.store_item(memory_item)
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the dialectical reasoning results")
 def retrieve_dialectical_results(context):
     """Retrieve the dialectical reasoning results from memory."""
@@ -400,7 +382,6 @@ def retrieve_dialectical_results(context):
     context.retrieved_dialectical_result = dialectical_item.content
 
 
-@pytest.mark.medium
 @then("the retrieved results should contain thesis, antithesis, and synthesis")
 def verify_dialectical_results(context):
     """Verify that the retrieved dialectical results contain thesis, antithesis, and synthesis."""
@@ -414,7 +395,6 @@ def verify_dialectical_results(context):
 # Scenario: Access knowledge graph for enhanced reasoning
 
 
-@pytest.mark.medium
 @given("a knowledge graph with domain knowledge")
 def knowledge_graph_with_domain_knowledge(context):
     """Create a knowledge graph with domain knowledge."""
@@ -454,7 +434,6 @@ def knowledge_graph_with_domain_knowledge(context):
     context.memory_manager.store_item(memory_item)
 
 
-@pytest.mark.medium
 @when("the team needs to reason about a complex task")
 def team_reasons_about_complex_task(context):
     """The team needs to reason about a complex task."""
@@ -467,7 +446,6 @@ def team_reasons_about_complex_task(context):
     context.tasks["security_task"] = task
 
 
-@pytest.mark.medium
 @then("the team should be able to query the knowledge graph")
 def team_queries_knowledge_graph(context):
     """The team should be able to query the knowledge graph."""
@@ -487,7 +465,6 @@ def team_queries_knowledge_graph(context):
     context.retrieved_knowledge_graph = knowledge_graph_item.content
 
 
-@pytest.mark.medium
 @then("incorporate the knowledge into their reasoning process")
 def incorporate_knowledge_into_reasoning(context):
     """Incorporate the knowledge into the reasoning process."""
@@ -550,7 +527,6 @@ def hash_password(password):
 # Scenario: Use different memory backends for WSDE artifacts
 
 
-@pytest.mark.medium
 @given("the memory system is configured with multiple backends")
 def memory_system_with_multiple_backends(context):
     """Configure the memory system with multiple backends."""
@@ -569,7 +545,6 @@ def memory_system_with_multiple_backends(context):
     }
 
 
-@pytest.mark.medium
 @when("I store WSDE artifacts in different backends")
 def store_artifacts_in_different_backends(context):
     """Store WSDE artifacts in different backends."""
@@ -593,6 +568,31 @@ def store_artifacts_in_different_backends(context):
     solution = {
         "agent": "code_agent",
         "description": "Solution for multi-backend test",
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
+        @pytest.mark.medium
         "code": "def test_function():\n    return 'Hello, world!'",
     }
 
@@ -636,7 +636,6 @@ def store_artifacts_in_different_backends(context):
     context.memory_managers["file"].store_item(relationship_item)
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the artifacts from their respective backends")
 def retrieve_artifacts_from_backends(context):
     """Retrieve the artifacts from their respective backends."""
@@ -675,7 +674,6 @@ def retrieve_artifacts_from_backends(context):
     context.retrieved_solution = solution_item.content
 
 
-@pytest.mark.medium
 @then("the artifacts should maintain their relationships")
 def verify_artifact_relationships(context):
     """Verify that the artifacts maintain their relationships."""

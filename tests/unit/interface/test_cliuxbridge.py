@@ -1,12 +1,13 @@
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
+
 import pytest
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
-from devsynth.interface.cli import CLIUXBridge, CLIProgressIndicator
+
+from devsynth.interface.cli import CLIProgressIndicator, CLIUXBridge
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -15,6 +16,7 @@ def clean_state():
 
 
 @pytest.mark.slow
+@pytest.mark.medium
 def test_function(clean_state):
     # Test with clean state
     """Test that cliuxbridge ask question succeeds.

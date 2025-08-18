@@ -1,5 +1,6 @@
-from devsynth.interface.ux_bridge import UXBridge
 import pytest
+
+from devsynth.interface.ux_bridge import UXBridge
 
 
 class DummyBridge(UXBridge):
@@ -19,7 +20,6 @@ class DummyBridge(UXBridge):
         self.calls.append(("display_result", message, highlight))
 
 
-@pytest.mark.slow
 @pytest.fixture
 def clean_state():
     yield
@@ -32,7 +32,6 @@ def test_function(clean_state):
     assert bridge.calls[0] == ("ask_question", "q", ["x"], "x", False)
 
 
-@pytest.mark.medium
 def test_print_alias_delegates():
     bridge = DummyBridge()
     bridge.print("msg", highlight=True)

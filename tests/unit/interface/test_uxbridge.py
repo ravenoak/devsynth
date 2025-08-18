@@ -60,7 +60,6 @@ def _setup_webui(monkeypatch):
     return WebUIBridge(), st
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     """Set up clean state for tests."""
@@ -91,6 +90,7 @@ def clean_state():
         importlib.reload(sys.modules["devsynth.interface.cli"])
 
 
+@pytest.mark.medium
 def test_prompt_and_result_consistency(monkeypatch, clean_state):
     """CLI and WebUI should return identical answers and formatted output."""
     # Store original sanitize_output function

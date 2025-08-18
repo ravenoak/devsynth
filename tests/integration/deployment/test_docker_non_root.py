@@ -4,8 +4,8 @@ import subprocess
 import pytest
 
 
-@pytest.mark.slow
 @pytest.mark.docker
+@pytest.mark.slow
 def test_temporary_container_runs_as_non_root(tmp_path):
     if shutil.which("docker") is None:
         pytest.skip("Docker not available")

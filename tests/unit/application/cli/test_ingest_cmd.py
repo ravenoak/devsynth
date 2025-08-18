@@ -7,9 +7,9 @@ from devsynth.application.cli.cli_commands import ingest_cmd
 from devsynth.interface.cli import CLIUXBridge
 
 
-@pytest.mark.medium
 @patch("devsynth.application.cli.ingest_cmd.validate_manifest")
 @patch("devsynth.application.cli.ingest_cmd.Ingestion")
+@pytest.mark.medium
 def test_ingest_cmd_non_interactive_skips_prompts(
     mock_ingestion,
     _mock_validate_manifest,
@@ -46,9 +46,9 @@ def test_ingest_cmd_non_interactive_skips_prompts(
     assert os.environ.get("DEVSYNTH_AUTO_CONFIRM") == "1"
 
 
-@pytest.mark.medium
 @patch("devsynth.application.cli.ingest_cmd.validate_manifest")
 @patch("devsynth.application.cli.ingest_cmd.Ingestion")
+@pytest.mark.medium
 def test_ingest_cmd_defaults_enable_non_interactive(
     mock_ingestion,
     _mock_validate_manifest,

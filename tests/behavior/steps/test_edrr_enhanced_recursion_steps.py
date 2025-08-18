@@ -59,7 +59,6 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given("the EDRR coordinator is initialized")
 def edrr_coordinator_initialized(context):
     """Initialize the EDRR coordinator with actual implementations."""
@@ -87,7 +86,6 @@ def edrr_coordinator_initialized(context):
     )
 
 
-@pytest.mark.medium
 @given("the memory system is available")
 def memory_system_available(context):
     """Make the memory system available."""
@@ -95,7 +93,6 @@ def memory_system_available(context):
     assert context.edrr_coordinator.memory_manager is context.memory_manager
 
 
-@pytest.mark.medium
 @given("the WSDE team is available")
 def wsde_team_available(context):
     """Make the WSDE team available."""
@@ -103,7 +100,6 @@ def wsde_team_available(context):
     assert context.edrr_coordinator.wsde_team is context.wsde_team
 
 
-@pytest.mark.medium
 @given("the AST analyzer is available")
 def ast_analyzer_available(context):
     """Make the AST analyzer available."""
@@ -113,7 +109,6 @@ def ast_analyzer_available(context):
     assert context.edrr_coordinator.ast_transformer is context.ast_transformer
 
 
-@pytest.mark.medium
 @given("the prompt manager is available")
 def prompt_manager_available(context):
     """Make the prompt manager available."""
@@ -121,7 +116,6 @@ def prompt_manager_available(context):
     assert context.edrr_coordinator.prompt_manager is context.prompt_manager
 
 
-@pytest.mark.medium
 @given("the documentation manager is available")
 def documentation_manager_available(context):
     """Make the documentation manager available."""
@@ -131,7 +125,6 @@ def documentation_manager_available(context):
     )
 
 
-@pytest.mark.medium
 @when(parsers.parse('I start the EDRR cycle with a task to "{task_description}"'))
 def start_edrr_cycle(context, task_description):
     """Start the EDRR cycle with a task."""
@@ -139,7 +132,6 @@ def start_edrr_cycle(context, task_description):
     context.edrr_coordinator.start_cycle(context.task)
 
 
-@pytest.mark.medium
 @given(parsers.parse('the "{phase_name}" phase has completed for a task'))
 def phase_completed(context, phase_name):
     """Set up a completed phase."""
@@ -149,6 +141,20 @@ def phase_completed(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
@@ -224,21 +230,18 @@ def phase_completed(context, phase_name):
         }
 
 
-@pytest.mark.medium
 @when(parsers.parse('the coordinator progresses to the "{phase_name}" phase'))
 def progress_to_phase(context, phase_name):
     """Progress to the next phase."""
     context.edrr_coordinator.progress_to_phase(Phase[phase_name.upper()])
 
 
-@pytest.mark.medium
 @then(parsers.parse('the coordinator should enter the "{phase_name}" phase'))
 def verify_phase(context, phase_name):
     """Verify the coordinator has entered the specified phase."""
     assert context.edrr_coordinator.current_phase == Phase[phase_name.upper()]
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'the coordinator should store the task in memory with EDRR phase "{phase_name}"'
@@ -249,6 +252,20 @@ def verify_task_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
@@ -277,13 +294,26 @@ def verify_task_stored(context, phase_name):
         context.memory_manager.store_with_edrr_phase = original_store_method
 
 
-@pytest.mark.medium
 @then("the coordinator should store the phase transition in memory")
 def verify_phase_transition_stored(context):
     """Verify the phase transition is stored in memory."""
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Capture stored items for verification."""
@@ -306,7 +336,6 @@ def verify_phase_transition_stored(context):
         context.memory_manager.store_with_edrr_phase = original_store_method
 
 
-@pytest.mark.medium
 @then("the WSDE team should be instructed to brainstorm approaches")
 def verify_wsde_brainstorm(context):
     """Verify the WSDE team is instructed to brainstorm approaches."""
@@ -315,7 +344,6 @@ def verify_wsde_brainstorm(context):
     assert "wsde_brainstorm" in context.edrr_coordinator.results[Phase.EXPAND]
 
 
-@pytest.mark.medium
 @then("the WSDE team should be instructed to evaluate and compare approaches")
 def verify_wsde_evaluate(context):
     """Verify the WSDE team is instructed to evaluate and compare approaches."""
@@ -339,7 +367,6 @@ def verify_wsde_evaluate(context):
     assert "evaluation" in context.edrr_coordinator.results[Phase.DIFFERENTIATE]
 
 
-@pytest.mark.medium
 @then("the WSDE team should be instructed to implement the selected approach")
 def verify_wsde_implement(context):
     """Verify the WSDE team is instructed to implement the selected approach."""
@@ -358,7 +385,6 @@ def verify_wsde_implement(context):
     assert "implementation" in context.edrr_coordinator.results[Phase.REFINE]
 
 
-@pytest.mark.medium
 @then("the WSDE team should be instructed to evaluate the implementation")
 def verify_wsde_review(context):
     """Verify the WSDE team is instructed to evaluate the implementation."""
@@ -374,7 +400,6 @@ def verify_wsde_review(context):
     assert "evaluation" in context.edrr_coordinator.results[Phase.RETROSPECT]
 
 
-@pytest.mark.medium
 @then("the AST analyzer should be used to analyze the file structure")
 def verify_ast_analyze(context):
     """Verify the AST analyzer is used to analyze the file structure."""
@@ -396,7 +421,6 @@ def verify_ast_analyze(context):
         os.unlink(temp_file_path)
 
 
-@pytest.mark.medium
 @then("the AST analyzer should be used to evaluate code quality")
 def verify_ast_evaluate(context):
     """Verify the AST analyzer is used to evaluate code quality."""
@@ -428,7 +452,6 @@ def verify_ast_evaluate(context):
     )
 
 
-@pytest.mark.medium
 @then("the AST analyzer should be used to apply code transformations")
 def verify_ast_transform(context):
     """Verify the AST analyzer is used to apply code transformations."""
@@ -448,7 +471,6 @@ def verify_ast_transform(context):
     assert "code" in context.edrr_coordinator.results[Phase.REFINE]["implementation"]
 
 
-@pytest.mark.medium
 @then("the AST analyzer should be used to verify code quality")
 def verify_ast_verify(context):
     """Verify the AST analyzer is used to verify code quality."""
@@ -468,7 +490,6 @@ def verify_ast_verify(context):
     assert "is_valid" in context.edrr_coordinator.results[Phase.RETROSPECT]
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'the prompt manager should provide templates for the "{phase_name}" phase'
@@ -526,7 +547,6 @@ def verify_prompt_templates(context, phase_name):
     assert context.edrr_coordinator.results[phase] is not None
 
 
-@pytest.mark.medium
 @then("the documentation manager should retrieve relevant documentation")
 def verify_documentation_retrieve(context):
     """Verify the documentation manager retrieves relevant documentation."""
@@ -546,7 +566,6 @@ def verify_documentation_retrieve(context):
         assert "documentation" in context.edrr_coordinator.results[Phase.EXPAND]
 
 
-@pytest.mark.medium
 @then("the documentation manager should retrieve best practices documentation")
 def verify_documentation_best_practices(context):
     """Verify the documentation manager retrieves best practices documentation."""
@@ -578,7 +597,6 @@ This document outlines best practices for code development."""
         assert Phase.DIFFERENTIATE in context.edrr_coordinator.results
 
 
-@pytest.mark.medium
 @then("the documentation manager should retrieve implementation examples")
 def verify_documentation_examples(context):
     """Verify the documentation manager retrieves implementation examples."""
@@ -605,7 +623,6 @@ This document provides examples of implementations."""
         assert Phase.REFINE in context.edrr_coordinator.results
 
 
-@pytest.mark.medium
 @then("the documentation manager should retrieve evaluation criteria")
 def verify_documentation_criteria(context):
     """Verify the documentation manager retrieves evaluation criteria."""
@@ -629,7 +646,6 @@ This document outlines criteria for evaluating code quality."""
         assert Phase.RETROSPECT in context.edrr_coordinator.results
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'the results should be stored in memory with EDRR phase "{phase_name}"'
@@ -641,6 +657,20 @@ def verify_results_stored(context, phase_name):
     test_storage = {}
     original_store_method = context.memory_manager.store_with_edrr_phase
 
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
+    @pytest.mark.medium
     @pytest.mark.medium
     def test_store_method_succeeds(data, data_type, edrr_phase, metadata=None):
         """Test that store method succeeds.
@@ -709,7 +739,6 @@ def verify_results_stored(context, phase_name):
         context.memory_manager.store_with_edrr_phase = original_store_method
 
 
-@pytest.mark.medium
 @then("a final report should be generated summarizing the entire EDRR cycle")
 def verify_final_report(context):
     """Verify a final report is generated."""
@@ -730,7 +759,6 @@ def verify_final_report(context):
     assert "summary" in report
 
 
-@pytest.mark.medium
 @given("a valid EDRR manifest file exists")
 def valid_manifest_file_exists(context):
     """Create a valid EDRR manifest file for testing."""
@@ -775,14 +803,12 @@ def valid_manifest_file_exists(context):
         json.dump(manifest_content, f, indent=2)
 
 
-@pytest.mark.medium
 @when("I start the EDRR cycle from the manifest file")
 def start_edrr_cycle_from_manifest(context):
     """Start the EDRR cycle from the manifest file."""
     context.edrr_coordinator.start_cycle_from_manifest(context.manifest_path)
 
 
-@pytest.mark.medium
 @then("the coordinator should parse the manifest successfully")
 def verify_manifest_parsed(context):
     """Verify the manifest was parsed successfully."""
@@ -793,7 +819,6 @@ def verify_manifest_parsed(context):
     )
 
 
-@pytest.mark.medium
 @then("the coordinator should use the phase instructions from the manifest")
 def verify_phase_instructions_used(context):
     """Verify the phase instructions from the manifest are used."""
@@ -803,7 +828,6 @@ def verify_phase_instructions_used(context):
     assert expand_instructions == "Brainstorm approaches for the task"
 
 
-@pytest.mark.medium
 @then("the coordinator should use the phase templates from the manifest")
 def verify_phase_templates_used(context):
     """Verify the phase templates from the manifest are used."""
@@ -814,7 +838,6 @@ def verify_phase_templates_used(context):
     assert "expand_template_2" in expand_templates
 
 
-@pytest.mark.medium
 @then("the coordinator should track phase dependencies")
 def verify_phase_dependencies_tracked(context):
     """Verify the phase dependencies are tracked."""
@@ -828,7 +851,6 @@ def verify_phase_dependencies_tracked(context):
     )
 
 
-@pytest.mark.medium
 @then("the coordinator should monitor execution progress")
 def verify_execution_progress_monitored(context):
     """Verify the execution progress is monitored."""
@@ -840,7 +862,6 @@ def verify_execution_progress_monitored(context):
     )
 
 
-@pytest.mark.medium
 @given("the EDRR coordinator is initialized with enhanced logging")
 def edrr_coordinator_with_enhanced_logging(context):
     """Initialize the EDRR coordinator with enhanced logging enabled."""
@@ -868,7 +889,6 @@ def edrr_coordinator_with_enhanced_logging(context):
     )
 
 
-@pytest.mark.medium
 @when(parsers.parse('I complete a full EDRR cycle with a task to "{task_description}"'))
 def complete_full_edrr_cycle(context, task_description):
     """Complete a full EDRR cycle with the given task."""
@@ -919,7 +939,6 @@ def complete_full_edrr_cycle(context, task_description):
     context.execution_traces = context.edrr_coordinator.get_execution_traces()
 
 
-@pytest.mark.medium
 @then("the coordinator should generate detailed execution traces")
 def verify_detailed_execution_traces(context):
     """Verify that the coordinator generates detailed execution traces."""
@@ -930,7 +949,6 @@ def verify_detailed_execution_traces(context):
         assert phase.name in context.execution_traces["phases"]
 
 
-@pytest.mark.medium
 @then("the execution traces should include phase-specific metrics")
 def verify_phase_specific_metrics(context):
     """Verify that the execution traces include phase-specific metrics."""
@@ -940,7 +958,6 @@ def verify_phase_specific_metrics(context):
         assert isinstance(phase_trace["metrics"], dict)
 
 
-@pytest.mark.medium
 @then("the execution traces should include status tracking for each phase")
 def verify_status_tracking(context):
     """Verify that the execution traces include status tracking for each phase."""
@@ -949,7 +966,6 @@ def verify_status_tracking(context):
         assert "timestamp" in phase_trace
 
 
-@pytest.mark.medium
 @then("the execution traces should include comprehensive metadata")
 def verify_comprehensive_metadata(context):
     """Verify that the execution traces include comprehensive metadata."""
@@ -960,7 +976,6 @@ def verify_comprehensive_metadata(context):
     assert "timestamp" in metadata
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the full execution history")
 def verify_full_execution_history(context):
     """Verify that the full execution history can be retrieved."""
@@ -973,7 +988,6 @@ def verify_full_execution_history(context):
         assert "details" in entry
 
 
-@pytest.mark.medium
 @then("I should be able to analyze performance metrics for each phase")
 def verify_performance_metrics(context):
     """Verify that performance metrics can be analyzed for each phase."""
@@ -1038,7 +1052,6 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given("the EDRR coordinator is initialized with enhanced recursion features")
 def edrr_coordinator_initialized_with_enhanced_recursion(context):
     """Initialize the EDRR coordinator with enhanced recursion features."""
@@ -1100,7 +1113,6 @@ def edrr_coordinator_initialized_with_enhanced_recursion(context):
 
 
 # Scenario: Improved micro-cycle creation with intelligent task decomposition
-@pytest.mark.medium
 @given("a complex task that requires decomposition")
 def complex_task_requiring_decomposition(context):
     """Create a complex task that requires decomposition."""
@@ -1118,7 +1130,6 @@ def complex_task_requiring_decomposition(context):
     }
 
 
-@pytest.mark.medium
 @when("the coordinator determines that recursion is needed")
 def coordinator_determines_recursion_needed(context):
     """Simulate the coordinator determining that recursion is needed."""
@@ -1138,7 +1149,6 @@ def coordinator_determines_recursion_needed(context):
     context.edrr_coordinator.should_terminate_recursion = original_should_terminate
 
 
-@pytest.mark.medium
 @then("the coordinator should intelligently decompose the task into subtasks")
 def verify_intelligent_task_decomposition(context):
     """Verify that the task is intelligently decomposed into subtasks."""
@@ -1151,7 +1161,6 @@ def verify_intelligent_task_decomposition(context):
     context.subtasks = context.edrr_coordinator._decomposed_tasks
 
 
-@pytest.mark.medium
 @then("each subtask should have clear boundaries and objectives")
 def verify_subtasks_have_clear_boundaries(context):
     """Verify that each subtask has clear boundaries and objectives."""
@@ -1165,7 +1174,6 @@ def verify_subtasks_have_clear_boundaries(context):
         assert len(subtask["boundaries"]) > 0
 
 
-@pytest.mark.medium
 @then("the subtasks should collectively cover the entire original task")
 def verify_subtasks_cover_original_task(context):
     """Verify that the subtasks collectively cover the entire original task."""
@@ -1184,7 +1192,6 @@ def verify_subtasks_cover_original_task(context):
         ), f"Component {component_id} is not covered by any subtask"
 
 
-@pytest.mark.medium
 @then("the subtasks should be prioritized based on dependencies")
 def verify_subtasks_prioritized_by_dependencies(context):
     """Verify that subtasks are prioritized based on dependencies."""
@@ -1205,7 +1212,6 @@ def verify_subtasks_prioritized_by_dependencies(context):
                 ), f"Subtask {subtask['id']} should have lower priority than its dependency {dependency_id}"
 
 
-@pytest.mark.medium
 @then("the coordinator should create micro-cycles for each subtask")
 def verify_micro_cycles_created(context):
     """Verify that micro-cycles are created for each subtask."""
@@ -1231,7 +1237,6 @@ def verify_micro_cycles_created(context):
     assert len(context.micro_cycles) == len(context.subtasks)
 
 
-@pytest.mark.medium
 @then("each micro-cycle should have appropriate context from the parent cycle")
 def verify_micro_cycles_have_parent_context(context):
     """Verify that each micro-cycle has appropriate context from the parent cycle."""
@@ -1248,7 +1253,6 @@ def verify_micro_cycles_have_parent_context(context):
 
 
 # Scenario: Optimized recursion depth decisions with advanced heuristics
-@pytest.mark.medium
 @given("a task that might require multiple levels of recursion")
 def task_requiring_multiple_recursion_levels(context):
     """Create a task that might require multiple levels of recursion."""
@@ -1289,7 +1293,6 @@ def task_requiring_multiple_recursion_levels(context):
     }
 
 
-@pytest.mark.medium
 @when("the coordinator evaluates whether to create nested micro-cycles")
 def coordinator_evaluates_nested_micro_cycles(context):
     """Simulate the coordinator evaluating whether to create nested micro-cycles."""
@@ -1355,7 +1358,6 @@ def coordinator_evaluates_nested_micro_cycles(context):
             context.recursion_depth = 3
 
 
-@pytest.mark.medium
 @then(
     "the coordinator should apply advanced heuristics to determine optimal recursion depth"
 )
@@ -1374,7 +1376,6 @@ def verify_advanced_heuristics_applied(context):
     assert context.recursion_depth <= 3  # Should not exceed the number of levels
 
 
-@pytest.mark.medium
 @then("the heuristics should consider task complexity")
 def verify_heuristics_consider_complexity(context):
     """Verify that the heuristics consider task complexity."""
@@ -1403,7 +1404,6 @@ def verify_heuristics_consider_complexity(context):
     assert considered_factors["complexity"] is True
 
 
-@pytest.mark.medium
 @then("the heuristics should consider available resources")
 def verify_heuristics_consider_resources(context):
     """Verify that the heuristics consider available resources."""
@@ -1432,7 +1432,6 @@ def verify_heuristics_consider_resources(context):
     assert considered_factors["resources"] is True
 
 
-@pytest.mark.medium
 @then("the heuristics should consider historical performance data")
 def verify_heuristics_consider_historical_data(context):
     """Verify that the heuristics consider historical performance data."""
@@ -1512,7 +1511,6 @@ def verify_heuristics_consider_historical_data(context):
     assert reason_3 == "historical data suggests optimal depth"
 
 
-@pytest.mark.medium
 @then("the heuristics should consider diminishing returns at deeper recursion levels")
 def verify_heuristics_consider_diminishing_returns(context):
     """Verify that the heuristics consider diminishing returns at deeper recursion levels."""
@@ -1553,7 +1551,6 @@ def verify_heuristics_consider_diminishing_returns(context):
     assert considered_diminishing_returns[0] is True
 
 
-@pytest.mark.medium
 @then("the coordinator should limit recursion to the optimal depth")
 def verify_recursion_limited_to_optimal_depth(context):
     """Verify that recursion is limited to the optimal depth."""
@@ -1566,7 +1563,6 @@ def verify_recursion_limited_to_optimal_depth(context):
 
 
 # Scenario: Enhanced result aggregation from recursive cycles
-@pytest.mark.medium
 @given("multiple micro-cycles have completed processing subtasks")
 def multiple_completed_micro_cycles(context):
     """Set up multiple completed micro-cycles."""
@@ -1639,7 +1635,6 @@ def multiple_completed_micro_cycles(context):
         }
 
 
-@pytest.mark.medium
 @when("the coordinator aggregates results from these micro-cycles")
 def coordinator_aggregates_results(context):
     """Simulate the coordinator aggregating results from micro-cycles."""
@@ -1680,7 +1675,6 @@ def coordinator_aggregates_results(context):
     context.edrr_coordinator._merge_cycle_results = original_merge_cycle_results
 
 
-@pytest.mark.medium
 @then("the aggregation should intelligently merge similar results")
 def verify_intelligent_merging(context):
     """Verify that the aggregation intelligently merges similar results."""
@@ -1696,7 +1690,6 @@ def verify_intelligent_merging(context):
     assert len(context.aggregated_results["merged_items"]) > 0
 
 
-@pytest.mark.medium
 @then("the aggregation should resolve conflicts between contradictory results")
 def verify_conflict_resolution(context):
     """Verify that the aggregation resolves conflicts between contradictory results."""
@@ -1711,7 +1704,6 @@ def verify_conflict_resolution(context):
     )  # May be 0 if no conflicts
 
 
-@pytest.mark.medium
 @then("the aggregation should preserve unique insights from each micro-cycle")
 def verify_unique_insights_preserved(context):
     """Verify that the aggregation preserves unique insights from each micro-cycle."""
@@ -1728,7 +1720,6 @@ def verify_unique_insights_preserved(context):
         )
 
 
-@pytest.mark.medium
 @then("the aggregation should prioritize higher quality results")
 def verify_quality_prioritization(context):
     """Verify that the aggregation prioritizes higher quality results."""
@@ -1741,7 +1732,6 @@ def verify_quality_prioritization(context):
     assert len(context.aggregated_results["quality_prioritized_items"]) > 0
 
 
-@pytest.mark.medium
 @then(
     "the aggregated result should be more comprehensive than any individual micro-cycle result"
 )
@@ -1767,7 +1757,6 @@ def verify_comprehensive_aggregation(context):
                 assert aggregated_count >= micro_cycle_count
 
 
-@pytest.mark.medium
 @then("the aggregation metadata should include provenance information")
 def verify_provenance_information(context):
     """Verify that the aggregation metadata includes provenance information."""
@@ -1784,7 +1773,6 @@ def verify_provenance_information(context):
 
 
 # Scenario: Adaptive recursion strategy based on task type
-@pytest.mark.medium
 @given("different types of tasks with varying characteristics")
 def different_task_types(context):
     """Set up different types of tasks with varying characteristics."""
@@ -1812,7 +1800,6 @@ def different_task_types(context):
     }
 
 
-@pytest.mark.medium
 @when("the coordinator processes these tasks")
 def coordinator_processes_tasks(context):
     """Simulate the coordinator processing different types of tasks."""
@@ -1852,7 +1839,6 @@ def coordinator_processes_tasks(context):
     context.edrr_coordinator.create_micro_cycle = original_create_micro_cycle
 
 
-@pytest.mark.medium
 @then("the recursion strategy should adapt to the task type")
 def verify_strategy_adapts_to_task_type(context):
     """Verify that the recursion strategy adapts to the task type."""
@@ -1864,7 +1850,6 @@ def verify_strategy_adapts_to_task_type(context):
         assert task_id in context.decomposition_strategies
 
 
-@pytest.mark.medium
 @then("code-related tasks should use AST-based decomposition")
 def verify_code_tasks_use_ast_decomposition(context):
     """Verify that code-related tasks use AST-based decomposition."""
@@ -1875,7 +1860,6 @@ def verify_code_tasks_use_ast_decomposition(context):
     )
 
 
-@pytest.mark.medium
 @then("research-related tasks should use topic-based decomposition")
 def verify_research_tasks_use_topic_decomposition(context):
     """Verify that research-related tasks use topic-based decomposition."""
@@ -1886,7 +1870,6 @@ def verify_research_tasks_use_topic_decomposition(context):
     )
 
 
-@pytest.mark.medium
 @then("design-related tasks should use component-based decomposition")
 def verify_design_tasks_use_component_decomposition(context):
     """Verify that design-related tasks use component-based decomposition."""
@@ -1897,7 +1880,6 @@ def verify_design_tasks_use_component_decomposition(context):
     )
 
 
-@pytest.mark.medium
 @then(
     "the coordinator should select the appropriate decomposition strategy automatically"
 )
@@ -1914,7 +1896,6 @@ def verify_automatic_strategy_selection(context):
 
 
 # Scenario: Recursion with comprehensive progress tracking
-@pytest.mark.medium
 @given("a task that has been decomposed into multiple subtasks")
 def task_decomposed_into_subtasks(context):
     """Set up a task that has been decomposed into multiple subtasks."""
@@ -1969,7 +1950,6 @@ def task_decomposed_into_subtasks(context):
     ]
 
 
-@pytest.mark.medium
 @when("the coordinator creates and executes micro-cycles for these subtasks")
 def coordinator_creates_executes_micro_cycles(context):
     """Simulate the coordinator creating and executing micro-cycles for subtasks."""
@@ -2073,7 +2053,6 @@ def coordinator_creates_executes_micro_cycles(context):
     ] = main_task_completion
 
 
-@pytest.mark.medium
 @then("the coordinator should track progress across all recursion levels")
 def verify_progress_tracking_across_levels(context):
     """Verify that progress is tracked across all recursion levels."""
@@ -2107,7 +2086,6 @@ def verify_progress_tracking_across_levels(context):
         )
 
 
-@pytest.mark.medium
 @then("the progress tracking should show completion percentage for each subtask")
 def verify_completion_percentage_for_subtasks(context):
     """Verify that progress tracking shows completion percentage for each subtask."""
@@ -2142,7 +2120,6 @@ def verify_completion_percentage_for_subtasks(context):
         )
 
 
-@pytest.mark.medium
 @then(
     "the progress tracking should aggregate completion status up the recursion hierarchy"
 )
@@ -2193,7 +2170,6 @@ def verify_aggregated_completion_status(context):
     )
 
 
-@pytest.mark.medium
 @then("the progress tracking should identify bottlenecks in the recursion tree")
 def verify_bottleneck_identification(context):
     """Verify that progress tracking identifies bottlenecks in the recursion tree."""
@@ -2225,7 +2201,6 @@ def verify_bottleneck_identification(context):
     assert bottleneck_completion == 0
 
 
-@pytest.mark.medium
 @then("the progress tracking should be accessible through the coordinator's API")
 def verify_progress_tracking_accessible(context):
     """Verify that progress tracking is accessible through the coordinator's API."""

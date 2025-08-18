@@ -244,6 +244,7 @@ def verify_file_markers(
 
     # Check if markers are recognized by pytest
     recognized_markers = {}
+    additional_issues = []
 
     # First, check if pytest.ini has the markers registered
     pytest_ini_path = Path(os.path.join(os.path.dirname(file_path), "pytest.ini"))
@@ -314,9 +315,14 @@ def verify_file_markers(
                 )
 
                 if proc.returncode != 0:
-                    logger.warning(
-                        "Subprocess %s exited with %s", proc.pid, proc.returncode
+                    error_msg = (
+                        stderr.strip().splitlines()[-1]
+                        if stderr
+                        else f"exit code {proc.returncode}"
                     )
+                    log_msg = f"pytest collection failed for {file_path} [marker={marker_type}]: {error_msg}"
+                    logger.warning(log_msg)
+                    print(log_msg, file=sys.stderr)
                     recognized_markers[marker_type] = {
                         "file_count": marker_count,
                         "pytest_count": 0,
@@ -324,9 +330,16 @@ def verify_file_markers(
                         "registered_in_pytest_ini": markers_registered.get(
                             marker_type, False
                         ),
-                        "error": f"subprocess error: {proc.returncode}",
+                        "error": error_msg,
                         "uncollected_tests": [],
                     }
+                    additional_issues.append(
+                        {
+                            "type": "pytest_error",
+                            "marker": marker_type,
+                            "message": log_msg,
+                        }
+                    )
                 else:
                     # Count tests collected with this marker
                     collected_count = 0
@@ -361,11 +374,9 @@ def verify_file_markers(
                         "uncollected_tests": uncollected_tests,
                     }
             except subprocess.TimeoutExpired:
-                logger.warning(
-                    "Subprocess %s timed out after %s seconds; terminating",
-                    proc.pid,
-                    timeout,
-                )
+                log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
+                logger.warning(log_msg)
+                print(log_msg, file=sys.stderr)
                 try:
                     os.killpg(proc.pid, signal.SIGKILL)
                 except Exception as kill_err:  # pragma: no cover - defensive
@@ -388,8 +399,17 @@ def verify_file_markers(
                     "uncollected_tests": [],
                     "timeout": True,
                 }
+                additional_issues.append(
+                    {
+                        "type": "pytest_timeout",
+                        "marker": marker_type,
+                        "message": log_msg,
+                    }
+                )
             except Exception as e:  # pragma: no cover - defensive
-                logger.warning("Subprocess %s raised unexpected error: %s", proc.pid, e)
+                log_msg = f"pytest collection raised unexpected error for {file_path} [marker={marker_type}]: {e}"
+                logger.warning(log_msg)
+                print(log_msg, file=sys.stderr)
                 recognized_markers[marker_type] = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -400,6 +420,13 @@ def verify_file_markers(
                     "error": str(e),
                     "uncollected_tests": [],
                 }
+                additional_issues.append(
+                    {
+                        "type": "pytest_error",
+                        "marker": marker_type,
+                        "message": log_msg,
+                    }
+                )
 
     # Prepare verification results
     results = {
@@ -448,6 +475,7 @@ def verify_file_markers(
                     "message": f"{marker_type} markers are not recognized by pytest ({info['file_count']} in file, {info['pytest_count']} recognized)",
                 }
             )
+    results["issues"].extend(additional_issues)
 
     if verbose and results["issues"]:
         print(f"  Issues found in {file_path}:")

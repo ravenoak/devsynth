@@ -18,7 +18,6 @@ from devsynth.interface.state_access import (
 )
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     """Set up clean state for tests."""
@@ -33,6 +32,7 @@ def clean_state():
     # Reset any module-level state that might have been modified
 
 
+@pytest.mark.medium
 def test_is_session_state_available(clean_state):
     """Test the is_session_state_available function."""
     # Test with None

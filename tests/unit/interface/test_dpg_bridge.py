@@ -1,10 +1,9 @@
 import importlib
 import sys
-from types import ModuleType
-from unittest.mock import MagicMock
-
 import threading
 import time
+from types import ModuleType
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -76,8 +75,8 @@ def test_ask_question_returns_string(monkeypatch):
     assert bridge.ask_question("msg") == "hello"
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize("click_label, expected", [("Yes", True), ("No", False)])
+@pytest.mark.medium
 def test_confirm_choice_returns_boolean(monkeypatch, click_label, expected):
     """confirm_choice yields booleans."""
     bridge_module, dpg_mod = _setup_dpg(monkeypatch, click_button=click_label)

@@ -30,7 +30,6 @@ def _stub_streamlit(monkeypatch):
     return st
 
 
-@pytest.mark.medium
 @pytest.fixture
 def clean_state():
     # Set up clean state
@@ -39,6 +38,7 @@ def clean_state():
 
 
 @pytest.mark.slow
+@pytest.mark.medium
 def test_function(clean_state, monkeypatch):
     # Test with clean state
     """Test that bridge methods succeeds.

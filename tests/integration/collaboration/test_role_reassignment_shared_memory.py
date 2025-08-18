@@ -62,7 +62,6 @@ class RoleTeam(CollaborativeWSDETeam):
 
 @pytest.mark.requires_resource("lmdb")
 @pytest.mark.requires_resource("faiss")
-@pytest.mark.fast
 def test_role_reassignment_shared_memory(tmp_path):
     class LMDBTestStore(LMDBStore):
         def is_transaction_active(self, transaction_id: str) -> bool:

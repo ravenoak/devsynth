@@ -122,8 +122,8 @@ class TestMemorySystemAdapter:
         assert adapter.vector_store is None
         del adapter
 
-    @pytest.mark.slow
     @pytest.mark.skipif(duckdb is None, reason="duckdb not installed")
+    @pytest.mark.slow
     def test_init_with_duckdb_storage_succeeds(self, temp_dir, monkeypatch):
         """Test initialization with DuckDB storage.
 
@@ -161,8 +161,8 @@ class TestMemorySystemAdapter:
             assert adapter.vector_store is adapter.memory_store
             del adapter
 
-    @pytest.mark.slow
     @pytest.mark.requires_resource("lmdb")
+    @pytest.mark.slow
     def test_init_with_lmdb_storage_succeeds(self, temp_dir):
         """Test initialization with LMDB storage.
 
@@ -186,8 +186,8 @@ class TestMemorySystemAdapter:
         assert adapter.vector_store is None
         del adapter
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("kuzu")
+    @pytest.mark.medium
     def test_init_with_kuzu_storage_succeeds(self, temp_dir):
         """Test initialization with Kuzu storage.
 
@@ -209,8 +209,8 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.vector_store, KuzuAdapter)
         del adapter
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("faiss")
+    @pytest.mark.medium
     def test_init_with_faiss_storage_succeeds(self, temp_dir):
         """Test initialization with FAISS storage.
 
@@ -235,8 +235,8 @@ class TestMemorySystemAdapter:
         assert isinstance(adapter.vector_store, FAISSStore)
         del adapter
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("faiss")
+    @pytest.mark.medium
     def test_faiss_vector_store_operations_succeeds(self, temp_dir):
         """Test vector store operations with FAISS.
 
@@ -276,8 +276,8 @@ class TestMemorySystemAdapter:
         except Exception as e:
             pytest.skip(f"Skipping FAISS test due to error: {e}")
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("faiss")
+    @pytest.mark.medium
     def test_memory_and_vector_store_integration_succeeds(self, temp_dir):
         """Test integration between memory store and vector store.
 
@@ -361,9 +361,9 @@ class TestMemorySystemAdapter:
         assert adapter.vector_store is None
         del adapter
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("lmdb")
     @pytest.mark.isolation
+    @pytest.mark.medium
     def test_lmdb_synchronizes_to_kuzu(self, tmp_path, monkeypatch):
         """LMDB store should propagate items to Kuzu."""
 
@@ -394,9 +394,9 @@ class TestMemorySystemAdapter:
             lmdb_store.close()
             kuzu_store.cleanup()
 
-    @pytest.mark.medium
     @pytest.mark.requires_resource("faiss")
     @pytest.mark.isolation
+    @pytest.mark.medium
     def test_faiss_vectors_synchronize_to_kuzu(self, tmp_path, monkeypatch):
         """FAISS vectors should propagate to Kuzu."""
 

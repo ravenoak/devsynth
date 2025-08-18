@@ -114,7 +114,6 @@ def test_should_terminate_recursion_resource_limit_succeeds(coordinator):
     assert result[1] == "resource limit"
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize(
     "task,expected,reason",
     [
@@ -122,6 +121,7 @@ def test_should_terminate_recursion_resource_limit_succeeds(coordinator):
         ({"human_override": "continue"}, False, None),
     ],
 )
+@pytest.mark.medium
 def test_should_terminate_recursion_human_override_succeeds(
     coordinator, task, expected, reason
 ):

@@ -45,9 +45,9 @@ def test_build_app_returns_expected_result():
         )
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter.load_config")
 @patch("devsynth.adapters.cli.typer_adapter.typer.echo")
+@pytest.mark.medium
 def test_warn_if_features_disabled_all_disabled_succeeds(mock_echo, mock_load_config):
     """Test that _warn_if_features_disabled shows a warning when all features are disabled.
 
@@ -60,9 +60,9 @@ def test_warn_if_features_disabled_all_disabled_succeeds(mock_echo, mock_load_co
     assert "All optional features are disabled" in mock_echo.call_args[0][0]
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter.load_config")
 @patch("devsynth.adapters.cli.typer_adapter.typer.echo")
+@pytest.mark.medium
 def test_warn_if_features_disabled_some_enabled_succeeds(mock_echo, mock_load_config):
     """Test that _warn_if_features_disabled doesn't show a warning when some features are enabled.
 
@@ -74,9 +74,9 @@ def test_warn_if_features_disabled_some_enabled_succeeds(mock_echo, mock_load_co
     mock_echo.assert_not_called()
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter.load_config")
 @patch("devsynth.adapters.cli.typer_adapter.typer.echo")
+@pytest.mark.medium
 def test_warn_if_features_disabled_exception_raises_error(mock_echo, mock_load_config):
     """Test that _warn_if_features_disabled handles exceptions gracefully.
 
@@ -86,9 +86,9 @@ def test_warn_if_features_disabled_exception_raises_error(mock_echo, mock_load_c
     mock_echo.assert_not_called()
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter.Console")
 @patch("devsynth.adapters.cli.typer_adapter.build_app")
+@pytest.mark.medium
 def test_show_help_succeeds(mock_build_app, mock_console):
     """Test that show_help displays the CLI help message.
 
@@ -106,9 +106,9 @@ def test_show_help_succeeds(mock_build_app, mock_console):
     mock_build_app.assert_called_once()
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter._warn_if_features_disabled")
 @patch("devsynth.adapters.cli.typer_adapter.build_app")
+@pytest.mark.medium
 def test_parse_args_has_expected(mock_build_app, mock_warn):
     """Test that parse_args calls the app with the provided arguments.
 
@@ -120,9 +120,9 @@ def test_parse_args_has_expected(mock_build_app, mock_warn):
     mock_app.assert_called_once_with(["init", "--path", "./test"])
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter._warn_if_features_disabled")
 @patch("devsynth.adapters.cli.typer_adapter.build_app")
+@pytest.mark.medium
 def test_run_cli_succeeds(mock_build_app, mock_warn):
     """Test that run_cli calls the app.
 
@@ -134,8 +134,8 @@ def test_run_cli_succeeds(mock_build_app, mock_warn):
     mock_app.assert_called_once_with()
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter.typer_completion.get_completion_script")
+@pytest.mark.medium
 def test_completion_cmd_displays_script(mock_get_script):
     """Test that completion_cmd shows generated script."""
 
@@ -151,8 +151,8 @@ def test_completion_cmd_displays_script(mock_get_script):
     progress.complete.assert_called_once()
 
 
-@pytest.mark.medium
 @patch("devsynth.adapters.cli.typer_adapter.register_dashboard_hook")
+@pytest.mark.medium
 def test_dashboard_hook_option_registers(mock_reg):
     """Global --dashboard-hook registers provided callback."""
     runner = CliRunner()

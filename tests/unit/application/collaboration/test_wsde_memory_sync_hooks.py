@@ -1,12 +1,13 @@
 import logging
 from datetime import datetime
+
 import pytest
 
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.interfaces.memory import MemoryStore
 
 
 class DummyAgent:
@@ -86,7 +87,6 @@ def memory_manager():
     return MemoryManager(adapters={"tinydb": SimpleStore(), "graph": SimpleStore()})
 
 
-@pytest.mark.medium
 def test_build_consensus_stores_decision_and_summary(memory_manager):
     team = DummyTeam(memory_manager)
     task = {"id": "t1", "title": "Test"}
@@ -97,7 +97,6 @@ def test_build_consensus_stores_decision_and_summary(memory_manager):
         assert "CONSENSUS_SUMMARY" in types
 
 
-@pytest.mark.medium
 def test_summarize_voting_result_persists_summary(memory_manager):
     team = DummyTeam(memory_manager)
     voting_result = {

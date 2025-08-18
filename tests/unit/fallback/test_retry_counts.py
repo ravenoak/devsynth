@@ -10,7 +10,6 @@ class NetworkError(Exception):
     pass
 
 
-@pytest.mark.medium
 def test_retry_count_metrics():
     reset_metrics()
     mock_func = Mock(side_effect=[Exception("err"), Exception("err"), "ok"])
@@ -29,7 +28,6 @@ def test_retry_count_metrics():
     assert retry_metrics.get("success") == 1
 
 
-@pytest.mark.medium
 def test_retry_only_network_errors():
     reset_metrics()
     mock_func = Mock(side_effect=[NetworkError("net"), ValueError("boom")])

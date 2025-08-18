@@ -38,7 +38,6 @@ def clean_state():
     yield
 
 
-@pytest.mark.medium
 def test_requirements_wizard_initialization(stub_streamlit, clean_state):
     import importlib
 
@@ -53,7 +52,6 @@ def test_requirements_wizard_initialization(stub_streamlit, clean_state):
     assert stub_streamlit.session_state["requirements_wizard_current_step"] == 1
 
 
-@pytest.mark.medium
 def test_requirements_wizard_step_navigation_succeeds(stub_streamlit, clean_state):
     import importlib
 
@@ -72,7 +70,6 @@ def test_requirements_wizard_step_navigation_succeeds(stub_streamlit, clean_stat
     assert stub_streamlit.session_state["requirements_wizard_current_step"] == 2
 
 
-@pytest.mark.medium
 def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, clean_state):
     import importlib
 
@@ -99,7 +96,6 @@ def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, clean_st
     assert stub_streamlit.session_state["requirements_wizard_current_step"] == 1
 
 
-@pytest.mark.medium
 def test_validate_requirements_step():
     from devsynth.interface.webui import WebUI
     from devsynth.interface.webui_state import WizardState
@@ -111,7 +107,6 @@ def test_validate_requirements_step():
     assert ui._validate_requirements_step(state, 1)
 
 
-@pytest.mark.medium
 def test_handle_requirements_navigation_next(stub_streamlit):
     from devsynth.interface.webui import WebUI
 
@@ -129,7 +124,6 @@ def test_handle_requirements_navigation_next(stub_streamlit):
     manager.next_step.assert_called_once()
 
 
-@pytest.mark.medium
 def test_save_requirements_writes_file(stub_streamlit):
     from devsynth.interface.webui import WebUI
 
@@ -153,7 +147,6 @@ def test_save_requirements_writes_file(stub_streamlit):
     manager.reset_wizard_state.assert_called_once()
 
 
-@pytest.mark.medium
 def test_priority_persists_through_navigation(stub_streamlit):
     """Priority selection should persist when navigating steps."""
     import importlib
@@ -179,7 +172,6 @@ def test_priority_persists_through_navigation(stub_streamlit):
     assert st.session_state["requirements_wizard_priority"] == "high"
 
 
-@pytest.mark.medium
 def test_title_and_description_persist(stub_streamlit):
     """Title and description should persist across navigation."""
     import importlib

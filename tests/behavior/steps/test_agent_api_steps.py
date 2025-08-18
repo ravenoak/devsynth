@@ -87,20 +87,17 @@ def api_context(monkeypatch):
     }
 
 
-@pytest.mark.medium
 @given("the Agent API server is running")
 def api_running(api_context):
     """Return the API context."""
     return api_context
 
 
-@pytest.mark.medium
 @when("I POST to /init")
 def post_init(api_context):
     api_context["client"].post("/init", json={"path": "proj"})
 
 
-@pytest.mark.medium
 @when("I POST to /gather")
 def post_gather(api_context):
     api_context["client"].post(
@@ -109,13 +106,11 @@ def post_gather(api_context):
     )
 
 
-@pytest.mark.medium
 @when("I POST to /synthesize")
 def post_synthesize(api_context):
     api_context["client"].post("/synthesize", json={"target": "unit"})
 
 
-@pytest.mark.medium
 @when(parsers.parse('I POST to /spec with requirements file "{requirements_file}"'))
 def post_spec(api_context, requirements_file):
     response = api_context["client"].post(
@@ -125,7 +120,6 @@ def post_spec(api_context, requirements_file):
     api_context["last_response"] = response
 
 
-@pytest.mark.medium
 @when(parsers.parse('I POST to /test with spec file "{spec_file}"'))
 def post_test(api_context, spec_file):
     response = api_context["client"].post("/test", json={"spec_file": spec_file})
@@ -133,14 +127,12 @@ def post_test(api_context, spec_file):
     api_context["last_response"] = response
 
 
-@pytest.mark.medium
 @when("I POST to /code")
 def post_code(api_context):
     response = api_context["client"].post("/code", json={})
     api_context["last_response"] = response
 
 
-@pytest.mark.medium
 @when(parsers.parse('I POST to /doctor with path "{path}" and fix "{fix}"'))
 def post_doctor(api_context, path, fix):
     fix_bool = fix.lower() == "true"
@@ -152,7 +144,6 @@ def post_doctor(api_context, path, fix):
     api_context["last_response"] = response
 
 
-@pytest.mark.medium
 @when(parsers.parse('I POST to /edrr-cycle with prompt "{prompt}"'))
 def post_edrr_cycle(api_context, prompt):
     response = api_context["client"].post("/edrr-cycle", json={"prompt": prompt})
@@ -160,91 +151,76 @@ def post_edrr_cycle(api_context, prompt):
     api_context["last_response"] = response
 
 
-@pytest.mark.medium
 @when("I GET /status")
 def get_status(api_context):
     api_context["status"] = api_context["client"].get("/status")
 
 
-@pytest.mark.medium
 @then("the CLI init command should be called")
 def cli_init_called(api_context):
     assert api_context["cli"].init_cmd.called
 
 
-@pytest.mark.medium
 @then("the CLI gather command should be called")
 def cli_gather_called(api_context):
     assert api_context["cli"].gather_cmd.called
 
 
-@pytest.mark.medium
 @then("the CLI run_pipeline command should be called")
 def cli_run_pipeline_called(api_context):
     assert api_context["cli"].run_pipeline_cmd.called
 
 
-@pytest.mark.medium
 @then("the CLI spec command should be called")
 def cli_spec_called(api_context):
     assert api_context["cli"].spec_cmd.called
 
 
-@pytest.mark.medium
 @then("the CLI test command should be called")
 def cli_test_called(api_context):
     assert api_context["cli"].test_cmd.called
 
 
-@pytest.mark.medium
 @then("the CLI code command should be called")
 def cli_code_called(api_context):
     assert api_context["cli"].code_cmd.called
 
 
-@pytest.mark.medium
 @then("the CLI doctor command should be called")
 def cli_doctor_called(api_context):
     assert api_context["doctor_cmd"].called
 
 
-@pytest.mark.medium
 @then("the CLI edrr_cycle command should be called")
 def cli_edrr_cycle_called(api_context):
     assert api_context["edrr_cycle_cmd"].called
 
 
-@pytest.mark.medium
 @then(parsers.parse('the requirements file should be "{requirements_file}"'))
 def check_requirements_file(api_context, requirements_file):
     assert api_context["last_request"]["requirements_file"] == requirements_file
 
 
-@pytest.mark.medium
 @then(parsers.parse('the spec file should be "{spec_file}"'))
 def check_spec_file(api_context, spec_file):
     assert api_context["last_request"]["spec_file"] == spec_file
 
 
-@pytest.mark.medium
 @then(parsers.parse('the path should be "{path}"'))
 def check_path(api_context, path):
     assert api_context["last_request"]["path"] == path
 
 
-@pytest.mark.medium
 @then(parsers.parse('the fix parameter should be "{fix}"'))
 def check_fix(api_context, fix):
     assert api_context["last_request"]["fix"] == fix
 
 
-@pytest.mark.medium
 @then(parsers.parse('the prompt should be "{prompt}"'))
 def check_prompt(api_context, prompt):
     assert api_context["last_request"]["prompt"] == prompt
 
 
-@pytest.mark.medium
 @then('the status message should be "run:unit"')
 def status_run_unit(api_context):
     assert api_context["status"].json() == {"messages": ["run:unit"]}

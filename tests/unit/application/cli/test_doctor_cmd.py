@@ -210,8 +210,8 @@ def test_doctor_cmd_invalid_config_is_valid(tmp_path, monkeypatch):
         assert "Configuration issues detected" in output
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize("missing", ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"])
+@pytest.mark.medium
 def test_doctor_cmd_missing_env_vars_succeeds(monkeypatch, missing):
     """Doctor warns about whichever API key is absent.
 
@@ -266,10 +266,10 @@ def test_doctor_cmd_warns_missing_optional_feature_pkg_succeeds(monkeypatch, tmp
         assert "langgraph" in output
 
 
-@pytest.mark.medium
 @pytest.mark.parametrize(
     "store_type,pkg", [("chromadb", "chromadb"), ("tinydb", "tinydb")]
 )
+@pytest.mark.medium
 def test_doctor_cmd_warns_missing_memory_store_pkg_succeeds(
     monkeypatch, tmp_path, store_type, pkg
 ):

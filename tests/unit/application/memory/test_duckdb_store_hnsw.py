@@ -77,8 +77,8 @@ class TestDuckDBStoreHNSW:
             "efSearch": 100,
         }
 
-    @pytest.mark.medium
     @patch("duckdb.connect")
+    @pytest.mark.medium
     def test_hnsw_index_creation_succeeds(self, mock_connect, temp_dir):
         """Test that HNSW index is created when storing vectors.
 
@@ -125,8 +125,8 @@ class TestDuckDBStoreHNSW:
         assert len(results) == 5
         assert results[0].id == vectors[0][0]
 
-    @pytest.mark.medium
     @patch("duckdb.connect")
+    @pytest.mark.medium
     def test_similarity_search_performance_comparison_succeeds(
         self, mock_connect, temp_dir
     ):

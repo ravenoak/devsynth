@@ -204,13 +204,11 @@ class DummyForm:
         return self.submitted
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @given("I have a valid project directory")
 def given_valid_project_directory(webui_context, monkeypatch):
     from pathlib import Path
@@ -220,7 +218,6 @@ def given_valid_project_directory(webui_context, monkeypatch):
     return webui_context
 
 
-@pytest.mark.medium
 @given("I am on the synthesis page")
 def given_on_synthesis_page(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
@@ -228,14 +225,12 @@ def given_on_synthesis_page(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @when('I navigate to the "Synthesis" page')
 def navigate_to_synthesis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when('I click the "Generate Tests" button')
 def click_generate_tests(webui_context):
     # Configure the first column's button to return True (Generate Tests)
@@ -246,7 +241,6 @@ def click_generate_tests(webui_context):
     webui_context["ui"].synthesis_page()
 
 
-@pytest.mark.medium
 @when('I click the "Generate Code" button')
 def click_generate_code(webui_context):
     # Configure the second column's button to return True (Generate Code)
@@ -257,7 +251,6 @@ def click_generate_code(webui_context):
     webui_context["ui"].synthesis_page()
 
 
-@pytest.mark.medium
 @when('I click the "Run Pipeline" button')
 def click_run_pipeline(webui_context):
     # Configure the third column's button to return True (Run Pipeline)
@@ -268,14 +261,12 @@ def click_run_pipeline(webui_context):
     webui_context["ui"].synthesis_page()
 
 
-@pytest.mark.medium
 @when("I expand the advanced options")
 def expand_advanced_options(webui_context):
     webui_context["st"].expander = MagicMock(return_value=DummyForm(True))
     webui_context["ui"].synthesis_page()
 
 
-@pytest.mark.medium
 @when("I select specific test generation options")
 def select_test_generation_options(webui_context):
     webui_context["st"].checkbox.side_effect = [
@@ -287,7 +278,6 @@ def select_test_generation_options(webui_context):
     webui_context["st"].number_input.return_value = 90  # Set coverage target to 90%
 
 
-@pytest.mark.medium
 @when("I select specific code generation options")
 def select_code_generation_options(webui_context):
     webui_context["st"].checkbox.side_effect = [
@@ -301,79 +291,67 @@ def select_code_generation_options(webui_context):
     )
 
 
-@pytest.mark.medium
 @when("an error occurs during test generation")
 def error_during_test_generation(webui_context):
     # Make the test_cmd raise an exception when called
     webui_context["cli"].test_cmd.side_effect = Exception("Test generation failed")
 
 
-@pytest.mark.medium
 @when('I navigate to the "Analysis" page')
 def navigate_to_analysis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Analysis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when('I navigate back to the "Synthesis" page')
 def navigate_back_to_synthesis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @then("I should see the synthesis page title")
 def see_synthesis_title(webui_context):
     webui_context["st"].header.assert_any_call("Code Synthesis")
 
 
-@pytest.mark.medium
 @then("I should see the synthesis options")
 def see_synthesis_options(webui_context):
     assert webui_context["st"].columns.called
 
 
-@pytest.mark.medium
 @then("the test generation should be executed")
 def test_generation_executed(webui_context):
     assert webui_context["cli"].test_cmd.called
 
 
-@pytest.mark.medium
 @then("I should see the test generation results")
 def see_test_generation_results(webui_context):
     # This would check for success message or results display
     assert webui_context["st"].success.called or webui_context["st"].write.called
 
 
-@pytest.mark.medium
 @then("the code generation should be executed")
 def code_generation_executed(webui_context):
     assert webui_context["cli"].code_cmd.called
 
 
-@pytest.mark.medium
 @then("I should see the code generation results")
 def see_code_generation_results(webui_context):
     # This would check for success message or results display
     assert webui_context["st"].success.called or webui_context["st"].write.called
 
 
-@pytest.mark.medium
 @then("the full pipeline should be executed")
 def full_pipeline_executed(webui_context):
     assert webui_context["cli"].run_pipeline_cmd.called
 
 
-@pytest.mark.medium
 @then("I should see the pipeline execution results")
 def see_pipeline_execution_results(webui_context):
     # This would check for success message or results display
     assert webui_context["st"].success.called or webui_context["st"].write.called
 
 
-@pytest.mark.medium
 @then("the test generation should be executed with custom settings")
 def test_generation_executed_custom(webui_context):
     assert webui_context["cli"].test_cmd.called
@@ -383,7 +361,6 @@ def test_generation_executed_custom(webui_context):
     assert "bdd" in str(kwargs) or 90 in str(kwargs)
 
 
-@pytest.mark.medium
 @then("the code generation should be executed with custom settings")
 def code_generation_executed_custom(webui_context):
     assert webui_context["cli"].code_cmd.called
@@ -393,20 +370,17 @@ def code_generation_executed_custom(webui_context):
     assert "python" in str(kwargs) or "src/custom" in str(kwargs)
 
 
-@pytest.mark.medium
 @then("I should see an appropriate error message")
 def see_error_message(webui_context):
     assert webui_context["st"].error.called
 
 
-@pytest.mark.medium
 @then("I should be able to retry the operation")
 def can_retry_operation(webui_context):
     # Verify buttons are still accessible after error
     assert webui_context["st"].columns.called
 
 
-@pytest.mark.medium
 @then("I should see the synthesis page with preserved state")
 def see_synthesis_with_preserved_state(webui_context):
     # Check that session state preserves values
