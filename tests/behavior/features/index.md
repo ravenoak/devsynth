@@ -87,6 +87,7 @@ This index lists all feature files for easy navigation.
 - [general/self_analyzer.feature](./general/self_analyzer.feature)
 - [general/serve_command.feature](./general/serve_command.feature)
 - [general/setup_wizard.feature](./general/setup_wizard.feature)
+- [general/simple_addition_input_validation.feature](./general/simple_addition_input_validation.feature)
 - [general/spec_command.feature](./general/spec_command.feature)
 - [general/test_generation.feature](./general/test_generation.feature)
 - [general/test_metrics.feature](./general/test_metrics.feature)
