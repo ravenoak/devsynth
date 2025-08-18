@@ -10,7 +10,7 @@ This directory contains the active ticketing system for DevSynth. It does not in
 ## Ticket Template
 
 - Start new tickets by copying `TEMPLATE.md` and renaming it to a slug of its title.
-- Populate the Milestone, Status, Priority, Dependencies, Progress, and References sections.
+- Populate the Milestone, Status, Priority, Dependencies, Problem Statement, Action Plan, Progress, and References sections.
 - Reference archived dependencies with `archived/<slug>.md` paths.
 - Update a ticket's `Status` when all dependencies are resolved.
 
