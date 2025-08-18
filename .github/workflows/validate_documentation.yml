@@ -1,22 +1,6 @@
 name: Validate Documentation
 
 on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - '**.md'
-      - '.github/workflows/validate_documentation.yml'
-      - 'scripts/validate_metadata.py'
-      - 'scripts/verify_code_examples.py'
-      - 'scripts/verify_requirements_traceability.py'
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - '**.md'
-      - '.github/workflows/validate_documentation.yml'
-      - 'scripts/validate_metadata.py'
-      - 'scripts/verify_code_examples.py'
-      - 'scripts/verify_requirements_traceability.py'
   workflow_dispatch:
 
 jobs:

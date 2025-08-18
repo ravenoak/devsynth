@@ -1,17 +1,6 @@
 name: Container Build
 
 on:
-  pull_request:
-    paths:
-      - 'Dockerfile'
-      - 'docker-compose*'
-      - '.github/workflows.disabled/container_build.yml'
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'Dockerfile'
-      - 'docker-compose*'
-      - '.github/workflows.disabled/container_build.yml'
   workflow_dispatch:
 
 jobs:

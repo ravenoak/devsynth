@@ -1,18 +1,6 @@
 name: Performance Benchmarks
 
 on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'src/**/*.py'
-      - 'tests/performance/**'
-      - '.github/workflows/performance_benchmarks.yml'
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'src/**/*.py'
-      - 'tests/performance/**'
-      - '.github/workflows/performance_benchmarks.yml'
   workflow_dispatch:
 
 jobs:

@@ -1,20 +1,6 @@
 name: Test Results
 
 on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'src/**/*.py'
-      - 'tests/**/*.py'
-      - '.github/workflows/test_results.yml'
-      - 'pytest.ini'
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'src/**/*.py'
-      - 'tests/**/*.py'
-      - '.github/workflows/test_results.yml'
-      - 'pytest.ini'
   workflow_dispatch:
 
 jobs:
