@@ -20,9 +20,11 @@ Options:
     --report-file FILE    File to save the report to (default: test_markers_report.json)
     --timeout SECONDS     Timeout for subprocess calls (default: 30)
     --workers N           Number of concurrent workers for file verification
+                         (default: min(4, CPU count))
 
 The script applies timeouts to both subprocess calls and thread pools to avoid
-deadlocks during verification.
+deadlocks during verification. Coverage and xdist plugins are disabled during
+pytest collection to prevent blocking behaviour.
 """
 
 import argparse
@@ -38,6 +40,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
+
+# Limit concurrency to a small, safe default to avoid deadlocks during
+# collection.  The value mirrors ``pytest``'s own conservative defaults.
+DEFAULT_WORKERS = min(os.cpu_count() or 1, 4)
 
 # Import enhanced test utilities. Allow running as a script by falling back to a
 # direct import when relative imports fail.
@@ -101,30 +107,32 @@ def parse_args():
         "--workers",
         type=int,
         default=None,
-        help="Number of concurrent workers for file verification",
+        help=(
+            "Number of concurrent workers for file verification "
+            f"(default: {DEFAULT_WORKERS})"
+        ),
     )
     return parser.parse_args()
 
 
-def normalize_workers(workers: Optional[int]) -> Optional[int]:
+def normalize_workers(workers: Optional[int]) -> int:
     """Validate and normalize worker count for thread pools.
 
     Args:
         workers: Requested number of workers or ``None``.
 
     Returns:
-        ``None`` when the default should be used or a positive integer for the
-        desired worker count. Invalid values are logged and fall back to the
-        default.
+        Positive integer representing the worker count. Invalid or missing
+        values fall back to ``DEFAULT_WORKERS``.
     """
     if workers is None:
-        return None
+        return DEFAULT_WORKERS
     if workers <= 0:
         print(
             f"Invalid worker count {workers!r}; using default worker settings",
             file=sys.stderr,
         )
-        return None
+        return DEFAULT_WORKERS
     return workers
 
 
@@ -271,20 +279,27 @@ def verify_file_markers(
                 sys.executable,
                 "-m",
                 "pytest",
-                str(file_path),
+                "-p",
+                "no:cov",
+                "-p",
+                "no:xdist",
                 f"-m={marker_type}",
                 "--collect-only",
                 "-q",  # Use quiet output for reliable parsing
+                str(file_path),
             ]
 
             logger.debug("Spawning subprocess: %s", " ".join(cmd))
             start_time = time.time()
+            env = os.environ.copy()
+            env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 start_new_session=True,
+                env=env,
             )
 
             try:
@@ -643,7 +658,7 @@ def verify_directory_markers(
     verbose: bool = False,
     progress_interval: int = 50,
     timeout: Optional[int] = 30,
-    max_workers: Optional[int] = None,
+    max_workers: int = DEFAULT_WORKERS,
 ) -> Dict[str, Any]:
     """
     Verify markers in all test files in a directory.
@@ -657,9 +672,7 @@ def verify_directory_markers(
     """
     print(f"Verifying markers in {directory}...")
     logger = logging.getLogger(__name__)
-    logger.debug(
-        "Starting ThreadPoolExecutor with max_workers=%s", max_workers or "default"
-    )
+    logger.debug("Starting ThreadPoolExecutor with max_workers=%s", max_workers)
 
     # Find all test files
     test_files = find_test_files(directory)
