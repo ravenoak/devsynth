@@ -18,6 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import coverage
 import pytest
 import yaml
 
@@ -37,6 +38,13 @@ def pytest_configure(config):
         "markers",
         "property: mark test as a Hypothesis property-based test",
     )
+
+    # Limit worker restarts to avoid xdist hangs when collecting coverage
+    if (
+        hasattr(config.option, "maxworkerrestart")
+        and config.option.maxworkerrestart is None
+    ):
+        config.option.maxworkerrestart = 2
 
 
 @pytest.fixture
@@ -93,6 +101,15 @@ def test_environment(tmp_path, monkeypatch):
     }
     yield env_info
     # Temporary directories created under tmp_path are cleaned up automatically
+
+
+@pytest.fixture(autouse=True)
+def reset_coverage() -> None:
+    """Reset coverage data between tests to prevent cross-worker hangs."""
+    if os.environ.get("PYTEST_XDIST_WORKER"):
+        cov = coverage.Coverage.current()
+        if cov:
+            cov.erase()
 
 
 @pytest.fixture
