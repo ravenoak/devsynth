@@ -22,7 +22,7 @@ version: "0.1.0-alpha.1"
 
 Thank you for your interest in contributing to DevSynth! This document provides guidelines and instructions for contributing to the project.
 
-See also: [Development Setup](development_setup.md), [Code Style](code_style.md), [Testing](testing.md), [Documentation Policies](../policies/documentation_policies.md)
+See also: [Development Setup](development_setup.md), [Code Style](code_style.md), [Testing](testing.md), [Documentation Policies](../policies/documentation_policies.md), [src/AGENTS.md](../../src/AGENTS.md), [docs/AGENTS.md](../AGENTS.md)
 
 ## Table of Contents
 
