@@ -2,7 +2,7 @@
 Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
-Dependencies: docs/specifications/project-state-analysis.md, tests/behavior/features/project_state_analysis.feature
+Dependencies: tests/behavior/features/general/project_state_analyzer.feature
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
