@@ -1,7 +1,7 @@
-# Resolve remaining dialectical audit questions
+# Issue 149: Resolve remaining dialectical audit questions
 
 Milestone: 0.1.0-alpha.1
-Status: in progress
+Status: closed
 
 Priority: medium
 Dependencies: None
