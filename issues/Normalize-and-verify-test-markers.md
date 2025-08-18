@@ -39,6 +39,7 @@ The test suite must ensure each test file contains exactly one speed marker (`fa
 - 2025-08-16: Latest attempt processed 150 of 679 files (~18s) before hanging, confirming persistent blocking in `pytest --collect-only`.
 - 2025-08-17: Running `poetry run python scripts/verify_test_markers.py --workers 1` processed 50 of 700 files (~76s) before hanging and required manual interruption.
 - 2025-08-17: Executed `standardize_marker_placement.py`, which updated hundreds of files but introduced syntax errors, so changes were reverted; marker verification still hangs.
+- 2025-08-18: Full-suite `poetry run python scripts/verify_test_markers.py` still hangs after initial output and must be manually interrupted, while verifying a single module completes successfully.
 
 ## References
 

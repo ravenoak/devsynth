@@ -21,6 +21,7 @@ Running `devsynth run-tests` across speed categories triggers internal pytest-xd
 - Attempted `devsynth run-tests --speed=fast`; after initial output the process hung and required manual interruption, indicating ongoing runner issues.
 - Blocked by [Normalize and verify test markers](Normalize-and-verify-test-markers.md).
 - 2025-08-16: `poetry run devsynth run-tests --speed=fast` completed with 36 passed and 19 skipped tests, no xdist assertion errors observed; medium and slow categories remain unverified.
+- 2025-08-18: Re-running `poetry run devsynth run-tests --speed=fast` stalled during the CLI import sequence and required manual interruption; medium and slow categories remain unverified.
 - 2025-02-14: `poetry run pytest -n auto --dist load` exposed a coverage collector assertion; updated test fixtures to reset coverage state between runs.
 
 ## References
