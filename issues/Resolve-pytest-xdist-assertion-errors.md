@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: in progress
 
 Priority: high
-Dependencies: None
+Dependencies: None, docs/specifications/resolve-pytest-xdist-assertion-errors.md, tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
 
 ## Problem Statement
 Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth's capabilities.

@@ -2,7 +2,7 @@
 Milestone: Phase 1
 Status: open
 Priority: high
-Dependencies: none
+Dependencies: none, docs/specifications/reprioritize-open-issues.md, tests/behavior/features/reprioritize_open_issues.feature
 
 ## Problem Statement
 The repository tracks 135 open tickets, mostly marked low priority. This distribution may not align with the current roadmap.

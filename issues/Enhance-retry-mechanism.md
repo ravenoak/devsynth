@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: open
 
 Priority: high
-Dependencies: None
+Dependencies: None, docs/specifications/enhance-retry-mechanism.md, tests/behavior/features/enhance_retry_mechanism.feature
 
 ## Problem Statement
 Enhance retry mechanism is not yet implemented, limiting DevSynth's capabilities.

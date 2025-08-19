@@ -2,7 +2,7 @@
 Milestone: Phase 1
 Status: in progress
 Priority: high
-Dependencies: none
+Dependencies: none, docs/specifications/project-documentation-ingestion.md, tests/behavior/features/project_documentation_ingestion.feature
 
 ## Problem Statement
 Project Documentation Ingestion is not yet implemented, limiting DevSynth's capabilities.
