@@ -150,6 +150,14 @@ tasks:
       - poetry run python scripts/verify_release_state.py
       - poetry run python scripts/dialectical_audit.py
 
+
+  release:bump:
+    desc: Bump version for next development cycle
+    deps:
+      - release:prep
+    cmds:
+      - git describe --tags --exact-match >/dev/null
+      - poetry run python scripts/bump_version.py {{.NEXT_VERSION}}
   # Development workflow tasks
   dev:
     desc: Run common development tasks (format, lint, test)
