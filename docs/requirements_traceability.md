@@ -193,8 +193,9 @@ report to standard output.
 | FR-91 | Knowledge graph utility functions for advanced memory queries | [Hybrid Memory Architecture](specifications/hybrid_memory_architecture.md) | src/devsynth/application/memory/knowledge_graph_utils.py | tests/unit/application/memory/test_knowledge_graph_utils.py | Implemented |
 | FR-92 | Multi-language code generation agent | [DevSynth Technical Specification](specifications/devsynth_specification.md) | src/devsynth/application/agents/multi_language_code.py | tests/unit/application/agents/test_multi_language_code.py | Implemented |
 | FR-93 | Embedded Kuzu graph memory store support | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/kuzu_store.py, src/devsynth/adapters/kuzu_memory_store.py | tests/unit/application/memory/test_kuzu_store.py, tests/integration/general/test_kuzu_memory_integration.py, tests/integration/general/test_kuzu_memory_fallback.py | Implemented |
+| FR-94 | ChromaDB store imports when ChromaDB extras installed | [ChromaDB Store](specifications/chromadb_store.md) | src/devsynth/application/memory/chromadb_store.py | tests/test_chromadb_store_import.py | Implemented |
 
-_Last updated: September 1, 2025_
+_Last updated: August 19, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column
