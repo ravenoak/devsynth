@@ -51,6 +51,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Project Documentation Ingestion](project-documentation-ingestion.md)**: Indexes project documentation for retrieval.
 - **[Multi-disciplinary Dialectical Reasoning](multi-disciplinary-dialectical-reasoning.md)**: WSDE teams gather perspectives across disciplines.
 - **[Simple Addition Input Validation](simple_addition_input_validation.md)**: `add` rejects non-numeric inputs.
+- **[Release state check](release-state-check.md)**: Ensures published releases have corresponding Git tags.
 
 ## Implementation Plans
 

@@ -147,6 +147,7 @@ tasks:
       - task: build:sdist
       - task: test:smoke
       - task: security:audit
+      - poetry run python scripts/verify_release_state.py
       - poetry run python scripts/dialectical_audit.py
 
   # Development workflow tasks
