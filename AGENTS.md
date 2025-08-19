@@ -65,6 +65,8 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
   poetry run python scripts/verify_version_sync.py
   ```
 
+- Resolve `dialectical_audit.log` before submitting a PR. Release preparation steps are outlined in `docs/release/0.1.0-alpha.1.md`.
+
 ## Issue Tracking
 
 - Use the in-repo issue tracker under `issues/` (see [issues/README.md](issues/README.md)).
@@ -81,12 +83,12 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
 
 ## Release
 
-The `0.1.0-alpha.1` release process is documented in [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md). Follow these steps:
+See `docs/release/0.1.0-alpha.1.md` for the full process. Summary:
 
-1. Run `poetry run task release:prep` to generate release artifacts.
-2. Generate a dialectical audit log with `poetry run python scripts/dialectical_audit.py` or trigger the `Dialectical Audit` workflow in GitHub Actions. See the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
-3. Conduct a dialectical review with at least one other contributor.
-4. Tag the release with `git tag -a <version>` and push the tag.
+1. Run `poetry run task release:prep` to build artifacts.
+2. Generate and resolve `dialectical_audit.log` (`poetry run python scripts/dialectical_audit.py` or trigger the GitHub workflow`) per the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
+3. Conduct a dialectical review with another contributor.
+4. Tag and push the release: `git tag -a <version>`.
 
 ## Automation
 
