@@ -14,6 +14,12 @@ if ! command -v task >/dev/null 2>&1; then
   export PATH="$TASK_BIN_DIR:$PATH"
 fi
 
+# Ensure the task binary is available after installation
+if ! command -v task >/dev/null 2>&1; then
+  echo "[error] task binary not found on PATH after installation" >&2
+  exit 1
+fi
+
 optional_pkgs=$(poetry run python - <<'PY'
 import re, tomllib
 
