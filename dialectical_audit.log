@@ -1,10 +1,10 @@
 {
-  "questions": [
-    "Feature 'ChromaDB memory store' has tests but is not documented.",
-    "Feature 'MVU shell command execution' has tests but is not documented.",
-    "Feature 'Multi-disciplinary dialectical reasoning' has tests but is not documented.",
-    "Feature 'Simple addition input validation' has tests but is not documented.",
-    "Feature 'ChromaDB memory store' is referenced in docs or tests but not in code."
-  ],
-  "resolved": []
+  "questions": [],
+  "resolved": [
+    "Feature 'ChromaDB memory store' has tests but is not documented. Documented in docs/specifications/chromadb_store.md.",
+    "Feature 'MVU shell command execution' has tests but is not documented. Documented in docs/specifications/mvu-command-execution.md.",
+    "Feature 'Multi-disciplinary dialectical reasoning' has tests but is not documented. Documented in docs/specifications/multi-disciplinary-dialectical-reasoning.md.",
+    "Feature 'Simple addition input validation' has tests but is not documented. Documented in docs/specifications/simple_addition_input_validation.md.",
+    "Feature 'ChromaDB memory store' is referenced in docs or tests but not in code. Implemented in src/devsynth/adapters/chromadb_memory_store.py."
+  ]
 }
