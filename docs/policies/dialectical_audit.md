@@ -36,6 +36,12 @@ This policy defines how Socratic dialogues support audits that seek consensus be
 - The build fails if `dialectical_audit.log` contains unanswered questions.
 - The log is archived as a workflow artifact for review.
 
+## Release Gating
+
+- Run `python scripts/verify_release_state.py` before tagging a release.
+- The command fails when `dialectical_audit.log` lists unresolved questions.
+- Releases proceed only when the log exists and the `questions` array is empty.
+
 ## Dialogue Procedure
 
 1. Present each question to all relevant contributors.

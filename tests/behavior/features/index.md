@@ -28,6 +28,7 @@ This index lists all feature files for easy navigation.
 - [database_schema_generation.feature](./database_schema_generation.feature)
 - [delegating_tasks_with_consensus_voting.feature](./delegating_tasks_with_consensus_voting.feature)
 - [devsynth_run_tests_command.feature](./devsynth_run_tests_command.feature)
+- [dialectical_audit_gating.feature](./dialectical_audit_gating.feature)
 - [dialectical_reasoning/edrr_phase_integration.feature](./dialectical_reasoning/edrr_phase_integration.feature)
 - [dialectical_reasoning/impact_assessment_memory_persistence.feature](./dialectical_reasoning/impact_assessment_memory_persistence.feature)
 - [dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature](./dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature)
