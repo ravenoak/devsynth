@@ -66,3 +66,8 @@ milestone.
 
 ### Dialectical audit
 - Generated `dialectical_audit.log`; see Issue 125 for unresolved questions.
+
+### Known P1 Issues and Test Gaps
+
+- `poetry run python scripts/verify_test_markers.py` fails due to pytest collection errors in several test modules (e.g., `tests/performance/test_api_benchmarks.py`, `tests/behavior/test_agentapi.py`).
+- `poetry run task release:prep` reports `Command not found: task`, preventing release artifact preparation.
