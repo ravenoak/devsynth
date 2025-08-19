@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Specifications
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Specifications
-</div>
-
 # DevSynth Specifications
 
 This section contains the official specifications for the DevSynth project, outlining its requirements, features, and intended behavior.
