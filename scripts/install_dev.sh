@@ -5,6 +5,15 @@ CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/devsynth"
 WHEEL_DIR="$CACHE_DIR/wheels"
 mkdir -p "$WHEEL_DIR"
 
+# Ensure go-task is available for Taskfile-based workflows
+if ! command -v task >/dev/null 2>&1; then
+  echo "[info] installing go-task"
+  TASK_BIN_DIR="${HOME}/.local/bin"
+  mkdir -p "$TASK_BIN_DIR"
+  curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
+  export PATH="$TASK_BIN_DIR:$PATH"
+fi
+
 optional_pkgs=$(poetry run python - <<'PY'
 import re, tomllib
 

@@ -31,7 +31,7 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
   ```bash
   bash scripts/install_dev.sh
   ```
-  This installs pre-commit hooks, caches optional extras from `pyproject.toml`, and runs verification commands to ensure project consistency.
+  This installs pre-commit hooks, caches optional extras from `pyproject.toml`, installs the `go-task` binary when missing, and runs verification commands to ensure project consistency.
 - Run **all** commands through `poetry run` to use the correct virtual environment.
 - Install dependencies with development and test extras:
 
@@ -93,7 +93,7 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
 
 See `docs/release/0.1.0-alpha.1.md` for the full process. Summary:
 
-1. Run `poetry run task release:prep` to build artifacts.
+1. After running `bash scripts/install_dev.sh` (which installs `go-task`), run `poetry run task release:prep` to build artifacts.
 2. Generate and resolve `dialectical_audit.log` (`poetry run python scripts/dialectical_audit.py` or trigger the GitHub workflow`) per the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
 3. Conduct a dialectical review with another contributor.
 4. Tag and push the release: `git tag -a <version>`.
