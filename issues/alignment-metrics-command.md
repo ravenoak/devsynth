@@ -1,5 +1,5 @@
 # Alignment Metrics Command
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/alignment-metrics-command.md, tests/behavior/features/alignment_metrics_command.feature

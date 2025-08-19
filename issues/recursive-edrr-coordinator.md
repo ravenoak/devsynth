@@ -1,5 +1,5 @@
 # Recursive EDRR Coordinator
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/recursive-edrr-coordinator.md, tests/behavior/features/recursive_edrr_coordinator.feature

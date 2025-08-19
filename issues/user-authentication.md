@@ -1,5 +1,5 @@
 # User Authentication
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/user-authentication.md, tests/behavior/features/user_authentication.feature

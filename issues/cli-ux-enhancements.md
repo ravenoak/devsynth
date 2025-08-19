@@ -1,5 +1,5 @@
 # CLI UX Enhancements
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/cli-ux-enhancements.md, tests/behavior/features/cli_ux_enhancements.feature

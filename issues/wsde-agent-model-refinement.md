@@ -1,5 +1,5 @@
 # WSDE Agent Model Refinement
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/wsde-agent-model-refinement.md, tests/behavior/features/wsde_agent_model_refinement.feature
