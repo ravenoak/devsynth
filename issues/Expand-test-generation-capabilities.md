@@ -23,7 +23,7 @@ Automated unit test generation works but integration coverage is lacking.
 - 2025-02-19: LM Studio mock service completed; awaiting marker normalization.
 - Tracked by [c07240c1](../commit/c07240c1).
 - Expanded scenario scaffolding [ce68098d](../commit/ce68098d).
-- 2025-08-20: Marker normalization completed; still awaiting LM Studio mock service.
+- 2025-08-19: Speed marker normalization remains unresolved; `verify_test_markers.py` reports misaligned markers in `tests/behavior/steps` (e.g., `test_agent_api_steps.py`).
 - Further expansion depends on [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md).
 
 ## References
