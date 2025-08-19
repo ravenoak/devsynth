@@ -106,6 +106,9 @@ See `docs/release/0.1.0-alpha.1.md` for the full process. Summary:
 ## Automation
 
 - Most DevSynth CLI commands accept `--non-interactive` and `--defaults` to bypass prompts.
+- GitHub workflows under `.github/workflows/` must only use `workflow_dispatch`. Workflows with
+  automatic triggers like `push`, `pull_request`, or `schedule` belong in `.github/workflows.disabled/`
+  or must be rewritten to use `workflow_dispatch`.
 
 ## Further Reading
 
