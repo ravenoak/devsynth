@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import pathlib
 import subprocess
 import sys
 
 import yaml
 
-RELEASE_FILE = pathlib.Path("docs/release/0.1.0-alpha.1.md")
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+RELEASE_FILE = ROOT / "docs/release/0.1.0-alpha.1.md"
+LOG_PATH = ROOT / "dialectical_audit.log"
 
 
 def parse_front_matter(path: pathlib.Path) -> dict:
@@ -37,7 +40,25 @@ def tag_exists(tag: str) -> bool:
     return bool(result.stdout.strip())
 
 
+def audit_is_clean() -> bool:
+    """Return True if the dialectical audit log has no unresolved questions."""
+    if not LOG_PATH.exists():
+        return True
+    try:
+        data = json.loads(LOG_PATH.read_text())
+    except json.JSONDecodeError:
+        return False
+    return not data.get("questions")
+
+
 def main() -> int:
+    if not audit_is_clean():
+        print(
+            "dialectical_audit.log contains unresolved questions.",
+            file=sys.stderr,
+        )
+        return 1
+
     data = parse_front_matter(RELEASE_FILE)
     status = data.get("status")
     version = data.get("version")
