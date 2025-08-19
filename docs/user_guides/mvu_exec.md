@@ -23,3 +23,8 @@ devsynth mvu exec echo hello
 ```
 
 The above command prints `hello` and exits with code `0`. Errors from the executed command propagate their non-zero exit codes and error messages.
+
+## References
+
+- [Specification: MVU Command Execution](../specifications/mvu-command-execution.md)
+- [BDD Feature: MVU shell command execution](../../tests/behavior/features/mvu/command_execution.feature)
