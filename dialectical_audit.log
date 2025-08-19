@@ -30,6 +30,7 @@
     "Feature 'Multi-Layered Memory System' is referenced in docs or tests but not in code. - deferred to future documentation.",
     "Feature 'Resolve pytest-xdist assertion errors' is referenced in docs or tests but not in code. - deferred to future documentation.",
     "Feature 'Review and Reprioritize Open Issues' is referenced in docs or tests but not in code. - deferred to future documentation.",
-    "Feature 'User Authentication' is referenced in docs or tests but not in code. - deferred to future documentation."
+    "Feature 'User Authentication' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Version bump script' has tests and documentation; no action needed."
   ]
 }

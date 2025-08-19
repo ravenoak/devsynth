@@ -8,6 +8,7 @@ This index lists all feature files for easy navigation.
 - [agent_api_interactions.feature](./agent_api_interactions.feature)
 - [agent_api_stub_usage.feature](./agent_api_stub_usage.feature)
 - [alignment_metrics_command.feature](./alignment_metrics_command.feature)
+- [bump_version_script.feature](./bump_version_script.feature)
 - [api_specification_generation.feature](./api_specification_generation.feature)
 - [ast_based_code_analysis_and_transformation.feature](./ast_based_code_analysis_and_transformation.feature)
 - [chromadb_integration.feature](./chromadb_integration.feature)
