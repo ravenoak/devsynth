@@ -80,6 +80,12 @@ For instructions on configuring a development environment, see the [development 
 
 DevSynth requires **Python 3.12**. Using [Poetry](https://python-poetry.org/) is recommended for managing dependencies during development.
 
+Provision the development environment by running the environment provisioning script:
+
+```bash
+bash scripts/install_dev.sh
+```
+
 ## Installation
 
 You can install DevSynth in a few different ways:
