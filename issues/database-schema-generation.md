@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/database-schema-generation.md, tests/behavior/features/database_schema_generation.feature
 
 ## Problem Statement
-<description>
+Database Schema Generation is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/database-schema-generation.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/database_schema_generation.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

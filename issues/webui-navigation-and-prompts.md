@@ -5,11 +5,14 @@ Priority: medium
 Dependencies: docs/specifications/webui-navigation-and-prompts.md, tests/behavior/features/webui_navigation_and_prompts.feature
 
 ## Problem Statement
-<description>
+WebUI Navigation and Prompts is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/webui-navigation-and-prompts.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/webui_navigation_and_prompts.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

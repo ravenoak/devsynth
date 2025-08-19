@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/workflow-execution.md, tests/behavior/features/workflow_execution.feature
 
 ## Problem Statement
-<description>
+Workflow Execution is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/workflow-execution.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/workflow_execution.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

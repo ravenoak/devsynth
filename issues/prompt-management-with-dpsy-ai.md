@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/prompt-management-with-dpsy-ai.md, tests/behavior/features/prompt_management_with_dpsy_ai.feature
 
 ## Problem Statement
-<description>
+Prompt Management with DPSy-AI is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/prompt-management-with-dpsy-ai.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/prompt_management_with_dpsy_ai.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

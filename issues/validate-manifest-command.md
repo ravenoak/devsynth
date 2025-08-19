@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/validate-manifest-command.md, tests/behavior/features/validate_manifest_command.feature
 
 ## Problem Statement
-<description>
+Validate Manifest Command is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/validate-manifest-command.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/validate_manifest_command.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
