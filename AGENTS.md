@@ -13,6 +13,19 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
 
 ## Environment
 
+- Ensure Python 3.12 is active per `.python-version`. Verify with:
+
+  ```bash
+  python --version
+  poetry env info --path
+  ```
+
+  If Poetry uses a different interpreter, recreate the virtual environment:
+
+  ```bash
+  poetry env use 3.12 && poetry install --with dev --extras tests retrieval chromadb api
+  ```
+
 - Run the environment provisioning script before development:
 
   ```bash
