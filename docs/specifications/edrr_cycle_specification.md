@@ -9,6 +9,9 @@ tags:
   - "methodology"
   - "workflow"
 
+references:
+  - "Cormen, T. H., C. E. Leiserson, R. L. Rivest, and C. Stein. Introduction to Algorithms. 4th ed., MIT Press, 2022."
+
 status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-07-10"
@@ -446,6 +449,16 @@ The EDRR behavior can be customized through configuration:
 - **Quality Thresholds**: Define acceptance criteria for outputs
 - **Human Intervention Points**: Configure when human input is requested
 
+## Complexity Analysis
+
+The EDRR cycle performs four stages per iteration. If each stage spawns a micro
+cycle and recursion continues to depth \(d\), the worst-case time complexity is
+\(O(4^d)\). The termination heuristics described in
+[Delimiting Recursion Algorithms](delimiting_recursion_algorithms.md) bound \(d\)
+and keep execution practical. Unit tests such as
+`tests/unit/application/edrr/test_coordinator.py` and behavior tests like
+`tests/behavior/features/general/edrr_cycle.feature` verify stage transitions and
+early termination.
 
 ## 7. Future Enhancements
 

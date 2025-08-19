@@ -8,6 +8,9 @@ tags:
   - "EDRR"
   - "heuristics"
 
+references:
+  - "Cormen, T. H., C. E. Leiserson, R. L. Rivest, and C. Stein. Introduction to Algorithms. 4th ed., MIT Press, 2022."
+
 status: "draft"
 author: "DevSynth Team"
 last_reviewed: "2025-07-10"
@@ -54,6 +57,14 @@ the system balances exploration with cost and quality constraints.
    - A task may include `human_override` with values `"terminate"` or
 
      `"continue"` to explicitly control recursion.
+
+## Proof of Termination
+
+Each heuristic places an upper bound on recursion depth or cost. With finite
+inputs, at least one threshold will eventually be met, guaranteeing that the
+EDRR cycle halts. Unit test `tests/unit/application/edrr/test_enhanced_recursion_termination.py`
+and integration test `tests/integration/general/test_recursive_recovery_flow.py`
+exercise these termination paths.
 
 These heuristics are implemented in `EDRRCoordinator.should_terminate_recursion`
 and referenced in the [Recursive EDRR Pseudocode](recursive_edrr_pseudocode.md).
