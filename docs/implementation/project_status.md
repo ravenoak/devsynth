@@ -37,7 +37,7 @@ The overall project is **partially implemented**. Approximately **77%** of docum
 ### Key Metrics
 
 - **Feature Completion**: ~77% of planned features implemented
-- **Test Status**: 0 failing tests out of 81 fast tests (51 passed, 30 skipped; 0% failure rate)
+- **Test Status**: slow test suite reported 4 errors and 17 skips; medium suite could not be executed in this environment. Most recent fast run reports 0 failing tests out of 81 fast tests (51 passed, 30 skipped; 0% failure rate)
 - **Documentation**: Documentation cleanup and organization in progress
 
 For a detailed breakdown of feature status, see the [Feature Status Matrix](feature_status_matrix.md).
@@ -64,7 +64,7 @@ The `scripts/update_traceability.py` helper runs in CI to append new entries bas
 
 ## Test Status
 
-Recent fast test runs report **0** failing tests, **51** passing tests, and **30** skipped with **0** collection errors. The full suite currently collects **3,309** tests. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of instability, blocking `0.1.0-alpha.1`.
+Recent fast test runs report **0** failing tests, **51** passing tests, and **30** skipped with **0** collection errors. Slow suite execution encountered 4 errors after 20.5 seconds, while attempts to run the medium suite were inconclusive due to resource limitations. The full suite currently collects **3,309** tests. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of instability, blocking `0.1.0-alpha.1`.
 
 ### Test Categorization Progress
 
