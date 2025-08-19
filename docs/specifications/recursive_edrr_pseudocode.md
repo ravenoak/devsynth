@@ -8,6 +8,9 @@ tags:
   - "EDRR"
   - "pseudocode"
 
+references:
+  - "Cormen, T. H., C. E. Leiserson, R. L. Rivest, and C. Stein. Introduction to Algorithms. 4th ed., MIT Press, 2022."
+
 status: "draft"
 author: "DevSynth Team"
 last_reviewed: "2025-07-10"
@@ -111,6 +114,16 @@ The coordinator checks `should_terminate_recursion` before spawning a micro
 cycle. If recursion proceeds, the child coordinator inherits the parent's
 dependencies and increments `recursion_depth`. Results from the micro cycle are
 stored under the parent's phase data so the overall cycle reflects nested work.
+## Complexity Analysis
+
+Let \(b\) be the maximum number of subtasks spawned in the **retrospect** phase
+and \(d\) the maximum recursion depth. The number of cycle invocations is
+bounded by \(O(b^d)\). Because each phase runs in linear time with respect to
+its inputs, overall complexity is \(O(b^d)\). Unit tests such as
+`tests/unit/application/edrr/test_recursive_edrr_coordinator.py` and behavior
+tests like `tests/behavior/steps/test_recursive_edrr_coordinator_steps.py`
+exercise this recursion and confirm termination behavior.
+
 ## Implementation Status
 
 .
