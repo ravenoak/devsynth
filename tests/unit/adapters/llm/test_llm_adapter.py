@@ -45,6 +45,7 @@ def test_llm_backend_adapter_init_succeeds(mock_factory):
     assert adapter.factory._spec_class == SimpleLLMProviderFactory
 
 
+@pytest.mark.medium
 def test_create_provider_has_expected(mock_factory):
     """Test that create_provider calls the factory's create_provider method.
 
@@ -62,6 +63,7 @@ def test_create_provider_has_expected(mock_factory):
         mock_factory.create_provider.assert_called_once_with("openai", config)
 
 
+@pytest.mark.medium
 def test_register_provider_type_has_expected(mock_factory):
     """Test that register_provider_type calls the factory's register_provider_type method.
 
@@ -77,6 +79,7 @@ def test_register_provider_type_has_expected(mock_factory):
 
 
 @patch("devsynth.application.llm.providers.OpenAIProvider")
+@pytest.mark.medium
 def test_integration_with_openai_provider_has_expected(
     mock_provider_class, mock_factory
 ):
@@ -100,6 +103,7 @@ def test_integration_with_openai_provider_has_expected(
 
 
 @patch("devsynth.application.llm.providers.AnthropicProvider")
+@pytest.mark.medium
 def test_integration_with_anthropic_provider_has_expected(
     mock_provider_class, mock_factory
 ):

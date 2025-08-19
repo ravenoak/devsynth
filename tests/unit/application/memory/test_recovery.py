@@ -51,7 +51,7 @@ class TestMemorySnapshot:
 
     @pytest.mark.medium
     @pytest.mark.medium
-    def test_initialization(self, memory_item):
+    def test_snapshot_initialization(self, memory_item):
         """Test that MemorySnapshot initializes with expected values."""
         snapshot = MemorySnapshot(
             store_id="test-store", items=[memory_item], metadata={"version": "1.0"}
@@ -94,7 +94,7 @@ class TestMemorySnapshot:
         assert item is None
 
     @pytest.mark.medium
-    def test_save_and_load(self, temp_dir, memory_item):
+    def test_snapshot_save_and_load(self, temp_dir, memory_item):
         """Test saving and loading a snapshot."""
         snapshot = MemorySnapshot(
             store_id="test-store", items=[memory_item], metadata={"version": "1.0"}
@@ -111,7 +111,7 @@ class TestMemorySnapshot:
         assert loaded_snapshot.items[0].memory_type == MemoryType.WORKING
 
     @pytest.mark.medium
-    def test_load_invalid_file(self, temp_dir):
+    def test_snapshot_load_invalid_file(self, temp_dir):
         """Test loading an invalid snapshot file."""
         filepath = os.path.join(temp_dir, "invalid_snapshot.json")
         with open(filepath, "w") as f:
@@ -125,14 +125,14 @@ class TestOperationLog:
 
     @pytest.mark.medium
     @pytest.mark.medium
-    def test_initialization(self):
+    def test_operationlog_initialization(self):
         """Test that OperationLog initializes with expected values."""
         log = OperationLog(store_id="test-store")
         assert log.store_id == "test-store"
         assert log.operations == []
 
     @pytest.mark.medium
-    def test_log_operation(self):
+    def test_operationlog_log_operation(self):
         """Test logging an operation."""
         log = OperationLog(store_id="test-store")
         log.log_operation(
@@ -154,7 +154,7 @@ class TestOperationLog:
         assert log.operations[1]["timestamp"] == timestamp.isoformat()
 
     @pytest.mark.medium
-    def test_save_and_load(self, temp_dir):
+    def test_operationlog_save_and_load(self, temp_dir):
         """Test saving and loading an operation log."""
         log = OperationLog(store_id="test-store")
         log.log_operation(
@@ -174,7 +174,7 @@ class TestOperationLog:
         assert loaded_log.operations[1]["data"] == {"item_id": "test-item-2"}
 
     @pytest.mark.medium
-    def test_load_invalid_file(self, temp_dir):
+    def test_operationlog_load_invalid_file(self, temp_dir):
         """Test loading an invalid operation log file."""
         filepath = os.path.join(temp_dir, "invalid_log.json")
         with open(filepath, "w") as f:
@@ -247,7 +247,7 @@ class TestRecoveryManager:
 
     @pytest.mark.medium
     @pytest.mark.medium
-    def test_initialization(self, temp_dir):
+    def test_recovery_manager_initialization(self, temp_dir):
         """Test that RecoveryManager initializes with expected values."""
         manager = RecoveryManager(recovery_dir=temp_dir)
         assert manager.recovery_dir == temp_dir
@@ -282,7 +282,7 @@ class TestRecoveryManager:
         assert same_log is log
 
     @pytest.mark.medium
-    def test_log_operation(self):
+    def test_recovery_manager_log_operation(self):
         """Test logging an operation."""
         manager = RecoveryManager()
         manager.log_operation(
@@ -373,11 +373,10 @@ class TestWithRecovery:
         mock_store.get_all_items.return_value = [memory_item]
 
         @with_recovery("test-store")
-        @pytest.mark.medium
-        def test_func(self, store):
+        def decorated_func(self, store):
             return "success"
 
-        result = test_func(mock_store)
+        result = decorated_func(mock_store)
         assert result == "success"
         mock_store.get_all_items.assert_called_once()
 
@@ -402,11 +401,10 @@ class TestWithRecovery:
         mock_store = MagicMock()
 
         @with_recovery("test-store", create_snapshot=False)
-        @pytest.mark.medium
-        def test_func(self, store):
+        def decorated_func(self, store):
             return "success"
 
-        result = test_func(mock_store)
+        result = decorated_func(mock_store)
         assert result == "success"
         mock_store.get_all_items.assert_not_called()
 

@@ -35,7 +35,7 @@ def sample_code():
 
 @pytest.fixture
 @pytest.mark.medium
-def test_file_path_succeeds():
+def sample_file_path():
     """Create a temporary file with sample code for testing.
 
     ReqID: N/A"""
@@ -53,7 +53,7 @@ def test_file_path_succeeds():
 
 @pytest.fixture
 @pytest.mark.medium
-def test_directory_succeeds():
+def sample_directory():
     """Create a temporary directory with Python files for testing.
 
     ReqID: N/A"""
@@ -187,7 +187,7 @@ class TestStringLiteralOptimizer:
         """Test that string literals are optimized.
 
         ReqID: N/A"""
-        modified_code = '\ndef test_function():\n    # String with extra whitespace that should be optimized\n    greeting = "Hello,    world!"\n    return greeting\n'
+        modified_code = '\ndef sample_function():\n    # String with extra whitespace that should be optimized\n    greeting = "Hello,    world!"\n    return greeting\n'
         tree = ast.parse(modified_code)
         transformer = StringLiteralOptimizer()
         transformed_tree = transformer.visit(tree)
@@ -295,11 +295,11 @@ class TestCodeTransformer:
             )
 
     @pytest.mark.medium
-    def test_transform_file_succeeds(self, test_file_path_succeeds):
+    def test_transform_file_succeeds(self, sample_file_path):
         """Test transforming a file.
 
         ReqID: N/A"""
-        with open(test_file_path_succeeds, "r", encoding="utf-8") as f:
+        with open(sample_file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
         transformed_code = file_content.replace("import re", "").replace("z = 15", "")
         mock_result = MagicMock()
@@ -314,7 +314,7 @@ class TestCodeTransformer:
             transformer, "transform_code", return_value=mock_result
         ) as mock_transform_code:
             result = transformer.transform_file(
-                test_file_path_succeeds,
+                sample_file_path,
                 ["remove_unused_imports", "remove_unused_variables"],
             )
             mock_transform_code.assert_called_once_with(
@@ -338,14 +338,14 @@ class TestCodeTransformer:
             )
 
     @pytest.mark.medium
-    def test_transform_directory_succeeds(self, test_directory_succeeds):
+    def test_transform_directory_succeeds(self, sample_directory):
         """Test transforming a directory.
 
         ReqID: N/A"""
         python_files = [
-            os.path.join(test_directory_succeeds, "unused_imports.py"),
-            os.path.join(test_directory_succeeds, "unused_variables.py"),
-            os.path.join(test_directory_succeeds, "subdir", "nested_file.py"),
+            os.path.join(sample_directory, "unused_imports.py"),
+            os.path.join(sample_directory, "unused_variables.py"),
+            os.path.join(sample_directory, "subdir", "nested_file.py"),
         ]
 
         def mock_transform_file(file_path, transformations):
@@ -384,11 +384,11 @@ class TestCodeTransformer:
             ) as mock_transform_file,
         ):
             results = transformer.transform_directory(
-                test_directory_succeeds,
+                sample_directory,
                 recursive=True,
                 transformations=["remove_unused_imports", "remove_unused_variables"],
             )
-            mock_find_files.assert_called_once_with(test_directory_succeeds, True)
+            mock_find_files.assert_called_once_with(sample_directory, True)
             assert mock_transform_file.call_count == 3
             mock_transform_file.assert_any_call(
                 python_files[0], ["remove_unused_imports", "remove_unused_variables"]
@@ -421,17 +421,17 @@ class TestCodeTransformer:
             assert "y = 20" not in nested_file_result.get_transformed_code()
 
     @pytest.mark.medium
-    def test_find_python_files_succeeds(self, test_directory_succeeds):
+    def test_find_python_files_succeeds(self, sample_directory):
         """Test finding Python files in a directory.
 
         ReqID: N/A"""
         transformer = CodeTransformer()
-        files = transformer._find_python_files(test_directory_succeeds, recursive=True)
+        files = transformer._find_python_files(sample_directory, recursive=True)
         assert len(files) == 3
         assert any(("unused_imports.py" in f for f in files))
         assert any(("unused_variables.py" in f for f in files))
         assert any(("nested_file.py" in f for f in files))
-        files = transformer._find_python_files(test_directory_succeeds, recursive=False)
+        files = transformer._find_python_files(sample_directory, recursive=False)
         assert len(files) == 2
         assert any(("unused_imports.py" in f for f in files))
         assert any(("unused_variables.py" in f for f in files))

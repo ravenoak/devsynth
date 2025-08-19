@@ -133,7 +133,7 @@ class TestPromptAutoTuner:
         return PromptAutoTuner()
 
     @pytest.mark.medium
-    def test_initialization_succeeds(self, auto_tuner):
+    def test_auto_tuner_initialization_succeeds(self, auto_tuner):
         """Test initialization of a PromptAutoTuner.
 
         ReqID: FR-56"""

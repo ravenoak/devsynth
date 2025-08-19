@@ -20,7 +20,7 @@ from devsynth.application.code_analysis.project_state_analyzer import (
 
 @pytest.fixture
 @pytest.mark.medium
-def test_project_dir_succeeds():
+def project_dir_fixture():
     """Create a temporary directory with a test project structure.
 
     ReqID: N/A"""
@@ -50,7 +50,7 @@ def test_project_dir_succeeds():
             "# Specifications\n\n1. User Creation: The system will provide an API endpoint for user creation.\n2. User Authentication: The system will support username/password authentication."
         )
         (project_dir / "tests" / "test_user.py").write_text(
-            "def test_user_creation():\n    from src.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
+            "def user_creation_test():\n    from src.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
         )
         yield str(project_dir)
 
@@ -61,12 +61,12 @@ class TestProjectStateAnalyzer:
     ReqID: N/A"""
 
     @pytest.mark.medium
-    def test_initialization_succeeds(self, test_project_dir_succeeds):
+    def test_initialization_succeeds(self, project_dir_fixture):
         """Test that the analyzer can be initialized with a project path.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
-        assert analyzer.project_path == test_project_dir_succeeds
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
+        assert analyzer.project_path == project_dir_fixture
         assert hasattr(analyzer, "files")
         assert hasattr(analyzer, "file_index")
         assert hasattr(analyzer, "languages")
@@ -81,11 +81,11 @@ class TestProjectStateAnalyzer:
         assert hasattr(analyzer, "config_files")
 
     @pytest.mark.medium
-    def test_analyze_succeeds(self, test_project_dir_succeeds):
+    def test_analyze_succeeds(self, project_dir_fixture):
         """Test the analyze method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
         with patch.object(analyzer, "_index_files") as mock_index:
             with patch.object(analyzer, "_detect_languages") as mock_detect:
                 with patch.object(analyzer, "_infer_architecture") as mock_infer:
@@ -128,11 +128,11 @@ class TestProjectStateAnalyzer:
                                 assert mock_health.called
 
     @pytest.mark.medium
-    def test_index_files_succeeds(self, test_project_dir_succeeds):
+    def test_index_files_succeeds(self, project_dir_fixture):
         """Test the _index_files method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
         analyzer._index_files()
         assert len(analyzer.files) > 0
         python_files = [
@@ -144,11 +144,11 @@ class TestProjectStateAnalyzer:
         assert len(python_files) > 0
 
     @pytest.mark.medium
-    def test_detect_languages_succeeds(self, test_project_dir_succeeds):
+    def test_detect_languages_succeeds(self, project_dir_fixture):
         """Test the _detect_languages method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
         analyzer._index_files()
         analyzer._detect_languages()
         assert len(analyzer.languages) > 0
@@ -157,11 +157,11 @@ class TestProjectStateAnalyzer:
             assert 0 <= lang_info["percentage"] <= 1
 
     @pytest.mark.medium
-    def test_infer_architecture_succeeds(self, test_project_dir_succeeds):
+    def test_infer_architecture_succeeds(self, project_dir_fixture):
         """Test the _infer_architecture method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
         with patch.object(analyzer, "_check_mvc_pattern", return_value=0.8) as mock_mvc:
             with patch.object(
                 analyzer, "_check_hexagonal_pattern", return_value=0.6
@@ -191,11 +191,11 @@ class TestProjectStateAnalyzer:
                                 assert mock_components.called
 
     @pytest.mark.medium
-    def test_identify_components_succeeds(self, test_project_dir_succeeds):
+    def test_identify_components_succeeds(self, project_dir_fixture):
         """Test the _identify_components method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
 
         def mock_identify_components(architecture):
             """Mock implementation of _identify_components."""
@@ -229,13 +229,11 @@ class TestProjectStateAnalyzer:
             assert "name" in comp
 
     @pytest.mark.medium
-    def test_analyze_requirements_spec_alignment_succeeds(
-        self, test_project_dir_succeeds
-    ):
+    def test_analyze_requirements_spec_alignment_succeeds(self, project_dir_fixture):
         """Test the _analyze_requirements_spec_alignment method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
         analyzer._index_files()
         with patch.object(analyzer, "_extract_requirements") as mock_extract_req:
             with patch.object(analyzer, "_extract_specifications") as mock_extract_spec:
@@ -262,12 +260,12 @@ class TestProjectStateAnalyzer:
                 assert "alignment_score" in alignment
 
     @pytest.mark.medium
-    def test_generate_health_report_succeeds(self, test_project_dir_succeeds):
+    def test_generate_health_report_succeeds(self, project_dir_fixture):
         """Test the _generate_health_report method.
 
         ReqID: N/A"""
-        analyzer = ProjectStateAnalyzer(test_project_dir_succeeds)
-        analyzer.project_path = test_project_dir_succeeds
+        analyzer = ProjectStateAnalyzer(project_dir_fixture)
+        analyzer.project_path = project_dir_fixture
         analyzer.file_index = {"test.py": {"path": "test.py"}}
         analyzer.detected_languages = {"Python"}
         analyzer.architecture_model = {"type": "MVC", "confidence": 0.8}
