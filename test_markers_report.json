@@ -1,22 +1,3600 @@
 {
-  "timestamp": "2025-08-19T03:29:03.254278",
+  "timestamp": "2025-08-19T15:26:26.275414",
   "verification": {
-    "directory": "tests/behavior/steps",
-    "total_files": 152,
-    "files_with_issues": 0,
-    "total_test_functions": 15,
-    "total_markers": 0,
-    "total_misaligned_markers": 0,
-    "total_duplicate_markers": 0,
-    "total_unrecognized_markers": 0,
+    "directory": "tests",
+    "total_files": 724,
+    "files_with_issues": 86,
+    "total_test_functions": 2483,
+    "total_markers": 1447,
+    "total_misaligned_markers": 6,
+    "total_duplicate_markers": 65,
+    "total_unrecognized_markers": 332,
     "marker_counts": {
-      "fast": 0,
-      "medium": 0,
-      "slow": 0,
+      "fast": 75,
+      "medium": 1325,
+      "slow": 47,
       "isolation": 0
     },
-    "files": {},
+    "files": {
+      "/workspace/devsynth/tests/test_chromadb_store_import.py": {
+        "file_path": "/workspace/devsynth/tests/test_chromadb_store_import.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_chromadb_store_import": "fast"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "fast markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "fast",
+            "message": "pytest collection failed for /workspace/devsynth/tests/test_chromadb_store_import.py [marker=fast]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/behavior/test_agentapi.py": {
+        "file_path": "/workspace/devsynth/tests/behavior/test_agentapi.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_json_requests_succeeds": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/behavior/test_agentapi.py [marker=medium]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/performance/test_api_benchmarks.py": {
+        "file_path": "/workspace/devsynth/tests/performance/test_api_benchmarks.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_health_endpoint_benchmark": "slow"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "slow": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "slow",
+            "message": "pytest collection failed for /workspace/devsynth/tests/performance/test_api_benchmarks.py [marker=slow]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/adapters/test_chromadb_vector_adapter.py": {
+        "file_path": "/workspace/devsynth/tests/unit/adapters/test_chromadb_vector_adapter.py",
+        "has_pytest_import": true,
+        "test_functions": 3,
+        "markers": {
+          "test_store_and_retrieve_vector": "medium",
+          "test_similarity_search": "medium",
+          "test_delete_vector": "medium"
+        },
+        "tests_with_markers": 3,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 3,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (3 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/adapters/test_chromadb_vector_adapter.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/adapters/test_sync_manager.py": {
+        "file_path": "/workspace/devsynth/tests/unit/adapters/test_sync_manager.py",
+        "has_pytest_import": true,
+        "test_functions": 5,
+        "markers": {
+          "test_cross_store_query_returns_results_succeeds": "medium",
+          "test_query_results_cached_succeeds": "medium",
+          "test_cross_store_query_async_succeeds": "medium",
+          "test_queue_updates_from_multiple_tasks_succeeds": "medium",
+          "test_conflict_resolution_with_concurrent_updates": "medium"
+        },
+        "tests_with_markers": 5,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 5,
+            "pytest_count": 11,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (5 in file, 11 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/adapters/test_chromadb_memory_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/adapters/test_chromadb_memory_store.py",
+        "has_pytest_import": true,
+        "test_functions": 12,
+        "markers": {
+          "test_initialization_with_default_embedder_has_expected": "medium",
+          "test_initialization_with_provider_system_has_expected": "medium",
+          "test_fallback_to_default_embedder_when_provider_fails": "medium",
+          "test_store_and_retrieve_succeeds": "medium",
+          "test_search_succeeds": "medium",
+          "test_delete_succeeds": "medium",
+          "test_get_all_items_returns_items": "medium",
+          "test_transaction_begin_creates_transaction": "medium",
+          "test_transaction_commit_executes_operations": "medium",
+          "test_transaction_rollback_discards_operations": "medium",
+          "test_transaction_with_multiple_operations": "medium",
+          "test_add_to_transaction_with_invalid_transaction": "medium"
+        },
+        "tests_with_markers": 12,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 12,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (12 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/adapters/test_chromadb_memory_store.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/testing/test_run_tests_no_xdist_assertions.py": {
+        "file_path": "/workspace/devsynth/tests/unit/testing/test_run_tests_no_xdist_assertions.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_dummy": "fast"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [
+          {
+            "line": 8,
+            "marker": "fast",
+            "text": "test_file.write_text(\"@pytest.mark.fast\\ndef test_dummy():\\n    pass\\n\")"
+          }
+        ],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "misaligned_markers",
+            "message": "File has 1 misaligned markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "fast markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "fast",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/testing/test_run_tests_no_xdist_assertions.py [marker=fast]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/adapters/test_provider_system.py": {
+        "file_path": "/workspace/devsynth/tests/unit/adapters/test_provider_system.py",
+        "has_pytest_import": true,
+        "test_functions": 25,
+        "markers": {
+          "test_embed_success_succeeds": "medium",
+          "test_embed_error_succeeds": "medium",
+          "test_aembed_success_succeeds": "medium",
+          "test_aembed_error_succeeds": "medium",
+          "test_complete_success_succeeds": "medium",
+          "test_complete_error_succeeds": "medium",
+          "test_acomplete_success_succeeds": "medium",
+          "test_acomplete_error_succeeds": "medium",
+          "test_provider_factory_create_provider_succeeds": "medium",
+          "test_get_provider_succeeds": "medium",
+          "test_base_provider_methods_succeeds": "medium",
+          "test_provider_initialization_succeeds": "medium",
+          "test_fallback_provider_succeeds": "medium",
+          "test_get_env_or_default_succeeds": "medium",
+          "test_get_provider_config_has_expected": "medium",
+          "test_openai_provider_complete_has_expected": "medium",
+          "test_openai_provider_complete_error_raises_error": "medium",
+          "test_openai_provider_complete_retry_has_expected": "medium",
+          "test_openai_provider_acomplete_has_expected": "medium",
+          "test_openai_provider_embed_has_expected": "medium",
+          "test_lmstudio_provider_complete_has_expected": "medium",
+          "test_fallback_provider_async_methods_has_expected": "medium",
+          "test_provider_with_empty_inputs_has_expected": "medium",
+          "test_provider_factory_injected_config_selects_provider": "medium",
+          "test_fallback_provider_respects_order": "medium"
+        },
+        "tests_with_markers": 25,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 25,
+            "pytest_count": 26,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_provider_initialization_succeeds"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (25 in file, 26 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_webui_wizard_state.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_webui_wizard_state.py",
+        "has_pytest_import": true,
+        "test_functions": 11,
+        "markers": {
+          "test_function": "medium",
+          "test_wizard_state_navigation": "medium",
+          "test_wizard_state_data_persistence": "medium",
+          "test_wizard_state_completion": "medium",
+          "test_wizard_state_reset": "medium",
+          "test_gather_wizard_state_initialization": "medium",
+          "test_gather_wizard_workflow": "medium",
+          "test_simulate_wizard_navigation": "medium",
+          "test_set_wizard_data": "medium",
+          "test_manager_clears_temp_state": "medium",
+          "test_wizard_state_in_streamlit_context": "medium"
+        },
+        "tests_with_markers": 11,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_function",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 11,
+            "pytest_count": 11,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_cli_components.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_cli_components.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_function": "medium",
+          "test_CLIProgressIndicator_update_succeeds": "medium",
+          "test_cliprogressindicator_sanitize_output_succeeds": "slow",
+          "test_cliprogressindicator_multiple_subtasks_succeeds": "medium",
+          "test_cliuxbridge_display_result_heading_levels_succeeds": "medium",
+          "test_cliuxbridge_display_result_smart_styling_succeeds": "medium",
+          "test_cliuxbridge_display_result_rich_markup_succeeds": "medium",
+          "test_cliuxbridge_display_result_highlight_succeeds": "medium"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_function",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_CLIProgressIndicator_update_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 7,
+            "pytest_count": 7,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          },
+          "slow": {
+            "file_count": 1,
+            "pytest_count": 3,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 2 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (1 in file, 3 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_output_formatter.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_output_formatter.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_sanitize_output": "medium",
+          "test_detect_message_type_succeeds": "medium",
+          "test_format_message_succeeds": "medium",
+          "test_display_succeeds": "medium",
+          "test_set_console_succeeds": "medium",
+          "test_format_table_succeeds": "medium",
+          "test_format_list_succeeds": "medium",
+          "test_formatter_singleton_succeeds": "medium"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_format_table_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 8,
+            "pytest_count": 8,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_api_endpoints.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_api_endpoints.py",
+        "has_pytest_import": true,
+        "test_functions": 13,
+        "markers": {
+          "test_health_endpoint_requires_authentication_succeeds": "slow",
+          "test_metrics_endpoint_requires_authentication_succeeds": "slow",
+          "test_init_endpoint_initializes_project_succeeds": "slow",
+          "test_gather_endpoint_collects_requirements_succeeds": "slow",
+          "test_synthesize_endpoint_runs_pipeline_succeeds": "slow",
+          "test_spec_endpoint_generates_specifications_succeeds": "slow",
+          "test_test_endpoint_generates_tests_succeeds": "slow",
+          "test_code_endpoint_generates_code_succeeds": "slow",
+          "test_doctor_endpoint_runs_diagnostics_succeeds": "slow",
+          "test_edrr_cycle_endpoint_runs_cycle_succeeds": "slow",
+          "test_status_endpoint_returns_messages_returns_expected_result": "slow",
+          "test_test_endpoint_generates_tests_from_spec_succeeds": "slow",
+          "test_endpoints_handle_errors_properly_raises_error": "slow"
+        },
+        "tests_with_markers": 13,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_endpoints_handle_errors_properly_raises_error",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "slow": {
+            "file_count": 13,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (13 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "slow",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/interface/test_api_endpoints.py [marker=slow]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_bridge_conformance.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_bridge_conformance.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_bridge_implements_methods_succeeds": "slow"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "slow": {
+            "file_count": 1,
+            "pytest_count": 4,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_bridge_implements_methods_succeeds"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (1 in file, 4 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_uxbridge_consistency.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_uxbridge_consistency.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_function": "slow"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "slow": {
+            "file_count": 1,
+            "pytest_count": 3,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_function"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (1 in file, 3 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_cliuxbridge.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_cliuxbridge.py",
+        "has_pytest_import": true,
+        "test_functions": 12,
+        "markers": {
+          "test_function": "medium",
+          "test_cliuxbridge_confirm_choice_succeeds": "medium",
+          "test_cliuxbridge_display_result_highlight_succeeds": "medium",
+          "test_cliuxbridge_display_result_error_succeeds": "medium",
+          "test_cliuxbridge_display_result_warning_succeeds": "medium",
+          "test_cliuxbridge_display_result_success_succeeds": "medium",
+          "test_cliuxbridge_display_result_heading_succeeds": "medium",
+          "test_cliuxbridge_display_result_subheading_succeeds": "medium",
+          "test_cliuxbridge_display_result_rich_markup_succeeds": "medium",
+          "test_cliuxbridge_display_result_normal_succeeds": "medium",
+          "test_cliuxbridge_ask_question_validates_input_succeeds": "medium",
+          "test_cliprogressindicator_subtasks_succeeds": "medium"
+        },
+        "tests_with_markers": 12,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_function",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 12,
+            "pytest_count": 12,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_dpg_bridge.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_dpg_bridge.py",
+        "has_pytest_import": true,
+        "test_functions": 10,
+        "markers": {
+          "test_ask_question_returns_string": "medium",
+          "test_confirm_choice_returns_boolean": "medium",
+          "test_display_result_sanitizes_output": "medium",
+          "test_create_progress_returns_indicator": "medium",
+          "test_cancellable_progress_allows_cancel": "medium",
+          "test_run_cli_command_executes_and_polls": "medium",
+          "test_run_cli_command_handles_exception": "medium",
+          "test_run_cli_command_cancellation": "medium",
+          "test_run_cli_command_propagates_async_error": "medium",
+          "test_run_cli_command_progress_and_error_hooks": "medium"
+        },
+        "tests_with_markers": 10,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 10,
+            "pytest_count": 11,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_confirm_choice_returns_boolean"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (10 in file, 11 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_ux_bridge.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_ux_bridge.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_function": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_function",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 1,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_api_advanced.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_api_advanced.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_error_handling_in_all_endpoints": "slow",
+          "test_all_endpoints_authentication_succeeds": "slow",
+          "test_parameter_validation_is_valid": "slow",
+          "test_edge_cases_succeeds": "slow"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "slow": {
+            "file_count": 4,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (4 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "slow",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/interface/test_api_advanced.py [marker=slow]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/domain/test_memory_type.py": {
+        "file_path": "/workspace/devsynth/tests/unit/domain/test_memory_type.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_memory_type_serialization_deserialization": "medium",
+          "test_working_memory_alias": "medium",
+          "test_memory_type_members_complete": "medium",
+          "test_memory_type_lookup_by_value": "medium"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_memory_type_members_complete",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 4,
+            "pytest_count": 25,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_memory_type_lookup_by_value"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (4 in file, 25 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_uxbridge_question_result.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_uxbridge_question_result.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_ask_question_and_display_result_consistency": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 4,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_ask_question_and_display_result_consistency"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 4 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/interface/test_agentapi_class.py": {
+        "file_path": "/workspace/devsynth/tests/unit/interface/test_agentapi_class.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_cmd_succeeds": "medium",
+          "test_init_succeeds": "slow",
+          "test_gather_synthesize_status_succeeds": "slow",
+          "test_spec_succeeds": "slow",
+          "test_test_succeeds": "slow",
+          "test_code_succeeds": "slow",
+          "test_doctor_succeeds": "slow",
+          "test_edrr_cycle_succeeds": "slow"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          },
+          "slow": {
+            "file_count": 7,
+            "pytest_count": 7,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/interface/test_agentapi_class.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/general/test_api.py": {
+        "file_path": "/workspace/devsynth/tests/unit/general/test_api.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_verify_token_rejects_invalid_token": "fast",
+          "test_health_endpoint_accepts_valid_token": "fast"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 2,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "fast markers are not recognized by pytest (2 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "fast",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/general/test_api.py [marker=fast]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/general/test_requirement_repository_port_interface.py": {
+        "file_path": "/workspace/devsynth/tests/unit/general/test_requirement_repository_port_interface.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_requirement_repository_port_is_abstract": "fast",
+          "test_dummy_requirement_port_methods_raise_not_implemented": "fast"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_dummy_requirement_port_methods_raise_not_implemented",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 2,
+            "pytest_count": 2,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/general/test_speed_option.py": {
+        "file_path": "/workspace/devsynth/tests/unit/general/test_speed_option.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_dummy": "fast"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [
+          {
+            "line": 11,
+            "marker": "fast",
+            "text": "test_file.write_text(\"@pytest.mark.fast\\ndef test_dummy():\\n    pass\\n\")"
+          }
+        ],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "misaligned_markers",
+            "message": "File has 1 misaligned markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "fast markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "fast",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/general/test_speed_option.py [marker=fast]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/general/test_unit_cli_commands.py": {
+        "file_path": "/workspace/devsynth/tests/unit/general/test_unit_cli_commands.py",
+        "has_pytest_import": true,
+        "test_functions": 56,
+        "markers": {
+          "test_init_cmd_success_succeeds": "medium",
+          "test_init_cmd_already_initialized_succeeds": "medium",
+          "test_init_cmd_exception_raises_error": "medium",
+          "test_spec_cmd_success_succeeds": "medium",
+          "test_test_cmd_success_succeeds": "medium",
+          "test_code_cmd_success_succeeds": "medium",
+          "test_run_pipeline_cmd_success_with_target_succeeds": "medium",
+          "test_run_pipeline_cmd_success_without_target_succeeds": "medium",
+          "test_config_cmd_set_value_succeeds": "medium",
+          "test_config_cmd_get_value_succeeds": "medium",
+          "test_config_cmd_list_all_succeeds": "medium",
+          "test_enable_feature_cmd_succeeds": "medium",
+          "test_config_cmd_updates_yaml_succeeds": "medium",
+          "test_enable_feature_cmd_yaml_succeeds": "medium",
+          "test_config_cmd_uses_loader_succeeds": "medium",
+          "test_enable_feature_cmd_loader_succeeds": "medium",
+          "test_enable_feature_cmd_load_error_displays_error": "medium",
+          "test_enable_feature_cmd_save_error_displays_error": "medium",
+          "test_enable_feature_cmd_nonexistent_feature_creates_feature": "medium",
+          "test_enable_feature_cmd_already_enabled_feature_succeeds": "medium",
+          "test_enable_feature_cmd_persists_existing_flags": "medium",
+          "test_init_creates_config_and_commands_use_loader_succeeds": "medium",
+          "test_inspect_cmd_file_succeeds": "medium",
+          "test_inspect_cmd_interactive_succeeds": "medium",
+          "test_spec_cmd_missing_openai_key_succeeds": "medium",
+          "test_spec_cmd_missing_chromadb_package_succeeds": "medium",
+          "test_spec_cmd_missing_kuzu_package_succeeds": "medium",
+          "test_config_key_autocomplete_succeeds": "medium",
+          "test_check_services_warns_succeeds": "medium",
+          "test_doctor_cmd_invokes_loader_succeeds": "medium",
+          "test_check_cmd_alias_succeeds": "medium",
+          "test_gather_cmd_creates_file_succeeds": "medium",
+          "test_init_cmd_wizard_runs_wizard": "medium",
+          "test_spec_cmd_invalid_file": "medium",
+          "test_test_cmd_invalid_file": "medium",
+          "test_code_cmd_no_tests": "medium",
+          "test_run_pipeline_cmd_invalid_target": "medium",
+          "test_config_cmd_invalid_key": "medium",
+          "test_gather_cmd_error_propagates": "medium",
+          "test_refactor_cmd_error": "medium",
+          "test_inspect_cmd_failure": "medium",
+          "test_webapp_cmd_invalid_framework": "medium",
+          "test_serve_cmd_passes_options": "medium",
+          "test_webapp_cmd_flask_succeeds": "medium",
+          "test_webapp_cmd_fastapi_succeeds": "medium",
+          "test_webapp_cmd_existing_dir_without_force_fails": "medium",
+          "test_webapp_cmd_existing_dir_with_force_succeeds": "medium",
+          "test_dbschema_cmd_invalid_type": "medium",
+          "test_dbschema_cmd_sqlite_succeeds": "medium",
+          "test_dbschema_cmd_mysql_succeeds": "medium",
+          "test_dbschema_cmd_mongodb_succeeds": "medium",
+          "test_dbschema_cmd_existing_dir_without_force_fails": "medium",
+          "test_dbschema_cmd_existing_dir_with_force_succeeds": "medium",
+          "test_webui_cmd_success_succeeds": "medium",
+          "test_webui_cmd_import_error_displays_error": "medium",
+          "test_webui_cmd_runtime_error_displays_error": "medium"
+        },
+        "tests_with_markers": 56,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_config_cmd_invalid_key",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 56,
+            "pytest_count": 57,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (56 in file, 57 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/test_prompt_auto_tuning.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/test_prompt_auto_tuning.py",
+        "has_pytest_import": true,
+        "test_functions": 16,
+        "markers": {
+          "test_initialization_succeeds": "medium",
+          "test_success_rate_succeeds": "medium",
+          "test_average_feedback_score_succeeds": "medium",
+          "test_performance_score_succeeds": "medium",
+          "test_record_usage_succeeds": "medium",
+          "test_to_dict_and_from_dict_succeeds": "medium",
+          "test_auto_tuner_initialization_succeeds": "medium",
+          "test_register_template_succeeds": "medium",
+          "test_select_variant_single_succeeds": "medium",
+          "test_select_variant_error_succeeds": "medium",
+          "test_select_variant_performance_succeeds": "medium",
+          "test_record_feedback_succeeds": "medium",
+          "test_record_feedback_error_succeeds": "medium",
+          "test_generate_variants_succeeds": "medium",
+          "test_mutation_methods_succeeds": "medium",
+          "test_storage_succeeds": "medium"
+        },
+        "tests_with_markers": 16,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_select_variant_performance_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 16,
+            "pytest_count": 16,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/cli/test_help_examples.py": {
+        "file_path": "/workspace/devsynth/tests/unit/cli/test_help_examples.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_get_command_help_includes_examples": "fast",
+          "test_get_command_help_unknown_command": "fast"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_get_command_help_unknown_command",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 2,
+            "pytest_count": 2,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/cli/test_init_features_option.py": {
+        "file_path": "/workspace/devsynth/tests/unit/cli/test_init_features_option.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_init_cmd_accepts_feature_list": "fast",
+          "test_init_cmd_accepts_feature_json": "fast"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_init_cmd_accepts_feature_json",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 2,
+            "pytest_count": 2,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/adapters/providers/test_embeddings.py": {
+        "file_path": "/workspace/devsynth/tests/unit/adapters/providers/test_embeddings.py",
+        "has_pytest_import": true,
+        "test_functions": 7,
+        "markers": {
+          "test_openai_provider_embed_calls_api_succeeds": "medium",
+          "test_openai_provider_aembed_calls_api": "medium",
+          "test_lmstudio_provider_embed_calls_api_succeeds": "medium",
+          "test_embed_function_success_with_lmstudio_succeeds": "medium",
+          "test_aembed_function_success_with_lmstudio": "medium",
+          "test_lmstudio_provider_embed_error_succeeds": "slow",
+          "test_aembed_function_error_propagation": "medium"
+        },
+        "tests_with_markers": 7,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 6,
+            "pytest_count": 12,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          },
+          "slow": {
+            "file_count": 1,
+            "pytest_count": 7,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (6 in file, 12 recognized)"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "slow markers are not recognized by pytest (1 in file, 7 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/adapters/memory/test_memory_adapter.py": {
+        "file_path": "/workspace/devsynth/tests/unit/adapters/memory/test_memory_adapter.py",
+        "has_pytest_import": true,
+        "test_functions": 12,
+        "markers": {
+          "test_init_with_file_storage_succeeds": "medium",
+          "test_init_with_tinydb_storage_succeeds": "slow",
+          "test_init_with_duckdb_storage_succeeds": "slow",
+          "test_init_with_lmdb_storage_succeeds": "slow",
+          "test_init_with_kuzu_storage_succeeds": "medium",
+          "test_init_with_faiss_storage_succeeds": "medium",
+          "test_faiss_vector_store_operations_succeeds": "medium",
+          "test_memory_and_vector_store_integration_succeeds": "medium",
+          "test_init_with_rdflib_storage_succeeds": "medium",
+          "test_init_with_in_memory_storage_succeeds": "medium",
+          "test_lmdb_synchronizes_to_kuzu": "medium",
+          "test_faiss_vectors_synchronize_to_kuzu": "medium"
+        },
+        "tests_with_markers": 12,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_lmdb_synchronizes_to_kuzu",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_faiss_vectors_synchronize_to_kuzu",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 9,
+            "pytest_count": 9,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          },
+          "slow": {
+            "file_count": 3,
+            "pytest_count": 3,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 2 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/domain/models/test_wsde_base_methods.py": {
+        "file_path": "/workspace/devsynth/tests/unit/domain/models/test_wsde_base_methods.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_add_agents_succeeds": "medium",
+          "test_register_dialectical_hook_succeeds": "medium",
+          "test_hook_succeeds": "medium",
+          "test_send_message_succeeds": "medium",
+          "test_send_message_updates_memory_manager": "medium",
+          "test_broadcast_message_succeeds": "medium",
+          "test_get_messages_succeeds": "medium",
+          "test_conduct_peer_review_succeeds": "medium"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_hook_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 8,
+            "pytest_count": 7,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_hook_succeeds"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (8 in file, 7 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_edrr_coordinator.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_edrr_coordinator.py",
+        "has_pytest_import": true,
+        "test_functions": 20,
+        "markers": {
+          "test_initialization_succeeds": "medium",
+          "test_start_cycle_succeeds": "medium",
+          "test_expand_phase_execution_has_expected": "medium",
+          "test_differentiate_phase_execution_has_expected": "medium",
+          "test_refine_phase_execution_has_expected": "medium",
+          "test_retrospect_phase_execution_has_expected": "medium",
+          "test_generate_final_report_succeeds": "medium",
+          "test_execute_current_phase_has_expected": "medium",
+          "test_progress_to_phase_has_expected": "medium",
+          "test_progress_to_phase_dependency_failure_no_auto_fails": "medium",
+          "test_full_cycle_succeeds": "medium",
+          "test_progress_to_next_phase_has_expected": "medium",
+          "test_progress_to_next_phase_without_current_fails": "medium",
+          "test_start_cycle_from_manifest_succeeds": "medium",
+          "test_maybe_create_micro_cycles_succeeds": "medium",
+          "test_create_micro_cycle_succeeds": "medium",
+          "test_micro_cycle_result_aggregation_succeeds": "medium",
+          "test_execution_history_logging_succeeds": "medium",
+          "test_create_micro_cycle_triggers_termination_succeeds": "medium",
+          "test_safe_retrieve_always_returns_dict_for_list": "medium"
+        },
+        "tests_with_markers": 20,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_start_cycle_from_manifest_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 20,
+            "pytest_count": 20,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_coordinator_core.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_coordinator_core.py",
+        "has_pytest_import": true,
+        "test_functions": 19,
+        "markers": {
+          "test_initialization_succeeds": "medium",
+          "test_start_cycle_succeeds": "medium",
+          "test_start_cycle_from_manifest_succeeds": "medium",
+          "test_start_cycle_from_manifest_string_succeeds": "medium",
+          "test_progress_to_phase_has_expected": "medium",
+          "test_progress_to_next_phase_has_expected": "medium",
+          "test_execute_current_phase_has_expected": "medium",
+          "test_generate_report_succeeds": "medium",
+          "test_get_execution_traces_succeeds": "medium",
+          "test_get_execution_history_succeeds": "medium",
+          "test_get_performance_metrics_succeeds": "medium",
+          "test_decide_next_phase_has_expected": "medium",
+          "test_maybe_auto_progress_succeeds": "medium",
+          "test_start_cycle_with_invalid_task_is_valid": "medium",
+          "test_start_cycle_from_manifest_with_invalid_file_is_valid": "medium",
+          "test_progress_to_phase_without_cycle_has_expected": "medium",
+          "test_progress_to_next_phase_without_cycle_has_expected": "medium",
+          "test_execute_current_phase_without_cycle_has_expected": "medium",
+          "test_generate_report_without_cycle_succeeds": "medium"
+        },
+        "tests_with_markers": 19,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_progress_to_next_phase_without_cycle_has_expected",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_execute_current_phase_without_cycle_has_expected",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_generate_report_without_cycle_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 19,
+            "pytest_count": 19,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 3 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_templates.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_templates.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_template_definitions_succeeds": "medium",
+          "test_register_edrr_templates_succeeds": "medium",
+          "test_register_edrr_templates_error_handling_raises_error": "medium",
+          "test_template_for_each_phase_has_expected": "medium"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 4,
+            "pytest_count": 7,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_template_for_each_phase_has_expected"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (4 in file, 7 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_manifest_parser.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_manifest_parser.py",
+        "has_pytest_import": true,
+        "test_functions": 42,
+        "markers": {
+          "test_init_succeeds": "medium",
+          "test_parse_file_valid_is_valid": "medium",
+          "test_parse_file_invalid_json_is_valid": "medium",
+          "test_parse_file_not_found_succeeds": "medium",
+          "test_parse_string_valid_is_valid": "medium",
+          "test_parse_string_invalid_json_is_valid": "medium",
+          "test_validate_valid_is_valid": "medium",
+          "test_validate_invalid_is_valid": "medium",
+          "test_get_phase_instructions_has_expected": "medium",
+          "test_get_phase_instructions_no_manifest_has_expected": "medium",
+          "test_get_phase_instructions_phase_not_found_has_expected": "medium",
+          "test_get_phase_templates_has_expected": "medium",
+          "test_get_phase_templates_no_manifest_has_expected": "medium",
+          "test_get_phase_templates_phase_not_found_has_expected": "medium",
+          "test_get_phase_resources_has_expected": "medium",
+          "test_get_phase_resources_no_manifest_has_expected": "medium",
+          "test_get_phase_resources_phase_not_found_has_expected": "medium",
+          "test_get_manifest_id_succeeds": "medium",
+          "test_get_manifest_id_no_manifest_succeeds": "medium",
+          "test_get_manifest_description_succeeds": "medium",
+          "test_get_manifest_description_no_manifest_succeeds": "medium",
+          "test_get_manifest_metadata_succeeds": "medium",
+          "test_get_manifest_metadata_no_manifest_succeeds": "medium",
+          "test_get_manifest_metadata_no_metadata_succeeds": "medium",
+          "test_start_execution_succeeds": "medium",
+          "test_start_execution_no_manifest_succeeds": "medium",
+          "test_check_phase_dependencies_has_expected": "medium",
+          "test_check_phase_dependencies_no_manifest_has_expected": "medium",
+          "test_start_phase_has_expected": "medium",
+          "test_start_phase_no_manifest_has_expected": "medium",
+          "test_start_phase_dependencies_not_met_has_expected": "medium",
+          "test_complete_phase_has_expected": "medium",
+          "test_complete_phase_no_manifest_has_expected": "medium",
+          "test_complete_phase_not_in_progress_has_expected": "medium",
+          "test_complete_execution_succeeds": "medium",
+          "test_complete_execution_no_manifest_succeeds": "medium",
+          "test_complete_execution_not_all_phases_completed_has_expected": "medium",
+          "test_get_execution_trace_succeeds": "medium",
+          "test_get_execution_trace_no_manifest_succeeds": "medium",
+          "test_get_phase_status_has_expected": "medium",
+          "test_get_phase_status_no_manifest_has_expected": "medium",
+          "test_get_phase_status_unknown_phase_has_expected": "medium"
+        },
+        "tests_with_markers": 42,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_get_phase_templates_no_manifest_has_expected",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_get_phase_resources_no_manifest_has_expected",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_get_manifest_id_no_manifest_succeeds",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_get_manifest_description_no_manifest_succeeds",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_get_manifest_metadata_no_manifest_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 42,
+            "pytest_count": 42,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 5 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_recursive_edrr_coordinator.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_recursive_edrr_coordinator.py",
+        "has_pytest_import": true,
+        "test_functions": 26,
+        "markers": {
+          "test_initialization_with_recursion_support_succeeds": "medium",
+          "test_create_micro_cycle_succeeds": "medium",
+          "test_recursion_depth_limit_succeeds": "medium",
+          "test_create_micro_cycle_terminated_succeeds": "medium",
+          "test_micro_edrr_within_expand_phase_has_expected": "medium",
+          "test_micro_edrr_within_differentiate_phase_has_expected": "medium",
+          "test_micro_edrr_within_refine_phase_has_expected": "medium",
+          "test_micro_edrr_within_retrospect_phase_has_expected": "medium",
+          "test_granularity_threshold_check_succeeds": "medium",
+          "test_cost_benefit_analysis_succeeds": "medium",
+          "test_create_micro_cycle_termination_succeeds": "medium",
+          "test_quality_threshold_monitoring_succeeds": "medium",
+          "test_resource_limits_succeeds": "medium",
+          "test_human_judgment_override_succeeds": "medium",
+          "test_recursive_execution_tracking_succeeds": "medium",
+          "test_auto_micro_cycle_creation_succeeds": "medium",
+          "test_create_micro_cycle_max_depth_stop_fails": "medium",
+          "test_decide_next_phase_phase_complete_has_expected": "medium",
+          "test_decide_next_phase_timeout_has_expected": "medium",
+          "test_decide_next_phase_no_transition_returns_expected_result": "medium",
+          "test_should_terminate_recursion_all_factors_true_succeeds": "medium",
+          "test_should_terminate_recursion_all_factors_false_succeeds": "medium",
+          "test_get_performance_metrics_total_duration_succeeds": "medium",
+          "test_create_micro_cycle_persists_results_succeeds": "medium",
+          "test_micro_cycle_updates_parent_results_succeeds": "medium",
+          "test_human_continue_overrides_delimiting_principles_succeeds": "medium"
+        },
+        "tests_with_markers": 26,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 26,
+            "pytest_count": 27,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_create_micro_cycle_termination_succeeds"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (26 in file, 27 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_micro_cycle_execution.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_micro_cycle_execution.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_execute_micro_cycle_uses_dialectical_reasoning": "medium",
+          "test_execute_micro_cycle_handles_dialectical_errors": "medium",
+          "test_assess_result_quality_from_score": "medium",
+          "test_assess_result_quality_handles_error": "medium"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_assess_result_quality_handles_error",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 4,
+            "pytest_count": 4,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/config/test_unified_config_loader.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/config/test_unified_config_loader.py",
+        "has_pytest_import": true,
+        "test_functions": 5,
+        "markers": {
+          "test_load_from_yaml_succeeds": "medium",
+          "test_load_from_pyproject_succeeds": "medium",
+          "test_save_and_exists_succeeds": "medium",
+          "test_loader_save_function_yaml_succeeds": "medium",
+          "test_loader_save_function_pyproject_succeeds": "medium"
+        },
+        "tests_with_markers": 5,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_loader_save_function_pyproject_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 5,
+            "pytest_count": 5,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/edrr/test_progress_recursion.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/edrr/test_progress_recursion.py",
+        "has_pytest_import": true,
+        "test_functions": 9,
+        "markers": {
+          "test_progress_to_phase_auto_recursion_succeeds": "medium",
+          "test_should_terminate_recursion_granularity_succeeds": "medium",
+          "test_should_terminate_recursion_cost_benefit_succeeds": "medium",
+          "test_should_terminate_recursion_quality_threshold_succeeds": "medium",
+          "test_should_terminate_recursion_resource_limit_succeeds": "medium",
+          "test_should_terminate_recursion_human_override_succeeds": "medium",
+          "test_should_terminate_recursion_no_factors_succeeds": "medium",
+          "test_should_terminate_recursion_at_thresholds_succeeds": "medium",
+          "test_should_terminate_recursion_combined_factors_fails": "medium"
+        },
+        "tests_with_markers": 9,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 9,
+            "pytest_count": 10,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_should_terminate_recursion_human_override_succeeds"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (9 in file, 10 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/promises/test_basic_promise.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/promises/test_basic_promise.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_basic_promise_resolve_and_value": "medium",
+          "test_basic_promise_then_chains": "medium",
+          "test_basic_promise_catch_handles_rejection": "medium",
+          "test_access_value_wrong_state_raises": "medium"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_basic_promise_catch_handles_rejection",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_access_value_wrong_state_raises",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 4,
+            "pytest_count": 4,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 2 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/collaboration/test_memory_utils_edge_cases.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/collaboration/test_memory_utils_edge_cases.py",
+        "has_pytest_import": true,
+        "test_functions": 3,
+        "markers": {
+          "test_flush_memory_queue_handles_missing_manager": "medium",
+          "test_flush_memory_queue_without_sync_manager": "medium",
+          "test_restore_memory_queue_requeues_items_in_order": "medium"
+        },
+        "tests_with_markers": 3,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_flush_memory_queue_without_sync_manager",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 3,
+            "pytest_count": 3,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/collaboration/test_delegate_task.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/collaboration/test_delegate_task.py",
+        "has_pytest_import": true,
+        "test_functions": 5,
+        "markers": {
+          "test_team_task_returns_consensus_succeeds": "medium",
+          "test_team_task_no_agents_succeeds": "medium",
+          "test_invalid_task_format_succeeds": "medium",
+          "test_delegate_task_propagates_agent_error_succeeds": "medium",
+          "test_delegate_task_role_assignment_error_succeeds": "medium"
+        },
+        "tests_with_markers": 5,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_delegate_task_propagates_agent_error_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 5,
+            "pytest_count": 5,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_rdflib_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_rdflib_store.py",
+        "has_pytest_import": true,
+        "test_functions": 12,
+        "markers": {
+          "test_init_succeeds": "medium",
+          "test_store_and_retrieve_succeeds": "medium",
+          "test_retrieve_nonexistent_succeeds": "medium",
+          "test_search_succeeds": "medium",
+          "test_search_by_id_and_date_range_succeeds": "medium",
+          "test_delete_succeeds": "medium",
+          "test_token_usage_succeeds": "medium",
+          "test_persistence_succeeds": "medium",
+          "test_store_vector_succeeds": "medium",
+          "test_similarity_search_succeeds": "medium",
+          "test_delete_vector_succeeds": "medium",
+          "test_get_collection_stats_succeeds": "medium"
+        },
+        "tests_with_markers": 12,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_search_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 12,
+            "pytest_count": 12,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_vector_memory_adapter_extra.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_vector_memory_adapter_extra.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_similarity_empty_store": "medium",
+          "test_similarity_zero_norm": "medium",
+          "test_delete_missing": "medium",
+          "test_collection_stats": "medium"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_similarity_zero_norm",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_delete_missing",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_collection_stats",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 4,
+            "pytest_count": 4,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 3 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_basic_crud_adapters.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_basic_crud_adapters.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_basic_crud_lifecycle": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/memory/test_basic_crud_adapters.py [marker=medium]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_recovery.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_recovery.py",
+        "has_pytest_import": true,
+        "test_functions": 26,
+        "markers": {
+          "test_snapshot_initialization": "medium",
+          "test_add_item": "medium",
+          "test_remove_item": "medium",
+          "test_get_item": "medium",
+          "test_snapshot_save_and_load": "medium",
+          "test_snapshot_load_invalid_file": "medium",
+          "test_operationlog_initialization": "medium",
+          "test_operationlog_log_operation": "medium",
+          "test_operationlog_save_and_load": "medium",
+          "test_operationlog_load_invalid_file": "medium",
+          "test_replay": "medium",
+          "test_replay_with_time_range": "medium",
+          "test_replay_failure": "medium",
+          "test_recovery_manager_initialization": "medium",
+          "test_create_snapshot": "medium",
+          "test_get_operation_log": "medium",
+          "test_recovery_manager_log_operation": "medium",
+          "test_restore_from_snapshot": "medium",
+          "test_restore_from_snapshot_no_snapshot": "medium",
+          "test_restore_from_snapshot_failure": "medium",
+          "test_recover_store": "medium",
+          "test_recover_store_no_snapshot": "medium",
+          "test_successful_execution": "medium",
+          "test_execution_failure_with_recovery": "medium",
+          "test_no_snapshot_creation": "medium",
+          "test_global_recovery_manager": "medium"
+        },
+        "tests_with_markers": 26,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_snapshot_initialization",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_operationlog_initialization",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_operationlog_log_operation",
+            "marker_count": 3
+          },
+          {
+            "test_name": "test_recovery_manager_initialization",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_successful_execution",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 26,
+            "pytest_count": 26,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 5 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_memory_adapters_regression.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_memory_adapters_regression.py",
+        "has_pytest_import": true,
+        "test_functions": 3,
+        "markers": {
+          "test_store_retrieve_search_update": "medium",
+          "test_vector_adapter_operations": "medium",
+          "test_tinydb_adapter_transaction_support": "medium"
+        },
+        "tests_with_markers": 3,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 3,
+            "pytest_count": 4,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_store_retrieve_search_update"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (3 in file, 4 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_duckdb_store_hnsw.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_duckdb_store_hnsw.py",
+        "has_pytest_import": true,
+        "test_functions": 5,
+        "markers": {
+          "test_hnsw_initialization_succeeds": "medium",
+          "test_custom_hnsw_initialization_succeeds": "medium",
+          "test_hnsw_index_creation_succeeds": "medium",
+          "test_similarity_search_with_hnsw_succeeds": "medium",
+          "test_similarity_search_performance_comparison_succeeds": "medium"
+        },
+        "tests_with_markers": 5,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 5,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (5 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/memory/test_duckdb_store_hnsw.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_faiss_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_faiss_store.py",
+        "has_pytest_import": true,
+        "test_functions": 7,
+        "markers": {
+          "test_init_succeeds": "medium",
+          "test_store_vector_succeeds": "medium",
+          "test_retrieve_vector_nonexistent_succeeds": "medium",
+          "test_similarity_search_succeeds": "medium",
+          "test_delete_vector_succeeds": "medium",
+          "test_get_collection_stats_succeeds": "medium",
+          "test_persistence_succeeds": "medium"
+        },
+        "tests_with_markers": 7,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_similarity_search_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 7,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (7 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/memory/test_faiss_store.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_chromadb_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_chromadb_store.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_init_logs_error_on_bad_fallback_raises_error": "medium",
+          "test_init_fallback_when_collection_creation_fails": "medium",
+          "test_save_fallback_logs_error_raises_error": "medium",
+          "test_http_client_used_when_host_provided": "medium",
+          "test_persistent_client_used_by_default": "medium",
+          "test_ephemeral_client_used_in_no_file_mode": "medium",
+          "test_store_retrieve_delete_succeeds": "medium",
+          "test_search_by_metadata_succeeds": "medium"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 8,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (8 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/memory/test_chromadb_store.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_memory_manager.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_memory_manager.py",
+        "has_pytest_import": true,
+        "test_functions": 9,
+        "markers": {
+          "test_store_prefers_graph_for_edrr_succeeds": "medium",
+          "test_store_falls_back_to_tinydb_succeeds": "medium",
+          "test_store_falls_back_to_first_succeeds": "medium",
+          "test_retrieve_with_edrr_phase_succeeds": "medium",
+          "test_retrieve_with_edrr_phase_not_found_succeeds": "medium",
+          "test_retrieve_with_edrr_phase_with_metadata_succeeds": "medium",
+          "test_fallback_and_provider_succeeds": "medium",
+          "test_register_and_notify_sync_hook_succeeds": "fast",
+          "test_sync_hook_errors_are_logged": "fast"
+        },
+        "tests_with_markers": 9,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_retrieve_with_edrr_phase_with_metadata_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 2,
+            "pytest_count": 2,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          },
+          "medium": {
+            "file_count": 7,
+            "pytest_count": 7,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_retry.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_retry.py",
+        "has_pytest_import": true,
+        "test_functions": 16,
+        "markers": {
+          "test_retry_with_backoff_successful_execution": "medium",
+          "test_retry_with_backoff_retry_on_failure": "medium",
+          "test_retry_with_backoff_max_retries_exceeded": "medium",
+          "test_retry_with_backoff_exceptions_to_retry": "medium",
+          "test_retry_with_backoff_backoff_calculation": "medium",
+          "test_retry_with_backoff_max_backoff": "medium",
+          "test_retry_operation_successful_execution": "medium",
+          "test_retry_operation_retry_on_failure": "medium",
+          "test_retry_operation_max_retries_exceeded": "medium",
+          "test_retry_config_initialization": "medium",
+          "test_default_retry_config": "medium",
+          "test_quick_retry_config": "medium",
+          "test_persistent_retry_config": "medium",
+          "test_network_retry_config": "medium",
+          "test_with_retry_default_config": "medium",
+          "test_with_retry_custom_config": "medium"
+        },
+        "tests_with_markers": 16,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_retry_with_backoff_successful_execution",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_retry_operation_successful_execution",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_retry_config_initialization",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_with_retry_default_config",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 16,
+            "pytest_count": 16,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 4 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_fallback.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_fallback.py",
+        "has_pytest_import": true,
+        "test_functions": 27,
+        "markers": {
+          "test_initialization": "medium",
+          "test_store_primary_success": "medium",
+          "test_store_primary_failure": "medium",
+          "test_store_all_failures": "medium",
+          "test_retrieve_primary_success": "medium",
+          "test_retrieve_primary_failure": "medium",
+          "test_retrieve_primary_not_found": "medium",
+          "test_retrieve_all_failures": "medium",
+          "test_search_primary_success": "medium",
+          "test_search_primary_failure": "medium",
+          "test_search_all_failures": "medium",
+          "test_delete_primary_success": "medium",
+          "test_delete_primary_failure": "medium",
+          "test_delete_all_failures": "medium",
+          "test_get_all_items_primary_success": "medium",
+          "test_get_all_items_primary_failure": "medium",
+          "test_get_all_items_all_failures": "medium",
+          "test_begin_transaction_primary_success": "medium",
+          "test_begin_transaction_primary_failure": "medium",
+          "test_begin_transaction_all_failures": "medium",
+          "test_commit_transaction_primary_success": "medium",
+          "test_commit_transaction_primary_failure": "medium",
+          "test_commit_transaction_all_failures": "medium",
+          "test_reconcile_pending_operations": "medium",
+          "test_get_store_status": "medium",
+          "test_get_pending_operations_count": "medium",
+          "test_with_fallback": "medium"
+        },
+        "tests_with_markers": 27,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_initialization",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 27,
+            "pytest_count": 27,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_sync_across_backends.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_sync_across_backends.py",
+        "has_pytest_import": true,
+        "test_functions": 3,
+        "markers": {
+          "test_basic_synchronization_succeeds": "medium",
+          "test_conflict_detection_and_resolution": "medium",
+          "test_async_queue_flush_succeeds": "medium"
+        },
+        "tests_with_markers": 3,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 3,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (3 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/memory/test_sync_across_backends.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_duckdb_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_duckdb_store.py",
+        "has_pytest_import": true,
+        "test_functions": 11,
+        "markers": {
+          "test_init_succeeds": "medium",
+          "test_store_and_retrieve_succeeds": "medium",
+          "test_retrieve_nonexistent_succeeds": "medium",
+          "test_search_succeeds": "medium",
+          "test_delete_succeeds": "medium",
+          "test_token_usage_succeeds": "medium",
+          "test_persistence_succeeds": "medium",
+          "test_store_vector_succeeds": "medium",
+          "test_similarity_search_succeeds": "medium",
+          "test_delete_vector_succeeds": "medium",
+          "test_get_collection_stats_succeeds": "medium"
+        },
+        "tests_with_markers": 11,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_search_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 11,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (11 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/memory/test_duckdb_store.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_retry_logic.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_retry_logic.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_condition_callback_aborts_retry": "medium",
+          "test_circuit_breaker_stops_retries": "medium"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_condition_callback_aborts_retry",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 2,
+            "pytest_count": 2,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_knowledge_graph_utils.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_knowledge_graph_utils.py",
+        "has_pytest_import": true,
+        "test_functions": 10,
+        "markers": {
+          "test_find_related_items_succeeds": "medium",
+          "test_find_items_by_relationship_succeeds": "medium",
+          "test_get_item_relationships_succeeds": "medium",
+          "test_create_and_delete_relationship_succeeds": "medium",
+          "test_query_graph_pattern_succeeds": "medium",
+          "test_get_subgraph_succeeds": "medium",
+          "test_synchronize_basic_succeeds": "medium",
+          "test_synchronize_missing_adapter_succeeds": "medium",
+          "test_synchronize_bidirectional_succeeds": "medium",
+          "test_update_and_queue_succeeds": "medium"
+        },
+        "tests_with_markers": 10,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_synchronize_bidirectional_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 10,
+            "pytest_count": 10,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_graph_memory_adapter.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_graph_memory_adapter.py",
+        "has_pytest_import": true,
+        "test_functions": 19,
+        "markers": {
+          "test_initialization_basic_succeeds": "medium",
+          "test_initialization_rdflib_succeeds": "medium",
+          "test_store_and_retrieve_basic_succeeds": "medium",
+          "test_store_and_retrieve_rdflib_succeeds": "medium",
+          "test_store_with_relationships_succeeds": "medium",
+          "test_search_succeeds": "medium",
+          "test_delete_succeeds": "medium",
+          "test_get_all_relationships_succeeds": "medium",
+          "test_add_memory_volatility_succeeds": "medium",
+          "test_apply_memory_decay_succeeds": "medium",
+          "test_advanced_memory_decay_succeeds": "medium",
+          "test_integrate_with_store_succeeds": "medium",
+          "test_integrate_with_vector_store_succeeds": "medium",
+          "test_save_graph_with_rdflib_store_succeeds": "medium",
+          "test_memory_item_triple_creation_succeeds": "medium",
+          "test_cascading_query_with_missing_adapter_succeeds": "medium",
+          "test_context_aware_query_succeeds": "medium",
+          "test_query_router_route_succeeds": "medium",
+          "test_store_and_retrieve_with_edrr_phase_has_expected": "medium"
+        },
+        "tests_with_markers": 19,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_context_aware_query_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 19,
+            "pytest_count": 19,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_lmdb_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_lmdb_store.py",
+        "has_pytest_import": true,
+        "test_functions": 10,
+        "markers": {
+          "test_init_succeeds": "medium",
+          "test_store_and_retrieve_succeeds": "medium",
+          "test_retrieve_nonexistent_succeeds": "medium",
+          "test_search_succeeds": "medium",
+          "test_delete_succeeds": "medium",
+          "test_token_usage_succeeds": "medium",
+          "test_persistence_succeeds": "medium",
+          "test_close_and_reopen_succeeds": "medium",
+          "test_transaction_isolation_succeeds": "medium",
+          "test_transaction_abort_succeeds": "medium"
+        },
+        "tests_with_markers": 10,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_search_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 10,
+            "pytest_count": 10,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/memory/test_tinydb_store.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/memory/test_tinydb_store.py",
+        "has_pytest_import": true,
+        "test_functions": 7,
+        "markers": {
+          "test_init_succeeds": "medium",
+          "test_store_and_retrieve_succeeds": "medium",
+          "test_retrieve_nonexistent_succeeds": "medium",
+          "test_search_succeeds": "medium",
+          "test_delete_succeeds": "medium",
+          "test_token_usage_succeeds": "medium",
+          "test_persistence_succeeds": "medium"
+        },
+        "tests_with_markers": 7,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_search_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 7,
+            "pytest_count": 7,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/code_analysis/test_self_analyzer.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/code_analysis/test_self_analyzer.py",
+        "has_pytest_import": true,
+        "test_functions": 10,
+        "markers": {
+          "test_initialization_succeeds": "medium",
+          "test_analyze_succeeds": "medium",
+          "test_analyze_architecture_succeeds": "medium",
+          "test_detect_architecture_type_succeeds": "medium",
+          "test_identify_layers_succeeds": "medium",
+          "test_analyze_layer_dependencies_succeeds": "medium",
+          "test_check_architecture_violations_succeeds": "medium",
+          "test_analyze_code_quality_succeeds": "medium",
+          "test_analyze_test_coverage_succeeds": "medium",
+          "test_identify_improvement_opportunities_succeeds": "medium"
+        },
+        "tests_with_markers": 10,
+        "tests_without_markers": 0,
+        "misaligned_markers": [
+          {
+            "line": 66,
+            "marker": "medium",
+            "text": "@pytest.mark.medium"
+          }
+        ],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 10,
+            "pytest_count": 10,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "misaligned_markers",
+            "message": "File has 1 misaligned markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/code_analysis/test_transformer.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/code_analysis/test_transformer.py",
+        "has_pytest_import": true,
+        "test_functions": 11,
+        "markers": {
+          "test_record_change_succeeds": "medium",
+          "test_remove_unused_imports_succeeds": "medium",
+          "test_remove_redundant_assignments_succeeds": "medium",
+          "test_remove_unused_variables_succeeds": "medium",
+          "test_optimize_string_literals_succeeds": "medium",
+          "test_improve_code_style_succeeds": "medium",
+          "test_transform_code_succeeds": "medium",
+          "test_transform_file_succeeds": "medium",
+          "test_transform_directory_succeeds": "medium",
+          "test_find_python_files_succeeds": "medium",
+          "test_count_symbol_usage_succeeds": "medium"
+        },
+        "tests_with_markers": 11,
+        "tests_without_markers": 0,
+        "misaligned_markers": [
+          {
+            "line": 36,
+            "marker": "medium",
+            "text": "@pytest.mark.medium"
+          },
+          {
+            "line": 54,
+            "marker": "medium",
+            "text": "@pytest.mark.medium"
+          }
+        ],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 11,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "misaligned_markers",
+            "message": "File has 2 misaligned markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (11 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/unit/application/code_analysis/test_transformer.py [marker=medium]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/code_analysis/test_project_state_analyzer.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/code_analysis/test_project_state_analyzer.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_initialization_succeeds": "medium",
+          "test_analyze_succeeds": "medium",
+          "test_index_files_succeeds": "medium",
+          "test_detect_languages_succeeds": "medium",
+          "test_infer_architecture_succeeds": "medium",
+          "test_identify_components_succeeds": "medium",
+          "test_analyze_requirements_spec_alignment_succeeds": "medium",
+          "test_generate_health_report_succeeds": "medium"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [
+          {
+            "line": 21,
+            "marker": "medium",
+            "text": "@pytest.mark.medium"
+          }
+        ],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 8,
+            "pytest_count": 8,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "misaligned_markers",
+            "message": "File has 1 misaligned markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/agents/test_agent_memory_integration.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/agents/test_agent_memory_integration.py",
+        "has_pytest_import": true,
+        "test_functions": 15,
+        "markers": {
+          "test_store_agent_solution_succeeds": "medium",
+          "test_retrieve_agent_solutions_succeeds": "medium",
+          "test_store_dialectical_reasoning_succeeds": "medium",
+          "test_retrieve_dialectical_reasoning_succeeds": "medium",
+          "test_store_agent_context_succeeds": "medium",
+          "test_retrieve_agent_context_succeeds": "medium",
+          "test_search_similar_solutions_succeeds": "medium",
+          "test_search_similar_solutions_no_vector_store_succeeds": "medium",
+          "test_store_memory_succeeds": "medium",
+          "test_retrieve_memory_succeeds": "medium",
+          "test_search_memory_succeeds": "medium",
+          "test_update_memory_succeeds": "medium",
+          "test_delete_memory_succeeds": "medium",
+          "test_store_memory_with_context_succeeds": "medium",
+          "test_retrieve_memory_with_context_succeeds": "medium"
+        },
+        "tests_with_markers": 15,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_store_memory_with_context_succeeds",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 15,
+            "pytest_count": 15,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 1 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/agents/test_multi_language_code.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/agents/test_multi_language_code.py",
+        "has_pytest_import": true,
+        "test_functions": 8,
+        "markers": {
+          "test_initialization_succeeds": "medium",
+          "test_process_supported_languages_succeed": "medium",
+          "test_process_polyglot_succeeds": "medium",
+          "test_process_polyglot_with_invalid_language": "medium",
+          "test_process_unsupported_language_raises_error": "medium",
+          "test_process_wsde_creation_error_logs_and_returns": "medium",
+          "test_process_calls_llm_generate": "medium",
+          "test_process_without_llm_returns_placeholder": "medium"
+        },
+        "tests_with_markers": 8,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_process_polyglot_succeeds",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_process_unsupported_language_raises_error",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_process_wsde_creation_error_logs_and_returns",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_process_calls_llm_generate",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_process_without_llm_returns_placeholder",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 8,
+            "pytest_count": 9,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_process_supported_languages_succeed"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 5 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (8 in file, 9 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/agents/test_test_agent.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/agents/test_test_agent.py",
+        "has_pytest_import": true,
+        "test_functions": 5,
+        "markers": {
+          "test_agent": "medium",
+          "test_initialization_succeeds": "medium",
+          "test_process_succeeds": "medium",
+          "test_get_capabilities_with_custom_capabilities_succeeds": "medium",
+          "test_process_error_handling": "medium"
+        },
+        "tests_with_markers": 5,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 5,
+            "pytest_count": 4,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_agent"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (5 in file, 4 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/unit/application/cli/test_doctor_cmd.py": {
+        "file_path": "/workspace/devsynth/tests/unit/application/cli/test_doctor_cmd.py",
+        "has_pytest_import": true,
+        "test_functions": 12,
+        "markers": {
+          "test_doctor_cmd_old_python_and_missing_env_warn_succeeds": "medium",
+          "test_doctor_cmd_success_is_valid": "medium",
+          "test_doctor_cmd_invalid_config_is_valid": "medium",
+          "test_doctor_cmd_missing_env_vars_succeeds": "medium",
+          "test_doctor_cmd_warns_missing_optional_feature_pkg_succeeds": "medium",
+          "test_doctor_cmd_warns_missing_memory_store_pkg_succeeds": "medium",
+          "test_doctor_cmd_warns_missing_uvicorn_succeeds": "medium",
+          "test_check_cmd_alias_succeeds": "medium",
+          "test_doctor_cmd_invokes_service_check": "medium",
+          "test_doctor_cmd_warns_missing_required_dependency": "medium",
+          "test_doctor_cmd_reports_missing_directories": "medium",
+          "test_doctor_cmd_quick_tests_failure_warns": "medium"
+        },
+        "tests_with_markers": 12,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 12,
+            "pytest_count": 14,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_doctor_cmd_missing_env_vars_succeeds",
+              "test_doctor_cmd_warns_missing_memory_store_pkg_succeeds"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (12 in file, 14 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/deployment/test_deployment_scripts.py": {
+        "file_path": "/workspace/devsynth/tests/integration/deployment/test_deployment_scripts.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_bootstrap_env_refuses_root": "fast",
+          "test_health_check_validates_url": "fast",
+          "test_prometheus_exporter_refuses_root": "fast",
+          "test_stack_scripts_env_permissions": "fast"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "fast": {
+            "file_count": 4,
+            "pytest_count": 5,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_stack_scripts_env_permissions"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "fast markers are not recognized by pytest (4 in file, 5 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/collaboration/test_voting_summary_edrr.py": {
+        "file_path": "/workspace/devsynth/tests/integration/collaboration/test_voting_summary_edrr.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_voting_summary_in_edrr_phases": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 4,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": [
+              "test_voting_summary_in_edrr_phases"
+            ]
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 4 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_agentapi_routes.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_agentapi_routes.py",
+        "has_pytest_import": true,
+        "test_functions": 3,
+        "markers": {
+          "test_init_route_succeeds": "medium",
+          "test_gather_route_succeeds": "medium",
+          "test_synthesize_and_status_succeeds": "medium"
+        },
+        "tests_with_markers": 3,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 3,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (3 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/general/test_agentapi_routes.py [marker=medium]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_query_router_integration.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_query_router_integration.py",
+        "has_pytest_import": true,
+        "test_functions": 4,
+        "markers": {
+          "test_direct_query": "medium",
+          "test_cross_store_query": "medium",
+          "test_cross_store_query_subset": "medium",
+          "test_federated_query": "medium"
+        },
+        "tests_with_markers": 4,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_cross_store_query",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_federated_query",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 4,
+            "pytest_count": 4,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 2 tests with duplicate markers"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_graph_memory_error_handling.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_graph_memory_error_handling.py",
+        "has_pytest_import": true,
+        "test_functions": 10,
+        "markers": {
+          "test_store_with_invalid_path_raises_permission_error": "medium",
+          "test_retrieve_nonexistent_item_succeeds": "medium",
+          "test_delete_nonexistent_item_succeeds": "medium",
+          "test_search_with_invalid_criteria_returns_empty_list": "medium",
+          "test_query_related_items_nonexistent_succeeds": "medium",
+          "test_store_with_corrupted_graph_raises_memory_store_error": "medium",
+          "test_concurrent_access_succeeds": "medium",
+          "test_store_and_retrieve_with_special_characters_succeeds": "medium",
+          "test_store_and_retrieve_with_unicode_characters_succeeds": "medium",
+          "test_store_with_very_large_content_succeeds": "slow"
+        },
+        "tests_with_markers": 10,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [
+          {
+            "test_name": "test_delete_nonexistent_item_succeeds",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_search_with_invalid_criteria_returns_empty_list",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_query_related_items_nonexistent_succeeds",
+            "marker_count": 2
+          },
+          {
+            "test_name": "test_store_with_corrupted_graph_raises_memory_store_error",
+            "marker_count": 2
+          }
+        ],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 9,
+            "pytest_count": 10,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          },
+          "slow": {
+            "file_count": 1,
+            "pytest_count": 1,
+            "recognized": true,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "duplicate_markers",
+            "message": "File has 4 tests with duplicate markers"
+          },
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (9 in file, 10 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_provider_system_async.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_provider_system_async.py",
+        "has_pytest_import": true,
+        "test_functions": 5,
+        "markers": {
+          "test_openai_provider_acomplete": "medium",
+          "test_acomplete_function": "medium",
+          "test_aembed_function": "medium",
+          "test_fallback_provider_acomplete": "medium",
+          "test_fallback_provider_aembed": "medium"
+        },
+        "tests_with_markers": 5,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 5,
+            "pytest_count": 15,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (5 in file, 15 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_agent_api.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_agent_api.py",
+        "has_pytest_import": true,
+        "test_functions": 9,
+        "markers": {
+          "test_cmd": "medium",
+          "test_init_route_succeeds": "medium",
+          "test_gather_route_succeeds": "medium",
+          "test_synthesize_and_status_succeeds": "medium",
+          "test_spec_route_succeeds": "medium",
+          "test_test_route_succeeds": "medium",
+          "test_code_route_succeeds": "medium",
+          "test_doctor_route_succeeds": "medium",
+          "test_edrr_cycle_route_succeeds": "medium"
+        },
+        "tests_with_markers": 9,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 9,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (9 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/general/test_agent_api.py [marker=medium]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_agent_api_security.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_agent_api_security.py",
+        "has_pytest_import": true,
+        "test_functions": 6,
+        "markers": {
+          "test_api_requires_authentication_succeeds": "medium",
+          "test_api_authentication_disabled_succeeds": "medium",
+          "test_api_error_handling_raises_error": "medium",
+          "test_api_validation_is_valid": "medium",
+          "test_api_health_endpoint_succeeds": "medium",
+          "test_api_metrics_endpoint_succeeds": "medium"
+        },
+        "tests_with_markers": 6,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 6,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 2",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (6 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/general/test_agent_api_security.py [marker=medium]: exit code 2"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/general/test_provider_system.py": {
+        "file_path": "/workspace/devsynth/tests/integration/general/test_provider_system.py",
+        "has_pytest_import": true,
+        "test_functions": 11,
+        "markers": {
+          "test_get_provider_config_has_expected": "medium",
+          "test_create_openai_provider_has_expected": "medium",
+          "test_create_lm_studio_provider_has_expected": "medium",
+          "test_fallback_to_lm_studio_succeeds": "medium",
+          "test_openai_complete_succeeds": "medium",
+          "test_lm_studio_complete_succeeds": "medium",
+          "test_fallback_provider_complete_has_expected": "medium",
+          "test_fallback_provider_all_fail_fails": "medium",
+          "test_get_provider_has_expected": "medium",
+          "test_complete_function_succeeds": "medium",
+          "test_embed_function_succeeds": "medium"
+        },
+        "tests_with_markers": 11,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 11,
+            "pytest_count": 13,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (11 in file, 13 recognized)"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_faiss_transactions.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_faiss_transactions.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_faiss_transaction_commit_and_rollback": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_faiss_transactions.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_cross_store_query.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_cross_store_query.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_cross_store_query_returns_results": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_cross_store_query.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_cross_store_transactions.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_cross_store_transactions.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_cross_store_transaction_commit": "medium",
+          "test_cross_store_transaction_rollback": "medium"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 2,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (2 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_cross_store_transactions.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_multistore_transaction_wrapper.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_multistore_transaction_wrapper.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_transaction_context_commit_and_rollback": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_multistore_transaction_wrapper.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_cross_store_sync.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_cross_store_sync.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_full_backend_synchronization": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_cross_store_sync.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_chromadb_adapter_transactions.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_chromadb_adapter_transactions.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_chromadb_transaction_commit_and_rollback": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_chromadb_adapter_transactions.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_sync_manager_core_transactions.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_sync_manager_core_transactions.py",
+        "has_pytest_import": true,
+        "test_functions": 2,
+        "markers": {
+          "test_synchronize_core_commit": "medium",
+          "test_synchronize_core_rollback": "medium"
+        },
+        "tests_with_markers": 2,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 2,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (2 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_sync_manager_core_transactions.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_transaction_failure_recovery.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_transaction_failure_recovery.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_commit_failure_triggers_rollback": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_transaction_failure_recovery.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_reverse_sync_retrieval.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_reverse_sync_retrieval.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_bidirectional_persistence_and_retrieval": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_reverse_sync_retrieval.py [marker=medium]: exit code 5"
+          }
+        ]
+      },
+      "/workspace/devsynth/tests/integration/memory/test_transactional_sync.py": {
+        "file_path": "/workspace/devsynth/tests/integration/memory/test_transactional_sync.py",
+        "has_pytest_import": true,
+        "test_functions": 1,
+        "markers": {
+          "test_transactional_sync_rollback": "medium"
+        },
+        "tests_with_markers": 1,
+        "tests_without_markers": 0,
+        "misaligned_markers": [],
+        "duplicate_markers": [],
+        "recognized_markers": {
+          "medium": {
+            "file_count": 1,
+            "pytest_count": 0,
+            "recognized": false,
+            "registered_in_pytest_ini": true,
+            "error": "exit code 5",
+            "uncollected_tests": []
+          }
+        },
+        "issues": [
+          {
+            "type": "unrecognized_markers",
+            "message": "medium markers are not recognized by pytest (1 in file, 0 recognized)"
+          },
+          {
+            "type": "pytest_error",
+            "marker": "medium",
+            "message": "pytest collection failed for /workspace/devsynth/tests/integration/memory/test_transactional_sync.py [marker=medium]: exit code 5"
+          }
+        ]
+      }
+    },
     "subprocess_timeouts": 0,
-    "success": true
+    "success": false
   }
 }

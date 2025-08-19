@@ -65,7 +65,7 @@ def mock_code_analysis():
 
 @pytest.fixture
 @pytest.mark.medium
-def test_project_dir_succeeds():
+def project_dir_fixture():
     """Create a temporary directory with a test project structure.
 
     ReqID: N/A"""
@@ -98,10 +98,10 @@ def test_project_dir_succeeds():
             "from src.application.controllers.user_controller import UserController\n\ndef get_user_endpoint(user_id):\n    controller = UserController(None)\n    return controller.get_user(user_id)"
         )
         (project_dir / "tests" / "unit" / "test_user.py").write_text(
-            "def test_user_creation():\n    from src.domain.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
+            "def user_creation_test():\n    from src.domain.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
         )
         (project_dir / "tests" / "integration" / "test_user_api.py").write_text(
-            "def test_get_user_endpoint():\n    from src.adapters.api.user_api import get_user_endpoint\n    user = get_user_endpoint(1)\n    assert user.name == 'Test'"
+            "def get_user_endpoint_test():\n    from src.adapters.api.user_api import get_user_endpoint\n    user = get_user_endpoint(1)\n    assert user.name == 'Test'"
         )
         yield str(project_dir)
 
@@ -123,11 +123,11 @@ class TestSelfAnalyzer:
         assert analyzer.project_root == "/path/to/project"
 
     @pytest.mark.medium
-    def test_analyze_succeeds(self, test_project_dir_succeeds):
+    def test_analyze_succeeds(self, project_dir_fixture):
         """Test the analyze method.
 
         ReqID: N/A"""
-        analyzer = SelfAnalyzer(test_project_dir_succeeds)
+        analyzer = SelfAnalyzer(project_dir_fixture)
         result = analyzer.analyze()
         assert "code_analysis" in result
         assert "insights" in result

@@ -65,6 +65,7 @@ def test_conflict_detection_and_resolution(stores):
 
 
 @pytest.mark.asyncio
+@pytest.mark.medium
 async def test_async_queue_flush_succeeds(stores):
     tiny, kuzu, _ = stores
     manager = _manager(tiny, kuzu, stores[2], async_mode=True)

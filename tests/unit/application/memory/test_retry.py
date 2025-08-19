@@ -25,19 +25,18 @@ class TestRetryWithBackoff:
 
     @pytest.mark.medium
     @pytest.mark.medium
-    def test_successful_execution(self):
+    def test_retry_with_backoff_successful_execution(self):
         """Test that the decorator returns the result when the function succeeds."""
 
         @retry_with_backoff(max_retries=3)
-        @pytest.mark.medium
-        def test_func(arg1, arg2=None):
+        def decorated_func(arg1, arg2=None):
             return f"{arg1}-{arg2}"
 
-        result = test_func("value1", arg2="value2")
+        result = decorated_func("value1", arg2="value2")
         assert result == "value1-value2"
 
     @pytest.mark.medium
-    def test_retry_on_failure(self):
+    def test_retry_with_backoff_retry_on_failure(self):
         """Test that the decorator retries when the function fails."""
         mock_func = MagicMock()
         mock_func.side_effect = [
@@ -53,7 +52,7 @@ class TestRetryWithBackoff:
         assert mock_func.call_count == 3
 
     @pytest.mark.medium
-    def test_max_retries_exceeded(self):
+    def test_retry_with_backoff_max_retries_exceeded(self):
         """Test that the decorator raises RetryError when max retries is exceeded."""
         mock_func = MagicMock(side_effect=ValueError("test error"))
         decorated_func = retry_with_backoff(
@@ -65,7 +64,7 @@ class TestRetryWithBackoff:
         assert mock_func.call_count == 3
 
     @pytest.mark.medium
-    def test_exceptions_to_retry(self):
+    def test_retry_with_backoff_exceptions_to_retry(self):
         """Test that the decorator only retries specified exceptions."""
         mock_func = MagicMock()
         mock_func.side_effect = [
@@ -81,7 +80,7 @@ class TestRetryWithBackoff:
         assert mock_func.call_count == 2
 
     @pytest.mark.medium
-    def test_backoff_calculation(self):
+    def test_retry_with_backoff_backoff_calculation(self):
         """Test that the backoff time increases exponentially."""
         with patch("time.sleep") as mock_sleep:
             mock_func = MagicMock(side_effect=ValueError("test error"))
@@ -96,7 +95,7 @@ class TestRetryWithBackoff:
             assert mock_sleep.call_args_list[2][0][0] == 4.0
 
     @pytest.mark.medium
-    def test_max_backoff(self):
+    def test_retry_with_backoff_max_backoff(self):
         """Test that the backoff time is capped at max_backoff."""
         with patch("time.sleep") as mock_sleep:
             mock_func = MagicMock(side_effect=ValueError("test error"))
@@ -120,15 +119,14 @@ class TestRetryOperation:
 
     @pytest.mark.medium
     @pytest.mark.medium
-    def test_successful_execution(self):
+    def test_retry_operation_successful_execution(self):
         """Test that retry_operation returns the result when the function succeeds."""
 
-        @pytest.mark.medium
-        def test_func(arg1, arg2=None):
+        def decorated_func(arg1, arg2=None):
             return f"{arg1}-{arg2}"
 
         result = retry_operation(
-            test_func,
+            decorated_func,
             max_retries=3,
             initial_backoff=0.01,
             arg1="value1",
@@ -137,7 +135,7 @@ class TestRetryOperation:
         assert result == "value1-value2"
 
     @pytest.mark.medium
-    def test_retry_on_failure(self):
+    def test_retry_operation_retry_on_failure(self):
         """Test that retry_operation retries when the function fails."""
         mock_func = MagicMock()
         mock_func.side_effect = [
@@ -152,7 +150,7 @@ class TestRetryOperation:
         assert mock_func.call_count == 3
 
     @pytest.mark.medium
-    def test_max_retries_exceeded(self):
+    def test_retry_operation_max_retries_exceeded(self):
         """Test that retry_operation raises RetryError when max retries is exceeded."""
         mock_func = MagicMock(side_effect=ValueError("test error"))
         with pytest.raises(RetryError) as excinfo:
@@ -241,8 +239,7 @@ class TestWithRetry:
             mock_retry.return_value = lambda f: f
 
             @with_retry()
-            @pytest.mark.medium
-            def test_func(self):
+            def dummy_func(self):
                 return "success"
 
             mock_retry.assert_called_once_with(
@@ -275,8 +272,7 @@ class TestWithRetry:
             mock_retry.return_value = lambda f: f
 
             @with_retry(custom_config)
-            @pytest.mark.medium
-            def test_func(self):
+            def dummy_func(self):
                 return "success"
 
             mock_retry.assert_called_once_with(
