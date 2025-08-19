@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/recursive-edrr-coordinator.md, tests/behavior/features/recursive_edrr_coordinator.feature
 
 ## Problem Statement
-<description>
+Recursive EDRR Coordinator is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/recursive-edrr-coordinator.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/recursive_edrr_coordinator.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

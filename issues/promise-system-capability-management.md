@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/promise-system-capability-management.md, tests/behavior/features/promise_system_capability_management.feature
 
 ## Problem Statement
-<description>
+Promise System Capability Management is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/promise-system-capability-management.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/promise_system_capability_management.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

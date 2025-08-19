@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/ast-based-code-analysis-and-transformation.md, tests/behavior/features/ast_based_code_analysis_and_transformation.feature
 
 ## Problem Statement
-<description>
+AST-Based Code Analysis and Transformation is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/ast-based-code-analysis-and-transformation.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/ast_based_code_analysis_and_transformation.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/cli-ui-parity.md, tests/behavior/features/cli_ui_parity.feature
 
 ## Problem Statement
-<description>
+CLI UI Parity is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/cli-ui-parity.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/cli_ui_parity.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

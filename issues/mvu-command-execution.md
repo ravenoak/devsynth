@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/mvu-command-execution.md, tests/behavior/features/mvu/command_execution.feature
 
 ## Problem Statement
-<description>
+MVU Command Execution is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/mvu-command-execution.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/mvu/command_execution.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/multi-agent-collaboration.md, tests/behavior/features/multi_agent_collaboration.feature
 
 ## Problem Statement
-<description>
+Multi-Agent Collaboration is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/multi-agent-collaboration.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/multi_agent_collaboration.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.

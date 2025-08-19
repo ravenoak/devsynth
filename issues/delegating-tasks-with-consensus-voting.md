@@ -5,11 +5,14 @@ Priority: low
 Dependencies: docs/specifications/delegating-tasks-with-consensus-voting.md, tests/behavior/features/delegating_tasks_with_consensus_voting.feature
 
 ## Problem Statement
-<description>
+Delegating tasks with consensus voting is not yet implemented, limiting DevSynth's capabilities.
 
 
 ## Action Plan
-- <tasks>
+- Review `docs/specifications/delegating-tasks-with-consensus-voting.md` for requirements.
+- Implement the feature to satisfy the requirements.
+- Add or update BDD tests in `tests/behavior/features/delegating_tasks_with_consensus_voting.feature`.
+- Update documentation as needed.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
