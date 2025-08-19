@@ -1,7 +1,7 @@
 # Configuration Loader
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/configuration-loader.md, tests/behavior/features/configuration_loader.feature
 
 ## Problem Statement

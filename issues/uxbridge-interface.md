@@ -1,8 +1,8 @@
 # UXBridge Interface
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 2
 Status: in progress
-Priority: low
-Dependencies: docs/specifications/uxbridge-interface.md, tests/behavior/features/uxbridge_interface.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/uxbridge-interface.md, tests/behavior/features/uxbridge_interface.feature
 
 ## Problem Statement
 UXBridge Interface is not yet implemented, limiting DevSynth's capabilities.

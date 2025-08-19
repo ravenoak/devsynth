@@ -1,7 +1,7 @@
 # Error Handling
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/error-handling.md, tests/behavior/features/error_handling.feature
 
 ## Problem Statement

@@ -1,8 +1,8 @@
 # WebUI Gather Wizard
-Milestone: 0.1.0-beta.1
+Milestone: Phase 2
 Status: in progress
 Priority: medium
-Dependencies: docs/specifications/webui-gather-wizard.md, tests/behavior/features/webui_gather_wizard.feature
+Dependencies: Phase 1 completion, docs/specifications/webui-gather-wizard.md, tests/behavior/features/webui_gather_wizard.feature
 
 ## Problem Statement
 WebUI Gather Wizard is not yet implemented, limiting DevSynth's capabilities.

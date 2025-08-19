@@ -1,5 +1,5 @@
 # Expand test generation capabilities
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 1
 Status: blocked
 
 Priority: high

@@ -1,8 +1,8 @@
 # Critical recommendations follow-up
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
 
-Priority: low
+Priority: high
 Dependencies: [Implement SDLC security audits](archived/implement-sdlc-security-audits.md), [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 
 ## Problem Statement

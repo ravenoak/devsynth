@@ -1,8 +1,8 @@
 # Prompt Management with DPSy-AI
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 3
 Status: in progress
 Priority: low
-Dependencies: docs/specifications/prompt-management-with-dpsy-ai.md, tests/behavior/features/prompt_management_with_dpsy_ai.feature
+Dependencies: Phase 2 completion, docs/specifications/prompt-management-with-dpsy-ai.md, tests/behavior/features/prompt_management_with_dpsy_ai.feature
 
 ## Problem Statement
 Prompt Management with DPSy-AI is not yet implemented, limiting DevSynth's capabilities.

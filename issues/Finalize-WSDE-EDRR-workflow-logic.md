@@ -1,9 +1,9 @@
 # Finalize WSDE/EDRR workflow logic
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 3
 Status: blocked
 
 Priority: low
-Dependencies: [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
+Dependencies: Phase 2 completion, [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
 
 ## Problem Statement
 Finalize WSDE/EDRR workflow logic is not yet implemented, limiting DevSynth's capabilities.

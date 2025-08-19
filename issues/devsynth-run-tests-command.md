@@ -1,5 +1,5 @@
 # devsynth run-tests command
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 1
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/devsynth-run-tests-command.md, tests/behavior/features/devsynth_run_tests_command.feature

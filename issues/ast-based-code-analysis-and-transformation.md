@@ -1,8 +1,8 @@
 # AST-Based Code Analysis and Transformation
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 2
 Status: in progress
-Priority: low
-Dependencies: docs/specifications/ast-based-code-analysis-and-transformation.md, tests/behavior/features/ast_based_code_analysis_and_transformation.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/ast-based-code-analysis-and-transformation.md, tests/behavior/features/ast_based_code_analysis_and_transformation.feature
 
 ## Problem Statement
 AST-Based Code Analysis and Transformation is not yet implemented, limiting DevSynth's capabilities.

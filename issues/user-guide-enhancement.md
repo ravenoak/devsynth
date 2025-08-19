@@ -1,7 +1,7 @@
 # User Guide Enhancement
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/user-guide-enhancement.md, tests/behavior/features/user_guide_enhancement.feature
 
 ## Problem Statement

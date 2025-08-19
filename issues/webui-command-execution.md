@@ -1,8 +1,8 @@
 # WebUI Command Execution
-Milestone: 0.1.0-beta.1
+Milestone: Phase 2
 Status: in progress
 Priority: medium
-Dependencies: docs/specifications/webui-command-execution.md, tests/behavior/features/webui_command_execution.feature
+Dependencies: Phase 1 completion, docs/specifications/webui-command-execution.md, tests/behavior/features/webui_command_execution.feature
 
 ## Problem Statement
 WebUI Command Execution is not yet implemented, limiting DevSynth's capabilities.

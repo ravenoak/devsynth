@@ -1,7 +1,7 @@
 # Interactive Requirements Wizard
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/interactive-requirements-wizard.md, tests/behavior/features/interactive_requirements_wizard.feature
 
 ## Problem Statement

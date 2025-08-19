@@ -1,8 +1,8 @@
 # User Authentication
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 4
 Status: in progress
 Priority: low
-Dependencies: docs/specifications/user-authentication.md, tests/behavior/features/user_authentication.feature
+Dependencies: Phase 3 completion, docs/specifications/user-authentication.md, tests/behavior/features/user_authentication.feature
 
 ## Problem Statement
 User Authentication is not yet implemented, limiting DevSynth's capabilities.

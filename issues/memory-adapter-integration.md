@@ -1,7 +1,7 @@
 # Memory Adapter Integration
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/memory-adapter-integration.md, tests/behavior/features/memory_adapter_integration.feature
 
 ## Problem Statement

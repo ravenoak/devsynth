@@ -1,7 +1,7 @@
 # Hybrid Memory Query Patterns and Synchronization
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/hybrid-memory-query-patterns-and-synchronization.md, tests/behavior/features/hybrid_memory_query_patterns_and_synchronization.feature
 
 ## Problem Statement

@@ -1,7 +1,7 @@
 # Enhanced EDRR Memory Integration
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/enhanced-edrr-memory-integration.md, tests/behavior/features/enhanced_edrr_memory_integration.feature
 
 ## Problem Statement
