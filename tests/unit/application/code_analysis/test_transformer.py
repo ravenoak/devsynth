@@ -12,7 +12,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import astor
 import pytest
 
 from devsynth.application.code_analysis.transformer import (
@@ -34,11 +33,10 @@ def sample_code():
 
 
 @pytest.fixture
-@pytest.mark.medium
 def sample_file_path():
     """Create a temporary file with sample code for testing.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
     with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as temp_file:
         temp_file.write(
             '\nimport os\nimport sys\nimport re  # This import is unused\n\ndef calculate_sum(a, b):\n    # Redundant assignment\n    result = a + b\n    return result\n\ndef main():\n    x = 5\n    y = 10\n    z = 15  # This variable is unused\n\n    # String concatenation that could be optimized\n    greeting = "Hello, " + "world!"\n\n    total = calculate_sum(x, y)\n    print(f"The sum is {total}")\n'.encode(
@@ -52,11 +50,10 @@ def sample_file_path():
 
 
 @pytest.fixture
-@pytest.mark.medium
 def sample_directory():
     """Create a temporary directory with Python files for testing.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
     with tempfile.TemporaryDirectory() as temp_dir:
         dir_path = Path(temp_dir)
         (dir_path / "unused_imports.py").write_text(
@@ -82,7 +79,7 @@ class TestAstTransformer:
     def test_record_change_succeeds(self):
         """Test that changes are recorded correctly.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         transformer = AstTransformer()
         node = MagicMock()
         node.lineno = 10
@@ -97,13 +94,14 @@ class TestAstTransformer:
 class TestUnusedImportRemover:
     """Test the UnusedImportRemover class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_remove_unused_imports_succeeds(self, sample_code):
         """Test that unused imports are removed.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
+        astor = pytest.importorskip("astor")
         tree = ast.parse(sample_code)
         symbol_usage = {"os": 1, "sys": 1, "re": 0}
         transformer = UnusedImportRemover(symbol_usage)
@@ -123,13 +121,13 @@ class TestUnusedImportRemover:
 class TestRedundantAssignmentRemover:
     """Test the RedundantAssignmentRemover class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_remove_redundant_assignments_succeeds(self, sample_code):
         """Test that redundant assignments are removed.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         transformer = CodeTransformer()
         result = transformer.transform_code(
             sample_code, ["remove_redundant_assignments"]
@@ -147,13 +145,14 @@ class TestRedundantAssignmentRemover:
 class TestUnusedVariableRemover:
     """Test the UnusedVariableRemover class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_remove_unused_variables_succeeds(self, sample_code):
         """Test that unused variables are removed.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
+        astor = pytest.importorskip("astor")
         tree = ast.parse(sample_code)
         symbol_usage = {
             "x": 1,
@@ -180,13 +179,14 @@ class TestUnusedVariableRemover:
 class TestStringLiteralOptimizer:
     """Test the StringLiteralOptimizer class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_optimize_string_literals_succeeds(self, sample_code):
         """Test that string literals are optimized.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
+        astor = pytest.importorskip("astor")
         modified_code = '\ndef sample_function():\n    # String with extra whitespace that should be optimized\n    greeting = "Hello,    world!"\n    return greeting\n'
         tree = ast.parse(modified_code)
         transformer = StringLiteralOptimizer()
@@ -207,13 +207,13 @@ class TestStringLiteralOptimizer:
 class TestCodeStyleTransformer:
     """Test the CodeStyleTransformer class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_improve_code_style_succeeds(self):
         """Test that code style is improved.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         code = "\ndef function_without_docstring(a, b):\n    return a + b\n\nclass ClassWithoutDocstring:\n    def method_without_docstring(self):\n        pass\n"
         transformer = CodeTransformer()
         result = transformer.transform_code(code, ["improve_code_style"])
@@ -229,13 +229,13 @@ class TestCodeStyleTransformer:
 class TestCodeTransformer:
     """Test the CodeTransformer class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_transform_code_succeeds(self, sample_code):
         """Test transforming code with multiple transformations.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         mock_unused_import_remover = MagicMock()
         mock_unused_import_remover.visit.return_value = ast.parse(
             sample_code.replace("import re", "")
@@ -298,7 +298,7 @@ class TestCodeTransformer:
     def test_transform_file_succeeds(self, sample_file_path):
         """Test transforming a file.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         with open(sample_file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
         transformed_code = file_content.replace("import re", "").replace("z = 15", "")
@@ -341,7 +341,7 @@ class TestCodeTransformer:
     def test_transform_directory_succeeds(self, sample_directory):
         """Test transforming a directory.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         python_files = [
             os.path.join(sample_directory, "unused_imports.py"),
             os.path.join(sample_directory, "unused_variables.py"),
@@ -424,7 +424,7 @@ class TestCodeTransformer:
     def test_find_python_files_succeeds(self, sample_directory):
         """Test finding Python files in a directory.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         transformer = CodeTransformer()
         files = transformer._find_python_files(sample_directory, recursive=True)
         assert len(files) == 3
@@ -441,13 +441,13 @@ class TestCodeTransformer:
 class TestSymbolUsageCounter:
     """Test the SymbolUsageCounter class.
 
-    ReqID: N/A"""
+    ReqID: FR-1"""
 
     @pytest.mark.medium
     def test_count_symbol_usage_succeeds(self):
         """Test counting symbol usage in code.
 
-        ReqID: N/A"""
+        ReqID: FR-1"""
         code = '\nimport os\nimport sys\n\ndef main():\n    path = os.path.join("a", "b")\n    print(path)\n'
         symbol_usage = {"os": 0, "sys": 0, "path": 0, "main": 0}
         tree = ast.parse(code)

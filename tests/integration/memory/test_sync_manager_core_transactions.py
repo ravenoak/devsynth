@@ -2,11 +2,7 @@ import sys
 
 import pytest
 
-LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
-FAISSStore = pytest.importorskip("devsynth.application.memory.faiss_store").FAISSStore
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.application.memory import sync_manager as sm_mod
-from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
@@ -20,8 +16,6 @@ pytestmark = [
 @pytest.fixture(autouse=True)
 def no_kuzu(monkeypatch):
     monkeypatch.delitem(sys.modules, "kuzu", raising=False)
-    for cls in (KuzuMemoryStore, KuzuStore, LMDBStore, FAISSStore):
-        monkeypatch.setattr(cls, "__abstractmethods__", frozenset())
 
 
 def _manager(lmdb, faiss, kuzu):
@@ -33,7 +27,20 @@ def _manager(lmdb, faiss, kuzu):
 
 @pytest.mark.medium
 def test_synchronize_core_commit(tmp_path, monkeypatch):
-    """Synchronize core stores atomically on commit."""
+    """Synchronize core stores atomically on commit. ReqID: FR-60"""
+
+    LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
+    FAISSStore = pytest.importorskip(
+        "devsynth.application.memory.faiss_store"
+    ).FAISSStore
+    KuzuMemoryStore = pytest.importorskip(
+        "devsynth.adapters.kuzu_memory_store"
+    ).KuzuMemoryStore
+    KuzuStore = pytest.importorskip("devsynth.application.memory.kuzu_store").KuzuStore
+
+    for cls in (KuzuMemoryStore, KuzuStore, LMDBStore, FAISSStore):
+        monkeypatch.setattr(cls, "__abstractmethods__", frozenset())
+
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     lmdb = LMDBStore(str(tmp_path / "lmdb"))
     faiss = FAISSStore(str(tmp_path / "faiss"))
@@ -58,7 +65,20 @@ def test_synchronize_core_commit(tmp_path, monkeypatch):
 
 @pytest.mark.medium
 def test_synchronize_core_rollback(tmp_path, monkeypatch):
-    """Roll back all stores when core sync commit fails."""
+    """Roll back all stores when core sync commit fails. ReqID: FR-60"""
+
+    LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
+    FAISSStore = pytest.importorskip(
+        "devsynth.application.memory.faiss_store"
+    ).FAISSStore
+    KuzuMemoryStore = pytest.importorskip(
+        "devsynth.adapters.kuzu_memory_store"
+    ).KuzuMemoryStore
+    KuzuStore = pytest.importorskip("devsynth.application.memory.kuzu_store").KuzuStore
+
+    for cls in (KuzuMemoryStore, KuzuStore, LMDBStore, FAISSStore):
+        monkeypatch.setattr(cls, "__abstractmethods__", frozenset())
+
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     lmdb = LMDBStore(str(tmp_path / "lmdb"))
     faiss = FAISSStore(str(tmp_path / "faiss"))

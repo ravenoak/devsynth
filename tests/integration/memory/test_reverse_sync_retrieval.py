@@ -1,10 +1,5 @@
 import pytest
 
-pytest.importorskip("chromadb")
-
-MultiStoreSyncManager = pytest.importorskip(
-    "devsynth.adapters.memory.sync_manager"
-).MultiStoreSyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 pytestmark = [
@@ -18,7 +13,9 @@ pytestmark = [
 def test_bidirectional_persistence_and_retrieval(tmp_path, monkeypatch):
     """Synchronizes data both ways between stores. ReqID: FR-60"""
 
-    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    MultiStoreSyncManager = pytest.importorskip(
+        "devsynth.adapters.memory.sync_manager"
+    ).MultiStoreSyncManager
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
     manager = MultiStoreSyncManager(str(tmp_path))
