@@ -2,11 +2,8 @@
 
 This directory hosts DevSynth documentation.
 
-- Run the environment provisioning script before editing documentation.
 - Follow the specification-first BDD workflow: capture new requirements in `specifications/` and pair them with a failing BDD feature in `../tests/behavior/features/` before implementation.
-- Documentation updates must follow the [Documentation Policies](policies/documentation_policies.md) and the [Dialectical Audit Policy](policies/dialectical_audit.md).
-
-- Resolve `dialectical_audit.log` before submitting a PR. Release preparation steps are outlined in `docs/release/0.1.0-alpha.1.md`.
+- Documentation updates must follow the [Documentation Policies](policies/documentation_policies.md) and the [Dialectical Audit Policy](policies/dialectical_audit.md); resolve `dialectical_audit.log` before submitting a PR.
 
 ## External Resources
 

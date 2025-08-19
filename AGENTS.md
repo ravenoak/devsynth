@@ -1,13 +1,13 @@
 # AGENTS.md
 
-This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`. Follow the steps below when contributing.
+This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`.
 
-DevSynth values clarity, collaboration, and dependable automation. All work follows a **specification-first BDD workflow** and adheres to the [Dialectical Audit Policy](docs/policies/dialectical_audit.md). Begin each task with the Socratic checklist:
+DevSynth values clarity, collaboration, and dependable automation. All contributions:
 
-- What is the problem?
-- What proofs confirm the solution?
+- follow a **specification-first BDD workflow**—draft a specification in `docs/specifications/` and a failing BDD feature under `tests/behavior/features/` before implementation;
+- adhere to the [Dialectical Audit Policy](docs/policies/dialectical_audit.md) and resolve `dialectical_audit.log` before submission.
 
-When introducing new features, revisit these questions and follow the specification-first BDD workflow: draft a specification in `docs/specifications/` and a failing BDD feature under `tests/behavior/features/` before implementation.
+Begin each task with the Socratic checklist: *What is the problem?* and *What proofs confirm the solution?*
 
 Directory-specific instructions live in scoped AGENTS guidelines within directories like `src/` and `docs/`.
 
@@ -31,26 +31,23 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
   ```bash
   bash scripts/install_dev.sh
   ```
-- It installs pre-commit hooks, caches optional extras from `pyproject.toml`, and runs verification commands to ensure project consistency.
+  This installs pre-commit hooks, caches optional extras from `pyproject.toml`, and runs verification commands to ensure project consistency.
 - Run **all** commands through `poetry run` to use the correct virtual environment.
 - Install dependencies with development and test extras:
 
   ```bash
   poetry install --with dev --extras tests retrieval chromadb api
   ```
-
 - Lint changed files before committing:
 
   ```bash
   poetry run pre-commit run --files <changed>
   ```
-
 - Verify dependencies offline:
 
   ```bash
   PIP_NO_INDEX=1 poetry run pip check
   ```
-
 - Update this file, your instructions, and initial context as needed.
 
 ## Testing
@@ -77,8 +74,6 @@ Directory-specific instructions live in scoped AGENTS guidelines within director
   poetry run python scripts/verify_requirements_traceability.py
   poetry run python scripts/verify_version_sync.py
   ```
-
-- Resolve `dialectical_audit.log` before submitting a PR. Release preparation steps are outlined in `docs/release/0.1.0-alpha.1.md`.
 
 ## Issue Tracking
 
