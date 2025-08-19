@@ -2,7 +2,7 @@
 Milestone: Phase 1
 Status: in progress
 Priority: high
-Dependencies: docs/specifications/mvu-command-execution.md, tests/behavior/features/mvu/command_execution.feature
+Dependencies: docs/specifications/mvu-command-execution.md, tests/behavior/features/mvu/command_execution.feature, tests/behavior/features/mvu_command_execution.feature
 
 ## Problem Statement
 MVU Command Execution is not yet implemented, limiting DevSynth's capabilities.

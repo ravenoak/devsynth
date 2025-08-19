@@ -2,7 +2,7 @@
 Milestone: Phase 2
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, tests/behavior/features/general/project_state_analyzer.feature
+Dependencies: Phase 1 completion, tests/behavior/features/general/project_state_analyzer.feature, docs/specifications/project-state-analysis.md, tests/behavior/features/project_state_analysis.feature
 
 ## Problem Statement
 Project State Analysis is not yet implemented, limiting DevSynth's capabilities.

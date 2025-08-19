@@ -2,7 +2,7 @@
 Milestone: Phase 3
 Status: open
 Priority: low
-Dependencies: Phase 2 completion, None
+Dependencies: Phase 2 completion, None, docs/specifications/integrate-dialectical-audit-into-ci.md, tests/behavior/features/integrate_dialectical_audit_into_ci.feature
 
 ## Problem Statement
 Integrate dialectical audit into CI is not yet implemented, limiting DevSynth's capabilities.

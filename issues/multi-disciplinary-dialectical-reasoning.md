@@ -2,7 +2,7 @@
 Milestone: Phase 3
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/multi-disciplinary-dialectical-reasoning.md, tests/behavior/features/dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature
+Dependencies: Phase 2 completion, docs/specifications/multi-disciplinary-dialectical-reasoning.md, tests/behavior/features/dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature, tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature
 
 ## Problem Statement
 Multi-disciplinary Dialectical Reasoning is not yet implemented, limiting DevSynth's capabilities.

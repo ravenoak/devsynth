@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: blocked
 
 Priority: high
-Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
+Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md), docs/specifications/complete-sprint-edrr-integration.md, tests/behavior/features/complete_sprint_edrr_integration.feature
 
 ## Problem Statement
 Complete Sprint-EDRR integration is not yet implemented, limiting DevSynth's capabilities.

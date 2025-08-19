@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: in progress
 
 Priority: high
-Dependencies: [Implement SDLC security audits](archived/implement-sdlc-security-audits.md), [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
+Dependencies: [Implement SDLC security audits](archived/implement-sdlc-security-audits.md), [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md), docs/specifications/critical-recommendations-follow-up.md, tests/behavior/features/critical_recommendations_follow_up.feature
 
 ## Problem Statement
 Critical recommendations follow-up is not yet implemented, limiting DevSynth's capabilities.

@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: open
 
 Priority: high
-Dependencies: None
+Dependencies: None, docs/specifications/complete-memory-system-integration.md, tests/behavior/features/complete_memory_system_integration.feature
 
 ## Problem Statement
 Complete memory system integration is not yet implemented, limiting DevSynth's capabilities.

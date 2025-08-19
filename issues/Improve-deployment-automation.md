@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: open
 
 Priority: high
-Dependencies: None
+Dependencies: None, docs/specifications/improve-deployment-automation.md, tests/behavior/features/improve_deployment_automation.feature
 
 ## Problem Statement
 Improve deployment automation is not yet implemented, limiting DevSynth's capabilities.

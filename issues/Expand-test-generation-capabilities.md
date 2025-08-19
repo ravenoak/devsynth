@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: blocked
 
 Priority: high
-Dependencies: [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md)
+Dependencies: [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md), docs/specifications/expand-test-generation-capabilities.md, tests/behavior/features/expand_test_generation_capabilities.feature
 
 ## Problem Statement
 Expand test generation capabilities is not yet implemented, limiting DevSynth's capabilities.
