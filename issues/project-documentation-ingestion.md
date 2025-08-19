@@ -1,8 +1,8 @@
 # Project Documentation Ingestion
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
-Dependencies:
+Priority: high
+Dependencies: none
 
 ## Problem Statement
 <description>

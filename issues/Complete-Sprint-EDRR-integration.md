@@ -2,7 +2,7 @@
 Milestone: 0.2.0
 Status: blocked
 
-Priority: medium
+Priority: low
 Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
 
 ## Problem Statement

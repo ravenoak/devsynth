@@ -1,5 +1,5 @@
 # WSDE Peer Review Workflow
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/wsde-peer-review-workflow.md, tests/behavior/features/wsde_peer_review_workflow.feature

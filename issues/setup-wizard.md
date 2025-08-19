@@ -1,5 +1,5 @@
 # Setup Wizard
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/setup-wizard.md, tests/behavior/features/setup_wizard.feature

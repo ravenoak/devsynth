@@ -1,5 +1,5 @@
 # Web Application Generation
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/web-application-generation.md, tests/behavior/features/web_application_generation.feature

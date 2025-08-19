@@ -1,7 +1,7 @@
 # Agent API Health and Metrics
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/agent-api-health-and-metrics.md, tests/behavior/features/agent_api_health_and_metrics.feature
 
 ## Problem Statement

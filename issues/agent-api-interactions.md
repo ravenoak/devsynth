@@ -1,7 +1,7 @@
 # Agent API Interactions
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/agent-api-interactions.md, tests/behavior/features/agent_api_interactions.feature
 
 ## Problem Statement

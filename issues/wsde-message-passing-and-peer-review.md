@@ -1,5 +1,5 @@
 # WSDE Message Passing and Peer Review
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/wsde-message-passing-and-peer-review.md, tests/behavior/features/wsde_message_passing_and_peer_review.feature

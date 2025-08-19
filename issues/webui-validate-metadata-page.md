@@ -1,7 +1,7 @@
 # WebUI Validate Metadata Page
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/webui-validate-metadata-page.md, tests/behavior/features/webui_validate_metadata_page.feature
 
 ## Problem Statement

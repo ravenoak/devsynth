@@ -1,7 +1,7 @@
 # Integrate dialectical audit into CI
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: open
-Priority: medium
+Priority: high
 Dependencies: None
 
 ## Problem Statement

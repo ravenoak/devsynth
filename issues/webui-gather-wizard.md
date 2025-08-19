@@ -1,7 +1,7 @@
 # WebUI Gather Wizard
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/webui-gather-wizard.md, tests/behavior/features/webui_gather_wizard.feature
 
 ## Problem Statement

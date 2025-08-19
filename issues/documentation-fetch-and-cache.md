@@ -1,7 +1,7 @@
 # Documentation Fetch and Cache
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/documentation-fetch-and-cache.md, tests/behavior/features/documentation_fetch_and_cache.feature
 
 ## Problem Statement

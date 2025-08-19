@@ -1,8 +1,8 @@
 # Complete memory system integration
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: open
 
-Priority: medium
+Priority: low
 Dependencies: None
 
 ## Problem Statement

@@ -1,7 +1,7 @@
 # Streamlit WebUI Navigation
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/streamlit-webui-navigation.md, tests/behavior/features/streamlit_webui_navigation.feature
 
 ## Problem Statement

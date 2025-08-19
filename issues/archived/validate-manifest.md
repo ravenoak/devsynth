@@ -1,6 +1,6 @@
-# Validate Manifest
-Milestone: 0.1.0-alpha.1
-Status: in progress
+# Issue 152: Validate Manifest
+Milestone: 0.2.0 (completed 2025-08-19)
+Status: closed
 Priority: low
 Dependencies: docs/specifications/validate-manifest.md, tests/behavior/features/validate_manifest.feature
 
