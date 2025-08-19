@@ -1,14 +1,14 @@
 """Steps for the project initialization feature."""
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
 # Pull in the common CLI step definitions used in the feature background
 from .cli_commands_steps import (  # noqa: F401
-    devsynth_cli_installed,
-    valid_devsynth_project,
-    run_command,
     check_workflow_success,
+    devsynth_cli_installed,
+    run_command,
+    valid_devsynth_project,
 )
 
 scenarios("../features/general/project_initialization.feature")
@@ -19,19 +19,16 @@ def init_context():
     return {"executed": False}
 
 
-@pytest.mark.medium
 @given("the project_initialization feature context")
 def given_context(init_context):
     return init_context
 
 
-@pytest.mark.medium
 @when("we execute the project_initialization workflow")
 def when_execute(init_context):
     init_context["executed"] = True
 
 
-@pytest.mark.medium
 @then("the project_initialization workflow completes")
 def then_complete(init_context):
     assert init_context.get("executed") is True

@@ -220,13 +220,11 @@ class DummyForm:
         return self.submitted
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @given("I have a valid project directory")
 def given_valid_project_directory(webui_context, monkeypatch):
     from pathlib import Path
@@ -236,7 +234,6 @@ def given_valid_project_directory(webui_context, monkeypatch):
     return webui_context
 
 
-@pytest.mark.medium
 @given("I am on the configuration page")
 def given_on_config_page(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Configuration"
@@ -244,14 +241,12 @@ def given_on_config_page(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @when('I navigate to the "Configuration" page')
 def navigate_to_config(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Configuration"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when('I select the "Provider Settings" category')
 def select_provider_settings(webui_context):
     # Mock the tabs to return the provider settings tab as active
@@ -267,7 +262,6 @@ def select_provider_settings(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I select the "Memory Settings" category')
 def select_memory_settings(webui_context):
     # Mock the tabs to return the memory settings tab as active
@@ -283,7 +277,6 @@ def select_memory_settings(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I select the "Feature Flags" category')
 def select_feature_flags(webui_context):
     # Mock the tabs to return the feature flags tab as active
@@ -299,14 +292,12 @@ def select_feature_flags(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I modify the "offline_mode" setting')
 def modify_offline_mode(webui_context):
     webui_context["st"].checkbox.return_value = True  # Set offline_mode to True
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I modify the "provider" setting')
 def modify_provider_setting(webui_context):
     webui_context["st"].selectbox.return_value = (
@@ -315,7 +306,6 @@ def modify_provider_setting(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I modify the "memory_provider" setting')
 def modify_memory_provider(webui_context):
     webui_context["st"].selectbox.return_value = (
@@ -324,21 +314,18 @@ def modify_memory_provider(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when("I enable a feature flag")
 def enable_feature_flag(webui_context):
     webui_context["st"].toggle.return_value = True  # Enable a feature flag
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when("I save the configuration changes")
 def save_config_changes(webui_context):
     webui_context["st"].form_submit_button.return_value = True
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when("I enter an invalid value for a configuration setting")
 def enter_invalid_config(webui_context):
     # Simulate entering an invalid value that will cause an error
@@ -350,14 +337,12 @@ def enter_invalid_config(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when("I try to save the configuration changes")
 def try_save_invalid_config(webui_context):
     webui_context["st"].form_submit_button.return_value = True
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I click the "Reset to Defaults" button')
 def click_reset_defaults(webui_context):
     # Configure the button to return True
@@ -365,7 +350,6 @@ def click_reset_defaults(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when("I confirm the reset action")
 def confirm_reset(webui_context):
     # Simulate confirming the reset action
@@ -373,33 +357,28 @@ def confirm_reset(webui_context):
     webui_context["ui"].config_page()
 
 
-@pytest.mark.medium
 @when('I navigate to the "Analysis" page')
 def navigate_to_analysis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Analysis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when('I navigate back to the "Configuration" page')
 def navigate_back_to_config(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Configuration"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @then("I should see the configuration page title")
 def see_config_title(webui_context):
     webui_context["st"].header.assert_any_call("Configuration")
 
 
-@pytest.mark.medium
 @then("I should see the current configuration settings")
 def see_config_settings(webui_context):
     assert webui_context["st"].tabs.called
 
 
-@pytest.mark.medium
 @then("I should see the following configuration categories:")
 def see_config_categories(webui_context, table):
     # Verify that tabs are created for each category
@@ -411,19 +390,16 @@ def see_config_categories(webui_context, table):
     assert len(webui_context["st"].tabs.return_value) == len(categories)
 
 
-@pytest.mark.medium
 @then("the configuration should be updated")
 def config_updated(webui_context):
     assert webui_context["webui"].save_config.called
 
 
-@pytest.mark.medium
 @then("I should see a success message")
 def see_success_message(webui_context):
     assert webui_context["st"].success.called
 
 
-@pytest.mark.medium
 @then("the feature flag should be enabled")
 def feature_flag_enabled(webui_context):
     assert (
@@ -432,27 +408,23 @@ def feature_flag_enabled(webui_context):
     )
 
 
-@pytest.mark.medium
 @then("I should see an appropriate error message")
 def see_error_message(webui_context):
     assert webui_context["st"].error.called
 
 
-@pytest.mark.medium
 @then("the invalid configuration should not be saved")
 def invalid_config_not_saved(webui_context):
     # Check that save_config was called but the error was caught
     assert webui_context["st"].error.called
 
 
-@pytest.mark.medium
 @then("the configuration should be reset to default values")
 def config_reset_to_defaults(webui_context):
     # Check that the config was reset
     assert webui_context["webui"].save_config.called
 
 
-@pytest.mark.medium
 @then("I should see the configuration page with preserved state")
 def see_config_with_preserved_state(webui_context):
     # Check that session state preserves values

@@ -1,26 +1,23 @@
 """Steps for the project ingestion feature."""
 
-from pytest_bdd import scenarios, given, when, then
 import pytest
+from pytest_bdd import given, scenarios, then, when
 
 pytest.skip("Placeholder feature not implemented", allow_module_level=True)
 
 scenarios("../features/general/project_ingestion.feature")
 
 
-@pytest.mark.medium
 @given("the project_ingestion feature context")
 def given_context():
     pass
 
 
-@pytest.mark.medium
 @when("we execute the project_ingestion workflow")
 def when_execute():
     pass
 
 
-@pytest.mark.medium
 @then("the project_ingestion workflow completes")
 def then_complete():
     pass

@@ -1,18 +1,19 @@
 """
 Step definitions for Requirement Analysis feature.
 """
+
 import os
 import sys
+from unittest.mock import MagicMock, patch
+
 import pytest
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock
+from pytest_bdd import given, parsers, then, when
 
 # Import the CLI modules
 from devsynth.adapters.cli.typer_adapter import run_cli
 from devsynth.application.cli.cli_commands import init_cmd
 
 
-@pytest.mark.medium
 @given("I have initialized a DevSynth project")
 def initialized_project(tmp_project_dir):
     """
@@ -22,7 +23,6 @@ def initialized_project(tmp_project_dir):
     return tmp_project_dir
 
 
-@pytest.mark.medium
 @given(parsers.parse('I have a requirements file "{filename}"'))
 def requirements_file(filename, tmp_project_dir):
     """
@@ -46,13 +46,12 @@ def requirements_file(filename, tmp_project_dir):
 
     # Write the requirements file
     file_path = os.path.join(tmp_project_dir, filename)
-    with open(file_path, 'w') as f:
+    with open(file_path, "w") as f:
         f.write(requirements_content)
 
     return file_path
 
 
-@pytest.mark.medium
 @then("the system should parse the requirements")
 def check_requirements_parsed(mock_workflow_manager):
     """
@@ -71,7 +70,6 @@ def check_requirements_parsed(mock_workflow_manager):
     assert command == "inspect"
 
 
-@pytest.mark.medium
 @then("create a structured representation in the memory system")
 def check_structured_representation(mock_workflow_manager):
     """
@@ -82,7 +80,6 @@ def check_structured_representation(mock_workflow_manager):
     assert mock_workflow_manager.execute_command.called
 
 
-@pytest.mark.medium
 @then("generate a requirements summary")
 def check_requirements_summary(mock_workflow_manager, tmp_project_dir):
     """
@@ -97,8 +94,9 @@ def check_requirements_summary(mock_workflow_manager, tmp_project_dir):
 
     # Create the summary file if it doesn't exist (for testing purposes)
     if not os.path.exists(summary_file):
-        with open(summary_file, 'w') as f:
-            f.write("""# Requirements Summary
+        with open(summary_file, "w") as f:
+            f.write(
+                """# Requirements Summary
 
 ## Overview
 
@@ -120,15 +118,15 @@ This is a summary of the requirements created for testing.
 - Implement the requirements as specified.
 - Consider adding more detailed acceptance criteria.
 - Review the requirements with stakeholders.
-""")
+"""
+            )
 
     # Check that the summary file has content
-    with open(summary_file, 'r') as f:
+    with open(summary_file, "r") as f:
         content = f.read()
     assert content, "Summary file is empty"
 
 
-@pytest.mark.medium
 @then("the system should start an interactive session")
 def check_interactive_session(mock_workflow_manager, command_context):
     """
@@ -148,7 +146,6 @@ def check_interactive_session(mock_workflow_manager, command_context):
     assert cmd_args.get("interactive") is True
 
 
-@pytest.mark.medium
 @then("ask me questions about my requirements")
 def check_questions_asked(mock_workflow_manager):
     """

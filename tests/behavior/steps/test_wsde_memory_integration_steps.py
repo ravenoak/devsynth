@@ -568,31 +568,6 @@ def store_artifacts_in_different_backends(context):
     solution = {
         "agent": "code_agent",
         "description": "Solution for multi-backend test",
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
         "code": "def test_function():\n    return 'Hello, world!'",
     }
 

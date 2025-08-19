@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Sequence, Optional
+from typing import Optional, Sequence
 from unittest.mock import MagicMock
 
-from pytest_bdd import scenarios, given, when, then
+import pytest
+from pytest_bdd import given, scenarios, then, when
 
 from devsynth.interface.ux_bridge import UXBridge
-import pytest
 
 
 class DummyBridge(UXBridge):
@@ -36,13 +36,11 @@ class DummyBridge(UXBridge):
 scenarios("../features/general/setup_wizard.feature")
 
 
-@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
-@pytest.mark.medium
 @when("I run the setup wizard")
 def run_setup_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(os.sys.modules, "chromadb", MagicMock())
@@ -63,7 +61,6 @@ def run_setup_wizard(tmp_project_dir, monkeypatch):
     )
 
 
-@pytest.mark.medium
 @when("I cancel the setup wizard")
 def cancel_setup_wizard(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(os.sys.modules, "chromadb", MagicMock())
@@ -91,7 +88,6 @@ def cancel_setup_wizard(tmp_project_dir, monkeypatch):
     )
 
 
-@pytest.mark.medium
 @then("a project configuration file should include the selected options")
 def check_config(tmp_project_dir):
     from devsynth.config.unified_loader import UnifiedConfigLoader
@@ -102,7 +98,6 @@ def check_config(tmp_project_dir):
     assert cfg.features["wsde_collaboration"] is True
 
 
-@pytest.mark.medium
 @then("no project configuration file should exist")
 def no_config(tmp_project_dir):
     cfg_file = Path(tmp_project_dir) / ".devsynth" / "project.yaml"

@@ -43,9 +43,7 @@ def devsynth_initialized(context):
 
 
 @given("a test project with 100 files is loaded")
-@pytest.mark.medium
-@pytest.mark.medium
-def test_project_loaded_succeeds(context):
+def project_loaded_succeeds(context):
     """Test that project loaded succeeds.
 
     ReqID: N/A"""

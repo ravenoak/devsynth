@@ -79,14 +79,12 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
     context.system_initialized = True
 
 
-@pytest.mark.medium
 @given("the WSDE team is configured with agents having different expertise")
 def wsde_team_configured(context):
     """Configure the WSDE team with agents having different expertise."""
@@ -116,7 +114,6 @@ def wsde_team_configured(context):
     context.agents = agents
 
 
-@pytest.mark.medium
 @given("the EDRR coordinator is initialized with enhanced features")
 def edrr_coordinator_initialized(context):
     """Initialize the EDRR coordinator with enhanced features."""
@@ -148,7 +145,6 @@ def edrr_coordinator_initialized(context):
     )
 
 
-@pytest.mark.medium
 @when(parsers.parse('I start an EDRR cycle with a task to "{task_description}"'))
 def start_edrr_cycle(context, task_description):
     """Start an EDRR cycle with the given task."""
@@ -162,7 +158,6 @@ def start_edrr_cycle(context, task_description):
     assert context.edrr_coordinator.current_phase == Phase.EXPAND
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'the WSDE team should assign the Primus role to an agent with expertise in "{expertise}"'
@@ -178,7 +173,6 @@ def verify_primus_expertise(context, expertise):
     assert expertise in [skill.lower() for skill in primus.expertise]
 
 
-@pytest.mark.medium
 @when(parsers.parse('the EDRR cycle progresses to the "{phase_name}" phase'))
 def progress_to_phase(context, phase_name):
     """Progress the EDRR cycle to the specified phase."""
@@ -189,7 +183,6 @@ def progress_to_phase(context, phase_name):
     assert context.edrr_coordinator.current_phase == Phase[phase_name.upper()]
 
 
-@pytest.mark.medium
 @when("the WSDE team produces high-quality results for the current phase")
 def wsde_team_produces_high_quality_results(context):
     """Simulate the WSDE team producing high-quality results."""
@@ -211,7 +204,6 @@ def wsde_team_produces_high_quality_results(context):
     context.original_assess_quality = original_assess_quality
 
 
-@pytest.mark.medium
 @then("the EDRR coordinator should automatically progress to the next phase")
 def verify_auto_progress(context):
     """Verify that the EDRR coordinator automatically progresses to the next phase."""
@@ -228,7 +220,6 @@ def verify_auto_progress(context):
     context.edrr_coordinator._assess_phase_quality = context.original_assess_quality
 
 
-@pytest.mark.medium
 @when("the WSDE team produces low-quality results for the current phase")
 def wsde_team_produces_low_quality_results(context):
     """Simulate the WSDE team producing low-quality results."""
@@ -250,7 +241,6 @@ def wsde_team_produces_low_quality_results(context):
     context.original_assess_quality = original_assess_quality
 
 
-@pytest.mark.medium
 @then("the EDRR coordinator should not progress to the next phase")
 def verify_no_auto_progress(context):
     """Verify that the EDRR coordinator does not automatically progress to the next phase."""
@@ -264,7 +254,6 @@ def verify_no_auto_progress(context):
     assert context.edrr_coordinator.current_phase == initial_phase
 
 
-@pytest.mark.medium
 @then("the EDRR coordinator should request improvements from the WSDE team")
 def verify_improvement_request(context):
     """Verify that the EDRR coordinator requests improvements from the WSDE team."""
@@ -291,7 +280,6 @@ def verify_improvement_request(context):
     context.edrr_coordinator._assess_phase_quality = context.original_assess_quality
 
 
-@pytest.mark.medium
 @when("the EDRR coordinator initiates a micro-cycle")
 def edrr_initiates_micro_cycle(context):
     """Simulate the EDRR coordinator initiating a micro-cycle."""
@@ -317,7 +305,6 @@ def edrr_initiates_micro_cycle(context):
     context.edrr_coordinator.execute_current_phase()
 
 
-@pytest.mark.medium
 @then("the WSDE team should collaborate on the micro-cycle task")
 def verify_wsde_collaboration_on_micro_cycle(context):
     """Verify that the WSDE team collaborates on the micro-cycle task."""
@@ -346,7 +333,6 @@ def verify_wsde_collaboration_on_micro_cycle(context):
     context.wsde_team.process = original_process
 
 
-@pytest.mark.medium
 @then("the micro-cycle results should be aggregated into the main cycle")
 def verify_micro_cycle_aggregation(context):
     """Verify that micro-cycle results are aggregated into the main cycle."""
@@ -365,7 +351,6 @@ def verify_micro_cycle_aggregation(context):
     assert len(phase_results) > 0
 
 
-@pytest.mark.medium
 @then("the EDRR coordinator should determine if additional micro-cycles are needed")
 def verify_micro_cycle_determination(context):
     """Verify that the EDRR coordinator determines if additional micro-cycles are needed."""
@@ -398,7 +383,6 @@ def verify_micro_cycle_determination(context):
     context.edrr_coordinator._execute_micro_cycle = context.original_execute_micro_cycle
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'the WSDE team should apply dialectical reasoning in the "{phase_name}" phase'
@@ -438,7 +422,6 @@ def verify_dialectical_reasoning_in_phase(context, phase_name):
     context.wsde_team.apply_enhanced_dialectical_reasoning = original_dialectical
 
 
-@pytest.mark.medium
 @then(
     parsers.parse(
         'the synthesis from the "{source_phase}" phase should inform the "{target_phase}" phase'
@@ -474,7 +457,6 @@ def verify_synthesis_informs_next_phase(context, source_phase, target_phase):
     context.wsde_team.process = original_process
 
 
-@pytest.mark.medium
 @then("the WSDE team should apply dialectical reasoning to the implementation")
 def verify_dialectical_reasoning_to_implementation(context):
     """Verify that the WSDE team applies dialectical reasoning to the implementation."""
@@ -517,7 +499,6 @@ def verify_dialectical_reasoning_to_implementation(context):
     context.wsde_team.apply_enhanced_dialectical_reasoning = original_dialectical
 
 
-@pytest.mark.medium
 @then("the final solution should reflect the dialectical process throughout all phases")
 def verify_final_solution_reflects_dialectical_process(context):
     """Verify that the final solution reflects the dialectical process throughout all phases."""
@@ -542,7 +523,6 @@ def verify_final_solution_reflects_dialectical_process(context):
             assert phase.name in report["phases"]
 
 
-@pytest.mark.medium
 @when("an error occurs during the WSDE team's processing")
 def error_during_wsde_processing(context):
     """Simulate an error during the WSDE team's processing."""
@@ -557,7 +537,6 @@ def error_during_wsde_processing(context):
     context.original_process = original_process
 
 
-@pytest.mark.medium
 @then("the EDRR coordinator should handle the error gracefully")
 def verify_error_handled_gracefully(context):
     """Verify that the EDRR coordinator handles errors gracefully."""
@@ -572,7 +551,6 @@ def verify_error_handled_gracefully(context):
         assert False, "Exception was not handled properly"
 
 
-@pytest.mark.medium
 @then("the EDRR coordinator should attempt recovery strategies")
 def verify_recovery_strategies(context):
     """Verify that the EDRR coordinator attempts recovery strategies."""
@@ -608,7 +586,6 @@ def verify_recovery_strategies(context):
         context.edrr_coordinator.execute_current_phase()
 
 
-@pytest.mark.medium
 @then("the WSDE team should be able to continue the cycle after recovery")
 def verify_continue_after_recovery(context):
     """Verify that the WSDE team can continue the cycle after recovery."""

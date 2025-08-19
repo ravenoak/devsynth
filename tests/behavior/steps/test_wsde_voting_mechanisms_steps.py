@@ -37,7 +37,6 @@ def context():
 
 
 # Background steps - reuse from test_wsde_agent_model_steps.py
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
     """Initialize the DevSynth system."""
@@ -45,7 +44,6 @@ def devsynth_system_initialized(context):
     assert context.team_coordinator is not None
 
 
-@pytest.mark.medium
 @given("a team of agents is configured")
 def team_of_agents_configured(context):
     """Configure a team of agents."""
@@ -56,7 +54,6 @@ def team_of_agents_configured(context):
     context.teams[team_id] = context.team_coordinator.get_team(team_id)
 
 
-@pytest.mark.medium
 @given("the WSDE model is enabled")
 def wsde_model_enabled(context):
     """Enable the WSDE model."""
@@ -65,7 +62,6 @@ def wsde_model_enabled(context):
 
 
 # Scenario: Voting on critical decisions
-@pytest.mark.medium
 @given("a team with multiple agents with different expertise")
 def team_with_agents_different_expertise(context):
     """Create a team with multiple agents with different expertise."""
@@ -102,7 +98,6 @@ def team_with_agents_different_expertise(context):
     assert len(team.agents) == len(expertise_map)
 
 
-@pytest.mark.medium
 @when("a critical decision needs to be made")
 def critical_decision_needed(context):
     """Create a critical decision that needs to be made."""
@@ -132,7 +127,6 @@ def critical_decision_needed(context):
     context.tasks["critical_decision"] = task
 
 
-@pytest.mark.medium
 @then("the system should initiate a voting process")
 def system_initiates_voting(context):
     """Verify that the system initiates a voting process."""
@@ -166,7 +160,6 @@ def system_initiates_voting(context):
     context.voting_results["critical_decision"] = result
 
 
-@pytest.mark.medium
 @then("each agent should cast a vote based on their expertise")
 def agents_cast_votes(context):
     """Verify that each agent casts a vote based on their expertise."""
@@ -213,7 +206,6 @@ def agents_cast_votes(context):
     context.voting_results["critical_decision"] = result
 
 
-@pytest.mark.medium
 @then("the decision should be made based on majority vote")
 def decision_by_majority_vote(context):
     """Verify that the decision is made based on majority vote."""
@@ -262,7 +254,6 @@ def decision_by_majority_vote(context):
     context.voting_results["critical_decision"] = result
 
 
-@pytest.mark.medium
 @then("the voting results should be recorded")
 def voting_results_recorded(context):
     """Verify that the voting results are recorded."""
@@ -282,7 +273,6 @@ def voting_results_recorded(context):
 
 
 # Scenario: Consensus fallback for tied votes
-@pytest.mark.medium
 @given("a team with an even number of agents")
 def team_with_even_number_of_agents(context):
     """Create a team with an even number of agents."""
@@ -319,7 +309,6 @@ def team_with_even_number_of_agents(context):
     assert len(team.agents) == 4
 
 
-@pytest.mark.medium
 @when("a critical decision results in a tied vote")
 def critical_decision_tied_vote(context):
     """Create a critical decision that results in a tied vote."""
@@ -390,7 +379,6 @@ def critical_decision_tied_vote(context):
     context.voting_results["tied_vote"] = result
 
 
-@pytest.mark.medium
 @then("the system should fall back to consensus-building")
 def system_falls_back_to_consensus(context):
     """Verify that the system falls back to consensus-building for tied votes."""
@@ -443,7 +431,6 @@ def system_falls_back_to_consensus(context):
     context.voting_results["tied_vote"] = result
 
 
-@pytest.mark.medium
 @then("the final decision should reflect input from all agents")
 def final_decision_reflects_all_input(context):
     """Verify that the final decision reflects input from all agents."""
@@ -462,7 +449,6 @@ def final_decision_reflects_all_input(context):
     assert result["result"]["consensus_result"]["reasoning"] != ""
 
 
-@pytest.mark.medium
 @then("the decision-making process should be documented")
 def decision_making_process_documented(context):
     """Verify that the decision-making process is documented."""
@@ -486,7 +472,6 @@ def decision_making_process_documented(context):
 
 
 # Scenario: Weighted voting based on expertise
-@pytest.mark.medium
 @given("a team with agents having different levels of expertise")
 def team_with_agents_different_expertise_levels(context):
     """Create a team with agents having different levels of expertise."""
@@ -532,7 +517,6 @@ def team_with_agents_different_expertise_levels(context):
     assert len(team.agents) == len(expertise_map)
 
 
-@pytest.mark.medium
 @when("a critical decision in a specific domain needs to be made")
 def critical_decision_in_specific_domain(context):
     """Create a critical decision in a specific domain."""
@@ -563,7 +547,6 @@ def critical_decision_in_specific_domain(context):
     context.tasks["domain_specific"] = task
 
 
-@pytest.mark.medium
 @then("agents with relevant expertise should have weighted votes")
 def agents_have_weighted_votes(context):
     """Verify that agents with relevant expertise have weighted votes."""
@@ -640,7 +623,6 @@ def agents_have_weighted_votes(context):
     context.voting_results["domain_specific"] = result
 
 
-@pytest.mark.medium
 @then("the final decision should favor domain experts")
 def final_decision_favors_domain_experts(context):
     """Verify that the final decision favors domain experts."""
@@ -662,7 +644,6 @@ def final_decision_favors_domain_experts(context):
     assert result["result"]["winner"] == expert_vote
 
 
-@pytest.mark.medium
 @then("the weighting mechanism should be transparent")
 def weighting_mechanism_transparent(context):
     """Verify that the weighting mechanism is transparent."""

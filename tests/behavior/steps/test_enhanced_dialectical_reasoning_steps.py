@@ -56,7 +56,6 @@ def create_mock_agent(name, expertise, experience_level=5):
 # Background steps
 
 
-@pytest.mark.medium
 @given("a WSDE team with multiple agents")
 def wsde_team_with_multiple_agents(context):
     """Create a WSDE team with multiple agents."""
@@ -84,7 +83,6 @@ def wsde_team_with_multiple_agents(context):
     context.agents["synthesis_agent"] = synthesis_agent
 
 
-@pytest.mark.medium
 @given("at least one agent designated as a critic")
 def agent_designated_as_critic(context):
     """Verify that at least one agent is designated as a critic."""
@@ -94,7 +92,6 @@ def agent_designated_as_critic(context):
     assert "dialectical_reasoning" in context.agents["critic_agent"].expertise
 
 
-@pytest.mark.medium
 @given("the team is configured for enhanced dialectical reasoning")
 def team_configured_for_enhanced_dialectical_reasoning(context):
     """Configure the team for enhanced dialectical reasoning."""
@@ -108,7 +105,6 @@ def team_configured_for_enhanced_dialectical_reasoning(context):
 # Scenario: Complete thesis-antithesis-synthesis workflow
 
 
-@pytest.mark.medium
 @given("a solution proposed by an agent as a thesis")
 def solution_proposed_as_thesis(context):
     """Create a solution proposed by an agent as a thesis."""
@@ -140,7 +136,6 @@ def generate_jwt_token(username):
     context.team.add_solution(context.task, context.solution)
 
 
-@pytest.mark.medium
 @when("the dialectical reasoning process is initiated")
 def dialectical_reasoning_initiated(context):
     """Initiate the dialectical reasoning process."""
@@ -151,7 +146,6 @@ def dialectical_reasoning_initiated(context):
     )
 
 
-@pytest.mark.medium
 @then("a critic agent should generate a comprehensive antithesis")
 def critic_generates_comprehensive_antithesis(context):
     """Verify that a critic agent generates a comprehensive antithesis."""
@@ -164,14 +158,12 @@ def critic_generates_comprehensive_antithesis(context):
     assert len(context.dialectical_result["antithesis"]["critique_categories"]) >= 1
 
 
-@pytest.mark.medium
 @then("the antithesis should challenge key assumptions of the thesis")
 def antithesis_challenges_key_assumptions(context):
     """Verify that the antithesis challenges key assumptions of the thesis."""
     assert "antithesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("a synthesis should be generated combining strengths of both")
 def synthesis_combines_strengths(context):
     """Verify that a synthesis is generated combining strengths of both thesis and antithesis."""
@@ -180,14 +172,12 @@ def synthesis_combines_strengths(context):
     assert context.dialectical_result["synthesis"] is not None
 
 
-@pytest.mark.medium
 @then("the synthesis should resolve contradictions between thesis and antithesis")
 def synthesis_resolves_contradictions(context):
     """Verify that the synthesis resolves contradictions between thesis and antithesis."""
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the final solution should be demonstrably better than the original thesis")
 def final_solution_better_than_original(context):
     """Verify that the final solution is demonstrably better than the original thesis."""
@@ -198,7 +188,6 @@ def final_solution_better_than_original(context):
 # Scenario: Multi-perspective analysis in dialectical reasoning
 
 
-@pytest.mark.medium
 @given("a complex problem with multiple valid approaches")
 def complex_problem_with_multiple_approaches(context):
     """Create a complex problem with multiple valid approaches."""
@@ -267,7 +256,6 @@ def complex_problem_with_multiple_approaches(context):
         context.team.add_solution(context.task, approach)
 
 
-@pytest.mark.medium
 @when("the team applies enhanced dialectical reasoning")
 def team_applies_enhanced_dialectical_reasoning(context):
     """Apply enhanced dialectical reasoning to the complex problem."""
@@ -280,7 +268,6 @@ def team_applies_enhanced_dialectical_reasoning(context):
     )
 
 
-@pytest.mark.medium
 @then("multiple perspectives should be considered")
 def multiple_perspectives_considered(context):
     """Verify that multiple perspectives are considered."""
@@ -289,7 +276,6 @@ def multiple_perspectives_considered(context):
     assert len(context.dialectical_result["solution_analyses"]) >= 1
 
 
-@pytest.mark.medium
 @then("each perspective should be analyzed for strengths and weaknesses")
 def each_perspective_analyzed(context):
     """Verify that each perspective is analyzed for strengths and weaknesses."""
@@ -299,14 +285,12 @@ def each_perspective_analyzed(context):
         assert "weaknesses" in analysis
 
 
-@pytest.mark.medium
 @then("the analysis should consider different domains of expertise")
 def analysis_considers_different_domains(context):
     """Verify that the analysis considers different domains of expertise."""
     assert "solution_analyses" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the synthesis should incorporate insights from all perspectives")
 def synthesis_incorporates_all_perspectives(context):
     """Verify that the synthesis incorporates insights from all perspectives."""
@@ -314,7 +298,6 @@ def synthesis_incorporates_all_perspectives(context):
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the final solution should be more robust than any single perspective")
 def final_solution_more_robust(context):
     """Verify that the final solution is more robust than any single perspective."""
@@ -324,7 +307,6 @@ def final_solution_more_robust(context):
 # Scenario: Knowledge integration from dialectical process
 
 
-@pytest.mark.medium
 @given("a dialectical reasoning process has completed")
 def dialectical_reasoning_process_completed(context):
     """Set up a completed dialectical reasoning process."""
@@ -364,7 +346,6 @@ def authenticate(username, password):
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @when("the team integrates the knowledge gained")
 def team_integrates_knowledge(context):
     """Have the team integrate the knowledge gained from the dialectical process."""
@@ -376,7 +357,6 @@ def team_integrates_knowledge(context):
     )
 
 
-@pytest.mark.medium
 @then("key insights should be extracted and documented")
 def key_insights_extracted(context):
     """Verify that key insights are extracted and documented."""
@@ -392,7 +372,6 @@ def key_insights_extracted(context):
         assert insight["description"], "Empty insight description"
 
 
-@pytest.mark.medium
 @then("the knowledge should be stored in the team's memory system")
 def knowledge_stored_in_memory(context):
     """Verify that the knowledge is stored in the team's memory system."""
@@ -411,7 +390,6 @@ def knowledge_stored_in_memory(context):
     assert retrieved_knowledge is not None
 
 
-@pytest.mark.medium
 @then("the knowledge should be categorized by domain and relevance")
 def knowledge_categorized(context):
     """Verify that the knowledge is categorized by domain and relevance."""
@@ -431,7 +409,6 @@ def knowledge_categorized(context):
         ), f"Relevance score {score} for domain {domain} is out of range"
 
 
-@pytest.mark.medium
 @then("the integrated knowledge should be available for future tasks")
 def knowledge_available_for_future_tasks(context):
     """Verify that the integrated knowledge is available for future tasks."""
@@ -449,7 +426,6 @@ def knowledge_available_for_future_tasks(context):
     assert relevant_knowledge is not None
 
 
-@pytest.mark.medium
 @then("the knowledge integration should improve team performance over time")
 def knowledge_integration_improves_performance(context):
     """Verify that the knowledge integration improves team performance over time."""
@@ -476,7 +452,6 @@ def knowledge_integration_improves_performance(context):
 # Scenario: Enhanced antithesis generation with knowledge graph
 
 
-@pytest.mark.medium
 @given("a solution proposed as a thesis")
 def solution_proposed_as_thesis_with_knowledge_graph(context):
     """Create a solution proposed as a thesis for knowledge graph scenario."""
@@ -511,7 +486,6 @@ class DataAccessLayer:
     context.team.add_solution(context.task, context.solution)
 
 
-@pytest.mark.medium
 @given("a knowledge graph with relevant domain knowledge")
 def knowledge_graph_with_domain_knowledge(context):
     """Set up a knowledge graph with relevant domain knowledge."""
@@ -583,7 +557,6 @@ def knowledge_graph_with_domain_knowledge(context):
     context.team.set_knowledge_graph(context.knowledge_graph)
 
 
-@pytest.mark.medium
 @when("a critic agent generates an antithesis")
 def critic_generates_antithesis_with_knowledge_graph(context):
     """Have a critic agent generate an antithesis using the knowledge graph."""
@@ -604,7 +577,6 @@ def critic_generates_antithesis_with_knowledge_graph(context):
     )
 
 
-@pytest.mark.medium
 @then("the antithesis should leverage insights from the knowledge graph")
 def antithesis_leverages_knowledge_graph(context):
     """Verify that the antithesis leverages insights from the knowledge graph."""
@@ -614,7 +586,6 @@ def antithesis_leverages_knowledge_graph(context):
     # Basic check only
 
 
-@pytest.mark.medium
 @then("the antithesis should reference established best practices")
 def antithesis_references_best_practices(context):
     """Verify that the antithesis references established best practices."""
@@ -622,7 +593,6 @@ def antithesis_references_best_practices(context):
     assert "antithesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the antithesis should identify potential issues based on historical patterns")
 def antithesis_identifies_historical_issues(context):
     """Verify that the antithesis identifies potential issues based on historical patterns."""
@@ -630,7 +600,6 @@ def antithesis_identifies_historical_issues(context):
     assert "antithesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the quality of the antithesis should be higher than without knowledge graph")
 def antithesis_quality_higher(context):
     """Verify that the quality of the antithesis is higher than without knowledge graph."""
@@ -642,7 +611,6 @@ def antithesis_quality_higher(context):
 # Scenario: Enhanced synthesis with standards compliance
 
 
-@pytest.mark.medium
 @given("a thesis and antithesis for a technical solution")
 def thesis_and_antithesis_for_technical_solution(context):
     """Set up a thesis and antithesis for a technical solution."""
@@ -714,7 +682,6 @@ def check_auth(auth_header):
     context.team.add_solution(context.task, context.thesis)
 
 
-@pytest.mark.medium
 @given("a set of technical standards and best practices")
 def technical_standards_and_best_practices(context):
     """Set up a set of technical standards and best practices."""
@@ -772,7 +739,6 @@ def technical_standards_and_best_practices(context):
     context.team.set_standards(context.standards)
 
 
-@pytest.mark.medium
 @when("the synthesis is generated")
 def synthesis_is_generated(context):
     """Generate a synthesis from the thesis and antithesis with standards compliance."""
@@ -784,7 +750,6 @@ def synthesis_is_generated(context):
     )
 
 
-@pytest.mark.medium
 @then("the synthesis should comply with all applicable standards")
 def synthesis_complies_with_standards(context):
     """Verify that the synthesis complies with all applicable standards."""
@@ -792,14 +757,12 @@ def synthesis_complies_with_standards(context):
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the synthesis should incorporate best practices from both thesis and antithesis")
 def synthesis_incorporates_best_practices(context):
     """Verify that the synthesis incorporates best practices from both thesis and antithesis."""
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the synthesis should explicitly address compliance requirements")
 def synthesis_addresses_compliance_requirements(context):
     """Verify that the synthesis explicitly addresses compliance requirements."""
@@ -807,14 +770,12 @@ def synthesis_addresses_compliance_requirements(context):
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the synthesis should include justification for any standards exceptions")
 def synthesis_includes_standards_exceptions(context):
     """Verify that the synthesis includes justification for any standards exceptions."""
     assert "synthesis" in context.dialectical_result
 
 
-@pytest.mark.medium
 @then("the reasoning should include a final evaluation of the synthesis")
 def reasoning_includes_final_evaluation(context):
     """Verify that the reasoning includes a final evaluation of the synthesis."""
@@ -828,7 +789,6 @@ def reasoning_includes_final_evaluation(context):
 # Scenario: Comprehensive critique categories
 
 
-@pytest.mark.medium
 @then("the Critic agent should analyze the solution across multiple dimensions")
 def critic_analyzes_multiple_dimensions(context):
     """Verify that the Critic agent analyzes the solution across multiple dimensions."""
@@ -847,7 +807,6 @@ def critic_analyzes_multiple_dimensions(context):
     assert len(context.dialectical_result["antithesis"]["critique_categories"]) >= 5
 
 
-@pytest.mark.medium
 @then("the critique should include security considerations")
 def critique_includes_security(context):
     """Verify that the critique includes security considerations."""
@@ -855,7 +814,6 @@ def critique_includes_security(context):
     assert "security" in context.dialectical_result["antithesis"]["critique_categories"]
 
 
-@pytest.mark.medium
 @then("the critique should include performance considerations")
 def critique_includes_performance(context):
     """Verify that the critique includes performance considerations."""
@@ -865,7 +823,6 @@ def critique_includes_performance(context):
     )
 
 
-@pytest.mark.medium
 @then("the critique should include maintainability considerations")
 def critique_includes_maintainability(context):
     """Verify that the critique includes maintainability considerations."""
@@ -876,7 +833,6 @@ def critique_includes_maintainability(context):
     )
 
 
-@pytest.mark.medium
 @then("the critique should include usability considerations")
 def critique_includes_usability(context):
     """Verify that the critique includes usability considerations."""
@@ -886,7 +842,6 @@ def critique_includes_usability(context):
     )
 
 
-@pytest.mark.medium
 @then("the critique should include testability considerations")
 def critique_includes_testability(context):
     """Verify that the critique includes testability considerations."""
@@ -899,7 +854,6 @@ def critique_includes_testability(context):
 # Scenario: Dialectical reasoning with multiple solutions
 
 
-@pytest.mark.medium
 @given("multiple solutions are proposed for a task")
 def multiple_solutions_proposed(context):
     """Propose multiple solutions for a task."""
@@ -963,7 +917,6 @@ def get_cached_data(key):
     team.add_solution(task, solution3)
 
 
-@pytest.mark.medium
 @when("dialectical reasoning is applied to compare the solutions")
 def dialectical_reasoning_applied_to_compare(context):
     """Apply dialectical reasoning to compare the solutions."""
@@ -978,7 +931,6 @@ def dialectical_reasoning_applied_to_compare(context):
     )
 
 
-@pytest.mark.medium
 @then("each solution should be analyzed as a potential thesis")
 def each_solution_analyzed_as_thesis(context):
     """Verify that each solution is analyzed as a potential thesis."""
@@ -987,7 +939,6 @@ def each_solution_analyzed_as_thesis(context):
     assert len(context.dialectical_result["solution_analyses"]) == 3
 
 
-@pytest.mark.medium
 @then("comparative critiques should be generated")
 def comparative_critiques_generated(context):
     """Verify that comparative critiques are generated."""
@@ -998,7 +949,6 @@ def comparative_critiques_generated(context):
     assert "trade_offs" in context.dialectical_result["comparative_analysis"]
 
 
-@pytest.mark.medium
 @then("a synthesized solution should incorporate the best elements of each proposal")
 def synthesized_solution_incorporates_best_elements(context):
     """Verify that a synthesized solution incorporates the best elements of each proposal."""
@@ -1008,7 +958,6 @@ def synthesized_solution_incorporates_best_elements(context):
     assert len(context.dialectical_result["synthesis"]["incorporated_elements"]) >= 3
 
 
-@pytest.mark.medium
 @then("the final solution should be superior to any individual proposal")
 def final_solution_superior(context):
     """Verify that the final solution is superior to any individual proposal."""
@@ -1023,7 +972,6 @@ def final_solution_superior(context):
 # Scenario: Dialectical reasoning with external knowledge integration
 
 
-@pytest.mark.medium
 @given("external knowledge sources are available")
 def external_knowledge_sources_available(context):
     """Set up external knowledge sources for the test."""
@@ -1088,7 +1036,6 @@ def external_knowledge_sources_available(context):
 
 
 # Reuse the existing step for the external knowledge scenario
-@pytest.mark.medium
 @given("a solution is proposed for a complex task", target_fixture="solution_proposed")
 def solution_proposed_for_external_knowledge(context):
     """Propose a solution for a complex task in the external knowledge scenario."""
@@ -1097,7 +1044,6 @@ def solution_proposed_for_external_knowledge(context):
     return context
 
 
-@pytest.mark.medium
 @when("dialectical reasoning with external knowledge is applied")
 def dialectical_reasoning_with_external_knowledge_applied(context):
     """Apply dialectical reasoning with external knowledge integration."""
@@ -1114,7 +1060,6 @@ def dialectical_reasoning_with_external_knowledge_applied(context):
     )
 
 
-@pytest.mark.medium
 @then("the reasoning should incorporate relevant external knowledge")
 def reasoning_incorporates_external_knowledge(context):
     """Verify that the reasoning incorporates relevant external knowledge."""
@@ -1123,7 +1068,6 @@ def reasoning_incorporates_external_knowledge(context):
     assert len(context.dialectical_result["external_knowledge"]["relevant_sources"]) > 0
 
 
-@pytest.mark.medium
 @then("the critique should reference industry best practices")
 def critique_references_industry_best_practices(context):
     """Verify that the critique references industry best practices."""
@@ -1133,7 +1077,6 @@ def critique_references_industry_best_practices(context):
     assert len(context.dialectical_result["antithesis"]["industry_references"]) > 0
 
 
-@pytest.mark.medium
 @then("the synthesis should align with external standards")
 def synthesis_aligns_with_external_standards(context):
     """Verify that the synthesis aligns with external standards."""
@@ -1143,7 +1086,6 @@ def synthesis_aligns_with_external_standards(context):
     assert len(context.dialectical_result["synthesis"]["standards_alignment"]) > 0
 
 
-@pytest.mark.medium
 @then("the evaluation should consider compliance with external requirements")
 def evaluation_considers_compliance(context):
     """Verify that the evaluation considers compliance with external requirements."""

@@ -43,8 +43,6 @@ def run_generate_tests(test_type, command_context):
     if test_type == "unit":
         tests_dir.mkdir(parents=True, exist_ok=True)
         unit_file = tests_dir / "test_generated.py"
-        @pytest.mark.medium
-        @pytest.mark.medium
         unit_file.write_text("def test_sample():\n    assert True\n")
         command_context["unit_file"] = str(unit_file)
     else:
@@ -64,9 +62,7 @@ def run_generate_tests(test_type, command_context):
 def check_unit_tests(command_context):
     """Ensure unit test files were created and workflow called."""
     spec_file = command_context["spec_file"]
-    command_context["mock_execute"].assert_any_call(
-        "test", {"spec_file": spec_file}
-    )
+    command_context["mock_execute"].assert_any_call("test", {"spec_file": spec_file})
 
     unit_file = Path(command_context["unit_file"])
     assert unit_file.exists()
@@ -91,9 +87,7 @@ def check_best_practices(command_context):
 def check_feature_files(command_context):
     """Ensure feature files were created for behavior tests."""
     spec_file = command_context["spec_file"]
-    command_context["mock_execute"].assert_any_call(
-        "test", {"spec_file": spec_file}
-    )
+    command_context["mock_execute"].assert_any_call("test", {"spec_file": spec_file})
 
     feature_file = Path(command_context["feature_file"])
     assert feature_file.exists()

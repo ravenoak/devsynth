@@ -35,7 +35,6 @@ def context():
     return Context()
 
 
-@pytest.mark.fast
 @given("a dialectical reasoner with memory")
 def reasoner_with_memory(context):
     memory_manager = DummyMemoryManager()
@@ -72,7 +71,6 @@ def reasoner_with_memory(context):
     context.reasoning_repo = reasoning_repo
 
 
-@pytest.mark.fast
 @given("a requirement change")
 def requirement_change(context):
     req = Requirement(title="Test", description="Desc", created_by="user")
@@ -85,13 +83,11 @@ def requirement_change(context):
     )
 
 
-@pytest.mark.fast
 @when("the change is evaluated")
 def evaluate_change(context):
     context.reasoning = context.reasoner.evaluate_change(context.change)
 
 
-@pytest.mark.fast
 @when("the change is evaluated with invalid consensus output")
 def evaluate_change_invalid(context):
     context.reasoner.llm_service.query.return_value = "maybe"
@@ -100,7 +96,6 @@ def evaluate_change_invalid(context):
     context.consensus_error = err.value
 
 
-@pytest.mark.fast
 @then(
     parsers.parse(
         'the reasoning result should be stored in memory with phase "{phase}"'
@@ -114,7 +109,6 @@ def reasoning_stored_with_phase(context, phase):
     assert metadata["change_id"] == str(context.change.id)
 
 
-@pytest.mark.fast
 @then("a consensus error is raised")
 def consensus_error_raised(context):
     assert isinstance(context.consensus_error, ConsensusError)

@@ -48,14 +48,12 @@ def context():
     ctx.cleanup()
 
 
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_initialized(context):
     """Initialize the DevSynth system."""
     assert context is not None
 
 
-@pytest.mark.medium
 @given("the GraphMemoryAdapter is configured with RDFLibStore integration")
 def graph_adapter_with_rdflib(context):
     """Configure GraphMemoryAdapter with RDFLibStore integration."""
@@ -64,7 +62,6 @@ def graph_adapter_with_rdflib(context):
     )
 
 
-@pytest.mark.medium
 @given("I have a GraphMemoryAdapter with RDFLibStore integration")
 def have_graph_adapter_with_rdflib(context):
     """Ensure we have a GraphMemoryAdapter with RDFLibStore integration."""
@@ -74,7 +71,6 @@ def have_graph_adapter_with_rdflib(context):
         )
 
 
-@pytest.mark.medium
 @when('I store a memory item with content "{content}"')
 def store_memory_item(context, content):
     """Store a memory item with the given content."""
@@ -88,7 +84,6 @@ def store_memory_item(context, content):
     context.memory_items[item_id] = memory_item
 
 
-@pytest.mark.medium
 @when('I store a memory item with content "Test content with namespaces"')
 def store_memory_item_with_namespaces(context):
     """Store a memory item with content for namespace testing."""
@@ -102,7 +97,6 @@ def store_memory_item_with_namespaces(context):
     context.memory_items[item_id] = memory_item
 
 
-@pytest.mark.medium
 @then("the memory item should be stored with proper namespace handling")
 def check_namespace_handling(context):
     """Check that the memory item was stored with proper namespace handling."""
@@ -115,7 +109,6 @@ def check_namespace_handling(context):
     assert "dc" in namespaces
 
 
-@pytest.mark.medium
 @then("the graph should be serialized in Turtle format")
 def check_graph_serialization(context):
     """Check that the graph was serialized in Turtle format."""
@@ -142,7 +135,6 @@ def check_graph_serialization(context):
             ), "Turtle syntax not found in serialized graph"
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the memory item with its original content")
 def retrieve_memory_item(context):
     """Retrieve the memory item and check its content."""
@@ -154,7 +146,6 @@ def retrieve_memory_item(context):
         ), f"Content mismatch: {retrieved_item.content} != {original_item.content}"
 
 
-@pytest.mark.medium
 @when("I store a memory item with complex metadata")
 def store_item_with_complex_metadata(context):
     """Store a memory item with complex metadata from the data table."""
@@ -174,7 +165,6 @@ def store_item_with_complex_metadata(context):
     context.memory_items[item_id] = memory_item
 
 
-@pytest.mark.medium
 @when("I store a memory item with complex metadata:")
 def store_item_with_complex_metadata_colon(context):
     """Store a memory item with complex metadata from the data table (with colon)."""
@@ -210,7 +200,6 @@ def store_item_with_complex_metadata_colon(context):
     context.memory_items[item_id] = memory_item
 
 
-@pytest.mark.medium
 @then("the memory item should be stored as RDF triples")
 def check_rdf_triples(context):
     """Check that the memory item was stored as RDF triples."""
@@ -234,7 +223,6 @@ def check_rdf_triples(context):
     ) in context.graph_adapter.graph, "Memory item not stored as RDF triple"
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the memory item with all metadata intact")
 def check_metadata_intact(context):
     """Check that the memory item can be retrieved with all metadata intact."""
@@ -252,7 +240,6 @@ def check_metadata_intact(context):
             ), f"Metadata value mismatch for {key}: {retrieved_item.metadata[key]} != {value}"
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         "I add memory volatility controls with decay rate {decay_rate:f} and threshold {threshold:f}"
@@ -277,7 +264,6 @@ def add_memory_volatility_controls(context, decay_rate, threshold):
     )
 
 
-@pytest.mark.medium
 @then("all memory items should have confidence values")
 def check_confidence_values(context):
     """Check that all memory items have confidence values."""
@@ -297,7 +283,6 @@ def check_confidence_values(context):
         ), f"Confidence value should be positive for item {item_id}"
 
 
-@pytest.mark.medium
 @then("all memory items should have decay rates")
 def check_decay_rates(context):
     """Check that all memory items have decay rates."""
@@ -314,7 +299,6 @@ def check_decay_rates(context):
         assert decay_rate is not None, f"Decay rate not found for item {item_id}"
 
 
-@pytest.mark.medium
 @then("all memory items should have confidence thresholds")
 def check_confidence_thresholds(context):
     """Check that all memory items have confidence thresholds."""
@@ -335,7 +319,6 @@ def check_confidence_thresholds(context):
         ), f"Confidence threshold not found for item {item_id}"
 
 
-@pytest.mark.medium
 @given("I have added memory volatility controls")
 def have_added_volatility_controls(context):
     """Ensure memory volatility controls have been added."""
@@ -357,7 +340,6 @@ def have_added_volatility_controls(context):
     )
 
 
-@pytest.mark.medium
 @given("I have stored multiple memory items with different access patterns")
 def store_items_with_different_access_patterns(context):
     """Store multiple memory items with different access patterns."""
@@ -428,7 +410,6 @@ def store_items_with_different_access_patterns(context):
         context.memory_items[related_id] = related_item
 
 
-@pytest.mark.medium
 @when("I apply advanced memory decay")
 def apply_advanced_memory_decay(context):
     """Apply advanced memory decay."""
@@ -437,7 +418,6 @@ def apply_advanced_memory_decay(context):
     )
 
 
-@pytest.mark.medium
 @then("items accessed less frequently should decay faster")
 def check_access_frequency_decay(context):
     """Check that items accessed less frequently decay faster."""
@@ -465,7 +445,6 @@ def check_access_frequency_decay(context):
     assert confidences[0] > confidences[1] > confidences[2]
 
 
-@pytest.mark.medium
 @then("items with more relationships should decay slower")
 def check_relationship_decay(context):
     """Check that items with more relationships decay slower."""
@@ -497,7 +476,6 @@ def check_relationship_decay(context):
     assert conf_with > conf_without
 
 
-@pytest.mark.medium
 @then("items that haven't been accessed recently should decay faster")
 def check_time_based_decay(context):
     """Items with older access times should have lower confidence."""
@@ -525,7 +503,6 @@ def check_time_based_decay(context):
     assert old_conf < recent_conf
 
 
-@pytest.mark.medium
 @given("I have a TinyDBMemoryAdapter")
 def have_tinydb_adapter(context):
     """Create a TinyDBMemoryAdapter."""
@@ -534,7 +511,6 @@ def have_tinydb_adapter(context):
     context.tinydb_adapter = TinyDBMemoryAdapter(db_path=tinydb_path)
 
 
-@pytest.mark.medium
 @given("I have a ChromaDBVectorStore")
 def have_chromadb_adapter(context):
     """Create a ChromaDBVectorAdapter."""
@@ -545,7 +521,6 @@ def have_chromadb_adapter(context):
     )
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'I integrate the GraphMemoryAdapter with the TinyDBMemoryAdapter in "{mode}" mode'
@@ -579,7 +554,6 @@ def integrate_with_tinydb(context, mode):
     context.graph_adapter.integrate_with_store(context.tinydb_adapter, sync_mode=mode)
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'I integrate the GraphMemoryAdapter with the ChromaDBVectorStore in "{mode}" mode'
@@ -612,7 +586,6 @@ def integrate_with_chromadb(context, mode):
     context.graph_adapter.integrate_with_store(context.chromadb_adapter, sync_mode=mode)
 
 
-@pytest.mark.medium
 @then(
     "memory items from the GraphMemoryAdapter should be exported to the TinyDBMemoryAdapter"
 )
@@ -629,7 +602,6 @@ def check_graph_to_tinydb_export(context):
         ), f"Content mismatch: {retrieved_item.content} != Graph item {i}"
 
 
-@pytest.mark.medium
 @then(
     "memory items from the TinyDBMemoryAdapter should be imported to the GraphMemoryAdapter"
 )
@@ -646,7 +618,6 @@ def check_tinydb_to_graph_import(context):
         ), f"Content mismatch: {retrieved_item.content} != TinyDB item {i}"
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the same items from both adapters")
 def check_items_in_both_adapters(context):
     """Check that the same items can be retrieved from both adapters."""
@@ -666,7 +637,6 @@ def check_items_in_both_adapters(context):
             ), f"Content mismatch: {graph_item.content} != {tinydb_item.content}"
 
 
-@pytest.mark.medium
 @then("memory items with vectors should be properly synchronized between stores")
 def check_vector_synchronization(context):
     """Check that memory items with vectors are properly synchronized between stores."""
@@ -676,7 +646,6 @@ def check_vector_synchronization(context):
     ), "No vectors stored in ChromaDB adapter"
 
 
-@pytest.mark.medium
 @then("I should be able to perform vector similarity searches on both stores")
 def check_vector_similarity_search(context):
     """Check that vector similarity searches can be performed on the vector store."""

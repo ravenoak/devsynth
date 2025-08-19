@@ -34,7 +34,6 @@ def context():
     return Ctx()
 
 
-@pytest.mark.medium
 @given("an enhanced coordinator with a micro cycle and failing metrics")
 def enhanced_coordinator_with_micro_cycle(context):
     mm = MemoryManager(adapters={})
@@ -68,13 +67,11 @@ def enhanced_coordinator_with_micro_cycle(context):
     context.micro = micro
 
 
-@pytest.mark.medium
 @when("recovery hooks adjust metrics")
 def recovery_hooks_adjust_metrics(context):
     context.micro._enhanced_maybe_auto_progress()
 
 
-@pytest.mark.medium
 @then("the micro cycle transitions to the next phase")
 def micro_cycle_transitions(context):
     assert context.micro.current_phase == Phase.DIFFERENTIATE

@@ -4,21 +4,22 @@ These steps test advanced features of the ChromaDB memory store with provider in
 """
 
 import os
-import sys
-import pytest
-import tempfile
 import shutil
+import sys
+import tempfile
 import time
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
+
+import pytest
+from pytest_bdd import given, parsers, then, when
 
 # Import our enhanced memory store with provider system integration
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytest.importorskip("chromadb")
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+from devsynth.adapters.provider_system import embed, get_provider
 from devsynth.ports.memory_port import MemoryPort
-from devsynth.adapters.provider_system import get_provider, embed
 
 pytestmark = pytest.mark.requires_resource("chromadb")
 
@@ -79,7 +80,6 @@ def stored_item_id(memory_port):
     return search_results[0].id
 
 
-@pytest.mark.medium
 @when("I retrieve the same item multiple times")
 def retrieve_item_multiple_times(memory_port_with_cache, stored_item_id):
     """Retrieve the same item multiple times to test caching."""
@@ -107,7 +107,6 @@ def retrieve_item_multiple_times(memory_port_with_cache, stored_item_id):
     memory_port_with_cache.context_manager.add_to_context.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the subsequent retrievals should use the cache")
 def verify_cache_usage(memory_port_with_cache):
     """Verify that subsequent retrievals used the cache."""
@@ -118,7 +117,6 @@ def verify_cache_usage(memory_port_with_cache):
     assert cache_hits >= 2, f"Expected at least 2 cache hits, got {cache_hits}"
 
 
-@pytest.mark.medium
 @then("disk I/O operations should be reduced")
 def verify_reduced_disk_io(memory_port_with_cache):
     """Verify that disk I/O operations were reduced due to caching."""
@@ -129,7 +127,6 @@ def verify_reduced_disk_io(memory_port_with_cache):
     ), f"Expected 1 disk I/O operation, got {memory_store.disk_io_count}"
 
 
-@pytest.mark.medium
 @when("I update the same item with new content")
 def update_item_with_new_content(memory_port, stored_item_id):
     """Update a previously stored item with new content."""
@@ -157,7 +154,6 @@ def update_item_with_new_content(memory_port, stored_item_id):
     memory_port.context_manager.add_to_context("updated_item_id", search_results[0].id)
 
 
-@pytest.mark.medium
 @then("both versions of the item should be available")
 def verify_both_versions_available(memory_port):
     """Verify that both the original and updated versions of the item are available."""
@@ -184,7 +180,6 @@ def verify_both_versions_available(memory_port):
     assert "UPDATED" in updated_item.content, "Updated item should contain 'UPDATED'"
 
 
-@pytest.mark.medium
 @given("I have stored multiple versions of an item")
 def store_multiple_versions(memory_port):
     """Store multiple versions of an item for testing version retrieval."""
@@ -239,7 +234,6 @@ def store_multiple_versions(memory_port):
     memory_port.context_manager.add_to_context("version3_id", version3_id)
 
 
-@pytest.mark.medium
 @when(parsers.parse("I request a specific version of the item"))
 def request_specific_version(memory_port):
     """Request a specific version (version 2) of the item."""
@@ -255,7 +249,6 @@ def request_specific_version(memory_port):
     memory_port.context_manager.add_to_context("retrieved_specific_version", item)
 
 
-@pytest.mark.medium
 @then("that specific version should be returned")
 def verify_specific_version(memory_port):
     """Verify that the specific requested version was returned."""
@@ -271,7 +264,6 @@ def verify_specific_version(memory_port):
     assert item.metadata.get("version") == 2, "Expected version 2 metadata"
 
 
-@pytest.mark.medium
 @when("I store multiple items with similar content")
 def store_similar_items(memory_port):
     """Store multiple items with similar content to test embedding optimization."""
@@ -296,7 +288,6 @@ def store_similar_items(memory_port):
     memory_port.context_manager.add_to_context("num_similar_items", len(items))
 
 
-@pytest.mark.medium
 @then("the embedding storage should be optimized")
 def verify_embedding_optimization(memory_port):
     """
@@ -331,7 +322,6 @@ def verify_embedding_optimization(memory_port):
     )
 
 
-@pytest.mark.medium
 @then("similar embeddings should be stored efficiently")
 def verify_similar_embeddings_efficiency(memory_port):
     """

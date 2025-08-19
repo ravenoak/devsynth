@@ -1,7 +1,7 @@
 """Steps for the retry mechanism feature."""
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
 scenarios("../features/general/retry_mechanism.feature")
 
@@ -11,19 +11,16 @@ def retry_context():
     return {"executed": False}
 
 
-@pytest.mark.medium
 @given("the retry_mechanism feature context")
 def given_context(retry_context):
     return retry_context
 
 
-@pytest.mark.medium
 @when("we execute the retry_mechanism workflow")
 def when_execute(retry_context):
     retry_context["executed"] = True
 
 
-@pytest.mark.medium
 @then("the retry_mechanism workflow completes")
 def then_complete(retry_context):
     assert retry_context.get("executed") is True

@@ -1,8 +1,9 @@
 """Steps for the validate metadata command feature."""
 
-import pytest
 from pathlib import Path
-from pytest_bdd import scenarios, given, then
+
+import pytest
+from pytest_bdd import given, scenarios, then
 
 # Reuse generic CLI step implementations to share common steps.
 from .cli_commands_steps import *  # noqa: F401,F403
@@ -11,7 +12,6 @@ from .test_analyze_commands_steps import check_error_message  # noqa: F401
 scenarios("../features/general/validate_metadata_command.feature")
 
 
-@pytest.mark.medium
 @given("a documentation file with valid metadata")
 def doc_with_metadata(tmp_project_dir):
     """Create a markdown file with front matter for validation."""
@@ -22,7 +22,6 @@ def doc_with_metadata(tmp_project_dir):
     return file
 
 
-@pytest.mark.medium
 @then("the output should indicate the metadata is valid")
 def metadata_valid(command_context):
     """Check for a success message from validate-metadata."""

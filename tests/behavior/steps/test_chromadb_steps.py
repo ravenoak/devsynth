@@ -3,20 +3,21 @@ Step definitions for ChromaDB Integration feature with provider system integrati
 """
 
 import os
-import sys
-import pytest
-import tempfile
 import shutil
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock
+import sys
+import tempfile
+from unittest.mock import MagicMock, patch
+
+import pytest
+from pytest_bdd import given, parsers, then, when
 
 # Import the necessary modules
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytest.importorskip("chromadb")
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+from devsynth.adapters.provider_system import embed, get_provider
 from devsynth.ports.memory_port import MemoryPort
-from devsynth.adapters.provider_system import get_provider, embed
 
 pytestmark = pytest.mark.requires_resource("chromadb")
 
@@ -53,7 +54,6 @@ def memory_port(memory_store):
     return port
 
 
-@pytest.mark.medium
 @when(parsers.parse('I configure the memory store type as "{store_type}"'))
 def configure_memory_store_type(store_type):
     """Configure the memory store type."""
@@ -63,7 +63,6 @@ def configure_memory_store_type(store_type):
     ), "Only chromadb store type is supported in these tests"
 
 
-@pytest.mark.medium
 @then("a ChromaDB memory store should be initialized")
 def check_chromadb_initialized(memory_store):
     """Verify that a ChromaDB memory store is initialized."""
@@ -72,7 +71,6 @@ def check_chromadb_initialized(memory_store):
     assert memory_store.use_provider_system is True
 
 
-@pytest.mark.medium
 @given(parsers.parse('the memory store type is configured as "{store_type}"'))
 def given_memory_store_type(store_type, memory_store):
     """Configure the memory store type."""
@@ -82,7 +80,6 @@ def given_memory_store_type(store_type, memory_store):
     assert isinstance(memory_store, ChromaDBMemoryStore)
 
 
-@pytest.mark.medium
 @when("I store an item in the memory store")
 def store_item_in_memory(memory_port):
     """Store an item in the memory store."""
@@ -94,7 +91,6 @@ def store_item_in_memory(memory_port):
     )
 
 
-@pytest.mark.medium
 @then("I should be able to retrieve the item by its ID")
 def retrieve_item_by_id(memory_port):
     """Verify that an item can be retrieved by its ID."""
@@ -113,7 +109,6 @@ def retrieve_item_by_id(memory_port):
     assert "test item" in retrieved_item.content.lower()
 
 
-@pytest.mark.medium
 @given("I have stored multiple items with different content")
 def store_multiple_items(memory_port):
     """Store multiple items with different content."""
@@ -151,7 +146,6 @@ def store_multiple_items(memory_port):
         )
 
 
-@pytest.mark.medium
 @when(parsers.parse("I perform a semantic search for similar content"))
 def perform_semantic_search(memory_port):
     """Perform a semantic search for similar content."""
@@ -164,7 +158,6 @@ def perform_semantic_search(memory_port):
     memory_port.context_manager.add_to_context.return_value = results
 
 
-@pytest.mark.medium
 @then("I should receive items ranked by semantic similarity")
 def check_semantic_search_results(memory_port):
     """Verify that items are ranked by semantic similarity."""
@@ -187,7 +180,6 @@ def check_semantic_search_results(memory_port):
     assert python_found, "Expected Python document in top results"
 
 
-@pytest.mark.medium
 @when("I restart the application")
 def restart_application(memory_store, temp_chromadb_path):
     """Simulate restarting the application by recreating the memory store."""
@@ -201,7 +193,6 @@ def restart_application(memory_store, temp_chromadb_path):
     memory_store.collection = new_store.collection
 
 
-@pytest.mark.medium
 @then("the previously stored items should still be available")
 def check_item_persistence(memory_port):
     """Verify that items are still available after restart."""

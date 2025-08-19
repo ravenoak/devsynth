@@ -1,19 +1,22 @@
 """Steps for the uxbridge feature."""
 
-from pytest_bdd import given, when, then, parsers
 from unittest.mock import MagicMock, patch
+
 import pytest
+from pytest_bdd import given, parsers, then, when
+from rich.console import Console
+from rich.prompt import Confirm, Prompt
+
+from devsynth.interface.cli import CLIUXBridge
 
 # Import the necessary components
 from devsynth.interface.ux_bridge import UXBridge
-from devsynth.interface.cli import CLIUXBridge
-from rich.console import Console
-from rich.prompt import Prompt, Confirm
 
 
 @pytest.fixture
 def context():
     """Create a context for the UXBridge tests."""
+
     class Context:
         def __init__(self):
             self.cli_bridge = None
@@ -26,7 +29,6 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given("the CLI is running")
 def cli_running(context, monkeypatch):
     """Set up a CLI environment with mocked console."""
@@ -36,22 +38,24 @@ def cli_running(context, monkeypatch):
     mock_prompt.ask.return_value = context.user_response
 
     # Create a CLIUXBridge with the mocked console
-    with patch('devsynth.interface.cli.Console', return_value=mock_console):
-        with patch('devsynth.interface.cli.Prompt', mock_prompt):
+    with patch("devsynth.interface.cli.Console", return_value=mock_console):
+        with patch("devsynth.interface.cli.Prompt", mock_prompt):
             context.cli_bridge = CLIUXBridge()
             context.cli_bridge.console = mock_console
 
 
-@pytest.mark.medium
 @given("the WebUI is running")
 def webui_running(context):
     """Set up a WebUI environment with a mock UXBridge."""
+
     # Create a mock WebUI bridge
     class MockWebUIBridge(UXBridge):
         def __init__(self):
             self.displayed_results = []
 
-        def ask_question(self, message, *, choices=None, default=None, show_default=True):
+        def ask_question(
+            self, message, *, choices=None, default=None, show_default=True
+        ):
             return context.user_response
 
         def confirm_choice(self, message, *, default=False):
@@ -63,17 +67,19 @@ def webui_running(context):
     context.webui_bridge = MockWebUIBridge()
 
 
-@pytest.mark.medium
 @given("the Agent API is used")
 def agent_api_used(context):
     """Set up an Agent API environment with a mock UXBridge."""
+
     # Create a mock Agent API bridge
     class MockAgentAPIBridge(UXBridge):
         def __init__(self):
             self.questions_asked = []
             self.choices_confirmed = []
 
-        def ask_question(self, message, *, choices=None, default=None, show_default=True):
+        def ask_question(
+            self, message, *, choices=None, default=None, show_default=True
+        ):
             self.questions_asked.append((message, choices, default, show_default))
             return context.user_response
 
@@ -87,7 +93,6 @@ def agent_api_used(context):
     context.api_bridge = MockAgentAPIBridge()
 
 
-@pytest.mark.medium
 @when(parsers.parse('a workflow asks "{question}"'))
 def workflow_asks_question(context, question):
     """Simulate a workflow asking a question through the bridge."""
@@ -97,7 +102,6 @@ def workflow_asks_question(context, question):
     # We'll verify that the bridge exists, which is sufficient for this test
 
 
-@pytest.mark.medium
 @when("a workflow completes an action")
 def workflow_completes_action(context):
     """Simulate a workflow completing an action."""
@@ -105,7 +109,6 @@ def workflow_completes_action(context):
     context.webui_bridge.display_result(context.workflow_result)
 
 
-@pytest.mark.medium
 @when("a workflow requires confirmation")
 def workflow_requires_confirmation(context):
     """Simulate a workflow requiring confirmation."""
@@ -113,7 +116,6 @@ def workflow_requires_confirmation(context):
     assert result == context.confirmation_result
 
 
-@pytest.mark.medium
 @then("the user is prompted through the bridge")
 def user_prompted_through_bridge(context):
     """Verify that the user was prompted through the bridge."""
@@ -122,7 +124,6 @@ def user_prompted_through_bridge(context):
     assert context.cli_bridge is not None
 
 
-@pytest.mark.medium
 @then("the result is shown through the bridge")
 def result_shown_through_bridge(context):
     """Verify that the result was shown through the bridge."""
@@ -130,7 +131,6 @@ def result_shown_through_bridge(context):
     assert context.webui_bridge.displayed_results[0][0] == context.workflow_result
 
 
-@pytest.mark.medium
 @then("the choice is confirmed through the bridge")
 def choice_confirmed_through_bridge(context):
     """Verify that the choice was confirmed through the bridge."""

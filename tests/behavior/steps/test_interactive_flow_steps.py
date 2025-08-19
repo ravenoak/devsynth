@@ -1,14 +1,15 @@
-import os
 import json
+import os
 import sys
-from typing import Sequence, Optional
+from typing import Optional, Sequence
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.requirements.interactions import RequirementsCollector
 from devsynth.interface.ux_bridge import UXBridge
+
 from .webui_steps import webui_context
 
 
@@ -40,19 +41,16 @@ scenarios("../features/general/interactive_flow_cli.feature")
 scenarios("../features/general/interactive_flow_webui.feature")
 
 
-@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def webui_initialized(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @when("I run the interactive requirements flow")
 def run_flow(tmp_project_dir, monkeypatch):
     monkeypatch.setitem(sys.modules, "chromadb", MagicMock())
@@ -64,7 +62,6 @@ def run_flow(tmp_project_dir, monkeypatch):
     collector.gather()
 
 
-@pytest.mark.medium
 @when("I run the interactive requirements flow in the WebUI")
 def run_flow_webui(tmp_project_dir, webui_context):
     webui_context["st"].sidebar.radio.return_value = "Onboarding"
@@ -79,7 +76,6 @@ def run_flow_webui(tmp_project_dir, webui_context):
     collector.gather()
 
 
-@pytest.mark.medium
 @then('an interactive requirements file "interactive_requirements.json" should exist')
 def check_interactive_file(tmp_project_dir):
     path = os.path.join(tmp_project_dir, "interactive_requirements.json")

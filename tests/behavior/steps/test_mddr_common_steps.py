@@ -42,7 +42,6 @@ def create_mock_agent(name, expertise):
 
 
 # Background steps
-@pytest.mark.medium
 @given("a WSDE team with agents specialized in different disciplines")
 def wsde_team_with_specialized_agents(context):
     """Create a WSDE team with agents specialized in different disciplines."""
@@ -80,7 +79,6 @@ def wsde_team_with_specialized_agents(context):
     ]
 
 
-@pytest.mark.medium
 @given("a knowledge base with multi-disciplinary information")
 def knowledge_base_with_multi_disciplinary_information(context):
     """Create a knowledge base with multi-disciplinary information."""
@@ -117,7 +115,6 @@ def knowledge_base_with_multi_disciplinary_information(context):
     )
 
 
-@pytest.mark.medium
 @given("the team is configured for multi-disciplinary dialectical reasoning")
 def team_configured_for_multi_disciplinary_dialectical_reasoning(context):
     """Configure the team for multi-disciplinary dialectical reasoning."""

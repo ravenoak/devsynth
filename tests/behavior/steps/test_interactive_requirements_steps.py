@@ -11,13 +11,11 @@ from devsynth.application.cli.requirements_wizard import requirements_wizard
 scenarios("../features/general/interactive_requirements.feature")
 
 
-@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
-@pytest.mark.medium
 @when("I run the interactive requirements wizard")
 def run_wizard(tmp_project_dir):
     class Bridge:
@@ -37,7 +35,6 @@ def run_wizard(tmp_project_dir):
     )
 
 
-@pytest.mark.medium
 @then('a structured requirements file "requirements_wizard.json" should exist')
 def check_file(tmp_project_dir):
     path = os.path.join(tmp_project_dir, "requirements_wizard.json")

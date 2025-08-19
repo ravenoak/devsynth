@@ -67,7 +67,6 @@ def _build_reasoner(memory_manager):
     return reasoner, impact_repo
 
 
-@pytest.mark.fast
 @given("a dialectical reasoner with memory")
 def reasoner_with_memory(context):
     memory_manager = DummyMemoryManager()
@@ -75,7 +74,6 @@ def reasoner_with_memory(context):
     context.memory_manager = memory_manager
 
 
-@pytest.mark.fast
 @given("a dialectical reasoner with failing memory")
 def reasoner_with_failing_memory(context):
     memory_manager = DummyMemoryManager(fail=True)
@@ -83,7 +81,6 @@ def reasoner_with_failing_memory(context):
     context.memory_manager = memory_manager
 
 
-@pytest.mark.fast
 @given("a requirement change")
 def requirement_change(context):
     req = Requirement(title="Test", description="Desc", created_by="user")
@@ -96,13 +93,11 @@ def requirement_change(context):
     )
 
 
-@pytest.mark.fast
 @when("the change impact is assessed")
 def assess_change(context):
     context.assessment = context.reasoner.assess_impact(context.change)
 
 
-@pytest.mark.fast
 @then(
     parsers.parse(
         'the impact assessment should be stored in memory with phase "{phase}"'
@@ -116,13 +111,11 @@ def assessment_stored_with_phase(context, phase):
     assert metadata["change_id"] == str(context.change.id)
 
 
-@pytest.mark.fast
 @then("the impact assessment completes")
 def assessment_completes(context):
     assert context.assessment is not None
 
 
-@pytest.mark.fast
 @then("a memory persistence warning is logged")
 def memory_warning_logged(caplog):
     assert any(
