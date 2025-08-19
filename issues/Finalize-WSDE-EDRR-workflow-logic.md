@@ -2,7 +2,7 @@
 Milestone: Phase 3
 Status: blocked
 
-Priority: low
+Priority: high
 Dependencies: Phase 2 completion, [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
 
 ## Problem Statement
