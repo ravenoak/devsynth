@@ -22,6 +22,8 @@ jobs:
       - name: Run project checks
         # Runs tests and documentation checks; fails if any script exits non-zero
         run: |
+          git fetch origin main
           python scripts/run_all_tests.py
           python scripts/check_internal_links.py
           python scripts/fix_code_blocks.py --check
+          python scripts/check_reqid.py --rev-range origin/main..HEAD

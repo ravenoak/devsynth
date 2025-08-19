@@ -47,6 +47,13 @@
   entry: python scripts/check_spec_or_test_updates.py
   language: system
   pass_filenames: false
+- id: check-reqid
+  name: check test ReqID
+  description: "Ensure tests include valid requirement identifiers"
+  entry: python scripts/check_reqid.py
+  language: system
+  pass_filenames: true
+  files: ^tests/.*\.py$
 - id: update-traceability
   name: update traceability
   description: "Update traceability data"
