@@ -58,12 +58,12 @@ The project will transition to Phase 2 (Production Readiness) after publishing `
 - Address adoption barriers and ensure offline capabilities
 - Establish baseline testing and documentation
 
-### 2. Production Readiness (0.2.x–0.3.x – Q4 2025) - PLANNED
+### 2. Production Readiness (0.1.x–0.3.x – Q4 2025) - PLANNED
 
 - Polish CLI UX and integrate the initial Web UI
 - Perform repository analysis and improve code organization
 - Expand automated testing and CI/CD
-- Introduce multi-language code generation starting in **0.2.x**
+- Introduce multi-language code generation starting in **0.1.x**
 - Provide AST mutation tooling for automated refactoring and testing in **0.3.x**
 
 #### Phase 2 Focus Areas
@@ -131,8 +131,8 @@ The project will transition to Phase 2 (Production Readiness) after publishing `
 
 - **[0.1.0-alpha.1](../../CHANGELOG.md#010-alpha1---unreleased)** (CURRENT TARGET): Core architecture in place with Anthropic and offline providers, baseline CLI commands, and initial EDRR/WSDE integration.
 - **0.1.0-rc.1** (PLANNED): Documentation freeze and full test suite passing as the release candidate for version 0.1.0.
-- **0.2.0–0.6.0** (PLANNED): Incremental releases adding collaboration, Web UI, and testing improvements.
-- **0.2.x** (PLANNED): Multi-language code generation support.
+- **0.1.1–0.6.0** (PLANNED): Incremental releases adding collaboration, Web UI, and testing improvements.
+- **0.1.x** (PLANNED): Multi-language code generation support.
 - **0.3.x** (PLANNED): AST mutation tooling for refactoring.
 - **0.6.x** (PLANNED): Experimental DSPy-AI integration (finalize by **0.8.0**).
 - **0.7.x–0.9.0** (PLANNED): Optimization, Promise-Theory reliability work, and preparation for the 1.0 release.

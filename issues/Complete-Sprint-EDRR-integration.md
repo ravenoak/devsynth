@@ -1,5 +1,5 @@
 # Complete Sprint-EDRR integration
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: blocked
 
 Priority: low

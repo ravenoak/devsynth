@@ -34,11 +34,11 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
    - Establish baseline testing and documentation.
    - Phase 1 is largely complete; remaining tasks include finalizing the WSDE peer review workflow, stabilizing cross-store memory integration, and resolving outstanding test failures. See the [Feature Status Matrix](../implementation/feature_status_matrix.md) for detailed progress on collaboration features.
 
-2. **Production Readiness** (0.2.x–0.3.x – Q4 2025)
+2. **Production Readiness** (0.1.x–0.3.x – Q4 2025)
    - Polish CLI UX and integrate the initial Web UI.
    - Perform repository analysis and improve code organization.
    - Expand automated testing and CI/CD.
-   - Introduce multi-language code generation starting in **0.2.x**. See [Post-MVP Roadmap](post_mvp_roadmap.md#phase-4-advanced-code-generation-and-refactoring) for details.
+   - Introduce multi-language code generation starting in **0.1.x**. See [Post-MVP Roadmap](post_mvp_roadmap.md#phase-4-advanced-code-generation-and-refactoring) for details.
    - Provide AST mutation tooling for automated refactoring and testing in **0.3.x** (refer to [Post-MVP Roadmap](post_mvp_roadmap.md#phase-3-self-improvement-capabilities)).
 
 3. **Collaboration & Validation** (0.4.x–0.6.x – Q1–Q3 2026)
@@ -63,8 +63,8 @@ Dependencies among major features are summarized in [Feature Dependencies](featu
   tests passing.
 - **0.1.0-rc.1**: Documentation freeze and full test suite passing as the
   release candidate for version 0.1.0.
-- **0.2.0–0.6.0**: Incremental releases adding collaboration, Web UI, and testing improvements.
-- **0.2.x**: Multi-language code generation support.
+- **0.1.1–0.6.0**: Incremental releases adding collaboration, Web UI, and testing improvements.
+- **0.1.x**: Multi-language code generation support.
 - **0.3.x**: AST mutation tooling for refactoring.
 - **0.6.x**: Experimental DSPy-AI integration (finalize by **0.8.0**).
 - **0.7.x–0.9.0**: Optimization, Promise-Theory reliability work, and preparation for the 1.0 release.

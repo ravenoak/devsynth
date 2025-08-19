@@ -32,7 +32,7 @@ This roadmap outlines planned milestones and targeted features following the `0.
 - Harden security policies and release automation.
 - Conduct full dialectical audit and cross-functional review.
 
-### 0.2.0
+### 0.1.1
 - Expand plugin ecosystem and marketplace support.
 - Enable multi-agent orchestration and cross-platform integration.
 - Optimize performance and telemetry for production environments.

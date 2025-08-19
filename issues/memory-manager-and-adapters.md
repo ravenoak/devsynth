@@ -1,5 +1,5 @@
 # Memory Manager and Adapters
-Milestone: 0.2.0
+Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/memory-manager-and-adapters.md, tests/behavior/features/memory_manager_and_adapters.feature

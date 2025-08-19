@@ -52,7 +52,7 @@ git push origin v0.1.0-alpha.1
 - Finalize MVUU engine and Atomic-Rewrite tooling.
 - Complete MVUU dashboard for requirements traceability via `devsynth mvuu-dashboard`.
 
-### 0.2.0
+### 0.1.1
 - Achieve baseline Dear PyGui parity for core workflows via the desktop interface; requires the `gui` optional extras (`devsynth[gui]`). See the [Dear PyGui User Guide](../user_guides/dearpygui.md).
 - Expand WebUI features with enhanced requirements workflows.
 - Introduce plugin interfaces for third-party provider integration.
@@ -61,7 +61,7 @@ git push origin v0.1.0-alpha.1
 ### MVUU Dashboard (Completed)
 NiceGUI MVUU traceability dashboard accessible via `devsynth mvuu-dashboard`.
 
-### 0.2.0+ (Future Features)
+### 0.1.1+ (Future Features)
 - Implement feature flags for experimental modules.
 - Introduce feature flags for the MVUU dashboard and Dear PyGui interface.
 - Automate project-board synchronization with release milestones.
