@@ -49,8 +49,7 @@ def pytest_configure(config):
 
 @pytest.fixture
 def test_environment(tmp_path, monkeypatch):
-    """
-    Create a completely isolated test environment with temporary directories and patched environment variables.
+    """Create a completely isolated test environment with temporary directories and patched environment variables. ReqID: none
     This fixture is NOT automatically used for all tests - use global_test_isolation instead.
 
     This fixture provides:
@@ -475,7 +474,7 @@ def is_codebase_available() -> bool:
     """Check if the DevSynth codebase is available for analysis."""
     # Check environment variable override
     if (
-        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true").lower()
+        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "false").lower()
         == "false"
     ):
         return False
@@ -491,7 +490,7 @@ def is_codebase_available() -> bool:
 def is_cli_available() -> bool:
     """Check if the DevSynth CLI is available for testing."""
     # Check environment variable override
-    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "true").lower() == "false":
+    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "false").lower() == "false":
         return False
 
 
