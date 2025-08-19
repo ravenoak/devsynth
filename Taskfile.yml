@@ -149,6 +149,18 @@ tasks:
       - task: security:audit
       - poetry run python scripts/dialectical_audit.py
 
+  release:tag:
+    desc: Tag a release and bump to the next development version
+    deps:
+      - release:prep
+    vars:
+      VERSION: ""
+      NEXT_VERSION: ""
+    cmds:
+      - git tag -a {{.VERSION}} -m "Release {{.VERSION}}"
+      - git push origin {{.VERSION}}
+      - poetry run python scripts/bump_version.py {{.NEXT_VERSION}}
+
   # Development workflow tasks
   dev:
     desc: Run common development tasks (format, lint, test)
