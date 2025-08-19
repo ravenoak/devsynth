@@ -1,19 +1,18 @@
 """BDD steps for the ``generate-docs`` command."""
 
+import importlib
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
 # Register the CLI installed step so feature backgrounds load correctly
 from .cli_commands_steps import (  # noqa: F401
-    devsynth_cli_installed,
-    valid_devsynth_project,
-    run_command,
     check_workflow_success,
+    devsynth_cli_installed,
+    run_command,
+    valid_devsynth_project,
 )
-
-import importlib
 
 
 @pytest.fixture
@@ -26,17 +25,16 @@ def docs_context(monkeypatch):
     importlib.reload(docs_module)
     return {"cmd": mock_cmd}
 
+
 scenarios("../features/general/generate_docs.feature")
 
 
-@pytest.mark.medium
 @given("the generate_docs feature context")
 def given_context(docs_context):
     """Return the patched context."""
     return docs_context
 
 
-@pytest.mark.medium
 @when("we execute the generate_docs workflow")
 def when_execute(docs_context):
     """Invoke the ``generate_docs`` command."""
@@ -46,7 +44,6 @@ def when_execute(docs_context):
     docs_context["cmd"] = generate_docs_cmd
 
 
-@pytest.mark.medium
 @then("the generate_docs workflow completes")
 def then_complete(docs_context):
     """Ensure the command was called."""

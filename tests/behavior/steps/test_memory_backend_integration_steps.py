@@ -399,20 +399,6 @@ def store_solution_in_named_backend(context, backend_name):
     # Create a solution
     solution = {
         "agent": "code_agent",
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
         "content": f"def test_cross_backend():\n    return '{backend_name} works!'",
         "description": f"Test solution for cross-backend test in {backend_name}",
     }

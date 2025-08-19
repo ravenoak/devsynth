@@ -3,10 +3,11 @@
 import os
 from pathlib import Path
 
-from pytest_bdd import given, scenarios, when, then
 import pytest
+from pytest_bdd import given, scenarios, then, when
 
-from devsynth.config.loader import ConfigModel, save_config, load_config
+from devsynth.config.loader import ConfigModel, load_config, save_config
+
 from .cli_commands_steps import *
 
 scenarios("../features/general/config_enable_feature.feature")
@@ -24,7 +25,6 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given('a project configuration without the "code_generation" feature enabled')
 def config_without_feature(tmp_path, monkeypatch, context):
     cfg = ConfigModel(project_root=str(tmp_path))
@@ -37,7 +37,6 @@ def config_without_feature(tmp_path, monkeypatch, context):
     monkeypatch.chdir(tmp_path)
 
 
-@pytest.mark.medium
 @when('I run the command "devsynth config enable-feature code_generation"')
 def enable_feature(monkeypatch, mock_workflow_manager, command_context):
     return run_command(
@@ -48,7 +47,6 @@ def enable_feature(monkeypatch, mock_workflow_manager, command_context):
     )
 
 
-@pytest.mark.medium
 @then('the configuration should mark "code_generation" as enabled')
 def feature_enabled(context):
     cfg = load_config()

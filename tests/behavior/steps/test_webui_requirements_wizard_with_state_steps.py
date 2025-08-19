@@ -272,7 +272,6 @@ def wizard_context(monkeypatch):
     return context
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def webui_initialized(wizard_context):
     """Initialize the WebUI."""
@@ -280,7 +279,6 @@ def webui_initialized(wizard_context):
     pass
 
 
-@pytest.mark.medium
 @when('I navigate to "Requirements"')
 def navigate_to_requirements(wizard_context):
     """Navigate to the Requirements page."""
@@ -288,7 +286,6 @@ def navigate_to_requirements(wizard_context):
     pass
 
 
-@pytest.mark.medium
 @when("I click the start requirements wizard button")
 def click_start_requirements_wizard(wizard_context):
     """Click the start requirements wizard button."""
@@ -299,7 +296,6 @@ def click_start_requirements_wizard(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the requirements wizard should be displayed")
 def check_requirements_wizard_displayed(wizard_context):
     """Check that the requirements wizard is displayed."""
@@ -307,7 +303,6 @@ def check_requirements_wizard_displayed(wizard_context):
     wizard_context["st"].header.assert_any_call("Requirements Wizard")
 
 
-@pytest.mark.medium
 @then("the wizard should show the first step")
 def check_wizard_first_step(wizard_context):
     """Check that the wizard shows the first step."""
@@ -315,7 +310,6 @@ def check_wizard_first_step(wizard_context):
     wizard_context["st"].write.assert_any_call("Step 1 of 5: Title")
 
 
-@pytest.mark.medium
 @when("I click the wizard next button")
 def click_wizard_next(wizard_context):
     """Click the wizard next button."""
@@ -342,7 +336,6 @@ def click_wizard_next(wizard_context):
     wizard_context["ui"]._requirements_wizard()
 
 
-@pytest.mark.medium
 @then(parsers.parse("the wizard should show step {step:d}"))
 def check_wizard_step(wizard_context, step):
     """Check that the wizard shows the specified step."""
@@ -352,7 +345,6 @@ def check_wizard_step(wizard_context, step):
     )
 
 
-@pytest.mark.medium
 @when("I click the wizard back button")
 def click_wizard_back(wizard_context):
     """Click the wizard back button."""
@@ -363,7 +355,6 @@ def click_wizard_back(wizard_context):
     wizard_context["col1"].button.return_value = False
 
 
-@pytest.mark.medium
 @when("I enter project goals information")
 def enter_goals_information(wizard_context):
     """Enter project goals information."""
@@ -382,7 +373,6 @@ def enter_goals_information(wizard_context):
     wizard_context["st"].text_area.return_value = description
 
 
-@pytest.mark.medium
 @when("I enter project constraints information")
 def enter_constraints_information(wizard_context):
     """Enter project constraints information."""
@@ -402,7 +392,6 @@ def enter_constraints_information(wizard_context):
     )
 
 
-@pytest.mark.medium
 @when("I enter project priorities")
 def enter_priorities(wizard_context):
     """Enter project priorities."""
@@ -416,7 +405,6 @@ def enter_priorities(wizard_context):
     wizard_context["st"].text_area.return_value = constraints
 
 
-@pytest.mark.medium
 @when("I click the finish button")
 def click_finish_button(wizard_context):
     """Click the finish button."""
@@ -431,14 +419,12 @@ def click_finish_button(wizard_context):
     wizard_context["col2"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the requirements process should complete")
 def check_requirements_complete(wizard_context):
     """Check that the requirements process completes."""
     assert wizard_context["wizard_state"].is_completed() is True
 
 
-@pytest.mark.medium
 @then("a success message should be displayed")
 def check_success_message(wizard_context):
     """Check that a success message is displayed."""
@@ -447,7 +433,6 @@ def check_success_message(wizard_context):
     assert "success" in msg or "saved" in msg
 
 
-@pytest.mark.medium
 @then(parsers.parse('the requirements should be saved to "{filename}"'))
 def check_requirements_saved(wizard_context, filename):
     """Check that the requirements are saved to the specified file."""
@@ -458,7 +443,6 @@ def check_requirements_saved(wizard_context, filename):
     )
 
 
-@pytest.mark.medium
 @when("I click the cancel button")
 def click_cancel_button(wizard_context):
     """Click the cancel button."""
@@ -469,7 +453,6 @@ def click_cancel_button(wizard_context):
     wizard_context["col3"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the wizard should be closed")
 def check_wizard_closed(wizard_context):
     """Check that the wizard is closed."""
@@ -479,7 +462,6 @@ def check_wizard_closed(wizard_context):
     assert wizard_context["wizard_state"].is_completed() is False
 
 
-@pytest.mark.medium
 @then("no requirements file should be created")
 def check_no_requirements_file(wizard_context):
     """Check that no requirements file was created."""
@@ -488,7 +470,6 @@ def check_no_requirements_file(wizard_context):
     )
 
 
-@pytest.mark.medium
 @when("I enter invalid project goals information")
 def enter_invalid_goals_information(wizard_context):
     """Enter invalid project goals information."""
@@ -498,7 +479,6 @@ def enter_invalid_goals_information(wizard_context):
     wizard_context["auto_fill"] = False
 
 
-@pytest.mark.medium
 @then("validation errors should be displayed")
 def check_validation_errors(wizard_context):
     """Check that validation errors are displayed."""
@@ -509,14 +489,12 @@ def check_validation_errors(wizard_context):
     )
 
 
-@pytest.mark.medium
 @then("the wizard should remain on the current step")
 def check_wizard_remains_on_step(wizard_context):
     """Check that the wizard remains on the current step."""
     assert wizard_context["wizard_state"].get_current_step() == 1
 
 
-@pytest.mark.medium
 @then("the previously entered project goals information should be preserved")
 def check_goals_info_preserved(wizard_context):
     """Check that the previously entered project goals information is preserved."""
@@ -527,7 +505,6 @@ def check_goals_info_preserved(wizard_context):
     )
 
 
-@pytest.mark.medium
 @when("I trigger an error condition")
 def trigger_error_condition(wizard_context):
     """Trigger an error condition in the wizard."""
@@ -558,7 +535,6 @@ def trigger_error_condition(wizard_context):
         wizard_context["wizard_state"].set_completed(False)
 
 
-@pytest.mark.medium
 @then("an error message should be displayed")
 def check_error_message(wizard_context):
     """Check that an error message is displayed."""
@@ -566,7 +542,6 @@ def check_error_message(wizard_context):
     assert "error" in wizard_context["ui"].display_result.call_args[0][0].lower()
 
 
-@pytest.mark.medium
 @then("the wizard state should be properly reset")
 def check_wizard_state_reset(wizard_context):
     """Check that the wizard state is properly reset after an error."""

@@ -68,13 +68,11 @@ def wizard_context(monkeypatch):
     return ctx
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def _init(wizard_context):
     return wizard_context
 
 
-@pytest.mark.medium
 @when("I open the requirements wizard")
 def open_wizard(wizard_context):
     col1 = MagicMock(button=lambda *a, **k: False)
@@ -84,7 +82,6 @@ def open_wizard(wizard_context):
     wizard_context["ui"]._requirements_wizard()
 
 
-@pytest.mark.medium
 @when("I click the wizard next button")
 def click_next(wizard_context):
     col1 = MagicMock(button=lambda *a, **k: False)
@@ -94,7 +91,6 @@ def click_next(wizard_context):
     wizard_context["ui"]._requirements_wizard()
 
 
-@pytest.mark.medium
 @when("I click the wizard back button")
 def click_back(wizard_context):
     col1 = MagicMock(button=lambda *a, **k: True)
@@ -104,7 +100,6 @@ def click_back(wizard_context):
     wizard_context["ui"]._requirements_wizard()
 
 
-@pytest.mark.medium
 @when("I click the wizard cancel button")
 def click_cancel(wizard_context):
     col1 = MagicMock(button=lambda *a, **k: False)
@@ -114,19 +109,16 @@ def click_cancel(wizard_context):
     wizard_context["ui"]._requirements_wizard()
 
 
-@pytest.mark.medium
 @then("the wizard should show step 2")
 def show_step_two(wizard_context):
     assert wizard_context["st"].session_state["requirements_wizard_current_step"] == 2
 
 
-@pytest.mark.medium
 @then("the wizard should show step 1")
 def show_step_one(wizard_context):
     assert wizard_context["st"].session_state["requirements_wizard_current_step"] == 1
 
 
-@pytest.mark.medium
 @then("the wizard state should reset to step 1")
 def state_reset(wizard_context):
     assert wizard_context["st"].session_state["requirements_wizard_current_step"] == 1

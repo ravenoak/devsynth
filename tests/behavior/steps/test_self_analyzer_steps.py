@@ -23,8 +23,7 @@ scenarios = pytest.importorskip("pytest_bdd").scenarios(
 
 
 @pytest.fixture
-@pytest.mark.medium
-def test_project_dir(tmp_path):
+def project_dir(tmp_path):
     """Create a temporary directory with a test project structure."""
     # Create a basic project structure
     project_dir = tmp_path / "test_project"

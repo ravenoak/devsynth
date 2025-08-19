@@ -55,7 +55,6 @@ def context():
     return Context()
 
 
-@pytest.mark.medium
 @given("an initialized EDRR coordinator")
 def edrr_coordinator_initialized(context):
     """
@@ -138,7 +137,6 @@ def edrr_coordinator_initialized(context):
     context.parent_cycle = context.edrr_coordinator
 
 
-@pytest.mark.medium
 @given("I register micro cycle monitoring hooks")
 def register_micro_cycle_hooks(context):
     """Register hooks that toggle flags in the context when invoked."""
@@ -153,7 +151,6 @@ def register_micro_cycle_hooks(context):
     context.edrr_coordinator.register_micro_cycle_hook("end", end_hook)
 
 
-@pytest.mark.medium
 @when(parsers.parse('I start an EDRR cycle for "{task_description}"'))
 def start_edrr_cycle(context, task_description):
     """
@@ -185,7 +182,6 @@ def start_edrr_cycle(context, task_description):
     ), "EDRR cycle should have results dictionary initialized"
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'I create a micro cycle for "{sub_task_description}" in phase "{phase_name}"'
@@ -230,7 +226,6 @@ def create_micro_cycle(context, sub_task_description, phase_name):
     ), "Micro cycle should have the parent cycle ID as its parent_cycle_id"
 
 
-@pytest.mark.medium
 @then(parsers.parse("the micro cycle should have recursion depth {depth:d}"))
 def verify_recursion_depth(context, depth):
     """
@@ -258,7 +253,6 @@ def verify_recursion_depth(context, depth):
     ), "Micro cycle recursion depth should be greater than parent cycle recursion depth"
 
 
-@pytest.mark.medium
 @then("the parent cycle should include the micro cycle")
 def verify_parent_includes_micro(context):
     """
@@ -317,7 +311,6 @@ def verify_parent_includes_micro(context):
     assert len(memory_items) > 0, "Micro cycle should have memory items"
 
 
-@pytest.mark.medium
 @then("the hooks should record the micro cycle lifecycle")
 def hooks_recorded(context):
     """Ensure start and end hooks were triggered."""

@@ -152,13 +152,11 @@ def webui_context(monkeypatch):
 
 
 # Step definitions for enhanced progress indicators
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def webui_initialized(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @when("I run a long-running operation")
 def run_long_operation(webui_context):
     # Simulate running a long operation
@@ -167,14 +165,12 @@ def run_long_operation(webui_context):
     webui_context["current_progress"] = progress
 
 
-@pytest.mark.medium
 @then("I should see an enhanced progress indicator")
 def check_progress_indicator(webui_context):
     ui = webui_context["ui"]
     ui.create_progress.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the progress indicator should show estimated time remaining")
 def check_time_remaining(webui_context):
     progress = webui_context["current_progress"]
@@ -182,7 +178,6 @@ def check_time_remaining(webui_context):
     progress.update.assert_called_with(advance=10, description="processing")
 
 
-@pytest.mark.medium
 @then("the progress indicator should show subtasks")
 def check_subtasks(webui_context):
     progress = webui_context["current_progress"]
@@ -190,7 +185,6 @@ def check_subtasks(webui_context):
 
 
 # Step definitions for colorized output
-@pytest.mark.medium
 @when("I run a command that produces different types of output")
 def run_output_command(webui_context):
     ui = webui_context["ui"]
@@ -202,7 +196,6 @@ def run_output_command(webui_context):
     ui.display_result("## Subheading", highlight=False)
 
 
-@pytest.mark.medium
 @then("success messages should be displayed in green")
 def check_success_messages(webui_context):
     ui = webui_context["ui"]
@@ -211,7 +204,6 @@ def check_success_messages(webui_context):
     st_mock.success.assert_called()
 
 
-@pytest.mark.medium
 @then("warning messages should be displayed in yellow")
 def check_warning_messages(webui_context):
     ui = webui_context["ui"]
@@ -220,7 +212,6 @@ def check_warning_messages(webui_context):
     st_mock.warning.assert_called()
 
 
-@pytest.mark.medium
 @then("error messages should be displayed in red")
 def check_error_messages(webui_context):
     ui = webui_context["ui"]
@@ -229,7 +220,6 @@ def check_error_messages(webui_context):
     st_mock.error.assert_called()
 
 
-@pytest.mark.medium
 @then("informational messages should be displayed in blue")
 def check_info_messages(webui_context):
     ui = webui_context["ui"]
@@ -239,7 +229,6 @@ def check_info_messages(webui_context):
 
 
 # Step definitions for detailed error messages
-@pytest.mark.medium
 @when("I run a command that produces an error")
 def run_error_command(webui_context):
     ui = webui_context["ui"]
@@ -249,7 +238,6 @@ def run_error_command(webui_context):
     )
 
 
-@pytest.mark.medium
 @then("I should see a detailed error message")
 def check_detailed_error(webui_context):
     ui = webui_context["ui"]
@@ -261,7 +249,6 @@ def check_detailed_error(webui_context):
     st_mock.error.assert_called()
 
 
-@pytest.mark.medium
 @then("the error message should include suggestions")
 def check_error_suggestions(webui_context):
     # Verify that the error message includes suggestions
@@ -288,7 +275,6 @@ def check_error_suggestions(webui_context):
     ), "Error message should include suggestions for fixing the issue"
 
 
-@pytest.mark.medium
 @then("the error message should include documentation links")
 def check_error_docs(webui_context):
     # Verify that the error message includes documentation links
@@ -310,7 +296,6 @@ def check_error_docs(webui_context):
 
 
 # Step definitions for help text
-@pytest.mark.medium
 @when("I view help for a command")
 def view_help(webui_context):
     ui = webui_context["ui"]
@@ -320,7 +305,6 @@ def view_help(webui_context):
     )
 
 
-@pytest.mark.medium
 @then("I should see detailed help text")
 def check_help_text(webui_context):
     ui = webui_context["ui"]
@@ -332,7 +316,6 @@ def check_help_text(webui_context):
     st_mock.info.assert_called()
 
 
-@pytest.mark.medium
 @then("the help text should include usage examples")
 def check_help_examples(webui_context):
     # Verify that the help text includes usage examples
@@ -358,7 +341,6 @@ def check_help_examples(webui_context):
     assert has_command_example, "Help text should include specific command examples"
 
 
-@pytest.mark.medium
 @then("the help text should explain all available options")
 def check_help_options(webui_context):
     # Verify that the help text explains all available options
@@ -385,7 +367,6 @@ def check_help_options(webui_context):
 
 
 # Step definitions for UXBridge integration
-@pytest.mark.medium
 @when("I interact with the WebUI")
 def interact_with_webui(webui_context):
     ui = webui_context["ui"]
@@ -395,7 +376,6 @@ def interact_with_webui(webui_context):
     ui.create_progress("Test progress")
 
 
-@pytest.mark.medium
 @then("the interactions should use the UXBridge abstraction")
 def check_uxbridge_abstraction(webui_context):
     ui = webui_context["ui"]
@@ -405,7 +385,6 @@ def check_uxbridge_abstraction(webui_context):
     ui.create_progress.assert_called()
 
 
-@pytest.mark.medium
 @then("the WebUI should behave consistently with the CLI")
 def check_cli_consistency(webui_context):
     # Verify that the WebUI behaves consistently with the CLI
@@ -439,7 +418,6 @@ def check_cli_consistency(webui_context):
 
 
 # Step definitions for responsive UI
-@pytest.mark.medium
 @when("I resize the browser window")
 def resize_browser(webui_context):
     # Simulate resizing the browser window
@@ -462,7 +440,6 @@ def resize_browser(webui_context):
     ui.rerun = True
 
 
-@pytest.mark.medium
 @then("the WebUI should adapt to the new size")
 def check_responsive_design(webui_context):
     # Verify that the WebUI adapts to the new size
@@ -490,7 +467,6 @@ def check_responsive_design(webui_context):
     ), "WebUI should have methods for handling different screen sizes"
 
 
-@pytest.mark.medium
 @then("all elements should remain accessible and usable")
 def check_accessibility(webui_context):
     # Verify that all UI elements remain accessible and usable after resizing
@@ -519,7 +495,6 @@ def check_accessibility(webui_context):
 
 
 # Step definitions for CLI command support
-@pytest.mark.medium
 @when("I navigate to different pages")
 def navigate_pages(webui_context):
     ui = webui_context["ui"]
@@ -530,7 +505,6 @@ def navigate_pages(webui_context):
     ui.config_page()
 
 
-@pytest.mark.medium
 @then("I should be able to access all CLI commands")
 def check_all_commands(webui_context):
     ui = webui_context["ui"]
@@ -543,7 +517,6 @@ def check_all_commands(webui_context):
     assert hasattr(ui, "doctor_page")
 
 
-@pytest.mark.medium
 @then("each command should have a dedicated interface")
 def check_dedicated_interfaces(webui_context):
     ui = webui_context["ui"]
@@ -568,7 +541,6 @@ def check_dedicated_interfaces(webui_context):
         assert func.called, f"{name} was not invoked"
 
 
-@pytest.mark.medium
 @then("the command interfaces should be consistent")
 def check_interface_consistency(webui_context):
     ui = webui_context["ui"]

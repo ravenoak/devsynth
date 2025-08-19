@@ -21,21 +21,18 @@ def command_context():
     return {}
 
 
-@pytest.mark.medium
 @given("the requirements_management feature context")
 def given_context(command_context):
     """Provide a context object for subsequent steps."""
     return command_context
 
 
-@pytest.mark.medium
 @when("we execute the requirements_management workflow")
 def when_execute(command_context):
     """Run a representative requirements command."""
     run_command("devsynth requirements --action list", command_context)
 
 
-@pytest.mark.medium
 @then("the requirements_management workflow completes")
 def then_complete(command_context):
     """Verify the command executed successfully."""

@@ -1,21 +1,19 @@
-from unittest.mock import MagicMock
 import sys
+from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, scenarios, then, when
 
 from .webui_steps import webui_context
 
 scenarios("../features/general/webui_commands.feature")
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def _init(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @when("I submit the specification form")
 def submit_spec(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Requirements"
@@ -23,7 +21,6 @@ def submit_spec(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I submit the inspect form")
 def submit_inspect(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Requirements"
@@ -31,7 +28,6 @@ def submit_inspect(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I submit the test form")
 def submit_test(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
@@ -40,7 +36,6 @@ def submit_test(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I click the generate code button")
 def click_generate_code(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
@@ -49,7 +44,6 @@ def click_generate_code(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I click the run pipeline button")
 def click_run_pipeline(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
@@ -58,7 +52,6 @@ def click_run_pipeline(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I view all configuration")
 def view_all_config(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Config"
@@ -67,7 +60,6 @@ def view_all_config(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I submit the edrr cycle form")
 def submit_edrr_cycle(webui_context):
     webui_context["st"].sidebar.radio.return_value = "EDRR Cycle"
@@ -75,7 +67,6 @@ def submit_edrr_cycle(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I submit the alignment form")
 def submit_alignment(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Alignment"
@@ -83,7 +74,6 @@ def submit_alignment(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I submit the analysis form")
 def submit_analysis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Analysis"
@@ -91,49 +81,41 @@ def submit_analysis(webui_context):
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @then("the spec command should be executed")
 def check_spec(webui_context):
     assert webui_context["cli"].spec_cmd.called
 
 
-@pytest.mark.medium
 @then("the inspect command should be executed")
 def check_inspect(webui_context):
     assert webui_context["cli"].inspect_cmd.called
 
 
-@pytest.mark.medium
 @then("the test command should be executed")
 def check_test(webui_context):
     assert webui_context["cli"].test_cmd.called
 
 
-@pytest.mark.medium
 @then("the code command should be executed")
 def check_code(webui_context):
     assert webui_context["cli"].code_cmd.called
 
 
-@pytest.mark.medium
 @then("the run_pipeline command should be executed")
 def check_run_pipeline(webui_context):
     assert webui_context["cli"].run_pipeline_cmd.called
 
 
-@pytest.mark.medium
 @then("the edrr_cycle command should be executed")
 def check_edrr_cycle(webui_context):
     assert webui_context["cli"].edrr_cycle_cmd.called
 
 
-@pytest.mark.medium
 @then("the align command should be executed")
 def check_align(webui_context):
     assert webui_context["cli"].align_cmd.called
 
 
-@pytest.mark.medium
 @then("the inspect_code command should be executed")
 def check_inspect_code(webui_context):
     assert webui_context["cli"].inspect_code_cmd.called

@@ -209,13 +209,11 @@ class DummyForm:
         return self.submitted
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @given("I have a valid project directory")
 def given_valid_project_directory(webui_context, monkeypatch):
     from pathlib import Path
@@ -225,7 +223,6 @@ def given_valid_project_directory(webui_context, monkeypatch):
     return webui_context
 
 
-@pytest.mark.medium
 @given("I am on the analysis page")
 def given_on_analysis_page(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Analysis"
@@ -233,27 +230,23 @@ def given_on_analysis_page(webui_context):
     return webui_context
 
 
-@pytest.mark.medium
 @when('I navigate to the "Analysis" page')
 def navigate_to_analysis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Analysis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when("I submit the analysis form with default settings")
 def submit_analysis_form_default(webui_context):
     webui_context["st"].form_submit_button.return_value = True
     webui_context["ui"].analysis_page()
 
 
-@pytest.mark.medium
 @when("I enter a custom path for analysis")
 def enter_custom_path(webui_context):
     webui_context["st"].text_input.return_value = "/custom/path/to/analyze"
 
 
-@pytest.mark.medium
 @when("I select specific analysis options")
 def select_analysis_options(webui_context):
     webui_context["st"].checkbox.side_effect = [
@@ -263,14 +256,12 @@ def select_analysis_options(webui_context):
     ]  # Custom option pattern
 
 
-@pytest.mark.medium
 @when("I submit the analysis form")
 def submit_analysis_form(webui_context):
     webui_context["st"].form_submit_button.return_value = True
     webui_context["ui"].analysis_page()
 
 
-@pytest.mark.medium
 @when("I enter an invalid path for analysis")
 def enter_invalid_path(webui_context, monkeypatch):
     from pathlib import Path
@@ -279,46 +270,39 @@ def enter_invalid_path(webui_context, monkeypatch):
     monkeypatch.setattr(Path, "exists", lambda _self: False)
 
 
-@pytest.mark.medium
 @when('I navigate to the "Synthesis" page')
 def navigate_to_synthesis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Synthesis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @when('I navigate back to the "Analysis" page')
 def navigate_back_to_analysis(webui_context):
     webui_context["st"].sidebar.radio.return_value = "Analysis"
     webui_context["ui"].run()
 
 
-@pytest.mark.medium
 @then("I should see the analysis page title")
 def see_analysis_title(webui_context):
     webui_context["st"].header.assert_any_call("Code Analysis")
 
 
-@pytest.mark.medium
 @then("I should see the code analysis form")
 def see_analysis_form(webui_context):
     assert webui_context["st"].form.called
 
 
-@pytest.mark.medium
 @then("the code analysis should be executed")
 def code_analysis_executed(webui_context):
     assert webui_context["cli"].inspect_code_cmd.called
 
 
-@pytest.mark.medium
 @then("I should see the analysis results")
 def see_analysis_results(webui_context):
     # This would check for success message or results display
     assert webui_context["st"].success.called or webui_context["st"].write.called
 
 
-@pytest.mark.medium
 @then("the code analysis should be executed with custom settings")
 def code_analysis_executed_custom(webui_context):
     assert webui_context["cli"].inspect_code_cmd.called
@@ -327,20 +311,17 @@ def code_analysis_executed_custom(webui_context):
     assert "/custom/path/to/analyze" in str(kwargs)
 
 
-@pytest.mark.medium
 @then("I should see an appropriate error message")
 def see_error_message(webui_context):
     assert webui_context["st"].error.called
 
 
-@pytest.mark.medium
 @then("I should be able to correct the input and resubmit")
 def can_correct_and_resubmit(webui_context):
     # Verify form is still accessible after error
     assert webui_context["st"].form.called
 
 
-@pytest.mark.medium
 @then("I should see the analysis page with preserved state")
 def see_analysis_with_preserved_state(webui_context):
     # Check that session state preserves values

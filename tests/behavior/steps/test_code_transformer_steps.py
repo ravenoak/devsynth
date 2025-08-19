@@ -41,7 +41,6 @@ def context():
 
 
 # Background steps
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_initialized():
     """Initialize the DevSynth system."""
@@ -49,7 +48,6 @@ def devsynth_initialized():
     pass
 
 
-@pytest.mark.medium
 @given("the code transformer is configured")
 def code_transformer_configured(context):
     """Configure the code transformer."""
@@ -57,7 +55,6 @@ def code_transformer_configured(context):
 
 
 # Scenario: Transform code with unused imports
-@pytest.mark.medium
 @given("I have Python code with unused imports")
 def python_code_with_unused_imports(context):
     """Set up Python code with unused imports."""
@@ -72,14 +69,12 @@ def main():
 """
 
 
-@pytest.mark.medium
 @when(parsers.parse('I transform the code using the "{transformation}" transformation'))
 def transform_code(context, transformation):
     """Transform the code using the specified transformation."""
     context.result = context.transformer.transform_code(context.code, [transformation])
 
 
-@pytest.mark.medium
 @then("the transformed code should not contain unused imports")
 def verify_no_unused_imports(context):
     """Verify that the transformed code does not contain unused imports."""
@@ -94,7 +89,6 @@ def verify_no_unused_imports(context):
     ), "Import 'sys' was removed but it's used"
 
 
-@pytest.mark.medium
 @then("the transformed code should maintain the original functionality")
 def verify_functionality_maintained(context):
     """Verify that the transformed code maintains the original functionality."""
@@ -109,7 +103,6 @@ def verify_functionality_maintained(context):
     ), "sys.version call is missing"
 
 
-@pytest.mark.medium
 @then("the transformation should record the changes made")
 def verify_changes_recorded(context):
     """Verify that the transformation records the changes made."""
@@ -118,7 +111,6 @@ def verify_changes_recorded(context):
 
 
 # Scenario: Transform code with redundant assignments
-@pytest.mark.medium
 @given("I have Python code with redundant assignments")
 def python_code_with_redundant_assignments(context):
     """Set up Python code with redundant assignments."""
@@ -130,7 +122,6 @@ def calculate_sum(a, b):
 """
 
 
-@pytest.mark.medium
 @then("the transformed code should not contain redundant assignments")
 def verify_no_redundant_assignments(context):
     """Verify that the transformed code does not contain redundant assignments."""
@@ -143,7 +134,6 @@ def verify_no_redundant_assignments(context):
 
 
 # Scenario: Transform code with unused variables
-@pytest.mark.medium
 @given("I have Python code with unused variables")
 def python_code_with_unused_variables(context):
     """Set up Python code with unused variables."""
@@ -159,7 +149,6 @@ def process_data(data):
 """
 
 
-@pytest.mark.medium
 @then("the transformed code should not contain unused variables")
 def verify_no_unused_variables(context):
     """Verify that the transformed code does not contain unused variables."""
@@ -172,7 +161,6 @@ def verify_no_unused_variables(context):
 
 
 # Scenario: Transform code with string literals
-@pytest.mark.medium
 @given("I have Python code with string literals that can be optimized")
 def python_code_with_string_literals(context):
     """Set up Python code with string literals that can be optimized."""
@@ -183,7 +171,6 @@ def greet(name):
 """
 
 
-@pytest.mark.medium
 @then("the transformed code should contain optimized string literals")
 def verify_optimized_string_literals(context):
     """Verify that the transformed code contains optimized string literals."""
@@ -200,7 +187,6 @@ def verify_optimized_string_literals(context):
 
 
 # Scenario: Transform code with style issues
-@pytest.mark.medium
 @given("I have Python code with style issues")
 def python_code_with_style_issues(context):
     """Set up Python code with style issues."""
@@ -214,7 +200,6 @@ class ClassWithoutDocstring:
 """
 
 
-@pytest.mark.medium
 @then("the transformed code should have improved style")
 def verify_improved_style(context):
     """Verify that the transformed code has improved style."""
@@ -222,7 +207,6 @@ def verify_improved_style(context):
 
 
 # Scenario: Apply multiple transformations to code
-@pytest.mark.medium
 @given("I have Python code with multiple issues")
 def python_code_with_multiple_issues(context):
     """Set up Python code with multiple issues."""
@@ -247,7 +231,6 @@ def main():
 """
 
 
-@pytest.mark.medium
 @when(
     parsers.parse("I transform the code using the following transformations:\n{table}")
 )
@@ -264,7 +247,6 @@ def transform_code_with_multiple_transformations(context, table):
     context.result = context.transformer.transform_code(context.code, transformations)
 
 
-@pytest.mark.medium
 @then("the transformed code should address all issues")
 def verify_all_issues_addressed(context):
     """Verify that the transformed code addresses all issues."""
@@ -289,7 +271,6 @@ def verify_all_issues_addressed(context):
     ), "Unoptimized string concatenation still present"
 
 
-@pytest.mark.medium
 @then("the transformation should record all changes made")
 def verify_all_changes_recorded(context):
     """Verify that the transformation records all changes made."""
@@ -313,7 +294,6 @@ def verify_all_changes_recorded(context):
 
 
 # Scenario: Transform a file
-@pytest.mark.medium
 @given("I have a Python file with code issues")
 def python_file_with_code_issues(context):
     """Set up a Python file with code issues."""
@@ -336,7 +316,6 @@ def main():
         )
 
 
-@pytest.mark.medium
 @when(parsers.parse('I transform the file using the "{transformation}" transformation'))
 def transform_file(context, transformation):
     """Transform the file using the specified transformation."""
@@ -345,7 +324,6 @@ def transform_file(context, transformation):
     )
 
 
-@pytest.mark.medium
 @then("the transformed file should not contain unused imports")
 def verify_file_no_unused_imports(context):
     """Verify that the transformed file does not contain unused imports."""
@@ -360,7 +338,6 @@ def verify_file_no_unused_imports(context):
     ), "Import 'sys' was removed but it's used"
 
 
-@pytest.mark.medium
 @then("the transformed file should maintain the original functionality")
 def verify_file_functionality_maintained(context):
     """Verify that the transformed file maintains the original functionality."""
@@ -375,7 +352,6 @@ def verify_file_functionality_maintained(context):
     ), "sys.version call is missing"
 
 
-@pytest.mark.medium
 @then("the transformation should record the changes made to the file")
 def verify_file_changes_recorded(context):
     """Verify that the transformation records the changes made to the file."""
@@ -384,7 +360,6 @@ def verify_file_changes_recorded(context):
 
 
 # Scenario: Transform a directory
-@pytest.mark.medium
 @given("I have a directory with Python files")
 def directory_with_python_files(context):
     """Set up a directory with Python files."""
@@ -415,7 +390,6 @@ def main():
         )
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'I transform the directory using the "{transformation}" transformation'
@@ -428,7 +402,6 @@ def transform_directory(context, transformation):
     )
 
 
-@pytest.mark.medium
 @then("all Python files in the directory should be transformed")
 def verify_all_files_transformed(context):
     """Verify that all Python files in the directory were transformed."""
@@ -443,7 +416,6 @@ def verify_all_files_transformed(context):
     ), "file2.py was not transformed"
 
 
-@pytest.mark.medium
 @then("none of the transformed files should contain unused imports")
 def verify_no_files_with_unused_imports(context):
     """Verify that none of the transformed files contain unused imports."""
@@ -453,7 +425,6 @@ def verify_no_files_with_unused_imports(context):
         ), f"Unused import 're' still present in {result.file_path}"
 
 
-@pytest.mark.medium
 @then("all transformed files should maintain their original functionality")
 def verify_all_files_functionality_maintained(context):
     """Verify that all transformed files maintain their original functionality."""
@@ -471,7 +442,6 @@ def verify_all_files_functionality_maintained(context):
             ), "sys.version call is missing in file2.py"
 
 
-@pytest.mark.medium
 @then("the transformation should record the changes made to each file")
 def verify_changes_recorded_for_each_file(context):
     """Verify that the transformation records the changes made to each file."""
@@ -481,7 +451,6 @@ def verify_changes_recorded_for_each_file(context):
 
 
 # Scenario: Transform a directory recursively
-@pytest.mark.medium
 @given("I have a directory with Python files and subdirectories")
 def directory_with_python_files_and_subdirectories(context):
     """Set up a directory with Python files and subdirectories."""
@@ -516,7 +485,6 @@ def main():
         )
 
 
-@pytest.mark.medium
 @when(
     parsers.parse(
         'I transform the directory recursively using the "{transformation}" transformation'
@@ -529,7 +497,6 @@ def transform_directory_recursively(context, transformation):
     )
 
 
-@pytest.mark.medium
 @then("all Python files in the directory and its subdirectories should be transformed")
 def verify_all_files_and_subdirs_transformed(context):
     """Verify that all Python files in the directory and its subdirectories were transformed."""
@@ -545,7 +512,6 @@ def verify_all_files_and_subdirs_transformed(context):
 
 
 # Scenario: Validate syntax before and after transformation
-@pytest.mark.medium
 @given("I have Python code with issues")
 def python_code_with_issues(context):
     """Set up Python code with issues."""
@@ -556,7 +522,6 @@ def calculate_sum(a, b):
 """
 
 
-@pytest.mark.medium
 @then("the transformer should validate the syntax before transformation")
 def verify_syntax_validated_before(context):
     """Verify that the transformer validates the syntax before transformation."""
@@ -565,7 +530,6 @@ def verify_syntax_validated_before(context):
     pass
 
 
-@pytest.mark.medium
 @then("the transformer should validate the syntax after transformation")
 def verify_syntax_validated_after(context):
     """Verify that the transformer validates the syntax after transformation."""
@@ -574,7 +538,6 @@ def verify_syntax_validated_after(context):
     pass
 
 
-@pytest.mark.medium
 @then("the transformation should only proceed if the syntax is valid")
 def verify_transformation_proceeds_if_valid(context):
     """Verify that the transformation only proceeds if the syntax is valid."""
@@ -583,7 +546,6 @@ def verify_transformation_proceeds_if_valid(context):
     pass
 
 
-@pytest.mark.medium
 @then("the transformed code should have valid syntax")
 def verify_transformed_code_valid_syntax(context):
     """Verify that the transformed code has valid syntax."""
@@ -594,7 +556,6 @@ def verify_transformed_code_valid_syntax(context):
 
 
 # Scenario: Handle syntax errors gracefully
-@pytest.mark.medium
 @given("I have Python code with syntax errors")
 def python_code_with_syntax_errors(context):
     """Set up Python code with syntax errors."""
@@ -604,7 +565,6 @@ def broken_function(
 """
 
 
-@pytest.mark.medium
 @when("I attempt to transform the code")
 def attempt_to_transform_code(context):
     """Attempt to transform the code."""
@@ -619,7 +579,6 @@ def attempt_to_transform_code(context):
         context.result = None
 
 
-@pytest.mark.medium
 @then("the transformer should detect the syntax errors")
 def verify_syntax_errors_detected(context):
     """Verify that the transformer detects the syntax errors."""
@@ -628,7 +587,6 @@ def verify_syntax_errors_detected(context):
     pass
 
 
-@pytest.mark.medium
 @then("the transformer should report the syntax errors")
 def verify_syntax_errors_reported(context):
     """Verify that the transformer reports the syntax errors."""
@@ -637,7 +595,6 @@ def verify_syntax_errors_reported(context):
     pass
 
 
-@pytest.mark.medium
 @then("the transformer should not proceed with the transformation")
 def verify_transformation_not_proceeded(context):
     """Verify that the transformer does not proceed with the transformation."""
@@ -649,7 +606,6 @@ def verify_transformation_not_proceeded(context):
 
 
 # Scenario: Integrate with EDRR workflow
-@pytest.mark.medium
 @given("the EDRR workflow is configured")
 def edrr_workflow_configured(context):
     """Configure the EDRR workflow."""
@@ -657,7 +613,6 @@ def edrr_workflow_configured(context):
     context.edrr_coordinator = MagicMock(spec=EnhancedEDRRCoordinator)
 
 
-@pytest.mark.medium
 @when("I initiate a code transformation task")
 def initiate_code_transformation_task(context):
     """Initiate a code transformation task."""
@@ -669,7 +624,6 @@ def initiate_code_transformation_task(context):
     }
 
 
-@pytest.mark.medium
 @then("the system should use code transformation in the Refinement phase")
 def verify_refinement_phase(context):
     """Verify that code transformation is used in the Refinement phase."""
@@ -678,7 +632,6 @@ def verify_refinement_phase(context):
     ), "Code transformation not used in Refinement phase"
 
 
-@pytest.mark.medium
 @then("the system should apply appropriate transformations based on the code analysis")
 def verify_appropriate_transformations(context):
     """Verify that appropriate transformations are applied based on the code analysis."""
@@ -688,7 +641,6 @@ def verify_appropriate_transformations(context):
     ), "Code transformation task not executed"
 
 
-@pytest.mark.medium
 @then(
     "the memory system should store transformation results with appropriate EDRR phase tags"
 )
@@ -701,7 +653,6 @@ def verify_results_stored_with_phase_tags(context):
 
 
 # Scenario: Integrate with WSDE team
-@pytest.mark.medium
 @given("the WSDE team is configured")
 def wsde_team_configured(context):
     """Configure the WSDE team."""
@@ -709,7 +660,6 @@ def wsde_team_configured(context):
     context.wsde_team = MagicMock(spec=WSDETeam)
 
 
-@pytest.mark.medium
 @when("I assign a code transformation task to the WSDE team")
 def assign_code_transformation_task(context):
     """Assign a code transformation task to the WSDE team."""
@@ -721,7 +671,6 @@ def assign_code_transformation_task(context):
     }
 
 
-@pytest.mark.medium
 @then("the team should collaborate to transform different aspects of the code")
 def verify_team_collaboration(context):
     """Verify that the team collaborates to transform different aspects of the code."""
@@ -731,7 +680,6 @@ def verify_team_collaboration(context):
     ), "Task not assigned to WSDE team"
 
 
-@pytest.mark.medium
 @then("the team should share transformation results between agents")
 def verify_results_shared(context):
     """Verify that transformation results are shared between agents."""
@@ -739,7 +687,6 @@ def verify_results_shared(context):
     assert context.result["status"] == "completed", "Task not completed"
 
 
-@pytest.mark.medium
 @then("the team should produce consolidated transformed code")
 def verify_consolidated_code(context):
     """Verify that the team produces consolidated transformed code."""

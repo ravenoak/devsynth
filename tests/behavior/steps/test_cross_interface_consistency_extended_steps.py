@@ -1,16 +1,17 @@
 """Steps for extended cross-interface consistency testing."""
 
-from types import ModuleType
-from unittest.mock import MagicMock, patch
 import importlib
 import sys
+from types import ModuleType
+from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_bdd import given, when, then, parsers
+from pytest_bdd import given, parsers, then, when
+
+from devsynth.interface.cli import CLIUXBridge
 
 # Import the necessary components
 from devsynth.interface.ux_bridge import UXBridge
-from devsynth.interface.cli import CLIUXBridge
 
 
 class DummyForm:
@@ -120,10 +121,12 @@ def cross_interface_context(monkeypatch):
 
     # Load WebUI module
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
 
     # Mock Agent API
     import devsynth.interface.agentapi as agentapi
+
     importlib.reload(agentapi)
 
     # Create a context object to store test state
@@ -137,13 +140,12 @@ def cross_interface_context(monkeypatch):
         "agent_api": agentapi.AgentAPI(agentapi.APIBridge()),
         "command_calls": {},
         "error_messages": [],
-        "user_inputs": {}
+        "user_inputs": {},
     }
 
     return context
 
 
-@pytest.mark.medium
 @given("the CLI, WebUI, and Agent API share a UXBridge")
 def shared_bridge_setup(cross_interface_context):
     """Set up shared UXBridge for all interfaces."""
@@ -151,8 +153,7 @@ def shared_bridge_setup(cross_interface_context):
     return cross_interface_context
 
 
-@pytest.mark.medium
-@when(parsers.parse('{command} is invoked from all interfaces'))
+@when(parsers.parse("{command} is invoked from all interfaces"))
 def invoke_command_all_interfaces(cross_interface_context, command):
     """Invoke the specified command from all interfaces."""
     cli_module = cross_interface_context["cli_module"]
@@ -166,27 +167,17 @@ def invoke_command_all_interfaces(cross_interface_context, command):
             "path": "demo",
             "project_root": "demo",
             "language": "python",
-            "goals": "demo goals"
+            "goals": "demo goals",
         },
-        "spec": {
-            "requirements_file": "requirements.md"
-        },
-        "test": {
-            "spec_file": "specs.md",
-            "output_dir": "tests"
-        },
-        "code": {
-            "output_dir": "src"
-        },
-        "doctor": {
-            "path": ".",
-            "fix": False
-        },
+        "spec": {"requirements_file": "requirements.md"},
+        "test": {"spec_file": "specs.md", "output_dir": "tests"},
+        "code": {"output_dir": "src"},
+        "doctor": {"path": ".", "fix": False},
         "edrr_cycle": {
             "prompt": "test prompt",
             "context": "test context",
-            "max_iterations": 3
-        }
+            "max_iterations": 3,
+        },
     }
 
     # Store the command for later verification
@@ -215,7 +206,7 @@ def invoke_command_all_interfaces(cross_interface_context, command):
             "Project Path": params["init"]["path"],
             "Project Root": params["init"]["project_root"],
             "Primary Language": params["init"]["language"],
-            "Project Goals": params["init"]["goals"]
+            "Project Goals": params["init"]["goals"],
         }.get(label, "demo")
         webui.onboarding_page()
     elif command == "spec":
@@ -226,7 +217,7 @@ def invoke_command_all_interfaces(cross_interface_context, command):
     elif command == "test":
         st.text_input.side_effect = lambda label, default=None, **kwargs: {
             "Spec File": params["test"]["spec_file"],
-            "Output Directory": params["test"]["output_dir"]
+            "Output Directory": params["test"]["output_dir"],
         }.get(label, "demo")
         webui.synthesis_page()
     elif command == "code":
@@ -243,7 +234,7 @@ def invoke_command_all_interfaces(cross_interface_context, command):
     elif command == "edrr_cycle":
         st.text_area.side_effect = lambda label, default=None, **kwargs: {
             "Prompt": params["edrr_cycle"]["prompt"],
-            "Context": params["edrr_cycle"]["context"]
+            "Context": params["edrr_cycle"]["context"],
         }.get(label, "demo")
         st.number_input = MagicMock(return_value=params["edrr_cycle"]["max_iterations"])
         webui.edrr_cycle_page()
@@ -266,7 +257,6 @@ def invoke_command_all_interfaces(cross_interface_context, command):
     cross_interface_context["command_params"] = params[command]
 
 
-@pytest.mark.medium
 @when("an error occurs during command execution")
 def simulate_error(cross_interface_context):
     """Simulate an error during command execution."""
@@ -286,7 +276,7 @@ def simulate_error(cross_interface_context):
     # Try to invoke init from all interfaces with error handling
     try:
         # CLI
-        with patch('devsynth.interface.cli.CLIUXBridge.display_result') as mock_display:
+        with patch("devsynth.interface.cli.CLIUXBridge.display_result") as mock_display:
             try:
                 cli_module.init_cmd(path="demo", bridge=CLIUXBridge())
             except ValueError:
@@ -296,7 +286,7 @@ def simulate_error(cross_interface_context):
         # WebUI
         webui = cross_interface_context["webui"]
         st = cross_interface_context["st"]
-        with patch('devsynth.interface.webui.WebUI.display_result') as mock_display:
+        with patch("devsynth.interface.webui.WebUI.display_result") as mock_display:
             try:
                 webui.onboarding_page()
             except ValueError:
@@ -305,7 +295,9 @@ def simulate_error(cross_interface_context):
 
         # Agent API
         agent_api = cross_interface_context["agent_api"]
-        with patch('devsynth.interface.agentapi.APIBridge.display_result') as mock_display:
+        with patch(
+            "devsynth.interface.agentapi.APIBridge.display_result"
+        ) as mock_display:
             try:
                 agent_api.init(path="demo")
             except ValueError:
@@ -317,7 +309,6 @@ def simulate_error(cross_interface_context):
         cross_interface_context["unexpected_error"] = str(e)
 
 
-@pytest.mark.medium
 @when("user input is required during command execution")
 def simulate_user_input(cross_interface_context):
     """Simulate a scenario where user input is required."""
@@ -331,25 +322,30 @@ def simulate_user_input(cross_interface_context):
     cross_interface_context["user_response"] = user_response
 
     # Mock CLI bridge ask_question
-    with patch('devsynth.interface.cli.CLIUXBridge.ask_question', return_value=user_response) as cli_ask:
+    with patch(
+        "devsynth.interface.cli.CLIUXBridge.ask_question", return_value=user_response
+    ) as cli_ask:
         cross_interface_context["cli_ask"] = cli_ask
         cli_result = cli_bridge.ask_question("Do you want to proceed?")
         cross_interface_context["cli_input_result"] = cli_result
 
     # Mock WebUI bridge ask_question
-    with patch('devsynth.interface.webui.WebUI.ask_question', return_value=user_response) as webui_ask:
+    with patch(
+        "devsynth.interface.webui.WebUI.ask_question", return_value=user_response
+    ) as webui_ask:
         cross_interface_context["webui_ask"] = webui_ask
         webui_result = webui.ask_question("Do you want to proceed?")
         cross_interface_context["webui_input_result"] = webui_result
 
     # Mock Agent API bridge ask_question
-    with patch('devsynth.interface.agentapi.APIBridge.ask_question', return_value=user_response) as api_ask:
+    with patch(
+        "devsynth.interface.agentapi.APIBridge.ask_question", return_value=user_response
+    ) as api_ask:
         cross_interface_context["api_ask"] = api_ask
         api_result = api_bridge.ask_question("Do you want to proceed?")
         cross_interface_context["api_input_result"] = api_result
 
 
-@pytest.mark.medium
 @then("all invocations pass identical arguments")
 def verify_identical_arguments(cross_interface_context):
     """Verify that all interfaces pass identical arguments to the command."""
@@ -371,7 +367,9 @@ def verify_identical_arguments(cross_interface_context):
         cmd_func = cross_interface_context["edrr_module"].edrr_cycle_cmd
 
     # Verify that the command was called at least 3 times (CLI, WebUI, Agent API)
-    assert cmd_func.call_count >= 3, f"Expected at least 3 calls to {command}, got {cmd_func.call_count}"
+    assert (
+        cmd_func.call_count >= 3
+    ), f"Expected at least 3 calls to {command}, got {cmd_func.call_count}"
 
     # Get the first 3 calls (CLI, WebUI, Agent API)
     calls = cmd_func.call_args_list[:3]
@@ -388,16 +386,19 @@ def verify_identical_arguments(cross_interface_context):
 
     # Verify that all calls have the same parameters
     for i in range(1, len(call_params)):
-        assert call_params[0] == call_params[i], f"Parameters don't match: {call_params[0]} vs {call_params[i]}"
+        assert (
+            call_params[0] == call_params[i]
+        ), f"Parameters don't match: {call_params[0]} vs {call_params[i]}"
 
     # Verify that the parameters match the expected parameters
     expected_params = cross_interface_context["command_params"]
     for param_name, param_value in expected_params.items():
         assert param_name in call_params[0], f"Missing parameter '{param_name}' in call"
-        assert call_params[0][param_name] == param_value, f"Parameter '{param_name}' has incorrect value: expected '{param_value}', got '{call_params[0][param_name]}'"
+        assert (
+            call_params[0][param_name] == param_value
+        ), f"Parameter '{param_name}' has incorrect value: expected '{param_value}', got '{call_params[0][param_name]}'"
 
 
-@pytest.mark.medium
 @then("the command behavior is consistent across interfaces")
 def verify_consistent_behavior(cross_interface_context):
     """Verify that the command behavior is consistent across interfaces."""
@@ -432,29 +433,45 @@ def verify_consistent_behavior(cross_interface_context):
     # Verify that we have the expected bridge types
     expected_bridge_types = ["CLIUXBridge", "WebUI", "APIBridge"]
     for expected_type in expected_bridge_types:
-        assert any(expected_type in bridge_type for bridge_type in bridge_types), \
-            f"Expected bridge type {expected_type} not found in {bridge_types}"
+        assert any(
+            expected_type in bridge_type for bridge_type in bridge_types
+        ), f"Expected bridge type {expected_type} not found in {bridge_types}"
 
     # Verify that all bridges implement the UXBridge interface
     for call in calls:
         bridge = call.kwargs.get("bridge")
-        assert hasattr(bridge, "ask_question"), f"Bridge {bridge} missing ask_question method"
-        assert hasattr(bridge, "confirm_choice"), f"Bridge {bridge} missing confirm_choice method"
-        assert hasattr(bridge, "display_result"), f"Bridge {bridge} missing display_result method"
-        assert hasattr(bridge, "create_progress"), f"Bridge {bridge} missing create_progress method"
+        assert hasattr(
+            bridge, "ask_question"
+        ), f"Bridge {bridge} missing ask_question method"
+        assert hasattr(
+            bridge, "confirm_choice"
+        ), f"Bridge {bridge} missing confirm_choice method"
+        assert hasattr(
+            bridge, "display_result"
+        ), f"Bridge {bridge} missing display_result method"
+        assert hasattr(
+            bridge, "create_progress"
+        ), f"Bridge {bridge} missing create_progress method"
 
     # Verify that the command was called the same number of times for each interface
-    assert cmd_func.call_count >= 3, f"Expected at least 3 calls to {command}, got {cmd_func.call_count}"
+    assert (
+        cmd_func.call_count >= 3
+    ), f"Expected at least 3 calls to {command}, got {cmd_func.call_count}"
 
 
-@pytest.mark.medium
 @then("all interfaces handle the error consistently")
 def verify_consistent_error_handling(cross_interface_context):
     """Verify that all interfaces handle errors consistently."""
     # Verify that error display was called for all interfaces
-    assert "cli_error_display" in cross_interface_context, "CLI error display not called"
-    assert "webui_error_display" in cross_interface_context, "WebUI error display not called"
-    assert "api_error_display" in cross_interface_context, "API error display not called"
+    assert (
+        "cli_error_display" in cross_interface_context
+    ), "CLI error display not called"
+    assert (
+        "webui_error_display" in cross_interface_context
+    ), "WebUI error display not called"
+    assert (
+        "api_error_display" in cross_interface_context
+    ), "API error display not called"
 
     # Verify that the error message is consistent
     error_msg = cross_interface_context["error_messages"][0]
@@ -463,30 +480,37 @@ def verify_consistent_error_handling(cross_interface_context):
     cli_display = cross_interface_context["cli_error_display"]
     if cli_display.call_count > 0:
         cli_args = cli_display.call_args_list[0]
-        assert error_msg in cli_args[0][0], f"CLI error message doesn't match: {cli_args[0][0]} vs {error_msg}"
+        assert (
+            error_msg in cli_args[0][0]
+        ), f"CLI error message doesn't match: {cli_args[0][0]} vs {error_msg}"
         assert cli_args[1].get("highlight", False), "CLI error not highlighted"
 
     # Check that the error message was displayed with highlight=True for WebUI
     webui_display = cross_interface_context["webui_error_display"]
     if webui_display.call_count > 0:
         webui_args = webui_display.call_args_list[0]
-        assert error_msg in webui_args[0][0], f"WebUI error message doesn't match: {webui_args[0][0]} vs {error_msg}"
+        assert (
+            error_msg in webui_args[0][0]
+        ), f"WebUI error message doesn't match: {webui_args[0][0]} vs {error_msg}"
         assert webui_args[1].get("highlight", False), "WebUI error not highlighted"
 
     # Check that the error message was displayed with highlight=True for API
     api_display = cross_interface_context["api_error_display"]
     if api_display.call_count > 0:
         api_args = api_display.call_args_list[0]
-        assert error_msg in api_args[0][0], f"API error message doesn't match: {api_args[0][0]} vs {error_msg}"
+        assert (
+            error_msg in api_args[0][0]
+        ), f"API error message doesn't match: {api_args[0][0]} vs {error_msg}"
         assert api_args[1].get("highlight", False), "API error not highlighted"
 
 
-@pytest.mark.medium
 @then("appropriate error messages are displayed")
 def verify_error_messages(cross_interface_context):
     """Verify that appropriate error messages are displayed."""
     # Verify that error messages were captured
-    assert len(cross_interface_context["error_messages"]) > 0, "No error messages captured"
+    assert (
+        len(cross_interface_context["error_messages"]) > 0
+    ), "No error messages captured"
 
     # Verify that the error message is informative
     error_msg = cross_interface_context["error_messages"][0]
@@ -495,7 +519,9 @@ def verify_error_messages(cross_interface_context):
 
     # Check that the error message is appropriate for the error
     # In this case, we're simulating a project initialization error
-    assert "Failed to initialize project" in error_msg, f"Error message doesn't match expected error: {error_msg}"
+    assert (
+        "Failed to initialize project" in error_msg
+    ), f"Error message doesn't match expected error: {error_msg}"
 
     # Check that the error message is displayed consistently across all interfaces
     cli_display = cross_interface_context.get("cli_error_display")
@@ -505,18 +531,23 @@ def verify_error_messages(cross_interface_context):
     # Verify that all interfaces display the same error message
     if cli_display and cli_display.call_count > 0:
         cli_msg = cli_display.call_args_list[0][0][0]
-        assert error_msg in cli_msg, f"CLI error message doesn't match: {cli_msg} vs {error_msg}"
+        assert (
+            error_msg in cli_msg
+        ), f"CLI error message doesn't match: {cli_msg} vs {error_msg}"
 
     if webui_display and webui_display.call_count > 0:
         webui_msg = webui_display.call_args_list[0][0][0]
-        assert error_msg in webui_msg, f"WebUI error message doesn't match: {webui_msg} vs {error_msg}"
+        assert (
+            error_msg in webui_msg
+        ), f"WebUI error message doesn't match: {webui_msg} vs {error_msg}"
 
     if api_display and api_display.call_count > 0:
         api_msg = api_display.call_args_list[0][0][0]
-        assert error_msg in api_msg, f"API error message doesn't match: {api_msg} vs {error_msg}"
+        assert (
+            error_msg in api_msg
+        ), f"API error message doesn't match: {api_msg} vs {error_msg}"
 
 
-@pytest.mark.medium
 @then("all interfaces prompt for input consistently")
 def verify_consistent_input_prompting(cross_interface_context):
     """Verify that all interfaces prompt for input consistently."""
@@ -538,10 +569,11 @@ def verify_consistent_input_prompting(cross_interface_context):
     webui_prompt = webui_ask.call_args_list[0][0][0]
     api_prompt = api_ask.call_args_list[0][0][0]
 
-    assert cli_prompt == webui_prompt == api_prompt, f"Prompt messages don't match: CLI='{cli_prompt}', WebUI='{webui_prompt}', API='{api_prompt}'"
+    assert (
+        cli_prompt == webui_prompt == api_prompt
+    ), f"Prompt messages don't match: CLI='{cli_prompt}', WebUI='{webui_prompt}', API='{api_prompt}'"
 
 
-@pytest.mark.medium
 @then("the input is processed correctly")
 def verify_input_processing(cross_interface_context):
     """Verify that user input is processed correctly."""
@@ -550,10 +582,18 @@ def verify_input_processing(cross_interface_context):
     webui_result = cross_interface_context["webui_input_result"]
     api_result = cross_interface_context["api_input_result"]
 
-    assert cli_result == webui_result == api_result, f"Input results don't match: CLI='{cli_result}', WebUI='{webui_result}', API='{api_result}'"
+    assert (
+        cli_result == webui_result == api_result
+    ), f"Input results don't match: CLI='{cli_result}', WebUI='{webui_result}', API='{api_result}'"
 
     # Verify that the result matches the expected user response
     user_response = cross_interface_context["user_response"]
-    assert cli_result == user_response, f"CLI result doesn't match user response: '{cli_result}' vs '{user_response}'"
-    assert webui_result == user_response, f"WebUI result doesn't match user response: '{webui_result}' vs '{user_response}'"
-    assert api_result == user_response, f"API result doesn't match user response: '{api_result}' vs '{user_response}'"
+    assert (
+        cli_result == user_response
+    ), f"CLI result doesn't match user response: '{cli_result}' vs '{user_response}'"
+    assert (
+        webui_result == user_response
+    ), f"WebUI result doesn't match user response: '{webui_result}' vs '{user_response}'"
+    assert (
+        api_result == user_response
+    ), f"API result doesn't match user response: '{api_result}' vs '{user_response}'"

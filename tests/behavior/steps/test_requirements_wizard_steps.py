@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Sequence, Optional
+from typing import Optional, Sequence
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
-from devsynth.interface.ux_bridge import UXBridge
 from devsynth.application.cli.setup_wizard import SetupWizard
+from devsynth.interface.ux_bridge import UXBridge
 
 
 class DummyBridge(UXBridge):
@@ -34,7 +34,9 @@ class DummyBridge(UXBridge):
         pass
 
 
-def _run_wizard(output_filename: str, bridge: DummyBridge, tmpdir: pytest.FixtureRequest) -> None:
+def _run_wizard(
+    output_filename: str, bridge: DummyBridge, tmpdir: pytest.FixtureRequest
+) -> None:
     wizard = SetupWizard(bridge)
     name = wizard.bridge.ask_question("Project name?")
     language = wizard.bridge.ask_question("Primary language?")
@@ -60,13 +62,11 @@ def _run_wizard(output_filename: str, bridge: DummyBridge, tmpdir: pytest.Fixtur
 scenarios("../features/general/requirements_wizard.feature")
 
 
-@pytest.mark.medium
 @given("the DevSynth CLI is installed")
 def cli_installed():
     return True
 
 
-@pytest.mark.medium
 @when("I run the requirements wizard")
 def run_requirements_wizard(tmp_project_dir, tmpdir, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: Path(tmp_project_dir))
@@ -77,7 +77,6 @@ def run_requirements_wizard(tmp_project_dir, tmpdir, monkeypatch):
     _run_wizard("requirements_wizard.json", bridge, tmpdir)
 
 
-@pytest.mark.medium
 @when("I cancel the requirements wizard")
 def cancel_requirements_wizard(tmp_project_dir, tmpdir, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: Path(tmp_project_dir))
@@ -88,7 +87,6 @@ def cancel_requirements_wizard(tmp_project_dir, tmpdir, monkeypatch):
     _run_wizard("requirements_wizard.json", bridge, tmpdir)
 
 
-@pytest.mark.medium
 @then('a saved requirements file "requirements_wizard.json" should exist')
 def saved_file_exists(tmpdir):
     # Check for the file in tmpdir
@@ -99,7 +97,6 @@ def saved_file_exists(tmpdir):
     assert data["name"] == "My Project"
 
 
-@pytest.mark.medium
 @then("no requirements file should exist")
 def no_file(tmpdir):
     # Check for the file in tmpdir

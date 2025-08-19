@@ -12,9 +12,11 @@ from devsynth.application.cli import cli_commands
 def devsynth_cli_installed():
     return True
 
+
 @given("I have a valid DevSynth project")
 def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
+
 
 scenarios("../features/general/code_command.feature")
 
@@ -23,14 +25,13 @@ scenarios("../features/general/code_command.feature")
 def run_code_command(monkeypatch, command_context, tmp_project_dir):
     """Execute the code command with a mocked environment."""
     monkeypatch.setattr(cli_commands, "_check_services", lambda bridge: True)
-    monkeypatch.setattr(cli_commands, "generate_code", lambda: {"success": True, "output_dir": "src"})
+    monkeypatch.setattr(
+        cli_commands, "generate_code", lambda: {"success": True, "output_dir": "src"}
+    )
     monkeypatch.setattr(cli_commands, "test_cmd", MagicMock())
 
     tests_dir = Path(tmp_project_dir) / "tests"
     tests_dir.mkdir(exist_ok=True)
-    @pytest.mark.medium
-    @pytest.mark.medium
-    @pytest.mark.medium
     (tests_dir / "test_sample.py").write_text("def test_sample():\n    assert True\n")
 
     captured = StringIO()

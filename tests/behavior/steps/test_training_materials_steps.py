@@ -4,8 +4,9 @@ pytest.skip(
     "Advanced WSDE collaboration features not implemented", allow_module_level=True
 )
 
-from pytest_bdd import given, when, then, parsers, scenarios
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
 scenarios("../features/general/training_materials.feature")
@@ -31,7 +32,6 @@ def context():
 
 
 # Background steps
-@pytest.mark.medium
 @given("the DevSynth system is initialized")
 def devsynth_initialized(context):
     # In a real implementation, this would initialize the DevSynth system
@@ -39,7 +39,6 @@ def devsynth_initialized(context):
     context.devsynth_initialized = True
 
 
-@pytest.mark.medium
 @given("the documentation system is available")
 def documentation_available(context):
     # In a real implementation, this would check if the documentation system is available
@@ -48,7 +47,6 @@ def documentation_available(context):
 
 
 # Scenario: Access TDD/BDD-EDRR training materials
-@pytest.mark.medium
 @when("I request training materials on TDD/BDD-EDRR integration")
 def request_training_materials(context):
     # In a real implementation, this would fetch the training materials
@@ -67,7 +65,6 @@ def request_training_materials(context):
     }
 
 
-@pytest.mark.medium
 @then("I should receive a comprehensive training guide")
 def receive_training_guide(context):
     assert context.training_guide is not None
@@ -78,7 +75,6 @@ def receive_training_guide(context):
     )  # At least 5 sections for comprehensiveness
 
 
-@pytest.mark.medium
 @then(parsers.parse("the guide should include sections on:"))
 def guide_includes_sections(context):
     # In a real implementation, this would check if the guide includes the expected sections
@@ -101,7 +97,6 @@ def guide_includes_sections(context):
 
 
 # Scenario: Complete interactive TDD/BDD-EDRR workshop
-@pytest.mark.medium
 @when("I start the interactive TDD/BDD-EDRR workshop")
 def start_workshop(context):
     # In a real implementation, this would start the interactive workshop
@@ -133,7 +128,6 @@ def start_workshop(context):
     context.feedback = "You've successfully started the workshop!"
 
 
-@pytest.mark.medium
 @then("I should be guided through a series of exercises")
 def guided_through_exercises(context):
     assert context.workshop_started
@@ -141,7 +135,6 @@ def guided_through_exercises(context):
     assert context.current_exercise is not None
 
 
-@pytest.mark.medium
 @then("each exercise should demonstrate a specific aspect of the integration")
 def exercises_demonstrate_integration(context):
     for exercise in context.workshop_exercises:
@@ -150,14 +143,12 @@ def exercises_demonstrate_integration(context):
         assert len(exercise["integration_aspect"]) > 0
 
 
-@pytest.mark.medium
 @then("I should receive feedback on my progress")
 def receive_feedback(context):
     assert context.feedback is not None
     assert len(context.feedback) > 0
 
 
-@pytest.mark.medium
 @then("I should be able to apply the learned concepts to a real project")
 def apply_to_real_project(context):
     # In a real implementation, this would verify that the workshop includes
@@ -170,7 +161,6 @@ def apply_to_real_project(context):
 
 
 # Scenario: Generate personalized learning path
-@pytest.mark.medium
 @when("I provide my current skill level and learning goals")
 def provide_skill_level_and_goals(context):
     # In a real implementation, this would collect the user's skill level and goals
@@ -183,7 +173,6 @@ def provide_skill_level_and_goals(context):
     ]
 
 
-@pytest.mark.medium
 @then("I should receive a personalized learning path for TDD/BDD-EDRR integration")
 def receive_personalized_learning_path(context):
     # In a real implementation, this would generate a personalized learning path
@@ -218,13 +207,11 @@ def receive_personalized_learning_path(context):
     assert "progress_tracking" in context.learning_path
 
 
-@pytest.mark.medium
 @then("the learning path should be tailored to my skill level")
 def learning_path_tailored_to_skill_level(context):
     assert context.learning_path["skill_level"] == context.skill_level
 
 
-@pytest.mark.medium
 @then("the learning path should include recommended resources and exercises")
 def learning_path_includes_resources_and_exercises(context):
     assert "recommended_resources" in context.learning_path
@@ -233,7 +220,6 @@ def learning_path_includes_resources_and_exercises(context):
     assert len(context.learning_path["exercises"]) > 0
 
 
-@pytest.mark.medium
 @then("the learning path should track my progress over time")
 def learning_path_tracks_progress(context):
     assert "progress_tracking" in context.learning_path

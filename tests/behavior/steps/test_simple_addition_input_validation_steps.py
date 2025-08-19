@@ -21,14 +21,12 @@ def context():
     return Context()
 
 
-@pytest.mark.fast
 @given("I have non-numeric inputs")
 def have_non_numeric_inputs(context):
     context.a = "1"
     context.b = "2"
 
 
-@pytest.mark.fast
 @when("I try to add them")
 def try_to_add(context):
     try:
@@ -37,7 +35,6 @@ def try_to_add(context):
         context.exception = exc
 
 
-@pytest.mark.fast
 @then("a TypeError is raised")
 def type_error_is_raised(context):
     assert isinstance(context.exception, TypeError)

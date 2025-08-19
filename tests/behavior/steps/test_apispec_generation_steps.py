@@ -23,14 +23,12 @@ scenarios("../features/general/apispec_generation.feature")
 pytestmark = [pytest.mark.medium]
 
 
-@pytest.mark.medium
 @given("the apispec_generation feature context")
 def given_context(apispec_context):
     """Return the patched context."""
     return apispec_context
 
 
-@pytest.mark.medium
 @when("we execute the apispec_generation workflow")
 def when_execute(apispec_context):
     """Invoke the ``apispec`` command."""
@@ -40,7 +38,6 @@ def when_execute(apispec_context):
     apispec_context["cmd"] = apispec_cmd
 
 
-@pytest.mark.medium
 @then("the apispec_generation workflow completes")
 def then_complete(apispec_context):
     """Ensure the command was called."""

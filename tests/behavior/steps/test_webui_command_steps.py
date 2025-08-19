@@ -26,7 +26,6 @@ from .cli_commands_steps import (
 )
 
 
-@pytest.mark.medium
 @given("the Streamlit WebUI module is unavailable")
 def streamlit_webui_unavailable(monkeypatch):
     """
@@ -46,7 +45,6 @@ def streamlit_webui_unavailable(monkeypatch):
     return True
 
 
-@pytest.mark.medium
 @then("the system should launch the Streamlit WebUI")
 def check_webui_launched(command_context, monkeypatch):
     """
@@ -66,7 +64,6 @@ def check_webui_launched(command_context, monkeypatch):
     assert exit_code == 0, f"Command failed with exit code {exit_code}"
 
 
-@pytest.mark.medium
 @then("the system should display an error message")
 def check_error_displayed(command_context):
     """
@@ -76,7 +73,6 @@ def check_error_displayed(command_context):
     assert "Error" in output, f"No error message found in output: {output}"
 
 
-@pytest.mark.medium
 @then("the error message should indicate the WebUI could not be launched")
 def check_webui_error_message(command_context):
     """
@@ -91,7 +87,6 @@ def check_webui_error_message(command_context):
     ), f"Error message does not indicate WebUI launch failure: {output}"
 
 
-@pytest.mark.medium
 @then(parsers.parse("the WebUI should contain the following pages:"))
 def check_webui_pages(command_context, table):
     """

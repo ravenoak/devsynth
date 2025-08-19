@@ -3,23 +3,22 @@ Step definitions for Project Initialization feature.
 """
 
 import os
-import sys
-import pytest
 import shutil
-from pytest_bdd import given, when, then, parsers
-from unittest.mock import patch, MagicMock
+import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
+from pytest_bdd import given, parsers, then, when
 
 # Import the CLI modules
 from devsynth.adapters.cli.typer_adapter import run_cli
 from devsynth.application.cli.cli_commands import init_cmd
-
 
 # Reuse the given step from cli_commands_steps.py
 # @given("the DevSynth CLI is installed")
 # This is already defined in cli_commands_steps.py
 
 
-@pytest.mark.medium
 @then(parsers.parse('a new project directory "{directory}" should be created'))
 def check_project_directory_created(directory, mock_workflow_manager, tmp_path):
     """
@@ -38,7 +37,6 @@ def check_project_directory_created(directory, mock_workflow_manager, tmp_path):
     # But since we're mocking, we'll just assert that the command was called
 
 
-@pytest.mark.medium
 @then("the project should use the default layout")
 def check_default_structure(mock_workflow_manager):
     """Verify the project uses the single_package layout."""
@@ -47,7 +45,6 @@ def check_default_structure(mock_workflow_manager):
     assert args.get("structure") == "single_package"
 
 
-@pytest.mark.medium
 @then("a configuration file should be created with default settings")
 def check_default_config_created(mock_workflow_manager):
     """Verify that the configuration defaults were applied."""
@@ -56,7 +53,6 @@ def check_default_config_created(mock_workflow_manager):
     assert args.get("language") == "python"
 
 
-@pytest.mark.medium
 @then(parsers.parse("the project should use the {layout} layout"))
 def check_custom_layout(layout, mock_workflow_manager):
     """Verify that the selected layout was used."""
@@ -68,7 +64,6 @@ def check_custom_layout(layout, mock_workflow_manager):
     assert args.get("structure") == expected_structure
 
 
-@pytest.mark.medium
 @then(parsers.parse("a configuration file should be created with {lang} settings"))
 def check_language_config_created(lang, mock_workflow_manager):
     """Verify that the language choice was recorded."""

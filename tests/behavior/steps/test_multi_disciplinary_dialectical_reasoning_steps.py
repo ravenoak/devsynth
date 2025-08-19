@@ -42,7 +42,6 @@ def create_mock_agent(name, expertise):
 
 
 # Background steps
-@pytest.mark.medium
 @given("a WSDE team with agents specialized in different disciplines")
 def wsde_team_with_specialized_agents(context):
     """Create a WSDE team with agents specialized in different disciplines."""
@@ -87,7 +86,6 @@ def wsde_team_with_specialized_agents(context):
     ]
 
 
-@pytest.mark.medium
 @given("a knowledge base with multi-disciplinary information")
 def knowledge_base_with_multi_disciplinary_information(context):
     """Create a knowledge base with multi-disciplinary information."""
@@ -131,7 +129,6 @@ def knowledge_base_with_multi_disciplinary_information(context):
     }
 
 
-@pytest.mark.medium
 @given("the team is configured for multi-disciplinary dialectical reasoning")
 def team_configured_for_multi_disciplinary_dialectical_reasoning(context):
     """Configure the team for multi-disciplinary dialectical reasoning."""
@@ -150,7 +147,6 @@ def team_configured_for_multi_disciplinary_dialectical_reasoning(context):
 
 
 # Scenario: Gathering disciplinary perspectives
-@pytest.mark.medium
 @given("a complex problem spanning multiple disciplines")
 def complex_problem_spanning_multiple_disciplines(context):
     """Define a complex problem that spans multiple disciplines."""
@@ -182,7 +178,6 @@ def generate_jwt_token(username):
     context.team.add_solution(context.task, context.solution)
 
 
-@pytest.mark.medium
 @given("a task requiring security and user experience considerations")
 def task_requiring_security_and_ux(context):
     context.task = {
@@ -191,7 +186,6 @@ def task_requiring_security_and_ux(context):
     }
 
 
-@pytest.mark.medium
 @given("knowledge sources for security and user experience")
 def knowledge_sources_security_and_ux(context):
     context.knowledge_sources = {
@@ -219,7 +213,6 @@ def knowledge_sources_security_and_ux(context):
     context.disciplinary_agents = [context.security_agent, context.ux_agent]
 
 
-@pytest.mark.medium
 @given("a task requiring performance and accessibility considerations")
 def task_requiring_performance_and_accessibility(context):
     context.task = {
@@ -228,7 +221,6 @@ def task_requiring_performance_and_accessibility(context):
     }
 
 
-@pytest.mark.medium
 @given("knowledge sources for performance and accessibility")
 def knowledge_sources_performance_and_accessibility(context):
     context.knowledge_sources = {
@@ -259,7 +251,6 @@ def knowledge_sources_performance_and_accessibility(context):
     ]
 
 
-@pytest.mark.medium
 @given(
     "a task requiring security, user experience, performance, and accessibility considerations"
 )
@@ -270,7 +261,6 @@ def task_requiring_all_four_disciplines(context):
     }
 
 
-@pytest.mark.medium
 @given("knowledge sources for all four disciplines")
 def knowledge_sources_all_four_disciplines(context):
     context.knowledge_sources = {
@@ -321,7 +311,6 @@ def knowledge_sources_all_four_disciplines(context):
     ]
 
 
-@pytest.mark.medium
 @when("the team initiates multi-disciplinary dialectical reasoning")
 def team_initiates_multi_disciplinary_dialectical_reasoning(context):
     """Initiate multi-disciplinary dialectical reasoning process."""
@@ -474,7 +463,6 @@ def team_initiates_multi_disciplinary_dialectical_reasoning(context):
     context.perspectives = context.result["disciplinary_perspectives"]
 
 
-@pytest.mark.medium
 @then("each disciplinary agent should provide a specialized perspective")
 def each_disciplinary_agent_provides_specialized_perspective(context):
     """Verify that each disciplinary agent provides a specialized perspective."""
@@ -495,7 +483,6 @@ def each_disciplinary_agent_provides_specialized_perspective(context):
         assert perspective["agent"] is not None
 
 
-@pytest.mark.medium
 @then("each perspective should focus on domain-specific considerations")
 def each_perspective_focuses_on_domain_specific_considerations(context):
     """Verify that each perspective focuses on domain-specific considerations."""
@@ -535,7 +522,6 @@ def each_perspective_focuses_on_domain_specific_considerations(context):
             )
 
 
-@pytest.mark.medium
 @then("the perspectives should be documented with disciplinary context")
 def perspectives_documented_with_disciplinary_context(context):
     """Verify that the perspectives are documented with disciplinary context."""
@@ -572,7 +558,6 @@ def perspectives_documented_with_disciplinary_context(context):
             )
 
 
-@pytest.mark.medium
 @then("the collection of perspectives should cover all relevant disciplines")
 def collection_of_perspectives_covers_all_relevant_disciplines(context):
     """Verify that the collection of perspectives covers all relevant disciplines."""
@@ -596,7 +581,6 @@ def collection_of_perspectives_covers_all_relevant_disciplines(context):
 
 
 # Scenario: Identifying perspective conflicts across disciplines
-@pytest.mark.medium
 @given("perspectives from multiple disciplinary agents")
 def perspectives_from_multiple_disciplinary_agents(context):
     """Set up perspectives from multiple disciplinary agents."""
@@ -652,7 +636,6 @@ def perspectives_from_multiple_disciplinary_agents(context):
         ]
 
 
-@pytest.mark.medium
 @when("the team analyzes the perspectives")
 def team_analyzes_perspectives(context):
     """Analyze the perspectives to identify conflicts."""
@@ -697,7 +680,6 @@ def team_analyzes_perspectives(context):
     context.conflicts = context.team.analyze_perspectives(context.perspectives)
 
 
-@pytest.mark.medium
 @then("conflicts between disciplinary perspectives should be identified")
 def conflicts_between_disciplinary_perspectives_identified(context):
     """Verify that conflicts between disciplinary perspectives are identified."""
@@ -712,7 +694,6 @@ def conflicts_between_disciplinary_perspectives_identified(context):
         assert conflict["conflict"] is not None
 
 
-@pytest.mark.medium
 @then("each conflict should be categorized by type and severity")
 def each_conflict_categorized_by_type_and_severity(context):
     """Verify that each conflict is categorized by type and severity."""
@@ -727,7 +708,6 @@ def each_conflict_categorized_by_type_and_severity(context):
         assert conflict["severity"] in ["low", "medium", "high"]
 
 
-@pytest.mark.medium
 @then("the underlying disciplinary assumptions should be documented")
 def underlying_disciplinary_assumptions_documented(context):
     """Verify that the underlying disciplinary assumptions are documented for each conflict."""
@@ -765,7 +745,6 @@ def underlying_disciplinary_assumptions_documented(context):
                 )
 
 
-@pytest.mark.medium
 @then("the conflicts should be prioritized for resolution")
 def conflicts_prioritized_for_resolution(context):
     """Verify that the conflicts are prioritized for resolution."""
@@ -788,7 +767,6 @@ def conflicts_prioritized_for_resolution(context):
 
 
 # Scenario: Multi-disciplinary synthesis generation
-@pytest.mark.medium
 @given("perspectives and identified conflicts from multiple disciplines")
 def perspectives_and_identified_conflicts_from_multiple_disciplines(context):
     """Set up perspectives and identified conflicts from multiple disciplines."""
@@ -876,7 +854,6 @@ def perspectives_and_identified_conflicts_from_multiple_disciplines(context):
         ]
 
 
-@pytest.mark.medium
 @when("the team generates a multi-disciplinary synthesis")
 def team_generates_multi_disciplinary_synthesis(context):
     """Generate a multi-disciplinary synthesis from perspectives and conflicts."""
@@ -961,7 +938,6 @@ def team_generates_multi_disciplinary_synthesis(context):
     )
 
 
-@pytest.mark.medium
 @then("the synthesis should address all identified conflicts")
 def synthesis_addresses_all_identified_conflicts(context):
     """Verify that the synthesis addresses all identified conflicts."""
@@ -995,7 +971,6 @@ def synthesis_addresses_all_identified_conflicts(context):
         )  # Ensure it's a meaningful description
 
 
-@pytest.mark.medium
 @then("the synthesis should integrate insights from all disciplines")
 def synthesis_integrates_insights_from_all_disciplines(context):
     """Verify that the synthesis integrates insights from all disciplines."""
@@ -1026,7 +1001,6 @@ def synthesis_integrates_insights_from_all_disciplines(context):
         assert len(perspective["key_points"]) > 0
 
 
-@pytest.mark.medium
 @then("the synthesis should maintain disciplinary integrity where appropriate")
 def synthesis_maintains_disciplinary_integrity(context):
     """Verify that the synthesis maintains disciplinary integrity where appropriate."""
@@ -1067,7 +1041,6 @@ def synthesis_maintains_disciplinary_integrity(context):
         )
 
 
-@pytest.mark.medium
 @then("the synthesis should document trade-offs between disciplinary requirements")
 def synthesis_documents_trade_offs(context):
     """Verify that the synthesis documents trade-offs between disciplinary requirements."""
@@ -1106,7 +1079,6 @@ def synthesis_documents_trade_offs(context):
 
 
 # Scenario: Multi-disciplinary evaluation
-@pytest.mark.medium
 @given("a synthesis generated from multi-disciplinary perspectives")
 def synthesis_generated_from_multi_disciplinary_perspectives(context):
     """Set up a synthesis generated from multi-disciplinary perspectives."""
@@ -1193,7 +1165,6 @@ def synthesis_generated_from_multi_disciplinary_perspectives(context):
         }
 
 
-@pytest.mark.medium
 @when("the team evaluates the synthesis")
 def team_evaluates_synthesis(context):
     """Evaluate the synthesis from multi-disciplinary perspectives."""
@@ -1286,7 +1257,6 @@ def team_evaluates_synthesis(context):
     context.evaluation = context.team.evaluate_synthesis(context.synthesis)
 
 
-@pytest.mark.medium
 @then("the evaluation should assess the solution from each disciplinary perspective")
 def evaluation_assesses_solution_from_each_disciplinary_perspective(context):
     """Verify that the evaluation assesses the solution from each disciplinary perspective."""
@@ -1320,7 +1290,6 @@ def evaluation_assesses_solution_from_each_disciplinary_perspective(context):
         assert 0 <= perspective["score"] <= 10  # Assuming scores are on a 0-10 scale
 
 
-@pytest.mark.medium
 @then("the evaluation should verify compliance with discipline-specific standards")
 def evaluation_verifies_compliance_with_discipline_specific_standards(context):
     """Verify that the evaluation checks compliance with discipline-specific standards."""
@@ -1373,7 +1342,6 @@ def evaluation_verifies_compliance_with_discipline_specific_standards(context):
             )
 
 
-@pytest.mark.medium
 @then("the evaluation should identify any remaining disciplinary concerns")
 def evaluation_identifies_remaining_disciplinary_concerns(context):
     """Verify that the evaluation identifies any remaining disciplinary concerns."""
@@ -1396,7 +1364,6 @@ def evaluation_identifies_remaining_disciplinary_concerns(context):
             assert concern["severity"] in ["low", "medium", "high"]
 
 
-@pytest.mark.medium
 @then(
     "the evaluation should provide an overall assessment of multi-disciplinary quality"
 )
@@ -1444,7 +1411,6 @@ def evaluation_provides_overall_assessment_of_multi_disciplinary_quality(context
 
 
 # Scenario: Integration with domain-specific knowledge
-@pytest.mark.medium
 @given("a multi-disciplinary reasoning process")
 def multi_disciplinary_reasoning_process(context):
     """Set up a multi-disciplinary reasoning process."""
@@ -1502,7 +1468,6 @@ def multi_disciplinary_reasoning_process(context):
         }
 
 
-@pytest.mark.medium
 @given("domain-specific knowledge sources for each discipline")
 def domain_specific_knowledge_sources_for_each_discipline(context):
     """Set up domain-specific knowledge sources for each discipline."""
@@ -1588,7 +1553,6 @@ def domain_specific_knowledge_sources_for_each_discipline(context):
         }
 
 
-@pytest.mark.medium
 @when("the team applies multi-disciplinary dialectical reasoning")
 def team_applies_multi_disciplinary_dialectical_reasoning(context):
     """Apply multi-disciplinary dialectical reasoning with domain-specific knowledge."""
@@ -1832,7 +1796,6 @@ def generate_jwt_token(username):
     )
 
 
-@pytest.mark.medium
 @then("each disciplinary perspective should incorporate domain-specific knowledge")
 def each_disciplinary_perspective_incorporates_domain_specific_knowledge(context):
     """Verify that each disciplinary perspective incorporates domain-specific knowledge."""
@@ -1859,7 +1822,6 @@ def each_disciplinary_perspective_incorporates_domain_specific_knowledge(context
         assert len(perspective["recommendations"]) > 0
 
 
-@pytest.mark.medium
 @then("the knowledge should be properly attributed to authoritative sources")
 def knowledge_properly_attributed_to_authoritative_sources(context):
     """Verify that the knowledge is properly attributed to authoritative sources."""
@@ -1916,7 +1878,6 @@ def knowledge_properly_attributed_to_authoritative_sources(context):
                 )
 
 
-@pytest.mark.medium
 @then("the synthesis should reflect current best practices across all disciplines")
 def synthesis_reflects_current_best_practices_across_all_disciplines(context):
     """Verify that the synthesis reflects current best practices across all disciplines."""
@@ -1974,7 +1935,6 @@ def synthesis_reflects_current_best_practices_across_all_disciplines(context):
             )
 
 
-@pytest.mark.medium
 @then("the solution should demonstrate awareness of cross-disciplinary implications")
 def solution_demonstrates_awareness_of_cross_disciplinary_implications(context):
     """Verify that the solution demonstrates awareness of cross-disciplinary implications."""

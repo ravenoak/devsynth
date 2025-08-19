@@ -1,14 +1,16 @@
 """Step definitions for project-based documentation ingestion."""
 
 import os
-import yaml
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+import yaml
+from pytest_bdd import given, scenarios, then, when
 
-from devsynth.application.documentation.documentation_ingestion_manager import DocumentationIngestionManager
+from devsynth.application.documentation.documentation_ingestion_manager import (
+    DocumentationIngestionManager,
+)
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 
@@ -22,7 +24,9 @@ def context():
             self.temp_dir = tempfile.TemporaryDirectory()
             self.project_root = Path(self.temp_dir.name)
             self.memory_manager = MemoryManager()
-            self.ingestion_manager = DocumentationIngestionManager(memory_manager=self.memory_manager)
+            self.ingestion_manager = DocumentationIngestionManager(
+                memory_manager=self.memory_manager
+            )
             self.project_yaml = self.project_root / ".devsynth" / "project.yaml"
 
         def cleanup(self):
@@ -33,7 +37,6 @@ def context():
     ctx.cleanup()
 
 
-@pytest.mark.medium
 @given("a project with a docs directory configured in project.yaml")
 def setup_project(context):
     docs_dir = context.project_root / "custom_docs"
@@ -49,7 +52,11 @@ def setup_project(context):
         "structure": {
             "type": "single_package",
             "primaryLanguage": "python",
-            "directories": {"source": ["src"], "tests": ["tests"], "docs": ["custom_docs"]},
+            "directories": {
+                "source": ["src"],
+                "tests": ["tests"],
+                "docs": ["custom_docs"],
+            },
         },
         "directories": {"source": ["src"], "tests": ["tests"], "docs": ["custom_docs"]},
     }
@@ -57,14 +64,14 @@ def setup_project(context):
         yaml.safe_dump(data, f)
 
 
-@pytest.mark.medium
 @when("I ingest documentation using the project configuration")
 def ingest_docs(context):
     context.ingestion_manager.ingest_from_project_config(context.project_root)
 
 
-@pytest.mark.medium
 @then("the documentation files should be stored in memory")
 def verify_docs(context):
-    results = context.memory_manager.query_by_metadata({"type": MemoryType.DOCUMENTATION})
+    results = context.memory_manager.query_by_metadata(
+        {"type": MemoryType.DOCUMENTATION}
+    )
     assert len(results) > 0

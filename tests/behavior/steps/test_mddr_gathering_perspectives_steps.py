@@ -7,7 +7,6 @@ from pytest_bdd import given, parsers, then, when
 from .test_mddr_common_steps import context
 
 
-@pytest.mark.medium
 @given("a complex problem spanning multiple disciplines")
 def complex_problem_spanning_multiple_disciplines(context):
     """Define a complex problem that spans multiple disciplines."""
@@ -29,7 +28,6 @@ def complex_problem_spanning_multiple_disciplines(context):
     }
 
 
-@pytest.mark.medium
 @given("a task requiring security and user experience considerations")
 def task_requiring_security_and_ux_considerations(context):
     """Define a task that requires security and user experience considerations."""
@@ -39,14 +37,12 @@ def task_requiring_security_and_ux_considerations(context):
     }
 
 
-@pytest.mark.medium
 @given("knowledge sources for security and user experience")
 def knowledge_sources_for_security_and_ux(context):
     """Provide knowledge sources for security and user experience."""
     # This step uses the knowledge sources defined in the background
 
 
-@pytest.mark.medium
 @given("a task requiring performance and accessibility considerations")
 def task_requiring_performance_and_accessibility_considerations(context):
     """Define a task that requires performance and accessibility considerations."""
@@ -56,14 +52,12 @@ def task_requiring_performance_and_accessibility_considerations(context):
     }
 
 
-@pytest.mark.medium
 @given("knowledge sources for performance and accessibility")
 def knowledge_sources_for_performance_and_accessibility(context):
     """Provide knowledge sources for performance and accessibility."""
     # This step uses the knowledge sources defined in the background
 
 
-@pytest.mark.medium
 @given(
     "a task requiring security, user experience, performance, and accessibility considerations"
 )
@@ -75,14 +69,12 @@ def task_requiring_all_four_disciplines(context):
     }
 
 
-@pytest.mark.medium
 @given("knowledge sources for all four disciplines")
 def knowledge_sources_for_all_four_disciplines(context):
     """Provide knowledge sources for all four disciplines."""
     # This step uses the knowledge sources defined in the background
 
 
-@pytest.mark.medium
 @when("the team initiates multi-disciplinary dialectical reasoning")
 def team_initiates_multi_disciplinary_dialectical_reasoning(context):
     """Initiate multi-disciplinary dialectical reasoning process."""
@@ -154,7 +146,6 @@ def team_initiates_multi_disciplinary_dialectical_reasoning(context):
     )
 
 
-@pytest.mark.medium
 @then("each disciplinary agent should provide a specialized perspective")
 def each_disciplinary_agent_provides_specialized_perspective(context):
     """Verify that each disciplinary agent provides a specialized perspective."""
@@ -179,7 +170,6 @@ def each_disciplinary_agent_provides_specialized_perspective(context):
         ]
 
 
-@pytest.mark.medium
 @then("each perspective should focus on domain-specific considerations")
 def each_perspective_focuses_on_domain_specific_considerations(context):
     """Verify that each perspective focuses on domain-specific considerations."""
@@ -258,7 +248,6 @@ def each_perspective_focuses_on_domain_specific_considerations(context):
             ), f"Accessibility perspective doesn't focus on accessibility considerations: {perspective['considerations']}"
 
 
-@pytest.mark.medium
 @then("the perspectives should be documented with disciplinary context")
 def perspectives_documented_with_disciplinary_context(context):
     """Verify that the perspectives are documented with disciplinary context."""
@@ -305,7 +294,6 @@ def perspectives_documented_with_disciplinary_context(context):
         )
 
 
-@pytest.mark.medium
 @then("the collection of perspectives should cover all relevant disciplines")
 def collection_of_perspectives_covers_all_relevant_disciplines(context):
     """Verify that the collection of perspectives covers all relevant disciplines."""

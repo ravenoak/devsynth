@@ -7,19 +7,16 @@ from .webui_steps import given_webui_initialized, webui_context
 scenarios("../features/webui/validate_manifest.feature")
 
 
-@pytest.mark.medium
 @then("the validate manifest page should be displayed")
 def check_validate_manifest_page(webui_context):
     webui_context["st"].header.assert_any_call("Validate Manifest")
 
 
-@pytest.mark.medium
 @when("I select custom validation rules")
 def select_custom_validation_rules(webui_context):
     webui_context["st"].multiselect = pytest.MagicMock(return_value=["Rule1", "Rule2"])
 
 
-@pytest.mark.medium
 @when("validation issues are found")
 def validation_issues_found(webui_context):
     # Mock that validation issues are found
@@ -28,7 +25,6 @@ def validation_issues_found(webui_context):
     webui_context["st"].session_state.validation_issues = True
 
 
-@pytest.mark.medium
 @when("I click the auto-fix button")
 def click_auto_fix_button(webui_context):
     # Find the auto-fix button in columns and set it to return True
@@ -37,7 +33,6 @@ def click_auto_fix_button(webui_context):
     col2_mock.button.return_value = False
 
 
-@pytest.mark.medium
 @when("I click the validation history button")
 def click_validation_history_button(webui_context):
     # Find the history button in columns and set it to return True
@@ -46,14 +41,12 @@ def click_validation_history_button(webui_context):
     col1_mock.button.return_value = False
 
 
-@pytest.mark.medium
 @then("the manifest validation results should be displayed")
 def check_validation_results_displayed(webui_context):
     # Check that the validation results are displayed
     assert webui_context["st"].write.called or webui_context["st"].markdown.called
 
 
-@pytest.mark.medium
 @then("the manifest validation results with custom rules should be displayed")
 def check_custom_validation_results_displayed(webui_context):
     # Check that the validation results with custom rules are displayed
@@ -61,7 +54,6 @@ def check_custom_validation_results_displayed(webui_context):
     # Could add more specific checks based on the actual implementation
 
 
-@pytest.mark.medium
 @then("the manifest issues should be fixed automatically")
 def check_issues_fixed(webui_context):
     # Check that the issues are fixed
@@ -70,28 +62,24 @@ def check_issues_fixed(webui_context):
     assert webui_context["st"].success.called
 
 
-@pytest.mark.medium
 @then("a success message should be displayed")
 def check_success_message(webui_context):
     # Check that a success message is displayed
     webui_context["st"].success.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the manifest validation report should be exported")
 def check_validation_report_exported(webui_context):
     # Check that a success message is shown after export
     webui_context["st"].success.assert_called_once()
 
 
-@pytest.mark.medium
 @then("the manifest validation history should be displayed")
 def check_validation_history_displayed(webui_context):
     # Check that the validation history is displayed
     assert webui_context["st"].write.called or webui_context["st"].markdown.called
 
 
-@pytest.mark.medium
 @then("previous validation results should be available for review")
 def check_previous_results_available(webui_context):
     # Check that previous validation results are displayed

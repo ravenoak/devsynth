@@ -31,8 +31,6 @@ def generated_tests(tmp_project_dir, command_context):
     tests_dir = Path(tmp_project_dir) / "tests"
     tests_dir.mkdir(parents=True, exist_ok=True)
     test_file = tests_dir / "test_generated.py"
-    @pytest.mark.medium
-    @pytest.mark.medium
     test_file.write_text("def test_dummy():\n    assert True\n")
     command_context["generated_tests"] = str(test_file)
 

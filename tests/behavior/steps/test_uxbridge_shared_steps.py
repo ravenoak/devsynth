@@ -1,12 +1,12 @@
 """Steps verifying shared UXBridge behavior between CLI and WebUI."""
 
-from types import ModuleType
-from unittest.mock import MagicMock
 import importlib
 import sys
+from types import ModuleType
+from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, when, then
+from pytest_bdd import given, then, when
 
 
 class DummyForm:
@@ -85,14 +85,12 @@ def parity_context(monkeypatch):
     return {"st": st, "ui": webui.WebUI(), "cli": cli_module}
 
 
-@pytest.mark.medium
 @given("the CLI and WebUI share a UXBridge")
 def shared_setup(parity_context):
     """Return the parity context."""
     return parity_context
 
 
-@pytest.mark.medium
 @when("init is invoked from the CLI and WebUI")
 def invoke_init(parity_context):
     """Invoke the init command via both interfaces."""
@@ -105,18 +103,19 @@ def invoke_init(parity_context):
         "Project Path": "demo",
         "Project Root": "demo",
         "Primary Language": "python",
-        "Project Goals": ""
+        "Project Goals": "",
     }.get(label, "demo")
 
     # First invoke directly via CLI
-    cli_module.init_cmd(path="demo", project_root="demo", language="python", goals=None, bridge=ui)
+    cli_module.init_cmd(
+        path="demo", project_root="demo", language="python", goals=None, bridge=ui
+    )
 
     # Then invoke via WebUI
     st.form_submit_button.return_value = True
     ui.onboarding_page()
 
 
-@pytest.mark.medium
 @then("both invocations pass identical arguments")
 def check_calls(parity_context):
     """Ensure CLI calls from CLI and WebUI used the same parameters."""
@@ -136,7 +135,9 @@ def check_calls(parity_context):
     call2_args = {k: v for k, v in calls[1].kwargs.items() if k != "bridge"}
 
     # Check that the parameters are identical
-    assert call1_args == call2_args, f"Parameters don't match: {call1_args} vs {call2_args}"
+    assert (
+        call1_args == call2_args
+    ), f"Parameters don't match: {call1_args} vs {call2_args}"
 
     # Verify specific parameters
     for call in calls:

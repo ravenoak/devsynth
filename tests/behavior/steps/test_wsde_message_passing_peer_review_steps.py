@@ -423,41 +423,6 @@ def create_revised(context):
     revised_work = {
         "text": "Improved implementation addressing reviewer feedback",
         "code": 'def example():\n    """Example function with proper documentation"""\n    return \'complete\'',
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
-        @pytest.mark.medium
         "tests": "def test_example():\n    assert example() == 'complete'",
     }
 

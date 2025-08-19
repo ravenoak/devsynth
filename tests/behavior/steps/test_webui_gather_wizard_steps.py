@@ -16,14 +16,12 @@ from pytest_bdd import given, parsers, scenarios, then, when
 scenarios("../features/webui/gather_wizard.feature")
 
 
-@pytest.mark.medium
 @given("the WebUI is initialized")
 def given_webui_initialized(wizard_context):
     """Initialize the WebUI for testing."""
     return wizard_context
 
 
-@pytest.mark.medium
 @when(parsers.parse('I navigate to "{page}"'))
 def navigate_to(page, wizard_context):
     """Navigate to a specific page in the WebUI."""
@@ -146,7 +144,6 @@ def wizard_context(monkeypatch):
     return context
 
 
-@pytest.mark.medium
 @when("I click the start gather wizard button")
 def click_start_gather_wizard(wizard_context):
     """Click the start gather wizard button."""
@@ -157,7 +154,6 @@ def click_start_gather_wizard(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the gather wizard should be displayed")
 def check_gather_wizard_displayed(wizard_context):
     """Check that the gather wizard is displayed."""
@@ -166,7 +162,6 @@ def check_gather_wizard_displayed(wizard_context):
     wizard_context["st"].header.assert_any_call("Resource Gathering Wizard")
 
 
-@pytest.mark.medium
 @then("the wizard should show the first step")
 def check_wizard_first_step(wizard_context):
     """Check that the wizard shows the first step."""
@@ -174,7 +169,6 @@ def check_wizard_first_step(wizard_context):
     wizard_context["st"].write.assert_any_call("Step 1 of 3: Resource Type")
 
 
-@pytest.mark.medium
 @when("I click the wizard next button")
 def click_wizard_next(wizard_context):
     """Click the wizard next button."""
@@ -216,7 +210,6 @@ def click_wizard_next(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @then(parsers.parse("the wizard should show step {step:d}"))
 def check_wizard_step(wizard_context, step):
     """Check that the wizard shows the specified step."""
@@ -226,7 +219,6 @@ def check_wizard_step(wizard_context, step):
     )
 
 
-@pytest.mark.medium
 @when("I click the wizard back button")
 def click_wizard_back(wizard_context):
     """Click the wizard back button."""
@@ -240,7 +232,6 @@ def click_wizard_back(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @when("I enter project resource information")
 def enter_resource_information(wizard_context):
     """Enter project resource information."""
@@ -252,7 +243,6 @@ def enter_resource_information(wizard_context):
     wizard_context["st"].selectbox.return_value = "documentation"
 
 
-@pytest.mark.medium
 @when("I enter resource location information")
 def enter_resource_location(wizard_context):
     """Enter resource location information."""
@@ -264,7 +254,6 @@ def enter_resource_location(wizard_context):
     wizard_context["st"].text_input.return_value = "/path/to/docs"
 
 
-@pytest.mark.medium
 @when("I enter resource metadata")
 def enter_resource_metadata(wizard_context):
     """Enter resource metadata."""
@@ -285,7 +274,6 @@ def enter_resource_metadata(wizard_context):
     ]
 
 
-@pytest.mark.medium
 @when("I click the finish button")
 def click_finish_button(wizard_context):
     """Click the finish button."""
@@ -311,7 +299,6 @@ def click_finish_button(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the gather process should complete")
 def check_gather_complete(wizard_context):
     """Check that the gather process completes."""
@@ -319,7 +306,6 @@ def check_gather_complete(wizard_context):
     wizard_context["gather_mock"].assert_called_once()
 
 
-@pytest.mark.medium
 @then("a success message should be displayed")
 def check_success_message(wizard_context):
     """Check that a success message is displayed."""
@@ -327,7 +313,6 @@ def check_success_message(wizard_context):
     assert "success" in wizard_context["ui"].display_result.call_args[0][0].lower()
 
 
-@pytest.mark.medium
 @then("the gathered resources should be available in the project")
 def check_resources_available(wizard_context):
     """Check that the gathered resources are available in the project."""
@@ -336,7 +321,6 @@ def check_resources_available(wizard_context):
     wizard_context["gather_mock"].assert_called_once()
 
 
-@pytest.mark.medium
 @when("I click the cancel button")
 def click_cancel_button(wizard_context):
     """Click the cancel button."""
@@ -350,7 +334,6 @@ def click_cancel_button(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the wizard should be closed")
 def check_wizard_closed(wizard_context):
     """Check that the wizard is closed."""
@@ -360,14 +343,12 @@ def check_wizard_closed(wizard_context):
     assert wizard_context["wizard_state"].is_completed() is False
 
 
-@pytest.mark.medium
 @then("no changes should be made to the project")
 def check_no_changes(wizard_context):
     """Check that no changes were made to the project."""
     wizard_context["gather_mock"].assert_not_called()
 
 
-@pytest.mark.medium
 @when("I enter invalid project resource information")
 def enter_invalid_resource_information(wizard_context):
     """Enter invalid project resource information."""
@@ -378,7 +359,6 @@ def enter_invalid_resource_information(wizard_context):
     wizard_context["st"].selectbox.return_value = ""
 
 
-@pytest.mark.medium
 @then("validation errors should be displayed")
 def check_validation_errors(wizard_context):
     """Check that validation errors are displayed."""
@@ -389,21 +369,18 @@ def check_validation_errors(wizard_context):
     )
 
 
-@pytest.mark.medium
 @then("the wizard should remain on the current step")
 def check_wizard_remains_on_step(wizard_context):
     """Check that the wizard remains on the current step."""
     assert wizard_context["wizard_state"].get_current_step() == 1
 
 
-@pytest.mark.medium
 @then("the previously entered project resource information should be preserved")
 def check_resource_info_preserved(wizard_context):
     """Check that the previously entered project resource information is preserved."""
     assert wizard_context["wizard_state"].get("resource_type") == "documentation"
 
 
-@pytest.mark.medium
 @when("I select a custom resource type")
 def select_custom_resource_type(wizard_context):
     """Select a custom resource type."""
@@ -415,7 +392,6 @@ def select_custom_resource_type(wizard_context):
     wizard_context["st"].selectbox.return_value = "custom"
 
 
-@pytest.mark.medium
 @when("I enter custom resource information")
 def enter_custom_resource_information(wizard_context):
     """Enter custom resource information."""
@@ -436,7 +412,6 @@ def enter_custom_resource_information(wizard_context):
     ]
 
 
-@pytest.mark.medium
 @when("I complete the wizard")
 def complete_wizard(wizard_context):
     """Complete the wizard."""
@@ -465,7 +440,6 @@ def complete_wizard(wizard_context):
     wizard_context["st"].button.return_value = False
 
 
-@pytest.mark.medium
 @then("the custom resources should be gathered")
 def check_custom_resources_gathered(wizard_context):
     """Check that the custom resources are gathered."""

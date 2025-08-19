@@ -7,7 +7,6 @@ from pytest_bdd import given, parsers, then, when
 from .test_mddr_common_steps import context
 
 
-@pytest.mark.medium
 @given("perspectives and identified conflicts from multiple disciplines")
 def perspectives_and_identified_conflicts_from_multiple_disciplines(context):
     """Set up perspectives and identified conflicts from multiple disciplines."""
@@ -99,7 +98,6 @@ def perspectives_and_identified_conflicts_from_multiple_disciplines(context):
     ]
 
 
-@pytest.mark.medium
 @when("the team generates a multi-disciplinary synthesis")
 def team_generates_multi_disciplinary_synthesis(context):
     """Simulate the team generating a multi-disciplinary synthesis."""
@@ -173,7 +171,6 @@ def team_generates_multi_disciplinary_synthesis(context):
     )
 
 
-@pytest.mark.medium
 @then("the synthesis should address all identified conflicts")
 def synthesis_addresses_all_identified_conflicts(context):
     """Verify that the synthesis addresses all identified conflicts."""
@@ -225,7 +222,6 @@ def synthesis_addresses_all_identified_conflicts(context):
         ), f"Trade-offs for {conflict_id} are not adequately described"
 
 
-@pytest.mark.medium
 @then("the synthesis should integrate insights from all disciplines")
 def synthesis_integrates_insights_from_all_disciplines(context):
     """Verify that the synthesis integrates insights from all disciplines."""
@@ -297,7 +293,6 @@ def synthesis_integrates_insights_from_all_disciplines(context):
                 )
 
 
-@pytest.mark.medium
 @then("the synthesis should maintain disciplinary integrity where appropriate")
 def synthesis_maintains_disciplinary_integrity(context):
     """Verify that the synthesis maintains disciplinary integrity where appropriate."""
@@ -321,7 +316,6 @@ def synthesis_maintains_disciplinary_integrity(context):
         ), f"Explanation for {discipline} integrity is too short"
 
 
-@pytest.mark.medium
 @then("the synthesis should document trade-offs between disciplinary requirements")
 def synthesis_documents_trade_offs(context):
     """Verify that the synthesis documents trade-offs between disciplinary requirements."""

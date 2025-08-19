@@ -3,14 +3,14 @@
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import given, scenarios, then, when
 
 # Register CLI installation step used in feature backgrounds
 from .cli_commands_steps import (  # noqa: F401
-    devsynth_cli_installed,
-    valid_devsynth_project,
-    run_command,
     check_workflow_success,
+    devsynth_cli_installed,
+    run_command,
+    valid_devsynth_project,
 )
 
 
@@ -28,14 +28,12 @@ def chroma_context(monkeypatch, tmp_path):
 scenarios("../features/general/chromadb_integration.feature")
 
 
-@pytest.mark.medium
 @given("the chromadb_integration feature context")
 def given_context(chroma_context):
     """Return the patched context."""
     return chroma_context
 
 
-@pytest.mark.medium
 @when("we execute the chromadb_integration workflow")
 def when_execute(chroma_context):
     """Simulate storing and retrieving an item."""
@@ -47,7 +45,6 @@ def when_execute(chroma_context):
     chroma_context["store_instance"] = store
 
 
-@pytest.mark.medium
 @then("the chromadb_integration workflow completes")
 def then_complete(chroma_context):
     """Ensure store operations were attempted."""

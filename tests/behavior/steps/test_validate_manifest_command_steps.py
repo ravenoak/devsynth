@@ -1,17 +1,14 @@
 """Steps for the validate manifest command feature."""
 
-from pytest_bdd import scenarios, then
+from pathlib import Path
+
+from pytest_bdd import given, scenarios, then
 
 # Reuse generic CLI step implementations so we don't duplicate behavior.
 from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
-from pathlib import Path
-
-from pytest_bdd import given
-
 from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
 
-@pytest.mark.medium
 @given("no manifest file exists at the provided path")
 def missing_manifest(tmp_path: Path, command_context):
     """Provide a path to a nonexistent manifest file for error handling."""
@@ -20,10 +17,10 @@ def missing_manifest(tmp_path: Path, command_context):
     command_context["manifest_path"] = path
     return path
 
+
 scenarios("../features/general/validate_manifest_command.feature")
 
 
-@pytest.mark.medium
 @then("the output should indicate the project configuration is valid")
 def manifest_valid(command_context):
     """Check for a success message from validate-manifest."""

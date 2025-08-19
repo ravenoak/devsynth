@@ -1,18 +1,23 @@
-from pytest_bdd import given, when, then, scenarios, parsers
-import pytest
 import os
 import tempfile
 
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
 try:
+    from devsynth.application.memory.adapters.graph_memory_adapter import (
+        GraphMemoryAdapter,
+    )
+    from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+        TinyDBMemoryAdapter,
+    )
     from devsynth.application.memory.memory_manager import MemoryManager
-    from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
-    from devsynth.application.memory.adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
     from devsynth.domain.models.memory import MemoryItem, MemoryType
 except ImportError:
     # Try alternative import paths
-    from devsynth.application.memory.memory_manager import MemoryManager
     from devsynth.adapters.memory.graph_memory_adapter import GraphMemoryAdapter
     from devsynth.adapters.memory.tinydb_memory_adapter import TinyDBMemoryAdapter
+    from devsynth.application.memory.memory_manager import MemoryManager
     from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 # Use absolute path for feature file
@@ -60,7 +65,6 @@ def context(tmp_path):
     return ctx
 
 
-@pytest.mark.medium
 @given("a memory manager with graph and tinydb adapters")
 def have_manager(context):
     assert context.manager is not None
@@ -68,7 +72,6 @@ def have_manager(context):
     assert "tinydb" in context.manager.adapters
 
 
-@pytest.mark.medium
 @when(parsers.parse('I store a graph memory item with id "{item_id}"'))
 def store_graph_item(context, item_id):
     try:
@@ -78,17 +81,17 @@ def store_graph_item(context, item_id):
         pytest.fail(f"Failed to store graph memory item: {e}")
 
 
-@pytest.mark.medium
 @when(parsers.parse('I store a tinydb memory item with id "{item_id}"'))
 def store_tinydb_item(context, item_id):
     try:
-        item = MemoryItem(id=item_id, content="tinydb", memory_type=MemoryType.DOCUMENTATION)
+        item = MemoryItem(
+            id=item_id, content="tinydb", memory_type=MemoryType.DOCUMENTATION
+        )
         context.manager.adapters["tinydb"].store(item)
     except Exception as e:
         pytest.fail(f"Failed to store tinydb memory item: {e}")
 
 
-@pytest.mark.medium
 @then("querying items by type should return both stored items")
 def query_items(context):
     try:

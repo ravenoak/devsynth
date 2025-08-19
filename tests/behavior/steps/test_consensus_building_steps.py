@@ -49,7 +49,6 @@ def create_mock_agent(name, expertise, experience_level=5):
 
 
 # Background steps
-@pytest.mark.medium
 @given("a WSDE team with multiple agents")
 def wsde_team_with_multiple_agents(context):
     """Create a WSDE team with multiple agents."""
@@ -87,7 +86,6 @@ def wsde_team_with_multiple_agents(context):
     context.agents["qa_agent"] = qa_agent
 
 
-@pytest.mark.medium
 @given("each agent has different expertise areas")
 def agents_with_different_expertise(context):
     """Verify that each agent has different expertise areas."""
@@ -101,7 +99,6 @@ def agents_with_different_expertise(context):
                 assert exp1 != exp2, f"Agents {i} and {j} have identical expertise"
 
 
-@pytest.mark.medium
 @given("the team is configured for consensus building")
 def team_configured_for_consensus_building(context):
     """Configure the team for consensus building."""
@@ -113,7 +110,6 @@ def team_configured_for_consensus_building(context):
 
 
 # Scenario: Voting mechanisms for critical decisions
-@pytest.mark.medium
 @given("a critical decision with multiple options")
 def critical_decision_with_options(context):
     """Create a critical decision with multiple options."""
@@ -175,7 +171,6 @@ def critical_decision_with_options(context):
     context.task["options"] = context.options
 
 
-@pytest.mark.medium
 @when("the team needs to select the best option")
 def team_selects_best_option(context):
     """Have the team select the best option through voting."""
@@ -186,7 +181,6 @@ def team_selects_best_option(context):
     context.decision = context.voting_results["selected_option"]
 
 
-@pytest.mark.medium
 @then("all agents should participate in the voting process")
 def all_agents_participate_in_voting(context):
     """Verify that all agents participate in the voting process."""
@@ -205,7 +199,6 @@ def all_agents_participate_in_voting(context):
         ), f"Agent {actual_name} did not vote"
 
 
-@pytest.mark.medium
 @then("each agent's vote should be weighted based on relevant expertise")
 def votes_weighted_by_expertise(context):
     """Verify that each agent's vote is weighted based on relevant expertise."""
@@ -248,7 +241,6 @@ def votes_weighted_by_expertise(context):
             ), f"Agent {actual_name} without relevant expertise has weight {vote_weight} > 1.0"
 
 
-@pytest.mark.medium
 @then("the voting results should be recorded with explanations")
 def voting_results_recorded_with_explanations(context):
     """Verify that voting results are recorded with explanations."""
@@ -265,7 +257,6 @@ def voting_results_recorded_with_explanations(context):
         ], f"Empty explanation for {agent_name}'s vote"
 
 
-@pytest.mark.medium
 @then("the selected option should have the highest weighted score")
 def selected_option_has_highest_score(context):
     """Verify that the selected option has the highest weighted score."""
@@ -287,7 +278,6 @@ def selected_option_has_highest_score(context):
 
 
 # Scenario: Conflict resolution in decision making
-@pytest.mark.medium
 @given("a decision with conflicting agent opinions")
 def decision_with_conflicting_opinions(context):
     """Create a decision with conflicting agent opinions."""
@@ -339,7 +329,6 @@ def decision_with_conflicting_opinions(context):
     context.team.set_agent_opinion(context.agents["qa_agent"], "option_3", "favor")
 
 
-@pytest.mark.medium
 @when("the team attempts to reach consensus")
 def team_attempts_consensus(context):
     """Have the team attempt to reach consensus."""
@@ -350,7 +339,6 @@ def team_attempts_consensus(context):
     context.decision = context.conflict_resolution["consensus_decision"]
 
 
-@pytest.mark.medium
 @then("the conflicts should be identified and documented")
 def conflicts_identified_and_documented(context):
     """Verify that conflicts are identified and documented."""
@@ -367,7 +355,6 @@ def conflicts_identified_and_documented(context):
         assert len(conflict["options"]) >= 2
 
 
-@pytest.mark.medium
 @then("the team should engage in a structured conflict resolution process")
 def structured_conflict_resolution_process(context):
     """Verify that the team engages in a structured conflict resolution process."""
@@ -384,7 +371,6 @@ def structured_conflict_resolution_process(context):
         assert "outcome" in step
 
 
-@pytest.mark.medium
 @then("agents should provide reasoning for their positions")
 def agents_provide_reasoning(context):
     """Verify that agents provide reasoning for their positions."""
@@ -417,7 +403,6 @@ def agents_provide_reasoning(context):
         assert context.conflict_resolution["agent_reasoning"][matching_key]
 
 
-@pytest.mark.medium
 @then("a resolution should be reached that addresses key concerns")
 def resolution_addresses_key_concerns(context):
     """Verify that the resolution addresses key concerns."""
@@ -432,7 +417,6 @@ def resolution_addresses_key_concerns(context):
         assert concern in context.conflict_resolution["addressed_concerns"]
 
 
-@pytest.mark.medium
 @then("the resolution process should be documented for future reference")
 def resolution_process_documented(context):
     """Verify that the resolution process is documented for future reference."""
@@ -447,7 +431,6 @@ def resolution_process_documented(context):
 
 
 # Scenario: Weighted voting based on expertise
-@pytest.mark.medium
 @given("a technical decision requiring specialized knowledge")
 def technical_decision_requiring_specialized_knowledge(context):
     """Create a technical decision requiring specialized knowledge."""
@@ -491,7 +474,6 @@ def technical_decision_requiring_specialized_knowledge(context):
     context.task["options"] = context.options
 
 
-@pytest.mark.medium
 @when("the team votes on the decision")
 def team_votes_on_decision(context):
     """Have the team vote on the decision."""
@@ -502,7 +484,6 @@ def team_votes_on_decision(context):
     context.decision = context.voting_results["selected_option"]
 
 
-@pytest.mark.medium
 @then("agents with relevant expertise should have higher voting weight")
 def relevant_expertise_higher_weight(context):
     """Verify that agents with relevant expertise have higher voting weight."""
@@ -530,7 +511,6 @@ def relevant_expertise_higher_weight(context):
             ), f"Agent {agent_name} has higher weight ({weight}) than security agent ({security_agent_weight})"
 
 
-@pytest.mark.medium
 @then("the expertise assessment should be transparent and justifiable")
 def expertise_assessment_transparent(context):
     """Verify that the expertise assessment is transparent and justifiable."""
@@ -550,7 +530,6 @@ def expertise_assessment_transparent(context):
         ], f"Empty justification for {agent_name}'s expertise assessment"
 
 
-@pytest.mark.medium
 @then("the weighted voting should lead to a technically sound decision")
 def weighted_voting_leads_to_sound_decision(context):
     """Verify that the weighted voting leads to a technically sound decision."""
@@ -568,7 +547,6 @@ def weighted_voting_leads_to_sound_decision(context):
     ), f"Selected option {context.decision['id']} doesn't match security agent's vote {security_agent_vote}"
 
 
-@pytest.mark.medium
 @then("the decision should include rationale referencing expert opinions")
 def decision_includes_expert_rationale(context):
     """Verify that the decision includes rationale referencing expert opinions."""
@@ -583,7 +561,6 @@ def decision_includes_expert_rationale(context):
 
 
 # Scenario: Tie-breaking strategies
-@pytest.mark.medium
 @given("a decision where voting results in a tie")
 def decision_with_tie(context):
     """Create a decision where voting results in a tie."""
@@ -625,7 +602,6 @@ def decision_with_tie(context):
     context.team.force_voting_tie(context.task)
 
 
-@pytest.mark.medium
 @when("the team needs to resolve the tie")
 def team_resolves_tie(context):
     """Have the team resolve the tie."""
@@ -644,7 +620,6 @@ def team_resolves_tie(context):
     context.decision = context.voting_results["selected_option"]
 
 
-@pytest.mark.medium
 @then("the team should apply predefined tie-breaking strategies")
 def team_applies_tiebreaking_strategies(context):
     """Verify that the team applies predefined tie-breaking strategies."""
@@ -659,7 +634,6 @@ def team_applies_tiebreaking_strategies(context):
         assert "outcome" in strategy
 
 
-@pytest.mark.medium
 @then("the strategies should consider expertise in relevant domains")
 def strategies_consider_domain_expertise(context):
     """Verify that the strategies consider expertise in relevant domains."""
@@ -677,7 +651,6 @@ def strategies_consider_domain_expertise(context):
     ), f"Frontend agent influence {frontend_agent_influence} is below threshold"
 
 
-@pytest.mark.medium
 @then("the tie resolution should be fair and transparent")
 def tie_resolution_fair_and_transparent(context):
     """Verify that the tie resolution is fair and transparent."""
@@ -699,7 +672,6 @@ def tie_resolution_fair_and_transparent(context):
     ), "Process transparency too low"
 
 
-@pytest.mark.medium
 @then("the final decision should be documented with the tie-breaking rationale")
 def decision_documented_with_tiebreaking_rationale(context):
     """Verify that the final decision is documented with the tie-breaking rationale."""
@@ -715,7 +687,6 @@ def decision_documented_with_tiebreaking_rationale(context):
 
 
 # Scenario: Decision tracking and explanation
-@pytest.mark.medium
 @given("a series of decisions made by the team")
 def series_of_decisions(context):
     """Create a series of decisions made by the team."""
@@ -768,7 +739,6 @@ def series_of_decisions(context):
         )
 
 
-@pytest.mark.medium
 @when("the decisions are implemented")
 def decisions_implemented(context):
     """Implement the decisions."""
@@ -789,7 +759,6 @@ def decisions_implemented(context):
         )
 
 
-@pytest.mark.medium
 @then("each decision should be tracked with metadata")
 def decisions_tracked_with_metadata(context):
     """Verify that each decision is tracked with metadata."""
@@ -809,7 +778,6 @@ def decisions_tracked_with_metadata(context):
         assert "verification_status" in tracked_decision["metadata"]
 
 
-@pytest.mark.medium
 @then("the tracking should include voting results and rationale")
 def tracking_includes_voting_and_rationale(context):
     """Verify that tracking includes voting results and rationale."""
@@ -830,7 +798,6 @@ def tracking_includes_voting_and_rationale(context):
         assert tracked_decision["rationale"], "Empty rationale"
 
 
-@pytest.mark.medium
 @then("the explanation should reference relevant expertise and considerations")
 def explanation_references_expertise(context):
     """Verify that the explanation references relevant expertise and considerations."""
@@ -850,7 +817,6 @@ def explanation_references_expertise(context):
         assert len(tracked_decision["rationale"]["considerations"]) > 0
 
 
-@pytest.mark.medium
 @then("the decision history should be queryable for future reference")
 def decision_history_queryable(context):
     """Verify that the decision history is queryable for future reference."""
@@ -877,7 +843,6 @@ def decision_history_queryable(context):
     assert len(recent_decisions) > 0
 
 
-@pytest.mark.medium
 @then("the explanations should be clear enough for external stakeholders to understand")
 def explanations_clear_for_stakeholders(context):
     """Verify that explanations are clear enough for external stakeholders to understand."""

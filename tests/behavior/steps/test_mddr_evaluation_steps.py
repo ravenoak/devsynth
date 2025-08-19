@@ -7,7 +7,6 @@ from pytest_bdd import given, parsers, then, when
 from .test_mddr_common_steps import context
 
 
-@pytest.mark.medium
 @given("a synthesis generated from multi-disciplinary perspectives")
 def synthesis_generated_from_multi_disciplinary_perspectives(context):
     """Set up a synthesis generated from multi-disciplinary perspectives."""
@@ -70,7 +69,6 @@ def synthesis_generated_from_multi_disciplinary_perspectives(context):
     }
 
 
-@pytest.mark.medium
 @when("the team evaluates the synthesis")
 def team_evaluates_synthesis(context):
     """Simulate the team evaluating the synthesis."""
@@ -174,7 +172,6 @@ def team_evaluates_synthesis(context):
     )
 
 
-@pytest.mark.medium
 @then("the evaluation should assess the solution from each disciplinary perspective")
 def evaluation_assesses_solution_from_each_disciplinary_perspective(context):
     """Verify that the evaluation assesses the solution from each disciplinary perspective."""
@@ -203,7 +200,6 @@ def evaluation_assesses_solution_from_each_disciplinary_perspective(context):
         assert len(assessment["overall_assessment"]) > 20
 
 
-@pytest.mark.medium
 @then("the evaluation should verify compliance with discipline-specific standards")
 def evaluation_verifies_compliance_with_discipline_specific_standards(context):
     """Verify that the evaluation checks compliance with discipline-specific standards."""
@@ -250,7 +246,6 @@ def evaluation_verifies_compliance_with_discipline_specific_standards(context):
             ]
 
 
-@pytest.mark.medium
 @then("the evaluation should identify any remaining disciplinary concerns")
 def evaluation_identifies_remaining_disciplinary_concerns(context):
     """Verify that the evaluation identifies any remaining disciplinary concerns."""
@@ -300,7 +295,6 @@ def evaluation_identifies_remaining_disciplinary_concerns(context):
                     )
 
 
-@pytest.mark.medium
 @then(
     "the evaluation should provide an overall assessment of multi-disciplinary quality"
 )
