@@ -26,6 +26,9 @@ jobs:
       - name: Verify MVUU references
         run: |
           python scripts/verify_mvuu_references.py origin/main..HEAD
+      - name: Check test ReqIDs
+        run: |
+          python scripts/check_reqid.py --rev-range origin/main..HEAD
       - name: Run Bandit
         run: |
           poetry run bandit -q -r src

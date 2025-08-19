@@ -27,9 +27,11 @@ jobs:
       - name: Run project checks
         # Runs tests and documentation checks; fails if any script exits non-zero
         run: |
+          git fetch origin main
           poetry run python scripts/run_all_tests.py
           poetry run python scripts/check_internal_links.py
           poetry run python scripts/fix_code_blocks.py --check
+          poetry run python scripts/check_reqid.py --rev-range origin/main..HEAD
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
