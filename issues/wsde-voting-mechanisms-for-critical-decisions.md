@@ -1,7 +1,7 @@
 # WSDE Voting Mechanisms for Critical Decisions
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md, tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
 
 ## Problem Statement

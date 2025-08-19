@@ -1,7 +1,7 @@
 # WebUI Test Metrics Page
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/webui-test-metrics-page.md, tests/behavior/features/webui_test_metrics_page.feature
 
 ## Problem Statement

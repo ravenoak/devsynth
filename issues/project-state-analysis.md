@@ -1,5 +1,5 @@
 # Project State Analysis
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: in progress
 Priority: low
 Dependencies: tests/behavior/features/general/project_state_analyzer.feature

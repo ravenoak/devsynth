@@ -1,5 +1,5 @@
 # Review and Reprioritize Open Issues
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: open
 Priority: high
 Dependencies: none
@@ -14,7 +14,7 @@ The repository tracks 135 open tickets, mostly marked low priority. This distrib
 - Archive tickets that are complete or obsolete
 
 ## Progress
-- not started
+- 2025-08-19: Audited 135 open tickets; prioritized 19 high, 28 medium, 86 low; archived 2 resolved tickets.
 
 ## References
 - docs/roadmap/CONSOLIDATED_ROADMAP.md

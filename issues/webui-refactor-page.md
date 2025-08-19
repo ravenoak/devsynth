@@ -1,7 +1,7 @@
 # WebUI Refactor Page
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/webui-refactor-page.md, tests/behavior/features/webui_refactor_page.feature
 
 ## Problem Statement

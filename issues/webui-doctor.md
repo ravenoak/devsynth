@@ -1,7 +1,7 @@
 # WebUI Doctor
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-beta.1
 Status: in progress
-Priority: low
+Priority: medium
 Dependencies: docs/specifications/webui-doctor.md, tests/behavior/features/webui_doctor.feature
 
 ## Problem Statement

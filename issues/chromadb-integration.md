@@ -1,5 +1,5 @@
 # ChromaDB Integration
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: in progress
 Priority: low
 Dependencies: docs/specifications/chromadb-integration.md, tests/behavior/features/chromadb_integration.feature

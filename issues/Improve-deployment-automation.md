@@ -2,7 +2,7 @@
 Milestone: 0.2.0
 Status: open
 
-Priority: medium
+Priority: low
 Dependencies: None
 
 ## Problem Statement

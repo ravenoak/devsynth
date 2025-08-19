@@ -1,8 +1,8 @@
 # Finalize WSDE/EDRR workflow logic
-Milestone: 0.1.0-alpha.1
+Milestone: 0.2.0
 Status: blocked
 
-Priority: medium
+Priority: low
 Dependencies: [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
 
 ## Problem Statement

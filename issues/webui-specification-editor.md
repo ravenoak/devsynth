@@ -1,7 +1,7 @@
 # WebUI Specification Editor
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/webui-specification-editor.md, tests/behavior/features/webui_specification_editor.feature
 
 ## Problem Statement

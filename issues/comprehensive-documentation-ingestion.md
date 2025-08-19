@@ -1,7 +1,7 @@
 # Comprehensive Documentation Ingestion
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/comprehensive-documentation-ingestion.md, tests/behavior/features/comprehensive_documentation_ingestion.feature
 
 ## Problem Statement

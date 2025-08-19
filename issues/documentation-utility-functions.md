@@ -1,7 +1,7 @@
 # Documentation Utility Functions
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/documentation-utility-functions.md, tests/behavior/features/documentation_utility_functions.feature
 
 ## Problem Statement

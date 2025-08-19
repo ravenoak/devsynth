@@ -1,7 +1,7 @@
 # Multi-disciplinary Dialectical Reasoning
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/multi-disciplinary-dialectical-reasoning.md, tests/behavior/features/dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature
 
 ## Problem Statement

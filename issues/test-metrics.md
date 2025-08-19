@@ -1,7 +1,7 @@
 # Test Metrics
-Milestone: 0.1.0-alpha.1
+Milestone: 0.1.0-alpha.2
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/test-metrics.md, tests/behavior/features/test_metrics.feature
 
 ## Problem Statement
