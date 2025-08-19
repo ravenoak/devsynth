@@ -35,6 +35,7 @@ Developers need a dependable way to run MVU-specific commands and capture their 
 
 - Executing `devsynth mvu exec echo hello` runs the shell command and outputs `hello`.
 - The command exits with code `0` when the underlying command succeeds.
+- Combined output includes both `stdout` and `stderr` streams.
 - Errors return a non-zero exit code and expose the underlying error message.
 
 ## References

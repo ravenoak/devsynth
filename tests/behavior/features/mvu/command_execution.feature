@@ -1,3 +1,4 @@
+# Specification: docs/specifications/mvu-command-execution.md
 Feature: MVU shell command execution
   As a developer
   I want MVU to run shell commands within a traceable session
