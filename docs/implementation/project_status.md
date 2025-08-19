@@ -69,6 +69,7 @@ Recent fast test runs report **0** failing tests, **51** passing tests, and **30
 ### Test Categorization Progress
 
 - Speed markers applied to **1,362** of **2,459** test functions (55.4%)
+- `verify_test_markers.py` reports misaligned markers in `tests/behavior/steps` (e.g., `test_agent_api_steps.py`), indicating normalization is incomplete.
 - Tests categorized by speed:
   - Fast: 43 tests
   - Medium: 1,265 tests

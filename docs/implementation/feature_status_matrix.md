@@ -85,7 +85,7 @@ Each feature is scored on two dimensions:
 | SDLC Security Policy | Partial | docs/policies/security.md | 3 | 2 | Security Framework | | Configuration flags exist, automated audits planned. Tracked in [issue 111](../../issues/Implement-SDLC-security-audits.md) |
 | Documentation Policies | Complete | docs/policies/documentation_policies.md | 2 | 1 | None | | Policies implemented across documentation |
 | Test Import Performance | Partial | tests/ | 2 | 2 | Testing Infrastructure | | Slow module imports under investigation in [issue](../../issues/Investigate-slow-test-imports.md) |
-| Test Marker Verification | Partial | scripts/verify_test_markers.py, tests/ | 2 | 3 | Testing Infrastructure | | Enforce single speed marker per test. Work tracked in [issue](../../issues/Normalize-and-verify-test-markers.md) |
+| Test Marker Verification | Partial | scripts/verify_test_markers.py, tests/ | 2 | 3 | Testing Infrastructure | | Enforce single speed marker per test. `verify_test_markers.py` still flags misaligned markers in behavior step modules (see [Expand test generation capabilities](../../issues/Expand-test-generation-capabilities.md)). |
 | Test Runner Stability | Partial | scripts/run_tests.sh | 3 | 3 | Testing Infrastructure | | xdist errors tracked in [issue](../../issues/Resolve-medium-test-suite-xdist-KeyError.md) and [issue](../../issues/Resolve-pytest-xdist-assertion-errors.md) |
 | Dialectical Audit Coverage | Partial | scripts/dialectical_audit.py | 3 | 3 | Documentation Policies | | Audit inconsistencies tracked in [issue](../../issues/Dialectical-audit-reports-undocumented-features.md) and [issue](../../issues/Resolve-remaining-dialectical-audit-questions.md) |
 | **Planned/Unimplemented Features** |
