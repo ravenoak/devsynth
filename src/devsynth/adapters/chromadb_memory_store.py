@@ -1,3 +1,4 @@
+# Feature: ChromaDB memory store
 try:
     import chromadb
     from chromadb.api import ClientAPI
