@@ -19,7 +19,11 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 ## Quick Start
 
 1. **Fork and clone** the repository
-2. **Set up** your development environment with Poetry
+2. **Provision** your development environment:
+
+   ```bash
+   bash scripts/install_dev.sh
+   ```
 3. **Create a branch** for your changes
 4. **Review directory-specific guidelines** before making changes
 5. **Draft a specification** in [docs/specifications/](docs/specifications/index.md) and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist **before** writing code
