@@ -35,6 +35,11 @@ metric.
 - The `ChromaDBStore` exposes `get_embedding_storage_efficiency()` returning a
   float between 0 and 1 representing how effectively embeddings are stored.
 
+## Requirements
+
+- **CDS-001**: The ChromaDB store must import successfully when the `chromadb`
+  extras are installed.
+
 ## Acceptance Criteria
 
 - A ChromaDB memory store reports optimized embeddings when
