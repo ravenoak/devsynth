@@ -1,8 +1,10 @@
 {
   "questions": [
+    "Feature 'ChromaDB memory store' has tests but is not documented.",
     "Feature 'MVU shell command execution' has tests but is not documented.",
     "Feature 'Multi-disciplinary dialectical reasoning' has tests but is not documented.",
-    "Feature 'Simple addition input validation' has tests but is not documented."
+    "Feature 'Simple addition input validation' has tests but is not documented.",
+    "Feature 'ChromaDB memory store' is referenced in docs or tests but not in code."
   ],
   "resolved": []
 }
