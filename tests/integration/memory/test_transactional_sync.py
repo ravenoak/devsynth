@@ -2,19 +2,6 @@ import sys
 
 import pytest
 
-pytest.importorskip("chromadb")
-
-LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
-FAISSStore = pytest.importorskip("devsynth.application.memory.faiss_store").FAISSStore
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
-from devsynth.application.memory.kuzu_store import KuzuStore
-
-ChromaDBStore = pytest.importorskip(
-    "devsynth.application.memory.chromadb_store"
-).ChromaDBStore
-ChromaDBAdapter = pytest.importorskip(
-    "devsynth.adapters.memory.chroma_db_adapter"
-).ChromaDBAdapter
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
@@ -29,26 +16,30 @@ pytestmark = [
 @pytest.fixture(autouse=True)
 def no_kuzu(monkeypatch):
     monkeypatch.delitem(sys.modules, "kuzu", raising=False)
-    for cls in (KuzuMemoryStore, KuzuStore, LMDBStore, FAISSStore, ChromaDBStore):
-        monkeypatch.setattr(cls, "__abstractmethods__", frozenset())
-
-
-def _manager(lmdb, faiss, kuzu, chroma, chroma_vec):
-    adapters = {
-        "lmdb": lmdb,
-        "faiss": faiss,
-        "kuzu": kuzu,
-        "chroma": chroma,
-        "chroma_vec": chroma_vec,
-    }
-    manager = MemoryManager(adapters=adapters)
-    manager.sync_manager = SyncManager(manager)
-    return manager
 
 
 @pytest.mark.medium
 def test_transactional_sync_rollback(tmp_path, monkeypatch):
     """Rolls back when synchronization target fails. ReqID: FR-60"""
+
+    LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
+    FAISSStore = pytest.importorskip(
+        "devsynth.application.memory.faiss_store"
+    ).FAISSStore
+    KuzuMemoryStore = pytest.importorskip(
+        "devsynth.adapters.kuzu_memory_store"
+    ).KuzuMemoryStore
+    KuzuStore = pytest.importorskip("devsynth.application.memory.kuzu_store").KuzuStore
+    ChromaDBStore = pytest.importorskip(
+        "devsynth.application.memory.chromadb_store"
+    ).ChromaDBStore
+    ChromaDBAdapter = pytest.importorskip(
+        "devsynth.adapters.memory.chroma_db_adapter"
+    ).ChromaDBAdapter
+
+    for cls in (KuzuMemoryStore, KuzuStore, LMDBStore, FAISSStore, ChromaDBStore):
+        monkeypatch.setattr(cls, "__abstractmethods__", frozenset())
+
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
@@ -65,7 +56,16 @@ def test_transactional_sync_rollback(tmp_path, monkeypatch):
     chroma_vec_path.mkdir()
     chroma_vec = ChromaDBAdapter(str(chroma_vec_path))
 
-    manager = _manager(lmdb_store, faiss_store, kuzu_store, chroma_store, chroma_vec)
+    manager = MemoryManager(
+        adapters={
+            "lmdb": lmdb_store,
+            "faiss": faiss_store,
+            "kuzu": kuzu_store,
+            "chroma": chroma_store,
+            "chroma_vec": chroma_vec,
+        }
+    )
+    manager.sync_manager = SyncManager(manager)
 
     item = MemoryItem(id="x", content="hello", memory_type=MemoryType.CODE)
     vector = MemoryVector(id="x", content="hello", embedding=[0.1] * 5, metadata={})
