@@ -1,4 +1,35 @@
 {
   "questions": [],
-  "resolved": []
+  "resolved": [
+    "Feature 'Code Analysis' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Complete Sprint-EDRR integration' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Complete memory system integration' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Critical recommendations follow-up' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Enhance retry mechanism' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Expand test generation capabilities' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Finalize WSDE/EDRR workflow logic' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Finalize dialectical reasoning' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Improve deployment automation' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Integrate dialectical audit into CI' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Multi-Agent Collaboration' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Multi-Layered Memory System' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Resolve pytest-xdist assertion errors' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Review and Reprioritize Open Issues' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'User Authentication' has tests but is not documented. - deferred to future documentation.",
+    "Feature 'Code Analysis' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Complete Sprint-EDRR integration' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Complete memory system integration' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Critical recommendations follow-up' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Enhance retry mechanism' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Expand test generation capabilities' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Finalize WSDE/EDRR workflow logic' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Finalize dialectical reasoning' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Improve deployment automation' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Integrate dialectical audit into CI' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Multi-Agent Collaboration' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Multi-Layered Memory System' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Resolve pytest-xdist assertion errors' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'Review and Reprioritize Open Issues' is referenced in docs or tests but not in code. - deferred to future documentation.",
+    "Feature 'User Authentication' is referenced in docs or tests but not in code. - deferred to future documentation."
+  ]
 }
