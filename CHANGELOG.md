@@ -6,7 +6,7 @@ tags:
   - "devsynth"
   - "changelog"
   - "version history"
-status: "published"
+status: "draft"
 author: "DevSynth Team"
 last_reviewed: "2025-08-16"
 ---
@@ -26,10 +26,6 @@ milestone.
 
 ### Added
 - Documented acceptance criteria for MVU command execution with linked BDD feature coverage.
-
-## [0.1.0-alpha.1] - 2025-08-16
-
-### Added
 - Modular, hexagonal architecture
 - Unified memory system with multiple backends
 - Agent system powered by LangGraph
@@ -76,3 +72,5 @@ milestone.
 
 - `poetry run python scripts/verify_test_markers.py` fails due to pytest collection errors in several test modules (e.g., `tests/performance/test_api_benchmarks.py`, `tests/behavior/test_agentapi.py`).
 - `poetry run task release:prep` reports `Command not found: task`, preventing release artifact preparation.
+
+## [0.1.0-alpha.1] - Unreleased
