@@ -22,6 +22,11 @@ DevSynth's pre-release milestones in the `0.1.x` range lead up to the first
 stable release. Version `0.1.0-alpha.1` marks the project's initial published
 milestone.
 
+## [Unreleased]
+
+### Added
+- Documented acceptance criteria for MVU command execution with linked BDD feature coverage.
+
 ## [0.1.0-alpha.1] - 2025-08-16
 
 ### Added
