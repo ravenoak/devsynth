@@ -1,7 +1,7 @@
 # Run Pipeline Command
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/run-pipeline-command.md, tests/behavior/features/run_pipeline_command.feature
 
 ## Problem Statement

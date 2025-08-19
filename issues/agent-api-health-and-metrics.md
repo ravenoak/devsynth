@@ -1,8 +1,8 @@
 # Agent API Health and Metrics
-Milestone: 0.1.0-beta.1
+Milestone: Phase 4
 Status: in progress
-Priority: medium
-Dependencies: docs/specifications/agent-api-health-and-metrics.md, tests/behavior/features/agent_api_health_and_metrics.feature
+Priority: low
+Dependencies: Phase 3 completion, docs/specifications/agent-api-health-and-metrics.md, tests/behavior/features/agent_api_health_and_metrics.feature
 
 ## Problem Statement
 The agent API lacks dedicated health checks and runtime metrics. Without

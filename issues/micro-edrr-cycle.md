@@ -1,7 +1,7 @@
 # Micro EDRR Cycle
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/micro-edrr-cycle.md, tests/behavior/features/micro_edrr_cycle.feature
 
 ## Problem Statement

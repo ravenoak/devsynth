@@ -1,8 +1,8 @@
 # Complete Sprint-EDRR integration
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: blocked
 
-Priority: low
+Priority: high
 Dependencies: [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md)
 
 ## Problem Statement

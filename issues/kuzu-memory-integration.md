@@ -1,7 +1,7 @@
 # Kuzu memory integration
-Milestone: 0.1.0-beta.1
+Milestone: Phase 1
 Status: in progress
-Priority: medium
+Priority: high
 Dependencies: docs/specifications/kuzu-memory-integration.md, tests/behavior/features/kuzu_memory_integration.feature
 
 ## Problem Statement

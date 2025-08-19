@@ -1,7 +1,7 @@
 # MVU Command Execution
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/mvu-command-execution.md, tests/behavior/features/mvu/command_execution.feature
 
 ## Problem Statement

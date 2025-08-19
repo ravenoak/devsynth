@@ -1,8 +1,8 @@
 # WebUI Serve Page
-Milestone: 0.1.0-beta.1
+Milestone: Phase 2
 Status: in progress
 Priority: medium
-Dependencies: docs/specifications/webui-serve-page.md, tests/behavior/features/webui_serve_page.feature
+Dependencies: Phase 1 completion, docs/specifications/webui-serve-page.md, tests/behavior/features/webui_serve_page.feature
 
 ## Problem Statement
 WebUI Serve Page is not yet implemented, limiting DevSynth's capabilities.

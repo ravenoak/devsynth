@@ -1,8 +1,8 @@
 # Integrate dialectical audit into CI
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 3
 Status: open
-Priority: high
-Dependencies: None
+Priority: low
+Dependencies: Phase 2 completion, None
 
 ## Problem Statement
 Integrate dialectical audit into CI is not yet implemented, limiting DevSynth's capabilities.

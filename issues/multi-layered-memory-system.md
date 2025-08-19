@@ -1,7 +1,7 @@
 # Multi-Layered Memory System
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/multi-layered-memory-system.md, tests/behavior/features/multi_layered_memory_system.feature
 
 ## Problem Statement

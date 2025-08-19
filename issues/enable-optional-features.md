@@ -1,7 +1,7 @@
 # Enable optional features
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/enable-optional-features.md, tests/behavior/features/enable_optional_features.feature
 
 ## Problem Statement

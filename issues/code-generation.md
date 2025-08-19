@@ -1,8 +1,8 @@
 # Code Generation
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 2
 Status: in progress
-Priority: low
-Dependencies: docs/specifications/code-generation.md, tests/behavior/features/code_generation.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/code-generation.md, tests/behavior/features/code_generation.feature
 
 ## Problem Statement
 Code Generation is not yet implemented, limiting DevSynth's capabilities.

@@ -1,9 +1,9 @@
 # Finalize dialectical reasoning
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 3
 Status: in progress
 
 Priority: low
-Dependencies: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
+Dependencies: Phase 2 completion, [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 
 ## Problem Statement
 Finalize dialectical reasoning is not yet implemented, limiting DevSynth's capabilities.

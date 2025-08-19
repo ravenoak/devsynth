@@ -1,8 +1,8 @@
 # WebUI Specification Editor
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 2
 Status: in progress
-Priority: high
-Dependencies: docs/specifications/webui-specification-editor.md, tests/behavior/features/webui_specification_editor.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/webui-specification-editor.md, tests/behavior/features/webui_specification_editor.feature
 
 ## Problem Statement
 WebUI Specification Editor is not yet implemented, limiting DevSynth's capabilities.

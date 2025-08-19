@@ -1,8 +1,8 @@
 # Test Metrics
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 4
 Status: in progress
-Priority: high
-Dependencies: docs/specifications/test-metrics.md, tests/behavior/features/test_metrics.feature
+Priority: low
+Dependencies: Phase 3 completion, docs/specifications/test-metrics.md, tests/behavior/features/test_metrics.feature
 
 ## Problem Statement
 Test Metrics is not yet implemented, limiting DevSynth's capabilities.

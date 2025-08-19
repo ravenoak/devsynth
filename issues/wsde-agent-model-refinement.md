@@ -1,8 +1,8 @@
 # WSDE Agent Model Refinement
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 3
 Status: in progress
 Priority: low
-Dependencies: docs/specifications/wsde-agent-model-refinement.md, tests/behavior/features/wsde_agent_model_refinement.feature
+Dependencies: Phase 2 completion, docs/specifications/wsde-agent-model-refinement.md, tests/behavior/features/wsde_agent_model_refinement.feature
 
 ## Problem Statement
 WSDE Agent Model Refinement is not yet implemented, limiting DevSynth's capabilities.

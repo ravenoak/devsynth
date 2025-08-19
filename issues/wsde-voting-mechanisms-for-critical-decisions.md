@@ -1,8 +1,8 @@
 # WSDE Voting Mechanisms for Critical Decisions
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 3
 Status: in progress
-Priority: high
-Dependencies: docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md, tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
+Priority: low
+Dependencies: Phase 2 completion, docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md, tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
 
 ## Problem Statement
 WSDE Voting Mechanisms for Critical Decisions is not yet implemented, limiting DevSynth's capabilities.

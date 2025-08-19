@@ -1,8 +1,8 @@
 # Performance and Scalability Testing
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 4
 Status: in progress
-Priority: high
-Dependencies: docs/specifications/performance-and-scalability-testing.md, tests/behavior/features/performance_and_scalability_testing.feature
+Priority: low
+Dependencies: Phase 3 completion, docs/specifications/performance-and-scalability-testing.md, tests/behavior/features/performance_and_scalability_testing.feature
 
 ## Problem Statement
 Performance and Scalability Testing is not yet implemented, limiting DevSynth's capabilities.

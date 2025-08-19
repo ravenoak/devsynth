@@ -1,8 +1,8 @@
 # Requirements Wizard Navigation
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 2
 Status: in progress
-Priority: low
-Dependencies: docs/specifications/requirements-wizard-navigation.md, tests/behavior/features/requirements_wizard_navigation.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/requirements-wizard-navigation.md, tests/behavior/features/requirements_wizard_navigation.feature
 
 ## Problem Statement
 Requirements Wizard Navigation is not yet implemented, limiting DevSynth's capabilities.

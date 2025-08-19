@@ -1,8 +1,8 @@
 # Improve deployment automation
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: open
 
-Priority: low
+Priority: high
 Dependencies: None
 
 ## Problem Statement

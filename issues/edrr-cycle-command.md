@@ -1,7 +1,7 @@
 # EDRR cycle command
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/edrr-cycle-command.md, tests/behavior/features/edrr_cycle_command.feature
 
 ## Problem Statement

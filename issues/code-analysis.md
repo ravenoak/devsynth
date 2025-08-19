@@ -1,8 +1,8 @@
 # Code Analysis
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 2
 Status: in progress
-Priority: low
-Dependencies: docs/specifications/code-analysis.md, tests/behavior/features/code_analysis.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/code-analysis.md, tests/behavior/features/code_analysis.feature
 
 ## Problem Statement
 Code Analysis is not yet implemented, limiting DevSynth's capabilities.

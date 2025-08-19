@@ -1,7 +1,7 @@
 # Requirements Management
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/requirements-management.md, tests/behavior/features/requirements_management.feature
 
 ## Problem Statement

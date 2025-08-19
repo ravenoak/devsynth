@@ -1,7 +1,7 @@
 # Memory adapter read and write operations
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/memory-adapter-read-and-write-operations.md, tests/behavior/features/memory_adapter_read_and_write_operations.feature
 
 ## Problem Statement

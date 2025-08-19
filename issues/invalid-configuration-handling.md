@@ -1,7 +1,7 @@
 # Invalid configuration handling
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/invalid-configuration-handling.md, tests/behavior/features/invalid_configuration_handling.feature
 
 ## Problem Statement

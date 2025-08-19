@@ -1,8 +1,8 @@
 # WebUI Ingestion Page
-Milestone: 0.1.0-beta.1
+Milestone: Phase 2
 Status: in progress
 Priority: medium
-Dependencies: docs/specifications/webui-ingestion-page.md, tests/behavior/features/webui_ingestion_page.feature
+Dependencies: Phase 1 completion, docs/specifications/webui-ingestion-page.md, tests/behavior/features/webui_ingestion_page.feature
 
 ## Problem Statement
 WebUI Ingestion Page is not yet implemented, limiting DevSynth's capabilities.

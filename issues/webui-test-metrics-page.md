@@ -1,8 +1,8 @@
 # WebUI Test Metrics Page
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 4
 Status: in progress
-Priority: high
-Dependencies: docs/specifications/webui-test-metrics-page.md, tests/behavior/features/webui_test_metrics_page.feature
+Priority: low
+Dependencies: Phase 3 completion, docs/specifications/webui-test-metrics-page.md, tests/behavior/features/webui_test_metrics_page.feature
 
 ## Problem Statement
 WebUI Test Metrics Page is not yet implemented, limiting DevSynth's capabilities.

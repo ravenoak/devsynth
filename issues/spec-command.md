@@ -1,7 +1,7 @@
 # Spec Command
-Milestone: 0.1.0-alpha.1
+Milestone: Phase 1
 Status: in progress
-Priority: low
+Priority: high
 Dependencies: docs/specifications/spec-command.md, tests/behavior/features/spec_command.feature
 
 ## Problem Statement

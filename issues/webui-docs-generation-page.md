@@ -1,8 +1,8 @@
 # WebUI Docs Generation Page
-Milestone: 0.1.0-alpha.2
+Milestone: Phase 2
 Status: in progress
-Priority: high
-Dependencies: docs/specifications/webui-docs-generation-page.md, tests/behavior/features/webui_docs_generation_page.feature
+Priority: medium
+Dependencies: Phase 1 completion, docs/specifications/webui-docs-generation-page.md, tests/behavior/features/webui_docs_generation_page.feature
 
 ## Problem Statement
 WebUI Docs Generation Page is not yet implemented, limiting DevSynth's capabilities.
