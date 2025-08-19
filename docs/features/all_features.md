@@ -26,7 +26,7 @@ Feature: Alignment Metrics Command
 Feature: CLI Command Execution
 Feature: CLI UI Parity
 Feature: CLI UX Enhancements
-Feature: ChromaDB Integration
+Feature: ChromaDB memory store
 Feature: Code Command
 Feature: Code Generation
 Feature: Code Transformation
@@ -71,6 +71,7 @@ Feature: Interactive Requirements Flow WebUI
 Feature: Interactive Requirements Wizard
 Feature: Invalid configuration handling
 Feature: Kuzu memory integration
+Feature: MVU shell command execution
 Feature: MVU Command Execution
 Feature: Memory Adapter Integration
 Feature: Memory Backend Integration
@@ -82,6 +83,7 @@ Feature: Methodology Adapters Integration
 Feature: Micro EDRR Cycle
 Feature: Multi-Layered Memory System and Tiered Cache Strategy
 Feature: Multi-agent task delegation
+Feature: Multi-disciplinary dialectical reasoning
 Feature: Multi-disciplinary Dialectical Reasoning
 Feature: Multi-module test generation
 Feature: NiceGUI WebUI
@@ -115,8 +117,9 @@ Feature: Security audit reporting
 Feature: Self Analysis
 Feature: Serve Command
 Feature: Setup Wizard
-Feature: Shared UXBridge across CLI and WebUI
 Feature: Simple Addition
+Feature: Shared UXBridge across CLI and WebUI
+Feature: Simple addition input validation
 Feature: Spec Command
 Feature: Sprint ceremonies align with EDRR phases
 Feature: Streamlit WebUI Navigation

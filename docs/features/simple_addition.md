@@ -22,4 +22,4 @@ last_reviewed: "2025-07-21"
 
 Feature: Simple Addition
 
-This feature demonstrates adding two numbers as a basic example used in tests.
+Adds two numbers as a basic example used in tests.
