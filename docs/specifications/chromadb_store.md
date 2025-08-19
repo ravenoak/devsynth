@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-07-11
-last_reviewed: 2025-07-11
-status: draft
+last_reviewed: 2025-08-18
+status: implemented
 tags:
   - specification
   - memory
@@ -46,3 +46,8 @@ metric.
   `has_optimized_embeddings()` is called.
 - `get_embedding_storage_efficiency()` returns a value greater than `0` and not
   greater than `1`.
+
+## References
+
+- [src/devsynth/adapters/chromadb_memory_store.py](../../src/devsynth/adapters/chromadb_memory_store.py)
+- [tests/behavior/features/memory/chromadb_store.feature](../../tests/behavior/features/memory/chromadb_store.feature)
