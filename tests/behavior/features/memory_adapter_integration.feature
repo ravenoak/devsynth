@@ -1,30 +1,13 @@
 Feature: Memory Adapter Integration
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a system integrator
+  I want the memory manager to coordinate multiple adapters
+  So that data remains consistent across storage backends
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given a memory manager configured with adapters "graph" and "tinydb"
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  @slow @property
+  Scenario: adapters maintain consistent state under randomized operations
+    When I execute a random sequence of store and retrieve operations across adapters
+    Then all adapters should reflect the same set of memory item identifiers
+    And no operation should corrupt or lose previously stored items
