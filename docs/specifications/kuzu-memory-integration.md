@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Kuzu memory integration](../../issues/kuzu-memory-integration.md)
+- [BDD: kuzu_memory_integration.feature](../../tests/behavior/features/kuzu_memory_integration.feature)

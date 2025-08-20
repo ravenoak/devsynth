@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Interactive Requirements Flow CLI](../../issues/interactive-requirements-flow-cli.md)
+- [BDD: interactive_requirements_flow_cli.feature](../../tests/behavior/features/interactive_requirements_flow_cli.feature)
