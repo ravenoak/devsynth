@@ -17,7 +17,9 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-def vote_on_critical_decision(self: WSDETeam, task: Dict[str, Any]):
+def vote_on_critical_decision(
+    self: WSDETeam, task: Dict[str, Any], rng: Optional[random.Random] = None
+):
     """
     Conduct a vote on a critical decision.
 
@@ -30,7 +32,15 @@ def vote_on_critical_decision(self: WSDETeam, task: Dict[str, Any]):
 
     Returns:
         Dictionary containing the voting results
+
+    Note:
+        A seedable ``random.Random`` instance may be supplied via ``rng`` to
+        make stochastic paths deterministic. When ``rng`` is ``None`` the module
+        level ``random`` functions are used. This enables reproducible simulations
+        and a mathematically fair tie‑breaker: each tied option has probability
+        :math:`1/n` of selection, where ``n`` is the number of tied options.
     """
+    rng = rng or random  # noqa: F841
     if not self.agents:
         self.logger.warning("Cannot conduct vote: no agents in team")
         return {"status": "failed", "reason": "no_agents"}
@@ -81,7 +91,7 @@ def vote_on_critical_decision(self: WSDETeam, task: Dict[str, Any]):
             best_options = [
                 opt for opt, score in option_scores.items() if score == max_score
             ]
-            vote = random.choice(best_options)
+            vote = rng.choice(best_options)
 
             # Generate reasoning
             reasoning = (
@@ -89,7 +99,7 @@ def vote_on_critical_decision(self: WSDETeam, task: Dict[str, Any]):
             )
         else:
             # Random vote if no expertise
-            vote = random.choice(options)
+            vote = rng.choice(options)
             reasoning = "No specific expertise, selected randomly"
 
         # Record vote
@@ -105,9 +115,11 @@ def vote_on_critical_decision(self: WSDETeam, task: Dict[str, Any]):
 
     # Determine result based on voting method
     if voting_method == "majority":
-        voting_result = self._apply_majority_voting(task, voting_result)
+        voting_result = self._apply_majority_voting(task, voting_result, rng=rng)
     elif voting_method == "weighted":
-        voting_result = self._apply_weighted_voting(task, voting_result, domain)
+        voting_result = self._apply_weighted_voting(
+            task, voting_result, domain, rng=rng
+        )
     else:
         self.logger.warning(f"Unknown voting method: {voting_method}, using majority")
         voting_result = self._apply_majority_voting(task, voting_result)
@@ -131,7 +143,10 @@ def vote_on_critical_decision(self: WSDETeam, task: Dict[str, Any]):
 
 
 def _apply_majority_voting(
-    self: WSDETeam, task: Dict[str, Any], voting_result: Dict[str, Any]
+    self: WSDETeam,
+    task: Dict[str, Any],
+    voting_result: Dict[str, Any],
+    rng: Optional[random.Random] = None,
 ):
     """
     Apply majority voting to determine the result.
@@ -142,6 +157,8 @@ def _apply_majority_voting(
 
     Returns:
         Updated voting result dictionary
+
+    The optional ``rng`` parameter allows deterministic resolution of ties.
     """
     options = voting_result["options"]
     vote_counts = voting_result["vote_counts"]
@@ -152,7 +169,9 @@ def _apply_majority_voting(
 
     # Check for tie
     if len(winning_options) > 1:
-        return self._handle_tied_vote(task, voting_result, vote_counts, winning_options)
+        return self._handle_tied_vote(
+            task, voting_result, vote_counts, winning_options, rng=rng
+        )
 
     winning_option = winning_options[0]
     voting_result["status"] = "completed"
@@ -174,18 +193,30 @@ def _handle_tied_vote(
     voting_result: Dict[str, Any],
     vote_counts: Dict[str, int],
     tied_options: List[str],
+    rng: Optional[random.Random] = None,
 ):
-    """Handle a tied vote by falling back to consensus building."""
+    """Handle a tied vote by falling back to consensus building.
+
+    When consensus building is required, any stochastic tie‑breakers use ``rng``
+    for reproducibility.
+    """
+    rng = rng or random
 
     voting_result["status"] = "tied"
     voting_result["result"] = {"tied": True, "tied_options": tied_options}
-    consensus = self.build_consensus({"id": task.get("id"), "options": tied_options})
+    consensus = self.build_consensus(
+        {"id": task.get("id"), "options": tied_options}, rng=rng
+    )
     voting_result["result"]["consensus_result"] = consensus
     return voting_result
 
 
 def _apply_weighted_voting(
-    self: WSDETeam, task: Dict[str, Any], voting_result: Dict[str, Any], domain: str
+    self: WSDETeam,
+    task: Dict[str, Any],
+    voting_result: Dict[str, Any],
+    domain: str,
+    rng: Optional[random.Random] = None,
 ):
     """
     Apply weighted voting based on agent expertise in the specified domain.
@@ -197,7 +228,11 @@ def _apply_weighted_voting(
 
     Returns:
         Updated voting result dictionary
+
+    ``rng`` enables reproducible random selection when weighted votes tie and no
+    primus can break the tie.
     """
+    rng = rng or random
     options = voting_result["options"]
     votes = voting_result["votes"]
 
@@ -256,7 +291,7 @@ def _apply_weighted_voting(
                 )
             else:
                 # Primus didn't vote for any of the tied options, use random
-                winning_option = random.choice(winning_options)
+                winning_option = rng.choice(winning_options)
                 voting_result["status"] = "completed"
                 voting_result["result"] = winning_option
                 voting_result["weighted_votes"] = weighted_votes
@@ -271,7 +306,7 @@ def _apply_weighted_voting(
                 )
         else:
             # No primus or primus didn't vote, use random
-            winning_option = random.choice(winning_options)
+            winning_option = rng.choice(winning_options)
             voting_result["status"] = "completed"
             voting_result["result"] = winning_option
             voting_result["weighted_votes"] = weighted_votes
@@ -325,7 +360,9 @@ def _record_voting_history(
     self.logger.debug(f"Recorded voting result for task {task.get('id', 'unknown')}")
 
 
-def consensus_vote(self: WSDETeam, task: Dict[str, Any]):
+def consensus_vote(
+    self: WSDETeam, task: Dict[str, Any], rng: Optional[random.Random] = None
+):
     """
     Conduct a simple consensus vote.
 
@@ -344,7 +381,7 @@ def consensus_vote(self: WSDETeam, task: Dict[str, Any]):
     consensus_task["tie_strategy"] = "random"
 
     # Conduct the vote
-    result = self.vote_on_critical_decision(consensus_task)
+    result = self.vote_on_critical_decision(consensus_task, rng=rng)
 
     # Simplify the result
     simplified_result = {
@@ -357,7 +394,9 @@ def consensus_vote(self: WSDETeam, task: Dict[str, Any]):
     return simplified_result
 
 
-def build_consensus(self: WSDETeam, task: Dict[str, Any]):
+def build_consensus(
+    self: WSDETeam, task: Dict[str, Any], rng: Optional[random.Random] = None
+):
     """
     Build consensus through a collaborative decision-making process.
 
@@ -369,7 +408,13 @@ def build_consensus(self: WSDETeam, task: Dict[str, Any]):
 
     Returns:
         Dictionary containing the consensus result
+
+    Note:
+        ``rng`` is accepted for API symmetry and potential future stochastic
+        consensus strategies; it defaults to the module's ``random`` when
+        unspecified.
     """
+    rng = rng or random
     if not self.agents:
         self.logger.warning("Cannot build consensus: no agents in team")
         return {"status": "failed", "reason": "no_agents"}
