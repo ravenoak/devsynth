@@ -1,3 +1,4 @@
+# Specification: docs/specifications/finalize-wsde-edrr-workflow-logic.md
 Feature: Finalize WSDE/EDRR workflow logic
   As a [role]
   I want to [capability]

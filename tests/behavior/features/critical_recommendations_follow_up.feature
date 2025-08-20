@@ -1,3 +1,4 @@
+# Specification: docs/specifications/critical-recommendations-follow-up.md
 Feature: Critical recommendations follow-up
   As a [role]
   I want to [capability]

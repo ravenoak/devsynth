@@ -1,3 +1,4 @@
+# Specification: docs/specifications/finalize-dialectical-reasoning.md
 Feature: Finalize dialectical reasoning
   As a [role]
   I want to [capability]

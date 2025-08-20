@@ -1,3 +1,4 @@
+# Specification: docs/specifications/user-authentication.md
 Feature: User Authentication
   As a [role]
   I want to [capability]

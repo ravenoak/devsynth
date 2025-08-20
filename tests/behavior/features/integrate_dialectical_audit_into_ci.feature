@@ -1,3 +1,4 @@
+# Specification: docs/specifications/integrate-dialectical-audit-into-ci.md
 Feature: Integrate dialectical audit into CI
   As a [role]
   I want to [capability]

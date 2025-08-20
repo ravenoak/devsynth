@@ -1,3 +1,4 @@
+# Specification: docs/specifications/multi-agent-collaboration.md
 Feature: Multi-Agent Collaboration
   As a [role]
   I want to [capability]
