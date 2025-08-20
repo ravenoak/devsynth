@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Improve deployment automation](../../issues/Improve-deployment-automation.md)
+- [BDD: improve_deployment_automation.feature](../../tests/behavior/features/improve_deployment_automation.feature)

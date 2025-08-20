@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Finalize WSDE/EDRR workflow logic](../../issues/Finalize-WSDE-EDRR-workflow-logic.md)
+- [BDD: finalize_wsde_edrr_workflow_logic.feature](../../tests/behavior/features/finalize_wsde_edrr_workflow_logic.feature)

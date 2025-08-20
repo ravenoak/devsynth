@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Multi-Agent Collaboration](../../issues/multi-agent-collaboration.md)
+- [BDD: multi_agent_collaboration.feature](../../tests/behavior/features/multi_agent_collaboration.feature)

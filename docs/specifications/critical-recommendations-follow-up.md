@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Critical recommendations follow-up](../../issues/Critical-recommendations-follow-up.md)
+- [BDD: critical_recommendations_follow_up.feature](../../tests/behavior/features/critical_recommendations_follow_up.feature)

@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Code Analysis](../../issues/code-analysis.md)
+- [BDD: code_analysis.feature](../../tests/behavior/features/code_analysis.feature)

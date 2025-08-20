@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Expand test generation capabilities](../../issues/Expand-test-generation-capabilities.md)
+- [BDD: expand_test_generation_capabilities.feature](../../tests/behavior/features/expand_test_generation_capabilities.feature)

@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Enhance retry mechanism](../../issues/Enhance-retry-mechanism.md)
+- [BDD: enhance_retry_mechanism.feature](../../tests/behavior/features/enhance_retry_mechanism.feature)

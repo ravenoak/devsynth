@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Complete memory system integration](../../issues/Complete-memory-system-integration.md)
+- [BDD: complete_memory_system_integration.feature](../../tests/behavior/features/complete_memory_system_integration.feature)

@@ -53,3 +53,8 @@ used data persists in cheaper layers.
 - **HMA-004**: Cache size never exceeds the configured maximum.
 - BDD feature `tests/behavior/features/general/multi_layered_memory_system.feature`
   and property tests in `tests/property/test_tiered_cache_properties.py` pass.
+
+## References
+
+- [Issue: Multi-Layered Memory System](../../issues/multi-layered-memory-system.md)
+- [BDD: multi_layered_memory_system.feature](../../tests/behavior/features/multi_layered_memory_system.feature)

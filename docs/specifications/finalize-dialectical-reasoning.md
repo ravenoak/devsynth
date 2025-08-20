@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Finalize dialectical reasoning](../../issues/Finalize-dialectical-reasoning.md)
+- [BDD: finalize_dialectical_reasoning.feature](../../tests/behavior/features/finalize_dialectical_reasoning.feature)
