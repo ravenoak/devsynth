@@ -29,6 +29,9 @@ jobs:
       - name: Check test ReqIDs
         run: |
           python scripts/check_reqid.py --rev-range origin/main..HEAD
+      - name: Verify test markers
+        run: |
+          poetry run python scripts/verify_test_markers.py
       - name: Run Bandit
         run: |
           poetry run bandit -q -r src

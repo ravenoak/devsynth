@@ -37,6 +37,7 @@ poetry run python scripts/verify_test_markers.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
 ```
+CI runs `poetry run python scripts/verify_test_markers.py` to ensure each test carries a speed marker.
 `tests/conftest.py` provides an autouse `global_test_isolation` fixture; avoid setting environment variables at import time. Use speed markers `fast`, `medium`, or `slow` from `tests/conftest_extensions.py` and combine them with context markers when needed. Optional services should be guarded with environment variables like `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` or `pytest.importorskip`.
 
 ## Conventions
