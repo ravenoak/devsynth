@@ -19,4 +19,5 @@ backends for scalability or persistence guarantees.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/additional-storage-backends.md
+- BDD Feature: tests/behavior/features/additional_storage_backends.feature

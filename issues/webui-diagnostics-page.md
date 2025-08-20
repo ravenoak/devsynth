@@ -18,4 +18,5 @@ WebUI Diagnostics Page is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/webui-diagnostics-page.md
+- BDD Feature: tests/behavior/features/webui_diagnostics_page.feature

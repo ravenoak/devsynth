@@ -18,4 +18,5 @@ Memory Adapter Integration is not yet implemented, limiting DevSynth's capabilit
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/memory-adapter-integration.md
+- BDD Feature: tests/behavior/features/memory_adapter_integration.feature

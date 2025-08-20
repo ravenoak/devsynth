@@ -18,4 +18,5 @@ Recursive EDRR Coordinator is not yet implemented, limiting DevSynth's capabilit
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/recursive-edrr-coordinator.md
+- BDD Feature: tests/behavior/features/recursive_edrr_coordinator.feature

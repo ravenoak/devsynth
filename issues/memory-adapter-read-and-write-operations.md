@@ -18,4 +18,5 @@ Memory adapter read and write operations is not yet implemented, limiting DevSyn
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/memory-adapter-read-and-write-operations.md
+- BDD Feature: tests/behavior/features/memory_adapter_read_and_write_operations.feature

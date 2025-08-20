@@ -18,4 +18,5 @@ Project Ingestion is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/project-ingestion.md
+- BDD Feature: tests/behavior/features/project_ingestion.feature

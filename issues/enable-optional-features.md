@@ -18,4 +18,5 @@ Enable optional features is not yet implemented, limiting DevSynth's capabilitie
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/enable-optional-features.md
+- BDD Feature: tests/behavior/features/enable_optional_features.feature

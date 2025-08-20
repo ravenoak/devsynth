@@ -18,4 +18,5 @@ Environment Variables Integration is not yet implemented, limiting DevSynth's ca
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/environment-variables-integration.md
+- BDD Feature: tests/behavior/features/environment_variables_integration.feature

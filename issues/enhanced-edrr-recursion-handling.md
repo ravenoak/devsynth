@@ -18,4 +18,5 @@ Enhanced EDRR Recursion Handling is not yet implemented, limiting DevSynth's cap
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/enhanced-edrr-recursion-handling.md
+- BDD Feature: tests/behavior/features/enhanced_edrr_recursion_handling.feature

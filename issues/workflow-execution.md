@@ -18,4 +18,5 @@ Workflow Execution is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/workflow-execution.md
+- BDD Feature: tests/behavior/features/workflow_execution.feature

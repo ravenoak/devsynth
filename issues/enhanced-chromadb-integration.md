@@ -18,4 +18,5 @@ Enhanced ChromaDB Integration is not yet implemented, limiting DevSynth's capabi
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/enhanced-chromadb-integration.md
+- BDD Feature: tests/behavior/features/enhanced_chromadb_integration.feature

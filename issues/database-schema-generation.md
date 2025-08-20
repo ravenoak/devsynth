@@ -18,4 +18,5 @@ Database Schema Generation is not yet implemented, limiting DevSynth's capabilit
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/database-schema-generation.md
+- BDD Feature: tests/behavior/features/database_schema_generation.feature

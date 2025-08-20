@@ -18,4 +18,5 @@ Hybrid Memory Query Patterns and Synchronization is not yet implemented, limitin
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/hybrid-memory-query-patterns-and-synchronization.md
+- BDD Feature: tests/behavior/features/hybrid_memory_query_patterns_and_synchronization.feature

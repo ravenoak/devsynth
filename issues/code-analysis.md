@@ -18,4 +18,5 @@ Code Analysis is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/code-analysis.md
+- BDD Feature: tests/behavior/features/code_analysis.feature

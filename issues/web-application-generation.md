@@ -18,4 +18,5 @@ Web Application Generation is not yet implemented, limiting DevSynth's capabilit
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/web-application-generation.md
+- BDD Feature: tests/behavior/features/web_application_generation.feature

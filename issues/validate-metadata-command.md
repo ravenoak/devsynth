@@ -18,4 +18,5 @@ Validate Metadata Command is not yet implemented, limiting DevSynth's capabiliti
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/validate-metadata-command.md
+- BDD Feature: tests/behavior/features/validate_metadata_command.feature

@@ -20,4 +20,5 @@ Multi-disciplinary Dialectical Reasoning is not yet implemented, limiting DevSyn
 - 2025-08-18: dialectical audit flagged missing documentation and implementation; ticket updated.
 
 ## References
-- None
+- Specification: docs/specifications/multi-disciplinary-dialectical-reasoning.md
+- BDD Feature: tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature

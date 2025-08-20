@@ -18,4 +18,5 @@ Micro EDRR Cycle is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/micro-edrr-cycle.md
+- BDD Feature: tests/behavior/features/micro_edrr_cycle.feature

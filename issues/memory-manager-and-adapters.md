@@ -18,4 +18,5 @@ Memory Manager and Adapters is not yet implemented, limiting DevSynth's capabili
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/memory-manager-and-adapters.md
+- BDD Feature: tests/behavior/features/memory_manager_and_adapters.feature

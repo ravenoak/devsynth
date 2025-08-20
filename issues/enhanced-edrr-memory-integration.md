@@ -18,4 +18,5 @@ Enhanced EDRR Memory Integration is not yet implemented, limiting DevSynth's cap
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/enhanced-edrr-memory-integration.md
+- BDD Feature: tests/behavior/features/enhanced_edrr_memory_integration.feature

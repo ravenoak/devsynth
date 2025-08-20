@@ -18,4 +18,5 @@ WebUI Configuration Page is not yet implemented, limiting DevSynth's capabilitie
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/webui-configuration-page.md
+- BDD Feature: tests/behavior/features/webui_configuration_page.feature

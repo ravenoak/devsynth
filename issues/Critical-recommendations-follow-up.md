@@ -31,3 +31,5 @@ This issue captures remaining work from the critical recommendations report.
 ## References
 - Related: [Implement SDLC security audits](archived/implement-sdlc-security-audits.md)
 - Related: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
+- Specification: docs/specifications/critical-recommendations-follow-up.md
+- BDD Feature: tests/behavior/features/critical_recommendations_follow_up.feature

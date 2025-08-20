@@ -19,4 +19,5 @@ they affect users.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/agent-api-health-and-metrics.md
+- BDD Feature: tests/behavior/features/agent_api_health_and_metrics.feature

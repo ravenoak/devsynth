@@ -17,3 +17,5 @@ The repository's ticket priorities may drift from the current roadmap. A prior a
 
 ## References
 - archived/reprioritize-open-issues.md
+- Specification: docs/specifications/reprioritize-open-issues.md
+- BDD Feature: tests/behavior/features/reprioritize_open_issues.feature

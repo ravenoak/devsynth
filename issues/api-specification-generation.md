@@ -18,4 +18,5 @@ reliable documentation.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/api-specification-generation.md
+- BDD Feature: tests/behavior/features/api_specification_generation.feature

@@ -18,4 +18,5 @@ Documentation Fetch and Cache is not yet implemented, limiting DevSynth's capabi
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/documentation-fetch-and-cache.md
+- BDD Feature: tests/behavior/features/documentation_fetch_and_cache.feature

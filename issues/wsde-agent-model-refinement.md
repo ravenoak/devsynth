@@ -18,4 +18,5 @@ WSDE Agent Model Refinement is not yet implemented, limiting DevSynth's capabili
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/wsde-agent-model-refinement.md
+- BDD Feature: tests/behavior/features/wsde_agent_model_refinement.feature

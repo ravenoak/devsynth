@@ -18,4 +18,5 @@ devsynth run-tests command is not yet implemented, limiting DevSynth's capabilit
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/devsynth-run-tests-command.md
+- BDD Feature: tests/behavior/features/devsynth_run_tests_command.feature

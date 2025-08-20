@@ -18,4 +18,5 @@ Cross-Interface Consistency is not yet implemented, limiting DevSynth's capabili
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/cross-interface-consistency.md
+- BDD Feature: tests/behavior/features/cross_interface_consistency.feature

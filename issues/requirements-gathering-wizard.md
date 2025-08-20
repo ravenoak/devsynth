@@ -18,4 +18,5 @@ Requirements Gathering Wizard is not yet implemented, limiting DevSynth's capabi
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/requirements-gathering-wizard.md
+- BDD Feature: tests/behavior/features/requirements_gathering_wizard.feature
