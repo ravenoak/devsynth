@@ -1,30 +1,10 @@
 Feature: Project State Analysis
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a developer
+  I want to analyze the state of my project
+  So that I can understand its completeness
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
-
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Generate project state summary
+    Given a project with requirements, specifications, tests, and code
+    When I analyze the project state
+    Then the analysis reports counts for requirements, specifications, tests, and code
+    And the analysis includes a health score between 0 and 10
