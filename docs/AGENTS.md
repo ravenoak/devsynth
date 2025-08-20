@@ -21,6 +21,8 @@ poetry run devsynth run-tests --speed=<fast|medium|slow>
 poetry run python scripts/verify_test_markers.py
 ```
 
+CI runs this verification to ensure tests include appropriate speed markers.
+
 ## Conventions
 
 **What guidelines shape documentation?**
