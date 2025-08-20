@@ -24,7 +24,6 @@ def _run_init(tmp_path, features, monkeypatch):
     return UnifiedConfigLoader.load(tmp_path).config
 
 
-@pytest.mark.fast
 def test_init_cmd_accepts_feature_list(tmp_path, monkeypatch):
     cfg = _run_init(tmp_path, ["code_generation", "test_generation"], monkeypatch)
     assert cfg.features["code_generation"] is True

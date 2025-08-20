@@ -236,7 +236,6 @@ class TestAgentMemoryIntegration(unittest.TestCase):
         self.assertEqual(updated_item.metadata["extra"], 2)
         self.assertEqual(updated_item.metadata["agent_name"], "TestAgent")
 
-    @pytest.mark.medium
     def test_delete_memory_succeeds(self):
         """Test deleting memory."""
         self.memory_store.delete.return_value = True

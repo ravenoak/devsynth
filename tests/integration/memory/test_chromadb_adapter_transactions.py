@@ -10,7 +10,6 @@ from devsynth.domain.models.memory import MemoryVector
 pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 
-@pytest.mark.medium
 def test_chromadb_transaction_commit_and_rollback(tmp_path, monkeypatch):
     """Vectors added within a transaction should rollback correctly. ReqID: FR-60"""
     ef = pytest.importorskip("chromadb.utils.embedding_functions")

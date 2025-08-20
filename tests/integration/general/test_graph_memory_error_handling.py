@@ -41,7 +41,6 @@ class TestGraphMemoryErrorHandling:
             with pytest.raises(PermissionError):
                 GraphMemoryAdapter(base_path="/root/nonexistent", use_rdflib_store=True)
 
-    @pytest.mark.medium
     def test_retrieve_nonexistent_item_succeeds(self, graph_adapter):
         """Test retrieving a non-existent memory item.
 
@@ -49,7 +48,6 @@ class TestGraphMemoryErrorHandling:
         result = graph_adapter.retrieve("nonexistent-id")
         assert result is None
 
-    @pytest.mark.medium
     def test_delete_nonexistent_item_succeeds(self, graph_adapter):
         """Test deleting a non-existent memory item.
 
@@ -57,7 +55,6 @@ class TestGraphMemoryErrorHandling:
         result = graph_adapter.delete("nonexistent-id")
         assert result is False
 
-    @pytest.mark.medium
     def test_search_with_invalid_criteria_returns_empty_list(self, graph_adapter):
         """Test searching with invalid criteria returns an empty list.
 
@@ -65,7 +62,6 @@ class TestGraphMemoryErrorHandling:
         result = graph_adapter.search(None)
         assert result == []
 
-    @pytest.mark.medium
     def test_query_related_items_nonexistent_succeeds(self, graph_adapter):
         """Test querying related items for a non-existent item.
 

@@ -9,7 +9,6 @@ from devsynth.application.collaboration.collaboration_memory_utils import (
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
-@pytest.mark.medium
 def test_flush_memory_queue_handles_missing_manager() -> None:
     """Gracefully handles a missing memory manager."""
 

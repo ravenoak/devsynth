@@ -75,7 +75,6 @@ class TestAstTransformer:
 
     ReqID: N/A"""
 
-    @pytest.mark.medium
     def test_record_change_succeeds(self):
         """Test that changes are recorded correctly.
 
@@ -96,7 +95,6 @@ class TestUnusedImportRemover:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_remove_unused_imports_succeeds(self, sample_code):
         """Test that unused imports are removed.
 
@@ -123,7 +121,6 @@ class TestRedundantAssignmentRemover:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_remove_redundant_assignments_succeeds(self, sample_code):
         """Test that redundant assignments are removed.
 
@@ -147,7 +144,6 @@ class TestUnusedVariableRemover:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_remove_unused_variables_succeeds(self, sample_code):
         """Test that unused variables are removed.
 
@@ -181,7 +177,6 @@ class TestStringLiteralOptimizer:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_optimize_string_literals_succeeds(self, sample_code):
         """Test that string literals are optimized.
 
@@ -209,7 +204,6 @@ class TestCodeStyleTransformer:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_improve_code_style_succeeds(self):
         """Test that code style is improved.
 
@@ -231,7 +225,6 @@ class TestCodeTransformer:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_transform_code_succeeds(self, sample_code):
         """Test transforming code with multiple transformations.
 
@@ -294,7 +287,6 @@ class TestCodeTransformer:
                 )
             )
 
-    @pytest.mark.medium
     def test_transform_file_succeeds(self, sample_file_path):
         """Test transforming a file.
 
@@ -337,7 +329,6 @@ class TestCodeTransformer:
                 )
             )
 
-    @pytest.mark.medium
     def test_transform_directory_succeeds(self, sample_directory):
         """Test transforming a directory.
 
@@ -420,7 +411,6 @@ class TestCodeTransformer:
             nested_file_result = results[nested_file_path]
             assert "y = 20" not in nested_file_result.get_transformed_code()
 
-    @pytest.mark.medium
     def test_find_python_files_succeeds(self, sample_directory):
         """Test finding Python files in a directory.
 
@@ -443,7 +433,6 @@ class TestSymbolUsageCounter:
 
     ReqID: FR-1"""
 
-    @pytest.mark.medium
     def test_count_symbol_usage_succeeds(self):
         """Test counting symbol usage in code.
 

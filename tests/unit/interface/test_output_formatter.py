@@ -142,7 +142,6 @@ class TestOutputFormatter:
         with pytest.raises(ValueError):
             formatter.display("Hello, world!")
 
-    @pytest.mark.medium
     def test_set_console_succeeds(self, formatter, console):
         """Test setting the console.
 

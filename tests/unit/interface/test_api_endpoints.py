@@ -319,7 +319,6 @@ def test_test_endpoint_generates_tests_from_spec_succeeds(
     )
 
 
-@pytest.mark.medium
 @pytest.mark.slow
 def test_endpoints_handle_errors_properly_raises_error(mock_cli_commands, clean_state):
     """Test that the endpoints handle errors properly by returning appropriate HTTP exceptions.

@@ -94,7 +94,6 @@ class TestFallbackStore:
     """Tests for the FallbackStore class."""
 
     @pytest.mark.medium
-    @pytest.mark.medium
     def test_initialization(self, primary_store, fallback_store):
         """Test that FallbackStore initializes with expected values."""
         store = FallbackStore(

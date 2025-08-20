@@ -165,7 +165,6 @@ class TestPromptAutoTuner:
         assert variant.template == template
         assert variant.usage_count == 1
 
-    @pytest.mark.medium
     def test_select_variant_error_succeeds(self, auto_tuner):
         """Test selecting a variant for an unregistered template.
 

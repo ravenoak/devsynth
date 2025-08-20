@@ -64,7 +64,6 @@ def mock_code_analysis():
 
 
 @pytest.fixture
-@pytest.mark.medium
 def project_dir_fixture():
     """Create a temporary directory with a test project structure.
 
@@ -111,7 +110,6 @@ class TestSelfAnalyzer:
 
     ReqID: N/A"""
 
-    @pytest.mark.medium
     def test_initialization_succeeds(self):
         """Test that the analyzer can be initialized.
 
@@ -122,7 +120,6 @@ class TestSelfAnalyzer:
         analyzer = SelfAnalyzer("/path/to/project")
         assert analyzer.project_root == "/path/to/project"
 
-    @pytest.mark.medium
     def test_analyze_succeeds(self, project_dir_fixture):
         """Test the analyze method.
 
@@ -136,7 +133,6 @@ class TestSelfAnalyzer:
         assert "code_quality" in insights
         assert "improvement_opportunities" in insights
 
-    @pytest.mark.medium
     def test_analyze_architecture_succeeds(self, mock_code_analysis):
         """Test the _analyze_architecture method.
 
@@ -149,7 +145,6 @@ class TestSelfAnalyzer:
         assert "layer_dependencies" in architecture_insights
         assert "architecture_violations" in architecture_insights
 
-    @pytest.mark.medium
     def test_detect_architecture_type_succeeds(self, mock_code_analysis):
         """Test the _detect_architecture_type method.
 
@@ -167,7 +162,6 @@ class TestSelfAnalyzer:
         ]
         assert 0 <= confidence <= 1
 
-    @pytest.mark.medium
     def test_identify_layers_succeeds(self, mock_code_analysis):
         """Test the _identify_layers method.
 
@@ -178,7 +172,6 @@ class TestSelfAnalyzer:
         assert isinstance(layers, dict)
         assert any((isinstance(components, list) for components in layers.values()))
 
-    @pytest.mark.medium
     def test_analyze_layer_dependencies_succeeds(self, mock_code_analysis):
         """Test the _analyze_layer_dependencies method.
 
@@ -202,7 +195,6 @@ class TestSelfAnalyzer:
         assert "adapters" in dependencies
         assert all((isinstance(deps, set) for deps in dependencies.values()))
 
-    @pytest.mark.medium
     def test_check_architecture_violations_succeeds(self):
         """Test the _check_architecture_violations method.
 
@@ -227,7 +219,6 @@ class TestSelfAnalyzer:
         )
         assert len(violations) > 0
 
-    @pytest.mark.medium
     def test_analyze_code_quality_succeeds(self, mock_code_analysis):
         """Test the _analyze_code_quality method.
 
@@ -239,7 +230,6 @@ class TestSelfAnalyzer:
         assert "total_classes" in code_quality_insights
         assert "total_functions" in code_quality_insights
 
-    @pytest.mark.medium
     def test_analyze_test_coverage_succeeds(self, mock_code_analysis):
         """Test the _analyze_test_coverage method.
 
@@ -250,7 +240,6 @@ class TestSelfAnalyzer:
         assert "tested_symbols" in test_coverage_insights
         assert "coverage_percentage" in test_coverage_insights
 
-    @pytest.mark.medium
     def test_identify_improvement_opportunities_succeeds(self, mock_code_analysis):
         """Test the _identify_improvement_opportunities method.
 

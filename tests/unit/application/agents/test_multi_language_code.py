@@ -39,7 +39,6 @@ class TestMultiLanguageCodeAgent:
         assert "generate_polyglot_code" in capabilities
 
     @pytest.mark.parametrize("lang", ["python", "javascript"])
-    @pytest.mark.medium
     def test_process_supported_languages_succeed(self, agent, lang):
         result = agent.process({"language": lang})
         assert result["language"] == lang
@@ -58,25 +57,21 @@ class TestMultiLanguageCodeAgent:
         assert result["wsde"]["python"].metadata["language"] == "python"
         assert result["wsde"]["javascript"].metadata["language"] == "javascript"
 
-    @pytest.mark.medium
     def test_process_polyglot_with_invalid_language(self, agent):
         with pytest.raises(ValueError):
             agent.process({"language": "polyglot", "languages": ["python", "ruby"]})
 
-    @pytest.mark.medium
     def test_process_unsupported_language_raises_error(self, agent):
         with pytest.raises(ValueError):
             agent.process({"language": "ruby"})
 
     @patch("devsynth.application.agents.multi_language_code.logger")
-    @pytest.mark.medium
     def test_process_wsde_creation_error_logs_and_returns(self, mock_logger, agent):
         with patch.object(agent, "create_wsde", side_effect=Exception("fail")):
             result = agent.process({"language": "python"})
             mock_logger.error.assert_called_once()
             assert result["wsde"] is None
 
-    @pytest.mark.medium
     def test_process_calls_llm_generate(self, agent, mock_llm_port):
         agent.process({"language": "python"})
         mock_llm_port.generate.assert_called_once()

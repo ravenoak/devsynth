@@ -15,7 +15,6 @@ def clean_state():
     # Clean up state
 
 
-@pytest.mark.slow
 @pytest.mark.medium
 def test_function(clean_state):
     # Test with clean state

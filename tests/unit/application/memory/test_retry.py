@@ -24,7 +24,6 @@ class TestRetryWithBackoff:
     """Tests for the retry_with_backoff decorator."""
 
     @pytest.mark.medium
-    @pytest.mark.medium
     def test_retry_with_backoff_successful_execution(self):
         """Test that the decorator returns the result when the function succeeds."""
 
@@ -118,7 +117,6 @@ class TestRetryOperation:
     """Tests for the retry_operation function."""
 
     @pytest.mark.medium
-    @pytest.mark.medium
     def test_retry_operation_successful_execution(self):
         """Test that retry_operation returns the result when the function succeeds."""
 
@@ -164,7 +162,6 @@ class TestRetryOperation:
 class TestRetryConfig:
     """Tests for the RetryConfig class and predefined configurations."""
 
-    @pytest.mark.medium
     @pytest.mark.medium
     def test_retry_config_initialization(self):
         """Test that RetryConfig initializes with expected values."""
@@ -229,7 +226,6 @@ class TestRetryConfig:
 class TestWithRetry:
     """Tests for the with_retry decorator."""
 
-    @pytest.mark.medium
     @pytest.mark.medium
     def test_with_retry_default_config(self):
         """Test that with_retry uses DEFAULT_RETRY_CONFIG by default."""

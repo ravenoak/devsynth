@@ -21,7 +21,6 @@ def patch_typer_types(monkeypatch):
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
-@pytest.mark.fast
 def test_get_command_help_includes_examples():
     from devsynth.application.cli.help import get_command_help
 
