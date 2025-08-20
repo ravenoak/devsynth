@@ -16,6 +16,8 @@ Multi-Layered Memory System is not yet implemented, limiting DevSynth's capabili
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-02-26: integrated tiered cache into memory adapter and added property tests.
+- 2025-08-20: addressed review feedback and refreshed documentation.
 
 ## References
 - None
