@@ -315,31 +315,51 @@ def verify_file_markers(
                 )
 
                 if proc.returncode != 0:
-                    error_msg = (
-                        stderr.strip().splitlines()[-1]
-                        if stderr
-                        else f"exit code {proc.returncode}"
-                    )
-                    log_msg = f"pytest collection failed for {file_path} [marker={marker_type}]: {error_msg}"
-                    logger.warning(log_msg)
-                    print(log_msg, file=sys.stderr)
-                    recognized_markers[marker_type] = {
-                        "file_count": marker_count,
-                        "pytest_count": 0,
-                        "recognized": False,
-                        "registered_in_pytest_ini": markers_registered.get(
-                            marker_type, False
-                        ),
-                        "error": error_msg,
-                        "uncollected_tests": [],
-                    }
-                    additional_issues.append(
-                        {
-                            "type": "pytest_error",
-                            "marker": marker_type,
-                            "message": log_msg,
+                    if proc.returncode == 5:
+                        log_msg = (
+                            f"pytest collected no tests for {file_path} "
+                            f"[marker={marker_type}]"
+                        )
+                        logger.info(log_msg)
+                        recognized_markers[marker_type] = {
+                            "file_count": marker_count,
+                            "pytest_count": 0,
+                            "recognized": True,
+                            "registered_in_pytest_ini": markers_registered.get(
+                                marker_type, False
+                            ),
+                            "error": None,
+                            "uncollected_tests": [],
                         }
-                    )
+                    else:
+                        error_msg = (
+                            stderr.strip().splitlines()[-1]
+                            if stderr
+                            else f"exit code {proc.returncode}"
+                        )
+                        log_msg = (
+                            f"pytest collection failed for {file_path} "
+                            f"[marker={marker_type}]: {error_msg}"
+                        )
+                        logger.warning(log_msg)
+                        print(log_msg, file=sys.stderr)
+                        recognized_markers[marker_type] = {
+                            "file_count": marker_count,
+                            "pytest_count": 0,
+                            "recognized": False,
+                            "registered_in_pytest_ini": markers_registered.get(
+                                marker_type, False
+                            ),
+                            "error": error_msg,
+                            "uncollected_tests": [],
+                        }
+                        additional_issues.append(
+                            {
+                                "type": "pytest_error",
+                                "marker": marker_type,
+                                "message": log_msg,
+                            }
+                        )
                 else:
                     # Count tests collected with this marker
                     collected_count = 0

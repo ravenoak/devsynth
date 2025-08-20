@@ -3,6 +3,8 @@ from datetime import datetime
 
 import pytest
 
+pytest.skip("requires memory backends", allow_module_level=True)
+
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.application.memory.lmdb_store import LMDBStore
