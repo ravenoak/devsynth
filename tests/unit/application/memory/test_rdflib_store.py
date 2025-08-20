@@ -7,9 +7,14 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pytest
 
+pytest.importorskip("rdflib")
+if os.environ.get("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("RDFLib resource not available", allow_module_level=True)
 from devsynth.application.memory.rdflib_store import RDFLibStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
+
+pytestmark = pytest.mark.requires_resource("rdflib")
 
 
 class TestRDFLibStore:

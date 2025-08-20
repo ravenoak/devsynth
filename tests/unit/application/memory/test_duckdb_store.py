@@ -8,9 +8,13 @@ import numpy as np
 import pytest
 
 pytest.importorskip("duckdb")
+if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("DuckDB resource not available", allow_module_level=True)
 from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
+
+pytestmark = pytest.mark.requires_resource("duckdb")
 
 
 class TestDuckDBStore:

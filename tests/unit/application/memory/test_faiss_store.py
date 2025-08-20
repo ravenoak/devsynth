@@ -8,7 +8,8 @@ import numpy as np
 import pytest
 
 faiss = pytest.importorskip("faiss")
-
+if os.environ.get("DEVSYNTH_RESOURCE_FAISS_AVAILABLE", "true").lower() == "false":
+    pytest.skip("FAISS resource not available", allow_module_level=True)
 from devsynth.application.memory.faiss_store import FAISSStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
