@@ -18,4 +18,5 @@ AST-Based Code Analysis and Transformation is not yet implemented, limiting DevS
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/ast-based-code-analysis-and-transformation.md
+- BDD Feature: tests/behavior/features/ast_based_code_analysis_and_transformation.feature

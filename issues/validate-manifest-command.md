@@ -18,4 +18,5 @@ Validate Manifest Command is not yet implemented, limiting DevSynth's capabiliti
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/validate-manifest-command.md
+- BDD Feature: tests/behavior/features/validate_manifest_command.feature

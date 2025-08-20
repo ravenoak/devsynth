@@ -18,4 +18,5 @@ Requirements Wizard Navigation is not yet implemented, limiting DevSynth's capab
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/requirements-wizard-navigation.md
+- BDD Feature: tests/behavior/features/requirements_wizard_navigation.feature

@@ -18,4 +18,5 @@ Performance and Scalability Testing is not yet implemented, limiting DevSynth's 
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/performance-and-scalability-testing.md
+- BDD Feature: tests/behavior/features/performance_and_scalability_testing.feature

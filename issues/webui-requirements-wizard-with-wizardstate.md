@@ -18,4 +18,5 @@ WebUI Requirements Wizard with WizardState is not yet implemented, limiting DevS
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/webui-requirements-wizard-with-wizardstate.md
+- BDD Feature: tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature

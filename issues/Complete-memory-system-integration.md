@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: open
 
 Priority: high
-Dependencies: None, docs/specifications/complete-memory-system-integration.md, tests/behavior/features/complete_memory_system_integration.feature
+Dependencies: docs/specifications/complete-memory-system-integration.md, tests/behavior/features/complete_memory_system_integration.feature
 
 ## Problem Statement
 Complete memory system integration is not yet implemented, limiting DevSynth's capabilities.
@@ -29,6 +29,8 @@ The memory subsystem supports multiple backends but remains unstable.
 - No progress yet
 
 ## References
+- Specification: docs/specifications/complete-memory-system-integration.md
+- BDD Feature: tests/behavior/features/complete_memory_system_integration.feature
 
 - [src/devsynth/adapters/memory](../src/devsynth/adapters/memory)
 - [tests/integration](../tests/integration)

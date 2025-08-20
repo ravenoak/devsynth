@@ -18,4 +18,5 @@ Prompt Management with DPSy-AI is not yet implemented, limiting DevSynth's capab
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/prompt-management-with-dpsy-ai.md
+- BDD Feature: tests/behavior/features/prompt_management_with_dpsy_ai.feature

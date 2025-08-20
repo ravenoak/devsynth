@@ -20,4 +20,5 @@ Multi-Layered Memory System is not yet implemented, limiting DevSynth's capabili
 - 2025-08-20: addressed review feedback and refreshed documentation.
 
 ## References
-- None
+- Specification: docs/specifications/multi-layered-memory-system.md
+- BDD Feature: tests/behavior/features/multi_layered_memory_system.feature

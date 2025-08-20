@@ -2,7 +2,7 @@
 Milestone: Phase 1
 Status: in progress
 Priority: high
-Dependencies: None, docs/specifications/resolve-pytest-xdist-assertion-errors.md, tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
+Dependencies: docs/specifications/resolve-pytest-xdist-assertion-errors.md, tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
 
 ## Problem Statement
 Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth's capabilities. Running `devsynth run-tests` across speed categories triggers internal pytest-xdist assertion errors, preventing full suite completion.
@@ -29,3 +29,5 @@ Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth'
 
 ## References
 - Related: [Expand test generation capabilities](Expand-test-generation-capabilities.md)
+- Specification: docs/specifications/resolve-pytest-xdist-assertion-errors.md
+- BDD Feature: tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature

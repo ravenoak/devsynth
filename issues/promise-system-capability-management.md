@@ -18,4 +18,5 @@ Promise System Capability Management is not yet implemented, limiting DevSynth's
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/promise-system-capability-management.md
+- BDD Feature: tests/behavior/features/promise_system_capability_management.feature

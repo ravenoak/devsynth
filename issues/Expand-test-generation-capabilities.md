@@ -30,6 +30,8 @@ Automated unit test generation works but integration coverage is lacking.
 - Further expansion depends on [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md).
 
 ## References
+- Specification: docs/specifications/expand-test-generation-capabilities.md
+- BDD Feature: tests/behavior/features/expand_test_generation_capabilities.feature
 
 - Related: [Normalize and verify test markers](archived/Normalize-and-verify-test-markers.md)
 - Related: [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md)

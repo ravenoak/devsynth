@@ -18,4 +18,5 @@ Version-Aware Documentation Management is not yet implemented, limiting DevSynth
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/version-aware-documentation-management.md
+- BDD Feature: tests/behavior/features/version_aware_documentation_management.feature

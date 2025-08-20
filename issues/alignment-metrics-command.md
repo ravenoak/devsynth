@@ -18,4 +18,5 @@ Alignment Metrics Command is not yet implemented, limiting DevSynth's capabiliti
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/alignment-metrics-command.md
+- BDD Feature: tests/behavior/features/alignment_metrics_command.feature

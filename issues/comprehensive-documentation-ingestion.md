@@ -18,4 +18,5 @@ Comprehensive Documentation Ingestion is not yet implemented, limiting DevSynth'
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/comprehensive-documentation-ingestion.md
+- BDD Feature: tests/behavior/features/comprehensive_documentation_ingestion.feature

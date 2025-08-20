@@ -2,7 +2,7 @@
 Milestone: Phase 1
 Status: in progress
 Priority: high
-Dependencies: none, docs/specifications/project-documentation-ingestion.md, tests/behavior/features/project_documentation_ingestion.feature
+Dependencies: docs/specifications/project-documentation-ingestion.md, tests/behavior/features/project_documentation_ingestion.feature
 
 ## Problem Statement
 Project Documentation Ingestion is not yet implemented, limiting DevSynth's capabilities.
@@ -20,4 +20,5 @@ Project Documentation Ingestion is not yet implemented, limiting DevSynth's capa
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/project-documentation-ingestion.md
+- BDD Feature: tests/behavior/features/project_documentation_ingestion.feature

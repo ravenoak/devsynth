@@ -18,4 +18,5 @@ WebUI Specification Editor Extended is not yet implemented, limiting DevSynth's 
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/webui-specification-editor-extended.md
+- BDD Feature: tests/behavior/features/webui_specification_editor_extended.feature

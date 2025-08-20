@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: open
 
 Priority: high
-Dependencies: None, docs/specifications/enhance-retry-mechanism.md, tests/behavior/features/enhance_retry_mechanism.feature
+Dependencies: docs/specifications/enhance-retry-mechanism.md, tests/behavior/features/enhance_retry_mechanism.feature
 
 ## Problem Statement
 Enhance retry mechanism is not yet implemented, limiting DevSynth's capabilities.
@@ -28,5 +28,7 @@ The fallback module implements exponential backoff but lacks metrics and conditi
 - No progress yet
 
 ## References
+- Specification: docs/specifications/enhance-retry-mechanism.md
+- BDD Feature: tests/behavior/features/enhance_retry_mechanism.feature
 
 - [src/devsynth/fallback.py](../src/devsynth/fallback.py)

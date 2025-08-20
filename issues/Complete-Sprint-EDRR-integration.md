@@ -28,5 +28,7 @@ Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplet
 - Awaiting resolution of [Finalize WSDE/EDRR workflow logic](Finalize-WSDE-EDRR-workflow-logic.md).
 
 ## References
+- Specification: docs/specifications/complete-sprint-edrr-integration.md
+- BDD Feature: tests/behavior/features/complete_sprint_edrr_integration.feature
 
 - Related: [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)

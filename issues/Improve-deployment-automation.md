@@ -3,7 +3,7 @@ Milestone: Phase 1
 Status: open
 
 Priority: high
-Dependencies: None, docs/specifications/improve-deployment-automation.md, tests/behavior/features/improve_deployment_automation.feature
+Dependencies: docs/specifications/improve-deployment-automation.md, tests/behavior/features/improve_deployment_automation.feature
 
 ## Problem Statement
 Improve deployment automation is not yet implemented, limiting DevSynth's capabilities.
@@ -29,6 +29,8 @@ Current Docker Compose workflows require manual steps.
 - No progress yet
 
 ## References
+- Specification: docs/specifications/improve-deployment-automation.md
+- BDD Feature: tests/behavior/features/improve_deployment_automation.feature
 
 - [docker-compose.yml](../docker-compose.yml)
 - [scripts/deployment](../scripts/deployment)

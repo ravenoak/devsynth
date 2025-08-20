@@ -18,4 +18,5 @@ Inspect Code Command is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/inspect-code-command.md
+- BDD Feature: tests/behavior/features/inspect_code_command.feature

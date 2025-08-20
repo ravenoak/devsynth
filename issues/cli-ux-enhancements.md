@@ -18,4 +18,5 @@ CLI UX Enhancements is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/cli-ux-enhancements.md
+- BDD Feature: tests/behavior/features/cli_ux_enhancements.feature

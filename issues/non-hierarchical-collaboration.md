@@ -18,4 +18,5 @@ Non-Hierarchical Collaboration is not yet implemented, limiting DevSynth's capab
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/non-hierarchical-collaboration.md
+- BDD Feature: tests/behavior/features/non_hierarchical_collaboration.feature

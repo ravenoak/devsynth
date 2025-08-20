@@ -18,4 +18,5 @@ Interactive Requirements Wizard is not yet implemented, limiting DevSynth's capa
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/interactive-requirements-wizard.md
+- BDD Feature: tests/behavior/features/interactive_requirements_wizard.feature

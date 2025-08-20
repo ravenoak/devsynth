@@ -18,4 +18,5 @@ Consensus Building is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/consensus-building.md
+- BDD Feature: tests/behavior/features/consensus_building.feature

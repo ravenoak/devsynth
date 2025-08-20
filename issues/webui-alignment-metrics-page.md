@@ -18,4 +18,5 @@ WebUI Alignment Metrics Page is not yet implemented, limiting DevSynth's capabil
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/webui-alignment-metrics-page.md
+- BDD Feature: tests/behavior/features/webui_alignment_metrics_page.feature

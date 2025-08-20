@@ -18,4 +18,5 @@ Extended Cross-Interface Consistency is not yet implemented, limiting DevSynth's
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/extended-cross-interface-consistency.md
+- BDD Feature: tests/behavior/features/extended_cross_interface_consistency.feature

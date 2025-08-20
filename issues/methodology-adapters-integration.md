@@ -18,4 +18,5 @@ Methodology Adapters Integration is not yet implemented, limiting DevSynth's cap
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/methodology-adapters-integration.md
+- BDD Feature: tests/behavior/features/methodology_adapters_integration.feature

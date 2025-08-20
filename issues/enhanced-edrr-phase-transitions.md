@@ -18,4 +18,5 @@ Enhanced EDRR Phase Transitions is not yet implemented, limiting DevSynth's capa
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/enhanced-edrr-phase-transitions.md
+- BDD Feature: tests/behavior/features/enhanced_edrr_phase_transitions.feature

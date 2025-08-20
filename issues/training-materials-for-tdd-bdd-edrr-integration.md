@@ -18,4 +18,5 @@ Training Materials for TDD/BDD-EDRR Integration is not yet implemented, limiting
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/training-materials-for-tdd-bdd-edrr-integration.md
+- BDD Feature: tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature

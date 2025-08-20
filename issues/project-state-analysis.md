@@ -19,4 +19,5 @@ Project State Analysis is not yet implemented, limiting DevSynth's capabilities.
 - 2025-08-19: implemented initial project state analysis function and BDD test.
 
 ## References
-- None
+- Specification: docs/specifications/project-state-analysis.md
+- BDD Feature: tests/behavior/features/project_state_analysis.feature

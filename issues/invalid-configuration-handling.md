@@ -18,4 +18,5 @@ Invalid configuration handling is not yet implemented, limiting DevSynth's capab
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/invalid-configuration-handling.md
+- BDD Feature: tests/behavior/features/invalid_configuration_handling.feature

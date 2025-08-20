@@ -29,3 +29,5 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 
 ## References
 - Related: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
+- Specification: docs/specifications/finalize-dialectical-reasoning.md
+- BDD Feature: tests/behavior/features/finalize_dialectical_reasoning.feature

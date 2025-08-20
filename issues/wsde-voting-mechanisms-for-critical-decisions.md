@@ -18,4 +18,5 @@ WSDE Voting Mechanisms for Critical Decisions is not yet implemented, limiting D
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md
+- BDD Feature: tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature

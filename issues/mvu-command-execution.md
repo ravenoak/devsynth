@@ -19,4 +19,5 @@ MVU Command Execution is not yet implemented, limiting DevSynth's capabilities.
 - 2025-08-18: dialectical audit flagged missing documentation and implementation; ticket updated.
 
 ## References
-- None
+- Specification: docs/specifications/mvu-command-execution.md
+- BDD Feature: tests/behavior/features/mvu_command_execution.feature
