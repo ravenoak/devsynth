@@ -1,5 +1,5 @@
 # Agent API Stub Usage
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/agent-api-stub-usage.md, tests/behavior/features/agent_api_stub_usage.feature

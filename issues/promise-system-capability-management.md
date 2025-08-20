@@ -1,5 +1,5 @@
 # Promise System Capability Management
-Milestone: Phase 3
+Milestone: 0.1.0
 Status: in progress
 Priority: low
 Dependencies: Phase 2 completion, docs/specifications/promise-system-capability-management.md, tests/behavior/features/promise_system_capability_management.feature

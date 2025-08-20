@@ -1,5 +1,5 @@
 # Database Schema Generation
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/database-schema-generation.md, tests/behavior/features/database_schema_generation.feature

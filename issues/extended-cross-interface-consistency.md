@@ -1,5 +1,5 @@
 # Extended Cross-Interface Consistency
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/extended-cross-interface-consistency.md, tests/behavior/features/extended_cross_interface_consistency.feature

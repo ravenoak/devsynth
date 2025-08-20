@@ -1,5 +1,5 @@
 # Validate Metadata Command
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/validate-metadata-command.md, tests/behavior/features/validate_metadata_command.feature

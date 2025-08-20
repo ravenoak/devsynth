@@ -1,7 +1,7 @@
 # Verify test markers script failures
-Milestone: Phase 2
+Milestone: 0.1.0-beta.1
 Status: open
-Priority: high
+Priority: medium
 Dependencies: scripts/verify_test_markers.py, test_markers_report.json
 
 ## Problem Statement

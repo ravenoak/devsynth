@@ -1,5 +1,5 @@
 # Inspect Code Command
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/inspect-code-command.md, tests/behavior/features/inspect_code_command.feature

@@ -1,5 +1,5 @@
 # Run tests from the CLI
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/run-tests-from-the-cli.md, tests/behavior/features/run_tests_from_the_cli.feature

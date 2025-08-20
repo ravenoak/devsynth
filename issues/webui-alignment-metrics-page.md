@@ -1,5 +1,5 @@
 # WebUI Alignment Metrics Page
-Milestone: Phase 4
+Milestone: 0.1.1
 Status: in progress
 Priority: low
 Dependencies: Phase 3 completion, docs/specifications/webui-alignment-metrics-page.md, tests/behavior/features/webui_alignment_metrics_page.feature

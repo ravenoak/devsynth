@@ -1,5 +1,5 @@
 # Performance and Scalability Testing
-Milestone: Phase 4
+Milestone: 0.1.1
 Status: in progress
 Priority: low
 Dependencies: Phase 3 completion, docs/specifications/performance-and-scalability-testing.md, tests/behavior/features/performance_and_scalability_testing.feature

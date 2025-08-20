@@ -1,5 +1,5 @@
 # WebUI Serve Page
-Milestone: Phase 2
+Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
 Dependencies: Phase 1 completion, docs/specifications/webui-serve-page.md, tests/behavior/features/webui_serve_page.feature

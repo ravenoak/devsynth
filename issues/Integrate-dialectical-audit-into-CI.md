@@ -1,5 +1,5 @@
 # Integrate dialectical audit into CI
-Milestone: Phase 3
+Milestone: 0.1.0
 Status: open
 Priority: low
 Dependencies: Phase 2 completion, docs/specifications/integrate-dialectical-audit-into-ci.md, tests/behavior/features/integrate_dialectical_audit_into_ci.feature

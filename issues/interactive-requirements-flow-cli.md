@@ -1,5 +1,5 @@
 # Interactive Requirements Flow CLI
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/interactive-requirements-flow-cli.md, tests/behavior/features/interactive_requirements_flow_cli.feature

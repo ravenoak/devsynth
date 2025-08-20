@@ -1,5 +1,5 @@
 # Test Metrics
-Milestone: Phase 4
+Milestone: 0.1.1
 Status: in progress
 Priority: low
 Dependencies: Phase 3 completion, docs/specifications/test-metrics.md, tests/behavior/features/test_metrics.feature

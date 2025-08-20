@@ -1,5 +1,5 @@
 # CLI Command Execution
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/cli-command-execution.md, tests/behavior/features/cli_command_execution.feature

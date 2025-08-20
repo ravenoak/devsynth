@@ -1,5 +1,5 @@
 # CLI UI Parity
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/cli-ui-parity.md, tests/behavior/features/cli_ui_parity.feature

@@ -1,5 +1,5 @@
 # Agent API Interactions
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/agent-api-interactions.md, tests/behavior/features/agent_api_interactions.feature

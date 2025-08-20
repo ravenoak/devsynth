@@ -1,5 +1,5 @@
 # Requirements Wizard Logging
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/requirements-wizard-logging.md, tests/behavior/features/requirements_wizard_logging.feature

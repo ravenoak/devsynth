@@ -1,5 +1,5 @@
 # API Specification Generation
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/api-specification-generation.md, tests/behavior/features/api_specification_generation.feature

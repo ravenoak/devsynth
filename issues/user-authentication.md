@@ -1,5 +1,5 @@
 # User Authentication
-Milestone: Phase 4
+Milestone: 0.1.1
 Status: in progress
 Priority: low
 Dependencies: Phase 3 completion, docs/specifications/user-authentication.md, tests/behavior/features/user_authentication.feature

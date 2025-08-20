@@ -1,5 +1,5 @@
 # Project Initialization
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/project-initialization.md, tests/behavior/features/project_initialization.feature

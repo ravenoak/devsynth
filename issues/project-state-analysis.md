@@ -1,5 +1,5 @@
 # Project State Analysis
-Milestone: Phase 2
+Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
 Dependencies: Phase 1 completion, tests/behavior/features/general/project_state_analyzer.feature, docs/specifications/project-state-analysis.md, tests/behavior/features/project_state_analysis.feature

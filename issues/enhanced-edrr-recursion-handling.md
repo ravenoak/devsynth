@@ -1,5 +1,5 @@
 # Enhanced EDRR Recursion Handling
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/enhanced-edrr-recursion-handling.md, tests/behavior/features/enhanced_edrr_recursion_handling.feature

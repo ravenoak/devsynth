@@ -1,5 +1,5 @@
 # WebUI Synthesis Page
-Milestone: Phase 2
+Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
 Dependencies: Phase 1 completion, docs/specifications/webui-synthesis-page.md, tests/behavior/features/webui_synthesis_page.feature
