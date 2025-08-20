@@ -1,31 +1,27 @@
 # Specification: docs/specifications/reprioritize-open-issues.md
 Feature: Review and Reprioritize Open Issues
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a maintainer
+  I want to recalculate issue priorities from milestones
+  So that the ticket tracker reflects the roadmap
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given an issue "issues/a.md" with milestone "Phase 1" and priority "low"
+    And an issue "issues/b.md" with milestone "Phase 2" and priority "low"
+    And an issue "issues/c.md" with milestone "Backlog" and priority "high"
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Adjust priorities based on milestone
+    When I run "devsynth reprioritize-issues"
+    Then the issue "issues/a.md" should have priority "high"
+    And the issue "issues/b.md" should have priority "medium"
+    And the issue "issues/c.md" should have priority "low"
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
+  Scenario Outline: Reprioritize various milestones
+    Given an issue "<file>" with milestone "<milestone>" and priority "low"
+    When I run "devsynth reprioritize-issues"
+    Then the issue "<file>" should have priority "<expected>"
 
     Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+      | file            | milestone | expected |
+      | issues/p1.md    | Phase 1   | high     |
+      | issues/p2.md    | Phase 2   | medium   |
+      | issues/back.md  | Backlog   | low      |

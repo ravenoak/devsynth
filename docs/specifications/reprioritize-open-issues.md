@@ -11,30 +11,31 @@ title: Review and Reprioritize Open Issues
 version: 0.1.0-alpha.1
 ---
 
-<!--
-Required metadata fields:
-- author: document author
-- date: creation date
-- last_reviewed: last review date
-- status: draft | review | published
-- tags: search keywords
-- title: short descriptive name
-- version: specification version
--->
-
 # Summary
+Automates adjustment of ticket priorities to reflect roadmap phases.
 
 ## Socratic Checklist
-- What is the problem?
-- What proofs confirm the solution?
+- What is the problem? Priorities in `issues/` drift from the roadmap over time.
+- What proofs confirm the solution? Running `devsynth reprioritize-issues` updates priorities based on milestones and reports counts.
 
 ## Motivation
+Maintainers need a repeatable way to keep the repository issue tracker aligned with current milestones without manual review.
 
 ## Specification
+- Scan markdown files in `issues/` excluding `README.md` and `TEMPLATE.md`.
+- For each issue, read `Milestone` and `Priority` fields.
+- Set priority according to milestone mapping:
+  - `Phase 1` → `high`
+  - `Phase 2` → `medium`
+  - any other milestone → `low`
+- Provide CLI command `devsynth reprioritize-issues` that applies this mapping and prints counts for each priority.
 
 ## Acceptance Criteria
+- Given an issue with milestone `Phase 1` and priority `low`, when the command runs, the issue priority becomes `high`.
+- Given an issue with milestone `Phase 2` and priority `low`, when the command runs, the issue priority becomes `medium`.
+- Given an issue with a different milestone, when the command runs, the issue priority becomes `low`.
+- The command prints counts for `High`, `Medium`, and `Low` priorities after updates.
 
 ## References
-
 - [Issue: Review and Reprioritize Open Issues](../../issues/reprioritize-open-issues.md)
 - [BDD: reprioritize_open_issues.feature](../../tests/behavior/features/reprioritize_open_issues.feature)
