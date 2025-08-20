@@ -9,8 +9,8 @@ import pytest
 
 pytest.importorskip("chromadb")
 pytest.importorskip("tiktoken")
-if os.environ.get("ENABLE_CHROMADB", "false").lower() in {"0", "false", "no"}:
-    pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
+if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("ChromaDB resource not available", allow_module_level=True)
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.domain.models.memory import MemoryItem
 

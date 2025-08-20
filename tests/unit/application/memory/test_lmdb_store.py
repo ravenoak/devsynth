@@ -9,10 +9,10 @@ import pytest
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-try:
-    from devsynth.application.memory.lmdb_store import LMDBStore
-except ImportError:
-    LMDBStore = None
+pytest.importorskip("lmdb")
+if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("LMDB resource not available", allow_module_level=True)
+from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.exceptions import MemoryStoreError
 
 pytestmark = pytest.mark.requires_resource("lmdb")

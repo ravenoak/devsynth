@@ -16,6 +16,8 @@ Memory Backend Integration is not yet implemented, limiting DevSynth's capabilit
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-08-20: introduced `DEVSYNTH_RESOURCE_<BACKEND>_AVAILABLE` flags to gate
+  store-specific tests.
 
 ## References
 - Specification: docs/specifications/memory-backend-integration.md

@@ -327,6 +327,22 @@ poetry install --extras retrieval
 pip install 'devsynth[retrieval]'
 ```
 
+### Memory Backend Resource Flags
+
+Store-specific memory tests are gated by environment flags and resource markers.
+Set the flag to `false` to skip tests when a backend is unavailable:
+
+- `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE`
+- `DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE`
+- `DEVSYNTH_RESOURCE_FAISS_AVAILABLE`
+- `DEVSYNTH_RESOURCE_KUZU_AVAILABLE`
+- `DEVSYNTH_RESOURCE_LMDB_AVAILABLE`
+- `DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE`
+- `DEVSYNTH_RESOURCE_TINYDB_AVAILABLE`
+
+Each corresponding test module uses `@pytest.mark.requires_resource("<backend>")`
+to declare its dependency.
+
 To run tests for a specific type:
 
 ```bash

@@ -6,9 +6,14 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
+pytest.importorskip("tinydb")
+if os.environ.get("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("TinyDB resource not available", allow_module_level=True)
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
+
+pytestmark = pytest.mark.requires_resource("tinydb")
 
 
 class TestTinyDBStore:

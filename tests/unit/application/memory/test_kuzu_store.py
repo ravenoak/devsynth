@@ -1,12 +1,18 @@
 import os
+import os
 import shutil
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
+pytest.importorskip("kuzu")
+if os.environ.get("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true").lower() == "false":
+    pytest.skip("Kuzu resource not available", allow_module_level=True)
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+pytestmark = pytest.mark.requires_resource("kuzu")
 
 
 @pytest.fixture(autouse=True)
