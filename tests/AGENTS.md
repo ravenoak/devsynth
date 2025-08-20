@@ -1,28 +1,39 @@
 # AGENTS.md
 
-This directory summarizes test-specific guidance. For general contribution, environment, and policy information, see the repository [root AGENTS.md](../AGENTS.md).
+## Project Snapshot
 
-- honor all policies under `../docs/policies/` and resolve `dialectical_audit.log` before submitting a PR;
-- update this file when testing workflows change.
+**What is in this directory?**
+This directory contains the DevSynth test suite.
 
-## Test isolation
+## Setup
 
-`tests/conftest.py` defines an autouse `global_test_isolation` fixture that resets environment variables, the working directory, and logging for each test. Avoid setting environment variables at import time; use `monkeypatch.setenv()` or set them inside the test body.
+**How do I prepare for testing?**
+Follow the repository setup from the root AGENTS and ensure all commands run through `poetry run`.
 
-## Speed markers
+## Testing
 
-`tests/conftest_extensions.py` provides `fast`, `medium`, and `slow` markers. Each test must include exactly one speed marker; unmarked tests default to `medium`. Combine speed markers with context markers like `memory_intensive` when appropriate. Update markers when requirements shift.
-
-Run tests for a specific speed category:
-
+**How do I run tests?**
+Run these commands iteratively until they pass:
 ```bash
+poetry run pre-commit run --files <changed>
 poetry run devsynth run-tests --speed=<fast|medium|slow>
-```
-
-## Marker verification
-
-Verify that tests use the required speed markers:
-
-```bash
 poetry run python scripts/verify_test_markers.py
 ```
+
+## Conventions
+
+**What testing conventions apply?**
+- `tests/conftest.py` defines an autouse `global_test_isolation` fixture; avoid setting environment variables at import time.
+- Each test includes exactly one speed marker (`fast`, `medium`, `slow`) from `tests/conftest_extensions.py`; combine with context markers when needed.
+- Guard optional services with `pytest.importorskip` and env vars like `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE`.
+- Keep commit messages Conventional and follow root AGENTS guidance for pull‑request workflow.
+
+## Further Reading
+
+**Where can I find more testing guidance?**
+See additional policies under `../docs/policies/`.
+
+## AGENTS.md Compliance
+
+**What is the scope?**
+These instructions apply to `tests/` and its subdirectories. Nested AGENTS files override these instructions.
