@@ -6,7 +6,7 @@ tags:
   - "devsynth"
   - "changelog"
   - "version history"
-status: "draft"
+status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-08-16"
 ---
@@ -22,7 +22,9 @@ DevSynth's pre-release milestones in the `0.1.x` range lead up to the first
 stable release. Version `0.1.0-alpha.1` marks the project's initial published
 milestone.
 
-## [Unreleased]
+## [0.1.0-alpha.1] - 2025-08-16
+
+Initial alpha release delivering a modular architecture, unified memory backends, and a LangGraph-powered agent system.
 
 ### Added
 - Documented acceptance criteria for MVU command execution with linked BDD feature coverage.
@@ -73,5 +75,3 @@ milestone.
 
 - `poetry run python scripts/verify_test_markers.py` fails due to pytest collection errors in several test modules (e.g., `tests/performance/test_api_benchmarks.py`, `tests/behavior/test_agentapi.py`).
 - `poetry run task release:prep` reports `Command not found: task`, preventing release artifact preparation.
-
-## [0.1.0-alpha.1] - Unreleased
