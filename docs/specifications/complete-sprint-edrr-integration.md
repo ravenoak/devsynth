@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Complete Sprint-EDRR integration](../../issues/Complete-Sprint-EDRR-integration.md)
+- [BDD: complete_sprint_edrr_integration.feature](../../tests/behavior/features/complete_sprint_edrr_integration.feature)

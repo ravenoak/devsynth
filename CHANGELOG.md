@@ -42,6 +42,7 @@ milestone.
 - MVUU engine for tracking Minimum Viable Utility Units
 - Atomic-Rewrite workflow for granular commit generation
 
+- Documentation cross-references linking issues and BDD features for Code Analysis, Complete Sprint-EDRR integration, Complete memory system integration, Critical recommendations follow-up, Enhance retry mechanism, Expand test generation capabilities, Finalize WSDE/EDRR workflow logic, Finalize dialectical reasoning, Improve deployment automation, Integrate dialectical audit into CI, Multi-Agent Collaboration, Multi-Layered Memory System, Resolve pytest-xdist assertion errors, Review and Reprioritize Open Issues, and User Authentication.
 ### Changed
 - Moved development documents to appropriate locations in the docs/ directory
 - Consolidated DevSynth analysis documents

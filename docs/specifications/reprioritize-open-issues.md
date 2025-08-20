@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Review and Reprioritize Open Issues](../../issues/reprioritize-open-issues.md)
+- [BDD: reprioritize_open_issues.feature](../../tests/behavior/features/reprioritize_open_issues.feature)

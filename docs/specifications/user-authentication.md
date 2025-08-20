@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: User Authentication](../../issues/user-authentication.md)
+- [BDD: user_authentication.feature](../../tests/behavior/features/user_authentication.feature)

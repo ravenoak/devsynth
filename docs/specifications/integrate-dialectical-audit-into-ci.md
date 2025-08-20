@@ -33,3 +33,8 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Integrate dialectical audit into CI](../../issues/Integrate-dialectical-audit-into-CI.md)
+- [BDD: integrate_dialectical_audit_into_ci.feature](../../tests/behavior/features/integrate_dialectical_audit_into_ci.feature)

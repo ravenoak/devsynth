@@ -27,7 +27,7 @@ TESTS_ROOT = PROJECT_ROOT / "tests"
 UNIT_TEST_PATTERN = re.compile(r"tests/unit/.*?/test_[a-z0-9_]+\.py$")
 INTEGRATION_TEST_PATTERN = re.compile(r"tests/integration/.*?/test_[a-z0-9_]+\.py$")
 BEHAVIOR_FEATURE_PATTERN = re.compile(
-    r"tests/behavior/features/.*?/[a-z0-9_]+\.feature$"
+    r"tests/behavior/features(?:/[a-z0-9_]+)*/[a-z0-9_]+\.feature$"
 )
 BEHAVIOR_STEPS_PATTERN = re.compile(
     r"tests/behavior/steps/(?:test_)?[a-z0-9_]+_steps\.py$"
