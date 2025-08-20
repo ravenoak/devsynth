@@ -1,6 +1,6 @@
 # Complete memory system integration
 Milestone: 0.1.0-alpha.2
-Status: open
+Status: in progress
 
 Priority: high
 Dependencies: docs/specifications/complete-memory-system-integration.md, tests/behavior/features/complete_memory_system_integration.feature
@@ -26,7 +26,7 @@ The memory subsystem supports multiple backends but remains unstable.
 ## Progress
 - 2025-02-19: backends remain unstable; integration still pending.
 
-- No progress yet
+- 2025-08-20: specification expanded and MemorySystemAdapter links to it.
 
 ## References
 - Specification: docs/specifications/complete-memory-system-integration.md
