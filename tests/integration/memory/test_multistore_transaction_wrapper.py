@@ -14,7 +14,6 @@ pytestmark = [
 ]
 
 
-@pytest.mark.medium
 def test_transaction_context_commit_and_rollback(tmp_path, monkeypatch):
     """MultiStoreSyncManager transaction wrapper commits and rolls back."""
     ef = pytest.importorskip("chromadb.utils.embedding_functions")

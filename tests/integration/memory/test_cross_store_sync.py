@@ -46,7 +46,6 @@ def _manager(lmdb, faiss, kuzu, chroma, chroma_vec):
     return manager
 
 
-@pytest.mark.medium
 def test_full_backend_synchronization(tmp_path, monkeypatch):
     """Synchronizes data across memory backends. ReqID: FR-60"""
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")

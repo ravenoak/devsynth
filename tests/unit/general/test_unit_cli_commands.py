@@ -764,7 +764,6 @@ class TestCLICommands:
             code_cmd()
         mock_workflow_manager.assert_not_called()
 
-    @pytest.mark.medium
     def test_run_pipeline_cmd_invalid_target(self, mock_workflow_manager, mock_bridge):
         """run_pipeline_cmd warns on invalid target and aborts when declined."""
 

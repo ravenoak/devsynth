@@ -362,7 +362,6 @@ class TestMemorySystemAdapter:
         del adapter
 
     @pytest.mark.requires_resource("lmdb")
-    @pytest.mark.isolation
     @pytest.mark.medium
     def test_lmdb_synchronizes_to_kuzu(self, tmp_path, monkeypatch):
         """LMDB store should propagate items to Kuzu."""
@@ -395,7 +394,6 @@ class TestMemorySystemAdapter:
             kuzu_store.cleanup()
 
     @pytest.mark.requires_resource("faiss")
-    @pytest.mark.isolation
     @pytest.mark.medium
     def test_faiss_vectors_synchronize_to_kuzu(self, tmp_path, monkeypatch):
         """FAISS vectors should propagate to Kuzu."""

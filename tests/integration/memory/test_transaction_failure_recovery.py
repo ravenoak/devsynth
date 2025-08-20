@@ -25,7 +25,6 @@ def _manager(lmdb, faiss, kuzu):
     return manager
 
 
-@pytest.mark.medium
 def test_commit_failure_triggers_rollback(tmp_path, monkeypatch):
     """Commit failures should roll back all stores. ReqID: FR-60"""
 

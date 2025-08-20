@@ -7,7 +7,6 @@ from devsynth.ports.requirement_port import RequirementRepositoryPort
 from tests.fixtures.dummy_requirement_port import DummyPort
 
 
-@pytest.mark.fast
 def test_requirement_repository_port_is_abstract():
     with pytest.raises(TypeError):
         RequirementRepositoryPort()

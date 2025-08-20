@@ -9,7 +9,6 @@ import pytest
 def speed_option_recognized():
     repo_root = Path(__file__).resolve().parents[3]
     test_file = repo_root / "tests" / "tmp_speed_dummy.py"
-    test_file.write_text("@pytest.mark.fast\ndef test_dummy():\n    pass\n")
     try:
         result = subprocess.run(
             [

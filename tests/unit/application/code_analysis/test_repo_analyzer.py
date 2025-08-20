@@ -17,7 +17,6 @@ from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 class TestRepoAnalyzer:
     """Unit tests for :class:`RepoAnalyzer`."""
 
-    @pytest.mark.medium
     def test_analyze_maps_dependencies_and_structure(self, monkeypatch) -> None:
         """Ensure dependencies and structure are correctly mapped."""
 
@@ -39,7 +38,6 @@ class TestRepoAnalyzer:
             assert set(structure["."]) == {"a.py", "b.py", "sub"}
             assert "c.py" in structure["sub"]
 
-    @pytest.mark.medium
     def test_cli_entry_invokes_repo_analyzer(self, monkeypatch) -> None:
         """Verify ``--analyze-repo`` uses the RepoAnalyzer and prints JSON."""
 

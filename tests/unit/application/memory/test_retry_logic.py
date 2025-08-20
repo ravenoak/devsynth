@@ -21,7 +21,6 @@ class TestRetryLogic:
         reset_memory_retry_metrics()
 
     @pytest.mark.medium
-    @pytest.mark.medium
     def test_condition_callback_aborts_retry(self) -> None:
         """Ensure condition callbacks can abort further retries."""
 

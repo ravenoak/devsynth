@@ -15,7 +15,6 @@ def test_memory_type_serialization_deserialization():
         assert MemoryType(deserialized_value) is member
 
 
-@pytest.mark.medium
 def test_working_memory_alias():
     """Alias WORKING_MEMORY should reference the same member as WORKING."""
     assert MemoryType.WORKING_MEMORY is MemoryType.WORKING

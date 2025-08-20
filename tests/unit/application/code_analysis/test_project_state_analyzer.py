@@ -19,7 +19,6 @@ from devsynth.application.code_analysis.project_state_analyzer import (
 
 
 @pytest.fixture
-@pytest.mark.medium
 def project_dir_fixture():
     """Create a temporary directory with a test project structure.
 
@@ -60,7 +59,6 @@ class TestProjectStateAnalyzer:
 
     ReqID: N/A"""
 
-    @pytest.mark.medium
     def test_initialization_succeeds(self, project_dir_fixture):
         """Test that the analyzer can be initialized with a project path.
 
@@ -80,7 +78,6 @@ class TestProjectStateAnalyzer:
         assert hasattr(analyzer, "documentation_files")
         assert hasattr(analyzer, "config_files")
 
-    @pytest.mark.medium
     def test_analyze_succeeds(self, project_dir_fixture):
         """Test the analyze method.
 
@@ -127,7 +124,6 @@ class TestProjectStateAnalyzer:
                                 assert mock_spec_code.called
                                 assert mock_health.called
 
-    @pytest.mark.medium
     def test_index_files_succeeds(self, project_dir_fixture):
         """Test the _index_files method.
 
@@ -143,7 +139,6 @@ class TestProjectStateAnalyzer:
         ]
         assert len(python_files) > 0
 
-    @pytest.mark.medium
     def test_detect_languages_succeeds(self, project_dir_fixture):
         """Test the _detect_languages method.
 
@@ -156,7 +151,6 @@ class TestProjectStateAnalyzer:
             assert "percentage" in lang_info
             assert 0 <= lang_info["percentage"] <= 1
 
-    @pytest.mark.medium
     def test_infer_architecture_succeeds(self, project_dir_fixture):
         """Test the _infer_architecture method.
 
@@ -190,7 +184,6 @@ class TestProjectStateAnalyzer:
                                 assert mock_event.called
                                 assert mock_components.called
 
-    @pytest.mark.medium
     def test_identify_components_succeeds(self, project_dir_fixture):
         """Test the _identify_components method.
 
@@ -228,7 +221,6 @@ class TestProjectStateAnalyzer:
             assert "path" in comp
             assert "name" in comp
 
-    @pytest.mark.medium
     def test_analyze_requirements_spec_alignment_succeeds(self, project_dir_fixture):
         """Test the _analyze_requirements_spec_alignment method.
 
@@ -259,7 +251,6 @@ class TestProjectStateAnalyzer:
                 assert "unmatched_specifications" in alignment
                 assert "alignment_score" in alignment
 
-    @pytest.mark.medium
     def test_generate_health_report_succeeds(self, project_dir_fixture):
         """Test the _generate_health_report method.
 

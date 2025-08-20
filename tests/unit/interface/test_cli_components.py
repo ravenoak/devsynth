@@ -15,7 +15,6 @@ def clean_state():
     # Clean up state
 
 
-@pytest.mark.slow
 @pytest.mark.medium
 def test_function(clean_state):
     # Test with clean state
@@ -35,7 +34,6 @@ def clean_state():
     # Clean up state
 
 
-@pytest.mark.slow
 @pytest.mark.medium
 def test_CLIProgressIndicator_update_succeeds(clean_state):
     """Test the update method of CLIProgressIndicator.

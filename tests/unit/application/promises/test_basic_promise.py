@@ -1,6 +1,8 @@
 import pytest
+
 from devsynth.application.promises import BasicPromise, PromiseState
 from devsynth.exceptions import PromiseStateError
+
 
 @pytest.mark.medium
 def test_basic_promise_resolve_and_value():
@@ -11,7 +13,7 @@ def test_basic_promise_resolve_and_value():
     assert promise.state is PromiseState.FULFILLED
     assert not promise.is_pending
 
-@pytest.mark.medium
+
 def test_basic_promise_then_chains():
     first = BasicPromise[int]()
     chained = first.then(lambda x: x * 2)
@@ -19,13 +21,14 @@ def test_basic_promise_then_chains():
     assert chained.is_fulfilled
     assert chained.value == 10
 
-@pytest.mark.medium
+
 def test_basic_promise_catch_handles_rejection():
     first = BasicPromise[int]()
     chained = first.catch(lambda e: str(e))
-    first.reject(RuntimeError('fail'))
+    first.reject(RuntimeError("fail"))
     assert chained.is_fulfilled
-    assert chained.value == 'fail'
+    assert chained.value == "fail"
+
 
 @pytest.mark.medium
 def test_access_value_wrong_state_raises():

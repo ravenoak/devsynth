@@ -39,7 +39,6 @@ class TestWSDEBaseMethods:
         assert self.team.agents[1] == self.agent2
         assert self.team.agents[2] == self.agent3
 
-    @pytest.mark.medium
     def test_register_dialectical_hook_succeeds(self):
         """Test registering a dialectical hook.
 

@@ -50,7 +50,6 @@ class TestMemorySnapshot:
     """Tests for the MemorySnapshot class."""
 
     @pytest.mark.medium
-    @pytest.mark.medium
     def test_snapshot_initialization(self, memory_item):
         """Test that MemorySnapshot initializes with expected values."""
         snapshot = MemorySnapshot(
@@ -123,8 +122,6 @@ class TestMemorySnapshot:
 class TestOperationLog:
     """Tests for the OperationLog class."""
 
-    @pytest.mark.medium
-    @pytest.mark.medium
     def test_operationlog_initialization(self):
         """Test that OperationLog initializes with expected values."""
         log = OperationLog(store_id="test-store")
@@ -246,7 +243,6 @@ class TestRecoveryManager:
     """Tests for the RecoveryManager class."""
 
     @pytest.mark.medium
-    @pytest.mark.medium
     def test_recovery_manager_initialization(self, temp_dir):
         """Test that RecoveryManager initializes with expected values."""
         manager = RecoveryManager(recovery_dir=temp_dir)
@@ -365,7 +361,6 @@ class TestRecoveryManager:
 class TestWithRecovery:
     """Tests for the with_recovery decorator."""
 
-    @pytest.mark.medium
     @pytest.mark.medium
     def test_successful_execution(self, memory_item):
         """Test that the decorator returns the result when the function succeeds."""

@@ -25,7 +25,6 @@ def _manager(lmdb, faiss, kuzu):
     return manager
 
 
-@pytest.mark.medium
 def test_synchronize_core_commit(tmp_path, monkeypatch):
     """Synchronize core stores atomically on commit. ReqID: FR-60"""
 
@@ -63,7 +62,6 @@ def test_synchronize_core_commit(tmp_path, monkeypatch):
     kuzu.cleanup()
 
 
-@pytest.mark.medium
 def test_synchronize_core_rollback(tmp_path, monkeypatch):
     """Roll back all stores when core sync commit fails. ReqID: FR-60"""
 
