@@ -18,4 +18,5 @@ Interactive Requirements Flow CLI is not yet implemented, limiting DevSynth's ca
 - 2025-02-19: extracted from dialectical audit backlog.
 
 ## References
-- None
+- Specification: docs/specifications/interactive-requirements-flow-cli.md
+- BDD Feature: tests/behavior/features/interactive_requirements_flow_cli.feature
