@@ -31,6 +31,21 @@
     "Feature 'Resolve pytest-xdist assertion errors' is referenced in docs or tests but not in code. - deferred to future documentation.",
     "Feature 'Review and Reprioritize Open Issues' is referenced in docs or tests but not in code. - deferred to future documentation.",
     "Feature 'User Authentication' is referenced in docs or tests but not in code. - deferred to future documentation.",
-    "Feature 'Version bump script' has tests and documentation; no action needed."
+    "Feature 'Version bump script' has tests and documentation; no action needed.",
+    "Feature 'Code Analysis' now has a specification and linked issue.",
+    "Feature 'Complete Sprint-EDRR integration' now has a specification and linked issue.",
+    "Feature 'Complete memory system integration' now has a specification and linked issue.",
+    "Feature 'Critical recommendations follow-up' now has a specification and linked issue.",
+    "Feature 'Enhance retry mechanism' now has a specification and linked issue.",
+    "Feature 'Expand test generation capabilities' now has a specification and linked issue.",
+    "Feature 'Finalize WSDE/EDRR workflow logic' now has a specification and linked issue.",
+    "Feature 'Finalize dialectical reasoning' now has a specification and linked issue.",
+    "Feature 'Improve deployment automation' now has a specification and linked issue.",
+    "Feature 'Integrate dialectical audit into CI' now has a specification and linked issue.",
+    "Feature 'Multi-Agent Collaboration' now has a specification and linked issue.",
+    "Feature 'Multi-Layered Memory System' now has a specification and linked issue.",
+    "Feature 'Resolve pytest-xdist assertion errors' now has a specification and linked issue.",
+    "Feature 'Review and Reprioritize Open Issues' now has a specification and linked issue.",
+    "Feature 'User Authentication' now has a specification and linked issue."
   ]
 }

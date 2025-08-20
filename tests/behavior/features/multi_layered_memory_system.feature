@@ -1,3 +1,4 @@
+# Specification: docs/specifications/multi-layered-memory-system.md
 Feature: Multi-Layered Memory System
   As a [role]
   I want to [capability]

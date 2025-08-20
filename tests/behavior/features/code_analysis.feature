@@ -1,3 +1,4 @@
+# Specification: docs/specifications/code-analysis.md
 Feature: Code Analysis
   As a [role]
   I want to [capability]

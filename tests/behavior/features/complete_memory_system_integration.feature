@@ -1,3 +1,4 @@
+# Specification: docs/specifications/complete-memory-system-integration.md
 Feature: Complete memory system integration
   As a [role]
   I want to [capability]

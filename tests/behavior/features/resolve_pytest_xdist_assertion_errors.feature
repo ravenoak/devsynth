@@ -1,3 +1,4 @@
+# Specification: docs/specifications/resolve-pytest-xdist-assertion-errors.md
 Feature: Resolve pytest-xdist assertion errors
   As a [role]
   I want to [capability]
