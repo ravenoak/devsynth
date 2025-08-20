@@ -1,30 +1,27 @@
 Feature: Recursive EDRR Coordinator
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a system maintainer
+  I want recursion to terminate predictably
+  So that micro cycles do not run indefinitely
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given a configured EDRR coordinator
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Recursion stops at maximum depth
+    Given a task requiring nested analysis
+    When the coordinator reaches its maximum recursion depth
+    Then no further micro cycles are spawned
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
+  Scenario: Termination criteria halt recursion early
+    Given a task whose complexity exceeds configured thresholds
+    When the coordinator evaluates recursion termination
+    Then recursion ends due to complexity limits
 
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
+  Scenario Outline: Resource constraints force recursion termination
+    Given a task with <factor> beyond safe limits
+    When the coordinator evaluates recursion termination
+    Then recursion ends because of <factor>
 
     Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+      | factor       |
+      | memory usage |
+      | time limit   |
