@@ -31,7 +31,8 @@
     "Feature 'Resolve pytest-xdist assertion errors' is referenced in docs or tests but not in code.",
     "Feature 'Review and Reprioritize Open Issues' is referenced in docs or tests but not in code.",
     "Feature 'User Authentication' is referenced in docs or tests but not in code.",
-    "Feature 'Version bump script' is referenced in docs or tests but not in code."
+    "Feature 'Version bump script' is referenced in docs or tests but not in code.",
+    "Development environment lacks enforced virtualenv, leading to inconsistent tooling."
   ],
   "resolved": [
     "Release checklist commands executed 2025-08-20; verify_test_markers.py failed and task command was not found.",
