@@ -1,10 +1,11 @@
 import importlib
 import sys
-from importlib import util
 from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
+
+pytest.importorskip("fastapi")
 
 
 def _setup(monkeypatch):
@@ -37,8 +38,6 @@ def test_json_requests_succeeds(monkeypatch):
     """Test that json requests succeeds.
 
     ReqID: AGENTAPI-001"""
-    if util.find_spec("fastapi") is None:
-        pytest.skip("fastapi required")
 
     from fastapi.testclient import TestClient
 
