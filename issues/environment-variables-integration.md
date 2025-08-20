@@ -1,5 +1,5 @@
 # Environment Variables Integration
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/environment-variables-integration.md, tests/behavior/features/environment_variables_integration.feature

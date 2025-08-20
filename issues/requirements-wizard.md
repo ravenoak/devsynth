@@ -1,5 +1,5 @@
 # Requirements Wizard
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/requirements-wizard.md, tests/behavior/features/requirements_wizard.feature

@@ -1,5 +1,5 @@
 # Advanced Graph Memory Features
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/advanced-graph-memory-features.md, tests/behavior/features/advanced_graph_memory_features.feature

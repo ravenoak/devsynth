@@ -1,5 +1,5 @@
 # WebUI Navigation and Prompts
-Milestone: Phase 2
+Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
 Dependencies: Phase 1 completion, docs/specifications/webui-navigation-and-prompts.md, tests/behavior/features/webui_navigation_and_prompts.feature

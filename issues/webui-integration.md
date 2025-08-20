@@ -1,5 +1,5 @@
 # WebUI Integration
-Milestone: Phase 2
+Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
 Dependencies: Phase 1 completion, docs/specifications/webui-integration.md, tests/behavior/features/webui_integration.feature

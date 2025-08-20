@@ -1,5 +1,5 @@
 # Serve Command
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/serve-command.md, tests/behavior/features/serve_command.feature

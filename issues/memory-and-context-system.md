@@ -1,5 +1,5 @@
 # Memory and Context System
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/memory-and-context-system.md, tests/behavior/features/memory_and_context_system.feature

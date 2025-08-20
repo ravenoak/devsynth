@@ -1,5 +1,5 @@
 # Improve deployment automation
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: open
 
 Priority: high

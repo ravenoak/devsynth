@@ -1,5 +1,5 @@
 # Memory Backend Integration
-Milestone: Phase 1
+Milestone: 0.1.0-alpha.2
 Status: in progress
 Priority: high
 Dependencies: docs/specifications/memory-backend-integration.md, tests/behavior/features/memory_backend_integration.feature

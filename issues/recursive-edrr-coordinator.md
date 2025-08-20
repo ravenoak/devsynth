@@ -1,5 +1,5 @@
 # Recursive EDRR Coordinator
-Milestone: Phase 3
+Milestone: 0.1.0
 Status: in progress
 Priority: low
 Dependencies: Phase 2 completion, docs/specifications/recursive-edrr-coordinator.md, tests/behavior/features/recursive_edrr_coordinator.feature

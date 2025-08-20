@@ -1,5 +1,5 @@
 # WSDE Voting Mechanisms for Critical Decisions
-Milestone: Phase 3
+Milestone: 0.1.0
 Status: in progress
 Priority: low
 Dependencies: Phase 2 completion, docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md, tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature

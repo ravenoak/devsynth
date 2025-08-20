@@ -1,6 +1,6 @@
-# Review and Reprioritize Open Issues
-Milestone: Phase 2
-Status: open
+# Issue 155: Review and Reprioritize Open Issues
+Milestone: 0.1.0-beta.1 (completed 2025-08-20)
+Status: closed
 Priority: medium
 Dependencies: docs/specifications/reprioritize-open-issues.md, tests/behavior/features/reprioritize_open_issues.feature
 
@@ -13,7 +13,7 @@ The repository's ticket priorities may drift from the current roadmap. A prior a
 - Commit revised priorities
 
 ## Progress
-- Pending
+- 2025-08-20: Realigned all open issue milestones and priorities with roadmap milestones.
 
 ## References
 - archived/reprioritize-open-issues.md
