@@ -195,8 +195,10 @@ report to standard output.
 | FR-93 | Embedded Kuzu graph memory store support | [Memory System Architecture](architecture/memory_system.md) | src/devsynth/application/memory/kuzu_store.py, src/devsynth/adapters/kuzu_memory_store.py | tests/unit/application/memory/test_kuzu_store.py, tests/integration/general/test_kuzu_memory_integration.py, tests/integration/general/test_kuzu_memory_fallback.py | Implemented |
 | FR-94 | ChromaDB store imports when ChromaDB extras installed | [ChromaDB Store](specifications/chromadb_store.md) | src/devsynth/application/memory/chromadb_store.py | tests/test_chromadb_store_import.py | Implemented |
 | FR-95 | Release state check fails when tag missing | [Release state check](specifications/release-state-check.md) | scripts/verify_release_state.py | tests/behavior/features/release_state_check.feature, tests/behavior/test_release_state_check.py | Implemented |
+| HMA-003 | Tiered cache increments hit count on repeated reads | [Multi-Layered Memory System](specifications/multi-layered-memory-system.md) | src/devsynth/adapters/memory/memory_adapter.py | tests/property/test_tiered_cache_properties.py, tests/behavior/features/general/multi_layered_memory_system.feature | Implemented |
+| HMA-004 | Tiered cache size respects configured maximum | [Multi-Layered Memory System](specifications/multi-layered-memory-system.md) | src/devsynth/adapters/memory/memory_adapter.py | tests/property/test_tiered_cache_properties.py, tests/behavior/features/general/multi_layered_memory_system.feature | Implemented |
 
-_Last updated: August 19, 2025_
+_Last updated: August 20, 2025_
 ## Implementation Status
 
 Several requirements remain **partially implemented**. Consult the status column

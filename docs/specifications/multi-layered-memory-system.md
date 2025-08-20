@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
-date: 2025-08-19
-last_reviewed: 2025-08-19
-status: draft
+date: 2025-08-20
+last_reviewed: 2025-08-20
+status: review
 tags:
 
 - specification
@@ -25,11 +25,31 @@ Required metadata fields:
 # Summary
 
 ## Socratic Checklist
-- What is the problem?
-- What proofs confirm the solution?
+ - What is the problem?
+   Inefficient memory organization slows retrieval and mixes short-term data
+   with long-term knowledge.
+ - What proofs confirm the solution?
+   Unit tests, BDD scenarios and property-based tests exercising the tiered
+   cache verify correctness and eviction behaviour.
 
 ## Motivation
+Organize agent knowledge so frequently accessed items remain fast while less
+used data persists in cheaper layers.
 
 ## Specification
+- Memory is split into short-term, episodic and semantic layers determined by
+  `MemoryType`.
+- `store` places items in the correct layer and returns an identifier.
+- `retrieve` fetches by identifier and optionally caches the result.
+- The tiered cache uses an LRU policy and reports hit/miss statistics via
+  `get_cache_stats`.
+- Cache size is bounded by `max_size` and can be cleared or disabled at runtime.
 
 ## Acceptance Criteria
+- Storing items with types `CONTEXT`, `TASK_HISTORY` and `KNOWLEDGE` persists
+  them to short-term, episodic and semantic layers respectively.
+- **HMA-003**: When the tiered cache is enabled, a second retrieval of the same
+  identifier increments cache hit counters.
+- **HMA-004**: Cache size never exceeds the configured maximum.
+- BDD feature `tests/behavior/features/general/multi_layered_memory_system.feature`
+  and property tests in `tests/property/test_tiered_cache_properties.py` pass.

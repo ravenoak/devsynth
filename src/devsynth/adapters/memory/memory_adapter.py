@@ -10,6 +10,7 @@ from devsynth.logging_setup import DevSynthLogger
 from ...application.memory.context_manager import InMemoryStore, SimpleContextManager
 from ...application.memory.duckdb_store import DuckDBStore
 from ...application.memory.json_file_store import JSONFileStore
+from ...application.memory.tiered_cache import TieredCache
 from ...application.memory.tinydb_store import TinyDBStore
 from ...domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
 
@@ -69,6 +70,9 @@ class MemorySystemAdapter:
         "memory_store",
         "context_manager",
         "vector_store",
+        "cache",
+        "cache_enabled",
+        "cache_stats",
     )
 
     def __init__(
@@ -134,6 +138,11 @@ class MemorySystemAdapter:
         self.memory_store = memory_store
         self.context_manager = context_manager
         self.vector_store = vector_store
+
+        # Tiered cache attributes
+        self.cache: Optional[TieredCache[Any]] = None
+        self.cache_enabled = False
+        self.cache_stats = {"hits": 0, "misses": 0}
 
         # Initialize components only if they weren't injected
         if all(
@@ -366,6 +375,55 @@ class MemorySystemAdapter:
             else:
                 logger.info("Vector store enabled")
 
+    # ------------------------------------------------------------------
+    # Tiered cache management -------------------------------------------
+
+    def enable_tiered_cache(self, max_size: int = 100) -> None:
+        """Enable the in-memory tiered cache.
+
+        Parameters
+        ----------
+        max_size:
+            Maximum number of items the cache may hold.
+        """
+
+        self.cache = TieredCache(max_size=max_size)
+        self.cache_enabled = True
+        self.cache_stats = {"hits": 0, "misses": 0}
+        logger.info("Tiered cache enabled with max size %s", max_size)
+
+    def disable_tiered_cache(self) -> None:
+        """Disable the tiered cache and clear any cached items."""
+
+        if self.cache is not None:
+            self.cache.clear()
+        self.cache = None
+        self.cache_enabled = False
+        logger.info("Tiered cache disabled")
+
+    def is_tiered_cache_enabled(self) -> bool:
+        """Return ``True`` when the tiered cache is active."""
+
+        return self.cache_enabled
+
+    def get_cache_stats(self) -> Dict[str, int]:
+        """Return cache hit/miss statistics."""
+
+        return self.cache_stats
+
+    def get_cache_size(self) -> int:
+        """Return the current number of cached items."""
+
+        if self.cache_enabled and self.cache is not None:
+            return self.cache.size()
+        return 0
+
+    def clear_cache(self) -> None:
+        """Remove all items from the cache."""
+
+        if self.cache_enabled and self.cache is not None:
+            self.cache.clear()
+
     def get_memory_store(self) -> MemoryStore:
         """Get the memory store."""
         return self.memory_store
@@ -424,7 +482,11 @@ class MemorySystemAdapter:
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-        return self.memory_store.store(memory_item)
+        item_id = self.memory_store.store(memory_item)
+        if self.cache_enabled and self.cache is not None:
+            # Remove any stale entry so the next read fetches fresh data
+            self.cache.remove(item_id)
+        return item_id
 
     def write(self, memory_item: Any) -> str:
         """Write a memory item to the underlying store.
@@ -527,7 +589,18 @@ class MemorySystemAdapter:
         """
         if self.memory_store is None:
             raise ValueError("Memory store is not initialized")
-        return self.memory_store.retrieve(item_id)
+
+        if self.cache_enabled and self.cache is not None:
+            cached = self.cache.get(item_id)
+            if cached is not None:
+                self.cache_stats["hits"] += 1
+                return cached
+            self.cache_stats["misses"] += 1
+
+        item = self.memory_store.retrieve(item_id)
+        if self.cache_enabled and self.cache is not None and item is not None:
+            self.cache.put(item_id, item)
+        return item
 
     def read(self, item_id: str) -> Any:
         """Read a memory item from the underlying store.
