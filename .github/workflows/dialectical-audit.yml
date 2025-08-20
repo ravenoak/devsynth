@@ -19,14 +19,19 @@ jobs:
       - name: Run dialectical audit
         run: poetry run python scripts/dialectical_audit.py
         continue-on-error: true
-      - name: Fail if unanswered questions
+      - name: Fail if unresolved questions
         run: |
           python - <<'PY'
-          import json, sys
-          with open('dialectical_audit.log') as f:
-            data = json.load(f)
-          if data.get("questions"):
-            sys.exit("Unanswered questions recorded in dialectical_audit.log")
+          import json, pathlib, sys
+
+          log_path = pathlib.Path('dialectical_audit.log')
+          if not log_path.is_file():
+            sys.exit('dialectical_audit.log not found')
+
+          data = json.loads(log_path.read_text())
+          unresolved = data.get('questions', [])
+          if unresolved:
+            sys.exit('Unresolved questions recorded in dialectical_audit.log')
           PY
       - name: Upload dialectical audit log
         if: always()
