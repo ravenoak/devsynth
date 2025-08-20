@@ -18,10 +18,13 @@ from devsynth.interface.ux_bridge import UXBridge
 from .commands import (
     config_cmds,
     diagnostics_cmds,
+    documentation_cmds,
     extra_cmds,
     generation_cmds,
     interface_cmds,
+    metrics_cmds,
     pipeline_cmds,
+    validation_cmds,
 )
 from .commands import spec_cmd as _spec_module
 from .help import get_all_commands_help, get_command_help
