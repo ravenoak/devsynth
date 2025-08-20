@@ -25,6 +25,7 @@ Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth'
 - 2025-02-14: `poetry run pytest -n auto --dist load` exposed a coverage collector assertion; updated test fixtures to reset coverage state between runs.
 - 2025-08-18: Added skip for missing MkDocs Material plugin so `poetry run devsynth run-tests --speed=fast` succeeds with 104 passed and 20 skipped tests. Attempts to run `--speed=medium` and `--speed=slow` launched extensive BDD suites and were aborted without pytest-xdist assertion errors.
 - 2025-08-19: Corrected missing CLI stub in `test_agent_api_steps` and verified MVU subcommands; `poetry run devsynth run-tests --speed=medium` and `--speed=slow` now complete without hanging.
+- 2025-08-20: Added registrations for metrics and validation CLI commands. `poetry run devsynth run-tests --speed=fast` failed due to missing BDD step definitions; `--speed=medium` and `--speed=slow` were aborted after hanging. No pytest-xdist assertion errors observed.
 
 ## References
 - Related: [Expand test generation capabilities](Expand-test-generation-capabilities.md)
