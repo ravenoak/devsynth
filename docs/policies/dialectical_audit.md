@@ -33,6 +33,7 @@ This policy defines how Socratic dialogues support audits that seek consensus be
 ## Continuous Integration
 
 - The dialectical audit script runs in continuous integration.
+- The workflow may be triggered manually via GitHub's "Run workflow" dispatch for on-demand audits.
 - The build fails if `dialectical_audit.log` contains unanswered questions.
 - Release verification halts when `dialectical_audit.log` records unresolved questions.
 - The log is archived as a workflow artifact for review.
