@@ -28,6 +28,8 @@ The memory subsystem supports multiple backends but remains unstable.
 
 - No progress yet
 
+- 2025-08-21: specification expanded and MemoryIntegrationManager documented.
+
 ## References
 - Specification: docs/specifications/complete-memory-system-integration.md
 - BDD Feature: tests/behavior/features/complete_memory_system_integration.feature

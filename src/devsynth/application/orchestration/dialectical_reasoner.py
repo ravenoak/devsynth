@@ -1,4 +1,8 @@
-"""Dialectical reasoning orchestrator with consensus failure logging."""
+"""Dialectical reasoning orchestrator with consensus failure logging.
+
+Implementation aligned with the specification in
+``docs/specifications/finalize-dialectical-reasoning.md``.
+"""
 
 from typing import Any, Dict, Optional
 
