@@ -1,30 +1,20 @@
+# Specification: docs/specifications/edrr-coordinator.md
 Feature: EDRR Coordinator
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a workflow orchestrator
+  I want to coordinate EDRR phases across agents
+  So that iterative cycles produce consistent results
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given a coordinator managing Expand, Differentiate, Refine, and Retrospect phases
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Coordinator completes phases in order
+    Given an initial context
+    When the coordinator executes an EDRR cycle
+    Then the coordinator reports completion
+    And the final context contains results from all phases
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Coordinator converges on a consistent result after conflicts
+    Given agents produce conflicting outcomes during the Refine phase
+    When the coordinator launches a micro cycle to reconcile differences
+    Then the cycle terminates with a single coherent context
+    And no further phase transitions occur
