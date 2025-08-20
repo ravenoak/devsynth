@@ -557,6 +557,7 @@ class TestGraphMemoryAdapter:
 
         # Teardown: Clean up resources (no additional cleanup needed beyond what's in the router fixture)
 
+    @pytest.mark.medium
     def test_cascading_query_with_missing_adapter_succeeds(self, populated_router):
         """Ensure cascading_query aggregates results and skips missing stores.
 

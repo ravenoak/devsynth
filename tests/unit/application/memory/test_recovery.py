@@ -122,6 +122,7 @@ class TestMemorySnapshot:
 class TestOperationLog:
     """Tests for the OperationLog class."""
 
+    @pytest.mark.medium
     def test_operationlog_initialization(self):
         """Test that OperationLog initializes with expected values."""
         log = OperationLog(store_id="test-store")

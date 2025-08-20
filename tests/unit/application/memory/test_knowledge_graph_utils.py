@@ -228,6 +228,7 @@ class TestKnowledgeGraphUtils:
         assert result == {"s1_to_s2": 1}
         assert adapters["s2"].retrieve("a") is not None
 
+    @pytest.mark.medium
     def test_synchronize_missing_adapter_succeeds(self, sync_manager):
         """Test that synchronize missing adapter succeeds.
 

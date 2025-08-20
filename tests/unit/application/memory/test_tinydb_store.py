@@ -66,6 +66,7 @@ class TestTinyDBStore:
         assert retrieved_item.metadata == {"key": "value"}
         assert isinstance(retrieved_item.created_at, datetime)
 
+    @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
         """Test retrieving a nonexistent memory item.
 

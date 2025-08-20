@@ -361,28 +361,29 @@ def verify_file_markers(
                             }
                         )
                 else:
-                    # Count tests collected with this marker
-                    collected_count = 0
-                    collected_tests = []
+                    # Collect unique tests for this marker. Parameterized tests appear
+                    # multiple times in the collection output (e.g. ``test_fn[param]``).
+                    # Deduplicate by stripping parametrization components before counting.
+                    collected_tests: Set[str] = set()
 
-                    # Parse the output to count collected tests and identify which tests were collected
                     rel_path = os.path.relpath(file_path)
                     for line in stdout.split("\n"):
                         if str(file_path) in line or rel_path in line:
-                            collected_count += 1
-                            # Extract the test name from the output
                             test_parts = line.strip().split("::")
                             if len(test_parts) >= 2:
                                 test_name = test_parts[-1]
-                                if "(" in test_name:  # Handle parameterized tests
-                                    test_name = test_name.split("(")[0]
-                                collected_tests.append(test_name)
+                                # Remove paramization suffixes like ``[param]`` or ``(param)``
+                                test_name = re.split(r"[\[(]", test_name)[0]
+                                collected_tests.add(test_name)
+
+                    collected_count = len(collected_tests)
 
                     # Identify which tests have the marker but weren't collected
-                    uncollected_tests = []
-                    for test_name, marker in markers.items():
-                        if marker == marker_type and test_name not in collected_tests:
-                            uncollected_tests.append(test_name)
+                    uncollected_tests = [
+                        name
+                        for name, marker in markers.items()
+                        if marker == marker_type and name not in collected_tests
+                    ]
 
                     recognized_markers[marker_type] = {
                         "file_count": marker_count,

@@ -15,6 +15,9 @@ The `scripts/verify_test_markers.py` guard fails for several test modules, repor
 
 ## Progress
 - 2025-08-20: Verified script fails with multiple `unrecognized_markers` entries.
+- 2025-08-20: Updated `verify_test_markers.py` to de-duplicate parametrized tests and
+  normalized memory test modules with missing speed markers; regenerated report shows
+  expected counts.
 
 ## References
 - scripts/verify_test_markers.py
