@@ -132,6 +132,7 @@ class TestMemoryManagerRetrieve:
         result = manager_with_graph.retrieve_with_edrr_phase("CODE", "EXPAND")
         assert result == test_content
 
+    @pytest.mark.medium
     def test_retrieve_with_edrr_phase_not_found_succeeds(self, manager_with_graph):
         """Test that retrieve with edrr phase not found succeeds.
 

@@ -78,6 +78,7 @@ class TestFAISSStore:
         assert retrieved_vector.metadata == {"key": "value"}
         assert isinstance(retrieved_vector.created_at, datetime)
 
+    @pytest.mark.medium
     def test_retrieve_vector_nonexistent_succeeds(self, store):
         """Test retrieving a nonexistent vector.
 
