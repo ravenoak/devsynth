@@ -3,6 +3,8 @@ set -exo pipefail
 
 # NOTE: This script provisions the Codex testing environment only. It is not
 # intended for regular development setup.
+# See AGENTS.md for repository instructions; only AGENTS.md and this file should
+# reference AGENTS guidelines or `codex_setup.sh`.
 
 # Ensure pipx is available for installing the CLI. When rerunning offline,
 # skip installation if pipx is already present so the script can proceed

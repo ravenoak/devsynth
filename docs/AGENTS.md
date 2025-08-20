@@ -2,8 +2,9 @@
 
 This directory hosts DevSynth documentation.
 
-- Follow the specification-first BDD workflow: capture new requirements in `specifications/` and pair them with a failing BDD feature in `../tests/behavior/features/` before implementation.
-- Documentation updates must follow the [Documentation Policies](policies/documentation_policies.md) and the [Dialectical Audit Policy](policies/dialectical_audit.md); resolve `dialectical_audit.log` before submitting a PR.
+- follow the specification-first BDD workflow: capture new requirements in `specifications/` and pair them with a failing BDD feature in `../tests/behavior/features/` before implementation;
+- honor the [Documentation Policies](policies/documentation_policies.md), the [Dialectical Audit Policy](policies/dialectical_audit.md), and all guidelines under `policies/`; resolve `dialectical_audit.log` before submitting a PR;
+- update this file when documentation workflows change.
 
 ## External Resources
 

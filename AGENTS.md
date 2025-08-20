@@ -5,11 +5,19 @@ This repository implements agent services under `src/devsynth/` and supporting s
 DevSynth values clarity, collaboration, and dependable automation. All contributions:
 
 - follow a **specification-first BDD workflow**—draft a specification in `docs/specifications/` and a failing BDD feature under `tests/behavior/features/` before implementation;
-- adhere to the [Dialectical Audit Policy](docs/policies/dialectical_audit.md) and resolve `dialectical_audit.log` before submission.
+- adhere to the [Dialectical Audit Policy](docs/policies/dialectical_audit.md) and resolve `dialectical_audit.log` before submission;
+- honor all policies under `docs/policies/` and never circumvent security or audit rules.
 
 Begin each task with the Socratic checklist: *What is the problem?* and *What proofs confirm the solution?*
 
 Directory-specific instructions live in scoped AGENTS guidelines within directories like `src/` and `docs/`.
+
+## Git Workflow
+
+- use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages (`feat:`, `fix:`, `docs:`, etc.) with a concise summary and descriptive body;
+- keep commits focused and update AGENTS files whenever workflows change;
+- open pull requests with clear descriptions and link related issues;
+- ensure the PR passes all required checks before requesting review.
 
 ## Environment
 
@@ -108,3 +116,13 @@ See `docs/release/0.1.0-alpha.1.md` for the full process. Summary:
 ## Further Reading
 
 See `docs/` and `CONTRIBUTING.md` for detailed policies, architecture, and contribution guidelines.
+
+## Continuous Improvement and Memory
+
+- review and refine these instructions regularly; record new insights in the appropriate AGENTS file;
+- question assumptions using dialectical and Socratic reasoning before implementing changes;
+- align decisions with DevSynth values of clarity, collaboration, and dependable automation.
+
+---
+
+This AGENTS.md follows the OpenAI Codex AGENTS.md spec. Scope: entire repository; nested AGENTS files override parent scopes.
