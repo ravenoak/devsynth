@@ -1,12 +1,40 @@
 # AGENTS.md
 
+## Project Snapshot
+
+**What lives in this directory?**
 This directory hosts DevSynth documentation.
 
-- follow the specification-first BDD workflow: capture new requirements in `specifications/` and pair them with a failing BDD feature in `../tests/behavior/features/` before implementation;
-- honor the [Documentation Policies](policies/documentation_policies.md), the [Dialectical Audit Policy](policies/dialectical_audit.md), and all guidelines under `policies/`; resolve `dialectical_audit.log` before submitting a PR;
-- update this file when documentation workflows change.
+## Setup
 
-## External Resources
+**How do I prepare to edit docs?**
+Follow the repository setup from the root AGENTS and run commands through `poetry run`.
 
-- Treat `inspirational_docs/` as brainstorming material only; do not reference these files directly.
-- Papers in `external_research_papers/` may be cited using standard academic best practices.
+## Testing
+
+**How do I keep docs consistent?**
+Run commands iteratively until they succeed:
+
+```bash
+poetry run pre-commit run --files <changed>
+poetry run devsynth run-tests --speed=<fast|medium|slow>
+poetry run python scripts/verify_test_markers.py
+```
+
+## Conventions
+
+**What guidelines shape documentation?**
+- Capture new requirements in `specifications/` and pair them with failing features in `../tests/behavior/features/` before implementation.
+- Honor [Documentation Policies](policies/documentation_policies.md), the [Dialectical Audit Policy](policies/dialectical_audit.md), and all files under `policies/`; resolve `dialectical_audit.log`.
+- Treat `inspirational_docs/` as brainstorming only; papers in `external_research_papers/` may be cited.
+- Keep commit messages Conventional and follow the root AGENTS for pull‑request steps.
+
+## Further Reading
+
+**Where can I find detailed style guides?**
+See `policies/documentation_policies.md` and other references in this directory.
+
+## AGENTS.md Compliance
+
+**What is the scope here?**
+These instructions apply to `docs/` and its subdirectories. Nested AGENTS files override these instructions.

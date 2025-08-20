@@ -1,128 +1,61 @@
 # AGENTS.md
 
-This repository implements agent services under `src/devsynth/` and supporting scripts in `scripts/`.
+## Project Snapshot
 
-DevSynth values clarity, collaboration, and dependable automation. All contributions:
+**What is DevSynth?**
+DevSynth implements agent services under `src/devsynth/` and supporting scripts under `scripts/`. It values clarity, collaboration, and dependable automation. For architecture and policy references, see `docs/` and `CONTRIBUTING.md`.
 
-- follow a **specification-first BDD workflow**—draft a specification in `docs/specifications/` and a failing BDD feature under `tests/behavior/features/` before implementation;
-- adhere to the [Dialectical Audit Policy](docs/policies/dialectical_audit.md) and resolve `dialectical_audit.log` before submission;
-- honor all policies under `docs/policies/` and never circumvent security or audit rules.
+## Setup
 
-Begin each task with the Socratic checklist: *What is the problem?* and *What proofs confirm the solution?*
-
-Directory-specific instructions live in scoped AGENTS guidelines within directories like `src/` and `docs/`.
-
-## Git Workflow
-
-- use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages (`feat:`, `fix:`, `docs:`, etc.) with a concise summary and descriptive body;
-- keep commits focused and update AGENTS files whenever workflows change;
-- open pull requests with clear descriptions and link related issues;
-- ensure the PR passes all required checks before requesting review.
-
-## Environment
-
-- Ensure Python 3.12 is active per `.python-version`. Verify with:
-
-  ```bash
-  python --version
-  poetry env info --path
-  ```
-
-  If Poetry uses a different interpreter, recreate the virtual environment:
-
-  ```bash
-  poetry env use 3.12 && poetry install --with dev --extras tests retrieval chromadb api
-  ```
-
-- Run the environment provisioning script before development:
-
-  ```bash
-  bash scripts/install_dev.sh
-  ```
-  This installs pre-commit hooks, caches optional extras from `pyproject.toml`, installs the `go-task` binary when missing, and runs verification commands to ensure project consistency.
-- Run **all** commands through `poetry run` to use the correct virtual environment.
-- Install dependencies with development and test extras:
-
-  ```bash
-  poetry install --with dev --extras tests retrieval chromadb api
-  ```
-- Lint changed files before committing:
-
-  ```bash
-  poetry run pre-commit run --files <changed>
-  ```
-- Verify dependencies offline:
-
-  ```bash
-  PIP_NO_INDEX=1 poetry run pip check
-  ```
-- Update this file, your instructions, and initial context as needed.
+**How do I prepare my environment?**
+1. Ensure Python 3.12 is active:
+   ```bash
+   python --version
+   poetry env info --path
+   ```
+   If Poetry uses a different interpreter, recreate the environment:
+   ```bash
+   poetry env use 3.12 && poetry install --with dev --extras tests retrieval chromadb api
+   ```
+2. Provision the environment:
+   ```bash
+   bash scripts/install_dev.sh      # general setup
+   bash scripts/codex_setup.sh      # Codex agents
+   ```
+3. Install dependencies with development and test extras and run commands through `poetry run`.
 
 ## Testing
 
-- `tests/conftest.py` provides an autouse `global_test_isolation` fixture that resets environment variables, the working directory, and logging configuration. Because modules import before this fixture runs, **do not set environment variables at import time**—use `monkeypatch.setenv()` or set them inside the test body.
-- Common environment variables:
-  - `DEVSYNTH_ACCESS_TOKEN` – token used for authenticated API calls. Set it in a test with `monkeypatch` or export it before running the suite.
-  - `DEVSYNTH_NO_FILE_LOGGING` – disabling file logging when set to `1` (the default under `global_test_isolation`). Override to `0` to allow log files.
-  - `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` – gates tests that rely on optional resources such as `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`. Set to `true` or `false` to force-enable or disable a resource.
-- When optional services like LM Studio are unavailable, guard imports with `pytest.importorskip("lmstudio")` and use mocks or HTTP stubs to simulate responses so unit tests remain deterministic.
-- `tests/conftest_extensions.py` categorizes tests with `fast`, `medium`, and `slow` markers. Unmarked tests default to `medium`; include exactly one speed marker and combine with context markers like `memory_intensive` when needed. Run tests with:
+**How do I keep the build green?**
+Codex-style agents run commands iteratively until all tests pass:
+```bash
+poetry run pre-commit run --files <changed>
+poetry run devsynth run-tests --speed=<fast|medium|slow>
+poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_test_markers.py
+poetry run python scripts/verify_requirements_traceability.py
+poetry run python scripts/verify_version_sync.py
+```
+`tests/conftest.py` provides an autouse `global_test_isolation` fixture; avoid setting environment variables at import time. Use speed markers `fast`, `medium`, or `slow` from `tests/conftest_extensions.py` and combine them with context markers when needed. Optional services should be guarded with environment variables like `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` or `pytest.importorskip`.
 
-  ```bash
-  poetry run devsynth run-tests --speed=<cat>
-  ```
+## Conventions
 
-- Before opening a pull request, run:
-
-  ```bash
-  poetry run pre-commit run --files <changed>
-  poetry run devsynth run-tests --speed=<cat>
-  poetry run python tests/verify_test_organization.py
-  poetry run python scripts/verify_test_markers.py
-  poetry run python scripts/verify_requirements_traceability.py
-  poetry run python scripts/verify_version_sync.py
-  ```
-
-## Issue Tracking
-
-- Use the in-repo issue tracker under `issues/` (see [issues/README.md](issues/README.md)).
-- The first line of each ticket must be `# <title>`.
-- Create new tickets by copying `issues/TEMPLATE.md` and renaming it using a slug of its title.
-- Include `Priority` and `Dependencies` fields along with the standard sections.
-- When a ticket is resolved, move its file to `issues/archived/<slug>.md` and leave it immutable. Archived tickets retain the legacy format `# Issue <number>: <title>`.
-
-## Specification-First Workflow
-
-- Always draft a specification for any new functionality in `docs/specifications/` (see the [specification index](docs/specifications/index.md)) **before** implementation.
-- Always add a failing BDD feature under `tests/behavior/features/` prior to writing code.
-- Use the Socratic checklist above when preparing specs and tests.
-
-## Release
-
-See `docs/release/0.1.0-alpha.1.md` for the full process. Summary:
-
-1. After running `bash scripts/install_dev.sh` (which installs `go-task`), run `poetry run task release:prep` to build artifacts.
-2. Generate and resolve `dialectical_audit.log` (`poetry run python scripts/dialectical_audit.py` or trigger the GitHub workflow`) per the [Dialectical Audit Policy](docs/policies/dialectical_audit.md).
-3. Conduct a dialectical review with another contributor.
-4. Tag and push the release: `git tag -a <version>`.
-
-## Automation
-
-- Most DevSynth CLI commands accept `--non-interactive` and `--defaults` to bypass prompts.
-- GitHub workflows under `.github/workflows/` must only use `workflow_dispatch`. Workflows with
-  automatic triggers like `push`, `pull_request`, or `schedule` belong in `.github/workflows.disabled/`
-  or must be rewritten to use `workflow_dispatch`.
+**What practices guide contributions?**
+- Begin with the Socratic checklist: *What is the problem?* and *What proofs confirm the solution?*
+- Follow the specification-first BDD workflow: draft specs in `docs/specifications/` and pair them with failing features under `tests/behavior/features/` before implementation.
+- Use [Conventional Commits](https://www.conventionalcommits.org/) with a one-line summary and descriptive body, then open a pull request with `make_pr` that summarizes changes and test evidence.
+- Honor all policies under `docs/policies/` (security, audit, etc.), including the [Dialectical Audit Policy](docs/policies/dialectical_audit.md); resolve `dialectical_audit.log` before submission.
+- Use the in-repo issue tracker (`issues/`; see `issues/README.md`).
+- Consult `docs/release/0.1.0-alpha.1.md` for release steps and `.github/workflows/` for automation guidelines.
 
 ## Further Reading
 
-See `docs/` and `CONTRIBUTING.md` for detailed policies, architecture, and contribution guidelines.
+**Where can I learn more?**
+- Detailed API conventions: `docs/api_reference.md`
+- Additional architecture and policy guides: `docs/`
+- Contribution guidelines: `CONTRIBUTING.md`
 
-## Continuous Improvement and Memory
+## AGENTS.md Compliance
 
-- review and refine these instructions regularly; record new insights in the appropriate AGENTS file;
-- question assumptions using dialectical and Socratic reasoning before implementing changes;
-- align decisions with DevSynth values of clarity, collaboration, and dependable automation.
-
----
-
-This AGENTS.md follows the OpenAI Codex AGENTS.md spec. Scope: entire repository; nested AGENTS files override parent scopes.
+**What is the scope of these instructions?**
+They apply to the entire repository and follow the OpenAI Codex AGENTS.md spec (repo-wide scope; nested AGENTS files override). Update AGENTS files whenever workflows change.
