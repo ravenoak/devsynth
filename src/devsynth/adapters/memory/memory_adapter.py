@@ -1,4 +1,8 @@
-"""Adapter that coordinates memory-related components."""
+"""Adapter that coordinates memory-related components.
+
+See ``docs/specifications/complete-memory-system-integration.md`` for
+the full specification guiding this adapter's behavior.
+"""
 
 import os
 from pathlib import Path

@@ -26,15 +26,36 @@ Required metadata fields:
 
 ## Socratic Checklist
 - What is the problem?
+  The memory subsystem supports several backends but lacks a unified
+  integration layer and graceful handling of optional dependencies.
 - What proofs confirm the solution?
+  Integration tests and adapter initialization logs demonstrate stable
+  operation across FAISS, LMDB, and Kuzu backends.
 
 ## Motivation
 
+Reliable persistence and retrieval are core to DevSynth's agent workflow.
+Without a cohesive memory layer, agents encounter inconsistent behavior
+and fragile error handling when optional stores are missing.
+
 ## Specification
 
+- Finalize synchronization manager supporting LMDB, FAISS, and Kuzu stores.
+- Harden ChromaDB adapter and transactional semantics.
+- Expand integration tests covering persistence and retrieval paths.
+- Ensure missing LMDB dependencies raise clear, actionable errors.
+
 ## Acceptance Criteria
+
+- MemorySystemAdapter initializes any configured store or fails with a
+  descriptive error.
+- Integration tests demonstrate read/write operations across all
+  supported backends.
+- Optional dependencies can be absent without crashing the application.
 
 ## References
 
 - [Issue: Complete memory system integration](../../issues/Complete-memory-system-integration.md)
 - [BDD: complete_memory_system_integration.feature](../../tests/behavior/features/complete_memory_system_integration.feature)
+- [MemorySystemAdapter](../../src/devsynth/adapters/memory/memory_adapter.py)
+- [WSDE memory integration](../../src/devsynth/application/agents/wsde_memory_integration.py)

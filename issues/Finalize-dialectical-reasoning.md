@@ -27,6 +27,8 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 - [x] Behavior tests confirm reasoning results persist to memory ([2b3f12f7](../commit/2b3f12f7)).
 - 2025-08-17: dependencies resolved; finalizing reasoning loop.
 
+- 2025-08-20: specification expanded; WSDE knowledge utilities link to it.
+
 ## References
 - Related: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 - Specification: docs/specifications/finalize-dialectical-reasoning.md
