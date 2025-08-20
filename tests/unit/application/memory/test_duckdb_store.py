@@ -12,6 +12,11 @@ from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
+if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=false")
+
+pytestmark = pytest.mark.requires_resource("duckdb")
+
 
 class TestDuckDBStore:
     """Tests for the DuckDBStore class.
@@ -63,6 +68,7 @@ class TestDuckDBStore:
         assert retrieved_item.metadata == {"key": "value"}
         assert isinstance(retrieved_item.created_at, datetime)
 
+    @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
         """Test retrieving a nonexistent memory item.
 

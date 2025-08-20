@@ -7,9 +7,15 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pytest
 
+pytest.importorskip("rdflib")
 from devsynth.application.memory.rdflib_store import RDFLibStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
+
+if os.environ.get("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=false")
+
+pytestmark = pytest.mark.requires_resource("rdflib")
 
 
 class TestRDFLibStore:
@@ -63,6 +69,7 @@ class TestRDFLibStore:
         assert retrieved_item.metadata == {"key": "value"}
         assert isinstance(retrieved_item.created_at, datetime)
 
+    @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
         """Test retrieving a nonexistent memory item.
 

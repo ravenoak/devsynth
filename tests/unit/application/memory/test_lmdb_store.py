@@ -7,13 +7,13 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
+pytest.importorskip("lmdb")
+from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-try:
-    from devsynth.application.memory.lmdb_store import LMDBStore
-except ImportError:
-    LMDBStore = None
 from devsynth.exceptions import MemoryStoreError
+
+if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("DEVSYNTH_RESOURCE_LMDB_AVAILABLE=false")
 
 pytestmark = pytest.mark.requires_resource("lmdb")
 
@@ -69,6 +69,7 @@ class TestLMDBStore:
         assert retrieved_item.metadata == {"key": "value"}
         assert isinstance(retrieved_item.created_at, datetime)
 
+    @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
         """Test retrieving a nonexistent memory item.
 

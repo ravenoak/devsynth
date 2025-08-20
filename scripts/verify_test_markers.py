@@ -28,6 +28,7 @@ pytest collection to prevent blocking behaviour.
 """
 
 import argparse
+import ast
 import concurrent.futures
 import json
 import logging
@@ -186,24 +187,59 @@ def verify_file_markers(
     # Extract test functions
     test_functions = FUNCTION_PATTERN.findall(content)
 
-    # Extract markers
-    markers = {}
-    current_markers = []
+    # Extract markers using simple text scanning
+    markers: Dict[str, str] = {}
+    current_markers: List[str] = []
 
     for i, line in enumerate(lines):
-        # Check for markers
         marker_match = MARKER_PATTERN.search(line)
         if marker_match:
             current_markers.append(marker_match.group(1))
 
-        # Check for test functions
         func_match = FUNCTION_PATTERN.search(line)
         if func_match:
             test_name = func_match.group(1)
             if current_markers:
-                # Use the last marker if there are multiple
                 markers[test_name] = current_markers[-1]
             current_markers = []
+
+    # Determine parameterization counts using AST
+    param_counts: Dict[str, int] = {name: 1 for name in test_functions}
+    try:
+        tree = ast.parse(content)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name in param_counts:
+                count = 1
+                for deco in node.decorator_list:
+                    # pytest.mark.parametrize(...)
+                    if (
+                        isinstance(deco, ast.Call)
+                        and isinstance(deco.func, ast.Attribute)
+                        and isinstance(deco.func.value, ast.Attribute)
+                        and isinstance(deco.func.value.value, ast.Name)
+                        and deco.func.value.value.id == "pytest"
+                        and deco.func.value.attr == "mark"
+                        and deco.func.attr == "parametrize"
+                    ):
+                        if len(deco.args) >= 2:
+                            try:
+                                values = ast.literal_eval(deco.args[1])
+                                count *= len(values)
+                            except Exception:  # pragma: no cover - best effort
+                                count *= 1
+                    # pytest.mark.anyio -> typically two backends
+                    elif (
+                        isinstance(deco, ast.Attribute)
+                        and isinstance(deco.value, ast.Attribute)
+                        and isinstance(deco.value.value, ast.Name)
+                        and deco.value.value.id == "pytest"
+                        and deco.value.attr == "mark"
+                        and deco.attr == "anyio"
+                    ):
+                        count *= 2
+                param_counts[node.name] = count
+    except SyntaxError:  # pragma: no cover - defensive
+        pass
 
     # Check for misaligned markers
     misaligned_markers = []
@@ -233,6 +269,8 @@ def verify_file_markers(
             if f"def {test_name}(" in line:
                 # Check for markers before this function
                 for j in range(i - 1, max(0, i - 10), -1):
+                    if FUNCTION_PATTERN.search(lines[j]):
+                        break
                     marker_match = MARKER_PATTERN.search(lines[j])
                     if marker_match:
                         marker_count += 1
@@ -271,8 +309,10 @@ def verify_file_markers(
 
     # Check each marker type
     for marker_type in ["fast", "medium", "slow"]:
-        # Count markers of this type in the file
-        marker_count = sum(1 for m in markers.values() if m == marker_type)
+        # Count markers of this type, accounting for parametrization
+        marker_count = sum(
+            param_counts.get(name, 1) for name, m in markers.items() if m == marker_type
+        )
 
         if marker_count > 0:
             # Check if pytest recognizes these markers
@@ -363,26 +403,28 @@ def verify_file_markers(
                 else:
                     # Count tests collected with this marker
                     collected_count = 0
-                    collected_tests = []
+                    collected_tests: Dict[str, int] = {}
 
                     # Parse the output to count collected tests and identify which tests were collected
                     rel_path = os.path.relpath(file_path)
                     for line in stdout.split("\n"):
                         if str(file_path) in line or rel_path in line:
                             collected_count += 1
-                            # Extract the test name from the output
                             test_parts = line.strip().split("::")
                             if len(test_parts) >= 2:
                                 test_name = test_parts[-1]
-                                if "(" in test_name:  # Handle parameterized tests
-                                    test_name = test_name.split("(")[0]
-                                collected_tests.append(test_name)
+                                test_name = re.split(r"[\[(]", test_name)[0]
+                                collected_tests[test_name] = (
+                                    collected_tests.get(test_name, 0) + 1
+                                )
 
                     # Identify which tests have the marker but weren't collected
                     uncollected_tests = []
                     for test_name, marker in markers.items():
-                        if marker == marker_type and test_name not in collected_tests:
-                            uncollected_tests.append(test_name)
+                        if marker == marker_type:
+                            expected = param_counts.get(test_name, 1)
+                            if collected_tests.get(test_name, 0) < expected:
+                                uncollected_tests.append(test_name)
 
                     recognized_markers[marker_type] = {
                         "file_count": marker_count,

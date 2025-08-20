@@ -6,12 +6,14 @@ from devsynth.application.memory.adapters.vector_memory_adapter import (
 from devsynth.domain.models.memory import MemoryVector
 
 
+@pytest.mark.medium
 def test_similarity_empty_store():
     adapter = VectorMemoryAdapter()
     results = adapter.similarity_search([0.1, 0.2, 0.3])
     assert results == []
 
 
+@pytest.mark.medium
 def test_similarity_zero_norm(monkeypatch):
     adapter = VectorMemoryAdapter()
     vec = MemoryVector(id="v1", content="c", embedding=[0.0, 0.0], metadata=None)
@@ -20,6 +22,7 @@ def test_similarity_zero_norm(monkeypatch):
     assert results == [vec]
 
 
+@pytest.mark.medium
 def test_delete_missing():
     adapter = VectorMemoryAdapter()
     assert adapter.delete_vector("missing") is False

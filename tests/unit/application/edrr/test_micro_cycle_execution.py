@@ -55,6 +55,7 @@ def test_execute_micro_cycle_handles_dialectical_errors(coordinator):
     assert coordinator.performance_metrics["dialectical_failures"][0]["iteration"] == 2
 
 
+@pytest.mark.medium
 def test_assess_result_quality_from_score(coordinator):
     assert coordinator._assess_result_quality({"quality_score": "0.7"}) == 0.7
 

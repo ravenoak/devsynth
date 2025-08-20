@@ -15,6 +15,7 @@ The `scripts/verify_test_markers.py` guard fails for several test modules, repor
 
 ## Progress
 - 2025-08-20: Verified script fails with multiple `unrecognized_markers` entries.
+- 2025-08-20: Updated script to account for parametrized tests, normalized markers, and regenerated report.
 
 ## References
 - scripts/verify_test_markers.py

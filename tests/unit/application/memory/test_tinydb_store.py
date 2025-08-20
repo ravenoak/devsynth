@@ -6,9 +6,15 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
+pytest.importorskip("tinydb")
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
+
+if os.environ.get("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE", "true").lower() == "false":
+    pytest.skip("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=false")
+
+pytestmark = pytest.mark.requires_resource("tinydb")
 
 
 class TestTinyDBStore:
@@ -61,6 +67,7 @@ class TestTinyDBStore:
         assert retrieved_item.metadata == {"key": "value"}
         assert isinstance(retrieved_item.created_at, datetime)
 
+    @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
         """Test retrieving a nonexistent memory item.
 
