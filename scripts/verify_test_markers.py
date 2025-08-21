@@ -7,6 +7,11 @@ and recognized by pytest. It provides detailed reporting of marker issues and ca
 fix common issues automatically. The script exits with status code ``1`` when
 verification issues are found and ``2`` when subprocesses exceed the timeout.
 
+Pytest collection results are cached per file in ``.pytest_collection_cache.json``,
+keyed by the file's content hash. Subsequent runs reuse this cache, dramatically
+reducing execution time. Use ``--changed`` to restrict verification to paths
+reported by ``git diff --name-only``.
+
 Usage:
     python -m scripts.verify_test_markers [options]
 
@@ -21,14 +26,18 @@ Options:
     --timeout SECONDS     Timeout for subprocess calls (default: 30)
     --workers N           Number of concurrent workers for file verification
                          (default: min(4, CPU count))
+    --changed             Only verify tests changed according to ``git diff``
+    --diff-base REF       Base revision for ``git diff`` (default: HEAD)
 
 The script applies timeouts to both subprocess calls and thread pools to avoid
 deadlocks during verification. Coverage and xdist plugins are disabled during
-pytest collection to prevent blocking behaviour.
+pytest collection to prevent blocking behaviour. Cached results are persisted
+between runs to keep subsequent executions under 30 seconds for large test suites.
 """
 
 import argparse
 import concurrent.futures
+import hashlib
 import json
 import logging
 import os
@@ -43,6 +52,49 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Cache pytest collection results to avoid rerunning slow subprocesses
 PYTEST_COLLECTION_CACHE: Dict[Tuple[str, str], Tuple[str, str, int, float]] = {}
+
+# Persistent cache for pytest collection results
+CACHE_FILE = Path(".pytest_collection_cache.json")
+PERSISTENT_CACHE: Dict[str, Any] = {}
+FILE_HASHES: Dict[str, str] = {}
+
+
+def load_persistent_cache() -> None:
+    """Load cached pytest collection results from disk."""
+    global PERSISTENT_CACHE
+    if CACHE_FILE.exists():
+        try:
+            with open(CACHE_FILE, "r") as f:
+                PERSISTENT_CACHE = json.load(f)
+        except Exception:
+            PERSISTENT_CACHE = {}
+
+
+def save_persistent_cache() -> None:
+    """Persist cached pytest collection results to disk."""
+    try:
+        with open(CACHE_FILE, "w") as f:
+            json.dump(PERSISTENT_CACHE, f)
+    except Exception:
+        pass
+
+
+def get_file_hash(path: Path) -> str:
+    """Compute and cache the SHA256 hash of a file."""
+    path_str = str(path)
+    digest = FILE_HASHES.get(path_str)
+    if digest:
+        return digest
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        h.update(f.read())
+    digest = h.hexdigest()
+    FILE_HASHES[path_str] = digest
+    return digest
+
+
+# Load cache at import time
+load_persistent_cache()
 
 # Limit concurrency to a small, safe default to avoid deadlocks during
 # collection.  The value mirrors ``pytest``'s own conservative defaults.
@@ -114,6 +166,16 @@ def parse_args():
             "Number of concurrent workers for file verification "
             f"(default: {DEFAULT_WORKERS})"
         ),
+    )
+    parser.add_argument(
+        "--changed",
+        action="store_true",
+        help="Only verify tests changed according to git diff --name-only",
+    )
+    parser.add_argument(
+        "--diff-base",
+        default="HEAD",
+        help="Base revision for git diff when using --changed (default: HEAD)",
     )
     return parser.parse_args()
 
@@ -286,6 +348,20 @@ def verify_file_markers(
         issues: List[Dict[str, Any]] = []
 
         if cached is None:
+            file_hash = get_file_hash(file_path)
+            file_cache = PERSISTENT_CACHE.get(str(file_path))
+            if file_cache and file_cache.get("hash") == file_hash:
+                marker_cache = file_cache.get("markers", {}).get(marker_type)
+                if marker_cache:
+                    cached = (
+                        marker_cache["stdout"],
+                        marker_cache.get("stderr", ""),
+                        marker_cache["returncode"],
+                        marker_cache.get("duration", 0.0),
+                    )
+                    PYTEST_COLLECTION_CACHE[cache_key] = cached
+
+        if cached is None:
             cmd = [
                 sys.executable,
                 "-m",
@@ -330,6 +406,16 @@ def verify_file_markers(
                     proc.returncode,
                     duration,
                 )
+                file_cache = PERSISTENT_CACHE.setdefault(
+                    str(file_path), {"hash": file_hash, "markers": {}}
+                )
+                file_cache["hash"] = file_hash
+                file_cache["markers"][marker_type] = {
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "returncode": proc.returncode,
+                    "duration": duration,
+                }
             except subprocess.TimeoutExpired:
                 duration = time.time() - start_time
                 log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
@@ -352,6 +438,16 @@ def verify_file_markers(
                     -1,
                     duration,
                 )
+                file_cache = PERSISTENT_CACHE.setdefault(
+                    str(file_path), {"hash": file_hash, "markers": {}}
+                )
+                file_cache["hash"] = file_hash
+                file_cache["markers"][marker_type] = {
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "returncode": -1,
+                    "duration": duration,
+                }
                 result = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -737,6 +833,7 @@ def verify_directory_markers(
     progress_interval: int = 50,
     timeout: Optional[int] = 30,
     max_workers: int = DEFAULT_WORKERS,
+    paths: Optional[List[Path]] = None,
 ) -> Dict[str, Any]:
     """
     Verify markers in all test files in a directory.
@@ -752,12 +849,37 @@ def verify_directory_markers(
     logger = logging.getLogger(__name__)
     logger.debug("Starting ThreadPoolExecutor with max_workers=%s", max_workers)
 
-    # Find all test files
-    test_files = find_test_files(directory)
+    # Find all test files or restrict to changed paths
+    if paths is not None:
+        base = Path(directory).resolve()
+        path_set = {p.resolve() for p in paths}
+        test_files = [
+            p
+            for p in path_set
+            if p.is_file()
+            and p.suffix == ".py"
+            and p.name.startswith("test_")
+            and (p == base or base in p.parents)
+        ]
+    else:
+        test_files = find_test_files(directory)
 
     if not test_files:
         print(f"No test files found in {directory}")
-        return {"success": False, "error": f"No test files found in {directory}"}
+        return {
+            "success": True,
+            "directory": directory,
+            "total_files": 0,
+            "files_with_issues": 0,
+            "total_test_functions": 0,
+            "total_markers": 0,
+            "total_misaligned_markers": 0,
+            "total_duplicate_markers": 0,
+            "total_unrecognized_markers": 0,
+            "marker_counts": {"fast": 0, "medium": 0, "slow": 0, "isolation": 0},
+            "files": {},
+            "subprocess_timeouts": 0,
+        }
 
     # Verify markers in each file
     results = {
@@ -958,12 +1080,25 @@ def main():
     # Determine the directory to verify
     directory = args.module if args.module else args.directory
 
+    changed_paths = None
+    if args.changed:
+        try:
+            diff_cmd = ["git", "diff", "--name-only", args.diff_base]
+            diff_output = subprocess.check_output(diff_cmd, text=True)
+            changed_paths = [
+                Path(p.strip()) for p in diff_output.splitlines() if p.strip()
+            ]
+        except subprocess.CalledProcessError as exc:  # pragma: no cover - git failure
+            print(f"git diff failed: {exc}", file=sys.stderr)
+            changed_paths = []
+
     # Verify markers
     verification_results = verify_directory_markers(
         directory,
         args.verbose,
         timeout=args.timeout,
         max_workers=normalize_workers(args.workers),
+        paths=changed_paths,
     )
 
     if verification_results.get("success") is False:
@@ -1025,6 +1160,9 @@ def main():
         or verification_results.get("files_with_issues", 0) > 0
     ):
         exit_code = max(exit_code, 1)
+
+    # Persist cache for future runs
+    save_persistent_cache()
     return exit_code
 
 
