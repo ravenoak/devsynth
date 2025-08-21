@@ -186,61 +186,67 @@ def verify_file_markers(
     # Extract test functions
     test_functions = FUNCTION_PATTERN.findall(content)
 
-    # Extract markers
-    markers = {}
-    current_markers = []
+    # Detect module-level ``pytestmark`` usage
+    module_markers: List[str] = []
+    for line in lines:
+        if "pytestmark" in line:
+            module_markers.extend(
+                re.findall(r"pytest\.mark\.(fast|medium|slow|isolation)", line)
+            )
 
-    for i, line in enumerate(lines):
-        # Check for markers
-        marker_match = MARKER_PATTERN.search(line)
-        if marker_match:
-            current_markers.append(marker_match.group(1))
+    # Extract markers in a single pass
+    markers: Dict[str, Optional[str]] = {}
+    misaligned_markers: List[Dict[str, Any]] = []
+    duplicate_markers: List[Dict[str, Any]] = []
+    current_markers: List[str] = []
+    current_marker_lines: List[int] = []
 
-        # Check for test functions
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("@"):
+            marker_match = MARKER_PATTERN.match(stripped)
+            if marker_match:
+                current_markers.append(marker_match.group(1))
+                current_marker_lines.append(idx)
+            # keep collecting decorator lines
+            continue
+
         func_match = FUNCTION_PATTERN.search(line)
         if func_match:
             test_name = func_match.group(1)
             if current_markers:
-                # Use the last marker if there are multiple
                 markers[test_name] = current_markers[-1]
+                if len(current_markers) > 1:
+                    duplicate_markers.append(
+                        {"test_name": test_name, "marker_count": len(current_markers)}
+                    )
             current_markers = []
+            current_marker_lines = []
+            continue
 
-    # Check for misaligned markers
-    misaligned_markers = []
-    for i, line in enumerate(lines):
-        marker_match = MARKER_PATTERN.search(line)
-        if marker_match:
-            marker_type = marker_match.group(1)
-
-            # Check if this marker is associated with a test function
-            is_associated = False
-            for j in range(i + 1, min(i + 10, len(lines))):
-                func_match = FUNCTION_PATTERN.search(lines[j] if j < len(lines) else "")
-                if func_match:
-                    is_associated = True
-                    break
-
-            if not is_associated:
+        if current_markers and stripped and not stripped.startswith("#"):
+            # Reached non-decorator content before a test function
+            for line_no, m in zip(current_marker_lines, current_markers):
                 misaligned_markers.append(
-                    {"line": i, "marker": marker_type, "text": line.strip()}
+                    {"line": line_no, "marker": m, "text": lines[line_no].strip()}
                 )
+            current_markers = []
+            current_marker_lines = []
 
-    # Check for duplicate markers
-    duplicate_markers = []
-    for test_name in test_functions:
-        marker_count = 0
-        for i, line in enumerate(lines):
-            if f"def {test_name}(" in line:
-                # Check for markers before this function
-                for j in range(i - 1, max(0, i - 10), -1):
-                    marker_match = MARKER_PATTERN.search(lines[j])
-                    if marker_match:
-                        marker_count += 1
-
-        if marker_count > 1:
-            duplicate_markers.append(
-                {"test_name": test_name, "marker_count": marker_count}
+    # Any leftover markers are misaligned
+    if current_markers:
+        for line_no, m in zip(current_marker_lines, current_markers):
+            misaligned_markers.append(
+                {"line": line_no, "marker": m, "text": lines[line_no].strip()}
             )
+
+    # Apply module-level markers to unmarked tests
+    if module_markers:
+        module_marker = module_markers[-1]
+        for test_name in test_functions:
+            markers.setdefault(test_name, module_marker)
+
+    # ``misaligned_markers`` and ``duplicate_markers`` populated during parsing
 
     # Check if markers are recognized by pytest
     recognized_markers = {}
@@ -248,7 +254,6 @@ def verify_file_markers(
 
     # First, check if pytest.ini has the markers registered
     pytest_ini_path = Path(os.path.join(os.path.dirname(file_path), "pytest.ini"))
-    repo_root = None
 
     # Try to find pytest.ini by traversing up the directory tree
     current_dir = os.path.dirname(file_path)
@@ -256,7 +261,6 @@ def verify_file_markers(
         potential_ini = os.path.join(current_dir, "pytest.ini")
         if os.path.exists(potential_ini):
             pytest_ini_path = Path(potential_ini)
-            repo_root = current_dir
             break
         current_dir = os.path.dirname(current_dir)
 
@@ -269,185 +273,184 @@ def verify_file_markers(
                     f"{marker_type}:" in pytest_ini_content
                 )
 
-    # Check each marker type
-    for marker_type in ["fast", "medium", "slow"]:
-        # Count markers of this type in the file
+    def run_marker_check(marker_type: str):
         marker_count = sum(1 for m in markers.values() if m == marker_type)
+        if marker_count == 0:
+            return marker_type, None, []
 
-        if marker_count > 0:
-            # Check if pytest recognizes these markers
-            cmd = [
-                sys.executable,
-                "-m",
-                "pytest",
-                "-p",
-                "no:cov",
-                "-p",
-                "no:xdist",
-                "--override-ini",
-                "addopts=",
-                f"-m={marker_type}",
-                "--collect-only",
-                "-q",  # Use quiet output for reliable parsing
-                str(file_path),
-            ]
+        cmd = [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:cov",
+            "-p",
+            "no:xdist",
+            "--override-ini",
+            "addopts=",
+            f"-m={marker_type}",
+            "--collect-only",
+            "-q",
+            str(file_path),
+        ]
 
-            logger.debug("Spawning subprocess: %s", " ".join(cmd))
-            start_time = time.time()
-            env = os.environ.copy()
-            env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-            proc = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                start_new_session=True,
-                env=env,
+        logger.debug("Spawning subprocess: %s", " ".join(cmd))
+        start_time = time.time()
+        env = os.environ.copy()
+        env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+            env=env,
+        )
+
+        issues: List[Dict[str, Any]] = []
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout)
+            logger.debug(
+                "Subprocess %s finished in %.2fs with return code %s",
+                proc.pid,
+                time.time() - start_time,
+                proc.returncode,
             )
 
-            try:
-                stdout, stderr = proc.communicate(timeout=timeout)
-                logger.debug(
-                    "Subprocess %s finished in %.2fs with return code %s",
-                    proc.pid,
-                    time.time() - start_time,
-                    proc.returncode,
-                )
-
-                if proc.returncode != 0:
-                    if proc.returncode == 5:
-                        log_msg = (
-                            f"pytest collected no tests for {file_path} "
-                            f"[marker={marker_type}]"
-                        )
-                        logger.info(log_msg)
-                        recognized_markers[marker_type] = {
-                            "file_count": marker_count,
-                            "pytest_count": 0,
-                            "recognized": True,
-                            "registered_in_pytest_ini": markers_registered.get(
-                                marker_type, False
-                            ),
-                            "error": None,
-                            "uncollected_tests": [],
-                        }
-                    else:
-                        error_msg = (
-                            stderr.strip().splitlines()[-1]
-                            if stderr
-                            else f"exit code {proc.returncode}"
-                        )
-                        log_msg = (
-                            f"pytest collection failed for {file_path} "
-                            f"[marker={marker_type}]: {error_msg}"
-                        )
-                        logger.warning(log_msg)
-                        print(log_msg, file=sys.stderr)
-                        recognized_markers[marker_type] = {
-                            "file_count": marker_count,
-                            "pytest_count": 0,
-                            "recognized": False,
-                            "registered_in_pytest_ini": markers_registered.get(
-                                marker_type, False
-                            ),
-                            "error": error_msg,
-                            "uncollected_tests": [],
-                        }
-                        additional_issues.append(
-                            {
-                                "type": "pytest_error",
-                                "marker": marker_type,
-                                "message": log_msg,
-                            }
-                        )
-                else:
-                    # Collect unique tests for this marker. Parameterized tests appear
-                    # multiple times in the collection output (e.g. ``test_fn[param]``).
-                    # Deduplicate by stripping parametrization components before counting.
-                    collected_tests: Set[str] = set()
-
-                    rel_path = os.path.relpath(file_path)
-                    for line in stdout.split("\n"):
-                        if str(file_path) in line or rel_path in line:
-                            test_parts = line.strip().split("::")
-                            if len(test_parts) >= 2:
-                                test_name = test_parts[-1]
-                                # Remove paramization suffixes like ``[param]`` or ``(param)``
-                                test_name = re.split(r"[\[(]", test_name)[0]
-                                collected_tests.add(test_name)
-
-                    collected_count = len(collected_tests)
-
-                    # Identify which tests have the marker but weren't collected
-                    uncollected_tests = [
-                        name
-                        for name, marker in markers.items()
-                        if marker == marker_type and name not in collected_tests
-                    ]
-
-                    recognized_markers[marker_type] = {
+            if proc.returncode != 0:
+                if proc.returncode == 5:
+                    log_msg = (
+                        f"pytest collected no tests for {file_path} "
+                        f"[marker={marker_type}]"
+                    )
+                    logger.info(log_msg)
+                    result = {
                         "file_count": marker_count,
-                        "pytest_count": collected_count,
-                        "recognized": collected_count == marker_count,
+                        "pytest_count": 0,
+                        "recognized": True,
                         "registered_in_pytest_ini": markers_registered.get(
                             marker_type, False
                         ),
-                        "uncollected_tests": uncollected_tests,
+                        "error": None,
+                        "uncollected_tests": [],
                     }
-            except subprocess.TimeoutExpired:
-                log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
-                logger.warning(log_msg)
-                print(log_msg, file=sys.stderr)
-                try:
-                    os.killpg(proc.pid, signal.SIGKILL)
-                except Exception as kill_err:  # pragma: no cover - defensive
-                    logger.debug(
-                        "Failed to kill process group %s: %s", proc.pid, kill_err
+                else:
+                    error_msg = (
+                        stderr.strip().splitlines()[-1]
+                        if stderr
+                        else f"exit code {proc.returncode}"
                     )
-                    proc.kill()
-                try:
-                    stdout, stderr = proc.communicate(timeout=5)
-                except Exception:  # pragma: no cover - defensive
-                    stdout, stderr = "", ""
-                recognized_markers[marker_type] = {
+                    log_msg = (
+                        f"pytest collection failed for {file_path} "
+                        f"[marker={marker_type}]: {error_msg}"
+                    )
+                    logger.warning(log_msg)
+                    print(log_msg, file=sys.stderr)
+                    result = {
+                        "file_count": marker_count,
+                        "pytest_count": 0,
+                        "recognized": False,
+                        "registered_in_pytest_ini": markers_registered.get(
+                            marker_type, False
+                        ),
+                        "error": error_msg,
+                        "uncollected_tests": [],
+                    }
+                    issues.append(
+                        {
+                            "type": "pytest_error",
+                            "marker": marker_type,
+                            "message": log_msg,
+                        }
+                    )
+            else:
+                collected_tests: Set[str] = set()
+                rel_path = os.path.relpath(file_path)
+                for line in stdout.split("\n"):
+                    if str(file_path) in line or rel_path in line:
+                        test_parts = line.strip().split("::")
+                        if len(test_parts) >= 2:
+                            test_name = test_parts[-1]
+                            test_name = re.split(r"[\[(]", test_name)[0]
+                            collected_tests.add(test_name)
+
+                collected_count = len(collected_tests)
+                uncollected_tests = [
+                    name
+                    for name, marker in markers.items()
+                    if marker == marker_type and name not in collected_tests
+                ]
+
+                result = {
                     "file_count": marker_count,
-                    "pytest_count": 0,
-                    "recognized": False,
+                    "pytest_count": collected_count,
+                    "recognized": collected_count == marker_count,
                     "registered_in_pytest_ini": markers_registered.get(
                         marker_type, False
                     ),
-                    "error": "subprocess timeout",
-                    "uncollected_tests": [],
-                    "timeout": True,
+                    "uncollected_tests": uncollected_tests,
                 }
-                additional_issues.append(
-                    {
-                        "type": "pytest_timeout",
-                        "marker": marker_type,
-                        "message": log_msg,
-                    }
-                )
-            except Exception as e:  # pragma: no cover - defensive
-                log_msg = f"pytest collection raised unexpected error for {file_path} [marker={marker_type}]: {e}"
-                logger.warning(log_msg)
-                print(log_msg, file=sys.stderr)
-                recognized_markers[marker_type] = {
-                    "file_count": marker_count,
-                    "pytest_count": 0,
-                    "recognized": False,
-                    "registered_in_pytest_ini": markers_registered.get(
-                        marker_type, False
-                    ),
-                    "error": str(e),
-                    "uncollected_tests": [],
+        except subprocess.TimeoutExpired:
+            log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
+            logger.warning(log_msg)
+            print(log_msg, file=sys.stderr)
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except Exception as kill_err:  # pragma: no cover - defensive
+                logger.debug("Failed to kill process group %s: %s", proc.pid, kill_err)
+                proc.kill()
+            try:
+                stdout, stderr = proc.communicate(timeout=5)
+            except Exception:  # pragma: no cover - defensive
+                stdout, stderr = "", ""
+            result = {
+                "file_count": marker_count,
+                "pytest_count": 0,
+                "recognized": False,
+                "registered_in_pytest_ini": markers_registered.get(marker_type, False),
+                "error": "subprocess timeout",
+                "uncollected_tests": [],
+                "timeout": True,
+            }
+            issues.append(
+                {
+                    "type": "pytest_timeout",
+                    "marker": marker_type,
+                    "message": log_msg,
                 }
-                additional_issues.append(
-                    {
-                        "type": "pytest_error",
-                        "marker": marker_type,
-                        "message": log_msg,
-                    }
-                )
+            )
+        except Exception as e:  # pragma: no cover - defensive
+            log_msg = (
+                f"pytest collection raised unexpected error for {file_path} "
+                f"[marker={marker_type}]: {e}"
+            )
+            logger.warning(log_msg)
+            print(log_msg, file=sys.stderr)
+            result = {
+                "file_count": marker_count,
+                "pytest_count": 0,
+                "recognized": False,
+                "registered_in_pytest_ini": markers_registered.get(marker_type, False),
+                "error": str(e),
+                "uncollected_tests": [],
+            }
+            issues.append(
+                {
+                    "type": "pytest_error",
+                    "marker": marker_type,
+                    "message": log_msg,
+                }
+            )
+
+        return marker_type, result, issues
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(run_marker_check, m) for m in ["fast", "medium", "slow"]]
+        for fut in concurrent.futures.as_completed(futures):
+            marker_type, result, issues = fut.result()
+            if result is not None:
+                recognized_markers[marker_type] = result
+            additional_issues.extend(issues)
 
     # Prepare verification results
     results = {
