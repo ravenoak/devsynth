@@ -92,7 +92,9 @@ cd devsynth
 ### 2. Install Dependencies
 
 ```bash
-# Install development dependencies and required extras
+# Configure Poetry to create a virtual environment and reinstall dependencies
+poetry config virtualenvs.create true
+poetry env remove --all || true
 poetry install --with dev --extras "tests retrieval chromadb api"
 
 # Enable GPU support if needed
@@ -104,11 +106,12 @@ poetry shell
 # Confirm key tools are available
 poetry run pre-commit --version
 poetry run pytest --version
+poetry run devsynth --help
 ```
 
-These commands install all required packages, activate the Poetry-managed
-virtual environment, and verify that pre-commit and pytest are available. Once
-complete, proceed to configure environment variables.
+These commands reinstall all required packages in a dedicated Poetry-managed
+virtual environment and verify that pre-commit, pytest, and the `devsynth`
+CLI are available. Once complete, proceed to configure environment variables.
 
 ### Virtual environment best practices
 
