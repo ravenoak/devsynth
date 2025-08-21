@@ -6,7 +6,10 @@ import pytest
 
 
 @pytest.mark.fast
-def speed_option_recognized():
+def test_speed_option_recognized():
+    """Verify that the ``--speed`` option filters tests by marker.
+
+    ReqID: DEV-0000"""
     repo_root = Path(__file__).resolve().parents[3]
     test_file = repo_root / "tests" / "tmp_speed_dummy.py"
     try:
