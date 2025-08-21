@@ -40,6 +40,25 @@ def invoke_run_tests(command_result: Dict[str, str]) -> None:
     command_result["output"] = result.stdout + result.stderr
 
 
+@when('I invoke "devsynth run-tests --target unit-tests --speed=fast"')
+def invoke_run_tests_parallel(command_result: Dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--target",
+        "unit-tests",
+        "--speed=fast",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
+
+
 @when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1"'
 )
@@ -77,3 +96,9 @@ def command_fails(command_result: Dict[str, str]) -> None:
 def output_mentions_no_tests(command_result: Dict[str, str]) -> None:
     output = command_result.get("output", "").lower()
     assert "collected 0 items" in output or "no tests ran" in output
+
+
+@then("the output should not contain xdist assertions")
+def output_no_xdist_assertions(command_result: Dict[str, str]) -> None:
+    output = command_result.get("output", "")
+    assert "INTERNALERROR" not in output

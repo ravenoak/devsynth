@@ -14,6 +14,13 @@ Feature: devsynth run-tests command
     Then the command should succeed
     And the output should mention no tests were run
 
+  Scenario: Empty test selection runs in parallel without xdist assertions
+    Given the environment variable "PYTEST_ADDOPTS" is "-k nonexistent_test_keyword"
+    When I invoke "devsynth run-tests --target unit-tests --speed=fast"
+    Then the command should succeed
+    And the output should mention no tests were run
+    And the output should not contain xdist assertions
+
   Scenario: Failing tests return a non-zero exit code
     Given the environment variable "PYTEST_ADDOPTS" is "-k test_provider_logging"
     When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel"

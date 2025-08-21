@@ -287,6 +287,21 @@ poetry run pytest -q
 
 Always run tests with `poetry run devsynth run-tests --speed=<cat>`. Use `--maxfail <n>` to exit after a set number of failures. If `pytest` reports missing packages, run `poetry install` to restore them.
 
+The `devsynth run-tests` command disables optional provider tests by default so
+missing services won't stall the suite. For example, LM Studio tests are
+skipped unless explicitly enabled:
+
+```bash
+poetry run devsynth run-tests --speed=fast  # LM Studio tests skipped
+
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true  # opt in to LM Studio tests
+poetry run devsynth run-tests --speed=fast
+```
+
+When a speed marker matches no tests the command still succeeds and reports
+"no tests ran", avoiding `pytest-xdist` assertion errors during parallel
+execution.
+
 Run each speed category separately to surface any parallel execution issues:
 
 ```bash

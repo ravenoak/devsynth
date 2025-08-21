@@ -9,6 +9,7 @@ Example:
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional
 
 import typer
@@ -42,6 +43,19 @@ def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
         else:
             result[item] = True
     return result
+
+
+def _configure_optional_providers() -> None:
+    """Disable tests for missing optional providers.
+
+    Some test suites depend on services like LM Studio. When those services or
+    their Python packages aren't available, running the tests can hang while
+    the runner waits for an unavailable resource. We default these optional
+    resources to "false" unless explicitly enabled by the user to ensure the
+    corresponding tests are skipped rather than stalling the run.
+    """
+
+    os.environ.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
 
 
 def run_tests_cmd(
@@ -80,6 +94,8 @@ def run_tests_cmd(
     """Run DevSynth test suites."""
 
     ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
+
+    _configure_optional_providers()
 
     speed_categories = speeds or None
     feature_map = _parse_feature_options(features)

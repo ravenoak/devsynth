@@ -1,5 +1,6 @@
 """Tests for the ``run-tests`` CLI command."""
 
+import os
 import typing
 from unittest.mock import patch
 
@@ -40,7 +41,9 @@ class DummyBridge:
 
 
 def test_run_tests_cmd_invokes_runner() -> None:
-    """run_tests_cmd should call the underlying ``run_tests`` helper."""
+    """run_tests_cmd should call the underlying ``run_tests`` helper.
+
+    ReqID: FR-22"""
 
     with patch.object(module, "run_tests", return_value=(True, "ok")) as mock_run:
         module.run_tests_cmd(target="unit-tests", speeds=["fast"], bridge=DummyBridge())
@@ -48,7 +51,9 @@ def test_run_tests_cmd_invokes_runner() -> None:
 
 
 def test_run_tests_cmd_nonzero_exit() -> None:
-    """run_tests_cmd exits with code 1 when tests fail."""
+    """run_tests_cmd exits with code 1 when tests fail.
+
+    ReqID: FR-22"""
 
     with patch.object(module, "run_tests", return_value=(False, "bad")):
         with pytest.raises(module.typer.Exit) as exc:
@@ -56,8 +61,21 @@ def test_run_tests_cmd_nonzero_exit() -> None:
         assert exc.value.exit_code == 1
 
 
+def test_run_tests_cmd_sets_optional_provider_guard(monkeypatch) -> None:
+    """Unset provider env vars default to skipping optional resources.
+
+    ReqID: FR-22"""
+
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+    with patch.object(module, "run_tests", return_value=(True, "")):
+        module.run_tests_cmd(target="unit-tests", bridge=DummyBridge())
+    assert os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE") == "false"
+
+
 def test_run_tests_cli_full_invocation() -> None:
-    """Full CLI invocation delegates to ``run_tests`` and succeeds."""
+    """Full CLI invocation delegates to ``run_tests`` and succeeds.
+
+    ReqID: FR-22"""
 
     runner = CliRunner()
     with patch(
@@ -85,7 +103,9 @@ def test_run_tests_cli_full_invocation() -> None:
 
 
 def test_run_tests_cli_help() -> None:
-    """The ``--help`` flag should render without Typer runtime errors."""
+    """The ``--help`` flag should render without Typer runtime errors.
+
+    ReqID: FR-22"""
 
     runner = CliRunner()
     app = typer.Typer()
@@ -97,7 +117,9 @@ def test_run_tests_cli_help() -> None:
 
 
 def test_run_tests_cli_maxfail_option() -> None:
-    """``--maxfail`` forwards the value to the runner."""
+    """``--maxfail`` forwards the value to the runner.
+
+    ReqID: FR-22"""
 
     runner = CliRunner()
     with patch(
