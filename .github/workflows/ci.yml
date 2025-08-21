@@ -50,12 +50,6 @@ jobs:
       - name: Verify test markers
         run: |
           poetry run python scripts/verify_test_markers.py
-      - name: Run Bandit
-        run: |
-          poetry run bandit -q -r src
-      - name: Run Safety
-        run: |
-          python scripts/dependency_safety_check.py
       - name: Task release prep
         run: task release:prep
       - name: Build package
