@@ -45,6 +45,7 @@ Thank you for your interest in contributing to DevSynth! This document provides 
 - Draft specifications in [`docs/specifications/`](docs/specifications/index.md) answering the Socratic checklist before coding.
 - Capture expected behaviour with a failing BDD feature in `tests/behavior/features/` to drive implementation.
 - Keep specs and features updated alongside code to maintain traceability.
+- Link specifications to the code and tests they cover and run `poetry run python scripts/verify_requirements_traceability.py`.
 
 ## Socratic Checklist
 

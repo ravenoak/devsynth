@@ -555,3 +555,8 @@ The WSDE multi-agent interaction specification provides a comprehensive framewor
 ## Implementation Status
 
 This feature is **implemented**. See `src/devsynth/adapters/agents/agent_adapter.py` for WSDE team coordination logic.
+
+## References
+
+- [src/devsynth/adapters/agents/agent_adapter.py](../../src/devsynth/adapters/agents/agent_adapter.py)
+- [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)
