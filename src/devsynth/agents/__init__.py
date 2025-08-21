@@ -1,5 +1,6 @@
 """Agent package exposing core agent utilities."""
 
-from .critique_agent import CritiqueAgent, Critique
+from .critique_agent import Critique, CritiqueAgent
+from .multi_agent_coordinator import MultiAgentCoordinator, Proposer
 
-__all__ = ["CritiqueAgent", "Critique"]
+__all__ = ["CritiqueAgent", "Critique", "MultiAgentCoordinator", "Proposer"]

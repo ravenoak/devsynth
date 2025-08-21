@@ -38,3 +38,4 @@ Required metadata fields:
 
 - [Issue: Multi-Agent Collaboration](../../issues/multi-agent-collaboration.md)
 - [BDD: multi_agent_collaboration.feature](../../tests/behavior/features/multi_agent_collaboration.feature)
+- [Convergence Analysis](../multi-agent-consensus-convergence.md)
