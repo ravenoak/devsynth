@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-08-21T17:21:58.812720",
+  "timestamp": "2025-08-21T18:54:39.951390",
   "verification": {
     "directory": "tests",
     "total_files": 738,
-    "files_with_issues": 2,
+    "files_with_issues": 1,
     "total_test_functions": 2501,
     "total_markers": 1522,
-    "total_misaligned_markers": 2,
+    "total_misaligned_markers": 1,
     "total_duplicate_markers": 0,
     "total_unrecognized_markers": 0,
     "marker_counts": {
@@ -32,43 +32,6 @@
         ],
         "duplicate_markers": [],
         "recognized_markers": {},
-        "issues": [
-          {
-            "type": "misaligned_markers",
-            "message": "File has 1 misaligned markers"
-          }
-        ]
-      },
-      "/workspace/devsynth/tests/unit/application/agents/test_test_agent.py": {
-        "file_path": "/workspace/devsynth/tests/unit/application/agents/test_test_agent.py",
-        "has_pytest_import": true,
-        "test_functions": 4,
-        "markers": {
-          "test_initialization_succeeds": "medium",
-          "test_process_succeeds": "medium",
-          "test_get_capabilities_with_custom_capabilities_succeeds": "medium",
-          "test_process_error_handling": "medium"
-        },
-        "tests_with_markers": 4,
-        "tests_without_markers": 0,
-        "misaligned_markers": [
-          {
-            "line": 20,
-            "marker": "medium",
-            "text": "@pytest.mark.medium"
-          }
-        ],
-        "duplicate_markers": [],
-        "recognized_markers": {
-          "medium": {
-            "file_count": 4,
-            "pytest_count": 4,
-            "recognized": true,
-            "registered_in_pytest_ini": true,
-            "uncollected_tests": [],
-            "duration": 4.414330244064331
-          }
-        },
         "issues": [
           {
             "type": "misaligned_markers",
