@@ -1,0 +1,14 @@
+[
+  {
+    "workload": 10000,
+    "duration_seconds": 0.001063993999991908
+  },
+  {
+    "workload": 100000,
+    "duration_seconds": 0.010926303000019288
+  },
+  {
+    "workload": 1000000,
+    "duration_seconds": 0.11343649700000924
+  }
+]
