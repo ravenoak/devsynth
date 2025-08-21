@@ -33,3 +33,7 @@ All endpoints require optional bearer token authentication when enabled via conf
 
 The API modules listed above are implemented and covered by unit and integration tests. Refer to the [Requirements Traceability Matrix](../requirements_traceability.md) for details on requirement coverage.
 
+## References
+
+- [src/devsynth/api.py](../../src/devsynth/api.py)
+- [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)

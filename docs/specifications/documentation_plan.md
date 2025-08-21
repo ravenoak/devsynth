@@ -39,3 +39,8 @@ This document defines the unified documentation strategy for DevSynth, consolida
 ## Implementation Status
 
 .
+
+## References
+
+- [src/devsynth/api.py](../../src/devsynth/api.py)
+- [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)

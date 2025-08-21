@@ -54,3 +54,8 @@ By consolidating metrics in a unified system, DevSynth will provide comprehensiv
 
 Basic metrics tracking utilities are implemented. Advanced analytics remain a
 work in progress.
+
+## References
+
+- [src/devsynth/api.py](../../src/devsynth/api.py)
+- [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)

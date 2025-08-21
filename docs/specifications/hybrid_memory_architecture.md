@@ -592,3 +592,8 @@ The Hybrid Memory Architecture provides a flexible, powerful foundation for mana
 
 This feature is **implemented**. The hybrid memory system supports multiple
 backends with a unified interface.
+
+## References
+
+- [src/devsynth/api.py](../../src/devsynth/api.py)
+- [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)

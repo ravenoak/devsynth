@@ -178,3 +178,8 @@ A system that maintains up-to-date, comprehensive documentation throughout the s
 ## Implementation Status
 
 .
+
+## References
+
+- [src/devsynth/api.py](../../src/devsynth/api.py)
+- [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)
