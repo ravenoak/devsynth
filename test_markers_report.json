@@ -1,18 +1,18 @@
 {
-  "timestamp": "2025-08-21T15:56:13.517334",
+  "timestamp": "2025-08-21T17:49:43.654449",
   "verification": {
     "directory": "tests",
-    "total_files": 737,
-    "files_with_issues": 2,
-    "total_test_functions": 2498,
-    "total_markers": 1520,
-    "total_misaligned_markers": 2,
+    "total_files": 738,
+    "files_with_issues": 1,
+    "total_test_functions": 2501,
+    "total_markers": 1522,
+    "total_misaligned_markers": 1,
     "total_duplicate_markers": 0,
     "total_unrecognized_markers": 0,
     "marker_counts": {
-      "fast": 108,
+      "fast": 109,
       "medium": 1365,
-      "slow": 47,
+      "slow": 48,
       "isolation": 0
     },
     "files": {
@@ -32,43 +32,6 @@
         ],
         "duplicate_markers": [],
         "recognized_markers": {},
-        "issues": [
-          {
-            "type": "misaligned_markers",
-            "message": "File has 1 misaligned markers"
-          }
-        ]
-      },
-      "/workspace/devsynth/tests/unit/application/agents/test_test_agent.py": {
-        "file_path": "/workspace/devsynth/tests/unit/application/agents/test_test_agent.py",
-        "has_pytest_import": true,
-        "test_functions": 4,
-        "markers": {
-          "test_initialization_succeeds": "medium",
-          "test_process_succeeds": "medium",
-          "test_get_capabilities_with_custom_capabilities_succeeds": "medium",
-          "test_process_error_handling": "medium"
-        },
-        "tests_with_markers": 4,
-        "tests_without_markers": 0,
-        "misaligned_markers": [
-          {
-            "line": 20,
-            "marker": "medium",
-            "text": "@pytest.mark.medium"
-          }
-        ],
-        "duplicate_markers": [],
-        "recognized_markers": {
-          "medium": {
-            "file_count": 4,
-            "pytest_count": 4,
-            "recognized": true,
-            "registered_in_pytest_ini": true,
-            "uncollected_tests": [],
-            "duration": 2.7432024478912354
-          }
-        },
         "issues": [
           {
             "type": "misaligned_markers",
