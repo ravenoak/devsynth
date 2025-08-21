@@ -25,6 +25,8 @@ This document describes the integration between DevSynth and LM Studio, includin
 
 DevSynth can use LM Studio as a provider for language models. LM Studio is a desktop application that allows you to run language models locally on your machine. By integrating with LM Studio, DevSynth can leverage these local models for various tasks, such as requirement analysis, specification generation, test generation, and code generation.
 
+The LM Studio integration is optional. If the `lmstudio` Python package is not installed, these features are disabled and tests that depend on LM Studio are skipped.
+
 **Implementation Status:** The LM Studio provider is stable for local use. Remote model support and advanced streaming remain experimental.
 
 ## Prerequisites
@@ -146,7 +148,7 @@ The LM Studio integration is implemented in the following files:
 - `src/devsynth/application/cli/commands.py`: CLI commands for configuring LLM providers
 - `tests/integration/test_lmstudio_provider.py`: Integration tests for the LM Studio provider
 
-The provider uses the official `lmstudio` Python SDK for all API interactions.  
+The provider uses the official `lmstudio` Python SDK for all API interactions.
 `lmstudio.sync_api` is configured with the API host from settings and then used
 to create chat completions and embeddings without relying on raw HTTP requests.
 

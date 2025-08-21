@@ -19,6 +19,8 @@ from devsynth.adapters.provider_system import (
 )
 from devsynth.fallback import retry_with_exponential_backoff
 
+pytest.importorskip("lmstudio")
+
 pytestmark = [pytest.mark.memory_intensive]
 
 
