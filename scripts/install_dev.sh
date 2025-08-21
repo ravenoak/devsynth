@@ -10,7 +10,16 @@ if ! command -v task >/dev/null 2>&1; then
   echo "[info] installing go-task"
   TASK_BIN_DIR="${HOME}/.local/bin"
   mkdir -p "$TASK_BIN_DIR"
-  curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
+  else
+    echo "[error] neither curl nor wget is available" >&2
+    exit 1
+  fi
+
   export PATH="$TASK_BIN_DIR:$PATH"
   echo "$TASK_BIN_DIR" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 fi
@@ -49,9 +58,17 @@ print(" ".join(sorted(pkgs)))
 PY
 )
 
-if [[ "${PIP_NO_INDEX:-0}" != "1" && -n "$optional_pkgs" ]]; then
-  pip wheel $optional_pkgs -w "$WHEEL_DIR" >/dev/null || \
+missing_pkgs=()
+for pkg in $optional_pkgs; do
+  if ! ls "$WHEEL_DIR"/"$pkg"-*.whl >/dev/null 2>&1; then
+    missing_pkgs+=("$pkg")
+  fi
+done
+
+if [[ "${PIP_NO_INDEX:-0}" != "1" && ${#missing_pkgs[@]} -gt 0 ]]; then
+  if ! pip wheel "${missing_pkgs[@]}" -w "$WHEEL_DIR" >/dev/null; then
     echo "[warning] failed to cache optional extras" >&2
+  fi
 fi
 
 export PIP_FIND_LINKS="$WHEEL_DIR"
