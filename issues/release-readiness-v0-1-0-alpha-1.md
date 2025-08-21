@@ -17,6 +17,7 @@ Prerequisites for the first alpha release remain incomplete. The development env
 ## Progress
 - 2025-08-20: Initial audit captured missing virtualenv, absent `task` command, slow-test failures, and stalled marker verification.
 - 2025-08-21: Established a Poetry virtual environment and installed development extras; `poetry env info --path` now reports the expected path. Attempted `poetry run devsynth run-tests --speed=fast`, but the command stalled after an `LMStudioProvider` warning, and `scripts/verify_test_markers.py` still runs slowly and was halted after ~150 files.
+- 2025-08-21: Re-ran release checklist; environment provisioning and `pip check` succeeded, but fast tests failed (missing `tests/tmp_speed_dummy.py`). Medium and slow test runs halted after `LMStudioProvider` warnings. `verify_test_markers.py` was interrupted, deployment tests failed coverage, `task release:prep` ended early, and `verify_release_state` reported missing tag `v0.1.0-alpha.1`.
 
 ## References
 - docs/release/0.1.0-alpha.1.md
