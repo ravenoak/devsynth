@@ -39,14 +39,14 @@ class TestWSDEBaseMethods:
         assert self.team.agents[1] == self.agent2
         assert self.team.agents[2] == self.agent3
 
+    @pytest.mark.medium
     def test_register_dialectical_hook_succeeds(self):
         """Test registering a dialectical hook.
 
         ReqID: N/A"""
         hook_called = False
 
-        @pytest.mark.medium
-        def test_hook_succeeds(self, thesis, antitheses):
+        def hook_succeeds(self, thesis, antitheses):
             """Test that hook succeeds.
 
             ReqID: N/A"""
@@ -54,14 +54,14 @@ class TestWSDEBaseMethods:
             hook_called = True
             return {"synthesis": "test synthesis"}
 
-        self.team.register_dialectical_hook(test_hook_succeeds)
+        self.team.register_dialectical_hook(hook_succeeds)
         assert len(self.team.dialectical_hooks) > 0
-        assert self.team.dialectical_hooks[-1] == test_hook_succeeds
+        assert self.team.dialectical_hooks[-1] == hook_succeeds
         # Since we can't directly call the hook through the team object,
         # we'll just call it directly to verify it works
         thesis = {"content": "test thesis"}
         antitheses = [{"content": "test antithesis"}]
-        result = test_hook_succeeds(thesis, antitheses)
+        result = hook_succeeds(thesis, antitheses)
         assert hook_called
         assert result == {"synthesis": "test synthesis"}
 

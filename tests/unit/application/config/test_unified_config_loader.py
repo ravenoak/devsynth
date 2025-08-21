@@ -43,6 +43,7 @@ def test_save_and_exists_succeeds(tmp_path: Path) -> None:
     assert save_path == unified.path
 
 
+@pytest.mark.medium
 def test_loader_save_function_yaml_succeeds(tmp_path: Path) -> None:
     cfg = UnifiedConfigLoader.load(tmp_path)
     cfg.set_language("go")

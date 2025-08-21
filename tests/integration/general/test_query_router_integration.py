@@ -65,6 +65,7 @@ class TestQueryRouterIntegration:
             MemoryItem(id="d1", content="apple document", memory_type=MemoryType.CODE)
         )
 
+    @pytest.mark.medium
     def test_direct_query(self, manager):
         self._populate(manager)
         results = manager.route_query("apple", store="vector", strategy="direct")
@@ -81,6 +82,7 @@ class TestQueryRouterIntegration:
             for item in items:
                 assert item.metadata.get("source_store") == store
 
+    @pytest.mark.medium
     def test_cross_store_query_subset(self, manager):
         self._populate(manager)
         results = manager.route_query(

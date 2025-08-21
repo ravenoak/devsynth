@@ -41,6 +41,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+# Cache pytest collection results to avoid rerunning slow subprocesses
+PYTEST_COLLECTION_CACHE: Dict[Tuple[str, str], Tuple[str, str, int, float]] = {}
+
 # Limit concurrency to a small, safe default to avoid deadlocks during
 # collection.  The value mirrors ``pytest``'s own conservative defaults.
 DEFAULT_WORKERS = min(os.cpu_count() or 1, 4)
@@ -273,179 +276,200 @@ def verify_file_markers(
                     f"{marker_type}:" in pytest_ini_content
                 )
 
-    def run_marker_check(marker_type: str):
-        marker_count = sum(1 for m in markers.values() if m == marker_type)
+    def run_marker_check(marker_type: str, expected_tests: Set[str]):
+        marker_count = len(expected_tests)
         if marker_count == 0:
             return marker_type, None, []
 
-        cmd = [
-            sys.executable,
-            "-m",
-            "pytest",
-            "-p",
-            "no:cov",
-            "-p",
-            "no:xdist",
-            "--override-ini",
-            "addopts=",
-            f"-m={marker_type}",
-            "--collect-only",
-            "-q",
-            str(file_path),
-        ]
-
-        logger.debug("Spawning subprocess: %s", " ".join(cmd))
-        start_time = time.time()
-        env = os.environ.copy()
-        env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            start_new_session=True,
-            env=env,
-        )
-
+        cache_key = (str(file_path), marker_type)
+        cached = PYTEST_COLLECTION_CACHE.get(cache_key)
         issues: List[Dict[str, Any]] = []
-        try:
-            stdout, stderr = proc.communicate(timeout=timeout)
-            logger.debug(
-                "Subprocess %s finished in %.2fs with return code %s",
-                proc.pid,
-                time.time() - start_time,
-                proc.returncode,
+
+        if cached is None:
+            cmd = [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-p",
+                "no:cov",
+                "-p",
+                "no:xdist",
+                "--override-ini",
+                "addopts=",
+                f"-m={marker_type}",
+                "--collect-only",
+                "-q",
+                str(file_path),
+            ]
+
+            logger.debug("Spawning subprocess: %s", " ".join(cmd))
+            start_time = time.time()
+            env = os.environ.copy()
+            env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                start_new_session=True,
+                env=env,
             )
 
-            if proc.returncode != 0:
-                if proc.returncode == 5:
-                    log_msg = (
-                        f"pytest collected no tests for {file_path} "
-                        f"[marker={marker_type}]"
+            try:
+                stdout, stderr = proc.communicate(timeout=timeout)
+                duration = time.time() - start_time
+                logger.debug(
+                    "Subprocess %s finished in %.2fs with return code %s",
+                    proc.pid,
+                    duration,
+                    proc.returncode,
+                )
+                PYTEST_COLLECTION_CACHE[cache_key] = (
+                    stdout,
+                    stderr,
+                    proc.returncode,
+                    duration,
+                )
+            except subprocess.TimeoutExpired:
+                duration = time.time() - start_time
+                log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
+                logger.warning(log_msg)
+                print(log_msg, file=sys.stderr)
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except Exception as kill_err:  # pragma: no cover - defensive
+                    logger.debug(
+                        "Failed to kill process group %s: %s", proc.pid, kill_err
                     )
-                    logger.info(log_msg)
-                    result = {
-                        "file_count": marker_count,
-                        "pytest_count": 0,
-                        "recognized": True,
-                        "registered_in_pytest_ini": markers_registered.get(
-                            marker_type, False
-                        ),
-                        "error": None,
-                        "uncollected_tests": [],
-                    }
-                else:
-                    error_msg = (
-                        stderr.strip().splitlines()[-1]
-                        if stderr
-                        else f"exit code {proc.returncode}"
-                    )
-                    log_msg = (
-                        f"pytest collection failed for {file_path} "
-                        f"[marker={marker_type}]: {error_msg}"
-                    )
-                    logger.warning(log_msg)
-                    print(log_msg, file=sys.stderr)
-                    result = {
-                        "file_count": marker_count,
-                        "pytest_count": 0,
-                        "recognized": False,
-                        "registered_in_pytest_ini": markers_registered.get(
-                            marker_type, False
-                        ),
-                        "error": error_msg,
-                        "uncollected_tests": [],
-                    }
-                    issues.append(
-                        {
-                            "type": "pytest_error",
-                            "marker": marker_type,
-                            "message": log_msg,
-                        }
-                    )
-            else:
-                collected_tests: Set[str] = set()
-                rel_path = os.path.relpath(file_path)
-                for line in stdout.split("\n"):
-                    if str(file_path) in line or rel_path in line:
-                        test_parts = line.strip().split("::")
-                        if len(test_parts) >= 2:
-                            test_name = test_parts[-1]
-                            test_name = re.split(r"[\[(]", test_name)[0]
-                            collected_tests.add(test_name)
-
-                collected_count = len(collected_tests)
-                uncollected_tests = [
-                    name
-                    for name, marker in markers.items()
-                    if marker == marker_type and name not in collected_tests
-                ]
-
+                    proc.kill()
+                try:
+                    stdout, stderr = proc.communicate(timeout=5)
+                except Exception:  # pragma: no cover - defensive
+                    stdout, stderr = "", ""
+                PYTEST_COLLECTION_CACHE[cache_key] = (
+                    stdout,
+                    stderr,
+                    -1,
+                    duration,
+                )
                 result = {
                     "file_count": marker_count,
-                    "pytest_count": collected_count,
-                    "recognized": collected_count == marker_count,
+                    "pytest_count": 0,
+                    "recognized": False,
                     "registered_in_pytest_ini": markers_registered.get(
                         marker_type, False
                     ),
-                    "uncollected_tests": uncollected_tests,
+                    "error": "subprocess timeout",
+                    "uncollected_tests": [],
+                    "timeout": True,
+                    "duration": duration,
                 }
-        except subprocess.TimeoutExpired:
-            log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
-            logger.warning(log_msg)
-            print(log_msg, file=sys.stderr)
-            try:
-                os.killpg(proc.pid, signal.SIGKILL)
-            except Exception as kill_err:  # pragma: no cover - defensive
-                logger.debug("Failed to kill process group %s: %s", proc.pid, kill_err)
-                proc.kill()
-            try:
-                stdout, stderr = proc.communicate(timeout=5)
-            except Exception:  # pragma: no cover - defensive
-                stdout, stderr = "", ""
+                issues.append(
+                    {
+                        "type": "pytest_timeout",
+                        "marker": marker_type,
+                        "message": log_msg,
+                    }
+                )
+                return marker_type, result, issues
+
+            returncode = proc.returncode
+        else:
+            stdout, stderr, returncode, duration = cached
+            logger.debug(
+                "Using cached subprocess result for %s [marker=%s]",
+                file_path,
+                marker_type,
+            )
+
+        if returncode != 0:
+            if returncode == 5:
+                log_msg = (
+                    f"pytest collected no tests for {file_path} "
+                    f"[marker={marker_type}]"
+                )
+                logger.info(log_msg)
+                result = {
+                    "file_count": marker_count,
+                    "pytest_count": 0,
+                    "recognized": True,
+                    "registered_in_pytest_ini": markers_registered.get(
+                        marker_type, False
+                    ),
+                    "error": None,
+                    "uncollected_tests": [],
+                    "duration": duration,
+                }
+            else:
+                error_msg = (
+                    stderr.strip().splitlines()[-1]
+                    if stderr
+                    else f"exit code {returncode}"
+                )
+                log_msg = (
+                    f"pytest collection failed for {file_path} "
+                    f"[marker={marker_type}]: {error_msg}"
+                )
+                logger.warning(log_msg)
+                print(log_msg, file=sys.stderr)
+                result = {
+                    "file_count": marker_count,
+                    "pytest_count": 0,
+                    "recognized": False,
+                    "registered_in_pytest_ini": markers_registered.get(
+                        marker_type, False
+                    ),
+                    "error": error_msg,
+                    "uncollected_tests": [],
+                    "duration": duration,
+                }
+                issues.append(
+                    {
+                        "type": "pytest_error",
+                        "marker": marker_type,
+                        "message": log_msg,
+                    }
+                )
+        else:
+            collected_tests: Set[str] = set()
+            rel_path = os.path.relpath(file_path)
+            for line in stdout.split("\n"):
+                if str(file_path) in line or rel_path in line:
+                    test_parts = line.strip().split("::")
+                    if len(test_parts) >= 2:
+                        test_name = test_parts[-1]
+                        test_name = re.split(r"[\[(]", test_name)[0]
+                        if test_name in expected_tests:
+                            collected_tests.add(test_name)
+
+            collected_count = len(collected_tests)
+            uncollected_tests = [
+                name for name in expected_tests if name not in collected_tests
+            ]
+
             result = {
                 "file_count": marker_count,
-                "pytest_count": 0,
-                "recognized": False,
+                "pytest_count": collected_count,
+                "recognized": collected_count == marker_count,
                 "registered_in_pytest_ini": markers_registered.get(marker_type, False),
-                "error": "subprocess timeout",
-                "uncollected_tests": [],
-                "timeout": True,
+                "uncollected_tests": uncollected_tests,
+                "duration": duration,
             }
-            issues.append(
-                {
-                    "type": "pytest_timeout",
-                    "marker": marker_type,
-                    "message": log_msg,
-                }
-            )
-        except Exception as e:  # pragma: no cover - defensive
-            log_msg = (
-                f"pytest collection raised unexpected error for {file_path} "
-                f"[marker={marker_type}]: {e}"
-            )
-            logger.warning(log_msg)
-            print(log_msg, file=sys.stderr)
-            result = {
-                "file_count": marker_count,
-                "pytest_count": 0,
-                "recognized": False,
-                "registered_in_pytest_ini": markers_registered.get(marker_type, False),
-                "error": str(e),
-                "uncollected_tests": [],
-            }
-            issues.append(
-                {
-                    "type": "pytest_error",
-                    "marker": marker_type,
-                    "message": log_msg,
-                }
-            )
+
+        # Duration is included for profiling but does not constitute an issue
 
         return marker_type, result, issues
 
+    expected_by_marker = {
+        m: {name for name, mk in markers.items() if mk == m}
+        for m in ["fast", "medium", "slow"]
+    }
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        futures = [pool.submit(run_marker_check, m) for m in ["fast", "medium", "slow"]]
+        futures = [
+            pool.submit(run_marker_check, m, expected_by_marker[m])
+            for m in ["fast", "medium", "slow"]
+        ]
         for fut in concurrent.futures.as_completed(futures):
             marker_type, result, issues = fut.result()
             if result is not None:

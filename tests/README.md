@@ -390,4 +390,14 @@ def test_workflow_progress_tracking():
     ...
 ```
 
+## Test Marker Report
+
+Generate an updated marker report after modifying tests:
+
+```bash
+poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+```
+
+The script caches `pytest --collect-only` results and records subprocess durations so slow collections can be profiled.
+
 Including the requirement ID ensures traceability between tests and requirements.

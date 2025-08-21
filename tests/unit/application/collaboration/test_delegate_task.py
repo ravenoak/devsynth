@@ -77,6 +77,7 @@ class TestDelegateTask:
         with pytest.raises(TeamConfigurationError):
             coordinator.delegate_task({"team_task": True})
 
+    @pytest.mark.medium
     def test_invalid_task_format_succeeds(self) -> None:
         """Test that invalid task format succeeds.
 

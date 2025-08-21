@@ -36,7 +36,7 @@ def sample_project(tmp_path: Path, context):
     )
     (project_dir / "src" / "main.py").write_text("def main():\n    return True\n")
     (project_dir / "tests" / "test_main.py").write_text(
-        "def test_main():\n    assert True\n"
+        "def sample_main():\n    assert True\n"
     )
 
     context.project_path = str(project_dir)
