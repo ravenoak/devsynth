@@ -19,6 +19,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --with dev,docs
+      - name: Verify Poetry virtualenv
+        run: |
+          venv_path=$(poetry env info --path)
+          if [ -z "$venv_path" ]; then
+            echo "Poetry virtualenv path not found" >&2
+            exit 1
+          fi
+          echo "Using virtualenv at $venv_path"
       - name: Lint commit messages
         run: |
           git fetch origin main

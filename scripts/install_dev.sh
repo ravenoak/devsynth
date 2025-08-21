@@ -20,7 +20,11 @@ if ! command -v task >/dev/null 2>&1; then
   exit 1
 fi
 
-optional_pkgs=$(poetry run python - <<'PY'
+# Ensure Poetry manages a dedicated virtual environment
+poetry config virtualenvs.create true
+poetry env remove --all >/dev/null 2>&1 || true
+
+optional_pkgs=$(python - <<'PY'
 import re, tomllib
 
 heavy = {"torch", "transformers"}
@@ -42,7 +46,7 @@ PY
 )
 
 if [[ "${PIP_NO_INDEX:-0}" != "1" && -n "$optional_pkgs" ]]; then
-  poetry run pip wheel $optional_pkgs -w "$WHEEL_DIR" >/dev/null || \
+  pip wheel $optional_pkgs -w "$WHEEL_DIR" >/dev/null || \
     echo "[warning] failed to cache optional extras" >&2
 fi
 
@@ -50,6 +54,12 @@ export PIP_FIND_LINKS="$WHEEL_DIR"
 
 # Install DevSynth with development and documentation dependencies and required extras
 poetry install --with dev,docs --extras "tests retrieval chromadb api"
+
+# Confirm the DevSynth CLI is available
+if ! poetry run devsynth --help >/dev/null 2>&1; then
+  echo "[error] devsynth console script not found" >&2
+  exit 1
+fi
 
 # Install pre-commit hooks to enable repository checks
 poetry run pre-commit install --install-hooks
