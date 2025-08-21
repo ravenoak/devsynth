@@ -8,13 +8,12 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
 ## Setup
 
 **How do I prepare my environment?**
-1. Ensure Python 3.12 is active:
+1. Ensure Python 3.12 is active and Poetry created a virtual environment (enforced via the committed `poetry.toml`):
    ```bash
    python --version
    poetry env info --path
    ```
-   Current venv path: `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`
-   If Poetry uses a different interpreter, recreate the environment:
+   If `poetry env info --path` prints nothing or points elsewhere, recreate the environment:
    ```bash
    poetry env use 3.12 && poetry install --with dev --extras tests retrieval chromadb api
    ```
