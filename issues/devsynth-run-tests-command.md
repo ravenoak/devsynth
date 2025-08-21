@@ -16,6 +16,7 @@ devsynth run-tests command is not yet implemented, limiting DevSynth's capabilit
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-08-21: After activating the virtualenv, running `poetry run devsynth run-tests --speed=fast` emitted an `LMStudioProvider` missing warning and stalled, indicating the command and optional dependency handling remain incomplete.
 
 ## References
 - Specification: docs/specifications/devsynth-run-tests-command.md

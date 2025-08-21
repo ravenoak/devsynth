@@ -15,6 +15,7 @@ Developers run commands in the global Python environment because `poetry` is con
 ## Progress
 - 2025-08-20: Identified missing virtualenv after failing to run `devsynth` tests.
 - 2025-08-20: `poetry env info --path` produced no output even after `poetry install`, confirming virtualenv remains disabled.
+- 2025-08-21: Enabled Poetry virtual environment with `poetry config virtualenvs.create true` and reinstalled dependencies; `poetry env info --path` now reports `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`.
 
 ## References
 - docs/release/0.1.0-alpha.1.md
