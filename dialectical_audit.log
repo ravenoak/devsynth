@@ -37,6 +37,7 @@
   "resolved": [
     "Release checklist commands executed 2025-08-20; verify_test_markers.py failed and task command was not found.",
     "Complete memory system integration documented and referenced in code 2025-08-20.",
-    "Finalize dialectical reasoning documented and referenced in code 2025-08-20."
+    "Finalize dialectical reasoning documented and referenced in code 2025-08-20.",
+    "Release readiness audit 2025-08-20: created issue release-readiness-v0-1-0-alpha-1 to track virtualenv, task command, and test failures."
   ]
 }
