@@ -1,0 +1,77 @@
+[
+  {
+    "num_layers": 1,
+    "total_accesses": 5000,
+    "hits": [
+      4004
+    ],
+    "per_layer_rate": [
+      0.8008
+    ],
+    "overall_rate": 0.8008
+  },
+  {
+    "num_layers": 2,
+    "total_accesses": 5000,
+    "hits": [
+      4004,
+      0
+    ],
+    "per_layer_rate": [
+      0.8008,
+      0.0
+    ],
+    "overall_rate": 0.8008
+  },
+  {
+    "num_layers": 3,
+    "total_accesses": 5000,
+    "hits": [
+      4004,
+      0,
+      0
+    ],
+    "per_layer_rate": [
+      0.8008,
+      0.0,
+      0.0
+    ],
+    "overall_rate": 0.8008
+  },
+  {
+    "num_layers": 4,
+    "total_accesses": 5000,
+    "hits": [
+      4004,
+      0,
+      0,
+      0
+    ],
+    "per_layer_rate": [
+      0.8008,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "overall_rate": 0.8008
+  },
+  {
+    "num_layers": 5,
+    "total_accesses": 5000,
+    "hits": [
+      4004,
+      0,
+      0,
+      0,
+      0
+    ],
+    "per_layer_rate": [
+      0.8008,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "overall_rate": 0.8008
+  }
+]

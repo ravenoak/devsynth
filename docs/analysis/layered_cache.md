@@ -5,9 +5,9 @@ version: "0.1.0-alpha.1"
 tags:
   - "analysis"
   - "caching"
-status: "draft"
+status: "reviewed"
 author: "DevSynth Team"
-last_reviewed: "2025-08-23"
+last_reviewed: "2025-08-21"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Layered Cache Analysis
@@ -29,3 +29,17 @@ Let \(A\) denote total accesses and \(H_i\) the hits served by layer *i* (0-inde
 - Promotion copies items to all preceding layers upon access.
 - Cache layers are dictionary-backed with \(O(1)\) lookups and writes.
 - Eviction policies are not modeled in this analysis.
+## Simulation Results
+
+The following table shows overall hit rates for different layer counts under uniform and Zipf access patterns using 5,000 accesses across 1,000 distinct items.
+
+| Layers | Uniform | Zipf |
+| ------ | ------- | ---- |
+| 1 | 0.8008 | 0.8502 |
+| 2 | 0.8008 | 0.8502 |
+| 3 | 0.8008 | 0.8502 |
+| 4 | 0.8008 | 0.8502 |
+| 5 | 0.8008 | 0.8502 |
+
+![Uniform Access Pattern](layered_cache_uniform.svg)
+![Zipf Access Pattern](layered_cache_zipf.svg)
