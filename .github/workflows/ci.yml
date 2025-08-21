@@ -33,8 +33,10 @@ jobs:
             curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR"
             echo "$TASK_BIN_DIR" >> $GITHUB_PATH
           fi
-      - name: Task version
-        run: task --version
+      - name: Verify tooling
+        run: |
+          poetry env info --path
+          task --version
       - name: Lint commit messages
         run: |
           git fetch origin main

@@ -65,6 +65,7 @@ if [[ -z "$venv_path" ]]; then
   echo "[error] poetry virtualenv path not found" >&2
   exit 1
 fi
+echo "[info] poetry virtualenv: $venv_path"
 
 # Confirm the DevSynth CLI is available
 if ! poetry run devsynth --help >/dev/null 2>&1; then

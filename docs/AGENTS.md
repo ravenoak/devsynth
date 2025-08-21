@@ -8,7 +8,8 @@ This directory hosts DevSynth documentation.
 ## Setup
 
 **How do I prepare to edit docs?**
-Follow the repository setup from the root AGENTS and run commands through `poetry run`.
+Follow the repository setup from the root AGENTS, verifying `poetry env info --path`
+and `task --version` succeed, then run commands through `poetry run`.
 
 ## Testing
 
