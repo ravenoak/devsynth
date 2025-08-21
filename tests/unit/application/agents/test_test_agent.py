@@ -8,7 +8,9 @@ from devsynth.ports.llm_port import LLMPort
 
 
 class TestTestAgent:
-    """Unit tests for the TestAgent class."""
+    """Unit tests for the TestAgent class.
+
+    ReqID: N/A"""
 
     @pytest.fixture
     def mock_llm_port(self):
@@ -18,7 +20,6 @@ class TestTestAgent:
         return mock_port
 
     @pytest.fixture
-    @pytest.mark.medium
     def agent(self, mock_llm_port):
         agent = TestAgent()
         config = AgentConfig(
@@ -33,6 +34,9 @@ class TestTestAgent:
 
     @pytest.mark.medium
     def test_initialization_succeeds(self, agent):
+        """Test that the agent initializes correctly.
+
+        ReqID: N/A"""
         assert agent.name == "TestTestAgent"
         assert agent.agent_type == AgentType.TEST.value
         assert agent.description == "Test Agent"
@@ -45,6 +49,9 @@ class TestTestAgent:
 
     @pytest.mark.medium
     def test_process_succeeds(self, agent):
+        """Test the process method.
+
+        ReqID: N/A"""
         inputs = {"context": "Sample project", "specifications": "Do something"}
         result = agent.process(inputs)
         agent.llm_port.generate.assert_called_once()
@@ -60,6 +67,9 @@ class TestTestAgent:
 
     @pytest.mark.medium
     def test_get_capabilities_with_custom_capabilities_succeeds(self):
+        """Test get_capabilities with a custom list.
+
+        ReqID: N/A"""
         agent = TestAgent()
         config = AgentConfig(
             name="CustomTestAgent",
@@ -74,6 +84,9 @@ class TestTestAgent:
     @patch("devsynth.application.agents.test.logger")
     @pytest.mark.medium
     def test_process_error_handling(self, mock_logger, agent):
+        """Test that process handles errors gracefully.
+
+        ReqID: N/A"""
         with patch.object(agent, "create_wsde", side_effect=Exception("err")):
             result = agent.process({})
             mock_logger.error.assert_called_once()
