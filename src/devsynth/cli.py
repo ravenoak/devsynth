@@ -49,12 +49,31 @@ def main(argv: list[str] | None = None) -> None:
         result: dict[str, Any] = analyzer.analyze()
         print(json.dumps(result, indent=2))
     else:
-        from devsynth.adapters.cli.typer_adapter import run_cli
+        try:
+            from devsynth.adapters.cli.typer_adapter import run_cli
+        except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
+            from devsynth.application.cli.errors import handle_error
+            from devsynth.interface.cli import CLIUXBridge
+
+            msg = (
+                f"Missing optional dependency: {exc.name}. "
+                "Install the required provider package to enable this feature."
+            )
+            handle_error(CLIUXBridge(), msg)
+            raise SystemExit(1)
+
         from devsynth.application.cli.errors import handle_error
         from devsynth.interface.cli import CLIUXBridge
 
         try:
             run_cli()
+        except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
+            msg = (
+                f"Missing optional dependency: {exc.name}. "
+                "Install the required provider package to enable this feature."
+            )
+            handle_error(CLIUXBridge(), msg)
+            raise SystemExit(1)
         except Exception as err:  # pragma: no cover - defensive
             handle_error(CLIUXBridge(), err)
             raise SystemExit(1)
