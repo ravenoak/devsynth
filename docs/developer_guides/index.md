@@ -37,6 +37,7 @@ This section is for developers contributing to the DevSynth project or those loo
 - **[Sprint–EDRR Ceremony Alignment](sprint_edrr_ceremony_alignment.md)**: Map sprint ceremonies to EDRR phases.
 - **[Agent Tools](agent_tools.md)**: Overview of the tool registry and how to add new tools.
 - **[Code Analysis Guide](code_analysis.md)**: Overview of repository analysis and AST transformation utilities.
+- **[Virtual Environment Enforcement](virtual_environment_enforcement.md)**: Ensure all development commands run inside the Poetry-managed virtual environment.
 
 ## Testing Guides
 
