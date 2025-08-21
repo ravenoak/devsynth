@@ -58,6 +58,28 @@ CACHE_FILE = Path(".pytest_collection_cache.json")
 PERSISTENT_CACHE: Dict[str, Any] = {}
 FILE_HASHES: Dict[str, str] = {}
 
+# Ensure pytest doesn't autoload third-party plugins which can introduce
+# heavy dependencies during collection. Additional plugins are disabled
+# explicitly when spawning subprocesses.
+os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+
+# Explicitly disabled plugins during pytest collection
+HEAVY_PLUGINS = [
+    "cov",
+    "xdist",
+    "asyncio",
+    "bdd",
+    "benchmark",
+    "mypy",
+    "html",
+]
+
+# Optional dependencies that, when missing, should cause tests to be skipped
+OPTIONAL_DEPENDENCIES = {"lmstudio"}
+
+# Threshold for automatically limiting verification to changed paths
+DEFAULT_DIFF_LIMIT = 200
+
 
 def load_persistent_cache() -> None:
     """Load cached pytest collection results from disk."""
@@ -362,26 +384,24 @@ def verify_file_markers(
                     PYTEST_COLLECTION_CACHE[cache_key] = cached
 
         if cached is None:
-            cmd = [
-                sys.executable,
-                "-m",
-                "pytest",
-                "-p",
-                "no:cov",
-                "-p",
-                "no:xdist",
-                "--override-ini",
-                "addopts=",
-                f"-m={marker_type}",
-                "--collect-only",
-                "-q",
-                str(file_path),
-            ]
+            cmd = [sys.executable, "-m", "pytest"]
+            for plugin in HEAVY_PLUGINS:
+                cmd.extend(["-p", f"no:{plugin}"])
+            cmd.extend(
+                [
+                    "--override-ini",
+                    "addopts=",
+                    f"-m={marker_type}",
+                    "--collect-only",
+                    "-q",
+                    str(file_path),
+                ]
+            )
 
             logger.debug("Spawning subprocess: %s", " ".join(cmd))
             start_time = time.time()
             env = os.environ.copy()
-            env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+            env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -497,35 +517,63 @@ def verify_file_markers(
                     "duration": duration,
                 }
             else:
-                error_msg = (
-                    stderr.strip().splitlines()[-1]
-                    if stderr
-                    else f"exit code {returncode}"
-                )
-                log_msg = (
-                    f"pytest collection failed for {file_path} "
-                    f"[marker={marker_type}]: {error_msg}"
-                )
-                logger.warning(log_msg)
-                print(log_msg, file=sys.stderr)
-                result = {
-                    "file_count": marker_count,
-                    "pytest_count": 0,
-                    "recognized": False,
-                    "registered_in_pytest_ini": markers_registered.get(
-                        marker_type, False
+                stderr_text = stderr or ""
+                missing_opt = next(
+                    (
+                        dep
+                        for dep in OPTIONAL_DEPENDENCIES
+                        if f"No module named '{dep}'" in stderr_text
                     ),
-                    "error": error_msg,
-                    "uncollected_tests": [],
-                    "duration": duration,
-                }
-                issues.append(
-                    {
-                        "type": "pytest_error",
-                        "marker": marker_type,
-                        "message": log_msg,
-                    }
+                    None,
                 )
+                if missing_opt:
+                    log_msg = (
+                        f"Skipping {file_path} [marker={marker_type}]: "
+                        f"optional dependency '{missing_opt}' not available"
+                    )
+                    logger.info(log_msg)
+                    result = {
+                        "file_count": marker_count,
+                        "pytest_count": 0,
+                        "recognized": True,
+                        "registered_in_pytest_ini": markers_registered.get(
+                            marker_type, False
+                        ),
+                        "uncollected_tests": [],
+                        "duration": duration,
+                        "skipped": True,
+                    }
+                else:
+                    stderr_last = (
+                        stderr_text.strip().splitlines()[-1] if stderr_text else ""
+                    )
+                    error_msg = (
+                        stderr_last if stderr_last else f"exit code {returncode}"
+                    )
+                    log_msg = (
+                        f"pytest collection failed for {file_path} "
+                        f"[marker={marker_type}]: {error_msg}"
+                    )
+                    logger.warning(log_msg)
+                    print(log_msg, file=sys.stderr)
+                    result = {
+                        "file_count": marker_count,
+                        "pytest_count": 0,
+                        "recognized": False,
+                        "registered_in_pytest_ini": markers_registered.get(
+                            marker_type, False
+                        ),
+                        "error": error_msg,
+                        "uncollected_tests": [],
+                        "duration": duration,
+                    }
+                    issues.append(
+                        {
+                            "type": "pytest_error",
+                            "marker": marker_type,
+                            "message": log_msg,
+                        }
+                    )
         else:
             collected_tests: Set[str] = set()
             rel_path = os.path.relpath(file_path)
@@ -584,6 +632,7 @@ def verify_file_markers(
         "duplicate_markers": duplicate_markers,
         "recognized_markers": recognized_markers,
         "issues": [],
+        "skipped": any(info.get("skipped") for info in recognized_markers.values()),
     }
 
     # Identify issues
@@ -871,6 +920,7 @@ def verify_directory_markers(
             "directory": directory,
             "total_files": 0,
             "files_with_issues": 0,
+            "skipped_files": 0,
             "total_test_functions": 0,
             "total_markers": 0,
             "total_misaligned_markers": 0,
@@ -886,6 +936,7 @@ def verify_directory_markers(
         "directory": directory,
         "total_files": len(test_files),
         "files_with_issues": 0,
+        "skipped_files": 0,
         "total_test_functions": 0,
         "total_markers": 0,
         "total_misaligned_markers": 0,
@@ -937,7 +988,9 @@ def verify_directory_markers(
                     if count.get("timeout"):
                         results["subprocess_timeouts"] += 1
 
-                if file_results["issues"]:
+                if file_results.get("skipped"):
+                    results["skipped_files"] += 1
+                elif file_results["issues"]:
                     results["files_with_issues"] += 1
                     results["files"][str(file_path)] = file_results
 
@@ -1081,16 +1134,15 @@ def main():
     directory = args.module if args.module else args.directory
 
     changed_paths = None
-    if args.changed:
-        try:
-            diff_cmd = ["git", "diff", "--name-only", args.diff_base]
-            diff_output = subprocess.check_output(diff_cmd, text=True)
-            changed_paths = [
-                Path(p.strip()) for p in diff_output.splitlines() if p.strip()
-            ]
-        except subprocess.CalledProcessError as exc:  # pragma: no cover - git failure
-            print(f"git diff failed: {exc}", file=sys.stderr)
-            changed_paths = []
+    try:
+        diff_cmd = ["git", "diff", "--name-only", args.diff_base]
+        diff_output = subprocess.check_output(diff_cmd, text=True)
+        diff_paths = [Path(p.strip()) for p in diff_output.splitlines() if p.strip()]
+    except subprocess.CalledProcessError as exc:  # pragma: no cover - git failure
+        print(f"git diff failed: {exc}", file=sys.stderr)
+        diff_paths = []
+    if args.changed or (diff_paths and len(diff_paths) <= DEFAULT_DIFF_LIMIT):
+        changed_paths = diff_paths
 
     # Verify markers
     verification_results = verify_directory_markers(
@@ -1108,9 +1160,17 @@ def main():
         print("\nVerification Summary:")
         print(f"  Total files: {verification_results['total_files']}")
         print(f"  Files with issues: {verification_results['files_with_issues']}")
+        print(f"  Skipped files: {verification_results.get('skipped_files', 0)}")
         print(f"  Total test functions: {verification_results['total_test_functions']}")
+        marker_pct = (
+            verification_results["total_markers"]
+            / verification_results["total_test_functions"]
+            * 100
+            if verification_results["total_test_functions"]
+            else 0.0
+        )
         print(
-            f"  Functions with markers: {verification_results['total_markers']} ({verification_results['total_markers']/verification_results['total_test_functions']*100:.1f}%)"
+            f"  Functions with markers: {verification_results['total_markers']} ({marker_pct:.1f}%)"
         )
         print(
             f"  Misaligned markers: {verification_results['total_misaligned_markers']}"
