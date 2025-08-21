@@ -12,6 +12,7 @@ if ! command -v task >/dev/null 2>&1; then
   mkdir -p "$TASK_BIN_DIR"
   curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
   export PATH="$TASK_BIN_DIR:$PATH"
+  echo "$TASK_BIN_DIR" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 fi
 
 # Ensure the task binary is available after installation
@@ -19,6 +20,9 @@ if ! command -v task >/dev/null 2>&1; then
   echo "[error] task binary not found on PATH after installation" >&2
   exit 1
 fi
+
+# Display Task version for debugging
+task --version
 
 # Ensure Poetry manages a dedicated virtual environment
 poetry config virtualenvs.create true

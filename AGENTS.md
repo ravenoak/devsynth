@@ -20,8 +20,9 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
    ```
 2. Provision the environment:
    ```bash
-   bash scripts/install_dev.sh      # general setup
+   bash scripts/install_dev.sh      # general setup (installs Taskfile if needed)
    bash scripts/codex_setup.sh      # Codex agents
+   task --version                   # verify Taskfile is available
    ```
 3. Install dependencies with development and test extras and run commands through `poetry run`.
 

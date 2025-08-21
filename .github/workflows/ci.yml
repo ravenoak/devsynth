@@ -27,6 +27,16 @@ jobs:
             exit 1
           fi
           echo "Using virtualenv at $venv_path"
+      - name: Install Task
+        run: |
+          if ! command -v task >/dev/null 2>&1; then
+            TASK_BIN_DIR="$HOME/.local/bin"
+            mkdir -p "$TASK_BIN_DIR"
+            curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR"
+            echo "$TASK_BIN_DIR" >> $GITHUB_PATH
+          fi
+      - name: Task version
+        run: task --version
       - name: Lint commit messages
         run: |
           git fetch origin main
@@ -46,6 +56,8 @@ jobs:
       - name: Run Safety
         run: |
           python scripts/dependency_safety_check.py
+      - name: Task release prep
+        run: task release:prep
       - name: Build package
         run: |
           poetry build
