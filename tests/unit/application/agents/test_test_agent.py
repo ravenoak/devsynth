@@ -19,7 +19,7 @@ class TestTestAgent:
 
     @pytest.fixture
     @pytest.mark.medium
-    def test_agent(self, mock_llm_port):
+    def agent(self, mock_llm_port):
         agent = TestAgent()
         config = AgentConfig(
             name="TestTestAgent",
@@ -32,11 +32,11 @@ class TestTestAgent:
         return agent
 
     @pytest.mark.medium
-    def test_initialization_succeeds(self, test_agent):
-        assert test_agent.name == "TestTestAgent"
-        assert test_agent.agent_type == AgentType.TEST.value
-        assert test_agent.description == "Test Agent"
-        capabilities = test_agent.get_capabilities()
+    def test_initialization_succeeds(self, agent):
+        assert agent.name == "TestTestAgent"
+        assert agent.agent_type == AgentType.TEST.value
+        assert agent.description == "Test Agent"
+        capabilities = agent.get_capabilities()
         assert "create_bdd_features" in capabilities
         assert "create_unit_tests" in capabilities
         assert "create_integration_tests" in capabilities
@@ -44,10 +44,10 @@ class TestTestAgent:
         assert "create_security_tests" in capabilities
 
     @pytest.mark.medium
-    def test_process_succeeds(self, test_agent):
+    def test_process_succeeds(self, agent):
         inputs = {"context": "Sample project", "specifications": "Do something"}
-        result = test_agent.process(inputs)
-        test_agent.llm_port.generate.assert_called_once()
+        result = agent.process(inputs)
+        agent.llm_port.generate.assert_called_once()
         assert "tests" in result
         assert "wsde" in result
         assert result["agent"] == "TestTestAgent"
@@ -73,9 +73,9 @@ class TestTestAgent:
 
     @patch("devsynth.application.agents.test.logger")
     @pytest.mark.medium
-    def test_process_error_handling(self, mock_logger, test_agent):
-        with patch.object(test_agent, "create_wsde", side_effect=Exception("err")):
-            result = test_agent.process({})
+    def test_process_error_handling(self, mock_logger, agent):
+        with patch.object(agent, "create_wsde", side_effect=Exception("err")):
+            result = agent.process({})
             mock_logger.error.assert_called_once()
             assert "tests" in result
             assert result.get("wsde") is None

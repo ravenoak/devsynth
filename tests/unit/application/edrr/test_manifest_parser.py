@@ -211,6 +211,7 @@ class TestManifestParser:
             manifest_parser_with_manifest.get_phase_instructions(mock_phase)
         assert "Phase 'custom' not found in manifest" in str(excinfo.value)
 
+    @pytest.mark.medium
     def test_get_phase_templates_has_expected(self, manifest_parser_with_manifest):
         """Test getting phase templates.
 
@@ -240,6 +241,7 @@ class TestManifestParser:
             manifest_parser_with_manifest.get_phase_templates(mock_phase)
         assert "Phase 'custom' not found in manifest" in str(excinfo.value)
 
+    @pytest.mark.medium
     def test_get_phase_resources_has_expected(self, manifest_parser_with_manifest):
         """Test getting phase resources.
 
@@ -269,6 +271,7 @@ class TestManifestParser:
             manifest_parser_with_manifest.get_phase_resources(mock_phase)
         assert "Phase 'custom' not found in manifest" in str(excinfo.value)
 
+    @pytest.mark.medium
     def test_get_manifest_id_succeeds(self, manifest_parser_with_manifest):
         """Test getting the manifest ID.
 
@@ -285,6 +288,7 @@ class TestManifestParser:
             manifest_parser.get_manifest_id()
         assert "No manifest loaded" in str(excinfo.value)
 
+    @pytest.mark.medium
     def test_get_manifest_description_succeeds(self, manifest_parser_with_manifest):
         """Test getting the manifest description.
 
@@ -301,6 +305,7 @@ class TestManifestParser:
             manifest_parser.get_manifest_description()
         assert "No manifest loaded" in str(excinfo.value)
 
+    @pytest.mark.medium
     def test_get_manifest_metadata_succeeds(self, manifest_parser_with_manifest):
         """Test getting the manifest metadata.
 

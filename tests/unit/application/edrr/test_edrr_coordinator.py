@@ -478,6 +478,7 @@ class TestEDRRCoordinator:
             with pytest.raises(EDRRCoordinatorError):
                 coordinator.progress_to_next_phase()
 
+    @pytest.mark.medium
     def test_progress_to_next_phase_without_current_fails(self, coordinator):
         """progress_to_next_phase should fail if no phase is active.
 

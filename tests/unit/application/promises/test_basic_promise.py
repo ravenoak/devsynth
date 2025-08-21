@@ -14,6 +14,7 @@ def test_basic_promise_resolve_and_value():
     assert not promise.is_pending
 
 
+@pytest.mark.medium
 def test_basic_promise_then_chains():
     first = BasicPromise[int]()
     chained = first.then(lambda x: x * 2)
@@ -22,6 +23,7 @@ def test_basic_promise_then_chains():
     assert chained.value == 10
 
 
+@pytest.mark.medium
 def test_basic_promise_catch_handles_rejection():
     first = BasicPromise[int]()
     chained = first.catch(lambda e: str(e))

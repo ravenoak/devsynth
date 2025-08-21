@@ -518,6 +518,7 @@ class TestEDRRCoordinatorCore:
             with pytest.raises(ManifestParseError):
                 coordinator_core.start_cycle_from_manifest("invalid_manifest.yaml")
 
+    @pytest.mark.medium
     def test_progress_to_phase_without_cycle_has_expected(self, coordinator_core):
         """Test progressing to a phase without starting a cycle first.
 
@@ -525,6 +526,7 @@ class TestEDRRCoordinatorCore:
         with pytest.raises(EDRRCoordinatorError):
             coordinator_core.progress_to_phase(Phase.DIFFERENTIATE)
 
+    @pytest.mark.medium
     def test_progress_to_next_phase_without_cycle_has_expected(self, coordinator_core):
         """Test progressing to the next phase without starting a cycle first.
 
@@ -532,6 +534,7 @@ class TestEDRRCoordinatorCore:
         with pytest.raises(EDRRCoordinatorError):
             coordinator_core.progress_to_next_phase()
 
+    @pytest.mark.medium
     def test_execute_current_phase_without_cycle_has_expected(self, coordinator_core):
         """Test executing the current phase without starting a cycle first.
 

@@ -37,7 +37,7 @@ def api_context(monkeypatch):
     def spec_cmd(requirements_file="requirements.md", *, bridge):
         bridge.display_result(f"spec:{requirements_file}")
 
-    def test_cmd(spec_file="specs.md", output_dir=None, *, bridge):
+    def cli_test_cmd(spec_file="specs.md", output_dir=None, *, bridge):
         bridge.display_result(f"test:{spec_file}")
 
     def code_cmd(output_dir=None, *, bridge):
@@ -47,7 +47,7 @@ def api_context(monkeypatch):
     cli_stub.gather_cmd = MagicMock(side_effect=gather_cmd)
     cli_stub.run_pipeline_cmd = MagicMock(side_effect=run_pipeline_cmd)
     cli_stub.spec_cmd = MagicMock(side_effect=spec_cmd)
-    cli_stub.test_cmd = MagicMock(side_effect=test_cmd)
+    cli_stub.test_cmd = MagicMock(side_effect=cli_test_cmd)
     cli_stub.code_cmd = MagicMock(side_effect=code_cmd)
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
