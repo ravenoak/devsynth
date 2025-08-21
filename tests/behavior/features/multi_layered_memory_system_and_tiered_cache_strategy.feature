@@ -1,30 +1,23 @@
 Feature: Multi-Layered Memory System and Tiered Cache Strategy
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a developer
+  I want frequently accessed memory items cached across layers
+  So that subsequent retrievals are fast
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given a memory system with a cache size of 2
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  @fast @memory
+  Scenario: Second retrieval hits the cache
+    Given I store an item "alpha" in short-term memory
+    When I retrieve "alpha" twice
+    Then the first retrieval results in a cache miss
+    And the second retrieval results in a cache hit
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  @fast @memory
+  Scenario: LRU eviction removes least recently used item
+    Given I store items "alpha" and "beta" in short-term memory
+    And I retrieve "alpha"
+    And I store item "gamma" in short-term memory
+    When I retrieve "beta"
+    Then the retrieval results in a cache miss
+    And the cache contains "gamma"
