@@ -1,46 +1,22 @@
 {
-  "timestamp": "2025-08-21T18:54:39.951390",
+  "timestamp": "2025-08-21T19:21:54.057765",
   "verification": {
     "directory": "tests",
     "total_files": 738,
-    "files_with_issues": 1,
-    "total_test_functions": 2501,
-    "total_markers": 1522,
-    "total_misaligned_markers": 1,
+    "files_with_issues": 0,
+    "total_test_functions": 2502,
+    "total_markers": 1523,
+    "total_misaligned_markers": 0,
     "total_duplicate_markers": 0,
     "total_unrecognized_markers": 0,
     "marker_counts": {
-      "fast": 109,
+      "fast": 110,
       "medium": 1365,
       "slow": 48,
       "isolation": 0
     },
-    "files": {
-      "/workspace/devsynth/tests/unit/testing/test_run_tests_no_xdist_assertions.py": {
-        "file_path": "/workspace/devsynth/tests/unit/testing/test_run_tests_no_xdist_assertions.py",
-        "has_pytest_import": true,
-        "test_functions": 0,
-        "markers": {},
-        "tests_with_markers": 0,
-        "tests_without_markers": 0,
-        "misaligned_markers": [
-          {
-            "line": 5,
-            "marker": "fast",
-            "text": "@pytest.mark.fast"
-          }
-        ],
-        "duplicate_markers": [],
-        "recognized_markers": {},
-        "issues": [
-          {
-            "type": "misaligned_markers",
-            "message": "File has 1 misaligned markers"
-          }
-        ]
-      }
-    },
+    "files": {},
     "subprocess_timeouts": 0,
-    "success": false
+    "success": true
   }
 }
