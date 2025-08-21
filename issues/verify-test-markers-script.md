@@ -18,6 +18,7 @@ The `scripts/verify_test_markers.py` guard fails for several test modules, repor
 - 2025-08-20: Updated `verify_test_markers.py` to de-duplicate parametrized tests and
   normalized memory test modules with missing speed markers; regenerated report shows
   expected counts.
+- 2025-08-21: Re-running `scripts/verify_test_markers.py` processed ~150 of 735 files in ~15s before manual interruption, indicating performance issues persist.
 
 ## References
 - scripts/verify_test_markers.py
