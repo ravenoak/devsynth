@@ -39,4 +39,12 @@ git tag -a vX.Y.Z -m "DevSynth vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
+Before tagging, set the release note's front matter to `status: "draft"`.
+After creating the tag, update the status to `published` and rerun the
+release-state check:
+
+```bash
+poetry run python scripts/verify_release_state.py
+```
+
 These steps ensure every release includes generated artifacts, a recorded audit, and a signed tag.
