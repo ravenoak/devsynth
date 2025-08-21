@@ -1,8 +1,10 @@
-# Multi-Layered Memory System and Tiered Cache Strategy
-Milestone: 0.1.0-alpha.2
-Status: in progress
+# Issue 156: Multi-Layered Memory System and Tiered Cache Strategy
+Milestone: 0.1.0-alpha.2 (archived 2025-08-21)
+Status: closed
 Priority: high
 Dependencies: docs/specifications/multi-layered-memory-system-and-tiered-cache-strategy.md, tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+
+This ticket was merged into [Multi-Layered Memory System](../multi-layered-memory-system.md).
 
 ## Problem Statement
 Multi-Layered Memory System and Tiered Cache Strategy is not yet implemented, limiting DevSynth's capabilities.
