@@ -1,30 +1,16 @@
 Feature: Multi-Layered Memory System and Tiered Cache Strategy
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a developer
+  I want a memory system with multiple cache tiers
+  So that frequently accessed data is retrieved quickly
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: Value is promoted to the first layer after access
+    Given a two-layer memory system with a key stored in the second layer
+    When the key is retrieved
+    Then the value is returned
+    And the first layer now contains the key
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Cache hit ratio is calculated
+    Given an empty two-layer memory system
+    When a key is stored and retrieved twice
+    And a missing key is requested once
+    Then the overall cache hit ratio is 2/3
