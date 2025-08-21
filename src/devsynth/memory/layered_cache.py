@@ -1,4 +1,8 @@
-"""Multi-layered memory system with tiered cache strategy."""
+"""Multi-layered memory system with tiered cache strategy.
+
+See :doc:`docs/analysis/layered_cache.md` for complexity and hit-rate
+derivations.
+"""
 
 from __future__ import annotations
 
