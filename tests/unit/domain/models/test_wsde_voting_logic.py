@@ -51,6 +51,26 @@ def test_deterministic_voting_with_seed():
 
 
 @pytest.mark.fast
+def test_weighted_voting_deterministic_with_seed():
+    """Weighted voting with a fixed seed yields reproducible results.
+
+    ReqID: WSDE-VOTE-DET-2"""
+    a1 = DummyAgent("a1", ["frontend"])
+    a2 = DummyAgent("a2", ["backend"])
+    team = bind(DummyTeam([a1, a2]))
+    task = {
+        "options": ["frontend", "backend"],
+        "voting_method": "weighted",
+        "domain": "frontend",
+    }
+    rng1 = random.Random(7)
+    res1 = team.vote_on_critical_decision(task, rng=rng1)
+    rng2 = random.Random(7)
+    res2 = team.vote_on_critical_decision(task, rng=rng2)
+    assert res1["result"] == res2["result"]
+
+
+@pytest.mark.fast
 def test_weighted_voting_tie_is_fair():
     """Random tie-breaking is statistically fair across options.
 

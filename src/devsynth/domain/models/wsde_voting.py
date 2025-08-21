@@ -1,8 +1,11 @@
-"""
-WSDE voting and consensus building functionality.
+"""WSDE voting and consensus building functionality.
 
-This module contains functionality for voting and consensus building in a WSDE team,
-including methods for voting on critical decisions, building consensus, and handling tied votes.
+This module contains functionality for voting and consensus building in a
+WSDE team, including methods for voting on critical decisions, building
+consensus, and handling tied votes. Probabilistic properties of these
+algorithms are documented in ``docs/analysis/wsde_voting_fairness.md``.
+Deterministic simulations that exercise the stochastic paths live in
+``tests/unit/domain/models/test_wsde_voting_logic.py``.
 """
 
 import random
@@ -38,7 +41,10 @@ def vote_on_critical_decision(
         make stochastic paths deterministic. When ``rng`` is ``None`` the module
         level ``random`` functions are used. This enables reproducible simulations
         and a mathematically fair tie‑breaker: each tied option has probability
-        :math:`1/n` of selection, where ``n`` is the number of tied options.
+        :math:`1/n` of selection, where ``n`` is the number of tied options. See
+        ``docs/analysis/wsde_voting_fairness.md`` for the probabilistic proof and
+        ``tests/unit/domain/models/test_wsde_voting_logic.py`` for deterministic
+        simulations.
     """
     rng = rng or random  # noqa: F841
     if not self.agents:
@@ -198,7 +204,9 @@ def _handle_tied_vote(
     """Handle a tied vote by falling back to consensus building.
 
     When consensus building is required, any stochastic tie‑breakers use ``rng``
-    for reproducibility.
+    for reproducibility. The fairness of this approach is proven in
+    ``docs/analysis/wsde_voting_fairness.md`` and exercised in
+    ``tests/unit/domain/models/test_wsde_voting_logic.py``.
     """
     rng = rng or random
 
@@ -230,7 +238,9 @@ def _apply_weighted_voting(
         Updated voting result dictionary
 
     ``rng`` enables reproducible random selection when weighted votes tie and no
-    primus can break the tie.
+    primus can break the tie. See ``docs/analysis/wsde_voting_fairness.md`` for
+    the probabilistic argument and ``tests/unit/domain/models/test_wsde_voting_logic.py``
+    for simulations.
     """
     rng = rng or random
     options = voting_result["options"]
