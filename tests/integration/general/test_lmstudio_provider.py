@@ -4,10 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.importorskip("lmstudio")
+from devsynth.application.llm.providers import LMStudioProvider
 
 # LMStudio provider integration tests run at medium speed
-pytestmark = [pytest.mark.medium]
+pytestmark = [
+    pytest.mark.medium,
+    pytest.mark.skipif(LMStudioProvider is None, reason="lmstudio not installed"),
+]
 
 
 def _import_provider():

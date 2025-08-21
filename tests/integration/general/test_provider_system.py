@@ -12,9 +12,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 import responses
 
+from devsynth.adapters.provider_system import FallbackProvider
+from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioProvider
 from devsynth.adapters.provider_system import (
-    FallbackProvider,
-    LMStudioProvider,
     OpenAIProvider,
     ProviderError,
     ProviderFactory,
@@ -24,6 +24,11 @@ from devsynth.adapters.provider_system import (
     get_provider,
     get_provider_config,
 )
+from devsynth.application.llm.providers import LMStudioProvider
+
+pytestmark = [
+    pytest.mark.skipif(LMStudioProvider is None, reason="lmstudio not installed")
+]
 
 
 class TestProviderConfig:
@@ -101,7 +106,7 @@ class TestProviderFactory:
                 },
             }
             provider = ProviderFactory.create_provider(ProviderType.LMSTUDIO.value)
-            assert isinstance(provider, LMStudioProvider)
+            assert isinstance(provider, PS_LMStudioProvider)
             assert provider.endpoint == "http://test-endpoint:1234"
             assert provider.model == "test-model"
 
@@ -127,7 +132,7 @@ class TestProviderFactory:
                     },
                 }
                 provider = ProviderFactory.create_provider(ProviderType.OPENAI.value)
-                assert isinstance(provider, LMStudioProvider)
+            assert isinstance(provider, PS_LMStudioProvider)
 
 
 @pytest.mark.integtest
@@ -170,7 +175,7 @@ class TestProviderIntegration:
             },
             status=200,
         )
-        provider = LMStudioProvider(endpoint="http://127.0.0.1:1234")
+        provider = PS_LMStudioProvider(endpoint="http://127.0.0.1:1234")
         response = provider.complete(
             prompt="Test prompt", system_prompt="You are a helpful assistant."
         )

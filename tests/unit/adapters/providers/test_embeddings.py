@@ -12,6 +12,8 @@ from devsynth.adapters.provider_system import (
     embed,
 )
 
+pytest.importorskip("lmstudio")
+
 
 @pytest.mark.medium
 def test_openai_provider_embed_calls_api_succeeds():

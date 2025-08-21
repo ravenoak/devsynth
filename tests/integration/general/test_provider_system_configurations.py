@@ -11,9 +11,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 import responses
 
+from devsynth.adapters.provider_system import FallbackProvider
+from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioProvider
 from devsynth.adapters.provider_system import (
-    FallbackProvider,
-    LMStudioProvider,
     OpenAIProvider,
     ProviderError,
     ProviderFactory,
@@ -23,6 +23,11 @@ from devsynth.adapters.provider_system import (
     get_provider,
     get_provider_config,
 )
+from devsynth.application.llm.providers import LMStudioProvider
+
+pytestmark = [
+    pytest.mark.skipif(LMStudioProvider is None, reason="lmstudio not installed")
+]
 
 
 class TestProviderConfigurations:
@@ -274,7 +279,7 @@ class TestProviderConfigurations:
             },
         ):
             provider = get_provider()
-            assert isinstance(provider, LMStudioProvider)
+            assert isinstance(provider, PS_LMStudioProvider)
             result = complete("Test prompt")
             assert result == "This is a mock response from LM Studio"
 
