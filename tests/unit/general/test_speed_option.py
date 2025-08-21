@@ -13,6 +13,9 @@ def test_speed_option_recognized():
     repo_root = Path(__file__).resolve().parents[3]
     test_file = repo_root / "tests" / "tmp_speed_dummy.py"
     try:
+        test_file.write_text(
+            "import pytest\n\n@pytest.mark.fast\ndef test_dummy():\n    assert True\n"
+        )
         result = subprocess.run(
             [
                 sys.executable,
