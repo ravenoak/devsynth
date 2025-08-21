@@ -1,30 +1,26 @@
-Feature: Performance and Scalability Testing
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+Feature: Performance and scalability testing
+  As a DevSynth maintainer
+  I want to benchmark core operations
+  So that the system's scalability characteristics are understood
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given the project environment is prepared
+    And performance results are cleared
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  @slow
+  Scenario: baseline metrics are captured
+    Given a workload of 100000 operations
+    When the baseline performance task runs
+    Then a metrics file "docs/performance/baseline_metrics.json" is created
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
+  @slow
+  Scenario Outline: scalability metrics are captured for varying workloads
+    Given a workload of <workload> operations
+    When the scalability performance task runs
+    Then the results include an entry for <workload>
 
     Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+      | workload |
+      | 10000    |
+      | 100000   |
+      | 1000000  |

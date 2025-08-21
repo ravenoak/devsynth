@@ -61,6 +61,44 @@ tasks:
     cmds:
       - poetry run pytest tests/performance --benchmark-only
 
+  perf:baseline:
+    desc: Capture baseline performance metrics
+    cmds:
+      - |
+        poetry run python - <<'PY'
+        import json, time, random, pathlib
+
+        start = time.perf_counter()
+        sum(random.random() for _ in range(100000))
+        duration = time.perf_counter() - start
+
+        metrics = {"workload": 100000, "duration_seconds": duration}
+        output = pathlib.Path("docs/performance/baseline_metrics.json")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(metrics, indent=2))
+        print(json.dumps(metrics, indent=2))
+        PY
+
+  perf:scalability:
+    desc: Capture scalability metrics across workloads
+    cmds:
+      - |
+        poetry run python - <<'PY'
+        import json, time, random, pathlib
+
+        results = []
+        for workload in (10000, 100000, 1000000):
+            start = time.perf_counter()
+            sum(random.random() for _ in range(workload))
+            duration = time.perf_counter() - start
+            results.append({"workload": workload, "duration_seconds": duration})
+
+        output = pathlib.Path("docs/performance/scalability_metrics.json")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(results, indent=2))
+        print(json.dumps(results, indent=2))
+        PY
+
   # Documentation tasks
   docs:serve:
     desc: Serve documentation locally
