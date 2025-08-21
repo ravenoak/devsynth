@@ -66,4 +66,5 @@ high_priority_isolation_issues.md
 .test_dependency_cache/
 .test_metrics_cache/
 .test_timing_cache/
+.pytest_collection_cache.json
 TASK_PROGRESS.md
