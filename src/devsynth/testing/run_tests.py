@@ -220,21 +220,14 @@ def run_tests(
     for speed in speed_categories:
         logger.info("\nRunning %s tests...", speed)
         marker_expr = f"{speed} and not memory_intensive"
-        if target == "behavior-tests":
-            check_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
-            check_result = subprocess.run(
-                check_cmd, check=False, capture_output=True, text=True
-            )
-            if "no tests ran" in check_result.stdout or not check_result.stdout.strip():
-                logger.info(
-                    "No behavior tests found with %s marker. Running all behavior tests...",
-                    speed,
-                )
-                speed_cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
-            else:
-                speed_cmd = base_cmd + ["-m", marker_expr] + report_options
-        else:
-            speed_cmd = base_cmd + ["-m", marker_expr] + report_options
+        check_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
+        check_result = subprocess.run(
+            check_cmd, check=False, capture_output=True, text=True
+        )
+        if "no tests ran" in check_result.stdout or not check_result.stdout.strip():
+            logger.info("No %s tests found for %s, skipping...", speed, target)
+            continue
+        speed_cmd = base_cmd + ["-m", marker_expr] + report_options
 
         if segment:
             test_list = collect_tests_with_cache(target, speed)
