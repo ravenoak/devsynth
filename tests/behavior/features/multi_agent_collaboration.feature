@@ -1,31 +1,13 @@
 # Specification: docs/specifications/multi-agent-collaboration.md
+@fast
 Feature: Multi-Agent Collaboration
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a development coordinator
+  I want agents to agree on a proposal through majority consensus
+  So that the system follows a unified decision
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
-
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Majority vote selects a proposal
+    Given a coordinator managing three agents
+    And the agents propose "refactor", "refactor", and "document"
+    When the coordinator collects their votes
+    Then the final decision is "refactor"
+    And the round completes successfully
