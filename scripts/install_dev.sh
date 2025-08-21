@@ -59,6 +59,13 @@ export PIP_FIND_LINKS="$WHEEL_DIR"
 # Install DevSynth with development and documentation dependencies and required extras
 poetry install --with dev,docs --extras "tests retrieval chromadb api"
 
+# Fail fast if Poetry did not create a virtual environment
+venv_path="$(poetry env info --path 2>/dev/null || true)"
+if [[ -z "$venv_path" ]]; then
+  echo "[error] poetry virtualenv path not found" >&2
+  exit 1
+fi
+
 # Confirm the DevSynth CLI is available
 if ! poetry run devsynth --help >/dev/null 2>&1; then
   echo "[error] devsynth console script not found" >&2
