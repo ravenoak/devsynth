@@ -12,6 +12,8 @@ from devsynth.adapters.provider_system import (
 
 pytest.importorskip("lmstudio")
 
+pytestmark = [pytest.mark.requires_resource("lmstudio")]
+
 
 @pytest.mark.medium
 def test_create_provider_env_fallback_has_expected(monkeypatch, caplog):
