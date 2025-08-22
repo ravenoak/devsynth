@@ -466,6 +466,9 @@ variables like `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE` and
 resources enabled:
 
 ```bash
+# Install LM Studio optional dependency and start the server
+poetry install --extras lmstudio
+# (start LM Studio in API mode before running tests)
 
 # Provide an OpenAI API key
 

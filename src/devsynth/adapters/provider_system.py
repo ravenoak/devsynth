@@ -936,8 +936,12 @@ class LMStudioProvider(BaseProvider):
                 on_retry=self._emit_retry_telemetry,
             )(_api_call)()
         except requests.exceptions.RequestException as e:
-            logger.error(f"LM Studio API error: {e}")
-            raise ProviderError(f"LM Studio API error: {e}")
+            msg = (
+                f"LM Studio endpoint {self.endpoint} is unreachable. "
+                "Ensure the server is running."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
 
     async def acomplete(
         self,
@@ -1043,16 +1047,20 @@ class LMStudioProvider(BaseProvider):
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
-            logger.error(
-                f"LM Studio API error after {max_retries} retries: {last_exception}"
+            msg = (
+                f"LM Studio endpoint {self.endpoint} is unreachable after {max_retries} "
+                f"retries: {last_exception}"
             )
-            raise ProviderError(
-                f"LM Studio API error after {max_retries} retries: {last_exception}"
-            )
+            logger.error(msg)
+            raise ProviderError(msg)
 
         except httpx.HTTPError as e:
-            logger.error(f"LM Studio API error: {e}")
-            raise ProviderError(f"LM Studio API error: {e}")
+            msg = (
+                f"LM Studio endpoint {self.endpoint} is unreachable. "
+                "Ensure the server is running."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
 
     def complete_with_context(
         self,
@@ -1130,8 +1138,12 @@ class LMStudioProvider(BaseProvider):
                 on_retry=self._emit_retry_telemetry,
             )(_api_call)()
         except requests.exceptions.RequestException as e:
-            logger.error(f"LM Studio embedding API error: {e}")
-            raise ProviderError(f"LM Studio embedding API error: {e}")
+            msg = (
+                f"LM Studio endpoint {self.endpoint} is unreachable. "
+                "Ensure the server is running."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously generate embeddings using the LM Studio API."""
@@ -1200,16 +1212,20 @@ class LMStudioProvider(BaseProvider):
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
-            logger.error(
-                f"LM Studio embedding API error after {max_retries} retries: {last_exception}"
+            msg = (
+                f"LM Studio endpoint {self.endpoint} is unreachable after {max_retries} "
+                f"retries: {last_exception}"
             )
-            raise ProviderError(
-                f"LM Studio embedding API error after {max_retries} retries: {last_exception}"
-            )
+            logger.error(msg)
+            raise ProviderError(msg)
 
         except httpx.HTTPError as e:
-            logger.error(f"LM Studio embedding API error: {e}")
-            raise ProviderError(f"LM Studio embedding API error: {e}")
+            msg = (
+                f"LM Studio endpoint {self.endpoint} is unreachable. "
+                "Ensure the server is running."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
 
 
 class FallbackProvider(BaseProvider):

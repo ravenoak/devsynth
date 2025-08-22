@@ -1,12 +1,15 @@
-from typing import Any, Dict, List, Optional
-import httpx
-from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 import os
-from devsynth.core.config_loader import load_config
+from typing import Any, Dict, List, Optional
+
+import httpx
+
 from devsynth.config import get_llm_settings
+from devsynth.core.config_loader import load_config
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
+from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -178,6 +181,10 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
     ) -> LLMProvider:
         """Create an LLM provider of the specified type."""
         if provider_type not in self.provider_types:
+            if provider_type == "lmstudio":
+                raise ValidationError(
+                    "LMStudio provider is unavailable. Install the 'lmstudio' package to enable this provider."
+                )
             raise ValidationError(f"Unknown provider type: {provider_type}")
 
         provider_class = self.provider_types[provider_type]
@@ -209,9 +216,9 @@ try:  # pragma: no cover - optional dependency
 except ImportError as exc:  # pragma: no cover - fallback path
     LMStudioProvider = None
     logger.warning("LMStudioProvider not available: %s", exc)
-from .openai_provider import OpenAIProvider
 from .local_provider import LocalProvider
 from .offline_provider import OfflineProvider
+from .openai_provider import OpenAIProvider
 
 # Create factory instance
 factory = SimpleLLMProviderFactory()
