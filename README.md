@@ -389,6 +389,9 @@ poetry run devsynth run-tests
 poetry run devsynth run-tests --maxfail 1  # optional early exit
 ```
 
+Optional provider tests such as LM Studio are disabled unless explicitly
+enabled. Set `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true` to opt in.
+
 The legacy `scripts/run_all_tests.py` wrapper remains for backward compatibility but will be removed in a future release.
 
 ### Updating the coverage badge

@@ -1,8 +1,8 @@
 Feature: devsynth run-tests command
   Verify the run-tests command handles missing optional dependencies.
 
-  Scenario: run-tests succeeds without optional LLM providers
-    Given the environment variable "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" is "false"
+  Scenario: run-tests defaults to skipping optional LM Studio tests
+    Given the environment variable "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" is unset
     When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel"
     Then the command should succeed
 

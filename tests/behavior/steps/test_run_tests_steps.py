@@ -20,6 +20,12 @@ def set_env(name: str, value: str, monkeypatch) -> None:
     monkeypatch.setenv(name, value)
 
 
+@given(parsers.parse('the environment variable "{name}" is unset'))
+def unset_env(name: str, monkeypatch) -> None:
+    """Remove an environment variable for the command invocation."""
+    monkeypatch.delenv(name, raising=False)
+
+
 @when('I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel"')
 def invoke_run_tests(command_result: Dict[str, str]) -> None:
     env = os.environ.copy()
