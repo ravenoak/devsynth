@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from devsynth.application.performance import (
+from devsynth.testing.performance import (
     capture_baseline_metrics,
     capture_scalability_metrics,
 )
@@ -87,4 +87,20 @@ def results_include_entry(context, workload):
 @then(parsers.parse('the metrics file "{path}" includes throughput'))
 def metrics_file_includes_throughput(path):
     data = json.loads(Path(path).read_text())
-    assert "throughput_ops_per_s" in data and data["throughput_ops_per_s"] > 0
+    if isinstance(data, list):
+        assert all(
+            entry.get("throughput_ops_per_s", 0) > 0 for entry in data
+        ), "throughput missing for one or more entries"
+    else:
+        assert "throughput_ops_per_s" in data and data["throughput_ops_per_s"] > 0
+
+
+@then(parsers.parse('the metrics file "{path}" includes duration'))
+def metrics_file_includes_duration(path):
+    data = json.loads(Path(path).read_text())
+    if isinstance(data, list):
+        assert all(
+            entry.get("duration_seconds", 0) > 0 for entry in data
+        ), "duration missing for one or more entries"
+    else:
+        assert "duration_seconds" in data and data["duration_seconds"] > 0

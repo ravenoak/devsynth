@@ -15,7 +15,7 @@ To generate metrics files directly:
 ```bash
 poetry run python - <<'PY'
 from pathlib import Path
-from devsynth.application.performance import (
+from devsynth.testing.performance import (
     capture_baseline_metrics,
     capture_scalability_metrics,
 )
