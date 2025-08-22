@@ -1,8 +1,8 @@
 # Release readiness for v0.1.0-alpha.1
 Milestone: 0.1.0-alpha.1
-Status: open
+Status: in progress
 Priority: high
-Dependencies: issues/virtualenv-configuration.md, issues/verify-test-markers-script.md, issues/performance-and-scalability-testing.md, docs/release/0.1.0-alpha.1.md
+Dependencies: archived/virtualenv-configuration.md, issues/verify-test-markers-script.md, issues/performance-and-scalability-testing.md, docs/release/0.1.0-alpha.1.md
 
 ## Problem Statement
 Prerequisites for the first alpha release remain incomplete. The development environment lacks an enforced virtualenv, release automation via `task` is unavailable, and slow tests and marker verification scripts fail or time out. These gaps block tagging `v0.1.0-alpha.1`.
@@ -18,9 +18,10 @@ Prerequisites for the first alpha release remain incomplete. The development env
 - 2025-08-20: Initial audit captured missing virtualenv, absent `task` command, slow-test failures, and stalled marker verification.
 - 2025-08-21: Established a Poetry virtual environment and installed development extras; `poetry env info --path` now reports the expected path. Attempted `poetry run devsynth run-tests --speed=fast`, but the command stalled after an `LMStudioProvider` warning, and `scripts/verify_test_markers.py` still runs slowly and was halted after ~150 files.
 - 2025-08-21: Re-ran release checklist; environment provisioning and `pip check` succeeded, but fast tests failed (missing `tests/tmp_speed_dummy.py`). Medium and slow test runs halted after `LMStudioProvider` warnings. `verify_test_markers.py` was interrupted, deployment tests failed coverage, `task release:prep` ended early, and `verify_release_state` reported missing tag `v0.1.0-alpha.1`.
+- 2025-08-22: Archived virtualenv configuration dependency. `poetry run python scripts/verify_release_state.py` reports missing tag `v0.1.0-alpha.1`.
 
 ## References
 - docs/release/0.1.0-alpha.1.md
-- issues/virtualenv-configuration.md
+- archived/virtualenv-configuration.md
 - issues/verify-test-markers-script.md
 - issues/performance-and-scalability-testing.md
