@@ -16,6 +16,7 @@ from devsynth.exceptions import MemoryTransactionError
 @pytest.mark.parametrize("adapter_cls", [TinyDBMemoryAdapter, GraphMemoryAdapter])
 @pytest.mark.medium
 def test_store_retrieve_search_update(adapter_cls, tmp_path):
+    """ReqID: FR-44"""
     if adapter_cls is GraphMemoryAdapter:
         adapter = adapter_cls(base_path=tmp_path)
     else:
@@ -40,6 +41,7 @@ def test_store_retrieve_search_update(adapter_cls, tmp_path):
 
 @pytest.mark.medium
 def test_vector_adapter_operations():
+    """ReqID: FR-47"""
     adapter = VectorMemoryAdapter()
     vector = MemoryVector(
         id="", content="doc", embedding=[0.1, 0.2, 0.3], metadata={"kind": "test"}
@@ -54,7 +56,10 @@ def test_vector_adapter_operations():
 
 @pytest.mark.medium
 def test_tinydb_adapter_transaction_support(tmp_path):
-    """Test transaction support in TinyDBMemoryAdapter."""
+    """Test transaction support in TinyDBMemoryAdapter.
+
+    ReqID: FR-44
+    """
     adapter = TinyDBMemoryAdapter(db_path=str(tmp_path / "db.json"))
     item1 = MemoryItem(
         id="test1",
@@ -68,8 +73,9 @@ def test_tinydb_adapter_transaction_support(tmp_path):
         memory_type=MemoryType.KNOWLEDGE,
         metadata={"tag": "transaction_test"},
     )
-    transaction_id = adapter.begin_transaction("tx1")
-    assert transaction_id == "tx1"
+    transaction_id = adapter.begin_transaction()
+    # Should auto-generate an identifier when none is provided
+    assert isinstance(transaction_id, str) and transaction_id
     adapter.store(item1, transaction_id=transaction_id)
     retrieved = adapter.retrieve(item1.id)
     assert retrieved is not None

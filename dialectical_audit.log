@@ -29,5 +29,7 @@
     "Release checklist re-run 2025-08-21: environment setup and pip check succeeded; fast tests failed (missing tests/tmp_speed_dummy.py); medium and slow test runs terminated after LMStudioProvider warnings; marker verification interrupted; deployment tests failed coverage; release prep interrupted; release state check reported missing tag.",
     "Termination proof for dialectical reasoner hooks documented and tests added 2025-08-21.",
     "2025-08-22: tests/unit/deployment coverage improved to 100% with security hardening tests."
+    ,
+    "2025-08-22: TinyDBMemoryAdapter transaction lifecycle fixed to auto-generate IDs; regression test added."
   ]
 }
