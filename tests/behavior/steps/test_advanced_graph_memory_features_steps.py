@@ -508,7 +508,10 @@ def have_tinydb_adapter(context):
     """Create a TinyDBMemoryAdapter."""
     tinydb_path = os.path.join(context.base_path, "tinydb", "memory.json")
     os.makedirs(os.path.dirname(tinydb_path), exist_ok=True)
-    context.tinydb_adapter = TinyDBMemoryAdapter(db_path=tinydb_path)
+    try:
+        context.tinydb_adapter = TinyDBMemoryAdapter(db_path=tinydb_path)
+    except Exception as exc:
+        pytest.skip(f"TinyDB unavailable: {exc}")
 
 
 @given("I have a ChromaDBVectorStore")

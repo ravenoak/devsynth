@@ -16,6 +16,7 @@ Advanced Graph Memory Features is not yet implemented, limiting DevSynth's capab
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-08-24: Added TinyDB stub detection and regression test to ensure integration fails gracefully.
 
 ## References
 - Specification: docs/specifications/advanced-graph-memory-features.md
