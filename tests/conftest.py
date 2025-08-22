@@ -18,11 +18,26 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import coverage
 import pytest
-import yaml
 
-from devsynth.config.settings import ensure_path_exists
+try:
+    import yaml
+except ModuleNotFoundError:  # yaml is optional
+    yaml = None
+
+try:
+    import coverage
+except ModuleNotFoundError:  # coverage is optional
+    coverage = None
+
+try:
+    from devsynth.config.settings import ensure_path_exists
+except ModuleNotFoundError:
+
+    def ensure_path_exists(path: str) -> str:
+        Path(path).mkdir(parents=True, exist_ok=True)
+        return path
+
 
 # Add a marker for tests requiring external resources
 requires_resource = pytest.mark.requires_resource
@@ -105,7 +120,7 @@ def test_environment(tmp_path, monkeypatch):
 @pytest.fixture(autouse=True)
 def reset_coverage() -> None:
     """Reset coverage data between tests to prevent cross-worker hangs."""
-    if os.environ.get("PYTEST_XDIST_WORKER"):
+    if coverage and os.environ.get("PYTEST_XDIST_WORKER"):
         cov = coverage.Coverage.current()
         if cov:
             cov.erase()

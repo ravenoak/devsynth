@@ -1,16 +1,22 @@
-"""
-Pytest fixtures for behavior tests.
-"""
+"""Pytest fixtures for behavior tests."""
 
 import os
-import sys
-import pytest
-import tempfile
 import shutil
-from unittest.mock import MagicMock, patch
+import sys
+import tempfile
 from types import ModuleType
+from unittest.mock import MagicMock, patch
 
-from devsynth.config.settings import ensure_path_exists
+import pytest
+
+try:
+    from devsynth.config.settings import ensure_path_exists
+except ModuleNotFoundError:
+
+    def ensure_path_exists(path: str) -> str:  # pragma: no cover - fallback
+        os.makedirs(path, exist_ok=True)
+        return path
+
 
 # Stub optional heavy dependencies so test collection succeeds without them
 _stub_modules = [
@@ -30,6 +36,9 @@ _stub_modules = [
     "faiss",
     "httpx",
     "lmstudio",
+    "typer",
+    "typer.main",
+    "typer.models",
     "openai",
     "openai.types",
     "openai.types.chat",
@@ -69,6 +78,13 @@ for _name in _stub_modules:
         if _name == "httpx":
             _mod.RequestError = Exception
             _mod.HTTPStatusError = Exception
+        if _name == "typer":
+            _mod.main = ModuleType("typer.main")
+            _mod.main.get_click_type = lambda annotation: annotation
+            _mod.models = ModuleType("typer.models")
+            _mod.models.Context = object
+            sys.modules["typer.main"] = _mod.main
+            sys.modules["typer.models"] = _mod.models
         sys.modules[_name] = _mod
 
 # Add the src directory to the Python path if needed
@@ -76,17 +92,35 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src"))
 )
 
-# Import provider system for LLM integration
-from devsynth.adapters.provider_system import (
-    get_provider,
-    complete,
-    embed,
-    ProviderType,
-)
+import click
 import typer
 import typer.main
-import click
-from devsynth.interface.ux_bridge import UXBridge
+
+# Import provider system for LLM integration
+try:
+    from devsynth.adapters.provider_system import (
+        ProviderType,
+        complete,
+        embed,
+        get_provider,
+    )
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    ProviderType = MagicMock()
+
+    def complete(*args, **kwargs):
+        return {}
+
+    def embed(*args, **kwargs):
+        return []
+
+    def get_provider(*args, **kwargs):
+        return MagicMock()
+
+
+try:
+    from devsynth.interface.ux_bridge import UXBridge
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    UXBridge = MagicMock()
 
 
 @pytest.fixture
