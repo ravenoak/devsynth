@@ -1,30 +1,8 @@
 Feature: Additional Storage Backends
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  The memory system selects a storage backend based on configuration.
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
-
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: S3 backend selected via environment variables
+    Given the environment variable "DEVSYNTH_MEMORY_STORE" is "s3"
+    And the environment variable "DEVSYNTH_S3_BUCKET" points to an existing bucket
+    When the MemoryManager stores "data" as CODE memory
+    Then the item can be retrieved with content "data"

@@ -8,12 +8,17 @@ implements the :class:`~devsynth.domain.interfaces.memory.MemoryStore` contract.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import ClassVar, Protocol
 
 from ....domain.interfaces.memory import MemoryStore
 
 
 class StorageAdapter(MemoryStore, Protocol):
-    """Protocol implemented by memory storage adapters."""
+    """Protocol implemented by memory storage adapters.
 
-    backend_type: str
+    Adapters expose a class-level :attr:`backend_type` used by
+    :class:`~devsynth.application.memory.memory_manager.MemoryManager` to select
+    the appropriate backend at runtime.
+    """
+
+    backend_type: ClassVar[str]
