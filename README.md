@@ -86,6 +86,8 @@ Provision the development environment by running the environment provisioning sc
 bash scripts/install_dev.sh
 ```
 
+> **Note:** Run this script **before** invoking any Taskfile commands to ensure the `task` runner is installed and ready.
+
 ## Installation
 
 You can install DevSynth in a few different ways:

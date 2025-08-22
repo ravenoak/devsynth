@@ -8,6 +8,14 @@ vars:
   MKDOCS_ADDR: 127.0.0.1
 
 tasks:
+  default:
+    desc: Verify task availability
+    cmds:
+      - |
+        if ! task --version >/dev/null 2>&1; then
+          echo "[error] task command unavailable; run bash scripts/install_dev.sh" >&2
+          exit 1
+        fi
   # Environment setup tasks
   setup:
     desc: Install all dependencies
