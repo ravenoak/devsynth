@@ -89,6 +89,7 @@ DevSynth supports loading configuration from environment variables. This is espe
 | `SERPER_API_KEY` | `api_keys.serper` | Serper API key for web search |
 | `DEVSYNTH_MEMORY_STORE` | `memory.store_type` | Memory store type |
 | `DEVSYNTH_MEMORY_PATH` | `memory.file_path` | Path for file-based memory store |
+| `DEVSYNTH_S3_BUCKET` | `memory.s3_bucket_name` | S3 bucket for S3 store |
 | `DEVSYNTH_KUZU_DB_PATH` | `memory.kuzu_db_path` | Path for Kuzu |
 | `DEVSYNTH_MAX_CONTEXT_SIZE` | `memory.max_context_size` | Maximum context size |
 | `DEVSYNTH_LOG_LEVEL` | `logging.level` | Log level |
@@ -113,9 +114,8 @@ SERPER_API_KEY=your-serper-api-key
 
 # Memory Configuration
 
-DEVSYNTH_MEMORY_STORE=Kuzu
-DEVSYNTH_MEMORY_PATH=~/.devsynth/memory
-DEVSYNTH_KUZU_DB_PATH=~/.devsynth/memory/Kuzu.db
+DEVSYNTH_MEMORY_STORE=s3
+DEVSYNTH_S3_BUCKET=my-bucket
 
 # Logging
 

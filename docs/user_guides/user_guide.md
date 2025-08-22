@@ -259,7 +259,7 @@ DevSynth can be configured using the `config` command or by editing the configur
 | `endpoint` | LM Studio API endpoint | `http://localhost:1234/v1` | Any valid URL |
 | `openai_api_key` | OpenAI API key for using OpenAI models | None | Valid OpenAI API key |
 | `serper_api_key` | Serper API key for web search functionality | None | Valid Serper API key |
-| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `Kuzu` |
+| `memory_store_type` | Type of memory store to use | `memory` | `memory`, `file`, `Kuzu`, `s3` |
 
 ### Offline Mode
 
@@ -322,6 +322,7 @@ DevSynth-specific configuration variables use the `DEVSYNTH_` prefix:
 | `DEVSYNTH_MEMORY_STORE` | `memory_store_type` |
 | `DEVSYNTH_MEMORY_PATH` | `memory_file_path` |
 | `DEVSYNTH_KUZU_DB_PATH` | `kuzu_db_path` |
+| `DEVSYNTH_S3_BUCKET` | `s3_bucket_name` |
 | `DEVSYNTH_KUZU_EMBEDDED` | `kuzu_embedded` |
 | `DEVSYNTH_MAX_CONTEXT_SIZE` | `max_context_size` |
 | `DEVSYNTH_CONTEXT_EXPIRATION_DAYS` | `context_expiration_days` |
@@ -381,6 +382,17 @@ The `file` memory store type uses a JSON file for persistent storage. This ensur
 
 devsynth config --key memory_store_type --value file
 devsynth config --key memory_file_path --value /path/to/memory/directory
+```
+
+## S3 Memory Store
+
+The `s3` memory store type persists items to an Amazon S3 bucket. Ensure that
+the bucket exists and credentials are configured for the AWS SDK.
+
+```bash
+# Configure S3 store
+devsynth config --key memory_store_type --value s3
+devsynth config --key s3_bucket_name --value my-bucket
 ```
 
 ## Kuzu Memory Store

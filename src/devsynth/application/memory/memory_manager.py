@@ -9,11 +9,17 @@ items with EDRR phases.
 from functools import lru_cache
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from ...config import get_settings
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryItemType, MemoryType, MemoryVector
 from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 from ...logging_setup import DevSynthLogger
 from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+
+try:  # pragma: no cover - optional dependency
+    from .adapters.s3_memory_adapter import S3MemoryAdapter
+except Exception:  # pragma: no cover - missing optional dependency
+    S3MemoryAdapter = None
 from .circuit_breaker import (
     CircuitBreaker,
     circuit_breaker_registry,
@@ -51,9 +57,19 @@ class MemoryManager:
                      or a single adapter that will be used as the default
         """
         if adapters is None:
-            # Provide a simple default adapter so unit tests and basic usage work
-            # without explicit configuration.
-            self.adapters = {"tinydb": TinyDBMemoryAdapter()}
+            settings = get_settings()
+            store_type = getattr(settings, "memory_store_type", "tinydb").lower()
+            if store_type == "s3" and S3MemoryAdapter is not None:
+                bucket = getattr(settings, "s3_bucket_name", "devsynth-memory")
+                try:
+                    adapter = S3MemoryAdapter(bucket)
+                    self.adapters = {"s3": adapter}
+                except Exception as exc:  # pragma: no cover - defensive
+                    logger.warning("Failed to init S3MemoryAdapter: %s", exc)
+                    self.adapters = {"tinydb": TinyDBMemoryAdapter()}
+            else:
+                # Default to TinyDB for simple usage and unit tests
+                self.adapters = {"tinydb": TinyDBMemoryAdapter()}
         elif isinstance(adapters, dict):
             self.adapters = adapters
         else:

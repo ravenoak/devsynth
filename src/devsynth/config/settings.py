@@ -160,6 +160,9 @@ class Settings(BaseSettings):
             "memory_store_type": lambda s: os.environ.get(
                 "DEVSYNTH_MEMORY_STORE", "memory"
             ),
+            "s3_bucket_name": lambda s: os.environ.get(
+                "DEVSYNTH_S3_BUCKET", s.s3_bucket_name
+            ),
             # Expose configurable Kuzu settings with environment overrides
             "kuzu_db_path": lambda s: os.environ.get(
                 "DEVSYNTH_KUZU_DB_PATH", s.kuzu_db_path
@@ -197,6 +200,9 @@ class Settings(BaseSettings):
     )
     memory_file_path: str = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_MEMORY_PATH"}
+    )
+    s3_bucket_name: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_S3_BUCKET"}
     )
     kuzu_db_path: Optional[str] = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_KUZU_DB_PATH"}
